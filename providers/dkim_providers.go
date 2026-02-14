@@ -7,28 +7,36 @@ package analyzer
 import "strings"
 
 var knownDKIMProviders = map[string]bool{
-	"google":          true,
-	"microsoft":       true,
-	"protonmail":      true,
-	"zoho":            true,
-	"fastmail":        true,
-	"yahoo":           true,
-	"mailgun":         true,
-	"sendgrid":        true,
-	"amazonses":       true,
-	"postmark":        true,
-	"sparkpost":       true,
-	"mailchimp":       true,
-	"mandrill":        true,
-	"sendinblue":      true,
-	"brevo":           true,
-	"constantcontact": true,
-	"mimecast":        true,
+	"google":           true,
+	"google workspace": true,
+	"microsoft":        true,
+	"microsoft 365":    true,
+	"protonmail":       true,
+	"zoho":             true,
+	"zoho mail":        true,
+	"fastmail":         true,
+	"yahoo":            true,
+	"mailgun":          true,
+	"sendgrid":         true,
+	"amazonses":        true,
+	"amazon ses":       true,
+	"postmark":         true,
+	"sparkpost":        true,
+	"mailchimp":        true,
+	"mandrill":         true,
+	"sendinblue":       true,
+	"brevo":            true,
+	"constantcontact":  true,
+	"mimecast":         true,
+	"proofpoint":       true,
+	"barracuda":        true,
+	"cloudflare email": true,
+	"hornetsecurity":   true,
 }
 
 func isKnownDKIMProvider(provider interface{}) bool {
 	s, ok := provider.(string)
-	if !ok || s == "" {
+	if !ok || s == "" || s == "Unknown" {
 		return false
 	}
 	return knownDKIMProviders[strings.ToLower(s)]
