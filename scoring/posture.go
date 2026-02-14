@@ -21,27 +21,6 @@ const (
         protocolTLSRPT = "TLS-RPT"
 )
 
-var knownDKIMProviders = map[string]bool{
-        "Google Workspace": true,
-        "Microsoft 365":    true,
-        "Amazon SES":       true,
-        "Proofpoint":       true,
-        "Mimecast":         true,
-        "Barracuda":        true,
-        "Zoho Mail":        true,
-        "Fastmail":         true,
-        "ProtonMail":       true,
-        "Cloudflare Email": true,
-        "Hornetsecurity":   true,
-}
-
-func isKnownDKIMProvider(provider interface{}) bool {
-        s, ok := provider.(string)
-        if !ok || s == "" || s == "Unknown" {
-                return false
-        }
-        return knownDKIMProviders[s]
-}
 
 type protocolState struct {
         spfOK              bool
@@ -747,3 +726,4 @@ func computeAuxScore(ps protocolState) int {
         }
         return score
 }
+
