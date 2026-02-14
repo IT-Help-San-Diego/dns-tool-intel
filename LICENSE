@@ -1,25 +1,35 @@
-Copyright (c) 2024-2026 IT Help San Diego Inc. All rights reserved.
+Business Source License 1.1
 
-PROPRIETARY AND CONFIDENTIAL
+Licensor: IT Help San Diego Inc.
 
-This software and its source code are the proprietary property of
-IT Help San Diego Inc. ("Company"). No part of this software may be
-reproduced, distributed, transmitted, displayed, published, or
-broadcast in any form or by any means, electronic or mechanical,
-without the prior written permission of the Company.
+Licensed Work:
+The software and source code made available in this repository:
+https://github.com/careyjames/dnstool-intel
+excluding third-party components that are separately licensed.
 
-This software contains trade secrets and confidential information
-of the Company. Unauthorized copying, modification, distribution,
-or use of this software, via any medium, is strictly prohibited.
+Additional Use Grant:
+You may copy, modify, create derivative works, and run the Licensed Work:
+1) for non-production purposes (development, testing, CI, research, education,
+   personal use); and
+2) in production solely for your own internal business operations to assess
+   domains you own or control.
+You may not provide the Licensed Work (or a derivative of it) as a hosted,
+managed, or API-based service to third parties where it provides material
+DNS/security audit functionality, nor sell a competing commercial service
+built on it.
 
-The intelligence logic, scoring algorithms, remediation guidance,
-provider fingerprinting databases, and golden rules test definitions
-contained herein represent proprietary analysis methodologies
-developed through years of field expertise and are protected as
-trade secrets under applicable law.
+Change Date: 2029-02-14
 
-For licensing inquiries, contact:
-IT Help San Diego Inc.
-La Jolla, CA 92037
-https://www.it-help.tech
-619-853-5008
+Change License: Apache License, Version 2.0
+
+For information about alternative licensing arrangements for the Licensed Work,
+please contact: licensing@it-help.tech
+
+Notice:
+The Licensed Work is (c) 2024-2026 IT Help San Diego Inc.
+
+This LICENSE uses the Business Source License 1.1 terms, with the parameters
+above. The canonical BSL 1.1 text is available at:
+https://mariadb.com/bsl11/
+
+SPDX-License-Identifier: BUSL-1.1
