@@ -13,7 +13,7 @@
 | **Product name** | DNS Tool |
 | **Subtitle** | Domain Security Intelligence |
 | **Full title** | DNS Tool — Domain Security Intelligence |
-| **Tagline** | Same way since 1983 |
+| **Tagline** | DNS, same way since 1983 |
 | **Philosophy** | Unix-native naming + strong positioning copy |
 | **Naming rationale** | Owns Snap store listing, fits Unix tradition (nmap, dig, nslookup), lets positioning carry authority |
 | **License** | BSL 1.1 (open-core) |
@@ -174,7 +174,7 @@ domain security audit, SPF DKIM DMARC analyzer, DNS intelligence report, email a
 | Context | Copy |
 |---------|------|
 | Hero subtitle | Domain Security Intelligence |
-| Footer tagline | Same way since 1983 |
+| Footer tagline | DNS, same way since 1983 |
 | What we are | OSINT platform for RFC-compliant domain security analysis |
 | What we produce | Intelligence reports, not dashboards |
 | How we work | Open-standard protocols, no login required |
@@ -223,3 +223,4 @@ When scanning a `.co.uk` domain (e.g., `bbc.co.uk`):
 | 2026-02-20 | Initial master copy created. Stars-aligned keywords defined. | Agent |
 | 2026-02-20 | Repos renamed: dns-tool-web, dns-tool-intel | Agent |
 | 2026-02-20 | SEO keywords refined from 30+ to 15 focused terms | Agent |
+
