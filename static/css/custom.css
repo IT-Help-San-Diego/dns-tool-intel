@@ -2557,7 +2557,7 @@ body.covert-mode .hero-section::before {
 body.covert-mode footer .u-rounded-circle {
     filter: brightness(0.7);
     border-color: rgba(204, 40, 40, 0.6);
-    box-shadow: 0 0 0 3px rgba(180, 30, 30, 0.15), 0 0 12px rgba(180, 30, 30, 0.08);
+    box-shadow: 0 0 0 2px rgba(180, 30, 30, 0.2);
 }
 body.covert-mode footer .u-text-footer {
     color: rgba(204, 40, 40, 0.6);
@@ -4917,10 +4917,8 @@ body.covert-mode .proto-dkim.bg-info {
 /* Bootstrap has .rounded-circle */
 .u-rounded-circle { border-radius: 50%; }
 footer .u-rounded-circle {
-    border: 3px solid rgba(88, 166, 255, 0.55);
-    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.12), 0 0 12px rgba(88, 166, 255, 0.08);
-    padding: 6px;
-    object-fit: contain;
+    border: 2px solid rgba(88, 166, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15);
 }
 .u-valign-n3 { vertical-align: -3px; }
 .u-fs-xs { font-size: 0.7rem; }
