@@ -134,6 +134,19 @@ var analyzerBoundaries = []boundarySpec{
                         "RequiredSchemaKeys",
                 },
         },
+        {
+                Name:          "posture_diff",
+                FrameworkFile: "posture_diff.go",
+                StubFile:      "posture_diff_oss.go",
+                IntelFile:     "posture_diff_intel.go",
+                Package:       "analyzer",
+                StubFunctions: []string{
+                        "func classifyDriftSeverity(",
+                        "func classifyPolicyChange(",
+                        "func classifyStatusChange(",
+                },
+                StubVars: []string{},
+        },
 }
 
 func TestBoundaryIntegrity_FilePresence(t *testing.T) {
@@ -465,7 +478,7 @@ func TestBoundaryIntegrity_NoIntelStagingDirectory(t *testing.T) {
 }
 
 func TestBoundaryIntegrity_CompleteBoundaryInventory(t *testing.T) {
-        expectedCount := 6
+        expectedCount := 7
         if len(analyzerBoundaries) != expectedCount {
                 t.Errorf("analyzerBoundaries has %d entries, expected %d — update boundary inventory when adding new boundaries", len(analyzerBoundaries), expectedCount)
         }
