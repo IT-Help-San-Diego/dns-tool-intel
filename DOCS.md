@@ -218,6 +218,7 @@ Guided network troubleshooting tool for everyone — step-by-step diagnostic flo
 - Dual-Network Remote Support (iPhone hotspot + Ethernet for remote field diagnostics), Command-Line Quick Reference (ping, traceroute, ipconfig, netstat, dig, networkQuality), Recommended External Tools (Speedtest, Fast.com, PingPlotter, Downdetector, Fing, Wireshark)
 
 **UX Features:**
+- Triage matrix ("What Brought You Here?"): six scenario cards (Internet Down, Port Forwarding/Remote Access, Check My IP/Port, Router vs ISP Isolation, Remote Support Technician, CLI Reference) that jump users directly to the relevant diagnostic step
 - Network chain visualization (device → Wi-Fi → router → modem → ISP → internet), step navigator with jump-links, "Found Something?" discovery mechanism at each wizard step, "Why This Matters" expandable sections with RFC citations, Command Preflight guidance for password-requiring terminal commands, platform-specific instructions (macOS/Windows/Linux)
 
 **Endpoints:**

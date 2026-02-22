@@ -364,6 +364,7 @@ The Field Tech Toolkit is a guided network troubleshooting tool designed for eve
 - **Recommended External Tools**: Speedtest by Ookla, Fast.com (ISP throttle detection), PingPlotter, Downdetector, Fing, Wireshark — with honest descriptions and use cases
 
 ### UX Features
+- **Triage Matrix ("What Brought You Here?")**: Six scenario cards at the top (Internet Down, Port Forwarding/Remote Access, Check My IP/Port, Router vs ISP Isolation, Remote Support Technician, CLI Reference) that jump users directly to the relevant diagnostic step — eliminating guesswork for first-time visitors
 - **Network Chain Visualization**: Interactive device → Wi-Fi → router → modem → ISP → internet chain
 - **Step Navigator**: Jump-to-step links for all 12 sections
 - **"Found Something?" Discovery Mechanism**: Collapsible note at each wizard step for users to record discoveries without restarting the flow
