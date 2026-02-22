@@ -1,5 +1,9 @@
 # DNS Tool — Boundary Matrix: Public vs Private Repo Classification
 
+> **Status:** ARCHIVED — Implementation complete (2026-02-17). All action items done.  
+> **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, document A11 (Intel Build Tag Architecture)  
+> **Purpose:** Historical design document. Classified every symbol for the two-repo split. The split is now implemented — 11 `_intel.go` files transferred to `careyjames/dns-tool-intel`, OSS build passes cleanly.
+
 > **Generated:** 2026-02-17  
 > **Scope:** All 10 stub files + 3 "removed from stub registry" files  
 > **Purpose:** Classify every exported/unexported symbol to guide the two-repo split (public `dns-tool-web` vs private `dns-tool-intel`)

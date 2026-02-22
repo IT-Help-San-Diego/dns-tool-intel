@@ -1,8 +1,11 @@
 # DNS Tool — Go Build Tag Strategy for Two-Repo Open Core
 
-> **Date:** 2026-02-17
-> **Status:** Research / Design (no code changes)
-> **Scope:** dns-tool-web (public, BSL 1.1) + dns-tool-intel (private, BSL 1.1)
+> **Status:** ARCHIVED — Implementation complete (2026-02-17). Build tag system is live.  
+> **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, documents A11 (Intel Build Tag Architecture) and A13 (Technical Solution Design Blueprint)  
+> **Purpose:** Historical design document. Researched industry patterns (HashiCorp, CockroachDB, Grafana, Sourcegraph) and designed the `_oss.go`/`_intel.go` build tag convention now in production.
+
+> **Date:** 2026-02-17  
+> **Scope:** dns-tool-web (public, BSL 1.1) + dns-tool-intel (private, BSL 1.1)  
 > **References:** BOUNDARY_MATRIX.md, STUB_AUDIT.md, LICENSING.md
 
 ---

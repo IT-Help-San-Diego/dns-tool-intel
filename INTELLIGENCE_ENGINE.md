@@ -2,6 +2,10 @@
 
 ## Architecture & Roadmap Document — v1.1 (2026-02-17)
 
+> **Status:** PARTIALLY ARCHIVED — Core ICIE architecture is implemented and live. Sections marked [CURRENT] are accurate. Sections marked [DESIGN] describe future phases.  
+> **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, documents A6 (Intelligence Products Architecture) and A10 (ICAE Engine Architecture)  
+> **Related engines:** ICAE (129 test cases, `go-server/internal/icae/`), ICuAE (29 test cases, `go-server/internal/icuae/`)
+
 ---
 
 > **Implementation Status (v26.19.20)**: This document describes both the current ICIE architecture and planned enhancements. Sections marked **[CURRENT]** describe implemented, working capabilities. Sections marked **[DESIGN — NOT YET IMPLEMENTED]** describe the architectural vision for future phases. The ICIE is real and functioning — posture scoring, remediation, protocol analysis, and confidence foundations are all implemented. The cross-reference corroboration engine and extended confidence levels are planned for future phases.

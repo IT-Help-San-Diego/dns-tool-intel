@@ -77,13 +77,19 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Configurable TLP classification (default: TLP:AMBER, with TLP:RED, TLP:AMBER+STRICT, TLP:GREEN and TLP:CLEAR options) aligned with CISA Cyber Hygiene practice and FIRST TLP v2.0
 - Covert Recon Mode — adversarial dark theme with scotopic vision-optimized red-spectrum (#cc2020) palette, producing the Recon Report intelligence product
 - Color Science page (/color-science) — live CIE scotopic/photopic luminosity validation and WCAG 2.2 contrast calculations for Covert Recon Mode palette, with MIL-STD-1472H compliance badges
-- Report integrity hash (SHA-256 fingerprint binding domain, analysis ID, timestamp, tool version, and results data) with copy-to-clipboard and header preview
+- Report integrity hash (SHA-3-512 fingerprint binding domain, analysis ID, timestamp, tool version, and results data) with copy-to-clipboard and header preview
 - Architecture page (/architecture) — interactive Mermaid diagrams of system architecture
-- Posture drift detection foundation (canonical SHA-256 hashing for longitudinal monitoring)
+- Posture drift detection foundation (canonical SHA-3-512 hashing for longitudinal monitoring, backward-compatible legacy SHA-256 recomputation)
 - ICAE Intelligence Confidence Matrix with tier-colored next-tier progress labels and two-layer (Collection + Analysis) auditing, 129 deterministic test cases across 9 protocols
 - Changelog page
 - Security policy page
 - Sources and methodology reference
+- Zone file upload (/zone) — authenticated-only bulk analysis from uploaded zone files
+- Subdomain discovery FAQ (/faq/subdomains) — methodology and pipeline explanation
+- Accountability log (/confidence/audit-log) — paginated hash integrity audit trail
+- Download verification — Kali-style JSON download with SHA-3-512 .sha3 sidecar file
+- Hash Integrity Audit Engine — automated recomputation and verification of stored posture hashes
+- Brand colors page (/brand-colors) — brand palette reference with live CIE validation
 - Origin story page (/about) with verified timeline: Memphis 1980, Nashville IT, Raspberry Pi, PhreakNIC ~2006, Hak5 offensive security, 2015-2024 defensive security (Objective-See, CISA RPT Jan 2022, Hak5 Payload Award Sept 2023), Python CLI (Snap Store Nov 2023), Go platform Feb 2025
 
 ## Security and Infrastructure
