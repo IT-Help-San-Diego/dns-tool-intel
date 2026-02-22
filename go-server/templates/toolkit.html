@@ -8,13 +8,13 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Field Tech Toolkit - DNS Tool">
     <meta property="og:description" content="Guided network troubleshooting for everyone. Diagnose connectivity issues, check your public IP, verify port forwarding, and learn how your network works.">
-    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-toolkit.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/toolkit">
     <meta name="twitter:title" content="Field Tech Toolkit - DNS Tool">
     <meta name="twitter:description" content="Guided network troubleshooting for everyone. Diagnose connectivity issues, check your public IP, verify port forwarding, and learn how your network works.">
-    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-toolkit.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/toolkit">
     {{template "critical_css" .}}
     {{template "head_css" .}}
@@ -508,6 +508,224 @@
                             <p class="mt-2 text-muted small">
                                 DNS (Domain Name System) is like the phone book of the internet. When you type &ldquo;google.com,&rdquo; your computer asks a DNS server to translate that name into an IP address (like 142.250.80.14) so it can actually connect. If DNS is broken, your internet connection might be perfectly fine, but your computer can&rsquo;t find anything because it doesn&rsquo;t know where to go. This is one of the most common &ldquo;internet is down&rdquo; situations that&rsquo;s actually fixable in seconds.
                                 <span class="d-block mt-1"><em>DNS is defined in RFC 1034 and RFC 1035. The public resolvers at 8.8.8.8 (Google) and 1.1.1.1 (Cloudflare) are free and generally faster and more reliable than ISP-provided DNS.</em></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-divider mb-4">
+                    <span class="tk-divider-text">Advanced Scenario</span>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepDualNetwork">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-project-diagram" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">The Dual-Network Trick: Diagnose a Dead Network Remotely</h2>
+                        </div>
+                        <p class="mb-3">
+                            What if your internet is completely down and you need remote help from a technician? Or what if <em>you&rsquo;re</em> the technician trying to help someone hundreds of miles away whose network just died? There&rsquo;s a real technique field engineers use to solve this exact problem.
+                        </p>
+                        <div class="card bg-dark border-info mb-3">
+                            <div class="card-body">
+                                <h3 class="h6 text-info"><i class="fas fa-lightbulb me-1" aria-hidden="true"></i>The Concept: Two Networks at Once</h3>
+                                <p class="small text-muted mb-2">
+                                    Modern computers (especially Macs) can connect to <strong>two networks simultaneously</strong> &mdash; one for internet access, and one for local diagnostics. Here&rsquo;s how it works:
+                                </p>
+                                <ol class="small text-muted mb-0">
+                                    <li class="mb-2"><strong>Get online via phone hotspot:</strong> Connect your iPhone (or Android) via USB tethering or Wi-Fi hotspot. This gives you a working internet connection through your cellular carrier.</li>
+                                    <li class="mb-2"><strong>Connect to the dead network via Ethernet:</strong> Plug an Ethernet cable from your laptop into the router or switch of the network that&rsquo;s down. This gives you local access to scan and diagnose devices on that network.</li>
+                                    <li class="mb-2"><strong>Set network priority:</strong> In your system&rsquo;s network preferences, set the phone hotspot as the <em>primary</em> internet connection. Your computer uses the hotspot for internet access (remote desktop, screen sharing, web browsing) while the Ethernet connection lets you scan and probe the local network.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h4 class="h6 text-secondary"><i class="fas fa-laptop me-1" aria-hidden="true"></i>On macOS</h4>
+                                        <ol class="small text-muted mb-0">
+                                            <li>Connect iPhone via USB cable</li>
+                                            <li>Open <strong>System Settings &rarr; Network</strong></li>
+                                            <li>Click the <strong>&hellip;</strong> menu &rarr; <strong>Set Service Order</strong></li>
+                                            <li>Drag <strong>iPhone USB</strong> above <strong>Ethernet</strong></li>
+                                            <li>Your Mac uses the phone for internet, Ethernet for local scanning</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h4 class="h6 text-secondary"><i class="fas fa-laptop me-1" aria-hidden="true"></i>On Windows</h4>
+                                        <ol class="small text-muted mb-0">
+                                            <li>Enable phone hotspot (USB or Wi-Fi)</li>
+                                            <li>Open <strong>Control Panel &rarr; Network Connections</strong></li>
+                                            <li>Right-click the hotspot adapter &rarr; <strong>Properties &rarr; IPv4 &rarr; Advanced</strong></li>
+                                            <li>Set a <em>lower</em> interface metric (e.g., 10) than the Ethernet adapter&rsquo;s metric</li>
+                                            <li>Windows routes internet through the hotspot, local traffic through Ethernet</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-secondary mb-3 small">
+                            <i class="fas fa-user-shield me-2" aria-hidden="true"></i>
+                            <strong>Real-World Use Case:</strong> A technician in San Diego can screen-share into a client&rsquo;s laptop in Nashville. The laptop&rsquo;s internet comes from the phone hotspot (so screen sharing works), while the Ethernet cable facing the dead office network lets the technician run local network scans, check the router, verify IP assignments, and diagnose the outage &mdash; all without being physically present.
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyDualNetwork" aria-expanded="false" aria-controls="whyDualNetwork">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyDualNetwork">
+                            <p class="mt-2 text-muted small">
+                                When a network goes down, you lose the ability to remotely access it &mdash; which creates a catch-22 for remote support. The dual-network technique solves this by separating <em>internet access</em> (phone hotspot) from <em>local network access</em> (Ethernet). Your operating system&rsquo;s routing table handles this naturally: traffic to the local subnet (e.g., 192.168.x.x, 10.x.x.x) goes through Ethernet, while everything else routes through the hotspot&rsquo;s default gateway. This is the same principle behind multi-homed servers and policy-based routing used in enterprise environments.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-divider mb-4">
+                    <span class="tk-divider-text">Command-Line Quick Reference</span>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepCLI">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-terminal" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">Essential Terminal Commands</h2>
+                        </div>
+                        <p class="mb-3">
+                            You don&rsquo;t always need a website &mdash; these built-in commands are a technician&rsquo;s first line of defense. Open your terminal (Command Prompt on Windows, Terminal on Mac/Linux) and try these:
+                        </p>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-dark table-sm small">
+                                <thead>
+                                    <tr>
+                                        <th>What It Does</th>
+                                        <th>Windows</th>
+                                        <th>macOS / Linux</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Continuous connection test (checks for intermittent drops)</td>
+                                        <td><code>ping -t 8.8.8.8</code></td>
+                                        <td><code>ping 8.8.8.8</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Trace the path to a website (shows every hop)</td>
+                                        <td><code>tracert google.com</code></td>
+                                        <td><code>traceroute google.com</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Clear DNS cache (fixes &ldquo;server not found&rdquo; errors)</td>
+                                        <td><code>ipconfig /flushdns</code></td>
+                                        <td><code>sudo dscacheutil -flushcache</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Show active network connections and ports</td>
+                                        <td><code>netstat -an</code></td>
+                                        <td><code>netstat -an</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Show your local network configuration</td>
+                                        <td><code>ipconfig /all</code></td>
+                                        <td><code>ifconfig</code> or <code>ip addr</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Look up a domain&rsquo;s DNS record</td>
+                                        <td><code>nslookup example.com</code></td>
+                                        <td><code>dig example.com</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyCLI" aria-expanded="false" aria-controls="whyCLI">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyCLI">
+                            <p class="mt-2 text-muted small">
+                                These commands talk directly to your operating system&rsquo;s network stack &mdash; no browser or third-party service needed. <code>ping</code> tests raw connectivity (RFC 792 &mdash; ICMP Echo). <code>traceroute</code> maps the hop-by-hop path your packets take, showing exactly where delays or drops occur. <code>netstat</code> reveals what programs on your computer are actively communicating over the network. These are the same tools network engineers use every day.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-divider mb-4">
+                    <span class="tk-divider-text">Recommended External Tools</span>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepExternalTools">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-tools" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">Industry-Standard Diagnostic Tools</h2>
+                        </div>
+                        <p class="mb-3">
+                            Beyond what we offer here, these are the tools professional field technicians reach for. We&rsquo;re listing them because they&rsquo;re genuinely useful &mdash; not because we&rsquo;re affiliated with any of them.
+                        </p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-tachometer-alt me-1 text-info" aria-hidden="true"></i>Speedtest by Ookla</h3>
+                                        <p class="small text-muted mb-1">The industry standard for measuring download/upload speed, latency, and jitter. Helps determine if you&rsquo;re getting what you&rsquo;re paying for.</p>
+                                        <a href="https://www.speedtest.net" class="small" target="_blank" rel="noopener noreferrer">speedtest.net</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-chart-line me-1 text-info" aria-hidden="true"></i>Fast.com</h3>
+                                        <p class="small text-muted mb-1">Netflix-powered speed test. Useful for checking if your ISP is throttling streaming traffic specifically &mdash; if Fast.com shows slower speeds than Ookla, that&rsquo;s a red flag.</p>
+                                        <a href="https://fast.com" class="small" target="_blank" rel="noopener noreferrer">fast.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-route me-1 text-info" aria-hidden="true"></i>PingPlotter</h3>
+                                        <p class="small text-muted mb-1">Combines ping and traceroute into a visual graph over time. Shows exactly <em>where</em> in the network path you&rsquo;re losing packets or experiencing latency spikes.</p>
+                                        <a href="https://www.pingplotter.com" class="small" target="_blank" rel="noopener noreferrer">pingplotter.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-exclamation-triangle me-1 text-info" aria-hidden="true"></i>Downdetector</h3>
+                                        <p class="small text-muted mb-1">Crowdsourced outage reports. Before you spend an hour troubleshooting, check here to see if your ISP or service is having a widespread outage.</p>
+                                        <a href="https://downdetector.com" class="small" target="_blank" rel="noopener noreferrer">downdetector.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-search me-1 text-info" aria-hidden="true"></i>Fing</h3>
+                                        <p class="small text-muted mb-1">Network scanner that identifies all devices on your Wi-Fi. Helps you spot bandwidth hogs, unauthorized devices, or rogue access points.</p>
+                                        <a href="https://www.fing.com" class="small" target="_blank" rel="noopener noreferrer">fing.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6"><i class="fas fa-microscope me-1 text-info" aria-hidden="true"></i>Wireshark</h3>
+                                        <p class="small text-muted mb-1">Professional packet analyzer &mdash; see exactly what&rsquo;s happening on the wire. Advanced tool for identifying protocol issues, hidden background traffic, or malware communication.</p>
+                                        <a href="https://www.wireshark.org" class="small" target="_blank" rel="noopener noreferrer">wireshark.org</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyExternalTools" aria-expanded="false" aria-controls="whyExternalTools">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why We Recommend These
+                        </button>
+                        <div class="tk-why-content collapse" id="whyExternalTools">
+                            <p class="mt-2 text-muted small">
+                                No single tool does everything. Speedtest measures throughput. PingPlotter maps the path. Wireshark shows the packets. Downdetector checks if it&rsquo;s just you or everyone. Together, they cover the full diagnostic spectrum from &ldquo;is it plugged in?&rdquo; to &ldquo;which router in my ISP&rsquo;s backbone is dropping 12% of my packets between hops 4 and 5.&rdquo; We built the Field Tech Toolkit to handle the guided troubleshooting flow and the tests you can run right here &mdash; but for deep dives, these tools are what the pros use.
                             </p>
                         </div>
                     </div>
