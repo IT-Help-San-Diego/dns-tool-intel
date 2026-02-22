@@ -27,7 +27,7 @@
         <div class="container">
             <div class="text-center hero-content">
                 <div class="hero-badge mb-3">
-                    <i class="fas fa-tools me-1"></i> Field Tech Toolkit
+                    <i class="fas fa-tools me-1"></i> Field Tech Toolkit <span class="badge bg-warning text-dark ms-2">Beta</span>
                 </div>
                 <h1 class="hero-title mb-3">Field Tech Toolkit</h1>
                 <p class="hero-subtitle mx-auto mb-4 u-fs-135rem">
@@ -737,8 +737,41 @@
                                         <td><code>nslookup example.com</code></td>
                                         <td><code>dig example.com</code></td>
                                     </tr>
+                                    <tr>
+                                        <td>Measure network quality (upload, download, responsiveness)</td>
+                                        <td><em class="text-muted">Not available</em></td>
+                                        <td><code>networkQuality</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Detailed network quality with per-flow metrics</td>
+                                        <td><em class="text-muted">Not available</em></td>
+                                        <td><code>networkQuality -v</code></td>
+                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="alert alert-info small mb-3">
+                            <i class="fas fa-laptop me-1" aria-hidden="true"></i>
+                            <strong>macOS Tip &mdash; <code>networkQuality</code>:</strong> Built into macOS Monterey and later, this Apple command measures your network&rsquo;s upload capacity, download capacity, and responsiveness (RPM &mdash; Round-trips Per Minute) simultaneously. Unlike traditional speed tests, it measures under load &mdash; meaning it shows how your network performs when you&rsquo;re actually using it. Run <code>networkQuality -v</code> for per-flow breakdowns. This is what field technicians use to quickly assess real-world connection quality without opening a browser.
+                        </div>
+                        <div class="card bg-dark border-warning mb-3" id="cmdPreflight">
+                            <div class="card-body">
+                                <h3 class="h6 text-warning"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>Before You Paste a Terminal Command</h3>
+                                <p class="small text-muted mb-2">
+                                    Some commands (like <code>sudo dscacheutil -flushcache</code>) will ask for your password. Here&rsquo;s what to expect so you&rsquo;re not caught off guard:
+                                </p>
+                                <ol class="small text-muted mb-2">
+                                    <li><strong>Paste the command</strong> into your terminal and press <strong>Return</strong></li>
+                                    <li>If it asks for a password, <strong>this is your Mac login password</strong> &mdash; the one you use to unlock your computer. It is <em>not</em> your Apple ID or iCloud password</li>
+                                    <li><strong>You will not see anything as you type</strong> &mdash; no dots, no asterisks, nothing. This is normal and intentional (it&rsquo;s a security feature)</li>
+                                    <li>Type your password carefully, then press <strong>Return</strong></li>
+                                    <li>If you think you made a typo, <strong>press Delete repeatedly</strong> to clear what you&rsquo;ve typed (even though you can&rsquo;t see it), then start over</li>
+                                </ol>
+                                <p class="small text-muted mb-0">
+                                    <i class="fas fa-shield-alt me-1" aria-hidden="true"></i>
+                                    <strong>Why no visible characters?</strong> If someone is watching your screen (shoulder-surfing), hiding the password length and characters prevents them from guessing it. This practice comes from Unix security design (circa 1970s) and remains standard on every Mac, Linux, and server terminal today.
+                                </p>
+                            </div>
                         </div>
                         <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyCLI" aria-expanded="false" aria-controls="whyCLI">
                             <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters

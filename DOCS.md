@@ -205,6 +205,26 @@ Domain may be intentionally non-mail. Check SPF for `v=spf1 -all` pattern. We de
 
 Maximum 8 requests per minute per IP. Wait 60 seconds and retry.
 
+### Field Tech Toolkit
+Guided network troubleshooting tool for everyone — step-by-step diagnostic flow with educational context. Beta feature.
+
+**Guided Wizard Flow (Steps 0–5):**
+- Cellular Data Check, Connection Type (Wi-Fi/Ethernet), Business vs Residential, Multiple Wi-Fi Networks, Port Forwarding/DDNS, Direct-to-Modem Isolation
+
+**Diagnostic Tools:**
+- What's My IP (public IP via Observe Probe VPS), External Port Check (remote probe), DNS Resolution Check
+
+**Reference Resources:**
+- Dual-Network Remote Support (iPhone hotspot + Ethernet for remote field diagnostics), Command-Line Quick Reference (ping, traceroute, ipconfig, netstat, dig, networkQuality), Recommended External Tools (Speedtest, Fast.com, PingPlotter, Downdetector, Fing, Wireshark)
+
+**UX Features:**
+- Network chain visualization (device → Wi-Fi → router → modem → ISP → internet), step navigator with jump-links, "Found Something?" discovery mechanism at each wizard step, "Why This Matters" expandable sections with RFC citations, Command Preflight guidance for password-requiring terminal commands, platform-specific instructions (macOS/Windows/Linux)
+
+**Endpoints:**
+- `GET /toolkit` — Main page
+- `POST /toolkit/myip` — Public IP detection
+- `POST /toolkit/portcheck` — External port reachability check
+
 ## Version History
 
 ### v26.4.30+

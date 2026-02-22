@@ -43,7 +43,7 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/sources` — Complete inventory of all intelligence sources, methodologies, rate limits, and verification commands
 - `/investigate` — IP Intelligence: determine how an IP address relates to a domain (Direct Asset, Email Provider, CDN/Edge, DNS Provider, SPF-Authorized Sender)
 - `/email-header` — Email Header Analyzer: paste headers, upload .eml files, or import JSON from Gmail API, Microsoft Graph, Postmark, SendGrid, Mailgun, and MBOX archives for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, subject line scam analysis (phone number obfuscation, fake payment amounts, homoglyph brand impersonation), third-party spam vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), and brand mismatch detection
-- `/toolkit` — Field Tech Toolkit: guided network troubleshooting for everyone — step-by-step diagnostic flow covering connection type, business vs residential internet, multiple Wi-Fi networks, port forwarding/DDNS guidance, modem isolation, public IP detection, and external port checking via probe server
+- `/toolkit` — Field Tech Toolkit (Beta): guided network troubleshooting for everyone — step-by-step wizard with 6 diagnostic steps, What's My IP, external port check, DNS test, dual-network remote support, command-line reference (including macOS networkQuality), command preflight guidance for password-protected commands, recommended external tools, step navigator, and "Found Something?" discovery mechanism at each step
 - `/changelog` — What's New: complete changelog of improvements and new features
 - `/history` — List of recently analyzed domains
 - `/stats` — Usage statistics and trends

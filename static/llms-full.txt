@@ -340,11 +340,11 @@ DNS Tool detects when a domain uses a hosted email provider and adjusts DANE ana
 
 ---
 
-## Field Tech Toolkit (`/toolkit`)
+## Field Tech Toolkit (`/toolkit`) — Beta
 
-The Field Tech Toolkit is a guided network troubleshooting tool designed for everyone — from IT professionals to non-technical users. It walks users through diagnosing network connectivity issues step by step:
+The Field Tech Toolkit is a guided network troubleshooting tool designed for everyone — from IT professionals to non-technical users. It walks users through diagnosing network connectivity issues step by step, with educational context and RFC citations at every stage.
 
-### Guided Flow
+### Guided Wizard Flow (Steps 0–5)
 1. **Cellular Data Check**: Catches users on mobile data before they diagnose the wrong network
 2. **Connection Type**: Wi-Fi vs Ethernet with platform-specific guidance
 3. **Business vs Residential**: Explains static IP, port forwarding, CGNAT implications
@@ -356,6 +356,18 @@ The Field Tech Toolkit is a guided network troubleshooting tool designed for eve
 - **What's My IP**: Shows public IP with platform-detected terminal commands
 - **External Port Check**: Probe VPS tests port reachability from outside the network ("You See / The Internet Sees")
 - **DNS Resolution Check**: Quick DNS test with public resolver fallback guidance
+
+### Reference Resources
+- **Dual-Network Remote Support**: iPhone hotspot + Ethernet technique for remote field diagnostics (macOS/Windows platform-specific routing instructions)
+- **Command-Line Quick Reference**: ping, traceroute/tracert, ipconfig/ifconfig, netstat, nslookup/dig, and macOS networkQuality command
+- **Command Preflight Guidance**: Password entry preparation for sudo commands (invisible typing, Mac login vs Apple ID clarification, error recovery)
+- **Recommended External Tools**: Speedtest by Ookla, Fast.com (ISP throttle detection), PingPlotter, Downdetector, Fing, Wireshark — with honest descriptions and use cases
+
+### UX Features
+- **Network Chain Visualization**: Interactive device → Wi-Fi → router → modem → ISP → internet chain
+- **Step Navigator**: Jump-to-step links for all 12 sections
+- **"Found Something?" Discovery Mechanism**: Collapsible note at each wizard step for users to record discoveries without restarting the flow
+- **"Why This Matters" Sections**: Expandable educational context with RFC citations
 
 ### For AI Agents
 - Navigate to `https://dnstool.it-help.tech/toolkit`
