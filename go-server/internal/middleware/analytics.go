@@ -5,7 +5,7 @@ package middleware
 import (
         "context"
         "crypto/rand"
-        "crypto/sha256"
+        "golang.org/x/crypto/sha3"
         "encoding/hex"
         "encoding/json"
         "log/slog"
@@ -63,7 +63,7 @@ func (ac *AnalyticsCollector) rotateSalt() {
 }
 
 func (ac *AnalyticsCollector) pseudoID(ip, ua string) string {
-        h := sha256.Sum256([]byte(ac.dailySalt + "|" + ip + "|" + ua))
+        h := sha3.Sum512([]byte(ac.dailySalt + "|" + ip + "|" + ua))
         return hex.EncodeToString(h[:8])
 }
 

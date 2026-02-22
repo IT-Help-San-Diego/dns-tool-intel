@@ -2,11 +2,11 @@
 
 ## Status
 
-The drift engine extends DNS Tool's observation-based analysis from point-in-time reports into longitudinal monitoring. Every scan generates a canonical posture hash (SHA-256) that fingerprints the domain's security posture at the time of analysis. When a domain is re-analyzed, the current hash is compared against the previous observation to detect posture drift.
+The drift engine extends DNS Tool's observation-based analysis from point-in-time reports into longitudinal monitoring. Every scan generates a canonical posture hash (SHA-3-512) that fingerprints the domain's security posture at the time of analysis. When a domain is re-analyzed, the current hash is compared against the previous observation to detect posture drift.
 
 ### Implemented (Phase 1–2)
 
-- **Canonical posture hashing** (`posture_hash.go`): Deterministic SHA-256 of normalized security posture vector (SPF, DMARC, DKIM, MTA-STS, TLS-RPT, BIMI, DANE, CAA, DNSSEC, mail posture, MX, NS). Order-independent — sorted before hashing to prevent false drift from DNS provider record reordering.
+- **Canonical posture hashing** (`posture_hash.go`): Deterministic SHA-3-512 of normalized security posture vector (SPF, DMARC, DKIM, MTA-STS, TLS-RPT, BIMI, DANE, CAA, DNSSEC, mail posture, MX, NS). Order-independent — sorted before hashing to prevent false drift from DNS provider record reordering.
 - **Database persistence**: `posture_hash VARCHAR(64)` column on `domain_analyses`. Every successful analysis stores its posture hash.
 - **Drift comparison**: Live analysis and history views compare current vs. previous posture hash. Drift detected when hashes differ.
 - **Drift alert UI**: "Posture Drift Detected" banner on results page when drift is found, with hash previews and link to previous report.

@@ -129,7 +129,7 @@ CVSS-aligned risk assessment with actionable remediation recommendations.
 Dual intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard, risk posture, and priority actions). Both use the same live analysis data — different formats for different audiences. Naming follows IC conventions: "Report" = comprehensive, "Brief" = concise decision-maker version. Configurable TLP classification (default: TLP:AMBER, aligned with CISA Cyber Hygiene practice) with TLP:GREEN and TLP:CLEAR options. JSON export for programmatic consumption.
 
 ### Report Integrity
-Every analysis generates a SHA-256 integrity hash binding domain, analysis ID, timestamp, tool version, and canonicalized results data. Header preview format: `SHA-256: c82f✱✱✱✱ Report Integrity ↓` (4 hex chars + 4 star masks + anchor link to full hash section). Copy-to-clipboard support. Distinct from posture hash (drift detection).
+Every analysis generates a SHA-3-512 integrity hash binding domain, analysis ID, timestamp, tool version, and canonicalized results data. Header preview format: `SHA-3: c82f✱✱✱✱ Report Integrity ↓` (4 hex chars + 4 star masks + anchor link to full hash section). Copy-to-clipboard support. Distinct from posture hash (drift detection).
 
 ## Rate Limiting & Abuse Prevention
 
@@ -226,7 +226,7 @@ Maximum 8 requests per minute per IP. Wait 60 seconds and retry.
 - OpenPhish integration
 - Public exposure checks (secret scanning in page source)
 - Expanded exposure checks (opt-in well-known path probing)
-- Report integrity hash (SHA-256 with header preview)
+- Report integrity hash (SHA-3-512 with header preview)
 - Posture drift detection foundation
 - SMTP TLS transport validation
 - CSP with nonces for XSS protection

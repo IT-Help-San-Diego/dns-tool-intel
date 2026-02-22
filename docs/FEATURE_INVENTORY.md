@@ -102,7 +102,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Concurrent analysis orchestrator with master deadline
 - Google OAuth 2.0 with PKCE (S256) — OIDC nonce for replay protection, `iat` validation with 5-minute clock skew tolerance, 10-second HTTP client timeouts, SameSite=Lax on all auth cookies
 - Admin panel: session management dashboard with per-user session counts (active/total), purge expired sessions, per-user session reset, user deletion (admin deletion blocked), CSRF-protected actions
-- Privacy-preserving site analytics: IP+User-Agent fingerprinting with daily-rotating SHA-256 salt (no cookies, no PII), incremental 60-second flushes with additive SQL merge
+- Privacy-preserving site analytics: IP+User-Agent fingerprinting with daily-rotating SHA-3-512 salt (no cookies, no PII), incremental 60-second flushes with additive SQL merge
 - Privacy-preserving cookieless analytics
 - Cryptographic provenance (SHA-3-512 hashing on JSON exports with detailed provenance metadata)
 

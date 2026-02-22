@@ -121,8 +121,8 @@
                                 <td>{{.FileSize}} bytes</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-muted">SHA-256</th>
-                                <td><code class="small">{{slice .ParseResult.SHA256 0 16}}…</code></td>
+                                <th scope="row" class="text-muted">SHA-3-512</th>
+                                <td><code class="small">{{slice .ParseResult.IntegrityHash 0 16}}…</code></td>
                             </tr>
                             <tr>
                                 <th scope="row" class="text-muted">Retained</th>

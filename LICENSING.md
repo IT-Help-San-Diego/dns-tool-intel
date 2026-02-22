@@ -47,7 +47,7 @@ This repository contains the public web application:
 - Enterprise DNS provider detection
 - Edge/CDN vs. origin detection
 - SaaS TXT footprint extraction and classification
-- Posture drift detection (canonical SHA-256 hashing)
+- Posture drift detection (canonical SHA-3-512 hashing)
 - Remediation engine with RFC-aligned Priority Actions
 - Analyzer stub interfaces (10 files — see replit.md for current registry)
 - Golden rules test suite
