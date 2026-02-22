@@ -6053,3 +6053,130 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 .u-tier-degraded { background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.3); }
 .u-tier-stale { background: rgba(220,53,69,0.15); border: 1px solid rgba(220,53,69,0.3); }
 .u-w-30pct { width: 30%; }
+
+.tk-chain-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1rem 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-elevated);
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.tk-chain-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 3.5rem;
+    flex-shrink: 0;
+}
+.tk-chain-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.tk-chain-label {
+    font-size: 0.6rem;
+    text-align: center;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.tk-chain-link {
+    color: var(--bg-elevated);
+    font-size: 0.6rem;
+    flex-shrink: 0;
+}
+.tk-chain-node.tk-active .tk-chain-icon {
+    border-color: #0dcaf0;
+    color: #0dcaf0;
+    background: rgba(13,202,240,0.1);
+}
+.tk-chain-node.tk-pass .tk-chain-icon {
+    border-color: #198754;
+    color: #198754;
+    background: rgba(25,135,84,0.1);
+}
+.tk-chain-node.tk-fail .tk-chain-icon {
+    border-color: #dc3545;
+    color: #dc3545;
+    background: rgba(220,53,69,0.1);
+}
+.tk-step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.tk-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: rgba(13,202,240,0.1);
+    border: 1px solid rgba(13,202,240,0.3);
+    color: #0dcaf0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.tk-step-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+}
+.tk-why-toggle {
+    font-size: 0.8rem;
+}
+.tk-why-content {
+    border-left: 3px solid rgba(13,202,240,0.3);
+    padding-left: 0.75rem;
+    margin-top: 0.5rem;
+}
+.tk-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+}
+.tk-divider::before,
+.tk-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--bg-elevated);
+}
+.tk-divider-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0dcaf0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+}
+@media (max-width: 575.98px) {
+    .tk-chain-track { gap: 0.15rem; padding: 0.75rem 0.25rem; }
+    .tk-chain-icon { width: 2rem; height: 2rem; font-size: 0.7rem; }
+    .tk-chain-label { font-size: 0.5rem; }
+    .tk-chain-link { font-size: 0.45rem; }
+    .tk-step-title { font-size: 1rem; }
+}
+@media print {
+    .tk-chain-track,
+    .tk-why-toggle,
+    .tk-why-content { display: none !important; }
+}

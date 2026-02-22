@@ -190,6 +190,11 @@ func main() {
 
         router.GET("/proxy/bimi-logo", proxyHandler.BIMILogo)
 
+        toolkitHandler := handlers.NewToolkitHandler(cfg)
+        router.GET("/toolkit", toolkitHandler.ToolkitPage)
+        router.POST("/toolkit/myip", toolkitHandler.MyIP)
+        router.POST("/toolkit/portcheck", middleware.AnalyzeRateLimit(rateLimiter), toolkitHandler.PortCheck)
+
         investigateHandler := handlers.NewInvestigateHandler(cfg, dnsAnalyzer)
         router.GET("/investigate", investigateHandler.InvestigatePage)
         router.POST("/investigate", middleware.AnalyzeRateLimit(rateLimiter), investigateHandler.Investigate)

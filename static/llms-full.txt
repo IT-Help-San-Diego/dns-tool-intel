@@ -340,6 +340,31 @@ DNS Tool detects when a domain uses a hosted email provider and adjusts DANE ana
 
 ---
 
+## Field Tech Toolkit (`/toolkit`)
+
+The Field Tech Toolkit is a guided network troubleshooting tool designed for everyone — from IT professionals to non-technical users. It walks users through diagnosing network connectivity issues step by step:
+
+### Guided Flow
+1. **Cellular Data Check**: Catches users on mobile data before they diagnose the wrong network
+2. **Connection Type**: Wi-Fi vs Ethernet with platform-specific guidance
+3. **Business vs Residential**: Explains static IP, port forwarding, CGNAT implications
+4. **Multiple Wi-Fi Networks**: ISP modem broadcasting alongside personal router
+5. **Port Forwarding / Dynamic DNS**: Two approaches (DDNS vs static IP), honest disclosure about residential limitations
+6. **Direct-to-Modem Isolation**: Bypass router to isolate ISP vs internal network issues
+
+### Diagnostic Tools
+- **What's My IP**: Shows public IP with platform-detected terminal commands
+- **External Port Check**: Probe VPS tests port reachability from outside the network ("You See / The Internet Sees")
+- **DNS Resolution Check**: Quick DNS test with public resolver fallback guidance
+
+### For AI Agents
+- Navigate to `https://dnstool.it-help.tech/toolkit`
+- The page is self-contained educational content — no login required
+- IP detection: POST to `/toolkit/myip`
+- Port check: POST to `/toolkit/portcheck` with `target_host` and `target_port` fields
+
+---
+
 ## RFC References
 - RFC 7208: SPF (Sender Policy Framework)
 - RFC 6376: DKIM (DomainKeys Identified Mail)

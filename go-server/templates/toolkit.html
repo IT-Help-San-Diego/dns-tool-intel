@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    <title>Field Tech Toolkit - DNS Tool</title>
+    <meta name="description" content="Guided network troubleshooting for everyone. Diagnose connectivity issues, check your public IP, verify port forwarding, and learn how your network works — step by step.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/toolkit">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Field Tech Toolkit - DNS Tool">
+    <meta property="og:description" content="Guided network troubleshooting for everyone. Diagnose connectivity issues, check your public IP, verify port forwarding, and learn how your network works.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="dnstool.it-help.tech">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/toolkit">
+    <meta name="twitter:title" content="Field Tech Toolkit - DNS Tool">
+    <meta name="twitter:description" content="Guided network troubleshooting for everyone. Diagnose connectivity issues, check your public IP, verify port forwarding, and learn how your network works.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <link rel="canonical" href="https://dnstool.it-help.tech/toolkit">
+    {{template "critical_css" .}}
+    {{template "head_css" .}}
+</head>
+<body>
+    {{template "nav" .}}
+    <main id="main-content">
+
+    <section class="hero-section">
+        <div class="container">
+            <div class="text-center hero-content">
+                <div class="hero-badge mb-3">
+                    <i class="fas fa-tools me-1"></i> Field Tech Toolkit
+                </div>
+                <h1 class="hero-title mb-3">Field Tech Toolkit</h1>
+                <p class="hero-subtitle mx-auto mb-4 u-fs-135rem">
+                    Guided Network Troubleshooting for Everyone
+                </p>
+                <p class="text-muted mx-auto mb-4 u-maxw-620">
+                    We walk you through diagnosing your network step by step &mdash; no tech support needed. Whether your internet is down, port forwarding won&rsquo;t work, or you just want to understand your setup better, we&rsquo;ll help you figure out what&rsquo;s going on and where the problem is.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container pb-5">
+
+        <div class="tk-chain-track mb-4" role="img" aria-label="Network diagnostic chain showing the path from your device to the internet">
+            <div class="tk-chain-node" id="chainDevice">
+                <div class="tk-chain-icon"><i class="fas fa-laptop" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">Your Device</div>
+            </div>
+            <div class="tk-chain-link" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+            <div class="tk-chain-node" id="chainWifi">
+                <div class="tk-chain-icon"><i class="fas fa-exchange-alt" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">Wi-Fi / Cable</div>
+            </div>
+            <div class="tk-chain-link" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+            <div class="tk-chain-node" id="chainRouter">
+                <div class="tk-chain-icon"><i class="fas fa-network-wired" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">Router</div>
+            </div>
+            <div class="tk-chain-link" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+            <div class="tk-chain-node" id="chainModem">
+                <div class="tk-chain-icon"><i class="fas fa-server" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">ISP Modem</div>
+            </div>
+            <div class="tk-chain-link" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+            <div class="tk-chain-node" id="chainISP">
+                <div class="tk-chain-icon"><i class="fas fa-building" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">ISP Network</div>
+            </div>
+            <div class="tk-chain-link" aria-hidden="true"><i class="fas fa-arrow-right"></i></div>
+            <div class="tk-chain-node" id="chainInternet">
+                <div class="tk-chain-icon"><i class="fas fa-globe" aria-hidden="true"></i></div>
+                <div class="tk-chain-label">Internet</div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8 mx-auto">
+
+                <div class="tk-step card mb-4" id="stepCellular">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 0</span>
+                            <h2 class="tk-step-title">Before We Start: Are You on Cellular Data?</h2>
+                        </div>
+                        <p class="mb-3">
+                            Are you reading this on your phone using cellular data (4G/5G) instead of your home Wi-Fi?
+                        </p>
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                            <strong>Important:</strong> If you&rsquo;re using cellular data, any network tests we run will test your phone carrier&rsquo;s network &mdash; not your home internet. To diagnose your home network, you need to be connected to it first.
+                        </div>
+                        <p class="mb-3">
+                            If your home Wi-Fi is completely down, don&rsquo;t worry &mdash; we&rsquo;ll guide you to connect directly to your modem in the steps below.
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyCellular" aria-expanded="false" aria-controls="whyCellular">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyCellular">
+                            <p class="mt-2 text-muted small">
+                                Your phone can connect to the internet two different ways: through your home Wi-Fi, or through your cellular carrier (AT&amp;T, Verizon, T-Mobile, etc.). These are completely separate networks. If we run a diagnostic test while you&rsquo;re on cellular, we&rsquo;re testing your carrier&rsquo;s network, not your home connection &mdash; and we&rsquo;d be diagnosing the wrong thing entirely.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepConnection">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 1</span>
+                            <h2 class="tk-step-title">How Are You Connected?</h2>
+                        </div>
+                        <p class="mb-3">
+                            Is your computer connected via <strong>Wi-Fi</strong> (wireless) or <strong>Ethernet</strong> (a physical cable plugged into your computer)?
+                        </p>
+                        <p class="text-muted mb-3">
+                            If you&rsquo;re not sure, look at the back or side of your laptop &mdash; if there&rsquo;s a cable running from it to your router or modem, that&rsquo;s Ethernet. If not, you&rsquo;re on Wi-Fi.
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyConnection" aria-expanded="false" aria-controls="whyConnection">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyConnection">
+                            <p class="mt-2 text-muted small">
+                                Wi-Fi adds an extra layer between you and your router &mdash; it can be affected by distance, walls, interference from other devices, and signal congestion. Ethernet is a direct physical connection and eliminates all of those variables. For troubleshooting, Ethernet gives us the most reliable test results.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepServiceType">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 2</span>
+                            <h2 class="tk-step-title">Business or Residential Internet?</h2>
+                        </div>
+                        <p class="mb-3">
+                            Do you have a <strong>business-class</strong> or <strong>residential</strong> internet plan? Check your bill or contact your provider if you&rsquo;re not sure.
+                        </p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-info h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6 text-info"><i class="fas fa-building me-1" aria-hidden="true"></i>Business Class</h3>
+                                        <ul class="small text-muted mb-0">
+                                            <li>Costs roughly double residential</li>
+                                            <li>Comes with a <strong>static IP address</strong></li>
+                                            <li>Port forwarding works reliably</li>
+                                            <li>SLA guarantees (uptime commitment)</li>
+                                            <li>Better support from your provider</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body">
+                                        <h3 class="h6 text-secondary"><i class="fas fa-home me-1" aria-hidden="true"></i>Residential</h3>
+                                        <ul class="small text-muted mb-0">
+                                            <li>More affordable</li>
+                                            <li>Usually a <strong>dynamic IP</strong> (changes periodically)</li>
+                                            <li>Port forwarding may not work (CGNAT)</li>
+                                            <li>No uptime guarantees</li>
+                                            <li>Standard support</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyServiceType" aria-expanded="false" aria-controls="whyServiceType">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyServiceType">
+                            <p class="mt-2 text-muted small">
+                                Your service type determines what&rsquo;s possible. If you&rsquo;re trying to host a game server, run a security camera remotely, or access your home network from outside &mdash; you generally need a static IP and the ability to port forward. Business-class connections include this by default. Residential connections often don&rsquo;t, and some providers use CGNAT (Carrier-Grade NAT) which makes port forwarding impossible regardless of your router settings.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepNetworks">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 3</span>
+                            <h2 class="tk-step-title">Do You See Multiple Wi-Fi Networks?</h2>
+                        </div>
+                        <p class="mb-3">
+                            Open your Wi-Fi settings and look at the available networks. Do you see more than one that looks like it belongs to your house?
+                        </p>
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2" aria-hidden="true"></i>
+                            <strong>Common situation:</strong> Many ISP modems broadcast their own default Wi-Fi network (often named something like &ldquo;XFINITY&rdquo;, &ldquo;ATT-WIFI&rdquo;, or &ldquo;SPECTRUM-SETUP&rdquo;) <em>in addition to</em> the Wi-Fi network from your personal router. You might see both.
+                        </div>
+                        <p class="mb-3">
+                            <strong>Which one are you connected to?</strong> Your personal router&rsquo;s network (the one you set up with your own name and password) is usually the right choice for daily use. But for troubleshooting, we may ask you to connect to the modem&rsquo;s default network to isolate the problem.
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyNetworks" aria-expanded="false" aria-controls="whyNetworks">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyNetworks">
+                            <p class="mt-2 text-muted small">
+                                If both your modem and router are broadcasting Wi-Fi, they might be fighting each other &mdash; causing slow speeds, dropped connections, or devices jumping between networks. Knowing which network you&rsquo;re on tells us which part of the chain we&rsquo;re testing. It&rsquo;s generally not best practice to have both broadcasting simultaneously, but during troubleshooting, having both available can help us isolate where the problem is.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepPortForward">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 4</span>
+                            <h2 class="tk-step-title">Are You Trying to Port Forward or Access Your Network Remotely?</h2>
+                        </div>
+                        <p class="mb-3">
+                            Are you trying to set up a game server, access a security camera from outside your home, run a web server, or use remote desktop?
+                        </p>
+
+                        <div class="card bg-dark border-warning mb-3">
+                            <div class="card-body">
+                                <h3 class="h6 text-warning"><i class="fas fa-crosshairs me-1" aria-hidden="true"></i>Setting Up a Game Server or Remote Access on Residential Internet?</h3>
+                                <p class="small text-muted mb-2">
+                                    If you can&rsquo;t get port forwarding to work on residential internet, it&rsquo;s probably because your provider uses CGNAT (Carrier-Grade NAT) or doesn&rsquo;t give you a real public IP. You typically need business-class internet with a static IP for reliable port forwarding.
+                                </p>
+                                <p class="small text-muted mb-0">
+                                    <strong>Some residential providers do offer static IPs</strong> &mdash; but we want to be honest: sometimes they do it right, sometimes they don&rsquo;t. It varies by provider and region. If you go this route, make sure to verify it&rsquo;s actually a public static IP and not just a static private address behind their NAT.
+                                </p>
+                            </div>
+                        </div>
+
+                        <h3 class="h6 mt-4 mb-3">Two Approaches to Remote Access</h3>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-success h-100">
+                                    <div class="card-body">
+                                        <h4 class="h6 text-success"><i class="fas fa-sync me-1" aria-hidden="true"></i>Dynamic DNS (DDNS)</h4>
+                                        <p class="small text-muted mb-2">
+                                            Services like <strong>DynDNS</strong>, <strong>No-IP</strong>, or <strong>Duck DNS</strong> track your changing IP and map it to a hostname you choose (like <code>myhome.ddns.net</code>).
+                                        </p>
+                                        <ul class="small text-muted mb-0">
+                                            <li><strong>Pros:</strong> Works on residential internet, usually free or cheap, many routers have it built in</li>
+                                            <li><strong>Cons:</strong> Depends on a third-party service, slight delay when your IP changes, still won&rsquo;t work behind CGNAT</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-primary h-100">
+                                    <div class="card-body">
+                                        <h4 class="h6 text-primary"><i class="fas fa-map-pin me-1" aria-hidden="true"></i>Static IP + Port Forwarding</h4>
+                                        <p class="small text-muted mb-2">
+                                            Get a real static IP from your ISP and configure port forwards on your router to direct incoming traffic to the right device.
+                                        </p>
+                                        <ul class="small text-muted mb-0">
+                                            <li><strong>Pros:</strong> Most reliable, no third-party dependency, your address never changes</li>
+                                            <li><strong>Cons:</strong> Costs more (usually business class), security exposure if misconfigured</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyPortForward" aria-expanded="false" aria-controls="whyPortForward">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyPortForward">
+                            <p class="mt-2 text-muted small">
+                                Port forwarding lets traffic from the internet reach a specific device on your local network. Think of it like having a building with one public address (your IP) and many offices (your devices). Port forwarding is the directory that tells visitors which office to go to. Without it, or without a public IP, visitors can&rsquo;t get in at all. CGNAT means your ISP puts you behind <em>their</em> router, so your &ldquo;public IP&rdquo; is actually shared with other customers &mdash; making port forwarding impossible from your end.
+                                <span class="d-block mt-1"><em>RFC 6598 defines the CGNAT shared address space (100.64.0.0/10). RFC 5780 covers NAT behavior requirements.</em></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepIsolate">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number">Step 5</span>
+                            <h2 class="tk-step-title">Connect Directly to Your Modem</h2>
+                        </div>
+                        <p class="mb-3">
+                            To figure out if the problem is your <strong>internal network</strong> (router, access points) or your <strong>ISP connection</strong>, we need to bypass your router and connect directly to the modem.
+                        </p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-success">
+                                    <div class="card-body">
+                                        <h3 class="h6 text-success"><i class="fas fa-link me-1" aria-hidden="true"></i>Best Option: Ethernet Cable</h3>
+                                        <p class="small text-muted mb-0">
+                                            Get an Ethernet cable and plug one end into your laptop and the other directly into your ISP modem (not your router). This gives the cleanest test with no wireless variables.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary">
+                                    <div class="card-body">
+                                        <h3 class="h6 text-secondary"><i class="fas fa-sync me-1" aria-hidden="true"></i>Alternative: Modem Wi-Fi</h3>
+                                        <p class="small text-muted mb-0">
+                                            Connect to the modem&rsquo;s default Wi-Fi network (the one from your ISP, not your personal router). This isn&rsquo;t ideal long-term, but it works for testing.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-secondary mb-3 small">
+                            <i class="fas fa-lightbulb me-2" aria-hidden="true"></i>
+                            <strong>Tip:</strong> Running both the modem Wi-Fi and your router Wi-Fi at the same time isn&rsquo;t best practice for everyday use (they can interfere with each other), but for troubleshooting, it&rsquo;s perfectly fine.
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyIsolate" aria-expanded="false" aria-controls="whyIsolate">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyIsolate">
+                            <p class="mt-2 text-muted small">
+                                Your home network is a chain: Device &rarr; Wi-Fi/Ethernet &rarr; Router &rarr; Modem &rarr; ISP &rarr; Internet. If something is broken, you need to know <em>which link</em> is failing. By connecting directly to the modem, you skip your router entirely. If the internet works when connected to the modem but not through your router, the problem is your router. If it doesn&rsquo;t work even connected to the modem, the problem is upstream &mdash; your ISP or modem itself.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-divider mb-4">
+                    <span class="tk-divider-text">Diagnostic Tools</span>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepMyIP">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-search" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">What&rsquo;s My IP Address?</h2>
+                        </div>
+                        <p class="mb-3">
+                            This shows you the public IP address the internet sees for your connection. It confirms you have a working internet connection and shows whether you have a real public IP or one behind your ISP&rsquo;s NAT.
+                        </p>
+
+                        {{if .ShowMyIP}}
+                        <div class="card bg-dark border-success mb-3">
+                            <div class="card-body text-center">
+                                <p class="text-success mb-1 small"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>Your Public IP Address</p>
+                                <p class="h3 mb-2 font-monospace text-break">{{.ClientIP}}</p>
+                                {{if .Platform}}
+                                <p class="text-muted small mb-0">
+                                    Detected platform:
+                                    {{if eq .Platform "windows"}}Windows
+                                    {{else if eq .Platform "macos"}}macOS
+                                    {{else if eq .Platform "linux"}}Linux
+                                    {{else if eq .Platform "ios"}}iOS
+                                    {{else if eq .Platform "android"}}Android
+                                    {{else}}Unknown{{end}}
+                                </p>
+                                {{end}}
+                            </div>
+                        </div>
+
+                        <div class="card bg-dark border-secondary mb-3">
+                            <div class="card-body">
+                                <h3 class="h6 text-secondary"><i class="fas fa-terminal me-1" aria-hidden="true"></i>Check It Yourself (Terminal Commands)</h3>
+                                {{if eq .Platform "windows"}}
+                                <p class="small text-muted mb-2">Open <strong>Command Prompt</strong> or <strong>PowerShell</strong> and run:</p>
+                                <pre class="bg-black p-2 rounded small mb-1"><code>ipconfig</code></pre>
+                                <p class="small text-muted mb-1">This shows your local IP. To find your public IP:</p>
+                                <pre class="bg-black p-2 rounded small mb-0"><code>nslookup myip.opendns.com resolver1.opendns.com</code></pre>
+                                {{else if eq .Platform "macos"}}
+                                <p class="small text-muted mb-2">Open <strong>Terminal</strong> and run:</p>
+                                <pre class="bg-black p-2 rounded small mb-1"><code>ifconfig | grep "inet "</code></pre>
+                                <p class="small text-muted mb-1">This shows your local IP. To find your public IP:</p>
+                                <pre class="bg-black p-2 rounded small mb-0"><code>dig +short myip.opendns.com @resolver1.opendns.com</code></pre>
+                                {{else if eq .Platform "linux"}}
+                                <p class="small text-muted mb-2">Open a terminal and run:</p>
+                                <pre class="bg-black p-2 rounded small mb-1"><code>ip addr show | grep "inet "</code></pre>
+                                <p class="small text-muted mb-1">This shows your local IP. To find your public IP:</p>
+                                <pre class="bg-black p-2 rounded small mb-0"><code>dig +short myip.opendns.com @resolver1.opendns.com</code></pre>
+                                {{else}}
+                                <p class="small text-muted mb-2">On <strong>Windows</strong>, open Command Prompt and run:</p>
+                                <pre class="bg-black p-2 rounded small mb-1"><code>ipconfig</code></pre>
+                                <p class="small text-muted mb-2">On <strong>macOS/Linux</strong>, open Terminal and run:</p>
+                                <pre class="bg-black p-2 rounded small mb-0"><code>ifconfig | grep "inet "</code></pre>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+
+                        <form method="POST" action="/toolkit/myip">
+                            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+                            <button type="submit" class="btn btn-outline-info">
+                                <i class="fas fa-search me-1" aria-hidden="true"></i>Show My IP Address
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepPortCheck">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-satellite-dish" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">External Port Check</h2>
+                        </div>
+                        <p class="mb-3">
+                            This tool checks whether a specific port on your network is reachable from the outside internet. We use an external probe server to test the connection from a completely different location &mdash; giving you a real-world answer, not just what your router thinks.
+                        </p>
+
+                        {{if .ShowPortCheck}}
+                            {{if .ProbeError}}
+                            <div class="alert alert-danger mb-3">
+                                <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>{{.ProbeError}}
+                            </div>
+                            {{end}}
+                            {{if .ProbeResult}}
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-info">
+                                        <div class="card-body text-center">
+                                            <p class="text-info small mb-1"><i class="fas fa-laptop me-1" aria-hidden="true"></i>You Asked to Check</p>
+                                            <p class="font-monospace mb-0">{{.TargetHost}}:{{.TargetPort}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-dark {{if eq (index .ProbeResult "open") true}}border-success{{else}}border-danger{{end}}">
+                                        <div class="card-body text-center">
+                                            <p class="small mb-1 {{if eq (index .ProbeResult "open") true}}text-success{{else}}text-danger{{end}}">
+                                                <i class="fas fa-globe me-1" aria-hidden="true"></i>The Internet Sees
+                                            </p>
+                                            {{if eq (index .ProbeResult "open") true}}
+                                            <p class="text-success fw-bold mb-0"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>Port is OPEN</p>
+                                            {{else}}
+                                            <p class="text-danger fw-bold mb-0"><i class="fas fa-times-circle me-1" aria-hidden="true"></i>Port is CLOSED or Unreachable</p>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{end}}
+                        {{end}}
+
+                        <form method="POST" action="/toolkit/portcheck">
+                            <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-6">
+                                    <label for="target_host" class="form-label small">Host (IP or Hostname)</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="target_host"
+                                           name="target_host"
+                                           placeholder="203.0.113.50 or example.com"
+                                           autocapitalize="none"
+                                           spellcheck="false"
+                                           autocomplete="off"
+                                           aria-label="Target host for port check"
+                                           value="{{.TargetHost}}">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="target_port" class="form-label small">Port</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="target_port"
+                                           name="target_port"
+                                           placeholder="80"
+                                           inputmode="numeric"
+                                           autocomplete="off"
+                                           aria-label="Port number to check"
+                                           value="{{.TargetPort}}">
+                                </div>
+                                <div class="col-sm-3">
+                                    <button type="submit" class="btn btn-outline-info w-100 white-space-nowrap">
+                                        <i class="fas fa-satellite-dish me-1" aria-hidden="true"></i>Check Port
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">
+                                Common ports: 80 (HTTP), 443 (HTTPS), 22 (SSH), 3389 (Remote Desktop), 25565 (Minecraft), 8080 (Alt HTTP)
+                            </p>
+                        </form>
+
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle mt-3" type="button" data-target="whyPortCheck" aria-expanded="false" aria-controls="whyPortCheck">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyPortCheck">
+                            <p class="mt-2 text-muted small">
+                                Port checking from inside your own network can lie to you &mdash; your router might say a port is open even when it&rsquo;s blocked by your ISP or a firewall you don&rsquo;t control. Our probe server sits on the public internet and tries to connect to your port from outside, giving you the real answer. This is the &ldquo;You See / The Internet Sees&rdquo; perspective that matters for game servers, remote access, and any service you want reachable from outside your home.
+                                <span class="d-block mt-1"><em>We use an external probe server (Observe Probe VPS) for this test. The connection attempt originates from our infrastructure, not your device.</em></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tk-step card mb-4" id="stepDNS">
+                    <div class="card-body">
+                        <div class="tk-step-header">
+                            <span class="tk-step-number"><i class="fas fa-project-diagram" aria-hidden="true"></i></span>
+                            <h2 class="tk-step-title">DNS Resolution Check</h2>
+                        </div>
+                        <p class="mb-3">
+                            If you can see your public IP but websites won&rsquo;t load, the problem might be DNS (the system that translates website names like <code>google.com</code> into IP addresses your computer can connect to).
+                        </p>
+                        <div class="card bg-dark border-secondary mb-3">
+                            <div class="card-body">
+                                <h3 class="h6 text-secondary"><i class="fas fa-terminal me-1" aria-hidden="true"></i>Quick DNS Test</h3>
+                                <p class="small text-muted mb-2">Try this in your terminal to test if DNS is working:</p>
+                                <pre class="bg-black p-2 rounded small mb-2"><code>nslookup google.com</code></pre>
+                                <p class="small text-muted mb-2">If that fails, try using a public DNS server directly:</p>
+                                <pre class="bg-black p-2 rounded small mb-2"><code>nslookup google.com 8.8.8.8</code></pre>
+                                <p class="small text-muted mb-0">
+                                    If the second command works but the first doesn&rsquo;t, your default DNS server (usually provided by your ISP) is the problem. You can switch to a public DNS like Google (8.8.8.8) or Cloudflare (1.1.1.1).
+                                </p>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary tk-why-toggle" type="button" data-target="whyDNS" aria-expanded="false" aria-controls="whyDNS">
+                            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Why This Matters
+                        </button>
+                        <div class="tk-why-content collapse" id="whyDNS">
+                            <p class="mt-2 text-muted small">
+                                DNS (Domain Name System) is like the phone book of the internet. When you type &ldquo;google.com,&rdquo; your computer asks a DNS server to translate that name into an IP address (like 142.250.80.14) so it can actually connect. If DNS is broken, your internet connection might be perfectly fine, but your computer can&rsquo;t find anything because it doesn&rsquo;t know where to go. This is one of the most common &ldquo;internet is down&rdquo; situations that&rsquo;s actually fixable in seconds.
+                                <span class="d-block mt-1"><em>DNS is defined in RFC 1034 and RFC 1035. The public resolvers at 8.8.8.8 (Google) and 1.1.1.1 (Cloudflare) are free and generally faster and more reliable than ISP-provided DNS.</em></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function(){
+        var toggles = document.querySelectorAll('.tk-why-toggle');
+        for (var i = 0; i < toggles.length; i++) {
+            toggles[i].addEventListener('click', function() {
+                var targetId = this.getAttribute('data-target');
+                var target = document.getElementById(targetId);
+                if (target) {
+                    var isVisible = target.classList.contains('show');
+                    target.classList.toggle('show');
+                    this.setAttribute('aria-expanded', !isVisible);
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>
