@@ -1,0 +1,105 @@
+# DNS Tool — Roadmap
+
+> Last updated: February 22, 2026
+
+---
+
+## Completed
+
+| Feature | Version | Completion Date |
+|---------|---------|-----------------|
+| Optional Authentication Model (Google OAuth 2.0 with PKCE) | v26.20.56–57 | Feb 2026 |
+| Drift Engine Phase 1 (Posture Hashing) | v26.19.40 | Feb 2026 |
+| Drift Engine Phase 2 (Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
+| Probe Network First Node (probe-us-01.dns-observe.com) | Feb 2026 | Feb 2026 |
+| Architecture Page with Mermaid Diagrams | v26.20.77–83 | Feb 2026 |
+| DKIM Selector Expansion (39→81+ Selectors) | v26.20.69–70 | Feb 2026 |
+| Brand Verdict Matrix Overhaul | v26.20.71 | Feb 2026 |
+| Email Header Analyzer (Multi-Format, Spoofing Detection, Scam Analysis) | v26.20.0+ | Feb 2026 |
+| Intelligence Confidence Audit Engine (ICAE) | 129 Test Cases | Feb 2026 |
+| Intelligence Currency Assurance Engine (ICuAE) | 29 Test Cases | Feb 2026 |
+| Color Science Page (CIE Scotopic Validation, WCAG Contrast) | v26.20.0+ | Feb 2026 |
+| Badge System (SVG Badges, Shields.io Integration) | v26.20.0+ | Feb 2026 |
+| Domain Snapshot | v26.20.0+ | Feb 2026 |
+| Owl of Athena Logo (AI-Generated Original) | v26.20.0+ | Feb 2026 |
+| Certificate Transparency Resilience (Certspotter Fallback) | v26.20.76 | Feb 2026 |
+| Nmap DNS Security Probing | v26.20.0+ | Feb 2026 |
+| One-Liner Verification Commands | v26.20.0+ (commands.go GenerateVerificationCommands) | Feb 2026 |
+| Zone File Upload for Analysis | v26.20.0+ (Authenticated-only, /zone endpoint) | Feb 2026 |
+| Hash Integrity Audit Engine | v26.21.45 | Feb 2026 |
+| Download Verification (SHA-3-512 Checksums, Kali-Style Sidecar) | v26.21.49–50 | Feb 2026 |
+| Accountability Log (/confidence/audit-log) | v26.21.46 | Feb 2026 |
+
+---
+
+## In Progress / Queued
+
+| Feature | Status | Priority | Notes |
+|---------|--------|----------|-------|
+| Personal Analysis History | Queued | Medium | Currently shared global feed. Requires per-user session tracking and database schema expansion. |
+| Drift Engine Alerts | Queued | Medium | Notifications when domain security posture changes. Requires webhook/email notification subsystem. |
+| Saved Reports | Queued | Medium | Bookmark and revisit past analyses. Requires report snapshot storage and user library. |
+| API Access (Programmatic Analysis) | Queued | High | Programmatic analysis for automation workflows. Requires rate limiting, authentication, versioning. |
+| CLI App (Homebrew/Binary) | Queued | High | Terminal application for macOS/Linux. Requires cross-platform distribution and binary packaging. Works without login for basic analysis; authenticated mode unlocks history sync, drift alerts, and API quota. |
+| Drift Engine Phases 3–4 | Queued | Medium | Phase 3: Timeline visualization of posture changes. Phase 4: Scheduled monitoring and baselines. Full roadmap in dns-tool-intel (private). |
+| Globalping.io Integration | Queued | Low | Distributed DNS resolution probes from 100+ global locations. Complements (not replaces) existing SMTP port 25 probe. Adds "resolving consistently worldwide?" capability. |
+| Homebrew Distribution | Queued | Medium | macOS/Linux package distribution. Coordinates with CLI app delivery. |
+| Zone File Import as Drift Baseline | Queued | Low | "Baseline Snapshot" comparison. Upload zone file to establish posture baseline for future drift detection. Zone parsing library selected; UX copy/disclaimer to be drafted. |
+| Raw Intelligence API Access | Queued | Low | Direct access to collected intelligence without processing layers. Requires access control and audit logging. |
+| ISC Recommendation Path Integration | Queued | Low | Integration with ISC (Internet Systems Consortium) remediation/hardening recommendations. Requires partnership or integration with ISC tooling. |
+
+---
+
+## Concept Stage
+
+| Idea | Status | Notes |
+|------|--------|-------|
+| Terminal CLI + Web Terminal Demo | Needs Vetting | Real terminal app (Homebrew/binary) that works in actual terminals, plus potentially a web-based terminal demo for browser. Uncertain whether web demo adds value or dilutes the real-terminal experience. Requires architectural discussion before commitment. |
+
+---
+
+## Rationale & Notes
+
+### Completed Items
+
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.21.55 as of February 22, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+
+**Key completions**:
+- **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
+- **Drift Engine Phases 1–2**: Foundation (posture hashing with SHA-3-512) and comparison (structured diff, drift alert UX) are complete. Phases 3–4 (timeline, scheduled monitoring) remain queued.
+- **Email Header Analyzer**: Multi-format support (.eml, .json, .mbox, .txt), third-party vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), subject line scam analysis, homoglyph normalization.
+- **ICAE/ICuAE**: Intelligence scoring engines with 129 and 29 test cases respectively, covering confidence and currency/timeliness.
+
+### Queued Items
+
+Items in "In Progress / Queued" are documented, architected, but not yet implemented. Priority reflects relative importance:
+
+- **High**: API access and CLI app unlock programmatic workflows and terminal-first users. Strategic for market expansion.
+- **Medium**: Personal history, drift alerts, saved reports, Homebrew distribution, Phases 3–4 require moderate engineering and provide strong user value.
+- **Low**: Raw intelligence API, ISC integration, zone file import are specialized features with narrower user bases.
+
+**API Access** and **CLI App** are strategically important for automation workflows and developer adoption. Both require authentication, rate limiting, and careful versioning.
+
+**Drift Engine Phases 3–4** are high-value commercial features (timeline visualization, scheduled monitoring). Full technical roadmap is confidential (in dns-tool-intel private repo).
+
+### Concept Stage
+
+**Terminal CLI + Web Terminal Demo** remains in concept because it requires architectural vetting:
+- Does a web-based terminal demo add practical value, or does it dilute the real-terminal experience?
+- What integration points are needed with the live DNS Tool web app?
+- Should it be a separate deployment or embedded feature?
+
+This item should not advance to queued until core architects and the security research community provide feedback.
+
+---
+
+## Version & Maintenance
+
+**Last Updated**: February 22, 2026  
+**Next Review**: Post-v26.22.0 release or every two weeks  
+**Owner**: DNS Tool Architecture Team
+
+When marking items as complete:
+1. Cite the version number where implementation occurred
+2. Update this document within the same session
+3. Archive detailed release notes in `EVOLUTION.md`

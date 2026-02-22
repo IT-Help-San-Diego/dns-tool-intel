@@ -1,6 +1,6 @@
 # DNS Tool — Feature Overview
 
-**Last Updated:** February 21, 2026 (v26.23.47)
+**Last Updated:** February 22, 2026 (v26.23.47)
 **Implementation:** Go/Gin
 
 ---
@@ -46,6 +46,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - CVSS-aligned security posture assessment
 - Mail posture classification
 - RFC-aligned remediation engine with priority fixes
+- ICuAE — Intelligence Currency Audit Engine: 29 deterministic test cases across 5 dimensions (Currentness, TTL Compliance, Completeness, Source Credibility, TTL Relevance), five-tier grading system aligned with ICD 203, NIST SP 800-53 SI-18, and ISO/IEC 25012
 
 ## Detection and Intelligence
 
@@ -55,6 +56,9 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Expanded exposure checks (opt-in): well-known misconfiguration path probing (/.env, /.git, /server-status, etc.) with content validation
 - Dangling DNS and subdomain takeover detection
 - DMARC external reporting authorization verification
+- Misplaced DMARC detection (post-analysis enrichment for incorrect record placement)
+- Content-Usage directive detection (robots.txt AI governance signals)
+- Nmap DNS server security probing (zone transfer, open recursion, NSID, cache snooping)
 - OpenPhish community phishing URL feed integration (Email Header Analyzer body scanning)
 
 ## Platform Features
@@ -62,15 +66,21 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Domain analysis with re-analyze capability
 - Analysis history with search
 - Side-by-side domain comparison
+- Domain Snapshot (/snapshot/:domain) — quick security posture view
+- Domain Comparison (/compare) — side-by-side security posture comparison
+- Badge System (/badge) — SVG badges for DNS security posture with Shields.io compatibility and embed options
 - Statistics dashboard
 - JSON export
 - Email Header Analyzer — multi-format support (paste, .eml, JSON, .mbox, .txt) with SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, subject line scam analysis (phone number obfuscation, fake payment amounts, homoglyph brand impersonation), third-party spam vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), brand mismatch detection, BCC delivery detection, and educational "Understanding This Attack" explainer
 - IP Intelligence (reverse lookups, ASN attribution, geolocation)
-- Dual intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard)
+- Five intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail), Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard), Recon Report (adversarial perspective), Domain Dossier, and Domain Comparison
 - Configurable TLP classification (default: TLP:AMBER, with TLP:RED, TLP:AMBER+STRICT, TLP:GREEN and TLP:CLEAR options) aligned with CISA Cyber Hygiene practice and FIRST TLP v2.0
+- Covert Recon Mode — adversarial dark theme with scotopic vision-optimized red-spectrum (#cc2020) palette, producing the Recon Report intelligence product
+- Color Science page (/color-science) — live CIE scotopic/photopic luminosity validation and WCAG 2.2 contrast calculations for Covert Recon Mode palette, with MIL-STD-1472H compliance badges
 - Report integrity hash (SHA-256 fingerprint binding domain, analysis ID, timestamp, tool version, and results data) with copy-to-clipboard and header preview
+- Architecture page (/architecture) — interactive Mermaid diagrams of system architecture
 - Posture drift detection foundation (canonical SHA-256 hashing for longitudinal monitoring)
-- ICAE Intelligence Confidence Matrix with tier-colored next-tier progress labels and two-layer (Collection + Analysis) auditing
+- ICAE Intelligence Confidence Matrix with tier-colored next-tier progress labels and two-layer (Collection + Analysis) auditing, 129 deterministic test cases across 9 protocols
 - Changelog page
 - Security policy page
 - Sources and methodology reference
@@ -87,6 +97,8 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Google OAuth 2.0 with PKCE (S256) — OIDC nonce for replay protection, `iat` validation with 5-minute clock skew tolerance, 10-second HTTP client timeouts, SameSite=Lax on all auth cookies
 - Admin panel: session management dashboard with per-user session counts (active/total), purge expired sessions, per-user session reset, user deletion (admin deletion blocked), CSRF-protected actions
 - Privacy-preserving site analytics: IP+User-Agent fingerprinting with daily-rotating SHA-256 salt (no cookies, no PII), incremental 60-second flushes with additive SQL merge
+- Privacy-preserving cookieless analytics
+- Cryptographic provenance (SHA-3-512 hashing on JSON exports with detailed provenance metadata)
 
 ## Design Philosophy
 
