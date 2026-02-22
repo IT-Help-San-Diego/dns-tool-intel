@@ -167,6 +167,7 @@ func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
                 "IntegrityHash":        integrityHash,
                 "RFCCount":             rfcCount,
                 "MaintenanceNote":      h.Config.MaintenanceNote,
+                "BetaPages":            h.Config.BetaPages,
                 "SectionTuning":        h.Config.SectionTuning,
                 "PostureHash":          currentHash,
                 "DriftDetected":        drift.Detected,
@@ -265,6 +266,7 @@ func (h *AnalysisHandler) ViewAnalysisExecutive(c *gin.Context) {
                 "IntegrityHash":     integrityHash,
                 "RFCCount":          rfcCount,
                 "MaintenanceNote":   h.Config.MaintenanceNote,
+                "BetaPages":         h.Config.BetaPages,
                 "SectionTuning":     h.Config.SectionTuning,
         }
         mergeAuthData(c, h.Config, execData)
@@ -433,6 +435,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 "RFCCount":             rfcCount,
                 "ExposureChecks":       exposureChecks,
                 "MaintenanceNote":      h.Config.MaintenanceNote,
+                "BetaPages":            h.Config.BetaPages,
                 "SectionTuning":        h.Config.SectionTuning,
                 "PostureHash":          postureHash,
                 "DriftDetected":        drift.Detected,

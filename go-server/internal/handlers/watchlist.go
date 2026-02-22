@@ -75,6 +75,7 @@ func (h *WatchlistHandler) baseTmplData(c *gin.Context) gin.H {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "CsrfToken":       csrfToken,
                 "ActivePage":      "watchlist",

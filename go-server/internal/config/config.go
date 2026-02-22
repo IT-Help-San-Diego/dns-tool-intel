@@ -9,7 +9,7 @@ import (
 )
 
 var (
-        Version   = "26.25.05"
+        Version   = "26.25.06"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -25,12 +25,19 @@ type Config struct {
         ProbeAPIKey        string
         MaintenanceNote    string
         SectionTuning      map[string]string
+        BetaPages          map[string]bool
         GoogleClientID     string
         GoogleClientSecret string
         GoogleRedirectURL  string
         InitialAdminEmail string
         BaseURL            string
         IsDevEnvironment   bool
+}
+
+var betaPagesMap = map[string]bool{
+        "toolkit":      true,
+        "investigate":   true,
+        "email-header":  true,
 }
 
 var sectionTuningMap = map[string]string{
@@ -101,6 +108,11 @@ func Load() (*Config, error) {
                 googleRedirectURL = baseURL + "/auth/callback"
         }
 
+        betaPages := make(map[string]bool)
+        for k, v := range betaPagesMap {
+                betaPages[k] = v
+        }
+
         return &Config{
                 DatabaseURL:         dbURL,
                 SessionSecret:       sessionSecret,
@@ -112,6 +124,7 @@ func Load() (*Config, error) {
                 ProbeAPIKey:         os.Getenv("PROBE_API_KEY"),
                 MaintenanceNote:     maintenanceNote,
                 SectionTuning:       tuning,
+                BetaPages:           betaPages,
                 GoogleClientID:      os.Getenv("GOOGLE_CLIENT_ID"),
                 GoogleClientSecret:  os.Getenv("GOOGLE_CLIENT_SECRET"),
                 GoogleRedirectURL:   googleRedirectURL,

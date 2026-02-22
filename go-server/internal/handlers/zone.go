@@ -38,6 +38,7 @@ func (h *ZoneHandler) UploadForm(c *gin.Context) {
                 "ActivePage":      "zone",
                 "ShowForm":        true,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "zone.html", data)
@@ -138,6 +139,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
                 "FileSize":        header.Size,
                 "Retained":        retain,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "zone.html", data)
@@ -152,6 +154,7 @@ func (h *ZoneHandler) renderZoneFlash(c *gin.Context, nonce, csrfToken any, cate
                 "ShowForm":        true,
                 "FlashMessages":   []FlashMessage{{Category: category, Message: message}},
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "zone.html", data)

@@ -27,7 +27,7 @@
         <div class="container">
             <div class="text-center hero-content">
                 <div class="hero-badge mb-3">
-                    <i class="fas fa-tools me-1"></i> Field Tech Toolkit <span class="badge bg-warning text-dark ms-2">Beta</span>
+                    <i class="fas fa-tools me-1"></i> Field Tech Toolkit{{if index .BetaPages "toolkit"}} <span class="u-beta-tag ms-2">Beta</span>{{end}}
                 </div>
                 <h1 class="hero-title mb-3">Field Tech Toolkit</h1>
                 <p class="hero-subtitle mx-auto mb-4 u-fs-135rem">
@@ -71,6 +71,75 @@
             <div class="tk-chain-node" id="chainInternet">
                 <div class="tk-chain-icon"><i class="fas fa-globe" aria-hidden="true"></i></div>
                 <div class="tk-chain-label">Internet</div>
+            </div>
+        </div>
+
+        <div class="card bg-dark border-secondary mb-4" id="tkTriageMatrix">
+            <div class="card-body">
+                <h2 class="h5 mb-3 text-center"><i class="fas fa-crosshairs me-2 text-info" aria-hidden="true"></i>What Brought You Here?</h2>
+                <p class="text-muted text-center small mb-3">Pick the scenario closest to yours &mdash; we&rsquo;ll point you to the right starting step.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="#stepCellular" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-ban fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Internet Is Down</h3>
+                                <p class="small text-muted mb-0">Nothing loads, Wi-Fi connected but no internet, or pages timing out</p>
+                                <span class="small text-secondary mt-2 d-block">Start at Step 0 &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#stepPortForward" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-server fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Port Forwarding / Remote Access</h3>
+                                <p class="small text-muted mb-0">Setting up a camera system, game server, NAS, or remote desktop access</p>
+                                <span class="small text-secondary mt-2 d-block">Jump to Step 4 &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#stepMyIP" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-search fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Check My IP / Port</h3>
+                                <p class="small text-muted mb-0">Find your public IP address, verify if a port is reachable from outside, or test DNS</p>
+                                <span class="small text-secondary mt-2 d-block">Jump to Quick Tools &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#stepIsolate" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exchange-alt fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Is It My Router or ISP?</h3>
+                                <p class="small text-muted mb-0">Isolate whether the problem is your equipment or your internet provider</p>
+                                <span class="small text-secondary mt-2 d-block">Jump to Step 5 &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#stepDualNetwork" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-shield fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Remote Support Technician</h3>
+                                <p class="small text-muted mb-0">You&rsquo;re helping someone remotely and need to diagnose their dead network</p>
+                                <span class="small text-secondary mt-2 d-block">Jump to Dual-Network &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#stepCLI" class="card bg-dark border-info h-100 text-decoration-none tk-triage-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-terminal fa-2x text-info mb-2" aria-hidden="true"></i>
+                                <h3 class="h6 text-info">Command-Line Reference</h3>
+                                <p class="small text-muted mb-0">ping, traceroute, networkQuality, dig &mdash; quick reference for terminal commands</p>
+                                <span class="small text-secondary mt-2 d-block">Jump to CLI &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

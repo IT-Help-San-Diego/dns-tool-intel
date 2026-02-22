@@ -75,6 +75,7 @@ func renderCompareError(c *gin.Context, p compareErrorParams) {
         data := gin.H{
                 "AppVersion":      p.handler.Config.AppVersion,
                 "MaintenanceNote": p.handler.Config.MaintenanceNote,
+		"BetaPages":      p.handler.Config.BetaPages,
                 "CspNonce":      p.nonce,
                 "CsrfToken":     p.csrfToken,
                 "ActivePage":    "compare",
@@ -171,6 +172,7 @@ func (h *CompareHandler) Compare(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                 "CspNonce":     nonce,
                 "CsrfToken":   csrfToken,
                 "ActivePage":   "compare",
@@ -192,6 +194,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 emptyData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "compare",
@@ -212,6 +215,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 fetchErrData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "compare",
@@ -227,6 +231,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 noData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "compare",
@@ -245,6 +250,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 fewData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "compare",
@@ -265,6 +271,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
         selectData := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":      h.Config.BetaPages,
                 "CspNonce":   nonce,
                 "CsrfToken":  csrfToken,
                 "ActivePage": "",

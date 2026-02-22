@@ -103,6 +103,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
                 errData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "history",
@@ -120,6 +121,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
                 errData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "history",
@@ -135,6 +137,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                 "CspNonce":     nonce,
                 "CsrfToken":   csrfToken,
                 "ActivePage":   "history",

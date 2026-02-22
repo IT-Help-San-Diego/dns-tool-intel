@@ -1084,6 +1084,11 @@ main.container {
         display: none;
     }
 
+    .u-beta-tag {
+        font-size: 0.45rem;
+        padding: 0.1em 0.35em;
+    }
+
     .u-covert-toggle {
         font-size: 0.9rem;
     }
@@ -2410,7 +2415,8 @@ body.covert-mode footer a {
 body.covert-mode footer a:hover {
     color: #cc2828 !important;
 }
-body.covert-mode .u-maintenance-tag {
+body.covert-mode .u-maintenance-tag,
+body.covert-mode .u-beta-tag {
     background: rgba(140, 40, 40, 0.13) !important;
     color: #cc2020 !important;
     border-color: rgba(196, 60, 60, 0.45) !important;
@@ -2551,7 +2557,7 @@ body.covert-mode .hero-section::before {
 body.covert-mode footer .u-rounded-circle {
     filter: brightness(0.7);
     border-color: rgba(204, 40, 40, 0.6);
-    box-shadow: 0 0 0 2px rgba(180, 30, 30, 0.2);
+    box-shadow: 0 0 0 3px rgba(180, 30, 30, 0.15), 0 0 12px rgba(180, 30, 30, 0.08);
 }
 body.covert-mode footer .u-text-footer {
     color: rgba(204, 40, 40, 0.6);
@@ -4911,8 +4917,10 @@ body.covert-mode .proto-dkim.bg-info {
 /* Bootstrap has .rounded-circle */
 .u-rounded-circle { border-radius: 50%; }
 footer .u-rounded-circle {
-    border: 2px solid rgba(88, 166, 255, 0.5);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15);
+    border: 3px solid rgba(88, 166, 255, 0.55);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.12), 0 0 12px rgba(88, 166, 255, 0.08);
+    padding: 6px;
+    object-fit: contain;
 }
 .u-valign-n3 { vertical-align: -3px; }
 .u-fs-xs { font-size: 0.7rem; }
@@ -5257,6 +5265,20 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     border-radius: 999px;
     padding: 0.25em 0.7em;
     box-shadow: 0 0 6px rgba(232, 197, 71, 0.18);
+}
+.u-beta-tag {
+    font-size: 0.6rem;
+    font-weight: 600;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(209, 160, 52, 0.13);
+    color: #e8c547;
+    border: 1px solid rgba(232, 197, 71, 0.45);
+    border-radius: 999px;
+    padding: 0.15em 0.55em;
+    box-shadow: 0 0 6px rgba(232, 197, 71, 0.12);
+    white-space: nowrap;
 }
 .u-badge-recon {
     font-size: 0.55rem;
@@ -6236,6 +6258,24 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     background: rgba(13,202,240,0.18);
     color: #3dd5f3;
 }
+.tk-triage-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.tk-triage-card:hover {
+    border-color: rgba(13,202,240,0.6) !important;
+    box-shadow: 0 0 14px rgba(13,202,240,0.15);
+    transform: translateY(-2px);
+}
+body.covert-mode .tk-triage-card {
+    border-color: rgba(140, 40, 40, 0.25) !important;
+}
+body.covert-mode .tk-triage-card .text-info {
+    color: #cc2828 !important;
+}
+body.covert-mode .tk-triage-card:hover {
+    border-color: rgba(204, 40, 40, 0.6) !important;
+    box-shadow: 0 0 14px rgba(204, 40, 40, 0.15);
+}
 @media (max-width: 575.98px) {
     .tk-chain-track { gap: 0.15rem; padding: 0.75rem 0.25rem; }
     .tk-chain-icon { width: 2rem; height: 2rem; font-size: 0.7rem; }
@@ -6243,11 +6283,14 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     .tk-chain-link { font-size: 0.45rem; }
     .tk-step-title { font-size: 1rem; }
     .tk-step-nav a { font-size: 0.65rem; padding: 0.15rem 0.35rem; }
+    .tk-triage-card .card-body { padding: 0.75rem; }
+    .tk-triage-card .fa-2x { font-size: 1.4em; }
 }
 @media print {
     .tk-chain-track,
     .tk-why-toggle,
     .tk-why-content,
     .tk-discovery,
-    .tk-step-nav { display: none !important; }
+    .tk-step-nav,
+    #tkTriageMatrix { display: none !important; }
 }

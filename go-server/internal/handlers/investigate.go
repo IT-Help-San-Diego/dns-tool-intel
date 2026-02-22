@@ -31,6 +31,7 @@ func (h *InvestigateHandler) InvestigatePage(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "CsrfToken":       csrfToken,
                 "ActivePage":      "investigate",
@@ -51,6 +52,7 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
                 emptyData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "investigate",
@@ -68,6 +70,7 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
                 invDomData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "investigate",
@@ -85,6 +88,7 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
                 invIPData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "investigate",
@@ -102,6 +106,7 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
                 privData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
                         "ActivePage":      "investigate",
@@ -193,6 +198,7 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
         resultsData := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "CsrfToken":       csrfToken,
                 "ActivePage":      "investigate",

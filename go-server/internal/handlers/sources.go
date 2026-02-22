@@ -41,6 +41,7 @@ func (h *SourcesHandler) Sources(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "ActivePage":      "sources",
                 "DNSSources":      getDNSSources(),
