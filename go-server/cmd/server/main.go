@@ -211,6 +211,9 @@ func main() {
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)
 
+        colorScienceHandler := handlers.NewColorScienceHandler(cfg)
+        router.GET("/color-science", colorScienceHandler.ColorScience)
+
         badgeHandler := handlers.NewBadgeHandler(database, cfg)
         router.GET("/badge", badgeHandler.Badge)
         router.GET("/badge/shields", badgeHandler.BadgeShieldsIO)
