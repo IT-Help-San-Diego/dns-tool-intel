@@ -6168,15 +6168,86 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     letter-spacing: 0.1em;
     white-space: nowrap;
 }
+.tk-discovery {
+    border-top: 1px solid rgba(255,193,7,0.2);
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+}
+.tk-discovery-toggle {
+    font-size: 0.8rem;
+    color: #ffc107;
+    border-color: rgba(255,193,7,0.4);
+}
+.tk-discovery-toggle:hover,
+.tk-discovery-toggle:focus {
+    color: #ffcd39;
+    border-color: rgba(255,193,7,0.6);
+    background: rgba(255,193,7,0.08);
+}
+.tk-discovery-content {
+    border-left: 3px solid rgba(255,193,7,0.3);
+    padding-left: 0.75rem;
+    margin-top: 0.5rem;
+}
+.tk-discovery-content textarea {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,193,7,0.2);
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 3rem;
+}
+.tk-discovery-content textarea:focus {
+    border-color: rgba(255,193,7,0.5);
+    box-shadow: 0 0 0 0.2rem rgba(255,193,7,0.15);
+    background: rgba(0,0,0,0.4);
+}
+.tk-step-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(13,202,240,0.04);
+    border: 1px solid rgba(13,202,240,0.1);
+    border-radius: 0.5rem;
+}
+.tk-step-nav-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    width: 100%;
+    margin-bottom: 0.15rem;
+}
+.tk-step-nav a {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    background: rgba(13,202,240,0.08);
+    border: 1px solid rgba(13,202,240,0.15);
+    color: #0dcaf0;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.tk-step-nav a:hover {
+    background: rgba(13,202,240,0.18);
+    color: #3dd5f3;
+}
 @media (max-width: 575.98px) {
     .tk-chain-track { gap: 0.15rem; padding: 0.75rem 0.25rem; }
     .tk-chain-icon { width: 2rem; height: 2rem; font-size: 0.7rem; }
     .tk-chain-label { font-size: 0.5rem; }
     .tk-chain-link { font-size: 0.45rem; }
     .tk-step-title { font-size: 1rem; }
+    .tk-step-nav a { font-size: 0.65rem; padding: 0.15rem 0.35rem; }
 }
 @media print {
     .tk-chain-track,
     .tk-why-toggle,
-    .tk-why-content { display: none !important; }
+    .tk-why-content,
+    .tk-discovery,
+    .tk-step-nav { display: none !important; }
 }

@@ -74,6 +74,22 @@
             </div>
         </div>
 
+        <div class="tk-step-nav" role="navigation" aria-label="Jump to step">
+            <span class="tk-step-nav-label">Jump to Any Step</span>
+            <a href="#stepCellular">0: Cellular Check</a>
+            <a href="#stepConnection">1: Connection</a>
+            <a href="#stepServiceType">2: Service Type</a>
+            <a href="#stepNetworks">3: Wi-Fi Networks</a>
+            <a href="#stepPortForward">4: Port Forward</a>
+            <a href="#stepIsolate">5: Modem Isolation</a>
+            <a href="#stepMyIP">My IP</a>
+            <a href="#stepPortCheck">Port Check</a>
+            <a href="#stepDNS">DNS</a>
+            <a href="#stepDualNetwork">Dual-Network</a>
+            <a href="#stepCLI">CLI Commands</a>
+            <a href="#stepExternalTools">External Tools</a>
+        </div>
+
         <div class="row g-4">
             <div class="col-lg-8 mx-auto">
 
@@ -101,6 +117,20 @@
                                 Your phone can connect to the internet two different ways: through your home Wi-Fi, or through your cellular carrier (AT&amp;T, Verizon, T-Mobile, etc.). These are completely separate networks. If we run a diagnostic test while you&rsquo;re on cellular, we&rsquo;re testing your carrier&rsquo;s network, not your home connection &mdash; and we&rsquo;d be diagnosing the wrong thing entirely.
                             </p>
                         </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverCellular" aria-expanded="false" aria-controls="discoverCellular">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverCellular">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -123,6 +153,20 @@
                             <p class="mt-2 text-muted small">
                                 Wi-Fi adds an extra layer between you and your router &mdash; it can be affected by distance, walls, interference from other devices, and signal congestion. Ethernet is a direct physical connection and eliminates all of those variables. For troubleshooting, Ethernet gives us the most reliable test results.
                             </p>
+                        </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverConnection" aria-expanded="false" aria-controls="discoverConnection">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverConnection">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,6 +218,20 @@
                                 Your service type determines what&rsquo;s possible. If you&rsquo;re trying to host a game server, run a security camera remotely, or access your home network from outside &mdash; you generally need a static IP and the ability to port forward. Business-class connections include this by default. Residential connections often don&rsquo;t, and some providers use CGNAT (Carrier-Grade NAT) which makes port forwarding impossible regardless of your router settings.
                             </p>
                         </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverServiceType" aria-expanded="false" aria-controls="discoverServiceType">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverServiceType">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -200,6 +258,20 @@
                             <p class="mt-2 text-muted small">
                                 If both your modem and router are broadcasting Wi-Fi, they might be fighting each other &mdash; causing slow speeds, dropped connections, or devices jumping between networks. Knowing which network you&rsquo;re on tells us which part of the chain we&rsquo;re testing. It&rsquo;s generally not best practice to have both broadcasting simultaneously, but during troubleshooting, having both available can help us isolate where the problem is.
                             </p>
+                        </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverNetworks" aria-expanded="false" aria-controls="discoverNetworks">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverNetworks">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -266,6 +338,20 @@
                                 <span class="d-block mt-1"><em>RFC 6598 defines the CGNAT shared address space (100.64.0.0/10). RFC 5780 covers NAT behavior requirements.</em></span>
                             </p>
                         </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverPortForward" aria-expanded="false" aria-controls="discoverPortForward">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverPortForward">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -311,6 +397,20 @@
                             <p class="mt-2 text-muted small">
                                 Your home network is a chain: Device &rarr; Wi-Fi/Ethernet &rarr; Router &rarr; Modem &rarr; ISP &rarr; Internet. If something is broken, you need to know <em>which link</em> is failing. By connecting directly to the modem, you skip your router entirely. If the internet works when connected to the modem but not through your router, the problem is your router. If it doesn&rsquo;t work even connected to the modem, the problem is upstream &mdash; your ISP or modem itself.
                             </p>
+                        </div>
+                        <div class="tk-discovery">
+                            <button class="btn btn-sm btn-outline-warning tk-discovery-toggle" type="button" data-target="discoverIsolate" aria-expanded="false" aria-controls="discoverIsolate">
+                                <i class="fas fa-lightbulb me-1" aria-hidden="true"></i>Found Something? Update This Step
+                            </button>
+                            <div class="tk-discovery-content collapse" id="discoverIsolate">
+                                <p class="mt-2 text-muted small">
+                                    Discovered something new &mdash; like a cable was unplugged, a light was off on the modem, or you realized you&rsquo;re on a different network? Note it here. You don&rsquo;t have to start over &mdash; just update what you know and keep going.
+                                </p>
+                                <textarea class="form-control mb-2" rows="2" placeholder="Example: I found that the Ethernet cable to the router was unplugged..."></textarea>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>This note stays with you as you work through the steps. Jump to any step above if you need to revisit earlier answers.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -739,7 +839,7 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function(){
-        var toggles = document.querySelectorAll('.tk-why-toggle');
+        var toggles = document.querySelectorAll('.tk-why-toggle, .tk-discovery-toggle');
         for (var i = 0; i < toggles.length; i++) {
             toggles[i].addEventListener('click', function() {
                 var targetId = this.getAttribute('data-target');
