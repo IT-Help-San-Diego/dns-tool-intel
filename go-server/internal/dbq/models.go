@@ -66,6 +66,40 @@ type DomainAnalysis struct {
 	ScanIp               *string          `db:"scan_ip" json:"scan_ip"`
 }
 
+type DomainWatchlist struct {
+	ID        int32            `db:"id" json:"id"`
+	UserID    int32            `db:"user_id" json:"user_id"`
+	Domain    string           `db:"domain" json:"domain"`
+	Cadence   string           `db:"cadence" json:"cadence"`
+	Enabled   bool             `db:"enabled" json:"enabled"`
+	LastRunAt pgtype.Timestamp `db:"last_run_at" json:"last_run_at"`
+	NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
+	CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type DriftEvent struct {
+	ID             int32            `db:"id" json:"id"`
+	Domain         string           `db:"domain" json:"domain"`
+	AnalysisID     int32            `db:"analysis_id" json:"analysis_id"`
+	PrevAnalysisID int32            `db:"prev_analysis_id" json:"prev_analysis_id"`
+	CurrentHash    string           `db:"current_hash" json:"current_hash"`
+	PreviousHash   string           `db:"previous_hash" json:"previous_hash"`
+	DiffSummary    []byte           `db:"diff_summary" json:"diff_summary"`
+	Severity       string           `db:"severity" json:"severity"`
+	CreatedAt      pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type DriftNotification struct {
+	ID           int32            `db:"id" json:"id"`
+	DriftEventID int32            `db:"drift_event_id" json:"drift_event_id"`
+	EndpointID   int32            `db:"endpoint_id" json:"endpoint_id"`
+	Status       string           `db:"status" json:"status"`
+	ResponseCode *int32           `db:"response_code" json:"response_code"`
+	ResponseBody *string          `db:"response_body" json:"response_body"`
+	DeliveredAt  pgtype.Timestamp `db:"delivered_at" json:"delivered_at"`
+	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
 type IceMaturity struct {
 	ID                int32            `db:"id" json:"id"`
 	Protocol          string           `db:"protocol" json:"protocol"`
@@ -124,6 +158,16 @@ type IceTestRun struct {
 	TotalFailed int32            `db:"total_failed" json:"total_failed"`
 	DurationMs  int32            `db:"duration_ms" json:"duration_ms"`
 	CreatedAt   pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type NotificationEndpoint struct {
+	ID           int32            `db:"id" json:"id"`
+	UserID       int32            `db:"user_id" json:"user_id"`
+	EndpointType string           `db:"endpoint_type" json:"endpoint_type"`
+	Url          string           `db:"url" json:"url"`
+	Secret       *string          `db:"secret" json:"secret"`
+	Enabled      bool             `db:"enabled" json:"enabled"`
+	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
 type Session struct {

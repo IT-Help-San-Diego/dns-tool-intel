@@ -377,10 +377,15 @@
                 <p class="small mb-0 text-muted"><i class="fas fa-info-circle me-1"></i>The posture hash changed due to differences in DNS record values, ordering, or TTLs &mdash; the high-level protocol statuses (SPF, DMARC, DKIM, etc.) remain the same. Compare reports side by side for full detail.</p>
             </div>
             {{end}}
-            <div class="mt-2 small u-opacity-70">
-                <span class="me-1 text-muted">Posture Hash:</span>
-                <span class="font-monospace me-3">Previous: {{if .DriftPrevID}}<a href="/analysis/{{.DriftPrevID}}/view" class="text-warning text-decoration-none"><code>{{substr 0 16 .DriftPrevHash}}&hellip;</code></a>{{else}}<code>{{substr 0 16 .DriftPrevHash}}&hellip;</code>{{end}}</span>
-                <span class="font-monospace">Current: <code>{{substr 0 16 .PostureHash}}&hellip;</code></span>
+            <div class="mt-2 small u-opacity-70 d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="me-1 text-muted">Posture Hash:</span>
+                    <span class="font-monospace me-3">Previous: {{if .DriftPrevID}}<a href="/analysis/{{.DriftPrevID}}/view" class="text-warning text-decoration-none"><code>{{substr 0 16 .DriftPrevHash}}&hellip;</code></a>{{else}}<code>{{substr 0 16 .DriftPrevHash}}&hellip;</code>{{end}}</span>
+                    <span class="font-monospace">Current: <code>{{substr 0 16 .PostureHash}}&hellip;</code></span>
+                </div>
+                <a href="/drift?domain={{.AsciiDomain}}" class="btn btn-sm btn-outline-warning text-nowrap">
+                    <i class="fas fa-chart-line me-1"></i>Drift Timeline
+                </a>
             </div>
         </div>
         {{end}}

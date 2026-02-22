@@ -381,6 +381,10 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 }()
         }
 
+        if analysisID > 0 && drift.Detected {
+                go h.persistDriftEvent(asciiDomain, analysisID, drift, postureHash)
+        }
+
         if !ephemeral && domainExists {
                 icae.EvaluateAndRecord(context.Background(), h.DB.Queries, h.Config.AppVersion)
         }
@@ -493,6 +497,40 @@ func computeDriftFromPrev(currentHash string, prevHash *string, prevID int32, pr
                 }
         }
         return di
+}
+
+func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, drift driftInfo, currentHash string) {
+        diffJSON, err := json.Marshal(drift.Fields)
+        if err != nil {
+                slog.Error("Failed to marshal drift diff", "domain", domain, "error", err)
+                return
+        }
+
+        severity := "info"
+        for _, f := range drift.Fields {
+                if f.Severity == "critical" {
+                        severity = "critical"
+                        break
+                }
+                if f.Severity == "warning" && severity != "critical" {
+                        severity = "warning"
+                }
+        }
+
+        _, insertErr := h.DB.Queries.InsertDriftEvent(context.Background(), dbq.InsertDriftEventParams{
+                Domain:         domain,
+                AnalysisID:     analysisID,
+                PrevAnalysisID: drift.PrevID,
+                CurrentHash:    currentHash,
+                PreviousHash:   drift.PrevHash,
+                DiffSummary:    diffJSON,
+                Severity:       severity,
+        })
+        if insertErr != nil {
+                slog.Error("Failed to persist drift event", "domain", domain, "error", insertErr)
+                return
+        }
+        slog.Info("Drift event persisted", "domain", domain, "severity", severity, "changed_fields", len(drift.Fields))
 }
 
 func (h *AnalysisHandler) renderRestrictedAccess(c *gin.Context, nonce, csrfToken any) {

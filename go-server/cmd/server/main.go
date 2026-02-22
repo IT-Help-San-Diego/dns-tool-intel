@@ -147,6 +147,18 @@ func main() {
         dossierHandler := handlers.NewDossierHandler(database, cfg)
         router.GET("/dossier", dossierHandler.Dossier)
 
+        driftHandler := handlers.NewDriftHandler(database, cfg)
+        router.GET("/drift", driftHandler.Timeline)
+
+        watchlistHandler := handlers.NewWatchlistHandler(database, cfg)
+        router.GET("/watchlist", watchlistHandler.Watchlist)
+        router.POST("/watchlist/add", middleware.RequireAuth(), watchlistHandler.AddDomain)
+        router.POST("/watchlist/:id/delete", middleware.RequireAuth(), watchlistHandler.RemoveDomain)
+        router.POST("/watchlist/:id/toggle", middleware.RequireAuth(), watchlistHandler.ToggleDomain)
+        router.POST("/watchlist/endpoint/add", middleware.RequireAuth(), watchlistHandler.AddEndpoint)
+        router.POST("/watchlist/endpoint/:id/delete", middleware.RequireAuth(), watchlistHandler.RemoveEndpoint)
+        router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireAuth(), watchlistHandler.ToggleEndpoint)
+
         router.GET("/analysis/:id", analysisHandler.ViewAnalysis)
         router.GET("/analysis/:id/view", analysisHandler.ViewAnalysisStatic)
         router.GET("/analysis/:id/executive", analysisHandler.ViewAnalysisExecutive)
