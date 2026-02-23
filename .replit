@@ -47,7 +47,6 @@ externalPort = 3000
 [userenv.shared]
 SONAR_ORG = "careyjames"
 SONAR_PROJECT = "careyjames_DnsToolWeb"
-MAINTENANCE_NOTE = "Maintenance"
 SMTP_PROBE_MODE = "remote"
 
 [userenv.development]

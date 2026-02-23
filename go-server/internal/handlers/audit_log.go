@@ -47,10 +47,12 @@ func (h *ConfidenceHandler) AuditLog(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"AppVersion": h.Config.AppVersion,
-		"CspNonce":   nonce,
-		"CsrfToken":  csrfToken,
-		"ActivePage": "confidence",
+		"AppVersion":      h.Config.AppVersion,
+		"MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":       h.Config.BetaPages,
+		"CspNonce":        nonce,
+		"CsrfToken":       csrfToken,
+		"ActivePage":      "confidence",
 	}
 	data["IsDev"] = h.Config.IsDevEnvironment
 	mergeAuthData(c, h.Config, data)
