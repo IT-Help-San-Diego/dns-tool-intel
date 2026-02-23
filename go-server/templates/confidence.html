@@ -4,17 +4,17 @@
     {{template "head" .}}
     <title>Intelligence Confidence Levels - DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol accuracy tracking from development through gold master maturity.">
+    <meta name="description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol correctness tracking from development through gold master maturity.">
     <meta property="og:url" content="https://dnstool.it-help.tech/confidence">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Intelligence Confidence Levels - DNS Tool">
-    <meta property="og:description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol accuracy tracking from development through gold master maturity.">
+    <meta property="og:description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol correctness tracking from development through gold master maturity.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/confidence">
     <meta name="twitter:title" content="Intelligence Confidence Levels - DNS Tool">
-    <meta name="twitter:description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol accuracy tracking from development through gold master maturity.">
+    <meta name="twitter:description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol correctness tracking from development through gold master maturity.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/confidence">
     {{template "critical_css" .}}
@@ -372,7 +372,7 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-layer-group me-2 text-info"></i>Maturity Levels</h2>
-                <p class="text-muted small mb-3">Modeled after the <strong>Capability Maturity Model (CMM)</strong> developed at Carnegie Mellon&rsquo;s Software Engineering Institute. Five tiers of sustained accuracy&nbsp;&mdash; earned through deterministic test runs, never self-assigned.</p>
+                <p class="text-muted small mb-3">Modeled after the <strong>Capability Maturity Model (CMM)</strong> developed at Carnegie Mellon&rsquo;s Software Engineering Institute. Five tiers of sustained correctness&nbsp;&mdash; earned through deterministic test runs, never self-assigned.</p>
                 <p class="text-muted small mb-3">The dual-threshold system (consecutive passes AND elapsed time) prevents maturity inflation. A burst of 5,000 runs in one day cannot achieve Gold Master &mdash; the 180-day time requirement ensures tests have run across multiple code versions, infrastructure changes, and resolver conditions. This mirrors how real-world confidence is earned: through sustained performance, not a single marathon session.</p>
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -394,7 +394,7 @@
                             <span class="icae-dot icae-dot-inline icae-dot-color-consistent mt-1"></span>
                             <div>
                                 <strong>Consistent</strong>
-                                <p class="text-muted small mb-0">500+ passes over 30+ days with no regressions. Production-grade accuracy.</p>
+                                <p class="text-muted small mb-0">500+ passes over 30+ days with no regressions. Production-grade correctness.</p>
                             </div>
                         </div>
                     </div>
@@ -435,7 +435,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body">
                                 <h3 class="h6 fw-bold"><i class="fas fa-search-plus me-1 text-info"></i> Analysis Layer</h3>
-                                <p class="text-muted small mb-0">Validates that collected data is interpreted correctly against RFC standards. Tests cover SPF qualifier classification, DMARC policy enforcement logic, DKIM key strength assessment, DNSSEC chain-of-trust verdicts, brand impersonation verdicts, CAA issuer identification, DANE coverage assessment, and regression guards from every past accuracy bug. Currently {{if .ICAEMetrics}}{{.ICAEMetrics.TotalAnalysisCases}}{{else}}0{{end}} test cases.</p>
+                                <p class="text-muted small mb-0">Validates that collected data is interpreted correctly against RFC standards. Tests cover SPF qualifier classification, DMARC policy enforcement logic, DKIM key strength assessment, DNSSEC chain-of-trust verdicts, brand impersonation verdicts, CAA issuer identification, DANE coverage assessment, and regression guards from every past correctness bug. Currently {{if .ICAEMetrics}}{{.ICAEMetrics.TotalAnalysisCases}}{{else}}0{{end}} test cases.</p>
                             </div>
                         </div>
                     </div>
@@ -486,7 +486,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1"><i class="fas fa-chart-line me-1 text-warning"></i> Efficiency Tracking</h3>
-                                <p class="text-muted small mb-0">The ICAE Collection layer audits timeout handling as part of protocol correctness. Proper timeout behavior (returning informational status vs. crashing, logging appropriately, enabling re-analysis) is tested alongside data accuracy. Timeout patterns feed into maturity progression.</p>
+                                <p class="text-muted small mb-0">The ICAE Collection layer audits timeout handling as part of protocol correctness. Proper timeout behavior (returning informational status vs. crashing, logging appropriately, enabling re-analysis) is tested alongside data correctness. Timeout patterns feed into maturity progression.</p>
                             </div>
                         </div>
                     </div>
@@ -540,7 +540,7 @@
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-info"></i>Why This Matters</h2>
                 <p class="text-muted mb-2">
                     Most security tools grade your domain without disclosing how confident they are in their own results.
-                    DNS Tool is different: the ICAE provides full transparency into analytical accuracy.
+                    DNS Tool is different: the ICAE provides full transparency into analytical correctness.
                 </p>
                 <p class="text-muted mb-0">
                     Every protocol&rsquo;s confidence level is backed by a verifiable count of consecutive audit passes.

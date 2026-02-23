@@ -409,9 +409,9 @@ DNS Tool applies ICD 203 (Intelligence Community Directive on analytic confidenc
 ### ICAE (Intelligence Confidence Audit Engine)
 Measures analysis correctness via 129 deterministic test cases across 9 protocols (SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA). Tests are exercised against fixture domains with known DNS configurations. Results produce a five-tier maturity rating:
 - **Development**: Initial capability, limited coverage
-- **Foundation**: Core protocols covered with basic accuracy
-- **Operational**: Comprehensive coverage with consistent accuracy
-- **Verified**: High accuracy with edge-case handling
+- **Foundation**: Core protocols covered with basic correctness
+- **Operational**: Comprehensive coverage with consistent correctness
+- **Verified**: High correctness with edge-case handling
 - **Gold Master**: Full protocol coverage with verified correctness across all test cases
 
 ICAE results are displayed on the `/confidence` page and in the homepage hero card as "Confidence Level: [tier]" with per-protocol badges.
