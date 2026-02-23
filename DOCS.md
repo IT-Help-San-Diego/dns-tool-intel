@@ -125,6 +125,25 @@ Two-tier approach to web security exposure detection:
 ### Posture Scoring
 CVSS-aligned risk assessment with actionable remediation recommendations.
 
+### Confidence Engines
+
+Two engines measure the quality of DNS Tool's own intelligence output, applying ICD 203 confidence methodology holistically:
+
+**ICAE (Intelligence Confidence Audit Engine)** — measures analysis *correctness*. 129 deterministic test cases across 9 protocols (SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA) exercised against fixture domains. Five-tier maturity model: Development → Foundation → Operational → Verified → Gold Master. Results surfaced on the `/confidence` page and the homepage hero card.
+
+**ICuAE (Intelligence Currency Audit Engine)** — measures data *timeliness*. 29 deterministic test cases across five dimensions:
+- **TTL Compliance** (≥95% target): Do resolvers respect authoritative TTL limits? References RFC 8767 (serve-stale).
+- **Completeness** (≥98% target): Are all expected record types collected?
+- **Source Credibility** (≥90% target): Multi-resolver consensus strength.
+- **Currentness** (<0.5× TTL target): How fresh is the data relative to its TTL?
+- **TTL Relevance** (within standard range): Do observed TTLs match expected ranges for each record type?
+
+Grading scale: Excellent (≥90) → Good (≥75) → Adequate (≥50) → Degraded (≥25) → Stale (<25). Each scan generates per-dimension scores, an overall weighted average, and SHA-3-512 provenance hashing. Excellence benchmarks derived from Farsight DNSDB, OpenINTEL, and DNSPerf real-world data.
+
+**Phase 1 Advisory (Live)**: Per-dimension tuning hints with three threshold tiers (≤49 warning, ≤74 info, ≤89 lightbulb) surfaced inline in the Per-Dimension Averages table on the confidence page. Phase 2 (Suggested Config Profiles) and Phase 3 (Adaptive Auto-Tuning with rollback) are on the roadmap.
+
+Standards: ICD 203 (Intelligence Community confidence framework), NIST SP 800-53 SI-18 (information quality/currency), ISO/IEC 25012 (data quality model).
+
 ### Reporting
 Dual intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard, risk posture, and priority actions). Both use the same live analysis data — different formats for different audiences. Naming follows IC conventions: "Report" = comprehensive, "Brief" = concise decision-maker version. Configurable TLP classification (default: TLP:AMBER, aligned with CISA Cyber Hygiene practice) with TLP:GREEN and TLP:CLEAR options. JSON export for programmatic consumption.
 

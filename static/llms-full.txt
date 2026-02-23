@@ -378,6 +378,39 @@ The Field Tech Toolkit is a guided network troubleshooting tool designed for eve
 
 ---
 
+## Confidence Engines
+
+DNS Tool applies ICD 203 (Intelligence Community Directive on analytic confidence) methodology holistically — measuring both the *correctness* and *currency* of its own intelligence output.
+
+### ICAE (Intelligence Confidence Audit Engine)
+Measures analysis correctness via 129 deterministic test cases across 9 protocols (SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA). Tests are exercised against fixture domains with known DNS configurations. Results produce a five-tier maturity rating:
+- **Development**: Initial capability, limited coverage
+- **Foundation**: Core protocols covered with basic accuracy
+- **Operational**: Comprehensive coverage with consistent accuracy
+- **Verified**: High accuracy with edge-case handling
+- **Gold Master**: Full protocol coverage with verified correctness across all test cases
+
+ICAE results are displayed on the `/confidence` page and in the homepage hero card as "Confidence Level: [tier]" with per-protocol badges.
+
+### ICuAE (Intelligence Currency Audit Engine)
+Measures data timeliness via 29 deterministic test cases across five dimensions, grounded in NIST SP 800-53 SI-18 (information quality) and ISO/IEC 25012 (data quality model):
+
+| Dimension | Target | What It Measures |
+|-----------|--------|-----------------|
+| TTL Compliance | ≥95% | Do resolvers respect authoritative TTL limits? (RFC 8767) |
+| Completeness | ≥98% | Are all expected record types collected? |
+| Source Credibility | ≥90% | Multi-resolver consensus strength |
+| Currentness | <0.5× TTL | How fresh is the data relative to its TTL? |
+| TTL Relevance | Standard range | Do observed TTLs match expected ranges for each record type? |
+
+Grading scale: Excellent (≥90) → Good (≥75) → Adequate (≥50) → Degraded (≥25) → Stale (<25). Excellence benchmarks derived from Farsight DNSDB, OpenINTEL, and DNSPerf.
+
+**Phase 1 Advisory (Live)**: Per-dimension tuning hints with three threshold tiers surfaced inline in the Per-Dimension Averages table. Phase 2 (Suggested Config Profiles) and Phase 3 (Adaptive Auto-Tuning with rollback) are on the roadmap.
+
+ICuAE results are displayed on the `/confidence#icuae` page and in the homepage hero card as "Currency Level: [grade] [score]".
+
+---
+
 ## RFC References
 - RFC 7208: SPF (Sender Policy Framework)
 - RFC 6376: DKIM (DomainKeys Identified Mail)

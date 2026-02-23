@@ -20,9 +20,10 @@
 - **URL**: https://csrc.nist.gov
 - **We track**:
   - SP 800-177 Rev 1 — Trustworthy Email (SPF/DKIM/DMARC/DANE guidance)
+  - SP 800-53 Rev 5, SI-18 — System and Information Integrity: PII Quality Management (data currency requirements)
   - Cryptographic key strength recommendations (RSA 2048-bit minimum)
   - CVSS severity color conventions (via NVD)
-- **Used for**: Documentation citation style, cryptographic strength classification, remediation priority language
+- **Used for**: Documentation citation style, cryptographic strength classification, remediation priority language, ICuAE data currency dimension grounding
 
 ### CISA (Cybersecurity and Infrastructure Security Agency)
 - **What**: US federal cybersecurity authority
@@ -128,6 +129,20 @@
 | 9116 | security.txt | Standards Track | We detect security.txt on scanned domains |
 | 1392 | Internet Users' Glossary | Informational | Definition of "Hacker" in community disclaimers |
 
+### ODNI (Office of the Director of National Intelligence)
+- **What**: US Intelligence Community oversight and analytic standards
+- **URL**: https://www.dni.gov
+- **We track**:
+  - ICD 203 — Analytic Standards (Intelligence Community Directive on confidence levels and analytic tradecraft)
+- **Used for**: ICAE and ICuAE confidence framework — five-tier maturity model, correctness/currency dual application of "confidence" to intelligence products
+
+### ISO (International Organization for Standardization)
+- **What**: International standards for quality, safety, and efficiency
+- **URL**: https://www.iso.org
+- **We track**:
+  - ISO/IEC 25012:2008 — Data Quality Model (timeliness, completeness, credibility dimensions)
+- **Used for**: ICuAE dimension taxonomy — mapping TTL Compliance, Completeness, Source Credibility, Currentness, and TTL Relevance to internationally recognized data quality characteristics
+
 ---
 
 ## 3. Quality Gate Authorities
@@ -154,6 +169,14 @@ These are not standards bodies but tool vendors whose metrics we treat as mandat
 | crt.sh | Certificate Transparency log search | Best-effort | https://crt.sh |
 | IANA RDAP | Domain registration data | Best-effort | https://rdap.org |
 | ip-api.com | Visitor geolocation (footer flag only) | 45/min (free tier) | https://ip-api.com |
+
+### Excellence Benchmark Sources (ICuAE)
+
+| Source | What We Use | Context |
+|--------|------------|---------|
+| Farsight DNSDB | Passive DNS collection frequency benchmarks | TTL Compliance and Currentness excellence targets |
+| OpenINTEL | Large-scale DNS measurement dataset (Twente/SIDN) | Completeness and Source Credibility baselines |
+| DNSPerf | Independent DNS resolver performance testing | Resolver reliability data for multi-resolver consensus benchmarks |
 
 ### DNS Resolvers (Multi-Resolver Consensus)
 

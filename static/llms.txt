@@ -68,6 +68,11 @@ Every attribution includes a confidence label:
 - **Inferred**: Derived from pattern matching (e.g., PTR hostnames, ASN ownership)
 - **Third-party**: Sourced from external services (SecurityTrails, crt.sh)
 
+### Confidence Engines
+DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its own output:
+- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). See `/confidence`.
+- **ICuAE (Intelligence Currency Audit Engine)**: 29 test cases measuring data timeliness across five dimensions (TTL Compliance, Completeness, Source Credibility, Currentness, TTL Relevance). Grading: Excellent/Good/Adequate/Degraded/Stale. Phase 1 tuning advisory live. See `/confidence#icuae`.
+
 ## Who It's For
 - **Executives & Board Members**: Clear Low Risk / Medium Risk / High Risk / Critical Risk verdicts for cybersecurity posture at a glance
 - **IT Professionals**: Validate SPF, DKIM, DMARC, DANE/TLSA configurations and troubleshoot DNS records
