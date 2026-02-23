@@ -2849,3 +2849,42 @@ Professional security dashboards commonly use always-collapsed nav. Frees brand 
   - Queued (High): Probe Network Second Node (probe-02, Kali), Multi-Probe Consensus Engine
   - Queued (Medium): Probe Security.txt + Landing Pages
   - Version range updated to v26.20.0–v26.25.27
+
+
+## Session 2026-02-23 (Part 2): Mermaid Diagrams, Security Cleanup, Industry Readiness
+
+### Removed Dead Python Stack
+- Deleted `pyproject.toml`, `uv.lock`, `main.py`, `gunicorn.ctl`, `__pycache__/`
+- Root cause: gunicorn trampoline eliminated in Part 1; all Python deps were unused
+- Impact: Eliminates Semgrep "Sonarqube Docs API Key" false positives from `python-sonarqube-api` package URLs in `uv.lock`
+- SonarCloud access verified intact — runs via GitHub Actions `sonarsource/sonarqube-scan-action` + `SONAR_TOKEN` secret
+
+### Mermaid Engineering Diagram Infrastructure (v26.25.37)
+- **Strategy**: Two-layer diagram system per research analysis (Figma vs Mermaid vs Miro)
+  - Layer 1 (Presentation): Polished hand-crafted HTML/CSS on architecture page — TLP:GREEN
+  - Layer 2 (Engineering): Mermaid `.mmd` source files → pre-rendered dark-themed SVGs — canonical, Git-diffable
+- **Created 4 canonical diagrams**:
+  1. `intelligence-pipeline.mmd` — Domain Input → Collection → ICIE → Privacy Gate → Products
+  2. `confidence-framework.mmd` — ICIE → ICAE/ICuAE dual audit → Confidence Score
+  3. `open-core-architecture.mmd` — Public/Private build-tag boundary
+  4. `protocol-coverage.mmd` — 9 protocols grouped by function → ICIE
+- **Dark theme**: Custom palette matching project CSS (bg #0c1018, edges #58a6ff, node fills #1a3a6b/#0a3a4a/#2a1a4b/#0a3a1a/#3a2e0a)
+- **CSP compliance**: SVGs embedded as `<img>` tags (not inline SVG) — sandboxed styles, no CSP conflict
+- **Build pipeline**: `docs/diagrams/mermaid-config.json` theme config, `scripts/render-diagrams.sh` for mmdc rendering
+- **Puppeteer won't run on Replit**: Pre-rendered via mermaid.ink API, post-processed for correct dark palette
+- **Architecture page**: New "Engineering Diagrams" section with 2-column responsive grid, dark-themed cards
+- **Font Awesome**: Used `fa-diagram-project` and `fa-code-compare` (verified in subset; `fa-code-branch` NOT available)
+- **Intel repo sync**: All 4 .mmd files + theme config + render script pushed to dns-tool-intel
+
+### Security Readiness Sweep
+- **Headers verified**: CSP (nonce-based), HSTS (2yr+preload), X-Frame-Options (DENY), Referrer-Policy (strict-origin-when-cross-origin), Permissions-Policy (all denied), COOP/CORP (same-origin), X-Content-Type-Options (nosniff)
+- **No hardcoded secrets**: grep audit clean (changelog descriptions mention "secret" in natural language only)
+- **Rate limiting**: Active (8 req/60s)
+- **Health endpoints**: `/healthz` (minimal, deploy checks) + `/go/health` (full telemetry, public — ops-grade)
+- **Observatory: 130, Lighthouse: 98-100/100/100/100, SonarCloud: A/A/A**
+
+### Documentation Updates
+- SKILL.md: Removed gunicorn/main.py references, updated to `./dns-tool-server` direct workflow, added Mermaid diagram workflow section
+- replit.md: Updated architecture page description with two-layer diagram system
+
+### Version Bump → v26.25.37
