@@ -1742,7 +1742,8 @@ main.container {
 }
 
 /* Warning badges - Glass amber (caution, review needed) */
-.badge.bg-warning {
+.badge.bg-warning,
+.badge.bg-warning.text-dark {
     background-color: rgba(227, 179, 65, 0.15) !important;
     color: var(--status-warning) !important;
     border: 1px solid rgba(227, 179, 65, 0.3);
@@ -1963,16 +1964,18 @@ main.container {
 }
 
 .btn-outline-executive {
-    color: #9ca3af;
-    border: 1px solid #9ca3af;
+    color: var(--accent-steel);
+    border: 1px solid var(--accent-steel);
     background-color: transparent;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 .btn-outline-executive:hover,
 .btn-outline-executive:focus {
-    background-color: rgba(156, 163, 175, 0.15);
-    color: #d1d5db;
-    border-color: #d1d5db;
+    background-color: rgba(125, 142, 168, 0.12);
+    color: #a8b8cc;
+    border-color: #a8b8cc;
+    box-shadow: 0 0 10px rgba(125, 142, 168, 0.15);
+    transform: translateY(-1px);
 }
 
 .pwa-install-nudge {
@@ -2007,16 +2010,18 @@ main.container {
 }
 
 .btn-outline-info {
-    --bs-btn-hover-bg: rgba(13, 202, 240, 0.15);
-    --bs-btn-hover-color: #5edfff;
-    --bs-btn-hover-border-color: #5edfff;
-    --bs-btn-active-bg: rgba(13, 202, 240, 0.25);
-    --bs-btn-active-color: #5edfff;
-    --bs-btn-active-border-color: #5edfff;
+    --bs-btn-color: var(--accent-cobalt);
+    --bs-btn-border-color: var(--accent-cobalt);
+    --bs-btn-hover-bg: rgba(74, 143, 231, 0.15);
+    --bs-btn-hover-color: #7db3f0;
+    --bs-btn-hover-border-color: #7db3f0;
+    --bs-btn-active-bg: rgba(74, 143, 231, 0.25);
+    --bs-btn-active-color: #7db3f0;
+    --bs-btn-active-border-color: #7db3f0;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 .btn-outline-info:hover {
-    box-shadow: 0 0 14px rgba(94, 223, 255, 0.3), 0 0 4px rgba(94, 223, 255, 0.15);
+    box-shadow: 0 0 12px rgba(74, 143, 231, 0.25), 0 0 4px rgba(74, 143, 231, 0.12);
     transform: translateY(-1px);
 }
 .btn-outline-success {
@@ -5610,13 +5615,18 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 
 .btn-outline-primary {
-    --bs-btn-color: #6ea8fe;
-    --bs-btn-border-color: #6ea8fe;
-    --bs-btn-hover-bg: rgba(13, 110, 253, 0.15);
-    --bs-btn-hover-color: #8bb9fe;
-    --bs-btn-hover-border-color: #8bb9fe;
-    --bs-btn-active-bg: rgba(13, 110, 253, 0.25);
-    --bs-btn-active-color: #8bb9fe;
+    --bs-btn-color: var(--accent-cobalt);
+    --bs-btn-border-color: var(--accent-cobalt);
+    --bs-btn-hover-bg: rgba(74, 143, 231, 0.12);
+    --bs-btn-hover-color: #7db3f0;
+    --bs-btn-hover-border-color: #7db3f0;
+    --bs-btn-active-bg: rgba(74, 143, 231, 0.2);
+    --bs-btn-active-color: #7db3f0;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.btn-outline-primary:hover {
+    box-shadow: 0 0 10px rgba(74, 143, 231, 0.2);
+    transform: translateY(-1px);
 }
 
 /* ── Homepage Big Question Preview ── */
@@ -6085,11 +6095,16 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     flex: 1;
     min-width: 80px;
     text-align: center;
-    background: #1a1d23;
-    border: 1px solid rgba(79, 210, 255, 0.15);
+    background: rgba(22, 27, 34, 0.6);
+    border: 1px solid rgba(74, 143, 231, 0.15);
     border-radius: 8px;
     padding: 0.75rem 0.25rem;
     overflow: hidden;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.icuae-runtime-perf .icuae-summary-item {
+    border-color: rgba(212, 168, 85, 0.15);
 }
 .icuae-summary-value {
     display: block;
@@ -6114,11 +6129,11 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     text-overflow: ellipsis;
 }
 .icuae-test-card {
-    border-color: rgba(79, 210, 255, 0.12);
+    border-color: rgba(74, 143, 231, 0.12);
     transition: border-color 0.2s;
 }
 .icuae-test-card:hover {
-    border-color: rgba(79, 210, 255, 0.35);
+    border-color: rgba(74, 143, 231, 0.3);
 }
 body.covert-mode .icuae-summary-bar .icuae-summary-item {
     border-color: rgba(140, 40, 40, 0.2) !important;
@@ -6139,28 +6154,30 @@ body.covert-mode .icuae-test-card:hover {
 .icae-tier-meter {
     position: relative;
     display: inline-block;
-    width: 60px;
-    height: 8px;
-    background: #2d3139;
-    border-radius: 4px;
+    width: 80px;
+    height: 6px;
+    background: rgba(45, 49, 57, 0.8);
+    border-radius: 3px;
     overflow: hidden;
     vertical-align: middle;
+    border: 1px solid rgba(74, 143, 231, 0.1);
 }
 .icae-tier-meter-fill {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #ffa726, #4caf50);
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent-cobalt), var(--accent-gold));
     transition: width 0.3s ease;
+    box-shadow: 0 0 6px rgba(74, 143, 231, 0.3);
 }
 .icae-tier-meter-label {
     position: absolute;
-    top: -1px;
-    right: -30px;
+    top: -2px;
+    right: -32px;
     font-size: 0.6rem;
-    color: #8ab4f8;
+    color: var(--accent-gold-muted);
     font-weight: 600;
     white-space: nowrap;
 }

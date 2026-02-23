@@ -590,11 +590,11 @@
 
         {{if .ICuAERuntimeMetrics}}
         {{if .ICuAERuntimeMetrics.HasData}}
-        <div class="card bg-dark border-secondary mb-4">
+        <div class="card bg-dark mb-4" style="border:1px solid rgba(212,168,85,0.12)">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-chart-line me-2 text-info"></i>Runtime Performance</h2>
+                <h2 class="h5 fw-bold mb-3"><i class="fas fa-chart-line me-2" style="color:var(--accent-gold)"></i>Runtime Performance</h2>
                 <p class="text-muted small mb-3">ICuAE measures how close each scan&rsquo;s data comes to the <strong>theoretical ideal</strong> &mdash; a perfectly tuned, machine-locked collector that requests every DNS record at exactly the right cadence, receives responses within authoritative TTL windows, achieves complete multi-resolver consensus, and returns a full record set. A score of 100 means the collected data is indistinguishable from ground truth. Because real-world DNS inherently fluctuates (caches age, resolvers disagree, optional records vary by domain), we track <strong>statistical stability</strong> across scans rather than pass/fail maturity.</p>
-                <div class="icuae-summary-bar mb-3">
+                <div class="icuae-summary-bar icuae-runtime-perf mb-3">
                     <div class="icuae-summary-item">
                         <span class="icuae-summary-value">{{.ICuAERuntimeMetrics.TotalScans}}</span>
                         <span class="icuae-summary-label">Scans Evaluated</span>
@@ -654,7 +654,7 @@
                             </tr>
                             {{if .TuningHint}}
                             <tr>
-                                <td colspan="5" class="small border-0 pt-0 pb-2" style="background:rgba(13,202,240,0.03)"><i class="{{.TuningIcon}} me-1"></i> <strong>Tuning Advisory:</strong> {{.TuningHint}}</td>
+                                <td colspan="5" class="small border-0 pt-0 pb-2" style="background:rgba(74,143,231,0.04)"><i class="{{.TuningIcon}} me-1"></i> <strong>Tuning Advisory:</strong> {{.TuningHint}}</td>
                             </tr>
                             {{end}}
                             {{end}}
@@ -671,14 +671,14 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-graduation-cap me-2 text-warning"></i>Why Track Currency Separately?</h2>
+                <h2 class="h5 fw-bold mb-3"><i class="fas fa-graduation-cap me-2" style="color:var(--accent-gold)"></i>Why Track Currency Separately?</h2>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-check-circle me-1 text-info"></i> ICAE &mdash; Correctness</h3>
+                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-check-circle me-1" style="color:var(--accent-cobalt)"></i> ICAE &mdash; Correctness</h3>
                         <p class="text-muted small mb-0">&ldquo;Did we read the data right?&rdquo; ICAE runs deterministic test vectors against our analysis engine. If SPF says <code>~all</code>, does the tool correctly identify it as a softfail? This is pass/fail, so we track consecutive passes and maturity tiers.</p>
                     </div>
                     <div class="col-md-6">
-                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1 text-warning"></i> ICuAE &mdash; Currency</h3>
+                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1" style="color:var(--accent-gold)"></i> ICuAE &mdash; Currency</h3>
                         <p class="text-muted small mb-0">&ldquo;How close is the collected data to ground truth?&rdquo; ICuAE scores each scan against a theoretical ideal &mdash; a machine-locked collector with perfect TTL compliance, complete records, and full resolver consensus. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
                     </div>
                 </div>
@@ -954,17 +954,17 @@
                 </p>
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
-                        <div class="card bg-dark border-info h-100">
+                        <div class="card bg-dark h-100" style="border:1px solid rgba(74,143,231,0.15)">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-flask me-1 text-info"></i> ICAE &mdash; Correctness</h3>
+                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-flask me-1" style="color:var(--accent-cobalt)"></i> ICAE &mdash; Correctness</h3>
                                 <p class="text-muted small mb-0">&ldquo;Did we interpret the DNS data correctly?&rdquo; Deterministic golden-rule tests with per-protocol maturity tracking and cryptographic hash integrity.</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-dark border-warning h-100">
+                        <div class="card bg-dark h-100" style="border:1px solid rgba(212,168,85,0.15)">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1 text-warning"></i> ICuAE &mdash; Currency</h3>
+                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1" style="color:var(--accent-gold)"></i> ICuAE &mdash; Currency</h3>
                                 <p class="text-muted small mb-0">&ldquo;Is the DNS data still valid/current?&rdquo; Five standards-grounded dimensions evaluated per-scan with TTL-aware validity windows and multi-resolver credibility.</p>
                             </div>
                         </div>
