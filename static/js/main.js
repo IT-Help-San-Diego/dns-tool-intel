@@ -49,7 +49,7 @@ globalThis.addEventListener('pageshow', function(e) {
  *   1. Call showOverlay(overlay) — activates overlay + fixes animations
  *   2. Call startStatusCycle(overlay) — starts timer + phase rotation
  *   3. Use fetch(url) to submit the scan (keeps JS alive)
- *   4. On response: document.open(); document.write(html); document.close();
+ *   4. On response: parse with DOMParser and replace document element
  *   5. Update URL: history.replaceState(null, '', resp.url)
  *   6. Fallback: .catch → location.href (graceful degradation)
  *
@@ -269,9 +269,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
-                    document.open();
-                    document.write(html);
-                    document.close();
+                    var parsed = new DOMParser().parseFromString(html, 'text/html');
+                    document.replaceChild(
+                        document.importNode(parsed.documentElement, true),
+                        document.documentElement
+                    );
                     globalThis.scrollTo(0, 0);
                     if (resp.url && resp.url !== globalThis.location.href) {
                         globalThis.history.replaceState(null, '', resp.url);
@@ -318,9 +320,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
-                    document.open();
-                    document.write(html);
-                    document.close();
+                    var parsed = new DOMParser().parseFromString(html, 'text/html');
+                    document.replaceChild(
+                        document.importNode(parsed.documentElement, true),
+                        document.documentElement
+                    );
                     globalThis.scrollTo(0, 0);
                     if (resp.url && resp.url !== globalThis.location.href) {
                         globalThis.history.replaceState(null, '', resp.url);
