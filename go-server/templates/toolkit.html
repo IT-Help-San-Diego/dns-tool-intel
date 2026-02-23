@@ -706,7 +706,7 @@
                         <form method="POST" action="/toolkit/portcheck">
                             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                             <div class="row g-2 align-items-end">
-                                <div class="col-sm-6">
+                                <div class="col-sm-5">
                                     <label for="target_host" class="form-label small">Host (IP or Hostname)</label>
                                     <input type="text"
                                            class="form-control"
@@ -719,7 +719,7 @@
                                            aria-label="Target host for port check"
                                            value="{{.TargetHost}}">
                                 </div>
-                                <div class="col-sm-3">
+                                <div class="col-sm-2">
                                     <label for="target_port" class="form-label small">Port</label>
                                     <input type="text"
                                            class="form-control"
@@ -731,7 +731,19 @@
                                            aria-label="Port number to check"
                                            value="{{.TargetPort}}">
                                 </div>
+                                {{if and .ProbeLocations (gt (len .ProbeLocations) 1)}}
                                 <div class="col-sm-3">
+                                    <label for="probe_location" class="form-label small">Probe Location</label>
+                                    <select class="form-select" id="probe_location" name="probe_location" aria-label="Select probe location">
+                                        {{range .ProbeLocations}}
+                                        <option value="{{.ID}}" {{if eq $.SelectedProbe .ID}}selected{{end}}>{{.Label}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                {{else}}
+                                <div class="col-sm-3">
+                                {{end}}
                                     <button type="submit" class="btn btn-outline-info w-100 white-space-nowrap">
                                         <i class="fas fa-satellite-dish me-1" aria-hidden="true"></i>Check Port
                                     </button>

@@ -494,7 +494,7 @@
                         </div>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             {{range .CurrencyReport.Dimensions}}
-                            <span class="badge bg-{{.BootstrapClass}} bg-opacity-25 text-{{.BootstrapClass}} border border-{{.BootstrapClass}} border-opacity-25" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} <span class="fw-bold">{{.GradeDisplay}}</span></span>
+                            <span class="badge bg-{{.BootstrapClass}} border border-{{.BootstrapClass}} border-opacity-50 text-white" style="--bs-bg-opacity:.75" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
                             {{end}}
                         </div>
                         <small class="text-muted d-block mt-2">{{.CurrencyReport.Guidance}}</small>

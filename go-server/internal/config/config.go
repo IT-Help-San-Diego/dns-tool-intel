@@ -9,10 +9,17 @@ import (
 )
 
 var (
-        Version   = "26.25.12"
+        Version   = "26.25.13"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
+
+type ProbeEndpoint struct {
+        ID    string
+        Label string
+        URL   string
+        Key   string
+}
 
 type Config struct {
         DatabaseURL        string
@@ -23,6 +30,7 @@ type Config struct {
         SMTPProbeMode      string
         ProbeAPIURL        string
         ProbeAPIKey        string
+        Probes             []ProbeEndpoint
         MaintenanceNote    string
         SectionTuning      map[string]string
         BetaPages          map[string]bool
@@ -80,6 +88,33 @@ func Load() (*Config, error) {
                 smtpProbeMode = "remote"
         }
 
+        var probes []ProbeEndpoint
+        if probeAPIURL != "" {
+                label := os.Getenv("PROBE_LABEL")
+                if label == "" {
+                        label = "US-East (Boston)"
+                }
+                probes = append(probes, ProbeEndpoint{
+                        ID:    "probe-01",
+                        Label: label,
+                        URL:   probeAPIURL,
+                        Key:   os.Getenv("PROBE_API_KEY"),
+                })
+        }
+        probeAPIURL2 := os.Getenv("PROBE_API_URL_2")
+        if probeAPIURL2 != "" {
+                label2 := os.Getenv("PROBE_LABEL_2")
+                if label2 == "" {
+                        label2 = "Probe 2"
+                }
+                probes = append(probes, ProbeEndpoint{
+                        ID:    "probe-02",
+                        Label: label2,
+                        URL:   probeAPIURL2,
+                        Key:   os.Getenv("PROBE_API_KEY_2"),
+                })
+        }
+
         maintenanceNote := os.Getenv("MAINTENANCE_NOTE")
 
         tuning := make(map[string]string)
@@ -122,6 +157,7 @@ func Load() (*Config, error) {
                 SMTPProbeMode:      smtpProbeMode,
                 ProbeAPIURL:        probeAPIURL,
                 ProbeAPIKey:        os.Getenv("PROBE_API_KEY"),
+                Probes:             probes,
                 MaintenanceNote:    maintenanceNote,
                 SectionTuning:      tuning,
                 BetaPages:          betaPages,

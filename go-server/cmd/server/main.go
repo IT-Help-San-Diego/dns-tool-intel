@@ -104,7 +104,15 @@ func main() {
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
         dnsAnalyzer.ProbeAPIURL = cfg.ProbeAPIURL
         dnsAnalyzer.ProbeAPIKey = cfg.ProbeAPIKey
-        slog.Info("DNS analyzer initialized with telemetry", "smtp_probe_mode", cfg.SMTPProbeMode, "probe_api_url", cfg.ProbeAPIURL)
+        for _, p := range cfg.Probes {
+                dnsAnalyzer.Probes = append(dnsAnalyzer.Probes, analyzer.ProbeEndpoint{
+                        ID:    p.ID,
+                        Label: p.Label,
+                        URL:   p.URL,
+                        Key:   p.Key,
+                })
+        }
+        slog.Info("DNS analyzer initialized with telemetry", "smtp_probe_mode", cfg.SMTPProbeMode, "probe_count", len(cfg.Probes))
 
         analyzer.InitIETFMetadata()
         analyzer.ScheduleRFCRefresh()

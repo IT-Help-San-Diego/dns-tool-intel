@@ -13,6 +13,13 @@ import (
         "dnstool/go-server/internal/telemetry"
 )
 
+type ProbeEndpoint struct {
+        ID    string
+        Label string
+        URL   string
+        Key   string
+}
+
 type Analyzer struct {
         DNS        *dnsclient.Client
         HTTP       *dnsclient.SafeHTTPClient
@@ -32,6 +39,7 @@ type Analyzer struct {
         SMTPProbeMode string
         ProbeAPIURL   string
         ProbeAPIKey   string
+        Probes        []ProbeEndpoint
 
         backpressureRejections atomic.Int64
 }
