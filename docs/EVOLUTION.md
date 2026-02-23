@@ -2839,3 +2839,13 @@ Professional security dashboards commonly use always-collapsed nav. Frees brand 
 ### Documentation Sync
 - `replit.md` updated with LLM Documentation policy
 - SKILL.md unchanged (no architectural changes)
+
+
+### Version Bump → v26.25.27
+- Bumped `config.go` Version from 26.25.26 → 26.25.27
+- Built binary, deployed to `dns-tool-server`
+- ROADMAP.md updated:
+  - Completed: LLM Documentation Strategy (v26.25.26), XSS Security Fix (v26.25.26)
+  - Queued (High): Probe Network Second Node (probe-02, Kali), Multi-Probe Consensus Engine
+  - Queued (Medium): Probe Security.txt + Landing Pages
+  - Version range updated to v26.20.0–v26.25.27
