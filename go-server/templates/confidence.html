@@ -593,7 +593,7 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-chart-line me-2 text-info"></i>Runtime Performance</h2>
-                <p class="text-muted small mb-3">Unlike ICAE (which tests our tool against known answers), ICuAE evaluates live DNS data that naturally fluctuates. Instead of pass/fail maturity, we track <strong>statistical stability</strong> &mdash; how consistently fresh the data is across all scans. The 0&ndash;100 normalized score follows ISO/IEC 25012 data quality measurement methodology, where timeliness is a quantitative dimension amenable to continuous measurement. Per ICD 203, confidence requires both accurate interpretation <em>and</em> current data.</p>
+                <p class="text-muted small mb-3">ICuAE measures how close each scan&rsquo;s data comes to the <strong>theoretical ideal</strong> &mdash; a perfectly tuned, machine-locked collector that requests every DNS record at exactly the right cadence, receives responses within authoritative TTL windows, achieves complete multi-resolver consensus, and returns a full record set. A score of 100 means the collected data is indistinguishable from ground truth. Because real-world DNS inherently fluctuates (caches age, resolvers disagree, optional records vary by domain), we track <strong>statistical stability</strong> across scans rather than pass/fail maturity.</p>
                 <div class="icuae-summary-bar mb-3">
                     <div class="icuae-summary-item">
                         <span class="icuae-summary-value">{{.ICuAERuntimeMetrics.TotalScans}}</span>
@@ -674,7 +674,7 @@
                     </div>
                     <div class="col-md-6">
                         <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1 text-warning"></i> ICuAE &mdash; Currency</h3>
-                        <p class="text-muted small mb-0">&ldquo;Is the data still fresh?&rdquo; ICuAE checks whether DNS records have aged beyond their TTL, whether resolvers agree, and whether the data is complete. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
+                        <p class="text-muted small mb-0">&ldquo;How close is the collected data to ground truth?&rdquo; ICuAE scores each scan against a theoretical ideal &mdash; a machine-locked collector with perfect TTL compliance, complete records, and full resolver consensus. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
                     </div>
                 </div>
                 <p class="text-muted small mt-3 mb-0"><i class="fas fa-balance-scale me-1"></i> Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
@@ -804,39 +804,56 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-star-half-alt me-2 text-info"></i>Currency Grading Scale</h2>
-                <p class="text-muted small mb-3">Each dimension is scored 0&ndash;100 independently. The overall currency grade is the average of all five dimensions.</p>
-                <div class="row g-2">
-                    <div class="col">
-                        <div class="text-center p-2 rounded u-tier-excellent">
-                            <div class="fw-bold text-success">Excellent</div>
-                            <small class="text-muted">&ge; 90</small>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center p-2 rounded u-tier-good">
-                            <div class="fw-bold text-success">Good</div>
-                            <small class="text-muted">&ge; 75</small>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center p-2 rounded u-tier-adequate">
-                            <div class="fw-bold text-info">Adequate</div>
-                            <small class="text-muted">&ge; 50</small>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center p-2 rounded u-tier-degraded">
-                            <div class="fw-bold text-warning">Degraded</div>
-                            <small class="text-muted">&ge; 25</small>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center p-2 rounded u-tier-stale">
-                            <div class="fw-bold text-danger">Stale</div>
-                            <small class="text-muted">&lt; 25</small>
-                        </div>
-                    </div>
+                <p class="text-muted small mb-3">
+                    The 0&ndash;100 score measures proximity to a <strong>theoretical ideal</strong>: a perfectly tuned collection system that requests every record type at exactly the right cadence, receives responses within authoritative TTL windows, achieves complete multi-resolver consensus, and returns a full record set with zero gaps. A score of 100 means the data is indistinguishable from what an ideally configured, machine-locked collector would produce. Each dimension is scored independently; the overall grade is their average.
+                </p>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-dark table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:110px">Grade</th>
+                                <th class="text-center" style="width:80px">Range</th>
+                                <th>What It Means</th>
+                                <th>Signal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center"><span class="badge bg-success">Excellent</span></td>
+                                <td class="text-center">90&ndash;100</td>
+                                <td class="small">Data was collected within authoritative TTL windows, all resolvers agree, and the record set is complete. Near-ideal collection fidelity.</td>
+                                <td class="small text-muted">The system is performing at or near the theoretical machine-locked ideal. Minimal drift from ground truth.</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><span class="badge bg-success">Good</span></td>
+                                <td class="text-center">75&ndash;89</td>
+                                <td class="small">Minor deviations from ideal: perhaps one resolver returned a slightly stale cache, or a non-critical record type was absent. Data remains operationally reliable.</td>
+                                <td class="small text-muted">Healthy collection with small imperfections. Acceptable for production intelligence.</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><span class="badge bg-info text-dark">Adequate</span></td>
+                                <td class="text-center">50&ndash;74</td>
+                                <td class="small">Measurable gaps: some resolvers served cached data beyond authoritative TTL, optional record types are missing, or source agreement is partial. Data is usable but not pristine.</td>
+                                <td class="small text-muted">The domain&rsquo;s DNS configuration has real-world imperfections common in production environments. Worth investigating but not alarming.</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><span class="badge bg-warning text-dark">Degraded</span></td>
+                                <td class="text-center">25&ndash;49</td>
+                                <td class="small">Significant staleness or incompleteness: resolver caches substantially exceed authoritative TTLs, multiple record types are absent, or resolvers disagree on fundamental records.</td>
+                                <td class="small text-muted">Data collection is meaningfully distant from the ideal. Results should be interpreted with caution; re-scan recommended after cache expiry.</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><span class="badge bg-danger">Stale</span></td>
+                                <td class="text-center">0&ndash;24</td>
+                                <td class="small">Severe currency failure: data is likely cached well beyond TTL, critical record types are absent, or resolvers returned fundamentally conflicting answers.</td>
+                                <td class="small text-muted">The collected data does not reflect current ground truth. Per ICD 203, stale data should not be used for confidence assessments without explicit caveats.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
+                <p class="text-muted small mb-0"><i class="fas fa-flask me-1"></i> <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-18 (Information Validity) similarly treats data freshness as a measurable property requiring periodic validation. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
             </div>
         </div>
 
