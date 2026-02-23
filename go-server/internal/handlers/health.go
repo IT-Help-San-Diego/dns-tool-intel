@@ -89,6 +89,10 @@ func computeOverallHealth(providerStats []telemetry.ProviderStats) string {
         return string(overallState)
 }
 
+func (h *HealthHandler) Healthz(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
 func (h *HealthHandler) HealthCheck(c *gin.Context) {
         dbStatus := "healthy"
         if err := h.DB.HealthCheck(c.Request.Context()); err != nil {

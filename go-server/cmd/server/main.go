@@ -134,6 +134,7 @@ func main() {
         proxyHandler := handlers.NewProxyHandler()
 
         router.GET("/", homeHandler.Index)
+        router.GET("/healthz", healthHandler.Healthz)
         router.GET("/go/health", healthHandler.HealthCheck)
 
         router.GET("/.well-known/security.txt", staticHandler.SecurityTxt)
