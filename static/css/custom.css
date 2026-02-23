@@ -292,15 +292,15 @@ code {
     vertical-align: middle;
 }
 .icae-hero-maturity.icae-level-dev { border-color: rgba(74, 85, 104, 0.45); }
-.icae-hero-maturity.icae-level-dev::before { background: #4a5568; }
+.icae-hero-maturity.icae-level-dev::before { background: rgba(74, 85, 104, 0.35); border: 1px solid rgba(74, 85, 104, 0.6); box-shadow: 0 0 3px rgba(74, 85, 104, 0.3); }
 .icae-hero-maturity.icae-level-verified { border-color: rgba(88, 166, 255, 0.35); }
-.icae-hero-maturity.icae-level-verified::before { background: #6bb5ff; box-shadow: 0 0 4px rgba(107, 181, 255, 0.5); }
+.icae-hero-maturity.icae-level-verified::before { background: rgba(107, 181, 255, 0.35); border: 1px solid rgba(107, 181, 255, 0.6); box-shadow: 0 0 5px rgba(107, 181, 255, 0.4); }
 .icae-hero-maturity.icae-level-consistent { border-color: rgba(63, 185, 80, 0.35); }
-.icae-hero-maturity.icae-level-consistent::before { background: #56d364; box-shadow: 0 0 4px rgba(86, 211, 100, 0.5); }
+.icae-hero-maturity.icae-level-consistent::before { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 5px rgba(86, 211, 100, 0.4); }
 .icae-hero-maturity.icae-level-gold { border-color: rgba(212, 168, 85, 0.4); }
-.icae-hero-maturity.icae-level-gold::before { background: #e0b85c; box-shadow: 0 0 4px rgba(224, 184, 92, 0.5); }
+.icae-hero-maturity.icae-level-gold::before { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 5px rgba(224, 184, 92, 0.4); }
 .icae-hero-maturity.icae-level-gold-master { border-color: rgba(232, 213, 163, 0.4); }
-.icae-hero-maturity.icae-level-gold-master::before { background: linear-gradient(135deg, #f0ddb3, #faf3e3); box-shadow: 0 0 4px rgba(240, 221, 179, 0.5); }
+.icae-hero-maturity.icae-level-gold-master::before { background: linear-gradient(135deg, rgba(240, 221, 179, 0.35), rgba(250, 243, 227, 0.35)); border: 1px solid rgba(240, 221, 179, 0.7); box-shadow: 0 0 6px rgba(240, 221, 179, 0.4); }
 .nav-version-badge {
     display: inline-block;
     font-size: 0.7rem;
@@ -450,19 +450,19 @@ code {
     transition: box-shadow 0.25s;
 }
 .icuae-badge-excellent { border-color: rgba(86, 211, 100, 0.35); }
-.icuae-badge-excellent .icuae-dot { background: #56d364; box-shadow: 0 0 1px 1px rgba(86, 211, 100, 0.6), 0 0 5px rgba(86, 211, 100, 0.5); }
+.icuae-badge-excellent .icuae-dot { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 6px rgba(86, 211, 100, 0.4); }
 .icuae-badge-excellent:hover { border-color: rgba(86, 211, 100, 0.6); box-shadow: 0 0 12px rgba(86, 211, 100, 0.2); }
 .icuae-badge-good { border-color: rgba(63, 185, 80, 0.35); }
-.icuae-badge-good .icuae-dot { background: #3fb950; box-shadow: 0 0 1px 1px rgba(63, 185, 80, 0.6), 0 0 5px rgba(63, 185, 80, 0.5); }
+.icuae-badge-good .icuae-dot { background: rgba(63, 185, 80, 0.35); border: 1px solid rgba(63, 185, 80, 0.6); box-shadow: 0 0 6px rgba(63, 185, 80, 0.4); }
 .icuae-badge-good:hover { border-color: rgba(63, 185, 80, 0.6); box-shadow: 0 0 12px rgba(63, 185, 80, 0.2); }
 .icuae-badge-adequate { border-color: rgba(94, 223, 255, 0.35); }
-.icuae-badge-adequate .icuae-dot { background: #5edfff; box-shadow: 0 0 1px 1px rgba(94, 223, 255, 0.6), 0 0 5px rgba(94, 223, 255, 0.5); }
+.icuae-badge-adequate .icuae-dot { background: rgba(94, 223, 255, 0.35); border: 1px solid rgba(94, 223, 255, 0.6); box-shadow: 0 0 6px rgba(94, 223, 255, 0.4); }
 .icuae-badge-adequate:hover { border-color: rgba(94, 223, 255, 0.6); box-shadow: 0 0 12px rgba(94, 223, 255, 0.2); }
 .icuae-badge-degraded { border-color: rgba(224, 184, 92, 0.35); }
-.icuae-badge-degraded .icuae-dot { background: #e0b85c; box-shadow: 0 0 1px 1px rgba(224, 184, 92, 0.6), 0 0 5px rgba(224, 184, 92, 0.5); }
+.icuae-badge-degraded .icuae-dot { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 6px rgba(224, 184, 92, 0.4); }
 .icuae-badge-degraded:hover { border-color: rgba(224, 184, 92, 0.6); box-shadow: 0 0 12px rgba(224, 184, 92, 0.2); }
 .icuae-badge-stale { border-color: rgba(255, 107, 107, 0.35); }
-.icuae-badge-stale .icuae-dot { background: #ff6b6b; box-shadow: 0 0 1px 1px rgba(255, 107, 107, 0.6), 0 0 5px rgba(255, 107, 107, 0.5); }
+.icuae-badge-stale .icuae-dot { background: rgba(255, 107, 107, 0.35); border: 1px solid rgba(255, 107, 107, 0.6); box-shadow: 0 0 6px rgba(255, 107, 107, 0.4); }
 .icuae-badge-stale:hover { border-color: rgba(255, 107, 107, 0.6); box-shadow: 0 0 12px rgba(255, 107, 107, 0.2); }
 
 .icae-maturity-badge-deep {
@@ -611,19 +611,19 @@ code {
     flex-shrink: 0;
 }
 .icae-hero-maturity-badge.icae-level-dev { background: rgba(22, 27, 34, 0.85); color: #e6edf3; border-color: rgba(74, 85, 104, 0.45); }
-.icae-hero-maturity-badge.icae-level-dev::before { background: #4a5568; box-shadow: none; }
+.icae-hero-maturity-badge.icae-level-dev::before { background: rgba(74, 85, 104, 0.35); border: 1px solid rgba(74, 85, 104, 0.6); box-shadow: 0 0 3px rgba(74, 85, 104, 0.3); }
 .icae-hero-maturity-badge.icae-level-dev:hover { border-color: rgba(74, 85, 104, 0.7); box-shadow: 0 0 8px rgba(74, 85, 104, 0.2); }
 .icae-hero-maturity-badge.icae-level-verified { background: rgba(22, 27, 34, 0.85); color: #e6edf3; border-color: rgba(88, 166, 255, 0.35); }
-.icae-hero-maturity-badge.icae-level-verified::before { background: #6bb5ff; box-shadow: 0 0 1px 1px rgba(107, 181, 255, 0.6), 0 0 5px rgba(107, 181, 255, 0.5); }
+.icae-hero-maturity-badge.icae-level-verified::before { background: rgba(107, 181, 255, 0.35); border: 1px solid rgba(107, 181, 255, 0.6); box-shadow: 0 0 5px rgba(107, 181, 255, 0.4); }
 .icae-hero-maturity-badge.icae-level-verified:hover { border-color: rgba(88, 166, 255, 0.6); box-shadow: 0 0 10px rgba(88, 166, 255, 0.15); }
 .icae-hero-maturity-badge.icae-level-consistent { background: rgba(22, 27, 34, 0.85); color: #e6edf3; border-color: rgba(63, 185, 80, 0.35); }
-.icae-hero-maturity-badge.icae-level-consistent::before { background: #56d364; box-shadow: 0 0 1px 1px rgba(86, 211, 100, 0.6), 0 0 5px rgba(86, 211, 100, 0.5); }
+.icae-hero-maturity-badge.icae-level-consistent::before { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 5px rgba(86, 211, 100, 0.4); }
 .icae-hero-maturity-badge.icae-level-consistent:hover { border-color: rgba(63, 185, 80, 0.6); box-shadow: 0 0 10px rgba(63, 185, 80, 0.15); }
 .icae-hero-maturity-badge.icae-level-gold { background: rgba(22, 27, 34, 0.85); color: #e6edf3; border-color: rgba(212, 168, 85, 0.4); }
-.icae-hero-maturity-badge.icae-level-gold::before { background: #e0b85c; box-shadow: 0 0 1px 1px rgba(224, 184, 92, 0.6), 0 0 5px rgba(224, 184, 92, 0.5); }
+.icae-hero-maturity-badge.icae-level-gold::before { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 5px rgba(224, 184, 92, 0.4); }
 .icae-hero-maturity-badge.icae-level-gold:hover { border-color: rgba(212, 168, 85, 0.65); box-shadow: 0 0 12px rgba(212, 168, 85, 0.2); }
 .icae-hero-maturity-badge.icae-level-gold-master { background: rgba(22, 27, 34, 0.85); color: #e6edf3; border-color: rgba(232, 213, 163, 0.4); }
-.icae-hero-maturity-badge.icae-level-gold-master::before { background: linear-gradient(135deg, #f0ddb3, #faf3e3); box-shadow: 0 0 1px 1px rgba(240, 221, 179, 0.7), 0 0 6px rgba(240, 221, 179, 0.5); }
+.icae-hero-maturity-badge.icae-level-gold-master::before { background: linear-gradient(135deg, rgba(240, 221, 179, 0.35), rgba(250, 243, 227, 0.35)); border: 1px solid rgba(240, 221, 179, 0.7); box-shadow: 0 0 6px rgba(240, 221, 179, 0.4); }
 .icae-hero-maturity-badge.icae-level-gold-master:hover { border-color: rgba(232, 213, 163, 0.65); box-shadow: 0 0 14px rgba(232, 213, 163, 0.25); }
 
 /* Search Card */
@@ -2700,6 +2700,7 @@ body.covert-mode .btn-analyze {
     --bs-btn-active-bg: rgba(140, 40, 40, 0.3);
     --bs-btn-active-border-color: rgba(196, 60, 60, 0.55);
     --bs-btn-active-color: rgba(211, 93, 93, 0.85);
+    box-shadow: 0 0 8px rgba(140, 40, 40, 0.15) !important;
 }
 @media (hover: hover) {
     body.covert-mode .btn-analyze:hover,
@@ -5556,22 +5557,25 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
    NIST-aligned accent: --accent-violet
    ============================================ */
 .btn-analyze {
-    --bs-btn-bg: transparent;
-    --bs-btn-border-color: var(--accent-violet);
+    --bs-btn-bg: rgba(108, 92, 231, 0.15);
+    --bs-btn-border-color: rgba(108, 92, 231, 0.5);
     --bs-btn-color: #c4b5fd;
-    --bs-btn-hover-bg: var(--accent-violet);
-    --bs-btn-hover-border-color: var(--accent-violet-hover);
-    --bs-btn-hover-color: #fff;
-    --bs-btn-active-bg: #5b47d7;
-    --bs-btn-active-border-color: #5b47d7;
+    --bs-btn-hover-bg: rgba(108, 92, 231, 0.25);
+    --bs-btn-hover-border-color: rgba(108, 92, 231, 0.7);
+    --bs-btn-hover-color: #e2dcff;
+    --bs-btn-active-bg: rgba(108, 92, 231, 0.35);
+    --bs-btn-active-border-color: rgba(108, 92, 231, 0.8);
     --bs-btn-active-color: #fff;
-    --bs-btn-disabled-bg: transparent;
-    --bs-btn-disabled-border-color: rgba(108, 92, 231, 0.4);
+    --bs-btn-disabled-bg: rgba(108, 92, 231, 0.08);
+    --bs-btn-disabled-border-color: rgba(108, 92, 231, 0.25);
     --bs-btn-disabled-color: rgba(196, 181, 253, 0.5);
     background-color: var(--bs-btn-bg);
     border: 2px solid var(--bs-btn-border-color);
     color: var(--bs-btn-color);
-    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(108, 92, 231, 0.15);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.25s ease;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -5581,7 +5585,7 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
         background-color: var(--bs-btn-hover-bg);
         border-color: var(--bs-btn-hover-border-color);
         color: var(--bs-btn-hover-color);
-        box-shadow: 0 0 12px rgba(108, 92, 231, 0.3);
+        box-shadow: 0 0 16px rgba(108, 92, 231, 0.35), 0 0 4px rgba(108, 92, 231, 0.2);
     }
 }
 
@@ -5589,13 +5593,14 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     background-color: var(--bs-btn-hover-bg);
     border-color: var(--bs-btn-hover-border-color);
     color: var(--bs-btn-hover-color);
-    box-shadow: 0 0 12px rgba(108, 92, 231, 0.3);
+    box-shadow: 0 0 16px rgba(108, 92, 231, 0.35), 0 0 4px rgba(108, 92, 231, 0.2);
 }
 
 .btn-analyze:active {
     background-color: var(--bs-btn-active-bg);
     border-color: var(--bs-btn-active-border-color);
     color: var(--bs-btn-active-color);
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
 }
 
 /* ============================================
