@@ -384,6 +384,52 @@
             color: #c084fc;
         }
 
+        .arch-diagram-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .arch-diagram-card {
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(12, 16, 24, 0.8);
+            border: 1px solid rgba(88,166,255,0.12);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .arch-diagram-card:hover {
+            border-color: rgba(88,166,255,0.35);
+            box-shadow: 0 4px 20px rgba(88,166,255,0.08);
+        }
+        .arch-diagram-label {
+            padding: 0.65rem 1rem;
+            background: rgba(88,166,255,0.06);
+            border-bottom: 1px solid rgba(88,166,255,0.08);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #8b949e;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .arch-diagram-label i {
+            color: #58a6ff;
+            margin-right: 0.4rem;
+        }
+        .arch-diagram-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+            padding: 0.75rem;
+        }
+        .arch-diagram-source {
+            font-size: 0.62rem;
+            color: #484f58;
+            letter-spacing: 0.03em;
+        }
+        .arch-diagram-source code {
+            font-size: 0.62rem;
+            color: #6e7681;
+        }
+
         @media (max-width: 768px) {
             .arch-boundary { grid-template-columns: 1fr; }
             .arch-dual-engine { grid-template-columns: 1fr; }
@@ -393,6 +439,7 @@
             .arch-flow-node-icon { font-size: 1.1rem; }
             .arch-flow-node-label { font-size: 0.65rem; }
             .arch-standards-grid { grid-template-columns: 1fr; }
+            .arch-diagram-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .arch-protocol-grid { grid-template-columns: 1fr; }
@@ -666,6 +713,34 @@
                         <div class="arch-flow-node-icon"><i class="fas fa-exchange-alt"></i></div>
                         <div class="arch-flow-node-label">Domain Comparison</div>
                         <div class="arch-flow-node-sub">Side-by-side<br>posture analysis</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-section mb-4">
+            <div class="arch-section-header">
+                <h2 class="arch-section-title mb-0"><i class="fas fa-diagram-project me-2 arch-section-icon"></i>Engineering Diagrams</h2>
+            </div>
+            <div class="arch-section-body">
+                <p class="mb-1 arch-section-desc">Canonical architecture diagrams rendered from version-controlled Mermaid source files. These are the engineering source of truth — diffable, auditable, and tied to releases.</p>
+                <p class="mb-3 arch-diagram-source"><i class="fas fa-code-compare"></i> Source: <code>docs/diagrams/*.mmd</code></p>
+                <div class="arch-diagram-grid">
+                    <div class="arch-diagram-card">
+                        <div class="arch-diagram-label"><i class="fas fa-diagram-project"></i> Intelligence Pipeline</div>
+                        <img src="{{staticVersionURL `/static/images/diagrams/intelligence-pipeline.svg`}}" alt="Intelligence pipeline diagram showing data flow from domain input through collection, ICIE analysis, privacy gate, to intelligence products" loading="lazy" width="1137" height="109">
+                    </div>
+                    <div class="arch-diagram-card">
+                        <div class="arch-diagram-label"><i class="fas fa-shield-halved"></i> Confidence Framework</div>
+                        <img src="{{staticVersionURL `/static/images/diagrams/confidence-framework.svg`}}" alt="Dual-engine confidence framework diagram showing ICIE output flowing through ICAE correctness audit and ICuAE currency audit to produce holistic confidence score" loading="lazy" width="863" height="505">
+                    </div>
+                    <div class="arch-diagram-card">
+                        <div class="arch-diagram-label"><i class="fas fa-code-compare"></i> Open-Core Architecture</div>
+                        <img src="{{staticVersionURL `/static/images/diagrams/open-core-architecture.svg`}}" alt="Open-core architecture diagram showing public open-source repository separated from private proprietary intelligence repository by build-tag isolation boundary" loading="lazy" width="466" height="762">
+                    </div>
+                    <div class="arch-diagram-card">
+                        <div class="arch-diagram-label"><i class="fas fa-network-wired"></i> Protocol Coverage</div>
+                        <img src="{{staticVersionURL `/static/images/diagrams/protocol-coverage.svg`}}" alt="Protocol coverage diagram showing nine RFC-defined security protocols organized into email authentication, transport security, and policy groups feeding into the ICIE engine" loading="lazy" width="554" height="610">
                     </div>
                 </div>
             </div>
