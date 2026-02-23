@@ -5263,6 +5263,12 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     border-radius: 999px;
     padding: 0.25em 0.7em;
     box-shadow: 0 0 6px rgba(232, 197, 71, 0.18);
+    white-space: nowrap;
+    display: inline-block;
+    line-height: 1.4;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .u-beta-tag {
     font-size: 0.6rem;
