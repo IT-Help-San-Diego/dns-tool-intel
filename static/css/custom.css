@@ -4854,6 +4854,22 @@ body.covert-mode .proto-dkim.bg-info {
 .u-color-info { color: #58a6ff; }
 .u-color-info-light { color: #58c4dc; }
 .u-color-info-alt { color: #5bc0de; }
+/* DESIGN RULE: Status colors (success/warning/danger/info) are reserved
+   for semantic states in analysis results and severity indicators.
+   Decorative homepage UI (feature card icons, navigation buttons) uses
+   the accent palette (--accent-steel, --accent-cyan, --accent-violet)
+   to maintain a calibrated, non-urgent aesthetic. */
+.u-color-accent-steel { color: var(--accent-steel); }
+.u-btn-accent-steel {
+    color: var(--accent-steel) !important;
+    border-color: var(--accent-steel) !important;
+}
+.u-btn-accent-steel:hover,
+.u-btn-accent-steel:focus {
+    background-color: rgba(125, 142, 168, 0.15) !important;
+    color: #a3b5cc !important;
+    border-color: #a3b5cc !important;
+}
 .u-color-link { color: #79c0ff; }
 .u-color-sky { color: #7ec8e3; }
 .u-color-blue-soft { color: #8ab4f8; }
