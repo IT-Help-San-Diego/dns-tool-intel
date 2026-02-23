@@ -2373,21 +2373,45 @@ body.covert-mode .icae-hero-card:hover {
     border-color: rgba(140, 40, 40, 0.3);
     background: rgba(14, 8, 8, 0.75);
 }
-body.covert-mode .icae-hero-statement {
-    color: rgba(170, 178, 188, 0.5);
-}
-body.covert-mode .icae-hero-maturity {
-    background: rgba(14, 8, 8, 0.8);
-    border-color: rgba(140, 40, 40, 0.2);
-    color: rgba(170, 178, 188, 0.5);
-}
 body.covert-mode .icae-hero-protocols {
     border-top-color: rgba(140, 40, 40, 0.12);
 }
 body.covert-mode .icae-badge {
     background: rgba(14, 8, 8, 0.8) !important;
-    border-color: rgba(140, 40, 40, 0.2) !important;
+    border-color: rgba(140, 40, 40, 0.12) !important;
+    color: rgba(170, 178, 188, 0.35) !important;
+}
+body.covert-mode .icae-badge .icae-dot {
+    background: rgba(140, 40, 40, 0.45) !important;
+    box-shadow: none !important;
+}
+body.covert-mode .icae-badge:hover {
+    border-color: rgba(140, 40, 40, 0.25) !important;
+    box-shadow: none !important;
     color: rgba(170, 178, 188, 0.5) !important;
+}
+body.covert-mode .icae-badge:hover .icae-dot {
+    background: rgba(160, 50, 50, 0.6) !important;
+}
+body.covert-mode .icae-hero-statement {
+    color: rgba(170, 178, 188, 0.35) !important;
+}
+body.covert-mode .icae-hero-maturity {
+    opacity: 0.4 !important;
+    filter: saturate(0.15) !important;
+}
+body.covert-mode .icae-hero-protocols .text-info {
+    color: rgba(140, 50, 50, 0.55) !important;
+}
+body.covert-mode .icae-hero-protocols .text-muted {
+    color: rgba(170, 178, 188, 0.25) !important;
+}
+body.covert-mode .icae-hero-protocols .fa-clock,
+body.covert-mode .icae-hero-protocols .fa-fingerprint {
+    color: rgba(140, 50, 50, 0.35) !important;
+}
+body.covert-mode .u-hero-protocols-divider {
+    border-top-color: rgba(140, 40, 40, 0.08) !important;
 }
 body.covert-mode .dropdown-menu-dark {
     background-color: #111318 !important;
