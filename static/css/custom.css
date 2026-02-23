@@ -6505,3 +6505,11 @@ body.covert-mode .tk-triage-card:hover {
     .tk-step-nav,
     #tkTriageMatrix { display: none !important; }
 }
+
+.text-accent-cobalt { color: var(--accent-cobalt); }
+.text-accent-gold { color: var(--accent-gold); }
+.border-accent-cobalt-subtle { border: 1px solid rgba(74,143,231,0.15); }
+.border-accent-gold-subtle { border: 1px solid rgba(212,168,85,0.15); }
+.border-accent-gold-muted { border: 1px solid rgba(212,168,85,0.12); }
+.bg-accent-cobalt-subtle { background: rgba(74,143,231,0.04); }
+.math-formula { background-color: #000; border-radius: 0.375rem; padding: 0.75rem; text-align: center; }
