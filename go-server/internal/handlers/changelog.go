@@ -9,541 +9,546 @@
 // are feature-level counters and do NOT encode dates.
 //
 // When adding a new entry:
-//   1. Determine the real ship/event date.
-//   2. Use (or create) a named date constant below.
-//   3. Reference the constant — never inline a date string.
+//  1. Determine the real ship/event date.
+//  2. Use (or create) a named date constant below.
+//  3. Reference the constant — never inline a date string.
 //
 // Canonical date mapping (verified Feb 21, 2026):
-//   dateFeb21 — Misplaced DMARC Record Detection, Covert Mode Recon Report UI,
-//               High-DPI PWA Icon Regeneration, Origin Story Page,
-//               ASCII Art Homepage Hero
-//   dateFeb19 — Architecture Diagrams, miekg/dns v2 Migration, CT Resilience,
-//               History Table Cleanup, Brand Verdict Overhaul, DKIM Selector Expansion,
-//               Privacy-Preserving Analytics, Admin Analytics Dashboard,
-//               Admin Dashboard + JSON Export, Admin Bootstrap Fix,
-//               UNLIKELY Badge Color Unification
-//   dateFeb18 — Google OAuth 2.0 + PKCE, Security Redaction & Mission Statement
-//   dateFeb17 — BSL 1.1 License Migration, Boundary Integrity Test Suite
-//   dateFeb15 — Dual Intelligence Products (Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief), OpenPhish Threat
-//               Intelligence Attribution, Email Header Analyzer Homepage Promotion
-//   dateFeb14 — High-Speed Subdomain Discovery
-//   dateFeb13 — DNS History Cache, Verify It Yourself, Confidence Indicators,
-//               SMTP Transport Verification, AI Surface Scanner, DNS History
-//               Timeline, Enhanced Remediation Engine, Email Security Mgmt
-//   dateFeb12 — Intelligence Sources Inventory, PTR-Based Hosting Detection,
-//               IP-to-ASN Attribution, DANE/TLSA, Go Rewrite, IP Investigation,
-//               Email Header Analyzer, Enterprise DNS Detection
-//   dateFeb11 — Incident Disclosure, Honest Data Reporting
+//
+//	dateFeb21 — Misplaced DMARC Record Detection, Covert Mode Recon Report UI,
+//	            High-DPI PWA Icon Regeneration, Origin Story Page,
+//	            ASCII Art Homepage Hero
+//	dateFeb19 — Architecture Diagrams, miekg/dns v2 Migration, CT Resilience,
+//	            History Table Cleanup, Brand Verdict Overhaul, DKIM Selector Expansion,
+//	            Privacy-Preserving Analytics, Admin Analytics Dashboard,
+//	            Admin Dashboard + JSON Export, Admin Bootstrap Fix,
+//	            UNLIKELY Badge Color Unification
+//	dateFeb18 — Google OAuth 2.0 + PKCE, Security Redaction & Mission Statement
+//	dateFeb17 — BSL 1.1 License Migration, Boundary Integrity Test Suite
+//	dateFeb15 — Dual Intelligence Products (Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief), OpenPhish Threat
+//	            Intelligence Attribution, Email Header Analyzer Homepage Promotion
+//	dateFeb14 — High-Speed Subdomain Discovery
+//	dateFeb13 — DNS History Cache, Verify It Yourself, Confidence Indicators,
+//	            SMTP Transport Verification, AI Surface Scanner, DNS History
+//	            Timeline, Enhanced Remediation Engine, Email Security Mgmt
+//	dateFeb12 — Intelligence Sources Inventory, PTR-Based Hosting Detection,
+//	            IP-to-ASN Attribution, DANE/TLSA, Go Rewrite, IP Investigation,
+//	            Email Header Analyzer, Enterprise DNS Detection
+//	dateFeb11 — Incident Disclosure, Honest Data Reporting
 package handlers
 
 const (
-        dateFeb21 = "Feb 21, 2026"
-        dateFeb19 = "Feb 19, 2026"
-        dateFeb18 = "Feb 18, 2026"
-        dateFeb17 = "Feb 17, 2026"
-        dateFeb15 = "Feb 15, 2026"
-        dateFeb14 = "Feb 14, 2026"
-        dateFeb13 = "Feb 13, 2026"
-        dateFeb12 = "Feb 12, 2026"
-        dateFeb11 = "Feb 11, 2026"
-        dateJan22 = "Jan 22, 2026"
-        dateNov05 = "Nov 5, 2025"
-        dateJun05 = "Jun 5, 2025"
-        dateMay24 = "May 24, 2025"
-        dateMay18 = "May 18, 2025"
-        dateNov23 = "Nov 5, 2023"
-        date2019  = "2019"
+	dateFeb21 = "Feb 21, 2026"
+	dateFeb19 = "Feb 19, 2026"
+	dateFeb18 = "Feb 18, 2026"
+	dateFeb17 = "Feb 17, 2026"
+	dateFeb15 = "Feb 15, 2026"
+	dateFeb14 = "Feb 14, 2026"
+	dateFeb13 = "Feb 13, 2026"
+	dateFeb12 = "Feb 12, 2026"
+	dateFeb11 = "Feb 11, 2026"
+	dateJan22 = "Jan 22, 2026"
+	dateNov05 = "Nov 5, 2025"
+	dateJun05 = "Jun 5, 2025"
+	dateMay24 = "May 24, 2025"
+	dateMay18 = "May 18, 2025"
+	dateNov23 = "Nov 5, 2023"
+	date2019  = "2019"
+
+	ver262225 = "26.22.25"
+	ver262088 = "26.20.88"
+	ver262076 = "26.20.76"
 )
 
 type ChangelogEntry struct {
-        Version     string
-        Date        string
-        Category    string
-        Title       string
-        Description string
-        Icon        string
-        IsIncident  bool
-        IsLegacy    bool
+	Version     string
+	Date        string
+	Category    string
+	Title       string
+	Description string
+	Icon        string
+	IsIncident  bool
+	IsLegacy    bool
 }
 
 func GetRecentChangelog(n int) []ChangelogEntry {
-        all := GetChangelog()
-        if len(all) <= n {
-                return all
-        }
-        return all[:n]
+	all := GetChangelog()
+	if len(all) <= n {
+		return all
+	}
+	return all[:n]
 }
 
 func GetChangelog() []ChangelogEntry {
-        return []ChangelogEntry{
-                {
-                        Version:     "26.22.25",
-                        Date:        dateFeb21,
-                        Category:    "Intelligence",
-                        Title:       "Misplaced DMARC Record Detection",
-                        Description: "New post-analysis enrichment detects DMARC records incorrectly published at the root domain instead of the required _dmarc subdomain (RFC 7489 §6.1). DetectMisplacedDMARC scans root TXT records for v=DMARC1 patterns with case-insensitive matching, extracts the policy, and surfaces the misconfiguration in the report with specific remediation guidance. Four deterministic golden test cases validate detection accuracy.",
-                        Icon:        "fas fa-crosshairs",
-                },
-                {
-                        Version:     "26.22.25",
-                        Date:        dateFeb21,
-                        Category:    "UX",
-                        Title:       "Covert Mode Recon Report UI",
-                        Description: "Fixed Recon Report buttons in Covert Mode to use proper red-themed styling consistent with the tactical red-light aesthetic. Buttons now use the covert accent palette instead of default blue, maintaining the adversarial perspective throughout the report view.",
-                        Icon:        "fas fa-user-secret",
-                },
-                {
-                        Version:     "26.22.25",
-                        Date:        dateFeb21,
-                        Category:    "PWA",
-                        Title:       "High-DPI PWA Icon Regeneration",
-                        Description: "Regenerated all Progressive Web App icons at proper high-DPI resolution with maskable variants for Android adaptive icons. Icons now render crisply on high-resolution displays and correctly fill the safe zone on devices that apply circular or shaped masks.",
-                        Icon:        "fas fa-mobile-alt",
-                },
-                {
-                        Version:     "26.22.25",
-                        Date:        dateFeb21,
-                        Category:    "Brand",
-                        Title:       "Origin Story Page",
-                        Description: "New /about page documenting the authentic origin story: Memphis 1980 Radio Shack build, Nashville IT career, Raspberry Pi breakthrough, PhreakNIC Hackintosh demo, Hak5 offensive security era, 2015-2024 defensive security pivot with Objective-See and CISA Remote Penetration Test (Jan 2022), Python CLI field tool with Snap Store publication (Nov 2023), and the February 2025 Go platform launch. Includes acknowledgments section crediting early collaborators and linked verifiable references (Nmap 7.94 changelog, Hak5 Payload Award, Raspberry Pi forum post).",
-                        Icon:        "fas fa-book-open",
-                },
-                {
-                        Version:     "26.22.25",
-                        Date:        dateFeb21,
-                        Category:    "UX",
-                        Title:       "ASCII Art Homepage Hero",
-                        Description: "Desktop homepage hero title rendered as a Unicode block-character ASCII art banner for visual impact. Responsive design with automatic mobile text fallback below 768px width. The art uses CSS monospace rendering with careful line-height tuning for consistent cross-browser display.",
-                        Icon:        "fas fa-terminal",
-                },
-                {
-                        Version:     "26.20.88",
-                        Date:        dateFeb19,
-                        Category:    "Security",
-                        Title:       "Authenticated Multi-Port SMTP Probe API",
-                        Description: "Remote probe infrastructure upgraded to API v2 with shared-secret authentication, rate limiting (30 requests per 60 seconds per IP), and multi-port mail transport probing across ports 25 (SMTP), 465 (SMTPS), and 587 (submission). Banner capture provides additional server intelligence fingerprinting. Graceful fallback on 401 or 429 responses.",
-                        Icon:        "fas fa-satellite-dish",
-                },
-                {
-                        Version:     "26.20.88",
-                        Date:        dateFeb19,
-                        Category:    "Analytics",
-                        Title:       "Privacy-Preserving Analytics Middleware",
-                        Description: "Cookie-free, GDPR-friendly analytics pipeline collecting pageviews, unique visitors, analyses run, and unique domains analyzed. Daily-rotating random salt hashes visitor IPs into pseudonymous IDs — no cookies, no fingerprinting, no PII stored. Referrer origin and top page tracking with automatic self-referral filtering. In-memory aggregation flushed to PostgreSQL every 60 seconds via UPSERT. Static assets, health checks, and bot paths excluded.",
-                        Icon:        "fas fa-chart-line",
-                },
-                {
-                        Version:     "26.20.88",
-                        Date:        dateFeb19,
-                        Category:    "Admin",
-                        Title:       "Admin Analytics Dashboard",
-                        Description: "New /admin/analytics route (admin-only) with 30-day daily analytics view showing pageviews, unique visitors, analyses run, and unique domains. Summary cards with totals, averages, top referrers (top 10), and most-visited pages (top 10). Built on the privacy-preserving analytics middleware — no third-party tracking scripts.",
-                        Icon:        "fas fa-chart-bar",
-                },
-                {
-                        Version:     "26.20.85",
-                        Date:        dateFeb19,
-                        Category:    "Admin",
-                        Title:       "Admin Dashboard & JSON Export",
-                        Description: "New /admin route (admin-only) with stats cards for total users, analyses, unique domains, private analyses, sessions, and active sessions. Users table with role badges, recent analyses table with domain links and status, ICAE test runs table. JSON export at /export/json streams NDJSON with paginated 100-record batches and proper Content-Disposition header.",
-                        Icon:        "fas fa-tachometer-alt",
-                },
-                {
-                        Version:     "26.20.85",
-                        Date:        dateFeb19,
-                        Category:    "Security",
-                        Title:       "Admin Bootstrap Fix (PromoteUserToAdmin)",
-                        Description: "Fixed admin bootstrap for existing users. When INITIAL_ADMIN_EMAIL matches an already-registered user and zero admins exist, the system now calls PromoteUserToAdmin to upgrade their role. Previously, UpsertUser preserved the existing role, silently skipping the bootstrap. Audit-logged with reason and email.",
-                        Icon:        "fas fa-user-shield",
-                },
-                {
-                        Version:     "26.20.76",
-                        Date:        dateFeb19,
-                        Category:    "UX",
-                        Title:       "UNLIKELY Badge Color Unification",
-                        Description: "Unified the UNLIKELY verdict color to green/success across both email spoofing and brand impersonation assessments. Email spoofing with DMARC quarantine at 100% now shows success (green) instead of warning (amber). Brand impersonation with quarantine + BIMI + CAA also uses success (green). Consistent visual language: UNLIKELY = green across all verdict types.",
-                        Icon:        "fas fa-palette",
-                },
-                {
-                        Version:     "26.20.87",
-                        Date:        dateFeb19,
-                        Category:    "Intelligence",
-                        Title:       "Remote SMTP Probe Infrastructure",
-                        Description: "Deployed dedicated probe server (probe-us-01.dns-observe.com) for live SMTP transport verification. Cloud platforms block outbound port 25 — the probe server has unrestricted access for direct STARTTLS handshakes, certificate chain validation, and cipher suite inspection. Falls back gracefully when probe is unavailable.",
-                        Icon:        "fas fa-server",
-                },
-                {
-                        Version:     "26.20.83",
-                        Date:        dateFeb19,
-                        Category:    "Architecture",
-                        Title:       "Interactive System Architecture Diagrams",
-                        Description: "New /architecture page with interactive Mermaid diagrams visualizing the full system: high-level overview (Client Layer → Process Management → Go/Gin → Engines → Storage), ICIE pipeline (Collection → Classification → Privacy Gate → Output), ICAE confidence engine, and Privacy Gate decision tree. Color-coded nodes (blue/green/purple/cyan/gold/red) with CSP-compliant post-render JavaScript applying SVG presentation attributes. Dark background with thin blue connector lines.",
-                        Icon:        "fas fa-sitemap",
-                },
-                {
-                        Version:     "26.20.76",
-                        Date:        dateFeb19,
-                        Category:    "Core",
-                        Title:       "DNS Library v2 Migration (miekg/dns)",
-                        Description: "Migrated from github.com/miekg/dns v1.1.72 to codeberg.org/miekg/dns v0.6.52 (v2). The v1 library is archived on GitHub; v2 is actively maintained on Codeberg with improved performance and modern API. Four source files updated with new Exchange, RR data access, and EDNS0 patterns. Aligns with Codeberg-canonical hosting strategy.",
-                        Icon:        "fas fa-bolt",
-                },
-                {
-                        Version:     "26.20.76",
-                        Date:        dateFeb19,
-                        Category:    "Reliability",
-                        Title:       "CT Log Resilience (Certspotter Fallback)",
-                        Description: "Added Certspotter API as a fallback Certificate Transparency source when crt.sh is unavailable (502/timeout). Expanded DNS subdomain probe list from ~130 to ~280 common subdomains. Probe concurrency increased from 20 to 30 workers with a 25-second timeout.",
-                        Icon:        "fas fa-shield-alt",
-                },
-                {
-                        Version:     "26.20.74",
-                        Date:        dateFeb19,
-                        Category:    "UX",
-                        Title:       "History Table Cleanup",
-                        Description: "Removed the redundant status column from the analysis history table. Failed analyses are already excluded from history (they appear in statistics only). The green checkmark column was wasting horizontal space without adding information.",
-                        Icon:        "fas fa-list",
-                },
-                {
-                        Version:     "26.20.71",
-                        Date:        dateFeb19,
-                        Category:    "Intelligence",
-                        Title:       "Brand Security Verdict Matrix Overhaul",
-                        Description: "Corrected the brand impersonation verdict logic. DMARC reject alone blocks email spoofing (RFC 7489 §6.3) but not visual impersonation via lookalike domains or unrestricted certificate issuance. New 8-branch verdict matrix considers DMARC policy + BIMI brand verification + CAA certificate restriction (RFC 8659 §4). Expanded from 5 to 8 golden rule test cases.",
-                        Icon:        "fas fa-check-double",
-                },
-                {
-                        Version:     "26.20.70",
-                        Date:        dateFeb19,
-                        Category:    "Intelligence",
-                        Title:       "DKIM Selector Expansion (81+ Selectors)",
-                        Description: "Expanded default DKIM selector list from 39 to 81+ selectors covering major ESPs: HubSpot, Salesforce, Klaviyo, Intercom, ActiveCampaign, Constant Contact, MailerLite, Drip, Customer.io, Freshdesk, and more. Enhanced provider-to-selector inference from SPF/MX records. Privacy mode classification updated for expanded known-selector list.",
-                        Icon:        "fas fa-key",
-                },
-                {
-                        Version:     "26.20.56",
-                        Date:        dateFeb18,
-                        Category:    "Security",
-                        Title:       "Google OAuth 2.0 + PKCE Authentication",
-                        Description: "Pure stdlib Google OAuth 2.0 implementation with PKCE (Proof Key for Code Exchange) — no external OAuth libraries. Advanced Protection compatible. Email verification enforced, ID token claims validated, rate-limited auth endpoints, no tokens stored server-side. One-time admin bootstrap via INITIAL_ADMIN_EMAIL. Route protection for sensitive endpoints (/export/json requires admin). All analysis remains no-login-required.",
-                        Icon:        "fas fa-user-shield",
-                },
-                {
-                        Version:     "26.19.43",
-                        Date:        dateFeb18,
-                        Category:    "Security",
-                        Title:       "Security Redaction & Mission Statement",
-                        Description: "Comprehensive security audit: removed server version exposure from HTTP headers, redacted internal paths from error responses, hardened SSRF prevention for internal IP ranges. Added mission statement to the Security Policy page defining scope, principles, and responsible disclosure process.",
-                        Icon:        "fas fa-lock",
-                },
-                {
-                        Version:     "26.19.18",
-                        Date:        dateFeb17,
-                        Category:    "Quality",
-                        Title:       "Boundary Integrity Test Suite",
-                        Description: "Comprehensive test suite protecting the two-repo architecture: 11 boundary files verified across 11 categories (file presence, build tags, stub function signatures, no intelligence leaks, package consistency, and more). Catches stub contract violations, duplicate symbols, and architecture drift before they reach production.",
-                        Icon:        "fas fa-cogs",
-                },
-                {
-                        Version:     "26.19.0",
-                        Date:        dateFeb17,
-                        Category:    "Licensing",
-                        Title:       "BSL 1.1 License Migration",
-                        Description: "Migrated from AGPL-3.0 to Business Source License 1.1 with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BSL 1.1.",
-                        Icon:        "fas fa-balance-scale",
-                },
-                {
-                        Version:     "26.17.2",
-                        Date:        dateFeb15,
-                        Category:    "Security",
-                        Title:       "CSP Compliance & XSS Hardening",
-                        Description: "Eliminated all inline style attributes from Engineer and Executive report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes (u-print-hash, u-ls-tight, u-fs-072rem-lh15, u-fs-078rem-break, u-hash-label, etc.). DNS history table rendering refactored from innerHTML string concatenation to safe DOM methods (createElement + textContent + appendChild), eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
-                        Icon:        "fas fa-shield-alt",
-                },
-                {
-                        Version:     "26.17.1",
-                        Date:        dateFeb15,
-                        Category:    "Security",
-                        Title:       "Expanded Exposure Checks (Opt-In)",
-                        Description: "New opt-in OSINT exposure scanner checks 8 well-known misconfiguration paths (/.env, /.git/config, /.git/HEAD, /.DS_Store, /server-status, /server-info, /wp-config.php.bak, /phpinfo.php) on target domains. Content validation reduces false positives — each path is checked for characteristic content, not just HTTP 200 status. Sequential requests with 200ms delays and proper User-Agent identification. Results include severity badges, risk descriptions, and specific remediation guidance. Explicit PCI DSS disclaimer: these are OSINT collection, not ASV compliance scans.",
-                        Icon:        "fas fa-search",
-                },
-                {
-                        Version:     "26.17.0",
-                        Date:        dateFeb15,
-                        Category:    "Integrity",
-                        Title:       "Report Integrity Hash & Header Preview",
-                        Description: "Every analysis now generates a SHA-256 integrity fingerprint binding domain, analysis ID, timestamp, tool version, and canonicalized results data into a tamper-evident hash. Displayed at the bottom of both Engineer's DNS Intelligence Report and Executive's DNS Intelligence Brief with copy-to-clipboard. Short hash preview (first 8 characters) shown in the report header metadata bar with anchor link to the full hash section. Distinct from posture hash (drift detection) — the integrity hash uniquely identifies each specific report instance.",
-                        Icon:        "fas fa-fingerprint",
-                },
-                {
-                        Version:     "26.16.11",
-                        Date:        dateFeb15,
-                        Category:    "Brand",
-                        Title:       "Intelligence Document Naming Convention",
-                        Description: "Adopted IC (Intelligence Community) document naming: Engineer's DNS Intelligence Report (comprehensive, like a National Intelligence Estimate) and Executive's DNS Intelligence Brief (concise, like a Presidential Daily Brief). Possessive form signals personal ownership. 'DNS Intelligence' avoids MI5 brand conflict. Updated all title tags, print headers, screen headers, OG/Twitter meta, and JSON-LD schema. Homepage hero subtitle now explicitly references both intelligence products.",
-                        Icon:        "fas fa-file-alt",
-                },
-                {
-                        Version:     "26.16.10",
-                        Date:        dateFeb15,
-                        Category:    "Brand",
-                        Title:       "Sophistication Accent Tokens & Color Flow",
-                        Description: "Added steel-blue (#7d8ea8) and deep navy (#1e3a5f) brand accent tokens for premium intelligence aesthetic. Color flow continuity from homepage through results pages via gradients, borders, and card hover effects. Hero typography upgraded to 3.5rem/800 weight with tighter tracking. All non-status visual elements use brand accents while RFC/CVSS status colors remain untouched.",
-                        Icon:        "fas fa-palette",
-                },
-                {
-                        Version:     "26.15.30",
-                        Date:        dateFeb15,
-                        Category:    "Reporting",
-                        Title:       "TLP:AMBER Default & Colored Selector",
-                        Description: "Report distribution now defaults to TLP:AMBER per CISA/FIRST standards for security posture reports. TLP selector button and dropdown badges show FIRST TLP v2.0 colors (amber, green, clear). Font cache-busting ensures all icons render correctly across browsers.",
-                        Icon:        "fas fa-shield-alt",
-                },
-                {
-                        Version:     "26.15.26",
-                        Date:        dateFeb15,
-                        Category:    "Reporting",
-                        Title:       "Dual Intelligence Products: Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief",
-                        Description: "Two intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail with all protocol analysis) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard, risk posture, and priority actions). Both use the same live analysis data — different formats for different audiences. Includes posture drift detection foundation with canonical SHA-256 hashing for future longitudinal monitoring.",
-                        Icon:        "fas fa-file-alt",
-                },
-                {
-                        Version:     "26.15.25",
-                        Date:        dateFeb15,
-                        Category:    "Transparency",
-                        Title:       "OpenPhish Threat Intelligence Attribution",
-                        Description: "Added OpenPhish Community Feed to the Intelligence Sources page with its own Threat Intelligence category. Added OpenPhish attribution to the Email Header Analyzer trust bar and body analysis results. Proper credit for the free community phishing URL feed that powers our phishing detection.",
-                        Icon:        "fas fa-fish",
-                },
-                {
-                        Version:     "26.15.24",
-                        Date:        dateFeb15,
-                        Category:    "UX",
-                        Title:       "Email Header Analyzer Homepage Promotion",
-                        Description: "Added a promotional banner for the Email Header Analyzer on the homepage, matching the IP Investigate card style. Makes the feature more discoverable for users landing on the main page.",
-                        Icon:        "fas fa-envelope",
-                },
-                {
-                        Version:     "26.14.7",
-                        Date:        dateFeb14,
-                        Category:    "Performance",
-                        Title:       "High-Speed Subdomain Discovery",
-                        Description: "Subdomain probing now uses lightweight UDP DNS queries instead of DNS-over-HTTPS, with independent timeouts and 20-goroutine concurrency. Discovery completes in ~1 second instead of timing out. All subdomains found reliably.",
-                        Icon:        "fas fa-tachometer-alt",
-                },
-                {
-                        Version:     "26.14.6",
-                        Date:        dateFeb12,
-                        Category:    "Transparency",
-                        Title:       "Intelligence Sources Inventory",
-                        Description: "New /sources page documents every intelligence source used by DNS Tool — DNS resolvers, reverse DNS, Team Cymru ASN attribution, SMTP probing, SecurityTrails, crt.sh, IANA RDAP — with methodology, rate limits, and verification commands. No black boxes.",
-                        Icon:        "fas fa-satellite-dish",
-                },
-                {
-                        Version:     "26.14.5",
-                        Date:        dateFeb12,
-                        Category:    "Intelligence",
-                        Title:       "PTR-Based Hosting Detection",
-                        Description: "Reverse DNS (PTR) lookups now identify hosting providers directly from IP addresses — the classic Unix-era technique. CloudFront, AWS, Google Cloud, Azure, and more detected without any third-party API.",
-                        Icon:        "fas fa-undo-alt",
-                },
-                {
-                        Version:     "26.14.4",
-                        Date:        dateFeb12,
-                        Category:    "Intelligence",
-                        Title:       "IP-to-ASN Attribution",
-                        Description: "Team Cymru DNS-based IP-to-ASN mapping identifies which organization owns each IP address (AWS, Cloudflare, Google, etc.). Free community service with no API key and no rate limits.",
-                        Icon:        "fas fa-map-marked-alt",
-                },
-                {
-                        Version:     "26.14.3",
-                        Date:        dateFeb11,
-                        Category:    "Transparency",
-                        Title:       "Incident Disclosure: Inaccurate Analysis Output",
-                        Description: "A data-processing issue caused some reports to display incorrect analysis results. The root cause has been identified and fixed, and safeguards have been added so incomplete or failed data retrieval can never be silently presented as valid results. We believe in full transparency — you deserve to know when we get it wrong.",
-                        Icon:        "fas fa-exclamation-triangle",
-                        IsIncident:  true,
-                },
-                {
-                        Version:     "26.14.2",
-                        Date:        dateFeb11,
-                        Category:    "Transparency",
-                        Title:       "Honest Data Reporting",
-                        Description: "When third-party data sources are rate-limited or unavailable, reports now say exactly that — never claiming 'no changes detected' when the data simply couldn't be checked. Four clear states: success, rate-limited, error, and partial.",
-                        Icon:        "fas fa-gavel",
-                },
-                {
-                        Version:     "26.14.1",
-                        Date:        dateFeb13,
-                        Category:    "Performance",
-                        Title:       "DNS History Cache",
-                        Description: "Successful DNS history lookups are now cached for 24 hours, completely isolated from live analysis. Reduces API calls while ensuring live DNS queries are never served stale data.",
-                        Icon:        "fas fa-database",
-                },
-                {
-                        Version:     "26.13.7",
-                        Date:        dateFeb13,
-                        Category:    "Intelligence",
-                        Title:       "Verify It Yourself",
-                        Description: "Each report now includes terminal commands (dig, openssl, curl) to independently verify the underlying DNS queries. Our analysis adds consensus and RFC evaluation on top — but the raw data is always verifiable.",
-                        Icon:        "fas fa-laptop-code",
-                },
-                {
-                        Version:     "26.13.6",
-                        Date:        dateFeb13,
-                        Category:    "Transparency",
-                        Title:       "Confidence Indicators",
-                        Description: "Every attribution now shows whether data was directly observed (RDAP lookup, DNS record), inferred (pattern matching), or sourced from a third party — so you know exactly how each conclusion was reached.",
-                        Icon:        "fas fa-eye",
-                },
-                {
-                        Version:     "26.13.5",
-                        Date:        dateFeb13,
-                        Category:    "Security",
-                        Title:       "SMTP Transport Verification",
-                        Description: "Live STARTTLS probing of mail servers with certificate validation, cipher suite analysis, and TLS version checking. DNS-inferred fallback when direct connection is unavailable.",
-                        Icon:        "fas fa-lock",
-                },
-                {
-                        Version:     "26.13.4",
-                        Date:        dateFeb13,
-                        Category:    "Intelligence",
-                        Title:       "AI Surface Scanner",
-                        Description: "Detects AI governance signals across domains — llms.txt discovery, AI crawler policies in robots.txt, and prompt injection artifacts. Helps organizations understand their AI exposure.",
-                        Icon:        "fas fa-robot",
-                },
-                {
-                        Version:     "26.13.3",
-                        Date:        dateFeb13,
-                        Category:    "Intelligence",
-                        Title:       "DNS History Timeline",
-                        Description: "SecurityTrails-powered historical DNS record tracking shows how a domain's DNS configuration has changed over time. Users provide their own API key — never stored server-side.",
-                        Icon:        "fas fa-clock",
-                },
-                {
-                        Version:     "26.13.2",
-                        Date:        dateFeb13,
-                        Category:    "Analysis",
-                        Title:       "Enhanced Remediation Engine",
-                        Description: "RFC-cited remediation guidance now distinguishes SPF softfail vs hardfail context per RFC 7489 §10.1, with nuanced recommendations based on whether DKIM is present.",
-                        Icon:        "fas fa-cogs",
-                },
-                {
-                        Version:     "26.13.1",
-                        Date:        dateFeb13,
-                        Category:    "Intelligence",
-                        Title:       "Email Security Management Detection",
-                        Description: "Automatic identification of DMARC monitoring providers, SPF flattening services, and TLS-RPT reporting platforms from DNS records.",
-                        Icon:        "fas fa-envelope",
-                },
-                {
-                        Version:     "26.12.2",
-                        Date:        dateFeb12,
-                        Category:    "Analysis",
-                        Title:       "DANE/TLSA Deep Analysis",
-                        Description: "Full TLSA record parsing for every MX host with certificate usage, selector, matching type validation, and DNSSEC dependency checking per RFC 7672.",
-                        Icon:        "fas fa-shield-alt",
-                },
-                {
-                        Version:     "26.12.1",
-                        Date:        dateFeb12,
-                        Category:    "Core",
-                        Title:       "Go Performance Rewrite",
-                        Description: "Complete rewrite from Python/Flask to Go/Gin for dramatically improved performance and concurrency. Multi-resolver consensus DNS client with DoH fallback. The second attempt at Go — this time it stuck.",
-                        Icon:        "fas fa-bolt",
-                },
-                {
-                        Version:     "26.12.0",
-                        Date:        dateFeb12,
-                        Category:    "Intelligence",
-                        Title:       "IP Investigation Workflow",
-                        Description: "New /investigate page for IP-to-domain reverse lookups with ASN attribution, hosting provider detection, and infrastructure mapping.",
-                        Icon:        "fas fa-search-location",
-                },
-                {
-                        Version:     "26.12.E",
-                        Date:        dateFeb12,
-                        Category:    "Intelligence",
-                        Title:       "Email Header Analyzer",
-                        Description: "Paste or upload .eml files for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, and phishing pattern scanning with critical thinking prompts.",
-                        Icon:        "fas fa-envelope-open-text",
-                },
-                {
-                        Version:     "26.12.D",
-                        Date:        dateFeb12,
-                        Category:    "Security",
-                        Title:       "Enterprise DNS Detection & Golden Rules",
-                        Description: "Automatic identification of enterprise-grade DNS providers with test-guarded detection. Legacy provider blocklist prevents false enterprise tagging. Protected by automated golden rules tests.",
-                        Icon:        "fas fa-building",
-                },
-        }
+	return []ChangelogEntry{
+		{
+			Version:     ver262225,
+			Date:        dateFeb21,
+			Category:    "Intelligence",
+			Title:       "Misplaced DMARC Record Detection",
+			Description: "New post-analysis enrichment detects DMARC records incorrectly published at the root domain instead of the required _dmarc subdomain (RFC 7489 §6.1). DetectMisplacedDMARC scans root TXT records for v=DMARC1 patterns with case-insensitive matching, extracts the policy, and surfaces the misconfiguration in the report with specific remediation guidance. Four deterministic golden test cases validate detection accuracy.",
+			Icon:        "fas fa-crosshairs",
+		},
+		{
+			Version:     ver262225,
+			Date:        dateFeb21,
+			Category:    "UX",
+			Title:       "Covert Mode Recon Report UI",
+			Description: "Fixed Recon Report buttons in Covert Mode to use proper red-themed styling consistent with the tactical red-light aesthetic. Buttons now use the covert accent palette instead of default blue, maintaining the adversarial perspective throughout the report view.",
+			Icon:        "fas fa-user-secret",
+		},
+		{
+			Version:     ver262225,
+			Date:        dateFeb21,
+			Category:    "PWA",
+			Title:       "High-DPI PWA Icon Regeneration",
+			Description: "Regenerated all Progressive Web App icons at proper high-DPI resolution with maskable variants for Android adaptive icons. Icons now render crisply on high-resolution displays and correctly fill the safe zone on devices that apply circular or shaped masks.",
+			Icon:        "fas fa-mobile-alt",
+		},
+		{
+			Version:     ver262225,
+			Date:        dateFeb21,
+			Category:    "Brand",
+			Title:       "Origin Story Page",
+			Description: "New /about page documenting the authentic origin story: Memphis 1980 Radio Shack build, Nashville IT career, Raspberry Pi breakthrough, PhreakNIC Hackintosh demo, Hak5 offensive security era, 2015-2024 defensive security pivot with Objective-See and CISA Remote Penetration Test (Jan 2022), Python CLI field tool with Snap Store publication (Nov 2023), and the February 2025 Go platform launch. Includes acknowledgments section crediting early collaborators and linked verifiable references (Nmap 7.94 changelog, Hak5 Payload Award, Raspberry Pi forum post).",
+			Icon:        "fas fa-book-open",
+		},
+		{
+			Version:     ver262225,
+			Date:        dateFeb21,
+			Category:    "UX",
+			Title:       "ASCII Art Homepage Hero",
+			Description: "Desktop homepage hero title rendered as a Unicode block-character ASCII art banner for visual impact. Responsive design with automatic mobile text fallback below 768px width. The art uses CSS monospace rendering with careful line-height tuning for consistent cross-browser display.",
+			Icon:        "fas fa-terminal",
+		},
+		{
+			Version:     ver262088,
+			Date:        dateFeb19,
+			Category:    "Security",
+			Title:       "Authenticated Multi-Port SMTP Probe API",
+			Description: "Remote probe infrastructure upgraded to API v2 with shared-secret authentication, rate limiting (30 requests per 60 seconds per IP), and multi-port mail transport probing across ports 25 (SMTP), 465 (SMTPS), and 587 (submission). Banner capture provides additional server intelligence fingerprinting. Graceful fallback on 401 or 429 responses.",
+			Icon:        "fas fa-satellite-dish",
+		},
+		{
+			Version:     ver262088,
+			Date:        dateFeb19,
+			Category:    "Analytics",
+			Title:       "Privacy-Preserving Analytics Middleware",
+			Description: "Cookie-free, GDPR-friendly analytics pipeline collecting pageviews, unique visitors, analyses run, and unique domains analyzed. Daily-rotating random salt hashes visitor IPs into pseudonymous IDs — no cookies, no fingerprinting, no PII stored. Referrer origin and top page tracking with automatic self-referral filtering. In-memory aggregation flushed to PostgreSQL every 60 seconds via UPSERT. Static assets, health checks, and bot paths excluded.",
+			Icon:        "fas fa-chart-line",
+		},
+		{
+			Version:     ver262088,
+			Date:        dateFeb19,
+			Category:    "Admin",
+			Title:       "Admin Analytics Dashboard",
+			Description: "New /admin/analytics route (admin-only) with 30-day daily analytics view showing pageviews, unique visitors, analyses run, and unique domains. Summary cards with totals, averages, top referrers (top 10), and most-visited pages (top 10). Built on the privacy-preserving analytics middleware — no third-party tracking scripts.",
+			Icon:        "fas fa-chart-bar",
+		},
+		{
+			Version:     "26.20.85",
+			Date:        dateFeb19,
+			Category:    "Admin",
+			Title:       "Admin Dashboard & JSON Export",
+			Description: "New /admin route (admin-only) with stats cards for total users, analyses, unique domains, private analyses, sessions, and active sessions. Users table with role badges, recent analyses table with domain links and status, ICAE test runs table. JSON export at /export/json streams NDJSON with paginated 100-record batches and proper Content-Disposition header.",
+			Icon:        "fas fa-tachometer-alt",
+		},
+		{
+			Version:     "26.20.85",
+			Date:        dateFeb19,
+			Category:    "Security",
+			Title:       "Admin Bootstrap Fix (PromoteUserToAdmin)",
+			Description: "Fixed admin bootstrap for existing users. When INITIAL_ADMIN_EMAIL matches an already-registered user and zero admins exist, the system now calls PromoteUserToAdmin to upgrade their role. Previously, UpsertUser preserved the existing role, silently skipping the bootstrap. Audit-logged with reason and email.",
+			Icon:        "fas fa-user-shield",
+		},
+		{
+			Version:     ver262076,
+			Date:        dateFeb19,
+			Category:    "UX",
+			Title:       "UNLIKELY Badge Color Unification",
+			Description: "Unified the UNLIKELY verdict color to green/success across both email spoofing and brand impersonation assessments. Email spoofing with DMARC quarantine at 100% now shows success (green) instead of warning (amber). Brand impersonation with quarantine + BIMI + CAA also uses success (green). Consistent visual language: UNLIKELY = green across all verdict types.",
+			Icon:        "fas fa-palette",
+		},
+		{
+			Version:     "26.20.87",
+			Date:        dateFeb19,
+			Category:    "Intelligence",
+			Title:       "Remote SMTP Probe Infrastructure",
+			Description: "Deployed dedicated probe server (probe-us-01.dns-observe.com) for live SMTP transport verification. Cloud platforms block outbound port 25 — the probe server has unrestricted access for direct STARTTLS handshakes, certificate chain validation, and cipher suite inspection. Falls back gracefully when probe is unavailable.",
+			Icon:        "fas fa-server",
+		},
+		{
+			Version:     "26.20.83",
+			Date:        dateFeb19,
+			Category:    "Architecture",
+			Title:       "Interactive System Architecture Diagrams",
+			Description: "New /architecture page with interactive Mermaid diagrams visualizing the full system: high-level overview (Client Layer → Process Management → Go/Gin → Engines → Storage), ICIE pipeline (Collection → Classification → Privacy Gate → Output), ICAE confidence engine, and Privacy Gate decision tree. Color-coded nodes (blue/green/purple/cyan/gold/red) with CSP-compliant post-render JavaScript applying SVG presentation attributes. Dark background with thin blue connector lines.",
+			Icon:        "fas fa-sitemap",
+		},
+		{
+			Version:     ver262076,
+			Date:        dateFeb19,
+			Category:    "Core",
+			Title:       "DNS Library v2 Migration (miekg/dns)",
+			Description: "Migrated from github.com/miekg/dns v1.1.72 to codeberg.org/miekg/dns v0.6.52 (v2). The v1 library is archived on GitHub; v2 is actively maintained on Codeberg with improved performance and modern API. Four source files updated with new Exchange, RR data access, and EDNS0 patterns. Aligns with Codeberg-canonical hosting strategy.",
+			Icon:        "fas fa-bolt",
+		},
+		{
+			Version:     ver262076,
+			Date:        dateFeb19,
+			Category:    "Reliability",
+			Title:       "CT Log Resilience (Certspotter Fallback)",
+			Description: "Added Certspotter API as a fallback Certificate Transparency source when crt.sh is unavailable (502/timeout). Expanded DNS subdomain probe list from ~130 to ~280 common subdomains. Probe concurrency increased from 20 to 30 workers with a 25-second timeout.",
+			Icon:        "fas fa-shield-alt",
+		},
+		{
+			Version:     "26.20.74",
+			Date:        dateFeb19,
+			Category:    "UX",
+			Title:       "History Table Cleanup",
+			Description: "Removed the redundant status column from the analysis history table. Failed analyses are already excluded from history (they appear in statistics only). The green checkmark column was wasting horizontal space without adding information.",
+			Icon:        "fas fa-list",
+		},
+		{
+			Version:     "26.20.71",
+			Date:        dateFeb19,
+			Category:    "Intelligence",
+			Title:       "Brand Security Verdict Matrix Overhaul",
+			Description: "Corrected the brand impersonation verdict logic. DMARC reject alone blocks email spoofing (RFC 7489 §6.3) but not visual impersonation via lookalike domains or unrestricted certificate issuance. New 8-branch verdict matrix considers DMARC policy + BIMI brand verification + CAA certificate restriction (RFC 8659 §4). Expanded from 5 to 8 golden rule test cases.",
+			Icon:        "fas fa-check-double",
+		},
+		{
+			Version:     "26.20.70",
+			Date:        dateFeb19,
+			Category:    "Intelligence",
+			Title:       "DKIM Selector Expansion (81+ Selectors)",
+			Description: "Expanded default DKIM selector list from 39 to 81+ selectors covering major ESPs: HubSpot, Salesforce, Klaviyo, Intercom, ActiveCampaign, Constant Contact, MailerLite, Drip, Customer.io, Freshdesk, and more. Enhanced provider-to-selector inference from SPF/MX records. Privacy mode classification updated for expanded known-selector list.",
+			Icon:        "fas fa-key",
+		},
+		{
+			Version:     "26.20.56",
+			Date:        dateFeb18,
+			Category:    "Security",
+			Title:       "Google OAuth 2.0 + PKCE Authentication",
+			Description: "Pure stdlib Google OAuth 2.0 implementation with PKCE (Proof Key for Code Exchange) — no external OAuth libraries. Advanced Protection compatible. Email verification enforced, ID token claims validated, rate-limited auth endpoints, no tokens stored server-side. One-time admin bootstrap via INITIAL_ADMIN_EMAIL. Route protection for sensitive endpoints (/export/json requires admin). All analysis remains no-login-required.",
+			Icon:        "fas fa-user-shield",
+		},
+		{
+			Version:     "26.19.43",
+			Date:        dateFeb18,
+			Category:    "Security",
+			Title:       "Security Redaction & Mission Statement",
+			Description: "Comprehensive security audit: removed server version exposure from HTTP headers, redacted internal paths from error responses, hardened SSRF prevention for internal IP ranges. Added mission statement to the Security Policy page defining scope, principles, and responsible disclosure process.",
+			Icon:        "fas fa-lock",
+		},
+		{
+			Version:     "26.19.18",
+			Date:        dateFeb17,
+			Category:    "Quality",
+			Title:       "Boundary Integrity Test Suite",
+			Description: "Comprehensive test suite protecting the two-repo architecture: 11 boundary files verified across 11 categories (file presence, build tags, stub function signatures, no intelligence leaks, package consistency, and more). Catches stub contract violations, duplicate symbols, and architecture drift before they reach production.",
+			Icon:        "fas fa-cogs",
+		},
+		{
+			Version:     "26.19.0",
+			Date:        dateFeb17,
+			Category:    "Licensing",
+			Title:       "BSL 1.1 License Migration",
+			Description: "Migrated from AGPL-3.0 to Business Source License 1.1 with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BSL 1.1.",
+			Icon:        "fas fa-balance-scale",
+		},
+		{
+			Version:     "26.17.2",
+			Date:        dateFeb15,
+			Category:    "Security",
+			Title:       "CSP Compliance & XSS Hardening",
+			Description: "Eliminated all inline style attributes from Engineer and Executive report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes (u-print-hash, u-ls-tight, u-fs-072rem-lh15, u-fs-078rem-break, u-hash-label, etc.). DNS history table rendering refactored from innerHTML string concatenation to safe DOM methods (createElement + textContent + appendChild), eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
+			Icon:        "fas fa-shield-alt",
+		},
+		{
+			Version:     "26.17.1",
+			Date:        dateFeb15,
+			Category:    "Security",
+			Title:       "Expanded Exposure Checks (Opt-In)",
+			Description: "New opt-in OSINT exposure scanner checks 8 well-known misconfiguration paths (/.env, /.git/config, /.git/HEAD, /.DS_Store, /server-status, /server-info, /wp-config.php.bak, /phpinfo.php) on target domains. Content validation reduces false positives — each path is checked for characteristic content, not just HTTP 200 status. Sequential requests with 200ms delays and proper User-Agent identification. Results include severity badges, risk descriptions, and specific remediation guidance. Explicit PCI DSS disclaimer: these are OSINT collection, not ASV compliance scans.",
+			Icon:        "fas fa-search",
+		},
+		{
+			Version:     "26.17.0",
+			Date:        dateFeb15,
+			Category:    "Integrity",
+			Title:       "Report Integrity Hash & Header Preview",
+			Description: "Every analysis now generates a SHA-256 integrity fingerprint binding domain, analysis ID, timestamp, tool version, and canonicalized results data into a tamper-evident hash. Displayed at the bottom of both Engineer's DNS Intelligence Report and Executive's DNS Intelligence Brief with copy-to-clipboard. Short hash preview (first 8 characters) shown in the report header metadata bar with anchor link to the full hash section. Distinct from posture hash (drift detection) — the integrity hash uniquely identifies each specific report instance.",
+			Icon:        "fas fa-fingerprint",
+		},
+		{
+			Version:     "26.16.11",
+			Date:        dateFeb15,
+			Category:    "Brand",
+			Title:       "Intelligence Document Naming Convention",
+			Description: "Adopted IC (Intelligence Community) document naming: Engineer's DNS Intelligence Report (comprehensive, like a National Intelligence Estimate) and Executive's DNS Intelligence Brief (concise, like a Presidential Daily Brief). Possessive form signals personal ownership. 'DNS Intelligence' avoids MI5 brand conflict. Updated all title tags, print headers, screen headers, OG/Twitter meta, and JSON-LD schema. Homepage hero subtitle now explicitly references both intelligence products.",
+			Icon:        "fas fa-file-alt",
+		},
+		{
+			Version:     "26.16.10",
+			Date:        dateFeb15,
+			Category:    "Brand",
+			Title:       "Sophistication Accent Tokens & Color Flow",
+			Description: "Added steel-blue (#7d8ea8) and deep navy (#1e3a5f) brand accent tokens for premium intelligence aesthetic. Color flow continuity from homepage through results pages via gradients, borders, and card hover effects. Hero typography upgraded to 3.5rem/800 weight with tighter tracking. All non-status visual elements use brand accents while RFC/CVSS status colors remain untouched.",
+			Icon:        "fas fa-palette",
+		},
+		{
+			Version:     "26.15.30",
+			Date:        dateFeb15,
+			Category:    "Reporting",
+			Title:       "TLP:AMBER Default & Colored Selector",
+			Description: "Report distribution now defaults to TLP:AMBER per CISA/FIRST standards for security posture reports. TLP selector button and dropdown badges show FIRST TLP v2.0 colors (amber, green, clear). Font cache-busting ensures all icons render correctly across browsers.",
+			Icon:        "fas fa-shield-alt",
+		},
+		{
+			Version:     "26.15.26",
+			Date:        dateFeb15,
+			Category:    "Reporting",
+			Title:       "Dual Intelligence Products: Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief",
+			Description: "Two intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail with all protocol analysis) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard, risk posture, and priority actions). Both use the same live analysis data — different formats for different audiences. Includes posture drift detection foundation with canonical SHA-256 hashing for future longitudinal monitoring.",
+			Icon:        "fas fa-file-alt",
+		},
+		{
+			Version:     "26.15.25",
+			Date:        dateFeb15,
+			Category:    "Transparency",
+			Title:       "OpenPhish Threat Intelligence Attribution",
+			Description: "Added OpenPhish Community Feed to the Intelligence Sources page with its own Threat Intelligence category. Added OpenPhish attribution to the Email Header Analyzer trust bar and body analysis results. Proper credit for the free community phishing URL feed that powers our phishing detection.",
+			Icon:        "fas fa-fish",
+		},
+		{
+			Version:     "26.15.24",
+			Date:        dateFeb15,
+			Category:    "UX",
+			Title:       "Email Header Analyzer Homepage Promotion",
+			Description: "Added a promotional banner for the Email Header Analyzer on the homepage, matching the IP Investigate card style. Makes the feature more discoverable for users landing on the main page.",
+			Icon:        "fas fa-envelope",
+		},
+		{
+			Version:     "26.14.7",
+			Date:        dateFeb14,
+			Category:    "Performance",
+			Title:       "High-Speed Subdomain Discovery",
+			Description: "Subdomain probing now uses lightweight UDP DNS queries instead of DNS-over-HTTPS, with independent timeouts and 20-goroutine concurrency. Discovery completes in ~1 second instead of timing out. All subdomains found reliably.",
+			Icon:        "fas fa-tachometer-alt",
+		},
+		{
+			Version:     "26.14.6",
+			Date:        dateFeb12,
+			Category:    "Transparency",
+			Title:       "Intelligence Sources Inventory",
+			Description: "New /sources page documents every intelligence source used by DNS Tool — DNS resolvers, reverse DNS, Team Cymru ASN attribution, SMTP probing, SecurityTrails, crt.sh, IANA RDAP — with methodology, rate limits, and verification commands. No black boxes.",
+			Icon:        "fas fa-satellite-dish",
+		},
+		{
+			Version:     "26.14.5",
+			Date:        dateFeb12,
+			Category:    "Intelligence",
+			Title:       "PTR-Based Hosting Detection",
+			Description: "Reverse DNS (PTR) lookups now identify hosting providers directly from IP addresses — the classic Unix-era technique. CloudFront, AWS, Google Cloud, Azure, and more detected without any third-party API.",
+			Icon:        "fas fa-undo-alt",
+		},
+		{
+			Version:     "26.14.4",
+			Date:        dateFeb12,
+			Category:    "Intelligence",
+			Title:       "IP-to-ASN Attribution",
+			Description: "Team Cymru DNS-based IP-to-ASN mapping identifies which organization owns each IP address (AWS, Cloudflare, Google, etc.). Free community service with no API key and no rate limits.",
+			Icon:        "fas fa-map-marked-alt",
+		},
+		{
+			Version:     "26.14.3",
+			Date:        dateFeb11,
+			Category:    "Transparency",
+			Title:       "Incident Disclosure: Inaccurate Analysis Output",
+			Description: "A data-processing issue caused some reports to display incorrect analysis results. The root cause has been identified and fixed, and safeguards have been added so incomplete or failed data retrieval can never be silently presented as valid results. We believe in full transparency — you deserve to know when we get it wrong.",
+			Icon:        "fas fa-exclamation-triangle",
+			IsIncident:  true,
+		},
+		{
+			Version:     "26.14.2",
+			Date:        dateFeb11,
+			Category:    "Transparency",
+			Title:       "Honest Data Reporting",
+			Description: "When third-party data sources are rate-limited or unavailable, reports now say exactly that — never claiming 'no changes detected' when the data simply couldn't be checked. Four clear states: success, rate-limited, error, and partial.",
+			Icon:        "fas fa-gavel",
+		},
+		{
+			Version:     "26.14.1",
+			Date:        dateFeb13,
+			Category:    "Performance",
+			Title:       "DNS History Cache",
+			Description: "Successful DNS history lookups are now cached for 24 hours, completely isolated from live analysis. Reduces API calls while ensuring live DNS queries are never served stale data.",
+			Icon:        "fas fa-database",
+		},
+		{
+			Version:     "26.13.7",
+			Date:        dateFeb13,
+			Category:    "Intelligence",
+			Title:       "Verify It Yourself",
+			Description: "Each report now includes terminal commands (dig, openssl, curl) to independently verify the underlying DNS queries. Our analysis adds consensus and RFC evaluation on top — but the raw data is always verifiable.",
+			Icon:        "fas fa-laptop-code",
+		},
+		{
+			Version:     "26.13.6",
+			Date:        dateFeb13,
+			Category:    "Transparency",
+			Title:       "Confidence Indicators",
+			Description: "Every attribution now shows whether data was directly observed (RDAP lookup, DNS record), inferred (pattern matching), or sourced from a third party — so you know exactly how each conclusion was reached.",
+			Icon:        "fas fa-eye",
+		},
+		{
+			Version:     "26.13.5",
+			Date:        dateFeb13,
+			Category:    "Security",
+			Title:       "SMTP Transport Verification",
+			Description: "Live STARTTLS probing of mail servers with certificate validation, cipher suite analysis, and TLS version checking. DNS-inferred fallback when direct connection is unavailable.",
+			Icon:        "fas fa-lock",
+		},
+		{
+			Version:     "26.13.4",
+			Date:        dateFeb13,
+			Category:    "Intelligence",
+			Title:       "AI Surface Scanner",
+			Description: "Detects AI governance signals across domains — llms.txt discovery, AI crawler policies in robots.txt, and prompt injection artifacts. Helps organizations understand their AI exposure.",
+			Icon:        "fas fa-robot",
+		},
+		{
+			Version:     "26.13.3",
+			Date:        dateFeb13,
+			Category:    "Intelligence",
+			Title:       "DNS History Timeline",
+			Description: "SecurityTrails-powered historical DNS record tracking shows how a domain's DNS configuration has changed over time. Users provide their own API key — never stored server-side.",
+			Icon:        "fas fa-clock",
+		},
+		{
+			Version:     "26.13.2",
+			Date:        dateFeb13,
+			Category:    "Analysis",
+			Title:       "Enhanced Remediation Engine",
+			Description: "RFC-cited remediation guidance now distinguishes SPF softfail vs hardfail context per RFC 7489 §10.1, with nuanced recommendations based on whether DKIM is present.",
+			Icon:        "fas fa-cogs",
+		},
+		{
+			Version:     "26.13.1",
+			Date:        dateFeb13,
+			Category:    "Intelligence",
+			Title:       "Email Security Management Detection",
+			Description: "Automatic identification of DMARC monitoring providers, SPF flattening services, and TLS-RPT reporting platforms from DNS records.",
+			Icon:        "fas fa-envelope",
+		},
+		{
+			Version:     "26.12.2",
+			Date:        dateFeb12,
+			Category:    "Analysis",
+			Title:       "DANE/TLSA Deep Analysis",
+			Description: "Full TLSA record parsing for every MX host with certificate usage, selector, matching type validation, and DNSSEC dependency checking per RFC 7672.",
+			Icon:        "fas fa-shield-alt",
+		},
+		{
+			Version:     "26.12.1",
+			Date:        dateFeb12,
+			Category:    "Core",
+			Title:       "Go Performance Rewrite",
+			Description: "Complete rewrite from Python/Flask to Go/Gin for dramatically improved performance and concurrency. Multi-resolver consensus DNS client with DoH fallback. The second attempt at Go — this time it stuck.",
+			Icon:        "fas fa-bolt",
+		},
+		{
+			Version:     "26.12.0",
+			Date:        dateFeb12,
+			Category:    "Intelligence",
+			Title:       "IP Investigation Workflow",
+			Description: "New /investigate page for IP-to-domain reverse lookups with ASN attribution, hosting provider detection, and infrastructure mapping.",
+			Icon:        "fas fa-search-location",
+		},
+		{
+			Version:     "26.12.E",
+			Date:        dateFeb12,
+			Category:    "Intelligence",
+			Title:       "Email Header Analyzer",
+			Description: "Paste or upload .eml files for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, and phishing pattern scanning with critical thinking prompts.",
+			Icon:        "fas fa-envelope-open-text",
+		},
+		{
+			Version:     "26.12.D",
+			Date:        dateFeb12,
+			Category:    "Security",
+			Title:       "Enterprise DNS Detection & Golden Rules",
+			Description: "Automatic identification of enterprise-grade DNS providers with test-guarded detection. Legacy provider blocklist prevents false enterprise tagging. Protected by automated golden rules tests.",
+			Icon:        "fas fa-building",
+		},
+	}
 }
 
 func GetLegacyChangelog() []ChangelogEntry {
-        return []ChangelogEntry{
-                {
-                        Version:  "26.1.0",
-                        Date:     dateJan22,
-                        Category: "Core",
-                        Title:    "Python Web App: Registrar & Hosting Intelligence",
-                        Description: "Major development sprint added RDAP-based registrar detection, hosting provider identification, parallel DNS lookups, and authoritative nameserver queries. The Python/Flask web app grew from basic DNS lookups into a real analysis platform.",
-                        Icon:     "fas fa-code",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "25.11.1",
-                        Date:     dateNov05,
-                        Category: "Core",
-                        Title:    "Web App Revival: DoH & Grid Layout",
-                        Description: "Returned to the web app after five months. Reset the database, switched to Google's DNS-over-HTTPS for reliability, and reorganized the results into a clean grid layout. The foundation for everything that followed.",
-                        Icon:     "fas fa-th",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "25.6.1",
-                        Date:     dateJun05,
-                        Category: "Core",
-                        Title:    "First Web App: Python/Flask on Replit",
-                        Description: "DNS Tool became a web application. Built with Python and Flask on Replit — DNS-over-HTTPS queries, PostgreSQL database for scan history, statistics page, and the first version of the analysis results UI. The beginning of dnstool.it-help.tech.",
-                        Icon:     "fas fa-globe",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "25.5.2",
-                        Date:     dateMay24,
-                        Category: "Core",
-                        Title:    "CLI Tool: Build System & Quality",
-                        Description: "Added reproducible Makefile builds, SonarCloud code quality integration, and archived the working CLI version. The tool was maturing, but the vision was shifting toward a web platform.",
-                        Icon:     "fas fa-hammer",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "25.5.1",
-                        Date:     dateMay18,
-                        Category: "Origins",
-                        Title:    "New Name, New Repo: DNS Tool",
-                        Description: "DNS Scout was renamed to DNS Tool and given a fresh GitHub repository. Python CLI with terminal output, visual indicators, interactive and batch modes, pre-compiled binaries for Linux, macOS, and Windows. Documentation, FAQ, and changelog from day one.",
-                        Icon:     "fas fa-terminal",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "23.11.1",
-                        Date:     dateNov23,
-                        Category: "Origins",
-                        Title:    "DNS Scout: Snap & Launchpad Release",
-                        Description: "DNS Scout v6.20 published to Launchpad PPA and Snapcraft — the first packaged, installable release. A working DNS security analysis tool available as a .deb and a Snap. The earliest externally verifiable timestamp of the project.",
-                        Icon:     "fas fa-box",
-                        IsLegacy: true,
-                },
-                {
-                        Version:  "19.0.0",
-                        Date:     date2019,
-                        Category: "Origins",
-                        Title:    "DNS Scout Is Born",
-                        Description: "The project that became DNS Tool started life as DNS Scout — a command-line DNS and email security analysis tool. The seed of an idea: transparent, RFC-compliant domain intelligence with no black boxes.",
-                        Icon:     "fas fa-birthday-cake",
-                        IsLegacy: true,
-                },
-        }
+	return []ChangelogEntry{
+		{
+			Version:     "26.1.0",
+			Date:        dateJan22,
+			Category:    "Core",
+			Title:       "Python Web App: Registrar & Hosting Intelligence",
+			Description: "Major development sprint added RDAP-based registrar detection, hosting provider identification, parallel DNS lookups, and authoritative nameserver queries. The Python/Flask web app grew from basic DNS lookups into a real analysis platform.",
+			Icon:        "fas fa-code",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "25.11.1",
+			Date:        dateNov05,
+			Category:    "Core",
+			Title:       "Web App Revival: DoH & Grid Layout",
+			Description: "Returned to the web app after five months. Reset the database, switched to Google's DNS-over-HTTPS for reliability, and reorganized the results into a clean grid layout. The foundation for everything that followed.",
+			Icon:        "fas fa-th",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "25.6.1",
+			Date:        dateJun05,
+			Category:    "Core",
+			Title:       "First Web App: Python/Flask on Replit",
+			Description: "DNS Tool became a web application. Built with Python and Flask on Replit — DNS-over-HTTPS queries, PostgreSQL database for scan history, statistics page, and the first version of the analysis results UI. The beginning of dnstool.it-help.tech.",
+			Icon:        "fas fa-globe",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "25.5.2",
+			Date:        dateMay24,
+			Category:    "Core",
+			Title:       "CLI Tool: Build System & Quality",
+			Description: "Added reproducible Makefile builds, SonarCloud code quality integration, and archived the working CLI version. The tool was maturing, but the vision was shifting toward a web platform.",
+			Icon:        "fas fa-hammer",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "25.5.1",
+			Date:        dateMay18,
+			Category:    "Origins",
+			Title:       "New Name, New Repo: DNS Tool",
+			Description: "DNS Scout was renamed to DNS Tool and given a fresh GitHub repository. Python CLI with terminal output, visual indicators, interactive and batch modes, pre-compiled binaries for Linux, macOS, and Windows. Documentation, FAQ, and changelog from day one.",
+			Icon:        "fas fa-terminal",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "23.11.1",
+			Date:        dateNov23,
+			Category:    "Origins",
+			Title:       "DNS Scout: Snap & Launchpad Release",
+			Description: "DNS Scout v6.20 published to Launchpad PPA and Snapcraft — the first packaged, installable release. A working DNS security analysis tool available as a .deb and a Snap. The earliest externally verifiable timestamp of the project.",
+			Icon:        "fas fa-box",
+			IsLegacy:    true,
+		},
+		{
+			Version:     "19.0.0",
+			Date:        date2019,
+			Category:    "Origins",
+			Title:       "DNS Scout Is Born",
+			Description: "The project that became DNS Tool started life as DNS Scout — a command-line DNS and email security analysis tool. The seed of an idea: transparent, RFC-compliant domain intelligence with no black boxes.",
+			Icon:        "fas fa-birthday-cake",
+			IsLegacy:    true,
+		},
+	}
 }

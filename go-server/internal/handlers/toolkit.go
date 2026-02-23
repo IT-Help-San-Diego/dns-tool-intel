@@ -17,6 +17,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const tplToolkit = "toolkit.html"
+
 type ToolkitHandler struct {
 	Config *config.Config
 }
@@ -31,13 +33,13 @@ func (h *ToolkitHandler) ToolkitPage(c *gin.Context) {
 	data := gin.H{
 		"AppVersion":      h.Config.AppVersion,
 		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+		"BetaPages":       h.Config.BetaPages,
 		"CspNonce":        nonce,
 		"CsrfToken":       csrfToken,
 		"ActivePage":      "toolkit",
 	}
 	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "toolkit.html", data)
+	c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func (h *ToolkitHandler) MyIP(c *gin.Context) {
@@ -51,7 +53,7 @@ func (h *ToolkitHandler) MyIP(c *gin.Context) {
 	data := gin.H{
 		"AppVersion":      h.Config.AppVersion,
 		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+		"BetaPages":       h.Config.BetaPages,
 		"CspNonce":        nonce,
 		"CsrfToken":       csrfToken,
 		"ActivePage":      "toolkit",
@@ -60,7 +62,7 @@ func (h *ToolkitHandler) MyIP(c *gin.Context) {
 		"ShowMyIP":        true,
 	}
 	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "toolkit.html", data)
+	c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func (h *ToolkitHandler) PortCheck(c *gin.Context) {
@@ -73,7 +75,7 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	data := gin.H{
 		"AppVersion":      h.Config.AppVersion,
 		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+		"BetaPages":       h.Config.BetaPages,
 		"CspNonce":        nonce,
 		"CsrfToken":       csrfToken,
 		"ActivePage":      "toolkit",
@@ -85,7 +87,7 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if targetHost == "" {
 		data["ProbeError"] = "Please enter a target host (IP address or hostname)."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
@@ -93,14 +95,14 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if err != nil || portNum < 1 || portNum > 65535 {
 		data["ProbeError"] = "Please enter a valid port number between 1 and 65535."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
 	if h.Config.ProbeAPIURL == "" {
 		data["ProbeError"] = "Port check service is not configured."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
@@ -111,7 +113,7 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if err != nil {
 		data["ProbeError"] = "Failed to create request to probe service."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
@@ -121,7 +123,7 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if err != nil {
 		data["ProbeError"] = "Could not connect to the probe service. It may be temporarily unavailable."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 	defer resp.Body.Close()
@@ -130,14 +132,14 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if err != nil {
 		data["ProbeError"] = "Failed to read response from probe service."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
 	if resp.StatusCode != 200 {
 		data["ProbeError"] = fmt.Sprintf("Probe service returned an error (status %d).", resp.StatusCode)
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
@@ -145,13 +147,13 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
 	if err := json.Unmarshal(body, &probeResult); err != nil {
 		data["ProbeError"] = "Failed to parse response from probe service."
 		mergeAuthData(c, h.Config, data)
-		c.HTML(http.StatusOK, "toolkit.html", data)
+		c.HTML(http.StatusOK, tplToolkit, data)
 		return
 	}
 
 	data["ProbeResult"] = probeResult
 	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "toolkit.html", data)
+	c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func detectPlatform(userAgent string) string {

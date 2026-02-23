@@ -67,7 +67,9 @@ func (a *Analyzer) DetectEmailSecurityManagement(spf, dmarc, tlsrpt, mtasts map[
 	}
 }
 
-func enrichHostingFromEdgeCDN(results map[string]any) {}
+func enrichHostingFromEdgeCDN(results map[string]any) {
+	// OSS stub: CDN edge detection in dns-tool-intel repository
+}
 
 func matchEnterpriseProvider(nsList []string) *infraMatch { return nil }
 
@@ -115,30 +117,41 @@ func detectProvider(records []string, providers map[string]string) string { retu
 
 func matchMonitoringProvider(domain string) *managementProviderInfo { return nil }
 
-func detectDMARCReportProviders(providers map[string]map[string]any, dmarc map[string]any) {}
+func detectDMARCReportProviders(providers map[string]map[string]any, dmarc map[string]any) {
+	// OSS stub: DMARC report provider detection in dns-tool-intel repository
+}
 
-func detectTLSRPTReportProviders(providers map[string]map[string]any, tlsrpt map[string]any) {}
+func detectTLSRPTReportProviders(providers map[string]map[string]any, tlsrpt map[string]any) {
+	// OSS stub: TLS-RPT report provider detection in dns-tool-intel repository
+}
 
 func detectSPFFlatteningProvider(providers map[string]map[string]any, spf map[string]any) map[string]any {
 	return nil
 }
 
-func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[string]any) {}
+func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[string]any) {
+	// OSS stub: MTA-STS management detection in dns-tool-intel repository
+}
 
 func (a *Analyzer) detectHostedDKIMProviders(providers map[string]map[string]any, domain string, dkim map[string]any) {
+	// OSS stub: hosted DKIM provider detection in dns-tool-intel repository
 }
 
 func matchDynamicServiceNS(nsLower string) (dynamicServiceInfo, bool) {
 	return dynamicServiceInfo{}, false
 }
 
-func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInfo, cap string) {}
+func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInfo, cap string) {
+	// OSS stub: dynamic service detection accumulator in dns-tool-intel repository
+}
 
 func (a *Analyzer) scanDynamicServiceZones(ctx context.Context, zones map[string]string) map[string]*dsDetection {
 	return make(map[string]*dsDetection)
 }
 
-func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, domain string) {}
+func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, domain string) {
+	// OSS stub: dynamic service detection in dns-tool-intel repository
+}
 
 func identifyEmailProvider(mxRecords []string) string { return "" }
 

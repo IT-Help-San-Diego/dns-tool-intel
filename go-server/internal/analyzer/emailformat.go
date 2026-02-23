@@ -125,58 +125,71 @@ func extractMicrosoftGraphHeaders(obj map[string]interface{}) string {
 	if !ok {
 		return ""
 	}
+	lines := extractHeaderArray(arr, "name", "value")
+
+	lines = prependMissingHeader(lines, "subject:", func() string {
+		if subject, ok := obj["subject"].(string); ok && subject != "" {
+			return "Subject: " + subject
+		}
+		return ""
+	})
+	lines = prependMissingHeader(lines, "from:", func() string {
+		return extractMSGraphFrom(obj)
+	})
+
+	if len(lines) >= 2 {
+		return strings.Join(lines, "\r\n")
+	}
+	return ""
+}
+
+func extractMSGraphFrom(obj map[string]interface{}) string {
+	from, ok := obj["from"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	ea, ok := from["emailAddress"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	addr, _ := ea["address"].(string)
+	name, _ := ea["name"].(string)
+	if addr == "" {
+		return ""
+	}
+	if name != "" {
+		return "From: " + name + " <" + addr + ">"
+	}
+	return "From: " + addr
+}
+
+func extractHeaderArray(arr []interface{}, nameKey, valueKey string) []string {
 	var lines []string
 	for _, item := range arr {
 		header, ok := item.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		name, _ := header["name"].(string)
-		value, _ := header["value"].(string)
+		name, _ := header[nameKey].(string)
+		value, _ := header[valueKey].(string)
 		if name != "" {
 			lines = append(lines, name+": "+value)
 		}
 	}
+	return lines
+}
 
-	if subject, ok := obj["subject"].(string); ok && subject != "" {
-		hasSubject := false
-		for _, l := range lines {
-			if strings.HasPrefix(strings.ToLower(l), "subject:") {
-				hasSubject = true
-				break
-			}
-		}
-		if !hasSubject {
-			lines = append([]string{"Subject: " + subject}, lines...)
+func prependMissingHeader(lines []string, prefix string, valueFn func() string) []string {
+	for _, l := range lines {
+		if strings.HasPrefix(strings.ToLower(l), prefix) {
+			return lines
 		}
 	}
-	if from, ok := obj["from"].(map[string]interface{}); ok {
-		if ea, ok := from["emailAddress"].(map[string]interface{}); ok {
-			addr, _ := ea["address"].(string)
-			name, _ := ea["name"].(string)
-			if addr != "" {
-				hasFrom := false
-				for _, l := range lines {
-					if strings.HasPrefix(strings.ToLower(l), "from:") {
-						hasFrom = true
-						break
-					}
-				}
-				if !hasFrom {
-					if name != "" {
-						lines = append([]string{"From: " + name + " <" + addr + ">"}, lines...)
-					} else {
-						lines = append([]string{"From: " + addr}, lines...)
-					}
-				}
-			}
-		}
+	val := valueFn()
+	if val != "" {
+		lines = append([]string{val}, lines...)
 	}
-
-	if len(lines) >= 2 {
-		return strings.Join(lines, "\r\n")
-	}
-	return ""
+	return lines
 }
 
 func extractGmailAPIHeaders(obj map[string]interface{}) string {
@@ -318,43 +331,50 @@ func extractGenericJSONHeaders(obj map[string]interface{}) string {
 			continue
 		}
 
-		if str, ok := val.(string); ok && hasHeaderFields(str) {
-			return str
+		if result := tryExtractGenericVal(val); result != "" {
+			return result
 		}
+	}
 
-		if arr, ok := val.([]interface{}); ok {
-			var lines []string
-			for _, item := range arr {
-				if header, ok := item.(map[string]interface{}); ok {
-					name := firstString(header, "name", "Name", "key", "Key", "header")
-					value := firstString(header, "value", "Value", "val")
-					if name != "" {
-						lines = append(lines, name+": "+value)
-					}
+	for _, key := range []string{"raw", "Raw"} {
+		if raw, ok := obj[key].(string); ok && hasHeaderFields(raw) {
+			return raw
+		}
+	}
+
+	return ""
+}
+
+func tryExtractGenericVal(val interface{}) string {
+	if str, ok := val.(string); ok && hasHeaderFields(str) {
+		return str
+	}
+
+	if arr, ok := val.([]interface{}); ok {
+		var lines []string
+		for _, item := range arr {
+			if header, ok := item.(map[string]interface{}); ok {
+				name := firstString(header, "name", "Name", "key", "Key", "header")
+				value := firstString(header, "value", "Value", "val")
+				if name != "" {
+					lines = append(lines, name+": "+value)
 				}
 			}
-			if len(lines) >= 2 {
-				return strings.Join(lines, "\r\n")
-			}
 		}
-
-		if headerMap, ok := val.(map[string]interface{}); ok {
-			var lines []string
-			for name, v := range headerMap {
-				value, _ := v.(string)
-				lines = append(lines, name+": "+value)
-			}
-			if len(lines) >= 2 {
-				return strings.Join(lines, "\r\n")
-			}
+		if len(lines) >= 2 {
+			return strings.Join(lines, "\r\n")
 		}
 	}
 
-	if raw, ok := obj["raw"].(string); ok && hasHeaderFields(raw) {
-		return raw
-	}
-	if raw, ok := obj["Raw"].(string); ok && hasHeaderFields(raw) {
-		return raw
+	if headerMap, ok := val.(map[string]interface{}); ok {
+		var lines []string
+		for name, v := range headerMap {
+			value, _ := v.(string)
+			lines = append(lines, name+": "+value)
+		}
+		if len(lines) >= 2 {
+			return strings.Join(lines, "\r\n")
+		}
 	}
 
 	return ""

@@ -74,6 +74,7 @@ func zoneCapability(zoneKey string) string {
 }
 
 func addOrMergeProvider(providers map[string]map[string]any, info *managementProviderInfo, detectedFrom, source string) {
+	// OSS stub: full provider-merge logic in dns-tool-intel repository
 }
 
 func extractMailtoDomains(ruaStr string) []string {

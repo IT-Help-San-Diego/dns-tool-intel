@@ -53,10 +53,22 @@ func CompareDrift(zoneRecords []ParsedRecord, liveResults map[string]any) *Drift
 	zoneMap := buildRecordMap(zoneRecords)
 	liveMap := buildRecordMap(liveRecords)
 
+	report.Added = findAddedEntries(zoneMap, liveMap)
+	report.Missing = findMissingEntries(zoneMap, liveMap)
+	changed, ttlOnly := findChangedAndTTLEntries(zoneMap, liveMap)
+	report.Changed = changed
+	report.TTLOnly = ttlOnly
+
+	report.TotalDrifts = len(report.Added) + len(report.Missing) + len(report.Changed) + len(report.TTLOnly)
+	return report
+}
+
+func findAddedEntries(zoneMap, liveMap map[string][]ParsedRecord) []DriftEntry {
+	var entries []DriftEntry
 	for key, zRecs := range zoneMap {
 		if _, exists := liveMap[key]; !exists {
 			for _, zr := range zRecs {
-				report.Added = append(report.Added, DriftEntry{
+				entries = append(entries, DriftEntry{
 					Category:    DriftAdded,
 					Name:        zr.Name,
 					Type:        zr.Type,
@@ -67,11 +79,15 @@ func CompareDrift(zoneRecords []ParsedRecord, liveResults map[string]any) *Drift
 			}
 		}
 	}
+	return entries
+}
 
+func findMissingEntries(zoneMap, liveMap map[string][]ParsedRecord) []DriftEntry {
+	var entries []DriftEntry
 	for key, lRecs := range liveMap {
 		if _, exists := zoneMap[key]; !exists {
 			for _, lr := range lRecs {
-				report.Missing = append(report.Missing, DriftEntry{
+				entries = append(entries, DriftEntry{
 					Category:    DriftMissing,
 					Name:        lr.Name,
 					Type:        lr.Type,
@@ -82,7 +98,11 @@ func CompareDrift(zoneRecords []ParsedRecord, liveResults map[string]any) *Drift
 			}
 		}
 	}
+	return entries
+}
 
+func findChangedAndTTLEntries(zoneMap, liveMap map[string][]ParsedRecord) ([]DriftEntry, []DriftEntry) {
+	var changed, ttlOnly []DriftEntry
 	for key, zRecs := range zoneMap {
 		lRecs, exists := liveMap[key]
 		if !exists {
@@ -98,44 +118,49 @@ func CompareDrift(zoneRecords []ParsedRecord, liveResults map[string]any) *Drift
 			lDataSet[normalizeRData(lr.RData)] = lr.TTL
 		}
 
-		for zData, zTTL := range zDataSet {
-			if lTTL, found := lDataSet[zData]; found {
-				if zTTL != lTTL {
-					parts := strings.SplitN(key, "|", 2)
-					name, rtype := parts[0], parts[1]
-					report.TTLOnly = append(report.TTLOnly, DriftEntry{
-						Category:    DriftTTLOnly,
-						Name:        name,
-						Type:        rtype,
-						ZoneValue:   zData,
-						LiveValue:   zData,
-						ZoneTTL:     zTTL,
-						LiveTTL:     lTTL,
-						Description: fmt.Sprintf("TTL differs for %s %s: zone=%d, live=%d", name, rtype, zTTL, lTTL),
-					})
-				}
-			} else {
-				parts := strings.SplitN(key, "|", 2)
-				name, rtype := parts[0], parts[1]
-				liveValues := make([]string, 0, len(lDataSet))
-				for ld := range lDataSet {
-					liveValues = append(liveValues, ld)
-				}
-				report.Changed = append(report.Changed, DriftEntry{
-					Category:    DriftChanged,
+		c, t := compareDataSets(key, zDataSet, lDataSet)
+		changed = append(changed, c...)
+		ttlOnly = append(ttlOnly, t...)
+	}
+	return changed, ttlOnly
+}
+
+func compareDataSets(key string, zDataSet, lDataSet map[string]uint32) ([]DriftEntry, []DriftEntry) {
+	var changed, ttlOnly []DriftEntry
+	parts := strings.SplitN(key, "|", 2)
+	name, rtype := parts[0], parts[1]
+
+	for zData, zTTL := range zDataSet {
+		if lTTL, found := lDataSet[zData]; found {
+			if zTTL != lTTL {
+				ttlOnly = append(ttlOnly, DriftEntry{
+					Category:    DriftTTLOnly,
 					Name:        name,
 					Type:        rtype,
 					ZoneValue:   zData,
-					LiveValue:   strings.Join(liveValues, "; "),
+					LiveValue:   zData,
 					ZoneTTL:     zTTL,
-					Description: fmt.Sprintf("Value differs for %s %s", name, rtype),
+					LiveTTL:     lTTL,
+					Description: fmt.Sprintf("TTL differs for %s %s: zone=%d, live=%d", name, rtype, zTTL, lTTL),
 				})
 			}
+		} else {
+			liveValues := make([]string, 0, len(lDataSet))
+			for ld := range lDataSet {
+				liveValues = append(liveValues, ld)
+			}
+			changed = append(changed, DriftEntry{
+				Category:    DriftChanged,
+				Name:        name,
+				Type:        rtype,
+				ZoneValue:   zData,
+				LiveValue:   strings.Join(liveValues, "; "),
+				ZoneTTL:     zTTL,
+				Description: fmt.Sprintf("Value differs for %s %s", name, rtype),
+			})
 		}
 	}
-
-	report.TotalDrifts = len(report.Added) + len(report.Missing) + len(report.Changed) + len(report.TTLOnly)
-	return report
+	return changed, ttlOnly
 }
 
 func buildRecordMap(records []ParsedRecord) map[string][]ParsedRecord {
@@ -168,89 +193,34 @@ func extractLiveRecords(results map[string]any) []ParsedRecord {
 	}
 	fqdn := strings.ToLower(domain) + "."
 
-	simpleTypes := []string{"A", "AAAA", "NS", "CNAME"}
-	for _, rtype := range simpleTypes {
-		if vals, ok := basic[rtype]; ok {
-			if arr, ok := vals.([]any); ok {
-				for _, v := range arr {
-					if s, ok := v.(string); ok && s != "" {
-						records = append(records, ParsedRecord{
-							Name:  fqdn,
-							TTL:   ttls[rtype],
-							Class: "IN",
-							Type:  rtype,
-							RData: s,
-						})
-					}
-				}
-			}
-		}
+	allTypes := []string{"A", "AAAA", "NS", "CNAME", "MX", "TXT", "SOA", "CAA"}
+	for _, rtype := range allTypes {
+		records = appendRecordsOfType(records, basic, fqdn, rtype, ttls[rtype])
 	}
 
-	if mxVals, ok := basic["MX"]; ok {
-		if arr, ok := mxVals.([]any); ok {
-			for _, v := range arr {
-				if s, ok := v.(string); ok && s != "" {
-					records = append(records, ParsedRecord{
-						Name:  fqdn,
-						TTL:   ttls["MX"],
-						Class: "IN",
-						Type:  "MX",
-						RData: s,
-					})
-				}
-			}
+	return records
+}
+
+func appendRecordsOfType(records []ParsedRecord, basic map[string]any, fqdn, rtype string, ttl uint32) []ParsedRecord {
+	vals, ok := basic[rtype]
+	if !ok {
+		return records
+	}
+	arr, ok := vals.([]any)
+	if !ok {
+		return records
+	}
+	for _, v := range arr {
+		if s, ok := v.(string); ok && s != "" {
+			records = append(records, ParsedRecord{
+				Name:  fqdn,
+				TTL:   ttl,
+				Class: "IN",
+				Type:  rtype,
+				RData: s,
+			})
 		}
 	}
-
-	if txtVals, ok := basic["TXT"]; ok {
-		if arr, ok := txtVals.([]any); ok {
-			for _, v := range arr {
-				if s, ok := v.(string); ok && s != "" {
-					records = append(records, ParsedRecord{
-						Name:  fqdn,
-						TTL:   ttls["TXT"],
-						Class: "IN",
-						Type:  "TXT",
-						RData: s,
-					})
-				}
-			}
-		}
-	}
-
-	if soaVals, ok := basic["SOA"]; ok {
-		if arr, ok := soaVals.([]any); ok {
-			for _, v := range arr {
-				if s, ok := v.(string); ok && s != "" {
-					records = append(records, ParsedRecord{
-						Name:  fqdn,
-						TTL:   ttls["SOA"],
-						Class: "IN",
-						Type:  "SOA",
-						RData: s,
-					})
-				}
-			}
-		}
-	}
-
-	if caaVals, ok := basic["CAA"]; ok {
-		if arr, ok := caaVals.([]any); ok {
-			for _, v := range arr {
-				if s, ok := v.(string); ok && s != "" {
-					records = append(records, ParsedRecord{
-						Name:  fqdn,
-						TTL:   ttls["CAA"],
-						Class: "IN",
-						Type:  "CAA",
-						RData: s,
-					})
-				}
-			}
-		}
-	}
-
 	return records
 }
 

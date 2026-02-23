@@ -9,4 +9,6 @@ var FeatureParityManifest = []ManifestEntry{}
 
 var RequiredSchemaKeys []string
 
-func init() {}
+func init() {
+	// OSS stub: manifest initialization handled in dns-tool-intel repository
+}

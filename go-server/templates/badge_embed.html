@@ -29,7 +29,7 @@
                             <input type="text" class="form-control" id="badgeDomain" placeholder="example.com" autocomplete="off" autocapitalize="none" spellcheck="false">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Style</label>
+                            <span class="form-label small fw-semibold d-block">Style</span>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary active" id="btnStyleFlat" data-style="flat">Standard</button>
                                 <button type="button" class="btn btn-sm btn-outline-danger" id="btnStyleCovert" data-style="covert">Covert</button>
@@ -57,28 +57,28 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold font-monospace">HTML</label>
+                            <label for="embedHTML" class="form-label small fw-semibold font-monospace">HTML</label>
                             <div class="input-group">
                                 <textarea class="form-control font-monospace small" id="embedHTML" rows="3" readonly></textarea>
                                 <button type="button" class="btn btn-outline-secondary" id="copyHTML" title="Copy HTML"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold font-monospace">Markdown</label>
+                            <label for="embedMarkdown" class="form-label small fw-semibold font-monospace">Markdown</label>
                             <div class="input-group">
                                 <textarea class="form-control font-monospace small" id="embedMarkdown" rows="2" readonly></textarea>
                                 <button type="button" class="btn btn-outline-secondary" id="copyMarkdown" title="Copy Markdown"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold font-monospace">Image URL</label>
+                            <label for="embedURL" class="form-label small fw-semibold font-monospace">Image URL</label>
                             <div class="input-group">
                                 <input type="text" class="form-control font-monospace small" id="embedURL" readonly>
                                 <button type="button" class="btn btn-outline-secondary" id="copyURL" title="Copy URL"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="mb-0">
-                            <label class="form-label small fw-semibold font-monospace">curl</label>
+                            <label for="embedCurl" class="form-label small fw-semibold font-monospace">curl</label>
                             <div class="input-group">
                                 <input type="text" class="form-control font-monospace small" id="embedCurl" readonly>
                                 <button type="button" class="btn btn-outline-secondary" id="copyCurl" title="Copy curl"><i class="fas fa-copy"></i></button>
@@ -94,14 +94,14 @@
                     <div class="card-body small">
                         <p class="text-muted">Use the <strong>Shields.io endpoint</strong> for dynamic badges in your GitHub README, CI dashboards, or documentation.</p>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold font-monospace">Shields.io Endpoint URL</label>
+                            <label for="embedShieldsURL" class="form-label small fw-semibold font-monospace">Shields.io Endpoint URL</label>
                             <div class="input-group">
                                 <input type="text" class="form-control font-monospace small" id="embedShieldsURL" readonly placeholder="Generate a badge first">
                                 <button type="button" class="btn btn-outline-secondary" id="copyShieldsURL" title="Copy Shields.io URL"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold font-monospace">Shields.io Markdown</label>
+                            <label for="embedShieldsMarkdown" class="form-label small fw-semibold font-monospace">Shields.io Markdown</label>
                             <div class="input-group">
                                 <textarea class="form-control font-monospace small" id="embedShieldsMarkdown" rows="2" readonly placeholder="Generate a badge first"></textarea>
                                 <button type="button" class="btn btn-outline-secondary" id="copyShieldsMarkdown" title="Copy Shields.io Markdown"><i class="fas fa-copy"></i></button>

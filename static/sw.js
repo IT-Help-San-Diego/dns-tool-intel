@@ -1,7 +1,7 @@
-var CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
-var CACHE_NAME = 'dnstool-' + CACHE_VERSION;
+const CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
+const CACHE_NAME = 'dnstool-' + CACHE_VERSION;
 
-var IMMUTABLE_ASSETS = [
+const IMMUTABLE_ASSETS = [
   '/static/css/bootstrap-dark-theme.min.css',
   '/static/css/fontawesome-subset.min.css',
   '/static/js/bootstrap.bundle.min.js',
@@ -31,7 +31,7 @@ globalThis.addEventListener('activate', function(event) {
 });
 
 globalThis.addEventListener('fetch', function(event) {
-  var url = new URL(event.request.url);
+  const url = new URL(event.request.url);
 
   if (!url.pathname.startsWith('/static/')) {
     event.respondWith(
@@ -47,13 +47,13 @@ globalThis.addEventListener('fetch', function(event) {
     return;
   }
 
-  var isVersioned = url.search.indexOf('v=') !== -1;
+  const isVersioned = url.search.indexOf('v=') !== -1;
 
   if (isVersioned) {
     event.respondWith(
       fetch(event.request).then(function(response) {
         if (response.ok) {
-          var clone = response.clone();
+          const clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
             cache.put(event.request, clone);
           });
@@ -69,7 +69,7 @@ globalThis.addEventListener('fetch', function(event) {
         if (cached) return cached;
         return fetch(event.request).then(function(response) {
           if (response.ok) {
-            var clone = response.clone();
+            const clone = response.clone();
             caches.open(CACHE_NAME).then(function(cache) {
               cache.put(event.request, clone);
             });

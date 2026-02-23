@@ -26,4 +26,6 @@ func parseLLMSTxt(body string) map[string]any {
 	return map[string]any{}
 }
 
-func parseLLMSTxtFieldLine(line, section string, fields map[string]any, docs *[]string) {}
+func parseLLMSTxtFieldLine(line, section string, fields map[string]any, docs *[]string) {
+	// OSS stub: full implementation in dns-tool-intel repository
+}

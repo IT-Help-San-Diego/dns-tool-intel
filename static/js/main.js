@@ -190,11 +190,11 @@ function createCopyHandler(codeBlock, btn) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var covertBtn = document.getElementById('covertToggle');
+    const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
             document.body.classList.toggle('covert-mode');
-            var active = document.body.classList.contains('covert-mode') ? '1' : '0';
+            const active = document.body.classList.contains('covert-mode') ? '1' : '0';
             try { localStorage.setItem('covertMode', active); } catch(e) {}
         });
     }
@@ -221,9 +221,9 @@ document.addEventListener('DOMContentLoaded', function() {
         domainForm.addEventListener('submit', function(e) {
             if (analysisSubmitted) return;
             e.preventDefault();
-            var covertField = document.getElementById('covertField');
+            const covertField = document.getElementById('covertField');
             if (covertField) {
-                var isCovert = document.body.classList.contains('covert-mode') ? '1' : '0';
+                const isCovert = document.body.classList.contains('covert-mode') ? '1' : '0';
                 covertField.value = isCovert;
             }
             const domain = domainInput.value.trim().toLowerCase().replace(/^\./, '');

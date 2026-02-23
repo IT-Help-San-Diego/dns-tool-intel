@@ -62,4 +62,5 @@ func ExtractSaaSTXTFootprint(results map[string]any) map[string]any {
 }
 
 func matchSaaSPatterns(txt string, seen map[string]bool, services *[]map[string]any) {
+	// OSS stub: full SaaS pattern matching in dns-tool-intel repository
 }

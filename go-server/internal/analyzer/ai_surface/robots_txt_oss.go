@@ -27,6 +27,7 @@ func parseRobotsForAI(body string) (blocked []string, allowed []string, directiv
 }
 
 func processRobotsLine(lower, line string, currentUA string, seenBlocked, seenAllowed map[string]bool, directives *[]robotsDirective) {
+	// OSS stub: full implementation in dns-tool-intel repository
 }
 
 func matchAICrawler(userAgent string) string {
