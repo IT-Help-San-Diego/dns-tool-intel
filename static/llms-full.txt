@@ -340,6 +340,30 @@ DNS Tool detects when a domain uses a hosted email provider and adjusts DANE ana
 
 ---
 
+## System Architecture (`/architecture`) — TLP:GREEN
+
+A static, zero-JavaScript public overview of the system architecture, classified TLP:GREEN (public-safe). Designed for technical audiences, investors, and security researchers who want to understand the platform's scientific foundation.
+
+### Sections
+1. **Intelligence Pipeline**: DNS query flow from multi-resolver parallel collection through analysis engines to intelligence product generation
+2. **Dual-Engine Confidence Framework**: ICAE (correctness, 129 tests across 9 protocols) and ICuAE (currency, 29 tests across 5 dimensions) running independently with ICD 203 methodology
+3. **Protocol Coverage**: Nine DNS security protocols analyzed — SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA — each linked to authoritative RFCs
+4. **Open-Core Architecture**: BSL 1.1 license model with public web layer and private intelligence module, build-tag gated compilation
+5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
+6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, FIPS 202 (SHA-3)
+
+### Design Decisions
+- Pure HTML/CSS diagrams — no JavaScript dependency, sub-second rendering
+- Redacted content bars protect proprietary methodology and internal infrastructure details
+- Full Mermaid-based interactive diagrams remain in the repository's `docs/architecture/` directory for contributors
+
+### For AI Agents
+- Navigate to `https://dnstool.it-help.tech/architecture`
+- The page is static educational content — no login required
+- Content is curated for public consumption; internal implementation details are intentionally redacted
+
+---
+
 ## Field Tech Toolkit (`/toolkit`) — Beta
 
 The Field Tech Toolkit is a guided network troubleshooting tool designed for everyone — from IT professionals to non-technical users. It walks users through diagnosing network connectivity issues step by step, with educational context and RFC citations at every stage.
