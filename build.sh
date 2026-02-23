@@ -11,10 +11,11 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
 cd "$SCRIPT_DIR/go-server"
-GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
+CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
   -buildvcs=false \
   -trimpath \
   -ldflags "$LDFLAGS" \
+  -tags netgo \
   -o /tmp/dns-tool-new \
   ./cmd/server/
 cd "$SCRIPT_DIR"

@@ -135,7 +135,7 @@ func main() {
 
         router.GET("/", homeHandler.Index)
         router.GET("/healthz", healthHandler.Healthz)
-        router.GET("/go/health", healthHandler.HealthCheck)
+        router.GET("/go/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
         router.GET("/.well-known/security.txt", staticHandler.SecurityTxt)
         router.GET("/security.txt", staticHandler.SecurityTxt)
@@ -196,7 +196,7 @@ func main() {
         router.GET("/api/analysis/:id/checksum", analysisHandler.APIAnalysisChecksum)
         router.GET("/api/subdomains/*domain", analysisHandler.APISubdomains)
         router.GET("/api/dns-history", analysisHandler.APIDNSHistory)
-        router.GET("/api/health", healthHandler.HealthCheck)
+        router.GET("/api/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
         router.GET("/proxy/bimi-logo", proxyHandler.BIMILogo)
 
