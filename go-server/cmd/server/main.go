@@ -166,6 +166,7 @@ func main() {
         router.POST("/watchlist/endpoint/add", middleware.RequireAuth(), watchlistHandler.AddEndpoint)
         router.POST("/watchlist/endpoint/:id/delete", middleware.RequireAuth(), watchlistHandler.RemoveEndpoint)
         router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireAuth(), watchlistHandler.ToggleEndpoint)
+        router.POST("/watchlist/webhook/test", middleware.RequireAdmin(), watchlistHandler.TestWebhook)
 
         router.GET("/analysis/:id", analysisHandler.ViewAnalysis)
         router.GET("/analysis/:id/view", analysisHandler.ViewAnalysisStatic)

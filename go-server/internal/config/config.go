@@ -40,6 +40,7 @@ type Config struct {
         InitialAdminEmail  string
         BaseURL            string
         IsDevEnvironment   bool
+        DiscordWebhookURL  string
 }
 
 var betaPagesMap = map[string]bool{
@@ -167,5 +168,6 @@ func Load() (*Config, error) {
                 InitialAdminEmail:  strings.TrimSpace(os.Getenv("INITIAL_ADMIN_EMAIL")),
                 BaseURL:            baseURL,
                 IsDevEnvironment:   isDevEnv,
+                DiscordWebhookURL:  os.Getenv("DISCORD_WEBHOOK_URL"),
         }, nil
 }
