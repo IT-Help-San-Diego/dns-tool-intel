@@ -2800,3 +2800,42 @@ Professional security dashboards commonly use always-collapsed nav. Frees brand 
 - ICD 203 "confidence" applies to both correctness (ICAE) and currency (ICuAE).
 - Plan: Add ICuAE scientific presentation (test case matrix, progress bars, audit trail) to `/confidence` page at parity with ICAE.
 - Color upgrade: Collection from teal (#00e5ff) to "Quantum Cyan" (#4FD2FF), Analysis from pink (#ea80fc) to "Ion Violet" (#7C5CFF).
+
+## Session — 2026-02-23
+
+### XSS Security Fix (SonarCloud Finding)
+- **File**: `static/js/foundation.js` line 166
+- **Finding**: Static analysis flagged `innerHTML` usage in tooltip rendering
+- **Verdict**: False positive — existing sanitizer (DOMParser + allowlist of STRONG/BR/B/EM/I + attribute stripping) was effective
+- **Fix**: Replaced `innerHTML` with `removeChild` + `adoptNode` + `appendChild` (safe DOM methods) to follow best practices and eliminate static analysis finding
+- **Impact**: Zero functional change, eliminates security scanner alert
+
+### LLM Documentation Strategy — Preventing AI Mischaracterization
+- **Problem**: Third-party ChatGPT analysis incorrectly concluded that ICAE/ICuAE engines were "not implemented" and "marketing vaporware" because it only read surface documentation
+- **Root cause**: LLMs fill gaps when documentation under-specifies architecture. Vague "redacted per TLP:GREEN" language was interpreted as "not implemented"
+- **Solution**: Added "Implementation Verification" section to both `static/llms.txt` and `static/llms-full.txt`
+- **Strategy**: Reveal structure (file paths, line counts, test counts, standards citations). Protect mechanics (scoring formulas, weighting, decision heuristics)
+- **Key additions**:
+  - Explicit "deterministic protocol validation engine — not ML-based" classification
+  - Engine implementation table with 10 components, locations, and evidence
+  - "What Redacted Means" clarification replacing ambiguous language
+  - Standards Foundation section (cited in code, not just documentation)
+- **Bug fix**: Corrected SHA-256 → SHA-3-512 reference (posture hashing upgraded previously but docs were stale)
+- **Bug fix**: Corrected maturity tier names in llms-full.txt (Foundation/Operational/Verified → Verified/Consistent/Gold to match `ComputeMaturity()` code)
+- **Verified counts**: ICAE = 129 test cases (45+42+27+15), ICuAE = 29 tests (inventory.go), 9 protocols, SHA-3-512 confirmed in posture_hash.go:49 and integrity_hash.go:27
+
+### Probe-02 (Kali Server) Status
+- **Code**: Ready. `config.go` supports `PROBE_API_URL_2`, `PROBE_API_KEY_2`, `PROBE_LABEL_2`
+- **Secrets**: SSH credentials set (`PROBE_SSH_HOST_2`, `PROBE2_SSH_USER`). API URL/key NOT yet configured
+- **Status**: Infrastructure-side setup pending — probe API service needs deployment on Kali VPS
+- **Default label**: "EU-West (France)" — update `PROBE_LABEL_2` if different location
+
+### Discord Webhook — Operational
+- `DISCORD_WEBHOOK_URL` configured and tested
+- Notifier service in `go-server/internal/notifier/notifier.go` fully implemented
+- Drift alerts with severity-colored Discord embeds, test message endpoint operational
+- User confirmed receiving test message
+
+### Documentation Sync
+- `replit.md` updated with LLM Documentation policy
+- SKILL.md unchanged (no architectural changes)
