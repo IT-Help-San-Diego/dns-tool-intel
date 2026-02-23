@@ -36,8 +36,6 @@
     "minimatch": "$minimatch",
     "tar-fs": "$tar-fs",
     "ws": "$ws",
-    "lodash": {
-      "set": "file:packages/lodash-set-safe"
-    }
+    "lodash.set": "file:packages/lodash-set-safe"
   }
 }
