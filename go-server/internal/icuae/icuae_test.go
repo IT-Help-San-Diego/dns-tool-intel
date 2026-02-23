@@ -368,6 +368,43 @@ func TestEvaluateCompleteness_NilMap(t *testing.T) {
         }
 }
 
+func TestDimensionTuningHint(t *testing.T) {
+        hint, icon := dimensionTuningHint(DimensionCurrentness, 95.0)
+        if hint != "" || icon != "" {
+                t.Error("score >=90 should return empty hint")
+        }
+
+        hint, icon = dimensionTuningHint(DimensionCurrentness, 73.0)
+        if hint == "" || icon == "" {
+                t.Error("score 73 (adequate) should return a tuning hint")
+        }
+        if icon != "fas fa-info-circle text-info" {
+                t.Errorf("score 73 expected info icon, got %q", icon)
+        }
+
+        hint, icon = dimensionTuningHint(DimensionTTLCompliance, 40.0)
+        if hint == "" || icon == "" {
+                t.Error("score 40 (degraded) should return a tuning hint")
+        }
+        if icon != "fas fa-exclamation-triangle text-warning" {
+                t.Errorf("score 40 expected warning icon, got %q", icon)
+        }
+
+        hint, icon = dimensionTuningHint(DimensionCompleteness, 85.0)
+        if hint == "" || icon == "" {
+                t.Error("score 85 (good) should return a tuning hint")
+        }
+        if icon != "fas fa-lightbulb text-success" {
+                t.Errorf("score 85 expected lightbulb icon, got %q", icon)
+        }
+
+        for _, dim := range []string{DimensionCurrentness, DimensionTTLCompliance, DimensionCompleteness, DimensionSourceCredibility, DimensionTTLRelevance} {
+                if _, ok := dimensionTuningThresholds[dim]; !ok {
+                        t.Errorf("missing tuning thresholds for dimension %q", dim)
+                }
+        }
+}
+
 func TestEvaluateTTLRelevance_UnknownRecordType(t *testing.T) {
         ttls := map[string]uint32{"CUSTOM": 500}
         result := EvaluateTTLRelevance(ttls)

@@ -87,6 +87,40 @@ type DimensionStat struct {
         Grade       string
         BootClass   string
         SampleCount int
+        TuningHint  string
+        TuningIcon  string
+}
+
+var dimensionTuningThresholds = map[string][]struct {
+        MaxScore float64
+        Hint     string
+        Icon     string
+}{
+        DimensionCurrentness: {
+                {49, "Data age exceeds TTL validity windows consistently. Consider increasing scan frequency or scheduling scans during low-cache-age periods.", "fas fa-exclamation-triangle text-warning"},
+                {74, "Some records are collected near or past their TTL expiry. Tighter scan cadence alignment with authoritative TTLs would improve freshness.", "fas fa-info-circle text-info"},
+                {89, "Minor freshness gaps detected. Fine-tuning scan timing to align with the shortest TTLs in the record set can push scores toward Excellent.", "fas fa-lightbulb text-success"},
+        },
+        DimensionTTLCompliance: {
+                {49, "Resolver caches frequently exceed authoritative TTL limits, indicating serve-stale behavior (RFC 8767). Consider prioritizing resolvers with stricter TTL compliance.", "fas fa-exclamation-triangle text-warning"},
+                {74, "Some resolvers serve records past their authoritative TTL. Increasing resolver diversity or weighting TTL-compliant resolvers more heavily would help.", "fas fa-info-circle text-info"},
+                {89, "Near-compliant TTL behavior with minor deviations. Monitoring resolver-specific TTL overrides can identify the remaining outliers.", "fas fa-lightbulb text-success"},
+        },
+        DimensionCompleteness: {
+                {49, "Multiple expected record types are consistently missing. Expanding the query set or adding retry logic for failed lookups would improve coverage.", "fas fa-exclamation-triangle text-warning"},
+                {74, "Some optional record types (DANE/TLSA, BIMI, CAA) are absent. These are domain-dependent but adding fallback queries can capture more when present.", "fas fa-info-circle text-info"},
+                {89, "Nearly complete record coverage with minor gaps. Review which specific record types are missing to determine if they are domain-absent or collection-absent.", "fas fa-lightbulb text-success"},
+        },
+        DimensionSourceCredibility: {
+                {49, "Resolvers frequently disagree on fundamental records. Consider adding more resolver endpoints or investigating whether split-horizon DNS is in play.", "fas fa-exclamation-triangle text-warning"},
+                {74, "Partial resolver agreement on some record types. Weighting results by resolver reliability history could improve consensus scoring.", "fas fa-info-circle text-info"},
+                {89, "Strong multi-resolver consensus with minor disagreements. Identifying which specific resolvers diverge can help refine the weighting model.", "fas fa-lightbulb text-success"},
+        },
+        DimensionTTLRelevance: {
+                {49, "Observed TTLs deviate significantly from expected ranges for their record types. This often indicates domain-side misconfiguration rather than collection issues.", "fas fa-exclamation-triangle text-warning"},
+                {74, "Some TTL values fall outside typical ranges. This is informational — extreme TTLs may be intentional but affect cache behavior across resolvers.", "fas fa-info-circle text-info"},
+                {89, "TTL values are within expected ranges with minor outliers. Domain operators may benefit from TTL tuning recommendations in the report.", "fas fa-lightbulb text-success"},
+        },
 }
 
 func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
@@ -144,6 +178,7 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
         if err == nil {
                 for _, d := range dimAvgs {
                         avgGrade := scoreToGrade(float64(d.AvgScore))
+                        hint, icon := dimensionTuningHint(d.Dimension, float64(d.AvgScore))
                         m.DimensionStats = append(m.DimensionStats, DimensionStat{
                                 Dimension:   d.Dimension,
                                 Display:     DimensionDisplayNames[d.Dimension],
@@ -154,6 +189,8 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
                                 Grade:       avgGrade,
                                 BootClass:   GradeBootstrapClass[avgGrade],
                                 SampleCount: int(d.SampleCount),
+                                TuningHint:  hint,
+                                TuningIcon:  icon,
                         })
                 }
         }
@@ -167,6 +204,22 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
         }
 
         return m
+}
+
+func dimensionTuningHint(dimension string, avgScore float64) (string, string) {
+        thresholds, ok := dimensionTuningThresholds[dimension]
+        if !ok {
+                return "", ""
+        }
+        if avgScore >= 90 {
+                return "", ""
+        }
+        for _, t := range thresholds {
+                if avgScore <= t.MaxScore {
+                        return t.Hint, t.Icon
+                }
+        }
+        return "", ""
 }
 
 func computeStability(stddev float64) (string, string) {

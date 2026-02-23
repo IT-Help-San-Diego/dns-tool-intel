@@ -631,7 +631,7 @@
 
                 {{if .ICuAERuntimeMetrics.DimensionStats}}
                 <h3 class="h6 fw-bold mt-4 mb-2">Per-Dimension Averages</h3>
-                <p class="text-muted small mb-2">Each of the five currency dimensions, averaged across all scans. Low-scoring dimensions indicate systemic DNS configuration patterns worth investigating.</p>
+                <p class="text-muted small mb-2">Each of the five currency dimensions, averaged across all scans. Low-scoring dimensions indicate systemic patterns; tuning hints suggest how to improve collection fidelity.</p>
                 <div class="table-responsive">
                     <table class="table table-dark table-sm table-bordered mb-0">
                         <thead>
@@ -652,6 +652,11 @@
                                 <td class="text-center"><span class="badge bg-{{.BootClass}}">{{.Grade}}</span></td>
                                 <td class="text-center text-muted">{{.SampleCount}}</td>
                             </tr>
+                            {{if .TuningHint}}
+                            <tr>
+                                <td colspan="5" class="small border-0 pt-0 pb-2" style="background:rgba(13,202,240,0.03)"><i class="{{.TuningIcon}} me-1"></i> <strong>Tuning Advisory:</strong> {{.TuningHint}}</td>
+                            </tr>
+                            {{end}}
                             {{end}}
                         </tbody>
                     </table>
@@ -682,6 +687,86 @@
         </div>
         {{end}}
         {{end}}
+
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3"><i class="fas fa-crosshairs me-2 text-info"></i>Excellence Benchmarks</h2>
+                <p class="text-muted small mb-3">What does &ldquo;near-ideal&rdquo; DNS collection look like in the real world? These targets are derived from large-scale passive DNS observation networks and authoritative resolver operations that approach the theoretical ideal.</p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-dark table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>Dimension</th>
+                                <th class="text-center">Excellence Target</th>
+                                <th>Real-World Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>TTL Compliance</strong></td>
+                                <td class="text-center"><span class="badge bg-success">&ge;95%</span></td>
+                                <td class="small text-muted">Farsight DNSDB and OpenINTEL passive sensors collect at TTL-aligned intervals. RFC 8767 defines serve-stale as an explicit protocol extension, making non-compliant caching measurably detectable.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Completeness</strong></td>
+                                <td class="text-center"><span class="badge bg-success">&ge;98%</span></td>
+                                <td class="small text-muted">Large-scale collectors (RiskIQ, Censys) query all standard record types per zone. &ge;98% coverage of the core set (A, AAAA, MX, TXT, NS, SOA, CAA, DMARC, SPF) is achievable for any domain that publishes them.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Source Credibility</strong></td>
+                                <td class="text-center"><span class="badge bg-success">&ge;90%</span></td>
+                                <td class="small text-muted">Google Public DNS, Cloudflare 1.1.1.1, and Quad9 operate at global scale with near-identical authoritative views. &ge;90% multi-resolver agreement is standard; unanimity is expected for NS and SOA records.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Currentness</strong></td>
+                                <td class="text-center"><span class="badge bg-success">&lt;0.5&times; TTL</span></td>
+                                <td class="small text-muted">DNSPerf tests from 200+ locations every 60 seconds. Median data age below half the authoritative TTL indicates the collector is querying well within the freshness window.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>TTL Relevance</strong></td>
+                                <td class="text-center"><span class="badge bg-success">Within Range</span></td>
+                                <td class="small text-muted">NIST SP 800-53 SI-18 treats validity as a measurable property. TTLs within the typical range for their record type (3600s for TXT, 86400s for NS) indicate well-configured authoritative zones.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0"><i class="fas fa-satellite-dish me-1"></i> <strong>Where these numbers come from:</strong> Farsight Security&rsquo;s DNSDB processes billions of DNS observations daily from sensor networks worldwide. OpenINTEL (University of Twente) performs daily active measurements across all .com, .net, and .org zones. These systems represent the closest real-world approximation to the theoretical machine-locked ideal. Our scoring model uses their operational characteristics as the upper boundary of what is achievable.</p>
+            </div>
+        </div>
+
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3"><i class="fas fa-cogs me-2 text-warning"></i>Self-Tuning Intelligence Pipeline</h2>
+                <p class="text-muted small mb-3">ICuAE is not just a measurement engine &mdash; it is the diagnostic instrument for the collection pipeline itself. By tracking per-dimension statistics across scans, ICuAE identifies exactly which stage of the analysis chain needs attention.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body py-2 px-3">
+                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-microscope me-1 text-info"></i> Phase 1: Advisory</h3>
+                                <p class="text-muted small mb-0">Dimension-level tuning hints surfaced in the Per-Dimension Averages table. When a dimension scores below 90, ICuAE explains what&rsquo;s happening and suggests specific improvements. <span class="badge bg-success">Live</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body py-2 px-3">
+                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-sliders-h me-1 text-warning"></i> Phase 2: Suggested Config</h3>
+                                <p class="text-muted small mb-0">Generate recommended scanner profiles from rolling statistics &mdash; resolver set, retry thresholds, record type priorities &mdash; requiring explicit approval before applying. <span class="badge bg-secondary">On the Roadmap</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body py-2 px-3">
+                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-robot me-1 text-success"></i> Phase 3: Adaptive Tuning</h3>
+                                <p class="text-muted small mb-0">Fully automatic, non-destructive adjustments (timing jitter, retries, resolver weighting) with rollback if stability decreases. Gated by minimum sample count and confidence thresholds. <span class="badge bg-secondary">On the Roadmap</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0"><i class="fas fa-flask me-1"></i> <strong>The vision:</strong> With enough scans and enough science, the confidence engine tunes TTLs, resolver weighting, query cadence, and retry logic until the system achieves the highest possible fidelity against the theoretical ideal &mdash; automatically, measurably, and with full provenance.</p>
+            </div>
+        </div>
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
