@@ -8,6 +8,7 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/icae"
+        "dnstool/go-server/internal/icuae"
 
         "github.com/gin-gonic/gin"
 )
@@ -27,7 +28,7 @@ func (h *HomeHandler) Index(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":    nonce,
                 "ActivePage":  "home",
                 "CsrfToken":   csrfToken,
@@ -41,6 +42,9 @@ func (h *HomeHandler) Index(c *gin.Context) {
         if h.DB != nil {
                 if metrics := icae.LoadReportMetrics(c.Request.Context(), h.DB.Queries); metrics != nil {
                         data["ICAEMetrics"] = metrics
+                }
+                if rm := icuae.LoadRuntimeMetrics(c.Request.Context(), h.DB.Queries); rm != nil && rm.HasData {
+                        data["ICuAEMetrics"] = rm
                 }
         }
 

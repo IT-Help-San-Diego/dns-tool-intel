@@ -247,7 +247,7 @@
                     <div class="icae-hero-protocols mt-1 u-hero-protocols-divider">
                         <div class="d-flex flex-wrap justify-content-center gap-2 align-items-center">
                             <a href="/confidence#icuae" class="text-muted text-decoration-none small" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Intelligence Currency Audit Engine — measures data timeliness per ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012">
-                                <i class="fas fa-clock me-1"></i>Currency Engine: <span class="text-info">Active</span>
+                                <i class="fas fa-clock me-1"></i>Currency Engine: {{if .ICuAEMetrics}}<span class="text-info">{{.ICuAEMetrics.AvgScoreDisplay}}/100</span> <span class="opacity-50">({{.ICuAEMetrics.TotalScans}} scans)</span>{{else}}<span class="text-info">Active</span>{{end}}
                             </a>
                             <span class="text-muted small opacity-50">|</span>
                             <a href="/confidence" class="text-muted text-decoration-none small" data-bs-toggle="tooltip" data-bs-placement="bottom" title="SHA-3-512 (NIST FIPS 202) integrity hashing on all exports">

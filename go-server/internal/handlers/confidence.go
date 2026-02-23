@@ -44,6 +44,12 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
                 }
         }
 
+        if h.DB != nil {
+                if runtimeMetrics := icuae.LoadRuntimeMetrics(c.Request.Context(), h.DB.Queries); runtimeMetrics != nil {
+                        data["ICuAERuntimeMetrics"] = runtimeMetrics
+                }
+        }
+
         mergeAuthData(c, h.Config, data)
         data["ICuAEInventory"] = icuae.GetTestInventory()
         c.HTML(http.StatusOK, "confidence.html", data)
