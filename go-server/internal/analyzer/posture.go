@@ -682,7 +682,8 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 
         score := computeInternalScore(ps, ds)
 
-        verdicts := buildVerdicts(ps, ds, hasSPF, hasDMARC, hasDKIM)
+        vi := verdictInput{ps: ps, ds: ds, hasSPF: hasSPF, hasDMARC: hasDMARC, hasDKIM: hasDKIM}
+        verdicts := buildVerdicts(vi)
         buildAISurfaceVerdicts(results, verdicts)
 
         deliberate, deliberateNote := evaluateDeliberateMonitoring(ps, len(acc.configured))
@@ -836,13 +837,34 @@ func buildDescriptiveMessage(ps protocolState, configured, absent, monitoring []
         return strings.Join(parts, ", ")
 }
 
-func buildVerdicts(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM bool) map[string]any {
+type verdictInput struct {
+        ps      protocolState
+        ds      DKIMState
+        hasSPF  bool
+        hasDMARC bool
+        hasDKIM bool
+}
+
+func buildVerdicts(vi verdictInput) map[string]any {
         verdicts := map[string]any{}
 
-        buildEmailVerdict(ps, ds, hasSPF, hasDMARC, hasDKIM, verdicts)
-        buildBrandVerdict(ps, verdicts)
-        buildDNSVerdict(ps, verdicts)
+        buildEmailVerdict(vi, verdicts)
+        buildBrandVerdict(vi.ps, verdicts)
+        buildDNSVerdict(vi.ps, verdicts)
+        buildCAAVerdict(vi.ps, verdicts)
 
+        verdicts["email_answer"] = buildEmailAnswer(vi.ps, vi.hasSPF, vi.hasDMARC)
+        ea := buildEmailAnswerStructured(vi.ps, vi.hasSPF, vi.hasDMARC)
+        verdicts["email_answer_short"] = ea["answer"]
+        verdicts["email_answer_reason"] = ea["reason"]
+        verdicts["email_answer_color"] = ea["color"]
+
+        buildTransportVerdict(vi.ps, verdicts)
+
+        return verdicts
+}
+
+func buildCAAVerdict(ps protocolState, verdicts map[string]any) {
         if ps.caaOK {
                 verdicts["certificate_control"] = map[string]any{
                         "label":  "Configured",
@@ -860,16 +882,6 @@ func buildVerdicts(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM boo
                         "reason": "No CAA records — any certificate authority may issue certificates for this domain",
                 }
         }
-
-        verdicts["email_answer"] = buildEmailAnswer(ps, hasSPF, hasDMARC)
-        ea := buildEmailAnswerStructured(ps, hasSPF, hasDMARC)
-        verdicts["email_answer_short"] = ea["answer"]
-        verdicts["email_answer_reason"] = ea["reason"]
-        verdicts["email_answer_color"] = ea["color"]
-
-        buildTransportVerdict(ps, verdicts)
-
-        return verdicts
 }
 
 func buildEmailAnswer(ps protocolState, hasSPF, hasDMARC bool) string {
@@ -928,13 +940,13 @@ func buildEmailAnswerStructured(ps protocolState, hasSPF, hasDMARC bool) map[str
         return map[string]string{"answer": "Uncertain", "reason": "incomplete configuration", "color": "warning"}
 }
 
-func buildEmailVerdict(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM bool, verdicts map[string]any) {
-        if hasSPF && hasDMARC && (ps.dmarcPolicy == "reject" || (ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100)) {
-                buildEnforcingEmailVerdict(ps, ds, verdicts)
+func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
+        if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == "reject" || (vi.ps.dmarcPolicy == "quarantine" && vi.ps.dmarcPct >= 100)) {
+                buildEnforcingEmailVerdict(vi.ps, vi.ds, verdicts)
                 return
         }
 
-        if hasSPF && !hasDMARC {
+        if vi.hasSPF && !vi.hasDMARC {
                 verdicts["email_spoofing"] = map[string]any{
                         "label": "Basic",
                         "color": "warning",
@@ -943,7 +955,7 @@ func buildEmailVerdict(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM
                 return
         }
 
-        if !hasSPF && !hasDMARC {
+        if !vi.hasSPF && !vi.hasDMARC {
                 verdicts["email_spoofing"] = map[string]any{
                         "label": "Exposed",
                         "color": "danger",
@@ -952,7 +964,7 @@ func buildEmailVerdict(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM
                 return
         }
 
-        if hasSPF && hasDMARC {
+        if vi.hasSPF && vi.hasDMARC {
                 verdicts["email_spoofing"] = map[string]any{
                         "label": "Basic",
                         "color": "warning",
@@ -988,98 +1000,108 @@ func buildBrandVerdict(ps protocolState, verdicts map[string]any) {
                 return
         }
 
-        if ps.dmarcPolicy == "reject" {
-                if ps.bimiOK && ps.caaOK {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Protected",
-                                "color":  "success",
-                                "icon":   iconShieldAlt,
-                                "answer": "No",
-                                "reason": "DMARC reject policy enforced (RFC 7489 §6.3), BIMI brand verification active (BIMI Spec), and certificate issuance restricted by CAA (RFC 8659 §4) — all three brand-faking vectors addressed",
-                        }
-                } else if ps.bimiOK {
-                        reason := "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes — email-based brand faking is effectively blocked"
-                        if !ps.caaOK {
-                                reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
-                        }
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Well Protected",
-                                "color":  "success",
-                                "icon":   iconShieldAlt,
-                                "answer": "Unlikely",
-                                "reason": reason,
-                        }
-                } else if ps.caaOK {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Mostly Protected",
-                                "color":  "info",
-                                "icon":   iconShieldAlt,
-                                "answer": "Possible",
-                                "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but no BIMI brand verification — lookalike domains display identically in inboxes without visual proof of authenticity",
-                        }
-                } else {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Partially Protected",
-                                "color":  "warning",
-                                "icon":   iconExclamationTriangle,
-                                "answer": "Possible",
-                                "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but no BIMI brand verification and no CAA certificate restriction (RFC 8659) — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
-                        }
-                }
-                return
+        switch ps.dmarcPolicy {
+        case "reject":
+                verdicts["brand_impersonation"] = buildBrandRejectVerdict(ps)
+        case "quarantine":
+                verdicts["brand_impersonation"] = buildBrandQuarantineVerdict(ps)
+        default:
+                verdicts["brand_impersonation"] = buildBrandWeakVerdict(ps)
         }
+}
 
-        if ps.dmarcPolicy == "quarantine" {
-                if ps.bimiOK && ps.caaOK {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Well Protected",
-                                "color":  "success",
-                                "icon":   iconShieldAlt,
-                                "answer": "Unlikely",
-                                "reason": "DMARC quarantine enforced (RFC 7489 §6.3) with BIMI brand verification (VMC-validated logo in inboxes) and CAA certificate restriction (RFC 8659 §4) — all three brand-faking vectors addressed; upgrade to p=reject to block spoofed mail outright instead of flagging",
-                        }
-                } else if ps.bimiOK {
-                        reason := "DMARC quarantine flags spoofed mail (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes; upgrade to p=reject to block spoofed mail outright"
-                        if !ps.caaOK {
-                                reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
-                        }
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Mostly Protected",
-                                "color":  "info",
-                                "icon":   iconShieldAlt,
-                                "answer": "Possible",
-                                "reason": reason,
-                        }
-                } else if ps.caaOK {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Partially Protected",
-                                "color":  "warning",
-                                "icon":   iconExclamationTriangle,
-                                "answer": "Likely",
-                                "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and no BIMI brand verification — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
-                        }
-                } else {
-                        verdicts["brand_impersonation"] = map[string]any{
-                                "label":  "Basic",
-                                "color":  "warning",
-                                "icon":   iconExclamationTriangle,
-                                "answer": "Likely",
-                                "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — no BIMI or CAA (RFC 8659) reinforcement leaves brand impersonation largely unaddressed",
-                        }
+func buildBrandRejectVerdict(ps protocolState) map[string]any {
+        if ps.bimiOK && ps.caaOK {
+                return map[string]any{
+                        "label":  "Protected",
+                        "color":  "success",
+                        "icon":   iconShieldAlt,
+                        "answer": "No",
+                        "reason": "DMARC reject policy enforced (RFC 7489 §6.3), BIMI brand verification active (BIMI Spec), and certificate issuance restricted by CAA (RFC 8659 §4) — all three brand-faking vectors addressed",
                 }
-                return
         }
+        if ps.bimiOK {
+                reason := "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes — email-based brand faking is effectively blocked"
+                if !ps.caaOK {
+                        reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
+                }
+                return map[string]any{
+                        "label":  "Well Protected",
+                        "color":  "success",
+                        "icon":   iconShieldAlt,
+                        "answer": "Unlikely",
+                        "reason": reason,
+                }
+        }
+        if ps.caaOK {
+                return map[string]any{
+                        "label":  "Mostly Protected",
+                        "color":  "info",
+                        "icon":   iconShieldAlt,
+                        "answer": "Possible",
+                        "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but no BIMI brand verification — lookalike domains display identically in inboxes without visual proof of authenticity",
+                }
+        }
+        return map[string]any{
+                "label":  "Partially Protected",
+                "color":  "warning",
+                "icon":   iconExclamationTriangle,
+                "answer": "Possible",
+                "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but no BIMI brand verification and no CAA certificate restriction (RFC 8659) — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
+        }
+}
 
-        reason := "DMARC policy is not set to reject (RFC 7489 §6.3) — partial protection only"
-        answer := "Likely"
-        if ps.dmarcPolicy == "none" {
-                reason = "DMARC is monitor-only p=none (RFC 7489 §6.3) — spoofed mail is not blocked, brand faking is trivial"
+func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
+        if ps.bimiOK && ps.caaOK {
+                return map[string]any{
+                        "label":  "Well Protected",
+                        "color":  "success",
+                        "icon":   iconShieldAlt,
+                        "answer": "Unlikely",
+                        "reason": "DMARC quarantine enforced (RFC 7489 §6.3) with BIMI brand verification (VMC-validated logo in inboxes) and CAA certificate restriction (RFC 8659 §4) — all three brand-faking vectors addressed; upgrade to p=reject to block spoofed mail outright instead of flagging",
+                }
         }
-        verdicts["brand_impersonation"] = map[string]any{
+        if ps.bimiOK {
+                reason := "DMARC quarantine flags spoofed mail (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes; upgrade to p=reject to block spoofed mail outright"
+                if !ps.caaOK {
+                        reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
+                }
+                return map[string]any{
+                        "label":  "Mostly Protected",
+                        "color":  "info",
+                        "icon":   iconShieldAlt,
+                        "answer": "Possible",
+                        "reason": reason,
+                }
+        }
+        if ps.caaOK {
+                return map[string]any{
+                        "label":  "Partially Protected",
+                        "color":  "warning",
+                        "icon":   iconExclamationTriangle,
+                        "answer": "Likely",
+                        "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and no BIMI brand verification — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
+                }
+        }
+        return map[string]any{
                 "label":  "Basic",
                 "color":  "warning",
                 "icon":   iconExclamationTriangle,
-                "answer": answer,
+                "answer": "Likely",
+                "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — no BIMI or CAA (RFC 8659) reinforcement leaves brand impersonation largely unaddressed",
+        }
+}
+
+func buildBrandWeakVerdict(ps protocolState) map[string]any {
+        reason := "DMARC policy is not set to reject (RFC 7489 §6.3) — partial protection only"
+        if ps.dmarcPolicy == "none" {
+                reason = "DMARC is monitor-only p=none (RFC 7489 §6.3) — spoofed mail is not blocked, brand faking is trivial"
+        }
+        return map[string]any{
+                "label":  "Basic",
+                "color":  "warning",
+                "icon":   iconExclamationTriangle,
+                "answer": "Likely",
                 "reason": reason,
         }
 }
@@ -1178,85 +1200,102 @@ func buildAISurfaceVerdicts(results map[string]any, verdicts map[string]any) {
         poisoning, _ := aiSurface["poisoning"].(map[string]any)
         hiddenPrompts, _ := aiSurface["hidden_prompts"].(map[string]any)
 
-        if llmsTxt != nil {
-                found, _ := llmsTxt["found"].(bool)
-                fullFound, _ := llmsTxt["full_found"].(bool)
-                if found && fullFound {
-                        verdicts["ai_llms_txt"] = map[string]any{
-                                "answer": "Yes",
-                                "color":  "success",
-                                "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain",
-                        }
-                } else if found {
-                        verdicts["ai_llms_txt"] = map[string]any{
-                                "answer": "Yes",
-                                "color":  "success",
-                                "reason": "llms.txt published — AI models receive structured context about this domain",
-                        }
-                } else {
-                        verdicts["ai_llms_txt"] = map[string]any{
-                                "answer": "No",
-                                "color":  "secondary",
-                                "reason": "No llms.txt file detected — AI models have no structured instructions for this domain",
-                        }
+        buildLlmsTxtVerdict(llmsTxt, verdicts)
+        buildRobotsTxtVerdict(robotsTxt, verdicts)
+        buildPoisoningVerdict(poisoning, verdicts)
+        buildHiddenPromptsVerdict(hiddenPrompts, verdicts)
+}
+
+func buildLlmsTxtVerdict(llmsTxt map[string]any, verdicts map[string]any) {
+        if llmsTxt == nil {
+                return
+        }
+        found, _ := llmsTxt["found"].(bool)
+        fullFound, _ := llmsTxt["full_found"].(bool)
+        if found && fullFound {
+                verdicts["ai_llms_txt"] = map[string]any{
+                        "answer": "Yes",
+                        "color":  "success",
+                        "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain",
+                }
+        } else if found {
+                verdicts["ai_llms_txt"] = map[string]any{
+                        "answer": "Yes",
+                        "color":  "success",
+                        "reason": "llms.txt published — AI models receive structured context about this domain",
+                }
+        } else {
+                verdicts["ai_llms_txt"] = map[string]any{
+                        "answer": "No",
+                        "color":  "secondary",
+                        "reason": "No llms.txt file detected — AI models have no structured instructions for this domain",
                 }
         }
+}
 
-        if robotsTxt != nil {
-                found, _ := robotsTxt["found"].(bool)
-                blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
-                if found && blocksAI {
-                        verdicts["ai_crawler_governance"] = map[string]any{
-                                "answer": "Yes",
-                                "color":  "success",
-                                "reason": "robots.txt actively blocks AI crawlers from scraping site content",
-                        }
-                } else if found {
-                        verdicts["ai_crawler_governance"] = map[string]any{
-                                "answer": "No",
-                                "color":  "warning",
-                                "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped",
-                        }
-                } else {
-                        verdicts["ai_crawler_governance"] = map[string]any{
-                                "answer": "No",
-                                "color":  "secondary",
-                                "reason": "No robots.txt found — AI crawlers have unrestricted access",
-                        }
+func buildRobotsTxtVerdict(robotsTxt map[string]any, verdicts map[string]any) {
+        if robotsTxt == nil {
+                return
+        }
+        found, _ := robotsTxt["found"].(bool)
+        blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
+        if found && blocksAI {
+                verdicts["ai_crawler_governance"] = map[string]any{
+                        "answer": "Yes",
+                        "color":  "success",
+                        "reason": "robots.txt actively blocks AI crawlers from scraping site content",
+                }
+        } else if found {
+                verdicts["ai_crawler_governance"] = map[string]any{
+                        "answer": "No",
+                        "color":  "warning",
+                        "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped",
+                }
+        } else {
+                verdicts["ai_crawler_governance"] = map[string]any{
+                        "answer": "No",
+                        "color":  "secondary",
+                        "reason": "No robots.txt found — AI crawlers have unrestricted access",
                 }
         }
+}
 
-        if poisoning != nil {
-                iocCount := getNumericValue(poisoning, "ioc_count")
-                if iocCount > 0 {
-                        verdicts["ai_poisoning"] = map[string]any{
-                                "answer": "Yes",
-                                "color":  "danger",
-                                "reason": fmt.Sprintf("%.0f indicator(s) of AI recommendation manipulation detected on homepage", iocCount),
-                        }
-                } else {
-                        verdicts["ai_poisoning"] = map[string]any{
-                                "answer": "No",
-                                "color":  "success",
-                                "reason": "No indicators of AI recommendation manipulation found",
-                        }
+func buildPoisoningVerdict(poisoning map[string]any, verdicts map[string]any) {
+        if poisoning == nil {
+                return
+        }
+        iocCount := getNumericValue(poisoning, "ioc_count")
+        if iocCount > 0 {
+                verdicts["ai_poisoning"] = map[string]any{
+                        "answer": "Yes",
+                        "color":  "danger",
+                        "reason": fmt.Sprintf("%.0f indicator(s) of AI recommendation manipulation detected on homepage", iocCount),
+                }
+        } else {
+                verdicts["ai_poisoning"] = map[string]any{
+                        "answer": "No",
+                        "color":  "success",
+                        "reason": "No indicators of AI recommendation manipulation found",
                 }
         }
+}
 
-        if hiddenPrompts != nil {
-                artifactCount := getNumericValue(hiddenPrompts, "artifact_count")
-                if artifactCount > 0 {
-                        verdicts["ai_hidden_prompts"] = map[string]any{
-                                "answer": "Yes",
-                                "color":  "danger",
-                                "reason": fmt.Sprintf("%.0f hidden prompt-like artifact(s) detected in page source", artifactCount),
-                        }
-                } else {
-                        verdicts["ai_hidden_prompts"] = map[string]any{
-                                "answer": "No",
-                                "color":  "success",
-                                "reason": "No hidden prompt artifacts found in page source",
-                        }
+func buildHiddenPromptsVerdict(hiddenPrompts map[string]any, verdicts map[string]any) {
+        if hiddenPrompts == nil {
+                return
+        }
+        artifactCount := getNumericValue(hiddenPrompts, "artifact_count")
+        if artifactCount > 0 {
+                verdicts["ai_hidden_prompts"] = map[string]any{
+                        "answer": "Yes",
+                        "color":  "danger",
+                        "reason": fmt.Sprintf("%.0f hidden prompt-like artifact(s) detected in page source", artifactCount),
+                }
+        } else {
+                verdicts["ai_hidden_prompts"] = map[string]any{
+                        "answer": "No",
+                        "color":  "success",
+                        "reason": "No hidden prompt artifacts found in page source",
                 }
         }
 }

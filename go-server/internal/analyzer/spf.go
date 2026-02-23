@@ -237,6 +237,22 @@ func (a *Analyzer) processSPFRedirectHop(ctx context.Context, target string, cum
         return
 }
 
+func checkRedirectTermination(currentRecord, target string, visited map[string]bool, cumulativeLookups int) (issue string, stop bool) {
+        if target == "" {
+                return "", true
+        }
+        if hasAllMechanism(currentRecord) {
+                return "", true
+        }
+        if visited[strings.ToLower(target)] {
+                return fmt.Sprintf("SPF redirect loop detected at %s", target), true
+        }
+        if cumulativeLookups > 10 {
+                return "SPF redirect chain exceeds 10 DNS lookup limit", true
+        }
+        return "", false
+}
+
 func (a *Analyzer) followSPFRedirectChain(ctx context.Context, spfRecord string, totalLookups int) ([]spfRedirectHop, string, int, []string) {
         var chain []spfRedirectHop
         visited := map[string]bool{}
@@ -246,24 +262,14 @@ func (a *Analyzer) followSPFRedirectChain(ctx context.Context, spfRecord string,
 
         for i := 0; i < 10; i++ {
                 target := extractRedirectTarget(currentRecord)
-                if target == "" {
-                        break
+                issue, stop := checkRedirectTermination(currentRecord, target, visited, cumulativeLookups)
+                if issue != "" {
+                        redirectIssues = append(redirectIssues, issue)
                 }
-
-                if hasAllMechanism(currentRecord) {
-                        break
-                }
-
-                if visited[strings.ToLower(target)] {
-                        redirectIssues = append(redirectIssues, fmt.Sprintf("SPF redirect loop detected at %s", target))
+                if stop {
                         break
                 }
                 visited[strings.ToLower(target)] = true
-
-                if cumulativeLookups > 10 {
-                        redirectIssues = append(redirectIssues, "SPF redirect chain exceeds 10 DNS lookup limit")
-                        break
-                }
 
                 hop, hopLookups, hopIssues, hasMore := a.processSPFRedirectHop(ctx, target, cumulativeLookups)
                 chain = append(chain, hop)
@@ -288,6 +294,33 @@ func (a *Analyzer) followSPFRedirectChain(ctx context.Context, spfRecord string,
         return chain, "", cumulativeLookups, redirectIssues
 }
 
+func redirectChainToMaps(chain []spfRedirectHop) []map[string]any {
+        var maps []map[string]any
+        for _, hop := range chain {
+                maps = append(maps, map[string]any{
+                        "domain":     hop.Domain,
+                        "spf_record": hop.SPFRecord,
+                })
+        }
+        return maps
+}
+
+func mergeResolvedSPF(resolved string, lookupMechanisms []string, includes []string, permissiveness, allMechanism *string, noMailIntent bool) ([]string, []string, *string, *string, bool) {
+        _, resolvedMechs, resolvedIncludes, resolvedPerm, resolvedAll, _, resolvedNoMail := parseSPFMechanisms(resolved)
+        lookupMechanisms = append(lookupMechanisms, resolvedMechs...)
+        includes = append(includes, resolvedIncludes...)
+        if resolvedPerm != nil {
+                permissiveness = resolvedPerm
+        }
+        if resolvedAll != nil {
+                allMechanism = resolvedAll
+        }
+        if resolvedNoMail {
+                noMailIntent = true
+        }
+        return lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent
+}
+
 func (a *Analyzer) handleSPFRedirectChain(
         ctx context.Context,
         validSPF []string,
@@ -302,36 +335,23 @@ func (a *Analyzer) handleSPFRedirectChain(
         var redirectChainMaps []map[string]any
         resolvedSPF := ""
 
-        if len(validSPF) == 1 {
-                target := extractRedirectTarget(validSPF[0])
-                if target != "" && !hasAllMechanism(validSPF[0]) {
-                        chain, resolved, totalLookups, redirectIssues := a.followSPFRedirectChain(ctx, validSPF[0], lookupCount)
-                        lookupCount = totalLookups
-                        issues = append(issues, redirectIssues...)
+        if len(validSPF) != 1 {
+                return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues
+        }
 
-                        for _, hop := range chain {
-                                redirectChainMaps = append(redirectChainMaps, map[string]any{
-                                        "domain":     hop.Domain,
-                                        "spf_record": hop.SPFRecord,
-                                })
-                        }
+        target := extractRedirectTarget(validSPF[0])
+        if target == "" || hasAllMechanism(validSPF[0]) {
+                return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues
+        }
 
-                        if resolved != "" && resolved != "(none)" {
-                                resolvedSPF = resolved
-                                _, resolvedMechs, resolvedIncludes, resolvedPerm, resolvedAll, _, resolvedNoMail := parseSPFMechanisms(resolved)
-                                lookupMechanisms = append(lookupMechanisms, resolvedMechs...)
-                                includes = append(includes, resolvedIncludes...)
-                                if resolvedPerm != nil {
-                                        permissiveness = resolvedPerm
-                                }
-                                if resolvedAll != nil {
-                                        allMechanism = resolvedAll
-                                }
-                                if resolvedNoMail {
-                                        noMailIntent = true
-                                }
-                        }
-                }
+        chain, resolved, totalLookups, redirectIssues := a.followSPFRedirectChain(ctx, validSPF[0], lookupCount)
+        lookupCount = totalLookups
+        issues = append(issues, redirectIssues...)
+        redirectChainMaps = redirectChainToMaps(chain)
+
+        if resolved != "" && resolved != "(none)" {
+                resolvedSPF = resolved
+                lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent = mergeResolvedSPF(resolved, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent)
         }
 
         return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues

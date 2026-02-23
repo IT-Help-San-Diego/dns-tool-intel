@@ -8,22 +8,24 @@ package ai_surface
 import "context"
 
 func (s *Scanner) CheckLLMSTxt(ctx context.Context, domain string) map[string]any {
-	return map[string]any{
-		"found":      false,
-		"full_found": false,
-		"url":        nil,
-		"full_url":   nil,
-		"fields":     map[string]any{},
-		"evidence":   []Evidence{},
-	}
+        return map[string]any{
+                "found":      false,
+                "full_found": false,
+                "url":        nil,
+                "full_url":   nil,
+                "fields":     map[string]any{},
+                "evidence":   []Evidence{},
+        }
 }
 
 func looksLikeLLMSTxt(body string) bool {
-	return false
+        return false
 }
 
 func parseLLMSTxt(body string) map[string]any {
-	return map[string]any{}
+        return map[string]any{}
 }
 
-func parseLLMSTxtFieldLine(line, section string, fields map[string]any, docs *[]string) {}
+func parseLLMSTxtFieldLine(line, section string, fields map[string]any, docs *[]string) {
+        // intentionally empty — OSS stub
+}

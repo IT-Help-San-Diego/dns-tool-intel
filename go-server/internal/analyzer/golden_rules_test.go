@@ -82,7 +82,7 @@ func TestGoldenRuleUSAGov(t *testing.T) {
                 t.Errorf("usa.gov-like domain (SPF+DMARC reject, no MX) should show 'No', got: %s", answer)
         }
 
-        verdicts := buildVerdicts(ps, DKIMProviderInferred, true, true, true)
+        verdicts := buildVerdicts(verdictInput{ps: ps, ds: DKIMProviderInferred, hasSPF: true, hasDMARC: true, hasDKIM: true})
         emailAnswer, ok := verdicts["email_answer"].(string)
         if !ok || emailAnswer == "" {
                 t.Error("verdicts must contain non-empty 'email_answer' string")
