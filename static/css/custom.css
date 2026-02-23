@@ -1061,20 +1061,15 @@ main.container {
     }
 
     .navbar-brand {
-        max-width: calc(100vw - 110px);
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: calc(100vw - 90px);
         white-space: nowrap;
         font-size: 1rem;
     }
 
     .u-maintenance-tag {
-        font-size: 0.45rem;
-        padding: 0.1em 0.3em;
+        font-size: 0.5rem;
+        padding: 0.15em 0.4em;
         white-space: nowrap;
-        max-width: 6rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
         display: inline-block;
         vertical-align: middle;
         line-height: 1.4;
