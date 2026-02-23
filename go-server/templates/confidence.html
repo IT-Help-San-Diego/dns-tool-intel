@@ -549,6 +549,7 @@
             </div>
         </div>
 
+        <section id="icuae">
         <div class="text-center mt-5 mb-4">
             <h2 class="fw-bold mb-3">Intelligence Currency Levels</h2>
             <p class="text-muted mb-0">
@@ -592,15 +593,15 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-chart-line me-2 text-info"></i>Runtime Performance</h2>
-                <p class="text-muted small mb-3">Unlike ICAE (which tests our tool against known answers), ICuAE evaluates live DNS data that naturally fluctuates. Instead of pass/fail maturity, we track <strong>statistical stability</strong> &mdash; how consistently fresh the data is across all scans.</p>
+                <p class="text-muted small mb-3">Unlike ICAE (which tests our tool against known answers), ICuAE evaluates live DNS data that naturally fluctuates. Instead of pass/fail maturity, we track <strong>statistical stability</strong> &mdash; how consistently fresh the data is across all scans. The 0&ndash;100 normalized score follows ISO/IEC 25012 data quality measurement methodology, where timeliness is a quantitative dimension amenable to continuous measurement. Per ICD 203, confidence requires both accurate interpretation <em>and</em> current data.</p>
                 <div class="icuae-summary-bar mb-3">
                     <div class="icuae-summary-item">
                         <span class="icuae-summary-value">{{.ICuAERuntimeMetrics.TotalScans}}</span>
                         <span class="icuae-summary-label">Scans Evaluated</span>
                     </div>
                     <div class="icuae-summary-item">
-                        <span class="icuae-summary-value">{{.ICuAERuntimeMetrics.AvgScoreDisplay}}</span>
-                        <span class="icuae-summary-label">Avg Score (0&ndash;100)</span>
+                        <span class="icuae-summary-value text-{{.ICuAERuntimeMetrics.AvgGradeClass}}">{{.ICuAERuntimeMetrics.AvgScoreDisplay}}</span>
+                        <span class="icuae-summary-label"><span class="badge bg-{{.ICuAERuntimeMetrics.AvgGradeClass}}">{{.ICuAERuntimeMetrics.AvgGradeDisplay}}</span></span>
                     </div>
                     <div class="icuae-summary-item">
                         <span class="icuae-summary-value"><i class="{{.ICuAERuntimeMetrics.TrendArrow}} me-1"></i></span>
@@ -838,6 +839,8 @@
                 </div>
             </div>
         </div>
+
+        </section>
 
         <div class="card bg-dark border-secondary">
             <div class="card-body">
