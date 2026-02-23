@@ -17,14 +17,27 @@
     "@octokit/rest": "^22.0.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.2.3",
+    "axios": "^1.13.5",
     "csso-cli": "^4.0.2",
     "lighthouse": "^13.0.3",
     "lighthouse-batch": "^8.1.1",
     "lighthouse-ci": "^1.13.1",
+    "minimatch": "^10.2.1",
     "pa11y": "^9.1.0",
     "playwright-lighthouse": "^4.0.0",
     "sonar-report": "^3.1.6",
     "sonarqube-scanner": "^4.3.4",
-    "terser": "^5.46.0"
+    "tar-fs": "^3.1.1",
+    "terser": "^5.46.0",
+    "ws": "^8.19.0"
+  },
+  "overrides": {
+    "axios": "$axios",
+    "minimatch": "$minimatch",
+    "tar-fs": "$tar-fs",
+    "ws": "$ws",
+    "lodash": {
+      "set": "file:packages/lodash-set-safe"
+    }
   }
 }
