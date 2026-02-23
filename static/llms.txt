@@ -118,12 +118,23 @@ DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its 
 DNS Tool is a deterministic protocol validation engine implemented in Go — not an ML-based predictive system. All scoring is standards-based and reproducible. The confidence and audit engines described below are implemented in executable source code in the public repository, not aspirational documentation.
 
 ### Engine Implementations (Public Repository)
-- **ICAE Engine**: `go-server/internal/icae/` — 10 source files, 2,100+ lines of Go. 129 executable deterministic test cases across 9 protocols. Database-backed maturity tracking.
-- **ICuAE Engine**: `go-server/internal/icuae/` — 4 source files. 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18).
+- **ICAE Engine**: `go-server/internal/icae/` — 12+ source files, 2,500+ lines of Go. 129 executable deterministic test cases across 9 protocols. Database-backed maturity tracking. Bayesian confidence calibration with per-protocol Beta distribution priors and conjugate updating (gonum/stat/distuv).
+- **ICuAE Engine**: `go-server/internal/icuae/` — 6+ source files. 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18). EWMA control charts (VividCortex/ewma + gonum/stat) for per-dimension drift detection with configurable smoothing factor and 3-sigma control limits per NIST/SEMATECH Engineering Statistics Handbook.
 - **Confidence Tagging**: `go-server/internal/analyzer/confidence.go` — ICD 203-aligned observed/inferred/third-party classification applied to all attributions.
 - **Hash Integrity**: `go-server/internal/analyzer/posture_hash.go` and `integrity_hash.go` — SHA-3-512 (FIPS 202) via `golang.org/x/crypto/sha3`. Backward SHA-256 compatibility for legacy records.
 - **Hash Audit**: `go-server/internal/icae/hash_audit.go` — Re-computes and verifies stored posture hashes, reports integrity percentage.
 - **Threat Feed**: `go-server/internal/analyzer/openphish.go` — OpenPhish community phishing URL feed with 12-hour cache TTL.
+
+### Statistical Computing Stack
+- **gonum.org/v1/gonum** (v0.17.0) — Go scientific computing library (BSD-3). Used for statistical functions (mean, variance, standard deviation) and Bayesian prior distributions (Beta distribution conjugate updates).
+- **github.com/VividCortex/ewma** (v1.2.0) — Exponentially Weighted Moving Average calculations (MIT). Used for real-time currency score trend tracking and EWMA control chart drift detection.
+- **KaTeX** (v0.16.21) — LaTeX math rendering (MIT). Self-hosted for CSP compliance. Renders mathematical formulas on the Confidence and Architecture pages.
+
+### Mathematical Methods
+- **EWMA Control Charts**: Per-dimension currency score tracking using Z_t = λX_t + (1-λ)Z_{t-1} with UCL/LCL = μ₀ ± Lσ√(λ/(2-λ)). Detects statistically significant drift vs. normal process variation. Reference: NIST/SEMATECH Engineering Statistics Handbook §6.3.2.4.
+- **Bayesian Confidence Calibration**: Per-protocol Beta(α,β) priors encode historical detection reliability. Measurement quality (resolver agreement ratio) weights observations against priors via conjugate updating. Framework: Beta-Bernoulli model per ICD 203 confidence methodology.
+- **Resolver Consensus**: Multi-resolver quorum with ConsensusResult tracking agreement across Cloudflare, Google, Quad9, and OpenDNS. Disagreement classified as measurement noise, not misconfiguration.
+- **Cryptographic Integrity**: SHA-3-512 (FIPS 202, Keccak sponge construction) for analysis result sealing and posture drift fingerprinting.
 
 ### What "Redacted" Means
 Methodology descriptions on the `/architecture` page are redacted to protect proprietary scoring logic — but the executable validation engines are present and inspectable in the public repository. "Redacted" means the internal weighting and decision heuristics are private, not that the engines are unimplemented.
