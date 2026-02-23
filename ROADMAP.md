@@ -1,6 +1,6 @@
 # DNS Tool — Roadmap
 
-> Last updated: February 22, 2026
+> Last updated: February 23, 2026
 
 ---
 
@@ -11,7 +11,9 @@
 | Optional Authentication Model (Google OAuth 2.0 with PKCE) | v26.20.56–57 | Feb 2026 |
 | Drift Engine Phase 1 (Posture Hashing) | v26.19.40 | Feb 2026 |
 | Drift Engine Phase 2 (Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
-| Probe Network First Node (probe-us-01.dns-observe.com) | Feb 2026 | Feb 2026 |
+| Probe Network First Node (probe-us-01.dns-observe.com) | v26.20.0+ | Feb 2026 |
+| LLM Documentation Strategy (Implementation Verification Sections) | v26.25.26 | Feb 2026 |
+| XSS Security Fix (Tooltip Safe DOM Rendering) | v26.25.26 | Feb 2026 |
 | Architecture Page with Mermaid Diagrams | v26.20.77–83 | Feb 2026 |
 | DKIM Selector Expansion (39→81+ Selectors) | v26.20.69–70 | Feb 2026 |
 | Brand Verdict Matrix Overhaul | v26.20.71 | Feb 2026 |
@@ -42,6 +44,9 @@
 | API Access (Programmatic Analysis) | Queued | High | Programmatic analysis for automation workflows. Requires rate limiting, authentication, versioning. |
 | CLI App (Homebrew/Binary) | Queued | High | Terminal application for macOS/Linux. Requires cross-platform distribution and binary packaging. Works without login for basic analysis; authenticated mode unlocks history sync, drift alerts, and API quota. |
 | Drift Engine Phases 3–4 | Queued | Medium | Phase 3: Timeline visualization of posture changes. Phase 4: Scheduled monitoring and baselines. Full roadmap in dns-tool-intel (private). |
+| Probe Network Second Node (probe-02, Kali) | Queued | High | Kali OSINT node: SMTP/TLS verification, DANE/DNSSEC validation, testssl.sh analysis. Multi-probe consensus, geo-variance detection, regional blocking detection. SSH credentials set; API secrets + deployment pending. |
+| Multi-Probe Consensus Engine | Queued | High | Cross-probe agreement analysis: TLS config consensus, DANE validation from independent resolvers, certificate fingerprint comparison, latency differentials. Requires probe-02 operational. |
+| Probe Security.txt + Landing Pages | Queued | Medium | Transparency artifacts for probe VPS nodes: /.well-known/security.txt + minimal landing page declaring measurement purpose and abuse contact. Both probe-01 and probe-02. |
 | Globalping.io Integration | Queued | Low | Distributed DNS resolution probes from 100+ global locations. Complements (not replaces) existing SMTP port 25 probe. Adds "resolving consistently worldwide?" capability. |
 | Homebrew Distribution | Queued | Medium | macOS/Linux package distribution. Coordinates with CLI app delivery. |
 | Zone File Import as Drift Baseline | Queued | Low | "Baseline Snapshot" comparison. Upload zone file to establish posture baseline for future drift detection. Zone parsing library selected; UX copy/disclaimer to be drafted. |
@@ -62,7 +67,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.21.55 as of February 22, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.25.27 as of February 23, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
@@ -95,8 +100,8 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: February 22, 2026  
-**Next Review**: Post-v26.22.0 release or every two weeks  
+**Last Updated**: February 23, 2026  
+**Next Review**: Post-v26.26.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
 When marking items as complete:
