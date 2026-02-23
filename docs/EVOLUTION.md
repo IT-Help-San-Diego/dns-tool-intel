@@ -2753,3 +2753,50 @@ Five-tier scale: Excellent (≥90) → Good (≥75) → Adequate (≥50) → Deg
 
 ### Easter Egg Inventory (8 Locations)
 Hacker poem variants in: index.html comment, results.html comment, results.html console.log, analysis.go SHA-3 sidecar. Plus: ASCII art hero, covert mode variant, covert mode toggle, SHA-3 sidecar download endpoint.
+
+
+---
+
+## Session: February 22–23, 2026 (v26.25.13–v26.25.15 — Multi-Probe Architecture, Navbar Collapse, Maintenance Tag, ICuAE Parity)
+
+### v26.25.13 — Multi-Probe Architecture
+
+#### Changes
+- **`config.go`**: New `ProbeEndpoint` struct (ID, Label, URL, Key). Config loads probes from `PROBE_API_URL`/`PROBE_API_KEY` (primary, label: "US-East (Boston)") and `PROBE_API_URL_2`/`PROBE_API_KEY_2` (secondary, label: "EU-West (France)"). Backward compatible — single probe still works.
+- **`analyzer.go`**: Added `Probes []config.ProbeEndpoint` field to `Analyzer` struct.
+- **`smtp_transport.go`**: `remoteProbeFailover()` tracks remote failures transparently with `remote_attempted`, `remote_error`, `probe_method` fields. `buildProbeResult()` adds explicit misconfiguration detection. Results include `probe_host`, `probe_count`.
+- **`toolkit.go`**: Port check handler supports probe selection via `probe_location` form field. `ProbeLocations` and `SelectedProbe` in template data for all paths (including validation errors).
+- **`toolkit.html`**: Conditional probe location dropdown when >1 probe configured.
+- **`main.go`**: Wires `config.Probes` into analyzer initialization.
+
+#### Rationale
+Geographic diversity for SMTP probing. Boston (probe-01) + France (probe-02, pending deployment). Architecture supports N probes via additional env vars.
+
+### v26.25.14 — Maintenance Tag Fix
+
+#### Changes
+- Moved maintenance tag from inside `<a class="navbar-brand">` to sibling `<span>`. Bootstrap's brand constraints were clipping the text.
+- Removed Bootstrap `.badge` class — conflicted with `.u-maintenance-tag` styles.
+- CSS: `inline-flex`, `flex-shrink: 0`, `overflow: visible`.
+
+### v26.25.15 — Always-Collapsed Navbar
+
+#### Changes
+- Removed `navbar-expand-lg` from `<nav>` — hamburger menu at ALL screen sizes.
+- Removed critical inline CSS rule `@media(min-width:992px){.collapse.navbar-collapse{display:flex!important}}` from `_head.html`.
+- Grouped covert toggle + hamburger in `<span class="d-flex align-items-center ms-auto">`.
+- Increased covert-to-hamburger spacing (`ms-2` → `ms-3`) for fat-finger prevention.
+- Maintenance tag text color changed to orange (`#f0a030`) with yellow wrench icon (`#e8c547`) for two-tone pop.
+
+#### Rationale
+Professional security dashboards commonly use always-collapsed nav. Frees brand area for maintenance tag with 2-3 words, covert toggle, and future status indicators. Consistent UX across all screen sizes.
+
+### Documentation Pipeline Audit
+- Added mirroring rule to SKILL.md: update replit.md first, then mirror to Intel EVOLUTION.md.
+- Architect audit identified: manual mirroring is a single point of failure. Miro integration is declared but not operationally enforced.
+- Action items: strengthen EVOLUTION.md redirect stub, operationalize Miro update checklist.
+
+### Upcoming: ICuAE Confidence Parity
+- ICD 203 "confidence" applies to both correctness (ICAE) and currency (ICuAE).
+- Plan: Add ICuAE scientific presentation (test case matrix, progress bars, audit trail) to `/confidence` page at parity with ICAE.
+- Color upgrade: Collection from teal (#00e5ff) to "Quantum Cyan" (#4FD2FF), Analysis from pink (#ea80fc) to "Ion Violet" (#7C5CFF).
