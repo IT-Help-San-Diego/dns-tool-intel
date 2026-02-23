@@ -5253,9 +5253,9 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     font-weight: 700;
     vertical-align: middle;
     letter-spacing: 0.03em;
-    background: rgba(232, 197, 71, 0.22);
-    color: #f5d862;
-    border: 1.5px solid rgba(232, 197, 71, 0.6);
+    background: rgba(232, 197, 71, 0.18);
+    color: #f0a030;
+    border: 1.5px solid rgba(232, 197, 71, 0.55);
     border-radius: 999px;
     padding: 0.2em 0.6em;
     white-space: nowrap;
@@ -5264,6 +5264,9 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     line-height: 1.4;
     overflow: visible;
     flex-shrink: 0;
+}
+.u-maintenance-tag .fas {
+    color: #e8c547;
 }
 .u-beta-tag {
     font-size: 0.6rem;
