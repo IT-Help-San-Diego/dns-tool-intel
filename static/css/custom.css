@@ -5266,9 +5266,6 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     white-space: nowrap;
     display: inline-block;
     line-height: 1.4;
-    max-width: 10rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 .u-beta-tag {
     font-size: 0.6rem;
