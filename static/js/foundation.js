@@ -163,7 +163,8 @@
                     }
                 }
             })(parsed.body);
-            tip.innerHTML = parsed.body.innerHTML;
+            while (tip.firstChild) tip.removeChild(tip.firstChild);
+            while (parsed.body.firstChild) tip.appendChild(document.adoptNode(parsed.body.firstChild));
         } else {
             tip.textContent = title;
         }
