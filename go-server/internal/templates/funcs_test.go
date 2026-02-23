@@ -4,6 +4,7 @@ import (
         "html/template"
         "strings"
         "testing"
+        "time"
 )
 
 func TestSafeEqCrossTypeNumeric(t *testing.T) {
@@ -254,11 +255,824 @@ func TestToFloat64(t *testing.T) {
                 {"0", 0},
                 {nil, 0},
                 {"not a number", 0},
+                {int8(10), 10},
+                {int16(10), 10},
+                {uint8(10), 10},
+                {uint16(10), 10},
+                {uint32(10), 10},
+                {uint64(10), 10},
         }
         for _, tt := range tests {
                 got := toFloat64(tt.input)
                 if got != tt.want {
                         t.Errorf("toFloat64(%v [%T]) = %v, want %v", tt.input, tt.input, got, tt.want)
                 }
+        }
+}
+
+func TestFormatDate(t *testing.T) {
+        ts := time.Date(2026, 2, 15, 14, 30, 0, 0, time.UTC)
+        got := formatDate(ts)
+        if got != "Feb 15, 2026 14:30 UTC" {
+                t.Errorf("formatDate(time.Time) = %q, want %q", got, "Feb 15, 2026 14:30 UTC")
+        }
+        got = formatDate("already formatted")
+        if got != "already formatted" {
+                t.Errorf("formatDate(string) = %q, want %q", got, "already formatted")
+        }
+        got = formatDate(12345)
+        if got != "12345" {
+                t.Errorf("formatDate(int) = %q, want %q", got, "12345")
+        }
+}
+
+func TestFormatDateShort(t *testing.T) {
+        ts := time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC)
+        got := formatDateShort(ts)
+        if got != "2026-02-15" {
+                t.Errorf("formatDateShort = %q, want %q", got, "2026-02-15")
+        }
+        if formatDateShort(42) != "" {
+                t.Error("formatDateShort(int) should return empty")
+        }
+}
+
+func TestFormatTime(t *testing.T) {
+        ts := time.Date(2026, 1, 1, 15, 4, 5, 0, time.UTC)
+        got := formatTime(ts)
+        if got != "15:04:05" {
+                t.Errorf("formatTime = %q", got)
+        }
+}
+
+func TestFormatDateTime(t *testing.T) {
+        ts := time.Date(2026, 2, 15, 14, 30, 45, 0, time.UTC)
+        got := formatDateTime(ts)
+        if got != "2026-02-15 14:30:45" {
+                t.Errorf("formatDateTime = %q", got)
+        }
+}
+
+func TestFormatDateMonthDay(t *testing.T) {
+        ts := time.Date(2026, 3, 5, 0, 0, 0, 0, time.UTC)
+        got := formatDateMonthDay(ts)
+        if got != "03/05" {
+                t.Errorf("formatDateMonthDay = %q", got)
+        }
+}
+
+func TestFormatDuration(t *testing.T) {
+        tests := []struct {
+                input interface{}
+                want  string
+        }{
+                {float64(0.5), "500ms"},
+                {float64(0.001), "1ms"},
+                {float64(2.5), "2.5s"},
+                {float64(1.0), "1.0s"},
+                {float32(3.5), "3.5s"},
+                {"unknown", "unknown"},
+        }
+        for _, tt := range tests {
+                got := formatDuration(tt.input)
+                if got != tt.want {
+                        t.Errorf("formatDuration(%v) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestFormatFloat(t *testing.T) {
+        tests := []struct {
+                prec  int
+                input interface{}
+                want  string
+        }{
+                {2, float64(3.14159), "3.14"},
+                {0, float64(3.7), "4"},
+                {1, float32(2.55), "2.5"},
+                {0, int(42), "42"},
+                {2, int64(100), "100.00"},
+                {2, "hello", "hello"},
+        }
+        for _, tt := range tests {
+                got := formatFloat(tt.prec, tt.input)
+                if got != tt.want {
+                        t.Errorf("formatFloat(%d, %v) = %q, want %q", tt.prec, tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestSuccessRate(t *testing.T) {
+        tests := []struct {
+                s, total interface{}
+                want     string
+        }{
+                {80, 100, "80.0"},
+                {0, 0, "0"},
+                {1, 2, "50.0"},
+                {float64(3), float64(4), "75.0"},
+        }
+        for _, tt := range tests {
+                got := successRate(tt.s, tt.total)
+                if got != tt.want {
+                        t.Errorf("successRate(%v, %v) = %q, want %q", tt.s, tt.total, got, tt.want)
+                }
+        }
+}
+
+func TestPercent(t *testing.T) {
+        got := percent(1, 4)
+        if got != 25.0 {
+                t.Errorf("percent(1,4) = %v, want 25.0", got)
+        }
+        if percent(0, 0) != 0 {
+                t.Error("percent(0,0) should be 0")
+        }
+}
+
+func TestArithmeticFuncs(t *testing.T) {
+        if addInt(3, 4) != 7 {
+                t.Error("addInt")
+        }
+        if subInt(10, 3) != 7 {
+                t.Error("subInt")
+        }
+        if mulInt(3, 4) != 12 {
+                t.Error("mulInt")
+        }
+        if maxInt(3, 7) != 7 {
+                t.Error("maxInt")
+        }
+        if maxInt(7, 3) != 7 {
+                t.Error("maxInt reverse")
+        }
+        if minInt(3, 7) != 3 {
+                t.Error("minInt")
+        }
+        if minInt(7, 3) != 3 {
+                t.Error("minInt reverse")
+        }
+        if divFloat(10, 4) != 2.5 {
+                t.Error("divFloat")
+        }
+        if divFloat(10, 0) != 0 {
+                t.Error("divFloat by zero")
+        }
+        if modInt(10, 3) != 1 {
+                t.Error("modInt")
+        }
+        if modInt(10, 0) != 0 {
+                t.Error("modInt by zero")
+        }
+}
+
+func TestIntDiv(t *testing.T) {
+        if intDiv(10, 3) != 3 {
+                t.Error("intDiv(10,3)")
+        }
+        if intDiv(10, 0) != 0 {
+                t.Error("intDiv by zero")
+        }
+        if intDiv(float64(9), int(3)) != 3 {
+                t.Error("intDiv cross-type")
+        }
+}
+
+func TestMaxIntIface(t *testing.T) {
+        if maxIntIface(3, 7) != 7 {
+                t.Error("maxIntIface(3,7)")
+        }
+        if maxIntIface(float64(10), int(5)) != 10 {
+                t.Error("maxIntIface cross-type")
+        }
+}
+
+func TestTruncateStr(t *testing.T) {
+        if truncateStr(5, "hello world") != "hello..." {
+                t.Errorf("truncateStr = %q", truncateStr(5, "hello world"))
+        }
+        if truncateStr(20, "short") != "short" {
+                t.Error("truncateStr short string")
+        }
+}
+
+func TestSubstrStr(t *testing.T) {
+        if substrStr(0, 5, "hello world") != "hello" {
+                t.Error("substrStr basic")
+        }
+        if substrStr(6, 5, "hello world") != "world" {
+                t.Error("substrStr offset")
+        }
+        if substrStr(100, 5, "hello") != "" {
+                t.Error("substrStr past end")
+        }
+        if substrStr(3, 100, "hello") != "lo" {
+                t.Error("substrStr clamp end")
+        }
+}
+
+func TestReplaceStr(t *testing.T) {
+        got := replaceStr("world", "Go", "hello world")
+        if got != "hello Go" {
+                t.Errorf("replaceStr = %q", got)
+        }
+}
+
+func TestUrlEncode(t *testing.T) {
+        got := urlEncode("hello world&foo=bar")
+        if !strings.Contains(got, "+") || !strings.Contains(got, "%26") {
+                t.Errorf("urlEncode = %q", got)
+        }
+}
+
+func TestBimiProxyURL(t *testing.T) {
+        got := string(bimiProxyURL("https://example.com/logo.svg"))
+        if !strings.HasPrefix(got, "/proxy/bimi-logo?url=") {
+                t.Errorf("bimiProxyURL = %q", got)
+        }
+}
+
+func TestMapGet(t *testing.T) {
+        m := map[string]interface{}{"key": "value"}
+        if mapGet("key", m) != "value" {
+                t.Error("mapGet existing key")
+        }
+        if mapGet("missing", m) != nil {
+                t.Error("mapGet missing key")
+        }
+        if mapGet("key", nil) != nil {
+                t.Error("mapGet nil map")
+        }
+}
+
+func TestMapGetStr(t *testing.T) {
+        m := map[string]interface{}{"s": "hello", "n": 42, "nil": nil}
+        if mapGetStr("s", m) != "hello" {
+                t.Error("mapGetStr string")
+        }
+        if mapGetStr("n", m) != "42" {
+                t.Error("mapGetStr non-string")
+        }
+        if mapGetStr("nil", m) != "" {
+                t.Error("mapGetStr nil value")
+        }
+        if mapGetStr("missing", m) != "" {
+                t.Error("mapGetStr missing")
+        }
+        if mapGetStr("key", nil) != "" {
+                t.Error("mapGetStr nil map")
+        }
+}
+
+func TestMapGetInt(t *testing.T) {
+        m := map[string]interface{}{
+                "i":   42,
+                "i64": int64(100),
+                "f":   float64(3.9),
+                "s":   "hello",
+                "nil": nil,
+        }
+        if mapGetInt("i", m) != 42 {
+                t.Error("mapGetInt int")
+        }
+        if mapGetInt("i64", m) != 100 {
+                t.Error("mapGetInt int64")
+        }
+        if mapGetInt("f", m) != 3 {
+                t.Error("mapGetInt float64")
+        }
+        if mapGetInt("s", m) != 0 {
+                t.Error("mapGetInt string")
+        }
+        if mapGetInt("nil", m) != 0 {
+                t.Error("mapGetInt nil")
+        }
+        if mapGetInt("missing", m) != 0 {
+                t.Error("mapGetInt missing")
+        }
+        if mapGetInt("k", nil) != 0 {
+                t.Error("mapGetInt nil map")
+        }
+}
+
+func TestMapGetFloat(t *testing.T) {
+        m := map[string]interface{}{"f": float64(3.14)}
+        if mapGetFloat("f", m) != 3.14 {
+                t.Error("mapGetFloat")
+        }
+        if mapGetFloat("k", nil) != 0 {
+                t.Error("mapGetFloat nil map")
+        }
+}
+
+func TestMapGetBool(t *testing.T) {
+        m := map[string]interface{}{"t": true, "f": false, "s": "yes", "nil": nil}
+        if !mapGetBool("t", m) {
+                t.Error("mapGetBool true")
+        }
+        if mapGetBool("f", m) {
+                t.Error("mapGetBool false")
+        }
+        if mapGetBool("s", m) {
+                t.Error("mapGetBool non-bool")
+        }
+        if mapGetBool("nil", m) {
+                t.Error("mapGetBool nil value")
+        }
+        if mapGetBool("missing", m) {
+                t.Error("mapGetBool missing")
+        }
+        if mapGetBool("k", nil) {
+                t.Error("mapGetBool nil map")
+        }
+}
+
+func TestMapGetMap(t *testing.T) {
+        sub := map[string]interface{}{"nested": true}
+        m := map[string]interface{}{"sub": sub, "str": "hello", "nil": nil}
+        got := mapGetMap("sub", m)
+        if got == nil || got["nested"] != true {
+                t.Error("mapGetMap existing")
+        }
+        if mapGetMap("str", m) != nil {
+                t.Error("mapGetMap non-map")
+        }
+        if mapGetMap("nil", m) != nil {
+                t.Error("mapGetMap nil value")
+        }
+        if mapGetMap("missing", m) != nil {
+                t.Error("mapGetMap missing")
+        }
+        if mapGetMap("k", nil) != nil {
+                t.Error("mapGetMap nil map")
+        }
+}
+
+func TestMapGetSlice(t *testing.T) {
+        m := map[string]interface{}{
+                "iface":  []interface{}{"a", "b"},
+                "str":    []string{"x", "y"},
+                "maps":   []map[string]interface{}{{"k": "v"}},
+                "int":    42,
+                "nil":    nil,
+        }
+        got := mapGetSlice("iface", m)
+        if len(got) != 2 {
+                t.Error("mapGetSlice iface")
+        }
+        got = mapGetSlice("str", m)
+        if len(got) != 2 {
+                t.Error("mapGetSlice str")
+        }
+        got = mapGetSlice("maps", m)
+        if len(got) != 1 {
+                t.Error("mapGetSlice maps")
+        }
+        if mapGetSlice("int", m) != nil {
+                t.Error("mapGetSlice non-slice")
+        }
+        if mapGetSlice("nil", m) != nil {
+                t.Error("mapGetSlice nil value")
+        }
+        if mapGetSlice("missing", m) != nil {
+                t.Error("mapGetSlice missing")
+        }
+        if mapGetSlice("k", nil) != nil {
+                t.Error("mapGetSlice nil map")
+        }
+}
+
+func TestMapKeys(t *testing.T) {
+        m := map[string]interface{}{"a": 1, "b": 2}
+        keys := mapKeys(m)
+        if len(keys) != 2 {
+                t.Errorf("mapKeys len = %d", len(keys))
+        }
+        if mapKeys(nil) != nil {
+                t.Error("mapKeys nil")
+        }
+}
+
+func TestDict(t *testing.T) {
+        d := dict("a", 1, "b", "two")
+        if d["a"] != 1 || d["b"] != "two" {
+                t.Error("dict basic")
+        }
+        if dict("a") != nil {
+                t.Error("dict odd args")
+        }
+        d = dict(42, "val")
+        if len(d) != 0 {
+                t.Error("dict non-string key should be skipped")
+        }
+}
+
+func TestIsMap(t *testing.T) {
+        if !isMap(map[string]interface{}{}) {
+                t.Error("isMap true")
+        }
+        if isMap("string") {
+                t.Error("isMap false")
+        }
+}
+
+func TestToMap(t *testing.T) {
+        m := map[string]interface{}{"k": "v"}
+        if toMap(m) == nil {
+                t.Error("toMap valid")
+        }
+        if toMap(nil) != nil {
+                t.Error("toMap nil")
+        }
+        if toMap("string") != nil {
+                t.Error("toMap non-map")
+        }
+}
+
+func TestListSlice(t *testing.T) {
+        got := listSlice(1, "two", 3.0)
+        if len(got) != 3 {
+                t.Error("listSlice")
+        }
+}
+
+func TestSeq(t *testing.T) {
+        got := seq(1, 5)
+        if len(got) != 5 || got[0] != 1 || got[4] != 5 {
+                t.Errorf("seq = %v", got)
+        }
+}
+
+func TestIsSlice(t *testing.T) {
+        if !isSlice([]interface{}{}) {
+                t.Error("isSlice []interface{}")
+        }
+        if !isSlice([]string{}) {
+                t.Error("isSlice []string")
+        }
+        if !isSlice([]int{}) {
+                t.Error("isSlice []int")
+        }
+        if !isSlice([]float64{}) {
+                t.Error("isSlice []float64")
+        }
+        if isSlice("string") {
+                t.Error("isSlice string")
+        }
+}
+
+func TestSliceFrom(t *testing.T) {
+        s := []interface{}{1, 2, 3, 4}
+        got := sliceFrom(2, s)
+        if len(got) != 2 || got[0] != 3 {
+                t.Error("sliceFrom")
+        }
+        if sliceFrom(10, s) != nil {
+                t.Error("sliceFrom past end")
+        }
+}
+
+func TestSliceIndex(t *testing.T) {
+        s := []interface{}{"a", "b", "c"}
+        if sliceIndex(1, s) != "b" {
+                t.Error("sliceIndex valid")
+        }
+        if sliceIndex(-1, s) != nil {
+                t.Error("sliceIndex negative")
+        }
+        if sliceIndex(10, s) != nil {
+                t.Error("sliceIndex past end")
+        }
+}
+
+func TestToInt(t *testing.T) {
+        tests := []struct {
+                input interface{}
+                want  int
+        }{
+                {int(42), 42},
+                {int32(42), 42},
+                {int64(42), 42},
+                {float64(3.9), 3},
+                {float32(2.1), 2},
+                {"hello", 0},
+        }
+        for _, tt := range tests {
+                got := toInt(tt.input)
+                if got != tt.want {
+                        t.Errorf("toInt(%v) = %d, want %d", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestToStringSlice(t *testing.T) {
+        got := toStringSlice([]string{"a", "b"})
+        if len(got) != 2 {
+                t.Error("toStringSlice []string")
+        }
+        got = toStringSlice([]interface{}{"x", "y", 42})
+        if len(got) != 2 {
+                t.Error("toStringSlice []interface{}")
+        }
+        if toStringSlice(nil) != nil {
+                t.Error("toStringSlice nil")
+        }
+        if toStringSlice(42) != nil {
+                t.Error("toStringSlice int")
+        }
+}
+
+func TestToMapSlice(t *testing.T) {
+        ms := []map[string]interface{}{{"a": 1}}
+        got := toMapSlice(ms)
+        if len(got) != 1 {
+                t.Error("toMapSlice direct")
+        }
+        iface := []interface{}{map[string]interface{}{"b": 2}, "skip"}
+        got = toMapSlice(iface)
+        if len(got) != 1 {
+                t.Error("toMapSlice []interface{}")
+        }
+        if toMapSlice(nil) != nil {
+                t.Error("toMapSlice nil")
+        }
+        if toMapSlice(42) != nil {
+                t.Error("toMapSlice int")
+        }
+}
+
+func TestIsNumeric(t *testing.T) {
+        numerics := []interface{}{int(1), int8(1), int16(1), int32(1), int64(1), uint(1), uint8(1), uint16(1), uint32(1), uint64(1), float32(1), float64(1)}
+        for _, v := range numerics {
+                if !isNumeric(v) {
+                        t.Errorf("isNumeric(%T) should be true", v)
+                }
+        }
+        if isNumeric("string") {
+                t.Error("isNumeric(string) should be false")
+        }
+        if isNumeric(nil) {
+                t.Error("isNumeric(nil) should be false")
+        }
+}
+
+func TestGteCmp(t *testing.T) {
+        if !gteCmp(float64(10), int(10)) {
+                t.Error("gteCmp equal")
+        }
+        if !gteCmp(float64(11), int(10)) {
+                t.Error("gteCmp greater")
+        }
+        if gteCmp(float64(9), int(10)) {
+                t.Error("gteCmp less")
+        }
+}
+
+func TestLteCmp(t *testing.T) {
+        if !lteCmp(float64(10), int(10)) {
+                t.Error("lteCmp equal")
+        }
+        if !lteCmp(float64(9), int(10)) {
+                t.Error("lteCmp less")
+        }
+        if lteCmp(float64(11), int(10)) {
+                t.Error("lteCmp greater")
+        }
+}
+
+func TestIsNilNotNil(t *testing.T) {
+        if !isNil(nil) {
+                t.Error("isNil(nil)")
+        }
+        if isNil(42) {
+                t.Error("isNil(42)")
+        }
+        if !notNil(42) {
+                t.Error("notNil(42)")
+        }
+        if notNil(nil) {
+                t.Error("notNil(nil)")
+        }
+}
+
+func TestDefaultVal(t *testing.T) {
+        if defaultVal("fallback", nil) != "fallback" {
+                t.Error("defaultVal nil")
+        }
+        if defaultVal("fallback", "") != "fallback" {
+                t.Error("defaultVal empty string")
+        }
+        if defaultVal("fallback", "actual") != "actual" {
+                t.Error("defaultVal with value")
+        }
+        if defaultVal("fallback", 42) != 42 {
+                t.Error("defaultVal with int")
+        }
+}
+
+func TestCoalesce(t *testing.T) {
+        if coalesce(nil, "", "hello", "world") != "hello" {
+                t.Error("coalesce")
+        }
+        if coalesce(nil, nil) != nil {
+                t.Error("coalesce all nil")
+        }
+        if coalesce(42) != 42 {
+                t.Error("coalesce first non-nil")
+        }
+}
+
+func TestStatusBadgeClass(t *testing.T) {
+        tests := []struct {
+                input, want string
+        }{
+                {"success", "bg-success"},
+                {"warning", "bg-warning"},
+                {"info", "bg-info"},
+                {"danger", "bg-danger"},
+                {"error", "bg-danger"},
+                {"critical", "bg-danger"},
+                {"unknown", "bg-secondary"},
+                {"SUCCESS", "bg-success"},
+        }
+        for _, tt := range tests {
+                got := statusBadgeClass(tt.input)
+                if got != tt.want {
+                        t.Errorf("statusBadgeClass(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestStatusColor(t *testing.T) {
+        tests := []struct {
+                input, want string
+        }{
+                {"success", "success"},
+                {"warning", "warning"},
+                {"partial", "warning"},
+                {"error", "danger"},
+                {"danger", "danger"},
+                {"critical", "danger"},
+                {"info", "info"},
+                {"unknown", "secondary"},
+        }
+        for _, tt := range tests {
+                got := statusColor(tt.input)
+                if got != tt.want {
+                        t.Errorf("statusColor(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestSectionStatusCSS(t *testing.T) {
+        tests := []struct {
+                input, want string
+        }{
+                {"beta", "u-status-beta"},
+                {"active development", "u-status-active"},
+                {"maintenance", "u-status-maintenance"},
+                {"experimental", "u-status-experimental"},
+                {"deprecated", "u-status-deprecated"},
+                {"accuracy tuning", "u-section-tuning"},
+                {"unknown", "u-section-tuning"},
+                {"BETA", "u-status-beta"},
+        }
+        for _, tt := range tests {
+                got := sectionStatusCSS(tt.input)
+                if got != tt.want {
+                        t.Errorf("sectionStatusCSS(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestSectionStatusIcon(t *testing.T) {
+        tests := []struct {
+                input, want string
+        }{
+                {"beta", "fa-flask"},
+                {"active development", "fa-code"},
+                {"maintenance", "fa-wrench"},
+                {"experimental", "fa-microscope"},
+                {"deprecated", "fa-archive"},
+                {"accuracy tuning", "fa-wrench"},
+                {"unknown", "fa-wrench"},
+        }
+        for _, tt := range tests {
+                got := sectionStatusIcon(tt.input)
+                if got != tt.want {
+                        t.Errorf("sectionStatusIcon(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestCountryFlag(t *testing.T) {
+        got := countryFlag("US")
+        if got == "" {
+                t.Error("countryFlag US should not be empty")
+        }
+        if countryFlag("X") != "" {
+                t.Error("countryFlag single char should be empty")
+        }
+        if countryFlag("USA") != "" {
+                t.Error("countryFlag 3 chars should be empty")
+        }
+        got2 := countryFlag("us")
+        if got2 != got {
+                t.Error("countryFlag should uppercase")
+        }
+}
+
+func TestStaticURL(t *testing.T) {
+        got := staticURL("css/style.css")
+        if got != "/static/css/style.css" {
+                t.Errorf("staticURL = %q", got)
+        }
+}
+
+func TestStaticVersionURL(t *testing.T) {
+        got := staticVersionURL("js/app.js", "1.0")
+        if got != "/static/js/app.js?v=1.0" {
+                t.Errorf("staticVersionURL = %q", got)
+        }
+}
+
+func TestToJSON(t *testing.T) {
+        got := toJSON(map[string]int{"a": 1})
+        if !strings.Contains(got, `"a":1`) {
+                t.Errorf("toJSON = %q", got)
+        }
+        got = toJSON(make(chan int))
+        if got != "{}" {
+                t.Errorf("toJSON unmarshalable = %q", got)
+        }
+}
+
+func TestToStr(t *testing.T) {
+        if toStr(nil) != "" {
+                t.Error("toStr nil")
+        }
+        if toStr("hello") != "hello" {
+                t.Error("toStr string")
+        }
+        if toStr(42) != "42" {
+                t.Error("toStr int")
+        }
+}
+
+func TestPluralize(t *testing.T) {
+        if pluralize(1, "item", "items") != "item" {
+                t.Error("pluralize singular")
+        }
+        if pluralize(2, "item", "items") != "items" {
+                t.Error("pluralize plural")
+        }
+        if pluralize(0, "item", "items") != "items" {
+                t.Error("pluralize zero")
+        }
+}
+
+func TestHtmlComment(t *testing.T) {
+        got := string(htmlComment("hello -- world"))
+        if !strings.HasPrefix(got, "<!--") || !strings.HasSuffix(got, "-->") {
+                t.Errorf("htmlComment = %q", got)
+        }
+        if strings.Contains(got, "--") && !strings.Contains(got, "<!--") {
+                t.Error("htmlComment should replace --")
+        }
+}
+
+func TestMergeFuncs(t *testing.T) {
+        dst := template.FuncMap{"a": func() {}}
+        src := template.FuncMap{"b": func() {}}
+        mergeFuncs(dst, src)
+        if _, ok := dst["b"]; !ok {
+                t.Error("mergeFuncs should copy keys")
+        }
+}
+
+func TestFuncMapHasExpectedKeys(t *testing.T) {
+        fm := FuncMap()
+        expected := []string{"eq", "ne", "gt", "lt", "ge", "le", "formatDate", "add", "sub",
+                "upper", "lower", "mapGet", "dict", "list", "seq", "statusBadgeClass", "toJSON", "pluralize"}
+        for _, k := range expected {
+                if _, ok := fm[k]; !ok {
+                        t.Errorf("FuncMap missing key %q", k)
+                }
+        }
+}
+
+func TestSafeFuncs(t *testing.T) {
+        fm := safeFuncs()
+        if _, ok := fm["safeHTML"]; !ok {
+                t.Error("missing safeHTML")
+        }
+        if _, ok := fm["safeURL"]; !ok {
+                t.Error("missing safeURL")
+        }
+        if _, ok := fm["safeAttr"]; !ok {
+                t.Error("missing safeAttr")
+        }
+        if _, ok := fm["safeJS"]; !ok {
+                t.Error("missing safeJS")
         }
 }

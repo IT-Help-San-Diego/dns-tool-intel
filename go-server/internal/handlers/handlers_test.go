@@ -296,6 +296,83 @@ func TestServiceWorker(t *testing.T) {
         }
 }
 
+func TestSecurityTxt(t *testing.T) {
+        tempDir := t.TempDir()
+        wellKnownDir := filepath.Join(tempDir, ".well-known")
+        if err := os.MkdirAll(wellKnownDir, 0755); err != nil {
+                t.Fatalf("failed to create .well-known dir: %v", err)
+        }
+        secContent := "Contact: security@example.com\nExpires: 2027-01-01T00:00:00.000Z\n"
+        secPath := filepath.Join(wellKnownDir, "security.txt")
+        if err := os.WriteFile(secPath, []byte(secContent), 0644); err != nil {
+                t.Fatalf("failed to create test security.txt: %v", err)
+        }
+
+        router := gin.New()
+        handler := handlers.NewStaticHandler(tempDir, "test")
+        router.GET("/.well-known/security.txt", handler.SecurityTxt)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/.well-known/security.txt", nil)
+        router.ServeHTTP(w, req)
+
+        assertStatusOK(t, w)
+
+        contentType := w.Header().Get(headerContentType)
+        if contentType != "text/plain; charset=utf-8" {
+                t.Errorf("expected content-type 'text/plain; charset=utf-8', got %s", contentType)
+        }
+
+        body := w.Body.String()
+        if !contains(body, "Contact: security@example.com") {
+                t.Error("expected 'Contact: security@example.com' in security.txt response")
+        }
+
+        if !contains(body, "Expires:") {
+                t.Error("expected 'Expires:' in security.txt response")
+        }
+}
+
+func TestLLMsFullTxt(t *testing.T) {
+        tempDir := t.TempDir()
+        content := "Full model details\nModel A v2\nModel B v3\n"
+        fpath := filepath.Join(tempDir, "llms-full.txt")
+        if err := os.WriteFile(fpath, []byte(content), 0644); err != nil {
+                t.Fatalf("failed to create test llms-full.txt: %v", err)
+        }
+
+        router := gin.New()
+        handler := handlers.NewStaticHandler(tempDir, "test")
+        router.GET("/llms-full.txt", handler.LLMsFullTxt)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/llms-full.txt", nil)
+        router.ServeHTTP(w, req)
+
+        assertStatusOK(t, w)
+
+        body := w.Body.String()
+        if !contains(body, "Full model details") {
+                t.Error("expected 'Full model details' in llms-full.txt response")
+        }
+}
+
+func TestServiceWorkerNotFound(t *testing.T) {
+        tempDir := t.TempDir()
+
+        router := gin.New()
+        handler := handlers.NewStaticHandler(tempDir, "test")
+        router.GET("/sw.js", handler.ServiceWorker)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/sw.js", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("expected status 404 for missing sw.js, got %d", w.Code)
+        }
+}
+
 func TestHealthCheckContextTimeout(t *testing.T) {
         database := getTestDB(t)
 

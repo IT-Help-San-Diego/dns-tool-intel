@@ -3,80 +3,86 @@
 package scanner
 
 import (
-	"bufio"
-	"log/slog"
-	"net"
-	"net/http"
-	"strings"
-	"sync"
-	"time"
+        "bufio"
+        "io"
+        "log/slog"
+        "net"
+        "net/http"
+        "strings"
+        "sync"
+        "time"
 )
 
 const cisaURL = "https://rules.ncats.cyber.dhs.gov/all.txt"
 
 var (
-	cisaIPNets []*net.IPNet
-	cisaListMu sync.RWMutex
+        cisaIPNets []*net.IPNet
+        cisaListMu sync.RWMutex
 )
 
 func StartCISARefresh() {
-	go func() {
-		fetchCISAList()
-		ticker := time.NewTicker(24 * time.Hour)
-		defer ticker.Stop()
-		for range ticker.C {
-			fetchCISAList()
-		}
-	}()
+        go func() {
+                fetchCISAList()
+                ticker := time.NewTicker(24 * time.Hour)
+                defer ticker.Stop()
+                for range ticker.C {
+                        fetchCISAList()
+                }
+        }()
 }
 
 func fetchCISAList() {
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Get(cisaURL)
-	if err != nil {
-		slog.Warn("CISA IP list fetch failed", "error", err)
-		return
-	}
-	defer resp.Body.Close()
+        client := &http.Client{Timeout: 30 * time.Second}
+        resp, err := client.Get(cisaURL)
+        if err != nil {
+                slog.Warn("CISA IP list fetch failed", "error", err)
+                return
+        }
+        defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		slog.Warn("CISA IP list non-200 response", "status", resp.StatusCode)
-		return
-	}
+        if resp.StatusCode != http.StatusOK {
+                slog.Warn("CISA IP list non-200 response", "status", resp.StatusCode)
+                return
+        }
 
-	var nets []*net.IPNet
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
+        nets := parseCISABody(resp.Body)
 
-		if !strings.Contains(line, "/") {
-			if strings.Contains(line, ":") {
-				line += "/128"
-			} else {
-				line += "/32"
-			}
-		}
+        if len(nets) > 0 {
+                cisaListMu.Lock()
+                cisaIPNets = nets
+                cisaListMu.Unlock()
+                slog.Info("CISA IP list refreshed", "entries", len(nets))
+        }
+}
 
-		_, cidr, err := net.ParseCIDR(line)
-		if err != nil {
-			continue
-		}
-		nets = append(nets, cidr)
-	}
+func parseCISABody(r io.Reader) []*net.IPNet {
+        var nets []*net.IPNet
+        sc := bufio.NewScanner(r)
+        for sc.Scan() {
+                line := strings.TrimSpace(sc.Text())
+                if line == "" || strings.HasPrefix(line, "#") {
+                        continue
+                }
 
-	if len(nets) > 0 {
-		cisaListMu.Lock()
-		cisaIPNets = nets
-		cisaListMu.Unlock()
-		slog.Info("CISA IP list refreshed", "entries", len(nets))
-	}
+                if !strings.Contains(line, "/") {
+                        if strings.Contains(line, ":") {
+                                line += "/128"
+                        } else {
+                                line += "/32"
+                        }
+                }
+
+                _, cidr, err := net.ParseCIDR(line)
+                if err != nil {
+                        continue
+                }
+                nets = append(nets, cidr)
+        }
+        return nets
 }
 
 func CISAListSize() int {
-	cisaListMu.RLock()
-	defer cisaListMu.RUnlock()
-	return len(cisaIPNets)
+        cisaListMu.RLock()
+        defer cisaListMu.RUnlock()
+        return len(cisaIPNets)
 }
