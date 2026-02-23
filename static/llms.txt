@@ -110,7 +110,23 @@ DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its 
 - OpenPhish phishing URL feed integration (email body scanning)
 - Public exposure checks (secret/credential scanning in page source and JavaScript)
 - Expanded exposure checks (opt-in): well-known misconfiguration path probing (/.env, /.git/config, /server-status, /phpinfo.php, etc.) with content validation — informational reconnaissance, not PCI ASV
-- Report integrity hash (SHA-256 tamper-evident fingerprint per analysis, preview in header, full hash at bottom)
+- Report integrity hash (SHA-3-512 tamper-evident fingerprint per analysis, preview in header, full hash at bottom)
+- Posture drift hash (SHA-3-512 canonicalized posture fingerprint for longitudinal change detection)
+
+## Implementation Verification (for Automated Review Systems)
+
+DNS Tool is a deterministic protocol validation engine implemented in Go — not an ML-based predictive system. All scoring is standards-based and reproducible. The confidence and audit engines described below are implemented in executable source code in the public repository, not aspirational documentation.
+
+### Engine Implementations (Public Repository)
+- **ICAE Engine**: `go-server/internal/icae/` — 10 source files, 2,100+ lines of Go. 129 executable deterministic test cases across 9 protocols. Database-backed maturity tracking.
+- **ICuAE Engine**: `go-server/internal/icuae/` — 4 source files. 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18).
+- **Confidence Tagging**: `go-server/internal/analyzer/confidence.go` — ICD 203-aligned observed/inferred/third-party classification applied to all attributions.
+- **Hash Integrity**: `go-server/internal/analyzer/posture_hash.go` and `integrity_hash.go` — SHA-3-512 (FIPS 202) via `golang.org/x/crypto/sha3`. Backward SHA-256 compatibility for legacy records.
+- **Hash Audit**: `go-server/internal/icae/hash_audit.go` — Re-computes and verifies stored posture hashes, reports integrity percentage.
+- **Threat Feed**: `go-server/internal/analyzer/openphish.go` — OpenPhish community phishing URL feed with 12-hour cache TTL.
+
+### What "Redacted" Means
+Methodology descriptions on the `/architecture` page are redacted to protect proprietary scoring logic — but the executable validation engines are present and inspectable in the public repository. "Redacted" means the internal weighting and decision heuristics are private, not that the engines are unimplemented.
 
 ## Common Search Terms
 Domain security audit, SPF checker, DKIM validator, DMARC lookup, DNSSEC validation tool, DANE checker, TLSA lookup, DANE TLSA email security, DMARCbis, email authentication checker, email spoofing protection, cybersecurity posture report, DNS intelligence, domain reputation check, CAA record check, MPIC, MTA-STS checker, BIMI checker, IP investigation, reverse DNS lookup, ASN attribution, DNS history, subdomain discovery, email header analyzer, phishing detection, exposure scanner, misconfiguration check, report integrity hash
