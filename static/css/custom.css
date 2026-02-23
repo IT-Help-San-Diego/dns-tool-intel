@@ -66,6 +66,10 @@
     --accent-violet: #6c5ce7;      /* Authority violet — primary action, NIST-aligned */
     --accent-violet-hover: #7b6ef0;
     --accent-cyan: #0dcaf0;        /* Bootstrap info cyan — UI accents, subsection headers */
+    --accent-cobalt: #4a8fe7;      /* Authority cobalt — deeper than GitHub blue. Recorded Future/Mandiant inspired. 5.74:1 on #0d1117 */
+    --accent-gold: #d4a853;        /* Intelligence gold — premium trust signal. Recorded Future inspired. 8.58:1 on #0d1117 */
+    --accent-gold-muted: #c9a84c;  /* Muted gold — borders, glows, badge accents. 8.28:1 on #0d1117 */
+    --accent-amber: #e8b54a;       /* Intelligence amber — highlight text, premium emphasis. 10.04:1 on #0d1117 */
     
     /* Borders */
     --border-default: #30363d;
@@ -132,11 +136,11 @@ code {
    HERO SECTION
    ============================================ */
 .hero-section {
-    background: linear-gradient(170deg, #0a1628 0%, #0d1117 35%, var(--accent-deep) 70%, #0d1117 100%);
+    background: linear-gradient(170deg, #0a1628 0%, #0d1117 35%, #142340 70%, #0d1117 100%);
     padding: 3.5rem 0 2.5rem;
     position: relative;
     overflow: hidden;
-    border-bottom: 1px solid rgba(125, 142, 168, 0.12);
+    border-bottom: 1px solid rgba(212, 168, 85, 0.08);
 }
 
 .hero-section::before {
@@ -146,8 +150,8 @@ code {
     left: -20%;
     width: 140%;
     height: 200%;
-    background: radial-gradient(ellipse at 30% 20%, rgba(88, 166, 255, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(125, 142, 168, 0.04) 0%, transparent 50%);
+    background: radial-gradient(ellipse at 30% 20%, rgba(74, 143, 231, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(212, 168, 85, 0.03) 0%, transparent 50%);
     pointer-events: none;
 }
 
@@ -159,22 +163,22 @@ code {
 .hero-badge {
     display: inline-block;
     padding: 0.35rem 1rem;
-    background: rgba(88, 166, 255, 0.1);
-    border: 1px solid rgba(88, 166, 255, 0.2);
+    background: rgba(212, 168, 85, 0.1);
+    border: 1px solid rgba(212, 168, 85, 0.25);
     border-radius: 2rem;
-    color: var(--status-info);
+    color: var(--accent-gold);
     font-size: 0.8rem;
     font-weight: 600;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 
 .hero-title {
     font-size: 3.5rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     line-height: 1.1;
-    color: #e6edf3;
+    color: #edf0f5;
 }
 
 .hero-ascii-covert {
@@ -230,7 +234,7 @@ code {
     text-decoration: none;
     color: #8b949e;
     background: rgba(22, 27, 34, 0.45);
-    border: 1px solid rgba(125, 142, 168, 0.1);
+    border: 1px solid rgba(212, 168, 85, 0.12);
     border-radius: 0.5rem;
     padding: 0.65rem 1.25rem 0.6rem;
     max-width: 34rem;
@@ -239,7 +243,7 @@ code {
     transition: border-color 0.25s, background 0.25s;
 }
 .icae-hero-card:hover {
-    border-color: rgba(125, 142, 168, 0.25);
+    border-color: rgba(212, 168, 85, 0.25);
     background: rgba(22, 27, 34, 0.6);
     text-decoration: none;
     color: #8b949e;
@@ -304,9 +308,9 @@ code {
     letter-spacing: 0.04em;
     padding: 0.15rem 0.55rem;
     border-radius: 999px;
-    color: #a5d6ff;
+    color: #b8cfea;
     background: rgba(22, 27, 34, 0.85);
-    border: 1px solid rgba(88, 166, 255, 0.3);
+    border: 1px solid rgba(74, 143, 231, 0.25);
     vertical-align: middle;
     white-space: nowrap;
 }
@@ -648,8 +652,8 @@ code {
 }
 
 .search-input:focus {
-    border-color: var(--status-info) !important;
-    outline: 2px solid var(--status-info);
+    border-color: var(--accent-cobalt) !important;
+    outline: 2px solid var(--accent-cobalt);
     box-shadow: none !important;
 }
 
@@ -1730,34 +1734,39 @@ main.container {
    Desaturated colors for trust & credibility
    ============================================ */
 
-/* Success badges - Muted green (verified, safe, configured) */
+/* Success badges - Glass green (verified, safe, configured) */
 .badge.bg-success {
-    background-color: var(--status-success) !important;
-    color: #ffffff;
+    background-color: rgba(63, 185, 80, 0.15) !important;
+    color: var(--status-success) !important;
+    border: 1px solid rgba(63, 185, 80, 0.3);
 }
 
-/* Warning badges - Amber (caution, review needed). Dark text for WCAG AA contrast */
+/* Warning badges - Glass amber (caution, review needed) */
 .badge.bg-warning {
-    background-color: var(--status-warning) !important;
-    color: #1a1a2e !important;
+    background-color: rgba(227, 179, 65, 0.15) !important;
+    color: var(--status-warning) !important;
+    border: 1px solid rgba(227, 179, 65, 0.3);
 }
 
-/* Danger badges - Red (critical, error, misconfigured). WCAG AA: #fff on #dc2626 = 4.6:1 */
+/* Danger badges - Glass red (critical, error, misconfigured) */
 .badge.bg-danger {
-    background-color: #dc2626 !important;
-    color: #ffffff;
+    background-color: rgba(220, 38, 38, 0.15) !important;
+    color: #f85149 !important;
+    border: 1px solid rgba(248, 81, 73, 0.3);
 }
 
-/* Info badges - Calm blue (informational, technical details) */
+/* Info badges - Glass cobalt (informational, technical details) */
 .badge.bg-info {
-    background-color: var(--status-info) !important;
-    color: #ffffff;
+    background-color: rgba(74, 143, 231, 0.12) !important;
+    color: var(--accent-cobalt) !important;
+    border: 1px solid rgba(74, 143, 231, 0.25);
 }
 
-/* Secondary/neutral badges */
+/* Secondary/neutral badges - Glass steel */
 .badge.bg-secondary {
-    background-color: var(--status-neutral) !important;
-    color: #ffffff;
+    background-color: rgba(139, 148, 158, 0.12) !important;
+    color: var(--status-neutral) !important;
+    border: 1px solid rgba(139, 148, 158, 0.25);
 }
 
 /* Changelog category badges - WCAG AA contrast on dark cards */
@@ -4833,7 +4842,9 @@ body.covert-mode .proto-dkim.bg-info {
    -------------------------------------------- */
 .u-meta-label { font-size: 0.75rem; color: #6c757d; margin-bottom: 0.75rem; }
 .u-meta-muted { font-size: 0.7rem; color: #6c757d; }
-.u-hero-tagline { font-size: 1.5rem; font-weight: 600; color: #e9ecef; letter-spacing: 0.02em; }
+.u-hero-tagline { font-size: 1.5rem; font-weight: 600; color: #edf0f5; letter-spacing: 0.02em; }
+.hero-section .u-hero-tagline .text-info { color: var(--accent-amber) !important; }
+.hero-section .hero-subtitle .text-info { color: var(--accent-cobalt) !important; }
 .u-text-light-lg { color: #c9d1d9; font-size: 1.05rem; }
 .u-text-muted-md { color: #8b949e; font-size: 0.9rem; }
 
