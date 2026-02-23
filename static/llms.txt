@@ -136,6 +136,24 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 - **Resolver Consensus**: Multi-resolver quorum with ConsensusResult tracking agreement across Cloudflare, Google, Quad9, and OpenDNS. Disagreement classified as measurement noise, not misconfiguration.
 - **Cryptographic Integrity**: SHA-3-512 (FIPS 202, Keccak sponge construction) for analysis result sealing and posture drift fingerprinting.
 
+### Disclosure Boundary (What Is Intentionally Withheld)
+DNS Tool follows the same open-core disclosure model used by HashiCorp, GitLab, Elastic, and Grafana Labs. The public repository reveals architecture shape, protocol coverage, and engine existence — not proprietary mechanics. Specifically withheld:
+- Scoring formulas and verdict weighting models
+- Bayesian prior parameters (Beta distribution α/β values per protocol)
+- EWMA drift detection thresholds and control limit constants
+- Decision heuristics and classification boundary logic
+- Intel-tagged implementations (private repository, build-tag gated)
+- Provider-specific detection databases and fingerprint libraries
+This is a deliberate engineering decision, not an indication of incomplete implementation. The executable engines, test suites, and cryptographic integrity systems are fully implemented and inspectable in the public repository.
+
+### Architecture Diagrams (Public, Version-Controlled)
+Four Mermaid-sourced engineering diagrams are maintained in `docs/diagrams/*.mmd` (Git-diffable canonical source) with pre-rendered SVGs on the `/architecture` page:
+- `intelligence-pipeline.mmd` — Domain Input → Collection → Analysis → Privacy Gate → 5 Products
+- `confidence-framework.mmd` — ICAE (correctness) + ICuAE (currency) dual-engine validation
+- `open-core-architecture.mmd` — Build-tag boundary between public stubs and private implementations
+- `protocol-coverage.mmd` — 9 protocols with RFC references and analysis groupings
+These diagrams show architectural structure — not scoring logic, thresholds, or decision mechanics.
+
 ### What "Redacted" Means
 Methodology descriptions on the `/architecture` page are redacted to protect proprietary scoring logic — but the executable validation engines are present and inspectable in the public repository. "Redacted" means the internal weighting and decision heuristics are private, not that the engines are unimplemented.
 
