@@ -5785,10 +5785,10 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     white-space: nowrap;
 }
 .icae-cal-layer-label-collection {
-    color: #00e5ff !important;
+    color: #4FD2FF !important;
 }
 .icae-cal-layer-label-analysis {
-    color: #ea80fc !important;
+    color: #7C5CFF !important;
 }
 .icae-cal-layer-runs {
     font-size: 0.6rem;
@@ -5800,10 +5800,10 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     font-variant-numeric: tabular-nums;
 }
 .icae-bar-collection .icae-cal-layer-runs {
-    color: rgba(0, 229, 255, 0.6);
+    color: rgba(79, 210, 255, 0.6);
 }
 .icae-bar-analysis .icae-cal-layer-runs {
-    color: rgba(234, 128, 252, 0.6);
+    color: rgba(124, 92, 255, 0.6);
 }
 .icae-cal-layer-badge {
     font-size: 0.6rem !important;
@@ -5819,12 +5819,12 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     overflow: visible;
 }
 .icae-bar-collection .icae-cal-track {
-    background: rgba(0, 229, 255, 0.06);
-    border: 1px solid rgba(0, 229, 255, 0.12);
+    background: rgba(79, 210, 255, 0.06);
+    border: 1px solid rgba(79, 210, 255, 0.12);
 }
 .icae-bar-analysis .icae-cal-track {
-    background: rgba(234, 128, 252, 0.06);
-    border: 1px solid rgba(234, 128, 252, 0.12);
+    background: rgba(124, 92, 255, 0.06);
+    border: 1px solid rgba(124, 92, 255, 0.12);
 }
 .icae-cal-track-segments {
     position: absolute;
@@ -5858,18 +5858,18 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 .icae-cal-fill-consistent { background: linear-gradient(90deg, rgba(74, 85, 104, 0.25), rgba(107, 181, 255, 0.4), rgba(86, 211, 100, 0.6)); }
 .icae-cal-fill-gold { background: linear-gradient(90deg, rgba(74, 85, 104, 0.2), rgba(107, 181, 255, 0.3), rgba(86, 211, 100, 0.4), rgba(224, 184, 92, 0.6)); }
 .icae-cal-fill-gold_master { background: linear-gradient(90deg, rgba(74, 85, 104, 0.2), rgba(107, 181, 255, 0.25), rgba(86, 211, 100, 0.3), rgba(224, 184, 92, 0.4), rgba(240, 221, 179, 0.6)); }
-.icae-bar-collection .icae-cal-fill-development { background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), rgba(0, 229, 255, 0.35)); }
-.icae-bar-collection .icae-cal-fill-verified { background: linear-gradient(90deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.55)); }
-.icae-bar-collection .icae-cal-fill-consistent { background: linear-gradient(90deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.45), rgba(86, 211, 100, 0.5)); }
-.icae-bar-collection .icae-cal-fill-gold { background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), rgba(0, 229, 255, 0.3), rgba(86, 211, 100, 0.35), rgba(224, 184, 92, 0.5)); }
-.icae-bar-collection .icae-cal-fill-gold_master { background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), rgba(0, 229, 255, 0.25), rgba(86, 211, 100, 0.3), rgba(224, 184, 92, 0.35), rgba(240, 221, 179, 0.5)); }
-.icae-bar-analysis .icae-cal-fill-development { background: linear-gradient(90deg, rgba(234, 128, 252, 0.15), rgba(234, 128, 252, 0.35)); }
-.icae-bar-analysis .icae-cal-fill-verified { background: linear-gradient(90deg, rgba(234, 128, 252, 0.2), rgba(234, 128, 252, 0.55)); }
-.icae-bar-analysis .icae-cal-fill-consistent { background: linear-gradient(90deg, rgba(234, 128, 252, 0.2), rgba(234, 128, 252, 0.45), rgba(86, 211, 100, 0.5)); }
-.icae-bar-analysis .icae-cal-fill-gold { background: linear-gradient(90deg, rgba(234, 128, 252, 0.15), rgba(234, 128, 252, 0.3), rgba(86, 211, 100, 0.35), rgba(224, 184, 92, 0.5)); }
-.icae-bar-analysis .icae-cal-fill-gold_master { background: linear-gradient(90deg, rgba(234, 128, 252, 0.15), rgba(234, 128, 252, 0.25), rgba(86, 211, 100, 0.3), rgba(224, 184, 92, 0.35), rgba(240, 221, 179, 0.5)); }
-.icae-bar-collection .icae-cal-fill { border-top: 2px solid rgba(0, 229, 255, 0.7); }
-.icae-bar-analysis .icae-cal-fill { border-top: 2px solid rgba(234, 128, 252, 0.7); }
+.icae-bar-collection .icae-cal-fill-development { background: linear-gradient(90deg, rgba(79, 210, 255, 0.15), rgba(79, 210, 255, 0.35)); }
+.icae-bar-collection .icae-cal-fill-verified { background: linear-gradient(90deg, rgba(79, 210, 255, 0.2), rgba(79, 210, 255, 0.55)); }
+.icae-bar-collection .icae-cal-fill-consistent { background: linear-gradient(90deg, rgba(79, 210, 255, 0.2), rgba(79, 210, 255, 0.45), rgba(86, 211, 100, 0.5)); }
+.icae-bar-collection .icae-cal-fill-gold { background: linear-gradient(90deg, rgba(79, 210, 255, 0.15), rgba(79, 210, 255, 0.3), rgba(86, 211, 100, 0.35), rgba(224, 184, 92, 0.5)); }
+.icae-bar-collection .icae-cal-fill-gold_master { background: linear-gradient(90deg, rgba(79, 210, 255, 0.15), rgba(79, 210, 255, 0.25), rgba(86, 211, 100, 0.3), rgba(224, 184, 92, 0.35), rgba(240, 221, 179, 0.5)); }
+.icae-bar-analysis .icae-cal-fill-development { background: linear-gradient(90deg, rgba(124, 92, 255, 0.15), rgba(124, 92, 255, 0.35)); }
+.icae-bar-analysis .icae-cal-fill-verified { background: linear-gradient(90deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.55)); }
+.icae-bar-analysis .icae-cal-fill-consistent { background: linear-gradient(90deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.45), rgba(86, 211, 100, 0.5)); }
+.icae-bar-analysis .icae-cal-fill-gold { background: linear-gradient(90deg, rgba(124, 92, 255, 0.15), rgba(124, 92, 255, 0.3), rgba(86, 211, 100, 0.35), rgba(224, 184, 92, 0.5)); }
+.icae-bar-analysis .icae-cal-fill-gold_master { background: linear-gradient(90deg, rgba(124, 92, 255, 0.15), rgba(124, 92, 255, 0.25), rgba(86, 211, 100, 0.3), rgba(224, 184, 92, 0.35), rgba(240, 221, 179, 0.5)); }
+.icae-bar-collection .icae-cal-fill { border-top: 2px solid rgba(79, 210, 255, 0.7); }
+.icae-bar-analysis .icae-cal-fill { border-top: 2px solid rgba(124, 92, 255, 0.7); }
 
 .icae-cal-needle {
     position: absolute;
@@ -5883,12 +5883,12 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     transform: translateX(-1px);
 }
 .icae-bar-collection .icae-cal-needle {
-    background: #00e5ff;
-    box-shadow: 0 0 4px rgba(0, 229, 255, 0.9);
+    background: #4FD2FF;
+    box-shadow: 0 0 4px rgba(79, 210, 255, 0.9);
 }
 .icae-bar-analysis .icae-cal-needle {
-    background: #ea80fc;
-    box-shadow: 0 0 4px rgba(234, 128, 252, 0.9);
+    background: #7C5CFF;
+    box-shadow: 0 0 4px rgba(124, 92, 255, 0.9);
 }
 
 .icae-cal-meta {
@@ -5944,6 +5944,67 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.icuae-summary-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.icuae-summary-item {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    background: #1a1d23;
+    border: 1px solid rgba(79, 210, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.75rem 0.25rem;
+    overflow: hidden;
+}
+.icuae-summary-value {
+    display: block;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-weight: 700;
+    color: #e9ecef;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.icuae-summary-label {
+    display: block;
+    font-size: 0.6rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.icuae-test-card {
+    border-color: rgba(79, 210, 255, 0.12);
+    transition: border-color 0.2s;
+}
+.icuae-test-card:hover {
+    border-color: rgba(79, 210, 255, 0.35);
+}
+body.covert-mode .icuae-summary-bar .icuae-summary-item {
+    border-color: rgba(140, 40, 40, 0.2) !important;
+    background: rgba(14, 16, 21, 0.9) !important;
+}
+body.covert-mode .icuae-summary-value {
+    color: rgba(170, 178, 188, 0.7) !important;
+}
+body.covert-mode .icuae-summary-label {
+    color: rgba(160, 130, 130, 0.5) !important;
+}
+body.covert-mode .icuae-test-card {
+    border-color: rgba(140, 40, 40, 0.15) !important;
+}
+body.covert-mode .icuae-test-card:hover {
+    border-color: rgba(196, 60, 60, 0.35) !important;
+}
 .icae-tier-meter {
     position: relative;
     display: inline-block;
@@ -5987,11 +6048,11 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     color: #8ab4f8;
 }
 .icae-cal-progress-label-collection {
-    color: #00e5ff !important;
+    color: #4FD2FF !important;
     font-weight: 700;
 }
 .icae-cal-progress-label-analysis {
-    color: #ea80fc !important;
+    color: #7C5CFF !important;
     font-weight: 700;
 }
 .icae-cal-progress-item {

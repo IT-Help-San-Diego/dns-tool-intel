@@ -562,6 +562,31 @@
             </p>
         </div>
 
+        {{if .ICuAEInventory}}
+        <div class="icuae-summary-bar mb-4">
+            <div class="icuae-summary-item">
+                <span class="icuae-summary-value">{{.ICuAEInventory.TotalCases}}</span>
+                <span class="icuae-summary-label">Deterministic Cases</span>
+            </div>
+            <div class="icuae-summary-item">
+                <span class="icuae-summary-value">{{.ICuAEInventory.TotalDimensions}}</span>
+                <span class="icuae-summary-label">Dimensions</span>
+            </div>
+            <div class="icuae-summary-item">
+                <span class="icuae-summary-value">5</span>
+                <span class="icuae-summary-label">Standards</span>
+            </div>
+            <div class="icuae-summary-item">
+                <span class="icuae-summary-value">5</span>
+                <span class="icuae-summary-label">Grade Tiers</span>
+            </div>
+            <div class="icuae-summary-item">
+                <span class="icuae-summary-value">{{len .ICuAEInventory.Categories}}</span>
+                <span class="icuae-summary-label">Test Categories</span>
+            </div>
+        </div>
+        {{end}}
+
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3"><i class="fas fa-book me-2 text-info"></i>Standards Foundation</h2>
@@ -654,6 +679,31 @@
                 </div>
             </div>
         </div>
+
+        {{if .ICuAEInventory}}
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3"><i class="fas fa-vial me-2 text-info"></i>Deterministic Test Matrix</h2>
+                <p class="text-muted small mb-3">{{.ICuAEInventory.TotalCases}} test cases verify ICuAE scoring logic across all five dimensions. Every grade boundary, edge case, and nil-input path is tested deterministically — no randomness, no approximation.</p>
+                <div class="row g-2">
+                    {{range .ICuAEInventory.Categories}}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card bg-dark border-secondary h-100 icuae-test-card">
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="{{.Icon}} me-2 text-info"></i>
+                                    <span class="fw-bold small">{{.Name}}</span>
+                                    <span class="badge bg-info text-dark ms-auto">{{.Cases}}</span>
+                                </div>
+                                <span class="text-muted u-fs-075em">{{.Standard}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
