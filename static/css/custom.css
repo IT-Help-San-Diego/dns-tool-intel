@@ -5250,7 +5250,7 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 .u-maintenance-tag {
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 700;
     vertical-align: middle;
     letter-spacing: 0.03em;
     background: rgba(232, 197, 71, 0.22);
@@ -5259,8 +5259,11 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     border-radius: 999px;
     padding: 0.2em 0.6em;
     white-space: nowrap;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     line-height: 1.4;
+    overflow: visible;
+    flex-shrink: 0;
 }
 .u-beta-tag {
     font-size: 0.6rem;
