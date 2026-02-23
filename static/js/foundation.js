@@ -146,7 +146,24 @@
         else tip.style.textShadow = 'none';
         var useHtml = trigger.getAttribute('data-bs-html') === 'true';
         if (useHtml) {
-            tip.innerHTML = title;
+            var parser = new DOMParser();
+            var parsed = parser.parseFromString(title, 'text/html');
+            var allowed = {STRONG: true, BR: true, B: true, EM: true, I: true};
+            (function strip(node) {
+                for (var i = node.childNodes.length - 1; i >= 0; i--) {
+                    var child = node.childNodes[i];
+                    if (child.nodeType === 1) {
+                        if (!allowed[child.tagName]) {
+                            while (child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
+                            child.parentNode.removeChild(child);
+                        } else {
+                            while (child.attributes.length) child.removeAttributeNode(child.attributes[0]);
+                            strip(child);
+                        }
+                    }
+                }
+            })(parsed.body);
+            tip.innerHTML = parsed.body.innerHTML;
         } else {
             tip.textContent = title;
         }
