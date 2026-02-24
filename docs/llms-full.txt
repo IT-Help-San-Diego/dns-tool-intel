@@ -5,6 +5,9 @@ DNS Tool is an OSINT (Open Source Intelligence) platform for DNS security analys
 
 Every query fetches fresh data from multiple DNS resolvers — results are never cached. Every recommendation is backed by RFC citations. Accuracy above all else — truthful, transparent, and provable.
 
+### Development Disclosure
+This platform uses specification-driven, AI-assisted development. All outputs are verified against RFC standards, deterministic test suites, and automated quality gates before release.
+
 ---
 
 ## Step-by-Step: How to Use This Tool (for AI Agents)
