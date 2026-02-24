@@ -406,7 +406,7 @@
         document.querySelectorAll('.dossier-reanalyze-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 e.preventDefault();
-                var href = btn.getAttribute('href');
+                var href = btn.href;
                 var domain = href.split('domain=')[1] || '';
                 var overlay = document.getElementById('dossierAnalyzeOverlay');
                 var domainEl = document.getElementById('dossierAnalyzeDomain');
@@ -425,7 +425,7 @@
                 var formData = new FormData();
                 formData.append('domain', decodeURIComponent(domain));
                 var csrf = document.querySelector('meta[name="csrf-token"]');
-                if(csrf) formData.append('_csrf', csrf.getAttribute('content'));
+                if(csrf) formData.append('_csrf', csrf.content);
                 fetch('/analyze', {
                     method: 'POST',
                     body: formData,
@@ -443,7 +443,7 @@
                         globalThis.scrollTo(0, 0);
                         var mm=document.querySelector('meta[name="x-report-mode"]');
                         var ie=document.querySelector('[data-analysis-id]');
-                        var rm=mm?mm.getAttribute('content'):'';
+                        var rm=mm?mm.content:'';
                         var ra=ie?ie.dataset.analysisId:'';
                         if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
                         else if (resp.url && resp.url !== globalThis.location.href) {

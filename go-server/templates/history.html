@@ -480,7 +480,7 @@
                         document.open();document.write(html);document.close();globalThis.scrollTo(0,0);
                         var mm=document.querySelector('meta[name="x-report-mode"]');
                         var ie=document.querySelector('[data-analysis-id]');
-                        var rm=mm?mm.getAttribute('content'):'';
+                        var rm=mm?mm.content:'';
                         var ra=ie?ie.dataset.analysisId:'';
                         if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
                         else if(resp.url&&resp.url!==globalThis.location.href){globalThis.history.replaceState(null,'',resp.url);}

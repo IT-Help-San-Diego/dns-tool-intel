@@ -1447,7 +1447,7 @@
                             globalThis.scrollTo(0, 0);
                             var modeMeta = document.querySelector('meta[name="x-report-mode"]');
                             var idEl = document.querySelector('[data-analysis-id]');
-                            var rMode = modeMeta ? modeMeta.getAttribute('content') : '';
+                            var rMode = modeMeta ? modeMeta.content : '';
                             var rAid = idEl ? idEl.dataset.analysisId : '';
                             if (rAid && rMode) {
                                 globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);

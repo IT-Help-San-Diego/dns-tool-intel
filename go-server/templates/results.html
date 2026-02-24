@@ -3443,7 +3443,7 @@
                                 {{if $uniqueAsns}}
                                 <div class="table-responsive">
                                     <table class="table table-sm table-dark small mb-2">
-                                        <thead><tr><th>ASN</th><th>Name</th><th>Country</th></tr></thead>
+                                        <thead><tr><th scope="col">ASN</th><th scope="col">Name</th><th scope="col">Country</th></tr></thead>
                                         <tbody>
                                             {{range $a := $uniqueAsns}}
                                             {{$am := toMap $a}}
@@ -3535,7 +3535,7 @@
                                 {{if $saasServices}}
                                 <div class="table-responsive">
                                     <table class="table table-sm table-dark small mb-2">
-                                        <thead><tr><th>Service</th><th>Verification Record</th></tr></thead>
+                                        <thead><tr><th scope="col">Service</th><th scope="col">Verification Record</th></tr></thead>
                                         <tbody>
                                             {{range $svc := $saasServices}}
                                             {{$s := toMap $svc}}
@@ -3877,7 +3877,7 @@
                                 {{if $httpsRecords}}
                                 <div class="table-responsive">
                                     <table class="table table-sm table-dark small mb-2">
-                                        <thead><tr><th>Priority</th><th>Target</th><th>ALPN</th><th>ECH</th><th>Raw</th></tr></thead>
+                                        <thead><tr><th scope="col">Priority</th><th scope="col">Target</th><th scope="col">ALPN</th><th scope="col">ECH</th><th scope="col">Raw</th></tr></thead>
                                         <tbody>
                                             {{range $rec := $httpsRecords}}
                                             {{$r := toMap $rec}}
@@ -3940,7 +3940,7 @@
                                 {{if $cdsRecords}}
                                 <div class="table-responsive">
                                     <table class="table table-sm table-dark small mb-2">
-                                        <thead><tr><th>Key Tag</th><th>Algorithm</th><th>Digest Type</th><th>Digest</th></tr></thead>
+                                        <thead><tr><th scope="col">Key Tag</th><th scope="col">Algorithm</th><th scope="col">Digest Type</th><th scope="col">Digest</th></tr></thead>
                                         <tbody>
                                             {{range $rec := $cdsRecords}}
                                             {{$r := toMap $rec}}
@@ -3962,7 +3962,7 @@
                                 <div class="table-responsive mt-2">
                                     <small class="text-muted d-block mb-1">CDNSKEY Records:</small>
                                     <table class="table table-sm table-dark small mb-2">
-                                        <thead><tr><th>Flags</th><th>Protocol</th><th>Algorithm</th><th>Public Key</th></tr></thead>
+                                        <thead><tr><th scope="col">Flags</th><th scope="col">Protocol</th><th scope="col">Algorithm</th><th scope="col">Public Key</th></tr></thead>
                                         <tbody>
                                             {{range $rec := $cdnskeyRecords}}
                                             {{$r := toMap $rec}}
@@ -5412,7 +5412,7 @@
                             globalThis.scrollTo(0, 0);
                             var modeMeta = document.querySelector('meta[name="x-report-mode"]');
                             var idEl = document.querySelector('[data-analysis-id]');
-                            var mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                            var mode = modeMeta ? modeMeta.content : '';
                             var aid = idEl ? idEl.dataset.analysisId : '';
                             if (aid && mode) {
                                 globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
@@ -5617,7 +5617,7 @@
                     return;
                 }
 
-                var html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th class="u-w-80px">Date</th><th class="u-w-60px">Type</th><th class="u-w-70px">Action</th><th>Value</th><th>Organization</th><th>Timeline</th></tr></thead><tbody>';
+                var html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
                 data.changes.forEach(function(ch) {
                     var typeColor = ch.record_type === 'MX' ? 'success' : ch.record_type === 'NS' ? 'info' : 'primary';
                     var actionHtml = ch.action === 'added'

@@ -326,7 +326,7 @@
                         <p class="text-muted mb-2 fw-semibold"><i class="fas fa-globe me-1"></i>Reverse DNS (PTR)</p>
                         {{if and $ptrSlice (gt (len $ptrSlice) 0)}}
                             <table class="table table-dark table-sm mb-2">
-                                <thead><tr><th>PTR Record</th><th>FCrDNS</th></tr></thead>
+                                <thead><tr><th scope="col">PTR Record</th><th scope="col">FCrDNS</th></tr></thead>
                                 <tbody>
                                     {{range $ptrSlice}}
                                     <tr>

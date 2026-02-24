@@ -234,19 +234,16 @@ func extractPostmarkHeaders(obj map[string]interface{}) string {
         if !ok {
                 return ""
         }
-        var lines []string
-        for _, item := range arr {
-                header, ok := item.(map[string]interface{})
-                if !ok {
-                        continue
-                }
-                name, _ := header["Name"].(string)
-                value, _ := header["Value"].(string)
-                if name != "" {
-                        lines = append(lines, name+": "+value)
-                }
-        }
+        lines := extractHeaderArray(arr, "Name", "Value")
+        lines = appendPostmarkTopLevelFields(lines, obj)
 
+        if len(lines) >= 2 {
+                return strings.Join(lines, "\r\n")
+        }
+        return ""
+}
+
+func appendPostmarkTopLevelFields(lines []string, obj map[string]interface{}) []string {
         if from, ok := obj["From"].(string); ok && from != "" {
                 lines = append([]string{headerFrom + from}, lines...)
         }
@@ -259,11 +256,7 @@ func extractPostmarkHeaders(obj map[string]interface{}) string {
         if msgID, ok := obj["MessageID"].(string); ok && msgID != "" {
                 lines = append(lines, "Message-ID: "+msgID)
         }
-
-        if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
-        }
-        return ""
+        return lines
 }
 
 func extractSendGridHeaders(obj map[string]interface{}) string {

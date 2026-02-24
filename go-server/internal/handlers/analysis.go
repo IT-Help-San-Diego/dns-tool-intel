@@ -395,7 +395,13 @@ func (h *AnalysisHandler) detectHistoricalDrift(ctx context.Context, currentHash
         if prevErr != nil {
                 return driftInfo{}
         }
-        return computeDriftFromPrev(currentHash, prevRow.PostureHash, prevRow.ID, prevRow.CreatedAt.Valid, prevRow.CreatedAt.Time, prevRow.FullResults, results)
+        return computeDriftFromPrev(currentHash, prevAnalysisSnapshot{
+                Hash:           prevRow.PostureHash,
+                ID:             prevRow.ID,
+                CreatedAtValid: prevRow.CreatedAt.Valid,
+                CreatedAt:      prevRow.CreatedAt.Time,
+                FullResults:    prevRow.FullResults,
+        }, results)
 }
 
 func (h *AnalysisHandler) resolveEmailScope(ctx context.Context, isSub bool, rootDom, asciiDomain string, results map[string]any) *subdomainEmailScope {
@@ -423,7 +429,13 @@ func (h *AnalysisHandler) detectDrift(ctx context.Context, devNull, domainExists
         if !devNull && domainExists {
                 prevRow, prevErr := h.DB.Queries.GetPreviousAnalysisForDrift(ctx, asciiDomain)
                 if prevErr == nil {
-                        drift = computeDriftFromPrev(postureHash, prevRow.PostureHash, prevRow.ID, prevRow.CreatedAt.Valid, prevRow.CreatedAt.Time, prevRow.FullResults, results)
+                        drift = computeDriftFromPrev(postureHash, prevAnalysisSnapshot{
+                                        Hash:           prevRow.PostureHash,
+                                        ID:             prevRow.ID,
+                                        CreatedAtValid: prevRow.CreatedAt.Valid,
+                                        CreatedAt:      prevRow.CreatedAt.Time,
+                                        FullResults:    prevRow.FullResults,
+                                }, results)
                         if drift.Detected {
                                 slog.Info("Posture drift detected", "domain", asciiDomain, "prev_hash", drift.PrevHash[:8], "new_hash", postureHash[:8], "changed_fields", len(drift.Fields))
                         }
@@ -603,21 +615,29 @@ type driftInfo struct {
         Fields   []analyzer.PostureDiffField
 }
 
-func computeDriftFromPrev(currentHash string, prevHash *string, prevID int32, prevCreatedAtValid bool, prevCreatedAt time.Time, prevFullResults json.RawMessage, currentResults map[string]any) driftInfo {
-        if prevHash == nil || *prevHash == "" || *prevHash == currentHash {
+type prevAnalysisSnapshot struct {
+        Hash           *string
+        ID             int32
+        CreatedAtValid bool
+        CreatedAt      time.Time
+        FullResults    json.RawMessage
+}
+
+func computeDriftFromPrev(currentHash string, prev prevAnalysisSnapshot, currentResults map[string]any) driftInfo {
+        if prev.Hash == nil || *prev.Hash == "" || *prev.Hash == currentHash {
                 return driftInfo{}
         }
         di := driftInfo{
                 Detected: true,
-                PrevHash: *prevHash,
-                PrevID:   prevID,
+                PrevHash: *prev.Hash,
+                PrevID:   prev.ID,
         }
-        if prevCreatedAtValid {
-                di.PrevTime = prevCreatedAt.Format("2 Jan 2006 15:04 UTC")
+        if prev.CreatedAtValid {
+                di.PrevTime = prev.CreatedAt.Format("2 Jan 2006 15:04 UTC")
         }
-        if prevFullResults != nil {
+        if prev.FullResults != nil {
                 var prevResults map[string]any
-                if json.Unmarshal(prevFullResults, &prevResults) == nil {
+                if json.Unmarshal(prev.FullResults, &prevResults) == nil {
                         di.Fields = analyzer.ComputePostureDiff(prevResults, currentResults)
                 }
         }
@@ -1218,18 +1238,10 @@ func getStringFromResults(results map[string]any, section, key string) *string {
         return &s
 }
 
-func buildSuggestedConfig(ctx context.Context, queries *dbq.Queries, domain string, currentID int32) *icuae.SuggestedConfig {
-        historicalAnalyses, err := queries.ListAnalysesByDomain(ctx, dbq.ListAnalysesByDomainParams{
-                Domain: domain,
-                Limit:  20,
-        })
-        if err != nil || len(historicalAnalyses) < 3 {
-                return nil
-        }
-
+func extractReportsAndDurations(analyses []dbq.DomainAnalysis) ([]icuae.CurrencyReport, []float64) {
         var reports []icuae.CurrencyReport
         var durations []float64
-        for _, ha := range historicalAnalyses {
+        for _, ha := range analyses {
                 if len(ha.FullResults) == 0 {
                         continue
                 }
@@ -1243,9 +1255,22 @@ func buildSuggestedConfig(ctx context.Context, queries *dbq.Queries, domain stri
                         }
                 }
                 if ha.AnalysisDuration != nil {
-                        durations = append(durations, *ha.AnalysisDuration * 1000)
+                        durations = append(durations, *ha.AnalysisDuration*1000)
                 }
         }
+        return reports, durations
+}
+
+func buildSuggestedConfig(ctx context.Context, queries *dbq.Queries, domain string, currentID int32) *icuae.SuggestedConfig {
+        historicalAnalyses, err := queries.ListAnalysesByDomain(ctx, dbq.ListAnalysesByDomainParams{
+                Domain: domain,
+                Limit:  20,
+        })
+        if err != nil || len(historicalAnalyses) < 3 {
+                return nil
+        }
+
+        reports, durations := extractReportsAndDurations(historicalAnalyses)
 
         if len(reports) < 3 {
                 return nil

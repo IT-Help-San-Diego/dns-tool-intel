@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.body.classList.remove('covert-mode');
         }
-        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(e) { /* storage unavailable */ }
+        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
     }
     const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
