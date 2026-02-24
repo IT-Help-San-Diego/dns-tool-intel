@@ -48,5 +48,8 @@ generated-icon.png
 EVOLUTION.md
 PROJECT_CONTEXT.md
 
+# Figma asset bundle exports — generated, not versioned
+exports/
+
 # Private repo staging — never push to public
 dnstool-intel-staging/

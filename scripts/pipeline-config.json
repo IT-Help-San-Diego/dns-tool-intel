@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "miro": {
+    "board_id": "uXjVG83d8PY=",
+    "board_url": "https://miro.com/app/board/uXjVG83d8PY=",
+    "diagrams": {
+      "intelligence-pipeline": {
+        "mermaid_source": "docs/diagrams/intelligence-pipeline.mmd",
+        "svg_output": "static/images/diagrams/intelligence-pipeline.svg",
+        "miro_widget_id": "3458764660935752739",
+        "miro_title": "Intelligence Pipeline — Domain Input to Products"
+      },
+      "confidence-framework": {
+        "mermaid_source": "docs/diagrams/confidence-framework.mmd",
+        "svg_output": "static/images/diagrams/confidence-framework.svg",
+        "miro_widget_id": "3458764660935752909",
+        "miro_title": "Dual-Engine Confidence Framework — ICAE + ICuAE"
+      },
+      "open-core-architecture": {
+        "mermaid_source": "docs/diagrams/open-core-architecture.mmd",
+        "svg_output": "static/images/diagrams/open-core-architecture.svg",
+        "miro_widget_id": "3458764660935886040",
+        "miro_title": "Open-Core Build Tag Architecture — Public/Private Boundary"
+      },
+      "protocol-coverage": {
+        "mermaid_source": "docs/diagrams/protocol-coverage.mmd",
+        "svg_output": "static/images/diagrams/protocol-coverage.svg",
+        "miro_widget_id": "3458764660935886175",
+        "miro_title": "Protocol Coverage — 9 Protocols with RFC References"
+      }
+    },
+    "additional_diagrams": {
+      "icae-engine": {
+        "miro_widget_id": "3458764660747839923",
+        "miro_title": "ICAE Engine Architecture — Intelligence Confidence Audit Engine",
+        "note": "Miro-native diagram, no Mermaid source"
+      },
+      "covert-recon-mode": {
+        "miro_widget_id": "3458764660749444582",
+        "miro_title": "Covert Recon Mode Architecture",
+        "note": "Miro-native diagram, no Mermaid source"
+      }
+    },
+    "documents": {
+      "blueprint-instructions": "3458764643352198552",
+      "build-tag-architecture": "3458764660748083064",
+      "intelligence-products": "3458764660749902224",
+      "covert-recon-deep-dive": "3458764660750043885",
+      "connected-documentation": "3458764660771004024",
+      "scientific-research-covert": "3458764660772073336",
+      "field-tech-toolkit": "3458764660786241262"
+    },
+    "tables": {
+      "table_1": "3458764660749040444",
+      "table_2": "3458764660750097336",
+      "table_3": "3458764660750097466",
+      "table_4": "3458764660769890449",
+      "table_5": "3458764660770665217",
+      "table_6": "3458764660770826479"
+    }
+  },
+  "figma": {
+    "token_env": "FIGMA_PAT",
+    "file_key": null,
+    "page_name": "Architecture Diagrams",
+    "note": "Set file_key after creating the Figma project file"
+  },
+  "export": {
+    "bundle_dir": "exports/figma-bundle",
+    "manifest_file": "exports/figma-bundle/manifest.json"
+  }
+}

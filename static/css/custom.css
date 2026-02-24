@@ -2283,7 +2283,15 @@ body.covert-mode .bg-opacity-10 {
     --bs-bg-opacity: 0.04 !important;
 }
 body.covert-mode .section-question {
-    color: rgba(170, 178, 188, 0.55) !important;
+    color: var(--dt-question-color-covert) !important;
+    text-shadow: none !important;
+}
+body.covert-mode .protocol-question {
+    border-left-color: rgba(140, 40, 40, 0.35);
+    background: rgba(140, 40, 40, 0.04);
+}
+body.covert-mode .protocol-question-text {
+    color: var(--dt-question-color-covert) !important;
 }
 body.covert-mode .card-header {
     background-color: rgba(14, 8, 8, 0.6) !important;
@@ -3077,6 +3085,20 @@ body.covert-mode .dri-footer {
 body.covert-mode .dri-examples {
     border-top-color: rgba(140, 40, 40, 0.1);
 }
+body.covert-mode .homepage-big-question-preview {
+    background: rgba(140, 40, 40, 0.04);
+    border-color: rgba(140, 40, 40, 0.18);
+}
+body.covert-mode .homepage-big-question-label {
+    color: rgba(196, 60, 60, 0.55);
+}
+body.covert-mode .homepage-big-question-text {
+    color: rgba(196, 60, 60, 0.9);
+    text-shadow: 0 0 18px rgba(196, 60, 60, 0.12);
+}
+body.covert-mode .homepage-big-question-example {
+    color: rgba(196, 60, 60, 0.55);
+}
 body.covert-mode .fa-compass.text-info {
     color: #cc2020 !important;
 }
@@ -3595,7 +3617,8 @@ body.covert-mode .proto-dkim.bg-info {
     color: #cc2020;
 }
 .covert-section-card .card-header .section-question {
-    color: rgba(170, 178, 188, 0.7);
+    color: var(--dt-question-color-covert);
+    text-shadow: none;
 }
 .covert-recon-box {
     background-color: rgba(140, 40, 40, 0.08);
@@ -4821,10 +4844,11 @@ body.covert-mode .dt-question {
 .section-question {
     display: block;
     margin-top: 0.25rem;
-    font-size: 1.0em;
-    font-weight: 600;
-    letter-spacing: 0.015em;
-    color: rgba(13, 202, 240, 0.92);
+    font-size: var(--dt-question-size-section);
+    font-weight: var(--dt-question-weight);
+    font-style: italic;
+    letter-spacing: var(--dt-question-spacing);
+    color: var(--dt-question-color);
     line-height: 1.5;
     text-shadow: 0 0 12px rgba(13, 202, 240, 0.08);
     overflow: hidden;
@@ -4947,10 +4971,12 @@ body.covert-mode .dt-question {
     margin-bottom: 0.35rem;
 }
 .protocol-question-text {
-    font-size: 0.82em;
-    font-weight: 500;
-    color: rgba(13, 202, 240, 0.82);
+    font-size: var(--dt-question-size-protocol);
+    font-weight: var(--dt-question-weight);
+    letter-spacing: var(--dt-question-spacing);
+    color: var(--dt-question-color);
     font-style: italic;
+    opacity: 0.88;
 }
 .protocol-question .badge {
     font-size: 0.74em;
@@ -5892,8 +5918,10 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 .dri-question-text {
     font-size: 1.2em;
-    font-weight: 600;
-    color: rgba(13, 202, 240, 0.92);
+    font-weight: var(--dt-question-weight);
+    font-style: italic;
+    letter-spacing: var(--dt-question-spacing);
+    color: var(--dt-question-color);
     text-align: center;
     line-height: 1.4;
     text-shadow: 0 0 12px rgba(13, 202, 240, 0.08);
@@ -5946,9 +5974,10 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 .homepage-big-question-text {
     font-size: 1.25em;
-    font-weight: 600;
-    letter-spacing: 0.015em;
-    color: rgba(13, 202, 240, 0.92);
+    font-weight: var(--dt-question-weight);
+    font-style: italic;
+    letter-spacing: var(--dt-question-spacing);
+    color: var(--dt-question-color);
     line-height: 1.4;
     text-shadow: 0 0 18px rgba(13, 202, 240, 0.12);
     text-align: center;

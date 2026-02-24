@@ -183,6 +183,8 @@ func main() {
         router.POST("/ops/user/:id/delete", middleware.RequireAdmin(), adminHandler.DeleteUser)
         router.POST("/ops/user/:id/reset-sessions", middleware.RequireAdmin(), adminHandler.ResetUserSessions)
         router.POST("/ops/sessions/purge-expired", middleware.RequireAdmin(), adminHandler.PurgeExpiredSessions)
+        router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
+        router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
 
         analyticsHandler := handlers.NewAnalyticsHandler(database, cfg)
         router.GET("/ops/analytics", middleware.RequireAdmin(), analyticsHandler.Dashboard)

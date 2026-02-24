@@ -459,6 +459,30 @@
             .arch-protocol-grid { grid-template-columns: 1fr; }
             .arch-flow-arrow { font-size: 0.8rem; }
         }
+
+        .arch-export-btn {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+        }
+
+        @media print {
+            body { background: #0c1018 !important; color: #e6edf3 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            nav, footer, .arch-export-btn, .arch-diagram-link-icon { display: none !important; }
+            .container-fluid { max-width: 100% !important; padding: 0 1rem !important; }
+            .arch-page { max-width: 100% !important; }
+            .arch-section { break-inside: avoid; page-break-inside: avoid; margin-bottom: 1rem !important; }
+            .arch-diagram-card { break-inside: avoid; page-break-inside: avoid; }
+            .arch-standard-card { break-inside: avoid; page-break-inside: avoid; }
+            .arch-tlp-banner { border: 2px solid #33aa33 !important; }
+            a { color: inherit !important; text-decoration: none !important; }
+            h1, h2, h3 { color: #e6edf3 !important; }
+            .arch-section-header { background: rgba(88,166,255,0.08) !important; }
+            .arch-section-body { background: rgba(12,16,24,0.9) !important; }
+            .arch-footer-meta { font-size: 0.6rem; }
+            .text-center .btn { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-dark text-light">
@@ -468,7 +492,10 @@
         <div class="arch-tlp-banner mb-4">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                 <h1 class="h4 mb-0 fw-bold text-light"><i class="fas fa-sitemap me-2 arch-section-icon"></i>System Architecture</h1>
-                <span class="arch-tlp-badge"><span class="arch-tlp-dot"></span>TLP:GREEN</span>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary arch-export-btn text-nowrap" id="archExportPdf"><i class="fas fa-file-pdf me-1"></i>Export PDF</button>
+                    <span class="arch-tlp-badge"><span class="arch-tlp-dot"></span>TLP:GREEN</span>
+                </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <span class="arch-classification"><i class="fas fa-shield-halved me-1"></i>Classification: Public Release</span>
@@ -818,5 +845,10 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.getElementById('archExportPdf').addEventListener('click', function() {
+        window.print();
+    });
+    </script>
 </body>
 </html>
