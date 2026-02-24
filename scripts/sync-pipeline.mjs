@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { readFileSync } from 'fs';
 
 const VERSION_RE = /Version\s*=\s*"([^"]+)"/;
@@ -12,14 +12,15 @@ function getVersion() {
   } catch { return 'unknown'; }
 }
 
-function runStep(label, command) {
+function runStep(label, cmd, args) {
+  const display = [cmd, ...args].join(' ');
   console.log(`\n  [${'='.repeat(45)}]`);
   console.log(`  Step: ${label}`);
-  console.log(`  Command: ${command}`);
+  console.log(`  Command: ${display}`);
   console.log(`  [${'='.repeat(45)}]\n`);
 
   try {
-    execSync(command, { stdio: 'inherit', timeout: 60000 });
+    execFileSync(cmd, args, { stdio: 'inherit', timeout: 60000 });
     console.log(`\n  [OK] ${label} completed`);
     return true;
   } catch (err) {
@@ -39,14 +40,14 @@ function main() {
   console.log(`${'='.repeat(55)}`);
 
   const steps = [
-    { label: 'Render Mermaid Diagrams', command: 'bash scripts/render-diagrams.sh' },
-    { label: 'CSS Minification', command: 'npx csso static/css/custom.css -o static/css/custom.min.css' },
-    { label: 'Figma Asset Bundle', command: 'node scripts/figma-asset-bundle.mjs' },
-    { label: 'Figma Verification', command: 'node scripts/figma-verify.mjs' },
+    { label: 'Render Mermaid Diagrams', cmd: 'bash', args: ['scripts/render-diagrams.sh'] },
+    { label: 'CSS Minification', cmd: 'npx', args: ['csso', 'static/css/custom.css', '-o', 'static/css/custom.min.css'] },
+    { label: 'Figma Asset Bundle', cmd: 'node', args: ['scripts/figma-asset-bundle.mjs'] },
+    { label: 'Figma Verification', cmd: 'node', args: ['scripts/figma-verify.mjs'] },
   ];
 
   if (process.env.MIRO_API_TOKEN) {
-    steps.splice(1, 0, { label: 'Sync to Miro Board', command: 'node scripts/sync-mermaid-miro.mjs' });
+    steps.splice(1, 0, { label: 'Sync to Miro Board', cmd: 'node', args: ['scripts/sync-mermaid-miro.mjs'] });
   } else {
     console.log('\n  [INFO] MIRO_API_TOKEN not set — skipping Miro sync');
   }
@@ -55,7 +56,7 @@ function main() {
   let allPassed = true;
 
   for (const step of steps) {
-    const ok = runStep(step.label, step.command);
+    const ok = runStep(step.label, step.cmd, step.args);
     results.push({ ...step, ok });
     if (!ok) {
       allPassed = false;
