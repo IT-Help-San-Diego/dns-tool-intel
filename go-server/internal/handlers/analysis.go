@@ -285,13 +285,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 postureHash:     postureHash,
         })
 
-        if !ephemeral && domainExists {
-                if cr, ok := results["currency_report"]; ok {
-                        if report, ok := cr.(icuae.CurrencyReport); ok {
-                                go icuae.RecordScanResult(context.Background(), h.DB.Queries, asciiDomain, report, h.Config.AppVersion)
-                        }
-                }
-        }
+        h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
 
         analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, viewDataInput{
                 domain:           domain,
@@ -308,20 +302,40 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 isPrivate:        isPrivate,
         })
 
-        if devNull {
-                c.Header("X-Hacker", "MUST means MUST -- not kinda, maybe, should. // DNS Tool")
-                c.Header("X-Persistence", "/dev/null")
-        }
-
-        mode := "E"
-        if c.PostForm("covert") == "1" || c.Query("covert") == "1" {
-                mode = "C"
-        }
+        applyDevNullHeaders(c, devNull)
+        mode := resolveCovertMode(c)
         analyzeData["CovertMode"] = mode == "C"
         analyzeData["ReportMode"] = mode
 
         mergeAuthData(c, h.Config, analyzeData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
+}
+
+func (h *AnalysisHandler) recordCurrencyIfEligible(ephemeral, domainExists bool, asciiDomain string, results map[string]any) {
+        if ephemeral || !domainExists {
+                return
+        }
+        cr, ok := results["currency_report"]
+        if !ok {
+                return
+        }
+        if report, valid := cr.(icuae.CurrencyReport); valid {
+                go icuae.RecordScanResult(context.Background(), h.DB.Queries, asciiDomain, report, h.Config.AppVersion)
+        }
+}
+
+func applyDevNullHeaders(c *gin.Context, devNull bool) {
+        if devNull {
+                c.Header("X-Hacker", "MUST means MUST -- not kinda, maybe, should. // DNS Tool")
+                c.Header("X-Persistence", "/dev/null")
+        }
+}
+
+func resolveCovertMode(c *gin.Context) string {
+        if c.PostForm("covert") == "1" || c.Query("covert") == "1" {
+                return "C"
+        }
+        return "E"
 }
 
 func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H, results map[string]any, domain string, analysisID int32) {
@@ -436,7 +450,17 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
                 return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
         }
-        return h.saveAnalysis(ctx, p.domain, p.asciiDomain, p.results, p.analysisDuration, p.countryCode, p.countryName, p.isPrivate, p.hasNovelSelectors, p.scanClass)
+        return h.saveAnalysis(ctx, saveAnalysisInput{
+                domain:           p.domain,
+                asciiDomain:      p.asciiDomain,
+                results:          p.results,
+                duration:         p.analysisDuration,
+                countryCode:      p.countryCode,
+                countryName:      p.countryName,
+                private:          p.isPrivate,
+                hasUserSelectors: p.hasNovelSelectors,
+                scanClass:        p.scanClass,
+        })
 }
 
 func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {
@@ -461,32 +485,41 @@ type sideEffectsParams struct {
 }
 
 func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, p sideEffectsParams) {
-        if p.analysisID > 0 && p.isAuthenticated && p.userID > 0 {
-                go func() {
-                        err := h.DB.Queries.InsertUserAnalysis(context.Background(), dbq.InsertUserAnalysisParams{
-                                UserID:     p.userID,
-                                AnalysisID: p.analysisID,
-                        })
-                        if err != nil {
-                                slog.Error("Failed to record user analysis association", "user_id", p.userID, "analysis_id", p.analysisID, "error", err)
-                        }
-                }()
-        }
-
-        if p.analysisID > 0 && p.drift.Detected {
-                go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
+        if p.analysisID > 0 {
+                h.recordUserAnalysisAsync(p)
+                if p.drift.Detected {
+                        go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
+                }
         }
 
         if !p.ephemeral && p.domainExists {
                 icae.EvaluateAndRecord(context.Background(), h.DB.Queries, h.Config.AppVersion)
+                recordAnalyticsCollector(c, p.asciiDomain)
         }
+}
 
-        if !p.ephemeral && p.domainExists {
-                if ac, exists := c.Get("analytics_collector"); exists {
-                        if collector, ok := ac.(interface{ RecordAnalysis(string) }); ok {
-                                collector.RecordAnalysis(p.asciiDomain)
-                        }
+func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
+        if !p.isAuthenticated || p.userID <= 0 {
+                return
+        }
+        go func() {
+                err := h.DB.Queries.InsertUserAnalysis(context.Background(), dbq.InsertUserAnalysisParams{
+                        UserID:     p.userID,
+                        AnalysisID: p.analysisID,
+                })
+                if err != nil {
+                        slog.Error("Failed to record user analysis association", "user_id", p.userID, "analysis_id", p.analysisID, "error", err)
                 }
+        }()
+}
+
+func recordAnalyticsCollector(c *gin.Context, domain string) {
+        ac, exists := c.Get("analytics_collector")
+        if !exists {
+                return
+        }
+        if collector, ok := ac.(interface{ RecordAnalysis(string) }); ok {
+                collector.RecordAnalysis(domain)
         }
 }
 
@@ -1026,53 +1059,46 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
         c.JSON(http.StatusOK, checksumResponse)
 }
 
-func (h *AnalysisHandler) saveAnalysis(ctx context.Context, domain, asciiDomain string, results map[string]any, duration float64, countryCode, countryName string, private, hasUserSelectors bool, scanClass scanner.Classification) (int32, string) {
-        results["_tool_version"] = h.Config.AppVersion
-        fullResultsJSON, _ := json.Marshal(results)
+type saveAnalysisInput struct {
+        domain           string
+        asciiDomain      string
+        results          map[string]any
+        duration         float64
+        countryCode      string
+        countryName      string
+        private          bool
+        hasUserSelectors bool
+        scanClass        scanner.Classification
+}
 
-        basicRecordsJSON := getJSONFromResults(results, "basic_records", "")
-        authRecordsJSON := getJSONFromResults(results, "authoritative_records", "")
+func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput) (int32, string) {
+        p.results["_tool_version"] = h.Config.AppVersion
+        fullResultsJSON, _ := json.Marshal(p.results)
 
-        spfStatus := getStringFromResults(results, "spf_analysis", "status")
-        dmarcStatus := getStringFromResults(results, "dmarc_analysis", "status")
-        dmarcPolicy := getStringFromResults(results, "dmarc_analysis", "policy")
-        dkimStatus := getStringFromResults(results, "dkim_analysis", "status")
-        registrarName := getStringFromResults(results, "registrar_info", "registrar")
-        registrarSource := getStringFromResults(results, "registrar_info", "source")
+        basicRecordsJSON := getJSONFromResults(p.results, "basic_records", "")
+        authRecordsJSON := getJSONFromResults(p.results, "authoritative_records", "")
 
-        spfRecordsJSON := getJSONFromResults(results, "spf_analysis", "records")
-        dmarcRecordsJSON := getJSONFromResults(results, "dmarc_analysis", "records")
-        dkimSelectorsJSON := getJSONFromResults(results, "dkim_analysis", "selectors")
-        ctSubdomainsJSON := getJSONFromResults(results, "ct_subdomains", "")
+        spfStatus := getStringFromResults(p.results, "spf_analysis", "status")
+        dmarcStatus := getStringFromResults(p.results, "dmarc_analysis", "status")
+        dmarcPolicy := getStringFromResults(p.results, "dmarc_analysis", "policy")
+        dkimStatus := getStringFromResults(p.results, "dkim_analysis", "status")
+        registrarName := getStringFromResults(p.results, "registrar_info", "registrar")
+        registrarSource := getStringFromResults(p.results, "registrar_info", "source")
 
-        postureHash := analyzer.CanonicalPostureHash(results)
+        spfRecordsJSON := getJSONFromResults(p.results, "spf_analysis", "records")
+        dmarcRecordsJSON := getJSONFromResults(p.results, "dmarc_analysis", "records")
+        dkimSelectorsJSON := getJSONFromResults(p.results, "dkim_analysis", "selectors")
+        ctSubdomainsJSON := getJSONFromResults(p.results, "ct_subdomains", "")
 
-        success := true
-        var errorMessage *string
-        if errStr, ok := results["error"].(string); ok && errStr != "" {
-                success = false
-                errorMessage = &errStr
-        }
+        postureHash := analyzer.CanonicalPostureHash(p.results)
 
-        var cc, cn *string
-        if countryCode != "" {
-                cc = &countryCode
-        }
-        if countryName != "" {
-                cn = &countryName
-        }
-
-        var scanSource, scanIP *string
-        if scanClass.IsScan {
-                scanSource = &scanClass.Source
-        }
-        if scanClass.IP != "" {
-                scanIP = &scanClass.IP
-        }
+        success, errorMessage := extractAnalysisError(p.results)
+        cc, cn := optionalStrings(p.countryCode, p.countryName)
+        scanSource, scanIP := extractScanFields(p.scanClass)
 
         params := dbq.InsertAnalysisParams{
-                Domain:               domain,
-                AsciiDomain:          asciiDomain,
+                Domain:               p.domain,
+                AsciiDomain:          p.asciiDomain,
                 BasicRecords:         basicRecordsJSON,
                 AuthoritativeRecords: authRecordsJSON,
                 SpfStatus:            spfStatus,
@@ -1090,18 +1116,18 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, domain, asciiDomain 
                 CountryName:          cn,
                 AnalysisSuccess:      &success,
                 ErrorMessage:         errorMessage,
-                AnalysisDuration:     &duration,
+                AnalysisDuration:     &p.duration,
                 PostureHash:          &postureHash,
-                Private:              private,
-                HasUserSelectors:     hasUserSelectors,
-                ScanFlag:             scanClass.IsScan,
+                Private:              p.private,
+                HasUserSelectors:     p.hasUserSelectors,
+                ScanFlag:             p.scanClass.IsScan,
                 ScanSource:           scanSource,
                 ScanIp:               scanIP,
         }
 
         row, err := h.DB.Queries.InsertAnalysis(ctx, params)
         if err != nil {
-                slog.Error("Failed to save analysis", "domain", domain, "error", err)
+                slog.Error("Failed to save analysis", "domain", p.domain, "error", err)
                 return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
         }
 
@@ -1110,6 +1136,35 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, domain, asciiDomain 
                 timestamp = row.CreatedAt.Time.Format("2006-01-02 15:04:05 UTC")
         }
         return row.ID, timestamp
+}
+
+func extractAnalysisError(results map[string]any) (bool, *string) {
+        if errStr, ok := results["error"].(string); ok && errStr != "" {
+                return false, &errStr
+        }
+        return true, nil
+}
+
+func optionalStrings(a, b string) (*string, *string) {
+        var ap, bp *string
+        if a != "" {
+                ap = &a
+        }
+        if b != "" {
+                bp = &b
+        }
+        return ap, bp
+}
+
+func extractScanFields(sc scanner.Classification) (*string, *string) {
+        var scanSource, scanIP *string
+        if sc.IsScan {
+                scanSource = &sc.Source
+        }
+        if sc.IP != "" {
+                scanIP = &sc.IP
+        }
+        return scanSource, scanIP
 }
 
 func lookupCountry(ip string) (string, string) {

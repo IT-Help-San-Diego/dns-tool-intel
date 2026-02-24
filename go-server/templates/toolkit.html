@@ -887,9 +887,9 @@
                             <table class="table table-dark table-sm small">
                                 <thead>
                                     <tr>
-                                        <th>What It Does</th>
-                                        <th>Windows</th>
-                                        <th>macOS / Linux</th>
+                                        <th scope="col">What It Does</th>
+                                        <th scope="col">Windows</th>
+                                        <th scope="col">macOS / Linux</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1061,7 +1061,7 @@
         var toggles = document.querySelectorAll('.tk-why-toggle, .tk-discovery-toggle');
         for (var i = 0; i < toggles.length; i++) {
             toggles[i].addEventListener('click', function() {
-                var targetId = this.getAttribute('data-target');
+                var targetId = this.dataset.target;
                 var target = document.getElementById(targetId);
                 if (target) {
                     var isVisible = target.classList.contains('show');

@@ -124,11 +124,11 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th>User</th>
-                                        <th>Role</th>
-                                        <th>Sessions</th>
-                                        <th>Last Login</th>
-                                        <th>Actions</th>
+                                        <th scope="col">User</th>
+                                        <th scope="col">Role</th>
+                                        <th scope="col">Sessions</th>
+                                        <th scope="col">Last Login</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -188,10 +188,10 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Protocol</th>
-                                        <th>Collection</th>
-                                        <th>Analysis</th>
-                                        <th>Runs</th>
+                                        <th scope="col">Protocol</th>
+                                        <th scope="col">Collection</th>
+                                        <th scope="col">Analysis</th>
+                                        <th scope="col">Runs</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -218,10 +218,10 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Version</th>
-                                        <th>Cases</th>
-                                        <th>Result</th>
-                                        <th>Date</th>
+                                        <th scope="col">Version</th>
+                                        <th scope="col">Cases</th>
+                                        <th scope="col">Result</th>
+                                        <th scope="col">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -290,10 +290,10 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Domain</th>
-                                        <th>Source</th>
-                                        <th>IP</th>
-                                        <th>Date</th>
+                                        <th scope="col">Domain</th>
+                                        <th scope="col">Source</th>
+                                        <th scope="col">IP</th>
+                                        <th scope="col">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -322,11 +322,11 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Domain</th>
-                                        <th>Status</th>
-                                        <th>Duration</th>
-                                        <th>Flags</th>
-                                        <th>Date</th>
+                                        <th scope="col">Domain</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Duration</th>
+                                        <th scope="col">Flags</th>
+                                        <th scope="col">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -369,7 +369,7 @@
     <script nonce="{{.CspNonce}}">
     document.querySelectorAll('form[data-confirm-delete]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
-            var name = form.getAttribute('data-confirm-delete');
+            var name = form.dataset.confirmDelete;
             if (!confirm('Delete user "' + name + '" and all their data? This cannot be undone.')) {
                 e.preventDefault();
             }

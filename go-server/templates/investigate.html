@@ -353,19 +353,19 @@
                                 <tbody>
                                     {{$asn2 := mapGetStr "asn" $asnInfoCard}}
                                     {{if ne $asn2 ""}}
-                                    <tr><th class="text-muted u-w-35p">ASN</th><td><code>AS{{$asn2}}</code></td></tr>
+                                    <tr><th scope="row" class="text-muted u-w-35p">ASN</th><td><code>AS{{$asn2}}</code></td></tr>
                                     {{end}}
                                     {{$asName2 := mapGetStr "as_name" $asnInfoCard}}
                                     {{if ne $asName2 ""}}
-                                    <tr><th class="text-muted">Organization</th><td>{{$asName2}}</td></tr>
+                                    <tr><th scope="row" class="text-muted">Organization</th><td>{{$asName2}}</td></tr>
                                     {{end}}
                                     {{$prefix := mapGetStr "prefix" $asnInfoCard}}
                                     {{if ne $prefix ""}}
-                                    <tr><th class="text-muted">IP Prefix</th><td><code>{{$prefix}}</code></td></tr>
+                                    <tr><th scope="row" class="text-muted">IP Prefix</th><td><code>{{$prefix}}</code></td></tr>
                                     {{end}}
                                     {{$country2 := mapGetStr "country" $asnInfoCard}}
                                     {{if ne $country2 ""}}
-                                    <tr><th class="text-muted">Country</th><td>{{$country2}}</td></tr>
+                                    <tr><th scope="row" class="text-muted">Country</th><td>{{$country2}}</td></tr>
                                     {{end}}
                                 </tbody>
                             </table>
@@ -433,22 +433,22 @@
                         <table class="table table-dark table-sm mb-2">
                             <tbody>
                                 {{if and $ipCity (ne (printf "%v" $ipCity) "")}}
-                                <tr><th class="text-muted u-w-35p">City</th><td>{{$ipCity}}</td></tr>
+                                <tr><th scope="row" class="text-muted u-w-35p">City</th><td>{{$ipCity}}</td></tr>
                                 {{end}}
                                 {{if and $ipRegion (ne (printf "%v" $ipRegion) "")}}
-                                <tr><th class="text-muted">Region</th><td>{{$ipRegion}}</td></tr>
+                                <tr><th scope="row" class="text-muted">Region</th><td>{{$ipRegion}}</td></tr>
                                 {{end}}
                                 {{if and $ipCountry (ne (printf "%v" $ipCountry) "")}}
-                                <tr><th class="text-muted">Country</th><td>{{$ipCountry}}</td></tr>
+                                <tr><th scope="row" class="text-muted">Country</th><td>{{$ipCountry}}</td></tr>
                                 {{end}}
                                 {{if and $ipPostal (ne (printf "%v" $ipPostal) "")}}
-                                <tr><th class="text-muted">Postal</th><td>{{$ipPostal}}</td></tr>
+                                <tr><th scope="row" class="text-muted">Postal</th><td>{{$ipPostal}}</td></tr>
                                 {{end}}
                                 {{if and $ipLoc (ne (printf "%v" $ipLoc) "")}}
-                                <tr><th class="text-muted">Coordinates</th><td><code>{{$ipLoc}}</code></td></tr>
+                                <tr><th scope="row" class="text-muted">Coordinates</th><td><code>{{$ipLoc}}</code></td></tr>
                                 {{end}}
                                 {{if and $ipTimezone (ne (printf "%v" $ipTimezone) "")}}
-                                <tr><th class="text-muted">Timezone</th><td>{{$ipTimezone}}</td></tr>
+                                <tr><th scope="row" class="text-muted">Timezone</th><td>{{$ipTimezone}}</td></tr>
                                 {{end}}
                             </tbody>
                         </table>
@@ -458,10 +458,10 @@
                         <table class="table table-dark table-sm mb-2">
                             <tbody>
                                 {{if and $ipOrg (ne (printf "%v" $ipOrg) "")}}
-                                <tr><th class="text-muted u-w-35p">Org</th><td>{{$ipOrg}}</td></tr>
+                                <tr><th scope="row" class="text-muted u-w-35p">Org</th><td>{{$ipOrg}}</td></tr>
                                 {{end}}
                                 {{if and $ipHostname (ne (printf "%v" $ipHostname) "")}}
-                                <tr><th class="text-muted">Hostname</th><td><code>{{$ipHostname}}</code></td></tr>
+                                <tr><th scope="row" class="text-muted">Hostname</th><td><code>{{$ipHostname}}</code></td></tr>
                                 {{end}}
                             </tbody>
                         </table>
@@ -502,10 +502,10 @@
                     <table class="table table-dark table-sm table-hover mb-0">
                         <thead>
                             <tr>
-                                <th class="u-w-25p">Role</th>
-                                <th>Evidence</th>
-                                <th class="u-w-15p">Record</th>
-                                <th class="u-w-25p">Hostname</th>
+                                <th scope="col" class="u-w-25p">Role</th>
+                                <th scope="col">Evidence</th>
+                                <th scope="col" class="u-w-15p">Record</th>
+                                <th scope="col" class="u-w-25p">Hostname</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -572,10 +572,10 @@
                 <table class="table table-dark table-sm table-hover mb-0">
                     <thead>
                         <tr>
-                            <th class="u-w-25p">Type</th>
-                            <th>Evidence</th>
-                            <th class="u-w-15p">Source</th>
-                            <th class="u-w-25p">Hostname</th>
+                            <th scope="col" class="u-w-25p">Type</th>
+                            <th scope="col">Evidence</th>
+                            <th scope="col" class="u-w-15p">Source</th>
+                            <th scope="col" class="u-w-25p">Hostname</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -644,8 +644,8 @@
                     <table class="table table-dark table-sm mb-0">
                         <thead>
                             <tr>
-                                <th>Domain</th>
-                                <th>Source</th>
+                                <th scope="col">Domain</th>
+                                <th scope="col">Source</th>
                             </tr>
                         </thead>
                         <tbody>

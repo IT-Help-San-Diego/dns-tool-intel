@@ -307,7 +307,7 @@ func extractIntFieldDefault(m map[string]any, key string, defaultVal int) int {
         return defaultVal
 }
 
-func evaluateDKIMIssues(dkim map[string]any) (weakKeys bool, thirdPartyOnly bool) {
+func evaluateDKIMIssues(dkim map[string]any) (weakKeys, thirdPartyOnly bool) {
         if dkim == nil {
                 return false, false
         }
@@ -1189,7 +1189,7 @@ func getNumericValue(m map[string]any, key string) float64 {
         return 0
 }
 
-func buildAISurfaceVerdicts(results map[string]any, verdicts map[string]any) {
+func buildAISurfaceVerdicts(results, verdicts map[string]any) {
         aiSurface, ok := results["ai_surface"].(map[string]any)
         if !ok {
                 return

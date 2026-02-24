@@ -254,7 +254,7 @@ func extractPostmarkHeaders(obj map[string]interface{}) string {
                 lines = append(lines, "To: "+to)
         }
         if subject, ok := obj["Subject"].(string); ok && subject != "" {
-                lines = append(lines, "Subject: "+subject)
+                lines = append(lines, headerSubject+subject)
         }
         if msgID, ok := obj["MessageID"].(string); ok && msgID != "" {
                 lines = append(lines, "Message-ID: "+msgID)
@@ -293,7 +293,7 @@ func extractSendGridHeaders(obj map[string]interface{}) string {
                 }
         }
         if subject, ok := obj["subject"].(string); ok && subject != "" {
-                lines = append(lines, "Subject: "+subject)
+                lines = append(lines, headerSubject+subject)
         }
 
         if len(lines) >= 2 {

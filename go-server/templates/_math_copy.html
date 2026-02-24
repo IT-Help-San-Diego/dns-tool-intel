@@ -1,6 +1,16 @@
 {{define "math_copy_script"}}
 <script nonce="{{.CspNonce}}">
 (function() {
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+    }
     function showCopied(btn) {
         btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
         btn.classList.add('math-copy-btn--copied');
@@ -22,25 +32,11 @@
             var latex = block.dataset.latex;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(latex).then(function() { showCopied(btn); }).catch(function() {
-                    var ta = document.createElement('textarea');
-                    ta.value = latex;
-                    ta.style.position = 'fixed';
-                    ta.style.opacity = '0';
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    ta.remove();
+                    fallbackCopy(latex);
                     showCopied(btn);
                 });
             } else {
-                var ta = document.createElement('textarea');
-                ta.value = latex;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                ta.remove();
+                fallbackCopy(latex);
                 showCopied(btn);
             }
         });

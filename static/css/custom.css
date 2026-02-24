@@ -398,10 +398,13 @@ code {
     border: 1px solid rgba(125, 142, 168, 0.35);
     cursor: default;
     transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+    text-decoration: none;
 }
 .icae-badge:hover {
     border-color: rgba(125, 142, 168, 0.6);
     transform: translateY(-1px);
+    color: #e6edf3;
+    text-decoration: none;
 }
 .icae-dot {
     display: inline-block;
@@ -446,8 +449,6 @@ code {
     box-shadow: 0 0 8px rgba(74, 85, 104, 0.2);
 }
 
-.icae-badge { text-decoration: none; }
-.icae-badge:hover { color: #e6edf3; text-decoration: none; }
 
 .icae-dot-inline {
     display: inline-block;
@@ -550,11 +551,11 @@ code {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    padding: 0.55em 1.2em;
-    border-radius: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.35em 0.75em;
+    border-radius: 0.375rem;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
@@ -2338,7 +2339,7 @@ body.covert-mode .text-warning {
     color: rgba(196, 100, 60, 0.5) !important;
 }
 body.covert-mode .text-light {
-    color: rgba(170, 178, 188, 0.6) !important;
+    color: rgba(200, 180, 180, 0.55) !important;
 }
 body.covert-mode .text-muted {
     color: rgba(170, 178, 188, 0.45) !important;
@@ -2472,7 +2473,7 @@ body.covert-mode .code-block {
     color: rgba(204, 40, 40, 0.65) !important;
 }
 body.covert-mode code {
-    color: rgba(204, 40, 40, 0.6);
+    color: #cc2828;
     max-width: 100%;
     overflow-wrap: break-word;
     word-break: break-all;
@@ -3572,12 +3573,6 @@ body.covert-mode .fa-check-double.text-info,
 body.covert-mode .fa-shield-halved.text-info {
     color: #cc2020 !important;
 }
-body.covert-mode .text-light {
-    color: rgba(200, 180, 180, 0.55) !important;
-}
-body.covert-mode code {
-    color: #cc2828;
-}
 body.covert-mode .changelog-badge {
     opacity: 0.7;
 }
@@ -3590,7 +3585,7 @@ body.covert-mode .covert-show {
 body.covert-mode .covert-hide {
     display: none !important;
 }
-body.covert-mode .covert-show-inline {
+.covert-show-inline {
     display: none !important;
 }
 body.covert-mode .covert-show-inline {
@@ -5473,13 +5468,6 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 
 /* ICAE Protocol Cards with Progress Bars */
-.icae-overall-badge {
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.35em 0.75em;
-    border-radius: 0.375rem;
-    letter-spacing: 0.02em;
-}
 .icae-level-dev { background: rgba(74, 85, 104, 0.20); color: #718096; border: 1px solid rgba(74, 85, 104, 0.4); }
 .icae-level-verified { background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.4); }
 .icae-level-consistent { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.35); }
@@ -6546,7 +6534,6 @@ body.covert-mode .icuae-test-card:hover {
 .u-w-3rem  { width: 3rem; }
 .u-fs-082  { font-size: 0.82rem; }
 .u-fs-075  { font-size: 0.75rem; }
-.u-break-all { word-break: break-all; }
 .u-color-covert-loading { color: rgba(196,60,60,0.6); }
 .u-hero-protocols-divider { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem; }
 .u-tier-excellent { background: rgba(25,135,84,0.15); border: 1px solid rgba(25,135,84,0.3); }

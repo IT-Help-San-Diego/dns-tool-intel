@@ -355,10 +355,10 @@
                 <table class="table table-sm table-borderless mb-0 small">
                     <thead>
                         <tr class="text-warning-emphasis">
-                            <th class="py-0 ps-0 w-25">Field</th>
-                            <th class="py-0 w-25">Previous</th>
-                            <th class="py-0"></th>
-                            <th class="py-0 w-25">Current</th>
+                            <th scope="col" class="py-0 ps-0 w-25">Field</th>
+                            <th scope="col" class="py-0 w-25">Previous</th>
+                            <th scope="col" class="py-0"></th>
+                            <th scope="col" class="py-0 w-25">Current</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -515,11 +515,11 @@
                                         <table class="table table-dark table-sm table-hover mb-0">
                                             <thead>
                                                 <tr>
-                                                    <th>Record Type</th>
-                                                    <th>Observed TTL</th>
-                                                    <th>Recommended TTL</th>
-                                                    <th>Severity</th>
-                                                    <th>Recommendation</th>
+                                                    <th scope="col">Record Type</th>
+                                                    <th scope="col">Observed TTL</th>
+                                                    <th scope="col">Recommended TTL</th>
+                                                    <th scope="col">Severity</th>
+                                                    <th scope="col">Recommendation</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -571,11 +571,11 @@
                                 <table class="table table-sm table-bordered mb-2">
                                     <thead>
                                         <tr>
-                                            <th class="sc-col-param">Parameter</th>
-                                            <th class="sc-col-current">Current</th>
-                                            <th class="sc-col-suggested">Suggested</th>
-                                            <th class="sc-col-severity">Severity</th>
-                                            <th>Rationale</th>
+                                            <th scope="col" class="sc-col-param">Parameter</th>
+                                            <th scope="col" class="sc-col-current">Current</th>
+                                            <th scope="col" class="sc-col-suggested">Suggested</th>
+                                            <th scope="col" class="sc-col-severity">Severity</th>
+                                            <th scope="col">Rationale</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1989,9 +1989,9 @@
                                     <table class="table table-sm table-dark small mb-2">
                                         <thead>
                                             <tr>
-                                                <th>External Domain</th>
-                                                <th>Authorization</th>
-                                                <th>Auth Record</th>
+                                                <th scope="col">External Domain</th>
+                                                <th scope="col">Authorization</th>
+                                                <th scope="col">Auth Record</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -2093,11 +2093,11 @@
                                 <table class="table table-sm table-dark small mb-2">
                                     <thead>
                                         <tr>
-                                            <th>MX Host</th>
-                                            <th>Usage</th>
-                                            <th>Selector</th>
-                                            <th>Match</th>
-                                            <th>Certificate Data</th>
+                                            <th scope="col">MX Host</th>
+                                            <th scope="col">Usage</th>
+                                            <th scope="col">Selector</th>
+                                            <th scope="col">Match</th>
+                                            <th scope="col">Certificate Data</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -2401,7 +2401,7 @@
                                 <div class="table-responsive">
                                     <table class="table table-sm table-dark small mb-2">
                                         <thead>
-                                            <tr><th>Usage</th><th>Selector</th><th>Matching Type</th><th>Certificate Data</th></tr>
+                                            <tr><th scope="col">Usage</th><th scope="col">Selector</th><th scope="col">Matching Type</th><th scope="col">Certificate Data</th></tr>
                                         </thead>
                                         <tbody>
                                             {{range $rec := $smimeaRecords}}
@@ -2825,7 +2825,7 @@
                             <h6 class="text-muted small"><i class="fas fa-list me-1"></i> Evidence Log ({{len $aiEvidence}} item{{if ne (len $aiEvidence) 1}}s{{end}})</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-dark small mb-0">
-                                    <thead><tr><th>Type</th><th>Detail</th><th>Severity</th><th>Confidence</th></tr></thead>
+                                    <thead><tr><th scope="col">Type</th><th scope="col">Detail</th><th scope="col">Severity</th><th scope="col">Confidence</th></tr></thead>
                                     <tbody>
                                         {{range $aiEvidence}}
                                         <tr>
@@ -2887,11 +2887,11 @@
                             <table class="table table-sm table-hover align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="small">Severity</th>
-                                        <th class="small">Type</th>
-                                        <th class="small">Location</th>
-                                        <th class="small">Redacted Value</th>
-                                        <th class="small">Confidence</th>
+                                        <th scope="col" class="small">Severity</th>
+                                        <th scope="col" class="small">Type</th>
+                                        <th scope="col" class="small">Location</th>
+                                        <th scope="col" class="small">Redacted Value</th>
+                                        <th scope="col" class="small">Confidence</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -2994,9 +2994,9 @@
                             <table class="table table-sm table-dark mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="u-w-30pct">Check</th>
-                                        <th class="u-w-15pct">Result</th>
-                                        <th>Detail</th>
+                                        <th scope="col" class="u-w-30pct">Check</th>
+                                        <th scope="col" class="u-w-15pct">Result</th>
+                                        <th scope="col">Detail</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3072,11 +3072,11 @@
                             <table class="table table-sm table-hover align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th class="small">Severity</th>
-                                        <th class="small">Category</th>
-                                        <th class="small">Path</th>
-                                        <th class="small">Risk</th>
-                                        <th class="small">Remediation</th>
+                                        <th scope="col" class="small">Severity</th>
+                                        <th scope="col" class="small">Category</th>
+                                        <th scope="col" class="small">Path</th>
+                                        <th scope="col" class="small">Risk</th>
+                                        <th scope="col" class="small">Remediation</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3226,11 +3226,11 @@
                                     <table class="table table-sm table-dark mb-0">
                                         <thead>
                                             <tr>
-                                                <th>MX Host</th>
-                                                <th>STARTTLS</th>
-                                                <th>TLS Version</th>
-                                                <th>Cipher</th>
-                                                <th>Certificate</th>
+                                                <th scope="col">MX Host</th>
+                                                <th scope="col">STARTTLS</th>
+                                                <th scope="col">TLS Version</th>
+                                                <th scope="col">Cipher</th>
+                                                <th scope="col">Certificate</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -3319,11 +3319,11 @@
                                 <table class="table table-sm table-dark mb-0">
                                     <thead>
                                         <tr>
-                                            <th>MX Host</th>
-                                            <th>STARTTLS</th>
-                                            <th>TLS Version</th>
-                                            <th>Cipher</th>
-                                            <th>Certificate</th>
+                                            <th scope="col">MX Host</th>
+                                            <th scope="col">STARTTLS</th>
+                                            <th scope="col">TLS Version</th>
+                                            <th scope="col">Cipher</th>
+                                            <th scope="col">Certificate</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -4261,11 +4261,11 @@
                         <div class="table-responsive mt-2">
                             <table class="table table-sm table-borderless mb-0">
                                 <thead><tr>
-                                    <th class="border-0 text-muted u-fs-070rem">Certificate Authority</th>
-                                    <th class="border-0 text-muted text-center u-fs-070rem">Certs</th>
-                                    <th class="border-0 text-muted u-fs-070rem">First Issued</th>
-                                    <th class="border-0 text-muted u-fs-070rem">Last Issued</th>
-                                    <th class="border-0 text-muted text-center u-fs-070rem">Status</th>
+                                    <th scope="col" class="border-0 text-muted u-fs-070rem">Certificate Authority</th>
+                                    <th scope="col" class="border-0 text-muted text-center u-fs-070rem">Certs</th>
+                                    <th scope="col" class="border-0 text-muted u-fs-070rem">First Issued</th>
+                                    <th scope="col" class="border-0 text-muted u-fs-070rem">Last Issued</th>
+                                    <th scope="col" class="border-0 text-muted text-center u-fs-070rem">Status</th>
                                 </tr></thead>
                                 <tbody>
                                 {{range $ca := $caSummary}}
@@ -4321,13 +4321,13 @@
                         <table class="table table-sm table-hover mb-0" id="subdomainTable">
                             <thead>
                                 <tr>
-                                    <th class="border-secondary">Subdomain</th>
-                                    <th class="border-secondary text-center">Source</th>
-                                    <th class="border-secondary text-center">Status</th>
-                                    <th class="border-secondary">Provider / CNAME</th>
-                                    <th class="border-secondary text-center">Certificates</th>
-                                    <th class="border-secondary">First Seen</th>
-                                    <th class="border-secondary">Issuer(s)</th>
+                                    <th scope="col" class="border-secondary">Subdomain</th>
+                                    <th scope="col" class="border-secondary text-center">Source</th>
+                                    <th scope="col" class="border-secondary text-center">Status</th>
+                                    <th scope="col" class="border-secondary">Provider / CNAME</th>
+                                    <th scope="col" class="border-secondary text-center">Certificates</th>
+                                    <th scope="col" class="border-secondary">First Seen</th>
+                                    <th scope="col" class="border-secondary">Issuer(s)</th>
                                 </tr>
                             </thead>
                             <tbody id="subdomainTbody">
@@ -4469,11 +4469,11 @@
                             <table class="table table-sm table-dark small mb-2">
                                 <thead>
                                     <tr>
-                                        <th>Subdomain</th>
-                                        <th>CNAME Target</th>
-                                        <th>Service</th>
-                                        <th>Risk</th>
-                                        <th>Reason</th>
+                                        <th scope="col">Subdomain</th>
+                                        <th scope="col">CNAME Target</th>
+                                        <th scope="col">Service</th>
+                                        <th scope="col">Risk</th>
+                                        <th scope="col">Reason</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -4747,12 +4747,12 @@
                         <table class="table table-sm table-striped mb-0">
                             <thead>
                                 <tr>
-                                    <th class="u-w-80px">Date</th>
-                                    <th class="u-w-60px">Type</th>
-                                    <th class="u-w-70px">Action</th>
-                                    <th>Value</th>
-                                    <th>Organization</th>
-                                    <th>Timeline</th>
+                                    <th scope="col" class="u-w-80px">Date</th>
+                                    <th scope="col" class="u-w-60px">Type</th>
+                                    <th scope="col" class="u-w-70px">Action</th>
+                                    <th scope="col">Value</th>
+                                    <th scope="col">Organization</th>
+                                    <th scope="col">Timeline</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -5251,13 +5251,13 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             var printBtn = document.getElementById('engineerPrintBtn');
-            if (printBtn) printBtn.addEventListener('click', function() { window.print(); });
+            if (printBtn) printBtn.addEventListener('click', function() { globalThis.print(); });
 
-            var params = new URLSearchParams(window.location.search);
+            var params = new URLSearchParams(globalThis.location.search);
             if (params.has('print')) {
-                history.replaceState(null, '', window.location.pathname + window.location.hash);
+                history.replaceState(null, '', globalThis.location.pathname + globalThis.location.hash);
                 requestAnimationFrame(function() {
-                    setTimeout(function() { window.print(); }, 600);
+                    setTimeout(function() { globalThis.print(); }, 600);
                 });
             }
 
@@ -5341,7 +5341,7 @@
                 return t;
             });
             var scrollTimer;
-            window.addEventListener('scroll', function() {
+            globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
                 scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
                 tooltipInstances.forEach(function(t) { t.hide(); });
@@ -5507,7 +5507,7 @@
         var deferredPrompt = null;
         var dismissed = sessionStorage.getItem('pwa-nudge-dismissed');
 
-        window.addEventListener('beforeinstallprompt', function(e) {
+        globalThis.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
             deferredPrompt = e;
             if (dismissed) return;
@@ -5539,7 +5539,7 @@
             });
         }
 
-        if (!window.matchMedia('(display-mode: standalone)').matches) {
+        if (!globalThis.matchMedia('(display-mode: standalone)').matches) {
             var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS && !dismissed) {
                 setTimeout(function() {

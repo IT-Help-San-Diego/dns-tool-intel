@@ -192,7 +192,7 @@
             if (e.key === 'Enter') document.getElementById('btnGenerateBadge').click();
         });
 
-        var params = new URLSearchParams(window.location.search);
+        var params = new URLSearchParams(globalThis.location.search);
         if (params.get('domain')) {
             domain.value = params.get('domain');
             document.getElementById('btnGenerateBadge').click();

@@ -111,6 +111,40 @@ var commonSubdomainProbes = []string{
         "sandbox1", "sandbox2", "lab", "labs",
 }
 
+type ctFetchResult struct {
+        entries       []ctEntry
+        available     bool
+        failureReason string
+        fallback      bool
+}
+
+func (a *Analyzer) fetchCTEntriesWithFallback(domain string) ctFetchResult {
+        ctProvider := "ct:crt.sh"
+        if a.Telemetry.InCooldown(ctProvider) {
+                slog.Info("CT provider in cooldown, skipping", "domain", domain)
+                return ctFetchResult{failureReason: "cooldown"}
+        }
+        entries, available, failReason := a.fetchCTWithRetry(domain, ctProvider)
+        if available && len(entries) > 0 {
+                return ctFetchResult{entries: entries, available: true}
+        }
+        csEntries, csOK := a.fetchCertspotter(domain)
+        if csOK && len(csEntries) > 0 {
+                slog.Info("Certspotter fallback succeeded", "domain", domain, "entries", len(csEntries))
+                return ctFetchResult{entries: csEntries, available: true, fallback: true}
+        }
+        return ctFetchResult{entries: entries, available: available, failureReason: failReason}
+}
+
+func populateCTResults(result map[string]any, ctEntries, dedupedEntries []ctEntry, domain string, ctAvailable bool) {
+        if !ctAvailable {
+                return
+        }
+        result["total_certs"] = len(ctEntries)
+        result["unique_certs"] = len(dedupedEntries)
+        result["ca_summary"] = buildCASummary(dedupedEntries)
+}
+
 func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[string]any {
         result := map[string]any{
                 "status":            "success",
@@ -130,61 +164,32 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 return returnCachedSubdomains(result, cached)
         }
 
-        ctProvider := "ct:crt.sh"
-        var ctEntries []ctEntry
-        ctAvailable := true
-        ctFailureReason := ""
-
-        if a.Telemetry.InCooldown(ctProvider) {
-                slog.Info("CT provider in cooldown, skipping", "domain", domain)
-                ctAvailable = false
-                ctFailureReason = "cooldown"
-        } else {
-                ctEntries, ctAvailable, ctFailureReason = a.fetchCTWithRetry(domain, ctProvider)
+        ct := a.fetchCTEntriesWithFallback(domain)
+        if ct.fallback {
+                result["ct_source_fallback"] = "certspotter"
         }
 
-        if !ctAvailable || len(ctEntries) == 0 {
-                csEntries, csOK := a.fetchCertspotter(domain)
-                if csOK && len(csEntries) > 0 {
-                        ctEntries = csEntries
-                        ctAvailable = true
-                        ctFailureReason = ""
-                        result["ct_source_fallback"] = "certspotter"
-                        slog.Info("Certspotter fallback succeeded", "domain", domain, "entries", len(csEntries))
-                }
-        }
-
-        dedupedEntries := deduplicateCTEntries(ctEntries)
-        if ctAvailable {
-                result["total_certs"] = len(ctEntries)
-                result["unique_certs"] = len(dedupedEntries)
-        }
+        dedupedEntries := deduplicateCTEntries(ct.entries)
+        populateCTResults(result, ct.entries, dedupedEntries, domain, ct.available)
 
         wildcardInfo := detectWildcardCerts(dedupedEntries, domain)
         if wildcardInfo != nil {
                 result["wildcard_certs"] = wildcardInfo
         }
 
-        if ctAvailable {
-                result["ca_summary"] = buildCASummary(dedupedEntries)
-        }
-
         subdomainSet := make(map[string]map[string]any)
-
-        if ctAvailable {
-                processCTEntries(ctEntries, domain, subdomainSet)
+        if ct.available {
+                processCTEntries(ct.entries, domain, subdomainSet)
         }
 
         a.probeCommonSubdomains(ctx, domain, subdomainSet)
 
-        if ctAvailable && len(dedupedEntries) > 0 {
+        if ct.available && len(dedupedEntries) > 0 {
                 enrichDNSWithCTData(dedupedEntries, domain, subdomainSet)
         }
 
         result["cname_discovered_count"] = 0.0
-
         subdomains, cnameCount := collectSubdomains(subdomainSet)
-
         result["cname_count"] = float64(cnameCount)
 
         if len(subdomains) > 0 {
@@ -196,14 +201,13 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
         result["expired_count"] = fmt.Sprintf("%d", expiredCount)
 
         subdomains = sortSubdomainsSmartOrder(subdomains)
-
         a.setCTCache(domain, subdomains)
 
         result["unique_subdomains"] = len(subdomains)
         result["ct_source"] = "live"
-        result["ct_available"] = ctAvailable
-        if !ctAvailable {
-                result["ct_failure_reason"] = ctFailureReason
+        result["ct_available"] = ct.available
+        if !ct.available {
+                result["ct_failure_reason"] = ct.failureReason
         }
         applySubdomainDisplayCap(result, subdomains, currentCount)
 
@@ -270,24 +274,31 @@ func (a *Analyzer) fetchCTWithRetry(domain, ctProvider string) ([]ctEntry, bool,
                 }
                 entries, done, failReason, errMsg := a.attemptCTFetch(totalBudget, ctURL, domain, ctProvider, attempt, maxAttempts)
                 if done {
-                        if failReason != "" {
-                                return nil, false, failReason
-                        }
-                        if len(entries) == 0 && totalBudget.Err() == nil {
-                                if fallback, ok := a.fetchCTFallback(totalBudget, domain, ctProvider); ok {
-                                        return fallback, true, ""
-                                }
-                        }
-                        return entries, true, ""
+                        return a.handleCTSuccess(totalBudget, entries, failReason, domain, ctProvider)
                 }
                 lastErr = errMsg
         }
 
-        reason := "timeout"
-        if lastErr != "" && !strings.Contains(lastErr, "deadline") && !strings.Contains(lastErr, "timeout") {
-                reason = "error"
+        return nil, false, classifyCTFailure(lastErr)
+}
+
+func (a *Analyzer) handleCTSuccess(totalBudget context.Context, entries []ctEntry, failReason, domain, ctProvider string) ([]ctEntry, bool, string) {
+        if failReason != "" {
+                return nil, false, failReason
         }
-        return nil, false, reason
+        if len(entries) == 0 && totalBudget.Err() == nil {
+                if fallback, ok := a.fetchCTFallback(totalBudget, domain, ctProvider); ok {
+                        return fallback, true, ""
+                }
+        }
+        return entries, true, ""
+}
+
+func classifyCTFailure(lastErr string) string {
+        if lastErr != "" && !strings.Contains(lastErr, "deadline") && !strings.Contains(lastErr, "timeout") {
+                return "error"
+        }
+        return "timeout"
 }
 
 func retryBackoff(attempt, maxAttempts int) {
@@ -368,6 +379,58 @@ type certspotterEntry struct {
         NotAfter  string   `json:"not_after"`
 }
 
+type certspotterPageResult struct {
+        entries  []certspotterEntry
+        cursor   string
+        hasMore  bool
+        hardFail bool
+}
+
+func (a *Analyzer) fetchCertspotterPage(budgetCtx context.Context, domain, cursor string, page int) certspotterPageResult {
+        csURL := fmt.Sprintf("https://api.certspotter.com/v1/issuances?domain=%s&include_subdomains=true&expand=dns_names", domain)
+        if cursor != "" {
+                csURL += "&after=" + cursor
+        }
+
+        pageCtx, pageCancel := context.WithTimeout(budgetCtx, 15*time.Second)
+        resp, err := a.HTTP.Get(pageCtx, csURL)
+        if err != nil {
+                slog.Warn("Certspotter query failed", "domain", domain, "page", page, "error", err)
+                pageCancel()
+                return certspotterPageResult{hardFail: page == 0}
+        }
+        body, err := a.HTTP.ReadBody(resp, 10<<20)
+        pageCancel()
+        if err != nil || resp.StatusCode != 200 {
+                slog.Warn("Certspotter bad response", "domain", domain, "page", page, "status", resp.StatusCode)
+                return certspotterPageResult{hardFail: page == 0}
+        }
+
+        var csEntries []certspotterEntry
+        if json.Unmarshal(body, &csEntries) != nil {
+                return certspotterPageResult{hardFail: page == 0}
+        }
+
+        nextCursor := ""
+        hasMore := len(csEntries) >= 100
+        if hasMore {
+                nextCursor = csEntries[len(csEntries)-1].ID
+        }
+        return certspotterPageResult{entries: csEntries, cursor: nextCursor, hasMore: hasMore}
+}
+
+func convertCertspotterEntries(csEntries []certspotterEntry) []ctEntry {
+        entries := make([]ctEntry, 0, len(csEntries))
+        for _, cs := range csEntries {
+                entries = append(entries, ctEntry{
+                        NameValue: strings.Join(cs.DNSNames, "\n"),
+                        NotBefore: cs.NotBefore,
+                        NotAfter:  cs.NotAfter,
+                })
+        }
+        return entries
+}
+
 func (a *Analyzer) fetchCertspotter(domain string) ([]ctEntry, bool) {
         const maxPages = 10
         budgetCtx, budgetCancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -380,54 +443,18 @@ func (a *Analyzer) fetchCertspotter(domain string) ([]ctEntry, bool) {
                 if budgetCtx.Err() != nil {
                         break
                 }
-
-                csURL := fmt.Sprintf("https://api.certspotter.com/v1/issuances?domain=%s&include_subdomains=true&expand=dns_names", domain)
-                if cursor != "" {
-                        csURL += "&after=" + cursor
-                }
-
-                pageCtx, pageCancel := context.WithTimeout(budgetCtx, 15*time.Second)
-                resp, err := a.HTTP.Get(pageCtx, csURL)
-                if err != nil {
-                        slog.Warn("Certspotter query failed", "domain", domain, "page", page, "error", err)
-                        pageCancel()
-                        if page > 0 {
-                                break
-                        }
+                pr := a.fetchCertspotterPage(budgetCtx, domain, cursor, page)
+                if pr.hardFail {
                         return nil, false
                 }
-                body, err := a.HTTP.ReadBody(resp, 10<<20)
-                pageCancel()
-                if err != nil || resp.StatusCode != 200 {
-                        slog.Warn("Certspotter bad response", "domain", domain, "page", page, "status", resp.StatusCode)
-                        if page > 0 {
-                                break
-                        }
-                        return nil, false
-                }
-
-                var csEntries []certspotterEntry
-                if json.Unmarshal(body, &csEntries) != nil {
-                        if page > 0 {
-                                break
-                        }
-                        return nil, false
-                }
-
-                for _, cs := range csEntries {
-                        nameValue := strings.Join(cs.DNSNames, "\n")
-                        allEntries = append(allEntries, ctEntry{
-                                NameValue: nameValue,
-                                NotBefore: cs.NotBefore,
-                                NotAfter:  cs.NotAfter,
-                        })
-                }
-
-                if len(csEntries) < 100 {
+                if pr.entries == nil {
                         break
                 }
-
-                cursor = csEntries[len(csEntries)-1].ID
+                allEntries = append(allEntries, convertCertspotterEntries(pr.entries)...)
+                if !pr.hasMore {
+                        break
+                }
+                cursor = pr.cursor
                 slog.Info("Certspotter pagination", "domain", domain, "page", page+1, "entries_so_far", len(allEntries))
         }
 

@@ -1584,7 +1584,7 @@
     <script nonce="{{.CspNonce}}">
     document.addEventListener('DOMContentLoaded', function() {
         var execPrintBtn = document.getElementById('execPrintBtn');
-        if (execPrintBtn) execPrintBtn.addEventListener('click', function() { window.print(); });
+        if (execPrintBtn) execPrintBtn.addEventListener('click', function() { globalThis.print(); });
 
         var tlpConfig = {
             red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',
@@ -1633,12 +1633,12 @@
         });
     });
     (function() {
-        var params = new URLSearchParams(window.location.search);
+        var params = new URLSearchParams(globalThis.location.search);
         if (params.has('print')) {
-            history.replaceState(null, '', window.location.pathname + window.location.hash);
-            window.addEventListener('load', function() {
+            history.replaceState(null, '', globalThis.location.pathname + globalThis.location.hash);
+            globalThis.addEventListener('load', function() {
                 requestAnimationFrame(function() {
-                    setTimeout(function() { window.print(); }, 600);
+                    setTimeout(function() { globalThis.print(); }, 600);
                 });
             });
         }

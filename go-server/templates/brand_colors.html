@@ -452,7 +452,7 @@
 
         values.forEach(function(el) {
             el.addEventListener('click', function() {
-                var text = el.getAttribute('data-copy');
+                var text = el.dataset.copy;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(function() {
                         showToast('Copied ' + text);
