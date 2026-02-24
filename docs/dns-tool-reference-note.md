@@ -1,6 +1,6 @@
 # DNS Tool — Quick Reference
 **Site:** https://dnstool.it-help.tech
-**Version:** v26.25.81
+**Version:** v26.25.82
 
 ---
 
