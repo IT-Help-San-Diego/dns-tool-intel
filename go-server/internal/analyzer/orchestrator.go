@@ -10,6 +10,7 @@ import (
         "sync"
         "time"
 
+        "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/icuae"
 )
 
@@ -68,26 +69,44 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         authTTL := extractAndRemove(auth, "_ttl")
         authQueryStatus := extractAndRemove(auth, "_query_status")
 
+        isTLD := dnsclient.IsTLDInput(domain)
         mxForDANE, _ := basic["MX"].([]string)
 
         daneStart := time.Now()
         resultsMap["dane"] = a.AnalyzeDANE(ctx, domain, mxForDANE)
         slog.Info(logTaskCompleted, "task", "dane", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(daneStart).Milliseconds())))
 
-        smtpStart := time.Now()
-        smtpInputs := AnalysisInputs{
-                MTASTSResult: getMapResult(resultsMap, "mta_sts"),
-                TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
-                DANEResult:   resultsMap["dane"].(map[string]any),
+        var smtpResult map[string]any
+        if !isTLD {
+                smtpStart := time.Now()
+                smtpInputs := AnalysisInputs{
+                        MTASTSResult: getMapResult(resultsMap, "mta_sts"),
+                        TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
+                        DANEResult:   resultsMap["dane"].(map[string]any),
+                }
+                smtpResult = a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
+                slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
+        } else {
+                smtpResult = map[string]any{"status": "n/a", "reason": "TLD — email transport not applicable"}
+                resultsMap["spf"] = map[string]any{"status": "n/a"}
+                resultsMap["dmarc"] = map[string]any{"status": "n/a"}
+                resultsMap["dkim"] = map[string]any{"status": "n/a"}
+                resultsMap["mta_sts"] = map[string]any{"status": "n/a"}
+                resultsMap["tlsrpt"] = map[string]any{"status": "n/a"}
+                resultsMap["bimi"] = map[string]any{"status": "n/a"}
+                resultsMap["ct_subdomains"] = map[string]any{"status": "n/a"}
+                resultsMap["smimea_openpgpkey"] = map[string]any{"status": "n/a"}
+                resultsMap["security_txt"] = map[string]any{"status": "n/a"}
+                resultsMap["ai_surface"] = map[string]any{"status": "n/a"}
+                resultsMap["secret_exposure"] = map[string]any{"status": "n/a"}
+                slog.Info("TLD analysis — skipped email/subdomain protocols", "domain", domain)
         }
-        smtpResult := a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
-        slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
 
         enrichBasicRecords(basic, resultsMap)
 
         rootTXT, _ := basic["TXT"].([]string)
         misplacedDMARC := DetectMisplacedDMARC(rootTXT)
-        if misplacedDMARC["detected"] == true {
+        if !isTLD && misplacedDMARC["detected"] == true {
                 if dmarcResult, ok := resultsMap["dmarc"].(map[string]any); ok {
                         dmarcResult["misplaced_dmarc"] = misplacedDMARC
                         if msg, ok := misplacedDMARC["message"].(string); ok && msg != "" {
@@ -226,28 +245,35 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
         resultsCh := make(chan namedResult, 25)
         var wg sync.WaitGroup
 
+        isTLD := dnsclient.IsTLDInput(domain)
+
         tasks := []func(){
                 timedTask(resultsCh, "basic", func() any { return a.GetBasicRecords(ctx, domain) }),
                 timedTask(resultsCh, "auth", func() any { return a.GetAuthoritativeRecords(ctx, domain) }),
-                timedTask(resultsCh, "spf", func() any { return a.AnalyzeSPF(ctx, domain) }),
-                timedTask(resultsCh, "dmarc", func() any { return a.AnalyzeDMARC(ctx, domain) }),
-                timedTask(resultsCh, "dkim", func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
-                timedTask(resultsCh, "mta_sts", func() any { return a.AnalyzeMTASTS(ctx, domain) }),
-                timedTask(resultsCh, "tlsrpt", func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
-                timedTask(resultsCh, "bimi", func() any { return a.AnalyzeBIMI(ctx, domain) }),
                 timedTask(resultsCh, "caa", func() any { return a.AnalyzeCAA(ctx, domain) }),
                 timedTask(resultsCh, "dnssec", func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
                 timedTask(resultsCh, "ns_delegation", func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
                 timedTask(resultsCh, "registrar", func() any { return a.GetRegistrarInfo(ctx, domain) }),
                 timedTask(resultsCh, "resolver_consensus", func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
-                timedTask(resultsCh, "ct_subdomains", func() any { return a.DiscoverSubdomains(ctx, domain) }),
                 timedTask(resultsCh, "https_svcb", func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
                 timedTask(resultsCh, "cds_cdnskey", func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
-                timedTask(resultsCh, "smimea_openpgpkey", func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
-                timedTask(resultsCh, "security_txt", func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
-                timedTask(resultsCh, "ai_surface", func() any { return a.AnalyzeAISurface(ctx, domain) }),
-                timedTask(resultsCh, "secret_exposure", func() any { return a.ScanSecretExposure(ctx, domain) }),
                 timedTask(resultsCh, "nmap_dns", func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
+        }
+
+        if !isTLD {
+                tasks = append(tasks,
+                        timedTask(resultsCh, "spf", func() any { return a.AnalyzeSPF(ctx, domain) }),
+                        timedTask(resultsCh, "dmarc", func() any { return a.AnalyzeDMARC(ctx, domain) }),
+                        timedTask(resultsCh, "dkim", func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
+                        timedTask(resultsCh, "mta_sts", func() any { return a.AnalyzeMTASTS(ctx, domain) }),
+                        timedTask(resultsCh, "tlsrpt", func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
+                        timedTask(resultsCh, "bimi", func() any { return a.AnalyzeBIMI(ctx, domain) }),
+                        timedTask(resultsCh, "ct_subdomains", func() any { return a.DiscoverSubdomains(ctx, domain) }),
+                        timedTask(resultsCh, "smimea_openpgpkey", func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
+                        timedTask(resultsCh, "security_txt", func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                        timedTask(resultsCh, "ai_surface", func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                        timedTask(resultsCh, "secret_exposure", func() any { return a.ScanSecretExposure(ctx, domain) }),
+                )
         }
 
         for _, fn := range tasks {

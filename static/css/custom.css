@@ -6759,6 +6759,8 @@ body.covert-mode .tk-triage-card:hover {
     .tk-discovery,
     .tk-step-nav,
     #tkTriageMatrix { display: none !important; }
+    .math-display { background: #f8f9fa !important; border-color: #dee2e6 !important; border-left-color: #6c757d !important; box-shadow: none !important; color: #000 !important; }
+    .math-display::before { display: none !important; }
 }
 
 .text-accent-cobalt { color: var(--accent-cobalt); }
@@ -6767,4 +6769,31 @@ body.covert-mode .tk-triage-card:hover {
 .border-accent-gold-subtle { border: 1px solid rgba(212,168,85,0.15); }
 .border-accent-gold-muted { border: 1px solid rgba(212,168,85,0.12); }
 .bg-accent-cobalt-subtle { background: rgba(74,143,231,0.04); }
-.math-formula { background-color: #000; border-radius: 0.375rem; padding: 0.75rem; text-align: center; }
+.math-display {
+    background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(8,12,20,0.92) 100%);
+    border: 1px solid rgba(74,143,231,0.12);
+    border-left: 3px solid rgba(74,143,231,0.3);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    margin: 0.75rem 0;
+    text-align: center;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.02);
+    position: relative;
+    overflow: hidden;
+}
+.math-display .katex { font-size: 1.15em; }
+.math-display::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(74,143,231,0.15), transparent);
+}
+body.covert-mode .math-display {
+    border-color: rgba(196,60,60,0.12);
+    border-left-color: rgba(196,60,60,0.3);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.01);
+}
+body.covert-mode .math-display::before {
+    background: linear-gradient(90deg, transparent, rgba(196,60,60,0.15), transparent);
+}
