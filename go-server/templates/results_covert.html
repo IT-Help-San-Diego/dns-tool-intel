@@ -835,6 +835,104 @@
                         {{end}}
                         {{end}}
 
+                        {{if $ns}}
+                        {{$nsServers := mapGetSlice "nameservers" $ns}}
+                        {{if $nsServers}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>NS Delegation</h6>
+                            {{$nsProvider := mapGetStr "provider" $ns}}
+                            {{if $nsProvider}}<div class="alert alert-info py-2 mb-2 small"><i class="fas fa-server me-1"></i>DNS Provider: <strong>{{$nsProvider}}</strong></div>{{end}}
+                            {{range $nsServers}}
+                            <div class="code-block font-monospace small mb-1">{{.}}</div>
+                            {{end}}
+                            {{$nsIssues := mapGetSlice "issues" $ns}}
+                            {{if $nsIssues}}
+                            <div class="mt-2">
+                                {{range $nsIssues}}
+                                <div class="small text-warning"><i class="fas fa-exclamation-triangle me-1"></i>{{.}}</div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{$nmap_dns := mapGetMap "nmap_dns" $results}}
+                        {{if $nmap_dns}}
+                        {{$nmapStatus := mapGetStr "status" $nmap_dns}}
+                        {{if ne $nmapStatus ""}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>DNS Server Security (Nmap)</h6>
+                            {{$zt := mapGetMap "zone_transfer" $nmap_dns}}
+                            {{$rec := mapGetMap "recursion" $nmap_dns}}
+                            {{if $zt}}
+                            {{$ztVuln := mapGetBool "vulnerable" $zt}}
+                            <div class="alert {{if $ztVuln}}alert-danger{{else}}alert-success{{end}} py-2 mb-2 small">
+                                {{if $ztVuln}}<i class="fas fa-skull-crossbones me-1"></i>Zone transfer (AXFR) allowed &mdash; full zone enumeration possible{{else}}<i class="fas fa-lock me-1"></i>Zone transfer denied{{end}}
+                            </div>
+                            {{end}}
+                            {{if $rec}}
+                            {{$recVuln := mapGetBool "vulnerable" $rec}}
+                            <div class="alert {{if $recVuln}}alert-warning{{else}}alert-success{{end}} py-2 mb-2 small">
+                                {{if $recVuln}}<i class="fas fa-exclamation-triangle me-1"></i>Open recursion detected &mdash; DNS amplification risk{{else}}<i class="fas fa-lock me-1"></i>Recursion restricted{{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{if $https_svcb}}
+                        {{$svcbStatus := mapGetStr "status" $https_svcb}}
+                        {{if and (ne $svcbStatus "") (ne $svcbStatus "n/a")}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>HTTPS / SVCB Records</h6>
+                            {{$hasHTTPS := mapGetBool "has_https" $https_svcb}}
+                            {{$hasECH := mapGetBool "has_ech" $https_svcb}}
+                            {{$alpn := mapGetStr "alpn" $https_svcb}}
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                {{if $hasHTTPS}}<span class="badge bg-success bg-opacity-10 border border-success border-opacity-25 font-monospace small">HTTPS RR</span>{{end}}
+                                {{if $hasECH}}<span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small">ECH</span>{{end}}
+                                {{if $alpn}}<span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25 font-monospace small">ALPN: {{$alpn}}</span>{{end}}
+                            </div>
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{if $security_txt}}
+                        {{$secTxtFound := mapGetBool "found" $security_txt}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>security.txt (RFC 9116)</h6>
+                            <div class="alert {{if $secTxtFound}}alert-info{{else}}alert-warning{{end}} py-2 mb-2 small">
+                                {{if $secTxtFound}}
+                                <i class="fas fa-shield-alt me-1"></i>Vulnerability disclosure program detected
+                                {{$secContact := mapGetStr "contact" $security_txt}}
+                                {{if $secContact}}<div class="mt-1 font-monospace">Contact: {{$secContact}}</div>{{end}}
+                                {{else}}
+                                <i class="fas fa-exclamation-triangle me-1"></i>No security.txt &mdash; no documented vulnerability disclosure channel
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+
+                        {{if $ai_surface}}
+                        {{$aiStatus := mapGetStr "status" $ai_surface}}
+                        {{if and (ne $aiStatus "") (ne $aiStatus "n/a")}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>AI / LLM Crawling Policy</h6>
+                            {{$aiBlocked := mapGetBool "ai_blocked" $ai_surface}}
+                            {{$contentUsage := mapGetStr "content_usage" $ai_surface}}
+                            <div class="alert {{if $aiBlocked}}alert-success{{else}}alert-warning{{end}} py-2 mb-2 small">
+                                {{if $aiBlocked}}
+                                <i class="fas fa-robot me-1"></i>AI crawlers blocked via robots.txt
+                                {{else}}
+                                <i class="fas fa-robot me-1"></i>AI crawlers not explicitly blocked
+                                {{end}}
+                                {{if $contentUsage}}<div class="mt-1 font-monospace small">Content-Usage: {{$contentUsage}}</div>{{end}}
+                            </div>
+                        </div>
+                        {{end}}
+                        {{end}}
+
                         <details class="mt-3">
                             <summary class="fw-semibold font-monospace small"><i class="fas fa-terminal me-1"></i>Quick Recon Commands</summary>
                             <div class="mt-2">

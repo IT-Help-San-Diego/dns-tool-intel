@@ -2450,16 +2450,16 @@ body.covert-mode .rfc-label {
     color: rgba(160, 50, 50, 0.45);
 }
 .u-covert-disclosure {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     letter-spacing: 0.03em;
-    color: rgba(140, 100, 100, 0.35);
+    color: rgba(180, 130, 130, 0.60);
 }
 .u-covert-disclosure a {
-    color: rgba(160, 50, 50, 0.45);
+    color: rgba(200, 80, 80, 0.70);
     text-decoration: none;
 }
 .u-covert-disclosure a:hover {
-    color: rgba(200, 60, 60, 0.65);
+    color: rgba(220, 90, 90, 0.85);
     text-decoration: underline;
 }
 .u-covert-banner {
