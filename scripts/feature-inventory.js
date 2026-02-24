@@ -284,6 +284,21 @@ if (fs.existsSync(cssPath) && fs.existsSync(minPath)) {
     `custom.min.css (${new Date(minStat.mtimeMs).toISOString()}) is older than custom.css (${new Date(cssStat.mtimeMs).toISOString()}) — run npx csso`);
 }
 
+// ── 11. JS Minification ──────────────────────────────────────
+console.log('\n── JS Minification ─────────────────────────────────────────');
+const jsFiles = ['main'];
+jsFiles.forEach(name => {
+  const srcPath = path.join(ROOT, `static/js/${name}.js`);
+  const minJsPath = path.join(ROOT, `static/js/${name}.min.js`);
+  if (fs.existsSync(srcPath) && fs.existsSync(minJsPath)) {
+    const srcStat = fs.statSync(srcPath);
+    const minJsStat = fs.statSync(minJsPath);
+    check(`Minified ${name}.min.js is up to date`,
+      minJsStat.mtimeMs >= srcStat.mtimeMs,
+      `${name}.min.js (${new Date(minJsStat.mtimeMs).toISOString()}) is older than ${name}.js (${new Date(srcStat.mtimeMs).toISOString()}) — run npx terser`);
+  }
+});
+
 // ── Summary ──────────────────────────────────────────────────
 console.log('\n═══════════════════════════════════════════════════════════════');
 console.log(`  Passed:   ${pass}`);
