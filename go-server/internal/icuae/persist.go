@@ -11,6 +11,12 @@ import (
         "dnstool/go-server/internal/dbq"
 )
 
+const (
+        iconWarning = "fas fa-exclamation-triangle text-warning"
+        iconInfo    = "fas fa-info-circle text-info"
+        iconSuccess = "fas fa-lightbulb text-success"
+)
+
 type DBTX interface {
         ICuAEInsertScanScore(ctx context.Context, arg dbq.ICuAEInsertScanScoreParams) (dbq.ICuAEInsertScanScoreRow, error)
         ICuAEInsertDimensionScore(ctx context.Context, arg dbq.ICuAEInsertDimensionScoreParams) error
@@ -97,29 +103,29 @@ var dimensionTuningThresholds = map[string][]struct {
         Icon     string
 }{
         DimensionCurrentness: {
-                {49, "Data age exceeds TTL validity windows consistently. Consider increasing scan frequency or scheduling scans during low-cache-age periods.", "fas fa-exclamation-triangle text-warning"},
-                {74, "Some records are collected near or past their TTL expiry. Tighter scan cadence alignment with authoritative TTLs would improve freshness.", "fas fa-info-circle text-info"},
-                {89, "Minor freshness gaps detected. Fine-tuning scan timing to align with the shortest TTLs in the record set can push scores toward Excellent.", "fas fa-lightbulb text-success"},
+                {49, "Data age exceeds TTL validity windows consistently. Consider increasing scan frequency or scheduling scans during low-cache-age periods.", iconWarning},
+                {74, "Some records are collected near or past their TTL expiry. Tighter scan cadence alignment with authoritative TTLs would improve freshness.", iconInfo},
+                {89, "Minor freshness gaps detected. Fine-tuning scan timing to align with the shortest TTLs in the record set can push scores toward Excellent.", iconSuccess},
         },
         DimensionTTLCompliance: {
-                {49, "Resolver caches frequently exceed authoritative TTL limits, indicating serve-stale behavior (RFC 8767). Consider prioritizing resolvers with stricter TTL compliance.", "fas fa-exclamation-triangle text-warning"},
-                {74, "Some resolvers serve records past their authoritative TTL. Increasing resolver diversity or weighting TTL-compliant resolvers more heavily would help.", "fas fa-info-circle text-info"},
-                {89, "Near-compliant TTL behavior with minor deviations. Monitoring resolver-specific TTL overrides can identify the remaining outliers.", "fas fa-lightbulb text-success"},
+                {49, "Resolver caches frequently exceed authoritative TTL limits, indicating serve-stale behavior (RFC 8767). Consider prioritizing resolvers with stricter TTL compliance.", iconWarning},
+                {74, "Some resolvers serve records past their authoritative TTL. Increasing resolver diversity or weighting TTL-compliant resolvers more heavily would help.", iconInfo},
+                {89, "Near-compliant TTL behavior with minor deviations. Monitoring resolver-specific TTL overrides can identify the remaining outliers.", iconSuccess},
         },
         DimensionCompleteness: {
-                {49, "Multiple expected record types are consistently missing. Expanding the query set or adding retry logic for failed lookups would improve coverage.", "fas fa-exclamation-triangle text-warning"},
-                {74, "Some optional record types (DANE/TLSA, BIMI, CAA) are absent. These are domain-dependent but adding fallback queries can capture more when present.", "fas fa-info-circle text-info"},
-                {89, "Nearly complete record coverage with minor gaps. Review which specific record types are missing to determine if they are domain-absent or collection-absent.", "fas fa-lightbulb text-success"},
+                {49, "Multiple expected record types are consistently missing. Expanding the query set or adding retry logic for failed lookups would improve coverage.", iconWarning},
+                {74, "Some optional record types (DANE/TLSA, BIMI, CAA) are absent. These are domain-dependent but adding fallback queries can capture more when present.", iconInfo},
+                {89, "Nearly complete record coverage with minor gaps. Review which specific record types are missing to determine if they are domain-absent or collection-absent.", iconSuccess},
         },
         DimensionSourceCredibility: {
-                {49, "Resolvers frequently disagree on fundamental records. Consider adding more resolver endpoints or investigating whether split-horizon DNS is in play.", "fas fa-exclamation-triangle text-warning"},
-                {74, "Partial resolver agreement on some record types. Weighting results by resolver reliability history could improve consensus scoring.", "fas fa-info-circle text-info"},
-                {89, "Strong multi-resolver consensus with minor disagreements. Identifying which specific resolvers diverge can help refine the weighting model.", "fas fa-lightbulb text-success"},
+                {49, "Resolvers frequently disagree on fundamental records. Consider adding more resolver endpoints or investigating whether split-horizon DNS is in play.", iconWarning},
+                {74, "Partial resolver agreement on some record types. Weighting results by resolver reliability history could improve consensus scoring.", iconInfo},
+                {89, "Strong multi-resolver consensus with minor disagreements. Identifying which specific resolvers diverge can help refine the weighting model.", iconSuccess},
         },
         DimensionTTLRelevance: {
-                {49, "Observed TTLs deviate significantly from expected ranges for their record types. This often indicates domain-side misconfiguration rather than collection issues.", "fas fa-exclamation-triangle text-warning"},
-                {74, "Some TTL values fall outside typical ranges. This is informational — extreme TTLs may be intentional but affect cache behavior across resolvers.", "fas fa-info-circle text-info"},
-                {89, "TTL values are within expected ranges with minor outliers. Domain operators may benefit from TTL tuning recommendations in the report.", "fas fa-lightbulb text-success"},
+                {49, "Observed TTLs deviate significantly from expected ranges for their record types. This often indicates domain-side misconfiguration rather than collection issues.", iconWarning},
+                {74, "Some TTL values fall outside typical ranges. This is informational — extreme TTLs may be intentional but affect cache behavior across resolvers.", iconInfo},
+                {89, "TTL values are within expected ranges with minor outliers. Domain operators may benefit from TTL tuning recommendations in the report.", iconSuccess},
         },
 }
 
@@ -152,27 +158,7 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
 
         m.StabilityGrade, m.StabilityLabel = computeStability(float64(stats.StddevScore))
 
-        gradeDist, err := queries.ICuAEGetGradeDistribution(ctx)
-        if err == nil {
-                total := 0
-                for _, g := range gradeDist {
-                        total += int(g.Count)
-                }
-                for _, g := range gradeDist {
-                        pct := 0.0
-                        if total > 0 {
-                                pct = float64(g.Count) / float64(total) * 100
-                        }
-                        m.GradeDist = append(m.GradeDist, GradeDistItem{
-                                Grade:      g.Grade,
-                                Display:    GradeDisplayNames[g.Grade],
-                                Count:      int(g.Count),
-                                Pct:        pct,
-                                PctDisplay: fmt.Sprintf("%.0f", pct),
-                                BootClass:  GradeBootstrapClass[g.Grade],
-                        })
-                }
-        }
+        m.GradeDist = loadGradeDistribution(ctx, queries)
 
         dimAvgs, err := queries.ICuAEGetDimensionAverages(ctx)
         if err == nil {
@@ -204,6 +190,33 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
         }
 
         return m
+}
+
+func loadGradeDistribution(ctx context.Context, queries DBTX) []GradeDistItem {
+        gradeDist, err := queries.ICuAEGetGradeDistribution(ctx)
+        if err != nil {
+                return nil
+        }
+        total := 0
+        for _, g := range gradeDist {
+                total += int(g.Count)
+        }
+        items := make([]GradeDistItem, 0, len(gradeDist))
+        for _, g := range gradeDist {
+                pct := 0.0
+                if total > 0 {
+                        pct = float64(g.Count) / float64(total) * 100
+                }
+                items = append(items, GradeDistItem{
+                        Grade:      g.Grade,
+                        Display:    GradeDisplayNames[g.Grade],
+                        Count:      int(g.Count),
+                        Pct:        pct,
+                        PctDisplay: fmt.Sprintf("%.0f", pct),
+                        BootClass:  GradeBootstrapClass[g.Grade],
+                })
+        }
+        return items
 }
 
 func dimensionTuningHint(dimension string, avgScore float64) (string, string) {

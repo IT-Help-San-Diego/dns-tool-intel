@@ -1206,7 +1206,7 @@ func buildAISurfaceVerdicts(results map[string]any, verdicts map[string]any) {
         buildHiddenPromptsVerdict(hiddenPrompts, verdicts)
 }
 
-func buildLlmsTxtVerdict(llmsTxt map[string]any, verdicts map[string]any) {
+func buildLlmsTxtVerdict(llmsTxt, verdicts map[string]any) {
         if llmsTxt == nil {
                 return
         }
@@ -1233,7 +1233,7 @@ func buildLlmsTxtVerdict(llmsTxt map[string]any, verdicts map[string]any) {
         }
 }
 
-func buildRobotsTxtVerdict(robotsTxt map[string]any, verdicts map[string]any) {
+func buildRobotsTxtVerdict(robotsTxt, verdicts map[string]any) {
         if robotsTxt == nil {
                 return
         }
@@ -1260,7 +1260,7 @@ func buildRobotsTxtVerdict(robotsTxt map[string]any, verdicts map[string]any) {
         }
 }
 
-func buildPoisoningVerdict(poisoning map[string]any, verdicts map[string]any) {
+func buildPoisoningVerdict(poisoning, verdicts map[string]any) {
         if poisoning == nil {
                 return
         }
@@ -1280,7 +1280,7 @@ func buildPoisoningVerdict(poisoning map[string]any, verdicts map[string]any) {
         }
 }
 
-func buildHiddenPromptsVerdict(hiddenPrompts map[string]any, verdicts map[string]any) {
+func buildHiddenPromptsVerdict(hiddenPrompts, verdicts map[string]any) {
         if hiddenPrompts == nil {
                 return
         }

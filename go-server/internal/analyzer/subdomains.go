@@ -559,26 +559,17 @@ func detectWildcardCerts(ctEntries []ctEntry, domain string) map[string]any {
                 result["san_count"] = len(explicitSANs)
         }
         if !acc.earliestNotBefore.IsZero() {
-                result["earliest"] = acc.earliestNotBefore.Format("2006-01-02")
+                result["earliest"] = acc.earliestNotBefore.Format(dateFormatISO)
         }
         if !acc.latestNotAfter.IsZero() {
-                result["latest_expiry"] = acc.latestNotAfter.Format("2006-01-02")
+                result["latest_expiry"] = acc.latestNotAfter.Format(dateFormatISO)
         }
 
         return result
 }
 
 func processWildcardEntry(entry ctEntry, wildcardPattern, domain string, now time.Time, acc *wildcardAccum) {
-        names := strings.Split(entry.NameValue, "\n")
-        isWildcardCert := false
-        for _, name := range names {
-                name = strings.TrimSpace(strings.ToLower(name))
-                if name == wildcardPattern {
-                        isWildcardCert = true
-                        break
-                }
-        }
-        if !isWildcardCert {
+        if !isWildcardCertEntry(entry, wildcardPattern) {
                 return
         }
 
@@ -596,20 +587,37 @@ func processWildcardEntry(entry ctEntry, wildcardPattern, domain string, now tim
                 acc.earliestNotBefore = notBefore
         }
 
-        issuer := simplifyIssuer(entry.IssuerName)
-        if !acc.issuerSeen[issuer] {
-                acc.issuerSeen[issuer] = true
-                if len(acc.issuers) < 10 {
-                        acc.issuers = append(acc.issuers, issuer)
+        trackWildcardIssuer(simplifyIssuer(entry.IssuerName), acc)
+        collectWildcardSANs(entry.NameValue, wildcardPattern, domain, acc)
+}
+
+func isWildcardCertEntry(entry ctEntry, wildcardPattern string) bool {
+        for _, name := range strings.Split(entry.NameValue, "\n") {
+                if strings.TrimSpace(strings.ToLower(name)) == wildcardPattern {
+                        return true
                 }
         }
+        return false
+}
 
-        for _, name := range names {
+func trackWildcardIssuer(issuer string, acc *wildcardAccum) {
+        if acc.issuerSeen[issuer] {
+                return
+        }
+        acc.issuerSeen[issuer] = true
+        if len(acc.issuers) < 10 {
+                acc.issuers = append(acc.issuers, issuer)
+        }
+}
+
+func collectWildcardSANs(nameValue, wildcardPattern, domain string, acc *wildcardAccum) {
+        for _, name := range strings.Split(nameValue, "\n") {
                 name = strings.TrimSpace(strings.ToLower(name))
-                if name != "" && name != wildcardPattern && name != domain {
-                        if strings.HasSuffix(name, "."+domain) || name == domain {
-                                acc.sanSet[name] = true
-                        }
+                if name == "" || name == wildcardPattern || name == domain {
+                        continue
+                }
+                if strings.HasSuffix(name, "."+domain) || name == domain {
+                        acc.sanSet[name] = true
                 }
         }
 }
@@ -665,8 +673,8 @@ func buildCASummary(entries []ctEntry) []map[string]any {
                 entry := map[string]any{
                         "name":       s.name,
                         "cert_count": s.certCount,
-                        "first_seen": s.firstSeen.Format("2006-01-02"),
-                        "last_seen":  s.lastSeen.Format("2006-01-02"),
+                        "first_seen": s.firstSeen.Format(dateFormatISO),
+                        "last_seen":  s.lastSeen.Format(dateFormatISO),
                         "active":     s.hasCurrents,
                 }
                 summary = append(summary, entry)
@@ -683,7 +691,7 @@ func parseCertDate(s string) time.Time {
         formats := []string{
                 "2006-01-02T15:04:05",
                 "2006-01-02 15:04:05",
-                "2006-01-02",
+                dateFormatISO,
         }
         for _, fmt := range formats {
                 if t, err := time.Parse(fmt, s); err == nil {
@@ -691,7 +699,7 @@ func parseCertDate(s string) time.Time {
                 }
         }
         if len(s) >= 10 {
-                if t, err := time.Parse("2006-01-02", s[:10]); err == nil {
+                if t, err := time.Parse(dateFormatISO, s[:10]); err == nil {
                         return t
                 }
         }
@@ -754,40 +762,51 @@ func enrichDNSWithCTData(ctEntries []ctEntry, domain string, subdomainSet map[st
         }
 }
 
-func enrichSingleDNSEntry(name string, entry map[string]any, ctEntries []ctEntry, now time.Time) {
-        certCount := 0
-        var firstSeen time.Time
-        issuersMap := make(map[string]bool)
-        var issuersList []string
+type ctMatchResult struct {
+        certCount int
+        firstSeen time.Time
+        isCurrent bool
+        issuers   []string
+}
 
+func matchCTForName(name string, ctEntries []ctEntry, now time.Time) ctMatchResult {
+        var result ctMatchResult
+        issuersMap := make(map[string]bool)
         for _, ct := range ctEntries {
                 if !ctEntryCoversName(ct, name) {
                         continue
                 }
-                certCount++
+                result.certCount++
                 notBefore := parseCertDate(ct.NotBefore)
-                if !notBefore.IsZero() && (firstSeen.IsZero() || notBefore.Before(firstSeen)) {
-                        firstSeen = notBefore
+                if !notBefore.IsZero() && (result.firstSeen.IsZero() || notBefore.Before(result.firstSeen)) {
+                        result.firstSeen = notBefore
                 }
-                notAfter := parseCertDate(ct.NotAfter)
-                if notAfter.After(now) {
-                        entry["is_current"] = true
+                if parseCertDate(ct.NotAfter).After(now) {
+                        result.isCurrent = true
                 }
                 issuer := simplifyIssuer(ct.IssuerName)
-                if issuer != "" && !issuersMap[issuer] && len(issuersList) < 5 {
+                if issuer != "" && !issuersMap[issuer] && len(result.issuers) < 5 {
                         issuersMap[issuer] = true
-                        issuersList = append(issuersList, issuer)
+                        result.issuers = append(result.issuers, issuer)
                 }
         }
+        return result
+}
 
-        if certCount > 0 {
-                entry["cert_count"] = fmt.Sprintf("%d", certCount)
-                if !firstSeen.IsZero() {
-                        entry["first_seen"] = firstSeen.Format("2006-01-02")
-                }
-                if len(issuersList) > 0 {
-                        entry["issuers"] = issuersList
-                }
+func enrichSingleDNSEntry(name string, entry map[string]any, ctEntries []ctEntry, now time.Time) {
+        match := matchCTForName(name, ctEntries, now)
+        if match.certCount == 0 {
+                return
+        }
+        entry["cert_count"] = fmt.Sprintf("%d", match.certCount)
+        if match.isCurrent {
+                entry["is_current"] = true
+        }
+        if !match.firstSeen.IsZero() {
+                entry["first_seen"] = match.firstSeen.Format(dateFormatISO)
+        }
+        if len(match.issuers) > 0 {
+                entry["issuers"] = match.issuers
         }
 }
 

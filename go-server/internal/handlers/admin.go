@@ -21,6 +21,17 @@ import (
 
 const timeFormatAdmin = "2006-01-02 15:04"
 
+const (
+        opsCSSCohesion      = "css-cohesion"
+        opsFeatureInventory = "feature-inventory"
+        opsScientificColors = "scientific-colors"
+        opsRenderDiagrams   = "render-diagrams"
+        opsFigmaBundle      = "figma-bundle"
+        opsFigmaVerify      = "figma-verify"
+        opsMiroSync         = "miro-sync"
+        opsFullPipeline     = "full-pipeline"
+)
+
 type AdminHandler struct {
         DB                    *db.Database
         Config                *config.Config
@@ -368,57 +379,57 @@ type opsTask struct {
 }
 
 var opsWhitelist = map[string]opsTask{
-        "css-cohesion": {
-                ID:      "css-cohesion",
+        opsCSSCohesion: {
+                ID:      opsCSSCohesion,
                 Label:   "CSS Cohesion Audit",
                 Icon:    "fa-palette",
                 Command: "node",
                 Args:    []string{"scripts/audit-css-cohesion.js"},
         },
-        "feature-inventory": {
-                ID:      "feature-inventory",
+        opsFeatureInventory: {
+                ID:      opsFeatureInventory,
                 Label:   "Feature Inventory",
                 Icon:    "fa-boxes-stacked",
                 Command: "node",
                 Args:    []string{"scripts/feature-inventory.js"},
         },
-        "scientific-colors": {
-                ID:      "scientific-colors",
+        opsScientificColors: {
+                ID:      opsScientificColors,
                 Label:   "Scientific Color Validation",
                 Icon:    "fa-flask",
                 Command: "node",
                 Args:    []string{"scripts/validate-scientific-colors.js"},
         },
-        "render-diagrams": {
-                ID:      "render-diagrams",
+        opsRenderDiagrams: {
+                ID:      opsRenderDiagrams,
                 Label:   "Render Mermaid Diagrams",
                 Icon:    "fa-diagram-project",
                 Command: "bash",
                 Args:    []string{"scripts/render-diagrams.sh"},
         },
-        "figma-bundle": {
-                ID:      "figma-bundle",
+        opsFigmaBundle: {
+                ID:      opsFigmaBundle,
                 Label:   "Figma Asset Bundle",
                 Icon:    "fa-box-archive",
                 Command: "node",
                 Args:    []string{"scripts/figma-asset-bundle.mjs"},
         },
-        "figma-verify": {
-                ID:      "figma-verify",
+        opsFigmaVerify: {
+                ID:      opsFigmaVerify,
                 Label:   "Figma Verification",
                 Icon:    "fa-magnifying-glass-chart",
                 Command: "node",
                 Args:    []string{"scripts/figma-verify.mjs"},
         },
-        "miro-sync": {
-                ID:      "miro-sync",
+        opsMiroSync: {
+                ID:      opsMiroSync,
                 Label:   "Sync Diagrams to Miro",
                 Icon:    "fa-arrow-up-from-bracket",
                 Command: "node",
                 Args:    []string{"scripts/sync-mermaid-miro.mjs"},
         },
-        "full-pipeline": {
-                ID:      "full-pipeline",
+        opsFullPipeline: {
+                ID:      opsFullPipeline,
                 Label:   "Full Pipeline Sync",
                 Icon:    "fa-rotate",
                 Command: "node",
@@ -504,7 +515,7 @@ func (h *AdminHandler) OperationsPage(c *gin.Context) {
 }
 
 func opsTaskList() []opsTask {
-        order := []string{"css-cohesion", "feature-inventory", "scientific-colors", "render-diagrams", "figma-bundle", "figma-verify", "miro-sync", "full-pipeline"}
+        order := []string{opsCSSCohesion, opsFeatureInventory, opsScientificColors, opsRenderDiagrams, opsFigmaBundle, opsFigmaVerify, opsMiroSync, opsFullPipeline}
         tasks := make([]opsTask, 0, len(order))
         for _, id := range order {
                 if t, ok := opsWhitelist[id]; ok {

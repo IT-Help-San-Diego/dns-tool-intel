@@ -107,34 +107,17 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
                 return
         }
 
-        var probeAPIURL, probeAPIKey, probeLabel string
-        if len(h.Config.Probes) > 0 {
-                selectedProbe := h.Config.Probes[0]
-                for _, p := range h.Config.Probes {
-                        if p.ID == selectedProbeID {
-                                selectedProbe = p
-                                break
-                        }
-                }
-                probeAPIURL = selectedProbe.URL
-                probeAPIKey = selectedProbe.Key
-                probeLabel = selectedProbe.Label
-        } else if h.Config.ProbeAPIURL != "" {
-                probeAPIURL = h.Config.ProbeAPIURL
-                probeAPIKey = h.Config.ProbeAPIKey
-                probeLabel = "Default"
-        }
-
-        if probeAPIURL == "" {
+        probe, ok := h.resolveProbeConfig(selectedProbeID)
+        if !ok {
                 data["ProbeError"] = "Port check service is not configured."
                 mergeAuthData(c, h.Config, data)
                 c.HTML(http.StatusOK, tplToolkit, data)
                 return
         }
 
-        data["ProbeLabel"] = probeLabel
+        data["ProbeLabel"] = probe.label
 
-        probeURL := probeAPIURL + "/api/v2/tcp-check?host=" + url.QueryEscape(targetHost) + "&port=" + targetPort
+        probeURL := probe.url + "/api/v2/tcp-check?host=" + url.QueryEscape(targetHost) + "&port=" + targetPort
 
         client := &http.Client{Timeout: 15 * time.Second}
         req, err := http.NewRequest("GET", probeURL, nil)
@@ -145,7 +128,7 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
                 return
         }
 
-        req.Header.Set("X-Probe-Key", probeAPIKey)
+        req.Header.Set("X-Probe-Key", probe.key)
 
         resp, err := client.Do(req)
         if err != nil {
@@ -182,6 +165,27 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
         data["ProbeResult"] = probeResult
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplToolkit, data)
+}
+
+type probeConfig struct {
+        url, key, label string
+}
+
+func (h *ToolkitHandler) resolveProbeConfig(selectedProbeID string) (probeConfig, bool) {
+        if len(h.Config.Probes) > 0 {
+                selected := h.Config.Probes[0]
+                for _, p := range h.Config.Probes {
+                        if p.ID == selectedProbeID {
+                                selected = p
+                                break
+                        }
+                }
+                return probeConfig{url: selected.URL, key: selected.Key, label: selected.Label}, true
+        }
+        if h.Config.ProbeAPIURL != "" {
+                return probeConfig{url: h.Config.ProbeAPIURL, key: h.Config.ProbeAPIKey, label: "Default"}, true
+        }
+        return probeConfig{}, false
 }
 
 func detectPlatform(userAgent string) string {

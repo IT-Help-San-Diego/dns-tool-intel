@@ -15,8 +15,10 @@ import (
 )
 
 const (
-        httpTimeout     = 10 * time.Second
-        maxResponseBody = 1024
+        httpTimeout       = 10 * time.Second
+        maxResponseBody   = 1024
+        headerContentType = "Content-Type"
+        mimeJSON          = "application/json"
 )
 
 type Notifier struct {
@@ -173,7 +175,7 @@ func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotific
         if err != nil {
                 return 0, fmt.Errorf("creating Discord request: %w", err)
         }
-        req.Header.Set("Content-Type", "application/json")
+        req.Header.Set(headerContentType, mimeJSON)
 
         resp, err := n.Client.Do(req)
         if err != nil {
@@ -210,7 +212,7 @@ func (n *Notifier) sendGenericWebhook(ctx context.Context, notif dbq.ListPending
         if err != nil {
                 return 0, fmt.Errorf("creating webhook request: %w", err)
         }
-        req.Header.Set("Content-Type", "application/json")
+        req.Header.Set(headerContentType, mimeJSON)
         if notif.Secret != nil && *notif.Secret != "" {
                 req.Header.Set("X-Webhook-Secret", *notif.Secret)
         }
@@ -255,7 +257,7 @@ func (n *Notifier) SendTestDiscord(ctx context.Context, webhookURL string) error
         if err != nil {
                 return fmt.Errorf("creating test request: %w", err)
         }
-        req.Header.Set("Content-Type", "application/json")
+        req.Header.Set(headerContentType, mimeJSON)
 
         resp, err := n.Client.Do(req)
         if err != nil {

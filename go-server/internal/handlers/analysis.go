@@ -221,17 +221,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                 "SubdomainEmailScope":  emailScope,
                 "ReportMode":           mode,
         }
-        if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
-                viewData["ICAEMetrics"] = icaeMetrics
-        }
-        if cr, ok := results["currency_report"]; ok {
-                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
-                        viewData["CurrencyReport"] = report
-                }
-        }
-        if sugConfig := buildSuggestedConfig(ctx, h.DB.Queries, analysis.Domain, analysis.ID); sugConfig != nil {
-                viewData["SuggestedConfig"] = sugConfig
-        }
+        h.enrichViewDataMetrics(ctx, viewData, results, analysis.Domain, analysis.ID)
         viewData["CovertMode"] = mode == "C"
 
         mergeAuthData(c, h.Config, viewData)
@@ -301,7 +291,20 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
 
         isPrivate := hasNovelSelectors && isAuthenticated
-        analysisID, timestamp := h.persistOrLogEphemeral(c, domain, asciiDomain, results, analysisDuration, countryCode, countryName, isPrivate, hasNovelSelectors, scanClass, ephemeral, domainExists, devNull)
+        analysisID, timestamp := h.persistOrLogEphemeral(c.Request.Context(), persistParams{
+                domain:            domain,
+                asciiDomain:       asciiDomain,
+                results:           results,
+                analysisDuration:  analysisDuration,
+                countryCode:       countryCode,
+                countryName:       countryName,
+                isPrivate:         isPrivate,
+                hasNovelSelectors: hasNovelSelectors,
+                scanClass:         scanClass,
+                ephemeral:         ephemeral,
+                domainExists:      domainExists,
+                devNull:           devNull,
+        })
 
         h.handlePostAnalysisSideEffects(ctx, c, asciiDomain, analysisID, isAuthenticated, userID, ephemeral, domainExists, drift, postureHash)
 
@@ -331,6 +334,22 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
+func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H, results map[string]any, domain string, analysisID int32) {
+        if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
+                data["ICAEMetrics"] = icaeMetrics
+        }
+        if cr, ok := results["currency_report"]; ok {
+                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                        data["CurrencyReport"] = report
+                }
+        }
+        if analysisID > 0 {
+                if sugConfig := buildSuggestedConfig(ctx, h.DB.Queries, domain, analysisID); sugConfig != nil {
+                        data["SuggestedConfig"] = sugConfig
+                }
+        }
+}
+
 func extractAuthInfo(c *gin.Context) (bool, int32) {
         isAuthenticated := false
         var userID int32
@@ -357,12 +376,25 @@ func (h *AnalysisHandler) detectDrift(ctx context.Context, devNull, domainExists
         return drift
 }
 
-func (h *AnalysisHandler) persistOrLogEphemeral(c *gin.Context, domain, asciiDomain string, results map[string]any, analysisDuration float64, countryCode, countryName string, isPrivate, hasNovelSelectors bool, scanClass scanner.Classification, ephemeral, domainExists, devNull bool) (int32, string) {
-        if ephemeral || !domainExists {
-                logEphemeralReason(asciiDomain, devNull, domainExists)
+type persistParams struct {
+        domain, asciiDomain       string
+        results                   map[string]any
+        analysisDuration          float64
+        countryCode, countryName  string
+        isPrivate                 bool
+        hasNovelSelectors         bool
+        scanClass                 scanner.Classification
+        ephemeral                 bool
+        domainExists              bool
+        devNull                   bool
+}
+
+func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistParams) (int32, string) {
+        if p.ephemeral || !p.domainExists {
+                logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
                 return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
         }
-        return h.saveAnalysis(c.Request.Context(), domain, asciiDomain, results, analysisDuration, countryCode, countryName, isPrivate, hasNovelSelectors, scanClass)
+        return h.saveAnalysis(ctx, p.domain, p.asciiDomain, p.results, p.analysisDuration, p.countryCode, p.countryName, p.isPrivate, p.hasNovelSelectors, p.scanClass)
 }
 
 func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {

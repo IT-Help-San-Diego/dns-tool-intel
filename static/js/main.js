@@ -138,17 +138,17 @@ function hideOverlayAndReset(overlay, btn) {
 
 function isBareTopLevelDomain(domain) {
     if (!domain) return false;
-    var d = domain.replace(/^\.+/, '').replace(/\.+$/, '').toLowerCase();
+    const d = domain.replace(/^\.+/, '').replace(/\.+$/, '').toLowerCase();
     if (!d || d.length > 63) return false;
-    var labels = d.split('.');
+    const labels = d.split('.');
     return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
 }
 
 function showCovertTLDToast(domain, callback) {
-    var existing = document.getElementById('tldReconToast');
+    const existing = document.getElementById('tldReconToast');
     if (existing) existing.remove();
 
-    var toast = document.createElement('div');
+    const toast = document.createElement('div');
     toast.id = 'tldReconToast';
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
@@ -164,7 +164,7 @@ function showCovertTLDToast(domain, callback) {
         + '<i class="fas fa-satellite-dish" style="margin-right:0.3rem"></i>'
         + 'Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only</div>';
 
-    var style = document.createElement('style');
+    const style = document.createElement('style');
     style.textContent = '@keyframes toastFadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
     toast.appendChild(style);
 
@@ -244,26 +244,26 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.body.classList.remove('covert-mode');
         }
-        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(e) {}
+        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(e) { /* storage unavailable */ }
     }
-    var covertBtn = document.getElementById('covertToggle');
+    const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
-            var idEl = document.querySelector('[data-analysis-id]');
-            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+            const idEl = document.querySelector('[data-analysis-id]');
+            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
             if (idEl && modeMeta) {
-                var aid = idEl.getAttribute('data-analysis-id');
-                var cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
+                const aid = idEl.dataset.analysisId;
+                const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
                 if (aid && (cur === 'E' || cur === 'C')) {
-                    var target = cur === 'E' ? 'C' : 'E';
-                    window.location.href = '/analysis/' + aid + '/view/' + target;
+                    const target = cur === 'E' ? 'C' : 'E';
+                    globalThis.location.href = '/analysis/' + aid + '/view/' + target;
                     return;
                 }
             }
             setCovertMode(!document.body.classList.contains('covert-mode'));
         });
     }
-    var covertExitHome = document.getElementById('covertExitHome');
+    const covertExitHome = document.getElementById('covertExitHome');
     if (covertExitHome) {
         covertExitHome.addEventListener('click', function() {
             setCovertMode(false);
@@ -344,16 +344,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
-                    var parsed = new DOMParser().parseFromString(html, 'text/html');
+                    const parsed = new DOMParser().parseFromString(html, 'text/html');
                     document.replaceChild(
                         document.importNode(parsed.documentElement, true),
                         document.documentElement
                     );
                     globalThis.scrollTo(0, 0);
-                    var modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                    var idEl = document.querySelector('[data-analysis-id]');
-                    var mode = modeMeta ? modeMeta.getAttribute('content') : '';
-                    var aid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                    const idEl = document.querySelector('[data-analysis-id]');
+                    const mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                    const aid = idEl ? idEl.dataset.analysisId : '';
                     if (aid && mode) {
                         globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
                     } else if (resp.url && resp.url !== globalThis.location.href) {
@@ -401,16 +401,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
-                    var parsed = new DOMParser().parseFromString(html, 'text/html');
+                    const parsed = new DOMParser().parseFromString(html, 'text/html');
                     document.replaceChild(
                         document.importNode(parsed.documentElement, true),
                         document.documentElement
                     );
                     globalThis.scrollTo(0, 0);
-                    var modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                    var idEl = document.querySelector('[data-analysis-id]');
-                    var mode = modeMeta ? modeMeta.getAttribute('content') : '';
-                    var aid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                    const idEl = document.querySelector('[data-analysis-id]');
+                    const mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                    const aid = idEl ? idEl.dataset.analysisId : '';
                     if (aid && mode) {
                         globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
                     } else if (resp.url && resp.url !== globalThis.location.href) {

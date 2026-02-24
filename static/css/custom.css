@@ -83,6 +83,18 @@
                            system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
                           system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* DNS Tool Question Branding System (R004/R006) */
+    --dt-question-color: rgba(13, 202, 240, 0.92);
+    --dt-question-color-covert: rgba(196, 60, 60, 0.85);
+    --dt-question-size-section: 1.0em;
+    --dt-question-size-protocol: 0.85em;
+    --dt-question-weight: 600;
+    --dt-question-spacing: 0.015em;
+    --dt-question-border: rgba(13, 202, 240, 0.35);
+    --dt-question-border-covert: rgba(140, 40, 40, 0.35);
+    --dt-question-bg: rgba(13, 202, 240, 0.04);
+    --dt-question-bg-covert: rgba(140, 40, 40, 0.04);
 }
 
 body {
@@ -366,9 +378,9 @@ code {
     top: -1px;
 }
 .icae-dot-development { background: rgba(74, 85, 104, 0.5); border: 1px solid rgba(74, 85, 104, 0.6); box-shadow: 0 0 3px rgba(74, 85, 104, 0.3); }
-.icae-dot-verified { background: rgba(107, 181, 255, 0.35); border: 1px solid rgba(107, 181, 255, 0.6); box-shadow: 0 0 4px rgba(107, 181, 255, 0.4); }
-.icae-dot-consistent { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 4px rgba(86, 211, 100, 0.4); }
-.icae-dot-gold { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 4px rgba(224, 184, 92, 0.4); }
+.icae-dot-verified { background: rgba(107, 181, 255, 0.35); border: 1px solid rgba(107, 181, 255, 0.6); box-shadow: 0 0 5px rgba(107, 181, 255, 0.4); }
+.icae-dot-consistent { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 5px rgba(86, 211, 100, 0.4); }
+.icae-dot-gold { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 5px rgba(224, 184, 92, 0.4); }
 .icae-dot-gold_master { background: rgba(240, 221, 179, 0.4); border: 1px solid rgba(240, 221, 179, 0.7); box-shadow: 0 0 5px rgba(240, 221, 179, 0.4); }
 
 .icae-hero-badges { gap: 0.5rem !important; }
@@ -4854,18 +4866,6 @@ body.covert-mode .proto-dkim.bg-info {
    Scientific basis: scotopic vision preservation (red) + threat semiotics.
    Migration: New templates should use .dt-question. Existing .section-question
    remains until full template migration is complete. ── */
-:root {
-    --dt-question-color: rgba(13, 202, 240, 0.92);
-    --dt-question-color-covert: rgba(196, 60, 60, 0.85);
-    --dt-question-size-section: 1.0em;
-    --dt-question-size-protocol: 0.85em;
-    --dt-question-weight: 600;
-    --dt-question-spacing: 0.015em;
-    --dt-question-border: rgba(13, 202, 240, 0.35);
-    --dt-question-border-covert: rgba(140, 40, 40, 0.35);
-    --dt-question-bg: rgba(13, 202, 240, 0.04);
-    --dt-question-bg-covert: rgba(140, 40, 40, 0.04);
-}
 .dt-question {
     font-weight: var(--dt-question-weight);
     font-style: italic;
@@ -5515,9 +5515,6 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     flex-shrink: 0;
 }
 .icae-dot-dev { background: rgba(74, 85, 104, 0.5); border: 1px solid rgba(74, 85, 104, 0.6); box-shadow: 0 0 3px rgba(74, 85, 104, 0.3); }
-.icae-dot-verified { background: rgba(107, 181, 255, 0.35); border: 1px solid rgba(107, 181, 255, 0.6); box-shadow: 0 0 5px rgba(107, 181, 255, 0.4); }
-.icae-dot-consistent { background: rgba(86, 211, 100, 0.35); border: 1px solid rgba(86, 211, 100, 0.6); box-shadow: 0 0 5px rgba(86, 211, 100, 0.4); }
-.icae-dot-gold { background: rgba(224, 184, 92, 0.35); border: 1px solid rgba(224, 184, 92, 0.6); box-shadow: 0 0 5px rgba(224, 184, 92, 0.4); }
 .icae-dot-gold-master { background: rgba(240, 221, 179, 0.4); border: 1px solid rgba(240, 221, 179, 0.7); box-shadow: 0 0 6px rgba(240, 221, 179, 0.4); }
 .icae-dot-pending { background: #343a40; box-shadow: none; }
 

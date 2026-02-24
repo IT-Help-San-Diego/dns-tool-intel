@@ -857,7 +857,7 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     document.getElementById('archExportPdf').addEventListener('click', function() {
-        window.print();
+        globalThis.print();
     });
     </script>
     {{template "math_copy_script" .}}

@@ -3,6 +3,7 @@
 package handlers
 
 import (
+        "context"
         "encoding/json"
         "log/slog"
         "net/http"
@@ -89,18 +90,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         }
 
         ctx := c.Request.Context()
-        var driftReport *zoneparse.DriftReport
-        var liveAnalysisID int32
-
-        analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, domain)
-        if err == nil && len(analysis.FullResults) > 0 {
-                var liveResults map[string]any
-                if json.Unmarshal(analysis.FullResults, &liveResults) == nil {
-                        driftReport = zoneparse.CompareDrift(parseResult.Records, liveResults)
-                        driftReport.Domain = domain
-                        liveAnalysisID = analysis.ID
-                }
-        }
+        driftReport, liveAnalysisID := h.compareZoneDrift(ctx, domain, parseResult)
 
         if retain && userID > 0 {
                 var driftJSON []byte
@@ -148,6 +138,20 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplZone, data)
+}
+
+func (h *ZoneHandler) compareZoneDrift(ctx context.Context, domain string, parseResult *zoneparse.ParseResult) (*zoneparse.DriftReport, int32) {
+        analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, domain)
+        if err != nil || len(analysis.FullResults) == 0 {
+                return nil, 0
+        }
+        var liveResults map[string]any
+        if json.Unmarshal(analysis.FullResults, &liveResults) != nil {
+                return nil, 0
+        }
+        driftReport := zoneparse.CompareDrift(parseResult.Records, liveResults)
+        driftReport.Domain = domain
+        return driftReport, analysis.ID
 }
 
 func (h *ZoneHandler) renderZoneFlash(c *gin.Context, nonce, csrfToken any, category, message string) {

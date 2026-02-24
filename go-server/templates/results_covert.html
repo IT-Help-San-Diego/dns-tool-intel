@@ -1355,13 +1355,13 @@
 
             document.querySelectorAll('.u-covert-exit-btn').forEach(function(link) {
                 link.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch(e) {}
+                    try { localStorage.setItem('covertMode', '0'); } catch(e) { /* storage unavailable */ }
                 });
             });
             var engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
             if (engBtn) {
                 engBtn.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch(e) {}
+                    try { localStorage.setItem('covertMode', '0'); } catch(e) { /* storage unavailable */ }
                 });
             }
 
@@ -1448,7 +1448,7 @@
                             var modeMeta = document.querySelector('meta[name="x-report-mode"]');
                             var idEl = document.querySelector('[data-analysis-id]');
                             var rMode = modeMeta ? modeMeta.getAttribute('content') : '';
-                            var rAid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                            var rAid = idEl ? idEl.dataset.analysisId : '';
                             if (rAid && rMode) {
                                 globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
                             } else if (resp.url && resp.url !== globalThis.location.href) {

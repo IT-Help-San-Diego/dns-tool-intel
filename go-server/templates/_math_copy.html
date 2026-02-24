@@ -1,6 +1,14 @@
 {{define "math_copy_script"}}
 <script nonce="{{.CspNonce}}">
 (function() {
+    function showCopied(btn) {
+        btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+        btn.classList.add('math-copy-btn--copied');
+        setTimeout(function() {
+            btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+            btn.classList.remove('math-copy-btn--copied');
+        }, 1500);
+    }
     var blocks = document.querySelectorAll('.math-display[data-latex]');
     blocks.forEach(function(block) {
         if (block.querySelector('.math-copy-btn')) return;
@@ -11,17 +19,9 @@
         btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
         block.appendChild(btn);
         btn.addEventListener('click', function() {
-            var latex = block.getAttribute('data-latex');
-            function showCopied() {
-                btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
-                btn.classList.add('math-copy-btn--copied');
-                setTimeout(function() {
-                    btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
-                    btn.classList.remove('math-copy-btn--copied');
-                }, 1500);
-            }
+            var latex = block.dataset.latex;
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(latex).then(showCopied).catch(function() {
+                navigator.clipboard.writeText(latex).then(function() { showCopied(btn); }).catch(function() {
                     var ta = document.createElement('textarea');
                     ta.value = latex;
                     ta.style.position = 'fixed';
@@ -29,8 +29,8 @@
                     document.body.appendChild(ta);
                     ta.select();
                     document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    showCopied();
+                    ta.remove();
+                    showCopied(btn);
                 });
             } else {
                 var ta = document.createElement('textarea');
@@ -40,8 +40,8 @@
                 document.body.appendChild(ta);
                 ta.select();
                 document.execCommand('copy');
-                document.body.removeChild(ta);
-                showCopied();
+                ta.remove();
+                showCopied(btn);
             }
         });
     });

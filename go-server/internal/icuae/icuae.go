@@ -21,6 +21,8 @@ import (
 )
 
 const (
+        StandardNIST80053SI18 = "NIST SP 800-53 SI-18"
+
         DimensionCurrentness      = "currentness"
         DimensionTTLCompliance    = "ttl_compliance"
         DimensionCompleteness     = "completeness"
@@ -45,9 +47,9 @@ var DimensionDisplayNames = map[string]string{
 var DimensionStandards = map[string]string{
         DimensionCurrentness:       "ISO/IEC 25012",
         DimensionTTLCompliance:     "RFC 8767",
-        DimensionCompleteness:      "NIST SP 800-53 SI-18",
+        DimensionCompleteness:      StandardNIST80053SI18,
         DimensionSourceCredibility: "ISO/IEC 25012 + SPJ",
-        DimensionTTLRelevance:      "NIST SP 800-53 SI-18",
+        DimensionTTLRelevance:      StandardNIST80053SI18,
 }
 
 var GradeOrder = map[string]int{
@@ -553,7 +555,7 @@ func buildTTLFinding(recordType string, observed, typical uint32, ratio float64,
                 TypicalTTL:     typical,
                 Ratio:          ratio,
                 Severity:       severity,
-                Standard:       "NIST SP 800-53 SI-18",
+                Standard:       StandardNIST80053SI18,
                 Recommendation: recommendation,
         }
 }
