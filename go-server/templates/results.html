@@ -903,7 +903,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-shield-alt me-2"></i>Email Security</span>
                             {{if and .SectionTuning (index .SectionTuning "email")}}{{with index .SectionTuning "email"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Can this domain be impersonated by email?
+                            <span class="section-question dt-question dt-question--section">Can this domain be impersonated by email?
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}
                                 {{$emailShort := mapGetStr "email_answer_short" $verdicts}}
@@ -1952,7 +1952,7 @@
                             {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dane"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                             <a href="/analysis/{{.AnalysisID}}?covert=1#section-dane" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — DANE/TLSA certificate pinning analysis. A protocol most DNS tools skip entirely. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
                             {{if and .SectionTuning (index .SectionTuning "dane")}}{{with index .SectionTuning "dane"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">{{if .IsPublicSuffix}}Does this zone publish DANE / TLSA records?{{else}}Can mail servers establish identity without a public CA?{{end}}
+                            <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Does this zone publish DANE / TLSA records?{{else}}Can mail servers establish identity without a public CA?{{end}}
                                 {{$daneStatus := mapGetStr "status" $dane}}
                                 {{$hasDane := mapGetBool "has_dane" $dane}}
                                 {{$daneDeployable := mapGetStr "dane_deployable" $dane}}
@@ -2118,7 +2118,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-certificate me-2"></i>{{if .IsPublicSuffix}}Certificate Authority Policy{{else}}Brand Security{{end}}</span>
                             {{if and .SectionTuning (index .SectionTuning "brand")}}{{with index .SectionTuning "brand"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">{{if .IsPublicSuffix}}Does this zone restrict certificate issuance?{{else}}Can this brand be convincingly faked?{{end}}
+                            <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Does this zone restrict certificate issuance?{{else}}Can this brand be convincingly faked?{{end}}
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}
                                 {{$brandVerdict := mapGetMap "brand_impersonation" $verdicts}}
@@ -2359,7 +2359,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-shield-alt me-2"></i>Vulnerability Disclosure Policy (security.txt)</span>
                             {{if and .SectionTuning (index .SectionTuning "securitytxt")}}{{with index .SectionTuning "securitytxt"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Is there a verified way to report security issues?
+                            <span class="section-question dt-question dt-question--section">Is there a verified way to report security issues?
                                 {{$secTxtStatus := mapGetStr "status" $security_txt}}
                                 <span class="badge bg-{{if eq $secTxtStatus "success"}}success{{else if eq $secTxtStatus "warning"}}warning{{else}}secondary{{end}} ms-2">
                                     {{if eq $secTxtStatus "success"}}Yes{{else if eq $secTxtStatus "warning"}}Partial{{else}}No{{end}}
@@ -2491,7 +2491,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-robot me-2"></i>AI Surface Scanner</span>
                             {{if and .SectionTuning (index .SectionTuning "ai")}}{{with index .SectionTuning "ai"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Is this domain discoverable by AI — and protected from abuse?
+                            <span class="section-question dt-question dt-question--section">Is this domain discoverable by AI — and protected from abuse?
                                 {{$aiStatus := mapGetStr "status" $ai_surface}}
                                 {{if eq $aiStatus "success"}}
                                     <span class="badge bg-success ms-2">Yes</span>
@@ -2765,7 +2765,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-key me-2"></i>Public Exposure Checks</span>
                             {{if and .SectionTuning (index .SectionTuning "secrets")}}{{with index .SectionTuning "secrets"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Are sensitive files or secrets exposed?
+                            <span class="section-question dt-question dt-question--section">Are sensitive files or secrets exposed?
                                 {{$secretStatus := mapGetStr "status" $secret_exposure}}
                                 {{$secretCount := mapGetFloat "finding_count" $secret_exposure}}
                                 {{if eq $secretStatus "exposed"}}
@@ -3051,7 +3051,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-exchange-alt me-2"></i>Mail Transport Security</span>
                             {{if and .SectionTuning (index .SectionTuning "smtp")}}{{with index .SectionTuning "smtp"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Is mail transport encrypted and verified?
+                            <span class="section-question dt-question dt-question--section">Is mail transport encrypted and verified?
                                 {{$smtpStatus := mapGetStr "status" $smtp}}
                                 {{$smtpPolicy := mapGetMap "policy" $smtp}}
                                 {{$smtpPolicyVerdict := ""}}
@@ -3320,7 +3320,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-network-wired me-2"></i>Infrastructure Intelligence</span>
                             {{if and .SectionTuning (index .SectionTuning "infra")}}{{with index .SectionTuning "infra"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Who hosts this domain and what services power it?
+                            <span class="section-question dt-question dt-question--section">Who hosts this domain and what services power it?
                                 {{if $edge_cdn}}
                                     {{$cdnProvider := mapGetStr "provider" $edge_cdn}}
                                     {{if $cdnProvider}}
@@ -3472,7 +3472,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-shield-alt me-2"></i>{{if .IsPublicSuffix}}Zone Signing &amp; DNSSEC{{else}}Domain Security{{end}}</span>
                             {{if and .SectionTuning (index .SectionTuning "dnssec")}}{{with index .SectionTuning "dnssec"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">{{if .IsPublicSuffix}}Is this zone cryptographically signed?{{else}}Can DNS responses be tampered with in transit?{{end}}
+                            <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Is this zone cryptographically signed?{{else}}Can DNS responses be tampered with in transit?{{end}}
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}
                                 {{$dnsVerdict := mapGetMap "dns_tampering" $verdicts}}
@@ -3906,7 +3906,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-route me-2"></i>Traffic &amp; Routing</span>
                             {{if and .SectionTuning (index .SectionTuning "traffic")}}{{with index .SectionTuning "traffic"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
-                            <span class="section-question">Where does this domain's traffic actually terminate?</span>
+                            <span class="section-question dt-question dt-question--section">Where does this domain's traffic actually terminate?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -4054,7 +4054,7 @@
                         </span>
                         {{$ctStatus := mapGetStr "status" $ct}}
                         {{$ctUnique := mapGetFloat "unique_subdomains" $ct}}
-                        <span class="section-question">What subdomains and infrastructure are exposed in certificate logs?
+                        <span class="section-question dt-question dt-question--section">What subdomains and infrastructure are exposed in certificate logs?
                             {{if and (eq $ctStatus "success") (gt $ctUnique 0)}}
                                 {{if or (mapGetBool "display_capped" $ct) (mapGetBool "was_truncated" $ct)}}
                                 <span class="badge badge-recon-count ms-2"><i class="fas fa-crosshairs me-1"></i>Showing {{mapGetInt "displayed_count" $ct}} of {{formatFloat 0 $ctUnique}} discovered</span>
@@ -4776,7 +4776,7 @@
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                     <span><i class="fas fa-fingerprint me-2 u-color-info"></i>Verify Report Integrity
                     <span class="badge ms-2 u-badge-info-outline">SHA-3-512</span></span>
-                    <span class="section-question">Has this report been altered since generation?
+                    <span class="section-question dt-question dt-question--section">Has this report been altered since generation?
                         <span class="badge bg-success ms-2">Verify below</span>
                     </span>
                 </h5>
