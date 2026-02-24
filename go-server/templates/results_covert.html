@@ -379,7 +379,23 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-user-secret me-2"></i>Transport Security</span>
-                            <span class="section-question dt-question dt-question--section">Can you intercept email in transit?</span>
+                            <span class="section-question dt-question dt-question--section">Can you intercept email in transit?
+                                {{if $posture}}
+                                {{$verdicts := mapGetMap "verdicts" $posture}}
+                                {{$transportVerdict := mapGetMap "transport" $verdicts}}
+                                {{if $transportVerdict}}
+                                {{$transportAnswer := mapGetStr "answer" $transportVerdict}}
+                                {{$transportColor := mapGetStr "color" $transportVerdict}}
+                                {{$transportReason := mapGetStr "reason" $transportVerdict}}
+                                {{if $transportAnswer}}
+                                    <span class="intel-verdict">
+                                        <span class="intel-verdict-answer verdict-{{$transportColor}}">{{$transportAnswer}}</span>
+                                        {{if $transportReason}}<span class="intel-verdict-reason">{{$transportReason}}</span>{{end}}
+                                    </span>
+                                {{end}}
+                                {{end}}
+                                {{end}}
+                            </span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -441,7 +457,23 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-mask me-2"></i>Brand &amp; Certificate Security</span>
-                            <span class="section-question dt-question dt-question--section">Can you fake this brand's identity?</span>
+                            <span class="section-question dt-question dt-question--section">Can you fake this brand's identity?
+                                {{if $posture}}
+                                {{$verdicts := mapGetMap "verdicts" $posture}}
+                                {{$brandVerdict := mapGetMap "brand_impersonation" $verdicts}}
+                                {{if $brandVerdict}}
+                                {{$brandAnswer := mapGetStr "answer" $brandVerdict}}
+                                {{$brandColor := mapGetStr "color" $brandVerdict}}
+                                {{$brandReason := mapGetStr "reason" $brandVerdict}}
+                                {{if $brandAnswer}}
+                                    <span class="intel-verdict">
+                                        <span class="intel-verdict-answer verdict-{{$brandColor}}">{{$brandAnswer}}</span>
+                                        {{if $brandReason}}<span class="intel-verdict-reason">{{$brandReason}}</span>{{end}}
+                                    </span>
+                                {{end}}
+                                {{end}}
+                                {{end}}
+                            </span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -494,7 +526,23 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-bug me-2"></i>DNS Infrastructure</span>
-                            <span class="section-question dt-question dt-question--section">Can you poison the DNS?</span>
+                            <span class="section-question dt-question dt-question--section">Can you poison the DNS?
+                                {{if $posture}}
+                                {{$verdicts := mapGetMap "verdicts" $posture}}
+                                {{$dnsVerdict := mapGetMap "dns_tampering" $verdicts}}
+                                {{if $dnsVerdict}}
+                                {{$dnsAnswer := mapGetStr "answer" $dnsVerdict}}
+                                {{$dnsColor := mapGetStr "color" $dnsVerdict}}
+                                {{$dnsReason := mapGetStr "reason" $dnsVerdict}}
+                                {{if $dnsAnswer}}
+                                    <span class="intel-verdict">
+                                        <span class="intel-verdict-answer verdict-{{$dnsColor}}">{{$dnsAnswer}}</span>
+                                        {{if $dnsReason}}<span class="intel-verdict-reason">{{$dnsReason}}</span>{{end}}
+                                    </span>
+                                {{end}}
+                                {{end}}
+                                {{end}}
+                            </span>
                         </h5>
                     </div>
                     <div class="card-body">

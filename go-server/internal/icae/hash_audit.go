@@ -17,6 +17,7 @@ type HashAuditResult struct {
         TotalVerified  int
         TotalFailed    int
         TotalMissing   int
+        TotalHashedInDB int
         LastVerifiedAt string
         FailedDomains  []string
         IntegrityPct   int
