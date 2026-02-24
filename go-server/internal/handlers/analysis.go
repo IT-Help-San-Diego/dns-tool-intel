@@ -66,7 +66,47 @@ func (h *AnalysisHandler) checkPrivateAccess(c *gin.Context, analysisID int32, p
         return err == nil && isOwner
 }
 
+func resolveReportMode(c *gin.Context) string {
+        if mode := c.Param("mode"); mode != "" {
+                switch strings.ToUpper(mode) {
+                case "C":
+                        return "C"
+                case "B":
+                        return "B"
+                default:
+                        return "E"
+                }
+        }
+        if c.Query("covert") == "1" {
+                return "C"
+        }
+        return "E"
+}
+
+func reportModeTemplate(mode string) string {
+        switch mode {
+        case "C":
+                return "results_covert.html"
+        case "B":
+                return "results_executive.html"
+        default:
+                return "results.html"
+        }
+}
+
 func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
+        h.viewAnalysisWithMode(c, resolveReportMode(c))
+}
+
+func (h *AnalysisHandler) ViewAnalysis(c *gin.Context) {
+        h.viewAnalysisWithMode(c, resolveReportMode(c))
+}
+
+func (h *AnalysisHandler) ViewAnalysisExecutive(c *gin.Context) {
+        h.viewAnalysisWithMode(c, "B")
+}
+
+func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
         idStr := c.Param("id")
@@ -101,7 +141,6 @@ func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
 
         waitSeconds, _ := strconv.Atoi(c.Query("wait_seconds"))
         waitReason := c.Query("wait_reason")
-        covertMode := c.Query("covert") == "1"
 
         timestamp := formatTimestamp(analysis.CreatedAt)
         if analysis.UpdatedAt.Valid {
@@ -180,6 +219,7 @@ func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
                 "IsPublicSuffix":       isPublicSuffixDomain(analysis.AsciiDomain),
                 "IsTLD":                dnsclient.IsTLDInput(analysis.AsciiDomain),
                 "SubdomainEmailScope":  emailScope,
+                "ReportMode":           mode,
         }
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 viewData["ICAEMetrics"] = icaeMetrics
@@ -187,92 +227,10 @@ func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
         if cr, ok := results["currency_report"]; ok {
                 viewData["CurrencyReport"] = cr
         }
-        viewData["CovertMode"] = covertMode
+        viewData["CovertMode"] = mode == "C"
 
         mergeAuthData(c, h.Config, viewData)
-        if covertMode {
-                c.HTML(http.StatusOK, "results_covert.html", viewData)
-        } else {
-                c.HTML(http.StatusOK, "results.html", viewData)
-        }
-}
-
-func (h *AnalysisHandler) ViewAnalysis(c *gin.Context) {
-        h.ViewAnalysisStatic(c)
-}
-
-func (h *AnalysisHandler) ViewAnalysisExecutive(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        idStr := c.Param("id")
-        analysisID, err := strconv.ParseInt(idStr, 10, 32)
-        if err != nil {
-                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, "danger", "Invalid analysis ID")
-                return
-        }
-
-        ctx := c.Request.Context()
-        analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(analysisID))
-        if err != nil {
-                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, "danger", "Analysis not found")
-                return
-        }
-
-        if !h.checkPrivateAccess(c, analysis.ID, analysis.Private) {
-                h.renderRestrictedAccess(c, nonce, csrfToken)
-                return
-        }
-
-        if len(analysis.FullResults) == 0 || string(analysis.FullResults) == "null" {
-                h.renderErrorPage(c, http.StatusGone, nonce, csrfToken, "warning", "This report is no longer available. Please re-analyze the domain.")
-                return
-        }
-
-        results := NormalizeResults(analysis.FullResults)
-        if results == nil {
-                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, "danger", "Failed to parse results")
-                return
-        }
-
-        timestamp := formatTimestamp(analysis.CreatedAt)
-        if analysis.UpdatedAt.Valid {
-                timestamp = formatTimestamp(analysis.UpdatedAt)
-        }
-
-        dur := 0.0
-        if analysis.AnalysisDuration != nil {
-                dur = *analysis.AnalysisDuration
-        }
-
-        toolVersion := extractToolVersion(results)
-        hashVersion := toolVersion
-        if hashVersion == "" {
-                hashVersion = h.Config.AppVersion
-        }
-        integrityHash := analyzer.ReportIntegrityHash(analysis.AsciiDomain, analysis.ID, timestamp, hashVersion, results)
-        rfcCount := analyzer.CountVerifiedRFCs(results)
-
-        execData := gin.H{
-                "AppVersion":        h.Config.AppVersion,
-                "CspNonce":          nonce,
-                "CsrfToken":         csrfToken,
-                "ActivePage":        "",
-                "Domain":            analysis.Domain,
-                "AsciiDomain":       analysis.AsciiDomain,
-                "Results":           results,
-                "AnalysisID":        analysis.ID,
-                "AnalysisDuration":  dur,
-                "AnalysisTimestamp": timestamp,
-                "DomainExists":      resultsDomainExists(results),
-                "ToolVersion":       toolVersion,
-                "IntegrityHash":     integrityHash,
-                "RFCCount":          rfcCount,
-                "MaintenanceNote":   h.Config.MaintenanceNote,
-                "BetaPages":         h.Config.BetaPages,
-                "SectionTuning":     h.Config.SectionTuning,
-        }
-        mergeAuthData(c, h.Config, execData)
-        c.HTML(http.StatusOK, "results_executive.html", execData)
+        c.HTML(http.StatusOK, reportModeTemplate(mode), viewData)
 }
 
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
@@ -357,15 +315,15 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 c.Header("X-Persistence", "/dev/null")
         }
 
-        covertMode := c.PostForm("covert") == "1" || c.Query("covert") == "1"
-        analyzeData["CovertMode"] = covertMode
+        mode := "E"
+        if c.PostForm("covert") == "1" || c.Query("covert") == "1" {
+                mode = "C"
+        }
+        analyzeData["CovertMode"] = mode == "C"
+        analyzeData["ReportMode"] = mode
 
         mergeAuthData(c, h.Config, analyzeData)
-        if covertMode {
-                c.HTML(http.StatusOK, "results_covert.html", analyzeData)
-        } else {
-                c.HTML(http.StatusOK, "results.html", analyzeData)
-        }
+        c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
 func extractAuthInfo(c *gin.Context) (bool, int32) {

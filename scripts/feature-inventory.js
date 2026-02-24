@@ -199,9 +199,44 @@ if (analysisHandler) {
     'Checksum .sha3 file must include analysis ID');
   check('SHA3 sidecar includes report URL', analysisHandler.includes('Report URL:'),
     'Checksum .sha3 file must include permalink back to report');
+  check('Unified mode handler exists', analysisHandler.includes('viewAnalysisWithMode'),
+    'Handler must dispatch E/C/B via viewAnalysisWithMode');
+  check('Mode resolver function exists', analysisHandler.includes('resolveReportMode'),
+    'Route mode param resolver must exist');
+  check('ReportMode passed to template', analysisHandler.includes('"ReportMode"'),
+    'Template data must include ReportMode for URL canonicalization');
+}
+const mainGoServer = read('go-server/cmd/server/main.go');
+if (mainGoServer) {
+  check('Mode-aware route registered', mainGoServer.includes('/analysis/:id/view/:mode'),
+    'Router must register /analysis/:id/view/:mode');
+}
+if (mainJs) {
+  check('URL canonicalization uses x-report-mode', mainJs.includes('x-report-mode'),
+    'JS must read meta[name=x-report-mode] for replaceState');
 }
 
-// ── 8. CSS Minification ──────────────────────────────────────
+// ── 8. Question Branding (R004) ─────────────────────────────
+console.log('\n── Question Branding (R004) ────────────────────────────────');
+check('.dt-question base class in CSS', css.includes('.dt-question {'),
+  'Base question class must exist');
+check('.dt-question--section modifier', css.includes('.dt-question--section'),
+  'Section-level modifier must exist');
+check('.dt-question--protocol modifier', css.includes('.dt-question--protocol'),
+  'Protocol-level modifier must exist');
+check('Covert .dt-question override', css.includes('body.covert-mode .dt-question'),
+  'Single covert override for all question text');
+check('.section-question uses composition', !css.match(/\.section-question\s*\{[^}]*font-weight/),
+  '.section-question must not duplicate font-weight (composed via .dt-question)');
+check('.protocol-question-text uses composition', !css.match(/\.protocol-question-text\s*\{[^}]*font-weight/),
+  '.protocol-question-text must not duplicate font-weight (composed via .dt-question)');
+const resultsHtml = read('go-server/templates/results.html');
+if (resultsHtml) {
+  check('Protocol questions have dt-question class', resultsHtml.includes('protocol-question-text dt-question dt-question--protocol'),
+    'Protocol question spans must compose .dt-question');
+}
+
+// ── 9. CSS Minification ──────────────────────────────────────
 console.log('\n── CSS Minification ────────────────────────────────────────');
 const cssPath = path.join(ROOT, 'static/css/custom.css');
 const minPath = path.join(ROOT, 'static/css/custom.min.css');

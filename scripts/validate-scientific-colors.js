@@ -59,6 +59,7 @@ class ScientificColorValidator {
       icuaeGrades: 0,
       covertOverrides: 0,
       dtQuestionTokens: 0,
+      verdictBadges: 0,
       semanticChecks: 0,
     };
   }
@@ -71,6 +72,8 @@ class ScientificColorValidator {
     this.validateSemanticIntegrity();
     this.validateCovertRedShift();
     this.validateDTQuestionSystem();
+    this.validateVerdictBadges();
+    this.validateGlassOpacityRanges();
     this.validateCrossModeCoverage();
     return this.report();
   }
@@ -303,6 +306,78 @@ class ScientificColorValidator {
     if (!hasProtocol) this.addFinding('error', 'DT_QUESTION', '.dt-question--protocol modifier not defined', null, null);
   }
 
+  validateVerdictBadges() {
+    const verdictMap = {
+      'verdict-success': { family: 'green',  rMin: 20, gMin: 100, bMax: 100 },
+      'verdict-info':    { family: 'blue',   rMax: 120, gMin: 130, bMin: 200 },
+      'verdict-warning': { family: 'amber',  rMin: 200, gMin: 150, bMax: 80  },
+      'verdict-danger':  { family: 'red',    rMin: 180, gMax: 100, bMax: 100 },
+      'verdict-secondary': { family: 'gray' },
+    };
+
+    Object.entries(verdictMap).forEach(([cls, spec]) => {
+      const pattern = new RegExp(`\\.intel-verdict-answer\\.${cls}\\s*\\{([^}]+)\\}`);
+      const match = pattern.exec(this.css);
+      if (!match) {
+        this.addFinding('warn', 'VERDICT_BADGE',
+          `Verdict badge ".${cls}" not found`, null, 'Expected in intel-verdict system');
+        return;
+      }
+      this.stats.tokensValidated++;
+      this.stats.verdictBadges++;
+
+      const colorMatch = match[1].match(/color:\s*#([0-9a-fA-F]{6})/);
+      if (colorMatch && spec.family !== 'gray') {
+        const { r, g, b } = this.hexToRgb(colorMatch[1]);
+        let valid = true;
+        if (spec.rMin !== undefined && r < spec.rMin) valid = false;
+        if (spec.rMax !== undefined && r > spec.rMax) valid = false;
+        if (spec.gMin !== undefined && g < spec.gMin) valid = false;
+        if (spec.gMax !== undefined && g > spec.gMax) valid = false;
+        if (spec.bMin !== undefined && b < spec.bMin) valid = false;
+        if (spec.bMax !== undefined && b > spec.bMax) valid = false;
+        if (!valid) {
+          const line = this.findLineNumber(new RegExp(`\\.intel-verdict-answer\\.${cls}`));
+          this.addFinding('error', 'VERDICT_BADGE',
+            `${cls} text color #${colorMatch[1]} doesn't match ${spec.family} family`,
+            line, `rgb(${r},${g},${b})`);
+        }
+      }
+    });
+  }
+
+  validateGlassOpacityRanges() {
+    const glassPatterns = [
+      { name: 'ICAE dot',    pattern: /icae-level-[\w-]+::before\s*\{([^}]+)\}/g },
+      { name: 'ICuAE dot',   pattern: /icuae-badge-[\w-]+\s+\.icuae-dot\s*\{([^}]+)\}/g },
+      { name: 'Answer badge', pattern: /section-answer[\w-]*\s*\{([^}]+)\}/g },
+    ];
+
+    glassPatterns.forEach(({ name, pattern }) => {
+      let match;
+      while ((match = pattern.exec(this.css)) !== null) {
+        const props = match[1];
+        if (/covert-mode/.test(this.css.substring(Math.max(0, match.index - 80), match.index))) continue;
+
+        const bgLine = props.match(/background:\s*[^;]+/);
+        if (bgLine) {
+          const bgAlphas = [...bgLine[0].matchAll(/rgba\(\s*\d+,\s*\d+,\s*\d+,\s*([\d.]+)\s*\)/g)];
+          bgAlphas.forEach(om => {
+            const alpha = parseFloat(om[1]);
+            if (alpha > 0.65) {
+              const line = this.findLineNumber(new RegExp(
+                match[0].substring(0, 30).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+              ));
+              this.addFinding('warn', 'GLASS_OPACITY',
+                `${name} background rgba alpha ${alpha} > 0.65 — may not appear glass-like`,
+                line, 'Glass treatment requires translucency (alpha ≤ 0.65)');
+            }
+          });
+        }
+      }
+    });
+  }
+
   validateCrossModeCoverage() {
     const glassElements = [
       'icae-hero-maturity-badge',
@@ -344,6 +419,7 @@ class ScientificColorValidator {
     output += '── SPECTRUM VALIDATION ─────────────────────────────────────\n';
     output += `  ICAE maturity dots:  ${this.stats.maturityLevels} validated\n`;
     output += `  ICuAE grade dots:    ${this.stats.icuaeGrades} validated\n`;
+    output += `  Verdict badges:      ${this.stats.verdictBadges} validated\n`;
     output += `  Covert overrides:    ${this.stats.covertOverrides} red-shift checked\n`;
     output += `  Semantic line scans: ${this.stats.semanticChecks}\n\n`;
 

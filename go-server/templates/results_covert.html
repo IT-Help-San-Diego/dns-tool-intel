@@ -5,6 +5,7 @@
     <title>Recon Report — {{.Domain}} - DNS Tool</title>
     <meta name="description" content="Red team recon report for {{.Domain}}. Attack surface analysis: SPF, DKIM, DMARC, DANE, DNSSEC, MTA-STS, BIMI, CAA.">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="x-report-mode" content="{{.ReportMode}}">
     {{template "head_css" .}}
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
@@ -15,7 +16,7 @@
 <body class="covert-mode">
     {{template "nav" .}}
 
-    <main id="main-content" class="container my-4">
+    <main id="main-content" class="container my-4" data-analysis-id="{{.AnalysisID}}">
         {{template "flash_messages" .}}
 
         <div class="alert border-0 mb-3 u-covert-banner" role="alert">
@@ -30,7 +31,7 @@
                     </div>
                 </div>
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view" class="btn btn-sm btn-outline-secondary text-nowrap u-covert-exit-btn">
+                <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-sm btn-outline-secondary text-nowrap u-covert-exit-btn">
                     <i class="fas fa-eye me-1"></i>Exit Covert Mode
                 </a>
                 {{end}}
@@ -119,7 +120,7 @@
             </div>
             <div class="results-header-actions">
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view" class="btn btn-outline-info me-2" title="View the full Engineer's DNS Intelligence Report">
+                <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-outline-info me-2" title="View the full Engineer's DNS Intelligence Report">
                     <i class="fas fa-file-alt me-1"></i>Engineer's
                 </a>
                 {{end}}
@@ -1396,7 +1397,13 @@
                             document.write(html);
                             document.close();
                             globalThis.scrollTo(0, 0);
-                            if (resp.url && resp.url !== globalThis.location.href) {
+                            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                            var idEl = document.querySelector('[data-analysis-id]');
+                            var rMode = modeMeta ? modeMeta.getAttribute('content') : '';
+                            var rAid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                            if (rAid && rMode) {
+                                globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
+                            } else if (resp.url && resp.url !== globalThis.location.href) {
                                 globalThis.history.replaceState(null, '', resp.url);
                             }
                         });

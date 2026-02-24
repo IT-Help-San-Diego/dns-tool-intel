@@ -5,6 +5,7 @@
     <title>Executive's DNS Intelligence Brief — {{.Domain}} - DNS Tool</title>
     <meta name="description" content="Executive domain security brief for {{.Domain}}. OSINT-based, board-ready summary of email authentication, DNS security, and risk posture.">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="x-report-mode" content="{{.ReportMode}}">
     <meta property="og:title" content="Executive's DNS Intelligence Brief — {{.Domain}} - DNS Tool">
     <meta property="og:description" content="Executive domain security brief for {{.Domain}}. OSINT-based, board-ready summary of email authentication, DNS security, and risk posture.">
     <meta property="og:type" content="website">
@@ -532,7 +533,7 @@
 <body>
     {{template "nav" .}}
 
-    <main id="main-content" class="container my-4">
+    <main id="main-content" class="container my-4" data-analysis-id="{{.AnalysisID}}">
         {{template "flash_messages" .}}
 
         {{$results := .Results}}
@@ -624,7 +625,7 @@
                         </ul>
                     </div>
                     <div class="btn-group">
-                        <a href="/analysis/{{.AnalysisID}}/view" class="btn btn-outline-info" title="View Engineer's DNS Intelligence Report">
+                        <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-outline-info" title="View Engineer's DNS Intelligence Report">
                             <i class="fas fa-file-lines me-1"></i>Engineer
                         </a>
                         <button type="button" id="execPrintBtn" class="btn btn-warning active" title="Print this Executive's DNS Intelligence Brief">
@@ -1522,7 +1523,7 @@
                 <div class="card-body">
                     <p class="mb-2">Full technical details including raw DNS records, DKIM public keys, IP/ASN mappings, resolver consensus evidence, and verification commands are available in the Engineer's DNS Intelligence Report.</p>
                     <p class="mb-0">
-                        <a href="/analysis/{{.AnalysisID}}"><i class="fas fa-external-link-alt me-1"></i>View Engineer's DNS Intelligence Report</a>
+                        <a href="/analysis/{{.AnalysisID}}/view/E"><i class="fas fa-external-link-alt me-1"></i>View Engineer's DNS Intelligence Report</a>
                     </p>
                 </div>
             </div>

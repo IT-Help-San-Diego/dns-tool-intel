@@ -17,6 +17,7 @@
     <meta name="twitter:description" content="OSINT-based domain security audit for {{.Domain}}. SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, MTA-STS, TLS-RPT, BIMI, CAA analysis with posture scoring and remediation guidance.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="x-report-mode" content="{{.ReportMode}}">
     {{template "head_css" .}}
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
@@ -27,7 +28,7 @@
 <body>
     {{template "nav" .}}
 
-    <main id="main-content" class="container my-4">
+    <main id="main-content" class="container my-4" data-analysis-id="{{.AnalysisID}}">
         {{template "flash_messages" .}}
 
         {{if .Ephemeral}}
@@ -238,7 +239,7 @@
                     <button type="button" id="engineerPrintBtn" class="btn btn-outline-info active" title="Print this Engineer's DNS Intelligence Report">
                         <i class="fas fa-print me-1"></i>Print
                     </button>
-                    <a href="/analysis/{{.AnalysisID}}/executive" id="executiveNavBtn" class="btn btn-outline-executive" title="View Executive's DNS Intelligence Brief">
+                    <a href="/analysis/{{.AnalysisID}}/view/B" id="executiveNavBtn" class="btn btn-outline-executive" title="View Executive's DNS Intelligence Brief">
                         <i class="fas fa-file-alt me-1"></i>Executive
                     </a>
                 </div>
@@ -257,7 +258,7 @@
                         <li><span class="dropdown-item-text small text-muted pe-3" data-bs-toggle="tooltip" title="FIRST TLP v2.0 standard">TLP (Traffic Light Protocol) governs dissemination of this intelligence product. Default: AMBER per FIRST/CISA standards for security posture reports. Full hierarchy: RED (recipient only) → AMBER+STRICT (organisation only) → AMBER (organisation and clients) → GREEN (community) → CLEAR (public). Per FIRST TLP v2.0.</span></li>
                     </ul>
                 </div>
-                <a href="/analysis/{{.AnalysisID}}?covert=1" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective" aria-label="Switch to Recon Mode">
+                <a href="/analysis/{{.AnalysisID}}/view/C" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective" aria-label="Switch to Recon Mode">
                     <i class="fas fa-crosshairs me-1"></i><span class="d-none d-lg-inline">Recon Mode</span>
                 </a>
                 <a href="/snapshot/{{.AsciiDomain}}" class="btn btn-outline-info me-2" title="Download Observed Records Snapshot">
@@ -1207,7 +1208,7 @@
                                 </p>
                                 {{$spfStatus := mapGetStr "status" $spf}}
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Does this domain declare who may send email on its behalf?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Does this domain declare who may send email on its behalf?</span>
                                     {{if eq $spfStatus "success"}}
                                         <span class="badge bg-success">Yes</span>
                                     {{else if eq $spfStatus "error"}}
@@ -1377,7 +1378,7 @@
                                 {{$dmarcStatus := mapGetStr "status" $dmarc}}
                                 {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Are spoofed emails rejected or quarantined?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Are spoofed emails rejected or quarantined?</span>
                                     {{if eq $dmarcPolicy "reject"}}
                                         <span class="badge bg-success">Yes — reject policy</span>
                                     {{else if eq $dmarcPolicy "quarantine"}}
@@ -1569,7 +1570,7 @@
                                 {{$dkimPrimaryProvider := mapGetStr "primary_provider" $dkim}}
                                 {{$dkimIsKnownProviderQ := and (ne $dkimPrimaryProvider "") (ne $dkimPrimaryProvider "Unknown")}}
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Are outbound emails cryptographically signed?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Are outbound emails cryptographically signed?</span>
                                     {{if eq $dkimStatus "success"}}
                                         <span class="badge bg-success">Yes — verified</span>
                                     {{else if and (eq $dkimStatus "info") $dkimIsKnownProviderQ}}
@@ -1702,7 +1703,7 @@
                                 </p>
                                 {{$mtaStsMode := mapGetStr "mode" $mta_sts}}
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Can attackers downgrade SMTP to intercept mail?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Can attackers downgrade SMTP to intercept mail?</span>
                                     {{if and (eq $mtaStsStatus "success") (eq $mtaStsMode "enforce")}}
                                         <span class="badge bg-success">No — TLS enforced</span>
                                     {{else if and (eq $mtaStsStatus "success") (eq $mtaStsMode "testing")}}
@@ -1778,7 +1779,7 @@
                                 </p>
                                 {{$tlsrptStatus := mapGetStr "status" $tlsrpt}}
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Will failures in TLS delivery be reported?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Will failures in TLS delivery be reported?</span>
                                     {{if eq $tlsrptStatus "success"}}
                                         <span class="badge bg-success">Yes — reports configured</span>
                                     {{else}}
@@ -1877,7 +1878,7 @@
                                     <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7.1" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DMARC External Reporting</strong><br>Verifies that external domains listed in rua/ruf tags have authorized this domain to send them reports. §7.1 covers the verification mechanism." aria-label="Learn about DMARC External Reporting - RFC 7489 §7.1"><i class="fas fa-info-circle"></i><span class="rfc-label">RFC 7489 §7.1</span></a>
                                 </p>
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Are external report receivers authorized?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Are external report receivers authorized?</span>
                                     {{if eq $draStatus "success"}}
                                         <span class="badge bg-success">Yes — all authorized</span>
                                     {{else}}
@@ -1950,7 +1951,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-certificate me-2"></i>DANE / TLSA</span>
                             {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dane"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
-                            <a href="/analysis/{{.AnalysisID}}?covert=1#section-dane" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — DANE/TLSA certificate pinning analysis. A protocol most DNS tools skip entirely. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
+                            <a href="/analysis/{{.AnalysisID}}/view/C#section-dane" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — DANE/TLSA certificate pinning analysis. A protocol most DNS tools skip entirely. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
                             {{if and .SectionTuning (index .SectionTuning "dane")}}{{with index .SectionTuning "dane"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
                             <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Does this zone publish DANE / TLSA records?{{else}}Can mail servers establish identity without a public CA?{{end}}
                                 {{$daneStatus := mapGetStr "status" $dane}}
@@ -2184,7 +2185,7 @@
                                     {{end}}
                                 </p>
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Is the brand identity verified and displayed in inboxes?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Is the brand identity verified and displayed in inboxes?</span>
                                     {{if eq $bimiStatus "success"}}
                                         <span class="badge bg-success">Yes</span>
                                     {{else if eq $bimiStatus "error"}}
@@ -2254,7 +2255,7 @@
                                     {{end}}
                                 </p>
                                 <div class="protocol-question mb-2">
-                                    <span class="protocol-question-text">Does this domain restrict who can issue TLS certificates?</span>
+                                    <span class="protocol-question-text dt-question dt-question--protocol">Does this domain restrict who can issue TLS certificates?</span>
                                     {{if eq $caaStatus "success"}}
                                         <span class="badge bg-success">Yes</span>
                                     {{else}}
@@ -2519,7 +2520,7 @@
                                 <a href="https://llmstxt.org/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>llms.txt Community Convention</strong><br>Community convention (llmstxt.org) for providing structured LLM-readable context via Markdown. Defines llms.txt and llms-full.txt file formats for AI-readable site descriptions. Not an IETF standard."><i class="fas fa-info-circle"></i><span class="rfc-label">llmstxt.org</span></a>
                             </h6>
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Is this domain publishing AI-readable brand context?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Is this domain publishing AI-readable brand context?</span>
                                 {{if mapGetBool "found" $aiLlms}}
                                     <span class="badge bg-success">Yes</span>
                                 {{else}}
@@ -2567,7 +2568,7 @@
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>IETF working group draft (not yet ratified) defining Content-Usage directives for robots.txt and HTTP headers, enabling sites to express AI training and inference preferences."><i class="fas fa-info-circle"></i><span class="rfc-label">IETF Draft</span></a>
                             </h6>
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Are AI crawlers explicitly allowed or blocked?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Are AI crawlers explicitly allowed or blocked?</span>
                                 {{if and (mapGetBool "found" $aiRobots) (mapGetBool "blocks_ai_crawlers" $aiRobots)}}
                                     <span class="badge bg-success">Blocked</span>
                                 {{else if and (mapGetBool "found" $aiRobots) (mapGetBool "allows_ai_crawlers" $aiRobots)}}
@@ -2615,7 +2616,7 @@
                             </h6>
                             {{if and $contentUsage (mapGetBool "found" $contentUsage)}}
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Does the site express AI content-usage preferences?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Does the site express AI content-usage preferences?</span>
                                 {{if mapGetBool "ai_denied" $contentUsage}}
                                     <span class="badge bg-danger">AI Training Denied</span>
                                 {{else}}
@@ -2632,7 +2633,7 @@
                             </div>
                             {{else}}
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Does the site express AI content-usage preferences?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Does the site express AI content-usage preferences?</span>
                                 <span class="badge bg-secondary">Not Configured</span>
                             </div>
                             <div class="alert alert-secondary py-2 small border-0 u-bg-subtle-muted">
@@ -2654,7 +2655,7 @@
                             <h6 class="text-info"><i class="fas fa-biohazard me-1"></i> AI Recommendation Poisoning</h6>
                             {{$iocCount := mapGetFloat "ioc_count" $aiPoisoning}}
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Is this site trying to manipulate AI recommendations?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Is this site trying to manipulate AI recommendations?</span>
                                 {{if gt $iocCount 0}}
                                     <span class="badge bg-danger">Yes &mdash; {{formatFloat 0 $iocCount}} indicator{{if ne $iocCount 1}}s{{end}}</span>
                                 {{else}}
@@ -2693,7 +2694,7 @@
                             <h6 class="text-info"><i class="fas fa-eye-slash me-1"></i> Hidden Prompt Artifacts</h6>
                             {{$hiddenCount := mapGetFloat "artifact_count" $aiHidden}}
                             <div class="protocol-question mb-2">
-                                <span class="protocol-question-text">Is hidden prompt-injection text present in the source?</span>
+                                <span class="protocol-question-text dt-question dt-question--protocol">Is hidden prompt-injection text present in the source?</span>
                                 {{if gt $hiddenCount 0}}
                                     <span class="badge bg-danger">Yes &mdash; {{formatFloat 0 $hiddenCount}} found</span>
                                 {{else}}
@@ -3724,7 +3725,7 @@
                                     <i class="fas fa-check-double me-2 text-{{if $consensusReached}}success{{else}}warning{{end}}"></i>
                                     <span class="text-muted">
                                         <strong>Multi-Resolver Verification</strong>
-                                        <a href="/analysis/{{.AnalysisID}}?covert=1#section-dnssec" class="badge u-badge-recon ms-1 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — Five independent resolvers with majority-agreement consensus. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>:
+                                        <a href="/analysis/{{.AnalysisID}}/view/C#section-dnssec" class="badge u-badge-recon ms-1 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — Five independent resolvers with majority-agreement consensus. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>:
                                         {{if $consensusReached}}
                                             <span class="text-success">Consensus reached</span> - 
                                             {{mapGetStr "resolvers_queried" $resolver_consensus}} resolvers (Cloudflare, Google, Quad9, OpenDNS, DNS4EU) agree on DNS records
@@ -4048,7 +4049,7 @@
                         <span>
                             <i class="fas fa-sitemap me-2"></i>Subdomain Discovery
                             <a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal ms-2 u-fs-060rem" title="Certificate Transparency">RFC 6962</a>
-                            <a href="/analysis/{{.AnalysisID}}?covert=1#section-infra" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — Multi-layer discovery using CT logs, DNS probing, and CNAME chain traversal. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
+                            <a href="/analysis/{{.AnalysisID}}/view/C#section-infra" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — Multi-layer discovery using CT logs, DNS probing, and CNAME chain traversal. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
                             {{$ctFreshness := mapGetMap "ct_subdomains" $data_freshness}}
                         {{if or (eq (mapGetStr "status" $ct) "error") (eq (mapGetStr "status" $ct) "timeout")}}<span class="badge bg-warning bg-opacity-25 border border-warning border-opacity-25 text-warning ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="Certificate Transparency lookup encountered an issue">UNAVAILABLE</span>{{else if and $ctFreshness (eq (mapGetStr "source" $ctFreshness) "cache")}}<span class="badge bg-secondary bg-opacity-50 border border-secondary border-opacity-25 ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="CT log data cached for 1 hour — certificate records change infrequently">CACHED</span>{{else}}<span class="badge bg-success bg-opacity-25 border border-success border-opacity-25 ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="Live Certificate Transparency query">LIVE</span>{{end}}
                         </span>
@@ -5296,7 +5297,13 @@
                             document.write(html);
                             document.close();
                             globalThis.scrollTo(0, 0);
-                            if (resp.url && resp.url !== globalThis.location.href) {
+                            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                            var idEl = document.querySelector('[data-analysis-id]');
+                            var mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                            var aid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                            if (aid && mode) {
+                                globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+                            } else if (resp.url && resp.url !== globalThis.location.href) {
                                 globalThis.history.replaceState(null, '', resp.url);
                             }
                         });

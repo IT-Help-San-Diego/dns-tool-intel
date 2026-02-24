@@ -339,7 +339,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.documentElement
                     );
                     globalThis.scrollTo(0, 0);
-                    if (resp.url && resp.url !== globalThis.location.href) {
+                    var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                    var idEl = document.querySelector('[data-analysis-id]');
+                    var mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                    var aid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                    if (aid && mode) {
+                        globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+                    } else if (resp.url && resp.url !== globalThis.location.href) {
                         globalThis.history.replaceState(null, '', resp.url);
                     }
                 });
@@ -390,7 +396,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.documentElement
                     );
                     globalThis.scrollTo(0, 0);
-                    if (resp.url && resp.url !== globalThis.location.href) {
+                    var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                    var idEl = document.querySelector('[data-analysis-id]');
+                    var mode = modeMeta ? modeMeta.getAttribute('content') : '';
+                    var aid = idEl ? idEl.getAttribute('data-analysis-id') : '';
+                    if (aid && mode) {
+                        globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+                    } else if (resp.url && resp.url !== globalThis.location.href) {
                         globalThis.history.replaceState(null, '', resp.url);
                     }
                 });

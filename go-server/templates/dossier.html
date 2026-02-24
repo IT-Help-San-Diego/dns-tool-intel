@@ -441,7 +441,12 @@
                         document.write(html);
                         document.close();
                         globalThis.scrollTo(0, 0);
-                        if (resp.url && resp.url !== globalThis.location.href) {
+                        var mm=document.querySelector('meta[name="x-report-mode"]');
+                        var ie=document.querySelector('[data-analysis-id]');
+                        var rm=mm?mm.getAttribute('content'):'';
+                        var ra=ie?ie.getAttribute('data-analysis-id'):'';
+                        if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
+                        else if (resp.url && resp.url !== globalThis.location.href) {
                             globalThis.history.replaceState(null, '', resp.url);
                         }
                     });

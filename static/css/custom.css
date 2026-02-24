@@ -2310,17 +2310,9 @@ body.covert-mode .card.border-info {
 body.covert-mode .bg-opacity-10 {
     --bs-bg-opacity: 0.04 !important;
 }
-body.covert-mode .section-question {
-    color: var(--dt-question-color-covert) !important;
-    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08) !important;
-}
 body.covert-mode .protocol-question {
     border-left-color: rgba(140, 40, 40, 0.35);
     background: rgba(140, 40, 40, 0.04);
-}
-body.covert-mode .protocol-question-text {
-    color: var(--dt-question-color-covert) !important;
-    text-shadow: 0 0 8px rgba(196, 60, 60, 0.06);
 }
 body.covert-mode .card-header {
     background-color: rgba(14, 8, 8, 0.6) !important;
@@ -3095,10 +3087,6 @@ body.covert-mode .dri-question-block {
 body.covert-mode .dri-question-label {
     color: rgba(196, 60, 60, 0.55);
 }
-body.covert-mode .dri-question-text {
-    color: rgba(196, 60, 60, 0.9);
-    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08);
-}
 body.covert-mode .dri-question-answer {
     color: rgba(170, 178, 188, 0.65);
 }
@@ -3120,10 +3108,6 @@ body.covert-mode .homepage-big-question-preview {
 }
 body.covert-mode .homepage-big-question-label {
     color: rgba(196, 60, 60, 0.55);
-}
-body.covert-mode .homepage-big-question-text {
-    color: rgba(196, 60, 60, 0.9);
-    text-shadow: 0 0 18px rgba(196, 60, 60, 0.12);
 }
 body.covert-mode .homepage-big-question-example {
     color: rgba(196, 60, 60, 0.55);
@@ -3651,10 +3635,6 @@ body.covert-mode .proto-dkim.bg-info {
 }
 .covert-section-card .card-header h5 {
     color: #cc2020;
-}
-.covert-section-card .card-header .section-question {
-    color: var(--dt-question-color-covert);
-    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08);
 }
 .covert-recon-box {
     background-color: rgba(140, 40, 40, 0.08);
@@ -4876,17 +4856,10 @@ body.covert-mode .dt-question {
     text-shadow: 0 0 12px rgba(196, 60, 60, 0.08);
 }
 
-/* ── Big Questions: The value proposition (legacy, migrate to .dt-question) ── */
+/* ── Big Questions: Section-level (composed via .dt-question + .dt-question--section) ── */
 .section-question {
     display: block;
     margin-top: 0.25rem;
-    font-size: var(--dt-question-size-section);
-    font-weight: var(--dt-question-weight);
-    font-style: italic;
-    letter-spacing: var(--dt-question-spacing);
-    color: var(--dt-question-color);
-    line-height: 1.5;
-    text-shadow: 0 0 12px rgba(13, 202, 240, 0.08);
     overflow: hidden;
 }
 .section-question .badge {
@@ -5007,11 +4980,6 @@ body.covert-mode .dt-question {
     margin-bottom: 0.35rem;
 }
 .protocol-question-text {
-    font-size: var(--dt-question-size-protocol);
-    font-weight: var(--dt-question-weight);
-    letter-spacing: var(--dt-question-spacing);
-    color: var(--dt-question-color);
-    font-style: italic;
     opacity: 0.88;
 }
 .protocol-question .badge {
@@ -5954,13 +5922,8 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 .dri-question-text {
     font-size: 1.2em;
-    font-weight: var(--dt-question-weight);
-    font-style: italic;
-    letter-spacing: var(--dt-question-spacing);
-    color: var(--dt-question-color);
     text-align: center;
     line-height: 1.4;
-    text-shadow: 0 0 12px rgba(13, 202, 240, 0.08);
 }
 .dri-question-answer {
     margin-top: 0.5rem;
@@ -6010,10 +5973,6 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 .homepage-big-question-text {
     font-size: 1.25em;
-    font-weight: var(--dt-question-weight);
-    font-style: italic;
-    letter-spacing: var(--dt-question-spacing);
-    color: var(--dt-question-color);
     line-height: 1.4;
     text-shadow: 0 0 18px rgba(13, 202, 240, 0.12);
     text-align: center;
