@@ -52,6 +52,25 @@ const DT_QUESTION_TOKENS = [
   'dt-question-bg-covert',
 ];
 
+const DT_QUESTION_EXPECTED_VALUES = {
+  'dt-question-color':        { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.85,0.95], family: 'cyan' },
+  'dt-question-color-covert': { type: 'rgba', r: [190,200], g: [55,65], b: [55,65], a: [0.80,0.90], family: 'red' },
+  'dt-question-weight':       { type: 'literal', value: '600' },
+  'dt-question-spacing':      { type: 'literal', value: '0.015em' },
+  'dt-question-size-section': { type: 'literal', value: '1.0em' },
+  'dt-question-size-protocol':{ type: 'literal', value: '0.85em' },
+  'dt-question-border':       { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.30,0.40], family: 'cyan' },
+  'dt-question-border-covert':{ type: 'rgba', r: [135,145], g: [35,45], b: [35,45], a: [0.30,0.40], family: 'red' },
+  'dt-question-bg':           { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.02,0.08], family: 'cyan' },
+  'dt-question-bg-covert':    { type: 'rgba', r: [135,145], g: [35,45], b: [35,45], a: [0.02,0.08], family: 'red' },
+};
+
+const QUESTION_CONTAINERS = [
+  { cls: 'protocol-question', desc: 'Protocol question container' },
+  { cls: 'dri-question-block', desc: 'Homepage DRI question block' },
+  { cls: 'exec-inline-question', desc: 'Executive inline question', template: true },
+];
+
 class ScientificColorValidator {
   constructor(cssContent) {
     this.css = cssContent;
@@ -309,6 +328,87 @@ class ScientificColorValidator {
     if (!hasBase) this.addFinding('error', 'DT_QUESTION', '.dt-question base class not defined', null, null);
     if (!hasSection) this.addFinding('error', 'DT_QUESTION', '.dt-question--section modifier not defined', null, null);
     if (!hasProtocol) this.addFinding('error', 'DT_QUESTION', '.dt-question--protocol modifier not defined', null, null);
+
+    this.validateDTQuestionTokenValues();
+    this.validateQuestionContainerCoverage();
+  }
+
+  validateDTQuestionTokenValues() {
+    Object.entries(DT_QUESTION_EXPECTED_VALUES).forEach(([token, spec]) => {
+      const valPattern = new RegExp(`--${token}:\\s*([^;]+);`);
+      const match = valPattern.exec(this.css);
+      if (!match) return;
+
+      const rawValue = match[1].trim();
+      const line = this.findLineNumber(new RegExp(`--${token}:`));
+
+      if (spec.type === 'literal') {
+        if (rawValue !== spec.value) {
+          this.addFinding('error', 'DT_QUESTION_VALUE',
+            `--${token} expected "${spec.value}" but found "${rawValue}"`,
+            line, `Token value mismatch`);
+        }
+      } else if (spec.type === 'rgba') {
+        const rgbaMatch = rawValue.match(/rgba\(\s*(\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\s*\)/);
+        if (!rgbaMatch) {
+          this.addFinding('warn', 'DT_QUESTION_VALUE',
+            `--${token} expected rgba() format but found "${rawValue}"`,
+            line, `Cannot validate non-rgba value`);
+          return;
+        }
+        const r = parseInt(rgbaMatch[1]), g = parseInt(rgbaMatch[2]);
+        const b = parseInt(rgbaMatch[3]), a = parseFloat(rgbaMatch[4]);
+
+        let issues = [];
+        if (!this.inRange(r, spec.r)) issues.push(`R=${r} outside [${spec.r}]`);
+        if (!this.inRange(g, spec.g)) issues.push(`G=${g} outside [${spec.g}]`);
+        if (!this.inRange(b, spec.b)) issues.push(`B=${b} outside [${spec.b}]`);
+        if (!this.inRange(a, spec.a)) issues.push(`A=${a} outside [${spec.a}]`);
+
+        if (issues.length > 0) {
+          this.addFinding('error', 'DT_QUESTION_VALUE',
+            `--${token} (${spec.family}) value rgba(${r},${g},${b},${a}) out of range`,
+            line, issues.join('; '));
+        }
+      }
+
+      this.stats.tokensValidated++;
+    });
+  }
+
+  validateQuestionContainerCoverage() {
+    QUESTION_CONTAINERS.forEach(({ cls, desc, template }) => {
+      if (template) return;
+
+      const standardExists = new RegExp(`\\.${cls}[^{]*\\{`).test(this.css);
+      const covertExists = new RegExp(`body\\.covert-mode\\s+\\.${cls}|body\\.covert-mode\\s[\\s\\S]{0,200}\\.${cls}`).test(this.css);
+
+      if (standardExists && !covertExists) {
+        this.addFinding('warn', 'DT_QUESTION_CONTAINER',
+          `${desc} (.${cls}) defined in standard mode but no covert override`,
+          null, 'R006 requires covert palette swap for all question containers');
+      }
+
+      if (standardExists) {
+        const rule = this.css.match(new RegExp(`\\.${cls}\\s*\\{([^}]+)\\}`));
+        if (rule) {
+          const usesTokenBorder = /var\(--dt-question-border(?:-covert)?\)/.test(rule[1]);
+          const usesTokenBg = /var\(--dt-question-bg(?:-covert)?\)/.test(rule[1]);
+          const hasBorderProp = /border(?:-left)?(?:-color)?:/.test(rule[1]);
+          const hasBgProp = /background:/.test(rule[1]);
+          if (hasBorderProp && !usesTokenBorder) {
+            this.addFinding('info', 'DT_QUESTION_CONTAINER',
+              `${desc} (.${cls}) uses hardcoded border color instead of --dt-question-border token`,
+              null, 'Consider migrating to dt-question token');
+          }
+          if (hasBgProp && !usesTokenBg) {
+            this.addFinding('info', 'DT_QUESTION_CONTAINER',
+              `${desc} (.${cls}) uses hardcoded background instead of --dt-question-bg token`,
+              null, 'Consider migrating to dt-question token');
+          }
+        }
+      }
+    });
   }
 
   validateVerdictBadges() {
@@ -458,7 +558,8 @@ class ScientificColorValidator {
     output += `  ICuAE grade dots:    ${this.stats.icuaeGrades} validated\n`;
     output += `  Verdict badges:      ${this.stats.verdictBadges} validated\n`;
     output += `  Covert overrides:    ${this.stats.covertOverrides} red-shift checked\n`;
-    output += `  Semantic line scans: ${this.stats.semanticChecks}\n\n`;
+    output += `  Semantic line scans: ${this.stats.semanticChecks}\n`;
+    output += `  Question containers: ${QUESTION_CONTAINERS.length} checked\n\n`;
 
     output += `  Errors:   ${errors.length}\n`;
     output += `  Warnings: ${warnings.length}\n`;

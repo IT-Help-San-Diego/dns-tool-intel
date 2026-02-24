@@ -3117,11 +3117,12 @@ body.covert-mode .dri-subtitle {
 }
 body.covert-mode .dri-question-block {
     background: var(--dt-question-bg-covert);
-    border-color: rgba(140, 40, 40, 0.15);
+    border-color: var(--dt-question-border-covert);
     border-left-color: var(--dt-question-border-covert);
 }
 body.covert-mode .dri-question-label {
-    color: rgba(196, 60, 60, 0.55);
+    color: var(--dt-question-color-covert);
+    opacity: 0.6;
 }
 body.covert-mode .dri-question-answer {
     color: rgba(170, 178, 188, 0.65);
@@ -5948,7 +5949,7 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     margin: 0 auto;
     max-width: 540px;
     background: var(--dt-question-bg);
-    border: 1px solid rgba(13, 202, 240, 0.15);
+    border: 1px solid var(--dt-question-border);
     border-left: 3px solid var(--dt-question-border);
     border-radius: 0.375rem;
 }
@@ -5957,7 +5958,8 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: rgba(13, 202, 240, 0.55);
+    color: var(--dt-question-color);
+    opacity: 0.6;
     margin-bottom: 0.5rem;
 }
 .dri-question-text {
