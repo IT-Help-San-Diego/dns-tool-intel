@@ -671,9 +671,7 @@ func TestGoldenRuleFixToMapNotEmpty(t *testing.T) {
         f := fix{
                 Title:         "Test Fix",
                 Description:   "Test description",
-                Severity:      severityCritical,
-                SeverityColor: colorCritical,
-                SeverityOrder: 1,
+                SeverityLevel: sevCritical,
                 RFC:           "RFC 7489",
                 RFCURL:        "https://example.com",
                 Section:       "SPF",
@@ -1416,14 +1414,14 @@ func TestNoMailRemediationHasSeverityColor(t *testing.T) {
                 t.Fatalf("expected at least 2 no-mail fixes, got %d", len(fixes))
         }
         for _, f := range fixes {
-                if f.SeverityColor == "" {
-                        t.Errorf("no-mail fix %q has empty SeverityColor — badge will be invisible", f.Title)
+                if f.SeverityLevel.Color == "" {
+                        t.Errorf("no-mail fix %q has empty SeverityLevel.Color — badge will be invisible", f.Title)
                 }
-                if f.SeverityOrder == 0 {
-                        t.Errorf("no-mail fix %q has SeverityOrder 0 — will sort incorrectly", f.Title)
+                if f.SeverityLevel.Order == 0 {
+                        t.Errorf("no-mail fix %q has SeverityLevel.Order 0 — will sort incorrectly", f.Title)
                 }
-                if f.Severity != severityHigh {
-                        t.Errorf("no-mail fix %q should be %s severity, got %s", f.Title, severityHigh, f.Severity)
+                if f.SeverityLevel.Name != severityHigh {
+                        t.Errorf("no-mail fix %q should be %s severity, got %s", f.Title, severityHigh, f.SeverityLevel.Name)
                 }
         }
 }
@@ -1439,8 +1437,8 @@ func TestProbableNoMailRemediationHasSeverityColor(t *testing.T) {
                 t.Fatalf("expected at least 2 probable no-mail fixes, got %d", len(fixes))
         }
         for _, f := range fixes {
-                if f.SeverityColor == "" {
-                        t.Errorf("probable no-mail fix %q has empty SeverityColor — badge will be invisible", f.Title)
+                if f.SeverityLevel.Color == "" {
+                        t.Errorf("probable no-mail fix %q has empty SeverityLevel.Color — badge will be invisible", f.Title)
                 }
         }
 }

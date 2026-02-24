@@ -30,6 +30,19 @@ const (
         tlsrptDescMTASTS  = "Your domain has MTA-STS configured for transport encryption."
 )
 
+type severityLevel struct {
+        Name  string
+        Color string
+        Order int
+}
+
+var (
+        sevCritical = severityLevel{severityCritical, colorCritical, 1}
+        sevHigh     = severityLevel{severityHigh, colorHigh, 2}
+        sevMedium   = severityLevel{severityMedium, colorMedium, 3}
+        sevLow      = severityLevel{severityLow, colorLow, 4}
+)
+
 type fix struct {
         Title         string
         Description   string
@@ -41,9 +54,7 @@ type fix struct {
         DNSHostHelp   string
         RFC           string
         RFCURL        string
-        Severity      string
-        SeverityColor string
-        SeverityOrder int
+        SeverityLevel severityLevel
         Section       string
 }
 
@@ -181,8 +192,8 @@ func fixToMap(f fix) map[string]any {
         m := map[string]any{
                 "title":          f.Title,
                 "fix":            f.Description,
-                "severity_label": f.Severity,
-                "severity_color": f.SeverityColor,
+                "severity_label": f.SeverityLevel.Name,
+                "severity_color": f.SeverityLevel.Color,
                 "rfc":            f.RFC,
                 "rfc_url":        f.RFCURL,
                 "rfc_title":      f.RFC,
@@ -204,8 +215,8 @@ func fixToMap(f fix) map[string]any {
 
 func sortFixes(fixes []fix) {
         sort.SliceStable(fixes, func(i, j int) bool {
-                if fixes[i].SeverityOrder != fixes[j].SeverityOrder {
-                        return fixes[i].SeverityOrder < fixes[j].SeverityOrder
+                if fixes[i].SeverityLevel.Order != fixes[j].SeverityLevel.Order {
+                        return fixes[i].SeverityLevel.Order < fixes[j].SeverityLevel.Order
                 }
                 return fixes[i].Title < fixes[j].Title
         })
@@ -262,9 +273,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSHostHelp:   "(root of domain)",
                         RFC:           "RFC 7208",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208",
-                        Severity:      severityCritical,
-                        SeverityColor: colorCritical,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevCritical,
                         Section:       "SPF",
                 })
                 return fixes
@@ -280,9 +289,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSHostHelp:   "(root of domain)",
                         RFC:           "RFC 7208 §5.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
-                        Severity:      severityCritical,
-                        SeverityColor: colorCritical,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevCritical,
                         Section:       "SPF",
                 })
         }
@@ -292,9 +299,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         Description:   "Your SPF record uses ?all (neutral) which provides no protection. Upgrade to ~all (soft fail) for proper SPF enforcement.",
                         RFC:           "RFC 7208 §5.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 2,
+                        SeverityLevel: sevHigh,
                         Section:       "SPF",
                 })
         }
@@ -310,9 +315,7 @@ func appendSPFLookupFix(fixes []fix, ps protocolState) []fix {
                         Description:   fmt.Sprintf("Your SPF record uses %d DNS lookups, exceeding the RFC limit of 10. Some receivers may ignore your SPF policy.", ps.spfLookupCount),
                         RFC:           "RFC 7208 §4.6.4",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4.6.4",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "SPF",
                 })
         }
@@ -335,9 +338,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSHostHelp:   "(DMARC policy record)",
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
-                        Severity:      severityCritical,
-                        SeverityColor: colorCritical,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevCritical,
                         Section:       "DMARC",
                 })
                 return fixes
@@ -353,9 +354,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSHostHelp:   "(DMARC policy record)",
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 2,
+                        SeverityLevel: sevHigh,
                         Section:       "DMARC",
                 })
         }
@@ -370,9 +369,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSHostHelp:   "(update existing DMARC record)",
                         RFC:           "RFC 7489 §6.3",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-6.3",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "DMARC",
                 })
         }
@@ -382,9 +379,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         Description:   fmt.Sprintf("Your DMARC policy only applies to %d%% of mail. Increase pct to 100 for full protection.", ps.dmarcPct),
                         RFC:           "RFC 7489 §6.3",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-6.3",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "DMARC",
                 })
         }
@@ -399,9 +394,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSHostHelp:   "(add to existing DMARC record)",
                         RFC:           "RFC 7489 §7.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-7.1",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "DMARC",
                 })
         }
@@ -424,9 +417,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         DNSHostHelp:   "(DKIM selector record — your provider supplies the exact value)",
                         RFC:           "RFC 6376",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc6376",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 2,
+                        SeverityLevel: sevHigh,
                         Section:       "DKIM",
                 })
         }
@@ -436,9 +427,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         Description:   "DKIM records were found for third-party services but not for your primary mail platform. Configure DKIM for your main sending domain.",
                         RFC:           "RFC 6376",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc6376",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "DKIM",
                 })
         }
@@ -451,9 +440,7 @@ func weakKeysFix(domain string) fix {
                 Description:   "One or more DKIM keys use 1024-bit RSA which is considered weak. Upgrade to 2048-bit RSA keys.",
                 RFC:           "RFC 8301",
                 RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8301",
-                Severity:      severityMedium,
-                SeverityColor: colorMedium,
-                SeverityOrder: 3,
+                SeverityLevel: sevMedium,
                 Section:       "DKIM",
         }
 }
@@ -470,9 +457,7 @@ func appendCAAFixes(fixes []fix, ps protocolState, domain string) []fix {
                         DNSHostHelp:   "(root of domain — adjust CA to match your provider)",
                         RFC:           "RFC 8659",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8659",
-                        Severity:      severityLow,
-                        SeverityColor: colorLow,
-                        SeverityOrder: 4,
+                        SeverityLevel: sevLow,
                         Section:       "CAA",
                 })
         }
@@ -491,9 +476,7 @@ func appendMTASTSFixes(fixes []fix, ps protocolState, domain string) []fix {
                         DNSHostHelp:   "(MTA-STS policy record)",
                         RFC:           "RFC 8461",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8461",
-                        Severity:      severityLow,
-                        SeverityColor: colorLow,
-                        SeverityOrder: 4,
+                        SeverityLevel: sevLow,
                         Section:       "MTA-STS",
                 })
         }
@@ -518,9 +501,7 @@ func appendTLSRPTFixes(fixes []fix, ps protocolState, domain string) []fix {
                         DNSHostHelp:   "(SMTP TLS reporting record)",
                         RFC:           "RFC 8460",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8460",
-                        Severity:      severityLow,
-                        SeverityColor: colorLow,
-                        SeverityOrder: 4,
+                        SeverityLevel: sevLow,
                         Section:       "TLS-RPT",
                 })
         }
@@ -534,9 +515,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Description:   "DNSSEC validation is failing for this domain. This can cause resolvers to reject all DNS responses, making your domain unreachable.",
                         RFC:           "RFC 4035",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc4035",
-                        Severity:      severityCritical,
-                        SeverityColor: colorCritical,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevCritical,
                         Section:       "DNSSEC",
                 })
         }
@@ -546,10 +525,8 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Description: "DNSSEC is not enabled for this domain. DNSSEC provides cryptographic authentication of DNS responses, preventing cache poisoning and DNS spoofing attacks.",
                         RFC:         "RFC 4035",
                         RFCURL:      "https://datatracker.ietf.org/doc/html/rfc4035",
-                        Severity:    severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
-                        Section:     "DNSSEC",
+                        SeverityLevel: sevMedium,
+                        Section:       "DNSSEC",
                 })
         }
         if ps.dnssecOK && ps.dnssecAlgoStrength == "deprecated" {
@@ -558,9 +535,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Description:   "This domain uses a DNSSEC signing algorithm classified as MUST NOT use per RFC 8624. Deprecated algorithms (RSAMD5, DSA, ECC-GOST) have known cryptographic weaknesses. Re-sign the zone with ECDSAP256SHA256 (algorithm 13) or Ed25519 (algorithm 15).",
                         RFC:           "RFC 8624 §3.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8624#section-3.1",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 2,
+                        SeverityLevel: sevHigh,
                         Section:       "DNSSEC",
                 })
         }
@@ -570,9 +545,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Description:   "This domain uses RSA/SHA-1 (algorithm 5 or 7) which is NOT RECOMMENDED per RFC 8624. While still operational, plan migration to ECDSAP256SHA256 (algorithm 13) or Ed25519 (algorithm 15) for improved security and smaller signatures.",
                         RFC:           "RFC 8624 §3.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8624#section-3.1",
-                        Severity:      severityMedium,
-                        SeverityColor: colorMedium,
-                        SeverityOrder: 3,
+                        SeverityLevel: sevMedium,
                         Section:       "DNSSEC",
                 })
         }
@@ -586,9 +559,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         Description:   "DANE/TLSA records are present but DNSSEC is not enabled. DANE cannot function without DNSSEC validation.",
                         RFC:           "RFC 7672 §2.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7672#section-2.1",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 2,
+                        SeverityLevel: sevHigh,
                         Section:       "DANE",
                 })
         }
@@ -605,10 +576,8 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         DNSHostHelp: "(TLSA record for primary MX — generate hash from your server certificate)",
                         RFC:         "RFC 7672",
                         RFCURL:      "https://datatracker.ietf.org/doc/html/rfc7672",
-                        Severity:    severityLow,
-                        SeverityColor: colorLow,
-                        SeverityOrder: 4,
-                        Section:     "DANE",
+                        SeverityLevel: sevLow,
+                        Section:       "DANE",
                 })
         }
         return fixes
@@ -642,9 +611,7 @@ func appendNoMailHardeningFixes(fixes []fix, ps protocolState, domain string) []
                 fixes = append(fixes, fix{
                         Title:         "Harden SPF for Null MX Domain",
                         Description:   "This domain publishes a Null MX record (RFC 7505) declaring it does not accept email. Complete the no-mail hardening by adding a strict SPF record that explicitly denies all senders.",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevHigh,
                         DNSHost:       domain,
                         DNSType:       "TXT",
                         DNSValue:      "v=spf1 -all",
@@ -658,9 +625,7 @@ func appendNoMailHardeningFixes(fixes []fix, ps protocolState, domain string) []
                 fixes = append(fixes, fix{
                         Title:         "Add DMARC Reject for Null MX Domain",
                         Description:   "This domain publishes a Null MX record (RFC 7505) but lacks a DMARC reject policy. Without it, attackers can still spoof email from this domain. Complete the no-mail hardening with a strict DMARC reject policy.",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevHigh,
                         DNSHost:       "_dmarc." + domain,
                         DNSType:       "TXT",
                         DNSValue:      "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;",
@@ -678,9 +643,7 @@ func appendProbableNoMailFixes(fixes []fix, ps protocolState, domain string) []f
                 fixes = append(fixes, fix{
                         Title:         "Lock Down SPF for No-Mail Domain",
                         Description:   "This domain has no MX records and appears to be a website-only domain. Publishing a strict SPF record explicitly declares that no servers are authorized to send email, preventing attackers from spoofing your domain.",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevHigh,
                         DNSHost:       domain,
                         DNSType:       "TXT",
                         DNSValue:      "v=spf1 -all",
@@ -694,9 +657,7 @@ func appendProbableNoMailFixes(fixes []fix, ps protocolState, domain string) []f
                 fixes = append(fixes, fix{
                         Title:         "Add DMARC Reject for No-Mail Domain",
                         Description:   "This domain has no MX records and appears to be a website-only domain. A DMARC reject policy tells receiving mail servers to reject any email claiming to be from your domain.",
-                        Severity:      severityHigh,
-                        SeverityColor: colorHigh,
-                        SeverityOrder: 1,
+                        SeverityLevel: sevHigh,
                         DNSHost:       "_dmarc." + domain,
                         DNSType:       "TXT",
                         DNSValue:      "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;",
@@ -721,9 +682,7 @@ func appendBIMIFixes(fixes []fix, ps protocolState, domain string) []fix {
                         DNSHostHelp:   "(BIMI default record)",
                         RFC:           "RFC 9495",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc9495",
-                        Severity:      severityLow,
-                        SeverityColor: colorLow,
-                        SeverityOrder: 4,
+                        SeverityLevel: sevLow,
                         Section:       "BIMI",
                 })
         }
@@ -986,7 +945,7 @@ func getVerdict(results map[string]any, key string) string {
 func countCoreIssues(fixes []fix) int {
         count := 0
         for _, f := range fixes {
-                if f.Severity == severityCritical || f.Severity == severityHigh {
+                if f.SeverityLevel.Name == severityCritical || f.SeverityLevel.Name == severityHigh {
                         count++
                 }
         }
@@ -995,7 +954,7 @@ func countCoreIssues(fixes []fix) int {
 
 func hasSeverity(fixes []fix, severity string) bool {
         for _, f := range fixes {
-                if f.Severity == severity {
+                if f.SeverityLevel.Name == severity {
                         return true
                 }
         }
@@ -1005,7 +964,7 @@ func hasSeverity(fixes []fix, severity string) bool {
 func filterBySeverity(fixes []fix, severity string) []fix {
         var result []fix
         for _, f := range fixes {
-                if f.Severity == severity {
+                if f.SeverityLevel.Name == severity {
                         result = append(result, f)
                 }
         }

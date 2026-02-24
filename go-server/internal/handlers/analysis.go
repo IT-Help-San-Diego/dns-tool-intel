@@ -532,6 +532,18 @@ func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, dri
         slog.Info("Drift event persisted", "domain", domain, "severity", severity, "changed_fields", len(drift.Fields))
 }
 
+func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, category, message string) gin.H {
+        data := gin.H{
+                "AppVersion":    h.Config.AppVersion,
+                "CspNonce":      nonce,
+                "CsrfToken":     csrfToken,
+                "ActivePage":    "home",
+                "FlashMessages": []FlashMessage{{Category: category, Message: message}},
+        }
+        mergeAuthData(c, h.Config, data)
+        return data
+}
+
 func (h *AnalysisHandler) renderRestrictedAccess(c *gin.Context, nonce, csrfToken any) {
         auth, _ := c.Get("authenticated")
         if auth != true {
@@ -542,27 +554,11 @@ func (h *AnalysisHandler) renderRestrictedAccess(c *gin.Context, nonce, csrfToke
                 "Custom selectors can reveal internal mail infrastructure and vendor relationships — " +
                 "responsible intelligence handling means sharing only with trusted parties. " +
                 "If you should have access, request it from the report owner."
-        errData := gin.H{
-                "AppVersion":    h.Config.AppVersion,
-                "CspNonce":      nonce,
-                "CsrfToken":     csrfToken,
-                "ActivePage":    "home",
-                "FlashMessages": []FlashMessage{{Category: "warning", Message: msg}},
-        }
-        mergeAuthData(c, h.Config, errData)
-        c.HTML(http.StatusForbidden, templateIndex, errData)
+        c.HTML(http.StatusForbidden, templateIndex, h.indexFlashData(c, nonce, csrfToken, "warning", msg))
 }
 
 func (h *AnalysisHandler) renderErrorPage(c *gin.Context, status int, nonce, csrfToken any, category, message string) {
-        errData := gin.H{
-                "AppVersion":    h.Config.AppVersion,
-                "CspNonce":      nonce,
-                "CsrfToken":     csrfToken,
-                "ActivePage":    "home",
-                "FlashMessages": []FlashMessage{{Category: category, Message: message}},
-        }
-        mergeAuthData(c, h.Config, errData)
-        c.HTML(status, templateIndex, errData)
+        c.HTML(status, templateIndex, h.indexFlashData(c, nonce, csrfToken, category, message))
 }
 
 func extractToolVersion(results map[string]any) string {
@@ -573,15 +569,7 @@ func extractToolVersion(results map[string]any) string {
 }
 
 func (h *AnalysisHandler) renderIndexFlash(c *gin.Context, nonce, csrfToken any, category, message string) {
-        flashData := gin.H{
-                "AppVersion":    h.Config.AppVersion,
-                "CspNonce":      nonce,
-                "CsrfToken":     csrfToken,
-                "ActivePage":    "home",
-                "FlashMessages": []FlashMessage{{Category: category, Message: message}},
-        }
-        mergeAuthData(c, h.Config, flashData)
-        c.HTML(http.StatusOK, templateIndex, flashData)
+        c.HTML(http.StatusOK, templateIndex, h.indexFlashData(c, nonce, csrfToken, category, message))
 }
 
 func extractCustomSelectors(c *gin.Context) []string {
