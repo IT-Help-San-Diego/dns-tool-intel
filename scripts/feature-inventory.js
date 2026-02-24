@@ -182,7 +182,26 @@ if (configGo) {
   }
 }
 
-// ── 7. CSS Minification ──────────────────────────────────────
+// ── 7. TLD Toast & Provenance ────────────────────────────────
+console.log('\n── TLD Toast & Provenance ──────────────────────────────────');
+const mainJs = read('static/js/main.js');
+if (mainJs) {
+  check('TLD detection helper exists', mainJs.includes('isBareTopLevelDomain'),
+    'main.js must define isBareTopLevelDomain()');
+  check('Covert TLD toast exists', mainJs.includes('showCovertTLDToast'),
+    'main.js must define showCovertTLDToast()');
+  check('Toast fires in covert mode only', mainJs.includes('covert-mode') && mainJs.includes('isBareTopLevelDomain'),
+    'Toast must be gated by covert-mode class check');
+}
+const analysisHandler = read('go-server/internal/handlers/analysis.go');
+if (analysisHandler) {
+  check('SHA3 sidecar includes analysis ID', analysisHandler.includes('Analysis ID:'),
+    'Checksum .sha3 file must include analysis ID');
+  check('SHA3 sidecar includes report URL', analysisHandler.includes('Report URL:'),
+    'Checksum .sha3 file must include permalink back to report');
+}
+
+// ── 8. CSS Minification ──────────────────────────────────────
 console.log('\n── CSS Minification ────────────────────────────────────────');
 const cssPath = path.join(ROOT, 'static/css/custom.css');
 const minPath = path.join(ROOT, 'static/css/custom.min.css');

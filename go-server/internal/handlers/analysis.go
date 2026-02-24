@@ -946,10 +946,12 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
                 sb.WriteString("# Verify:   openssl dgst -sha3-512 " + filename + "\n")
                 sb.WriteString("#\n")
                 sb.WriteString("# Provenance:\n")
-                sb.WriteString(fmt.Sprintf("#   Tool Version: %s\n", h.Config.AppVersion))
-                sb.WriteString(fmt.Sprintf("#   Export Time:   %s\n", time.Now().UTC().Format(time.RFC3339)))
-                sb.WriteString("#   Engines:       ICAE (Confidence) + ICuAE (Currency)\n")
-                sb.WriteString("#   Standards:      ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012\n")
+                sb.WriteString(fmt.Sprintf("#   Analysis ID:   %d\n", analysis.ID))
+                sb.WriteString(fmt.Sprintf("#   Report URL:    %s/analysis/%d/view\n", h.Config.BaseURL, analysis.ID))
+                sb.WriteString(fmt.Sprintf("#   Tool Version:  %s\n", h.Config.AppVersion))
+                sb.WriteString(fmt.Sprintf("#   Export Time:    %s\n", time.Now().UTC().Format(time.RFC3339)))
+                sb.WriteString("#   Engines:        ICAE (Confidence) + ICuAE (Currency)\n")
+                sb.WriteString("#   Standards:       ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012\n")
                 sb.WriteString("#\n")
                 sb.WriteString(fmt.Sprintf("%s  %s\n", fileHash, filename))
                 c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(sb.String()))
@@ -962,6 +964,8 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
                 "hash":      fileHash,
                 "filename":  filename,
                 "provenance": gin.H{
+                        "analysis_id":      analysis.ID,
+                        "report_url":       fmt.Sprintf("%s/analysis/%d/view", h.Config.BaseURL, analysis.ID),
                         "tool_version":     h.Config.AppVersion,
                         "export_timestamp": time.Now().UTC().Format(time.RFC3339),
                         "engines":          []string{"ICAE (Confidence)", "ICuAE (Currency)"},

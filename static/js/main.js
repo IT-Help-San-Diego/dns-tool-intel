@@ -136,6 +136,54 @@ function hideOverlayAndReset(overlay, btn) {
     }
 }
 
+function isBareTopLevelDomain(domain) {
+    if (!domain) return false;
+    var d = domain.replace(/^\.+/, '').replace(/\.+$/, '').toLowerCase();
+    if (!d || d.length > 63) return false;
+    var labels = d.split('.');
+    return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
+}
+
+function showCovertTLDToast(domain, callback) {
+    var existing = document.getElementById('tldReconToast');
+    if (existing) existing.remove();
+
+    var toast = document.createElement('div');
+    toast.id = 'tldReconToast';
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;max-width:480px;width:90%;padding:1.5rem 2rem;border-radius:0.5rem;border:1px solid rgba(196,60,60,0.35);background:rgba(14,8,8,0.95);box-shadow:0 0 40px rgba(140,40,40,0.3),0 0 80px rgba(0,0,0,0.5);backdrop-filter:blur(12px);text-align:center;animation:toastFadeIn 0.3s ease-out';
+    toast.innerHTML = '<div style="font-size:1.1rem;font-weight:600;color:rgba(196,60,60,0.85);margin-bottom:0.6rem;font-family:monospace">'
+        + '<i class="fas fa-globe-americas" style="margin-right:0.4rem"></i>'
+        + 'Planning to hack the planet, Zero Cool?</div>'
+        + '<div style="font-size:0.82rem;color:rgba(170,178,188,0.6);line-height:1.5;margin-bottom:0.8rem">'
+        + 'Bare\u2011TLD recon maps registry infrastructure only \u2014 '
+        + 'DNSSEC, NS delegation, CAA, registrar, Nmap, SVCB. '
+        + 'No SPF/DKIM/DMARC at zone scope.</div>'
+        + '<div style="font-size:0.7rem;color:rgba(196,60,60,0.45);font-family:monospace">'
+        + '<i class="fas fa-satellite-dish" style="margin-right:0.3rem"></i>'
+        + 'Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only</div>';
+
+    var style = document.createElement('style');
+    style.textContent = '@keyframes toastFadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
+    toast.appendChild(style);
+
+    document.body.appendChild(toast);
+
+    toast.addEventListener('click', function() {
+        toast.remove();
+    });
+
+    setTimeout(function() {
+        toast.style.transition = 'opacity 0.3s ease-out';
+        toast.style.opacity = '0';
+        setTimeout(function() {
+            toast.remove();
+            if (callback) callback();
+        }, 300);
+    }, 4000);
+}
+
 function isValidDomain(domain) {
     if (!domain) return false;
     const d = domain.replace(/^\.+/, '').replace(/\.+$/, '');
@@ -254,6 +302,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!domainForm.checkValidity()) {
                 domainForm.reportValidity();
                 return;
+            }
+
+            if (document.body.classList.contains('covert-mode') && isBareTopLevelDomain(domain)) {
+                showCovertTLDToast(domain);
             }
             
             const overlay = document.getElementById('loadingOverlay');
