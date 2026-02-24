@@ -2461,7 +2461,8 @@ body.covert-mode .icae-badge {
 }
 body.covert-mode .icae-badge .icae-dot {
     background: rgba(140, 40, 40, 0.45) !important;
-    box-shadow: none !important;
+    border: 1px solid rgba(140, 40, 40, 0.6) !important;
+    box-shadow: 0 0 3px rgba(140, 40, 40, 0.25) !important;
 }
 body.covert-mode .icae-badge:hover {
     border-color: rgba(140, 40, 40, 0.25) !important;
@@ -2470,6 +2471,8 @@ body.covert-mode .icae-badge:hover {
 }
 body.covert-mode .icae-badge:hover .icae-dot {
     background: rgba(160, 50, 50, 0.6) !important;
+    border-color: rgba(160, 50, 50, 0.7) !important;
+    box-shadow: 0 0 4px rgba(160, 50, 50, 0.35) !important;
 }
 body.covert-mode .icuae-badge {
     background: rgba(14, 8, 8, 0.8) !important;
@@ -2567,6 +2570,30 @@ body.covert-mode .u-beta-tag {
     background: rgba(140, 40, 40, 0.13) !important;
     color: #cc2020 !important;
     border-color: rgba(196, 60, 60, 0.45) !important;
+}
+.u-covert-beta-tag-line {
+    display: none;
+}
+body.covert-mode .u-covert-beta-tag-line {
+    display: block;
+}
+.u-covert-beta-tag {
+    display: none;
+}
+body.covert-mode .u-covert-beta-tag {
+    display: inline-block;
+    font-size: 0.5rem;
+    font-weight: 600;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(140, 40, 40, 0.10);
+    color: rgba(160, 50, 50, 0.55);
+    border: 1px solid rgba(140, 40, 40, 0.30);
+    border-radius: 999px;
+    padding: 0.12em 0.5em;
+    white-space: nowrap;
+    box-shadow: none;
 }
 body.covert-mode .accordion-button {
     background-color: #111318 !important;
@@ -5466,6 +5493,20 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     padding: 0.15em 0.55em;
     box-shadow: 0 0 6px rgba(232, 197, 71, 0.12);
     white-space: nowrap;
+}
+.u-covert-recon-beta-tag {
+    font-size: 0.5rem;
+    font-weight: 600;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(140, 40, 40, 0.10);
+    color: rgba(160, 50, 50, 0.55);
+    border: 1px solid rgba(140, 40, 40, 0.30);
+    border-radius: 999px;
+    padding: 0.12em 0.5em;
+    white-space: nowrap;
+    box-shadow: none;
 }
 .u-badge-recon {
     font-size: 0.55rem;
