@@ -6,7 +6,7 @@
     {{template "head_css" .}}
     <title>Our Approach - DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="We've been told this level of rigor is 'too much' for a DNS checker. Here's why DNS is the foundation of internet security — and why most tools are dangerously shallow.">
+    <meta name="description" content="DNS Tool works as a DNS checker — and goes further with cited findings, RFC provenance, and time-series verification. Here's why DNS is the foundation of internet security.">
     <meta property="og:url" content="https://dnstool.it-help.tech/approach">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Our Approach - DNS Tool">
@@ -83,6 +83,23 @@
             font-size: 0.75rem;
             color: rgba(170,178,188,0.6);
             margin-top: 0.15rem;
+        }
+        .approach-gate-detail a {
+            color: rgba(88,166,255,0.7);
+            text-decoration: none;
+            border-bottom: 1px dotted rgba(88,166,255,0.3);
+        }
+        .approach-gate-detail a:hover {
+            color: rgba(88,166,255,0.95);
+            border-bottom-color: rgba(88,166,255,0.6);
+        }
+        body.covert-mode .approach-gate-detail a {
+            color: rgba(196,100,100,0.7);
+            border-bottom-color: rgba(196,60,60,0.3);
+        }
+        body.covert-mode .approach-gate-detail a:hover {
+            color: rgba(196,100,100,0.95);
+            border-bottom-color: rgba(196,60,60,0.6);
         }
         .approach-quote {
             border-left: 3px solid rgba(88,166,255,0.3);
@@ -267,12 +284,12 @@
                         <p>We've received feedback that this level of rigor is "too much" for a DNS checker. That applying time-series drift detection, Bayesian confidence calibration, and multi-probe verification to DNS records is excessive. That we're over-engineering.</p>
                         <p>We understand the reaction. When 99% of DNS checkers are simple scripts wrapped in marketing, anything that goes deeper looks like it's trying too hard. That's the <strong>heuristic trap</strong> &mdash; pattern-matching against a low bar and treating the outlier as suspicious rather than serious.</p>
                         <p>But the criticism reveals the actual problem: <strong>most tools are under-engineered relative to what DNS security actually requires.</strong> Email security misconfiguration causes real, costly harm. A record can exist, pass a syntax check, and still be operationally dangerous. The problem was never too small for rigor. The industry just decided not to apply it.</p>
-                        <p>This is not a DNS checker. It's a forensic audit engine for the protocol that underpins every email, every certificate, and every domain on the internet.</p>
+                        <p>Yes, you can use DNS Tool as a DNS checker &mdash; and it will give you accurate results. But we built it to go further: cited findings, epistemic provenance, and time-series verification for when a simple check isn't enough. It's a forensic audit engine for the protocol that underpins every email, every certificate, and every domain on the internet. If all you need today is a quick check, start there. The depth is here when you're ready for it.</p>
                     </div>
 
                     <div class="approach-section">
                         <h2><i class="fas fa-exclamation-triangle"></i>Where Simplicity Fails</h2>
-                        <p>Here are three real examples of why "does the record exist?" is a dangerous question to stop at:</p>
+                        <p>Here are four real examples of why "does the record exist?" is a dangerous question to stop at:</p>
                         <div class="approach-example">
                             <div class="approach-example-title"><i class="fas fa-file-alt me-1"></i>Syntactically Valid, Semantically Dangerous</div>
                             <p>An SPF record like <code>v=spf1 a mx ip4:10.0.0.0/8 ~all</code> is syntactically perfect. It passes every simple checker. But it authorizes 16.7 million IP addresses to send email on your behalf. A tool that reports "SPF: Present" just told you everything is fine. It isn't.</p>
@@ -284,6 +301,10 @@
                         <div class="approach-example">
                             <div class="approach-example-title"><i class="fas fa-wave-square me-1"></i>Snapshot vs. Stability</div>
                             <p>A DNS record that existed when you checked doesn't mean it's been stable. Fast-flux DNS &mdash; a technique used by malware &mdash; rotates records every few minutes. A snapshot scanner says "record present." Our drift engine uses Exponentially Weighted Moving Average (EWMA) control charts to mathematically prove whether a record is stable or flickering. That's not overkill &mdash; it's the only way to detect that class of threat.</p>
+                        </div>
+                        <div class="approach-example">
+                            <div class="approach-example-title"><i class="fas fa-clock me-1"></i>TTL Is an Operational Decision, Not a Default</div>
+                            <p>Most tools ignore TTL entirely. But a record set to <code>300</code> seconds (5 minutes) when the zone is stable means thousands of unnecessary upstream queries per hour &mdash; increased cost, increased attack surface, increased latency. A TTL of <code>3600</code> for a stable record reduces resolver load and improves cache efficiency (RFC 1035 &sect;3.2.1). Conversely, during a migration or incident response, a low TTL is essential for rapid propagation. The right TTL depends on context &mdash; and most scanners don't tell you that. We do.</p>
                         </div>
                     </div>
 
@@ -333,14 +354,14 @@
                                 <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
                                 <div>
                                     <div class="approach-gate-label">Lighthouse Performance: 98&ndash;100</div>
-                                    <div class="approach-gate-detail">Google's audit for web performance, accessibility, best practices, and SEO &mdash; proving our own delivery is secure</div>
+                                    <div class="approach-gate-detail">Google's audit for web performance, accessibility, best practices, and SEO &mdash; proving our own delivery is secure &mdash; <a href="https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fdnstool.it-help.tech" target="_blank" rel="noopener noreferrer">run the scan on us</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
                                 <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
                                 <div>
                                     <div class="approach-gate-label">Mozilla Observatory: 130</div>
-                                    <div class="approach-gate-detail">Mozilla's security header scanner &mdash; our CSP, HSTS, and headers pass the test we apply to others</div>
+                                    <div class="approach-gate-detail">Mozilla's security header scanner &mdash; our CSP, HSTS, and headers pass the test we apply to others &mdash; <a href="https://observatory.mozilla.org/analyze/dnstool.it-help.tech" target="_blank" rel="noopener noreferrer">run the scan on us</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
@@ -393,8 +414,12 @@
 
                     <div class="approach-section">
                         <h2><i class="fas fa-brain"></i>Big Picture Questions</h2>
-                        <p>DNS security isn't one personality type's problem. The cybersecurity world includes red teamers and blue teamers, compliance officers and field engineers, self-taught builders and formally trained analysts. They think differently, prioritize differently, and need different entry points into the same data.</p>
-                        <p>Our Big Picture Questions are designed to meet all of them. They're the questions that make you think &mdash; that reframe a configuration detail as a strategic decision, or surface a compliance gap that a scan result alone would bury. We want to think. We want to make you think. And we want every operator, regardless of background or experience level, to find their footing in the analysis.</p>
+                        <p>DNS security isn't one personality type's problem. The cybersecurity world includes hackers and pentesters, red teamers and blue teamers, compliance officers and field engineers, self-taught builders and formally trained analysts. They think differently, prioritize differently, and need different entry points into the same data.</p>
+                        <p>That's why DNS Tool includes a dedicated Covert Recon Mode &mdash; a scientifically designed adversarial interface built on scotopic vision research, intentionally segregated so that executives reviewing an Engineer's Report never have to encounter a hacker aesthetic they didn't choose. And yes, there are Easter eggs hidden throughout the platform, because intrinsic motivation &mdash; the only human trait that research consistently maps to sustained excellence &mdash; is what turns a scan into a learning experience.</p>
+                        <p>Our Big Picture Questions are designed to meet every one of these operators. They're the questions that make you think &mdash; that reframe a configuration detail as a strategic decision, or surface a compliance gap that a scan result alone would bury.</p>
+                        <div class="approach-quote">
+                            We don't just want you to think. We want you to think about your thinking &mdash; to examine <em>why</em> you trust a configuration, not just <em>whether</em> it exists. That metacognitive shift is what separates expert operators from rote checklists.
+                        </div>
                         <p>DNS Tool is built to educate as much as it evaluates. Every finding is an opportunity to teach the <em>why</em> behind the configuration &mdash; not just flag the <em>what</em>.</p>
                     </div>
 
@@ -403,7 +428,7 @@
                         <p>I don't have a computer science degree. I'm self-taught. Thirty-five years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
                         <p>Over those years, I've mentored a lot of young IT professionals just starting out &mdash; helping them understand how to do things correctly from the foundation up. DNS Tool carries that same philosophy. It's built to teach the <em>why</em>, not just report the <em>what</em>. If you want to understand how the connected internet actually works &mdash; how domains are authenticated, how email is secured, how trust is established &mdash; this is where you start.</p>
                         <p>Here's something I've learned: whenever someone reaches out about a security product or partnership, the first thing I do is scan their domain. If they haven't secured their own email authentication, their own DNSSEC, their own TLS &mdash; I have a hard time believing they have the philosophy or discipline to protect mine. DNS doesn't lie. It's the most honest audit you can run on anyone.</p>
-                        <p>This project exists because security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because after 35 years of watching tools optimize for appearance instead of accuracy, I decided to build one that doesn't.</p>
+                        <p>This project exists because security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because after 35 years of watching tools optimize for comfortable output instead of honest, neutral truth, I decided to build one that reports the findings as they are &mdash; not as you'd prefer them to be. We still care deeply about craft and design, because intrinsic motivation matters and learning should be engaging. But the visuals never soften the data.</p>
                     </div>
 
                     <div class="approach-nav-row mt-4 mb-2">
