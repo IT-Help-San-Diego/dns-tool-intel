@@ -190,12 +190,24 @@ function createCopyHandler(codeBlock, btn) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    function setCovertMode(active) {
+        if (active) {
+            document.body.classList.add('covert-mode');
+        } else {
+            document.body.classList.remove('covert-mode');
+        }
+        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(e) {}
+    }
     const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
-            document.body.classList.toggle('covert-mode');
-            const active = document.body.classList.contains('covert-mode') ? '1' : '0';
-            try { localStorage.setItem('covertMode', active); } catch(e) {}
+            setCovertMode(!document.body.classList.contains('covert-mode'));
+        });
+    }
+    var covertExitHome = document.getElementById('covertExitHome');
+    if (covertExitHome) {
+        covertExitHome.addEventListener('click', function() {
+            setCovertMode(false);
         });
     }
 

@@ -243,7 +243,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-skull-crossbones me-2"></i>Email Spoofability</span>
-                            <span class="section-question font-monospace">Can you spoof email from this domain?
+                            <span class="section-question dt-question dt-question--section font-monospace">Can you spoof email from this domain?
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}
                                 {{$emailShort := mapGetStr "email_answer_short" $verdicts}}
@@ -360,7 +360,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-user-secret me-2"></i>Transport Security</span>
-                            <span class="section-question font-monospace">Can you intercept email in transit?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">Can you intercept email in transit?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -422,7 +422,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-mask me-2"></i>Brand &amp; Certificate Security</span>
-                            <span class="section-question font-monospace">Can you fake this brand's identity?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">Can you fake this brand's identity?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -475,7 +475,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-bug me-2"></i>DNS Infrastructure</span>
-                            <span class="section-question font-monospace">Can you poison the DNS?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">Can you poison the DNS?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -537,7 +537,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-crosshairs me-2"></i>Attack Surface Discovery</span>
-                            <span class="section-question font-monospace">What can you find from the outside?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">What can you find from the outside?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -658,7 +658,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-fingerprint me-2"></i>Intelligence Metadata</span>
-                            <span class="section-question font-monospace">Can you verify this independently?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">Can you verify this independently?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -721,7 +721,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-satellite-dish me-2"></i>Operational Intelligence</span>
-                            <span class="section-question font-monospace">What do the raw records reveal?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">What do the raw records reveal?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -907,7 +907,7 @@
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-share-square me-2"></i>Data Exfil</span>
-                            <span class="section-question font-monospace">How fast can you extract and pivot?</span>
+                            <span class="section-question dt-question dt-question--section font-monospace">How fast can you extract and pivot?</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -984,6 +984,86 @@
             </div>
         </div>
         {{end}}
+
+        <div class="row mt-4 mb-4" id="section-recon-faq">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="text-center mb-4 font-monospace u-recon-faq-heading">Operational FAQ</h2>
+                <div class="accordion" id="reconFaqAccordion">
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq1">
+                                What intelligence does a recon scan surface?
+                            </button>
+                        </h3>
+                        <div id="rfaq1" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                A single scan enumerates the target's DNS infrastructure, email authentication posture (SPF, DKIM, DMARC), transport security controls (DANE/TLSA, MTA-STS, TLS-RPT), DNSSEC chain integrity, certificate authority restrictions (CAA), hosting and provider fingerprinting, subdomain surface via Certificate Transparency logs, and SaaS service discovery through TXT verification records. Every finding maps to a specific RFC and includes terminal commands for independent verification. No proprietary databases. No black boxes.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq2">
+                                How do you determine if a target is spoofable?
+                            </button>
+                        </h3>
+                        <div id="rfaq2" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                Three signals: (1) SPF record presence and mechanism — does the domain declare authorized senders? (2) DMARC policy level — p=none means monitoring only, no enforcement. p=quarantine sends suspicious mail to spam. p=reject instructs receivers to refuse unauthorized messages entirely. (3) DKIM key publication and strength — are signing keys published, and are they strong enough to resist brute-force? A domain with no DMARC or p=none is operationally spoofable — receivers will deliver forged messages to the inbox. The verdict badges in this report tell you the disposition at a glance.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq3">
+                                Why does DNSSEC matter for DNS manipulation?
+                            </button>
+                        </h3>
+                        <div id="rfaq3" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                Without DNSSEC, DNS responses are unsigned plaintext — vulnerable to cache poisoning, on-path manipulation, and BGP hijacking of resolver traffic. An unsigned domain means an attacker with network position can redirect traffic by injecting forged DNS responses. DNSSEC adds cryptographic signatures to every DNS response, creating a chain of trust from the root zone to the target domain. This report checks the AD (Authenticated Data) flag across multiple resolvers. No AD flag means the domain is operating without DNS integrity verification.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq4">
+                                Is passive DNS recon legal?
+                            </button>
+                        </h3>
+                        <div id="rfaq4" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                DNS records are public by design — the DNS protocol exists to serve records to anyone who asks. Every query this tool makes is a standard DNS lookup, HTTPS request, or SMTP banner connection that any mail server performs millions of times daily. No exploitation, no authentication bypass, no authorization required. This is passive OSINT collection — reading publicly observable data and producing intelligence from it. The same data is available to anyone with <code>dig</code>, <code>openssl</code>, and <code>curl</code>. We provide the verification commands so you can confirm every finding independently.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq5">
+                                How does this differ from nmap, subfinder, or amass?
+                            </button>
+                        </h3>
+                        <div id="rfaq5" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                Those tools are collection-focused — they enumerate targets. This tool is analysis-focused — it collects, cross-references, classifies, and produces intelligence products with confidence-calibrated verdicts. Subfinder finds subdomains; we find subdomains <em>and</em> assess the security posture of the parent domain's email authentication, transport security, DNS integrity, and provider infrastructure. Nmap probes ports; we probe the DNS control plane that determines where traffic flows before it reaches those ports. Think of this as the intelligence layer that sits above raw enumeration.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark border-secondary">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#rfaq6">
+                                What controls make a target hardened?
+                            </button>
+                        </h3>
+                        <div id="rfaq6" class="accordion-collapse collapse" data-bs-parent="#reconFaqAccordion">
+                            <div class="accordion-body text-muted small font-monospace">
+                                Full stack: DMARC p=reject with DKIM and SPF aligned. DNSSEC signed with valid chain. DANE/TLSA records pinning mail transport certificates. MTA-STS enforcing encrypted delivery. TLS-RPT collecting transport failure reports. CAA restricting certificate issuance. Enterprise DNS provider with DDoS controls. Professional DMARC monitoring service processing aggregate reports. That's a domain where the DNS control plane is actively managed and defended. Most domains have two or three of these. Very few have all of them. The posture score in this report quantifies exactly where the target sits on that spectrum.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- grep -o 'u-recon-sigint-link" title="[^"]*"' | sed 's/.*title="//;s/".*//' -->
         <div class="row">
