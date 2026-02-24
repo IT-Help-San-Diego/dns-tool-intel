@@ -2400,6 +2400,31 @@ body.covert-mode code {
     overflow-wrap: break-word;
     word-break: break-all;
 }
+body.covert-mode .fa-info-circle {
+    color: rgba(180, 50, 50, 0.65) !important;
+}
+body.covert-mode .rfc-link {
+    color: rgba(160, 50, 50, 0.5) !important;
+}
+body.covert-mode .rfc-link:hover {
+    color: rgba(200, 60, 60, 0.75) !important;
+}
+body.covert-mode .rfc-label {
+    color: rgba(160, 50, 50, 0.45);
+}
+.u-covert-disclosure {
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+    color: rgba(140, 100, 100, 0.35);
+}
+.u-covert-disclosure a {
+    color: rgba(160, 50, 50, 0.45);
+    text-decoration: none;
+}
+.u-covert-disclosure a:hover {
+    color: rgba(200, 60, 60, 0.65);
+    text-decoration: underline;
+}
 .u-covert-banner {
     background: rgba(196, 60, 60, 0.12);
     border-left: 3px solid #cc2020;

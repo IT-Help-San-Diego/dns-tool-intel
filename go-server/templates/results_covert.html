@@ -26,6 +26,7 @@
                         <strong class="u-covert-active-label">COVERT MODE ACTIVE</strong> <span class="u-covert-recon-beta-tag">Beta</span>
                         <span class="text-muted ms-1">&mdash; Same intelligence, adversarial lens. Every finding reframed for offensive awareness.</span>
                         <div class="small text-muted mt-1"><i class="fas fa-moon me-1"></i>Optimized for low-light tactical environments</div>
+                        <div class="mt-1 u-covert-disclosure"><i class="fas fa-info-circle me-1"></i>Red spectrum preserves <a href="https://doi.org/10.1016/j.visres.2004.07.040" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://www.militarynewsnetwork.com/post/red-light-night-vision" target="_blank" rel="noopener">tactical red-light discipline</a>. All findings are identical to the standard report.</div>
                     </div>
                 </div>
                 {{if .AnalysisID}}
@@ -1185,6 +1186,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupCopyCommandButtons();
             setupIntegrityHashCopy();
+
+            document.querySelectorAll('.u-covert-exit-btn').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    try { localStorage.setItem('covertMode', '0'); } catch(e) {}
+                });
+            });
+            var engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
+            if (engBtn) {
+                engBtn.addEventListener('click', function() {
+                    try { localStorage.setItem('covertMode', '0'); } catch(e) {}
+                });
+            }
 
             var printBtn = document.getElementById('printReportBtn');
             if (printBtn) {
