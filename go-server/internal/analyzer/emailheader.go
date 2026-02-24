@@ -108,6 +108,39 @@ type HeaderFlag struct {
         Message  string
 }
 
+var (
+        reHeaderField    = regexp.MustCompile(`(?m)^[A-Za-z][A-Za-z0-9\-]*\s*:`)
+        reUnfoldField    = regexp.MustCompile(`^[ \t]+([A-Za-z][A-Za-z0-9\-]*)\s*:`)
+        reFieldKV        = regexp.MustCompile(`^([A-Za-z][A-Za-z0-9\-]*)\s*:\s*(.*)$`)
+        reSPFResult      = regexp.MustCompile(`(?i)\bspf=(pass|fail|softfail|neutral|none|temperror|permerror)\b`)
+        reDKIMResult     = regexp.MustCompile(`(?i)\bdkim=(pass|fail|none|neutral|temperror|permerror)\b`)
+        reDMARCResult    = regexp.MustCompile(`(?i)\bdmarc=(pass|fail|none|temperror|permerror)\b`)
+        reDKIMDomain     = regexp.MustCompile(`(?i)header\.d=([^\s;]+)`)
+        reDMARCFrom      = regexp.MustCompile(`(?i)header\.from=([^\s;]+)`)
+        reAuthPartHeader = regexp.MustCompile(`(?i)header\.\w+=([^\s;]+)`)
+        reReceivedFrom   = regexp.MustCompile(`(?i)from\s+(\S+)`)
+        reReceivedBy     = regexp.MustCompile(`(?i)by\s+(\S+)`)
+        reReceivedWith   = regexp.MustCompile(`(?i)with\s+(E?SMTP\S*)`)
+        reIPv4Bracket    = regexp.MustCompile(`\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]`)
+        reBTCAddress     = regexp.MustCompile(`\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b`)
+        reBTCBech32      = regexp.MustCompile(`\bbc1[a-zA-HJ-NP-Z0-9]{25,90}\b`)
+        reETHAddress     = regexp.MustCompile(`\b0x[0-9a-fA-F]{40}\b`)
+        reXMRAddress     = regexp.MustCompile(`\b4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}\b`)
+        reURL            = regexp.MustCompile(`https?://[^\s<>"']+`)
+        reCapsWord       = regexp.MustCompile(`[A-Z]{5,}`)
+        reContactEmail   = regexp.MustCompile(`(?i)(?:please\s+)?contact\s*:\s*([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})`)
+        reScriptTag      = regexp.MustCompile(`(?is)<script[^>]*>.*?</script>`)
+        reStyleTag       = regexp.MustCompile(`(?is)<style[^>]*>.*?</style>`)
+        reHTMLTag        = regexp.MustCompile(`<[^>]+>`)
+        reNumEntity      = regexp.MustCompile(`&#(\d+);`)
+        reWhitespace     = regexp.MustCompile(`\s+`)
+        reSCL            = regexp.MustCompile(`(?i)\bSCL:(\d+)`)
+        reDMARCPolicy    = regexp.MustCompile(`(?i)\bp=(none|quarantine|reject)\b`)
+        rePhone          = regexp.MustCompile(`\b\d[\d\s\-\.O]{6,}\d\b`)
+        reMoney          = regexp.MustCompile(`(?i)\$\s*[\d,]+\.?\d*\s*(?:USD|usd)?|\b[\d,]+\.?\d*\s*(?:USD|GBP|EUR)\b`)
+        reEmailAddress   = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
+)
+
 func SeparateHeadersAndBody(raw string) (headers string, body string, hadBody bool) {
         normalized := strings.ReplaceAll(raw, "\r\n", "\n")
 
@@ -128,8 +161,7 @@ func SeparateHeadersAndBody(raw string) (headers string, body string, hadBody bo
 }
 
 func hasHeaderFields(text string) bool {
-        re := regexp.MustCompile(`(?m)^[A-Za-z][A-Za-z0-9\-]*\s*:`)
-        matches := re.FindAllString(text, -1)
+        matches := reHeaderField.FindAllString(text, -1)
         return len(matches) >= 2
 }
 
@@ -174,7 +206,6 @@ func AnalyzeEmailHeaders(raw string) *EmailHeaderAnalysis {
 
 func unfoldHeaders(raw string) string {
         raw = strings.ReplaceAll(raw, "\r\n", "\n")
-        headerFieldRe := regexp.MustCompile(`^[ \t]+([A-Za-z][A-Za-z0-9\-]*)\s*:`)
 
         lines := strings.Split(raw, "\n")
         var result []string
@@ -184,7 +215,7 @@ func unfoldHeaders(raw string) string {
                         continue
                 }
                 if len(line) > 0 && (line[0] == ' ' || line[0] == '\t') {
-                        if headerFieldRe.MatchString(line) {
+                        if reUnfoldField.MatchString(line) {
                                 result = append(result, strings.TrimLeft(line, " \t"))
                         } else {
                                 result[len(result)-1] += " " + strings.TrimLeft(line, " \t")
@@ -200,10 +231,8 @@ func parseHeaderFields(unfolded string) []headerField {
         var fields []headerField
         lines := strings.Split(unfolded, "\n")
 
-        re := regexp.MustCompile(`^([A-Za-z][A-Za-z0-9\-]*)\s*:\s*(.*)$`)
-
         for _, line := range lines {
-                if m := re.FindStringSubmatch(line); m != nil {
+                if m := reFieldKV.FindStringSubmatch(line); m != nil {
                         fields = append(fields, headerField{
                                 Name:  strings.ToLower(strings.TrimSpace(m[1])),
                                 Value: strings.TrimSpace(m[2]),
@@ -280,12 +309,9 @@ func parseAuthenticationResults(fields []headerField, result *EmailHeaderAnalysi
 
 func scanRawForAuthResults(result *EmailHeaderAnalysis) {
         raw := result.RawHeaders
-        spfRe := regexp.MustCompile(`(?i)\bspf=(pass|fail|softfail|neutral|none|temperror|permerror)\b`)
-        dkimRe := regexp.MustCompile(`(?i)\bdkim=(pass|fail|none|neutral|temperror|permerror)\b`)
-        dmarcRe := regexp.MustCompile(`(?i)\bdmarc=(pass|fail|none|temperror|permerror)\b`)
 
         if result.SPFResult.Result == "" {
-                if m := spfRe.FindStringSubmatch(raw); m != nil {
+                if m := reSPFResult.FindStringSubmatch(raw); m != nil {
                         result.SPFResult = AuthResult{
                                 Result:     strings.ToLower(m[1]),
                                 Confidence: "Observed",
@@ -294,10 +320,9 @@ func scanRawForAuthResults(result *EmailHeaderAnalysis) {
                 }
         }
         if len(result.DKIMResults) == 0 {
-                if m := dkimRe.FindStringSubmatch(raw); m != nil {
-                        headerDomainRe := regexp.MustCompile(`(?i)header\.d=([^\s;]+)`)
+                if m := reDKIMResult.FindStringSubmatch(raw); m != nil {
                         domain := ""
-                        if dm := headerDomainRe.FindStringSubmatch(raw); dm != nil {
+                        if dm := reDKIMDomain.FindStringSubmatch(raw); dm != nil {
                                 domain = dm[1]
                         }
                         result.DKIMResults = append(result.DKIMResults, AuthResult{
@@ -309,10 +334,9 @@ func scanRawForAuthResults(result *EmailHeaderAnalysis) {
                 }
         }
         if result.DMARCResult.Result == "" {
-                if m := dmarcRe.FindStringSubmatch(raw); m != nil {
-                        headerFromRe := regexp.MustCompile(`(?i)header\.from=([^\s;]+)`)
+                if m := reDMARCResult.FindStringSubmatch(raw); m != nil {
                         domain := ""
-                        if dm := headerFromRe.FindStringSubmatch(raw); dm != nil {
+                        if dm := reDMARCFrom.FindStringSubmatch(raw); dm != nil {
                                 domain = dm[1]
                         }
                         result.DMARCResult = AuthResult{
@@ -342,8 +366,7 @@ func parseAuthPart(part string, authType string) AuthResult {
                 ar.Result = strings.ToLower(remainder)
         }
 
-        headerDomainRe := regexp.MustCompile(`(?i)header\.\w+=([^\s;]+)`)
-        if m := headerDomainRe.FindStringSubmatch(part); m != nil {
+        if m := reAuthPartHeader.FindStringSubmatch(part); m != nil {
                 ar.Domain = m[1]
         }
 
@@ -389,23 +412,19 @@ func parseReceivedChain(fields []headerField, result *EmailHeaderAnalysis) {
                         Index: i + 1,
                 }
 
-                fromRe := regexp.MustCompile(`(?i)from\s+(\S+)`)
-                if m := fromRe.FindStringSubmatch(r); m != nil {
+                if m := reReceivedFrom.FindStringSubmatch(r); m != nil {
                         hop.From = m[1]
                 }
 
-                byRe := regexp.MustCompile(`(?i)by\s+(\S+)`)
-                if m := byRe.FindStringSubmatch(r); m != nil {
+                if m := reReceivedBy.FindStringSubmatch(r); m != nil {
                         hop.By = m[1]
                 }
 
-                withRe := regexp.MustCompile(`(?i)with\s+(E?SMTP\S*)`)
-                if m := withRe.FindStringSubmatch(r); m != nil {
+                if m := reReceivedWith.FindStringSubmatch(r); m != nil {
                         hop.With = m[1]
                 }
 
-                ipRe := regexp.MustCompile(`\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]`)
-                if m := ipRe.FindStringSubmatch(r); m != nil {
+                if m := reIPv4Bracket.FindStringSubmatch(r); m != nil {
                         hop.IP = m[1]
                         ip := net.ParseIP(hop.IP)
                         if ip != nil {
@@ -731,26 +750,77 @@ func generateVerdict(result *EmailHeaderAnalysis) {
         }
 }
 
+type phraseScanConfig struct {
+        phrases             []string
+        multiCategory       string
+        multiSev            string
+        multiDesc           string
+        minForMulti         int
+        singleCategory      string
+        singleSev           string
+        singleDesc          string
+        singleEvidenceJoinAll bool
+}
+
+func scanPhraseCategory(lower string, cfg phraseScanConfig) *PhishingIndicator {
+        var matches []string
+        for _, phrase := range cfg.phrases {
+                if strings.Contains(lower, phrase) {
+                        matches = append(matches, phrase)
+                }
+        }
+        if len(matches) >= cfg.minForMulti {
+                return &PhishingIndicator{
+                        Category:    cfg.multiCategory,
+                        Severity:    cfg.multiSev,
+                        Description: cfg.multiDesc,
+                        Evidence:    "Phrases matched: " + strings.Join(matches, ", "),
+                }
+        }
+        if len(matches) > 0 && cfg.singleSev != "" {
+                evidence := "Phrase matched: " + matches[0]
+                if cfg.singleEvidenceJoinAll {
+                        evidence = "Phrases matched: " + strings.Join(matches, ", ")
+                }
+                return &PhishingIndicator{
+                        Category:    cfg.singleCategory,
+                        Severity:    cfg.singleSev,
+                        Description: cfg.singleDesc,
+                        Evidence:    evidence,
+                }
+        }
+        return nil
+}
+
+func scanFirstMatch(lower string, phrases []string, category, severity, description, evidencePrefix string) *PhishingIndicator {
+        for _, phrase := range phrases {
+                if strings.Contains(lower, phrase) {
+                        return &PhishingIndicator{
+                                Category:    category,
+                                Severity:    severity,
+                                Description: description,
+                                Evidence:    evidencePrefix + phrase,
+                        }
+                }
+        }
+        return nil
+}
+
 func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
         var indicators []PhishingIndicator
         lower := strings.ToLower(body)
 
-        btcRe := regexp.MustCompile(`\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b`)
-        btcBech32Re := regexp.MustCompile(`\bbc1[a-zA-HJ-NP-Z0-9]{25,90}\b`)
-        ethRe := regexp.MustCompile(`\b0x[0-9a-fA-F]{40}\b`)
-        xmrRe := regexp.MustCompile(`\b4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}\b`)
-
         var cryptoMatches []string
-        if m := btcRe.FindString(body); m != "" {
+        if m := reBTCAddress.FindString(body); m != "" {
                 cryptoMatches = append(cryptoMatches, "BTC: "+m[:12]+"...")
         }
-        if m := btcBech32Re.FindString(body); m != "" {
+        if m := reBTCBech32.FindString(body); m != "" {
                 cryptoMatches = append(cryptoMatches, "BTC: "+m[:12]+"...")
         }
-        if m := ethRe.FindString(body); m != "" {
+        if m := reETHAddress.FindString(body); m != "" {
                 cryptoMatches = append(cryptoMatches, "ETH: "+m[:12]+"...")
         }
-        if m := xmrRe.FindString(body); m != "" {
+        if m := reXMRAddress.FindString(body); m != "" {
                 cryptoMatches = append(cryptoMatches, "XMR: "+m[:12]+"...")
         }
         if len(cryptoMatches) > 0 {
@@ -762,124 +832,82 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                 })
         }
 
-        sextortionPhrases := []string{
-                "recorded you", "webcam", "compromising video", "compromising photos",
-                "intimate moments", "visited adult", "adult website", "porn",
-                "masturbat", "sexual", "nude", "naked video", "camera was activated",
-                "your device was compromised", "installed malware", "trojan",
-                "i have access to your", "i hacked", "i got access",
-        }
-        var sextortionMatches []string
-        for _, phrase := range sextortionPhrases {
-                if strings.Contains(lower, phrase) {
-                        sextortionMatches = append(sextortionMatches, phrase)
-                }
-        }
-        if len(sextortionMatches) >= 2 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Sextortion Language",
-                        Severity:    "danger",
-                        Description: "Multiple sextortion/blackmail phrases observed — this pattern matches well-known mass-mail extortion templates. These emails are typically sent in bulk and contain no real personal information.",
-                        Evidence:    "Phrases matched: " + strings.Join(sextortionMatches, ", "),
-                })
-        } else if len(sextortionMatches) == 1 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Suspicious Language",
-                        Severity:    "warning",
-                        Description: "A phrase commonly associated with extortion emails was observed.",
-                        Evidence:    "Phrase matched: " + sextortionMatches[0],
-                })
+        if ind := scanPhraseCategory(lower, phraseScanConfig{
+                phrases: []string{
+                        "recorded you", "webcam", "compromising video", "compromising photos",
+                        "intimate moments", "visited adult", "adult website", "porn",
+                        "masturbat", "sexual", "nude", "naked video", "camera was activated",
+                        "your device was compromised", "installed malware", "trojan",
+                        "i have access to your", "i hacked", "i got access",
+                },
+                multiCategory: "Sextortion Language",
+                multiSev:      "danger",
+                multiDesc:     "Multiple sextortion/blackmail phrases observed — this pattern matches well-known mass-mail extortion templates. These emails are typically sent in bulk and contain no real personal information.",
+                minForMulti:   2,
+                singleCategory: "Suspicious Language",
+                singleSev:      "warning",
+                singleDesc:     "A phrase commonly associated with extortion emails was observed.",
+        }); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        urgencyPhrases := []string{
-                "within 48 hours", "within 24 hours", "within 72 hours",
-                "final warning", "last chance", "time is running out",
-                "act now", "act immediately", "immediate action required",
-                "your account will be", "account will be suspended",
-                "account will be closed", "account will be terminated",
-                "failure to comply", "legal action", "law enforcement",
-                "you have been selected",
-        }
-        var urgencyMatches []string
-        for _, phrase := range urgencyPhrases {
-                if strings.Contains(lower, phrase) {
-                        urgencyMatches = append(urgencyMatches, phrase)
-                }
-        }
-        if len(urgencyMatches) >= 2 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Urgency Pressure",
-                        Severity:    "danger",
-                        Description: "Multiple urgency/pressure phrases observed — a hallmark of social engineering and scam emails designed to bypass rational thinking.",
-                        Evidence:    "Phrases matched: " + strings.Join(urgencyMatches, ", "),
-                })
-        } else if len(urgencyMatches) == 1 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Urgency Language",
-                        Severity:    "warning",
-                        Description: "An urgency phrase was observed — common in phishing and scam emails, though sometimes used in legitimate communications.",
-                        Evidence:    "Phrase matched: " + urgencyMatches[0],
-                })
+        if ind := scanPhraseCategory(lower, phraseScanConfig{
+                phrases: []string{
+                        "within 48 hours", "within 24 hours", "within 72 hours",
+                        "final warning", "last chance", "time is running out",
+                        "act now", "act immediately", "immediate action required",
+                        "your account will be", "account will be suspended",
+                        "account will be closed", "account will be terminated",
+                        "failure to comply", "legal action", "law enforcement",
+                        "you have been selected",
+                },
+                multiCategory: "Urgency Pressure",
+                multiSev:      "danger",
+                multiDesc:     "Multiple urgency/pressure phrases observed — a hallmark of social engineering and scam emails designed to bypass rational thinking.",
+                minForMulti:   2,
+                singleCategory: "Urgency Language",
+                singleSev:      "warning",
+                singleDesc:     "An urgency phrase was observed — common in phishing and scam emails, though sometimes used in legitimate communications.",
+        }); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        genericGreetings := []string{
+        if ind := scanFirstMatch(lower, []string{
                 "dear user", "dear customer", "dear client",
                 "dear sir", "dear madam", "dear sir/madam",
                 "dear valued customer", "dear account holder",
                 "dear friend", "hello friend",
-        }
-        for _, greeting := range genericGreetings {
-                if strings.Contains(lower, greeting) {
-                        indicators = append(indicators, PhishingIndicator{
-                                Category:    "Generic Greeting",
-                                Severity:    "warning",
-                                Description: "Generic greeting with no personalization — mass-produced emails typically use generic addresses because the sender does not know the recipient's name.",
-                                Evidence:    "Greeting: " + greeting,
-                        })
-                        break
-                }
+        }, "Generic Greeting", "warning",
+                "Generic greeting with no personalization — mass-produced emails typically use generic addresses because the sender does not know the recipient's name.",
+                "Greeting: "); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        paymentPhrases := []string{
+        if ind := scanFirstMatch(lower, []string{
                 "send payment", "transfer funds", "wire transfer",
                 "bitcoin payment", "pay the amount", "payment of $",
                 "send $", "send the money", "pay within",
                 "payment is required", "fee of $", "pay a fine",
-        }
-        for _, phrase := range paymentPhrases {
-                if strings.Contains(lower, phrase) {
-                        indicators = append(indicators, PhishingIndicator{
-                                Category:    "Payment Demand",
-                                Severity:    "danger",
-                                Description: "Payment demand language observed in email body.",
-                                Evidence:    "Phrase matched: " + phrase,
-                        })
-                        break
-                }
+        }, "Payment Demand", "danger",
+                "Payment demand language observed in email body.",
+                "Phrase matched: "); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        impersonation := []string{
+        if ind := scanFirstMatch(lower, []string{
                 "microsoft support", "apple support", "apple id",
                 "google security", "paypal security", "amazon security",
                 "irs ", "internal revenue", "social security",
                 "bank of america", "wells fargo", "chase bank",
                 "tech support", "customer support team",
                 "geek squad", "norton", "mcafee",
-        }
-        for _, phrase := range impersonation {
-                if strings.Contains(lower, phrase) {
-                        indicators = append(indicators, PhishingIndicator{
-                                Category:    "Brand Impersonation",
-                                Severity:    "warning",
-                                Description: "A well-known brand or service name was mentioned in the body — verify through official channels rather than clicking links in the email.",
-                                Evidence:    "Brand reference: " + phrase,
-                        })
-                        break
-                }
+        }, "Brand Impersonation", "warning",
+                "A well-known brand or service name was mentioned in the body — verify through official channels rather than clicking links in the email.",
+                "Brand reference: "); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        urlRe := regexp.MustCompile(`https?://[^\s<>"']+`)
-        urls := urlRe.FindAllString(body, -1)
+        urls := reURL.FindAllString(body, -1)
         if len(urls) > 5 {
                 indicators = append(indicators, PhishingIndicator{
                         Category:    "High URL Density",
@@ -894,8 +922,7 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                 indicators = append(indicators, phishHits...)
         }
 
-        capsRe := regexp.MustCompile(`[A-Z]{5,}`)
-        capsMatches := capsRe.FindAllString(body, -1)
+        capsMatches := reCapsWord.FindAllString(body, -1)
         exclamationCount := strings.Count(body, "!!!")
         if len(capsMatches) > 3 || exclamationCount > 2 {
                 indicators = append(indicators, PhishingIndicator{
@@ -906,77 +933,57 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                 })
         }
 
-        lotteryPhrases := []string{
-                "you have won", "you won", "lottery win", "prize winner",
-                "claim your prize", "claim your winnings", "lucky winner",
-                "congratulations! you", "your email won", "your email was selected",
-                "winning notification", "award notification",
-                "ticket number", "winning number", "reference number",
-                "batch number", "lucky number",
-                "unclaimed fund", "unclaimed prize", "abandoned fund",
-                "next of kin", "beneficiary", "inheritance",
-                "send your name", "send your names", "send your address",
-                "send your full name", "send your details",
-                "verification purpose", "for verification",
-                "contact agent", "contact our agent", "claims agent",
-                "facebook lottery", "google lottery", "microsoft lottery",
-                "coca cola", "coca-cola lottery",
-                "united nations", "world bank", "imf",
-                "automated draw", "random draw", "random selection",
-        }
-        var lotteryMatches []string
-        for _, phrase := range lotteryPhrases {
-                if strings.Contains(lower, phrase) {
-                        lotteryMatches = append(lotteryMatches, phrase)
-                }
-        }
-        if len(lotteryMatches) >= 2 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Lottery / Advance-Fee Fraud",
-                        Severity:    "danger",
-                        Description: "Multiple lottery/prize fraud phrases observed — this pattern matches 419-style advance-fee scams. No legitimate lottery contacts winners by unsolicited email.",
-                        Evidence:    "Phrases matched: " + strings.Join(lotteryMatches, ", "),
-                })
-        } else if len(lotteryMatches) == 1 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Possible Prize Scam",
-                        Severity:    "warning",
-                        Description: "A phrase associated with lottery or prize-based scams was observed.",
-                        Evidence:    "Phrase matched: " + lotteryMatches[0],
-                })
+        if ind := scanPhraseCategory(lower, phraseScanConfig{
+                phrases: []string{
+                        "you have won", "you won", "lottery win", "prize winner",
+                        "claim your prize", "claim your winnings", "lucky winner",
+                        "congratulations! you", "your email won", "your email was selected",
+                        "winning notification", "award notification",
+                        "ticket number", "winning number", "reference number",
+                        "batch number", "lucky number",
+                        "unclaimed fund", "unclaimed prize", "abandoned fund",
+                        "next of kin", "beneficiary", "inheritance",
+                        "send your name", "send your names", "send your address",
+                        "send your full name", "send your details",
+                        "verification purpose", "for verification",
+                        "contact agent", "contact our agent", "claims agent",
+                        "facebook lottery", "google lottery", "microsoft lottery",
+                        "coca cola", "coca-cola lottery",
+                        "united nations", "world bank", "imf",
+                        "automated draw", "random draw", "random selection",
+                },
+                multiCategory: "Lottery / Advance-Fee Fraud",
+                multiSev:      "danger",
+                multiDesc:     "Multiple lottery/prize fraud phrases observed — this pattern matches 419-style advance-fee scams. No legitimate lottery contacts winners by unsolicited email.",
+                minForMulti:   2,
+                singleCategory: "Possible Prize Scam",
+                singleSev:      "warning",
+                singleDesc:     "A phrase associated with lottery or prize-based scams was observed.",
+        }); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        socialEngPhrases := []string{
-                "cash flow", "financing that fits", "securing funding",
-                "no pressure to commit", "expansion", "growth potential",
-                "should i forward", "business loan", "credit line",
-                "pre-approved", "pre approved", "guaranteed approval",
-                "unsolicited offer", "investment opportunity",
-        }
-        var socialEngMatches []string
-        for _, phrase := range socialEngPhrases {
-                if strings.Contains(lower, phrase) {
-                        socialEngMatches = append(socialEngMatches, phrase)
-                }
-        }
-        if len(socialEngMatches) >= 3 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Targeted Social Engineering",
-                        Severity:    "danger",
-                        Description: "Multiple business-targeted social engineering phrases observed — this pattern matches unsolicited business funding scams that use information from public web presence to appear legitimate.",
-                        Evidence:    "Phrases matched: " + strings.Join(socialEngMatches, ", "),
-                })
-        } else if len(socialEngMatches) >= 1 {
-                indicators = append(indicators, PhishingIndicator{
-                        Category:    "Unsolicited Business Contact",
-                        Severity:    "warning",
-                        Description: "Phrases associated with unsolicited business offers or funding scams observed. These emails often reference publicly available information about your company to appear credible.",
-                        Evidence:    "Phrases matched: " + strings.Join(socialEngMatches, ", "),
-                })
+        if ind := scanPhraseCategory(lower, phraseScanConfig{
+                phrases: []string{
+                        "cash flow", "financing that fits", "securing funding",
+                        "no pressure to commit", "expansion", "growth potential",
+                        "should i forward", "business loan", "credit line",
+                        "pre-approved", "pre approved", "guaranteed approval",
+                        "unsolicited offer", "investment opportunity",
+                },
+                multiCategory: "Targeted Social Engineering",
+                multiSev:      "danger",
+                multiDesc:     "Multiple business-targeted social engineering phrases observed — this pattern matches unsolicited business funding scams that use information from public web presence to appear legitimate.",
+                minForMulti:   3,
+                singleCategory:        "Unsolicited Business Contact",
+                singleSev:             "warning",
+                singleDesc:            "Phrases associated with unsolicited business offers or funding scams observed. These emails often reference publicly available information about your company to appear credible.",
+                singleEvidenceJoinAll: true,
+        }); ind != nil {
+                indicators = append(indicators, *ind)
         }
 
-        contactRe := regexp.MustCompile(`(?i)(?:please\s+)?contact\s*:\s*([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})`)
-        if m := contactRe.FindStringSubmatch(body); m != nil {
+        if m := reContactEmail.FindStringSubmatch(body); m != nil {
                 contactEmail := m[1]
                 indicators = append(indicators, PhishingIndicator{
                         Category:    "Suspicious Contact Method",
@@ -1020,13 +1027,10 @@ func decodeEmailBody(body string, headers []headerField) string {
 }
 
 func stripHTMLTags(html string) string {
-        scriptRe := regexp.MustCompile(`(?is)<script[^>]*>.*?</script>`)
-        html = scriptRe.ReplaceAllString(html, " ")
-        styleRe := regexp.MustCompile(`(?is)<style[^>]*>.*?</style>`)
-        html = styleRe.ReplaceAllString(html, " ")
+        html = reScriptTag.ReplaceAllString(html, " ")
+        html = reStyleTag.ReplaceAllString(html, " ")
 
-        tagRe := regexp.MustCompile(`<[^>]+>`)
-        text := tagRe.ReplaceAllString(html, " ")
+        text := reHTMLTag.ReplaceAllString(html, " ")
 
         entityMap := map[string]string{
                 "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
@@ -1038,13 +1042,11 @@ func stripHTMLTags(html string) string {
                 text = strings.ReplaceAll(text, entity, replacement)
         }
 
-        numEntityRe := regexp.MustCompile(`&#(\d+);`)
-        text = numEntityRe.ReplaceAllStringFunc(text, func(s string) string {
+        text = reNumEntity.ReplaceAllStringFunc(text, func(s string) string {
                 return " "
         })
 
-        spaceRe := regexp.MustCompile(`\s+`)
-        text = spaceRe.ReplaceAllString(text, " ")
+        text = reWhitespace.ReplaceAllString(text, " ")
 
         return strings.TrimSpace(text)
 }
@@ -1098,8 +1100,7 @@ func detectHeaderIntelligence(headers []headerField, result *EmailHeaderAnalysis
 
         msAntispam := extractHeader(headers, "x-forefront-antispam-report")
         if msAntispam != "" {
-                sclRe := regexp.MustCompile(`(?i)\bSCL:(\d+)`)
-                if m := sclRe.FindStringSubmatch(msAntispam); m != nil {
+                if m := reSCL.FindStringSubmatch(msAntispam); m != nil {
                         sclVal := 0
                         fmt.Sscanf(m[1], "%d", &sclVal)
                         result.MicrosoftSCL = sclVal
@@ -1155,8 +1156,7 @@ func detectHeaderIntelligence(headers []headerField, result *EmailHeaderAnalysis
 
         dmarcPolicy := extractHeader(headers, "x-dmarc-policy")
         if dmarcPolicy != "" {
-                policyRe := regexp.MustCompile(`(?i)\bp=(none|quarantine|reject)\b`)
-                if m := policyRe.FindStringSubmatch(dmarcPolicy); m != nil {
+                if m := reDMARCPolicy.FindStringSubmatch(dmarcPolicy); m != nil {
                         result.DMARCPolicy = strings.ToLower(m[1])
                 }
         }
@@ -1239,10 +1239,9 @@ func analyzeSubjectLine(result *EmailHeaderAnalysis) {
         subject := result.Subject
         subjectLower := strings.ToLower(subject)
 
-        phoneRe := regexp.MustCompile(`\b\d[\d\s\-\.O]{6,}\d\b`)
-        if phoneRe.MatchString(subject) {
+        if rePhone.MatchString(subject) {
                 hasLetterSubstitution := false
-                matches := phoneRe.FindAllString(subject, -1)
+                matches := rePhone.FindAllString(subject, -1)
                 for _, m := range matches {
                         if strings.ContainsAny(m, "OoIl") {
                                 hasLetterSubstitution = true
@@ -1262,8 +1261,7 @@ func analyzeSubjectLine(result *EmailHeaderAnalysis) {
                 })
         }
 
-        moneyRe := regexp.MustCompile(`(?i)\$\s*[\d,]+\.?\d*\s*(?:USD|usd)?|\b[\d,]+\.?\d*\s*(?:USD|GBP|EUR)\b`)
-        if moneyMatches := moneyRe.FindAllString(subject, -1); len(moneyMatches) > 0 {
+        if moneyMatches := reMoney.FindAllString(subject, -1); len(moneyMatches) > 0 {
                 result.SubjectScamIndicators = append(result.SubjectScamIndicators, PhishingIndicator{
                         Category:    "Payment Amount in Subject",
                         Severity:    "warning",
@@ -1333,13 +1331,11 @@ func analyzeSubjectLine(result *EmailHeaderAnalysis) {
 }
 
 func extractAllEmailAddresses(s string) []string {
-        re := regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
-        return re.FindAllString(s, -1)
+        return reEmailAddress.FindAllString(s, -1)
 }
 
 func extractFirstEmailFromField(s string) string {
-        re := regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
-        if m := re.FindString(s); m != "" {
+        if m := reEmailAddress.FindString(s); m != "" {
                 return m
         }
         return strings.TrimSpace(s)

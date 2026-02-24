@@ -3102,16 +3102,6 @@ body.covert-mode .dri-footer {
 body.covert-mode .dri-examples {
     border-top-color: rgba(140, 40, 40, 0.1);
 }
-body.covert-mode .homepage-big-question-preview {
-    background: rgba(140, 40, 40, 0.04);
-    border-color: rgba(140, 40, 40, 0.18);
-}
-body.covert-mode .homepage-big-question-label {
-    color: rgba(196, 60, 60, 0.55);
-}
-body.covert-mode .homepage-big-question-example {
-    color: rgba(196, 60, 60, 0.55);
-}
 body.covert-mode .fa-compass.text-info {
     color: #cc2020 !important;
 }
@@ -4983,9 +4973,6 @@ body.covert-mode .dt-question {
     border-radius: 0 0.25rem 0.25rem 0;
     margin-bottom: 0.35rem;
 }
-.protocol-question-text {
-    opacity: 0.88;
-}
 .protocol-question .badge {
     font-size: 0.74em;
     font-weight: 700;
@@ -5969,57 +5956,7 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     color: rgba(155, 166, 178, 0.6);
     margin: 1rem 0 0;
 }
-.homepage-big-question-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.25rem 1rem;
-    margin: 0 auto;
-    max-width: 540px;
-    background: rgba(13, 202, 240, 0.04);
-    border: 1px solid rgba(13, 202, 240, 0.18);
-    border-radius: 0.5rem;
-}
-.homepage-big-question-label {
-    font-size: 0.7em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(13, 202, 240, 0.55);
-    margin-bottom: 0.5rem;
-}
-.homepage-big-question-text {
-    font-size: 1.25em;
-    line-height: 1.4;
-    text-shadow: 0 0 18px rgba(13, 202, 240, 0.12);
-    text-align: center;
-}
-.homepage-big-question-examples {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem 1.25rem;
-    margin-top: 0.75rem;
-}
-.homepage-big-question-example {
-    font-size: 0.82em;
-    font-weight: 500;
-    color: rgba(13, 202, 240, 0.65);
-    font-style: italic;
-    white-space: nowrap;
-}
 @media (max-width: 767.98px) {
-    .homepage-big-question-text {
-        font-size: 1.1em;
-    }
-    .homepage-big-question-examples {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.3rem;
-    }
-    .homepage-big-question-example {
-        white-space: normal;
-    }
     .dri-body {
         padding: 1.25rem 1rem 1rem;
     }
