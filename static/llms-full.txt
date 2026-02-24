@@ -263,6 +263,14 @@ Shows usage trends, analysis counts, popular domains, and visitor geography.
 URL: `https://dnstool.it-help.tech/compare`
 Side-by-side comparison of two domains' security configurations.
 
+### Our Approach
+URL: `https://dnstool.it-help.tech/approach`
+Explains the scientific methodology and philosophy behind DNS Tool. Core thesis: "If you don't understand DNS, you can't understand the internet or its security." Covers why DNS analysis requires rigorous methods — RFC provenance for every finding, time-series verification, multi-resolver consensus, and the decision to build a forensic audit engine rather than a simple pass/fail checker. Documents the "practice what we preach" principle: DNS Tool's own domain implements every protocol it audits (SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, CAA, MTA-STS, TLS-RPT, BIMI). Static educational content — no login required.
+
+### Public Roadmap
+URL: `https://dnstool.it-help.tech/roadmap`
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (25+ shipped features including ICAE, ICuAE, Email Header Analyzer, Drift Engine, Architecture Page, Covert Recon Mode, Glass Badge System), In Progress (visual cohesion, roadmap page, approach page), Next Up (API access, CLI app, probe network expansion, multi-probe consensus engine), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+
 ---
 
 ## Interpreting Results for Users
