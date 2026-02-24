@@ -1,0 +1,205 @@
+#!/usr/bin/env node
+/**
+ * DNS Tool — Feature Regression Inventory (R011)
+ * Scans the codebase to verify that known features still exist and are wired up.
+ * Run: node scripts/feature-inventory.js
+ *
+ * Checks:
+ * 1. Go stub functions return real data (not hardcoded "Unknown")
+ * 2. Template variables are populated
+ * 3. CSS classes referenced in templates exist in stylesheets
+ * 4. Covert mode overrides exist for semantic elements
+ * 5. Key routes are registered
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = path.resolve(__dirname, '..');
+let errors = 0;
+let warnings = 0;
+let pass = 0;
+
+function read(relPath) {
+  const full = path.join(ROOT, relPath);
+  if (!fs.existsSync(full)) return null;
+  return fs.readFileSync(full, 'utf8');
+}
+
+function check(label, condition, detail) {
+  if (condition) {
+    pass++;
+  } else {
+    errors++;
+    console.log(`  ✗ [REGRESSION] ${label}`);
+    if (detail) console.log(`    ${detail}`);
+  }
+}
+
+function warn(label, detail) {
+  warnings++;
+  console.log(`  ⚠ [WARNING] ${label}`);
+  if (detail) console.log(`    ${detail}`);
+}
+
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  DNS Tool — Feature Regression Inventory');
+console.log(`  Date: ${new Date().toISOString().slice(0, 10)}`);
+console.log('═══════════════════════════════════════════════════════════════\n');
+
+// ── 1. Hosting Detection ──────────────────────────────────────
+console.log('── Hosting Detection (R007) ─────────────────────────────────');
+const infraOSS = read('go-server/internal/analyzer/infrastructure_oss.go');
+if (infraOSS) {
+  const getHostingFn = infraOSS.match(/func \(a \*Analyzer\) GetHostingInfo[\s\S]*?^}/m);
+  if (getHostingFn) {
+    const fnBody = getHostingFn[0];
+    check('GetHostingInfo uses provider data',
+      fnBody.includes('identifyWebHostingOSS') || fnBody.includes('identifyWebHosting'),
+      'GetHostingInfo should call provider matching, not return hardcoded "Unknown"');
+    check('GetHostingInfo returns DNS hosting',
+      fnBody.includes('identifyDNSProviderOSS') || fnBody.includes('identifyDNSProvider'),
+      'DNS hosting should use NS record matching');
+    check('GetHostingInfo returns email hosting',
+      fnBody.includes('identifyEmailProviderOSS') || fnBody.includes('identifyEmailProvider'),
+      'Email hosting should use MX record matching');
+  } else {
+    check('GetHostingInfo function exists', false, 'Function not found in infrastructure_oss.go');
+  }
+} else {
+  check('infrastructure_oss.go exists', false, 'File not found');
+}
+
+// ── 2. Provider Data ──────────────────────────────────────────
+console.log('\n── Provider Data ────────────────────────────────────────────');
+const providersGo = read('go-server/internal/providers/providers.go');
+if (providersGo) {
+  check('CNAMEProviderMap has entries',
+    (providersGo.match(/CNAMEProviderMap.*=.*map/s) && providersGo.includes('shopify.com')),
+    'CNAME provider map should contain known providers');
+  check('DANEMXCapability has entries',
+    providersGo.includes('DANEMXCapability') && providersGo.includes('outlook.com'),
+    'DANE MX capability map should contain known email providers');
+  check('knownDNSProviders exists',
+    read('go-server/internal/analyzer/ns_delegation.go')?.includes('knownDNSProviders'),
+    'DNS provider patterns should exist in ns_delegation.go');
+} else {
+  check('providers.go exists', false, 'File not found');
+}
+
+// ── 3. Glass Treatment CSS ────────────────────────────────────
+console.log('\n── Glass Treatment CSS ──────────────────────────────────────');
+const css = read('static/css/custom.css');
+if (css) {
+  const glassElements = [
+    { name: 'ICAE badge dot', pattern: /\.icae-badge-verified\s+\.icae-dot\s*\{[^}]*rgba/ },
+    { name: 'ICuAE badge dot', pattern: /\.icuae-badge-adequate\s+\.icuae-dot\s*\{[^}]*rgba/ },
+    { name: 'Analyze button glass bg', pattern: /\.btn-analyze\s*\{[^}]*rgba\(108,\s*92,\s*231/ },
+    { name: 'ICAE dot verified', pattern: /\.icae-dot-color-verified\s*\{[^}]*rgba/ },
+    { name: 'Hero maturity dot', pattern: /\.icae-hero-maturity[^:]*::before\s*\{[^}]*rgba/ },
+  ];
+  for (const el of glassElements) {
+    check(`Glass: ${el.name}`, el.pattern.test(css), `Missing glass treatment for ${el.name}`);
+  }
+
+  const covertElements = [
+    { name: 'Covert ICAE badge', pattern: /covert-mode\s+\.icae-badge\s/ },
+    { name: 'Covert ICuAE badge', pattern: /covert-mode\s+\.icuae-badge\s/ },
+    { name: 'Covert ICAE dot verified', pattern: /covert-mode\s+\.icae-dot-color-verified/ },
+    { name: 'Covert ICuAE dot', pattern: /covert-mode\s+\.icuae-badge\s+\.icuae-dot/ },
+    { name: 'Covert hero maturity', pattern: /covert-mode\s+\.icae-hero-maturity\s*\{/ },
+    { name: 'Covert hero maturity dot', pattern: /covert-mode\s+\.icae-hero-maturity::before/ },
+    { name: 'Covert Analyze button', pattern: /covert-mode\s+\.btn-analyze\s*\{/ },
+    { name: 'Covert icae-level-verified', pattern: /covert-mode\s+\.icae-level-verified/ },
+    { name: 'Covert icae-level-consistent', pattern: /covert-mode\s+\.icae-level-consistent/ },
+    { name: 'Covert icae-level-gold', pattern: /covert-mode\s+\.icae-level-gold\s/ },
+    { name: 'Covert icae-level-gold-master', pattern: /covert-mode\s+\.icae-level-gold-master/ },
+  ];
+  for (const el of covertElements) {
+    check(`Covert: ${el.name}`, el.pattern.test(css), `Missing covert mode override for ${el.name}`);
+  }
+} else {
+  check('custom.css exists', false, 'File not found');
+}
+
+// ── 4. Template Variables ─────────────────────────────────────
+console.log('\n── Template Variables ───────────────────────────────────────');
+const resultsHTML = read('go-server/templates/results.html');
+if (resultsHTML) {
+  check('Template renders hosting_summary', resultsHTML.includes('hosting_summary'),
+    'results.html should reference hosting_summary');
+  check('Template renders email_hosting', resultsHTML.includes('email_hosting'),
+    'results.html should reference email_hosting');
+  check('Template renders dns_hosting', resultsHTML.includes('dns_hosting'),
+    'results.html should reference dns_hosting');
+  check('Template renders ICAE maturity', resultsHTML.includes('OverallMaturity'),
+    'results.html should reference OverallMaturity');
+}
+const indexHTML = read('go-server/templates/index.html');
+if (indexHTML) {
+  check('Homepage renders ICAE hero', indexHTML.includes('icae-hero-maturity'),
+    'index.html should have ICAE hero maturity badge');
+  check('Homepage renders ICuAE badge', indexHTML.includes('icuae-badge'),
+    'index.html should have ICuAE badge');
+  check('Homepage renders btn-analyze', indexHTML.includes('btn-analyze'),
+    'index.html should have btn-analyze class on analyze button');
+}
+
+// ── 5. Key Routes ─────────────────────────────────────────────
+console.log('\n── Key Routes ──────────────────────────────────────────────');
+const routesFiles = [
+  'go-server/internal/handlers/routes.go',
+  'go-server/internal/handlers/handlers.go',
+];
+let routesContent = '';
+for (const f of routesFiles) {
+  const c = read(f);
+  if (c) routesContent += c;
+}
+if (routesContent) {
+  const requiredRoutes = ['/healthz', '/analyze', '/confidence', '/architecture'];
+  for (const route of requiredRoutes) {
+    check(`Route registered: ${route}`,
+      routesContent.includes(route),
+      `Route ${route} should be registered in handlers`);
+  }
+}
+
+// ── 6. Build System ───────────────────────────────────────────
+console.log('\n── Build System ────────────────────────────────────────────');
+const buildSh = read('build.sh');
+if (buildSh) {
+  check('Build uses CGO_ENABLED=0', buildSh.includes('CGO_ENABLED=0'),
+    'Static binary requires CGO_ENABLED=0');
+  check('Build uses -ldflags', buildSh.includes('-ldflags'),
+    'Version stamping requires -ldflags');
+}
+const configGo = read('go-server/internal/config/config.go');
+if (configGo) {
+  const versionMatch = configGo.match(/Version\s*=\s*"([^"]+)"/);
+  if (versionMatch) {
+    console.log(`  ℹ Current version: ${versionMatch[1]}`);
+  }
+}
+
+// ── 7. CSS Minification ──────────────────────────────────────
+console.log('\n── CSS Minification ────────────────────────────────────────');
+const cssPath = path.join(ROOT, 'static/css/custom.css');
+const minPath = path.join(ROOT, 'static/css/custom.min.css');
+if (fs.existsSync(cssPath) && fs.existsSync(minPath)) {
+  const cssStat = fs.statSync(cssPath);
+  const minStat = fs.statSync(minPath);
+  check('Minified CSS is up to date',
+    minStat.mtimeMs >= cssStat.mtimeMs,
+    `custom.min.css (${new Date(minStat.mtimeMs).toISOString()}) is older than custom.css (${new Date(cssStat.mtimeMs).toISOString()}) — run npx csso`);
+}
+
+// ── Summary ──────────────────────────────────────────────────
+console.log('\n═══════════════════════════════════════════════════════════════');
+console.log(`  Passed:   ${pass}`);
+console.log(`  Failed:   ${errors}`);
+console.log(`  Warnings: ${warnings}`);
+console.log(`  Result:   ${errors === 0 ? 'PASS' : 'FAIL'}`);
+console.log('═══════════════════════════════════════════════════════════════');
+
+process.exit(errors > 0 ? 1 : 0);

@@ -2477,8 +2477,9 @@ body.covert-mode .icuae-badge {
     color: rgba(170, 178, 188, 0.35) !important;
 }
 body.covert-mode .icuae-badge .icuae-dot {
-    background: rgba(140, 40, 40, 0.45) !important;
-    box-shadow: none !important;
+    background: rgba(140, 40, 40, 0.35) !important;
+    border: 1px solid rgba(140, 48, 48, 0.6) !important;
+    box-shadow: 0 0 4px rgba(140, 48, 48, 0.3) !important;
 }
 body.covert-mode .icuae-badge:hover {
     border-color: rgba(140, 40, 40, 0.25) !important;
@@ -2492,8 +2493,40 @@ body.covert-mode .icae-hero-statement {
     color: rgba(170, 178, 188, 0.35) !important;
 }
 body.covert-mode .icae-hero-maturity {
-    opacity: 0.4 !important;
-    filter: saturate(0.15) !important;
+    background: rgba(14, 8, 8, 0.85) !important;
+    border-color: rgba(140, 40, 40, 0.3) !important;
+    color: rgba(196, 100, 100, 0.7) !important;
+}
+body.covert-mode .icae-hero-maturity::before {
+    background: rgba(140, 48, 48, 0.35) !important;
+    border: 1px solid rgba(140, 48, 48, 0.6) !important;
+    box-shadow: 0 0 4px rgba(140, 48, 48, 0.3) !important;
+}
+body.covert-mode .icae-level-dev {
+    background: rgba(92, 48, 48, 0.15) !important;
+    color: #8c6060 !important;
+    border-color: rgba(92, 48, 48, 0.4) !important;
+}
+body.covert-mode .icae-level-verified {
+    background: rgba(140, 48, 48, 0.15) !important;
+    color: #8c3030 !important;
+    border-color: rgba(140, 48, 48, 0.4) !important;
+}
+body.covert-mode .icae-level-consistent {
+    background: rgba(176, 64, 64, 0.15) !important;
+    color: #b04040 !important;
+    border-color: rgba(176, 64, 64, 0.35) !important;
+}
+body.covert-mode .icae-level-gold {
+    background: rgba(204, 80, 48, 0.15) !important;
+    color: #cc5030 !important;
+    border-color: rgba(204, 80, 48, 0.4) !important;
+}
+body.covert-mode .icae-level-gold-master {
+    background: linear-gradient(135deg, rgba(221, 102, 80, 0.15), rgba(240, 130, 100, 0.10)) !important;
+    color: #dd6650 !important;
+    border-color: rgba(221, 102, 80, 0.5) !important;
+    text-shadow: 0 0 4px rgba(221, 102, 80, 0.3) !important;
 }
 body.covert-mode .icae-hero-protocols .text-info {
     color: rgba(140, 50, 50, 0.55) !important;
@@ -5557,22 +5590,22 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
    NIST-aligned accent: --accent-violet
    ============================================ */
 .btn-analyze {
-    --bs-btn-bg: rgba(108, 92, 231, 0.15);
-    --bs-btn-border-color: rgba(108, 92, 231, 0.5);
+    --bs-btn-bg: rgba(108, 92, 231, 0.12);
+    --bs-btn-border-color: rgba(108, 92, 231, 0.45);
     --bs-btn-color: #c4b5fd;
-    --bs-btn-hover-bg: rgba(108, 92, 231, 0.25);
-    --bs-btn-hover-border-color: rgba(108, 92, 231, 0.7);
+    --bs-btn-hover-bg: rgba(108, 92, 231, 0.18);
+    --bs-btn-hover-border-color: rgba(108, 92, 231, 0.65);
     --bs-btn-hover-color: #e2dcff;
-    --bs-btn-active-bg: rgba(108, 92, 231, 0.35);
-    --bs-btn-active-border-color: rgba(108, 92, 231, 0.8);
+    --bs-btn-active-bg: rgba(108, 92, 231, 0.25);
+    --bs-btn-active-border-color: rgba(108, 92, 231, 0.75);
     --bs-btn-active-color: #fff;
-    --bs-btn-disabled-bg: rgba(108, 92, 231, 0.08);
-    --bs-btn-disabled-border-color: rgba(108, 92, 231, 0.25);
+    --bs-btn-disabled-bg: rgba(108, 92, 231, 0.06);
+    --bs-btn-disabled-border-color: rgba(108, 92, 231, 0.2);
     --bs-btn-disabled-color: rgba(196, 181, 253, 0.5);
-    background-color: var(--bs-btn-bg);
-    border: 2px solid var(--bs-btn-border-color);
-    color: var(--bs-btn-color);
-    box-shadow: 0 0 8px rgba(108, 92, 231, 0.15);
+    background-color: var(--bs-btn-bg) !important;
+    border: 2px solid var(--bs-btn-border-color) !important;
+    color: var(--bs-btn-color) !important;
+    box-shadow: 0 0 8px rgba(108, 92, 231, 0.12);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     transition: all 0.25s ease;
@@ -5582,25 +5615,25 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 @media (hover: hover) {
     .btn-analyze:hover,
     .btn-analyze:focus {
-        background-color: var(--bs-btn-hover-bg);
-        border-color: var(--bs-btn-hover-border-color);
-        color: var(--bs-btn-hover-color);
-        box-shadow: 0 0 16px rgba(108, 92, 231, 0.35), 0 0 4px rgba(108, 92, 231, 0.2);
+        background-color: var(--bs-btn-hover-bg) !important;
+        border-color: var(--bs-btn-hover-border-color) !important;
+        color: var(--bs-btn-hover-color) !important;
+        box-shadow: 0 0 12px rgba(108, 92, 231, 0.25), 0 0 4px rgba(108, 92, 231, 0.15);
     }
 }
 
 .btn-analyze:focus-visible {
-    background-color: var(--bs-btn-hover-bg);
-    border-color: var(--bs-btn-hover-border-color);
-    color: var(--bs-btn-hover-color);
-    box-shadow: 0 0 16px rgba(108, 92, 231, 0.35), 0 0 4px rgba(108, 92, 231, 0.2);
+    background-color: var(--bs-btn-hover-bg) !important;
+    border-color: var(--bs-btn-hover-border-color) !important;
+    color: var(--bs-btn-hover-color) !important;
+    box-shadow: 0 0 12px rgba(108, 92, 231, 0.25), 0 0 4px rgba(108, 92, 231, 0.15);
 }
 
 .btn-analyze:active {
-    background-color: var(--bs-btn-active-bg);
-    border-color: var(--bs-btn-active-border-color);
-    color: var(--bs-btn-active-color);
-    box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+    background-color: var(--bs-btn-active-bg) !important;
+    border-color: var(--bs-btn-active-border-color) !important;
+    color: var(--bs-btn-active-color) !important;
+    box-shadow: 0 0 16px rgba(108, 92, 231, 0.35);
 }
 
 /* ============================================
