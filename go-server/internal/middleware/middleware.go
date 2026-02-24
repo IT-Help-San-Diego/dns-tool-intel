@@ -24,6 +24,7 @@ const (
 
 func generateNonce() string {
         b := make([]byte, 16)
+        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
         _, _ = rand.Read(b)
         return base64.URLEncoding.EncodeToString(b)
 }

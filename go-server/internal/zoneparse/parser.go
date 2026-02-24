@@ -56,11 +56,9 @@ func ParseZoneFile(r io.Reader, origin string) (*ParseResult, []byte, error) {
                         Class: dns.ClassToString[hdr.Class],
                         Type:  dnsutil.TypeToString(rrtype),
                 }
-                full := rr.Header().String() + " " + dnsutil.TypeToString(rrtype) + "\t"
                 if rr.Data() != nil {
                         rec.RData = rr.Data().String()
                 }
-                _ = full
                 records = append(records, rec)
         }
 

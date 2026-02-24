@@ -130,6 +130,7 @@ func (h *AuthHandler) Callback(c *gin.Context) {
                 c.Redirect(http.StatusFound, "/")
                 return
         }
+        // stateCookie already validated in extractOAuthCallbackParams; kept for audit trail clarity
         _ = stateCookie
 
         if err := h.validateIDTokenClaims(tokenData, nonceCookie); err != nil {
@@ -314,7 +315,9 @@ func (h *AuthHandler) createUserSession(ctx context.Context, userID int32) (stri
 func (h *AuthHandler) Logout(c *gin.Context) {
         cookie, err := c.Cookie(sessionCookieName)
         if err == nil && cookie != "" {
-                _ = h.Queries.DeleteSession(c.Request.Context(), cookie)
+                if delErr := h.Queries.DeleteSession(c.Request.Context(), cookie); delErr != nil {
+                        slog.Warn("Logout: failed to delete session (cookie will still be cleared)", "error", delErr)
+                }
         }
 
         c.SetCookie(sessionCookieName, "", -1, "/", "", true, true)

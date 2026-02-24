@@ -51,6 +51,7 @@ func (ac *AnalyticsCollector) rotateSalt() {
                 return
         }
         b := make([]byte, 32)
+        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
         _, _ = rand.Read(b)
         ac.dailySalt = hex.EncodeToString(b)
         ac.saltDate = today
@@ -180,13 +181,19 @@ func (ac *AnalyticsCollector) Flush() {
         ac.refCounts = make(map[string]int)
         ac.mu.Unlock()
 
-        pagesJSON, _ := json.Marshal(topPages)
-        refsJSON, _ := json.Marshal(refs)
+        pagesJSON, err := json.Marshal(topPages)
+        if err != nil {
+                slog.Warn("Analytics flush: marshal top_pages", "error", err)
+        }
+        refsJSON, err := json.Marshal(refs)
+        if err != nil {
+                slog.Warn("Analytics flush: marshal refs", "error", err)
+        }
 
         ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
         defer cancel()
 
-        _, err := ac.pool.Exec(ctx, `
+        _, err = ac.pool.Exec(ctx, `
                 INSERT INTO site_analytics (date, pageviews, unique_visitors, analyses_run, unique_domains_analyzed, referrer_sources, top_pages)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (date) DO UPDATE SET
