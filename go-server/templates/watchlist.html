@@ -97,7 +97,7 @@
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h1 class="mb-1" style="font-size:1.75rem"><i class="fas fa-crosshairs me-2 text-info"></i>Drift Watchlist</h1>
+                <h1 class="mb-1 wl-heading"><i class="fas fa-crosshairs me-2 text-info"></i>Drift Watchlist</h1>
                 <p class="text-muted mb-0 small">Monitor domains for security posture changes. Get notified when drift is detected.</p>
             </div>
         </div>
@@ -112,18 +112,18 @@
                     <div class="card-body">
                         <form method="POST" action="/watchlist/add" class="mb-3">
                             <input type="hidden" name="_csrf" value="{{.CsrfToken}}">
-                            <div class="row gap-2" style="margin:0">
-                                <div class="col-12 col-md-6" style="padding:0">
+                            <div class="row gap-2 wl-form-row">
+                                <div class="col-12 col-md-6 wl-form-col">
                                     <input type="text" name="domain" class="form-control form-control-sm" placeholder="example.com" required autocapitalize="none" spellcheck="false" autocomplete="off">
                                 </div>
-                                <div class="col-12 col-md-3" style="padding:0">
+                                <div class="col-12 col-md-3 wl-form-col">
                                     <select name="cadence" class="form-select form-select-sm">
                                         <option value="daily" selected>Daily</option>
                                         <option value="hourly">Hourly</option>
                                         <option value="weekly">Weekly</option>
                                     </select>
                                 </div>
-                                <div style="padding:0;flex:0 0 auto;width:auto">
+                                <div class="wl-form-action">
                                     <button type="submit" class="btn btn-sm btn-outline-success text-nowrap">
                                         <i class="fas fa-plus-circle me-1"></i>Watch
                                     </button>
@@ -183,7 +183,7 @@
                         </table>
                         {{else}}
                         <div class="text-center py-4 text-muted">
-                            <i class="fas fa-satellite-dish fa-2x mb-2" style="opacity:0.3"></i>
+                            <i class="fas fa-satellite-dish fa-2x mb-2 wl-empty-icon"></i>
                             <p class="mb-0">No domains watched yet. Add a domain above to start monitoring.</p>
                         </div>
                         {{end}}
@@ -200,14 +200,14 @@
                     <div class="card-body">
                         <form method="POST" action="/watchlist/endpoint/add" class="mb-3">
                             <input type="hidden" name="_csrf" value="{{.CsrfToken}}">
-                            <div class="row gap-2" style="margin:0">
-                                <div class="col-12 col-md-6" style="padding:0">
+                            <div class="row gap-2 wl-form-row">
+                                <div class="col-12 col-md-6 wl-form-col">
                                     <input type="url" name="url" class="form-control form-control-sm" placeholder="https://hooks.example.com/drift" required>
                                 </div>
-                                <div class="col-12 col-md-3" style="padding:0">
+                                <div class="col-12 col-md-3 wl-form-col">
                                     <input type="text" name="secret" class="form-control form-control-sm" placeholder="HMAC secret (optional)" autocomplete="off">
                                 </div>
-                                <div style="padding:0;flex:0 0 auto;width:auto">
+                                <div class="wl-form-action">
                                     <button type="submit" class="btn btn-sm btn-outline-success text-nowrap">
                                         <i class="fas fa-plus-circle me-1"></i>Add
                                     </button>
@@ -227,7 +227,7 @@
                             <tbody>
                             {{range .Endpoints}}
                                 <tr{{if not .Enabled}} class="u-opacity-70"{{end}}>
-                                    <td class="py-1 text-truncate font-monospace" style="max-width:250px" title="{{.URL}}">
+                                    <td class="py-1 text-truncate font-monospace wl-url-cell" title="{{.URL}}">
                                         {{.MaskedURL}}
                                         {{if not .Enabled}}<span class="badge bg-secondary ms-1">Disabled</span>{{end}}
                                     </td>
@@ -235,7 +235,7 @@
                                     <td class="py-1 text-end">
                                         <div class="btn-group">
                                             {{if .Enabled}}
-                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/toggle" style="display:inline">
+                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/toggle" class="wl-inline-form">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="false">
                                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Disable">
@@ -243,7 +243,7 @@
                                                 </button>
                                             </form>
                                             {{else}}
-                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/toggle" style="display:inline">
+                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/toggle" class="wl-inline-form">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="true">
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Enable">
@@ -251,7 +251,7 @@
                                                 </button>
                                             </form>
                                             {{end}}
-                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/delete" style="display:inline">
+                                            <form method="POST" action="/watchlist/endpoint/{{.ID}}/delete" class="wl-inline-form">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove endpoint">
                                                     <i class="fas fa-unlink"></i>
@@ -265,7 +265,7 @@
                         </table>
                         {{else}}
                         <div class="text-center py-4 text-muted">
-                            <i class="fas fa-bullhorn fa-2x mb-2" style="opacity:0.3"></i>
+                            <i class="fas fa-bullhorn fa-2x mb-2 wl-empty-icon"></i>
                             <p class="mb-1">No webhook endpoints configured.</p>
                             <p class="mb-0 small">Add a URL above to receive drift notifications via HTTP POST.</p>
                         </div>

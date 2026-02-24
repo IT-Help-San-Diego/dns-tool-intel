@@ -5994,6 +5994,43 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     color: rgba(155, 166, 178, 0.6);
     margin: 1rem 0 0;
 }
+.wl-heading {
+    font-size: 1.75rem;
+}
+.wl-form-row {
+    margin: 0;
+}
+.wl-form-col {
+    padding: 0;
+}
+.wl-form-action {
+    padding: 0;
+    flex: 0 0 auto;
+    width: auto;
+}
+.wl-empty-icon {
+    opacity: 0.3;
+}
+.wl-url-cell {
+    max-width: 250px;
+}
+.wl-inline-form {
+    display: inline;
+}
+.sc-col-param,
+.sc-col-current,
+.sc-col-suggested {
+    width: 15%;
+}
+.sc-col-severity {
+    width: 10%;
+}
+.conf-col-grade {
+    width: 110px;
+}
+.conf-col-range {
+    width: 80px;
+}
 @media (max-width: 767.98px) {
     .dri-body {
         padding: 1.25rem 1rem 1rem;
