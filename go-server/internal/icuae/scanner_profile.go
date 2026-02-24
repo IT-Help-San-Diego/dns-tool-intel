@@ -127,18 +127,7 @@ func GenerateSuggestedConfig(stats RollingStats, current ScannerProfile) Suggest
         prioritySugs := suggestRecordPriority(stats, current)
         suggestions = append(suggestions, prioritySugs...)
 
-        if len(resolverSugs) > 0 {
-                suggested.ResolverSet = current.ResolverSet
-        }
-        applyRetryCount(&suggested, retrySugs, stats.AvgResolverAgreement)
-        if len(timeoutSugs) > 0 {
-                if stats.AvgScanDuration > 30000 {
-                        suggested.TimeoutSeconds = 8
-                }
-        }
-        if len(prioritySugs) > 0 {
-                suggested.RecordTypePriority = buildPriorityOrder(stats)
-        }
+        applySuggestedProfile(&suggested, current, stats, resolverSugs, retrySugs, timeoutSugs, prioritySugs)
 
         confidence := "medium"
         if stats.ScanCount >= 10 {
@@ -150,6 +139,19 @@ func GenerateSuggestedConfig(stats RollingStats, current ScannerProfile) Suggest
                 Suggestions: suggestions,
                 BasedOn:     stats.ScanCount,
                 Confidence:  confidence,
+        }
+}
+
+func applySuggestedProfile(suggested *ScannerProfile, current ScannerProfile, stats RollingStats, resolverSugs, retrySugs, timeoutSugs, prioritySugs []ProfileSuggestion) {
+        if len(resolverSugs) > 0 {
+                suggested.ResolverSet = current.ResolverSet
+        }
+        applyRetryCount(suggested, retrySugs, stats.AvgResolverAgreement)
+        if len(timeoutSugs) > 0 && stats.AvgScanDuration > 30000 {
+                suggested.TimeoutSeconds = 8
+        }
+        if len(prioritySugs) > 0 {
+                suggested.RecordTypePriority = buildPriorityOrder(stats)
         }
 }
 

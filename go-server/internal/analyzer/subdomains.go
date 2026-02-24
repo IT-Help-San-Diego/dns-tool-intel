@@ -709,46 +709,52 @@ func parseCertDate(s string) time.Time {
 func processCTEntries(ctEntries []ctEntry, domain string, subdomainSet map[string]map[string]any) {
         now := time.Now()
         for _, entry := range ctEntries {
-                names := strings.Split(entry.NameValue, "\n")
-                for _, name := range names {
-                        name = normalizeCTName(name, domain)
-                        if name == "" {
-                                continue
-                        }
+                processSingleCTEntry(entry, domain, now, subdomainSet)
+        }
+}
 
-                        isCurrent := parseCertDate(entry.NotAfter).After(now)
-
-                        issuer := simplifyIssuer(entry.IssuerName)
-
-                        if existing, exists := subdomainSet[name]; exists {
-                                existing["cert_count"] = fmt.Sprintf("%d", atoi(existing["cert_count"].(string))+1)
-                                if isCurrent {
-                                        existing["is_current"] = true
-                                }
-                                if issuers, ok := existing["issuers"].([]string); ok {
-                                        found := false
-                                        for _, iss := range issuers {
-                                                if iss == issuer {
-                                                        found = true
-                                                        break
-                                                }
-                                        }
-                                        if !found && len(issuers) < 5 {
-                                                existing["issuers"] = append(issuers, issuer)
-                                        }
-                                }
-                        } else {
-                                subdomainSet[name] = map[string]any{
-                                        "name":       name,
-                                        "source":     "ct",
-                                        "is_current": isCurrent,
-                                        "cert_count": "1",
-                                        "first_seen": entry.NotBefore,
-                                        "issuers":    []string{issuer},
-                                }
+func processSingleCTEntry(entry ctEntry, domain string, now time.Time, subdomainSet map[string]map[string]any) {
+        isCurrent := parseCertDate(entry.NotAfter).After(now)
+        issuer := simplifyIssuer(entry.IssuerName)
+        for _, name := range strings.Split(entry.NameValue, "\n") {
+                name = normalizeCTName(name, domain)
+                if name == "" {
+                        continue
+                }
+                if existing, exists := subdomainSet[name]; exists {
+                        mergeCTSubdomain(existing, isCurrent, issuer)
+                } else {
+                        subdomainSet[name] = map[string]any{
+                                "name":       name,
+                                "source":     "ct",
+                                "is_current": isCurrent,
+                                "cert_count": "1",
+                                "first_seen": entry.NotBefore,
+                                "issuers":    []string{issuer},
                         }
                 }
         }
+}
+
+func mergeCTSubdomain(existing map[string]any, isCurrent bool, issuer string) {
+        existing["cert_count"] = fmt.Sprintf("%d", atoi(existing["cert_count"].(string))+1)
+        if isCurrent {
+                existing["is_current"] = true
+        }
+        if issuers, ok := existing["issuers"].([]string); ok {
+                if !containsString(issuers, issuer) && len(issuers) < 5 {
+                        existing["issuers"] = append(issuers, issuer)
+                }
+        }
+}
+
+func containsString(ss []string, target string) bool {
+        for _, s := range ss {
+                if s == target {
+                        return true
+                }
+        }
+        return false
 }
 
 func enrichDNSWithCTData(ctEntries []ctEntry, domain string, subdomainSet map[string]map[string]any) {

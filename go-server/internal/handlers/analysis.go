@@ -142,48 +142,16 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         waitSeconds, _ := strconv.Atoi(c.Query("wait_seconds"))
         waitReason := c.Query("wait_reason")
 
-        timestamp := formatTimestamp(analysis.CreatedAt)
-        if analysis.UpdatedAt.Valid {
-                timestamp = formatTimestamp(analysis.UpdatedAt)
-        }
-
-        dur := 0.0
-        if analysis.AnalysisDuration != nil {
-                dur = *analysis.AnalysisDuration
-        }
-
+        timestamp := analysisTimestamp(analysis)
+        dur := analysisDuration(analysis)
         toolVersion := extractToolVersion(results)
         verifyCommands := analyzer.GenerateVerificationCommands(analysis.AsciiDomain, results)
-
-        hashVersion := toolVersion
-        if hashVersion == "" {
-                hashVersion = h.Config.AppVersion
-        }
-        integrityHash := analyzer.ReportIntegrityHash(analysis.AsciiDomain, analysis.ID, timestamp, hashVersion, results)
+        integrityHash := computeIntegrityHash(analysis, timestamp, toolVersion, h.Config.AppVersion, results)
         rfcCount := analyzer.CountVerifiedRFCs(results)
-
-        currentHash := ""
-        if analysis.PostureHash != nil {
-                currentHash = *analysis.PostureHash
-        }
-        drift := driftInfo{}
-        if currentHash != "" {
-                prevRow, prevErr := h.DB.Queries.GetPreviousAnalysisForDriftBefore(ctx, dbq.GetPreviousAnalysisForDriftBeforeParams{
-                        Domain: analysis.Domain,
-                        ID:     analysis.ID,
-                })
-                if prevErr == nil {
-                        drift = computeDriftFromPrev(currentHash, prevRow.PostureHash, prevRow.ID, prevRow.CreatedAt.Valid, prevRow.CreatedAt.Time, prevRow.FullResults, results)
-                }
-        }
-
+        currentHash := derefString(analysis.PostureHash)
+        drift := h.detectHistoricalDrift(ctx, currentHash, analysis.Domain, analysis.ID, results)
         isSub, rootDom := extractRootDomain(analysis.AsciiDomain)
-
-        var emailScope *subdomainEmailScope
-        if isSub && rootDom != "" {
-                es := computeSubdomainEmailScope(ctx, h.Analyzer.DNS, analysis.AsciiDomain, rootDom, results)
-                emailScope = &es
-        }
+        emailScope := h.resolveEmailScope(ctx, isSub, rootDom, analysis.AsciiDomain, results)
 
         viewData := gin.H{
                 "AppVersion":           h.Config.AppVersion,
@@ -306,7 +274,16 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 devNull:           devNull,
         })
 
-        h.handlePostAnalysisSideEffects(ctx, c, asciiDomain, analysisID, isAuthenticated, userID, ephemeral, domainExists, drift, postureHash)
+        h.handlePostAnalysisSideEffects(ctx, c, sideEffectsParams{
+                asciiDomain:     asciiDomain,
+                analysisID:      analysisID,
+                isAuthenticated: isAuthenticated,
+                userID:          userID,
+                ephemeral:       ephemeral,
+                domainExists:    domainExists,
+                drift:           drift,
+                postureHash:     postureHash,
+        })
 
         if !ephemeral && domainExists {
                 if cr, ok := results["currency_report"]; ok {
@@ -316,7 +293,20 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 }
         }
 
-        analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, domain, asciiDomain, results, analysisID, analysisDuration, timestamp, postureHash, drift, exposureChecks, ephemeral, devNull, isPrivate)
+        analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, viewDataInput{
+                domain:           domain,
+                asciiDomain:      asciiDomain,
+                results:          results,
+                analysisID:       analysisID,
+                analysisDuration: analysisDuration,
+                timestamp:        timestamp,
+                postureHash:      postureHash,
+                drift:            drift,
+                exposureChecks:   exposureChecks,
+                ephemeral:        ephemeral,
+                devNull:          devNull,
+                isPrivate:        isPrivate,
+        })
 
         if devNull {
                 c.Header("X-Hacker", "MUST means MUST -- not kinda, maybe, should. // DNS Tool")
@@ -348,6 +338,58 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
                         data["SuggestedConfig"] = sugConfig
                 }
         }
+}
+
+func analysisTimestamp(analysis dbq.DomainAnalysis) string {
+        ts := formatTimestamp(analysis.CreatedAt)
+        if analysis.UpdatedAt.Valid {
+                ts = formatTimestamp(analysis.UpdatedAt)
+        }
+        return ts
+}
+
+func analysisDuration(analysis dbq.DomainAnalysis) float64 {
+        if analysis.AnalysisDuration != nil {
+                return *analysis.AnalysisDuration
+        }
+        return 0.0
+}
+
+func computeIntegrityHash(analysis dbq.DomainAnalysis, timestamp, toolVersion, appVersion string, results map[string]any) string {
+        hashVersion := toolVersion
+        if hashVersion == "" {
+                hashVersion = appVersion
+        }
+        return analyzer.ReportIntegrityHash(analysis.AsciiDomain, analysis.ID, timestamp, hashVersion, results)
+}
+
+func derefString(p *string) string {
+        if p != nil {
+                return *p
+        }
+        return ""
+}
+
+func (h *AnalysisHandler) detectHistoricalDrift(ctx context.Context, currentHash, domain string, analysisID int32, results map[string]any) driftInfo {
+        if currentHash == "" {
+                return driftInfo{}
+        }
+        prevRow, prevErr := h.DB.Queries.GetPreviousAnalysisForDriftBefore(ctx, dbq.GetPreviousAnalysisForDriftBeforeParams{
+                Domain: domain,
+                ID:     analysisID,
+        })
+        if prevErr != nil {
+                return driftInfo{}
+        }
+        return computeDriftFromPrev(currentHash, prevRow.PostureHash, prevRow.ID, prevRow.CreatedAt.Valid, prevRow.CreatedAt.Time, prevRow.FullResults, results)
+}
+
+func (h *AnalysisHandler) resolveEmailScope(ctx context.Context, isSub bool, rootDom, asciiDomain string, results map[string]any) *subdomainEmailScope {
+        if !isSub || rootDom == "" {
+                return nil
+        }
+        es := computeSubdomainEmailScope(ctx, h.Analyzer.DNS, asciiDomain, rootDom, results)
+        return &es
 }
 
 func extractAuthInfo(c *gin.Context) (bool, int32) {
@@ -407,65 +449,84 @@ func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {
         }
 }
 
-func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, asciiDomain string, analysisID int32, isAuthenticated bool, userID int32, ephemeral, domainExists bool, drift driftInfo, postureHash string) {
-        if analysisID > 0 && isAuthenticated && userID > 0 {
+type sideEffectsParams struct {
+        asciiDomain     string
+        analysisID      int32
+        isAuthenticated bool
+        userID          int32
+        ephemeral       bool
+        domainExists    bool
+        drift           driftInfo
+        postureHash     string
+}
+
+func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, p sideEffectsParams) {
+        if p.analysisID > 0 && p.isAuthenticated && p.userID > 0 {
                 go func() {
                         err := h.DB.Queries.InsertUserAnalysis(context.Background(), dbq.InsertUserAnalysisParams{
-                                UserID:     userID,
-                                AnalysisID: analysisID,
+                                UserID:     p.userID,
+                                AnalysisID: p.analysisID,
                         })
                         if err != nil {
-                                slog.Error("Failed to record user analysis association", "user_id", userID, "analysis_id", analysisID, "error", err)
+                                slog.Error("Failed to record user analysis association", "user_id", p.userID, "analysis_id", p.analysisID, "error", err)
                         }
                 }()
         }
 
-        if analysisID > 0 && drift.Detected {
-                go h.persistDriftEvent(asciiDomain, analysisID, drift, postureHash)
+        if p.analysisID > 0 && p.drift.Detected {
+                go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
         }
 
-        if !ephemeral && domainExists {
+        if !p.ephemeral && p.domainExists {
                 icae.EvaluateAndRecord(context.Background(), h.DB.Queries, h.Config.AppVersion)
         }
 
-        if !ephemeral && domainExists {
+        if !p.ephemeral && p.domainExists {
                 if ac, exists := c.Get("analytics_collector"); exists {
                         if collector, ok := ac.(interface{ RecordAnalysis(string) }); ok {
-                                collector.RecordAnalysis(asciiDomain)
+                                collector.RecordAnalysis(p.asciiDomain)
                         }
                 }
         }
 }
 
-func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken any, domain, asciiDomain string, results map[string]any, analysisID int32, analysisDuration float64, timestamp, postureHash string, drift driftInfo, exposureChecks, ephemeral, devNull, isPrivate bool) gin.H {
+type viewDataInput struct {
+        domain, asciiDomain string
+        results             map[string]any
+        analysisID          int32
+        analysisDuration    float64
+        timestamp           string
+        postureHash         string
+        drift               driftInfo
+        exposureChecks      bool
+        ephemeral           bool
+        devNull             bool
+        isPrivate           bool
+}
+
+func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken any, v viewDataInput) gin.H {
         ctx := c.Request.Context()
-        verifyCommands := analyzer.GenerateVerificationCommands(asciiDomain, results)
-        integrityHash := analyzer.ReportIntegrityHash(asciiDomain, analysisID, timestamp, h.Config.AppVersion, results)
-        rfcCount := analyzer.CountVerifiedRFCs(results)
+        verifyCommands := analyzer.GenerateVerificationCommands(v.asciiDomain, v.results)
+        integrityHash := analyzer.ReportIntegrityHash(v.asciiDomain, v.analysisID, v.timestamp, h.Config.AppVersion, v.results)
+        rfcCount := analyzer.CountVerifiedRFCs(v.results)
 
-        isSub, rootDom := extractRootDomain(asciiDomain)
-        isPublicSuffix := isPublicSuffixDomain(asciiDomain)
-
-        var emailScope *subdomainEmailScope
-        if isSub && rootDom != "" {
-                es := computeSubdomainEmailScope(ctx, h.Analyzer.DNS, asciiDomain, rootDom, results)
-                emailScope = &es
-        }
+        isSub, rootDom := extractRootDomain(v.asciiDomain)
+        emailScope := h.resolveEmailScope(ctx, isSub, rootDom, v.asciiDomain, v.results)
 
         analyzeData := gin.H{
                 "AppVersion":           h.Config.AppVersion,
                 "CspNonce":             nonce,
                 "CsrfToken":            csrfToken,
                 "ActivePage":           "",
-                "Domain":               domain,
-                "AsciiDomain":          asciiDomain,
-                "Results":              results,
-                "AnalysisID":           analysisID,
-                "AnalysisDuration":     analysisDuration,
-                "AnalysisTimestamp":    timestamp,
+                "Domain":               v.domain,
+                "AsciiDomain":          v.asciiDomain,
+                "Results":              v.results,
+                "AnalysisID":           v.analysisID,
+                "AnalysisDuration":     v.analysisDuration,
+                "AnalysisTimestamp":     v.timestamp,
                 "FromHistory":          false,
                 "FromCache":            false,
-                "DomainExists":         resultsDomainExists(results),
+                "DomainExists":         resultsDomainExists(v.results),
                 "ToolVersion":          h.Config.AppVersion,
                 "VerificationCommands": verifyCommands,
                 "IsSubdomain":          isSub,
@@ -473,27 +534,27 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
                 "SecurityTrailsKey":    "",
                 "IntegrityHash":        integrityHash,
                 "RFCCount":             rfcCount,
-                "ExposureChecks":       exposureChecks,
+                "ExposureChecks":       v.exposureChecks,
                 "MaintenanceNote":      h.Config.MaintenanceNote,
                 "BetaPages":            h.Config.BetaPages,
                 "SectionTuning":        h.Config.SectionTuning,
-                "PostureHash":          postureHash,
-                "DriftDetected":        drift.Detected,
-                "DriftPrevHash":        drift.PrevHash,
-                "DriftPrevTime":        drift.PrevTime,
-                "DriftPrevID":          drift.PrevID,
-                "DriftFields":          drift.Fields,
-                "Ephemeral":            ephemeral,
-                "DevNull":              devNull,
-                "IsPrivateReport":      isPrivate,
-                "IsPublicSuffix":       isPublicSuffix,
-                "IsTLD":                dnsclient.IsTLDInput(asciiDomain),
+                "PostureHash":          v.postureHash,
+                "DriftDetected":        v.drift.Detected,
+                "DriftPrevHash":        v.drift.PrevHash,
+                "DriftPrevTime":        v.drift.PrevTime,
+                "DriftPrevID":          v.drift.PrevID,
+                "DriftFields":          v.drift.Fields,
+                "Ephemeral":            v.ephemeral,
+                "DevNull":              v.devNull,
+                "IsPrivateReport":      v.isPrivate,
+                "IsPublicSuffix":       isPublicSuffixDomain(v.asciiDomain),
+                "IsTLD":                dnsclient.IsTLDInput(v.asciiDomain),
                 "SubdomainEmailScope":  emailScope,
         }
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 analyzeData["ICAEMetrics"] = icaeMetrics
         }
-        if cr, ok := results["currency_report"]; ok {
+        if cr, ok := v.results["currency_report"]; ok {
                 if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
                         analyzeData["CurrencyReport"] = report
                 }

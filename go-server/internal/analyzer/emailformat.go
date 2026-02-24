@@ -73,48 +73,48 @@ func handleBinaryFile(filename string) *DetectedFormat {
 func tryExtractFromJSON(raw string) *DetectedFormat {
         raw = strings.TrimSpace(raw)
 
-        var obj map[string]interface{}
-        if err := json.Unmarshal([]byte(raw), &obj); err != nil {
-                var arr []interface{}
-                if err2 := json.Unmarshal([]byte(raw), &arr); err2 != nil {
-                        return &DetectedFormat{
-                                Format:  "raw",
-                                Headers: raw,
-                        }
-                }
-                if len(arr) > 0 {
-                        if first, ok := arr[0].(map[string]interface{}); ok {
-                                obj = first
-                        }
-                }
-        }
-
+        obj := unmarshalJSONObject(raw)
         if obj == nil {
-                return &DetectedFormat{
-                        Format:  "raw",
-                        Headers: raw,
+                return &DetectedFormat{Format: "raw", Headers: raw}
+        }
+
+        return matchJSONProvider(obj)
+}
+
+func unmarshalJSONObject(raw string) map[string]interface{} {
+        var obj map[string]interface{}
+        if err := json.Unmarshal([]byte(raw), &obj); err == nil {
+                return obj
+        }
+        var arr []interface{}
+        if err := json.Unmarshal([]byte(raw), &arr); err != nil {
+                return nil
+        }
+        if len(arr) > 0 {
+                if first, ok := arr[0].(map[string]interface{}); ok {
+                        return first
                 }
         }
+        return nil
+}
 
-        if headers := extractMicrosoftGraphHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-microsoft-graph", Headers: headers}
+func matchJSONProvider(obj map[string]interface{}) *DetectedFormat {
+        providers := []struct {
+                name string
+                fn   func(map[string]interface{}) string
+        }{
+                {"json-microsoft-graph", extractMicrosoftGraphHeaders},
+                {"json-gmail-api", extractGmailAPIHeaders},
+                {"json-postmark", extractPostmarkHeaders},
+                {"json-sendgrid", extractSendGridHeaders},
+                {"json-mailgun", extractMailgunHeaders},
+                {"json-generic", extractGenericJSONHeaders},
         }
-        if headers := extractGmailAPIHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-gmail-api", Headers: headers}
+        for _, p := range providers {
+                if headers := p.fn(obj); headers != "" {
+                        return &DetectedFormat{Format: p.name, Headers: headers}
+                }
         }
-        if headers := extractPostmarkHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-postmark", Headers: headers}
-        }
-        if headers := extractSendGridHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-sendgrid", Headers: headers}
-        }
-        if headers := extractMailgunHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-mailgun", Headers: headers}
-        }
-        if headers := extractGenericJSONHeaders(obj); headers != "" {
-                return &DetectedFormat{Format: "json-generic", Headers: headers}
-        }
-
         return &DetectedFormat{
                 Format: "json",
                 Error:  "We found valid JSON but couldn't locate email headers in it. Supported formats: Gmail API, Microsoft Graph API, Postmark, SendGrid, Mailgun, or any JSON with a \"headers\" key containing RFC 5322 header fields.",

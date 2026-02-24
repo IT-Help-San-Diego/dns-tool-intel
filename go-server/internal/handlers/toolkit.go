@@ -93,78 +93,73 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
         }
 
         if targetHost == "" {
-                data["ProbeError"] = "Please enter a target host (IP address or hostname)."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
+                h.renderToolkitWithError(c, data, "Please enter a target host (IP address or hostname).")
                 return
         }
 
         portNum, err := strconv.Atoi(targetPort)
         if err != nil || portNum < 1 || portNum > 65535 {
-                data["ProbeError"] = "Please enter a valid port number between 1 and 65535."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
+                h.renderToolkitWithError(c, data, "Please enter a valid port number between 1 and 65535.")
                 return
         }
 
         probe, ok := h.resolveProbeConfig(selectedProbeID)
         if !ok {
-                data["ProbeError"] = "Port check service is not configured."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
+                h.renderToolkitWithError(c, data, "Port check service is not configured.")
                 return
         }
 
         data["ProbeLabel"] = probe.label
 
-        probeURL := probe.url + "/api/v2/tcp-check?host=" + url.QueryEscape(targetHost) + "&port=" + targetPort
-
-        client := &http.Client{Timeout: 15 * time.Second}
-        req, err := http.NewRequest("GET", probeURL, nil)
-        if err != nil {
-                data["ProbeError"] = "Failed to create request to probe service."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
-                return
-        }
-
-        req.Header.Set("X-Probe-Key", probe.key)
-
-        resp, err := client.Do(req)
-        if err != nil {
-                data["ProbeError"] = "Could not connect to the probe service. It may be temporarily unavailable."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
-                return
-        }
-        defer resp.Body.Close()
-
-        body, err := io.ReadAll(resp.Body)
-        if err != nil {
-                data["ProbeError"] = "Failed to read response from probe service."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
-                return
-        }
-
-        if resp.StatusCode != 200 {
-                data["ProbeError"] = fmt.Sprintf("Probe service returned an error (status %d).", resp.StatusCode)
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
-                return
-        }
-
-        var probeResult map[string]any
-        if err := json.Unmarshal(body, &probeResult); err != nil {
-                data["ProbeError"] = "Failed to parse response from probe service."
-                mergeAuthData(c, h.Config, data)
-                c.HTML(http.StatusOK, tplToolkit, data)
+        probeResult, probeErr := h.executeProbeRequest(probe, targetHost, targetPort)
+        if probeErr != "" {
+                h.renderToolkitWithError(c, data, probeErr)
                 return
         }
 
         data["ProbeResult"] = probeResult
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplToolkit, data)
+}
+
+func (h *ToolkitHandler) renderToolkitWithError(c *gin.Context, data gin.H, msg string) {
+        data["ProbeError"] = msg
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, tplToolkit, data)
+}
+
+func (h *ToolkitHandler) executeProbeRequest(probe probeConfig, targetHost, targetPort string) (map[string]any, string) {
+        probeURL := probe.url + "/api/v2/tcp-check?host=" + url.QueryEscape(targetHost) + "&port=" + targetPort
+
+        client := &http.Client{Timeout: 15 * time.Second}
+        req, err := http.NewRequest("GET", probeURL, nil)
+        if err != nil {
+                return nil, "Failed to create request to probe service."
+        }
+
+        req.Header.Set("X-Probe-Key", probe.key)
+
+        resp, err := client.Do(req)
+        if err != nil {
+                return nil, "Could not connect to the probe service. It may be temporarily unavailable."
+        }
+        defer resp.Body.Close()
+
+        body, err := io.ReadAll(resp.Body)
+        if err != nil {
+                return nil, "Failed to read response from probe service."
+        }
+
+        if resp.StatusCode != 200 {
+                return nil, fmt.Sprintf("Probe service returned an error (status %d).", resp.StatusCode)
+        }
+
+        var probeResult map[string]any
+        if err := json.Unmarshal(body, &probeResult); err != nil {
+                return nil, "Failed to parse response from probe service."
+        }
+
+        return probeResult, ""
 }
 
 type probeConfig struct {

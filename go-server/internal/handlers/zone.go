@@ -6,6 +6,7 @@ import (
         "context"
         "encoding/json"
         "log/slog"
+        "mime/multipart"
         "net/http"
         "strings"
 
@@ -93,31 +94,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         driftReport, liveAnalysisID := h.compareZoneDrift(ctx, domain, parseResult)
 
         if retain && userID > 0 {
-                var driftJSON []byte
-                if driftReport != nil {
-                        driftJSON, err = json.Marshal(driftReport)
-                        if err != nil {
-                                slog.Warn("Zone: marshal drift report", "error", err)
-                        }
-                }
-                var zoneDataPtr *string
-                zoneStr := string(rawData)
-                zoneDataPtr = &zoneStr
-
-                _, dbErr := h.DB.Queries.InsertZoneImport(ctx, dbq.InsertZoneImportParams{
-                        UserID:           userID,
-                        Domain:           domain,
-                        Sha256Hash:       parseResult.IntegrityHash,
-                        OriginalFilename: header.Filename,
-                        FileSize:         int32(header.Size),
-                        RecordCount:      int32(parseResult.RecordCount),
-                        Retained:         true,
-                        ZoneData:         zoneDataPtr,
-                        DriftSummary:     driftJSON,
-                })
-                if dbErr != nil {
-                        slog.Error("Failed to store zone import", "error", dbErr, "domain", domain, "user_id", userID)
-                }
+                h.persistZoneImport(ctx, userID, domain, parseResult, header, rawData, driftReport)
         }
 
         data := gin.H{
@@ -138,6 +115,32 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplZone, data)
+}
+
+func (h *ZoneHandler) persistZoneImport(ctx context.Context, userID int32, domain string, parseResult *zoneparse.ParseResult, header *multipart.FileHeader, rawData []byte, driftReport *zoneparse.DriftReport) {
+        var driftJSON []byte
+        if driftReport != nil {
+                var err error
+                driftJSON, err = json.Marshal(driftReport)
+                if err != nil {
+                        slog.Warn("Zone: marshal drift report", "error", err)
+                }
+        }
+        zoneStr := string(rawData)
+        _, dbErr := h.DB.Queries.InsertZoneImport(ctx, dbq.InsertZoneImportParams{
+                UserID:           userID,
+                Domain:           domain,
+                Sha256Hash:       parseResult.IntegrityHash,
+                OriginalFilename: header.Filename,
+                FileSize:         int32(header.Size),
+                RecordCount:      int32(parseResult.RecordCount),
+                Retained:         true,
+                ZoneData:         &zoneStr,
+                DriftSummary:     driftJSON,
+        })
+        if dbErr != nil {
+                slog.Error("Failed to store zone import", "error", dbErr, "domain", domain, "user_id", userID)
+        }
 }
 
 func (h *ZoneHandler) compareZoneDrift(ctx context.Context, domain string, parseResult *zoneparse.ParseResult) (*zoneparse.DriftReport, int32) {

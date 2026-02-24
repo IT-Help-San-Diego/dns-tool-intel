@@ -159,37 +159,44 @@ func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
         m.StabilityGrade, m.StabilityLabel = computeStability(float64(stats.StddevScore))
 
         m.GradeDist = loadGradeDistribution(ctx, queries)
-
-        dimAvgs, err := queries.ICuAEGetDimensionAverages(ctx)
-        if err == nil {
-                for _, d := range dimAvgs {
-                        avgGrade := scoreToGrade(float64(d.AvgScore))
-                        hint, icon := dimensionTuningHint(d.Dimension, float64(d.AvgScore))
-                        m.DimensionStats = append(m.DimensionStats, DimensionStat{
-                                Dimension:   d.Dimension,
-                                Display:     DimensionDisplayNames[d.Dimension],
-                                Standard:    DimensionStandards[d.Dimension],
-                                AvgScore:    float64(d.AvgScore),
-                                AvgDisplay:  fmt.Sprintf("%.1f", d.AvgScore),
-                                Stddev:      float64(d.StddevScore),
-                                Grade:       avgGrade,
-                                BootClass:   GradeBootstrapClass[avgGrade],
-                                SampleCount: int(d.SampleCount),
-                                TuningHint:  hint,
-                                TuningIcon:  icon,
-                        })
-                }
-        }
-
-        trend, err := queries.ICuAEGetRecentTrend(ctx, 20)
-        if err == nil && len(trend) >= 2 {
-                m.TrendDirection, m.TrendArrow = computeTrend(trend)
-        } else {
-                m.TrendDirection = "insufficient"
-                m.TrendArrow = "fas fa-minus"
-        }
+        m.DimensionStats = loadDimensionStats(ctx, queries)
+        m.TrendDirection, m.TrendArrow = loadTrendData(ctx, queries)
 
         return m
+}
+
+func loadDimensionStats(ctx context.Context, queries DBTX) []DimensionStat {
+        dimAvgs, err := queries.ICuAEGetDimensionAverages(ctx)
+        if err != nil {
+                return nil
+        }
+        stats := make([]DimensionStat, 0, len(dimAvgs))
+        for _, d := range dimAvgs {
+                avgGrade := scoreToGrade(float64(d.AvgScore))
+                hint, icon := dimensionTuningHint(d.Dimension, float64(d.AvgScore))
+                stats = append(stats, DimensionStat{
+                        Dimension:   d.Dimension,
+                        Display:     DimensionDisplayNames[d.Dimension],
+                        Standard:    DimensionStandards[d.Dimension],
+                        AvgScore:    float64(d.AvgScore),
+                        AvgDisplay:  fmt.Sprintf("%.1f", d.AvgScore),
+                        Stddev:      float64(d.StddevScore),
+                        Grade:       avgGrade,
+                        BootClass:   GradeBootstrapClass[avgGrade],
+                        SampleCount: int(d.SampleCount),
+                        TuningHint:  hint,
+                        TuningIcon:  icon,
+                })
+        }
+        return stats
+}
+
+func loadTrendData(ctx context.Context, queries DBTX) (string, string) {
+        trend, err := queries.ICuAEGetRecentTrend(ctx, 20)
+        if err == nil && len(trend) >= 2 {
+                return computeTrend(trend)
+        }
+        return "insufficient", "fas fa-minus"
 }
 
 func loadGradeDistribution(ctx context.Context, queries DBTX) []GradeDistItem {
