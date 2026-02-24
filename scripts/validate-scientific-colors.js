@@ -46,6 +46,10 @@ const DT_QUESTION_TOKENS = [
   'dt-question-size-protocol',
   'dt-question-weight',
   'dt-question-spacing',
+  'dt-question-border',
+  'dt-question-border-covert',
+  'dt-question-bg',
+  'dt-question-bg-covert',
 ];
 
 class ScientificColorValidator {

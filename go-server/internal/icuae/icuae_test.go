@@ -3,6 +3,7 @@
 package icuae
 
 import (
+        "encoding/json"
         "testing"
 )
 
@@ -410,5 +411,63 @@ func TestEvaluateTTLRelevance_UnknownRecordType(t *testing.T) {
         result := EvaluateTTLRelevance(ttls)
         if result.Grade != GradeAdequate {
                 t.Errorf("unknown type: expected %q, got %q", GradeAdequate, result.Grade)
+        }
+}
+
+func TestHydrateCurrencyReport_Struct(t *testing.T) {
+        original := CurrencyReport{
+                OverallGrade: GradeGood,
+                OverallScore: 78.5,
+                Guidance:     "test guidance",
+        }
+        cr, ok := HydrateCurrencyReport(original)
+        if !ok {
+                t.Fatal("expected hydration to succeed for struct input")
+        }
+        if cr.OverallScore != 78.5 {
+                t.Errorf("OverallScore = %v, want 78.5", cr.OverallScore)
+        }
+        if cr.OverallGrade != GradeGood {
+                t.Errorf("OverallGrade = %q, want %q", cr.OverallGrade, GradeGood)
+        }
+}
+
+func TestHydrateCurrencyReport_Map(t *testing.T) {
+        original := CurrencyReport{
+                OverallGrade:  GradeExcellent,
+                OverallScore:  92.3,
+                ResolverCount: 4,
+                RecordCount:   7,
+                Guidance:      "All dimensions excellent",
+                Dimensions: []DimensionScore{
+                        {Dimension: DimensionCurrentness, Grade: GradeExcellent, Score: 100},
+                },
+        }
+        b, _ := json.Marshal(original)
+        var m map[string]interface{}
+        json.Unmarshal(b, &m)
+
+        cr, ok := HydrateCurrencyReport(m)
+        if !ok {
+                t.Fatal("expected hydration to succeed for map input")
+        }
+        if cr.OverallScore != 92.3 {
+                t.Errorf("OverallScore = %v, want 92.3", cr.OverallScore)
+        }
+        if cr.OverallGrade != GradeExcellent {
+                t.Errorf("OverallGrade = %q, want %q", cr.OverallGrade, GradeExcellent)
+        }
+        if len(cr.Dimensions) != 1 {
+                t.Fatalf("Dimensions len = %d, want 1", len(cr.Dimensions))
+        }
+        if cr.BootstrapClass() != "success" {
+                t.Errorf("BootstrapClass() = %q, want 'success'", cr.BootstrapClass())
+        }
+}
+
+func TestHydrateCurrencyReport_Nil(t *testing.T) {
+        _, ok := HydrateCurrencyReport(nil)
+        if ok {
+                t.Error("expected hydration to fail for nil input")
         }
 }

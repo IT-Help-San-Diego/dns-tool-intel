@@ -225,7 +225,9 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                 viewData["ICAEMetrics"] = icaeMetrics
         }
         if cr, ok := results["currency_report"]; ok {
-                viewData["CurrencyReport"] = cr
+                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                        viewData["CurrencyReport"] = report
+                }
         }
         viewData["CovertMode"] = mode == "C"
 
@@ -457,7 +459,9 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
                 analyzeData["ICAEMetrics"] = icaeMetrics
         }
         if cr, ok := results["currency_report"]; ok {
-                analyzeData["CurrencyReport"] = cr
+                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                        analyzeData["CurrencyReport"] = report
+                }
         }
         return analyzeData
 }

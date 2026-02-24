@@ -15,7 +15,10 @@
 //   - SPJ Code of Ethics: Multiple independent sources for verification
 package icuae
 
-import "fmt"
+import (
+        "encoding/json"
+        "fmt"
+)
 
 const (
         DimensionCurrentness      = "currentness"
@@ -122,6 +125,24 @@ func (d DimensionScore) DisplayName() string {
                 return n
         }
         return d.Dimension
+}
+
+func HydrateCurrencyReport(v interface{}) (CurrencyReport, bool) {
+        if v == nil {
+                return CurrencyReport{}, false
+        }
+        if cr, ok := v.(CurrencyReport); ok {
+                return cr, true
+        }
+        b, err := json.Marshal(v)
+        if err != nil {
+                return CurrencyReport{}, false
+        }
+        var cr CurrencyReport
+        if json.Unmarshal(b, &cr) != nil {
+                return CurrencyReport{}, false
+        }
+        return cr, true
 }
 
 type RecordCurrency struct {

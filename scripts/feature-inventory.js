@@ -226,6 +226,14 @@ check('.dt-question--protocol modifier', css.includes('.dt-question--protocol'),
   'Protocol-level modifier must exist');
 check('Covert .dt-question override', css.includes('body.covert-mode .dt-question'),
   'Single covert override for all question text');
+check('--dt-question-border token', css.includes('--dt-question-border:'),
+  'Protocol container border must be tokenized');
+check('--dt-question-bg token', css.includes('--dt-question-bg:'),
+  'Protocol container background must be tokenized');
+check('.protocol-question uses border token', css.includes('var(--dt-question-border)'),
+  'Protocol question container must reference border token');
+check('.protocol-question uses bg token', css.includes('var(--dt-question-bg)'),
+  'Protocol question container must reference bg token');
 check('.section-question uses composition', !css.match(/\.section-question\s*\{[^}]*font-weight/),
   '.section-question must not duplicate font-weight (composed via .dt-question)');
 check('.protocol-question-text uses composition', !css.match(/\.protocol-question-text\s*\{[^}]*font-weight/),
