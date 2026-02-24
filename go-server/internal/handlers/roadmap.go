@@ -62,12 +62,12 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Covert Recon Mode", Version: roadmapVersionV2620, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Web/DNS/Email Hosting Detection", Version: "v26.25.43", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Question Branding System (dt-question)", Version: "v26.25.70", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Approach & Methodology Page", Version: "v26.25.83", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass treatment, question branding, and token system across all report modes"},
                 {Title: "Public Roadmap Page", Type: roadmapTypeFeature, Priority: "Medium", Notes: "This page — kanban view of project progress"},
-                {Title: "Approach & Methodology Page", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Documentation of scientific rigor and quality gate philosophy"},
         }
 
         nextUp := []RoadmapItem{

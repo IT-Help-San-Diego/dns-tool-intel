@@ -273,6 +273,38 @@
                     </div>
 
                     <div class="approach-section">
+                        <h2><i class="fas fa-exclamation-triangle"></i>Four Reasons &ldquo;Record Present&rdquo; Isn&rsquo;t Enough</h2>
+                        <p class="mb-2">Most DNS tools stop at existence checks. Here&rsquo;s why that&rsquo;s dangerous:</p>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <div class="approach-example mb-0">
+                                    <div class="approach-example-title"><i class="fas fa-file-alt me-1"></i>Syntactically Valid, Semantically Dangerous</div>
+                                    <p><code>v=spf1 ip4:10.0.0.0/8 ~all</code> passes every simple checker &mdash; and authorizes 16.7 million IPs to send your email.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="approach-example mb-0">
+                                    <div class="approach-example-title"><i class="fas fa-landmark me-1"></i>The CISA Softfail Tension</div>
+                                    <p>CISA mandates <code>-all</code>. RFC 7208 permits <code>~all</code>. Most tools pick a side without telling you why. We surface the conflict with citations.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="approach-example mb-0">
+                                    <div class="approach-example-title"><i class="fas fa-wave-square me-1"></i>Snapshot vs. Stability</div>
+                                    <p>A record existed when you checked &mdash; but has it been stable? Fast-flux DNS rotates records every few minutes. Our drift engine proves it mathematically.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="approach-example mb-0">
+                                    <div class="approach-example-title"><i class="fas fa-clock me-1"></i>TTL Is a Decision, Not a Default</div>
+                                    <p>A 300s TTL on a stable zone means thousands of unnecessary queries per hour. We tell you the right TTL for your context, with RFC backing.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0"><a href="#where-simplicity-fails" class="text-info text-decoration-none"><i class="fas fa-arrow-down me-1"></i>Full examples with RFC citations below</a></p>
+                    </div>
+
+                    <div class="approach-section">
                         <h2><i class="fas fa-network-wired"></i>Why DNS?</h2>
                         <p>If you want to understand how the connected internet works &mdash; how email is secured, how domains are authenticated, how trust is established between systems &mdash; DNS is where you start. If you don't understand DNS, you don't have a chance to understand the internet. And if you don't understand the internet, you can't understand security. It's the foundation of both.</p>
                         <p>But DNS is not a static database. It's a distributed, eventually consistent, human-operated system. Records propagate across thousands of resolvers with different caching behaviors. Configurations are set by people &mdash; TLD engineers, hosting providers, federal agencies issuing directives &mdash; and every one of those humans can introduce errors that standard tools miss because they only take a single snapshot of a single moment from a single vantage point.</p>
@@ -285,9 +317,10 @@
                         <p>We understand the reaction. When 99% of DNS checkers are simple scripts wrapped in marketing, anything that goes deeper looks like it's trying too hard. That's the <strong>heuristic trap</strong> &mdash; pattern-matching against a low bar and treating the outlier as suspicious rather than serious.</p>
                         <p>But the criticism reveals the actual problem: <strong>most tools are under-engineered relative to what DNS security actually requires.</strong> Email security misconfiguration causes real, costly harm. A record can exist, pass a syntax check, and still be operationally dangerous. The problem was never too small for rigor. The industry just decided not to apply it.</p>
                         <p>Yes, you can use DNS Tool as a DNS checker &mdash; and it will give you accurate results. But we built it to go further: cited findings, epistemic provenance, and time-series verification for when a simple check isn't enough. It's a forensic audit engine for the protocol that underpins every email, every certificate, and every domain on the internet. If all you need today is a quick check, start there. The depth is here when you're ready for it.</p>
+                        <p>And yes, there are Easter eggs. Hacker poems in the console. An adversarial red theme built on scotopic vision science. RFC 1392 nods in the source. These aren't decoration &mdash; they're signals to a specific subculture of security professionals who recognize the difference between aesthetic choices and engineering choices. Underneath the aesthetic: EWMA control charts with 3&sigma; control limits, Bayesian confidence calibration with Beta-Bernoulli conjugate priors, SHA-3-512 tamper-evident audit trails, structured JSON export, PWA offline support, and a drift engine that mathematically proves whether a record is stable. The surface is a toolkit. The core is a high-assurance engine.</p>
                     </div>
 
-                    <div class="approach-section">
+                    <div class="approach-section" id="where-simplicity-fails">
                         <h2><i class="fas fa-exclamation-triangle"></i>Where Simplicity Fails</h2>
                         <p>Here are four real examples of why "does the record exist?" is a dangerous question to stop at:</p>
                         <div class="approach-example">
