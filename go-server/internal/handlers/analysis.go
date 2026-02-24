@@ -37,10 +37,19 @@ type AnalysisHandler struct {
         Config          *config.Config
         Analyzer        *analyzer.Analyzer
         DNSHistoryCache *analyzer.DNSHistoryCache
+        Calibration     *icae.CalibrationEngine
+        DimCharts       *icuae.DimensionCharts
 }
 
 func NewAnalysisHandler(database *db.Database, cfg *config.Config, a *analyzer.Analyzer, historyCache *analyzer.DNSHistoryCache) *AnalysisHandler {
-        return &AnalysisHandler{DB: database, Config: cfg, Analyzer: a, DNSHistoryCache: historyCache}
+        return &AnalysisHandler{
+                DB:              database,
+                Config:          cfg,
+                Analyzer:        a,
+                DNSHistoryCache: historyCache,
+                Calibration:     icae.NewCalibrationEngine(),
+                DimCharts:       icuae.NewDimensionCharts(),
+        }
 }
 
 func (h *AnalysisHandler) checkPrivateAccess(c *gin.Context, analysisID int32, private bool) bool {
@@ -237,6 +246,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         }
         results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, opts)
         analysisDuration := time.Since(startTime).Seconds()
+
+        h.applyConfidenceEngines(results)
 
         if success, ok := results["analysis_success"].(bool); ok && !success {
                 if errMsg, ok := results["error"].(string); ok {
@@ -1301,4 +1312,116 @@ func getJSONFromResults(results map[string]any, section, key string) json.RawMes
                 return nil
         }
         return b
+}
+
+var protocolResultKeys = map[string]string{
+        "SPF":     "spf_analysis",
+        "DKIM":    "dkim_analysis",
+        "DMARC":   "dmarc_analysis",
+        "DANE":    "dane_analysis",
+        "DNSSEC":  "dnssec_analysis",
+        "BIMI":    "bimi_analysis",
+        "MTA_STS": "mta_sts_analysis",
+        "TLS_RPT": "tlsrpt_analysis",
+        "CAA":     "caa_analysis",
+}
+
+var icuaeToDimChart = map[string]string{
+        icuae.DimensionSourceCredibility: "SourceCredibility",
+        icuae.DimensionCurrentness:       "TemporalValidity",
+        icuae.DimensionCompleteness:      "ChainCompleteness",
+        icuae.DimensionTTLCompliance:     "TTLCompliance",
+        icuae.DimensionTTLRelevance:      "ResolverConsensus",
+}
+
+func (h *AnalysisHandler) applyConfidenceEngines(results map[string]any) {
+        cr, ok := results["currency_report"].(icuae.CurrencyReport)
+        if !ok {
+                return
+        }
+
+        calibrated := h.computeCalibratedConfidence(results, cr)
+        results["calibrated_confidence"] = calibrated
+
+        ewmaSnapshot := h.recordDimensionCharts(cr)
+        results["ewma_drift"] = ewmaSnapshot
+
+        slog.Info("Confidence engines applied",
+                "protocols_calibrated", len(calibrated),
+                "ewma_dimensions", len(ewmaSnapshot),
+        )
+}
+
+func (h *AnalysisHandler) computeCalibratedConfidence(results map[string]any, cr icuae.CurrencyReport) map[string]float64 {
+        totalAgree, totalResolvers := aggregateResolverAgreement(results)
+
+        calibrated := make(map[string]float64, len(protocolResultKeys))
+        for protocol, resultKey := range protocolResultKeys {
+                rawConfidence := protocolRawConfidence(results, resultKey)
+                cc := h.Calibration.CalibratedConfidence(protocol, rawConfidence, totalAgree, totalResolvers)
+                calibrated[protocol] = cc
+        }
+        return calibrated
+}
+
+func protocolRawConfidence(results map[string]any, resultKey string) float64 {
+        section, ok := results[resultKey].(map[string]any)
+        if !ok {
+                return 0.0
+        }
+        status, _ := section["status"].(string)
+        switch status {
+        case "secure", "pass", "valid", "good":
+                return 1.0
+        case "warning", "info", "partial":
+                return 0.7
+        case "fail", "danger", "critical":
+                return 0.3
+        case "error", "n/a", "":
+                return 0.0
+        default:
+                return 0.5
+        }
+}
+
+func aggregateResolverAgreement(results map[string]any) (int, int) {
+        consensus, ok := results["resolver_consensus"].(map[string]any)
+        if !ok {
+                return 0, 0
+        }
+        perRecord, ok := consensus["per_record_consensus"].(map[string]any)
+        if !ok {
+                return 0, 0
+        }
+        totalAgree := 0
+        totalResolvers := 0
+        for _, data := range perRecord {
+                rd, ok := data.(map[string]any)
+                if !ok {
+                        continue
+                }
+                rc, _ := rd["resolver_count"].(int)
+                isConsensus, _ := rd["consensus"].(bool)
+                agreeCount := rc
+                if !isConsensus {
+                        agreeCount = rc - 1
+                        if agreeCount < 0 {
+                                agreeCount = 0
+                        }
+                }
+                totalAgree += agreeCount
+                totalResolvers += rc
+        }
+        return totalAgree, totalResolvers
+}
+
+func (h *AnalysisHandler) recordDimensionCharts(cr icuae.CurrencyReport) map[string]icuae.ChartSnapshot {
+        scores := make(map[string]float64, len(cr.Dimensions))
+        for _, dim := range cr.Dimensions {
+                if chartKey, ok := icuaeToDimChart[dim.Dimension]; ok {
+                        scores[chartKey] = dim.Score
+                }
+        }
+        h.DimCharts.RecordDimensionScores(scores)
+        return h.DimCharts.Summary()
 }
