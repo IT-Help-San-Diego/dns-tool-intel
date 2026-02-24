@@ -75,12 +75,67 @@ var GradeBootstrapClass = map[string]string{
 }
 
 type DimensionScore struct {
-        Dimension   string  `json:"dimension"`
-        Standard    string  `json:"standard"`
-        Grade       string  `json:"grade"`
-        Score       float64 `json:"score"`
-        Details     string  `json:"details"`
-        RecordTypes int     `json:"record_types_evaluated"`
+        Dimension   string       `json:"dimension"`
+        Standard    string       `json:"standard"`
+        Grade       string       `json:"grade"`
+        Score       float64      `json:"score"`
+        Details     string       `json:"details"`
+        RecordTypes int          `json:"record_types_evaluated"`
+        Findings    []TTLFinding `json:"findings,omitempty"`
+}
+
+type TTLFinding struct {
+        RecordType     string `json:"record_type"`
+        ObservedTTL    uint32 `json:"observed_ttl"`
+        TypicalTTL     uint32 `json:"typical_ttl"`
+        Ratio          float64 `json:"ratio"`
+        Severity       string `json:"severity"`
+        Standard       string `json:"standard"`
+        Recommendation string `json:"recommendation"`
+}
+
+func (f TTLFinding) SeverityClass() string {
+        switch f.Severity {
+        case "high":
+                return "danger"
+        case "medium":
+                return "warning"
+        default:
+                return "info"
+        }
+}
+
+func (f TTLFinding) ObservedDisplay() string {
+        return formatTTLDuration(f.ObservedTTL)
+}
+
+func (f TTLFinding) TypicalDisplay() string {
+        return formatTTLDuration(f.TypicalTTL)
+}
+
+func formatTTLDuration(ttl uint32) string {
+        if ttl >= 86400 && ttl%86400 == 0 {
+                d := ttl / 86400
+                if d == 1 {
+                        return "1 day (86400s)"
+                }
+                return fmt.Sprintf("%d days (%ds)", d, ttl)
+        }
+        if ttl >= 3600 && ttl%3600 == 0 {
+                h := ttl / 3600
+                if h == 1 {
+                        return "1 hour (3600s)"
+                }
+                return fmt.Sprintf("%d hours (%ds)", h, ttl)
+        }
+        if ttl >= 60 && ttl%60 == 0 {
+                m := ttl / 60
+                if m == 1 {
+                        return "1 minute (60s)"
+                }
+                return fmt.Sprintf("%d minutes (%ds)", m, ttl)
+        }
+        return fmt.Sprintf("%ds", ttl)
 }
 
 type CurrencyReport struct {
@@ -97,6 +152,23 @@ func (r CurrencyReport) BootstrapClass() string {
                 return c
         }
         return "secondary"
+}
+
+func (r CurrencyReport) HasFindings() bool {
+        for _, d := range r.Dimensions {
+                if len(d.Findings) > 0 {
+                        return true
+                }
+        }
+        return false
+}
+
+func (r CurrencyReport) AllFindings() []TTLFinding {
+        var all []TTLFinding
+        for _, d := range r.Dimensions {
+                all = append(all, d.Findings...)
+        }
+        return all
 }
 
 func (r CurrencyReport) OverallGradeDisplay() string {
@@ -416,6 +488,7 @@ func EvaluateTTLRelevance(resolverTTLs map[string]uint32) DimensionScore {
 
         totalScore := 0.0
         evaluated := 0
+        var findings []TTLFinding
         for rt, observedTTL := range resolverTTLs {
                 typical, ok := typicalTTLs[rt]
                 if !ok {
@@ -428,8 +501,10 @@ func EvaluateTTLRelevance(resolverTTLs map[string]uint32) DimensionScore {
                         totalScore += 100
                 case ratio >= 0.1 && ratio <= 5.0:
                         totalScore += 50
+                        findings = append(findings, buildTTLFinding(rt, observedTTL, typical, ratio, "medium"))
                 default:
                         totalScore += 0
+                        findings = append(findings, buildTTLFinding(rt, observedTTL, typical, ratio, "high"))
                 }
         }
 
@@ -452,6 +527,34 @@ func EvaluateTTLRelevance(resolverTTLs map[string]uint32) DimensionScore {
                 Score:       avg,
                 Details:     ttlRelevanceDetails(avg),
                 RecordTypes: evaluated,
+                Findings:    findings,
+        }
+}
+
+func buildTTLFinding(recordType string, observed, typical uint32, ratio float64, severity string) TTLFinding {
+        var direction string
+        if observed < typical {
+                direction = "below"
+        } else {
+                direction = "above"
+        }
+
+        recommendation := fmt.Sprintf(
+                "%s TTL is %s — observed %s, typical value is %s. "+
+                        "Consider setting to %d seconds per NIST SP 800-53 SI-18 relevance guidance.",
+                recordType, direction,
+                formatTTLDuration(observed), formatTTLDuration(typical),
+                typical,
+        )
+
+        return TTLFinding{
+                RecordType:     recordType,
+                ObservedTTL:    observed,
+                TypicalTTL:     typical,
+                Ratio:          ratio,
+                Severity:       severity,
+                Standard:       "NIST SP 800-53 SI-18",
+                Recommendation: recommendation,
         }
 }
 

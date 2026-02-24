@@ -414,6 +414,133 @@ func TestEvaluateTTLRelevance_UnknownRecordType(t *testing.T) {
         }
 }
 
+func TestEvaluateTTLRelevance_FindingsGenerated(t *testing.T) {
+        ttls := map[string]uint32{"MX": 300, "A": 300, "NS": 86400}
+        result := EvaluateTTLRelevance(ttls)
+        if len(result.Findings) == 0 {
+                t.Fatal("expected findings for MX=300 (typical 3600, ratio 0.083)")
+        }
+        found := false
+        for _, f := range result.Findings {
+                if f.RecordType == "MX" {
+                        found = true
+                        if f.ObservedTTL != 300 {
+                                t.Errorf("MX finding ObservedTTL = %d, want 300", f.ObservedTTL)
+                        }
+                        if f.TypicalTTL != 3600 {
+                                t.Errorf("MX finding TypicalTTL = %d, want 3600", f.TypicalTTL)
+                        }
+                        if f.Severity != "high" {
+                                t.Errorf("MX finding severity = %q, want 'high' (ratio < 0.1)", f.Severity)
+                        }
+                        if f.Standard != "NIST SP 800-53 SI-18" {
+                                t.Errorf("MX finding standard = %q, want 'NIST SP 800-53 SI-18'", f.Standard)
+                        }
+                        if f.Recommendation == "" {
+                                t.Error("MX finding recommendation is empty")
+                        }
+                }
+        }
+        if !found {
+                t.Error("expected MX finding but none found")
+        }
+}
+
+func TestEvaluateTTLRelevance_NoFindingsWhenCompliant(t *testing.T) {
+        ttls := map[string]uint32{"A": 300, "MX": 3600, "NS": 86400}
+        result := EvaluateTTLRelevance(ttls)
+        if len(result.Findings) != 0 {
+                t.Errorf("expected 0 findings for compliant TTLs, got %d", len(result.Findings))
+        }
+}
+
+func TestEvaluateTTLRelevance_MediumSeverity(t *testing.T) {
+        ttls := map[string]uint32{"MX": 900}
+        result := EvaluateTTLRelevance(ttls)
+        if len(result.Findings) != 1 {
+                t.Fatalf("expected 1 finding for MX=900 (ratio 0.25), got %d", len(result.Findings))
+        }
+        if result.Findings[0].Severity != "medium" {
+                t.Errorf("MX=900 severity = %q, want 'medium' (ratio 0.25 in 0.1-0.5 range)", result.Findings[0].Severity)
+        }
+}
+
+func TestBuildTTLFinding(t *testing.T) {
+        f := buildTTLFinding("MX", 300, 3600, 0.083, "high")
+        if f.RecordType != "MX" {
+                t.Errorf("RecordType = %q, want 'MX'", f.RecordType)
+        }
+        if f.SeverityClass() != "danger" {
+                t.Errorf("SeverityClass() = %q, want 'danger'", f.SeverityClass())
+        }
+        if f.ObservedDisplay() == "" {
+                t.Error("ObservedDisplay() is empty")
+        }
+        if f.TypicalDisplay() != "1 hour (3600s)" {
+                t.Errorf("TypicalDisplay() = %q, want '1 hour (3600s)'", f.TypicalDisplay())
+        }
+}
+
+func TestFormatTTLDuration(t *testing.T) {
+        tests := []struct {
+                ttl  uint32
+                want string
+        }{
+                {86400, "1 day (86400s)"},
+                {172800, "2 days (172800s)"},
+                {3600, "1 hour (3600s)"},
+                {7200, "2 hours (7200s)"},
+                {60, "1 minute (60s)"},
+                {300, "5 minutes (300s)"},
+                {45, "45s"},
+                {1, "1s"},
+        }
+        for _, tt := range tests {
+                got := formatTTLDuration(tt.ttl)
+                if got != tt.want {
+                        t.Errorf("formatTTLDuration(%d) = %q, want %q", tt.ttl, got, tt.want)
+                }
+        }
+}
+
+func TestCurrencyReport_HasFindings(t *testing.T) {
+        noFindings := CurrencyReport{
+                Dimensions: []DimensionScore{
+                        {Dimension: DimensionTTLRelevance, Findings: nil},
+                },
+        }
+        if noFindings.HasFindings() {
+                t.Error("expected HasFindings() false when no findings")
+        }
+
+        withFindings := CurrencyReport{
+                Dimensions: []DimensionScore{
+                        {Dimension: DimensionTTLRelevance, Findings: []TTLFinding{
+                                {RecordType: "MX", ObservedTTL: 300, TypicalTTL: 3600},
+                        }},
+                },
+        }
+        if !withFindings.HasFindings() {
+                t.Error("expected HasFindings() true when findings present")
+        }
+}
+
+func TestCurrencyReport_AllFindings(t *testing.T) {
+        report := CurrencyReport{
+                Dimensions: []DimensionScore{
+                        {Dimension: DimensionCurrentness, Findings: nil},
+                        {Dimension: DimensionTTLRelevance, Findings: []TTLFinding{
+                                {RecordType: "MX"},
+                                {RecordType: "TXT"},
+                        }},
+                },
+        }
+        all := report.AllFindings()
+        if len(all) != 2 {
+                t.Errorf("AllFindings() returned %d, want 2", len(all))
+        }
+}
+
 func TestHydrateCurrencyReport_Struct(t *testing.T) {
         original := CurrencyReport{
                 OverallGrade: GradeGood,
