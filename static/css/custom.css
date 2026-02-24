@@ -187,7 +187,7 @@ code {
 
 .hero-ascii-pre {
     font-family: 'Courier New', 'Lucida Console', monospace;
-    font-size: 0.85rem;
+    font-size: 0.55rem;
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: 0;
@@ -205,9 +205,9 @@ code {
     -moz-osx-font-smoothing: unset;
     text-rendering: geometricPrecision;
     text-shadow:
-        0 0 1px rgba(196, 60, 60, 0.6),
-        0 0 8px rgba(160, 48, 48, 0.25),
-        0 0 24px rgba(140, 40, 40, 0.08);
+        0 0 1px rgba(196, 60, 60, 0.45),
+        0 0 6px rgba(160, 48, 48, 0.18),
+        0 0 18px rgba(140, 40, 40, 0.06);
     animation: covert-title-pulse 4s ease-in-out infinite;
 }
 .hero-ascii-pre::after {
@@ -232,13 +232,18 @@ code {
         display: none !important;
     }
     .hero-ascii-pre {
-        font-size: 1rem;
+        font-size: 0.68rem;
     }
 }
 @media (min-width: 992px) {
     .hero-ascii-pre {
-        font-size: 1.15rem;
+        font-size: 0.78rem;
         line-height: 1.1;
+    }
+}
+@media (min-width: 1200px) {
+    .hero-ascii-pre {
+        font-size: 0.85rem;
     }
 }
 
@@ -2488,6 +2493,9 @@ body.covert-mode .rfc-label {
 .u-covert-banner {
     background: rgba(196, 60, 60, 0.12);
     border-left: 3px solid #cc2020;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
 }
 .u-covert-active-label {
     color: #cc2020;
