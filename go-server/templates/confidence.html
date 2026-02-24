@@ -953,11 +953,11 @@
                 <div class="mb-4">
                     <h3 class="h6 fw-bold mb-2"><i class="fas fa-chart-line me-1 text-accent-gold" aria-hidden="true"></i> EWMA Drift Detection</h3>
                     <p class="text-muted small mb-2">The Exponentially Weighted Moving Average tracks currency score stability over time. Each new scan updates the statistic, giving recent observations more weight than historical ones.</p>
-                    <div class="math-display">
+                    <div class="math-display" data-latex="Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1}">
                         $$ Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1} $$
                     </div>
                     <p class="text-muted small mb-2">Control limits detect statistically significant drift &mdash; not just any change, but changes that exceed normal process variation:</p>
-                    <div class="math-display">
+                    <div class="math-display" data-latex="\text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]}">
                         $$ \text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]} $$
                     </div>
                     <p class="text-muted small mb-0">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
@@ -966,7 +966,7 @@
                 <div class="mb-4">
                     <h3 class="h6 fw-bold mb-2"><i class="fas fa-flask me-1 text-accent-cobalt" aria-hidden="true"></i> Bayesian Confidence Calibration</h3>
                     <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) weights the observation against the prior:</p>
-                    <div class="math-display">
+                    <div class="math-display" data-latex="C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
                         $$ C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>
                     <p class="text-muted small mb-0">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\text{Beta}(\alpha, \beta)\) is the conjugate prior for the protocol category. This is Bayesian conjugate updating with the Beta-Bernoulli model &mdash; the same framework used in intelligence analysis per ICD 203.</p>
@@ -975,7 +975,7 @@
                 <div class="mb-4">
                     <h3 class="h6 fw-bold mb-2"><i class="fas fa-clock me-1 text-accent-gold" aria-hidden="true"></i> Currency Score Normalization</h3>
                     <p class="text-muted small mb-2">Each ICuAE dimension is scored on a continuous 0&ndash;100 scale. The overall currency score is the weighted mean across all dimensions:</p>
-                    <div class="math-display">
+                    <div class="math-display" data-latex="S_{\text{currency}} = \sum_{i=1}^{n} w_i \cdot s_i \quad \text{where} \quad \sum_{i=1}^{n} w_i = 1">
                         $$ S_{\text{currency}} = \sum_{i=1}^{n} w_i \cdot s_i \quad \text{where} \quad \sum_{i=1}^{n} w_i = 1 $$
                     </div>
                     <p class="text-muted small mb-0">Dimension weights are equal by default (each \(w_i = \frac{1}{n}\)). Per ISO/IEC 25012, timeliness is a quantitative data quality dimension &mdash; the continuous score enables statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot.</p>
@@ -984,7 +984,7 @@
                 <div>
                     <h3 class="h6 fw-bold mb-2"><i class="fas fa-fingerprint me-1 text-info"></i> Cryptographic Integrity</h3>
                     <p class="text-muted small mb-2">Every analysis result is sealed with a SHA-3-512 digest over the canonical JSON representation. The hash function is the NIST FIPS 202 standard (Keccak sponge construction):</p>
-                    <div class="math-display">
+                    <div class="math-display" data-latex="H = \text{SHA-3-512}\left(\text{Canonical}(R)\right)">
                         $$ H = \text{SHA-3-512}\left(\text{Canonical}(R)\right) $$
                     </div>
                     <p class="text-muted small mb-0">Where \(R\) is the complete analysis result including metadata, timestamps, and engine versions. The digest is independently verifiable &mdash; anyone with the JSON export can recompute and confirm integrity.</p>
@@ -1029,6 +1029,49 @@
     document.querySelectorAll('.icae-cal-fill[data-pct]').forEach(function(el){el.style.width=el.dataset.pct+'%';});
     document.querySelectorAll('.icae-cal-needle[data-pct]').forEach(function(el){el.style.left=el.dataset.pct+'%';});
     document.querySelectorAll('.icae-tier-meter-fill[data-pct]').forEach(function(el){el.style.width=el.dataset.pct+'%';});
+    document.querySelectorAll('.math-display[data-latex]').forEach(function(block) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'math-copy-btn';
+        btn.title = 'Copy LaTeX';
+        btn.setAttribute('aria-label', 'Copy LaTeX formula');
+        btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+        block.appendChild(btn);
+        btn.addEventListener('click', function() {
+            var latex = block.getAttribute('data-latex');
+            function showCopied() {
+                btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+                btn.classList.add('math-copy-btn--copied');
+                setTimeout(function() {
+                    btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+                    btn.classList.remove('math-copy-btn--copied');
+                }, 1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(latex).then(showCopied).catch(function() {
+                    var ta = document.createElement('textarea');
+                    ta.value = latex;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showCopied();
+                });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = latex;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showCopied();
+            }
+        });
+    });
     </script>
 </body>
 </html>
