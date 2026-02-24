@@ -369,7 +369,7 @@ code {
     flex-shrink: 0;
 }
 .icae-badge-development .icae-dot {
-    background: rgba(74, 85, 104, 0.5);
+    background: rgba(74, 85, 104, 0.35);
     border: 1px solid rgba(74, 85, 104, 0.6);
     box-shadow: 0 0 4px rgba(74, 85, 104, 0.3);
 }
