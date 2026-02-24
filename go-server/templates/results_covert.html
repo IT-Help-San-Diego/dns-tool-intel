@@ -1204,10 +1204,19 @@
                 printBtn.addEventListener('click', function() { window.print(); });
             }
 
+            var tooltipInstances = [];
             var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(el) {
-                return new bootstrap.Tooltip(el);
+                var t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+                tooltipInstances.push(t);
+                return t;
             });
+            var scrollTimer;
+            window.addEventListener('scroll', function() {
+                if (scrollTimer) return;
+                scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
+                tooltipInstances.forEach(function(t) { t.hide(); });
+            }, { passive: true });
 
             var reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (reanalyzeBtn) {

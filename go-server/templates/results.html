@@ -3914,7 +3914,7 @@
                             <!-- A Records (IPv4) -->
                             <div class="col-md-3 mb-3 section-col-divider">
                                 <p class="d-flex align-items-center">
-                                    <span class="badge bg-primary me-2">A</span>IPv4 Address
+                                    <span class="badge rt-badge rt-badge-a me-2">A</span>IPv4 Address
                                 </p>
                                 {{$aRecords := mapGetSlice "A" $basic}}
                                 {{if $aRecords}}
@@ -3931,7 +3931,7 @@
                             <!-- AAAA Records (IPv6) -->
                             <div class="col-md-3 mb-3 section-col-divider">
                                 <p class="d-flex align-items-center">
-                                    <span class="badge bg-info me-2">AAAA</span>IPv6 Address
+                                    <span class="badge rt-badge rt-badge-aaaa me-2">AAAA</span>IPv6 Address
                                 </p>
                                 {{$aaaaRecords := mapGetSlice "AAAA" $basic}}
                                 {{if $aaaaRecords}}
@@ -3948,7 +3948,7 @@
                             <!-- MX Records (Mail) -->
                             <div class="col-md-3 mb-3 section-col-divider">
                                 <p class="d-flex align-items-center">
-                                    <span class="badge bg-warning text-dark me-2">MX</span>Mail Servers
+                                    <span class="badge rt-badge rt-badge-mx me-2">MX</span>Mail Servers
                                 </p>
                                 {{$mxRecords := mapGetSlice "MX" $basic}}
                                 {{if $mxRecords}}
@@ -3982,7 +3982,7 @@
                             <!-- SRV Records (Services) -->
                             <div class="col-md-3 mb-3">
                                 <p class="d-flex align-items-center">
-                                    <span class="badge bg-secondary me-2">SRV</span>Services
+                                    <span class="badge rt-badge rt-badge-srv me-2">SRV</span>Services
                                 </p>
                                 {{$srvRecords := mapGetSlice "SRV" $basic}}
                                 {{if $srvRecords}}
@@ -5219,10 +5219,19 @@
                     if (fallback) fallback.classList.remove('d-none');
                 });
             });
+            const tooltipInstances = [];
             const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(el) {
-                return new bootstrap.Tooltip(el);
+                var t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+                tooltipInstances.push(t);
+                return t;
             });
+            var scrollTimer;
+            window.addEventListener('scroll', function() {
+                if (scrollTimer) return;
+                scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
+                tooltipInstances.forEach(function(t) { t.hide(); });
+            }, { passive: true });
             
             const reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (reanalyzeBtn) {
