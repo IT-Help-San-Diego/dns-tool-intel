@@ -46,27 +46,27 @@
         <div class="icae-summary-bar mb-4">
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.TotalPasses}}</span>
-                <span class="icae-summary-label icae-cal-progress-label-analysis">Analysis Passes</span>
+                <span class="icae-summary-label icae-cal-progress-label-analysis"><a href="#icae-two-layer" title="Cumulative consecutive test evaluation passes at the Analysis layer (interpretation accuracy against RFC standards)">Analysis Passes</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.CollectionPasses}}</span>
-                <span class="icae-summary-label icae-cal-progress-label-collection">Collection Passes</span>
+                <span class="icae-summary-label icae-cal-progress-label-collection"><a href="#icae-two-layer" title="Cumulative consecutive test evaluation passes at the Collection layer (data gathering fidelity)">Collection Passes</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.PassRate}}%</span>
-                <span class="icae-summary-label">Audit Pass Rate</span>
+                <span class="icae-summary-label"><a href="#icae-test-dossier" title="Percentage of all deterministic test evaluations that passed across both layers">Audit Pass Rate</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.EvaluatedCount}}/{{.ICAEMetrics.TotalProtocols}}</span>
-                <span class="icae-summary-label">Protocols</span>
+                <span class="icae-summary-label"><a href="#icae-test-dossier" title="DNS security protocols evaluated by ICAE (SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA)">Protocols</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.DaysRunning}}d</span>
-                <span class="icae-summary-label">Days Running</span>
+                <span class="icae-summary-label"><a href="#icae-maturity" title="Calendar days since first evaluation pass — maturity tiers require both consecutive passes AND elapsed time">Days Running</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{.ICAEMetrics.TotalAllCases}}</span>
-                <span class="icae-summary-label">Audit Cases</span>
+                <span class="icae-summary-label"><a href="#icae-test-dossier" title="Total deterministic test cases across both Collection and Analysis layers">Audit Cases</a></span>
             </div>
             <div class="icae-summary-item">
                 <span class="icae-summary-value">{{len .ICAEMetrics.Regressions}}</span>
@@ -274,7 +274,7 @@
 
         <div class="card bg-dark border-secondary mb-5">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-flask me-2 text-info"></i>Protocol Test Dossier</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-test-dossier"><i class="fas fa-flask me-2 text-info"></i>Protocol Test Dossier</h2>
                 <p class="text-muted small mb-3">Each protocol is audited against deterministic test cases grounded in specific RFC sections. Below is what ICAE tests for each protocol &mdash; the signals, the standards, and the methodology.</p>
 
                 <div class="row g-3">
@@ -372,7 +372,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-layer-group me-2 text-info"></i>Maturity Levels</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-maturity"><i class="fas fa-layer-group me-2 text-info"></i>Maturity Levels</h2>
                 <p class="text-muted small mb-3">Modeled after the <strong>Capability Maturity Model (CMM)</strong> developed at Carnegie Mellon&rsquo;s Software Engineering Institute. Five tiers of sustained correctness&nbsp;&mdash; earned through deterministic test runs, never self-assigned.</p>
                 <p class="text-muted small mb-3">The dual-threshold system (consecutive passes AND elapsed time) prevents maturity inflation. A burst of 5,000 runs in one day cannot achieve Gold Master &mdash; the 180-day time requirement ensures tests have run across multiple code versions, infrastructure changes, and resolver conditions. This mirrors how real-world confidence is earned: through sustained performance, not a single marathon session.</p>
                 <div class="row g-3">
@@ -421,7 +421,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-microscope me-2 text-info"></i>Two-Layer Auditing</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-two-layer"><i class="fas fa-microscope me-2 text-info"></i>Two-Layer Auditing</h2>
                 <p class="text-muted mb-3">Each protocol is audited at two independent layers:</p>
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -568,15 +568,15 @@
         <div class="icuae-summary-bar mb-4">
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">{{.ICuAEInventory.TotalCases}}</span>
-                <span class="icuae-summary-label">Deterministic Cases</span>
+                <span class="icuae-summary-label"><a href="#icuae-test-matrix" title="Total deterministic test cases verifying ICuAE scoring logic — every grade boundary, edge case, and nil-input path">Deterministic Cases</a></span>
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">{{.ICuAEInventory.TotalDimensions}}</span>
-                <span class="icuae-summary-label">Dimensions</span>
+                <span class="icuae-summary-label"><a href="#icuae-dimensions" title="Five standards-grounded measurement dimensions: Currentness, TTL Compliance, Completeness, Source Credibility, TTL Relevance">Dimensions</a></span>
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">5</span>
-                <span class="icuae-summary-label">Standards</span>
+                <span class="icuae-summary-label"><a href="#icuae-dimensions" title="ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18, OWASP, IETF BCP 219">Standards</a></span>
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">5</span>
@@ -584,7 +584,7 @@
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">{{len .ICuAEInventory.Categories}}</span>
-                <span class="icuae-summary-label">Test Categories</span>
+                <span class="icuae-summary-label"><a href="#icuae-test-matrix" title="Categories of deterministic test cases organized by measurement concern">Test Categories</a></span>
             </div>
         </div>
         {{end}}
@@ -820,7 +820,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-ruler-combined me-2 text-info"></i>Five Measurement Dimensions</h2>
+                <h2 class="h5 fw-bold mb-3" id="icuae-dimensions"><i class="fas fa-ruler-combined me-2 text-info"></i>Five Measurement Dimensions</h2>
                 <div class="table-responsive">
                     <table class="table table-sm table-dark mb-0">
                         <thead>
@@ -865,7 +865,7 @@
         {{if .ICuAEInventory}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-vial me-2 text-info"></i>Deterministic Test Matrix</h2>
+                <h2 class="h5 fw-bold mb-3" id="icuae-test-matrix"><i class="fas fa-vial me-2 text-info"></i>Deterministic Test Matrix</h2>
                 <p class="text-muted small mb-3">{{.ICuAEInventory.TotalCases}} test cases verify ICuAE scoring logic across all five dimensions. Every grade boundary, edge case, and nil-input path is tested deterministically — no randomness, no approximation.</p>
                 <div class="row g-2">
                     {{range .ICuAEInventory.Categories}}
@@ -947,7 +947,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-square-root-alt me-2 text-accent-cobalt" aria-hidden="true"></i>Mathematical Foundations</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-math"><i class="fas fa-square-root-alt me-2 text-accent-cobalt" aria-hidden="true"></i>Mathematical Foundations</h2>
                 <p class="text-muted small mb-3">Every confidence score is derived from deterministic, standards-grounded mathematics &mdash; not heuristics or machine learning. The formulas below are the actual computations running in the engine.</p>
 
                 <div class="mb-4">
