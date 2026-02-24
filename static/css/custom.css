@@ -5093,6 +5093,19 @@ body.covert-mode .dt-question {
     color: #a3b5cc !important;
     border-color: #a3b5cc !important;
 }
+body.covert-mode .u-color-accent-steel {
+    color: rgba(196, 60, 60, 0.55) !important;
+}
+body.covert-mode .u-btn-accent-steel {
+    color: rgba(196, 60, 60, 0.55) !important;
+    border-color: rgba(140, 40, 40, 0.3) !important;
+}
+body.covert-mode .u-btn-accent-steel:hover,
+body.covert-mode .u-btn-accent-steel:focus {
+    background-color: rgba(140, 40, 40, 0.1) !important;
+    color: rgba(204, 60, 60, 0.7) !important;
+    border-color: rgba(140, 40, 40, 0.45) !important;
+}
 .u-color-link { color: #79c0ff; }
 .u-color-sky { color: #7ec8e3; }
 .u-color-blue-soft { color: #8ab4f8; }

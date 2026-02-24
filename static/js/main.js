@@ -246,9 +246,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(e) {}
     }
-    const covertBtn = document.getElementById('covertToggle');
+    var covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
+            var idEl = document.querySelector('[data-analysis-id]');
+            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+            if (idEl && modeMeta) {
+                var aid = idEl.getAttribute('data-analysis-id');
+                var cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
+                if (aid && (cur === 'E' || cur === 'C')) {
+                    var target = cur === 'E' ? 'C' : 'E';
+                    window.location.href = '/analysis/' + aid + '/view/' + target;
+                    return;
+                }
+            }
             setCovertMode(!document.body.classList.contains('covert-mode'));
         });
     }
