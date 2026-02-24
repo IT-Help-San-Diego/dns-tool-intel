@@ -2284,7 +2284,7 @@ body.covert-mode .bg-opacity-10 {
 }
 body.covert-mode .section-question {
     color: var(--dt-question-color-covert) !important;
-    text-shadow: none !important;
+    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08) !important;
 }
 body.covert-mode .protocol-question {
     border-left-color: rgba(140, 40, 40, 0.35);
@@ -2292,6 +2292,7 @@ body.covert-mode .protocol-question {
 }
 body.covert-mode .protocol-question-text {
     color: var(--dt-question-color-covert) !important;
+    text-shadow: 0 0 8px rgba(196, 60, 60, 0.06);
 }
 body.covert-mode .card-header {
     background-color: rgba(14, 8, 8, 0.6) !important;
@@ -3625,7 +3626,7 @@ body.covert-mode .proto-dkim.bg-info {
 }
 .covert-section-card .card-header .section-question {
     color: var(--dt-question-color-covert);
-    text-shadow: none;
+    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08);
 }
 .covert-recon-box {
     background-color: rgba(140, 40, 40, 0.08);
@@ -4819,7 +4820,7 @@ body.covert-mode .proto-dkim.bg-info {
    remains until full template migration is complete. ── */
 :root {
     --dt-question-color: rgba(13, 202, 240, 0.92);
-    --dt-question-color-covert: rgba(170, 178, 188, 0.55);
+    --dt-question-color-covert: rgba(196, 60, 60, 0.85);
     --dt-question-size-section: 1.0em;
     --dt-question-size-protocol: 0.85em;
     --dt-question-weight: 600;
@@ -4844,7 +4845,7 @@ body.covert-mode .proto-dkim.bg-info {
 }
 body.covert-mode .dt-question {
     color: var(--dt-question-color-covert);
-    text-shadow: none;
+    text-shadow: 0 0 12px rgba(196, 60, 60, 0.08);
 }
 
 /* ── Big Questions: The value proposition (legacy, migrate to .dt-question) ── */
