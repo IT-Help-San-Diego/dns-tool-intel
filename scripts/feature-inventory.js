@@ -299,6 +299,24 @@ jsFiles.forEach(name => {
   }
 });
 
+// ── 12. Phase 2: Scanner Profile ─────────────────────────────
+console.log('\n── Phase 2: Scanner Profile ─────────────────────────────────');
+const scannerProfile = read('go-server/internal/icuae/scanner_profile.go');
+if (scannerProfile) {
+  check('ScannerProfile struct exists', scannerProfile.includes('type ScannerProfile struct'));
+  check('ProfileSuggestion struct exists', scannerProfile.includes('type ProfileSuggestion struct'));
+  check('GenerateSuggestedConfig function exists', scannerProfile.includes('func GenerateSuggestedConfig'));
+  check('BuildRollingStats function exists', scannerProfile.includes('func BuildRollingStats'));
+  check('DefaultProfile defined', scannerProfile.includes('var DefaultProfile'));
+  check('NIST SP 800-53 SI-18 cited', scannerProfile.includes('NIST SP 800-53 SI-18'));
+  check('RFC 8767 cited', scannerProfile.includes('RFC 8767'));
+}
+const resultsHtml2 = read('go-server/templates/results.html');
+if (resultsHtml2) {
+  check('SuggestedConfig template block exists', resultsHtml2.includes('SuggestedConfig'));
+  check('suggestedConfigPanel collapse ID exists', resultsHtml2.includes('suggestedConfigPanel'));
+}
+
 // ── Summary ──────────────────────────────────────────────────
 console.log('\n═══════════════════════════════════════════════════════════════');
 console.log(`  Passed:   ${pass}`);

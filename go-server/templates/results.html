@@ -544,6 +544,61 @@
             </div>
         </div>
         {{end}}
+
+        {{if .SuggestedConfig}}
+        {{with .SuggestedConfig}}
+        {{if .HasSuggestions}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-{{.ConfidenceClass}} bg-{{.ConfidenceClass}} bg-opacity-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-sliders-h fa-2x text-{{.ConfidenceClass}} me-3"></i>
+                                <div>
+                                    <span class="fw-semibold">Suggested Scanner Configuration</span>
+                                    <span class="badge bg-{{.ConfidenceClass}} ms-2">{{.Confidence | title}} Confidence</span>
+                                    <div class="text-muted small mt-1">Based on {{.BasedOn}} historical scans of this domain</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-{{.ConfidenceClass}} btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#suggestedConfigPanel" aria-expanded="false" aria-controls="suggestedConfigPanel">
+                                <i class="fas fa-chevron-down me-1"></i>Review Suggestions
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="suggestedConfigPanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-2">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:15%">Parameter</th>
+                                            <th style="width:15%">Current</th>
+                                            <th style="width:15%">Suggested</th>
+                                            <th style="width:10%">Severity</th>
+                                            <th>Rationale</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range .Suggestions}}
+                                        <tr>
+                                            <td><i class="fas {{.CategoryIcon}} me-1 text-muted"></i><span class="fw-semibold">{{.Parameter}}</span></td>
+                                            <td><code>{{.Current}}</code></td>
+                                            <td><code>{{.Suggested}}</code></td>
+                                            <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
+                                            <td class="small">{{.Rationale}}<br><span class="text-muted fst-italic">{{.Standard}}</span></td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Suggestions require explicit approval before applying. No automatic changes will be made.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        {{end}}
+        {{end}}
         
         {{if .IsPublicSuffix}}
         <div class="row mb-4">

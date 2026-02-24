@@ -229,6 +229,9 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                         viewData["CurrencyReport"] = report
                 }
         }
+        if sugConfig := buildSuggestedConfig(ctx, h.DB.Queries, analysis.Domain, analysis.ID); sugConfig != nil {
+                viewData["SuggestedConfig"] = sugConfig
+        }
         viewData["CovertMode"] = mode == "C"
 
         mergeAuthData(c, h.Config, viewData)
@@ -1077,6 +1080,45 @@ func getStringFromResults(results map[string]any, section, key string) *string {
                 return nil
         }
         return &s
+}
+
+func buildSuggestedConfig(ctx context.Context, queries *dbq.Queries, domain string, currentID int32) *icuae.SuggestedConfig {
+        historicalAnalyses, err := queries.ListAnalysesByDomain(ctx, dbq.ListAnalysesByDomainParams{
+                Domain: domain,
+                Limit:  20,
+        })
+        if err != nil || len(historicalAnalyses) < 3 {
+                return nil
+        }
+
+        var reports []icuae.CurrencyReport
+        var durations []float64
+        for _, ha := range historicalAnalyses {
+                if len(ha.FullResults) == 0 {
+                        continue
+                }
+                var fr map[string]any
+                if json.Unmarshal(ha.FullResults, &fr) != nil {
+                        continue
+                }
+                if cr, ok := fr["currency_report"]; ok {
+                        if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                                reports = append(reports, report)
+                        }
+                }
+                if ha.AnalysisDuration != nil {
+                        durations = append(durations, *ha.AnalysisDuration * 1000)
+                }
+        }
+
+        if len(reports) < 3 {
+                return nil
+        }
+
+        stats := icuae.BuildRollingStats(reports, durations)
+        config := icuae.GenerateSuggestedConfig(stats, icuae.DefaultProfile)
+        config.BasedOn = len(reports)
+        return &config
 }
 
 func getJSONFromResults(results map[string]any, section, key string) json.RawMessage {

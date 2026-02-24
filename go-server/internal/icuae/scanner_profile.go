@@ -61,13 +61,13 @@ func (s ProfileSuggestion) CategoryIcon() string {
         case "resolver":
                 return "fa-server"
         case "retry":
-                return "fa-redo"
+                return "fa-arrows-rotate"
         case "timeout":
                 return "fa-clock"
         case "priority":
-                return "fa-sort-amount-down"
+                return "fa-cogs"
         default:
-                return "fa-cog"
+                return "fa-cogs"
         }
 }
 
