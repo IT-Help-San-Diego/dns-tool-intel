@@ -238,6 +238,12 @@ func main() {
         aboutHandler := handlers.NewAboutHandler(cfg)
         router.GET("/about", aboutHandler.About)
 
+        roadmapHandler := handlers.NewRoadmapHandler(cfg)
+        router.GET("/roadmap", roadmapHandler.Roadmap)
+
+        approachHandler := handlers.NewApproachHandler(cfg)
+        router.GET("/approach", approachHandler.Approach)
+
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)
 

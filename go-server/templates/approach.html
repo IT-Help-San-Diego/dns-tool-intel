@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+{{htmlComment " If being thorough is what makes us different, we'll take that as confirmation. "}}
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>Our Approach - DNS Tool</title>
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Why DNS Tool operates with scientific rigor, quality gates, and full transparency — and why we believe that's the only defensible standard for security intelligence.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/approach">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Our Approach - DNS Tool">
+    <meta property="og:description" content="Scientific rigor, quality gates, and full transparency. Here's why we build the way we build.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="dnstool.it-help.tech">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/approach">
+    <meta name="twitter:title" content="Our Approach - DNS Tool">
+    <meta name="twitter:description" content="Scientific rigor, quality gates, and full transparency. Here's why we build the way we build.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <link rel="canonical" href="https://dnstool.it-help.tech/approach">
+    <style nonce="{{.CspNonce}}">
+        .approach-section {
+            background: linear-gradient(145deg, #0c1018 0%, #111720 50%, #0e141c 100%);
+            border: 1px solid rgba(125,142,168,0.12);
+            border-radius: 12px;
+            padding: 1.75rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .approach-section h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #e6edf3;
+            margin-bottom: 1rem;
+        }
+        .approach-section h2 i {
+            color: #58a6ff;
+            margin-right: 0.5rem;
+        }
+        .approach-section p,
+        .approach-section li {
+            color: rgba(170,178,188,0.8);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        .approach-section ul {
+            padding-left: 1.25rem;
+        }
+        .approach-section li {
+            margin-bottom: 0.35rem;
+        }
+        .approach-gate {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(125,142,168,0.08);
+        }
+        .approach-gate:last-child {
+            border-bottom: none;
+        }
+        .approach-gate-icon {
+            flex-shrink: 0;
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        .approach-gate-icon.gate-pass {
+            background: rgba(63,185,80,0.12);
+            color: #3fb950;
+            border: 1px solid rgba(63,185,80,0.2);
+        }
+        .approach-gate-label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #e6edf3;
+        }
+        .approach-gate-detail {
+            font-size: 0.75rem;
+            color: rgba(170,178,188,0.6);
+            margin-top: 0.15rem;
+        }
+        .approach-quote {
+            border-left: 3px solid rgba(88,166,255,0.3);
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            font-style: italic;
+            color: rgba(170,178,188,0.75);
+            background: rgba(88,166,255,0.03);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+        .approach-founder {
+            background: linear-gradient(145deg, #0c1018, #101820);
+            border: 1px solid rgba(88,166,255,0.12);
+            border-radius: 12px;
+            padding: 1.75rem 2rem;
+            margin-top: 2rem;
+        }
+        .approach-founder h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e6edf3;
+            margin-bottom: 0.75rem;
+        }
+        .approach-founder p {
+            color: rgba(170,178,188,0.75);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .approach-rfc-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        .approach-rfc-tag {
+            font-size: 0.68rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            background: rgba(88,166,255,0.08);
+            color: rgba(88,166,255,0.75);
+            border: 1px solid rgba(88,166,255,0.15);
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            white-space: nowrap;
+        }
+        body.covert-mode .approach-section {
+            border-color: rgba(140,40,40,0.15);
+        }
+        body.covert-mode .approach-section h2 i {
+            color: #c43c3c;
+        }
+        body.covert-mode .approach-quote {
+            border-left-color: rgba(196,60,60,0.3);
+            background: rgba(196,60,60,0.03);
+        }
+        body.covert-mode .approach-founder {
+            border-color: rgba(140,40,40,0.15);
+        }
+        body.covert-mode .approach-gate-icon.gate-pass {
+            background: rgba(196,60,60,0.12);
+            color: #c43c3c;
+            border-color: rgba(196,60,60,0.2);
+        }
+        body.covert-mode .approach-rfc-tag {
+            background: rgba(196,60,60,0.08);
+            color: rgba(196,100,100,0.75);
+            border-color: rgba(196,60,60,0.15);
+        }
+        .approach-intro {
+            max-width: 720px;
+            margin: 0 auto 2rem;
+            text-align: center;
+        }
+        .approach-intro p {
+            color: rgba(170,178,188,0.7);
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+
+    <main id="main-content">
+    <section class="py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-9 col-xl-8">
+
+                    <div class="text-center mb-4">
+                        <h1 class="fw-bold mb-2"><i class="fas fa-flask me-2 text-info"></i>Our Approach</h1>
+                        <div class="approach-intro">
+                            <p>DNS Tool operates with the same rigor expected of any instrument that produces findings people act on. Every design decision traces to a standard. Every claim traces to code. Every result can be independently verified.</p>
+                        </div>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-book"></i>We Implement the Standards as Written</h2>
+                        <p>Our analysis engine doesn't invent interpretations. SPF evaluation follows RFC 7208. DMARC alignment follows RFC 7489. DANE/TLSA follows RFC 6698. DNSSEC validation follows RFC 4033–4035. Certificate Transparency follows RFC 6962. MTA-STS follows RFC 8461. TLS-RPT follows RFC 8460.</p>
+                        <p>When we tell you something about your domain's security posture, we can point to the exact RFC paragraph that defines the behavior we're evaluating.</p>
+                        <div class="approach-rfc-list">
+                            <span class="approach-rfc-tag">RFC 7208</span>
+                            <span class="approach-rfc-tag">RFC 7489</span>
+                            <span class="approach-rfc-tag">RFC 6698</span>
+                            <span class="approach-rfc-tag">RFC 4033–35</span>
+                            <span class="approach-rfc-tag">RFC 6962</span>
+                            <span class="approach-rfc-tag">RFC 8461</span>
+                            <span class="approach-rfc-tag">RFC 8460</span>
+                            <span class="approach-rfc-tag">RFC 8659</span>
+                            <span class="approach-rfc-tag">RFC 7001</span>
+                        </div>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-microscope"></i>We Show Our Work</h2>
+                        <p>Every analysis includes "Verify It Yourself" terminal commands — <code>dig</code>, <code>openssl</code>, <code>curl</code> — so any analyst can independently reproduce our findings. We publish our confidence taxonomy, our source hierarchy, and our methodology. Our intelligence sources inventory shows exactly where every data point originated.</p>
+                        <p>If we cannot show you how to verify a claim, we should not be making it.</p>
+                        <div class="approach-quote">
+                            "Go out and gather as many different redundant sources of intelligence as you can, and then classify and analyze."
+                        </div>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-balance-scale"></i>We Measure What We Build</h2>
+                        <p>We don't ship features and hope they work. We maintain quality gates that run on every build, and we hold ourselves to the same standards that Google, Mozilla, and the security community created for exactly this purpose.</p>
+                        <div class="mt-3">
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">Lighthouse Performance: 98–100</div>
+                                    <div class="approach-gate-detail">Google's own audit tool for web performance, accessibility, best practices, and SEO</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">Mozilla Observatory: 130</div>
+                                    <div class="approach-gate-detail">Mozilla's security header and configuration scanner</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">SonarCloud: A Rating</div>
+                                    <div class="approach-gate-detail">Static code analysis for reliability, security, and maintainability</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">ICAE: 129 Test Cases</div>
+                                    <div class="approach-gate-detail">Intelligence Confidence Audit Engine — validates every scoring decision</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">ICuAE: 29 Test Cases</div>
+                                    <div class="approach-gate-detail">Intelligence Currency Assurance Engine — validates data freshness and timeliness</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">WCAG Contrast Compliance</div>
+                                    <div class="approach-gate-detail">Every color in every theme meets accessibility standards</div>
+                                </div>
+                            </div>
+                            <div class="approach-gate">
+                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div>
+                                    <div class="approach-gate-label">CIE Scotopic Vision Validation</div>
+                                    <div class="approach-gate-detail">Dark theme uses red spectrum grounded in peer-reviewed vision science research</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-shield-alt"></i>Why This Matters</h2>
+                        <p>We've received feedback that this level of rigor is "too much" for a DNS checker. That using Lighthouse, Mozilla Observatory, and scientific methods for color selection is excessive. We understand the sentiment — most tools in this space don't do these things.</p>
+                        <p>We think that's the point.</p>
+                        <p>These aren't vanity metrics. They're the validation tools built by the organizations that <em>define</em> web quality standards. Lighthouse was built by Google's Chrome team. Mozilla Observatory was built by the organization that maintains Firefox. SonarCloud is an industry-standard static analysis platform. Using them isn't excessive — it's the baseline that any tool producing security findings should meet.</p>
+                        <p>The biggest brands in the world routinely fail these tests. Their Lighthouse scores are in the 40s. Their security headers are incomplete. Their accessibility is an afterthought. The fact that a DNS security tool passes them all shouldn't be surprising — it should be expected. We just happen to be one of the few that actually does it.</p>
+                        <div class="approach-quote">
+                            If being thorough is what makes us different, we'll take that as confirmation we're doing it right.
+                        </div>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-eye"></i>Transparency by Default</h2>
+                        <p>We don't hide behind black-box analysis. Our reports carry TLP classification under FIRST TLP v2.0. Our confidence engine explicitly distinguishes between what we've directly observed, what we've inferred from patterns, and what came from third-party enrichment. Every attribution is classified:</p>
+                        <ul>
+                            <li><strong>Observed</strong> — Directly witnessed in authoritative data</li>
+                            <li><strong>Inferred</strong> — Derived from patterns in primary data</li>
+                            <li><strong>Third-party</strong> — Sourced from external enrichment</li>
+                        </ul>
+                        <p>The consumer always knows the basis for each finding. If there's a better way to produce trustworthy security intelligence, we want to learn it.</p>
+                    </div>
+
+                    <div class="approach-founder">
+                        <h3><i class="fas fa-user-shield me-2 text-info"></i>A Note from the Builder</h3>
+                        <p>I don't have a computer science degree. I'm self-taught. Everything in this platform — every RFC implementation, every scoring engine, every quality gate — was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
+                        <p>This project exists because I believe security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because it's the right way to build tools that people rely on to protect their organizations.</p>
+                        <p>We show our work. We show our thought processes. We hold ourselves to the standards that exist specifically to measure quality. If that seems like too much — consider what the alternative looks like.</p>
+                    </div>
+
+                    <div class="text-center mt-4 mb-2">
+                        <a href="/roadmap" class="btn btn-outline-info btn-sm me-2"><i class="fas fa-map me-1"></i>Roadmap</a>
+                        <a href="/about" class="btn btn-outline-info btn-sm me-2"><i class="fas fa-book-open me-1"></i>Origin Story</a>
+                        <a href="/confidence" class="btn btn-outline-info btn-sm me-2"><i class="fas fa-bullseye me-1"></i>Confidence</a>
+                        <a href="/sources" class="btn btn-outline-info btn-sm"><i class="fas fa-diagram-project me-1"></i>Intelligence Sources</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+</body>
+</html>

@@ -2493,9 +2493,6 @@ body.covert-mode .rfc-label {
 .u-covert-banner {
     background: rgba(196, 60, 60, 0.12);
     border-left: 3px solid #cc2020;
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
 }
 .u-covert-active-label {
     color: #cc2020;

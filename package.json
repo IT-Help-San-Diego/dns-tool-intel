@@ -14,6 +14,7 @@
   "description": "",
   "dependencies": {
     "@netlify/plugin-lighthouse": "^6.0.4",
+    "@notionhq/client": "^5.9.0",
     "@octokit/rest": "^22.0.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.2.3",
