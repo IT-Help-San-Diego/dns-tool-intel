@@ -52,4 +52,4 @@ MAINTENANCE_NOTE = "Maintenance"
 [userenv.development]
 
 [agent]
-integrations = ["github:1.0.0"]
+integrations = ["github:1.0.0", "notion:1.0.0"]
