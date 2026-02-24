@@ -390,15 +390,29 @@
             gap: 1rem;
         }
         .arch-diagram-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
             border-radius: 10px;
             overflow: hidden;
             background: rgba(12, 16, 24, 0.8);
             border: 1px solid rgba(88,166,255,0.12);
             transition: border-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
         .arch-diagram-card:hover {
             border-color: rgba(88,166,255,0.35);
             box-shadow: 0 4px 20px rgba(88,166,255,0.08);
+            color: inherit;
+            text-decoration: none;
+        }
+        .arch-diagram-link-icon {
+            font-size: 0.55rem;
+            opacity: 0.35;
+            transition: opacity 0.3s;
+        }
+        .arch-diagram-card:hover .arch-diagram-link-icon {
+            opacity: 0.7;
         }
         .arch-diagram-label {
             padding: 0.65rem 1rem;
@@ -726,22 +740,22 @@
                 <p class="mb-1 arch-section-desc">Canonical architecture diagrams rendered from version-controlled Mermaid source files. These are the engineering source of truth — diffable, auditable, and tied to releases.</p>
                 <p class="mb-3 arch-diagram-source"><i class="fas fa-code-compare"></i> Source: <code>docs/diagrams/*.mmd</code></p>
                 <div class="arch-diagram-grid">
-                    <div class="arch-diagram-card">
-                        <div class="arch-diagram-label"><i class="fas fa-diagram-project"></i> Intelligence Pipeline</div>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/intelligence-pipeline.svg" target="_blank" rel="noopener" title="Open full Intelligence Pipeline diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-diagram-project"></i> Intelligence Pipeline <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
                         <img src="{{staticVersionURL `/static/images/diagrams/intelligence-pipeline.svg`}}" alt="Intelligence pipeline diagram showing data flow from domain input through collection, ICIE analysis, privacy gate, to intelligence products" loading="lazy" width="1137" height="109">
-                    </div>
-                    <div class="arch-diagram-card">
-                        <div class="arch-diagram-label"><i class="fas fa-shield-halved"></i> Confidence Framework</div>
+                    </a>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/confidence-framework.svg" target="_blank" rel="noopener" title="Open full Confidence Framework diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-shield-halved"></i> Confidence Framework <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
                         <img src="{{staticVersionURL `/static/images/diagrams/confidence-framework.svg`}}" alt="Dual-engine confidence framework diagram showing ICIE output flowing through ICAE correctness audit and ICuAE currency audit to produce holistic confidence score" loading="lazy" width="863" height="505">
-                    </div>
-                    <div class="arch-diagram-card">
-                        <div class="arch-diagram-label"><i class="fas fa-code-compare"></i> Open-Core Architecture</div>
+                    </a>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/open-core-architecture.svg" target="_blank" rel="noopener" title="Open full Open-Core Architecture diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-code-compare"></i> Open-Core Architecture <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
                         <img src="{{staticVersionURL `/static/images/diagrams/open-core-architecture.svg`}}" alt="Open-core architecture diagram showing public open-source repository separated from private proprietary intelligence repository by build-tag isolation boundary" loading="lazy" width="466" height="762">
-                    </div>
-                    <div class="arch-diagram-card">
-                        <div class="arch-diagram-label"><i class="fas fa-network-wired"></i> Protocol Coverage</div>
+                    </a>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/protocol-coverage.svg" target="_blank" rel="noopener" title="Open full Protocol Coverage diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-network-wired"></i> Protocol Coverage <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
                         <img src="{{staticVersionURL `/static/images/diagrams/protocol-coverage.svg`}}" alt="Protocol coverage diagram showing nine RFC-defined security protocols organized into email authentication, transport security, and policy groups feeding into the ICIE engine" loading="lazy" width="554" height="610">
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
