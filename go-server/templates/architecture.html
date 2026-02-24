@@ -604,6 +604,16 @@
                         <div class="arch-flow-node-sub">Holistic assessment</div>
                     </div>
                 </div>
+                <div class="row g-3 mt-2 mb-3">
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><i class="fas fa-crosshairs me-1"></i>ICAE Bayesian Confidence Calibration</p>
+                        <div class="math-display" data-latex="C_{\text{cal}} = w \cdot C_{\text{raw}} + (1-w) \cdot \frac{\alpha}{\alpha+\beta}">$$C_{\text{cal}} = w \cdot C_{\text{raw}} + (1-w) \cdot \frac{\alpha}{\alpha+\beta}$$</div>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><i class="fas fa-chart-line me-1"></i>ICuAE EWMA Drift Detection</p>
+                        <div class="math-display" data-latex="Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1}">$$Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1}$$</div>
+                    </div>
+                </div>
                 <div class="arch-redacted-bar">
                     <i class="fas fa-lock arch-redacted-icon"></i>
                     <span>Test case inventories, scoring formulas, maturity thresholds, and tuning parameters redacted per TLP:GREEN policy</span>
@@ -850,5 +860,6 @@
         window.print();
     });
     </script>
+    {{template "math_copy_script" .}}
 </body>
 </html>

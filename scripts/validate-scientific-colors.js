@@ -74,6 +74,7 @@ class ScientificColorValidator {
     this.validateDTQuestionSystem();
     this.validateVerdictBadges();
     this.validateGlassOpacityRanges();
+    this.validateMathDisplay();
     this.validateCrossModeCoverage();
     return this.report();
   }
@@ -376,6 +377,38 @@ class ScientificColorValidator {
         }
       }
     });
+  }
+
+  validateMathDisplay() {
+    const hasMathDisplay = /\.math-display\s*\{/.test(this.css);
+    if (!hasMathDisplay) {
+      this.addFinding('error', 'MATH_DISPLAY',
+        '.math-display chalkboard treatment not defined', null,
+        'KaTeX display blocks require gradient bg + cobalt border');
+    }
+
+    const hasMathCopyBtn = /\.math-copy-btn\s*\{/.test(this.css);
+    if (!hasMathCopyBtn) {
+      this.addFinding('error', 'MATH_DISPLAY',
+        '.math-copy-btn not defined', null,
+        'Copy-to-clipboard button for math formulas');
+    }
+
+    const hasCovertMathDisplay = /body\.covert-mode\s+\.math-display/.test(this.css);
+    if (!hasCovertMathDisplay) {
+      this.addFinding('error', 'MATH_DISPLAY',
+        'Covert mode .math-display override not found', null,
+        'Math display blocks need red accent border in covert mode');
+    }
+
+    const hasPrintMathDisplay = /@media\s+print[\s\S]*?\.math-display/.test(this.css);
+    if (!hasPrintMathDisplay) {
+      this.addFinding('warn', 'MATH_DISPLAY',
+        'No @media print rule found for .math-display', null,
+        'Print stylesheet should use light background');
+    }
+
+    this.stats.tokensValidated += 4;
   }
 
   validateCrossModeCoverage() {

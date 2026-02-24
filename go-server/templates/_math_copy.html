@@ -1,0 +1,50 @@
+{{define "math_copy_script"}}
+<script nonce="{{.CspNonce}}">
+(function() {
+    var blocks = document.querySelectorAll('.math-display[data-latex]');
+    blocks.forEach(function(block) {
+        if (block.querySelector('.math-copy-btn')) return;
+        var btn = document.createElement('button');
+        btn.className = 'math-copy-btn';
+        btn.title = 'Copy LaTeX';
+        btn.setAttribute('aria-label', 'Copy LaTeX formula');
+        btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+        block.appendChild(btn);
+        btn.addEventListener('click', function() {
+            var latex = block.getAttribute('data-latex');
+            function showCopied() {
+                btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+                btn.classList.add('math-copy-btn--copied');
+                setTimeout(function() {
+                    btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+                    btn.classList.remove('math-copy-btn--copied');
+                }, 1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(latex).then(showCopied).catch(function() {
+                    var ta = document.createElement('textarea');
+                    ta.value = latex;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showCopied();
+                });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = latex;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showCopied();
+            }
+        });
+    });
+})();
+</script>
+{{end}}

@@ -4041,8 +4041,8 @@
         </div>
 
         {{if not .IsPublicSuffix}}
-        <div class="row mt-4">
-        <div class="col-12">
+        <div class="row section-subdomain-discovery mt-4" id="section-subdomains">
+        <div class="col-12 mb-4">
             <div class="card">
                 <div class="card-header d-flex align-items-center">
                     <h5 class="mb-0 flex-grow-1 d-flex align-items-center justify-content-between flex-wrap">
@@ -4415,8 +4415,8 @@
         </div>
         </div>
 {{else}}
-        <div class="row mt-4">
-        <div class="col-12">
+        <div class="row section-subdomain-discovery mt-4" id="section-subdomains">
+        <div class="col-12 mb-4">
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center">
@@ -4435,8 +4435,8 @@
 {{end}}
 
         <!-- Propagation Delta Summary -->
-        <div class="row mt-4 mb-3">
-            <div class="col-12">
+        <div class="row section-propagation-delta mt-4 mb-4" id="section-propagation">
+            <div class="col-12 mb-4">
                 {{$hasPropagating := false}}
                 {{if $propagation}}
                 {{range $rtype, $val := $propagation}}
@@ -4474,7 +4474,9 @@
         </div>
 
         <!-- DNS Intelligence Section Header -->
-        <div class="card bg-dark border-info mb-4">
+        <div class="row section-dns-intel-header mt-2">
+            <div class="col-12 mb-4">
+        <div class="card bg-dark border-info">
             <div class="card-body py-3">
                 <div class="d-flex align-items-center justify-content-between flex-wrap">
                     <div class="d-flex align-items-center">
@@ -4486,8 +4488,11 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
 
         <!-- DNS Diff Section - True Side-by-Side Comparison -->
+        <div class="row section-dns-diff" id="section-dns-diff">
         <div class="col-12 mb-4">
             <div class="card">
                 <div class="card-header">
@@ -4770,9 +4775,12 @@
                 </div>
             </div>
         </div>
+        </div>
 
         {{if .IntegrityHash}}
-        <div class="card border-info border-opacity-50 mt-4 u-bg-secondary" id="report-integrity">
+        <div class="row section-report-integrity mt-4">
+            <div class="col-12 mb-4">
+        <div class="card border-info border-opacity-50 u-bg-secondary" id="report-integrity">
             <div class="card-header">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                     <span><i class="fas fa-fingerprint me-2 u-color-info"></i>Verify Report Integrity
@@ -4798,10 +4806,14 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
         {{end}}
 
         {{if .AnalysisID}}
-        <div class="card border-danger border-opacity-50 mt-4 screen-only u-bg-secondary" id="download-verification">
+        <div class="row section-download-verify mt-2">
+            <div class="col-12 mb-4">
+        <div class="card border-danger border-opacity-50 screen-only u-bg-secondary" id="download-verification">
             <div class="card-header u-row-clickable">
                 <button type="button" class="btn btn-link w-100 text-start text-decoration-none p-0 border-0" data-bs-toggle="collapse" data-bs-target="#downloadVerificationBody" aria-expanded="false" aria-controls="downloadVerificationBody">
                     <div class="d-flex align-items-center justify-content-between">
@@ -4854,10 +4866,14 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
         {{end}}
 
         {{if .VerificationCommands}}
-        <div class="card border-danger border-opacity-50 mt-4 screen-only u-bg-secondary" id="verify-commands">
+        <div class="row section-verify-commands mt-2">
+            <div class="col-12 mb-4">
+        <div class="card border-danger border-opacity-50 screen-only u-bg-secondary" id="verify-commands">
             <div class="card-header u-row-clickable">
                 <button type="button" class="btn btn-link w-100 text-start text-decoration-none p-0 border-0 d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#verifyCommandsBody" aria-expanded="false" aria-controls="verifyCommandsBody">
                     <h5 class="mb-0 u-color-text-bright">
@@ -4895,6 +4911,8 @@
                         <i class="fas fa-info-circle me-1"></i>Commands use <code class="u-color-link">dig</code>, <code class="u-color-link">openssl</code>, and <code class="u-color-link">curl</code> &mdash; standard tools available on macOS, Linux, and WSL. Results may vary slightly due to DNS propagation timing and resolver caching.
                     </div>
                 </div>
+            </div>
+        </div>
             </div>
         </div>
         {{end}}

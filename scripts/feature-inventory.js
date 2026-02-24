@@ -236,7 +236,35 @@ if (resultsHtml) {
     'Protocol question spans must compose .dt-question');
 }
 
-// ── 9. CSS Minification ──────────────────────────────────────
+// ── 9. Math Display System ───────────────────────────────────
+console.log('\n── Math Display System ─────────────────────────────────────');
+check('.math-display class in CSS', css.includes('.math-display'),
+  'KaTeX chalkboard treatment must be defined');
+check('.math-copy-btn in CSS', css.includes('.math-copy-btn'),
+  'Copy button styling for math blocks');
+check('.math-copy-btn--copied in CSS', css.includes('.math-copy-btn--copied'),
+  'Copy success state styling');
+check('Covert mode .math-display', css.includes('body.covert-mode .math-display'),
+  'Red accent border in covert mode');
+const mathCopyPartial = read('go-server/templates/_math_copy.html');
+check('_math_copy.html partial exists', !!mathCopyPartial,
+  'Shared math copy-button script template');
+const archHtml = read('go-server/templates/architecture.html');
+if (archHtml) {
+  check('Architecture page has math-display blocks', archHtml.includes('class="math-display"'),
+    'Architecture dual-engine section needs KaTeX display formulas');
+  check('Architecture page loads math_copy_script', archHtml.includes('math_copy_script'),
+    'Architecture page should wire up copy buttons');
+}
+const confHtml = read('go-server/templates/confidence.html');
+if (confHtml) {
+  check('Confidence page has math-display blocks', confHtml.includes('class="math-display"'),
+    'Confidence page needs KaTeX display formulas');
+  check('Confidence page loads math_copy_script', confHtml.includes('math_copy_script'),
+    'Confidence page should wire up copy buttons');
+}
+
+// ── 10. CSS Minification ─────────────────────────────────────
 console.log('\n── CSS Minification ────────────────────────────────────────');
 const cssPath = path.join(ROOT, 'static/css/custom.css');
 const minPath = path.join(ROOT, 'static/css/custom.min.css');
