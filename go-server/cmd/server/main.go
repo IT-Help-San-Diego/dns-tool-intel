@@ -187,6 +187,10 @@ func main() {
         router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
         router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
 
+        probeAdminHandler := handlers.NewProbeAdminHandler(database, cfg)
+        router.GET("/ops/probes", middleware.RequireAdmin(), probeAdminHandler.ProbeDashboard)
+        router.POST("/ops/probes/:id/:action", middleware.RequireAdmin(), probeAdminHandler.RunProbeAction)
+
         analyticsHandler := handlers.NewAnalyticsHandler(database, cfg)
         router.GET("/ops/analytics", middleware.RequireAdmin(), analyticsHandler.Dashboard)
 
