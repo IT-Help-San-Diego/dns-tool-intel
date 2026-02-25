@@ -2154,6 +2154,15 @@ body.covert-mode {
     background-color: #0a0c10 !important;
     color: #b0b8c0;
 }
+body.covert-mode::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #ff0000;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+}
 body.covert-mode .navbar.bg-dark {
     background-color: #0e1015 !important;
     border-bottom: 1px solid rgba(140, 40, 40, 0.2);
