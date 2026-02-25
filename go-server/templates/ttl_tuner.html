@@ -313,8 +313,8 @@
                             </p>
                             <h3 class="h6 text-info mb-2"><i class="fas fa-tachometer-alt me-1" aria-hidden="true"></i>How TTLs Affect Page Load Speed</h3>
                             <p class="small mb-0">
-                                Every time a user visits your website, their browser performs a DNS lookup to find your server&rsquo;s IP address.
-                                If the TTL is too short, this lookup happens more often &mdash; adding 50&ndash;200ms per lookup.
+                                When a visitor&rsquo;s DNS cache expires, their browser performs a fresh DNS lookup to find your server&rsquo;s IP address.
+                                If the TTL is too short, that expiry happens more often &mdash; adding 50&ndash;200ms per fresh lookup.
                                 A TTL of 300s (5 min) means 288 lookups per day per resolver. A TTL of 3600s (1 hour) means just 24.
                                 That&rsquo;s <strong>92% fewer DNS queries</strong> and faster page loads for returning visitors.
                             </p>
