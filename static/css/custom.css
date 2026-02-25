@@ -2465,7 +2465,7 @@ body.covert-mode .intel-verdict {
     filter: none !important;
 }
 body.covert-mode .fw-semibold {
-    color: rgba(170, 178, 188, 0.55);
+    color: rgba(170, 178, 188, 0.55) !important;
 }
 body.covert-mode .code-block {
     background-color: rgba(10, 6, 6, 0.6) !important;
@@ -2737,19 +2737,27 @@ body.covert-mode .u-covert-beta-tag {
 }
 body.covert-mode .accordion-button {
     background-color: #111318 !important;
-    color: #b0b8c0 !important;
+    color: rgba(170, 178, 188, 0.50) !important;
     border-color: rgba(140, 40, 40, 0.12) !important;
+    box-shadow: none !important;
 }
 body.covert-mode .accordion-button:not(.collapsed) {
     background-color: rgba(140, 40, 40, 0.1) !important;
-    color: #cc2828 !important;
+    color: rgba(196, 60, 60, 0.7) !important;
+    box-shadow: none !important;
 }
 body.covert-mode .accordion-body {
     background-color: #0e1015 !important;
     border-color: rgba(140, 40, 40, 0.12) !important;
+    color: rgba(170, 178, 188, 0.45) !important;
+}
+body.covert-mode .accordion-item {
+    background-color: #0e1015 !important;
+    border-color: rgba(140, 40, 40, 0.12) !important;
 }
 body.covert-mode .accordion-button::after {
-    filter: hue-rotate(160deg) brightness(0.7);
+    filter: brightness(0.25) sepia(1) hue-rotate(-30deg) saturate(3);
+    opacity: 0.5;
 }
 body.covert-mode ::selection {
     background: rgba(196, 60, 60, 0.35);
@@ -2839,8 +2847,21 @@ html body.covert-mode .page-item.active .page-link {
     color: #cc2020 !important;
 }
 body.covert-mode h1,
-body.covert-mode .h3 {
-    color: rgba(170, 178, 188, 0.55);
+body.covert-mode h2,
+body.covert-mode h3,
+body.covert-mode h4,
+body.covert-mode h5,
+body.covert-mode h6,
+body.covert-mode .h1,
+body.covert-mode .h2,
+body.covert-mode .h3,
+body.covert-mode .h4,
+body.covert-mode .h5,
+body.covert-mode .h6 {
+    color: rgba(170, 178, 188, 0.55) !important;
+}
+body.covert-mode .card-title {
+    color: rgba(170, 178, 188, 0.50) !important;
 }
 body.covert-mode .history-table th {
     color: rgba(170, 178, 188, 0.45);
@@ -3124,8 +3145,8 @@ body.covert-mode .btn-close-white {
     filter: brightness(0.4) hue-rotate(160deg);
 }
 body.covert-mode .section-heading {
-    color: rgba(200, 180, 180, 0.55);
-    border-bottom-color: rgba(140, 40, 40, 0.12);
+    color: rgba(200, 180, 180, 0.55) !important;
+    border-bottom-color: rgba(140, 40, 40, 0.12) !important;
 }
 body.covert-mode .features-section .section-heading {
     color: rgba(200, 180, 180, 0.5);
