@@ -612,7 +612,7 @@
                                             <li class="mb-1">Google runs A records at ~30s because they operate a global anycast network and need to steer traffic dynamically. For a typical website without that infrastructure, copying those TTLs increases query volume with zero upside.</li>
                                             {{end}}
                                         </ul>
-                                        <a href="/ttl-tuner" class="btn btn-sm btn-outline-info"><i class="fas fa-sliders-h me-1"></i>Open TTL Tuner for Personalized Recommendations</a>
+                                        <a href="/ttl-tuner?domain={{.Domain}}" class="btn btn-sm btn-outline-info"><i class="fas fa-sliders-h me-1"></i>Tune TTL for {{.Domain}}</a>
                                     </div>
                                     <small class="text-muted d-block mt-2"><i class="fas fa-book me-1"></i>Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
                                     {{if .CurrencyReport.ProviderName}}
@@ -2227,6 +2227,12 @@
                                 {{range $issue := $draIssues}}
                                 <div class="text-warning small"><i class="fas fa-exclamation-triangle me-1"></i>{{$issue}}</div>
                                 {{end}}
+                                <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                                    <p class="small fw-semibold mb-1"><i class="fas fa-user-friends me-1 text-info"></i>Third-Party Action Required</p>
+                                    <p class="small text-muted mb-1">This authorization record must be created by the <strong>external reporting provider</strong>, not by you. Per RFC 7489 &sect;7.1, the receiving domain must publish a TXT record to confirm it accepts DMARC reports from your domain.</p>
+                                    <p class="small text-muted mb-1"><strong>What to do:</strong> Contact your DMARC reporting provider and ask them to publish the authorization TXT record shown above. If you use a managed DMARC service (e.g., Ondmarc, Dmarcian, Valimail), this is typically handled during onboarding &mdash; reach out to their support if the record is missing.</p>
+                                    <p class="small text-muted mb-0"><strong>Impact if unresolved:</strong> Compliant receivers may silently discard aggregate or forensic reports destined for the unauthorized address, reducing your DMARC visibility.</p>
+                                </div>
                                 {{end}}
                             </div>
                         </div>
