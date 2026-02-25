@@ -858,7 +858,7 @@
                                     <li><strong>RDAP registrar data</strong> &mdash; the public successor to WHOIS, served by IANA-accredited registries</li>
                                     <li><strong>Publicly accessible web resources</strong> &mdash; MTA-STS policy files, security.txt, robots.txt, and <span class="u-covert-hide">(if opted in) </span>well-known misconfiguration paths that any browser can visit</li>
                                 </ul>
-                                We do not access anything behind authentication, scan closed ports, or perform any action that requires special authorization. Every query we make is one you could reproduce yourself using the verification commands provided in each report.
+                                We do not access anything behind authentication, scan closed ports, or perform any action that requires special authorization. Every query we make is reproducible using the verification commands in each report.
                             </div>
                         </div>
                     </div>
@@ -871,9 +871,9 @@
                         </h3>
                         <div id="faq16" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                             <div class="accordion-body text-muted small">
-                                <strong>No.</strong> Penetration testing involves active exploitation attempts against systems, typically with written authorization from the system owner. Penetration testers attempt to bypass security controls, escalate privileges, and demonstrate real-world attack paths.
-                                <br><br>DNS Tool performs <strong>passive OSINT observation</strong>. We read publicly available DNS records, check publicly accessible URLs, and analyze the data. We do not attempt to exploit any vulnerability, bypass any access control, or interact with any system in a way that requires authorization.
-                                <br><br>Think of it this way: a penetration tester tries to break into your house. We look at whether your front door is locked &mdash; from the sidewalk.
+                                <strong>No.</strong> Penetration testing involves active exploitation attempts against systems with the owner&rsquo;s permission. Testers try to bypass security controls, escalate privileges, and map real-world attack paths.
+                                <br><br>DNS Tool performs <strong>passive OSINT observation</strong>: we read public DNS records, check publicly accessible URLs, and analyze the data. No vulnerabilities are exploited, and we don&rsquo;t interact with any system that requires authorization.
+                                <br><br>Think of it this way: a penetration tester tries to break into your house. We observe whether your front door is locked &mdash; from the sidewalk.
                             </div>
                         </div>
                     </div>
