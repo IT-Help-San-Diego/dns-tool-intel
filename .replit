@@ -7,7 +7,6 @@ packages = ["cacert", "chromium", "dnsutils", "freetype", "imagemagick", "lcms2"
 [deployment]
 deploymentTarget = "autoscale"
 run = ["sh", "-c", "./dns-tool-server"]
-build = ["sh", "-c", "bash build.sh"]
 
 [workflows]
 runButton = "Project"
