@@ -22,6 +22,7 @@ import (
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
         "dnstool/go-server/internal/scanner"
+        "dnstool/go-server/internal/unified"
 
         "github.com/gin-gonic/gin"
         "golang.org/x/crypto/sha3"
