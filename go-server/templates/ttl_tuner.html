@@ -46,61 +46,62 @@
                     Most DNS tools show you what your TTLs are. This one tells you what they should be, explains why, detects your provider&rsquo;s restrictions, and gives you exact copy-paste instructions to fix what&rsquo;s off.
                 </p>
             </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-7">
+                    <div class="search-card">
+                        <form method="POST" action="/ttl-tuner/analyze">
+                            <input type="hidden" name="_csrf" value="{{.CsrfToken}}">
+
+                            <label for="ttlDomain" class="form-label search-label">
+                                <i class="fas fa-search me-2" aria-hidden="true"></i>Domain
+                            </label>
+                            <div class="input-group input-group-lg search-input-group mb-3">
+                                <input type="text" class="form-control search-input" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Domain to analyze">
+                            </div>
+
+                            <label class="form-label search-label mb-2"><i class="fas fa-cog me-2" aria-hidden="true"></i>Optimization Profile</label>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
+                                    <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" role="button" style="cursor:pointer">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
+                                                <h3 class="h6 text-success mb-0">Stability</h3>
+                                                <span class="badge bg-success ms-auto">Recommended</span>
+                                            </div>
+                                            <p class="small text-muted mb-2">Longer TTLs, fewer DNS queries, faster page loads for returning visitors, slower propagation when records change.</p>
+                                            <p class="small mb-0"><strong>Best for:</strong> Production websites, corporate domains, email infrastructure &mdash; anything that doesn&rsquo;t change often. This is the right choice for most sites.</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
+                                    <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" role="button" style="cursor:pointer">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
+                                                <h3 class="h6 text-warning mb-0">Agility</h3>
+                                            </div>
+                                            <p class="small text-muted mb-2">Shorter TTLs, faster propagation when records change, more DNS queries per day, slightly slower repeat visits.</p>
+                                            <p class="small mb-0"><strong>Best for:</strong> Active migrations, failover architectures, load-balanced infrastructure, CI/CD pipelines that update DNS records frequently, or preparing for an IP change.</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-analyze btn-lg px-5"><i class="fas fa-sliders-h me-2" aria-hidden="true"></i>Analyze TTLs</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <div class="container pb-5">
-
-        <div class="card bg-dark border-info mb-4">
-            <div class="card-header bg-dark border-info">
-                <h2 class="h5 mb-0"><i class="fas fa-search me-2 text-info" aria-hidden="true"></i>Analyze Your Domain</h2>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="/ttl-tuner/analyze">
-                    <input type="hidden" name="_csrf" value="{{.CsrfToken}}">
-
-                    <div class="mb-3">
-                        <label for="ttlDomain" class="form-label fw-semibold"><i class="fas fa-globe me-1 text-info" aria-hidden="true"></i>Domain</label>
-                        <input type="text" class="form-control bg-dark text-light border-secondary search-input" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" spellcheck="false">
-                    </div>
-
-                    <label class="form-label fw-semibold mb-2"><i class="fas fa-cog me-1 text-info" aria-hidden="true"></i>Optimization Profile</label>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
-                            <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" role="button" style="cursor:pointer">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
-                                        <h3 class="h6 text-success mb-0">Stability</h3>
-                                        <span class="badge bg-success ms-auto">Recommended</span>
-                                    </div>
-                                    <p class="small text-muted mb-2">Longer TTLs, fewer DNS queries, faster page loads for returning visitors, slower propagation when records change.</p>
-                                    <p class="small mb-0"><strong>Best for:</strong> Production websites, corporate domains, email infrastructure &mdash; anything that doesn&rsquo;t change often. This is the right choice for most sites.</p>
-                                </div>
-                            </label>
-                        </div>
-                        <div class="col-md-6">
-                            <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
-                            <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" role="button" style="cursor:pointer">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
-                                        <h3 class="h6 text-warning mb-0">Agility</h3>
-                                    </div>
-                                    <p class="small text-muted mb-2">Shorter TTLs, faster propagation when records change, more DNS queries per day, slightly slower repeat visits.</p>
-                                    <p class="small mb-0"><strong>Best for:</strong> Active migrations, failover architectures, load-balanced infrastructure, CI/CD pipelines that update DNS records frequently, or preparing for an IP change.</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-analyze btn-lg px-5"><i class="fas fa-sliders-h me-2" aria-hidden="true"></i>Analyze TTLs</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         {{if .Error}}
         <div class="alert alert-danger" role="alert">
