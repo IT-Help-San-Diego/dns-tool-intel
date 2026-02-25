@@ -80,6 +80,12 @@ func resolveReportMode(c *gin.Context) string {
                 switch strings.ToUpper(mode) {
                 case "C":
                         return "C"
+                case "CZ":
+                        return "CZ"
+                case "Z":
+                        return "Z"
+                case "EC":
+                        return "EC"
                 case "B":
                         return "B"
                 default:
@@ -94,13 +100,17 @@ func resolveReportMode(c *gin.Context) string {
 
 func reportModeTemplate(mode string) string {
         switch mode {
-        case "C":
+        case "C", "CZ":
                 return "results_covert.html"
         case "B":
                 return "results_executive.html"
         default:
                 return "results.html"
         }
+}
+
+func isCovertMode(mode string) bool {
+        return mode == "C" || mode == "CZ" || mode == "EC"
 }
 
 func (h *AnalysisHandler) ViewAnalysisStatic(c *gin.Context) {
@@ -146,6 +156,14 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         if results == nil {
                 h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, "danger", "Failed to parse results")
                 return
+        }
+
+        if dnsclient.IsTLDInput(analysis.AsciiDomain) {
+                if mode == "E" {
+                        mode = "Z"
+                } else if mode == "C" {
+                        mode = "CZ"
+                }
         }
 
         waitSeconds, _ := strconv.Atoi(c.Query("wait_seconds"))
@@ -199,7 +217,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                 "ReportMode":           mode,
         }
         h.enrichViewDataMetrics(ctx, viewData, results, analysis.Domain, analysis.ID)
-        viewData["CovertMode"] = mode == "C"
+        viewData["CovertMode"] = isCovertMode(mode)
 
         mergeAuthData(c, h.Config, viewData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), viewData)
@@ -314,8 +332,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         })
 
         applyDevNullHeaders(c, devNull)
-        mode := resolveCovertMode(c)
-        analyzeData["CovertMode"] = mode == "C"
+        mode := resolveCovertMode(c, asciiDomain)
+        analyzeData["CovertMode"] = isCovertMode(mode)
         analyzeData["ReportMode"] = mode
 
         mergeAuthData(c, h.Config, analyzeData)
@@ -342,9 +360,17 @@ func applyDevNullHeaders(c *gin.Context, devNull bool) {
         }
 }
 
-func resolveCovertMode(c *gin.Context) string {
-        if c.PostForm("covert") == "1" || c.Query("covert") == "1" {
+func resolveCovertMode(c *gin.Context, asciiDomain string) string {
+        covert := c.PostForm("covert") == "1" || c.Query("covert") == "1"
+        isTLD := dnsclient.IsTLDInput(asciiDomain)
+        if covert && isTLD {
+                return "CZ"
+        }
+        if covert {
                 return "C"
+        }
+        if isTLD {
+                return "Z"
         }
         return "E"
 }

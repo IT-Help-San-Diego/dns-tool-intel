@@ -630,8 +630,8 @@
                         </ul>
                     </div>
                     <div class="btn-group">
-                        <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-outline-info" title="View Engineer's DNS Intelligence Report">
-                            <i class="fas fa-file-lines me-1"></i>Engineer
+                        <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}" class="btn btn-outline-info" title="{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}">
+                            <i class="fas fa-file-lines me-1"></i>{{if .IsTLD}}Zone Health{{else}}Engineer{{end}}
                         </a>
                         <button type="button" id="execPrintBtn" class="btn btn-warning active" title="Print this Executive's DNS Intelligence Brief">
                             <i class="fas fa-print me-1"></i>Print
@@ -1586,7 +1586,7 @@
                 <div class="card-body">
                     <p class="mb-2">Full technical details including raw DNS records, DKIM public keys, IP/ASN mappings, resolver consensus evidence, and verification commands are available in the Engineer's DNS Intelligence Report.</p>
                     <p class="mb-0">
-                        <a href="/analysis/{{.AnalysisID}}/view/E"><i class="fas fa-external-link-alt me-1"></i>View Engineer's DNS Intelligence Report</a>
+                        <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}"><i class="fas fa-external-link-alt me-1"></i>{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}</a>
                     </p>
                 </div>
             </div>

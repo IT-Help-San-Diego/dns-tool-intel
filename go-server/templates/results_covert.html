@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-sm btn-outline-secondary text-nowrap u-covert-exit-btn">
+                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-sm btn-outline-secondary text-nowrap u-covert-exit-btn">
                     <i class="fas fa-eye me-1"></i>Exit Covert Mode
                 </a>
                 {{end}}
@@ -123,8 +123,8 @@
             </div>
             <div class="results-header-actions">
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view/E" class="btn btn-outline-info me-2" title="View the full Engineer's DNS Intelligence Report">
-                    <i class="fas fa-file-alt me-1"></i>Engineer's
+                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-outline-info me-2" title="{{if .IsPublicSuffix}}View the Zone Health Report{{else}}View the full Engineer's DNS Intelligence Report{{end}}">
+                    <i class="fas fa-file-alt me-1"></i>{{if .IsPublicSuffix}}Zone Health{{else}}Engineer's{{end}}
                 </a>
                 {{end}}
                 <button type="button" class="btn btn-outline-info me-2" id="printReportBtn" title="Print this Recon Report">
