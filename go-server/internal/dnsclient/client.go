@@ -255,14 +255,33 @@ func (c *Client) QueryDNS(ctx context.Context, recordType, domain string) []stri
                 return results
         }
 
+        results = c.parallelUDPQuery(ctx, domain, recordType)
+        if len(results) > 0 {
+                c.cacheSet(cacheKey, results)
+        }
+        return results
+}
+
+func (c *Client) parallelUDPQuery(ctx context.Context, domain, recordType string) []string {
+        type udpResult struct {
+                records []string
+        }
+        ch := make(chan udpResult, len(c.resolvers))
+        qctx, cancel := context.WithTimeout(ctx, defaultLifetime)
+        defer cancel()
+
         for _, resolver := range c.resolvers {
-                results = c.udpQuery(ctx, domain, recordType, resolver.IP)
-                if len(results) > 0 {
-                        c.cacheSet(cacheKey, results)
-                        return results
-                }
+                go func(ip string) {
+                        ch <- udpResult{records: c.udpQuery(qctx, domain, recordType, ip)}
+                }(resolver.IP)
         }
 
+        for range c.resolvers {
+                r := <-ch
+                if len(r.records) > 0 {
+                        return r.records
+                }
+        }
         return nil
 }
 
@@ -276,13 +295,26 @@ func (c *Client) QueryDNSWithTTL(ctx context.Context, recordType, domain string)
                 return result
         }
 
+        return c.parallelUDPQueryWithTTL(ctx, domain, recordType)
+}
+
+func (c *Client) parallelUDPQueryWithTTL(ctx context.Context, domain, recordType string) RecordWithTTL {
+        ch := make(chan RecordWithTTL, len(c.resolvers))
+        qctx, cancel := context.WithTimeout(ctx, defaultLifetime)
+        defer cancel()
+
         for _, resolver := range c.resolvers {
-                result = c.udpQueryWithTTL(ctx, domain, recordType, resolver.IP)
-                if len(result.Records) > 0 {
-                        return result
-                }
+                go func(ip string) {
+                        ch <- c.udpQueryWithTTL(qctx, domain, recordType, ip)
+                }(resolver.IP)
         }
 
+        for range c.resolvers {
+                r := <-ch
+                if len(r.Records) > 0 {
+                        return r
+                }
+        }
         return RecordWithTTL{}
 }
 

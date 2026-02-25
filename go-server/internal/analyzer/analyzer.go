@@ -70,8 +70,8 @@ func New(opts ...Option) *Analyzer {
                 RDAPCache:     telemetry.NewTTLCache[map[string]any]("rdap", 500, 24*time.Hour),
                 ctCache:       make(map[string]ctCacheEntry),
                 ctCacheTTL:    1 * time.Hour,
-                maxConcurrent: 6,
-                semaphore:     make(chan struct{}, 6),
+                maxConcurrent: 12,
+                semaphore:     make(chan struct{}, 12),
         }
         for _, o := range opts {
                 o(a)
