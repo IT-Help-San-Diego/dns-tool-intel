@@ -537,9 +537,9 @@
                                                 <tr>
                                                     <th scope="col">Record Type</th>
                                                     <th scope="col">Observed TTL</th>
-                                                    <th scope="col">Recommended TTL</th>
+                                                    <th scope="col">Typical TTL</th>
                                                     <th scope="col">Severity</th>
-                                                    <th scope="col">Recommendation</th>
+                                                    <th scope="col">Context</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -562,11 +562,27 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <small class="text-muted d-block mt-2"><i class="fas fa-book me-1"></i>Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale)</small>
+                                    <div class="mt-3 p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                                        <p class="fw-semibold small mb-2"><i class="fas fa-compass me-2 text-info"></i>Big Picture Questions</p>
+                                        <ul class="small text-muted mb-2">
+                                            {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
+                                            <li class="mb-1">This domain runs short TTLs across multiple record types. Does it operate a global anycast network where DNS-based traffic steering justifies the query volume?</li>
+                                            <li class="mb-1">Are the short TTLs enabling active failover, geographic routing, or load distribution &mdash; or are they leftover from a migration that was never reverted?</li>
+                                            <li class="mb-1">Enterprise-grade DNS infrastructure (sub-5ms authoritative response times, globally distributed nameservers) absorbs short-TTL query volume. Would your authoritative DNS handle the same load?</li>
+                                            {{else}}
+                                            <li class="mb-1">How often do you actually change this record? If it hasn&rsquo;t changed in months, a short TTL is generating unnecessary DNS queries without any benefit.</li>
+                                            <li class="mb-1">Are you preparing for a migration or IP change? Short TTLs make sense temporarily &mdash; but should be raised back to 1 hour (3600s) once the change is complete.</li>
+                                            <li class="mb-1">Every DNS lookup adds 20&ndash;150ms of latency. With a 60s TTL, returning visitors trigger a fresh lookup every minute. With 3600s, they get cached responses for an hour &mdash; faster page loads, no extra infrastructure needed.</li>
+                                            <li class="mb-1">Google runs A records at ~30s because they operate a global anycast network and need to steer traffic dynamically. For a typical website without that infrastructure, copying those TTLs increases query volume with zero upside.</li>
+                                            {{end}}
+                                        </ul>
+                                        <a href="/ttl-tuner" class="btn btn-sm btn-outline-info"><i class="fas fa-sliders-h me-1"></i>Open TTL Tuner for Personalized Recommendations</a>
+                                    </div>
+                                    <small class="text-muted d-block mt-2"><i class="fas fa-book me-1"></i>Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
                                     {{if .CurrencyReport.ProviderName}}
                                     <small class="text-muted d-block mt-1"><i class="fas fa-building me-1"></i>DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
                                     {{else if not .IsPublicSuffix}}
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-exclamation-circle me-1"></i>Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a recommendation targets a record you cannot edit, the finding reflects the observed value rather than a configuration error on your part.</small>
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-exclamation-circle me-1"></i>Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a finding targets a record you cannot edit, it reflects the observed value rather than a configuration error on your part.</small>
                                     {{end}}
                                 </div>
                             </div>

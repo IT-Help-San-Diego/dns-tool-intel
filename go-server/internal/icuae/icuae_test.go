@@ -217,7 +217,7 @@ func TestEvaluateSourceCredibility_Empty(t *testing.T) {
 }
 
 func TestEvaluateTTLRelevance_AllNormal(t *testing.T) {
-        ttls := map[string]uint32{"A": 300, "MX": 3600, "NS": 86400}
+        ttls := map[string]uint32{"A": 3600, "MX": 3600, "NS": 86400}
         result := EvaluateTTLRelevance(ttls)
         if result.Score != 100 {
                 t.Errorf("all normal: expected 100, got %.1f", result.Score)
@@ -225,10 +225,10 @@ func TestEvaluateTTLRelevance_AllNormal(t *testing.T) {
 }
 
 func TestEvaluateTTLRelevance_SlightlyOff(t *testing.T) {
-        ttls := map[string]uint32{"A": 150}
+        ttls := map[string]uint32{"A": 1800}
         result := EvaluateTTLRelevance(ttls)
         if result.Score != 100 {
-                t.Errorf("A=150 (ratio 0.5): expected 100, got %.1f", result.Score)
+                t.Errorf("A=1800 (ratio 0.5): expected 100, got %.1f", result.Score)
         }
 }
 
@@ -257,11 +257,11 @@ func TestEvaluateTTLRelevance_Empty(t *testing.T) {
 
 func TestBuildCurrencyReport_Integration(t *testing.T) {
         records := []RecordCurrency{
-                {RecordType: "A", ObservedTTL: 300, DataAgeS: 100},
+                {RecordType: "A", ObservedTTL: 3600, DataAgeS: 100},
                 {RecordType: "MX", ObservedTTL: 3600, DataAgeS: 1000},
         }
-        resolver := map[string]uint32{"A": 300, "MX": 3600}
-        auth := map[string]uint32{"A": 300, "MX": 3600}
+        resolver := map[string]uint32{"A": 3600, "MX": 3600}
+        auth := map[string]uint32{"A": 3600, "MX": 3600}
         observed := map[string]bool{"A": true, "MX": true}
         agreements := []ResolverAgreement{
                 {RecordType: "A", AgreeCount: 5, TotalResolvers: 5, Unanimous: true},
@@ -415,7 +415,7 @@ func TestEvaluateTTLRelevance_UnknownRecordType(t *testing.T) {
 }
 
 func TestEvaluateTTLRelevance_FindingsGenerated(t *testing.T) {
-        ttls := map[string]uint32{"MX": 300, "A": 300, "NS": 86400}
+        ttls := map[string]uint32{"MX": 300, "A": 3600, "NS": 86400}
         result := EvaluateTTLRelevance(ttls)
         if len(result.Findings) == 0 {
                 t.Fatal("expected findings for MX=300 (typical 3600, ratio 0.083)")
@@ -447,7 +447,7 @@ func TestEvaluateTTLRelevance_FindingsGenerated(t *testing.T) {
 }
 
 func TestEvaluateTTLRelevance_NoFindingsWhenCompliant(t *testing.T) {
-        ttls := map[string]uint32{"A": 300, "MX": 3600, "NS": 86400}
+        ttls := map[string]uint32{"A": 3600, "MX": 3600, "NS": 86400}
         result := EvaluateTTLRelevance(ttls)
         if len(result.Findings) != 0 {
                 t.Errorf("expected 0 findings for compliant TTLs, got %d", len(result.Findings))

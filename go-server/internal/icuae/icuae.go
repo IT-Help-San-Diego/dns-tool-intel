@@ -266,9 +266,15 @@ type ResolverAgreement struct {
         Unanimous     bool   `json:"unanimous"`
 }
 
+// typicalTTLs are the baseline TTLs for ICuAE TTL Relevance scoring.
+// These represent what a well-configured production domain SHOULD use
+// (aligned with the TTL Tuner Stability profile and RFC 1912 guidance).
+// NOTE: analyzer/currency.go has a SEPARATE typicalTTLs map at A/AAAA=300
+// for rescan/data-freshness timing — that reflects what is commonly OBSERVED
+// in the wild (dominated by CDN defaults). The two maps serve different purposes.
 var typicalTTLs = map[string]uint32{
-        "A":       300,
-        "AAAA":    300,
+        "A":       3600,
+        "AAAA":    3600,
         "MX":      3600,
         "TXT":     3600,
         "NS":      86400,
