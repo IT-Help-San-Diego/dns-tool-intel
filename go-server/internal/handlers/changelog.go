@@ -64,6 +64,13 @@ const (
         ver262076 = "26.20.76"
 
         iconShieldAlt = "fas fa-shield-alt"
+
+        catIntelligence  = "Intelligence"
+        catSecurity      = "Security"
+        catTransparency  = "Transparency"
+        catBrand         = "Brand"
+        catOrigins       = "Origins"
+        catCore          = "Core"
 )
 
 type ChangelogEntry struct {
@@ -114,7 +121,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262225,
                         Date:        dateFeb21,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Misplaced DMARC Record Detection",
                         Description: "New post-analysis enrichment detects DMARC records incorrectly published at the root domain instead of the required _dmarc subdomain (RFC 7489 §6.1). DetectMisplacedDMARC scans root TXT records for v=DMARC1 patterns with case-insensitive matching, extracts the policy, and surfaces the misconfiguration in the report with specific remediation guidance. Four deterministic golden test cases validate detection accuracy.",
                         Icon:        "fas fa-crosshairs",
@@ -138,7 +145,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262225,
                         Date:        dateFeb21,
-                        Category:    "Brand",
+                        Category:    catBrand,
                         Title:       "Origin Story Page",
                         Description: "New /about page documenting the authentic origin story: Memphis 1980 Radio Shack build, Nashville IT career, Raspberry Pi breakthrough, PhreakNIC Hackintosh demo, Hak5 offensive security era, 2015-2024 defensive security pivot with Objective-See and CISA Remote Penetration Test (Jan 2022), Python CLI field tool with Snap Store publication (Nov 2023), and the February 2025 Go platform launch. Includes acknowledgments section crediting early collaborators and linked verifiable references (Nmap 7.94 changelog, Hak5 Payload Award, Raspberry Pi forum post).",
                         Icon:        "fas fa-book-open",
@@ -154,7 +161,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262088,
                         Date:        dateFeb19,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Authenticated Multi-Port SMTP Probe API",
                         Description: "Remote probe infrastructure upgraded to API v2 with shared-secret authentication, rate limiting (30 requests per 60 seconds per IP), and multi-port mail transport probing across ports 25 (SMTP), 465 (SMTPS), and 587 (submission). Banner capture provides additional server intelligence fingerprinting. Graceful fallback on 401 or 429 responses.",
                         Icon:        "fas fa-satellite-dish",
@@ -186,7 +193,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.85",
                         Date:        dateFeb19,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Admin Bootstrap Fix (PromoteUserToAdmin)",
                         Description: "Fixed admin bootstrap for existing users. When INITIAL_ADMIN_EMAIL matches an already-registered user and zero admins exist, the system now calls PromoteUserToAdmin to upgrade their role. Previously, UpsertUser preserved the existing role, silently skipping the bootstrap. Audit-logged with reason and email.",
                         Icon:        "fas fa-user-shield",
@@ -202,7 +209,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.87",
                         Date:        dateFeb19,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Remote SMTP Probe Infrastructure",
                         Description: "Deployed dedicated probe server (probe-us-01.dns-observe.com) for live SMTP transport verification. Cloud platforms block outbound port 25 — the probe server has unrestricted access for direct STARTTLS handshakes, certificate chain validation, and cipher suite inspection. Falls back gracefully when probe is unavailable.",
                         Icon:        "fas fa-server",
@@ -218,7 +225,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262076,
                         Date:        dateFeb19,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "DNS Library v2 Migration (miekg/dns)",
                         Description: "Migrated from github.com/miekg/dns v1.1.72 to codeberg.org/miekg/dns v0.6.52 (v2). The v1 library is archived on GitHub; v2 is actively maintained on Codeberg with improved performance and modern API. Four source files updated with new Exchange, RR data access, and EDNS0 patterns. Aligns with Codeberg-canonical hosting strategy.",
                         Icon:        "fas fa-bolt",
@@ -242,7 +249,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.71",
                         Date:        dateFeb19,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Brand Security Verdict Matrix Overhaul",
                         Description: "Corrected the brand impersonation verdict logic. DMARC reject alone blocks email spoofing (RFC 7489 §6.3) but not visual impersonation via lookalike domains or unrestricted certificate issuance. New 8-branch verdict matrix considers DMARC policy + BIMI brand verification + CAA certificate restriction (RFC 8659 §4). Expanded from 5 to 8 golden rule test cases.",
                         Icon:        "fas fa-check-double",
@@ -250,7 +257,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.70",
                         Date:        dateFeb19,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "DKIM Selector Expansion (81+ Selectors)",
                         Description: "Expanded default DKIM selector list from 39 to 81+ selectors covering major ESPs: HubSpot, Salesforce, Klaviyo, Intercom, ActiveCampaign, Constant Contact, MailerLite, Drip, Customer.io, Freshdesk, and more. Enhanced provider-to-selector inference from SPF/MX records. Privacy mode classification updated for expanded known-selector list.",
                         Icon:        "fas fa-key",
@@ -258,7 +265,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.56",
                         Date:        dateFeb18,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Google OAuth 2.0 + PKCE Authentication",
                         Description: "Pure stdlib Google OAuth 2.0 implementation with PKCE (Proof Key for Code Exchange) — no external OAuth libraries. Advanced Protection compatible. Email verification enforced, ID token claims validated, rate-limited auth endpoints, no tokens stored server-side. One-time admin bootstrap via INITIAL_ADMIN_EMAIL. Route protection for sensitive endpoints (/export/json requires admin). All analysis remains no-login-required.",
                         Icon:        "fas fa-user-shield",
@@ -266,7 +273,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.19.43",
                         Date:        dateFeb18,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Security Redaction & Mission Statement",
                         Description: "Comprehensive security audit: removed server version exposure from HTTP headers, redacted internal paths from error responses, hardened SSRF prevention for internal IP ranges. Added mission statement to the Security Policy page defining scope, principles, and responsible disclosure process.",
                         Icon:        "fas fa-lock",
@@ -290,7 +297,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.17.2",
                         Date:        dateFeb15,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "CSP Compliance & XSS Hardening",
                         Description: "Eliminated all inline style attributes from Engineer and Executive report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes (u-print-hash, u-ls-tight, u-fs-072rem-lh15, u-fs-078rem-break, u-hash-label, etc.). DNS history table rendering refactored from innerHTML string concatenation to safe DOM methods (createElement + textContent + appendChild), eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
                         Icon:        iconShieldAlt,
@@ -298,7 +305,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.17.1",
                         Date:        dateFeb15,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Expanded Exposure Checks (Opt-In)",
                         Description: "New opt-in OSINT exposure scanner checks 8 well-known misconfiguration paths (/.env, /.git/config, /.git/HEAD, /.DS_Store, /server-status, /server-info, /wp-config.php.bak, /phpinfo.php) on target domains. Content validation reduces false positives — each path is checked for characteristic content, not just HTTP 200 status. Sequential requests with 200ms delays and proper User-Agent identification. Results include severity badges, risk descriptions, and specific remediation guidance. Explicit PCI DSS disclaimer: these are OSINT collection, not ASV compliance scans.",
                         Icon:        "fas fa-search",
@@ -314,7 +321,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.16.11",
                         Date:        dateFeb15,
-                        Category:    "Brand",
+                        Category:    catBrand,
                         Title:       "Intelligence Document Naming Convention",
                         Description: "Adopted IC (Intelligence Community) document naming: Engineer's DNS Intelligence Report (comprehensive, like a National Intelligence Estimate) and Executive's DNS Intelligence Brief (concise, like a Presidential Daily Brief). Possessive form signals personal ownership. 'DNS Intelligence' avoids MI5 brand conflict. Updated all title tags, print headers, screen headers, OG/Twitter meta, and JSON-LD schema. Homepage hero subtitle now explicitly references both intelligence products.",
                         Icon:        "fas fa-file-alt",
@@ -322,7 +329,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.16.10",
                         Date:        dateFeb15,
-                        Category:    "Brand",
+                        Category:    catBrand,
                         Title:       "Sophistication Accent Tokens & Color Flow",
                         Description: "Added steel-blue (#7d8ea8) and deep navy (#1e3a5f) brand accent tokens for premium intelligence aesthetic. Color flow continuity from homepage through results pages via gradients, borders, and card hover effects. Hero typography upgraded to 3.5rem/800 weight with tighter tracking. All non-status visual elements use brand accents while RFC/CVSS status colors remain untouched.",
                         Icon:        "fas fa-palette",
@@ -346,7 +353,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.15.25",
                         Date:        dateFeb15,
-                        Category:    "Transparency",
+                        Category:    catTransparency,
                         Title:       "OpenPhish Threat Intelligence Attribution",
                         Description: "Added OpenPhish Community Feed to the Intelligence Sources page with its own Threat Intelligence category. Added OpenPhish attribution to the Email Header Analyzer trust bar and body analysis results. Proper credit for the free community phishing URL feed that powers our phishing detection.",
                         Icon:        "fas fa-fish",
@@ -370,7 +377,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.14.6",
                         Date:        dateFeb12,
-                        Category:    "Transparency",
+                        Category:    catTransparency,
                         Title:       "Intelligence Sources Inventory",
                         Description: "New /sources page documents every intelligence source used by DNS Tool — DNS resolvers, reverse DNS, Team Cymru ASN attribution, SMTP probing, SecurityTrails, crt.sh, IANA RDAP — with methodology, rate limits, and verification commands. No black boxes.",
                         Icon:        "fas fa-satellite-dish",
@@ -378,7 +385,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.14.5",
                         Date:        dateFeb12,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "PTR-Based Hosting Detection",
                         Description: "Reverse DNS (PTR) lookups now identify hosting providers directly from IP addresses — the classic Unix-era technique. CloudFront, AWS, Google Cloud, Azure, and more detected without any third-party API.",
                         Icon:        "fas fa-undo-alt",
@@ -386,7 +393,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.14.4",
                         Date:        dateFeb12,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "IP-to-ASN Attribution",
                         Description: "Team Cymru DNS-based IP-to-ASN mapping identifies which organization owns each IP address (AWS, Cloudflare, Google, etc.). Free community service with no API key and no rate limits.",
                         Icon:        "fas fa-map-marked-alt",
@@ -394,7 +401,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.14.3",
                         Date:        dateFeb11,
-                        Category:    "Transparency",
+                        Category:    catTransparency,
                         Title:       "Incident Disclosure: Inaccurate Analysis Output",
                         Description: "A data-processing issue caused some reports to display incorrect analysis results. The root cause has been identified and fixed, and safeguards have been added so incomplete or failed data retrieval can never be silently presented as valid results. We believe in full transparency — you deserve to know when we get it wrong.",
                         Icon:        "fas fa-exclamation-triangle",
@@ -403,7 +410,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.14.2",
                         Date:        dateFeb11,
-                        Category:    "Transparency",
+                        Category:    catTransparency,
                         Title:       "Honest Data Reporting",
                         Description: "When third-party data sources are rate-limited or unavailable, reports now say exactly that — never claiming 'no changes detected' when the data simply couldn't be checked. Four clear states: success, rate-limited, error, and partial.",
                         Icon:        "fas fa-gavel",
@@ -419,7 +426,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.7",
                         Date:        dateFeb13,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Verify It Yourself",
                         Description: "Each report now includes terminal commands (dig, openssl, curl) to independently verify the underlying DNS queries. Our analysis adds consensus and RFC evaluation on top — but the raw data is always verifiable.",
                         Icon:        "fas fa-laptop-code",
@@ -427,7 +434,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.6",
                         Date:        dateFeb13,
-                        Category:    "Transparency",
+                        Category:    catTransparency,
                         Title:       "Confidence Indicators",
                         Description: "Every attribution now shows whether data was directly observed (RDAP lookup, DNS record), inferred (pattern matching), or sourced from a third party — so you know exactly how each conclusion was reached.",
                         Icon:        "fas fa-eye",
@@ -435,7 +442,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.5",
                         Date:        dateFeb13,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "SMTP Transport Verification",
                         Description: "Live STARTTLS probing of mail servers with certificate validation, cipher suite analysis, and TLS version checking. DNS-inferred fallback when direct connection is unavailable.",
                         Icon:        "fas fa-lock",
@@ -443,7 +450,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.4",
                         Date:        dateFeb13,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "AI Surface Scanner",
                         Description: "Detects AI governance signals across domains — llms.txt discovery, AI crawler policies in robots.txt, and prompt injection artifacts. Helps organizations understand their AI exposure.",
                         Icon:        "fas fa-robot",
@@ -451,7 +458,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.3",
                         Date:        dateFeb13,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "DNS History Timeline",
                         Description: "SecurityTrails-powered historical DNS record tracking shows how a domain's DNS configuration has changed over time. Users provide their own API key — never stored server-side.",
                         Icon:        "fas fa-clock",
@@ -467,7 +474,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.13.1",
                         Date:        dateFeb13,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Email Security Management Detection",
                         Description: "Automatic identification of DMARC monitoring providers, SPF flattening services, and TLS-RPT reporting platforms from DNS records.",
                         Icon:        "fas fa-envelope",
@@ -483,7 +490,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.12.1",
                         Date:        dateFeb12,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "Go Performance Rewrite",
                         Description: "Complete rewrite from Python/Flask to Go/Gin for dramatically improved performance and concurrency. Multi-resolver consensus DNS client with DoH fallback. The second attempt at Go — this time it stuck.",
                         Icon:        "fas fa-bolt",
@@ -491,7 +498,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.12.0",
                         Date:        dateFeb12,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "IP Investigation Workflow",
                         Description: "New /investigate page for IP-to-domain reverse lookups with ASN attribution, hosting provider detection, and infrastructure mapping.",
                         Icon:        "fas fa-search-location",
@@ -499,7 +506,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.12.E",
                         Date:        dateFeb12,
-                        Category:    "Intelligence",
+                        Category:    catIntelligence,
                         Title:       "Email Header Analyzer",
                         Description: "Paste or upload .eml files for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, and phishing pattern scanning with critical thinking prompts.",
                         Icon:        "fas fa-envelope-open-text",
@@ -507,7 +514,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.12.D",
                         Date:        dateFeb12,
-                        Category:    "Security",
+                        Category:    catSecurity,
                         Title:       "Enterprise DNS Detection & Golden Rules",
                         Description: "Automatic identification of enterprise-grade DNS providers with test-guarded detection. Legacy provider blocklist prevents false enterprise tagging. Protected by automated golden rules tests.",
                         Icon:        "fas fa-building",
@@ -520,7 +527,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "26.1.0",
                         Date:        dateJan22,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "Python Web App: Registrar & Hosting Intelligence",
                         Description: "Major development sprint added RDAP-based registrar detection, hosting provider identification, parallel DNS lookups, and authoritative nameserver queries. The Python/Flask web app grew from basic DNS lookups into a real analysis platform.",
                         Icon:        "fas fa-code",
@@ -529,7 +536,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "25.11.1",
                         Date:        dateNov05,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "Web App Revival: DoH & Grid Layout",
                         Description: "Returned to the web app after five months. Reset the database, switched to Google's DNS-over-HTTPS for reliability, and reorganized the results into a clean grid layout. The foundation for everything that followed.",
                         Icon:        "fas fa-th",
@@ -538,7 +545,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "25.6.1",
                         Date:        dateJun05,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "First Web App: Python/Flask on Replit",
                         Description: "DNS Tool became a web application. Built with Python and Flask on Replit — DNS-over-HTTPS queries, PostgreSQL database for scan history, statistics page, and the first version of the analysis results UI. The beginning of dnstool.it-help.tech.",
                         Icon:        "fas fa-globe",
@@ -547,7 +554,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "25.5.2",
                         Date:        dateMay24,
-                        Category:    "Core",
+                        Category:    catCore,
                         Title:       "CLI Tool: Build System & Quality",
                         Description: "Added reproducible Makefile builds, SonarCloud code quality integration, and archived the working CLI version. The tool was maturing, but the vision was shifting toward a web platform.",
                         Icon:        "fas fa-hammer",
@@ -556,7 +563,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "25.5.1",
                         Date:        dateMay18,
-                        Category:    "Origins",
+                        Category:    catOrigins,
                         Title:       "New Name, New Repo: DNS Tool",
                         Description: "DNS Scout was renamed to DNS Tool and given a fresh GitHub repository. Python CLI with terminal output, visual indicators, interactive and batch modes, pre-compiled binaries for Linux, macOS, and Windows. Documentation, FAQ, and changelog from day one.",
                         Icon:        "fas fa-terminal",
@@ -565,7 +572,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "23.11.1",
                         Date:        dateNov23,
-                        Category:    "Origins",
+                        Category:    catOrigins,
                         Title:       "DNS Scout: Snap & Launchpad Release",
                         Description: "DNS Scout v6.20 published to Launchpad PPA and Snapcraft — the first packaged, installable release. A working DNS security analysis tool available as a .deb and a Snap. The earliest externally verifiable timestamp of the project.",
                         Icon:        "fas fa-box",
@@ -574,7 +581,7 @@ func GetLegacyChangelog() []ChangelogEntry {
                 {
                         Version:     "19.0.0",
                         Date:        date2019,
-                        Category:    "Origins",
+                        Category:    catOrigins,
                         Title:       "DNS Scout Is Born",
                         Description: "The project that became DNS Tool started life as DNS Scout — a command-line DNS and email security analysis tool. The seed of an idea: transparent, RFC-compliant domain intelligence with no black boxes.",
                         Icon:        "fas fa-birthday-cake",

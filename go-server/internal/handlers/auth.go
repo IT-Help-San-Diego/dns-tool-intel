@@ -330,55 +330,76 @@ func (h *AuthHandler) validateIDTokenClaims(tokenData map[string]any, expectedNo
                 return nil
         }
 
+        claims, err := parseIDTokenPayload(idTokenStr)
+        if err != nil {
+                return err
+        }
+
+        if err := validateIDTokenIssuerAndAudience(claims, h.Config.GoogleClientID); err != nil {
+                return err
+        }
+
+        if err := validateIDTokenTiming(claims); err != nil {
+                return err
+        }
+
+        return validateIDTokenNonce(claims, expectedNonce)
+}
+
+func parseIDTokenPayload(idTokenStr string) (map[string]any, error) {
         parts := strings.SplitN(idTokenStr, ".", 3)
         if len(parts) != 3 {
-                return fmt.Errorf("malformed id_token: expected 3 parts, got %d", len(parts))
+                return nil, fmt.Errorf("malformed id_token: expected 3 parts, got %d", len(parts))
         }
-
         payload, err := base64.RawURLEncoding.DecodeString(parts[1])
         if err != nil {
-                return fmt.Errorf("decoding id_token payload: %w", err)
+                return nil, fmt.Errorf("decoding id_token payload: %w", err)
         }
-
         var claims map[string]any
         if err := json.Unmarshal(payload, &claims); err != nil {
-                return fmt.Errorf("parsing id_token claims: %w", err)
+                return nil, fmt.Errorf("parsing id_token claims: %w", err)
         }
+        return claims, nil
+}
 
+func validateIDTokenIssuerAndAudience(claims map[string]any, expectedClientID string) error {
         iss, _ := claims["iss"].(string)
         if iss != "https://accounts.google.com" && iss != "accounts.google.com" {
                 return fmt.Errorf("invalid issuer: %s", iss)
         }
-
         aud, _ := claims["aud"].(string)
-        if aud != h.Config.GoogleClientID {
+        if aud != expectedClientID {
                 return fmt.Errorf("invalid audience: %s", aud)
         }
+        return nil
+}
 
+func validateIDTokenTiming(claims map[string]any) error {
         now := time.Now()
-
         exp, _ := claims["exp"].(float64)
         if exp > 0 && now.Unix() > int64(exp) {
                 return fmt.Errorf("id_token expired at %v", time.Unix(int64(exp), 0))
         }
-
         if iat, ok := claims["iat"].(float64); ok && iat > 0 {
                 issuedAt := time.Unix(int64(iat), 0)
                 if now.Before(issuedAt.Add(-iatMaxSkew)) {
                         return fmt.Errorf("id_token issued in the future: iat=%v", issuedAt)
                 }
         }
+        return nil
+}
 
-        if expectedNonce != "" {
-                tokenNonce, _ := claims["nonce"].(string)
-                if tokenNonce == "" {
-                        return fmt.Errorf("id_token missing nonce claim")
-                }
-                if tokenNonce != expectedNonce {
-                        return fmt.Errorf("id_token nonce mismatch")
-                }
+func validateIDTokenNonce(claims map[string]any, expectedNonce string) error {
+        if expectedNonce == "" {
+                return nil
         }
-
+        tokenNonce, _ := claims["nonce"].(string)
+        if tokenNonce == "" {
+                return fmt.Errorf("id_token missing nonce claim")
+        }
+        if tokenNonce != expectedNonce {
+                return fmt.Errorf("id_token nonce mismatch")
+        }
         return nil
 }
 

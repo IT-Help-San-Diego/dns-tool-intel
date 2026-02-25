@@ -114,43 +114,71 @@ func (a *Analyzer) enrichSubdomainsWithNmap(ctx context.Context, baseDomain stri
                         mu.Lock()
                         defer mu.Unlock()
 
-                        if len(services) > 0 {
-                                for i := range subdomains {
-                                        if subdomains[i]["name"] == name {
-                                                subdomains[i]["services"] = services
-                                                enriched++
-                                                break
-                                        }
-                                }
-                        }
-
-                        for _, san := range sans {
-                                san = strings.ToLower(strings.TrimSpace(san))
-                                if san == "" || san == baseDomain {
-                                        continue
-                                }
-                                if !strings.HasSuffix(san, "."+baseDomain) {
-                                        continue
-                                }
-                                if strings.HasPrefix(san, "*.") {
-                                        continue
-                                }
-                                alreadyKnown := false
-                                for _, sd := range subdomains {
-                                        if sd["name"] == san {
-                                                alreadyKnown = true
-                                                break
-                                        }
-                                }
-                                if !alreadyKnown {
-                                        discoveredSANs[san] = true
-                                }
-                        }
+                        enriched += applyNmapServices(subdomains, name, services)
+                        collectDiscoveredSANs(sans, baseDomain, subdomains, discoveredSANs)
                 }(target)
         }
 
         wg.Wait()
 
+        newSubdomains := buildNewSubdomainsFromSANs(discoveredSANs)
+
+        slog.Info("Nmap subdomain enrichment complete",
+                "domain", baseDomain,
+                "enriched", enriched,
+                "new_sans", len(newSubdomains))
+
+        return newSubdomains, enriched
+}
+
+func applyNmapServices(subdomains []map[string]any, name string, services []map[string]any) int {
+        if len(services) == 0 {
+                return 0
+        }
+        for i := range subdomains {
+                if subdomains[i]["name"] == name {
+                        subdomains[i]["services"] = services
+                        return 1
+                }
+        }
+        return 0
+}
+
+func isValidDiscoveredSAN(san, baseDomain string) bool {
+        if san == "" || san == baseDomain {
+                return false
+        }
+        if !strings.HasSuffix(san, "."+baseDomain) {
+                return false
+        }
+        if strings.HasPrefix(san, "*.") {
+                return false
+        }
+        return true
+}
+
+func isKnownSubdomain(subdomains []map[string]any, san string) bool {
+        for _, sd := range subdomains {
+                if sd["name"] == san {
+                        return true
+                }
+        }
+        return false
+}
+
+func collectDiscoveredSANs(sans []string, baseDomain string, subdomains []map[string]any, discoveredSANs map[string]bool) {
+        for _, san := range sans {
+                san = strings.ToLower(strings.TrimSpace(san))
+                if !isValidDiscoveredSAN(san, baseDomain) {
+                        continue
+                }
+                if !isKnownSubdomain(subdomains, san) {
+                        discoveredSANs[san] = true
+                }
+        }
+}
+
+func buildNewSubdomainsFromSANs(discoveredSANs map[string]bool) []map[string]any {
         var newSubdomains []map[string]any
         for san := range discoveredSANs {
                 newSubdomains = append(newSubdomains, map[string]any{
@@ -162,13 +190,7 @@ func (a *Analyzer) enrichSubdomainsWithNmap(ctx context.Context, baseDomain stri
                         "issuers":    []string{},
                 })
         }
-
-        slog.Info("Nmap subdomain enrichment complete",
-                "domain", baseDomain,
-                "enriched", enriched,
-                "new_sans", len(newSubdomains))
-
-        return newSubdomains, enriched
+        return newSubdomains
 }
 
 func selectNmapTargets(subdomains []map[string]any, maxCount int) []string {
@@ -239,41 +261,58 @@ func extractNmapIntel(result *nmapProbeResponse) ([]map[string]any, []string) {
         }
 
         for _, host := range result.Parsed.Hosts {
-                for _, port := range host.Ports {
-                        if port.State != "open" {
-                                continue
-                        }
-
-                        svc := map[string]any{
-                                "port":     port.Port,
-                                "protocol": port.Protocol,
-                                "service":  port.Service,
-                        }
-                        if port.Product != "" {
-                                svc["product"] = port.Product
-                        }
-                        if port.Version != "" {
-                                svc["version"] = port.Version
-                        }
-
-                        for _, script := range port.Scripts {
-                                switch script.ID {
-                                case "http-title":
-                                        svc["http_title"] = strings.TrimSpace(script.Output)
-                                case "ssl-cert":
-                                        certSANs := extractSANsFromSSLCert(script.Output)
-                                        sans = append(sans, certSANs...)
-                                        if len(certSANs) > 0 {
-                                                svc["cert_sans_count"] = len(certSANs)
-                                        }
-                                }
-                        }
-
-                        services = append(services, svc)
-                }
+                hostServices, hostSANs := extractHostIntel(host)
+                services = append(services, hostServices...)
+                sans = append(sans, hostSANs...)
         }
 
         return services, sans
+}
+
+func extractHostIntel(host nmapHost) ([]map[string]any, []string) {
+        var services []map[string]any
+        var sans []string
+
+        for _, port := range host.Ports {
+                if port.State != "open" {
+                        continue
+                }
+                svc, portSANs := buildPortService(port)
+                services = append(services, svc)
+                sans = append(sans, portSANs...)
+        }
+
+        return services, sans
+}
+
+func buildPortService(port nmapPort) (map[string]any, []string) {
+        svc := map[string]any{
+                "port":     port.Port,
+                "protocol": port.Protocol,
+                "service":  port.Service,
+        }
+        if port.Product != "" {
+                svc["product"] = port.Product
+        }
+        if port.Version != "" {
+                svc["version"] = port.Version
+        }
+
+        var sans []string
+        for _, script := range port.Scripts {
+                switch script.ID {
+                case "http-title":
+                        svc["http_title"] = strings.TrimSpace(script.Output)
+                case "ssl-cert":
+                        certSANs := extractSANsFromSSLCert(script.Output)
+                        sans = append(sans, certSANs...)
+                        if len(certSANs) > 0 {
+                                svc["cert_sans_count"] = len(certSANs)
+                        }
+                }
+        }
+
+        return svc, sans
 }
 
 func extractSANsFromSSLCert(output string) []string {

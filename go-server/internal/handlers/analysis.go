@@ -560,7 +560,7 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
         }
 
         if !p.ephemeral && p.domainExists {
-                icae.EvaluateAndRecord(context.Background(), h.DB.Queries, h.Config.AppVersion)
+                icae.EvaluateAndRecord(c.Request.Context(), h.DB.Queries, h.Config.AppVersion)
                 recordAnalyticsCollector(c, p.asciiDomain)
         }
 }

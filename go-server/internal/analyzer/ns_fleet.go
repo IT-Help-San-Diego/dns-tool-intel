@@ -314,10 +314,7 @@ func checkSerialConsensus(entries []NSFleetEntry) bool {
         return true
 }
 
-func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serialConsensus bool) []string {
-        issues := make([]string, 0)
-
-        resolvedCount := 0
+func detectNetworkRestriction(entries []NSFleetEntry) (resolvedCount int, networkRestricted bool) {
         allUnreachable := true
         for _, e := range entries {
                 if len(e.IPv4) > 0 || len(e.IPv6) > 0 {
@@ -327,8 +324,12 @@ func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serial
                         }
                 }
         }
-        networkRestricted := resolvedCount > 1 && allUnreachable
+        networkRestricted = resolvedCount > 1 && allUnreachable
+        return
+}
 
+func collectPerEntryIssues(entries []NSFleetEntry, networkRestricted bool) []string {
+        var issues []string
         for _, e := range entries {
                 if len(e.IPv4) == 0 && len(e.IPv6) == 0 {
                         issues = append(issues, fmt.Sprintf("%s: no IP addresses resolved", e.Hostname))
@@ -336,30 +337,45 @@ func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serial
                 if e.IsLame {
                         issues = append(issues, fmt.Sprintf("%s: lame delegation — responds but not authoritative (no AA flag)", e.Hostname))
                 }
-                if !networkRestricted {
-                        if !e.UDPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
-                                issues = append(issues, fmt.Sprintf("%s: UDP unreachable on port 53", e.Hostname))
-                        }
-                        if !e.TCPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
-                                issues = append(issues, fmt.Sprintf("%s: TCP unreachable on port 53", e.Hostname))
-                        }
+                if networkRestricted {
+                        continue
+                }
+                hasIP := len(e.IPv4) > 0 || len(e.IPv6) > 0
+                if !e.UDPReach && hasIP {
+                        issues = append(issues, fmt.Sprintf("%s: UDP unreachable on port 53", e.Hostname))
+                }
+                if !e.TCPReach && hasIP {
+                        issues = append(issues, fmt.Sprintf("%s: TCP unreachable on port 53", e.Hostname))
                 }
         }
+        return issues
+}
+
+func collectSerialInconsistencyIssues(entries []NSFleetEntry) []string {
+        serialMap := make(map[uint32][]string)
+        for _, e := range entries {
+                if e.SOASerialOK {
+                        serialMap[e.SOASerial] = append(serialMap[e.SOASerial], e.Hostname)
+                }
+        }
+        var issues []string
+        for serial, hosts := range serialMap {
+                issues = append(issues, fmt.Sprintf("SOA serial %d on: %s", serial, strings.Join(hosts, ", ")))
+        }
+        return issues
+}
+
+func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serialConsensus bool) []string {
+        resolvedCount, networkRestricted := detectNetworkRestriction(entries)
+
+        issues := collectPerEntryIssues(entries, networkRestricted)
 
         if networkRestricted {
                 issues = append(issues, fmt.Sprintf("Reachability probes skipped — all %d resolved nameservers failed both UDP and TCP, indicating the scanning environment's network restricts outbound DNS on port 53", resolvedCount))
         }
 
         if !serialConsensus {
-                serialMap := make(map[uint32][]string)
-                for _, e := range entries {
-                        if e.SOASerialOK {
-                                serialMap[e.SOASerial] = append(serialMap[e.SOASerial], e.Hostname)
-                        }
-                }
-                for serial, hosts := range serialMap {
-                        issues = append(issues, fmt.Sprintf("SOA serial %d on: %s", serial, strings.Join(hosts, ", ")))
-                }
+                issues = append(issues, collectSerialInconsistencyIssues(entries)...)
         }
 
         if diversity.Score == "poor" {

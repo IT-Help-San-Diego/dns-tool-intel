@@ -755,6 +755,12 @@ var allowedNSEScripts = map[string]bool{
         "smtp-commands":     true,
 }
 
+type nmapRequest struct {
+        Host    string   `json:"host"`
+        Ports   string   `json:"ports"`
+        Scripts []string `json:"scripts"`
+}
+
 func handleNmapScan(w http.ResponseWriter, r *http.Request) {
         start := time.Now()
 
@@ -764,44 +770,24 @@ func handleNmapScan(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        var req struct {
-                Host    string   `json:"host"`
-                Ports   string   `json:"ports"`
-                Scripts []string `json:"scripts"`
-        }
+        var req nmapRequest
         if err := json.Unmarshal(body, &req); err != nil || req.Host == "" {
                 writeJSON(w, http.StatusBadRequest, map[string]string{"error": errInvalidHostRequired})
                 return
         }
-
         if !isValidHostname(req.Host) {
                 writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid hostname"})
                 return
         }
-
         if req.Ports == "" {
                 req.Ports = "25,80,443,465,587"
         }
-        for _, ch := range req.Ports {
-                if ch != ',' && (ch < '0' || ch > '9') && ch != '-' {
-                        writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid port specification"})
-                        return
-                }
+        if !isValidPortSpec(req.Ports) {
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid port specification"})
+                return
         }
 
-        var validScripts []string
-        var rejectedScripts []string
-        for _, s := range req.Scripts {
-                s = strings.TrimSpace(s)
-                if allowedNSEScripts[s] {
-                        validScripts = append(validScripts, s)
-                } else if s != "" {
-                        rejectedScripts = append(rejectedScripts, s)
-                }
-        }
-        if len(validScripts) == 0 {
-                validScripts = []string{"ssl-cert", "http-title", "banner"}
-        }
+        validScripts, rejectedScripts := filterNmapScripts(req.Scripts)
 
         nmapPath, err := exec.LookPath("nmap")
         if err != nil {
@@ -812,10 +798,37 @@ func handleNmapScan(w http.ResponseWriter, r *http.Request) {
         ctx, cancel := context.WithTimeout(r.Context(), 90*time.Second)
         defer cancel()
 
+        response := runNmapScan(ctx, nmapPath, req, validScripts, rejectedScripts, start)
+        writeJSON(w, http.StatusOK, response)
+}
+
+func isValidPortSpec(ports string) bool {
+        for _, ch := range ports {
+                if ch != ',' && (ch < '0' || ch > '9') && ch != '-' {
+                        return false
+                }
+        }
+        return true
+}
+
+func filterNmapScripts(scripts []string) (valid, rejected []string) {
+        for _, s := range scripts {
+                s = strings.TrimSpace(s)
+                if allowedNSEScripts[s] {
+                        valid = append(valid, s)
+                } else if s != "" {
+                        rejected = append(rejected, s)
+                }
+        }
+        if len(valid) == 0 {
+                valid = []string{"ssl-cert", "http-title", "banner"}
+        }
+        return valid, rejected
+}
+
+func runNmapScan(ctx context.Context, nmapPath string, req nmapRequest, validScripts, rejectedScripts []string, start time.Time) map[string]any {
         args := []string{
-                "-Pn",
-                "-sV",
-                "--open",
+                "-Pn", "-sV", "--open",
                 "-p", req.Ports,
                 "--script", strings.Join(validScripts, ","),
                 "-oX", "-",
@@ -830,174 +843,171 @@ func handleNmapScan(w http.ResponseWriter, r *http.Request) {
         var stdout, stderr bytes.Buffer
         cmd.Stdout = &stdout
         cmd.Stderr = &stderr
-        err = cmd.Run()
+        err := cmd.Run()
 
         response := map[string]any{
-                "probe_host":       hostname,
-                "version":          probeVersion,
-                "host":             req.Host,
-                "ports":            req.Ports,
-                "scripts_run":      validScripts,
-                "elapsed_seconds":  time.Since(start).Seconds(),
+                "probe_host":      hostname,
+                "version":         probeVersion,
+                "host":            req.Host,
+                "ports":           req.Ports,
+                "scripts_run":     validScripts,
+                "elapsed_seconds": time.Since(start).Seconds(),
         }
-
         if len(rejectedScripts) > 0 {
                 response["rejected_scripts"] = rejectedScripts
         }
 
         xmlOutput := stdout.String()
         if err != nil {
-                response["status"] = "error"
-                response["error"] = fmt.Sprintf("nmap failed: %s", truncate(err.Error(), 200))
-                if xmlOutput != "" {
-                        response["partial_xml"] = truncate(xmlOutput, 8192)
-                }
-                stderrStr := strings.TrimSpace(stderr.String())
-                if stderrStr != "" {
-                        response["stderr"] = truncate(stderrStr, 1024)
-                }
+                buildNmapErrorResponse(response, err, xmlOutput, stderr.String())
         } else {
-                response["status"] = "ok"
-                response["xml"] = xmlOutput
-                parsed := parseNmapXML(xmlOutput)
-                if parsed != nil {
-                        response["parsed"] = parsed
-                }
+                buildNmapSuccessResponse(response, xmlOutput)
         }
+        return response
+}
 
-        writeJSON(w, http.StatusOK, response)
+func buildNmapErrorResponse(response map[string]any, err error, xmlOutput, stderrOutput string) {
+        response["status"] = "error"
+        response["error"] = fmt.Sprintf("nmap failed: %s", truncate(err.Error(), 200))
+        if xmlOutput != "" {
+                response["partial_xml"] = truncate(xmlOutput, 8192)
+        }
+        stderrStr := strings.TrimSpace(stderrOutput)
+        if stderrStr != "" {
+                response["stderr"] = truncate(stderrStr, 1024)
+        }
+}
+
+func buildNmapSuccessResponse(response map[string]any, xmlOutput string) {
+        response["status"] = "ok"
+        response["xml"] = xmlOutput
+        if parsed := parseNmapXML(xmlOutput); parsed != nil {
+                response["parsed"] = parsed
+        }
+}
+
+type nmapPort struct {
+        Protocol string `xml:"protocol,attr"`
+        PortID   int    `xml:"portid,attr"`
+        State    struct {
+                State  string `xml:"state,attr"`
+                Reason string `xml:"reason,attr"`
+        } `xml:"state"`
+        Service struct {
+                Name    string `xml:"name,attr"`
+                Product string `xml:"product,attr"`
+                Version string `xml:"version,attr"`
+                Tunnel  string `xml:"tunnel,attr"`
+        } `xml:"service"`
+        Scripts []struct {
+                ID     string `xml:"id,attr"`
+                Output string `xml:"output,attr"`
+                Tables []struct {
+                        Key   string `xml:"key,attr"`
+                        Elems []struct {
+                                Key   string `xml:"key,attr"`
+                                Value string `xml:",chardata"`
+                        } `xml:"elem"`
+                } `xml:"table"`
+        } `xml:"script"`
+}
+
+type nmapHost struct {
+        Status struct {
+                State string `xml:"state,attr"`
+        } `xml:"status"`
+        Addresses []struct {
+                Addr     string `xml:"addr,attr"`
+                AddrType string `xml:"addrtype,attr"`
+        } `xml:"address"`
+        Hostnames []struct {
+                Name string `xml:"name,attr"`
+                Type string `xml:"type,attr"`
+        } `xml:"hostnames>hostname"`
+        Ports []nmapPort `xml:"ports>port"`
+}
+
+type nmapRun struct {
+        Scanner  string     `xml:"scanner,attr"`
+        StartStr string     `xml:"startstr,attr"`
+        Version  string     `xml:"version,attr"`
+        Hosts    []nmapHost `xml:"host"`
+        RunStats struct {
+                Finished struct {
+                        TimeStr string `xml:"timestr,attr"`
+                        Elapsed string `xml:"elapsed,attr"`
+                } `xml:"finished"`
+        } `xml:"runstats"`
 }
 
 func parseNmapXML(xmlData string) map[string]any {
-        type NmapPort struct {
-                Protocol string `xml:"protocol,attr"`
-                PortID   int    `xml:"portid,attr"`
-                State    struct {
-                        State  string `xml:"state,attr"`
-                        Reason string `xml:"reason,attr"`
-                } `xml:"state"`
-                Service struct {
-                        Name    string `xml:"name,attr"`
-                        Product string `xml:"product,attr"`
-                        Version string `xml:"version,attr"`
-                        Tunnel  string `xml:"tunnel,attr"`
-                } `xml:"service"`
-                Scripts []struct {
-                        ID     string `xml:"id,attr"`
-                        Output string `xml:"output,attr"`
-                        Tables []struct {
-                                Key  string `xml:"key,attr"`
-                                Elems []struct {
-                                        Key   string `xml:"key,attr"`
-                                        Value string `xml:",chardata"`
-                                } `xml:"elem"`
-                        } `xml:"table"`
-                } `xml:"script"`
-        }
-
-        type NmapHost struct {
-                Status struct {
-                        State string `xml:"state,attr"`
-                } `xml:"status"`
-                Addresses []struct {
-                        Addr     string `xml:"addr,attr"`
-                        AddrType string `xml:"addrtype,attr"`
-                } `xml:"address"`
-                Hostnames []struct {
-                        Name string `xml:"name,attr"`
-                        Type string `xml:"type,attr"`
-                } `xml:"hostnames>hostname"`
-                Ports []NmapPort `xml:"ports>port"`
-        }
-
-        type NmapFinished struct {
-                TimeStr string `xml:"timestr,attr"`
-                Elapsed string `xml:"elapsed,attr"`
-        }
-
-        type NmapRunStats struct {
-                Finished NmapFinished `xml:"finished"`
-        }
-
-        type NmapRun struct {
-                Scanner  string       `xml:"scanner,attr"`
-                StartStr string       `xml:"startstr,attr"`
-                Version  string       `xml:"version,attr"`
-                Hosts    []NmapHost   `xml:"host"`
-                RunStats NmapRunStats `xml:"runstats"`
-        }
-
-        var nmapRun NmapRun
-        if err := xml.Unmarshal([]byte(xmlData), &nmapRun); err != nil {
+        var run nmapRun
+        if err := xml.Unmarshal([]byte(xmlData), &run); err != nil {
                 return nil
         }
 
         result := map[string]any{
-                "scanner":   nmapRun.Scanner,
-                "version":   nmapRun.Version,
-                "start":     nmapRun.StartStr,
-                "elapsed":   nmapRun.RunStats.Finished.Elapsed,
+                "scanner": run.Scanner,
+                "version": run.Version,
+                "start":   run.StartStr,
+                "elapsed": run.RunStats.Finished.Elapsed,
         }
 
         var hosts []map[string]any
-        for _, h := range nmapRun.Hosts {
-                host := map[string]any{
-                        "status": h.Status.State,
-                }
-
-                var addrs []map[string]string
-                for _, a := range h.Addresses {
-                        addrs = append(addrs, map[string]string{
-                                "addr": a.Addr,
-                                "type": a.AddrType,
-                        })
-                }
-                host["addresses"] = addrs
-
-                var names []string
-                for _, hn := range h.Hostnames {
-                        names = append(names, hn.Name)
-                }
-                if len(names) > 0 {
-                        host["hostnames"] = names
-                }
-
-                var ports []map[string]any
-                for _, p := range h.Ports {
-                        port := map[string]any{
-                                "port":     p.PortID,
-                                "protocol": p.Protocol,
-                                "state":    p.State.State,
-                                "service":  p.Service.Name,
-                        }
-                        if p.Service.Product != "" {
-                                port["product"] = p.Service.Product
-                        }
-                        if p.Service.Version != "" {
-                                port["version"] = p.Service.Version
-                        }
-                        if p.Service.Tunnel != "" {
-                                port["tunnel"] = p.Service.Tunnel
-                        }
-
-                        var scripts []map[string]any
-                        for _, s := range p.Scripts {
-                                script := map[string]any{
-                                        "id":     s.ID,
-                                        "output": s.Output,
-                                }
-                                scripts = append(scripts, script)
-                        }
-                        if len(scripts) > 0 {
-                                port["scripts"] = scripts
-                        }
-
-                        ports = append(ports, port)
-                }
-                host["ports"] = ports
-                hosts = append(hosts, host)
+        for _, h := range run.Hosts {
+                hosts = append(hosts, convertNmapHost(h))
         }
         result["hosts"] = hosts
-
         return result
+}
+
+func convertNmapHost(h nmapHost) map[string]any {
+        host := map[string]any{"status": h.Status.State}
+
+        var addrs []map[string]string
+        for _, a := range h.Addresses {
+                addrs = append(addrs, map[string]string{"addr": a.Addr, "type": a.AddrType})
+        }
+        host["addresses"] = addrs
+
+        var names []string
+        for _, hn := range h.Hostnames {
+                names = append(names, hn.Name)
+        }
+        if len(names) > 0 {
+                host["hostnames"] = names
+        }
+
+        var ports []map[string]any
+        for _, p := range h.Ports {
+                ports = append(ports, convertNmapPort(p))
+        }
+        host["ports"] = ports
+        return host
+}
+
+func convertNmapPort(p nmapPort) map[string]any {
+        port := map[string]any{
+                "port":     p.PortID,
+                "protocol": p.Protocol,
+                "state":    p.State.State,
+                "service":  p.Service.Name,
+        }
+        if p.Service.Product != "" {
+                port["product"] = p.Service.Product
+        }
+        if p.Service.Version != "" {
+                port["version"] = p.Service.Version
+        }
+        if p.Service.Tunnel != "" {
+                port["tunnel"] = p.Service.Tunnel
+        }
+        var scripts []map[string]any
+        for _, s := range p.Scripts {
+                scripts = append(scripts, map[string]any{"id": s.ID, "output": s.Output})
+        }
+        if len(scripts) > 0 {
+                port["scripts"] = scripts
+        }
+        return port
 }

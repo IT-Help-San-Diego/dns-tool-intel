@@ -207,31 +207,40 @@ func evaluateProtocolStates(results map[string]any) protocolState {
         ps.tlsrptOK = evaluateSimpleProtocolState(tlsrpt, "status")
         ps.bimiOK = evaluateSimpleProtocolState(bimi, "status")
 
-        if !isMissingRecord(dane) {
-                if hasDane, ok := dane["has_dane"].(bool); ok && hasDane {
-                        ps.daneOK = true
-                }
-                if deployable, ok := dane["dane_deployable"].(bool); ok && !deployable {
-                        ps.daneProviderLimited = true
-                }
-        }
-
-        if !isMissingRecord(dnssec) {
-                status, _ := dnssec["status"].(string)
-                switch status {
-                case "success":
-                        ps.dnssecOK = true
-                case "error":
-                        ps.dnssecBroken = true
-                }
-                if obs, ok := dnssec["algorithm_observation"].(map[string]any); ok {
-                        if s, ok := obs["strength"].(string); ok {
-                                ps.dnssecAlgoStrength = s
-                        }
-                }
-        }
+        evaluateDANEState(dane, &ps)
+        evaluateDNSSECState(dnssec, &ps)
 
         return ps
+}
+
+func evaluateDANEState(dane map[string]any, ps *protocolState) {
+        if isMissingRecord(dane) {
+                return
+        }
+        if hasDane, ok := dane["has_dane"].(bool); ok && hasDane {
+                ps.daneOK = true
+        }
+        if deployable, ok := dane["dane_deployable"].(bool); ok && !deployable {
+                ps.daneProviderLimited = true
+        }
+}
+
+func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
+        if isMissingRecord(dnssec) {
+                return
+        }
+        status, _ := dnssec["status"].(string)
+        switch status {
+        case "success":
+                ps.dnssecOK = true
+        case "error":
+                ps.dnssecBroken = true
+        }
+        if obs, ok := dnssec["algorithm_observation"].(map[string]any); ok {
+                if s, ok := obs["strength"].(string); ok {
+                        ps.dnssecAlgoStrength = s
+                }
+        }
 }
 
 func detectProbableNoMail(results map[string]any) bool {

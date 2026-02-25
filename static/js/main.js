@@ -149,7 +149,7 @@ function isBareTopLevelDomain(domain) {
     while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
     if (!d || d.length > 63) return false;
     const labels = d.split('.');
-    return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
+    return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].startsWith('xn--'));
 }
 
 function swapToTLDScanPhases(overlay) {
@@ -219,7 +219,7 @@ function showCovertTLDToast(domain, callback) {
 
 function isValidDomain(domain) {
     if (!domain) return false;
-    var d = domain;
+    let d = domain;
     while (d.charAt(0) === '.') d = d.slice(1);
     while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
     if (d.length > 253 || d.length === 0) return false;

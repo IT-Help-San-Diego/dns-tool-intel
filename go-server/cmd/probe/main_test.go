@@ -322,7 +322,7 @@ func TestWriteJSON(t *testing.T) {
 
 func TestHandleHealth(t *testing.T) {
         hostname = "test-host"
-        startTime = startTime
+        startTime = time.Now()
 
         req := httptest.NewRequest("GET", "/health", nil)
         w := httptest.NewRecorder()

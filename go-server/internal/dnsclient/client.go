@@ -48,6 +48,14 @@ const (
 
         resolverCloudflare = "1.1.1.1"
         resolverGoogle     = "8.8.8.8"
+
+        dnsPort            = "53"
+        protoUDP           = "udp"
+
+        mapKeyDiscrepancies = "discrepancies"
+        mapKeyError         = "error"
+        mapKeyDomain        = "domain"
+        mapKeyResolver      = "resolver"
 )
 
 type ConsensusResult struct {
@@ -290,7 +298,7 @@ func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, re
 
         client := newDNSClient(c.timeout)
 
-        r, _, err := client.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
+        r, _, err := client.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
                 return resolverIP, nil, err.Error()
         }
@@ -339,7 +347,7 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
                         if rr.err == "" {
                                 resolverResults[rr.name] = rr.results
                         } else {
-                                slog.Debug("resolver error", "resolver", rr.name, "record_type", recordType, "domain", domain, "error", rr.err)
+                                slog.Debug("resolver error", mapKeyResolver, rr.name, "record_type", recordType, mapKeyDomain, domain, mapKeyError, rr.err)
                         }
                 case <-ctx2.Done():
                         break
@@ -358,7 +366,7 @@ func (c *Client) QueryWithConsensus(ctx context.Context, recordType, domain stri
 
         consensusRecords, allSame, discrepancies := findConsensus(resolverResults)
         if !allSame {
-                slog.Warn("DNS discrepancy", "domain", domain, "record_type", recordType, "discrepancies", discrepancies)
+                slog.Warn("DNS discrepancy", mapKeyDomain, domain, "record_type", recordType, mapKeyDiscrepancies, discrepancies)
         }
 
         return ConsensusResult{
@@ -411,7 +419,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
                 "consensus_reached":    true,
                 "resolvers_queried":    len(c.resolvers),
                 "checks_performed":     0,
-                "discrepancies":        []string{},
+                mapKeyDiscrepancies:        []string{},
                 "per_record_consensus": map[string]any{},
         }
 
@@ -444,7 +452,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
                         perRecord[cr.recordType] = map[string]any{
                                 "consensus":      cr.consensus.Consensus,
                                 "resolver_count": cr.consensus.ResolverCount,
-                                "discrepancies":  cr.consensus.Discrepancies,
+                                mapKeyDiscrepancies:  cr.consensus.Discrepancies,
                         }
                         if !cr.consensus.Consensus {
                                 consensusReached = false
@@ -459,7 +467,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
 
         result["consensus_reached"] = consensusReached
         result["checks_performed"] = checksPerformed
-        result["discrepancies"] = allDisc
+        result[mapKeyDiscrepancies] = allDisc
         result["per_record_consensus"] = perRecord
         return result
 }
@@ -476,14 +484,14 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
 
                 dnsClient := newDNSClient(3 * time.Second)
 
-                r, _, err := dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
+                r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
                 if err != nil {
                         if isNXDomain(r) {
                                 errStr := "Domain not found"
                                 result.Error = &errStr
                                 return result
                         }
-                        slog.Debug("AD flag check failed", "resolver", resolverIP, "error", err)
+                        slog.Debug("AD flag check failed", mapKeyResolver, resolverIP, mapKeyError, err)
                         continue
                 }
 
@@ -497,7 +505,7 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
                         msg2 := dns.NewMsg(fqdn, dns.TypeSOA)
                         msg2.RecursionDesired = true
                         msg2.UDPSize, msg2.Security = 4096, true
-                        r2, _, err2 := dnsClient.Exchange(ctx, msg2, "udp", net.JoinHostPort(resolverIP, "53"))
+                        r2, _, err2 := dnsClient.Exchange(ctx, msg2, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
                         if err2 == nil {
                                 r = r2
                         }
@@ -521,18 +529,18 @@ func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagRes
 }
 
 func (c *Client) ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns.Msg, error) {
-        resolverAddr := net.JoinHostPort(c.resolvers[0].IP, "53")
+        resolverAddr := net.JoinHostPort(c.resolvers[0].IP, dnsPort)
         return c.exchangeWithFallback(ctx, msg, resolverAddr)
 }
 
 func (c *Client) exchangeWithFallback(ctx context.Context, msg *dns.Msg, resolverAddr string) (*dns.Msg, error) {
         client := newDNSClient(c.timeout)
-        r, _, err := client.Exchange(ctx, msg, "udp", resolverAddr)
+        r, _, err := client.Exchange(ctx, msg, protoUDP, resolverAddr)
         if err == nil {
                 return r, nil
         }
 
-        slog.Debug("UDP query failed, falling back to TCP", "resolver", resolverAddr, "error", err)
+        slog.Debug("UDP query failed, falling back to TCP", mapKeyResolver, resolverAddr, mapKeyError, err)
         r, _, err = client.Exchange(ctx, msg, "tcp", resolverAddr)
         return r, err
 }
@@ -547,7 +555,7 @@ func (c *Client) QuerySpecificResolver(ctx context.Context, recordType, domain, 
         msg := dns.NewMsg(fqdn, qtype)
         msg.RecursionDesired = false
 
-        resolverAddr := net.JoinHostPort(resolverIP, "53")
+        resolverAddr := net.JoinHostPort(resolverIP, dnsPort)
         r, err := c.exchangeWithFallback(ctx, msg, resolverAddr)
         if err != nil {
                 return nil, err
@@ -577,7 +585,7 @@ func (c *Client) QueryWithTTLFromResolver(ctx context.Context, recordType, domai
         msg := dns.NewMsg(fqdn, qtype)
         msg.RecursionDesired = false
 
-        resolverAddr := net.JoinHostPort(resolverIP, "53")
+        resolverAddr := net.JoinHostPort(resolverIP, dnsPort)
         r, err := c.exchangeWithFallback(ctx, msg, resolverAddr)
         if err != nil {
                 return RecordWithTTL{}
@@ -630,7 +638,7 @@ func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string)
 
         resp, err := c.httpClient.Do(req)
         if err != nil {
-                slog.Debug("DoH query failed", "domain", domain, "type", recordType, "error", err)
+                slog.Debug("DoH query failed", mapKeyDomain, domain, "type", recordType, mapKeyError, err)
                 return RecordWithTTL{}
         }
         defer resp.Body.Close()
@@ -693,10 +701,10 @@ func (c *Client) ProbeExists(ctx context.Context, domain string) (exists bool, c
         dnsClient := newDNSClient(3 * time.Second)
 
         resolverIP := resolverGoogle
-        r, _, err := dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
+        r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
                 resolverIP = resolverCloudflare
-                r, _, err = dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
+                r, _, err = dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
                 if err != nil {
                         return false, ""
                 }
@@ -742,7 +750,7 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
 
         dnsClient := newDNSClient(c.timeout)
 
-        r, _, err := dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
+        r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
                 return RecordWithTTL{}
         }

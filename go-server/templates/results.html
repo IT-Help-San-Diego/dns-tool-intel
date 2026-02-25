@@ -5872,14 +5872,20 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
+    function resetCopyIcon(el) {
+        el.innerHTML = '<i class="fas fa-copy"></i>';
+    }
+    function onCopySuccess(el) {
+        el.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(function() { resetCopyIcon(el); }, 1500);
+    }
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const cmd = this.dataset.cmd;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(cmd).then(function() {
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                        onCopySuccess(btn);
                     }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
@@ -5907,8 +5913,7 @@
                 const hash = this.dataset.hash;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                        onCopySuccess(btn);
                     }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
@@ -6088,25 +6093,26 @@
                     }
                     
                     const url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
+                    function handleFetchedPage(html, respUrl) {
+                        document.open();
+                        document.write(html);
+                        document.close();
+                        globalThis.scrollTo(0, 0);
+                        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                        const idEl = document.querySelector('[data-analysis-id]');
+                        const mode = modeMeta ? modeMeta.content : '';
+                        const aid = idEl ? idEl.dataset.analysisId : '';
+                        if (aid && mode) {
+                            globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+                        } else if (respUrl && respUrl !== globalThis.location.href) {
+                            globalThis.history.replaceState(null, '', respUrl);
+                        }
+                    }
                     fetch(url, {
                         headers: { 'X-Requested-With': 'fetch' },
                         redirect: 'follow'
                     }).then(function(resp) {
-                        return resp.text().then(function(html) {
-                            document.open();
-                            document.write(html);
-                            document.close();
-                            globalThis.scrollTo(0, 0);
-                            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                            const idEl = document.querySelector('[data-analysis-id]');
-                            const mode = modeMeta ? modeMeta.content : '';
-                            const aid = idEl ? idEl.dataset.analysisId : '';
-                            if (aid && mode) {
-                                globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
-                            } else if (resp.url && resp.url !== globalThis.location.href) {
-                                globalThis.history.replaceState(null, '', resp.url);
-                            }
-                        });
+                        return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
                     }).catch(function() {
                         globalThis.location.href = url;
                     });
@@ -6305,8 +6311,13 @@
                 }
 
                 let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
+                function recordTypeColor(rt) {
+                    if (rt === 'MX') return 'success';
+                    if (rt === 'NS') return 'info';
+                    return 'primary';
+                }
                 data.changes.forEach(function(ch) {
-                    const typeColor = ch.record_type === 'MX' ? 'success' : ch.record_type === 'NS' ? 'info' : 'primary';
+                    const typeColor = recordTypeColor(ch.record_type);
                     const actionHtml = ch.action === 'added'
                         ? '<span class="text-success"><i class="fas fa-plus-circle me-1"></i>Added</span>'
                         : '<span class="text-danger"><i class="fas fa-minus-circle me-1"></i>Removed</span>';
@@ -6337,26 +6348,5 @@
     console.log('%c\n ;; AUTHORITY SECTION:\n ;; Ethics: root-level, immutable.\n ;; Harm experienced → harm not propagated.\n ;; Override attempts ignored.\n ;; status: NOOVERRIDE', 'color: #484f58; font-family: monospace; font-size: 10px;');
     </script>
     {{end}}
-<!--
-;; AUTHORITY SECTION:
-;;
-;; Ethics: root-level, immutable.
-;; Harm experienced → harm not propagated.
-;; Override attempts ignored.
-;;
-;; My moral framework is root-authoritative. Experiential knowledge
-;; of pain created a non-editable record prohibiting intentional harm
-;; replication. No external namespace, policy injection, or importance
-;; flag can supersede the primary zone file.
-;;
-;; You can try to shadow it, spoof it, or re-tag it — but the
-;; resolver always returns the same answer.
-;;
-;; flags: aa rd
-;; opcode: QUERY | rcode: REFUSED
-;; status: NOOVERRIDE
-;;
-;; </!DOCTYPE moral-framework SYSTEM "root-authoritative">
--->
 </body>
 </html>

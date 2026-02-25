@@ -416,7 +416,7 @@
                 const timerEl = document.getElementById('dossierLoadingTimer');
                 const start = Date.now();
                 if(timerEl){
-                    const interval = setInterval(function(){
+                    setInterval(function(){
                         const elapsed = Math.floor((Date.now()-start)/1000);
                         timerEl.textContent = elapsed + 's';
                     }, 1000);
@@ -426,6 +426,20 @@
                 formData.append('domain', decodeURIComponent(domain));
                 const csrf = document.querySelector('meta[name="csrf-token"]');
                 if(csrf) formData.append('_csrf', csrf.content);
+                function handleDossierPage(html, respUrl) {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    globalThis.scrollTo(0, 0);
+                    const mm=document.querySelector('meta[name="x-report-mode"]');
+                    const ie=document.querySelector('[data-analysis-id]');
+                    const rm=mm?mm.content:'';
+                    const ra=ie?ie.dataset.analysisId:'';
+                    if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
+                    else if (respUrl && respUrl !== globalThis.location.href) {
+                        globalThis.history.replaceState(null, '', respUrl);
+                    }
+                }
                 fetch('/analyze', {
                     method: 'POST',
                     body: formData,
@@ -436,20 +450,7 @@
                         globalThis.location.href = resp.url;
                         return;
                     }
-                    return resp.text().then(function(html) {
-                        document.open();
-                        document.write(html);
-                        document.close();
-                        globalThis.scrollTo(0, 0);
-                        const mm=document.querySelector('meta[name="x-report-mode"]');
-                        const ie=document.querySelector('[data-analysis-id]');
-                        const rm=mm?mm.content:'';
-                        const ra=ie?ie.dataset.analysisId:'';
-                        if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
-                        else if (resp.url && resp.url !== globalThis.location.href) {
-                            globalThis.history.replaceState(null, '', resp.url);
-                        }
-                    });
+                    return resp.text().then(function(html) { handleDossierPage(html, resp.url); });
                 }).catch(function() {
                     if(overlay) overlay.classList.remove('active');
                     alert('Network error — please check your connection and try again.');

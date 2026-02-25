@@ -8,8 +8,11 @@ import (
 )
 
 const (
-        headerSubject = "Subject: "
-        headerFrom    = "From: "
+        headerSubject   = "Subject: "
+        headerFrom      = "From: "
+        headerSep       = "\r\n"
+        jsonKeyValue    = "value"
+        jsonKeyHeaders  = "headers"
 )
 
 type DetectedFormat struct {
@@ -143,7 +146,7 @@ func extractMicrosoftGraphHeaders(obj map[string]interface{}) string {
         })
 
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
@@ -213,13 +216,13 @@ func extractGmailAPIHeaders(obj map[string]interface{}) string {
                         continue
                 }
                 name, _ := header["name"].(string)
-                value, _ := header["value"].(string)
+                value, _ := header[jsonKeyValue].(string)
                 if name != "" {
                         lines = append(lines, name+": "+value)
                 }
         }
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
@@ -238,7 +241,7 @@ func extractPostmarkHeaders(obj map[string]interface{}) string {
         lines = appendPostmarkTopLevelFields(lines, obj)
 
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
@@ -260,7 +263,7 @@ func appendPostmarkTopLevelFields(lines []string, obj map[string]interface{}) []
 }
 
 func extractSendGridHeaders(obj map[string]interface{}) string {
-        headersRaw, ok := obj["headers"]
+        headersRaw, ok := obj[jsonKeyHeaders]
         if !ok {
                 return ""
         }
@@ -290,7 +293,7 @@ func extractSendGridHeaders(obj map[string]interface{}) string {
         }
 
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
@@ -317,13 +320,13 @@ func extractMailgunHeaders(obj map[string]interface{}) string {
                 }
         }
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
 
 func extractGenericJSONHeaders(obj map[string]interface{}) string {
-        for _, key := range []string{"headers", "Headers", "email_headers", "emailHeaders", "message_headers", "raw_headers", "rawHeaders"} {
+        for _, key := range []string{jsonKeyHeaders, "Headers", "email_headers", "emailHeaders", "message_headers", "raw_headers", "rawHeaders"} {
                 val, ok := obj[key]
                 if !ok {
                         continue
@@ -368,13 +371,13 @@ func tryExtractFromHeaderArray(arr []interface{}) string {
                         continue
                 }
                 name := firstString(header, "name", "Name", "key", "Key", "header")
-                value := firstString(header, "value", "Value", "val")
+                value := firstString(header, jsonKeyValue, "Value", "val")
                 if name != "" {
                         lines = append(lines, name+": "+value)
                 }
         }
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }
@@ -386,7 +389,7 @@ func tryExtractFromHeaderMap(headerMap map[string]interface{}) string {
                 lines = append(lines, name+": "+value)
         }
         if len(lines) >= 2 {
-                return strings.Join(lines, "\r\n")
+                return strings.Join(lines, headerSep)
         }
         return ""
 }

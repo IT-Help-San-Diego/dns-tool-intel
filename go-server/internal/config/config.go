@@ -65,80 +65,13 @@ func Load() (*Config, error) {
                 return nil, fmt.Errorf("SESSION_SECRET environment variable is required")
         }
 
-        port := os.Getenv("PORT")
-        if port == "" {
-                port = "5000"
-        }
-
-        smtpProbeMode := os.Getenv("SMTP_PROBE_MODE")
-        if smtpProbeMode == "" {
-                smtpProbeMode = "skip"
-        }
-
-        probeAPIURL := os.Getenv("PROBE_API_URL")
-        if probeAPIURL != "" && smtpProbeMode == "skip" {
-                smtpProbeMode = "remote"
-        }
-
-        var probes []ProbeEndpoint
-        if probeAPIURL != "" {
-                label := os.Getenv("PROBE_LABEL")
-                if label == "" {
-                        label = "US-East (Boston)"
-                }
-                probes = append(probes, ProbeEndpoint{
-                        ID:    "probe-01",
-                        Label: label,
-                        URL:   probeAPIURL,
-                        Key:   os.Getenv("PROBE_API_KEY"),
-                })
-        }
-        probeAPIURL2 := os.Getenv("PROBE_API_URL_2")
-        if probeAPIURL2 != "" {
-                label2 := os.Getenv("PROBE_LABEL_2")
-                if label2 == "" {
-                        label2 = "US-East (Kali/02)"
-                }
-                probes = append(probes, ProbeEndpoint{
-                        ID:    "probe-02",
-                        Label: label2,
-                        URL:   probeAPIURL2,
-                        Key:   os.Getenv("PROBE_API_KEY_2"),
-                })
-        }
-
-        maintenanceNote := os.Getenv("MAINTENANCE_NOTE")
-
-        tuning := make(map[string]string)
-        for k, v := range sectionTuningMap {
-                tuning[k] = v
-        }
-        envTuning := os.Getenv("SECTION_TUNING")
-        if envTuning != "" {
-                for _, pair := range strings.Split(envTuning, ",") {
-                        parts := strings.SplitN(strings.TrimSpace(pair), "=", 2)
-                        if len(parts) == 2 {
-                                tuning[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-                        }
-                }
-        }
-
-        baseURLRaw := os.Getenv("BASE_URL")
-        baseURL := baseURLRaw
-        if baseURL == "" {
-                baseURL = "https://dnstool.it-help.tech"
-        }
-        isDevEnv := baseURLRaw == "" || baseURL != "https://dnstool.it-help.tech"
-
-        googleRedirectURL := os.Getenv("GOOGLE_REDIRECT_URL")
-        if googleRedirectURL == "" {
-                googleRedirectURL = baseURL + "/auth/callback"
-        }
-
-        betaPages := make(map[string]bool)
-        for k, v := range betaPagesMap {
-                betaPages[k] = v
-        }
+        port := envOrDefault("PORT", "5000")
+        smtpProbeMode, probeAPIURL := resolveProbeMode()
+        probes := loadProbeEndpoints(probeAPIURL)
+        tuning := loadSectionTuning()
+        baseURL, isDevEnv := resolveBaseURL()
+        googleRedirectURL := envOrDefault("GOOGLE_REDIRECT_URL", baseURL+"/auth/callback")
+        betaPages := copyBetaPages()
 
         return &Config{
                 DatabaseURL:        dbURL,
@@ -149,7 +82,7 @@ func Load() (*Config, error) {
                 ProbeAPIURL:        probeAPIURL,
                 ProbeAPIKey:        os.Getenv("PROBE_API_KEY"),
                 Probes:             probes,
-                MaintenanceNote:    maintenanceNote,
+                MaintenanceNote:    os.Getenv("MAINTENANCE_NOTE"),
                 SectionTuning:      tuning,
                 BetaPages:          betaPages,
                 GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
@@ -160,4 +93,80 @@ func Load() (*Config, error) {
                 IsDevEnvironment:   isDevEnv,
                 DiscordWebhookURL:  os.Getenv("DISCORD_WEBHOOK_URL"),
         }, nil
+}
+
+func envOrDefault(key, defaultVal string) string {
+        if v := os.Getenv(key); v != "" {
+                return v
+        }
+        return defaultVal
+}
+
+func resolveProbeMode() (string, string) {
+        smtpProbeMode := os.Getenv("SMTP_PROBE_MODE")
+        if smtpProbeMode == "" {
+                smtpProbeMode = "skip"
+        }
+        probeAPIURL := os.Getenv("PROBE_API_URL")
+        if probeAPIURL != "" && smtpProbeMode == "skip" {
+                smtpProbeMode = "remote"
+        }
+        return smtpProbeMode, probeAPIURL
+}
+
+func loadProbeEndpoints(probeAPIURL string) []ProbeEndpoint {
+        var probes []ProbeEndpoint
+        if probeAPIURL != "" {
+                probes = append(probes, ProbeEndpoint{
+                        ID:    "probe-01",
+                        Label: envOrDefault("PROBE_LABEL", "US-East (Boston)"),
+                        URL:   probeAPIURL,
+                        Key:   os.Getenv("PROBE_API_KEY"),
+                })
+        }
+        if probeAPIURL2 := os.Getenv("PROBE_API_URL_2"); probeAPIURL2 != "" {
+                probes = append(probes, ProbeEndpoint{
+                        ID:    "probe-02",
+                        Label: envOrDefault("PROBE_LABEL_2", "US-East (Kali/02)"),
+                        URL:   probeAPIURL2,
+                        Key:   os.Getenv("PROBE_API_KEY_2"),
+                })
+        }
+        return probes
+}
+
+func loadSectionTuning() map[string]string {
+        tuning := make(map[string]string)
+        for k, v := range sectionTuningMap {
+                tuning[k] = v
+        }
+        envTuning := os.Getenv("SECTION_TUNING")
+        if envTuning == "" {
+                return tuning
+        }
+        for _, pair := range strings.Split(envTuning, ",") {
+                parts := strings.SplitN(strings.TrimSpace(pair), "=", 2)
+                if len(parts) == 2 {
+                        tuning[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+                }
+        }
+        return tuning
+}
+
+func resolveBaseURL() (string, bool) {
+        baseURLRaw := os.Getenv("BASE_URL")
+        baseURL := baseURLRaw
+        if baseURL == "" {
+                baseURL = "https://dnstool.it-help.tech"
+        }
+        isDevEnv := baseURLRaw == "" || baseURL != "https://dnstool.it-help.tech"
+        return baseURL, isDevEnv
+}
+
+func copyBetaPages() map[string]bool {
+        betaPages := make(map[string]bool)
+        for k, v := range betaPagesMap {
+                betaPages[k] = v
+        }
+        return betaPages
 }

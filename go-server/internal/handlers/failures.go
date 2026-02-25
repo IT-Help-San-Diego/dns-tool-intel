@@ -62,38 +62,43 @@ func timeAgo(t time.Time) string {
 var ipPattern = regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?`)
 var pathPattern = regexp.MustCompile(`/[a-zA-Z0-9_/.]+`)
 
+type errorCategory struct {
+        keywords []string
+        label    string
+        icon     string
+}
+
+var errorCategories = []errorCategory{
+        {[]string{"timeout", "timed out", "deadline"}, "DNS Resolution Timeout", "fas fa-clock"},
+        {[]string{"no such host", "nxdomain", "not found"}, "Domain Not Found (NXDOMAIN)", "fas fa-unlink"},
+        {[]string{"connection refused", "connection reset"}, "Connection Refused", "fas fa-ban"},
+        {[]string{"servfail", "server failure"}, "DNS Server Failure (SERVFAIL)", "fas fa-server"},
+        {[]string{"network", "unreachable"}, "Network Unreachable", "fas fa-wifi"},
+        {[]string{"tls", "certificate", "x509"}, "TLS/Certificate Error", "fas fa-lock"},
+        {[]string{"refused"}, "Query Refused", "fas fa-hand-paper"},
+        {[]string{"rate limit", "throttl"}, "Rate Limited", "fas fa-tachometer-alt"},
+        {[]string{"invalid", "malformed"}, "Invalid Input", "fas fa-exclamation-triangle"},
+}
+
+func matchErrorCategory(msg string) (string, string, bool) {
+        for _, cat := range errorCategories {
+                for _, kw := range cat.keywords {
+                        if strings.Contains(msg, kw) {
+                                return cat.label, cat.icon, true
+                        }
+                }
+        }
+        return "", "", false
+}
+
 func sanitizeErrorMessage(raw *string) (string, string) {
         if raw == nil || *raw == "" {
                 return "Unknown Error", "fas fa-question-circle"
         }
         msg := strings.ToLower(*raw)
 
-        if strings.Contains(msg, "timeout") || strings.Contains(msg, "timed out") || strings.Contains(msg, "deadline") {
-                return "DNS Resolution Timeout", "fas fa-clock"
-        }
-        if strings.Contains(msg, "no such host") || strings.Contains(msg, "nxdomain") || strings.Contains(msg, "not found") {
-                return "Domain Not Found (NXDOMAIN)", "fas fa-unlink"
-        }
-        if strings.Contains(msg, "connection refused") || strings.Contains(msg, "connection reset") {
-                return "Connection Refused", "fas fa-ban"
-        }
-        if strings.Contains(msg, "servfail") || strings.Contains(msg, "server failure") {
-                return "DNS Server Failure (SERVFAIL)", "fas fa-server"
-        }
-        if strings.Contains(msg, "network") || strings.Contains(msg, "unreachable") {
-                return "Network Unreachable", "fas fa-wifi"
-        }
-        if strings.Contains(msg, "tls") || strings.Contains(msg, "certificate") || strings.Contains(msg, "x509") {
-                return "TLS/Certificate Error", "fas fa-lock"
-        }
-        if strings.Contains(msg, "refused") {
-                return "Query Refused", "fas fa-hand-paper"
-        }
-        if strings.Contains(msg, "rate limit") || strings.Contains(msg, "throttl") {
-                return "Rate Limited", "fas fa-tachometer-alt"
-        }
-        if strings.Contains(msg, "invalid") || strings.Contains(msg, "malformed") {
-                return "Invalid Input", "fas fa-exclamation-triangle"
+        if label, icon, ok := matchErrorCategory(msg); ok {
+                return label, icon
         }
 
         cleaned := ipPattern.ReplaceAllString(*raw, "[redacted]")

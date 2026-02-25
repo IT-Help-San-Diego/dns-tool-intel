@@ -164,8 +164,7 @@ func (a *Analyzer) nmapNSID(ctx context.Context, ns string) map[string]any {
                 return result
         }
 
-        lower := strings.ToLower(output)
-        if !strings.Contains(lower, "bind.version") && !strings.Contains(lower, "id.server") && !strings.Contains(lower, "nsid") {
+        if !containsNSIDIndicators(output) {
                 return result
         }
 
@@ -174,6 +173,11 @@ func (a *Analyzer) nmapNSID(ctx context.Context, ns string) map[string]any {
         parseNSIDFields(output, result)
 
         return result
+}
+
+func containsNSIDIndicators(output string) bool {
+        lower := strings.ToLower(output)
+        return strings.Contains(lower, "bind.version") || strings.Contains(lower, "id.server") || strings.Contains(lower, "nsid")
 }
 
 func parseNSIDFields(output string, result map[string]any) {

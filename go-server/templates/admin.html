@@ -372,7 +372,7 @@
     <script nonce="{{.CspNonce}}">
     document.querySelectorAll('form[data-confirm-delete]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
-            var name = form.dataset.confirmDelete;
+            const name = form.dataset.confirmDelete;
             if (!confirm('Delete user "' + name + '" and all their data? This cannot be undone.')) {
                 e.preventDefault();
             }

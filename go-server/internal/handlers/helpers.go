@@ -453,14 +453,14 @@ func isPublicSuffixDomain(domain string) bool {
         if err == nil {
                 return false
         }
-        return isDomainMatchingSuffix(domain)
-}
-
-func isDomainMatchingSuffix(domain string) bool {
         suffix, _ := publicsuffix.PublicSuffix(domain)
         if strings.EqualFold(domain, suffix) {
                 return true
         }
+        return isTwoPartSuffix(domain)
+}
+
+func isTwoPartSuffix(domain string) bool {
         parts := strings.Split(domain, ".")
         if len(parts) < 2 {
                 return false
@@ -533,31 +533,34 @@ func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, doma
         spfStatus, _ := spf["status"].(string)
         dmarcStatus, _ := dmarc["status"].(string)
 
-        subHasSPF := isActiveStatus(spfStatus)
-        subHasDMARC := isActiveStatus(dmarcStatus)
+        scope.SPFScope, scope.SPFNote = determineSPFScope(isActiveStatus(spfStatus))
 
         orgDMARCRecords := dns.QueryDNS(ctx, "TXT", fmt.Sprintf("_dmarc.%s", rootDomain))
         orgHasDMARC, orgDMARCPolicy := parseOrgDMARC(orgDMARCRecords)
+        scope.DMARCScope, scope.DMARCNote = determineDMARCScope(isActiveStatus(dmarcStatus), orgHasDMARC, orgDMARCPolicy, rootDomain)
 
-        if subHasSPF {
-                scope.SPFScope = "local"
-                scope.SPFNote = "SPF record published at this subdomain"
-        } else {
-                scope.SPFScope = "none"
-                scope.SPFNote = "No SPF record at this subdomain — SPF does not inherit from parent domains"
-        }
-
-        scope.DMARCScope, scope.DMARCNote = determineDMARCScope(subHasDMARC, orgHasDMARC, orgDMARCPolicy, rootDomain)
-
-        basic, _ := results["basic_records"].(map[string]any)
-        if basic != nil {
-                switch mx := basic["MX"].(type) {
-                case []string:
-                        scope.HasLocalEmail = len(mx) > 0
-                case []any:
-                        scope.HasLocalEmail = len(mx) > 0
-                }
-        }
+        scope.HasLocalEmail = hasLocalMXRecords(results)
 
         return scope
+}
+
+func determineSPFScope(subHasSPF bool) (string, string) {
+        if subHasSPF {
+                return "local", "SPF record published at this subdomain"
+        }
+        return "none", "No SPF record at this subdomain — SPF does not inherit from parent domains"
+}
+
+func hasLocalMXRecords(results map[string]any) bool {
+        basic, _ := results["basic_records"].(map[string]any)
+        if basic == nil {
+                return false
+        }
+        switch mx := basic["MX"].(type) {
+        case []string:
+                return len(mx) > 0
+        case []any:
+                return len(mx) > 0
+        }
+        return false
 }

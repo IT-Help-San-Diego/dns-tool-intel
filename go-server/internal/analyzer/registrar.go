@@ -74,7 +74,21 @@ var whoisServers = map[string]string{
         "top": "whois.nic.top",
 }
 
-const providerMicrosoftAzureDNS = "Microsoft Azure DNS"
+const (
+        providerMicrosoftAzureDNS = "Microsoft Azure DNS"
+
+        mapKeyDomain     = "domain"
+        mapKeyStatus     = "status"
+        mapKeyRegistrar  = "registrar"
+        mapKeySource     = "source"
+        statusSuccess    = "success"
+        mapKeyConfidence = "confidence"
+        mapKeyEntities   = "entities"
+        mapKeyError      = "error"
+        mapKeyElapsedMs  = "elapsed_ms"
+        mapKeyAttempt    = "attempt"
+        fmtAttemptTotal  = "%d/%d"
+)
 
 var nsRegistrarPatterns = map[string]string{
         "awsdns":                "Amazon Registrar",
@@ -128,17 +142,17 @@ var whoisRestrictedIndicators = []string{
 }
 
 func (a *Analyzer) GetRegistrarInfo(ctx context.Context, domain string) map[string]any {
-        slog.Info("Getting registrar info", "domain", domain)
+        slog.Info("Getting registrar info", mapKeyDomain, domain)
 
         if cached, ok := a.RDAPCache.Get(domain); ok {
-                slog.Info("RDAP cache hit", "domain", domain)
+                slog.Info("RDAP cache hit", mapKeyDomain, domain)
                 cached["cache_hit"] = true
                 return cached
         }
 
         result := a.getRegistrarInfoUncached(ctx, domain)
 
-        if result["status"] == "success" {
+        if result[mapKeyStatus] == statusSuccess {
                 a.RDAPCache.Set(domain, result)
         }
 
@@ -148,9 +162,9 @@ func (a *Analyzer) GetRegistrarInfo(ctx context.Context, domain string) map[stri
 func buildRestrictedResult(restricted bool, restrictedTLD string) map[string]any {
         if !restricted {
                 return map[string]any{
-                        "status":    "error",
-                        "source":    nil,
-                        "registrar": nil,
+                        mapKeyStatus:    "error",
+                        mapKeySource:    nil,
+                        mapKeyRegistrar: nil,
                         "message":   "Registry data unavailable (RDAP/WHOIS services unreachable or rate-limited)",
                 }
         }
@@ -160,9 +174,9 @@ func buildRestrictedResult(restricted bool, restrictedTLD string) map[string]any
                 registryName = fmt.Sprintf(".%s registry", restrictedTLD)
         }
         return map[string]any{
-                "status":                  "restricted",
-                "source":                  "WHOIS",
-                "registrar":               nil,
+                mapKeyStatus:                  "restricted",
+                mapKeySource:                  "WHOIS",
+                mapKeyRegistrar:               nil,
                 "registry_restricted":     true,
                 "registry_restricted_tld": restrictedTLD,
                 "message":                 fmt.Sprintf("%s restricts public WHOIS/RDAP access — registrar data requires authorized IP", registryName),
@@ -176,7 +190,7 @@ func (a *Analyzer) getRegistrarInfoUncached(ctx context.Context, domain string) 
 
         whoisResult, restricted, restrictedTLD := a.whoisLookup(ctx, domain)
         if whoisResult != "" {
-                return map[string]any{"status": "success", "source": "WHOIS", "registrar": whoisResult, "confidence": ConfidenceObservedMap(MethodWHOIS)}
+                return map[string]any{mapKeyStatus: statusSuccess, mapKeySource: "WHOIS", mapKeyRegistrar: whoisResult, mapKeyConfidence: ConfidenceObservedMap(MethodWHOIS)}
         }
 
         if result := a.tryParentZoneLookup(ctx, domain); result != nil {
@@ -189,18 +203,18 @@ func (a *Analyzer) getRegistrarInfoUncached(ctx context.Context, domain string) 
 func (a *Analyzer) tryRDAPLookup(ctx context.Context, domain string) map[string]any {
         rdapResult := a.rdapLookup(ctx, domain)
         if rdapResult == nil {
-                slog.Info("RDAP lookup returned nil", "domain", domain)
+                slog.Info("RDAP lookup returned nil", mapKeyDomain, domain)
                 return nil
         }
         registrar := extractRegistrarFromRDAP(rdapResult)
         if registrar == "" || isDigits(registrar) {
-                slog.Info("RDAP registrar extraction failed", "domain", domain, "raw_registrar", registrar)
+                slog.Info("RDAP registrar extraction failed", mapKeyDomain, domain, "raw_registrar", registrar)
                 return nil
         }
         registrant := extractRegistrantFromRDAP(rdapResult)
         regStr := formatRegistrarWithRegistrant(registrar, registrant)
-        slog.Info("RDAP lookup succeeded", "domain", domain, "registrar", regStr)
-        return map[string]any{"status": "success", "source": "RDAP", "registrar": regStr, "confidence": ConfidenceObservedMap(MethodRDAP)}
+        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, mapKeyRegistrar, regStr)
+        return map[string]any{mapKeyStatus: statusSuccess, mapKeySource: "RDAP", mapKeyRegistrar: regStr, mapKeyConfidence: ConfidenceObservedMap(MethodRDAP)}
 }
 
 func formatRegistrarWithRegistrant(registrar, registrant string) string {
@@ -216,7 +230,7 @@ func (a *Analyzer) tryParentZoneLookup(ctx context.Context, domain string) map[s
                 return nil
         }
         parentResult := a.GetRegistrarInfo(ctx, parentZone)
-        if parentResult["status"] == "success" {
+        if parentResult[mapKeyStatus] == statusSuccess {
                 parentResult["subdomain_of"] = parentZone
                 return parentResult
         }
@@ -250,7 +264,7 @@ func (a *Analyzer) rdapLookup(ctx context.Context, domain string) map[string]any
         providerName := "rdap:" + tld
 
         endpoints := a.buildRDAPEndpoints(tld)
-        slog.Info("RDAP lookup starting", "domain", domain, "tld", tld, "endpoint_count", len(endpoints))
+        slog.Info("RDAP lookup starting", mapKeyDomain, domain, "tld", tld, "endpoint_count", len(endpoints))
 
         type rdapResult struct {
                 data     map[string]any
@@ -280,11 +294,11 @@ func (a *Analyzer) rdapLookup(ctx context.Context, domain string) map[string]any
 
         if result, ok := <-resultCh; ok {
                 rdapCancel()
-                slog.Info("RDAP parallel lookup succeeded", "domain", domain, "winning_endpoint", result.endpoint)
+                slog.Info("RDAP parallel lookup succeeded", mapKeyDomain, domain, "winning_endpoint", result.endpoint)
                 return result.data
         }
 
-        slog.Warn("RDAP lookup exhausted all endpoints", "domain", domain, "endpoints_tried", len(endpoints))
+        slog.Warn("RDAP lookup exhausted all endpoints", mapKeyDomain, domain, "endpoints_tried", len(endpoints))
         a.Telemetry.RecordFailure(providerName, "all endpoints exhausted")
         return nil
 }
@@ -302,7 +316,7 @@ func (a *Analyzer) tryRDAPEndpointWithRetry(ctx context.Context, domain, endpoin
                         case <-ctx.Done():
                                 return nil
                         }
-                        slog.Info("RDAP retry", "domain", domain, "endpoint", endpoint, "retry", retry)
+                        slog.Info("RDAP retry", mapKeyDomain, domain, "endpoint", endpoint, "retry", retry)
                 }
                 data := a.tryRDAPEndpoint(ctx, domain, endpoint, providerName, attempt, total)
                 if data != nil {
@@ -341,7 +355,7 @@ func appendValidEndpoint(endpoints *[]string, seen map[string]bool, ep, tld, sou
                 *endpoints = append(*endpoints, ep)
                 seen[ep] = true
         } else {
-                slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld, "source", source)
+                slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld, mapKeySource, source)
         }
 }
 
@@ -351,22 +365,22 @@ func isValidRDAPEndpoint(endpoint string) bool {
 
 func (a *Analyzer) tryRDAPEndpoint(ctx context.Context, domain, endpoint, providerName string, attempt, total int) map[string]any {
         rdapURL := fmt.Sprintf("%sdomain/%s", strings.TrimRight(endpoint, "/")+"/", domain)
-        slog.Info("RDAP trying endpoint", "url", rdapURL, "attempt", fmt.Sprintf("%d/%d", attempt, total))
+        slog.Info("RDAP trying endpoint", "url", rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
 
         start := time.Now()
         resp, err := a.RDAPHTTP.GetDirect(ctx, rdapURL)
         if err != nil {
-                slog.Warn("RDAP endpoint failed", "domain", domain, "url", rdapURL, "error", err, "elapsed_ms", time.Since(start).Milliseconds(), "attempt", fmt.Sprintf("%d/%d", attempt, total))
+                slog.Warn("RDAP endpoint failed", mapKeyDomain, domain, "url", rdapURL, mapKeyError, err, mapKeyElapsedMs, time.Since(start).Milliseconds(), mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
                 return nil
         }
 
         body, err := a.RDAPHTTP.ReadBody(resp, 1<<20)
         if err != nil {
-                slog.Warn("RDAP body read failed", "url", rdapURL, "error", err)
+                slog.Warn("RDAP body read failed", "url", rdapURL, mapKeyError, err)
                 return nil
         }
 
-        slog.Info("RDAP response received", "url", rdapURL, "status", resp.StatusCode, "body_len", len(body), "elapsed_ms", time.Since(start).Milliseconds())
+        slog.Info("RDAP response received", "url", rdapURL, mapKeyStatus, resp.StatusCode, "body_len", len(body), mapKeyElapsedMs, time.Since(start).Milliseconds())
 
         if resp.StatusCode >= 400 {
                 return nil
@@ -384,12 +398,12 @@ func (a *Analyzer) tryRDAPEndpoint(ctx context.Context, domain, endpoint, provid
         }
 
         a.Telemetry.RecordSuccess(providerName, time.Since(start))
-        slog.Info("RDAP lookup succeeded", "domain", domain, "url", rdapURL, "attempt", fmt.Sprintf("%d/%d", attempt, total), "elapsed_ms", time.Since(start).Milliseconds())
+        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, "url", rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total), mapKeyElapsedMs, time.Since(start).Milliseconds())
         return data
 }
 
 func extractRegistrarFromRDAP(data map[string]any) string {
-        entities, ok := data["entities"].([]any)
+        entities, ok := data[mapKeyEntities].([]any)
         if !ok {
                 return ""
         }
@@ -402,7 +416,7 @@ func findRegistrarEntity(entities []any) string {
                 if !ok {
                         continue
                 }
-                if !entityHasRole(entity, "registrar") {
+                if !entityHasRole(entity, mapKeyRegistrar) {
                         if result := findRegistrarInSubEntities(entity); result != "" {
                                 return result
                         }
@@ -422,7 +436,7 @@ func findRegistrarEntity(entities []any) string {
 }
 
 func findRegistrarInSubEntities(entity map[string]any) string {
-        subEntities, ok := entity["entities"].([]any)
+        subEntities, ok := entity[mapKeyEntities].([]any)
         if !ok {
                 return ""
         }
@@ -440,7 +454,7 @@ func extractEntityName(entity map[string]any) string {
 }
 
 func extractRegistrantFromRDAP(data map[string]any) string {
-        entities, ok := data["entities"].([]any)
+        entities, ok := data[mapKeyEntities].([]any)
         if !ok {
                 return ""
         }
@@ -475,7 +489,7 @@ func findRegistrantEntity(entities []any) string {
 }
 
 func findRegistrantInSubEntities(entity map[string]any) string {
-        subEntities, ok := entity["entities"].([]any)
+        subEntities, ok := entity[mapKeyEntities].([]any)
         if !ok {
                 return ""
         }
@@ -554,7 +568,7 @@ func (a *Analyzer) whoisLookup(ctx context.Context, domain string) (string, bool
 
         restricted, empty := isWhoisRestricted(output, tld)
         if empty && !restricted {
-                slog.Info("WHOIS returned empty/minimal response (not a known restricted TLD)", "domain", domain, "tld", tld, "response_len", len(strings.TrimSpace(output)))
+                slog.Info("WHOIS returned empty/minimal response (not a known restricted TLD)", mapKeyDomain, domain, "tld", tld, "response_len", len(strings.TrimSpace(output)))
                 return "", false, ""
         }
         if restricted {
@@ -636,14 +650,14 @@ func (a *Analyzer) inferRegistrarFromNS(ctx context.Context, domain string) map[
 
         for pattern, registrarName := range nsRegistrarPatterns {
                 if strings.Contains(nsStr, pattern) {
-                        slog.Info("Inferred registrar from NS", "registrar", registrarName, "pattern", pattern, "domain", domain)
+                        slog.Info("Inferred registrar from NS", mapKeyRegistrar, registrarName, "pattern", pattern, mapKeyDomain, domain)
                         return map[string]any{
-                                "status":      "success",
-                                "source":      "NS inference",
-                                "registrar":   registrarName,
+                                mapKeyStatus:      statusSuccess,
+                                mapKeySource:      "NS inference",
+                                mapKeyRegistrar:   registrarName,
                                 "ns_inferred": true,
                                 "caveat":      "Inferred from nameserver records — indicates DNS hosting provider, which for integrated registrars typically matches the registrar.",
-                                "confidence":  ConfidenceInferredMap(MethodNSInference),
+                                mapKeyConfidence:  ConfidenceInferredMap(MethodNSInference),
                         }
                 }
         }

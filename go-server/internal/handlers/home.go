@@ -22,6 +22,41 @@ func NewHomeHandler(cfg *config.Config, database *db.Database) *HomeHandler {
         return &HomeHandler{Config: cfg, DB: database}
 }
 
+func applyWelcomeOrFlash(c *gin.Context, data gin.H) {
+        if welcome := c.Query("welcome"); welcome != "" {
+                name := welcome
+                if len(name) > 100 {
+                        name = name[:100]
+                }
+                data["WelcomeName"] = name
+                return
+        }
+        applyFlashFromQuery(c, data)
+}
+
+func applyFlashFromQuery(c *gin.Context, data gin.H) {
+        flash := c.Query("flash")
+        if flash == "" {
+                return
+        }
+        cat := c.DefaultQuery("flash_cat", "warning")
+        if cat != "success" && cat != "danger" {
+                cat = "warning"
+        }
+        msg := flash
+        if len(msg) > 200 {
+                msg = msg[:200]
+        }
+        data["FlashMessages"] = []FlashMessage{{Category: cat, Message: msg}}
+        if domain := c.Query("domain"); domain != "" {
+                d := domain
+                if len(d) > 253 {
+                        d = d[:253]
+                }
+                data["PrefillDomain"] = d
+        }
+}
+
 func (h *HomeHandler) Index(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
@@ -48,30 +83,7 @@ func (h *HomeHandler) Index(c *gin.Context) {
                 }
         }
 
-        if welcome := c.Query("welcome"); welcome != "" {
-                name := welcome
-                if len(name) > 100 {
-                        name = name[:100]
-                }
-                data["WelcomeName"] = name
-        } else if flash := c.Query("flash"); flash != "" {
-                cat := c.DefaultQuery("flash_cat", "warning")
-                if cat != "success" && cat != "danger" {
-                        cat = "warning"
-                }
-                msg := flash
-                if len(msg) > 200 {
-                        msg = msg[:200]
-                }
-                data["FlashMessages"] = []FlashMessage{{Category: cat, Message: msg}}
-                if domain := c.Query("domain"); domain != "" {
-                        d := domain
-                        if len(d) > 253 {
-                                d = d[:253]
-                        }
-                        data["PrefillDomain"] = d
-                }
-        }
+        applyWelcomeOrFlash(c, data)
 
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "index.html", data)

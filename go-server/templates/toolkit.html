@@ -734,7 +734,7 @@
                                 {{if and .ProbeLocations (gt (len .ProbeLocations) 1)}}
                                 <div class="col-sm-3">
                                     <label for="probe_location" class="form-label small">Probe Location</label>
-                                    <select class="form-select" id="probe_location" name="probe_location" aria-label="Probe Location">
+                                    <select class="form-select" id="probe_location" name="probe_location">
                                         {{range .ProbeLocations}}
                                         <option value="{{.ID}}" {{if eq $.SelectedProbe .ID}}selected{{end}}>{{.Label}}</option>
                                         {{end}}

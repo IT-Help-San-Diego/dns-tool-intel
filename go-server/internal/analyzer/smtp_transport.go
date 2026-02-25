@@ -330,7 +330,7 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
                 return remoteProbeFailover(ctx, mxHosts, probe, "request encoding error")
         }
 
-        probeCtx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
+        probeCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
         defer cancel()
 
         req, err := http.NewRequestWithContext(probeCtx, "POST", apiURL+"/probe/smtp", bytes.NewReader(reqBody))
@@ -435,67 +435,29 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
         return probe
 }
 
-func runMultiProbe(ctx context.Context, probes []ProbeEndpoint, mxHosts []string, probe map[string]any) map[string]any {
-        type probeResult struct {
-                id    string
-                label string
-                data  map[string]any
-                err   error
-        }
+type smtpProbeResult struct {
+        id    string
+        label string
+        data  map[string]any
+}
 
-        results := make(chan probeResult, len(probes))
+func runMultiProbe(ctx context.Context, probes []ProbeEndpoint, mxHosts []string, probe map[string]any) map[string]any {
+        results := make(chan smtpProbeResult, len(probes))
         for _, p := range probes {
                 go func(ep ProbeEndpoint) {
                         single := make(map[string]any)
                         single = runRemoteProbe(ctx, ep.URL, ep.Key, mxHosts, single)
-                        results <- probeResult{id: ep.ID, label: ep.Label, data: single}
+                        results <- smtpProbeResult{id: ep.ID, label: ep.Label, data: single}
                 }(p)
         }
 
-        var multiResults []map[string]any
-        var primaryResult map[string]any
-        for range probes {
-                r := <-results
-                entry := map[string]any{
-                        "probe_id":    r.id,
-                        "probe_label": r.label,
-                        "status":      r.data["status"],
-                        "probe_host":  r.data["probe_host"],
-                        "elapsed":     r.data["probe_elapsed"],
-                }
-                if obs, ok := r.data["observations"]; ok {
-                        entry["observations"] = obs
-                }
-                if s, ok := r.data["summary"]; ok {
-                        entry["summary"] = s
-                }
-                if v, ok := r.data["probe_verdict"]; ok {
-                        entry["probe_verdict"] = v
-                }
-                multiResults = append(multiResults, entry)
-                if primaryResult == nil && r.data["status"] == "observed" {
-                        primaryResult = r.data
-                }
+        multiResults, primaryResult := collectMultiProbeResults(probes, results)
+
+        if primaryResult == nil {
+                primaryResult = resolveMultiProbeFallback(ctx, probes, multiResults, mxHosts)
         }
 
-        if primaryResult == nil && len(multiResults) > 0 {
-                for _, mr := range multiResults {
-                        if mr["status"] == "observed" {
-                                break
-                        }
-                }
-                if len(probes) > 0 {
-                        first := make(map[string]any)
-                        first = runRemoteProbe(ctx, probes[0].URL, probes[0].Key, mxHosts, first)
-                        primaryResult = first
-                }
-        }
-
-        if primaryResult != nil {
-                for k, v := range primaryResult {
-                        probe[k] = v
-                }
-        }
+        applyPrimaryResult(probe, primaryResult)
 
         probe["multi_probe"] = multiResults
         probe["probe_method"] = "multi_remote"
@@ -511,6 +473,66 @@ func runMultiProbe(ctx context.Context, probes []ProbeEndpoint, mxHosts []string
         )
 
         return probe
+}
+
+func buildMultiProbeEntry(r smtpProbeResult) map[string]any {
+        entry := map[string]any{
+                "probe_id":    r.id,
+                "probe_label": r.label,
+                "status":      r.data["status"],
+                "probe_host":  r.data["probe_host"],
+                "elapsed":     r.data["probe_elapsed"],
+        }
+        if obs, ok := r.data["observations"]; ok {
+                entry["observations"] = obs
+        }
+        if s, ok := r.data["summary"]; ok {
+                entry["summary"] = s
+        }
+        if v, ok := r.data["probe_verdict"]; ok {
+                entry["probe_verdict"] = v
+        }
+        return entry
+}
+
+func collectMultiProbeResults(probes []ProbeEndpoint, results <-chan smtpProbeResult) ([]map[string]any, map[string]any) {
+        var multiResults []map[string]any
+        var primaryResult map[string]any
+        for range probes {
+                r := <-results
+                entry := buildMultiProbeEntry(r)
+                multiResults = append(multiResults, entry)
+                if primaryResult == nil && r.data["status"] == "observed" {
+                        primaryResult = r.data
+                }
+        }
+        return multiResults, primaryResult
+}
+
+func resolveMultiProbeFallback(ctx context.Context, probes []ProbeEndpoint, multiResults []map[string]any, mxHosts []string) map[string]any {
+        if len(multiResults) == 0 {
+                return nil
+        }
+        for _, mr := range multiResults {
+                if mr["status"] == "observed" {
+                        return nil
+                }
+        }
+        if len(probes) > 0 {
+                first := make(map[string]any)
+                first = runRemoteProbe(ctx, probes[0].URL, probes[0].Key, mxHosts, first)
+                return first
+        }
+        return nil
+}
+
+func applyPrimaryResult(probe, primaryResult map[string]any) {
+        if primaryResult == nil {
+                return
+        }
+        for k, v := range primaryResult {
+                probe[k] = v
+        }
 }
 
 func computeProbeConsensus(results []map[string]any) map[string]any {

@@ -30,7 +30,7 @@ func (a *Analyzer) LookupASN(ctx context.Context, results map[string]any) map[st
                 "issues":    []string{},
         }
 
-        asnCtx, asnCancel := context.WithTimeout(context.Background(), 8*time.Second)
+        asnCtx, asnCancel := context.WithTimeout(ctx, 8*time.Second)
         defer asnCancel()
 
         asnSet := make(map[string]map[string]any)

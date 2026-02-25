@@ -325,6 +325,19 @@ func parseContentUsageDirectives(content string) map[string]any {
                 "parameters": map[string]string{},
         }
 
+        rawLines, params := extractContentUsageLines(content)
+
+        if len(rawLines) > 0 {
+                result["found"] = true
+                result["raw"] = strings.Join(rawLines, "; ")
+        }
+        result["parameters"] = params
+        result["ai_denied"] = isAIDenied(params)
+
+        return result
+}
+
+func extractContentUsageLines(content string) ([]string, map[string]string) {
         var rawLines []string
         params := map[string]string{}
 
@@ -344,35 +357,35 @@ func parseContentUsageDirectives(content string) map[string]any {
                         continue
                 }
 
-                result["found"] = true
                 rawLines = append(rawLines, value)
+                parseContentUsageTokens(value, params)
+        }
 
-                tokens := strings.Fields(value)
-                for _, tok := range tokens {
-                        if strings.HasPrefix(tok, "/") {
-                                continue
-                        }
-                        if idx := strings.Index(tok, "="); idx > 0 {
-                                key := strings.ToLower(tok[:idx])
-                                val := strings.ToLower(tok[idx+1:])
-                                params[key] = val
-                        }
+        return rawLines, params
+}
+
+func parseContentUsageTokens(value string, params map[string]string) {
+        tokens := strings.Fields(value)
+        for _, tok := range tokens {
+                if strings.HasPrefix(tok, "/") {
+                        continue
+                }
+                if idx := strings.Index(tok, "="); idx > 0 {
+                        key := strings.ToLower(tok[:idx])
+                        val := strings.ToLower(tok[idx+1:])
+                        params[key] = val
                 }
         }
+}
 
-        if len(rawLines) > 0 {
-                result["raw"] = strings.Join(rawLines, "; ")
-        }
-        result["parameters"] = params
-
+func isAIDenied(params map[string]string) bool {
         denyValues := map[string]bool{"n": true, "no": true, "none": true, "disallow": true}
         for _, key := range []string{"ai", "train-ai", "ai-training", "ai-inference"} {
                 if val, ok := params[key]; ok && denyValues[val] {
-                        result["ai_denied"] = true
+                        return true
                 }
         }
-
-        return result
+        return false
 }
 
 type robotsParseState struct {

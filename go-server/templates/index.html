@@ -953,14 +953,14 @@
     <script nonce="{{.CspNonce}}">
     (function() {
         document.addEventListener('DOMContentLoaded', function() {
-            var ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
             if (new URLSearchParams(globalThis.location.search).has('dkim')) {
-                var sel1 = document.querySelector('input[name="dkim_selector1"]');
+                const sel1 = document.querySelector('input[name="dkim_selector1"]');
                 if (sel1) { sel1.focus(); }
             }
-            var devnullCb = document.getElementById('devnull');
-            var exposureCb = document.getElementById('exposure_checks');
+            const devnullCb = document.getElementById('devnull');
+            const exposureCb = document.getElementById('exposure_checks');
             if (devnullCb && exposureCb) {
                 devnullCb.addEventListener('change', function() {
                     if (devnullCb.checked) { exposureCb.checked = true; }
@@ -968,8 +968,8 @@
             }
             const analyzeBtn = document.getElementById('analyzeBtn');
             if (analyzeBtn && analyzeBtn.dataset.waitSeconds) {
-                var waitSeconds = Number.parseInt(analyzeBtn.dataset.waitSeconds, 10);
-                var originalHTML = analyzeBtn.innerHTML;
+                const waitSeconds = Number.parseInt(analyzeBtn.dataset.waitSeconds, 10);
+                const originalHTML = analyzeBtn.innerHTML;
                 
                 if (waitSeconds > 0) {
                     analyzeBtn.disabled = true;

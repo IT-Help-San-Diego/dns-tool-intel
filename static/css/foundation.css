@@ -166,13 +166,12 @@ small, .small { font-size: 0.875em; }
     .col-xl-12 { flex: 0 0 auto; width: 100%; }
 }
 
-.g-1 { --bs-gutter-x: 0.25rem; --bs-gutter-y: 0.25rem; }
-.g-2 { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; }
-.g-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
-.g-4 { --bs-gutter-x: 1.5rem; --bs-gutter-y: 1.5rem; }
-.g-5 { --bs-gutter-x: 3rem; --bs-gutter-y: 3rem; }
+.g-1 { --bs-gutter-x: 0.25rem; --bs-gutter-y: 0.25rem; margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
+.g-2 { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
+.g-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
+.g-4 { --bs-gutter-x: 1.5rem; --bs-gutter-y: 1.5rem; margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
+.g-5 { --bs-gutter-x: 3rem; --bs-gutter-y: 3rem; margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
 
-.g-1, .g-2, .g-3, .g-4, .g-5 { margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
 .g-1 > *, .g-2 > *, .g-3 > *, .g-4 > *, .g-5 > * { padding-right: calc(var(--bs-gutter-x) * 0.5); padding-left: calc(var(--bs-gutter-x) * 0.5); margin-top: var(--bs-gutter-y); }
 
 /* === 4. Display Utilities === */
@@ -1155,8 +1154,6 @@ small, .small { font-size: 0.875em; }
 
 .accordion-button:focus { z-index: 3; border-color: var(--accent-violet); outline: 0; box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25); }
 
-.accordion-collapse { /* inherits default collapse behavior */ }
-
 .accordion-body { padding: 1rem 1.25rem; }
 
 /* === 21. Collapse === */
@@ -1205,8 +1202,6 @@ small, .small { font-size: 0.875em; }
 
 .fade { transition: opacity 0.15s linear; opacity: 0; }
 .fade.show { opacity: 1; }
-
-.active { /* state class — styles applied via compound selectors */ }
 
 .disabled, :disabled { pointer-events: none; opacity: 0.65; }
 

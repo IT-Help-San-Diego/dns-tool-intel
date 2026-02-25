@@ -446,19 +446,19 @@
 
     <script nonce="{{.CspNonce}}">
     document.addEventListener('DOMContentLoaded', function() {
-        var values = document.querySelectorAll('.color-value[data-copy]');
-        var toast = document.getElementById('copyToast');
-        var toastTimeout;
+        const values = document.querySelectorAll('.color-value[data-copy]');
+        const toast = document.getElementById('copyToast');
+        let toastTimeout;
 
         values.forEach(function(el) {
             el.addEventListener('click', function() {
-                var text = el.dataset.copy;
+                const text = el.dataset.copy;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(function() {
                         showToast('Copied ' + text);
                     });
                 } else {
-                    var ta = document.createElement('textarea');
+                    const ta = document.createElement('textarea');
                     ta.value = text;
                     ta.classList.add('u-offscreen-copy');
                     document.body.appendChild(ta);

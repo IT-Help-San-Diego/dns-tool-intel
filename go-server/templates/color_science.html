@@ -123,7 +123,7 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function() {
-        var colors = [
+        const colors = [
             { hex: '#cc2020', name: 'Primary Accent', label: 'Crimson', wavelength: 630 },
             { hex: '#0a0c10', name: 'Background', label: 'Tactical Dark', wavelength: null },
             { hex: '#ffc6c6', name: 'Text Accent', label: 'Soft Crimson', wavelength: null },
@@ -152,34 +152,34 @@
         }
 
         function contrastRatio(l1, l2) {
-            var lighter = Math.max(l1, l2);
-            var darker = Math.min(l1, l2);
+            const lighter = Math.max(l1, l2);
+            const darker = Math.min(l1, l2);
             return (lighter + 0.05) / (darker + 0.05);
         }
 
-        var scotopicEfficiency = {
+        const scotopicEfficiency = {
             380: 0.000589, 400: 0.00929, 420: 0.0966, 440: 0.328,
-            460: 0.567, 480: 0.793, 500: 0.982, 507: 1.000,
-            520: 0.935, 540: 0.650, 560: 0.381, 580: 0.169,
+            460: 0.567, 480: 0.793, 500: 0.982, 507: 1,
+            520: 0.935, 540: 0.65, 560: 0.381, 580: 0.169,
             600: 0.0468, 620: 0.00737, 640: 0.001, 660: 0.000148,
             680: 0.0000212, 700: 0.00000329
         };
 
-        var photopicEfficiency = {
+        const photopicEfficiency = {
             380: 0.0002, 400: 0.004, 420: 0.04, 440: 0.023,
             460: 0.06, 480: 0.139, 500: 0.323, 520: 0.71,
-            540: 0.954, 555: 1.000,
+            540: 0.954, 555: 1,
             560: 0.995, 580: 0.87, 600: 0.631, 620: 0.381,
             640: 0.175, 660: 0.061, 680: 0.017, 700: 0.0041
         };
 
         function interpolateLookup(table, wl) {
-            var keys = Object.keys(table).map(Number).sort(function(a,b){return a-b;});
+            const keys = Object.keys(table).map(Number).sort(function(a,b){return a-b;});
             if (wl <= keys[0]) return table[keys[0]];
             if (wl >= keys[keys.length-1]) return table[keys[keys.length-1]];
-            for (var i = 0; i < keys.length - 1; i++) {
+            for (let i = 0; i < keys.length - 1; i++) {
                 if (wl >= keys[i] && wl <= keys[i+1]) {
-                    var t = (wl - keys[i]) / (keys[i+1] - keys[i]);
+                    const t = (wl - keys[i]) / (keys[i+1] - keys[i]);
                     return table[keys[i]] * (1 - t) + table[keys[i+1]] * t;
                 }
             }
@@ -188,87 +188,87 @@
 
         function estimateDominantWavelength(r, g, b) {
             if (r > g && r > b && r > 100) {
-                var ratio = (r - Math.max(g, b)) / r;
+                const ratio = (r - Math.max(g, b)) / r;
                 return Math.round(620 + ratio * 30);
             }
             return null;
         }
 
         function el(tag, cls, text) {
-            var e = document.createElement(tag);
+            const e = document.createElement(tag);
             if (cls) e.className = cls;
             if (text !== undefined) e.textContent = text;
             return e;
         }
 
-        var container = document.getElementById('palette-cards');
+        const container = document.getElementById('palette-cards');
 
         colors.forEach(function(color) {
-            var rgb = parseHex(color.hex);
-            var lum = relativeLuminance(rgb.r, rgb.g, rgb.b);
-            var wl = color.wavelength || estimateDominantWavelength(rgb.r, rgb.g, rgb.b);
-            var scotopic = wl ? interpolateLookup(scotopicEfficiency, wl) : null;
-            var photopic = wl ? interpolateLookup(photopicEfficiency, wl) : null;
-            var spRatio = (scotopic !== null && photopic !== null && photopic > 0) ? scotopic / photopic : null;
-            var milPass = wl !== null && wl >= 620 && wl <= 700;
+            const rgb = parseHex(color.hex);
+            const lum = relativeLuminance(rgb.r, rgb.g, rgb.b);
+            const wl = color.wavelength || estimateDominantWavelength(rgb.r, rgb.g, rgb.b);
+            const scotopic = wl ? interpolateLookup(scotopicEfficiency, wl) : null;
+            const photopic = wl ? interpolateLookup(photopicEfficiency, wl) : null;
+            const spRatio = (scotopic !== null && photopic !== null && photopic > 0) ? scotopic / photopic : null;
+            const milPass = wl !== null && wl >= 620 && wl <= 700;
 
-            var col = el('div', 'col-md-6');
-            var card = el('div', 'cs-card p-3 h-100');
-            var row = el('div', 'd-flex align-items-start gap-3');
+            const col = el('div', 'col-md-6');
+            const card = el('div', 'cs-card p-3 h-100');
+            const row = el('div', 'd-flex align-items-start gap-3');
 
-            var swatch = el('div', 'cs-swatch');
+            const swatch = el('div', 'cs-swatch');
             swatch.setAttribute('aria-label', 'Color swatch for ' + color.hex);
             swatch.style.cssText = 'background-color:' + color.hex;
             row.appendChild(swatch);
 
-            var info = el('div', 'flex-grow-1');
+            const info = el('div', 'flex-grow-1');
 
-            var title = el('h3', 'h6 mb-1');
+            const title = el('h3', 'h6 mb-1');
             title.textContent = color.name;
-            var labelSpan = el('span', 'text-muted small');
+            const labelSpan = el('span', 'text-muted small');
             labelSpan.textContent = ' \u2014 ' + color.label;
             title.appendChild(labelSpan);
             info.appendChild(title);
 
-            var hexLine = el('div', 'small text-muted');
+            const hexLine = el('div', 'small text-muted');
             hexLine.textContent = color.hex.toUpperCase() + '  \u2022  RGB(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
             info.appendChild(hexLine);
 
-            var lumLine = el('div', 'small text-muted');
+            const lumLine = el('div', 'small text-muted');
             lumLine.textContent = 'Relative Luminance: ' + lum.toFixed(4);
             info.appendChild(lumLine);
 
             if (wl) {
-                var wlLine = el('div', 'small text-muted');
+                const wlLine = el('div', 'small text-muted');
                 wlLine.textContent = 'Dominant \u03BB \u2248 ' + wl + ' nm';
                 info.appendChild(wlLine);
 
-                var scotLine = el('div', 'small text-muted');
+                const scotLine = el('div', 'small text-muted');
                 scotLine.textContent = "V'(\u03BB) scotopic: " + scotopic.toExponential(3);
                 info.appendChild(scotLine);
 
-                var photLine = el('div', 'small text-muted');
+                const photLine = el('div', 'small text-muted');
                 photLine.textContent = 'V(\u03BB) photopic: ' + photopic.toFixed(4);
                 info.appendChild(photLine);
 
                 if (spRatio !== null) {
-                    var spLine = el('div', 'small text-muted');
+                    const spLine = el('div', 'small text-muted');
                     spLine.textContent = 'S/P Ratio: ' + spRatio.toExponential(3);
                     info.appendChild(spLine);
                 }
 
-                var badgeDiv = el('div', 'mt-1');
-                var badge = el('span', 'badge ' + (milPass ? 'bg-success' : 'bg-danger'));
+                const badgeDiv = el('div', 'mt-1');
+                const badge = el('span', 'badge ' + (milPass ? 'bg-success' : 'bg-danger'));
                 badge.textContent = (milPass ? 'PASS' : 'FAIL') + ' MIL-STD-1472H (620\u2013700 nm)';
                 badgeDiv.appendChild(badge);
                 info.appendChild(badgeDiv);
             } else {
-                var naLine = el('div', 'small text-muted');
+                const naLine = el('div', 'small text-muted');
                 naLine.textContent = 'Non-chromatic / broadband \u2014 no dominant \u03BB';
                 info.appendChild(naLine);
 
-                var naBadge = el('div', 'mt-1');
-                var nb = el('span', 'badge bg-secondary');
+                const naBadge = el('div', 'mt-1');
+                const nb = el('span', 'badge bg-secondary');
                 nb.textContent = 'N/A \u2014 Not a tactical red';
                 naBadge.appendChild(nb);
                 info.appendChild(naBadge);
@@ -280,49 +280,53 @@
             container.appendChild(col);
         });
 
-        var matrixHead = document.getElementById('matrix-head');
-        var matrixBody = document.getElementById('matrix-body');
+        const matrixHead = document.getElementById('matrix-head');
+        const matrixBody = document.getElementById('matrix-body');
 
-        var headRow = el('tr');
+        const headRow = el('tr');
         headRow.appendChild(el('th', 'cs-matrix-cell', 'FG \\ BG'));
         colors.forEach(function(c) {
-            var th = el('th', 'cs-matrix-header');
+            const th = el('th', 'cs-matrix-header');
             th.textContent = c.hex;
             headRow.appendChild(th);
         });
         matrixHead.appendChild(headRow);
 
         colors.forEach(function(fg) {
-            var fgRgb = parseHex(fg.hex);
-            var fgLum = relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
-            var tr = el('tr');
-            var label = el('td', 'cs-matrix-cell fw-bold');
+            const fgRgb = parseHex(fg.hex);
+            const fgLum = relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
+            const tr = el('tr');
+            const label = el('td', 'cs-matrix-cell fw-bold');
             label.textContent = fg.hex;
             label.style.cssText = 'color:' + fg.hex;
             tr.appendChild(label);
 
             colors.forEach(function(bg) {
-                var bgRgb = parseHex(bg.hex);
-                var bgLum = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
-                var cr = contrastRatio(fgLum, bgLum);
-                var td = el('td', 'cs-matrix-cell');
+                const bgRgb = parseHex(bg.hex);
+                const bgLum = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
+                const cr = contrastRatio(fgLum, bgLum);
+                const td = el('td', 'cs-matrix-cell');
 
-                var ratioText = el('div', 'fw-bold');
+                const ratioText = el('div', 'fw-bold');
                 ratioText.textContent = cr.toFixed(2) + ':1';
                 td.appendChild(ratioText);
 
                 if (fg.hex === bg.hex) {
                     td.appendChild(el('div', 'small text-muted', '\u2014'));
                 } else {
-                    var aaDiv = el('div', 'small');
-                    var aaBadge = el('span', 'badge ' + (cr >= 4.5 ? 'bg-success' : (cr >= 3 ? 'bg-warning text-dark' : 'bg-danger')));
-                    aaBadge.textContent = cr >= 4.5 ? 'AA' : (cr >= 3 ? 'AA-lg' : 'Fail');
+                    const aaDiv = el('div', 'small');
+                    const aaClass = cr >= 4.5 ? 'bg-success' : (cr >= 3 ? 'bg-warning text-dark' : 'bg-danger');
+                    const aaLabel = cr >= 4.5 ? 'AA' : (cr >= 3 ? 'AA-lg' : 'Fail');
+                    const aaBadge = el('span', 'badge ' + aaClass);
+                    aaBadge.textContent = aaLabel;
                     aaDiv.appendChild(aaBadge);
                     td.appendChild(aaDiv);
 
-                    var aaaDiv = el('div', 'small');
-                    var aaaBadge = el('span', 'badge ' + (cr >= 7 ? 'bg-success' : (cr >= 4.5 ? 'bg-warning text-dark' : 'bg-danger')));
-                    aaaBadge.textContent = cr >= 7 ? 'AAA' : (cr >= 4.5 ? 'AAA-lg' : 'Fail');
+                    const aaaDiv = el('div', 'small');
+                    const aaaClass = cr >= 7 ? 'bg-success' : (cr >= 4.5 ? 'bg-warning text-dark' : 'bg-danger');
+                    const aaaLabel = cr >= 7 ? 'AAA' : (cr >= 4.5 ? 'AAA-lg' : 'Fail');
+                    const aaaBadge = el('span', 'badge ' + aaaClass);
+                    aaaBadge.textContent = aaaLabel;
                     aaaDiv.appendChild(aaaBadge);
                     td.appendChild(aaaDiv);
                 }

@@ -58,32 +58,14 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
                 return
         }
 
-        var results map[string]any
-        if len(analysis.FullResults) > 0 {
-                if err := json.Unmarshal(analysis.FullResults, &results); err != nil {
-                        slog.Warn("Badge: unmarshal full_results", "error", err)
-                }
-        }
+        results := unmarshalResults(analysis.FullResults, "Badge")
         if results == nil {
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVG(labelDNSTool, "no data", colorGrey))
                 return
         }
 
-        riskLabel := "Unknown"
-        riskColor := colorGrey
-
-        if postureRaw, ok := results["posture"]; ok {
-                if posture, ok := postureRaw.(map[string]any); ok {
-                        if rl, ok := posture["label"].(string); ok && rl != "" {
-                                riskLabel = rl
-                        } else if rl, ok := posture["grade"].(string); ok && rl != "" {
-                                riskLabel = rl
-                        }
-                        if rc, ok := posture["color"].(string); ok {
-                                riskColor = riskColorToHex(rc)
-                        }
-                }
-        }
+        riskLabel, riskColor := extractPostureRisk(results)
+        riskColor = riskColorToHex(riskColor)
 
         style := c.DefaultQuery("style", "flat")
 
@@ -106,6 +88,43 @@ func (h *BadgeHandler) BadgeEmbed(c *gin.Context) {
                 "AppVersion": h.Config.AppVersion,
                 "BaseURL":    h.Config.BaseURL,
         })
+}
+
+func unmarshalResults(fullResults []byte, caller string) map[string]any {
+        if len(fullResults) == 0 {
+                return nil
+        }
+        var results map[string]any
+        if err := json.Unmarshal(fullResults, &results); err != nil {
+                slog.Warn(caller+": unmarshal full_results", "error", err)
+                return nil
+        }
+        return results
+}
+
+func extractPostureRisk(results map[string]any) (string, string) {
+        riskLabel := "Unknown"
+        riskColor := ""
+        if results == nil {
+                return riskLabel, riskColor
+        }
+        postureRaw, ok := results["posture"]
+        if !ok {
+                return riskLabel, riskColor
+        }
+        posture, ok := postureRaw.(map[string]any)
+        if !ok {
+                return riskLabel, riskColor
+        }
+        if rl, ok := posture["label"].(string); ok && rl != "" {
+                riskLabel = rl
+        } else if rl, ok := posture["grade"].(string); ok && rl != "" {
+                riskLabel = rl
+        }
+        if rc, ok := posture["color"].(string); ok {
+                riskColor = rc
+        }
+        return riskLabel, riskColor
 }
 
 func riskColorToHex(color string) string {
@@ -202,28 +221,10 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
                 return
         }
 
-        var results map[string]any
-        if len(analysis.FullResults) > 0 {
-                if err := json.Unmarshal(analysis.FullResults, &results); err != nil {
-                        slog.Warn("BadgeShieldsIO: unmarshal full_results", "error", err)
-                }
-        }
+        results := unmarshalResults(analysis.FullResults, "BadgeShieldsIO")
 
-        riskLabel := "Unknown"
-        shieldsColor := "lightgrey"
-
-        if postureRaw, ok := results["posture"]; ok {
-                if posture, ok := postureRaw.(map[string]any); ok {
-                        if rl, ok := posture["label"].(string); ok && rl != "" {
-                                riskLabel = rl
-                        } else if rl, ok := posture["grade"].(string); ok && rl != "" {
-                                riskLabel = rl
-                        }
-                        if rc, ok := posture["color"].(string); ok {
-                                shieldsColor = riskColorToShields(rc)
-                        }
-                }
-        }
+        riskLabel, riskColorRaw := extractPostureRisk(results)
+        shieldsColor := riskColorToShields(riskColorRaw)
 
         c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
         c.Header("Expires", time.Now().Add(1*time.Hour).UTC().Format(http.TimeFormat))

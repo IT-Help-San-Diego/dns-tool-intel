@@ -130,12 +130,12 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function() {
-        var baseURL = '{{.BaseURL}}';
-        var domain = document.getElementById('badgeDomain');
-        var style = 'flat';
-        var previewCard = document.getElementById('badgePreviewCard');
-        var embedCard = document.getElementById('badgeEmbedCard');
-        var preview = document.getElementById('badgePreview');
+        const baseURL = '{{.BaseURL}}';
+        const domain = document.getElementById('badgeDomain');
+        let style = 'flat';
+        const previewCard = document.getElementById('badgePreviewCard');
+        const embedCard = document.getElementById('badgeEmbedCard');
+        const preview = document.getElementById('badgePreview');
 
         document.getElementById('btnStyleFlat').addEventListener('click', function() {
             style = 'flat';
@@ -149,11 +149,11 @@
         });
 
         document.getElementById('btnGenerateBadge').addEventListener('click', function() {
-            var d = domain.value.trim();
+            const d = domain.value.trim();
             if (!d) return;
 
-            var badgeURL = baseURL + '/badge?domain=' + encodeURIComponent(d) + (style !== 'flat' ? '&style=' + style : '');
-            var reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(d);
+            const badgeURL = baseURL + '/badge?domain=' + encodeURIComponent(d) + (style !== 'flat' ? '&style=' + style : '');
+            const reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(d);
 
             preview.innerHTML = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge for ' + d + '"></a>';
             previewCard.classList.remove('d-none');
@@ -164,18 +164,18 @@
             document.getElementById('embedURL').value = badgeURL;
             document.getElementById('embedCurl').value = "curl -s '" + badgeURL + "' > dns-badge.svg";
 
-            var shieldsEndpoint = baseURL + '/badge/shields?domain=' + encodeURIComponent(d);
-            var shieldsURL = 'https://img.shields.io/endpoint?url=' + encodeURIComponent(shieldsEndpoint);
+            const shieldsEndpoint = baseURL + '/badge/shields?domain=' + encodeURIComponent(d);
+            const shieldsURL = 'https://img.shields.io/endpoint?url=' + encodeURIComponent(shieldsEndpoint);
             document.getElementById('embedShieldsURL').value = shieldsURL;
             document.getElementById('embedShieldsMarkdown').value = '[![DNS Tool Security](' + shieldsURL + ')](' + reportURL + ')';
         });
 
         function copyField(btnId, fieldId) {
             document.getElementById(btnId).addEventListener('click', function() {
-                var el = document.getElementById(fieldId);
+                const el = document.getElementById(fieldId);
                 navigator.clipboard.writeText(el.value).then(function() {
-                    var btn = document.getElementById(btnId);
-                    var icon = btn.querySelector('i');
+                    const btn = document.getElementById(btnId);
+                    const icon = btn.querySelector('i');
                     icon.className = 'fas fa-check';
                     setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
                 });
@@ -192,7 +192,7 @@
             if (e.key === 'Enter') document.getElementById('btnGenerateBadge').click();
         });
 
-        var params = new URLSearchParams(globalThis.location.search);
+        const params = new URLSearchParams(globalThis.location.search);
         if (params.get('domain')) {
             domain.value = params.get('domain');
             document.getElementById('btnGenerateBadge').click();

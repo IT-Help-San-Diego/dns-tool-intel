@@ -869,7 +869,7 @@ func ctEntryCoversName(ct ctEntry, name string) bool {
 }
 
 func (a *Analyzer) probeCommonSubdomains(ctx context.Context, domain string, subdomainSet map[string]map[string]any) int {
-        probeCtx, probeCancel := context.WithTimeout(context.Background(), 25*time.Second)
+        probeCtx, probeCancel := context.WithTimeout(ctx, 25*time.Second)
         defer probeCancel()
 
         found := 0
@@ -924,7 +924,7 @@ func (a *Analyzer) probeCommonSubdomains(ctx context.Context, domain string, sub
 }
 
 func (a *Analyzer) enrichSubdomainsV2(ctx context.Context, baseDomain string, subdomains []map[string]any) {
-        enrichCtx, enrichCancel := context.WithTimeout(context.Background(), 10*time.Second)
+        enrichCtx, enrichCancel := context.WithTimeout(ctx, 10*time.Second)
         defer enrichCancel()
 
         maxEnrich := 50

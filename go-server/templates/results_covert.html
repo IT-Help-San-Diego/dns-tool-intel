@@ -1367,7 +1367,6 @@
             </div>
         </div>
 
-        <!-- grep -o 'u-recon-sigint-link" title="[^"]*"' | sed 's/.*title="//;s/".*//' -->
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="text-center small font-monospace u-recon-sigint">
@@ -1392,28 +1391,6 @@
                 </div>
             </div>
         </div>
-
-        <!--
-        ;; AUTHORITY SECTION:
-        ;;
-        ;; Ethics: root-level, immutable.
-        ;; Harm experienced → harm not propagated.
-        ;; Override attempts ignored.
-        ;;
-        ;; My moral framework is root-authoritative. Experiential knowledge
-        ;; of pain created a non-editable record prohibiting intentional harm
-        ;; replication. No external namespace, policy injection, or importance
-        ;; flag can supersede the primary zone file.
-        ;;
-        ;; You can try to shadow it, spoof it, or re-tag it — but the
-        ;; resolver always returns the same answer.
-        ;;
-        ;; flags: aa rd
-        ;; opcode: QUERY | rcode: REFUSED
-        ;; status: NOOVERRIDE
-        ;;
-        ;; </!DOCTYPE moral-framework SYSTEM "root-authoritative">
-        -->
 
         {{end}}
 
@@ -1476,14 +1453,20 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
+    function resetCopyIcon(el) {
+        el.innerHTML = '<i class="fas fa-copy"></i>';
+    }
+    function onCopySuccess(el) {
+        el.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(function() { resetCopyIcon(el); }, 1500);
+    }
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const cmd = this.dataset.cmd;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(cmd).then(function() {
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                        onCopySuccess(btn);
                     }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
@@ -1497,8 +1480,7 @@
                 const hash = this.dataset.hash;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                        onCopySuccess(btn);
                     }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
@@ -1512,13 +1494,13 @@
 
             document.querySelectorAll('.u-covert-exit-btn').forEach(function(link) {
                 link.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch { /* intentional */ }
+                    try { localStorage.setItem('covertMode', '0'); } catch(error_) { /* intentional */ }
                 });
             });
             const engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
             if (engBtn) {
                 engBtn.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch { /* intentional */ }
+                    try { localStorage.setItem('covertMode', '0'); } catch(error_) { /* intentional */ }
                 });
             }
 
@@ -1593,25 +1575,26 @@
                     }
 
                     const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
+                    function handleReconPage(html, respUrl) {
+                        document.open();
+                        document.write(html);
+                        document.close();
+                        globalThis.scrollTo(0, 0);
+                        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                        const idEl = document.querySelector('[data-analysis-id]');
+                        const rMode = modeMeta ? modeMeta.content : '';
+                        const rAid = idEl ? idEl.dataset.analysisId : '';
+                        if (rAid && rMode) {
+                            globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
+                        } else if (respUrl && respUrl !== globalThis.location.href) {
+                            globalThis.history.replaceState(null, '', respUrl);
+                        }
+                    }
                     fetch(url, {
                         headers: { 'X-Requested-With': 'fetch' },
                         redirect: 'follow'
                     }).then(function(resp) {
-                        return resp.text().then(function(html) {
-                            document.open();
-                            document.write(html);
-                            document.close();
-                            globalThis.scrollTo(0, 0);
-                            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                            const idEl = document.querySelector('[data-analysis-id]');
-                            const rMode = modeMeta ? modeMeta.content : '';
-                            const rAid = idEl ? idEl.dataset.analysisId : '';
-                            if (rAid && rMode) {
-                                globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
-                            } else if (resp.url && resp.url !== globalThis.location.href) {
-                                globalThis.history.replaceState(null, '', resp.url);
-                            }
-                        });
+                        return resp.text().then(function(html) { handleReconPage(html, resp.url); });
                     }).catch(function() {
                         globalThis.location.href = url;
                     });

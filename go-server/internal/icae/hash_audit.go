@@ -35,42 +35,8 @@ func AuditHashIntegrity(ctx context.Context, queries *dbq.Queries, limit int32) 
         }
 
         result := &HashAuditResult{}
-
         for _, row := range rows {
-                if row.PostureHash == nil || *row.PostureHash == "" {
-                        result.TotalMissing++
-                        continue
-                }
-
-                result.TotalAudited++
-
-                var fullResults map[string]any
-                if err := json.Unmarshal(row.FullResults, &fullResults); err != nil {
-                        slog.Warn("ICAE hash audit: failed to parse full_results",
-                                "id", row.ID, "domain", row.Domain, "error", err)
-                        result.TotalFailed++
-                        result.FailedDomains = append(result.FailedDomains, row.Domain)
-                        continue
-                }
-
-                var recomputed string
-                if len(*row.PostureHash) == 64 {
-                        recomputed = analyzer.CanonicalPostureHashLegacySHA256(fullResults)
-                } else {
-                        recomputed = analyzer.CanonicalPostureHash(fullResults)
-                }
-                if recomputed == *row.PostureHash {
-                        result.TotalVerified++
-                        if result.LastVerifiedAt == "" && row.CreatedAt.Valid {
-                                result.LastVerifiedAt = row.CreatedAt.Time.Format(time.DateOnly)
-                        }
-                } else {
-                        result.TotalFailed++
-                        result.FailedDomains = append(result.FailedDomains, row.Domain)
-                        slog.Warn("ICAE hash audit: posture hash mismatch",
-                                "id", row.ID, "domain", row.Domain,
-                                "stored", *row.PostureHash, "recomputed", recomputed)
-                }
+                auditSingleRow(row, result)
         }
 
         if result.TotalAudited > 0 {
@@ -78,4 +44,43 @@ func AuditHashIntegrity(ctx context.Context, queries *dbq.Queries, limit int32) 
         }
 
         return result
+}
+
+func auditSingleRow(row dbq.GetRecentHashedAnalysesRow, result *HashAuditResult) {
+        if row.PostureHash == nil || *row.PostureHash == "" {
+                result.TotalMissing++
+                return
+        }
+
+        result.TotalAudited++
+
+        var fullResults map[string]any
+        if err := json.Unmarshal(row.FullResults, &fullResults); err != nil {
+                slog.Warn("ICAE hash audit: failed to parse full_results",
+                        "id", row.ID, "domain", row.Domain, "error", err)
+                result.TotalFailed++
+                result.FailedDomains = append(result.FailedDomains, row.Domain)
+                return
+        }
+
+        recomputed := recomputeHash(row.PostureHash, fullResults)
+        if recomputed == *row.PostureHash {
+                result.TotalVerified++
+                if result.LastVerifiedAt == "" && row.CreatedAt.Valid {
+                        result.LastVerifiedAt = row.CreatedAt.Time.Format(time.DateOnly)
+                }
+        } else {
+                result.TotalFailed++
+                result.FailedDomains = append(result.FailedDomains, row.Domain)
+                slog.Warn("ICAE hash audit: posture hash mismatch",
+                        "id", row.ID, "domain", row.Domain,
+                        "stored", *row.PostureHash, "recomputed", recomputed)
+        }
+}
+
+func recomputeHash(storedHash *string, fullResults map[string]any) string {
+        if len(*storedHash) == 64 {
+                return analyzer.CanonicalPostureHashLegacySHA256(fullResults)
+        }
+        return analyzer.CanonicalPostureHash(fullResults)
 }

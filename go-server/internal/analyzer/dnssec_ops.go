@@ -201,7 +201,24 @@ func assessRolloverReadiness(keys []DNSSECKeyInfo, hasCDS, hasCDNSKEY bool) Roll
                 Issues: []string{},
         }
 
-        var kskCount, zskCount int
+        kskCount, zskCount := countKeyRoles(keys)
+
+        rr.KSKCount = kskCount
+        rr.ZSKCount = zskCount
+        rr.MultipleKSKs = kskCount > 1
+        rr.HasCDS = hasCDS
+        rr.HasCDNSKEY = hasCDNSKEY
+        rr.AutomationLevel = determineAutomationLevel(hasCDS, hasCDNSKEY)
+        rr.ReadinessLevel = determineReadinessLevel(kskCount, hasCDS, hasCDNSKEY, &rr.Issues)
+
+        if zskCount == 0 && kskCount > 0 {
+                rr.Issues = append(rr.Issues, "No separate ZSK found — single-key signing scheme (CSK) detected")
+        }
+
+        return rr
+}
+
+func countKeyRoles(keys []DNSSECKeyInfo) (kskCount, zskCount int) {
         for _, k := range keys {
                 switch k.KeyRole {
                 case "KSK":
@@ -210,39 +227,34 @@ func assessRolloverReadiness(keys []DNSSECKeyInfo, hasCDS, hasCDNSKEY bool) Roll
                         zskCount++
                 }
         }
+        return
+}
 
-        rr.KSKCount = kskCount
-        rr.ZSKCount = zskCount
-        rr.MultipleKSKs = kskCount > 1
-        rr.HasCDS = hasCDS
-        rr.HasCDNSKEY = hasCDNSKEY
-
+func determineAutomationLevel(hasCDS, hasCDNSKEY bool) string {
         if hasCDS && hasCDNSKEY {
-                rr.AutomationLevel = "full"
-        } else if hasCDS || hasCDNSKEY {
-                rr.AutomationLevel = "partial"
-        } else {
-                rr.AutomationLevel = "none"
+                return "full"
         }
-
-        if kskCount > 1 && (hasCDS || hasCDNSKEY) {
-                rr.ReadinessLevel = "ready"
-        } else if kskCount > 1 {
-                rr.ReadinessLevel = "partial"
-                rr.Issues = append(rr.Issues, "Multiple KSKs present but no CDS/CDNSKEY automation for rollover signaling")
-        } else if hasCDS || hasCDNSKEY {
-                rr.ReadinessLevel = "partial"
-                rr.Issues = append(rr.Issues, "CDS/CDNSKEY automation present but only single KSK — pre-publish second KSK before rollover")
-        } else {
-                rr.ReadinessLevel = "not_ready"
-                rr.Issues = append(rr.Issues, "Single KSK with no CDS/CDNSKEY automation — manual rollover required")
+        if hasCDS || hasCDNSKEY {
+                return "partial"
         }
+        return "none"
+}
 
-        if zskCount == 0 && kskCount > 0 {
-                rr.Issues = append(rr.Issues, "No separate ZSK found — single-key signing scheme (CSK) detected")
+func determineReadinessLevel(kskCount int, hasCDS, hasCDNSKEY bool, issues *[]string) string {
+        hasAutomation := hasCDS || hasCDNSKEY
+        if kskCount > 1 && hasAutomation {
+                return "ready"
         }
-
-        return rr
+        if kskCount > 1 {
+                *issues = append(*issues, "Multiple KSKs present but no CDS/CDNSKEY automation for rollover signaling")
+                return "partial"
+        }
+        if hasAutomation {
+                *issues = append(*issues, "CDS/CDNSKEY automation present but only single KSK — pre-publish second KSK before rollover")
+                return "partial"
+        }
+        *issues = append(*issues, "Single KSK with no CDS/CDNSKEY automation — manual rollover required")
+        return "not_ready"
 }
 
 func collectDNSSECOpsIssues(sigs []RRSIGInfo, doe DenialOfExistence, rollover RolloverReadiness) []string {

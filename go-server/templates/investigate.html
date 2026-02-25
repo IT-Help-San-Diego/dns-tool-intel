@@ -742,25 +742,25 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function() {
-        var form = document.getElementById('investigateForm');
+        const form = document.getElementById('investigateForm');
         if (!form) return;
         form.addEventListener('submit', function(e) {
-            var domain = document.getElementById('domain');
-            var ip = document.getElementById('ip_address');
+            const domain = document.getElementById('domain');
+            const ip = document.getElementById('ip_address');
             if (!domain || !ip || !domain.value.trim() || !ip.value.trim()) return;
 
-            var overlay = document.getElementById('loadingOverlay');
-            var loadingIP = document.getElementById('loadingIP');
-            var loadingNote = document.getElementById('loadingNote');
-            var loadingTimer = document.getElementById('loadingTimer');
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingIP = document.getElementById('loadingIP');
+            const loadingNote = document.getElementById('loadingNote');
+            const loadingTimer = document.getElementById('loadingTimer');
             if (!overlay) return;
 
             if (loadingIP) loadingIP.textContent = ip.value.trim() + ' \u2194 ' + domain.value.trim();
             if(typeof showOverlay==='function'){showOverlay(overlay);}else{overlay.classList.add('is-active');}
 
-            var startTime = Date.now();
+            const startTime = Date.now();
             setInterval(function() {
-                var elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 if (loadingTimer) loadingTimer.textContent = elapsed + 's';
             }, 1000);
 
@@ -768,9 +768,9 @@
                 if (loadingNote) loadingNote.classList.add('u-opacity-visible');
             }, 3000);
 
-            var statusSpans = overlay.querySelectorAll('.loading-status span');
+            const statusSpans = overlay.querySelectorAll('.loading-status span');
             if (statusSpans.length > 0) {
-                var idx = 0;
+                const idx = 0;
                 statusSpans[0].classList.add('active');
                 setInterval(function() {
                     statusSpans[idx].classList.remove('active');
@@ -779,7 +779,7 @@
                 }, 2000);
             }
 
-            var btn = document.getElementById('investigateBtn');
+            const btn = document.getElementById('investigateBtn');
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-route fa-spin me-2"></i>Investigating\u2026';

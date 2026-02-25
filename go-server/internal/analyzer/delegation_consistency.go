@@ -141,46 +141,9 @@ func CheckDSKeyAlignment(dsRecords []DSRecord, dnskeyRecords []DNSKEYRecord) DSK
                 return result
         }
 
-        kskKeys := map[uint16]DNSKEYRecord{}
-        for _, key := range dnskeyRecords {
-                if key.IsKSK {
-                        kskKeys[key.KeyTag] = key
-                }
-        }
-
-        dsMatched := make(map[int]bool)
-        keyMatched := make(map[uint16]bool)
-
-        for i, ds := range dsRecords {
-                if key, ok := kskKeys[ds.KeyTag]; ok {
-                        if ds.Algorithm == key.Algorithm {
-                                result.MatchedPairs = append(result.MatchedPairs, DSKeyPair{
-                                        DSKeyTag:        ds.KeyTag,
-                                        DSAlgorithm:     ds.Algorithm,
-                                        DNSKEYKeyTag:    key.KeyTag,
-                                        DNSKEYAlgorithm: key.Algorithm,
-                                })
-                                dsMatched[i] = true
-                                keyMatched[key.KeyTag] = true
-                        } else {
-                                result.Issues = append(result.Issues,
-                                        fmt.Sprintf("DS key-tag %d matches DNSKEY but algorithm mismatch: DS=%d, DNSKEY=%d",
-                                                ds.KeyTag, ds.Algorithm, key.Algorithm))
-                        }
-                }
-        }
-
-        for i, ds := range dsRecords {
-                if !dsMatched[i] {
-                        result.UnmatchedDS = append(result.UnmatchedDS, ds)
-                }
-        }
-
-        for _, key := range dnskeyRecords {
-                if key.IsKSK && !keyMatched[key.KeyTag] {
-                        result.UnmatchedKeys = append(result.UnmatchedKeys, key)
-                }
-        }
+        kskKeys := collectKSKKeys(dnskeyRecords)
+        dsMatched, keyMatched := matchDSKeyPairs(dsRecords, kskKeys, &result)
+        collectUnmatchedRecords(dsRecords, dnskeyRecords, dsMatched, keyMatched, &result)
 
         if len(result.MatchedPairs) == 0 {
                 result.Aligned = false
@@ -193,6 +156,56 @@ func CheckDSKeyAlignment(dsRecords []DSRecord, dnskeyRecords []DNSKEYRecord) DSK
         }
 
         return result
+}
+
+func collectKSKKeys(dnskeyRecords []DNSKEYRecord) map[uint16]DNSKEYRecord {
+        kskKeys := map[uint16]DNSKEYRecord{}
+        for _, key := range dnskeyRecords {
+                if key.IsKSK {
+                        kskKeys[key.KeyTag] = key
+                }
+        }
+        return kskKeys
+}
+
+func matchDSKeyPairs(dsRecords []DSRecord, kskKeys map[uint16]DNSKEYRecord, result *DSKeyAlignment) (map[int]bool, map[uint16]bool) {
+        dsMatched := make(map[int]bool)
+        keyMatched := make(map[uint16]bool)
+
+        for i, ds := range dsRecords {
+                key, ok := kskKeys[ds.KeyTag]
+                if !ok {
+                        continue
+                }
+                if ds.Algorithm == key.Algorithm {
+                        result.MatchedPairs = append(result.MatchedPairs, DSKeyPair{
+                                DSKeyTag:        ds.KeyTag,
+                                DSAlgorithm:     ds.Algorithm,
+                                DNSKEYKeyTag:    key.KeyTag,
+                                DNSKEYAlgorithm: key.Algorithm,
+                        })
+                        dsMatched[i] = true
+                        keyMatched[key.KeyTag] = true
+                } else {
+                        result.Issues = append(result.Issues,
+                                fmt.Sprintf("DS key-tag %d matches DNSKEY but algorithm mismatch: DS=%d, DNSKEY=%d",
+                                        ds.KeyTag, ds.Algorithm, key.Algorithm))
+                }
+        }
+        return dsMatched, keyMatched
+}
+
+func collectUnmatchedRecords(dsRecords []DSRecord, dnskeyRecords []DNSKEYRecord, dsMatched map[int]bool, keyMatched map[uint16]bool, result *DSKeyAlignment) {
+        for i, ds := range dsRecords {
+                if !dsMatched[i] {
+                        result.UnmatchedDS = append(result.UnmatchedDS, ds)
+                }
+        }
+        for _, key := range dnskeyRecords {
+                if key.IsKSK && !keyMatched[key.KeyTag] {
+                        result.UnmatchedKeys = append(result.UnmatchedKeys, key)
+                }
+        }
 }
 
 func isInBailiwick(ns, domain string) bool {
@@ -219,30 +232,7 @@ func CheckGlueCompleteness(nameservers []string, domain string, glueIPv4, glueIP
 
                 if inBailiwick {
                         result.InBailiwickCount++
-
-                        if addrs, ok := glueIPv4[nsLower]; ok && len(addrs) > 0 {
-                                status.HasIPv4Glue = true
-                                status.IPv4Addrs = addrs
-                        }
-                        if addrs, ok := glueIPv6[nsLower]; ok && len(addrs) > 0 {
-                                status.HasIPv6Glue = true
-                                status.IPv6Addrs = addrs
-                        }
-
-                        if status.HasIPv4Glue || status.HasIPv6Glue {
-                                result.GluePresent++
-                                status.Complete = status.HasIPv4Glue && status.HasIPv6Glue
-                                if !status.HasIPv4Glue {
-                                        result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s missing IPv4 (A) glue at parent", nsLower))
-                                }
-                                if !status.HasIPv6Glue {
-                                        result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s missing IPv6 (AAAA) glue at parent", nsLower))
-                                }
-                        } else {
-                                result.GlueMissing++
-                                result.Complete = false
-                                result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s has no glue records at parent — resolution may fail", nsLower))
-                        }
+                        evaluateInBailiwickGlue(nsLower, glueIPv4, glueIPv6, &status, &result)
                 } else {
                         status.Complete = true
                 }
@@ -251,6 +241,32 @@ func CheckGlueCompleteness(nameservers []string, domain string, glueIPv4, glueIP
         }
 
         return result
+}
+
+func evaluateInBailiwickGlue(nsLower string, glueIPv4, glueIPv6 map[string][]string, status *GlueStatus, result *GlueAnalysis) {
+        if addrs, ok := glueIPv4[nsLower]; ok && len(addrs) > 0 {
+                status.HasIPv4Glue = true
+                status.IPv4Addrs = addrs
+        }
+        if addrs, ok := glueIPv6[nsLower]; ok && len(addrs) > 0 {
+                status.HasIPv6Glue = true
+                status.IPv6Addrs = addrs
+        }
+
+        if status.HasIPv4Glue || status.HasIPv6Glue {
+                result.GluePresent++
+                status.Complete = status.HasIPv4Glue && status.HasIPv6Glue
+                if !status.HasIPv4Glue {
+                        result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s missing IPv4 (A) glue at parent", nsLower))
+                }
+                if !status.HasIPv6Glue {
+                        result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s missing IPv6 (AAAA) glue at parent", nsLower))
+                }
+        } else {
+                result.GlueMissing++
+                result.Complete = false
+                result.Issues = append(result.Issues, fmt.Sprintf("In-bailiwick NS %s has no glue records at parent — resolution may fail", nsLower))
+        }
 }
 
 func CompareTTLs(parentTTL, childTTL *uint32) TTLComparison {
@@ -532,87 +548,107 @@ func (a *Analyzer) AnalyzeDelegationConsistency(ctx context.Context, domain stri
 func structToMap(v any) map[string]any {
         switch val := v.(type) {
         case DSKeyAlignment:
-                matchedPairs := make([]map[string]any, 0, len(val.MatchedPairs))
-                for _, p := range val.MatchedPairs {
-                        matchedPairs = append(matchedPairs, map[string]any{
-                                "ds_key_tag":        p.DSKeyTag,
-                                "ds_algorithm":      p.DSAlgorithm,
-                                "dnskey_key_tag":    p.DNSKEYKeyTag,
-                                "dnskey_algorithm":  p.DNSKEYAlgorithm,
-                        })
-                }
-                unmatchedDS := make([]map[string]any, 0, len(val.UnmatchedDS))
-                for _, d := range val.UnmatchedDS {
-                        unmatchedDS = append(unmatchedDS, map[string]any{
-                                "key_tag": d.KeyTag, "algorithm": d.Algorithm,
-                                "digest_type": d.DigestType, "raw": d.Raw,
-                        })
-                }
-                unmatchedKeys := make([]map[string]any, 0, len(val.UnmatchedKeys))
-                for _, k := range val.UnmatchedKeys {
-                        unmatchedKeys = append(unmatchedKeys, map[string]any{
-                                "flags": k.Flags, "algorithm": k.Algorithm,
-                                "key_tag": k.KeyTag, "is_ksk": k.IsKSK, "raw": k.Raw,
-                        })
-                }
-                return map[string]any{
-                        "aligned":        val.Aligned,
-                        "matched_pairs":  matchedPairs,
-                        "unmatched_ds":   unmatchedDS,
-                        "unmatched_keys": unmatchedKeys,
-                        "issues":         val.Issues,
-                }
+                return dsKeyAlignmentToMap(val)
         case GlueAnalysis:
-                nameservers := make([]map[string]any, 0, len(val.Nameservers))
-                for _, ns := range val.Nameservers {
-                        entry := map[string]any{
-                                "ns":            ns.NS,
-                                "in_bailiwick":  ns.InBailiwick,
-                                "has_ipv4_glue": ns.HasIPv4Glue,
-                                "has_ipv6_glue": ns.HasIPv6Glue,
-                                "complete":      ns.Complete,
-                        }
-                        if len(ns.IPv4Addrs) > 0 {
-                                entry["ipv4_addrs"] = ns.IPv4Addrs
-                        }
-                        if len(ns.IPv6Addrs) > 0 {
-                                entry["ipv6_addrs"] = ns.IPv6Addrs
-                        }
-                        nameservers = append(nameservers, entry)
-                }
-                return map[string]any{
-                        "complete":           val.Complete,
-                        "in_bailiwick_count": val.InBailiwickCount,
-                        "glue_present":      val.GluePresent,
-                        "glue_missing":      val.GlueMissing,
-                        "nameservers":       nameservers,
-                        "issues":            val.Issues,
-                }
+                return glueAnalysisToMap(val)
         case TTLComparison:
-                m := map[string]any{
-                        "match":     val.Match,
-                        "drift_secs": val.DriftSecs,
-                        "issues":    val.Issues,
-                }
-                if val.ParentTTL != nil {
-                        m["parent_ttl"] = *val.ParentTTL
-                }
-                if val.ChildTTL != nil {
-                        m["child_ttl"] = *val.ChildTTL
-                }
-                return m
+                return ttlComparisonToMap(val)
         case SOAConsistency:
-                serialsMap := map[string]any{}
-                for k, v := range val.Serials {
-                        serialsMap[k] = v
-                }
-                return map[string]any{
-                        "consistent":   val.Consistent,
-                        "serials":      serialsMap,
-                        "unique_count": val.UniqueCount,
-                        "issues":       val.Issues,
-                }
+                return soaConsistencyToMap(val)
         default:
                 return map[string]any{}
+        }
+}
+
+func dsKeyAlignmentToMap(val DSKeyAlignment) map[string]any {
+        matchedPairs := make([]map[string]any, 0, len(val.MatchedPairs))
+        for _, p := range val.MatchedPairs {
+                matchedPairs = append(matchedPairs, map[string]any{
+                        "ds_key_tag":        p.DSKeyTag,
+                        "ds_algorithm":      p.DSAlgorithm,
+                        "dnskey_key_tag":    p.DNSKEYKeyTag,
+                        "dnskey_algorithm":  p.DNSKEYAlgorithm,
+                })
+        }
+        unmatchedDS := make([]map[string]any, 0, len(val.UnmatchedDS))
+        for _, d := range val.UnmatchedDS {
+                unmatchedDS = append(unmatchedDS, map[string]any{
+                        "key_tag": d.KeyTag, "algorithm": d.Algorithm,
+                        "digest_type": d.DigestType, "raw": d.Raw,
+                })
+        }
+        unmatchedKeys := make([]map[string]any, 0, len(val.UnmatchedKeys))
+        for _, k := range val.UnmatchedKeys {
+                unmatchedKeys = append(unmatchedKeys, map[string]any{
+                        "flags": k.Flags, "algorithm": k.Algorithm,
+                        "key_tag": k.KeyTag, "is_ksk": k.IsKSK, "raw": k.Raw,
+                })
+        }
+        return map[string]any{
+                "aligned":        val.Aligned,
+                "matched_pairs":  matchedPairs,
+                "unmatched_ds":   unmatchedDS,
+                "unmatched_keys": unmatchedKeys,
+                "issues":         val.Issues,
+        }
+}
+
+func glueStatusToMap(ns GlueStatus) map[string]any {
+        entry := map[string]any{
+                "ns":            ns.NS,
+                "in_bailiwick":  ns.InBailiwick,
+                "has_ipv4_glue": ns.HasIPv4Glue,
+                "has_ipv6_glue": ns.HasIPv6Glue,
+                "complete":      ns.Complete,
+        }
+        if len(ns.IPv4Addrs) > 0 {
+                entry["ipv4_addrs"] = ns.IPv4Addrs
+        }
+        if len(ns.IPv6Addrs) > 0 {
+                entry["ipv6_addrs"] = ns.IPv6Addrs
+        }
+        return entry
+}
+
+func glueAnalysisToMap(val GlueAnalysis) map[string]any {
+        nameservers := make([]map[string]any, 0, len(val.Nameservers))
+        for _, ns := range val.Nameservers {
+                nameservers = append(nameservers, glueStatusToMap(ns))
+        }
+        return map[string]any{
+                "complete":           val.Complete,
+                "in_bailiwick_count": val.InBailiwickCount,
+                "glue_present":      val.GluePresent,
+                "glue_missing":      val.GlueMissing,
+                "nameservers":       nameservers,
+                "issues":            val.Issues,
+        }
+}
+
+func ttlComparisonToMap(val TTLComparison) map[string]any {
+        m := map[string]any{
+                "match":     val.Match,
+                "drift_secs": val.DriftSecs,
+                "issues":    val.Issues,
+        }
+        if val.ParentTTL != nil {
+                m["parent_ttl"] = *val.ParentTTL
+        }
+        if val.ChildTTL != nil {
+                m["child_ttl"] = *val.ChildTTL
+        }
+        return m
+}
+
+func soaConsistencyToMap(val SOAConsistency) map[string]any {
+        serialsMap := map[string]any{}
+        for k, v := range val.Serials {
+                serialsMap[k] = v
+        }
+        return map[string]any{
+                "consistent":   val.Consistent,
+                "serials":      serialsMap,
+                "unique_count": val.UniqueCount,
+                "issues":       val.Issues,
         }
 }

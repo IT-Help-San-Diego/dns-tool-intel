@@ -62,6 +62,15 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         parallelElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Parallel lookups completed", "domain", domain, "elapsed_s", fmt.Sprintf("%.2f", parallelElapsed), "tasks", len(resultsMap))
 
+        results := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options)
+
+        totalElapsed := time.Since(analysisStart).Seconds()
+        slog.Info("Analysis complete", "domain", domain, "total_s", fmt.Sprintf("%.2f", totalElapsed), "parallel_s", fmt.Sprintf("%.2f", parallelElapsed))
+
+        return results
+}
+
+func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMap map[string]any, domainStatus string, domainStatusMessage *string, options AnalysisOptions) map[string]any {
         basic := getMapResult(resultsMap, "basic")
         auth := getMapResult(resultsMap, "auth")
 
@@ -84,22 +93,38 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                 enrichMisplacedDMARC(basic, resultsMap)
         }
 
-        propagationStatus := buildPropagationStatus(basic, auth)
-        sectionStatus := buildSectionStatus(resultsMap)
         spfAnalysis := getMapResult(resultsMap, "spf")
 
-        results := map[string]any{
+        results := buildCoreResults(domain, domainStatus, domainStatusMessage, basic, auth, resolverTTL, authTTL, authQueryStatus, resultsMap, spfAnalysis)
+        results["smtp_transport"] = smtpResult
+
+        a.enrichWithHostingAndSecurity(ctx, domain, results, resultsMap, spfAnalysis)
+        populateExtendedResults(results, resultsMap)
+        a.enrichWithPostAnalysis(ctx, domain, results, resultsMap, options)
+
+        results["is_tld"] = isTLD
+        results["posture"] = a.CalculatePosture(results)
+        results["remediation"] = a.GenerateRemediation(results)
+        results["mail_posture"] = buildMailPosture(results)
+
+        populateTTLReports(results)
+
+        return results
+}
+
+func buildCoreResults(domain, domainStatus string, domainStatusMessage *string, basic, auth map[string]any, resolverTTL, authTTL, authQueryStatus any, resultsMap map[string]any, spfAnalysis map[string]any) map[string]any {
+        return map[string]any{
                 "domain":                 domain,
                 "domain_exists":          true,
                 "domain_status":          domainStatus,
                 "domain_status_message":  derefStr(domainStatusMessage),
-                "section_status":         sectionStatus,
+                "section_status":         buildSectionStatus(resultsMap),
                 "basic_records":          basic,
                 "authoritative_records":  auth,
                 "auth_query_status":      authQueryStatus,
                 "resolver_ttl":           resolverTTL,
                 "auth_ttl":               authTTL,
-                "propagation_status":     propagationStatus,
+                "propagation_status":     buildPropagationStatus(basic, auth),
                 "spf_analysis":           getOrDefault(resultsMap, "spf", map[string]any{"status": "error"}),
                 "dmarc_analysis":         getOrDefault(resultsMap, "dmarc", map[string]any{"status": "error"}),
                 "dkim_analysis":          getOrDefault(resultsMap, "dkim", map[string]any{"status": "error"}),
@@ -116,9 +141,9 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                 "has_null_mx":            detectNullMX(basic),
                 "is_no_mail_domain":      spfAnalysis["no_mail_intent"] == true,
         }
+}
 
-        results["smtp_transport"] = smtpResult
-
+func (a *Analyzer) enrichWithHostingAndSecurity(ctx context.Context, domain string, results map[string]any, resultsMap map[string]any, spfAnalysis map[string]any) {
         results["hosting_summary"] = a.GetHostingInfo(ctx, domain, results)
         adjustHostingSummary(results)
         results["dns_infrastructure"] = a.AnalyzeDNSInfrastructure(domain, results)
@@ -130,9 +155,10 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                 domain,
                 getMapResult(resultsMap, "dkim"),
         )
-
         results["dmarc_report_auth"] = a.ValidateDMARCExternalAuth(ctx, domain, getMapResult(resultsMap, "dmarc"))
+}
 
+func populateExtendedResults(results map[string]any, resultsMap map[string]any) {
         results["https_svcb"] = getOrDefault(resultsMap, "https_svcb", map[string]any{"status": "info", "has_https": false, "has_svcb": false})
         results["cds_cdnskey"] = getOrDefault(resultsMap, "cds_cdnskey", map[string]any{"status": "info", "has_cds": false, "has_cdnskey": false})
         results["smimea_openpgpkey"] = getOrDefault(resultsMap, "smimea_openpgpkey", map[string]any{"status": "info", "has_smimea": false, "has_openpgpkey": false})
@@ -143,7 +169,9 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         results["delegation_consistency"] = getOrDefault(resultsMap, "delegation_consistency", map[string]any{"status": "info", "message": "Not checked"})
         results["ns_fleet"] = getOrDefault(resultsMap, "ns_fleet", map[string]any{"status": "info", "message": "Not checked", "fleet": []map[string]any{}, "issues": []string{}})
         results["dnssec_ops"] = getOrDefault(resultsMap, "dnssec_ops", map[string]any{"status": "info", "message": "Not checked"})
+}
 
+func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results map[string]any, resultsMap map[string]any, options AnalysisOptions) {
         if options.ExposureChecks {
                 exposureStart := time.Now()
                 results["web_exposure"] = a.ScanWebExposure(ctx, domain)
@@ -151,23 +179,16 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         }
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
-
         results["asn_info"] = a.LookupASN(ctx, results)
-
         results["edge_cdn"] = DetectEdgeCDN(results)
-
         enrichHostingFromEdgeCDN(results)
 
         ctData := getMapResult(resultsMap, "ct_subdomains")
         ctSubdomains, _ := ctData["subdomains"].([]map[string]any)
-
         results["dangling_dns"] = a.DetectDanglingDNS(ctx, domain, ctSubdomains)
+}
 
-        results["is_tld"] = isTLD
-        results["posture"] = a.CalculatePosture(results)
-        results["remediation"] = a.GenerateRemediation(results)
-        results["mail_posture"] = buildMailPosture(results)
-
+func populateTTLReports(results map[string]any) {
         resolverTTLMap, _ := results["resolver_ttl"].(map[string]uint32)
         authTTLMap, _ := results["auth_ttl"].(map[string]uint32)
         if resolverTTLMap == nil {
@@ -177,13 +198,7 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                 authTTLMap = map[string]uint32{}
         }
         results["freshness_matrix"] = BuildCurrencyMatrix(resolverTTLMap, authTTLMap)
-
         results["currency_report"] = buildICuAEReport(resolverTTLMap, authTTLMap, results)
-
-        totalElapsed := time.Since(analysisStart).Seconds()
-        slog.Info("Analysis complete", "domain", domain, "total_s", fmt.Sprintf("%.2f", totalElapsed), "parallel_s", fmt.Sprintf("%.2f", parallelElapsed))
-
-        return results
 }
 
 
@@ -249,42 +264,48 @@ func timedTask(ch chan<- namedResult, key string, fn func() any) func() {
         }
 }
 
+func (a *Analyzer) buildCoreTasks(ctx context.Context, domain string, ch chan namedResult) []func() {
+        return []func(){
+                timedTask(ch, "basic", func() any { return a.GetBasicRecords(ctx, domain) }),
+                timedTask(ch, "auth", func() any { return a.GetAuthoritativeRecords(ctx, domain) }),
+                timedTask(ch, "caa", func() any { return a.AnalyzeCAA(ctx, domain) }),
+                timedTask(ch, "dnssec", func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
+                timedTask(ch, "ns_delegation", func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
+                timedTask(ch, "registrar", func() any { return a.GetRegistrarInfo(ctx, domain) }),
+                timedTask(ch, "resolver_consensus", func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
+                timedTask(ch, "https_svcb", func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
+                timedTask(ch, "cds_cdnskey", func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
+                timedTask(ch, "nmap_dns", func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
+                timedTask(ch, "delegation_consistency", func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
+                timedTask(ch, "ns_fleet", func() any { return a.AnalyzeNSFleet(ctx, domain) }),
+                timedTask(ch, "dnssec_ops", func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
+        }
+}
+
+func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDKIMSelectors []string, ch chan namedResult) []func() {
+        return []func(){
+                timedTask(ch, "spf", func() any { return a.AnalyzeSPF(ctx, domain) }),
+                timedTask(ch, "dmarc", func() any { return a.AnalyzeDMARC(ctx, domain) }),
+                timedTask(ch, "dkim", func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
+                timedTask(ch, "mta_sts", func() any { return a.AnalyzeMTASTS(ctx, domain) }),
+                timedTask(ch, "tlsrpt", func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
+                timedTask(ch, "bimi", func() any { return a.AnalyzeBIMI(ctx, domain) }),
+                timedTask(ch, "ct_subdomains", func() any { return a.DiscoverSubdomains(ctx, domain) }),
+                timedTask(ch, "smimea_openpgpkey", func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
+                timedTask(ch, "security_txt", func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                timedTask(ch, "ai_surface", func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                timedTask(ch, "secret_exposure", func() any { return a.ScanSecretExposure(ctx, domain) }),
+        }
+}
+
 func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, customDKIMSelectors []string) map[string]any {
         resultsCh := make(chan namedResult, 28)
         var wg sync.WaitGroup
 
-        isTLD := dnsclient.IsTLDInput(domain)
+        tasks := a.buildCoreTasks(ctx, domain, resultsCh)
 
-        tasks := []func(){
-                timedTask(resultsCh, "basic", func() any { return a.GetBasicRecords(ctx, domain) }),
-                timedTask(resultsCh, "auth", func() any { return a.GetAuthoritativeRecords(ctx, domain) }),
-                timedTask(resultsCh, "caa", func() any { return a.AnalyzeCAA(ctx, domain) }),
-                timedTask(resultsCh, "dnssec", func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
-                timedTask(resultsCh, "ns_delegation", func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
-                timedTask(resultsCh, "registrar", func() any { return a.GetRegistrarInfo(ctx, domain) }),
-                timedTask(resultsCh, "resolver_consensus", func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
-                timedTask(resultsCh, "https_svcb", func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
-                timedTask(resultsCh, "cds_cdnskey", func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
-                timedTask(resultsCh, "nmap_dns", func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
-                timedTask(resultsCh, "delegation_consistency", func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
-                timedTask(resultsCh, "ns_fleet", func() any { return a.AnalyzeNSFleet(ctx, domain) }),
-                timedTask(resultsCh, "dnssec_ops", func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
-        }
-
-        if !isTLD {
-                tasks = append(tasks,
-                        timedTask(resultsCh, "spf", func() any { return a.AnalyzeSPF(ctx, domain) }),
-                        timedTask(resultsCh, "dmarc", func() any { return a.AnalyzeDMARC(ctx, domain) }),
-                        timedTask(resultsCh, "dkim", func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
-                        timedTask(resultsCh, "mta_sts", func() any { return a.AnalyzeMTASTS(ctx, domain) }),
-                        timedTask(resultsCh, "tlsrpt", func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
-                        timedTask(resultsCh, "bimi", func() any { return a.AnalyzeBIMI(ctx, domain) }),
-                        timedTask(resultsCh, "ct_subdomains", func() any { return a.DiscoverSubdomains(ctx, domain) }),
-                        timedTask(resultsCh, "smimea_openpgpkey", func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
-                        timedTask(resultsCh, "security_txt", func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
-                        timedTask(resultsCh, "ai_surface", func() any { return a.AnalyzeAISurface(ctx, domain) }),
-                        timedTask(resultsCh, "secret_exposure", func() any { return a.ScanSecretExposure(ctx, domain) }),
-                )
+        if !dnsclient.IsTLDInput(domain) {
+                tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh)...)
         }
 
         for _, fn := range tasks {

@@ -36,6 +36,18 @@ const (
         rfcSPFURL         = "https://datatracker.ietf.org/doc/html/rfc7208"
         rfcDKIMSign       = "RFC 6376"
         rfcDKIMSignURL    = "https://datatracker.ietf.org/doc/html/rfc6376"
+
+        sectionDMARC      = "DMARC"
+        sectionSPF        = "SPF"
+        sectionDNSSEC     = "DNSSEC"
+        sectionDKIM       = "DKIM"
+        sectionDANE       = "DANE"
+        policyReject      = "reject"
+        spfHardFailValue  = "v=spf1 -all"
+
+        rfcDMARC7489URL   = "https://datatracker.ietf.org/doc/html/rfc7489"
+
+        mapKeyRFCURL      = "rfc_url"
 )
 
 type severityLevel struct {
@@ -212,7 +224,7 @@ func fixToMap(f fix) map[string]any {
                 "severity_label": f.SeverityLevel.Name,
                 "severity_color": f.SeverityLevel.Color,
                 "rfc":            f.RFC,
-                "rfc_url":        f.RFCURL,
+                mapKeyRFCURL:        f.RFCURL,
                 "rfc_title":      f.RFC,
                 "rfc_obsolete":   false,
                 "section":        f.Section,
@@ -291,7 +303,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         RFC:           rfcSPF,
                         RFCURL:        rfcSPFURL,
                         SeverityLevel: sevCritical,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
                 return fixes
         }
@@ -307,7 +319,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         RFC:           "RFC 7208 §5.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
                         SeverityLevel: sevCritical,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
         }
         if ps.spfNeutral {
@@ -317,7 +329,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         RFC:           "RFC 7208 §5.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
                         SeverityLevel: sevHigh,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
         }
         fixes = appendSPFLookupFix(fixes, ps)
@@ -333,7 +345,7 @@ func appendSPFLookupFix(fixes []fix, ps protocolState) []fix {
                         RFC:           "RFC 7208 §4.6.4",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4.6.4",
                         SeverityLevel: sevMedium,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
         }
         return fixes
@@ -356,7 +368,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
                         SeverityLevel: sevCritical,
-                        Section:       "DMARC",
+                        Section:       sectionDMARC,
                 })
                 return fixes
         }
@@ -372,7 +384,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
                         SeverityLevel: sevHigh,
-                        Section:       "DMARC",
+                        Section:       sectionDMARC,
                 })
         }
         if ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100 {
@@ -384,20 +396,20 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSValue:      "v=DMARC1; p=reject; rua=mailto:dmarc-reports@" + domain,
                         DNSPurpose:    "A reject policy provides the strongest protection against domain spoofing.",
                         DNSHostHelp:   "(update existing DMARC record)",
-                        RFC:           "RFC 7489 §6.3",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-6.3",
+                        RFC:           rfcDMARCPolicy,
+                        RFCURL:        rfcDMARCPolicyURL,
                         SeverityLevel: sevMedium,
-                        Section:       "DMARC",
+                        Section:       sectionDMARC,
                 })
         }
         if ps.dmarcPolicy == "quarantine" && ps.dmarcPct < 100 && ps.dmarcPct > 0 {
                 fixes = append(fixes, fix{
                         Title:         "Increase DMARC Coverage",
                         Description:   fmt.Sprintf("Your DMARC policy only applies to %d%% of mail. Increase pct to 100 for full protection.", ps.dmarcPct),
-                        RFC:           "RFC 7489 §6.3",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-6.3",
+                        RFC:           rfcDMARCPolicy,
+                        RFCURL:        rfcDMARCPolicyURL,
                         SeverityLevel: sevMedium,
-                        Section:       "DMARC",
+                        Section:       sectionDMARC,
                 })
         }
         if !ps.dmarcHasRua {
@@ -412,7 +424,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         RFC:           "RFC 7489 §7.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-7.1",
                         SeverityLevel: sevMedium,
-                        Section:       "DMARC",
+                        Section:       sectionDMARC,
                 })
         }
         return fixes
@@ -435,7 +447,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         RFC:           rfcDKIMSign,
                         RFCURL:        rfcDKIMSignURL,
                         SeverityLevel: sevHigh,
-                        Section:       "DKIM",
+                        Section:       sectionDKIM,
                 })
         }
         if ds == DKIMThirdPartyOnly {
@@ -445,7 +457,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         RFC:           rfcDKIMSign,
                         RFCURL:        rfcDKIMSignURL,
                         SeverityLevel: sevMedium,
-                        Section:       "DKIM",
+                        Section:       sectionDKIM,
                 })
         }
         return fixes
@@ -458,7 +470,7 @@ func weakKeysFix(domain string) fix {
                 RFC:           "RFC 8301",
                 RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8301",
                 SeverityLevel: sevMedium,
-                Section:       "DKIM",
+                Section:       sectionDKIM,
         }
 }
 
@@ -533,7 +545,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         RFC:           "RFC 4035",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc4035",
                         SeverityLevel: sevCritical,
-                        Section:       "DNSSEC",
+                        Section:       sectionDNSSEC,
                 })
         }
         if !ps.dnssecOK && !ps.dnssecBroken {
@@ -543,7 +555,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         RFC:         "RFC 4035",
                         RFCURL:      "https://datatracker.ietf.org/doc/html/rfc4035",
                         SeverityLevel: sevMedium,
-                        Section:       "DNSSEC",
+                        Section:       sectionDNSSEC,
                 })
         }
         if ps.dnssecOK && ps.dnssecAlgoStrength == "deprecated" {
@@ -553,7 +565,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         RFC:           "RFC 8624 §3.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8624#section-3.1",
                         SeverityLevel: sevHigh,
-                        Section:       "DNSSEC",
+                        Section:       sectionDNSSEC,
                 })
         }
         if ps.dnssecOK && ps.dnssecAlgoStrength == "legacy" {
@@ -563,7 +575,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         RFC:           "RFC 8624 §3.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8624#section-3.1",
                         SeverityLevel: sevMedium,
-                        Section:       "DNSSEC",
+                        Section:       sectionDNSSEC,
                 })
         }
         return fixes
@@ -577,7 +589,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         RFC:           "RFC 7672 §2.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7672#section-2.1",
                         SeverityLevel: sevHigh,
-                        Section:       "DANE",
+                        Section:       sectionDANE,
                 })
         }
         if !ps.daneOK && ps.dnssecOK && !ps.isNoMailDomain && providerSupportsDANE(ps.primaryProvider) {
@@ -594,7 +606,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         RFC:         "RFC 7672",
                         RFCURL:      "https://datatracker.ietf.org/doc/html/rfc7672",
                         SeverityLevel: sevLow,
-                        Section:       "DANE",
+                        Section:       sectionDANE,
                 })
         }
         return fixes
@@ -631,14 +643,14 @@ func appendNoMailHardeningFixes(fixes []fix, ps protocolState, domain string) []
                         SeverityLevel: sevHigh,
                         DNSHost:       domain,
                         DNSType:       "TXT",
-                        DNSValue:      "v=spf1 -all",
+                        DNSValue:      spfHardFailValue,
                         DNSPurpose:    "Explicitly declares no servers are authorized to send email from this null MX domain.",
                         RFC:           rfcSPF,
                         RFCURL:        rfcSPFURL,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
         }
-        if ps.dmarcMissing || (ps.dmarcPolicy != "reject") {
+        if ps.dmarcMissing || (ps.dmarcPolicy != policyReject) {
                 fixes = append(fixes, fix{
                         Title:         "Add DMARC Reject for Null MX Domain",
                         Description:   "This domain publishes a Null MX record (RFC 7505) but lacks a DMARC reject policy. Without it, attackers can still spoof email from this domain. Complete the no-mail hardening with a strict DMARC reject policy.",
@@ -647,9 +659,9 @@ func appendNoMailHardeningFixes(fixes []fix, ps protocolState, domain string) []
                         DNSType:       "TXT",
                         DNSValue:      "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;",
                         DNSPurpose:    "Instructs receiving servers to reject all email from this null MX domain — no legitimate mail is expected.",
-                        RFC:           "RFC 7489",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489",
-                        Section:       "DMARC",
+                        RFC:           rfcDMARC7489,
+                        RFCURL:        rfcDMARC7489URL,
+                        Section:       sectionDMARC,
                 })
         }
         return fixes
@@ -663,14 +675,14 @@ func appendProbableNoMailFixes(fixes []fix, ps protocolState, domain string) []f
                         SeverityLevel: sevHigh,
                         DNSHost:       domain,
                         DNSType:       "TXT",
-                        DNSValue:      "v=spf1 -all",
+                        DNSValue:      spfHardFailValue,
                         DNSPurpose:    "Explicitly declares no servers are authorized to send email from this domain.",
                         RFC:           rfcSPF,
                         RFCURL:        rfcSPFURL,
-                        Section:       "SPF",
+                        Section:       sectionSPF,
                 })
         }
-        if ps.dmarcMissing || (ps.dmarcPolicy != "reject") {
+        if ps.dmarcMissing || (ps.dmarcPolicy != policyReject) {
                 fixes = append(fixes, fix{
                         Title:         "Add DMARC Reject for No-Mail Domain",
                         Description:   "This domain has no MX records and appears to be a website-only domain. A DMARC reject policy tells receiving mail servers to reject any email claiming to be from your domain.",
@@ -679,16 +691,16 @@ func appendProbableNoMailFixes(fixes []fix, ps protocolState, domain string) []f
                         DNSType:       "TXT",
                         DNSValue:      "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;",
                         DNSPurpose:    "Instructs receiving servers to reject all email from this domain — no legitimate mail is expected.",
-                        RFC:           "RFC 7489",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489",
-                        Section:       "DMARC",
+                        RFC:           rfcDMARC7489,
+                        RFCURL:        rfcDMARC7489URL,
+                        Section:       sectionDMARC,
                 })
         }
         return fixes
 }
 
 func appendBIMIFixes(fixes []fix, ps protocolState, domain string) []fix {
-        if !ps.bimiOK && ps.dmarcPolicy == "reject" {
+        if !ps.bimiOK && ps.dmarcPolicy == policyReject {
                 fixes = append(fixes, fix{
                         Title:         "Add BIMI Record",
                         Description:   "Your domain has DMARC reject — you qualify for BIMI, which displays your brand logo in receiving email clients that support it (Gmail, Apple Mail, Yahoo).",
@@ -782,7 +794,7 @@ func extractMailFlags(results map[string]any, ps protocolState) mailFlags {
         mf.hasDKIM = ps.dkimOK || ps.dkimProvider
         mf.hasNullMX = ps.isNoMailDomain
         mf.spfDenyAll = ps.spfHardFail
-        mf.dmarcReject = ps.dmarcPolicy == "reject"
+        mf.dmarcReject = ps.dmarcPolicy == policyReject
         mf.dmarcPolicy = ps.dmarcPolicy
 
         basic, _ := results["basic_records"].(map[string]any)
@@ -816,13 +828,13 @@ func buildNoMailSignals(mf mailFlags) (map[string]any, int) {
         defs := []noMailSignalDef{
                 {key: "null_mx", present: mf.hasNullMX, rfc: "RFC 7505", rfcURL: "https://datatracker.ietf.org/doc/html/rfc7505", label: "Null MX", description: "Null MX record published", missingRisk: "Domain may receive unwanted mail"},
                 {key: "spf_deny", present: mf.spfDenyAll, rfc: rfcSPF, rfcURL: rfcSPFURL, label: "SPF -all", description: "SPF hard fail configured", missingRisk: "Unauthorized senders not explicitly rejected"},
-                {key: "dmarc_reject", present: mf.dmarcReject, rfc: "RFC 7489", rfcURL: "https://datatracker.ietf.org/doc/html/rfc7489", label: "DMARC reject", description: "DMARC reject policy active", missingRisk: "Spoofed mail may be delivered"},
+                {key: "dmarc_reject", present: mf.dmarcReject, rfc: rfcDMARC7489, rfcURL: rfcDMARC7489URL, label: "DMARC reject", description: "DMARC reject policy active", missingRisk: "Spoofed mail may be delivered"},
         }
         for _, d := range defs {
                 signals[d.key] = map[string]any{
                         "present":      d.present,
                         "rfc":          d.rfc,
-                        "rfc_url":      d.rfcURL,
+                        mapKeyRFCURL:      d.rfcURL,
                         "label":        d.label,
                         "description":  d.description,
                         "missing_risk": d.missingRisk,
@@ -838,7 +850,7 @@ func buildMissingSteps(mf mailFlags) []map[string]any {
         var steps []map[string]any
         defs := []missingStepDef{
                 {missing: !mf.hasSPF, control: "SPF Record", rfc: rfcSPF, rfcURL: rfcSPFURL, action: "Publish an SPF record", risk: "No sender authorization"},
-                {missing: !mf.hasDMARC, control: "DMARC Policy", rfc: "RFC 7489", rfcURL: "https://datatracker.ietf.org/doc/html/rfc7489", action: "Publish a DMARC record", risk: "No spoofing protection policy"},
+                {missing: !mf.hasDMARC, control: "DMARC Policy", rfc: rfcDMARC7489, rfcURL: rfcDMARC7489URL, action: "Publish a DMARC record", risk: "No spoofing protection policy"},
                 {missing: !mf.hasDKIM, control: "DKIM Signing", rfc: rfcDKIMSign, rfcURL: rfcDKIMSignURL, action: "Configure DKIM signing", risk: "Messages cannot be cryptographically verified"},
         }
         for _, d := range defs {
@@ -846,7 +858,7 @@ func buildMissingSteps(mf mailFlags) []map[string]any {
                         steps = append(steps, map[string]any{
                                 "control": d.control,
                                 "rfc":     d.rfc,
-                                "rfc_url": d.rfcURL,
+                                mapKeyRFCURL: d.rfcURL,
                                 "action":  d.action,
                                 "risk":    d.risk,
                         })
@@ -870,7 +882,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
                 return mailClassification{
                         classification: "no_mail_partial",
                         label:          "No-Mail Domain — Incomplete Hardening",
-                        color:          "warning",
+                        color:          colorHigh,
                         icon:           "fas fa-exclamation-triangle",
                         summary:        "This domain publishes a Null MX record (RFC 7505) declaring it does not accept email, but is missing additional hardening controls needed to fully prevent spoofing.",
                         isNoMail:       true,
@@ -899,7 +911,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
                 return mailClassification{
                         classification: "partial",
                         label:          "Moderately Protected",
-                        color:          "warning",
+                        color:          colorHigh,
                         icon:           "fas fa-exclamation-triangle",
                         summary:        "Core email authentication controls observed but DMARC enforcement could be strengthened.",
                 }
@@ -908,7 +920,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
                 return mailClassification{
                         classification: "minimal",
                         label:          "Limited Protection",
-                        color:          "warning",
+                        color:          colorHigh,
                         icon:           "fas fa-exclamation-circle",
                         summary:        "Some email authentication controls observed but critical components are missing.",
                 }
@@ -942,7 +954,7 @@ func buildNoMailStructuredRecords(mf mailFlags, domain string) []dnsRecord {
                 records = append(records, dnsRecord{RecordType: "MX", Host: domain, Value: "0 .", Purpose: "Null MX declares this domain does not accept mail", HostHelp: hostHelpRootDom})
         }
         if !mf.spfDenyAll {
-                records = append(records, dnsRecord{RecordType: "TXT", Host: domain, Value: "v=spf1 -all", Purpose: "Hard-fail SPF blocks all mail from this domain", HostHelp: hostHelpRootDom})
+                records = append(records, dnsRecord{RecordType: "TXT", Host: domain, Value: spfHardFailValue, Purpose: "Hard-fail SPF blocks all mail from this domain", HostHelp: hostHelpRootDom})
         }
         if !mf.dmarcReject {
                 records = append(records, dnsRecord{RecordType: "TXT", Host: dmarcHostPrefix + domain, Value: "v=DMARC1; p=reject;", Purpose: "DMARC reject policy for no-mail domain", HostHelp: hostHelpDMARC})
