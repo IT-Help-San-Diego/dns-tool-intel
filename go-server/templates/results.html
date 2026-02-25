@@ -179,6 +179,9 @@
         {{$secret_exposure := mapGetMap "secret_exposure" $results}}
         {{$web_exposure := mapGetMap "web_exposure" $results}}
         {{$nmap_dns := mapGetMap "nmap_dns" $results}}
+        {{$delegation_consistency := mapGetMap "delegation_consistency" $results}}
+        {{$ns_fleet := mapGetMap "ns_fleet" $results}}
+        {{$dnssec_ops := mapGetMap "dnssec_ops" $results}}
         {{$dns_history := mapGetMap "dns_history" $results}}
         {{$dns_history_available := and $dns_history (mapGetBool "has_changes" $dns_history)}}
 
@@ -3184,6 +3187,405 @@
                 </div>
             </div>
         </div>
+        {{end}}
+
+        <!-- Delegation Consistency Section -->
+        {{if $delegation_consistency}}
+        {{$dcStatus := mapGetStr "status" $delegation_consistency}}
+        {{if ne $dcStatus "info"}}
+        <div class="row section-delegation-consistency" id="section-delegation-consistency">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                            <span><i class="fas fa-exchange-alt me-2"></i>Delegation Consistency</span>
+                            {{$dcIssues := mapGetSlice "issues" $delegation_consistency}}
+                            <span class="badge bg-{{if eq $dcStatus "success"}}success{{else if eq $dcStatus "warning"}}warning text-dark{{else}}secondary{{end}}">
+                                {{if eq $dcStatus "success"}}Consistent{{else if eq $dcStatus "warning"}}{{len $dcIssues}} Issue{{if ne (len $dcIssues) 1}}s{{end}}{{else}}Not Checked{{end}}
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3 small">{{mapGetStr "message" $delegation_consistency}} <span class="text-muted">&mdash; Parent/child NS delegation alignment: DS&harr;DNSKEY, glue records, TTL drift, SOA serial sync.</span></p>
+
+                        {{if $dcIssues}}
+                        {{if gt (len $dcIssues) 0}}
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Findings:</strong>
+                            <ul class="mb-0 mt-1">
+                                {{range $dcIssues}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        <div class="row">
+                            {{$dsAlign := mapGetMap "ds_key_alignment" $delegation_consistency}}
+                            {{if $dsAlign}}
+                            <div class="col-md-6 mb-3 section-col-divider">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-key me-2"></i>DS &harr; DNSKEY Alignment
+                                    <span class="badge bg-{{if mapGetBool "aligned" $dsAlign}}success{{else}}warning text-dark{{end}} ms-2">{{if mapGetBool "aligned" $dsAlign}}Aligned{{else}}Misaligned{{end}}</span>
+                                </p>
+                                {{$matchedPairs := toMapSlice (mapGet "matched_pairs" $dsAlign)}}
+                                {{if $matchedPairs}}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-dark small mb-2">
+                                        <thead><tr><th scope="col">DS Key Tag</th><th scope="col">DS Algorithm</th><th scope="col">DNSKEY Key Tag</th><th scope="col">DNSKEY Algorithm</th></tr></thead>
+                                        <tbody>
+                                            {{range $p := $matchedPairs}}
+                                            <tr>
+                                                <td>{{mapGetInt "ds_key_tag" $p}}</td>
+                                                <td>{{mapGetInt "ds_algorithm" $p}}</td>
+                                                <td>{{mapGetInt "dnskey_key_tag" $p}}</td>
+                                                <td>{{mapGetInt "dnskey_algorithm" $p}}</td>
+                                            </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {{end}}
+                                {{$unmatchedDS := toMapSlice (mapGet "unmatched_ds" $dsAlign)}}
+                                {{if $unmatchedDS}}
+                                <div class="small text-warning mb-1"><i class="fas fa-exclamation-triangle me-1"></i>Unmatched DS records (no corresponding DNSKEY):</div>
+                                {{range $d := $unmatchedDS}}
+                                <div class="code-block small mb-1 u-fs-070rem">Key Tag: {{mapGetInt "key_tag" $d}}, Algorithm: {{mapGetInt "algorithm" $d}}</div>
+                                {{end}}
+                                {{end}}
+                                {{$unmatchedKeys := toMapSlice (mapGet "unmatched_keys" $dsAlign)}}
+                                {{if $unmatchedKeys}}
+                                <div class="small text-info mb-1 mt-2"><i class="fas fa-info-circle me-1"></i>DNSKEY records without matching DS:</div>
+                                {{range $k := $unmatchedKeys}}
+                                <div class="code-block small mb-1 u-fs-070rem">Key Tag: {{mapGetInt "key_tag" $k}}, Flags: {{mapGetInt "flags" $k}}{{if mapGetBool "is_ksk" $k}} (KSK){{end}}</div>
+                                {{end}}
+                                {{end}}
+                            </div>
+                            {{end}}
+
+                            {{$glue := mapGetMap "glue_analysis" $delegation_consistency}}
+                            {{if $glue}}
+                            <div class="col-md-6 mb-3">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-link me-2"></i>Glue Record Completeness
+                                    <span class="badge bg-{{if mapGetBool "complete" $glue}}success{{else}}warning text-dark{{end}} ms-2">{{if mapGetBool "complete" $glue}}Complete{{else}}Incomplete{{end}}</span>
+                                </p>
+                                {{$glueNS := toMapSlice (mapGet "nameservers" $glue)}}
+                                {{if $glueNS}}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-dark small mb-2">
+                                        <thead><tr><th scope="col">Nameserver</th><th scope="col">In-Bailiwick</th><th scope="col">IPv4 Glue</th><th scope="col">IPv6 Glue</th><th scope="col">Status</th></tr></thead>
+                                        <tbody>
+                                            {{range $g := $glueNS}}
+                                            <tr>
+                                                <td><code>{{mapGetStr "ns" $g}}</code></td>
+                                                <td>{{if mapGetBool "in_bailiwick" $g}}<i class="fas fa-check text-success"></i>{{else}}<span class="text-muted">No</span>{{end}}</td>
+                                                <td>{{if mapGetBool "has_ipv4_glue" $g}}<i class="fas fa-check text-success"></i>{{else if mapGetBool "in_bailiwick" $g}}<i class="fas fa-times text-warning"></i>{{else}}<span class="text-muted">N/A</span>{{end}}</td>
+                                                <td>{{if mapGetBool "has_ipv6_glue" $g}}<i class="fas fa-check text-success"></i>{{else if mapGetBool "in_bailiwick" $g}}<i class="fas fa-times text-warning"></i>{{else}}<span class="text-muted">N/A</span>{{end}}</td>
+                                                <td>{{if mapGetBool "complete" $g}}<span class="badge bg-success">OK</span>{{else if mapGetBool "in_bailiwick" $g}}<span class="badge bg-warning text-dark">Missing</span>{{else}}<span class="badge bg-secondary">External</span>{{end}}</td>
+                                            </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+
+                        <div class="row mt-2">
+                            {{$ttl := mapGetMap "ttl_comparison" $delegation_consistency}}
+                            {{if $ttl}}
+                            <div class="col-md-6 mb-3 section-col-divider">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-clock me-2"></i>NS TTL Comparison
+                                    <span class="badge bg-{{if mapGetBool "match" $ttl}}success{{else}}warning text-dark{{end}} ms-2">{{if mapGetBool "match" $ttl}}Match{{else}}Drift{{end}}</span>
+                                </p>
+                                <div class="small text-muted">
+                                    {{if mapGetInt "parent_ttl" $ttl}}<span>Parent TTL: <strong>{{mapGetInt "parent_ttl" $ttl}}s</strong></span>{{end}}
+                                    {{if mapGetInt "child_ttl" $ttl}}<span class="ms-3">Child TTL: <strong>{{mapGetInt "child_ttl" $ttl}}s</strong></span>{{end}}
+                                    {{if not (mapGetBool "match" $ttl)}}
+                                    <span class="ms-3 text-warning">Drift: {{mapGetInt "drift_secs" $ttl}}s</span>
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+
+                            {{$soa := mapGetMap "soa_consistency" $delegation_consistency}}
+                            {{if $soa}}
+                            <div class="col-md-6 mb-3">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-sync-alt me-2"></i>SOA Serial Consistency
+                                    <span class="badge bg-{{if mapGetBool "consistent" $soa}}success{{else}}warning text-dark{{end}} ms-2">
+                                        {{if mapGetBool "consistent" $soa}}Consistent{{else}}{{mapGetInt "unique_count" $soa}} Unique Serial{{if gt (mapGetInt "unique_count" $soa) 1}}s{{end}}{{end}}
+                                    </span>
+                                </p>
+                                {{$serials := mapGetMap "serials" $soa}}
+                                {{if $serials}}
+                                <div class="small text-muted">
+                                    {{range $ns, $serial := $serials}}
+                                    <div><code>{{$ns}}</code>: <strong>{{$serial}}</strong></div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        {{end}}
+
+        <!-- Nameserver Fleet Matrix Section -->
+        {{if $ns_fleet}}
+        {{$fleetStatus := mapGetStr "status" $ns_fleet}}
+        {{if ne $fleetStatus "info"}}
+        <div class="row section-ns-fleet" id="section-ns-fleet">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                            <span><i class="fas fa-network-wired me-2"></i>Nameserver Fleet Matrix</span>
+                            {{$fleetIssues := mapGetSlice "issues" $ns_fleet}}
+                            <span class="badge bg-{{if eq $fleetStatus "success"}}success{{else if eq $fleetStatus "warning"}}warning text-dark{{else}}secondary{{end}}">
+                                {{if eq $fleetStatus "success"}}Healthy{{else if eq $fleetStatus "warning"}}{{len $fleetIssues}} Issue{{if ne (len $fleetIssues) 1}}s{{end}}{{else}}Not Checked{{end}}
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3 small">{{mapGetStr "message" $ns_fleet}} <span class="text-muted">&mdash; Per-nameserver reachability, ASN diversity, SOA serial sync, and lame delegation checks.</span></p>
+
+                        {{if $fleetIssues}}
+                        {{if gt (len $fleetIssues) 0}}
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Findings:</strong>
+                            <ul class="mb-0 mt-1">
+                                {{range $fleetIssues}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{$fleetNS := toMapSlice (mapGet "nameservers" $ns_fleet)}}
+                        {{if $fleetNS}}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark small mb-3">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nameserver</th>
+                                        <th scope="col">IPv4</th>
+                                        <th scope="col">IPv6</th>
+                                        <th scope="col">ASN / Operator</th>
+                                        <th scope="col">UDP</th>
+                                        <th scope="col">TCP</th>
+                                        <th scope="col">AA</th>
+                                        <th scope="col">SOA Serial</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $entry := $fleetNS}}
+                                    <tr>
+                                        <td><code>{{mapGetStr "hostname" $entry}}</code></td>
+                                        <td class="small">
+                                            {{$v4 := mapGetSlice "ipv4" $entry}}
+                                            {{if $v4}}{{range $i, $ip := $v4}}{{if $i}}<br>{{end}}{{$ip}}{{end}}{{else}}<span class="text-muted">None</span>{{end}}
+                                        </td>
+                                        <td class="small">
+                                            {{$v6 := mapGetSlice "ipv6" $entry}}
+                                            {{if $v6}}{{range $i, $ip := $v6}}{{if $i}}<br>{{end}}{{$ip}}{{end}}{{else}}<span class="text-muted">None</span>{{end}}
+                                        </td>
+                                        <td class="small">
+                                            {{if mapGetStr "asn" $entry}}AS{{mapGetStr "asn" $entry}}{{end}}
+                                            {{if mapGetStr "as_name" $entry}}<br><span class="text-muted">{{mapGetStr "as_name" $entry}}</span>{{end}}
+                                        </td>
+                                        <td>{{if mapGetBool "udp_reachable" $entry}}<i class="fas fa-check text-success"></i>{{else}}<i class="fas fa-times text-danger"></i>{{end}}</td>
+                                        <td>{{if mapGetBool "tcp_reachable" $entry}}<i class="fas fa-check text-success"></i>{{else}}<i class="fas fa-times text-danger"></i>{{end}}</td>
+                                        <td>{{if mapGetBool "aa_flag" $entry}}<i class="fas fa-check text-success"></i>{{else if mapGetBool "is_lame" $entry}}<span class="badge bg-danger">Lame</span>{{else}}<i class="fas fa-times text-warning"></i>{{end}}</td>
+                                        <td>{{if mapGetBool "soa_serial_ok" $entry}}{{mapGetInt "soa_serial" $entry}}{{else}}<span class="text-muted">N/A</span>{{end}}</td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{end}}
+
+                        {{$diversity := mapGetMap "diversity" $ns_fleet}}
+                        {{if $diversity}}
+                        <div class="row">
+                            <div class="col-md-3 col-6 text-center">
+                                <div class="small text-muted">Unique ASNs</div>
+                                <div class="fw-bold">{{mapGetInt "unique_asns" $diversity}}</div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center">
+                                <div class="small text-muted">Unique Operators</div>
+                                <div class="fw-bold">{{mapGetInt "unique_operators" $diversity}}</div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center">
+                                <div class="small text-muted">Unique /24 Prefixes</div>
+                                <div class="fw-bold">{{mapGetInt "unique_prefix24s" $diversity}}</div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center">
+                                <div class="small text-muted">Diversity Score</div>
+                                {{$dScore := mapGetStr "score" $diversity}}
+                                <div class="fw-bold"><span class="badge bg-{{if eq $dScore "excellent"}}success{{else if eq $dScore "good"}}info{{else if eq $dScore "fair"}}warning text-dark{{else}}danger{{end}}">{{title $dScore}}</span></div>
+                            </div>
+                        </div>
+                        {{if mapGetStr "score_detail" $diversity}}
+                        <p class="text-muted small mt-2 mb-0"><i class="fas fa-info-circle me-1"></i>{{mapGetStr "score_detail" $diversity}}</p>
+                        {{end}}
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        {{end}}
+
+        <!-- DNSSEC Operations Deep Dive Section -->
+        {{if $dnssec_ops}}
+        {{$opsStatus := mapGetStr "status" $dnssec_ops}}
+        {{if ne $opsStatus "info"}}
+        <div class="row section-dnssec-ops" id="section-dnssec-ops">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                            <span><i class="fas fa-microscope me-2"></i>DNSSEC Operations Deep Dive</span>
+                            {{$opsIssues := mapGetSlice "issues" $dnssec_ops}}
+                            <span class="badge bg-{{if eq $opsStatus "success"}}success{{else if eq $opsStatus "warning"}}warning text-dark{{else if eq $opsStatus "error"}}danger{{else}}secondary{{end}}">
+                                {{if eq $opsStatus "success"}}Healthy{{else if eq $opsStatus "warning"}}{{len $opsIssues}} Issue{{if ne (len $opsIssues) 1}}s{{end}}{{else if eq $opsStatus "error"}}Critical{{else}}No DNSSEC{{end}}
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3 small">{{mapGetStr "message" $dnssec_ops}} <span class="text-muted">&mdash; KSK/ZSK differentiation, RRSIG expiry windows, NSEC/NSEC3 analysis, and rollover readiness.</span></p>
+
+                        {{if $opsIssues}}
+                        {{if gt (len $opsIssues) 0}}
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Findings:</strong>
+                            <ul class="mb-0 mt-1">
+                                {{range $opsIssues}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3 section-col-divider">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-key me-2"></i>DNSKEY Inventory
+                                    <span class="badge bg-info ms-2">{{mapGetInt "key_count" $dnssec_ops}} Key{{if ne (mapGetInt "key_count" $dnssec_ops) 1}}s{{end}}</span>
+                                </p>
+                                {{$keys := toMapSlice (mapGet "keys" $dnssec_ops)}}
+                                {{if $keys}}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-dark small mb-2">
+                                        <thead><tr><th scope="col">Role</th><th scope="col">Key Tag</th><th scope="col">Algorithm</th><th scope="col">Key Size</th></tr></thead>
+                                        <tbody>
+                                            {{range $k := $keys}}
+                                            <tr>
+                                                <td><span class="badge bg-{{if eq (mapGetStr "key_role" $k) "KSK"}}primary{{else if eq (mapGetStr "key_role" $k) "ZSK"}}success{{else}}secondary{{end}}">{{mapGetStr "key_role" $k}}</span></td>
+                                                <td>{{mapGetInt "key_tag" $k}}</td>
+                                                <td>{{mapGetStr "algorithm_name" $k}}</td>
+                                                <td>{{mapGetInt "key_size" $k}} bits</td>
+                                            </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {{else}}
+                                <p class="text-muted small">No DNSKEY records found.</p>
+                                {{end}}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-file-signature me-2"></i>RRSIG Signatures
+                                    <span class="badge bg-info ms-2">{{mapGetInt "signature_count" $dnssec_ops}} Signature{{if ne (mapGetInt "signature_count" $dnssec_ops) 1}}s{{end}}</span>
+                                </p>
+                                {{$sigs := toMapSlice (mapGet "signatures" $dnssec_ops)}}
+                                {{if $sigs}}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-dark small mb-2">
+                                        <thead><tr><th scope="col">Type</th><th scope="col">Key Tag</th><th scope="col">Expiry</th><th scope="col">Status</th></tr></thead>
+                                        <tbody>
+                                            {{range $s := $sigs}}
+                                            <tr>
+                                                <td>{{mapGetStr "type_covered" $s}}</td>
+                                                <td>{{mapGetInt "key_tag" $s}}</td>
+                                                <td class="small">{{mapGetStr "expiration" $s}}</td>
+                                                <td>
+                                                    {{if mapGetBool "expired" $s}}<span class="badge bg-danger">Expired</span>
+                                                    {{else if mapGetBool "expiring_soon" $s}}<span class="badge bg-warning text-dark">Expiring Soon</span>
+                                                    {{else}}<span class="badge bg-success">Active</span>{{end}}
+                                                </td>
+                                            </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {{else}}
+                                <p class="text-muted small">No RRSIG records found.</p>
+                                {{end}}
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            {{$doe := mapGetMap "denial_of_existence" $dnssec_ops}}
+                            {{if $doe}}
+                            <div class="col-md-6 mb-3 section-col-divider">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-ban me-2"></i>Denial of Existence
+                                    {{$doeMethod := mapGetStr "method" $doe}}
+                                    <span class="badge bg-{{if eq $doeMethod "NSEC3"}}info{{else if eq $doeMethod "NSEC"}}secondary{{else}}warning text-dark{{end}} ms-2">{{if $doeMethod}}{{$doeMethod}}{{else}}None{{end}}</span>
+                                </p>
+                                {{if eq $doeMethod "NSEC3"}}
+                                <div class="small text-muted">
+                                    <div>Iterations: <strong>{{mapGetInt "nsec3_iterations" $doe}}</strong>{{if mapGetBool "nsec3_high_iterations" $doe}} <span class="badge bg-warning text-dark">High (RFC 9276 recommends 0)</span>{{end}}</div>
+                                    <div>Salt Length: <strong>{{mapGetInt "nsec3_salt_length" $doe}}</strong> bytes</div>
+                                    <div>Hash Algorithm: <strong>{{mapGetInt "nsec3_hash_algorithm" $doe}}</strong> (SHA-1)</div>
+                                </div>
+                                {{else if eq $doeMethod "NSEC"}}
+                                <p class="text-muted small">NSEC records expose zone contents via ordered names (zone walking). Consider NSEC3 for zone enumeration protection.</p>
+                                {{else}}
+                                <p class="text-muted small">No NSEC or NSEC3 records detected.</p>
+                                {{end}}
+                            </div>
+                            {{end}}
+
+                            {{$rollover := mapGetMap "rollover_readiness" $dnssec_ops}}
+                            {{if $rollover}}
+                            <div class="col-md-6 mb-3">
+                                <p class="d-flex align-items-center">
+                                    <i class="fas fa-redo me-2"></i>Rollover Readiness
+                                    {{$readiness := mapGetStr "readiness" $rollover}}
+                                    <span class="badge bg-{{if eq $readiness "ready"}}success{{else if eq $readiness "partial"}}info{{else}}secondary{{end}} ms-2">{{title $readiness}}</span>
+                                </p>
+                                <div class="small text-muted">
+                                    <div>Multiple KSKs: {{if mapGetBool "multiple_ksks" $rollover}}<i class="fas fa-check text-success"></i>{{else}}<i class="fas fa-times text-muted"></i>{{end}}</div>
+                                    <div>CDS Published: {{if mapGetBool "has_cds" $rollover}}<i class="fas fa-check text-success"></i>{{else}}<i class="fas fa-times text-muted"></i>{{end}}</div>
+                                    <div>CDNSKEY Published: {{if mapGetBool "has_cdnskey" $rollover}}<i class="fas fa-check text-success"></i>{{else}}<i class="fas fa-times text-muted"></i>{{end}}</div>
+                                    {{if mapGetStr "automation" $rollover}}<div>Automation: <strong>{{mapGetStr "automation" $rollover}}</strong></div>{{end}}
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
         {{end}}
 
         <!-- Web Exposure Checks Section (Tier 2 — opt-in) -->

@@ -175,6 +175,9 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         results["ai_surface"] = getOrDefault(resultsMap, "ai_surface", map[string]any{"status": "info", "message": "Not checked"})
         results["secret_exposure"] = getOrDefault(resultsMap, "secret_exposure", map[string]any{"status": "clear", "message": "Not checked", "finding_count": 0, "findings": []map[string]any{}, "scanned_urls": []string{}})
         results["nmap_dns"] = getOrDefault(resultsMap, "nmap_dns", map[string]any{"status": "info", "message": "Not checked", "issues": []string{}})
+        results["delegation_consistency"] = getOrDefault(resultsMap, "delegation_consistency", map[string]any{"status": "info", "message": "Not checked"})
+        results["ns_fleet"] = getOrDefault(resultsMap, "ns_fleet", map[string]any{"status": "info", "message": "Not checked", "fleet": []map[string]any{}, "issues": []string{}})
+        results["dnssec_ops"] = getOrDefault(resultsMap, "dnssec_ops", map[string]any{"status": "info", "message": "Not checked"})
 
         if options.ExposureChecks {
                 exposureStart := time.Now()
@@ -243,7 +246,7 @@ func timedTask(ch chan<- namedResult, key string, fn func() any) func() {
 }
 
 func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, customDKIMSelectors []string) map[string]any {
-        resultsCh := make(chan namedResult, 25)
+        resultsCh := make(chan namedResult, 28)
         var wg sync.WaitGroup
 
         isTLD := dnsclient.IsTLDInput(domain)
@@ -259,6 +262,9 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
                 timedTask(resultsCh, "https_svcb", func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
                 timedTask(resultsCh, "cds_cdnskey", func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
                 timedTask(resultsCh, "nmap_dns", func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
+                timedTask(resultsCh, "delegation_consistency", func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
+                timedTask(resultsCh, "ns_fleet", func() any { return a.AnalyzeNSFleet(ctx, domain) }),
+                timedTask(resultsCh, "dnssec_ops", func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
         }
 
         if !isTLD {
@@ -507,6 +513,9 @@ func (a *Analyzer) buildNonExistentResult(domain, status string, statusMessage *
                 "asn_info":               map[string]any{"status": "info", "ipv4_asn": []map[string]any{}, "ipv6_asn": []map[string]any{}, "unique_asns": []map[string]any{}, "issues": []string{}},
                 "edge_cdn":               map[string]any{"status": "success", "is_behind_cdn": false, "cdn_provider": "", "cdn_indicators": []string{}, "origin_visible": true, "issues": []string{}},
                 "dangling_dns":           map[string]any{"status": "success", "checked": true, "dangling_count": 0, "dangling_records": []map[string]any{}, "issues": []string{}},
+                "delegation_consistency": map[string]any{"status": "info", "message": msgDomainNoExist},
+                "ns_fleet":              map[string]any{"status": "info", "message": msgDomainNoExist, "fleet": []map[string]any{}, "issues": []string{}},
+                "dnssec_ops":            map[string]any{"status": "info", "message": msgDomainNoExist},
                 "posture":                map[string]any{"score": 0, "grade": "N/A", "state": "N/A", "label": "Non-existent Domain", "message": msgDomainNotExist, "icon": "times-circle", "issues": []string{msgDomainNotExist}, "monitoring": []string{}, "configured": []string{}, "absent": []string{}, "color": "secondary", "deliberate_monitoring": false, "deliberate_monitoring_note": ""},
                 "remediation":            map[string]any{"top_fixes": []map[string]any{}, "posture_achievable": "N/A"},
                 "mail_posture":           map[string]any{"classification": "unknown"},

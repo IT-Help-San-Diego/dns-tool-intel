@@ -97,6 +97,9 @@
         {{$asn_info := mapGetMap "asn_info" $results}}
         {{$cds_cdnskey := mapGetMap "cds_cdnskey" $results}}
         {{$smimea := mapGetMap "smimea_openpgpkey" $results}}
+        {{$delegation_consistency := mapGetMap "delegation_consistency" $results}}
+        {{$ns_fleet := mapGetMap "ns_fleet" $results}}
+        {{$dnssec_ops := mapGetMap "dnssec_ops" $results}}
 
         <div class="results-header mb-4">
             <div class="results-header-info">
@@ -943,6 +946,89 @@
                             {{$recVuln := mapGetBool "vulnerable" $rec}}
                             <div class="alert {{if $recVuln}}alert-warning{{else}}alert-success{{end}} py-2 mb-2 small">
                                 {{if $recVuln}}<i class="fas fa-exclamation-triangle me-1"></i>Open recursion detected &mdash; DNS amplification risk{{else}}<i class="fas fa-lock me-1"></i>Recursion restricted{{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{if $delegation_consistency}}
+                        {{$dcStatus := mapGetStr "status" $delegation_consistency}}
+                        {{if and (ne $dcStatus "") (ne $dcStatus "info")}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>Delegation Consistency</h6>
+                            {{$dcIssues := mapGetSlice "issues" $delegation_consistency}}
+                            <div class="alert {{if eq $dcStatus "success"}}alert-success{{else}}alert-warning{{end}} py-2 mb-2 small">
+                                {{if eq $dcStatus "success"}}<i class="fas fa-check me-1"></i>Parent/child delegation consistent{{else}}<i class="fas fa-exclamation-triangle me-1"></i>{{len $dcIssues}} delegation issue{{if ne (len $dcIssues) 1}}s{{end}} detected{{end}}
+                            </div>
+                            {{if $dcIssues}}
+                            <div class="small font-monospace text-warning">
+                                {{range $dcIssues}}
+                                <div><i class="fas fa-angle-right me-1"></i>{{.}}</div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                            {{$dsAlign := mapGetMap "ds_key_alignment" $delegation_consistency}}
+                            {{if $dsAlign}}
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                <span class="badge bg-{{if mapGetBool "aligned" $dsAlign}}success{{else}}warning text-dark{{end}} bg-opacity-10 border font-monospace small">DS/DNSKEY: {{if mapGetBool "aligned" $dsAlign}}aligned{{else}}misaligned{{end}}</span>
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{if $ns_fleet}}
+                        {{$fleetStatus := mapGetStr "status" $ns_fleet}}
+                        {{if and (ne $fleetStatus "") (ne $fleetStatus "info")}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>NS Fleet Matrix</h6>
+                            {{$fleetIssues := mapGetSlice "issues" $ns_fleet}}
+                            <div class="alert {{if eq $fleetStatus "success"}}alert-success{{else}}alert-warning{{end}} py-2 mb-2 small">
+                                {{if eq $fleetStatus "success"}}<i class="fas fa-check me-1"></i>All nameservers healthy{{else}}<i class="fas fa-exclamation-triangle me-1"></i>{{len $fleetIssues}} fleet issue{{if ne (len $fleetIssues) 1}}s{{end}}{{end}}
+                            </div>
+                            {{$diversity := mapGetMap "diversity" $ns_fleet}}
+                            {{if $diversity}}
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25 font-monospace small">ASNs: {{mapGetInt "unique_asns" $diversity}}</span>
+                                <span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25 font-monospace small">Operators: {{mapGetInt "unique_operators" $diversity}}</span>
+                                {{$dScore := mapGetStr "score" $diversity}}
+                                <span class="badge bg-{{if eq $dScore "excellent"}}success{{else if eq $dScore "good"}}info{{else if eq $dScore "fair"}}warning text-dark{{else}}danger{{end}} bg-opacity-10 border font-monospace small">Diversity: {{$dScore}}</span>
+                            </div>
+                            {{end}}
+                            {{if $fleetIssues}}
+                            <div class="small font-monospace text-warning">
+                                {{range $fleetIssues}}
+                                <div><i class="fas fa-angle-right me-1"></i>{{.}}</div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{end}}
+
+                        {{if $dnssec_ops}}
+                        {{$opsStatus := mapGetStr "status" $dnssec_ops}}
+                        {{if and (ne $opsStatus "") (ne $opsStatus "info")}}
+                        <div class="mb-4">
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>DNSSEC Operations</h6>
+                            {{$opsIssues := mapGetSlice "issues" $dnssec_ops}}
+                            <div class="alert {{if eq $opsStatus "success"}}alert-success{{else if eq $opsStatus "warning"}}alert-warning{{else if eq $opsStatus "error"}}alert-danger{{else}}alert-secondary{{end}} py-2 mb-2 small">
+                                <i class="fas fa-{{if eq $opsStatus "success"}}check{{else if eq $opsStatus "error"}}skull-crossbones{{else}}exclamation-triangle{{end}} me-1"></i>{{mapGetStr "message" $dnssec_ops}}
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25 font-monospace small">Keys: {{mapGetInt "key_count" $dnssec_ops}}</span>
+                                <span class="badge bg-secondary bg-opacity-25 border border-secondary border-opacity-25 font-monospace small">Sigs: {{mapGetInt "signature_count" $dnssec_ops}}</span>
+                                {{$doe := mapGetMap "denial_of_existence" $dnssec_ops}}
+                                {{if $doe}}<span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small">{{mapGetStr "method" $doe}}</span>{{end}}
+                                {{$rollover := mapGetMap "rollover_readiness" $dnssec_ops}}
+                                {{if $rollover}}<span class="badge bg-{{if eq (mapGetStr "readiness" $rollover) "ready"}}success{{else}}secondary{{end}} bg-opacity-10 border font-monospace small">Rollover: {{mapGetStr "readiness" $rollover}}</span>{{end}}
+                            </div>
+                            {{if $opsIssues}}
+                            <div class="small font-monospace text-warning">
+                                {{range $opsIssues}}
+                                <div><i class="fas fa-angle-right me-1"></i>{{.}}</div>
+                                {{end}}
                             </div>
                             {{end}}
                         </div>

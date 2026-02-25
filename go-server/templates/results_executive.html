@@ -554,6 +554,9 @@
         {{$registrar := mapGetMap "registrar_info" $results}}
         {{$ns := mapGetMap "ns_delegation_analysis" $results}}
         {{$dns_infra := mapGetMap "dns_infrastructure" $results}}
+        {{$delegation_consistency := mapGetMap "delegation_consistency" $results}}
+        {{$ns_fleet := mapGetMap "ns_fleet" $results}}
+        {{$dnssec_ops := mapGetMap "dnssec_ops" $results}}
         {{$mp := mapGetMap "mail_posture" $results}}
         {{$smtp := mapGetMap "smtp_transport" $results}}
         {{$ai_surface := mapGetMap "ai_surface" $results}}
@@ -1172,6 +1175,50 @@
                             {{end}}
                         </span>
                     </div>
+                    {{if $delegation_consistency}}
+                    {{$dcStatus := mapGetStr "status" $delegation_consistency}}
+                    {{if ne $dcStatus "info"}}
+                    <div class="exec-finding-row">
+                        <span class="exec-finding-label">Delegation Consistency</span>
+                        <span class="exec-finding-value">
+                            {{if eq $dcStatus "success"}}<span class="badge bg-success">Consistent</span>
+                            {{else}}<span class="badge bg-warning">{{len (mapGetSlice "issues" $delegation_consistency)}} Issue{{if ne (len (mapGetSlice "issues" $delegation_consistency)) 1}}s{{end}}</span>{{end}}
+                        </span>
+                    </div>
+                    {{end}}
+                    {{end}}
+                    {{if $ns_fleet}}
+                    {{$fleetStatus := mapGetStr "status" $ns_fleet}}
+                    {{if ne $fleetStatus "info"}}
+                    <div class="exec-finding-row">
+                        <span class="exec-finding-label">NS Fleet Health</span>
+                        <span class="exec-finding-value">
+                            {{if eq $fleetStatus "success"}}<span class="badge bg-success">Healthy</span>
+                            {{else}}<span class="badge bg-warning">{{len (mapGetSlice "issues" $ns_fleet)}} Issue{{if ne (len (mapGetSlice "issues" $ns_fleet)) 1}}s{{end}}</span>{{end}}
+                            {{$diversity := mapGetMap "diversity" $ns_fleet}}
+                            {{if $diversity}}
+                            {{$dScore := mapGetStr "score" $diversity}}
+                            <span class="badge bg-{{if eq $dScore "excellent"}}success{{else if eq $dScore "good"}}info{{else if eq $dScore "fair"}}warning{{else}}danger{{end}} ms-1">Diversity: {{title $dScore}}</span>
+                            {{end}}
+                        </span>
+                    </div>
+                    {{end}}
+                    {{end}}
+                    {{if $dnssec_ops}}
+                    {{$opsStatus := mapGetStr "status" $dnssec_ops}}
+                    {{if ne $opsStatus "info"}}
+                    <div class="exec-finding-row">
+                        <span class="exec-finding-label">DNSSEC Operations</span>
+                        <span class="exec-finding-value">
+                            {{if eq $opsStatus "success"}}<span class="badge bg-success">Healthy</span>
+                            {{else if eq $opsStatus "warning"}}<span class="badge bg-warning">{{len (mapGetSlice "issues" $dnssec_ops)}} Issue{{if ne (len (mapGetSlice "issues" $dnssec_ops)) 1}}s{{end}}</span>
+                            {{else if eq $opsStatus "error"}}<span class="badge bg-danger">Critical</span>
+                            {{else}}<span class="badge bg-secondary">No DNSSEC</span>{{end}}
+                            <span class="text-muted ms-1 small">{{mapGetInt "key_count" $dnssec_ops}} keys, {{mapGetInt "signature_count" $dnssec_ops}} sigs</span>
+                        </span>
+                    </div>
+                    {{end}}
+                    {{end}}
                 </div>
             </div>
 
