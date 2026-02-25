@@ -2164,10 +2164,11 @@ body.covert-mode::after {
     pointer-events: none;
 }
 body.covert-submarine::after {
-    background: #990000;
+    background: #880000;
 }
 body.covert-basement::after {
-    background: #ff2a2a;
+    background: #cc2020;
+    mix-blend-mode: color;
 }
 .covert-env-selector {
     display: inline-flex;
