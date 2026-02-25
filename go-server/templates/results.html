@@ -453,6 +453,7 @@
                                     {{if mapGetBool "deliberate_monitoring" $posture}}
                                     <small class="text-info d-block mt-1"><i class="fas fa-flask me-1"></i>{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
                                     {{end}}
+                                    <small class="d-block mt-1"><a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none"><i class="fas fa-flask me-1"></i>Why we go beyond letter grades</a></small>
                                 </div>
                             </div>
                             {{if or $postureCritical $postureRecs $postureMonitoring}}
@@ -1004,6 +1005,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-shield-alt me-2"></i>Email Security</span>
                             {{if and .SectionTuning (index .SectionTuning "email")}}{{with index .SectionTuning "email"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
+                            <a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none ms-2 u-fs-065rem" data-bs-toggle="tooltip" title="Why 'record present' isn't enough"><i class="fas fa-flask me-1"></i>Approach</a>
                             <span class="section-question dt-question dt-question--section">Can this domain be impersonated by email?
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}
