@@ -75,9 +75,11 @@ const ROADMAP_ITEMS = [
   { title: "SonarCloud Quality Gate Fix", status: "Done", type: "Quality", priority: "High", version: "v26.26.03" },
   { title: "Nmap Subdomain Enrichment", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.02" },
   { title: "Admin Probe Management Panel", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.02" },
+  { title: "LLMs.txt & JSON-LD Consistency Audit", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.04" },
+  { title: "Stats Page Visual Redesign", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.05" },
+  { title: "Notion Bidirectional Sync", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.05" },
   { title: "Visual Cohesion — Top-to-Bottom Consistency", status: "In Progress", type: "Feature", priority: "Medium", notes: "Glass treatment, question branding, token system" },
-  { title: "LLMs.txt & JSON-LD Consistency Audit", status: "In Progress", type: "Feature", priority: "Medium", notes: "Cross-validate documentation, schema markup, and feature claims" },
-  { title: "Stats Page Visual Redesign", status: "In Progress", type: "Feature", priority: "Medium", notes: "Glass/gradient aesthetic matching rest of site" },
+  { title: "Covert Mode Color Leak Audit", status: "In Progress", type: "Feature", priority: "Medium", notes: "Fixing white text leaking through in recon mode" },
   { title: "DoH/DoT Detection", status: "Next Up", type: "Feature", priority: "High", notes: "DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) posture analysis" },
   { title: "Distributed Probe Mesh (Good Net Citizens)", status: "Next Up", type: "Feature", priority: "High", notes: "Volunteer browser-based DNS probes via DoH relay" },
   { title: "API Access (Programmatic Analysis)", status: "Next Up", type: "Feature", priority: "High", notes: "Rate limiting, authentication, versioning" },
@@ -162,34 +164,112 @@ async function getParentPageId(notion) {
   return page.id;
 }
 
-async function populateDatabase(notion, databaseId) {
-  const existing = await notion.databases.query({ database_id: databaseId, page_size: 100 });
-  const existingTitles = new Set(
-    existing.results.map(r => r.properties.Title?.title?.[0]?.plain_text).filter(Boolean)
-  );
-  console.log(`Database has ${existingTitles.size} existing items`);
+async function getAllPages(notion, databaseId) {
+  const pages = [];
+  let cursor = undefined;
+  do {
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      page_size: 100,
+      start_cursor: cursor,
+    });
+    pages.push(...response.results);
+    cursor = response.has_more ? response.next_cursor : undefined;
+  } while (cursor);
+  return pages;
+}
 
-  let created = 0;
-  for (const item of ROADMAP_ITEMS) {
-    if (existingTitles.has(item.title)) continue;
+function getPageTitle(page) {
+  return page.properties.Title?.title?.[0]?.plain_text || '';
+}
 
-    const properties = {
-      "Title": { title: [{ text: { content: item.title } }] },
-      "Status": { select: { name: item.status } },
-      "Type": { select: { name: item.type } },
-      "Priority": { select: { name: item.priority } },
-    };
-    if (item.version) {
-      properties["Version"] = { rich_text: [{ text: { content: item.version } }] };
-    }
-    if (item.notes) {
-      properties["Notes"] = { rich_text: [{ text: { content: item.notes } }] };
-    }
+function getPageStatus(page) {
+  return page.properties.Status?.select?.name || '';
+}
 
-    await notion.pages.create({ parent: { database_id: databaseId }, properties });
-    created++;
+function getPageType(page) {
+  return page.properties.Type?.select?.name || '';
+}
+
+function getPagePriority(page) {
+  return page.properties.Priority?.select?.name || '';
+}
+
+function getPageNotes(page) {
+  return page.properties.Notes?.rich_text?.[0]?.plain_text || '';
+}
+
+async function syncDatabase(notion, databaseId) {
+  const existingPages = await getAllPages(notion, databaseId);
+  const existingByTitle = new Map();
+  for (const page of existingPages) {
+    const title = getPageTitle(page);
+    if (title) existingByTitle.set(title, page);
   }
-  console.log(`Created ${created} new items (${existingTitles.size} already existed)`);
+  console.log(`Database has ${existingByTitle.size} existing items`);
+
+  const codebaseTitles = new Set(ROADMAP_ITEMS.map(i => i.title));
+  let created = 0, updated = 0, skipped = 0;
+
+  for (const item of ROADMAP_ITEMS) {
+    const existingPage = existingByTitle.get(item.title);
+
+    if (!existingPage) {
+      const properties = {
+        "Title": { title: [{ text: { content: item.title } }] },
+        "Status": { select: { name: item.status } },
+        "Type": { select: { name: item.type } },
+        "Priority": { select: { name: item.priority } },
+      };
+      if (item.version) {
+        properties["Version"] = { rich_text: [{ text: { content: item.version } }] };
+      }
+      if (item.notes) {
+        properties["Notes"] = { rich_text: [{ text: { content: item.notes } }] };
+      }
+      await notion.pages.create({ parent: { database_id: databaseId }, properties });
+      created++;
+      continue;
+    }
+
+    const notionStatus = getPageStatus(existingPage);
+    if (notionStatus !== item.status) {
+      const updateProps = {
+        "Status": { select: { name: item.status } },
+      };
+      if (item.version) {
+        updateProps["Version"] = { rich_text: [{ text: { content: item.version } }] };
+      }
+      await notion.pages.update({ page_id: existingPage.id, properties: updateProps });
+      console.log(`  Updated: "${item.title}" (${notionStatus} → ${item.status})`);
+      updated++;
+    } else {
+      skipped++;
+    }
+  }
+
+  const notionOnlyItems = [];
+  for (const [title, page] of existingByTitle) {
+    if (!codebaseTitles.has(title)) {
+      notionOnlyItems.push({
+        title,
+        status: getPageStatus(page),
+        type: getPageType(page),
+        priority: getPagePriority(page),
+        notes: getPageNotes(page),
+      });
+    }
+  }
+
+  console.log(`\nSync results: ${created} created, ${updated} updated, ${skipped} unchanged`);
+
+  if (notionOnlyItems.length > 0) {
+    console.log(`\n--- Ideas from Notion (${notionOnlyItems.length} items not in codebase) ---`);
+    for (const item of notionOnlyItems) {
+      console.log(`  [${item.status}] ${item.title} (${item.type}, ${item.priority})${item.notes ? ' — ' + item.notes : ''}`);
+    }
+    console.log('--- End Notion-only items ---\n');
+  }
 }
 
 (async () => {
@@ -197,7 +277,7 @@ async function populateDatabase(notion, databaseId) {
     const notion = await getNotionClient();
     console.log("Notion connected");
     const databaseId = await findOrCreateDatabase(notion);
-    await populateDatabase(notion, databaseId);
+    await syncDatabase(notion, databaseId);
     console.log("Roadmap sync complete!");
     console.log(`Database ID: ${databaseId}`);
   } catch (e) {

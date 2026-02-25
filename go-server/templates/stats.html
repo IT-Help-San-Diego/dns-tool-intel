@@ -85,6 +85,105 @@
             padding: 0.4rem 1rem;
         }
 
+        .stats-confidence-preview {
+            position: relative;
+            z-index: 1;
+            margin-top: 1.25rem;
+            background: linear-gradient(135deg, rgba(88,166,255,0.06) 0%, rgba(63,185,80,0.04) 100%);
+            border: 1px solid rgba(88,166,255,0.15);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: border-color 0.2s;
+        }
+        .stats-confidence-preview:hover {
+            border-color: rgba(88,166,255,0.3);
+        }
+        .stats-confidence-preview-icon {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 10px;
+            background: rgba(88,166,255,0.1);
+            border: 1px solid rgba(88,166,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #58a6ff;
+        }
+        .stats-confidence-preview-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .stats-confidence-preview-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #e6edf3;
+            margin-bottom: 0.25rem;
+        }
+        .stats-confidence-preview-desc {
+            font-size: 0.75rem;
+            color: #8b949e;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .stats-confidence-preview-metrics {
+            display: flex;
+            gap: 1.5rem;
+            flex-shrink: 0;
+        }
+        .stats-confidence-metric {
+            text-align: center;
+        }
+        .stats-confidence-metric-value {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #58a6ff;
+            line-height: 1;
+        }
+        .stats-confidence-metric-value.u-green { color: #3fb950; }
+        .stats-confidence-metric-label {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #484f58;
+            margin-top: 0.2rem;
+        }
+        .stats-confidence-preview-link {
+            flex-shrink: 0;
+        }
+        .stats-confidence-preview-link .btn {
+            font-size: 0.78rem;
+            padding: 0.45rem 1.1rem;
+            background: rgba(88,166,255,0.08);
+            border: 1px solid rgba(88,166,255,0.25);
+            color: #58a6ff;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .stats-confidence-preview-link .btn:hover {
+            background: rgba(88,166,255,0.15);
+            border-color: rgba(88,166,255,0.4);
+            color: #79c0ff;
+            transform: none;
+            box-shadow: 0 0 12px rgba(88,166,255,0.15);
+        }
+        @media (max-width: 768px) {
+            .stats-confidence-preview {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .stats-confidence-preview-metrics {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
         .stats-kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -365,15 +464,29 @@
                         <h1><i class="fas fa-chart-bar me-2" style="color:#58a6ff"></i>Analysis Statistics</h1>
                         <p class="stats-hero-sub">Platform telemetry &mdash; DNS intelligence operations, query distribution, and global reach</p>
                     </div>
-                    <div class="stats-hero-actions d-flex gap-2 align-items-start">
-                        <a href="/confidence" class="btn btn-outline-info">
-                            <i class="fas fa-flask me-1"></i>Confidence Engine
-                        </a>
-                        <a href="/" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>New Analysis
-                        </a>
-                    </div>
                 </div>
+                <a href="/confidence" class="stats-confidence-preview text-decoration-none">
+                    <div class="stats-confidence-preview-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="stats-confidence-preview-body">
+                        <div class="stats-confidence-preview-title">Intelligence Confidence Audit Engine</div>
+                        <p class="stats-confidence-preview-desc">RFC-aligned confidence scoring across 9 protocol domains. NIST SP 800-53 SA-11 &amp; ICD 203 source evaluation framework with SHA-3-512 provenance.</p>
+                    </div>
+                    <div class="stats-confidence-preview-metrics">
+                        <div class="stats-confidence-metric">
+                            <div class="stats-confidence-metric-value">9</div>
+                            <div class="stats-confidence-metric-label">Protocols</div>
+                        </div>
+                        <div class="stats-confidence-metric">
+                            <div class="stats-confidence-metric-value u-green">{{if gt .TotalAnalyses 0}}{{successRate .SuccessfulAnalyses .TotalAnalyses}}%{{else}}&mdash;{{end}}</div>
+                            <div class="stats-confidence-metric-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="stats-confidence-preview-link">
+                        <span class="btn"><i class="fas fa-arrow-right me-1"></i>Open Engine</span>
+                    </div>
+                </a>
             </div>
 
             <div class="stats-kpi-grid">

@@ -79,12 +79,14 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "SonarCloud Quality Gate Fix", Version: "v26.26.03", Date: roadmapDateFeb2026, Type: "Quality"},
                 {Title: "Nmap Subdomain Enrichment", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Admin Probe Management Panel", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "LLMs.txt & JSON-LD Consistency Audit", Version: "v26.26.04", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Stats Page Visual Redesign", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Notion Bidirectional Sync", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass treatment, question branding, and token system across all report modes"},
-                {Title: "LLMs.txt & JSON-LD Consistency Audit", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Cross-validate documentation, schema markup, and feature claims against actual site state"},
-                {Title: "Stats Page Visual Redesign", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass/gradient aesthetic matching rest of site — polished data presentation"},
+                {Title: "Covert Mode Color Leak Audit", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Fixing white text leaking through in recon mode — search labels, utility colors, card text"},
         }
 
         nextUp := []RoadmapItem{

@@ -2884,7 +2884,7 @@ body.covert-mode .u-actionable-intel {
     text-shadow: 0 0 8px rgba(196, 60, 60, 0.4);
 }
 body.covert-mode .search-label {
-    color: rgba(170, 178, 188, 0.7);
+    color: rgba(196, 60, 60, 0.6);
 }
 body.covert-mode .search-card {
     border-color: rgba(140, 40, 40, 0.2) !important;
@@ -2917,6 +2917,72 @@ body.covert-mode .search-input:focus {
 }
 body.covert-mode .u-color-blue-soft {
     color: #cc2020 !important;
+}
+body.covert-mode .search-hint {
+    color: rgba(140, 40, 40, 0.5) !important;
+}
+body.covert-mode .search-hint strong {
+    color: rgba(196, 60, 60, 0.55) !important;
+}
+body.covert-mode .u-color-gold {
+    color: rgba(196, 60, 60, 0.5) !important;
+}
+body.covert-mode .u-color-info-alt {
+    color: rgba(196, 60, 60, 0.5) !important;
+}
+body.covert-mode .u-color-gray-400 {
+    color: rgba(140, 40, 40, 0.45) !important;
+}
+body.covert-mode .card.bg-dark {
+    background-color: #0a0c10 !important;
+    border-color: rgba(140, 40, 40, 0.2) !important;
+}
+body.covert-mode .card.bg-dark .fw-semibold {
+    color: rgba(170, 178, 188, 0.5) !important;
+}
+body.covert-mode .card.bg-dark .fa-2x.text-info {
+    color: rgba(196, 60, 60, 0.5) !important;
+}
+body.covert-mode strong.text-light {
+    color: rgba(196, 60, 60, 0.55) !important;
+}
+body.covert-mode .stats-confidence-preview {
+    background: linear-gradient(135deg, rgba(140, 40, 40, 0.08) 0%, rgba(100, 30, 30, 0.05) 100%);
+    border-color: rgba(140, 40, 40, 0.2);
+}
+body.covert-mode .stats-confidence-preview:hover {
+    border-color: rgba(140, 40, 40, 0.35);
+}
+body.covert-mode .stats-confidence-preview-icon {
+    background: rgba(140, 40, 40, 0.12);
+    border-color: rgba(140, 40, 40, 0.25);
+    color: #cc2020;
+}
+body.covert-mode .stats-confidence-preview-title {
+    color: rgba(170, 178, 188, 0.55);
+}
+body.covert-mode .stats-confidence-preview-desc {
+    color: rgba(140, 40, 40, 0.45);
+}
+body.covert-mode .stats-confidence-metric-value {
+    color: #cc2020;
+}
+body.covert-mode .stats-confidence-metric-value.u-green {
+    color: rgba(196, 60, 60, 0.7) !important;
+}
+body.covert-mode .stats-confidence-metric-label {
+    color: rgba(140, 40, 40, 0.35);
+}
+body.covert-mode .stats-confidence-preview-link .btn {
+    background: rgba(140, 40, 40, 0.1);
+    border-color: rgba(140, 40, 40, 0.3);
+    color: #cc2020;
+}
+body.covert-mode .stats-confidence-preview-link .btn:hover {
+    background: rgba(140, 40, 40, 0.2);
+    border-color: rgba(140, 40, 40, 0.5);
+    color: #e87070;
+    box-shadow: 0 0 12px rgba(140, 40, 40, 0.2);
 }
 body.covert-mode .hero-trust {
     color: rgba(170, 178, 188, 0.5);
