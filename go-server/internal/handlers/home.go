@@ -49,15 +49,27 @@ func (h *HomeHandler) Index(c *gin.Context) {
         }
 
         if welcome := c.Query("welcome"); welcome != "" {
-                data["WelcomeName"] = welcome
+                name := welcome
+                if len(name) > 100 {
+                        name = name[:100]
+                }
+                data["WelcomeName"] = name
         } else if flash := c.Query("flash"); flash != "" {
                 cat := c.DefaultQuery("flash_cat", "warning")
                 if cat != "success" && cat != "danger" {
                         cat = "warning"
                 }
-                data["FlashMessages"] = []FlashMessage{{Category: cat, Message: flash}}
+                msg := flash
+                if len(msg) > 200 {
+                        msg = msg[:200]
+                }
+                data["FlashMessages"] = []FlashMessage{{Category: cat, Message: msg}}
                 if domain := c.Query("domain"); domain != "" {
-                        data["PrefillDomain"] = domain
+                        d := domain
+                        if len(d) > 253 {
+                                d = d[:253]
+                        }
+                        data["PrefillDomain"] = d
                 }
         }
 

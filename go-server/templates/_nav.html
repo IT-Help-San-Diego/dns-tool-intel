@@ -73,7 +73,7 @@
                             <li><a class="dropdown-item" href="/dossier"><i class="fas fa-briefcase me-1" aria-hidden="true"></i>Intelligence Reports</a></li>
                             <li><a class="dropdown-item" href="/zone"><i class="fas fa-upload me-1" aria-hidden="true"></i>Zone File Import</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-arrow-right me-1" aria-hidden="true"></i>Sign Out</a></li>
+                            <li><form method="POST" action="/auth/logout" style="margin:0"><input type="hidden" name="csrf_token" value="{{.CsrfToken}}"><button type="submit" class="dropdown-item"><i class="fas fa-arrow-right me-1" aria-hidden="true"></i>Sign Out</button></form></li>
                         </ul>
                     </div>
                     {{else}}

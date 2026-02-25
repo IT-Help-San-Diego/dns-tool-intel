@@ -10,6 +10,7 @@ import (
         "fmt"
         "log/slog"
         "net/http"
+        "net/url"
         "strings"
 
         "github.com/gin-gonic/gin"
@@ -154,7 +155,7 @@ func (m *CSRFMiddleware) rejectCSRF(c *gin.Context, reason string) {
                 domain = c.Query("domain")
         }
         if domain != "" {
-                c.Redirect(http.StatusSeeOther, "/?domain="+domain+"&flash=Session+expired.+Please+try+again.")
+                c.Redirect(http.StatusSeeOther, "/?domain="+url.QueryEscape(domain)+"&flash=Session+expired.+Please+try+again.")
         } else {
                 c.Redirect(http.StatusSeeOther, "/?flash=Session+expired.+Please+try+again.")
         }
