@@ -256,6 +256,9 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
+        roeHandler := handlers.NewROEHandler(cfg)
+        router.GET("/roe", roeHandler.ROE)
+
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)
 

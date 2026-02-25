@@ -1,0 +1,32 @@
+// Copyright (c) 2024-2026 IT Help San Diego Inc.
+// Licensed under BUSL-1.1 — See LICENSE for terms.
+package handlers
+
+import (
+	"net/http"
+
+	"dnstool/go-server/internal/config"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ROEHandler struct {
+	Config *config.Config
+}
+
+func NewROEHandler(cfg *config.Config) *ROEHandler {
+	return &ROEHandler{Config: cfg}
+}
+
+func (h *ROEHandler) ROE(c *gin.Context) {
+	nonce, _ := c.Get("csp_nonce")
+	data := gin.H{
+		"AppVersion":      h.Config.AppVersion,
+		"MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":       h.Config.BetaPages,
+		"CspNonce":        nonce,
+		"ActivePage":      "roe",
+	}
+	mergeAuthData(c, h.Config, data)
+	c.HTML(http.StatusOK, "roe.html", data)
+}

@@ -578,6 +578,13 @@
                         <p>DNS Tool is built to educate as much as it evaluates. Every finding is an opportunity to teach the <em>why</em> behind the configuration &mdash; not just flag the <em>what</em>.</p>
                     </div>
 
+                    <div class="approach-section">
+                        <h2><i class="fas fa-shield-alt"></i>The Ethical Line</h2>
+                        <p>Our multi-probe infrastructure uses Nmap &mdash; one of the most powerful reconnaissance tools ever built. We allow exactly six NSE scripts: <code>ssl-cert</code>, <code>http-title</code>, <code>http-headers</code>, <code>dns-zone-transfer</code>, <code>banner</code>, and <code>smtp-commands</code>. That&rsquo;s it.</p>
+                        <p>We deliberately excluded every vulnerability scanning, exploitation, and brute-force script category. Would running <code>vuln</code> scripts produce richer intelligence? Absolutely &mdash; we&rsquo;d see actual CVEs on nameservers, exploitable TLS weaknesses, misconfigured SMTP relays. The data would be better. The ethics wouldn&rsquo;t be.</p>
+                        <p>There&rsquo;s a difference between observing what&rsquo;s publicly visible and probing for weaknesses. We chose the boundary, documented it, and made it public. Read the full rationale in our <a href="/roe" class="text-info text-decoration-none fw-semibold">Rules of Engagement</a>.</p>
+                    </div>
+
                     <div class="approach-founder">
                         <h3><i class="fas fa-user-shield me-2 text-info"></i>A Note from the Builder</h3>
                         <p>I don't have a computer science degree. I'm self-taught. Twenty-seven years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
@@ -590,6 +597,7 @@
                     </div>
 
                     <div class="approach-nav-row mt-4 mb-2">
+                        <a href="/roe" class="approach-nav-btn"><i class="fas fa-shield-alt me-1"></i>Rules of Engagement</a>
                         <a href="/roadmap" class="approach-nav-btn"><i class="fas fa-map me-1"></i>Roadmap</a>
                         <a href="/about" class="approach-nav-btn"><i class="fas fa-book-open me-1"></i>Origin Story</a>
                         <a href="/confidence" class="approach-nav-btn"><i class="fas fa-bullseye me-1"></i>Confidence</a>

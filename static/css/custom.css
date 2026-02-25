@@ -6219,9 +6219,8 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 }
 
 .sources-audit-table td {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    max-width: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
 }
 .sources-audit-table td:first-child {
     white-space: nowrap;
