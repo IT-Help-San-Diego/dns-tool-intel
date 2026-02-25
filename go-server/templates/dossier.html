@@ -398,7 +398,7 @@
     (function(){
         document.querySelectorAll('.dossier-view-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
-                var overlay = document.getElementById('dossierViewOverlay');
+                const overlay = document.getElementById('dossierViewOverlay');
                 if(overlay) overlay.classList.add('active');
             });
         });
@@ -406,25 +406,25 @@
         document.querySelectorAll('.dossier-reanalyze-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 e.preventDefault();
-                var href = btn.href;
-                var domain = href.split('domain=')[1] || '';
-                var overlay = document.getElementById('dossierAnalyzeOverlay');
-                var domainEl = document.getElementById('dossierAnalyzeDomain');
+                const href = btn.href;
+                const domain = href.split('domain=')[1] || '';
+                const overlay = document.getElementById('dossierAnalyzeOverlay');
+                const domainEl = document.getElementById('dossierAnalyzeDomain');
                 if(domainEl) domainEl.textContent = decodeURIComponent(domain);
                 if(overlay) overlay.classList.add('active');
 
-                var timerEl = document.getElementById('dossierLoadingTimer');
-                var start = Date.now();
+                const timerEl = document.getElementById('dossierLoadingTimer');
+                const start = Date.now();
                 if(timerEl){
-                    var interval = setInterval(function(){
-                        var elapsed = Math.floor((Date.now()-start)/1000);
+                    const interval = setInterval(function(){
+                        const elapsed = Math.floor((Date.now()-start)/1000);
                         timerEl.textContent = elapsed + 's';
                     }, 1000);
                 }
 
-                var formData = new FormData();
+                const formData = new FormData();
                 formData.append('domain', decodeURIComponent(domain));
-                var csrf = document.querySelector('meta[name="csrf-token"]');
+                const csrf = document.querySelector('meta[name="csrf-token"]');
                 if(csrf) formData.append('_csrf', csrf.content);
                 fetch('/analyze', {
                     method: 'POST',
@@ -441,10 +441,10 @@
                         document.write(html);
                         document.close();
                         globalThis.scrollTo(0, 0);
-                        var mm=document.querySelector('meta[name="x-report-mode"]');
-                        var ie=document.querySelector('[data-analysis-id]');
-                        var rm=mm?mm.content:'';
-                        var ra=ie?ie.dataset.analysisId:'';
+                        const mm=document.querySelector('meta[name="x-report-mode"]');
+                        const ie=document.querySelector('[data-analysis-id]');
+                        const rm=mm?mm.content:'';
+                        const ra=ie?ie.dataset.analysisId:'';
                         if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
                         else if (resp.url && resp.url !== globalThis.location.href) {
                             globalThis.history.replaceState(null, '', resp.url);

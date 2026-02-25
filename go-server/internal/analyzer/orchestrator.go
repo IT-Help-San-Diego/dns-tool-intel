@@ -195,6 +195,7 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 
         results["dangling_dns"] = a.DetectDanglingDNS(ctx, domain, ctSubdomains)
 
+        results["is_tld"] = isTLD
         results["posture"] = a.CalculatePosture(results)
         results["remediation"] = a.GenerateRemediation(results)
         results["mail_posture"] = buildMailPosture(results)

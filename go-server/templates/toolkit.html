@@ -734,7 +734,7 @@
                                 {{if and .ProbeLocations (gt (len .ProbeLocations) 1)}}
                                 <div class="col-sm-3">
                                     <label for="probe_location" class="form-label small">Probe Location</label>
-                                    <select class="form-select" id="probe_location" name="probe_location">
+                                    <select class="form-select" id="probe_location" name="probe_location" aria-label="Probe Location">
                                         {{range .ProbeLocations}}
                                         <option value="{{.ID}}" {{if eq $.SelectedProbe .ID}}selected{{end}}>{{.Label}}</option>
                                         {{end}}
@@ -1058,13 +1058,13 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function(){
-        var toggles = document.querySelectorAll('.tk-why-toggle, .tk-discovery-toggle');
-        for (var i = 0; i < toggles.length; i++) {
+        const toggles = document.querySelectorAll('.tk-why-toggle, .tk-discovery-toggle');
+        for (let i = 0; i < toggles.length; i++) {
             toggles[i].addEventListener('click', function() {
-                var targetId = this.dataset.target;
-                var target = document.getElementById(targetId);
+                const targetId = this.dataset.target;
+                const target = document.getElementById(targetId);
                 if (target) {
-                    var isVisible = target.classList.contains('show');
+                    const isVisible = target.classList.contains('show');
                     target.classList.toggle('show');
                     this.setAttribute('aria-expanded', !isVisible);
                 }

@@ -699,7 +699,9 @@
                         <div class="row g-3 text-center">
                             <div class="col-6 col-md-3">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
-                                {{if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
+                                {{if .IsTLD}}
+                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
+                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}
                                 <span class="badge bg-info px-3 py-2">Monitoring</span>
@@ -711,7 +713,9 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
-                                {{if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
+                                {{if .IsTLD}}
+                                <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
+                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}
                                 <span class="badge bg-info px-3 py-2">Basic</span>
@@ -5188,23 +5192,23 @@
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                var cmd = this.dataset.cmd;
+                const cmd = this.dataset.cmd;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(cmd).then(function() {
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                    });
+                    }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
         });
     }
 
     function setupHashPreviewLink() {
-        var link = document.querySelector('a[href="#report-integrity"]');
+        const link = document.querySelector('a[href="#report-integrity"]');
         if (link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                var target = document.getElementById('report-integrity');
+                const target = document.getElementById('report-integrity');
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     history.replaceState(null, '', '#report-integrity');
@@ -5214,15 +5218,15 @@
     }
 
     function setupIntegrityHashCopy() {
-        var btn = document.getElementById('copyIntegrityHash');
+        const btn = document.getElementById('copyIntegrityHash');
         if (btn) {
             btn.addEventListener('click', function() {
-                var hash = this.dataset.hash;
+                const hash = this.dataset.hash;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                    });
+                    }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
         }
@@ -5240,7 +5244,7 @@
     }
 
     (function() {
-        var _printThemePrev = 'dark';
+        let _printThemePrev = 'dark';
         globalThis.addEventListener('beforeprint', function() {
             _printThemePrev = document.documentElement.dataset.bsTheme || 'dark';
             document.documentElement.dataset.bsTheme = 'light';
@@ -5250,10 +5254,10 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            var printBtn = document.getElementById('engineerPrintBtn');
+            const printBtn = document.getElementById('engineerPrintBtn');
             if (printBtn) printBtn.addEventListener('click', function() { globalThis.print(); });
 
-            var params = new URLSearchParams(globalThis.location.search);
+            const params = new URLSearchParams(globalThis.location.search);
             if (params.has('print')) {
                 history.replaceState(null, '', globalThis.location.pathname + globalThis.location.hash);
                 requestAnimationFrame(function() {
@@ -5261,8 +5265,8 @@
                 });
             }
 
-            var histForm = document.getElementById('dns-history-form');
-            var histBtn = document.getElementById('dns-history-btn');
+            const histForm = document.getElementById('dns-history-form');
+            const histBtn = document.getElementById('dns-history-btn');
             if (histForm) {
                 histForm.addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -5272,7 +5276,7 @@
                 histBtn.addEventListener('click', function() { loadDNSHistory(this.dataset.domain); });
             }
 
-            var protocolSectionMap = {
+            const protocolSectionMap = {
                 'SPF': '#section-email', 'DMARC': '#section-email', 'DKIM': '#section-email',
                 'MTA-STS': '#section-email', 'TLS-RPT': '#section-email',
                 'DANE': '#section-dane',
@@ -5280,19 +5284,19 @@
                 'DNSSEC': '#section-dnssec'
             };
             document.querySelectorAll('.protocol-link').forEach(function(el) {
-                var proto = el.dataset.protocol;
-                var cleaned = proto.replace(/\s*\(.*\)/, '');
-                var target = protocolSectionMap[cleaned];
+                const proto = el.dataset.protocol;
+                const cleaned = proto.replace(/\s*\(.*\)/, '');
+                const target = protocolSectionMap[cleaned];
                 if (target) {
                     el.classList.add('u-link-dotted');
                     el.addEventListener('click', function() {
-                        var section = document.querySelector(target);
+                        const section = document.querySelector(target);
                         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     });
                 }
             });
 
-            var tlpConfig = {
+            const tlpConfig = {
                 red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',
                     footer: '<strong>TLP:RED</strong> \u2014 This report is for individual recipients only. No further disclosure is permitted. Recipients may not share this information with any other parties (FIRST TLP v2.0).' },
                 'amber-strict': { label: 'TLP:AMBER+STRICT', note: 'Restricted \u2014 organisation only, no further sharing outside the organisation', cls: 'tlp-amber-strict',
@@ -5304,24 +5308,24 @@
                 clear: { label: 'TLP:CLEAR', note: 'Unlimited distribution \u2014 no restrictions on sharing', cls: 'tlp-clear',
                     footer: '<strong>TLP:CLEAR</strong> \u2014 No restrictions on distribution. DNS records are public data queried via open-standard protocols.' }
             };
-            var copyrightSuffix = ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.';
+            const copyrightSuffix = ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.';
             document.querySelectorAll('.tlp-option').forEach(function(item) {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
-                    var tlp = this.dataset.tlp;
-                    var cfg = tlpConfig[tlp];
+                    const tlp = this.dataset.tlp;
+                    const cfg = tlpConfig[tlp];
                     if (!cfg) return;
-                    var badge = document.getElementById('printTlpBadge');
-                    var note = document.getElementById('printTlpNote');
-                    var selectorLabel = document.getElementById('tlpSelectorLabel');
-                    var selectorBtn = document.getElementById('tlpSelectorBtn');
-                    var footerTlp = document.getElementById('printFooterTlp');
+                    const badge = document.getElementById('printTlpBadge');
+                    const note = document.getElementById('printTlpNote');
+                    const selectorLabel = document.getElementById('tlpSelectorLabel');
+                    const selectorBtn = document.getElementById('tlpSelectorBtn');
+                    const footerTlp = document.getElementById('printFooterTlp');
                     if (badge) { badge.textContent = cfg.label; badge.className = 'print-tlp-badge ' + cfg.cls; }
                     if (note) note.textContent = cfg.note;
                     if (selectorLabel) selectorLabel.textContent = cfg.label;
                     if (selectorBtn) { selectorBtn.className = 'btn dropdown-toggle ' + this.dataset.btnClass; }
                     if (footerTlp) footerTlp.innerHTML = cfg.footer + copyrightSuffix;
-                    var dd = bootstrap.Dropdown.getInstance(selectorBtn);
+                    const dd = bootstrap.Dropdown.getInstance(selectorBtn);
                     if (dd) dd.hide();
                 });
             });
@@ -5336,11 +5340,11 @@
             const tooltipInstances = [];
             const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(el) {
-                var t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+                const t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
                 tooltipInstances.push(t);
                 return t;
             });
-            var scrollTimer;
+            let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
                 scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
@@ -5410,10 +5414,10 @@
                             document.write(html);
                             document.close();
                             globalThis.scrollTo(0, 0);
-                            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                            var idEl = document.querySelector('[data-analysis-id]');
-                            var mode = modeMeta ? modeMeta.content : '';
-                            var aid = idEl ? idEl.dataset.analysisId : '';
+                            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                            const idEl = document.querySelector('[data-analysis-id]');
+                            const mode = modeMeta ? modeMeta.content : '';
+                            const aid = idEl ? idEl.dataset.analysisId : '';
                             if (aid && mode) {
                                 globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
                             } else if (resp.url && resp.url !== globalThis.location.href) {
@@ -5426,29 +5430,29 @@
                 });
             }
             (function setupSubdomainCollapse() {
-                var tbody = document.getElementById('subdomainTbody');
+                const tbody = document.getElementById('subdomainTbody');
                 if (!tbody) return;
-                var rows = tbody.querySelectorAll('tr');
-                var total = rows.length;
-                var VISIBLE = 20;
+                const rows = tbody.querySelectorAll('tr');
+                const total = rows.length;
+                const VISIBLE = 20;
                 if (total <= VISIBLE) return;
-                var hidden = total - VISIBLE;
-                for (var i = VISIBLE; i < total; i++) {
+                const hidden = total - VISIBLE;
+                for (let i = VISIBLE; i < total; i++) {
                     rows[i].style.display = 'none';
                     rows[i].classList.add('subdomain-collapsed-row');
                 }
-                var expandRow = document.createElement('tr');
+                const expandRow = document.createElement('tr');
                 expandRow.id = 'subdomainExpandRow';
-                var td = document.createElement('td');
+                const td = document.createElement('td');
                 td.colSpan = 7;
                 td.className = 'text-center py-3 border-secondary';
-                var btn = document.createElement('button');
+                const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'btn btn-outline-info btn-sm';
                 btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Show All ' + total + ' Subdomains <span class="text-muted ms-1">(' + hidden + ' more)</span>';
                 btn.addEventListener('click', function() {
-                    var hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (var j = 0; j < hiddenRows.length; j++) {
+                    const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
+                    for (let j = 0; j < hiddenRows.length; j++) {
                         hiddenRows[j].style.display = '';
                     }
                     expandRow.style.display = 'none';
@@ -5459,26 +5463,26 @@
                 });
                 td.appendChild(btn);
                 expandRow.appendChild(td);
-                var refRow = rows[VISIBLE];
+                const refRow = rows[VISIBLE];
                 tbody.insertBefore(expandRow, refRow);
-                var collapseRow = document.createElement('tr');
+                const collapseRow = document.createElement('tr');
                 collapseRow.id = 'subdomainCollapseRow';
                 collapseRow.style.display = 'none';
-                var collapseTd = document.createElement('td');
+                const collapseTd = document.createElement('td');
                 collapseTd.colSpan = 7;
                 collapseTd.className = 'text-center py-3 border-secondary';
-                var collapseBtn = document.createElement('button');
+                const collapseBtn = document.createElement('button');
                 collapseBtn.type = 'button';
                 collapseBtn.className = 'btn btn-outline-secondary btn-sm';
                 collapseBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i>Collapse to Top ' + VISIBLE;
                 collapseBtn.addEventListener('click', function() {
-                    var hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (var j = 0; j < hiddenRows.length; j++) {
+                    const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
+                    for (let j = 0; j < hiddenRows.length; j++) {
                         hiddenRows[j].style.display = 'none';
                     }
                     collapseRow.style.display = 'none';
                     expandRow.style.display = '';
-                    var table = document.getElementById('subdomainTable');
+                    const table = document.getElementById('subdomainTable');
                     if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
                 collapseTd.appendChild(collapseBtn);
@@ -5491,11 +5495,11 @@
             setupHashPreviewLink();
             setupCollapseKeyboardHandlers();
 
-            var stKeyInput = document.getElementById('securitytrails_api_key');
+            const stKeyInput = document.getElementById('securitytrails_api_key');
             if (stKeyInput) {
                 stKeyInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
-                        var btn = document.getElementById('dns-history-btn');
+                        const btn = document.getElementById('dns-history-btn');
                         if (btn) btn.click();
                     }
                 });
@@ -5504,8 +5508,8 @@
     })();
 
     (function() {
-        var deferredPrompt = null;
-        var dismissed = sessionStorage.getItem('pwa-nudge-dismissed');
+        let deferredPrompt = null;
+        const dismissed = sessionStorage.getItem('pwa-nudge-dismissed');
 
         globalThis.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
@@ -5516,7 +5520,7 @@
 
         function showInstallNudge() {
             if (document.getElementById('pwaInstallNudge')) return;
-            var nudge = document.createElement('div');
+            const nudge = document.createElement('div');
             nudge.id = 'pwaInstallNudge';
             nudge.className = 'pwa-install-nudge';
             nudge.innerHTML = '<div class="pwa-nudge-content"><i class="fas fa-mobile-alt me-2 text-info"></i><span>Add DNS Tool to your device for quick access</span><button type="button" class="btn btn-sm btn-outline-info ms-3 pwa-install-btn" id="pwaInstallBtn">Install</button><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
@@ -5540,11 +5544,11 @@
         }
 
         if (!globalThis.matchMedia('(display-mode: standalone)').matches) {
-            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS && !dismissed) {
                 setTimeout(function() {
                     if (document.getElementById('pwaInstallNudge')) return;
-                    var nudge = document.createElement('div');
+                    const nudge = document.createElement('div');
                     nudge.id = 'pwaInstallNudge';
                     nudge.className = 'pwa-install-nudge';
                     nudge.innerHTML = '<div class="pwa-nudge-content"><i class="fas fa-mobile-alt me-2 text-info"></i><span>Add to Home Screen: tap <i class="fas fa-share-square text-info"></i> then &ldquo;Add to Home Screen&rdquo;</span><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
@@ -5561,8 +5565,8 @@
     })();
 
     function loadDNSHistory(domain) {
-        var keyInput = document.getElementById('securitytrails_api_key');
-        var apiKey = keyInput ? keyInput.value.trim() : '';
+        const keyInput = document.getElementById('securitytrails_api_key');
+        const apiKey = keyInput ? keyInput.value.trim() : '';
         if (!apiKey) {
             if (keyInput) {
                 keyInput.classList.add('is-invalid');
@@ -5572,8 +5576,8 @@
             return;
         }
 
-        var btn = document.getElementById('dns-history-btn');
-        var wrapper = document.querySelector('.dns-history-load-wrapper');
+        const btn = document.getElementById('dns-history-btn');
+        const wrapper = document.querySelector('.dns-history-load-wrapper');
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
@@ -5593,11 +5597,11 @@
                         keyInput.classList.add('is-invalid');
                         setTimeout(function() { keyInput.classList.remove('is-invalid'); }, 3000);
                     }
-                    var errMsg = document.createElement('div');
+                    const errMsg = document.createElement('div');
                     errMsg.className = 'text-danger small mt-1';
                     errMsg.textContent = data.status === 'no_key' ? 'API key is required' : 'Could not fetch history — check your API key or try again later';
                     if (wrapper) {
-                        var existing = wrapper.querySelector('.text-danger');
+                        const existing = wrapper.querySelector('.text-danger');
                         if (existing) existing.remove();
                         wrapper.querySelector('.card-body').appendChild(errMsg);
                         setTimeout(function() { errMsg.remove(); }, 5000);
@@ -5605,9 +5609,9 @@
                     return;
                 }
 
-                var section = document.getElementById('dns-history-section');
-                var body = document.getElementById('dns-history-body');
-                var source = document.getElementById('dns-history-source');
+                const section = document.getElementById('dns-history-section');
+                const body = document.getElementById('dns-history-body');
+                const source = document.getElementById('dns-history-source');
                 if (section) section.classList.remove('d-none');
                 if (source) source.textContent = 'Source: SecurityTrails';
                 if (wrapper) wrapper.classList.add('d-none');
@@ -5617,10 +5621,10 @@
                     return;
                 }
 
-                var html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
+                let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
                 data.changes.forEach(function(ch) {
-                    var typeColor = ch.record_type === 'MX' ? 'success' : ch.record_type === 'NS' ? 'info' : 'primary';
-                    var actionHtml = ch.action === 'added'
+                    const typeColor = ch.record_type === 'MX' ? 'success' : ch.record_type === 'NS' ? 'info' : 'primary';
+                    const actionHtml = ch.action === 'added'
                         ? '<span class="text-success"><i class="fas fa-plus-circle me-1"></i>Added</span>'
                         : '<span class="text-danger"><i class="fas fa-minus-circle me-1"></i>Removed</span>';
                     html += '<tr><td><code class="text-muted u-fs-080em">' + (ch.date || '') + '</code></td>'

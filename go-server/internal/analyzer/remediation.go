@@ -121,9 +121,14 @@ func providerSupportsBIMI(provider string) bool {
 }
 
 func (a *Analyzer) GenerateRemediation(results map[string]any) map[string]any {
+        isTLD, _ := results["is_tld"].(bool)
         ps := evaluateProtocolStates(results)
         ds := classifyDKIMState(ps)
         domain := extractDomain(results)
+
+        if isTLD {
+                ps.isNoMailDomain = true
+        }
 
         var fixes []fix
 

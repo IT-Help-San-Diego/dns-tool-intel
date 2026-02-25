@@ -1344,27 +1344,27 @@
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                var cmd = this.dataset.cmd;
+                const cmd = this.dataset.cmd;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(cmd).then(function() {
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                    });
+                    }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
         });
     }
 
     function setupIntegrityHashCopy() {
-        var btn = document.getElementById('copyIntegrityHash');
+        const btn = document.getElementById('copyIntegrityHash');
         if (btn) {
             btn.addEventListener('click', function() {
-                var hash = this.dataset.hash;
+                const hash = this.dataset.hash;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                    });
+                    }).catch(function() { /* clipboard write failed — ignored */ });
                 }
             });
         }
@@ -1380,36 +1380,36 @@
                     try { localStorage.setItem('covertMode', '0'); } catch(ignore) { void ignore; }
                 });
             });
-            var engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
+            const engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
             if (engBtn) {
                 engBtn.addEventListener('click', function() {
                     try { localStorage.setItem('covertMode', '0'); } catch(ignore) { void ignore; }
                 });
             }
 
-            var printBtn = document.getElementById('printReportBtn');
+            const printBtn = document.getElementById('printReportBtn');
             if (printBtn) {
                 printBtn.addEventListener('click', function() { globalThis.print(); });
             }
 
-            var tooltipInstances = [];
-            var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipInstances = [];
+            const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(el) {
-                var t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+                const t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
                 tooltipInstances.push(t);
                 return t;
             });
-            var scrollTimer;
+            let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
                 scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
                 tooltipInstances.forEach(function(t) { t.hide(); });
             }, { passive: true });
 
-            var reanalyzeBtn = document.getElementById('reanalyzeBtn');
+            const reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (reanalyzeBtn) {
-                var waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
-                var countdownInterval = null;
+                const waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
+                let countdownInterval = null;
 
                 function startCountdown(seconds) {
                     reanalyzeBtn.classList.add('disabled');
@@ -1439,8 +1439,8 @@
                     e.preventDefault();
                     if (this.classList.contains('disabled')) return;
 
-                    var domain = this.dataset.domain;
-                    var overlay = document.getElementById('loadingOverlay');
+                    const domain = this.dataset.domain;
+                    const overlay = document.getElementById('loadingOverlay');
 
                     this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Scanning...';
                     this.classList.add('disabled');
@@ -1457,7 +1457,7 @@
                         }
                     }
 
-                    var url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
+                    const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
                     fetch(url, {
                         headers: { 'X-Requested-With': 'fetch' },
                         redirect: 'follow'
@@ -1467,10 +1467,10 @@
                             document.write(html);
                             document.close();
                             globalThis.scrollTo(0, 0);
-                            var modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                            var idEl = document.querySelector('[data-analysis-id]');
-                            var rMode = modeMeta ? modeMeta.content : '';
-                            var rAid = idEl ? idEl.dataset.analysisId : '';
+                            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+                            const idEl = document.querySelector('[data-analysis-id]');
+                            const rMode = modeMeta ? modeMeta.content : '';
+                            const rAid = idEl ? idEl.dataset.analysisId : '';
                             if (rAid && rMode) {
                                 globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
                             } else if (resp.url && resp.url !== globalThis.location.href) {
