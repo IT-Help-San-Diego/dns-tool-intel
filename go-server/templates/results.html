@@ -631,6 +631,42 @@
                         {{end}}
                         {{end}}
 
+                        {{if .CurrencyReport.HasProviderComplianceNotes}}
+                        <div class="mt-3 border-top border-secondary pt-3">
+                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#providerCompliance" type="button" aria-expanded="false" aria-controls="providerCompliance">
+                                <i class="fas fa-building text-info me-2"></i>
+                                <span class="fw-semibold small">{{.CurrencyReport.ProviderName}} RFC Compliance Dossier</span>
+                                <span class="badge bg-info ms-2">{{len .CurrencyReport.ProviderComplianceNotes}} {{if eq (len .CurrencyReport.ProviderComplianceNotes) 1}}Note{{else}}Notes{{end}}</span>
+                                <i class="fas fa-chevron-down ms-auto small"></i>
+                            </button>
+                            <div class="collapse" id="providerCompliance">
+                                <div class="mt-2">
+                                    <p class="small text-muted mb-2"><i class="fas fa-balance-scale me-1"></i>Independent RFC compliance assessment for <strong>{{.CurrencyReport.ProviderName}}</strong>. Each finding cites the specific RFC section and reports what the engineering community consensus is. We report honestly &mdash; if a provider deviates from standards, we explain what they did differently and what the RFCs actually say.</p>
+                                    {{range .CurrencyReport.ProviderComplianceNotes}}
+                                    <div class="card bg-dark border-secondary mb-2">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex align-items-start">
+                                                <i class="fas fa-file-alt text-info me-2 mt-1"></i>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                        <strong class="small">{{.Title}}</strong>
+                                                        <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="badge bg-info bg-opacity-25 text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>{{.RFC}}</a>
+                                                    </div>
+                                                    <p class="small text-muted mb-1">{{.Detail}}</p>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge bg-warning text-dark"><i class="fas fa-gavel me-1"></i>{{.Verdict}}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    <small class="text-muted d-block mt-2"><i class="fas fa-shield-alt me-1"></i>This assessment is based on RFC specifications, provider documentation, and documented incidents from DNS engineering communities. DNS Tool does not have a commercial relationship with any provider listed.</small>
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+
                     </div>
                 </div>
             </div>

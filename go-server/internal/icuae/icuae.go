@@ -158,6 +158,21 @@ func (r CurrencyReport) HasProviderIntel() bool {
         return r.ProviderName != "" || (r.SOACompliance != nil && r.SOACompliance.HasFindings())
 }
 
+func (r CurrencyReport) ProviderComplianceNotes() []ProviderComplianceNote {
+        if r.ProviderName == "" {
+                return nil
+        }
+        p, ok := GetProviderProfile(r.ProviderName)
+        if !ok {
+                return nil
+        }
+        return p.Notes
+}
+
+func (r CurrencyReport) HasProviderComplianceNotes() bool {
+        return len(r.ProviderComplianceNotes()) > 0
+}
+
 func (r CurrencyReport) BootstrapClass() string {
         if c, ok := GradeBootstrapClass[r.OverallGrade]; ok {
                 return c
