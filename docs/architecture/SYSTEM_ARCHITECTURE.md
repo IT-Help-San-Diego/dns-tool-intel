@@ -504,7 +504,90 @@ graph TB
     class Config,Models,Providers,Templates3 default
 ```
 
+## 9. Distributed Probe Mesh — Future Architecture
+
+The Distributed Probe Mesh extends DNS Tool's multi-vantage intelligence from
+dedicated probe nodes to a volunteer network of browser-based DNS probes.
+
+### Design Principles
+
+- **Accuracy first**: Volunteer probes augment but never override trusted anchor nodes (Node 1, Kali Node 2)
+- **Untrusted by default**: All volunteer data treated as untrusted; consensus is mathematically enforced
+- **Privacy-preserving**: Blinded work queues, batched queries, ephemeral session IDs, no PII
+
+### Consensus Model
+
+```mermaid
+graph TB
+    subgraph "Trusted Anchors"
+        N1["probe-us-01<br/>Node 1"]
+        N2["probe-kali-01<br/>Node 2 (Kali)"]
+    end
+
+    subgraph "Volunteer Probe Mesh"
+        V1["Browser Probe<br/>AS1 · Region A"]
+        V2["Browser Probe<br/>AS2 · Region B"]
+        V3["Browser Probe<br/>AS3 · Region A"]
+        VN["Browser Probe<br/>ASn · Region C"]
+    end
+
+    subgraph "Volunteer Probe Gateway"
+        Relay["DoH Relay API<br/>Signed payloads · Rate limits"]
+    end
+
+    subgraph "Consensus Engine"
+        CE["consensus_probe.go<br/>Byzantine threshold: ≥3 ASNs, ≥2 regions<br/>Reputation-weighted scoring"]
+    end
+
+    subgraph "Intelligence Engines"
+        ICAE["ICAE/ICuAE<br/>Supplemental evidence"]
+    end
+
+    V1 & V2 & V3 & VN -->|"HTTPS"| Relay
+    N1 & N2 -->|"Trusted anchor"| CE
+    Relay -->|"Canonicalized results"| CE
+    CE -->|"Consensus or Inconclusive"| ICAE
+
+    classDef default fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#f0f6fc
+    classDef trusted fill:#16a34a,stroke:#4ade80,stroke-width:2px,color:#fff,font-weight:bold
+    classDef volunteer fill:#9333ea,stroke:#c084fc,stroke-width:2px,color:#fff,font-weight:bold
+    classDef engine fill:#0891b2,stroke:#22d3ee,stroke-width:2px,color:#fff,font-weight:bold
+    class N1,N2 trusted
+    class V1,V2,V3,VN volunteer
+    class CE,ICAE engine
+    class Relay default
+```
+
+### Phased Rollout
+
+| Phase | Scope |
+|-------|-------|
+| **MVP** | Standalone DoH relay + web widget. A/AAAA/NS/MX/TXT queries. Per-probe metadata. |
+| **Beta** | Consensus engine, ASN/geo diversity scoring, anomaly flags, volunteer badges. |
+| **Production** | Reputation system, fraud detection, blinded task queues, browser extension, API for self-hosted nodes. |
+
+### Community Model — Good Net Citizens
+
+Volunteers contribute multi-vantage DNS intelligence as OSINT officers,
+strengthening the public pool of infrastructure intelligence. Tiers:
+
+- **Widget** — One-click browser participation (lightweight, privacy notice)
+- **Extension** — Persistent probe node via browser extension
+- **Self-Hosted** — API for power users running signed probe nodes
+
+## 10. Encrypted DNS Transport Detection
+
+DNS Tool will probe whether domains support encrypted DNS transports:
+
+- **DoH** (DNS-over-HTTPS, RFC 8484) — HTTPS endpoint discovery via `.well-known/dns-query` and SVCB/HTTPS records
+- **DoT** (DNS-over-TLS, RFC 7858) — TCP/853 connectivity and certificate validation
+- **DDR** (Discovery of Designated Resolvers, RFC 9462) — SVCB `_dns.resolver.arpa` record detection
+
+These complement the existing protocol analysis (SPF, DKIM, DMARC, DANE, DNSSEC,
+CAA, MTA-STS, TLS-RPT, BIMI) and map to the DNS Engineer archetype's RFC-grounded
+posture assessment.
+
 ---
 
-*Generated for DNS Tool v26.23.47 — February 21, 2026*
+*Generated for DNS Tool v26.25.98 — February 25, 2026*
 *Diagrams render natively on GitHub, GitLab, Codeberg, and VS Code with Mermaid plugins.*

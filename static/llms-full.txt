@@ -362,6 +362,8 @@ A static, zero-JavaScript public overview of the system architecture, classified
 4. **Open-Core Architecture**: BSL 1.1 license model with public web layer and private intelligence module, build-tag gated compilation
 5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
 6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, FIPS 202 (SHA-3)
+7. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
+8. **Encrypted DNS Transport Detection (Future)**: DoH (RFC 8484), DoT (RFC 7858), and DDR (RFC 9462) posture analysis for domain resolver infrastructure
 
 ### Design Decisions
 - Pure HTML/CSS diagrams — no JavaScript dependency, sub-second rendering

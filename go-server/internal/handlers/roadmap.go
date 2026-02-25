@@ -81,10 +81,12 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
         }
 
         nextUp := []RoadmapItem{
+                {Title: "DoH/DoT Detection", Type: roadmapTypeFeature, Priority: "High", Notes: "Test whether domains support DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) — encrypted transport posture analysis"},
+                {Title: "Distributed Probe Mesh (Good Net Citizens)", Type: roadmapTypeFeature, Priority: "High", Notes: "Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues"},
                 {Title: "API Access (Programmatic Analysis)", Type: roadmapTypeFeature, Priority: "High", Notes: "Programmatic analysis for automation workflows with rate limiting, authentication, versioning"},
                 {Title: "CLI App (Homebrew/Binary)", Type: roadmapTypeFeature, Priority: "High", Notes: "Terminal application for macOS/Linux — works without login for basic analysis"},
-                {Title: "Probe Network Second Node (Kali)", Type: roadmapTypeFeature, Priority: "High", Notes: "SMTP/TLS verification, DANE/DNSSEC validation, testssl.sh analysis from Kali OSINT node"},
-                {Title: "Multi-Probe Consensus Engine", Type: roadmapTypeFeature, Priority: "High", Notes: "Cross-probe agreement analysis — TLS config consensus, certificate fingerprint comparison"},
+                {Title: "Probe Network Second Node (Kali)", Type: roadmapTypeFeature, Priority: "High", Notes: "SMTP/TLS verification (STARTTLS), DANE/DNSSEC validation, testssl.sh analysis, SMTPTLS policy checks from Kali OSINT node"},
+                {Title: "Multi-Probe Consensus Engine", Type: roadmapTypeFeature, Priority: "High", Notes: "Cross-probe agreement analysis — require ≥3 independent ASNs and ≥2 regions for consensus, trusted anchor nodes, volunteer probe integration"},
         }
 
         backlog := []RoadmapItem{
