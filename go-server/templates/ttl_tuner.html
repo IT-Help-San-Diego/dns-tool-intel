@@ -31,11 +31,8 @@
                 <p class="hero-subtitle mx-auto mb-3 u-fs-135rem">
                     Tune Your DNS for Speed, Reliability, and Control
                 </p>
-                <p class="text-muted mx-auto mb-2 u-maxw-620">
-                    Most DNS tools tell you what your TTLs are. None tell you what they should be, why, or how to change them for your specific provider. We do.
-                </p>
-                <p class="text-muted mx-auto mb-4 u-maxw-620 small">
-                    We scan your domain&rsquo;s live DNS records, compare every TTL against RFC-grounded best practices, detect your DNS provider&rsquo;s restrictions, and generate exact copy-paste instructions to fix what&rsquo;s off &mdash; whether you&rsquo;re optimizing for stability or preparing for a migration.
+                <p class="text-muted mx-auto mb-4 u-maxw-620">
+                    Most DNS tools show you what your TTLs are. This one tells you what they should be, explains why, detects your provider&rsquo;s restrictions, and gives you exact copy-paste instructions to fix what&rsquo;s off.
                 </p>
             </div>
         </div>
@@ -43,43 +40,52 @@
 
     <div class="container pb-5">
 
-        <div class="card bg-dark border-secondary mb-4">
+        <div class="card bg-dark border-info mb-4">
+            <div class="card-header bg-dark border-info">
+                <h2 class="h5 mb-0"><i class="fas fa-search me-2 text-info" aria-hidden="true"></i>Analyze Your Domain</h2>
+            </div>
             <div class="card-body">
                 <form method="POST" action="/ttl-tuner/analyze">
                     <input type="hidden" name="_csrf" value="{{.CsrfToken}}">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
-                            <label for="ttlDomain" class="form-label"><i class="fas fa-globe me-1 text-info" aria-hidden="true"></i>Domain</label>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" spellcheck="false">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label"><i class="fas fa-cog me-1 text-info" aria-hidden="true"></i>Optimization Profile</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
-                                    <label class="form-check-label" for="profileStability">
-                                        <i class="fas fa-shield-alt me-1 text-success" aria-hidden="true"></i>Stability
-                                    </label>
+
+                    <div class="mb-3">
+                        <label for="ttlDomain" class="form-label fw-semibold"><i class="fas fa-globe me-1 text-info" aria-hidden="true"></i>Domain</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary search-input" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" spellcheck="false">
+                    </div>
+
+                    <label class="form-label fw-semibold mb-2"><i class="fas fa-cog me-1 text-info" aria-hidden="true"></i>Optimization Profile</label>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
+                            <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" role="button" style="cursor:pointer">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
+                                        <h3 class="h6 text-success mb-0">Stability</h3>
+                                        <span class="badge bg-success ms-auto">Recommended</span>
+                                    </div>
+                                    <p class="small text-muted mb-2">Longer TTLs, fewer DNS queries, faster page loads for returning visitors, slower propagation when records change.</p>
+                                    <p class="small mb-0"><strong>Best for:</strong> Production websites, corporate domains, email infrastructure &mdash; anything that doesn&rsquo;t change often. This is the right choice for most sites.</p>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
-                                    <label class="form-check-label" for="profileAgility">
-                                        <i class="fas fa-bolt me-1 text-warning" aria-hidden="true"></i>Agility
-                                    </label>
-                                </div>
-                            </div>
+                            </label>
                         </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-info w-100"><i class="fas fa-search me-1" aria-hidden="true"></i>Analyze TTLs</button>
+                        <div class="col-md-6">
+                            <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
+                            <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" role="button" style="cursor:pointer">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
+                                        <h3 class="h6 text-warning mb-0">Agility</h3>
+                                    </div>
+                                    <p class="small text-muted mb-2">Shorter TTLs, faster propagation when records change, more DNS queries per day, slightly slower repeat visits.</p>
+                                    <p class="small mb-0"><strong>Best for:</strong> Active migrations, failover architectures, load-balanced infrastructure, CI/CD pipelines that update DNS records frequently, or preparing for an IP change.</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <p class="text-muted small mb-0">
-                                <strong>Stability</strong> = longer TTLs, fewer DNS queries, faster page loads, slower propagation on changes.
-                                <strong>Agility</strong> = shorter TTLs, faster propagation, more queries. Most production sites should use Stability.
-                            </p>
-                        </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-analyze btn-lg px-5"><i class="fas fa-sliders-h me-2" aria-hidden="true"></i>Analyze TTLs</button>
                     </div>
                 </form>
             </div>
@@ -101,23 +107,28 @@
             </div>
             <div class="card-body">
 
-                {{if .HasProvider}}
-                <div class="alert alert-info py-2 mb-3" role="status">
-                    <i class="fas fa-server me-2" aria-hidden="true"></i><strong>DNS Provider Detected:</strong> {{.Provider}}
-                    {{if not .Profile.TTLEditable}} &mdash; <span class="text-warning">some TTLs may be provider-locked</span>{{end}}
+                <div class="row g-3 mb-3">
+                    {{if .HasProvider}}
+                    <div class="col-md-6">
+                        <div class="u-bg-info-soft rounded p-2 h-100">
+                            <i class="fas fa-server me-2 text-info" aria-hidden="true"></i><strong>DNS Provider:</strong> {{.Provider}}
+                            {{if not .Profile.TTLEditable}} &mdash; <span class="text-warning"><i class="fas fa-lock me-1" aria-hidden="true"></i>some TTLs provider-locked</span>{{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                    {{if .TotalReduction}}
+                    <div class="{{if .HasProvider}}col-md-6{{else}}col-12{{end}}">
+                        <div class="u-bg-info-soft rounded p-2 h-100">
+                            <i class="fas fa-chart-line me-2 text-success" aria-hidden="true"></i><strong>Projected Impact:</strong> {{.TotalReduction}}
+                        </div>
+                    </div>
+                    {{end}}
                 </div>
-                {{end}}
-
-                {{if .TotalReduction}}
-                <div class="alert alert-success py-2 mb-3" role="status">
-                    <i class="fas fa-chart-line me-2" aria-hidden="true"></i><strong>Projected Impact:</strong> {{.TotalReduction}} if all recommendations are applied
-                </div>
-                {{end}}
 
                 <div class="table-responsive mb-4">
                     <table class="table table-dark table-sm align-middle mb-0">
                         <thead>
-                            <tr>
+                            <tr class="border-info">
                                 <th scope="col">Record</th>
                                 <th scope="col">Current TTL</th>
                                 <th scope="col">Recommended</th>
@@ -129,15 +140,15 @@
                         <tbody>
                             {{range .Records}}
                             <tr>
-                                <td><strong>{{.RecordType}}</strong></td>
+                                <td><strong class="text-info">{{.RecordType}}</strong></td>
                                 <td>
                                     {{if eq .ObservedTTL 0}}
                                     <span class="text-muted">N/A</span>
                                     {{else}}
-                                    {{.ObservedTTL}}s
+                                    <code>{{.ObservedTTL}}s</code>
                                     {{end}}
                                 </td>
-                                <td>{{.TypicalTTL}}s</td>
+                                <td><code class="text-success">{{.TypicalTTL}}s</code></td>
                                 <td>
                                     {{if .Locked}}
                                     <span class="badge bg-secondary"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{.Status}}</span>
@@ -162,74 +173,73 @@
                                         <i class="fas fa-info-circle me-1" aria-hidden="true"></i>Details
                                     </button>
                                     {{else}}
-                                    <span class="text-success small"><i class="fas fa-check me-1" aria-hidden="true"></i>Good</span>
+                                    <span class="text-success small"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>Optimal</span>
                                     {{end}}
                                 </td>
                             </tr>
                             <tr class="collapse" id="fix-{{.RecordType}}">
                                 <td colspan="6" class="border-0 pt-0">
-                                    <div class="card bg-dark border-secondary mt-1 mb-2">
-                                        <div class="card-body py-2 px-3">
-                                            <p class="mb-2 small">{{.Recommendation}}</p>
-                                            {{if .PropagationNote}}
-                                            <p class="mb-2 small text-muted"><i class="fas fa-clock me-1" aria-hidden="true"></i>{{.PropagationNote}}</p>
-                                            {{end}}
-                                            {{if not .Locked}}
-                                            <div class="accordion accordion-flush" id="provider-steps-{{.RecordType}}">
-                                                <div class="accordion-item bg-dark border-secondary">
-                                                    <h3 class="accordion-header">
-                                                        <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-cloudflare-{{.RecordType}}" aria-expanded="false">
-                                                            <i class="fas fa-cloud me-2 text-warning" aria-hidden="true"></i>Cloudflare
-                                                        </button>
-                                                    </h3>
-                                                    <div id="steps-cloudflare-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
-                                                        <div class="accordion-body small py-2">
-                                                            <p class="mb-1">{{.CloudflareUI}}</p>
-                                                            <p class="mb-0 text-muted">If the record is proxied (orange cloud), the TTL is fixed at 300s and cannot be changed.</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="accordion-item bg-dark border-secondary">
-                                                    <h3 class="accordion-header">
-                                                        <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-route53-{{.RecordType}}" aria-expanded="false">
-                                                            <i class="fas fa-aws me-2 text-warning" aria-hidden="true"></i>AWS Route 53 (CLI)
-                                                        </button>
-                                                    </h3>
-                                                    <div id="steps-route53-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
-                                                        <div class="accordion-body small py-2">
-                                                            <pre class="bg-black p-2 rounded mb-1 text-light small"><code>aws route53 change-resource-record-sets --hosted-zone-id &lt;ZONE_ID&gt; --change-batch '{{.Route53JSON}}'</code></pre>
-                                                            <p class="mb-0 text-muted">Replace <code>&lt;ZONE_ID&gt;</code>, <code>&lt;domain&gt;</code>, and <code>&lt;value&gt;</code> with your actual values. Alias records have a fixed 60s TTL.</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="accordion-item bg-dark border-secondary">
-                                                    <h3 class="accordion-header">
-                                                        <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-bind-{{.RecordType}}" aria-expanded="false">
-                                                            <i class="fas fa-file-code me-2 text-warning" aria-hidden="true"></i>BIND Zone File
-                                                        </button>
-                                                    </h3>
-                                                    <div id="steps-bind-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
-                                                        <div class="accordion-body small py-2">
-                                                            <pre class="bg-black p-2 rounded mb-1 text-light small"><code>{{.BINDSnippet}}</code></pre>
-                                                            <p class="mb-0 text-muted">Add or update this line in your zone file, then reload: <code>rndc reload</code></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="accordion-item bg-dark border-secondary">
-                                                    <h3 class="accordion-header">
-                                                        <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-generic-{{.RecordType}}" aria-expanded="false">
-                                                            <i class="fas fa-globe me-2 text-info" aria-hidden="true"></i>Other Providers
-                                                        </button>
-                                                    </h3>
-                                                    <div id="steps-generic-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
-                                                        <div class="accordion-body small py-2">
-                                                            <p class="mb-0">{{.GenericStep}}</p>
-                                                        </div>
+                                    <div class="u-bg-info-soft rounded p-3 mt-1 mb-2">
+                                        <p class="mb-2 small">{{.Recommendation}}</p>
+                                        {{if .PropagationNote}}
+                                        <p class="mb-2 small text-muted"><i class="fas fa-clock me-1" aria-hidden="true"></i>{{.PropagationNote}}</p>
+                                        {{end}}
+                                        {{if not .Locked}}
+                                        <p class="small text-info fw-semibold mb-2"><i class="fas fa-clipboard-list me-1" aria-hidden="true"></i>Copy-Paste Instructions by Provider</p>
+                                        <div class="accordion accordion-flush" id="provider-steps-{{.RecordType}}">
+                                            <div class="accordion-item bg-dark border-secondary">
+                                                <h3 class="accordion-header">
+                                                    <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-cloudflare-{{.RecordType}}" aria-expanded="false">
+                                                        <i class="fas fa-cloud me-2 text-warning" aria-hidden="true"></i>Cloudflare
+                                                    </button>
+                                                </h3>
+                                                <div id="steps-cloudflare-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
+                                                    <div class="accordion-body small py-2">
+                                                        <p class="mb-1">{{.CloudflareUI}}</p>
+                                                        <p class="mb-0 text-muted">If the record is proxied (orange cloud), the TTL is fixed at 300s and cannot be changed.</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            {{end}}
+                                            <div class="accordion-item bg-dark border-secondary">
+                                                <h3 class="accordion-header">
+                                                    <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-route53-{{.RecordType}}" aria-expanded="false">
+                                                        <i class="fas fa-server me-2 text-warning" aria-hidden="true"></i>AWS Route 53 (CLI)
+                                                    </button>
+                                                </h3>
+                                                <div id="steps-route53-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
+                                                    <div class="accordion-body small py-2">
+                                                        <pre class="bg-black p-2 rounded mb-1 text-light small"><code>aws route53 change-resource-record-sets --hosted-zone-id &lt;ZONE_ID&gt; --change-batch '{{.Route53JSON}}'</code></pre>
+                                                        <p class="mb-0 text-muted">Replace <code>&lt;ZONE_ID&gt;</code>, <code>&lt;domain&gt;</code>, and <code>&lt;value&gt;</code> with your actual values. Alias records have a fixed 60s TTL.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-item bg-dark border-secondary">
+                                                <h3 class="accordion-header">
+                                                    <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-bind-{{.RecordType}}" aria-expanded="false">
+                                                        <i class="fas fa-file-code me-2 text-warning" aria-hidden="true"></i>BIND Zone File
+                                                    </button>
+                                                </h3>
+                                                <div id="steps-bind-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
+                                                    <div class="accordion-body small py-2">
+                                                        <pre class="bg-black p-2 rounded mb-1 text-light small"><code>{{.BINDSnippet}}</code></pre>
+                                                        <p class="mb-0 text-muted">Add or update this line in your zone file, then reload: <code>rndc reload</code></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-item bg-dark border-secondary">
+                                                <h3 class="accordion-header">
+                                                    <button class="accordion-button collapsed bg-dark text-light py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#steps-generic-{{.RecordType}}" aria-expanded="false">
+                                                        <i class="fas fa-globe me-2 text-info" aria-hidden="true"></i>Other Providers
+                                                    </button>
+                                                </h3>
+                                                <div id="steps-generic-{{.RecordType}}" class="accordion-collapse collapse" data-bs-parent="#provider-steps-{{.RecordType}}">
+                                                    <div class="accordion-body small py-2">
+                                                        <p class="mb-0">{{.GenericStep}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+                                        {{end}}
                                     </div>
                                 </td>
                             </tr>
@@ -275,54 +285,58 @@
         {{end}}
         {{end}}
 
-        <div class="card bg-dark border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
+        <div class="card bg-dark border-info mb-4">
+            <div class="card-header bg-dark border-info">
                 <h2 class="h5 mb-0"><i class="fas fa-graduation-cap me-2 text-info" aria-hidden="true"></i>Understanding TTLs: What They Do and Why They Matter</h2>
             </div>
             <div class="card-body">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <h3 class="h6 text-info">What is a TTL?</h3>
-                        <p class="small mb-3">
-                            TTL (Time to Live) is a value in seconds attached to every DNS record. It tells DNS resolvers how long to cache the record before asking the authoritative nameserver again.
-                            A TTL of 3600 means &ldquo;cache this answer for 1 hour.&rdquo; After that hour, the resolver discards it and fetches a fresh copy.
-                            Defined in <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a>.
-                        </p>
-                        <h3 class="h6 text-info">How TTLs Affect Page Load Speed</h3>
-                        <p class="small mb-3">
-                            Every time a user visits your website, their browser performs a DNS lookup to find your server&rsquo;s IP address.
-                            If the TTL is too short, this lookup happens more often &mdash; adding 50&ndash;200ms per lookup.
-                            A TTL of 300s (5 min) means 288 lookups per day per resolver. A TTL of 3600s (1 hour) means just 24.
-                            That&rsquo;s <strong>92% fewer DNS queries</strong> and faster page loads for returning visitors.
-                        </p>
+                        <div class="u-bg-info-soft rounded p-3 h-100">
+                            <h3 class="h6 text-info mb-2"><i class="fas fa-question-circle me-1" aria-hidden="true"></i>What is a TTL?</h3>
+                            <p class="small mb-3">
+                                TTL (Time to Live) is a value in seconds attached to every DNS record. It tells DNS resolvers how long to cache the record before asking the authoritative nameserver again.
+                                A TTL of 3600 means &ldquo;cache this answer for 1 hour.&rdquo; After that hour, the resolver discards it and fetches a fresh copy.
+                                Defined in <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a>.
+                            </p>
+                            <h3 class="h6 text-info mb-2"><i class="fas fa-tachometer-alt me-1" aria-hidden="true"></i>How TTLs Affect Page Load Speed</h3>
+                            <p class="small mb-0">
+                                Every time a user visits your website, their browser performs a DNS lookup to find your server&rsquo;s IP address.
+                                If the TTL is too short, this lookup happens more often &mdash; adding 50&ndash;200ms per lookup.
+                                A TTL of 300s (5 min) means 288 lookups per day per resolver. A TTL of 3600s (1 hour) means just 24.
+                                That&rsquo;s <strong>92% fewer DNS queries</strong> and faster page loads for returning visitors.
+                            </p>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h3 class="h6 text-info">The TTL Tradeoff</h3>
-                        <p class="small mb-3">
-                            <strong>Longer TTLs</strong> = fewer queries, faster repeat visits, but slower propagation when you change the record.
-                            <strong>Shorter TTLs</strong> = faster propagation, more queries, slightly slower repeat visits.
-                            The right choice depends on how often you change each record type.
-                        </p>
-                        <h3 class="h6 text-info">Common Mistakes We See in the Field</h3>
-                        <ul class="small mb-0">
-                            <li class="mb-1"><strong>TTL set to 60s on a production A record that hasn&rsquo;t changed in years</strong> &mdash; generating thousands of unnecessary DNS queries per day.</li>
-                            <li class="mb-1"><strong>TTL set to 86400s (1 day) on an A record before a server migration</strong> &mdash; then wondering why the new IP takes 24 hours to propagate.</li>
-                            <li class="mb-1"><strong>Not realizing Cloudflare overrides TTLs on proxied records</strong> &mdash; setting TTL to 3600 but Cloudflare serving 300 regardless.</li>
-                            <li class="mb-1"><strong>Forgetting to raise TTL back after a migration</strong> &mdash; leaving it at 60s permanently, wasting resolver resources.</li>
-                        </ul>
+                        <div class="u-bg-info-soft rounded p-3 h-100">
+                            <h3 class="h6 text-info mb-2"><i class="fas fa-balance-scale me-1" aria-hidden="true"></i>The TTL Tradeoff</h3>
+                            <p class="small mb-3">
+                                <strong>Longer TTLs</strong> = fewer queries, faster repeat visits, but slower propagation when you change the record.
+                                <strong>Shorter TTLs</strong> = faster propagation, more queries, slightly slower repeat visits.
+                                The right choice depends on how often you change each record type.
+                            </p>
+                            <h3 class="h6 text-info mb-2"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>Common Mistakes We See in the Field</h3>
+                            <ul class="small mb-0">
+                                <li class="mb-1"><strong>TTL set to 60s on a production A record that hasn&rsquo;t changed in years</strong> &mdash; generating thousands of unnecessary DNS queries per day.</li>
+                                <li class="mb-1"><strong>TTL set to 86400s (1 day) before a server migration</strong> &mdash; then wondering why the new IP takes 24 hours to propagate.</li>
+                                <li class="mb-1"><strong>Not realizing Cloudflare overrides TTLs on proxied records</strong> &mdash; setting TTL to 3600 but Cloudflare serving 300 regardless.</li>
+                                <li class="mb-1"><strong>Forgetting to raise TTL back after a migration</strong> &mdash; leaving it at 60s permanently, wasting resolver resources.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-dark border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
+        <div class="card bg-dark border-info mb-4">
+            <div class="card-header bg-dark border-info">
                 <h2 class="h5 mb-0"><i class="fas fa-book me-2 text-info" aria-hidden="true"></i>RFC References</h2>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <div class="card bg-dark border-secondary h-100">
+                        <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a></h3>
                                 <p class="small text-muted mb-0">Defines TTL as a 32-bit unsigned integer specifying the maximum time a resource record may be cached.</p>
@@ -330,7 +344,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-dark border-secondary h-100">
+                        <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc2181#section-8" class="text-info" target="_blank" rel="noopener">RFC 2181 &sect;8</a></h3>
                                 <p class="small text-muted mb-0">Clarifies TTL handling: resolvers must count down the TTL and discard records when it reaches zero.</p>
@@ -338,7 +352,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-dark border-secondary h-100">
+                        <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc8767" class="text-info" target="_blank" rel="noopener">RFC 8767</a></h3>
                                 <p class="small text-muted mb-0">Serving Stale Data to Improve DNS Resiliency &mdash; defines behavior when TTLs expire during resolver failures.</p>
@@ -354,5 +368,30 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function(){
+        const cards = document.querySelectorAll('.ttl-profile-card');
+        function updateActive(){
+            cards.forEach(function(c){
+                const input = c.previousElementSibling;
+                if(input && input.checked){
+                    c.classList.add('border-2');
+                    c.style.boxShadow = '0 0 12px rgba(13,202,240,0.15)';
+                } else {
+                    c.classList.remove('border-2');
+                    c.style.boxShadow = 'none';
+                }
+            });
+        }
+        cards.forEach(function(c){
+            c.addEventListener('click', function(){
+                const input = c.previousElementSibling;
+                if(input){ input.checked = true; }
+                updateActive();
+            });
+        });
+        updateActive();
+    })();
+    </script>
 </body>
 </html>
