@@ -262,7 +262,7 @@ func TestDMARCRuaDetection(t *testing.T) {
                 "pct":    100,
                 "rua":    "mailto:dc1e127b@inbox.ondmarc.com",
         }
-        _, _, _, _, _, hasRua := evaluateDMARCState(dmarcWithRua)
+        _, _, _, hasRua, _, _ := evaluateDMARCState(dmarcWithRua)
         if !hasRua {
                 t.Error("DMARC record with rua= should set dmarcHasRua=true")
         }
@@ -273,7 +273,7 @@ func TestDMARCRuaDetection(t *testing.T) {
                 "pct":    100,
                 "rua":    "",
         }
-        _, _, _, _, _, hasRuaEmpty := evaluateDMARCState(dmarcNoRua)
+        _, _, _, hasRuaEmpty, _, _ := evaluateDMARCState(dmarcNoRua)
         if hasRuaEmpty {
                 t.Error("DMARC record with empty rua should set dmarcHasRua=false")
         }
@@ -283,7 +283,7 @@ func TestDMARCRuaDetection(t *testing.T) {
                 "policy": "reject",
                 "pct":    100,
         }
-        _, _, _, _, _, hasRuaNil := evaluateDMARCState(dmarcNilRua)
+        _, _, _, hasRuaNil, _, _ := evaluateDMARCState(dmarcNilRua)
         if hasRuaNil {
                 t.Error("DMARC record with no rua key should set dmarcHasRua=false")
         }

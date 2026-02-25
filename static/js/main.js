@@ -5,7 +5,7 @@
 })();
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function() {}); // NOSONAR
+    navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
 }
 
 globalThis.addEventListener('pageshow', function(e) {

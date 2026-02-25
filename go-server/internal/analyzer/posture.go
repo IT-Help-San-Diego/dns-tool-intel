@@ -115,7 +115,7 @@ func evaluateSPFState(spf map[string]any) (spfOK, spfWarning, spfMissing, spfHar
         return
 }
 
-func evaluateDMARCState(dmarc map[string]any) (dmarcOK, dmarcWarning, dmarcMissing bool, dmarcPolicy string, dmarcPct int, dmarcHasRua bool) {
+func evaluateDMARCState(dmarc map[string]any) (dmarcOK, dmarcWarning, dmarcMissing, dmarcHasRua bool, dmarcPolicy string, dmarcPct int) {
         if isMissingRecord(dmarc) {
                 dmarcMissing = true
                 return
@@ -199,7 +199,7 @@ func evaluateProtocolStates(results map[string]any) protocolState {
         }
 
         ps.spfOK, ps.spfWarning, ps.spfMissing, ps.spfHardFail, ps.spfDangerous, ps.spfNeutral, ps.spfLookupExceeded, ps.spfLookupCount = evaluateSPFState(spf)
-        ps.dmarcOK, ps.dmarcWarning, ps.dmarcMissing, ps.dmarcPolicy, ps.dmarcPct, ps.dmarcHasRua = evaluateDMARCState(dmarc)
+        ps.dmarcOK, ps.dmarcWarning, ps.dmarcMissing, ps.dmarcHasRua, ps.dmarcPolicy, ps.dmarcPct = evaluateDMARCState(dmarc)
         ps.dkimOK, ps.dkimProvider, ps.dkimPartial, ps.dkimWeakKeys, ps.dkimThirdPartyOnly, ps.primaryProvider = evaluateDKIMState(dkim)
 
         ps.caaOK = evaluateSimpleProtocolState(caa, "status")
