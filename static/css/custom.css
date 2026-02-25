@@ -2163,6 +2163,13 @@ body.covert-mode::after {
     mix-blend-mode: multiply;
     pointer-events: none;
 }
+body.covert-tactical {
+    background-color: #0a0808 !important;
+}
+body.covert-tactical::after {
+    background: #cc1010;
+    mix-blend-mode: multiply;
+}
 body.covert-submarine::after {
     background: #880000;
 }

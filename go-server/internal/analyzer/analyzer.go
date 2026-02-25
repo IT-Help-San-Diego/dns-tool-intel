@@ -26,6 +26,7 @@ type Analyzer struct {
         SlowHTTP   *dnsclient.SafeHTTPClient
         RDAPHTTP   *dnsclient.SafeHTTPClient
         IANARDAPMap map[string][]string
+        ianaMu     sync.RWMutex
         Telemetry  *telemetry.Registry
         RDAPCache  *telemetry.TTLCache[map[string]any]
 
@@ -106,6 +107,7 @@ func (a *Analyzer) fetchIANARDAPData() {
                 return
         }
 
+        a.ianaMu.Lock()
         for _, svc := range data.Services {
                 if len(svc) != 2 {
                         continue
@@ -117,7 +119,9 @@ func (a *Analyzer) fetchIANARDAPData() {
                         }
                 }
         }
-        slog.Info("Loaded IANA RDAP map", "tld_count", len(a.IANARDAPMap))
+        count := len(a.IANARDAPMap)
+        a.ianaMu.Unlock()
+        slog.Info("Loaded IANA RDAP map", "tld_count", count)
 }
 
 func (a *Analyzer) BackpressureRejections() int64 {
@@ -139,6 +143,18 @@ func (a *Analyzer) getCTCache(domain string) ([]map[string]any, bool) {
 
 func (a *Analyzer) GetCTCache(domain string) ([]map[string]any, bool) {
         return a.getCTCache(domain)
+}
+
+func (a *Analyzer) GetRDAPEndpoints(tld string) ([]string, bool) {
+        a.ianaMu.RLock()
+        defer a.ianaMu.RUnlock()
+        eps, ok := a.IANARDAPMap[tld]
+        if !ok {
+                return nil, false
+        }
+        out := make([]string, len(eps))
+        copy(out, eps)
+        return out, true
 }
 
 func (a *Analyzer) setCTCache(domain string, data []map[string]any) {

@@ -199,7 +199,7 @@ func (a *Analyzer) computeSMTPResult(ctx context.Context, domain string, isTLD b
         smtpInputs := AnalysisInputs{
                 MTASTSResult: getMapResult(resultsMap, "mta_sts"),
                 TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
-                DANEResult:   resultsMap["dane"].(map[string]any),
+                DANEResult:   getMapResult(resultsMap, "dane"),
         }
         result := a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
         slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))

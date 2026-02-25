@@ -154,7 +154,7 @@ func TestNewSourcesHandler(t *testing.T) {
 }
 
 func TestNewStaticHandlerConstructor(t *testing.T) {
-        h := NewStaticHandler("/tmp/test", "1.0.0")
+        h := NewStaticHandler("/tmp/test", "1.0.0", "https://dnstool.it-help.tech")
         if h == nil {
                 t.Fatal("expected non-nil StaticHandler")
         }

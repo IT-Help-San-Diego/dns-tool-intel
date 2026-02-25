@@ -7,6 +7,7 @@ import (
         "fmt"
         "log/slog"
         "strings"
+        "sync"
         "time"
 
         "dnstool/go-server/internal/dnsclient"
@@ -197,9 +198,24 @@ func (e *ExposureScanner) resolveBaseURL(ctx context.Context, domain string) str
 
 func (e *ExposureScanner) runExposureChecks(ctx context.Context, domain, baseURL string) ([]ExposureFinding, []string) {
         var findings []ExposureFinding
-        var checkedPaths []string
+        checkedPaths := make([]string, len(exposureChecks))
+        for i, check := range exposureChecks {
+                checkedPaths[i] = check.Path
+        }
 
-        for _, check := range exposureChecks {
+        type indexedFinding struct {
+                idx     int
+                finding ExposureFinding
+        }
+
+        var (
+                mu      sync.Mutex
+                results []indexedFinding
+                wg      sync.WaitGroup
+                sem     = make(chan struct{}, 4)
+        )
+
+        for i, check := range exposureChecks {
                 select {
                 case <-ctx.Done():
                         slog.Debug("exposure_scanner: context cancelled", "domain", domain)
@@ -207,12 +223,23 @@ func (e *ExposureScanner) runExposureChecks(ctx context.Context, domain, baseURL
                 default:
                 }
 
-                checkedPaths = append(checkedPaths, check.Path)
-                if finding, ok := e.evalSingleCheck(ctx, baseURL, check); ok {
-                        findings = append(findings, finding)
-                }
+                wg.Add(1)
+                go func(idx int, chk exposureCheck) {
+                        defer wg.Done()
+                        sem <- struct{}{}
+                        defer func() { <-sem }()
 
-                time.Sleep(200 * time.Millisecond)
+                        if finding, ok := e.evalSingleCheck(ctx, baseURL, chk); ok {
+                                mu.Lock()
+                                results = append(results, indexedFinding{idx: idx, finding: finding})
+                                mu.Unlock()
+                        }
+                }(i, check)
+        }
+        wg.Wait()
+
+        for _, r := range results {
+                findings = append(findings, r.finding)
         }
         return findings, checkedPaths
 }

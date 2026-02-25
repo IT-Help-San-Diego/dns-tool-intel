@@ -31,6 +31,7 @@ const (
         requestTimeout  = 45 * time.Second
 
         errInvalidHostRequired = "invalid request: host required"
+        ehloHostname           = "probe.dns-observe.com"
 )
 
 var (
@@ -54,7 +55,11 @@ func main() {
                 port = "8443"
         }
 
-        hostname, _ = os.Hostname()
+        var hostnameErr error
+        hostname, hostnameErr = os.Hostname()
+        if hostnameErr != nil {
+                slog.Warn("failed to get hostname", "error", hostnameErr)
+        }
         startTime = time.Now()
 
         mux := http.NewServeMux()
@@ -104,7 +109,10 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 func rateLimitMiddleware(next http.HandlerFunc) http.HandlerFunc {
         return func(w http.ResponseWriter, r *http.Request) {
-                ip := strings.Split(r.RemoteAddr, ":")[0]
+                ip, _, err := net.SplitHostPort(r.RemoteAddr)
+                if err != nil {
+                        ip = r.RemoteAddr
+                }
                 rateMu.Lock()
                 rateCount[ip]++
                 count := rateCount[ip]
@@ -251,7 +259,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
                 return result
         }
 
-        fmt.Fprintf(conn, "EHLO probe.dns-observe.com\r\n")
+        fmt.Fprintf(conn, "EHLO %s\r\n", ehloHostname)
         ehlo, err := readSMTPResponse(conn, smtpReadTimeout)
         if err != nil {
                 result["error"] = "EHLO response timeout"
@@ -303,14 +311,23 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         }
         defer conn.Close()
 
-        banner, _ := readSMTPResponse(conn, 1*time.Second)
+        banner, bannerErr := readSMTPResponse(conn, 1*time.Second)
+        if bannerErr != nil {
+                slog.Debug("verifySMTPCert: banner read error", "host", host, "error", bannerErr)
+        }
         if !strings.HasPrefix(banner, "220") {
                 return
         }
-        fmt.Fprintf(conn, "EHLO probe.dns-observe.com\r\n")
-        readSMTPResponse(conn, 1*time.Second)
+        fmt.Fprintf(conn, "EHLO %s\r\n", ehloHostname)
+        _, ehloErr := readSMTPResponse(conn, 1*time.Second)
+        if ehloErr != nil {
+                slog.Debug("verifySMTPCert: EHLO read error", "host", host, "error", ehloErr)
+        }
         fmt.Fprintf(conn, "STARTTLS\r\n")
-        resp, _ := readSMTPResponse(conn, 1*time.Second)
+        resp, respErr := readSMTPResponse(conn, 1*time.Second)
+        if respErr != nil {
+                slog.Debug("verifySMTPCert: STARTTLS read error", "host", host, "error", respErr)
+        }
         if !strings.HasPrefix(resp, "220") {
                 return
         }
@@ -542,21 +559,30 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         }
         defer conn.Close()
 
-        banner, _ := readSMTPResponse(conn, smtpReadTimeout)
+        banner, bannerErr := readSMTPResponse(conn, smtpReadTimeout)
+        if bannerErr != nil {
+                slog.Debug("getCertViaSMTP: banner read error", "host", host, "error", bannerErr)
+        }
         if !strings.HasPrefix(banner, "220") {
                 result["error"] = "Bad SMTP banner"
                 return result
         }
 
-        fmt.Fprintf(conn, "EHLO probe.dns-observe.com\r\n")
-        ehlo, _ := readSMTPResponse(conn, smtpReadTimeout)
+        fmt.Fprintf(conn, "EHLO %s\r\n", ehloHostname)
+        ehlo, ehloErr := readSMTPResponse(conn, smtpReadTimeout)
+        if ehloErr != nil {
+                slog.Debug("getCertViaSMTP: EHLO read error", "host", host, "error", ehloErr)
+        }
         if !strings.Contains(strings.ToUpper(ehlo), "STARTTLS") {
                 result["error"] = "STARTTLS not supported"
                 return result
         }
 
         fmt.Fprintf(conn, "STARTTLS\r\n")
-        resp, _ := readSMTPResponse(conn, smtpReadTimeout)
+        resp, respErr := readSMTPResponse(conn, smtpReadTimeout)
+        if respErr != nil {
+                slog.Debug("getCertViaSMTP: STARTTLS read error", "host", host, "error", respErr)
+        }
         if !strings.HasPrefix(resp, "220") {
                 result["error"] = "STARTTLS rejected"
                 return result

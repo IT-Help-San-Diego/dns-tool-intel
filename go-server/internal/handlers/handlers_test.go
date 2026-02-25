@@ -130,7 +130,7 @@ func TestHealthCheckWithAnalyzer(t *testing.T) {
 
 func TestSitemapXML(t *testing.T) {
         router := gin.New()
-        handler := handlers.NewStaticHandler("", "test")
+        handler := handlers.NewStaticHandler("", "test", "https://dnstool.it-help.tech")
         router.GET("/sitemap.xml", handler.SitemapXML)
 
         w := httptest.NewRecorder()
@@ -179,7 +179,7 @@ func TestRobotsTxt(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/robots.txt", handler.RobotsTxt)
 
         w := httptest.NewRecorder()
@@ -207,7 +207,7 @@ func TestLLMsTxt(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/llms.txt", handler.LLMsTxt)
 
         w := httptest.NewRecorder()
@@ -235,7 +235,7 @@ func TestManifestJSON(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/manifest.json", handler.ManifestJSON)
 
         w := httptest.NewRecorder()
@@ -268,7 +268,7 @@ func TestServiceWorker(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "26.14.6")
+        handler := handlers.NewStaticHandler(tempDir, "26.14.6", "https://dnstool.it-help.tech")
         router.GET("/sw.js", handler.ServiceWorker)
 
         w := httptest.NewRecorder()
@@ -309,7 +309,7 @@ func TestSecurityTxt(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/.well-known/security.txt", handler.SecurityTxt)
 
         w := httptest.NewRecorder()
@@ -342,7 +342,7 @@ func TestLLMsFullTxt(t *testing.T) {
         }
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/llms-full.txt", handler.LLMsFullTxt)
 
         w := httptest.NewRecorder()
@@ -361,7 +361,7 @@ func TestServiceWorkerNotFound(t *testing.T) {
         tempDir := t.TempDir()
 
         router := gin.New()
-        handler := handlers.NewStaticHandler(tempDir, "test")
+        handler := handlers.NewStaticHandler(tempDir, "test", "https://dnstool.it-help.tech")
         router.GET("/sw.js", handler.ServiceWorker)
 
         w := httptest.NewRecorder()

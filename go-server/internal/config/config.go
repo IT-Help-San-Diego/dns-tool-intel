@@ -9,7 +9,7 @@ import (
 )
 
 var (
-        Version   = "26.26.20"
+        Version   = "26.26.21"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -26,7 +26,6 @@ type Config struct {
         SessionSecret      string
         Port               string
         AppVersion         string
-        Testing            bool
         SMTPProbeMode      string
         ProbeAPIURL        string
         ProbeAPIKey        string
@@ -51,17 +50,8 @@ var betaPagesMap = map[string]bool{
 }
 
 var sectionTuningMap = map[string]string{
-        // "email": "Accuracy Tuning",
-        // "dane":         "Accuracy Tuning",
-        // "brand": "Accuracy Tuning",
-        // "securitytxt":  "Accuracy Tuning",
-        "ai": "Beta",
-        // "secrets":      "Accuracy Tuning",
-        // "web-exposure": "Accuracy Tuning",
+        "ai":   "Beta",
         "smtp": "Beta",
-        // "infra": "Accuracy Tuning",
-        // "dnssec":       "Accuracy Tuning",
-        // "traffic":      "Accuracy Tuning",
 }
 
 func Load() (*Config, error) {
@@ -155,7 +145,6 @@ func Load() (*Config, error) {
                 SessionSecret:      sessionSecret,
                 Port:               port,
                 AppVersion:         Version,
-                Testing:            false,
                 SMTPProbeMode:      smtpProbeMode,
                 ProbeAPIURL:        probeAPIURL,
                 ProbeAPIKey:        os.Getenv("PROBE_API_KEY"),

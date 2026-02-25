@@ -471,6 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
+                    hideOverlayAndReset(overlay, analyzeBtn);
                     const parsed = new DOMParser().parseFromString(html, 'text/html');
                     document.replaceChild(
                         document.importNode(parsed.documentElement, true),
@@ -528,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 redirect: 'follow'
             }).then(function(resp) {
                 return resp.text().then(function(html) {
+                    hideOverlayAndReset(overlay, null);
                     const parsed = new DOMParser().parseFromString(html, 'text/html');
                     document.replaceChild(
                         document.importNode(parsed.documentElement, true),
@@ -545,6 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }).catch(function() {
+                hideOverlayAndReset(overlay, null);
                 globalThis.location.href = link.href;
             });
         });

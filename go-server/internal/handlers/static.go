@@ -22,10 +22,11 @@ const (
 type StaticHandler struct {
         StaticDir  string
         AppVersion string
+        BaseURL    string
 }
 
-func NewStaticHandler(staticDir, appVersion string) *StaticHandler {
-        return &StaticHandler{StaticDir: staticDir, AppVersion: appVersion}
+func NewStaticHandler(staticDir, appVersion, baseURL string) *StaticHandler {
+        return &StaticHandler{StaticDir: staticDir, AppVersion: appVersion, BaseURL: baseURL}
 }
 
 func (h *StaticHandler) SecurityTxt(c *gin.Context) {
@@ -77,18 +78,18 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 Changefreq string
                 Priority   string
         }{
-                {"https://dnstool.it-help.tech/", "weekly", "1.0"},
-                {"https://dnstool.it-help.tech/investigate", "weekly", "0.7"},
-                {"https://dnstool.it-help.tech/email-header", "weekly", "0.7"},
-                {"https://dnstool.it-help.tech/toolkit", "weekly", "0.7"},
-                {"https://dnstool.it-help.tech/sources", "monthly", "0.6"},
-                {"https://dnstool.it-help.tech/history", "daily", "0.6"},
-                {"https://dnstool.it-help.tech/stats", "daily", "0.5"},
-                {"https://dnstool.it-help.tech/approach", "monthly", "0.6"},
-                {"https://dnstool.it-help.tech/roadmap", "weekly", "0.5"},
-                {"https://dnstool.it-help.tech/architecture", "monthly", "0.5"},
-                {"https://dnstool.it-help.tech/security-policy", "monthly", "0.4"},
-                {"https://dnstool.it-help.tech/changelog", "monthly", "0.3"},
+                {h.BaseURL + "/", "weekly", "1.0"},
+                {h.BaseURL + "/investigate", "weekly", "0.7"},
+                {h.BaseURL + "/email-header", "weekly", "0.7"},
+                {h.BaseURL + "/toolkit", "weekly", "0.7"},
+                {h.BaseURL + "/sources", "monthly", "0.6"},
+                {h.BaseURL + "/history", "daily", "0.6"},
+                {h.BaseURL + "/stats", "daily", "0.5"},
+                {h.BaseURL + "/approach", "monthly", "0.6"},
+                {h.BaseURL + "/roadmap", "weekly", "0.5"},
+                {h.BaseURL + "/architecture", "monthly", "0.5"},
+                {h.BaseURL + "/security-policy", "monthly", "0.4"},
+                {h.BaseURL + "/changelog", "monthly", "0.3"},
         }
 
         xml := `<?xml version="1.0" encoding="UTF-8"?>` + "\n"

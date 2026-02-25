@@ -48,7 +48,8 @@ func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
 func RequireAuth() gin.HandlerFunc {
         return func(c *gin.Context) {
                 auth, exists := c.Get("authenticated")
-                if !exists || auth != true {
+                authed, _ := auth.(bool)
+                if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
                                 "error": "Authentication required",
                         })
@@ -62,7 +63,8 @@ func RequireAuth() gin.HandlerFunc {
 func RequireAdmin() gin.HandlerFunc {
         return func(c *gin.Context) {
                 auth, exists := c.Get("authenticated")
-                if !exists || auth != true {
+                authed, _ := auth.(bool)
+                if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
                                 "error": "Authentication required",
                         })
@@ -83,7 +85,11 @@ func RequireAdmin() gin.HandlerFunc {
 
 func GetAuthTemplateData(c *gin.Context) map[string]any {
         data := map[string]any{}
-        if auth, exists := c.Get("authenticated"); exists && auth == true {
+        if auth, exists := c.Get("authenticated"); exists {
+                authed, _ := auth.(bool)
+                if !authed {
+                        return data
+                }
                 email, _ := c.Get("user_email")
                 name, _ := c.Get("user_name")
                 role, _ := c.Get("user_role")

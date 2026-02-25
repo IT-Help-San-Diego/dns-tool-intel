@@ -320,7 +320,7 @@ func (a *Analyzer) buildRDAPEndpoints(tld string) []string {
                 appendValidEndpoint(&endpoints, seen, ep, tld, "direct")
         }
 
-        if ianaEps, ok := a.IANARDAPMap[tld]; ok {
+        if ianaEps, ok := a.GetRDAPEndpoints(tld); ok {
                 for _, ep := range ianaEps {
                         if ep != "" && !seen[ep] {
                                 appendValidEndpoint(&endpoints, seen, ep, tld, "IANA")

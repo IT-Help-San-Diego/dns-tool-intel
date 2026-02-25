@@ -1,22 +1,10 @@
 (function() {
     'use strict';
 
-    /* ── Covert Mode Transfer ── */
-    if (document.documentElement.classList.contains('covert-mode') &&
-        !document.body.classList.contains('covert-mode')) {
-        document.body.classList.add('covert-mode');
-        try {
-            var env = localStorage.getItem('covertEnv') || 'tactical';
-            document.body.classList.add('covert-' + env);
-        } catch(_e) {
-            document.body.classList.add('covert-tactical');
-        }
-    }
-
     /* ── Collapse ── */
     function toggleCollapse(target) {
         if (!target) return;
-        var isShown = target.classList.contains('show');
+        const isShown = target.classList.contains('show');
         if (isShown) {
             target.style.height = target.scrollHeight + 'px';
             void target.offsetHeight;
@@ -40,8 +28,8 @@
                 target.style.height = '';
             }, 300);
         }
-        var triggers = document.querySelectorAll('[data-bs-target="#' + target.id + '"]');
-        for (var i = 0; i < triggers.length; i++) {
+        const triggers = document.querySelectorAll('[data-bs-target="#' + target.id + '"]');
+        for (let i = 0; i < triggers.length; i++) {
             triggers[i].setAttribute('aria-expanded', String(!isShown));
             if (!isShown) {
                 triggers[i].classList.remove('collapsed');
@@ -52,41 +40,39 @@
     }
 
     document.addEventListener('click', function(e) {
-        var trigger = e.target.closest('[data-bs-toggle="collapse"]');
+        const trigger = e.target.closest('[data-bs-toggle="collapse"]');
         if (!trigger) return;
         e.preventDefault();
-        var selector = trigger.getAttribute('data-bs-target');
+        const selector = trigger.getAttribute('data-bs-target');
         if (!selector) return;
-        var target = document.querySelector(selector);
+        const target = document.querySelector(selector);
         toggleCollapse(target);
     });
 
     /* ── Dropdown ── */
-    var _dropdownInstances = {};
-
     function closeAllDropdowns(except) {
-        var openMenus = document.querySelectorAll('.dropdown-menu.show');
-        for (var i = 0; i < openMenus.length; i++) {
+        const openMenus = document.querySelectorAll('.dropdown-menu.show');
+        for (let i = 0; i < openMenus.length; i++) {
             if (except && openMenus[i] === except) continue;
             openMenus[i].classList.remove('show');
-            var parent = openMenus[i].closest('.dropdown');
+            const parent = openMenus[i].closest('.dropdown');
             if (parent) {
-                var toggle = parent.querySelector('[data-bs-toggle="dropdown"]');
+                const toggle = parent.querySelector('[data-bs-toggle="dropdown"]');
                 if (toggle) toggle.setAttribute('aria-expanded', 'false');
             }
         }
     }
 
     document.addEventListener('click', function(e) {
-        var trigger = e.target.closest('[data-bs-toggle="dropdown"]');
+        const trigger = e.target.closest('[data-bs-toggle="dropdown"]');
         if (trigger) {
             e.preventDefault();
             e.stopPropagation();
-            var parent = trigger.closest('.dropdown');
+            const parent = trigger.closest('.dropdown');
             if (!parent) return;
-            var menu = parent.querySelector('.dropdown-menu');
+            const menu = parent.querySelector('.dropdown-menu');
             if (!menu) return;
-            var isOpen = menu.classList.contains('show');
+            const isOpen = menu.classList.contains('show');
             closeAllDropdowns();
             if (!isOpen) {
                 menu.classList.add('show');
@@ -101,15 +87,14 @@
         if (e.key === 'Escape') closeAllDropdowns();
     });
 
-    var DropdownAPI = {
+    const DropdownAPI = {
         getInstance: function(el) {
             if (!el) return null;
-            var id = el.id || el.getAttribute('data-bs-toggle');
             return {
                 hide: function() {
-                    var parent = el.closest('.dropdown');
+                    const parent = el.closest('.dropdown');
                     if (!parent) return;
-                    var menu = parent.querySelector('.dropdown-menu');
+                    const menu = parent.querySelector('.dropdown-menu');
                     if (menu) menu.classList.remove('show');
                     el.setAttribute('aria-expanded', 'false');
                 }
@@ -118,17 +103,17 @@
     };
 
     /* ── Tooltip ── */
-    var tooltipEl = null;
+    let tooltipEl = null;
 
     function createTooltipEl() {
         if (tooltipEl) return tooltipEl;
         tooltipEl = document.createElement('div');
         tooltipEl.className = 'tooltip-popup';
         tooltipEl.setAttribute('role', 'tooltip');
-        var isCovert = document.body.classList.contains('covert-mode');
-        var fg = isCovert ? '#cc2828' : '#e6edf3';
-        var bg = isCovert ? '#0c0a0a' : '#30363d';
-        var border = isCovert ? '1px solid rgba(180,30,30,0.45)' : 'none';
+        const isCovert = document.body.classList.contains('covert-mode');
+        const fg = isCovert ? '#cc2828' : '#e6edf3';
+        const bg = isCovert ? '#0c0a0a' : '#30363d';
+        const border = isCovert ? '1px solid rgba(180,30,30,0.45)' : 'none';
         tooltipEl.style.cssText = 'position:fixed;z-index:9999;max-width:300px;padding:6px 12px;' +
             'font-size:0.8125rem;line-height:1.4;color:' + fg + ';background:' + bg + ';' +
             'border:' + border + ';border-radius:6px;pointer-events:none;opacity:0;transition:opacity 0.15s;white-space:normal;';
@@ -137,27 +122,27 @@
     }
 
     function showTooltip(trigger) {
-        var title = trigger.getAttribute('title') || trigger.getAttribute('data-bs-original-title');
+        const title = trigger.getAttribute('title') || trigger.getAttribute('data-bs-original-title');
         if (!title) return;
         if (trigger.getAttribute('title')) {
             trigger.setAttribute('data-bs-original-title', title);
             trigger.removeAttribute('title');
         }
-        var tip = createTooltipEl();
-        var isCovert = document.body.classList.contains('covert-mode');
+        const tip = createTooltipEl();
+        const isCovert = document.body.classList.contains('covert-mode');
         tip.style.color = isCovert ? '#cc2828' : '#e6edf3';
         tip.style.background = isCovert ? '#0c0a0a' : '#30363d';
         tip.style.border = isCovert ? '1px solid rgba(180,30,30,0.45)' : 'none';
         if (isCovert) tip.style.textShadow = '0 0 6px rgba(180,20,20,0.25)';
         else tip.style.textShadow = 'none';
-        var useHtml = trigger.getAttribute('data-bs-html') === 'true';
+        const useHtml = trigger.getAttribute('data-bs-html') === 'true';
         if (useHtml) {
-            var parser = new DOMParser();
-            var parsed = parser.parseFromString(title, 'text/html');
-            var allowed = {STRONG: true, BR: true, B: true, EM: true, I: true};
+            const parser = new DOMParser();
+            const parsed = parser.parseFromString(title, 'text/html');
+            const allowed = {STRONG: true, BR: true, B: true, EM: true, I: true};
             (function strip(node) {
-                for (var i = node.childNodes.length - 1; i >= 0; i--) {
-                    var child = node.childNodes[i];
+                for (let i = node.childNodes.length - 1; i >= 0; i--) {
+                    const child = node.childNodes[i];
                     if (child.nodeType === 1) {
                         if (!allowed[child.tagName]) {
                             while (child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
@@ -175,12 +160,12 @@
             tip.textContent = title;
         }
         tip.style.opacity = '1';
-        var rect = trigger.getBoundingClientRect();
-        var tipWidth = tip.offsetWidth;
-        var left = rect.left + rect.width / 2 - tipWidth / 2;
+        const rect = trigger.getBoundingClientRect();
+        const tipWidth = tip.offsetWidth;
+        let left = rect.left + rect.width / 2 - tipWidth / 2;
         if (left < 8) left = 8;
         if (left + tipWidth > window.innerWidth - 8) left = window.innerWidth - tipWidth - 8;
-        var top = rect.top - tip.offsetHeight - 6;
+        let top = rect.top - tip.offsetHeight - 6;
         if (top < 8) top = rect.bottom + 6;
         tip.style.left = left + 'px';
         tip.style.top = top + 'px';
@@ -189,14 +174,17 @@
     function hideTooltip(trigger) {
         if (tooltipEl) tooltipEl.style.opacity = '0';
         if (trigger) {
-            var orig = trigger.getAttribute('data-bs-original-title');
+            const orig = trigger.getAttribute('data-bs-original-title');
             if (orig) trigger.setAttribute('title', orig);
         }
     }
 
     function initTooltips(root) {
-        var triggers = (root || document).querySelectorAll('[data-bs-toggle="tooltip"]');
-        for (var i = 0; i < triggers.length; i++) {
+        const rootEl = root || document;
+        if (rootEl._foundationTooltipsInit) return;
+        rootEl._foundationTooltipsInit = true;
+        const triggers = rootEl.querySelectorAll('[data-bs-toggle="tooltip"]');
+        for (let i = 0; i < triggers.length; i++) {
             (function(el) {
                 el.addEventListener('mouseenter', function() { showTooltip(el); });
                 el.addEventListener('mouseleave', function() { hideTooltip(el); });
@@ -206,7 +194,7 @@
         }
     }
 
-    var TooltipAPI = function(el) {
+    const TooltipAPI = function(el) {
         if (!el) return;
         el.addEventListener('mouseenter', function() { showTooltip(el); });
         el.addEventListener('mouseleave', function() { hideTooltip(el); });
@@ -216,9 +204,9 @@
 
     /* ── Alert dismiss ── */
     document.addEventListener('click', function(e) {
-        var btn = e.target.closest('[data-bs-dismiss="alert"]');
+        const btn = e.target.closest('[data-bs-dismiss="alert"]');
         if (!btn) return;
-        var alert = btn.closest('.alert');
+        const alert = btn.closest('.alert');
         if (alert) {
             alert.style.opacity = '0';
             setTimeout(function() { alert.remove(); }, 150);
@@ -227,27 +215,27 @@
 
     /* ── Tab/Pill toggle ── */
     document.addEventListener('click', function(e) {
-        var trigger = e.target.closest('[data-bs-toggle="tab"], [data-bs-toggle="pill"]');
+        const trigger = e.target.closest('[data-bs-toggle="tab"], [data-bs-toggle="pill"]');
         if (!trigger) return;
         e.preventDefault();
-        var selector = trigger.getAttribute('data-bs-target') || trigger.getAttribute('href');
+        const selector = trigger.getAttribute('data-bs-target') || trigger.getAttribute('href');
         if (!selector) return;
-        var tabContent = document.querySelector(selector);
+        const tabContent = document.querySelector(selector);
         if (!tabContent) return;
-        var parent = trigger.closest('.nav');
+        const parent = trigger.closest('.nav');
         if (parent) {
-            var siblings = parent.querySelectorAll('.nav-link');
-            for (var i = 0; i < siblings.length; i++) {
+            const siblings = parent.querySelectorAll('.nav-link');
+            for (let i = 0; i < siblings.length; i++) {
                 siblings[i].classList.remove('active');
                 siblings[i].setAttribute('aria-selected', 'false');
             }
         }
         trigger.classList.add('active');
         trigger.setAttribute('aria-selected', 'true');
-        var container = tabContent.parentNode;
+        const container = tabContent.parentNode;
         if (container) {
-            var panes = container.querySelectorAll('.tab-pane');
-            for (var j = 0; j < panes.length; j++) {
+            const panes = container.querySelectorAll('.tab-pane');
+            for (let j = 0; j < panes.length; j++) {
                 panes[j].classList.remove('show', 'active');
             }
         }
@@ -262,7 +250,7 @@
     }
 
     /* ── Alert API ── */
-    var AlertAPI = {
+    const AlertAPI = {
         getOrCreateInstance: function(el) {
             return {
                 close: function() {

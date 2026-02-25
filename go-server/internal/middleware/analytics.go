@@ -19,7 +19,8 @@ import (
 )
 
 type AnalyticsCollector struct {
-        pool *pgxpool.Pool
+        pool     *pgxpool.Pool
+        baseHost string
 
         mu              sync.Mutex
         dailySalt       string
@@ -32,9 +33,14 @@ type AnalyticsCollector struct {
         analysesRun     int
 }
 
-func NewAnalyticsCollector(pool *pgxpool.Pool) *AnalyticsCollector {
+func NewAnalyticsCollector(pool *pgxpool.Pool, baseURL string) *AnalyticsCollector {
+        host := ""
+        if u, err := url.Parse(baseURL); err == nil {
+                host = u.Hostname()
+        }
         ac := &AnalyticsCollector{
                 pool:            pool,
+                baseHost:        host,
                 visitors:        make(map[string]bool),
                 pageCounts:      make(map[string]int),
                 refCounts:       make(map[string]int),
@@ -95,7 +101,7 @@ func (ac *AnalyticsCollector) Middleware() gin.HandlerFunc {
 
                 ip := c.ClientIP()
                 ua := c.Request.UserAgent()
-                referer := extractRefOrigin(c.Request.Referer())
+                referer := extractRefOrigin(c.Request.Referer(), ac.baseHost)
                 pagePath := normalizePath(path)
 
                 ac.mu.Lock()
@@ -118,7 +124,7 @@ func (ac *AnalyticsCollector) RecordAnalysis(domain string) {
         ac.analysisDomains[strings.ToLower(domain)] = true
 }
 
-func extractRefOrigin(ref string) string {
+func extractRefOrigin(ref, baseHost string) string {
         if ref == "" {
                 return "direct"
         }
@@ -130,7 +136,7 @@ func extractRefOrigin(ref string) string {
         if host == "" {
                 return "direct"
         }
-        if strings.Contains(host, "dnstool") || strings.Contains(host, "it-help.tech") {
+        if baseHost != "" && (host == baseHost || strings.HasSuffix(host, "."+baseHost)) {
                 return ""
         }
         return host

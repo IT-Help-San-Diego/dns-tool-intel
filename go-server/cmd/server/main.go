@@ -66,7 +66,7 @@ func main() {
 
         router.Use(middleware.SessionLoader(database.Pool))
 
-        analyticsCollector := middleware.NewAnalyticsCollector(database.Pool)
+        analyticsCollector := middleware.NewAnalyticsCollector(database.Pool, cfg.BaseURL)
         router.Use(analyticsCollector.Middleware())
 
         rateLimiter := middleware.NewInMemoryRateLimiter()
@@ -131,7 +131,7 @@ func main() {
         compareHandler := handlers.NewCompareHandler(database, cfg)
         exportHandler := handlers.NewExportHandler(database)
         snapshotHandler := handlers.NewSnapshotHandler(database, cfg)
-        staticHandler := handlers.NewStaticHandler(staticDir, cfg.AppVersion)
+        staticHandler := handlers.NewStaticHandler(staticDir, cfg.AppVersion, cfg.BaseURL)
         proxyHandler := handlers.NewProxyHandler()
 
         router.GET("/", homeHandler.Index)

@@ -12,6 +12,7 @@ import (
         "sort"
         "strconv"
         "strings"
+        "sync"
         "time"
 
         "dnstool/go-server/internal/analyzer"
@@ -511,7 +512,8 @@ type persistParams struct {
 }
 
 func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistParams) (int32, string) {
-        if p.ephemeral || !p.domainExists {
+        isSuccess, _ := extractAnalysisError(p.results)
+        if p.ephemeral || p.devNull || (!p.domainExists && isSuccess) {
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
                 return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
         }
@@ -1240,13 +1242,27 @@ func extractScanFields(sc scanner.Classification) (*string, *string) {
         return scanSource, scanIP
 }
 
+var countryCache sync.Map
+
+type countryEntry struct {
+        code, name string
+        fetched    time.Time
+}
+
 func lookupCountry(ip string) (string, string) {
         if ip == "" || ip == "127.0.0.1" || ip == "::1" {
                 return "", ""
         }
 
+        if cached, ok := countryCache.Load(ip); ok {
+                entry := cached.(countryEntry)
+                if time.Since(entry.fetched) < 24*time.Hour {
+                        return entry.code, entry.name
+                }
+        }
+
         client := &http.Client{Timeout: 2 * time.Second}
-        resp, err := client.Get(fmt.Sprintf("http://ip-api.com/json/%s?fields=status,countryCode,country", ip))
+        resp, err := client.Get(fmt.Sprintf("https://ip-api.com/json/%s?fields=status,countryCode,country", ip))
         if err != nil {
                 return "", ""
         }
@@ -1264,6 +1280,8 @@ func lookupCountry(ip string) (string, string) {
         if err := json.NewDecoder(resp.Body).Decode(&result); err != nil || result.Status != "success" {
                 return "", ""
         }
+
+        countryCache.Store(ip, countryEntry{code: result.CountryCode, name: result.Country, fetched: time.Now()})
         return result.CountryCode, result.Country
 }
 

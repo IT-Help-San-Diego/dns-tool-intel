@@ -11,6 +11,7 @@ import (
 )
 
 func TestExtractRefOrigin(t *testing.T) {
+        baseHost := "dnstool.it-help.tech"
         tests := []struct {
                 name string
                 ref  string
@@ -20,7 +21,7 @@ func TestExtractRefOrigin(t *testing.T) {
                 {"invalid URL returns direct", "://bad", "direct"},
                 {"no host returns direct", "/just/a/path", "direct"},
                 {"internal dnstool domain returns empty", "https://dnstool.it-help.tech/report", ""},
-                {"internal it-help.tech domain returns empty", "https://app.it-help.tech/page", ""},
+                {"subdomain of base returns empty", "https://app.dnstool.it-help.tech/page", ""},
                 {"external google returns host", "https://www.google.com/search?q=dns", "www.google.com"},
                 {"external twitter returns host", "https://twitter.com/share", "twitter.com"},
                 {"external with port returns host only", "https://example.com:8080/page", "example.com"},
@@ -30,8 +31,7 @@ func TestExtractRefOrigin(t *testing.T) {
                 {"external with fragment", "https://stackoverflow.com/questions#answer", "stackoverflow.com"},
                 {"external with query params", "https://bing.com/search?q=test&lang=en", "bing.com"},
                 {"ftp scheme external", "ftp://files.example.com/data", "files.example.com"},
-                {"internal dnstool without it-help", "https://dnstool.example.com/x", ""},
-                {"plain it-help.tech root", "https://it-help.tech/", ""},
+                {"unrelated domain not filtered", "https://dnstool.example.com/x", "dnstool.example.com"},
                 {"relative path no scheme", "about", "direct"},
                 {"mailto scheme no host", "mailto:user@example.com", "direct"},
                 {"external with userinfo", "https://user:pass@secure.example.org/path", "secure.example.org"},
@@ -39,9 +39,9 @@ func TestExtractRefOrigin(t *testing.T) {
 
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := extractRefOrigin(tt.ref)
+                        got := extractRefOrigin(tt.ref, baseHost)
                         if got != tt.want {
-                                t.Errorf("extractRefOrigin(%q) = %q, want %q", tt.ref, got, tt.want)
+                                t.Errorf("extractRefOrigin(%q, %q) = %q, want %q", tt.ref, baseHost, got, tt.want)
                         }
                 })
         }

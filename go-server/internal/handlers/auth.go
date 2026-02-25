@@ -449,9 +449,23 @@ func (h *AuthHandler) fetchUserInfo(accessToken string) (map[string]any, error) 
         return result, nil
 }
 
-var missionCriticalDomains = []string{
-        "it-help.tech",
-        "dnstool.it-help.tech",
+func missionCriticalDomainsFromBaseURL(baseURL string) []string {
+        host := baseURL
+        if idx := strings.Index(host, "://"); idx >= 0 {
+                host = host[idx+3:]
+        }
+        host = strings.TrimRight(host, "/")
+        host = strings.SplitN(host, ":", 2)[0]
+
+        domains := []string{host}
+        parts := strings.SplitN(host, ".", 2)
+        if len(parts) == 2 {
+                root := parts[1]
+                if strings.Contains(root, ".") && root != host {
+                        domains = append([]string{root}, domains...)
+                }
+        }
+        return domains
 }
 
 func (h *AuthHandler) seedAdminWatchlist(ctx context.Context, userID int32) {
@@ -464,7 +478,7 @@ func (h *AuthHandler) seedAdminWatchlist(ctx context.Context, userID int32) {
         for _, e := range existing {
                 domainSet[e.Domain] = true
         }
-        for _, domain := range missionCriticalDomains {
+        for _, domain := range missionCriticalDomainsFromBaseURL(h.Config.BaseURL) {
                 if domainSet[domain] {
                         continue
                 }

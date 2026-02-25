@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DNS Tool">
 <meta name="format-detection" content="telephone=no">
+{{if .CsrfToken}}<meta name="csrf-token" content="{{.CsrfToken}}">{{end}}
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v={{.AppVersion}}">
 <link rel="icon" type="image/png" sizes="48x48" href="/static/icons/favicon-48x48.png?v={{.AppVersion}}">
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png?v={{.AppVersion}}">
