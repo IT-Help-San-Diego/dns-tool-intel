@@ -9,6 +9,7 @@ import (
         "log/slog"
         "net/http"
         "os"
+        "os/exec"
         "os/signal"
         "path/filepath"
         "strings"
@@ -309,6 +310,10 @@ func main() {
                 MaxHeaderBytes:    1 << 20,
         }
 
+        syncCtx, syncCancel := context.WithCancel(context.Background())
+        defer syncCancel()
+        startScheduledSync(syncCtx)
+
         quit := make(chan os.Signal, 1)
         signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -322,6 +327,7 @@ func main() {
         <-quit
         slog.Info("Shutdown signal received, draining connections…")
 
+        syncCancel()
         analyticsCollector.Flush()
         slog.Info("Analytics flushed on shutdown")
 
@@ -373,4 +379,53 @@ func findStaticDir() string {
         }
         slog.Warn("Static directory not found, using default")
         return "static"
+}
+
+func startScheduledSync(ctx context.Context) {
+        loc, err := time.LoadLocation("America/New_York")
+        if err != nil {
+                slog.Warn("Could not load ET timezone, using UTC-5 offset")
+                loc = time.FixedZone("ET", -5*60*60)
+        }
+
+        go func() {
+                for {
+                        now := time.Now().In(loc)
+                        next := time.Date(now.Year(), now.Month(), now.Day(), 4, 0, 0, 0, loc)
+                        if now.After(next) {
+                                next = next.Add(24 * time.Hour)
+                        }
+                        wait := time.Until(next)
+                        slog.Info("Notion sync scheduled", "next_run", next.Format("2006-01-02 15:04 MST"), "wait", wait.Round(time.Minute))
+
+                        select {
+                        case <-time.After(wait):
+                                runNotionSync()
+                        case <-ctx.Done():
+                                slog.Info("Scheduled sync shutting down")
+                                return
+                        }
+                }
+        }()
+}
+
+func runNotionSync() {
+        slog.Info("Starting scheduled Notion roadmap sync")
+
+        scriptPath := "scripts/notion-roadmap-sync.mjs"
+        if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+                slog.Warn("Notion sync script not found", "path", scriptPath)
+                return
+        }
+
+        ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+        defer cancel()
+
+        cmd := exec.CommandContext(ctx, "node", scriptPath)
+        output, err := cmd.CombinedOutput()
+        if err != nil {
+                slog.Error("Notion sync failed", "error", err, "output", string(output))
+                return
+        }
+        slog.Info("Notion sync completed", "output", string(output))
 }

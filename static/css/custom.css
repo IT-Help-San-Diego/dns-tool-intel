@@ -2938,10 +2938,13 @@ body.covert-mode .card.bg-dark {
     border-color: rgba(140, 40, 40, 0.2) !important;
 }
 body.covert-mode .card.bg-dark .fw-semibold {
-    color: rgba(170, 178, 188, 0.5) !important;
+    color: rgba(140, 40, 40, 0.55) !important;
+}
+body.covert-mode .card.bg-dark .text-muted {
+    color: rgba(140, 40, 40, 0.35) !important;
 }
 body.covert-mode .card.bg-dark .fa-2x.text-info {
-    color: rgba(196, 60, 60, 0.5) !important;
+    color: rgba(196, 60, 60, 0.4) !important;
 }
 body.covert-mode strong.text-light {
     color: rgba(196, 60, 60, 0.55) !important;
