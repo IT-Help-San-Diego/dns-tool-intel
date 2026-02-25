@@ -336,7 +336,7 @@
                     </div>
 
                     <div class="approach-section" id="symbiotic-security">
-                        <h2><i class="fas fa-users-cog"></i>Five Perspectives, One Algorithm</h2>
+                        <h2><i class="fas fa-sitemap"></i>Five Perspectives, One Algorithm</h2>
                         <p>A single viewpoint misses things. An intelligence officer quantifies confidence but won't catch a misconfigured TTL. A DNS engineer reads RFC chapter and verse but won't frame findings for a board meeting. A hacker spots the attack surface but won't write the remediation steps. An executive needs a clear verdict but shouldn't have to parse RRSIG expiration dates. A field technician needs to know what to paste into Cloudflare, not why ICD 203 matters.</p>
                         <p>DNS Tool encodes all five as a precision algorithm. Each perspective watches for the blind spots the others miss. We call this <strong>Symbiotic Security</strong> &mdash; not a philosophy, but an architecture with a human face.</p>
 
@@ -352,7 +352,7 @@
 
                             <div class="archetype-card">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon" style="background:rgba(63,185,80,0.12);color:#3fb950;border:1px solid rgba(63,185,80,0.2);"><i class="fas fa-hard-hat"></i></span>
+                                    <span class="archetype-icon" style="background:rgba(63,185,80,0.12);color:#3fb950;border:1px solid rgba(63,185,80,0.2);"><i class="fas fa-gavel"></i></span>
                                     <span class="archetype-title">The DNS Engineer</span>
                                 </div>
                                 <p>Reads the RFCs so you don't have to guess. Every finding maps to a specific RFC paragraph &mdash; not a vendor interpretation, not a best-practice blog post. SPF follows RFC 7208. DMARC follows RFC 7489. DNSSEC follows RFC 4033&ndash;4035. Delegation consistency, nameserver fleet health, SOA compliance &mdash; all grounded in the standards that define how DNS actually works.</p>
@@ -364,8 +364,8 @@
                                     <span class="archetype-icon" style="background:rgba(196,60,60,0.12);color:#c43c3c;border:1px solid rgba(196,60,60,0.2);"><i class="fas fa-biohazard"></i></span>
                                     <span class="archetype-title">The Hacker</span>
                                 </div>
-                                <p>Sees what the attacker sees. Covert Recon Mode reframes the same data through an adversarial lens &mdash; scotopic-optimized red interface built on peer-reviewed vision science. Zone transfer exposure, open recursion, lame delegation, NSEC zone walking, SPF ranges that authorize entire netblocks. The configuration data doesn't change. The questions do.</p>
-                                <span class="archetype-tag" style="background:rgba(196,60,60,0.1);color:rgba(196,100,100,0.8);border:1px solid rgba(196,60,60,0.18);">Covert Recon &middot; Attack Surface &middot; Scotopic UI</span>
+                                <p>Sees what the attacker sees. Covert Recon Mode reframes the same data through an adversarial lens &mdash; scotopic-optimized red interface built on peer-reviewed vision science. Zone transfer exposure, open recursion, lame delegation, NSEC zone walking, SPF ranges that authorize entire netblocks. Multi-layer subdomain discovery from certificate transparency and DNS intelligence surfaces exposed assets &mdash; with full download. The configuration data doesn't change. The questions do.</p>
+                                <span class="archetype-tag" style="background:rgba(196,60,60,0.1);color:rgba(196,100,100,0.8);border:1px solid rgba(196,60,60,0.18);">Covert Recon &middot; Attack Surface &middot; Subdomain Discovery</span>
                             </div>
 
                             <div class="archetype-card">
@@ -380,7 +380,7 @@
                             <div class="archetype-card archetype-card-full">
                                 <div class="archetype-header">
                                     <span class="archetype-icon" style="background:rgba(125,142,168,0.12);color:#7d8ea8;border:1px solid rgba(125,142,168,0.2);"><i class="fas fa-wrench"></i></span>
-                                    <span class="archetype-title">The IT Guy</span>
+                                    <span class="archetype-title">The IT Pro</span>
                                     <span class="archetype-subtitle">the one who actually has to fix it</span>
                                 </div>
                                 <p>Gets actionable remediation, not a lecture. TTL Tuner recommends specific values for your context. Big Picture Questions reframe configuration details as strategic decisions. Provider-aware notes explain when a finding is a Cloudflare constraint vs. a genuine misconfiguration. DMARC guidance tells you whether the fix is yours or your provider's. Every finding connects to what you actually do next.</p>
@@ -520,8 +520,8 @@
                             <div class="approach-gate">
                                 <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
                                 <div>
-                                    <div class="approach-gate-label">SonarCloud: A Rating</div>
-                                    <div class="approach-gate-detail">Static code analysis for reliability, security, and maintainability of our own codebase</div>
+                                    <div class="approach-gate-label">SonarCloud: <a href="https://sonarcloud.io/summary/overall?id=careyjames_DnsToolWeb" target="_blank" rel="noopener noreferrer"><img src="https://sonarcloud.io/api/project_badges/measure?project=careyjames_DnsToolWeb&metric=alert_status" alt="SonarCloud Quality Gate Status" height="20" style="vertical-align:middle;margin-left:0.35rem;"></a></div>
+                                    <div class="approach-gate-detail">Static code analysis for reliability, security, and maintainability of our own codebase &mdash; <a href="https://sonarcloud.io/summary/overall?id=careyjames_DnsToolWeb" target="_blank" rel="noopener noreferrer">verify it yourself</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
@@ -569,6 +569,7 @@
                         <h2><i class="fas fa-brain"></i>Big Picture Questions</h2>
                         <p>DNS security isn't one personality type's problem. The cybersecurity world includes hackers and pentesters, red teamers and blue teamers, compliance officers and field engineers, self-taught builders and formally trained analysts. They think differently, prioritize differently, and need different entry points into the same data.</p>
                         <p>That's why DNS Tool includes a dedicated Covert Recon Mode &mdash; a scientifically designed adversarial interface built on scotopic vision research. But the red interface isn't the point. The point is perspective. Covert Recon Mode gives you the adversarial viewpoint &mdash; the same configuration data, reframed through the lens of an attacker looking for weaknesses rather than an administrator confirming compliance. That cognitive shift is what separates security awareness from security theater. The interface is intentionally segregated so that executives reviewing an Engineer's Report never encounter a hacker aesthetic they didn't choose &mdash; but for the operators who need it, the adversarial lens is always available.</p>
+                        <p>It also gives you the loot. Subdomain discovery from certificate transparency, passive DNS intelligence, and recursive enumeration surfaces assets that the domain owner may not realize are exposed &mdash; downloadable as a complete inventory. When sysadmins call asking how to hide their subdomains, it means the recon is working.</p>
                         <p>And yes, there are Easter eggs hidden throughout the platform, because intrinsic motivation &mdash; the only human trait that research consistently maps to sustained excellence &mdash; is what turns a scan into a learning experience.</p>
                         <p>Our Big Picture Questions are designed to meet every one of these operators. They're the questions that make you think &mdash; that reframe a configuration detail as a strategic decision, or surface a compliance gap that a scan result alone would bury.</p>
                         <div class="approach-quote">
@@ -579,12 +580,12 @@
 
                     <div class="approach-founder">
                         <h3><i class="fas fa-user-shield me-2 text-info"></i>A Note from the Builder</h3>
-                        <p>I don't have a computer science degree. I'm self-taught. Thirty-five years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
+                        <p>I don't have a computer science degree. I'm self-taught. Twenty-seven years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
                         <p>The people who built this didn't learn it casually. They were in a lab &mdash; studying RFCs at midnight, reverse-engineering protocol behavior, testing edge cases that no customer would ever report. They chose that work over easier paths because the problem was interesting enough to deserve the effort. That's what intrinsic motivation looks like when it meets infrastructure.</p>
                         <p>Over those years, I've mentored a lot of young IT professionals just starting out &mdash; helping them understand how to do things correctly from the foundation up. DNS Tool carries that same philosophy. It's built to teach the <em>why</em>, not just report the <em>what</em>. If you want to understand how the connected internet actually works &mdash; how domains are authenticated, how email is secured, how trust is established &mdash; DNS is where you start. We're here to help.</p>
                         <p>Here's something I've learned: whenever someone reaches out about a security product or partnership, the first thing I do is scan their domain. If they haven't secured their own email authentication, their own DNSSEC, their own TLS &mdash; I have a hard time believing they have the philosophy or discipline to protect mine. DNS doesn't lie. It's the most honest audit you can run on anyone.</p>
-                        <p>This project exists because security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because after 35 years of watching tools optimize for comfortable output instead of honest, neutral truth, I decided to build one that reports the findings as they are &mdash; not as you'd prefer them to be. We still care deeply about craft and design, because intrinsic motivation matters and learning should be engaging. But the visuals never soften the data.</p>
-                        <p>Yes, this platform uses AI-assisted development. Most serious software does now. But AI tools optimize for <em>done</em> unless you redirect them toward <em>correct</em>. Left to defaults, they produce generic layouts, placeholder copy, and features described in documentation but never implemented. The difference is the specification. Every RFC citation, every quality gate, every confidence taxonomy, every scientific color validation &mdash; those existed as requirements before a single line was generated. The AI was the tool. The 35 years of field engineering &mdash; knowing what plump, firm, large, fresh blueberries look like in this domain &mdash; that was the specification. You can't tell your assistant "go get me some blueberries" and expect excellence. You have to define what excellence looks like. We did.</p>
+                        <p>This project exists because security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because after 27 years of watching tools optimize for comfortable output instead of honest, neutral truth, I decided to build one that reports the findings as they are &mdash; not as you'd prefer them to be. We still care deeply about craft and design, because intrinsic motivation matters and learning should be engaging. But the visuals never soften the data.</p>
+                        <p>Yes, this platform uses AI-assisted development. Most serious software does now. But AI tools optimize for <em>done</em> unless you redirect them toward <em>correct</em>. Left to defaults, they produce generic layouts, placeholder copy, and features described in documentation but never implemented. The difference is the specification. Every RFC citation, every quality gate, every confidence taxonomy, every scientific color validation &mdash; those existed as requirements before a single line was generated. The AI was the tool. The 27 years of field engineering &mdash; knowing what plump, firm, large, fresh blueberries look like in this domain &mdash; that was the specification. You can't tell your assistant "go get me some blueberries" and expect excellence. You have to define what excellence looks like. We did.</p>
                         <p>We're not perfect &mdash; we're human too. But we promise we're here to learn, to improve, and to help. If you find something we got wrong, tell us. That's how this gets better.</p>
                     </div>
 
