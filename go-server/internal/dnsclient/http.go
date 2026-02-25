@@ -17,6 +17,7 @@ const headerUserAgent = "User-Agent"
 type SafeHTTPClient struct {
         client    *http.Client
         userAgent string
+        SkipSSRF  bool
 }
 
 func NewSafeHTTPClient() *SafeHTTPClient {
@@ -120,7 +121,7 @@ func (s *SafeHTTPClient) GetDirect(ctx context.Context, rawURL string) (*http.Re
 }
 
 func (s *SafeHTTPClient) Get(ctx context.Context, rawURL string) (*http.Response, error) {
-        if !ValidateURLTarget(rawURL) {
+        if !s.SkipSSRF && !ValidateURLTarget(rawURL) {
                 return nil, fmt.Errorf("SSRF protection: URL target resolves to private/reserved IP")
         }
 
@@ -134,7 +135,7 @@ func (s *SafeHTTPClient) Get(ctx context.Context, rawURL string) (*http.Response
 }
 
 func (s *SafeHTTPClient) GetWithHeaders(ctx context.Context, rawURL string, headers map[string]string) (*http.Response, error) {
-        if !ValidateURLTarget(rawURL) {
+        if !s.SkipSSRF && !ValidateURLTarget(rawURL) {
                 return nil, fmt.Errorf("SSRF protection: URL target resolves to private/reserved IP range")
         }
 

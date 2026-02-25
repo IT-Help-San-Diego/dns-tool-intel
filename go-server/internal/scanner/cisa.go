@@ -13,7 +13,7 @@ import (
         "time"
 )
 
-const cisaURL = "https://rules.ncats.cyber.dhs.gov/all.txt"
+var cisaURL = "https://rules.ncats.cyber.dhs.gov/all.txt"
 
 var (
         cisaIPNets []*net.IPNet

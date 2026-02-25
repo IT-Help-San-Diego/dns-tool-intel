@@ -2,10 +2,12 @@ package main
 
 import (
         "encoding/json"
+        "net"
         "net/http"
         "net/http/httptest"
         "strings"
         "testing"
+        "time"
 )
 
 func TestIsValidHostname(t *testing.T) {
@@ -548,5 +550,508 @@ func TestHandleDANEVerify_InvalidHostname(t *testing.T) {
 func TestMaxSMTPResponseSize(t *testing.T) {
         if maxSMTPResponseSize != 64*1024 {
                 t.Errorf("expected maxSMTPResponseSize to be 64KB, got %d", maxSMTPResponseSize)
+        }
+}
+
+func TestSmtpComplete_EdgeCases(t *testing.T) {
+        tests := []struct {
+                name   string
+                input  string
+                expect bool
+        }{
+                {"short line under 4 chars", "OK\r\n", false},
+                {"exactly 4 chars with space", "250 Done\r\n", true},
+                {"exactly 4 chars with dash (continuation)", "250-\r\n", false},
+                {"empty string", "", false},
+                {"single newline", "\n", false},
+                {"multi-line with final empty line falls back", "250-PIPELINING\r\n250 OK\r\n\n", false},
+                {"response code 354", "354 Start mail input\r\n", true},
+                {"response code 421", "421 Service not available\r\n", true},
+                {"multi-line EHLO complete", "250-example.com Hello\r\n250-SIZE 10485760\r\n250-PIPELINING\r\n250-STARTTLS\r\n250 HELP\r\n", true},
+                {"only continuation lines", "250-SIZE\r\n250-PIPELINING\r\n", false},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := smtpComplete(tt.input)
+                        if got != tt.expect {
+                                t.Errorf("smtpComplete(%q) = %v, want %v", tt.input, got, tt.expect)
+                        }
+                })
+        }
+}
+
+func TestClassifyError_LongMessage(t *testing.T) {
+        longErr := strings.Repeat("x", 200)
+        got := classifyError(errString(longErr))
+        if len(got) > 80 {
+                t.Errorf("classifyError should truncate unknown errors to 80 chars, got %d", len(got))
+        }
+        if got != strings.Repeat("x", 80) {
+                t.Errorf("expected truncated string, got %q", got)
+        }
+}
+
+func TestCipherBits_128(t *testing.T) {
+        got := cipherBits(0x002f)
+        if got != 128 {
+                t.Errorf("cipherBits for TLS_RSA_WITH_AES_128_CBC_SHA = %d, want 128", got)
+        }
+}
+
+func TestCipherBits_Unknown(t *testing.T) {
+        got := cipherBits(0x0000)
+        if got != 0 {
+                t.Errorf("cipherBits for unknown suite = %d, want 0", got)
+        }
+}
+
+func TestIsValidHostname_AdditionalEdgeCases(t *testing.T) {
+        tests := []struct {
+                name   string
+                input  string
+                expect bool
+        }{
+                {"underscore", "my_host.example.com", false},
+                {"unicode chars", "münchen.de", false},
+                {"trailing dot", "example.com.", true},
+                {"numeric only", "123456", true},
+                {"ends with hyphen", "example-.com", true},
+                {"single char", "a", true},
+                {"dots only", "...", false},
+                {"tab char", "example\t.com", false},
+                {"null byte", "example\x00.com", false},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := isValidHostname(tt.input)
+                        if got != tt.expect {
+                                t.Errorf("isValidHostname(%q) = %v, want %v", tt.input, got, tt.expect)
+                        }
+                })
+        }
+}
+
+func TestParseNmapXML_PortWithTunnel(t *testing.T) {
+        xmlData := `<?xml version="1.0"?>
+<nmaprun scanner="nmap" version="7.95">
+  <host>
+    <status state="up"/>
+    <address addr="1.2.3.4" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack"/>
+        <service name="https" tunnel="ssl"/>
+      </port>
+    </ports>
+  </host>
+  <runstats><finished elapsed="1.00"/></runstats>
+</nmaprun>`
+
+        result := parseNmapXML(xmlData)
+        if result == nil {
+                t.Fatal("expected non-nil result")
+        }
+        hosts := result["hosts"].([]map[string]any)
+        ports := hosts[0]["ports"].([]map[string]any)
+        if ports[0]["tunnel"] != "ssl" {
+                t.Errorf("expected tunnel 'ssl', got %v", ports[0]["tunnel"])
+        }
+        if _, ok := ports[0]["product"]; ok {
+                t.Error("expected no product key when product is empty")
+        }
+        if _, ok := ports[0]["version"]; ok {
+                t.Error("expected no version key when version is empty")
+        }
+}
+
+func TestParseNmapXML_MultipleHosts(t *testing.T) {
+        xmlData := `<?xml version="1.0"?>
+<nmaprun scanner="nmap" version="7.95">
+  <host>
+    <status state="up"/>
+    <address addr="1.1.1.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack"/>
+        <service name="http"/>
+      </port>
+    </ports>
+  </host>
+  <host>
+    <status state="up"/>
+    <address addr="2.2.2.2" addrtype="ipv4"/>
+    <address addr="2001:db8::1" addrtype="ipv6"/>
+    <ports>
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack"/>
+        <service name="https"/>
+      </port>
+    </ports>
+  </host>
+  <runstats><finished elapsed="2.00"/></runstats>
+</nmaprun>`
+
+        result := parseNmapXML(xmlData)
+        if result == nil {
+                t.Fatal("expected non-nil result")
+        }
+        hosts := result["hosts"].([]map[string]any)
+        if len(hosts) != 2 {
+                t.Fatalf("expected 2 hosts, got %d", len(hosts))
+        }
+        addrs := hosts[1]["addresses"].([]map[string]string)
+        if len(addrs) != 2 {
+                t.Fatalf("expected 2 addresses for host 2, got %d", len(addrs))
+        }
+}
+
+func TestParseNmapXML_NoHostnames(t *testing.T) {
+        xmlData := `<?xml version="1.0"?>
+<nmaprun scanner="nmap" version="7.95">
+  <host>
+    <status state="up"/>
+    <address addr="1.2.3.4" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack"/>
+        <service name="ssh"/>
+      </port>
+    </ports>
+  </host>
+  <runstats><finished elapsed="0.50"/></runstats>
+</nmaprun>`
+
+        result := parseNmapXML(xmlData)
+        if result == nil {
+                t.Fatal("expected non-nil result")
+        }
+        hosts := result["hosts"].([]map[string]any)
+        if _, ok := hosts[0]["hostnames"]; ok {
+                t.Error("expected no hostnames key when hostnames are empty")
+        }
+}
+
+func TestParseNmapXML_EmptyString(t *testing.T) {
+        result := parseNmapXML("")
+        if result != nil {
+                t.Error("expected nil for empty string")
+        }
+}
+
+func TestParseNmapXML_PortWithVersionOnly(t *testing.T) {
+        xmlData := `<?xml version="1.0"?>
+<nmaprun scanner="nmap" version="7.95">
+  <host>
+    <status state="up"/>
+    <address addr="5.6.7.8" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="3306">
+        <state state="open" reason="syn-ack"/>
+        <service name="mysql" version="8.0"/>
+      </port>
+    </ports>
+  </host>
+  <runstats><finished elapsed="1.50"/></runstats>
+</nmaprun>`
+
+        result := parseNmapXML(xmlData)
+        if result == nil {
+                t.Fatal("expected non-nil result")
+        }
+        hosts := result["hosts"].([]map[string]any)
+        ports := hosts[0]["ports"].([]map[string]any)
+        if ports[0]["version"] != "8.0" {
+                t.Errorf("expected version '8.0', got %v", ports[0]["version"])
+        }
+        if _, ok := ports[0]["product"]; ok {
+                t.Error("expected no product when empty")
+        }
+}
+
+func TestTlsVersionString_UnknownVersion(t *testing.T) {
+        tests := []struct {
+                input  uint16
+                expect string
+        }{
+                {0x0305, "TLS 0x0305"},
+                {0xFFFF, "TLS 0xffff"},
+                {0x0100, "TLS 0x0100"},
+        }
+        for _, tt := range tests {
+                got := tlsVersionString(tt.input)
+                if got != tt.expect {
+                        t.Errorf("tlsVersionString(0x%04x) = %q, want %q", tt.input, got, tt.expect)
+                }
+        }
+}
+
+func TestTruncate_ExactBoundary(t *testing.T) {
+        tests := []struct {
+                input  string
+                maxLen int
+                expect string
+        }{
+                {"abcde", 5, "abcde"},
+                {"abcde", 4, "abcd"},
+                {"abcde", 1, "a"},
+                {"abcde", 0, ""},
+                {"", 0, ""},
+        }
+        for _, tt := range tests {
+                got := truncate(tt.input, tt.maxLen)
+                if got != tt.expect {
+                        t.Errorf("truncate(%q, %d) = %q, want %q", tt.input, tt.maxLen, got, tt.expect)
+                }
+        }
+}
+
+func TestHandleHealth_Fields(t *testing.T) {
+        hostname = "probe-test"
+        startTime = time.Now().Add(-1 * time.Hour)
+
+        req := httptest.NewRequest("GET", "/health", nil)
+        w := httptest.NewRecorder()
+        handleHealth(w, req)
+
+        var body map[string]any
+        json.NewDecoder(w.Body).Decode(&body)
+
+        if _, ok := body["uptime"]; !ok {
+                t.Error("expected 'uptime' field in health response")
+        }
+        if _, ok := body["time"]; !ok {
+                t.Error("expected 'time' field in health response")
+        }
+}
+
+func TestHandleSMTPProbe_MultipleInvalidHosts(t *testing.T) {
+        body := `{"hosts": ["valid.com", "evil;rm"]}`
+        req := httptest.NewRequest("POST", "/probe/smtp", strings.NewReader(body))
+        w := httptest.NewRecorder()
+        handleSMTPProbe(w, req)
+
+        if w.Code != http.StatusBadRequest {
+                t.Errorf("expected 400 for any invalid hostname in list, got %d", w.Code)
+        }
+}
+
+func TestHandleTestSSL_EmptyHost(t *testing.T) {
+        body := `{"host": ""}`
+        req := httptest.NewRequest("POST", "/probe/testssl", strings.NewReader(body))
+        w := httptest.NewRecorder()
+        handleTestSSL(w, req)
+
+        if w.Code != http.StatusBadRequest {
+                t.Errorf("expected 400, got %d", w.Code)
+        }
+}
+
+func TestHandleDANEVerify_EmptyHost(t *testing.T) {
+        body := `{"host": ""}`
+        req := httptest.NewRequest("POST", "/probe/dane-verify", strings.NewReader(body))
+        w := httptest.NewRecorder()
+        handleDANEVerify(w, req)
+
+        if w.Code != http.StatusBadRequest {
+                t.Errorf("expected 400, got %d", w.Code)
+        }
+}
+
+func TestHandleNmapScan_InvalidPortFormats(t *testing.T) {
+        tests := []struct {
+                name  string
+                ports string
+        }{
+                {"semicolon", "80;443"},
+                {"alpha", "http"},
+                {"parens", "80(443)"},
+                {"backtick", "80`whoami`"},
+                {"dollar", "80$PATH"},
+                {"space", "80 443"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        body := `{"host": "example.com", "ports": "` + tt.ports + `"}`
+                        req := httptest.NewRequest("POST", "/probe/nmap", strings.NewReader(body))
+                        w := httptest.NewRecorder()
+                        handleNmapScan(w, req)
+
+                        if w.Code != http.StatusBadRequest {
+                                t.Errorf("expected invalid port spec %q to return 400, got %d", tt.ports, w.Code)
+                        }
+                })
+        }
+}
+
+func TestWriteJSON_ErrorStatus(t *testing.T) {
+        w := httptest.NewRecorder()
+        writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "test"})
+
+        if w.Code != http.StatusInternalServerError {
+                t.Errorf("expected 500, got %d", w.Code)
+        }
+}
+
+func TestRateLimitMiddleware_DifferentIPs(t *testing.T) {
+        rateMu.Lock()
+        rateCount = make(map[string]int)
+        rateMu.Unlock()
+
+        handler := rateLimitMiddleware(func(w http.ResponseWriter, r *http.Request) {
+                writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+        })
+
+        for i := 0; i < 25; i++ {
+                req := httptest.NewRequest("POST", "/test", nil)
+                req.RemoteAddr = "10.0.0.1:12345"
+                w := httptest.NewRecorder()
+                handler(w, req)
+        }
+
+        req := httptest.NewRequest("POST", "/test", nil)
+        req.RemoteAddr = "10.0.0.2:12345"
+        w := httptest.NewRecorder()
+        handler(w, req)
+        if w.Code != http.StatusOK {
+                t.Errorf("different IP should not be rate limited, got %d", w.Code)
+        }
+}
+
+func TestReadSMTPResponse_Complete(t *testing.T) {
+        server, client := net.Pipe()
+        defer client.Close()
+
+        go func() {
+                defer server.Close()
+                server.Write([]byte("220 mail.example.com ESMTP\r\n"))
+        }()
+
+        resp, err := readSMTPResponse(client, 2*time.Second)
+        if err != nil {
+                t.Fatalf("unexpected error: %v", err)
+        }
+        if !strings.HasPrefix(resp, "220") {
+                t.Errorf("expected response starting with 220, got %q", resp)
+        }
+}
+
+func TestReadSMTPResponse_Timeout(t *testing.T) {
+        server, client := net.Pipe()
+        defer server.Close()
+        defer client.Close()
+
+        _, err := readSMTPResponse(client, 50*time.Millisecond)
+        if err == nil {
+                t.Error("expected timeout error, got nil")
+        }
+}
+
+func TestReadSMTPResponse_MultiLine(t *testing.T) {
+        server, client := net.Pipe()
+        defer client.Close()
+
+        go func() {
+                defer server.Close()
+                server.Write([]byte("250-STARTTLS\r\n250-PIPELINING\r\n250 HELP\r\n"))
+        }()
+
+        resp, err := readSMTPResponse(client, 2*time.Second)
+        if err != nil {
+                t.Fatalf("unexpected error: %v", err)
+        }
+        if !strings.Contains(resp, "STARTTLS") {
+                t.Errorf("expected STARTTLS in response, got %q", resp)
+        }
+        if !strings.Contains(resp, "250 HELP") {
+                t.Errorf("expected '250 HELP' in response, got %q", resp)
+        }
+}
+
+func TestProbePort_Unreachable(t *testing.T) {
+        ctx := t.Context()
+        result := probePort(ctx, "192.0.2.1", 12345)
+        if result["reachable"] != false {
+                t.Error("expected unreachable for non-routable address")
+        }
+        if result["host"] != "192.0.2.1" {
+                t.Errorf("expected host '192.0.2.1', got %v", result["host"])
+        }
+        if result["port"] != 12345 {
+                t.Errorf("expected port 12345, got %v", result["port"])
+        }
+}
+
+func TestProbeAllServers_Empty(t *testing.T) {
+        ctx := t.Context()
+        result := probeAllServers(ctx, []string{})
+        if len(result) != 0 {
+                t.Errorf("expected empty result, got %d servers", len(result))
+        }
+}
+
+func TestExtractCertInfo_ClosedConn(t *testing.T) {
+        server, client := net.Pipe()
+        server.Close()
+
+        result := extractCertInfo(client, "example.com")
+        client.Close()
+        if result["error"] == nil {
+                t.Error("expected error for closed connection")
+        }
+}
+
+func TestProbeSMTPServer_Unreachable(t *testing.T) {
+        ctx := t.Context()
+        result := probeSMTPServer(ctx, "192.0.2.1")
+        if result["reachable"] != false {
+                t.Error("expected unreachable")
+        }
+        if result["host"] != "192.0.2.1" {
+                t.Errorf("expected host '192.0.2.1', got %v", result["host"])
+        }
+        if result["error"] == nil {
+                t.Error("expected error for unreachable host")
+        }
+}
+
+func TestGetCertViaTLS_Unreachable(t *testing.T) {
+        ctx := t.Context()
+        result := getCertViaTLS(ctx, "192.0.2.1", 12345)
+        if result["error"] == nil {
+                t.Error("expected error for unreachable host")
+        }
+        if result["method"] != "direct_tls" {
+                t.Errorf("expected method 'direct_tls', got %v", result["method"])
+        }
+}
+
+func TestGetCertViaSMTP_Unreachable(t *testing.T) {
+        ctx := t.Context()
+        result := getCertViaSMTP(ctx, "192.0.2.1")
+        if result["error"] == nil {
+                t.Error("expected error for unreachable host")
+        }
+        if result["method"] != "smtp_starttls" {
+                t.Errorf("expected method 'smtp_starttls', got %v", result["method"])
+        }
+}
+
+func TestParseNmapXML_RunStats(t *testing.T) {
+        xmlData := `<?xml version="1.0"?>
+<nmaprun scanner="nmap" startstr="Mon Feb 24 12:00:00 2026" version="7.95">
+  <runstats>
+    <finished timestr="Mon Feb 24 12:00:05 2026" elapsed="5.00"/>
+  </runstats>
+</nmaprun>`
+
+        result := parseNmapXML(xmlData)
+        if result == nil {
+                t.Fatal("expected non-nil result")
+        }
+        if result["elapsed"] != "5.00" {
+                t.Errorf("expected elapsed '5.00', got %v", result["elapsed"])
+        }
+        if result["start"] != "Mon Feb 24 12:00:00 2026" {
+                t.Errorf("expected start time, got %v", result["start"])
         }
 }

@@ -2,6 +2,8 @@ package scanner
 
 import (
         "net"
+        "net/http"
+        "net/http/httptest"
         "strings"
         "sync"
         "testing"
@@ -307,5 +309,188 @@ func TestClassify_PriorityOrder(t *testing.T) {
         c := Classify("test.shodan.io", "1.2.3.4")
         if c.Source != "Shodan" {
                 t.Errorf("known domain should take priority over CISA IP, got %q", c.Source)
+        }
+}
+
+func TestFetchCISAList_Success(t *testing.T) {
+        body := "# Comment\n192.0.2.0/24\n10.0.0.1\n2001:db8::1\n"
+        srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.WriteHeader(http.StatusOK)
+                w.Write([]byte(body))
+        }))
+        defer srv.Close()
+
+        origURL := cisaURL
+        cisaURL = srv.URL
+
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+
+        defer func() {
+                cisaURL = origURL
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        fetchCISAList()
+
+        cisaListMu.RLock()
+        count := len(cisaIPNets)
+        cisaListMu.RUnlock()
+
+        if count != 3 {
+                t.Errorf("expected 3 nets after fetch, got %d", count)
+        }
+}
+
+func TestFetchCISAList_NonOKStatus(t *testing.T) {
+        srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.WriteHeader(http.StatusServiceUnavailable)
+        }))
+        defer srv.Close()
+
+        origURL := cisaURL
+        cisaURL = srv.URL
+
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+
+        defer func() {
+                cisaURL = origURL
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        fetchCISAList()
+
+        cisaListMu.RLock()
+        count := len(cisaIPNets)
+        cisaListMu.RUnlock()
+
+        if count != 0 {
+                t.Errorf("expected 0 nets after non-OK response, got %d", count)
+        }
+}
+
+func TestFetchCISAList_EmptyBody(t *testing.T) {
+        srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                w.WriteHeader(http.StatusOK)
+        }))
+        defer srv.Close()
+
+        origURL := cisaURL
+        cisaURL = srv.URL
+
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+
+        defer func() {
+                cisaURL = origURL
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        fetchCISAList()
+
+        cisaListMu.RLock()
+        count := len(cisaIPNets)
+        cisaListMu.RUnlock()
+
+        if count != 0 {
+                t.Errorf("expected 0 nets after empty body, got %d", count)
+        }
+}
+
+func TestFetchCISAList_ConnectionError(t *testing.T) {
+        origURL := cisaURL
+        cisaURL = "http://192.0.2.1:1"
+
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+
+        defer func() {
+                cisaURL = origURL
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        fetchCISAList()
+
+        cisaListMu.RLock()
+        count := len(cisaIPNets)
+        cisaListMu.RUnlock()
+
+        if count != 0 {
+                t.Errorf("expected 0 nets after connection error, got %d", count)
+        }
+}
+
+func TestClassify_HeuristicNotTriggeredByFourLabels(t *testing.T) {
+        c := Classify("abcdef1234567890.fedcba0987654321.example.com", "1.2.3.4")
+        if c.IsScan {
+                t.Error("4-label domain with hex should NOT trigger heuristic (need 5+)")
+        }
+}
+
+func TestClassify_EmptyDomain(t *testing.T) {
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+        defer func() {
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        c := Classify("", "1.2.3.4")
+        if c.IsScan {
+                t.Error("empty domain should not be classified as scan")
+        }
+}
+
+func TestClassify_EmptyIP(t *testing.T) {
+        cisaListMu.Lock()
+        origNets := cisaIPNets
+        cisaIPNets = nil
+        cisaListMu.Unlock()
+        defer func() {
+                cisaListMu.Lock()
+                cisaIPNets = origNets
+                cisaListMu.Unlock()
+        }()
+
+        c := Classify("example.com", "")
+        if c.IsScan {
+                t.Error("empty IP should not trigger CISA match")
+        }
+        if c.IP != "" {
+                t.Errorf("expected empty IP, got %q", c.IP)
+        }
+}
+
+func TestIsHeuristicScanner_ExactlyFiveLabelsOneHex(t *testing.T) {
+        got := isHeuristicScanner("abcdef1234567890.normal.sub.evil.example.com")
+        if got {
+                t.Error("only one long hex label should not trigger heuristic")
+        }
+}
+
+func TestIsHeuristicScanner_ShortHexLabels(t *testing.T) {
+        got := isHeuristicScanner("abcdef12.abcdef34.sub.evil.example.com")
+        if got {
+                t.Error("short hex labels (< 12 chars) should not trigger")
         }
 }

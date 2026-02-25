@@ -21,8 +21,13 @@ const (
         mimeJSON          = "application/json"
 )
 
+type NotifierDB interface {
+        ListPendingNotifications(ctx context.Context, limit int32) ([]dbq.ListPendingNotificationsRow, error)
+        UpdateDriftNotificationStatus(ctx context.Context, arg dbq.UpdateDriftNotificationStatusParams) error
+}
+
 type Notifier struct {
-        Queries *dbq.Queries
+        Queries NotifierDB
         Client  *http.Client
 }
 

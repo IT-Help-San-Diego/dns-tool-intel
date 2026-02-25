@@ -2,7 +2,10 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 package dnsclient
 
-import "testing"
+import (
+        "strings"
+        "testing"
+)
 
 func TestValidateDomain_Basic(t *testing.T) {
         valid := []string{
@@ -82,5 +85,150 @@ func TestValidateDomain_LegitDomains(t *testing.T) {
                 if !ValidateDomain(d) {
                         t.Errorf("false positive — should be valid: %s", d)
                 }
+        }
+}
+
+func TestValidateDomain_EdgeCases(t *testing.T) {
+        tests := []struct {
+                name   string
+                domain string
+                want   bool
+        }{
+                {"trailing dot stripped", "example.com.", true},
+                {"spaces only", "   ", false},
+                {"single dot", ".", false},
+                {"only dots", "...", false},
+                {"too long domain", strings.Repeat("a", 254), false},
+                {"label exactly 63 chars", strings.Repeat("a", 63) + ".com", true},
+                {"label 64 chars too long", strings.Repeat("a", 64) + ".com", false},
+                {"trailing hyphen label", "example-.com", false},
+                {"numeric TLD rejected", "example.123", false},
+                {"single char TLD rejected", "example.a", false},
+                {"underscore rejected", "ex_ample.com", false},
+                {"space in domain", "exa mple.com", false},
+                {"IP address numeric TLD", "192.168.1.1", false},
+                {"max depth exactly 10", "a.b.c.d.e.f.g.h.i.com", true},
+                {"exceeds max depth 11", "a.b.c.d.e.f.g.h.i.j.com", false},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := ValidateDomain(tt.domain)
+                        if got != tt.want {
+                                t.Errorf("ValidateDomain(%q) = %v, want %v", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestIsTLDInput_Extra(t *testing.T) {
+        tests := []struct {
+                name   string
+                domain string
+                want   bool
+        }{
+                {"spaces only", "   ", false},
+                {"long TLD", "museum", true},
+                {"punycode TLD xn--lgbbat1ad8j", "xn--lgbbat1ad8j", true},
+                {"only dots stripped to empty", "...", false},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := IsTLDInput(tt.domain)
+                        if got != tt.want {
+                                t.Errorf("IsTLDInput(%q) = %v, want %v", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestGetTLD_Extra(t *testing.T) {
+        tests := []struct {
+                name   string
+                domain string
+                want   string
+        }{
+                {"deep subdomain", "a.b.c.example.net", "net"},
+                {"mixed case", "Example.CoM", "com"},
+                {"trailing dot gives empty", "example.com.", ""},
+                {"TLD only", "com", "com"},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := GetTLD(tt.domain)
+                        if got != tt.want {
+                                t.Errorf("GetTLD(%q) = %q, want %q", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestDomainToASCII_Extra(t *testing.T) {
+        tests := []struct {
+                name    string
+                domain  string
+                want    string
+                wantErr bool
+        }{
+                {"empty label passes through", "example..com", "example..com", false},
+                {"leading hyphen error", "-example.com", "", true},
+                {"trailing hyphen error", "example-.com", "", true},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got, err := DomainToASCII(tt.domain)
+                        if (err != nil) != tt.wantErr {
+                                t.Errorf("DomainToASCII(%q) error = %v, wantErr %v", tt.domain, err, tt.wantErr)
+                                return
+                        }
+                        if !tt.wantErr && got != tt.want {
+                                t.Errorf("DomainToASCII(%q) = %q, want %q", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestValidateLabels_Extra(t *testing.T) {
+        tests := []struct {
+                name   string
+                labels []string
+                want   bool
+        }{
+                {"underscore rejected", []string{"under_score"}, false},
+                {"space in label rejected", []string{"has space"}, false},
+                {"valid with hyphens", []string{"my-site", "com"}, true},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := validateLabels(tt.labels)
+                        if got != tt.want {
+                                t.Errorf("validateLabels(%v) = %v, want %v", tt.labels, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestValidateTLD_Extra(t *testing.T) {
+        tests := []struct {
+                name string
+                tld  string
+                want bool
+        }{
+                {"digit in TLD rejected", "c0m", false},
+                {"long TLD valid", "museum", true},
+                {"hyphen in TLD rejected", "co-m", false},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := validateTLD(tt.tld)
+                        if got != tt.want {
+                                t.Errorf("validateTLD(%q) = %v, want %v", tt.tld, got, tt.want)
+                        }
+                })
         }
 }
