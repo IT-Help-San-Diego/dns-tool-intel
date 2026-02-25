@@ -4,19 +4,19 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
-    <title>Our Approach - DNS Tool</title>
+    <title>Our Methodology - DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="DNS Tool works as a DNS checker — and goes further with cited findings, RFC provenance, and time-series verification. If you don't understand DNS, you can't understand the internet or its security.">
+    <meta name="description" content="Five perspectives, one algorithm. DNS Tool combines the intelligence officer, DNS engineer, hacker, executive, and field technician into a symbiotic security engine with cited findings, RFC provenance, and time-series verification.">
     <meta property="og:url" content="https://dnstool.it-help.tech/approach">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Our Approach - DNS Tool">
-    <meta property="og:description" content="DNS is the foundation of internet security. Most tools treat it as a checkbox. We built a forensic audit engine instead. Here's why.">
+    <meta property="og:title" content="Our Methodology - DNS Tool">
+    <meta property="og:description" content="DNS is the foundation of internet security. Most tools treat it as a checkbox. We built a forensic audit engine with five analytic perspectives instead. Here's why.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/approach">
-    <meta name="twitter:title" content="Our Approach - DNS Tool">
-    <meta name="twitter:description" content="DNS is the foundation of internet security. Most tools treat it as a checkbox. We built a forensic audit engine instead. Here's why.">
+    <meta name="twitter:title" content="Our Methodology - DNS Tool">
+    <meta name="twitter:description" content="DNS is the foundation of internet security. Most tools treat it as a checkbox. We built a forensic audit engine with five analytic perspectives instead. Here's why.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/approach">
     <style nonce="{{.CspNonce}}">
@@ -254,6 +254,69 @@
             border-color: rgba(140,40,40,0.12);
             background: rgba(140,40,40,0.04);
         }
+        .archetype-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 767px) {
+            .archetype-grid { grid-template-columns: 1fr; }
+        }
+        .archetype-card {
+            background: rgba(125,142,168,0.04);
+            border: 1px solid rgba(125,142,168,0.1);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+        }
+        .archetype-card-full {
+            grid-column: 1 / -1;
+        }
+        .archetype-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            margin-right: 0.6rem;
+        }
+        .archetype-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .archetype-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+        .archetype-subtitle {
+            font-size: 0.7rem;
+            color: rgba(170,178,188,0.5);
+            margin-left: 0.5rem;
+        }
+        .archetype-card p {
+            font-size: 0.82rem;
+            color: rgba(170,178,188,0.75);
+            margin-bottom: 0.35rem;
+            line-height: 1.55;
+        }
+        .archetype-card p:last-child { margin-bottom: 0; }
+        .archetype-tag {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 0.35rem;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+        }
+        body.covert-mode .archetype-card {
+            border-color: rgba(140,40,40,0.12);
+            background: rgba(140,40,40,0.04);
+        }
     </style>
 </head>
 <body>
@@ -266,10 +329,66 @@
                 <div class="col-lg-9 col-xl-8">
 
                     <div class="text-center mb-4">
-                        <h1 class="fw-bold mb-2"><i class="fas fa-flask me-2 text-info"></i>Our Approach</h1>
+                        <h1 class="fw-bold mb-2"><i class="fas fa-flask me-2 text-info"></i>Our Methodology</h1>
                         <div class="approach-intro">
                             <p>Most DNS tools give you a score. We give you a cited finding, tell you where it came from, and show you the terminal command to verify it yourself &mdash; because we've seen what happens when an engineer trusts a tool that was optimizing for clean-looking output instead of accurate output.</p>
                         </div>
+                    </div>
+
+                    <div class="approach-section" id="symbiotic-security">
+                        <h2><i class="fas fa-users-cog"></i>Five Perspectives, One Algorithm</h2>
+                        <p>A single viewpoint misses things. An intelligence officer quantifies confidence but won't catch a misconfigured TTL. A DNS engineer reads RFC chapter and verse but won't frame findings for a board meeting. A hacker spots the attack surface but won't write the remediation steps. An executive needs a clear verdict but shouldn't have to parse RRSIG expiration dates. A field technician needs to know what to paste into Cloudflare, not why ICD 203 matters.</p>
+                        <p>DNS Tool encodes all five as a precision algorithm. Each perspective watches for the blind spots the others miss. We call this <strong>Symbiotic Security</strong> &mdash; not a philosophy, but an architecture with a human face.</p>
+
+                        <div class="archetype-grid">
+                            <div class="archetype-card">
+                                <div class="archetype-header">
+                                    <span class="archetype-icon" style="background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.2);"><i class="fas fa-satellite-dish"></i></span>
+                                    <span class="archetype-title">The Intelligence Officer</span>
+                                </div>
+                                <p>Quantifies what you can trust. Runs dual confidence engines &mdash; ICAE measures <em>accuracy</em> (are the findings correct?), ICuAE measures <em>currency</em> (are they fresh?). Merges both into an ICD 203 confidence level so every finding carries its own epistemic weight. If a score is HIGH, you know why. If it's LOW, you know which factor is limiting.</p>
+                                <span class="archetype-tag" style="background:rgba(88,166,255,0.1);color:rgba(88,166,255,0.8);border:1px solid rgba(88,166,255,0.18);">ICAE &middot; ICuAE &middot; Unified Confidence</span>
+                            </div>
+
+                            <div class="archetype-card">
+                                <div class="archetype-header">
+                                    <span class="archetype-icon" style="background:rgba(63,185,80,0.12);color:#3fb950;border:1px solid rgba(63,185,80,0.2);"><i class="fas fa-hard-hat"></i></span>
+                                    <span class="archetype-title">The DNS Engineer</span>
+                                </div>
+                                <p>Reads the RFCs so you don't have to guess. Every finding maps to a specific RFC paragraph &mdash; not a vendor interpretation, not a best-practice blog post. SPF follows RFC 7208. DMARC follows RFC 7489. DNSSEC follows RFC 4033&ndash;4035. Delegation consistency, nameserver fleet health, SOA compliance &mdash; all grounded in the standards that define how DNS actually works.</p>
+                                <span class="archetype-tag" style="background:rgba(63,185,80,0.1);color:rgba(63,185,80,0.8);border:1px solid rgba(63,185,80,0.18);">RFC Analysis &middot; Delegation &middot; Fleet Matrix</span>
+                            </div>
+
+                            <div class="archetype-card">
+                                <div class="archetype-header">
+                                    <span class="archetype-icon" style="background:rgba(196,60,60,0.12);color:#c43c3c;border:1px solid rgba(196,60,60,0.2);"><i class="fas fa-biohazard"></i></span>
+                                    <span class="archetype-title">The Hacker</span>
+                                </div>
+                                <p>Sees what the attacker sees. Covert Recon Mode reframes the same data through an adversarial lens &mdash; scotopic-optimized red interface built on peer-reviewed vision science. Zone transfer exposure, open recursion, lame delegation, NSEC zone walking, SPF ranges that authorize entire netblocks. The configuration data doesn't change. The questions do.</p>
+                                <span class="archetype-tag" style="background:rgba(196,60,60,0.1);color:rgba(196,100,100,0.8);border:1px solid rgba(196,60,60,0.18);">Covert Recon &middot; Attack Surface &middot; Scotopic UI</span>
+                            </div>
+
+                            <div class="archetype-card">
+                                <div class="archetype-header">
+                                    <span class="archetype-icon" style="background:rgba(210,153,34,0.12);color:#d29922;border:1px solid rgba(210,153,34,0.2);"><i class="fas fa-briefcase"></i></span>
+                                    <span class="archetype-title">The Executive</span>
+                                </div>
+                                <p>Gets the verdict without the noise. The Executive Brief distills every finding into a clear posture summary &mdash; what's secure, what's at risk, what needs attention. No RRSIG expiration dates, no TTL arithmetic, no RFC section numbers. Just the strategic picture with enough context to make a decision or ask the right follow-up question.</p>
+                                <span class="archetype-tag" style="background:rgba(210,153,34,0.1);color:rgba(210,153,34,0.8);border:1px solid rgba(210,153,34,0.18);">Executive Brief &middot; Posture Score &middot; Risk Summary</span>
+                            </div>
+
+                            <div class="archetype-card archetype-card-full">
+                                <div class="archetype-header">
+                                    <span class="archetype-icon" style="background:rgba(125,142,168,0.12);color:#7d8ea8;border:1px solid rgba(125,142,168,0.2);"><i class="fas fa-wrench"></i></span>
+                                    <span class="archetype-title">The IT Guy</span>
+                                    <span class="archetype-subtitle">the one who actually has to fix it</span>
+                                </div>
+                                <p>Gets actionable remediation, not a lecture. TTL Tuner recommends specific values for your context. Big Picture Questions reframe configuration details as strategic decisions. Provider-aware notes explain when a finding is a Cloudflare constraint vs. a genuine misconfiguration. DMARC guidance tells you whether the fix is yours or your provider's. Every finding connects to what you actually do next.</p>
+                                <span class="archetype-tag" style="background:rgba(125,142,168,0.1);color:rgba(125,142,168,0.8);border:1px solid rgba(125,142,168,0.18);">TTL Tuner &middot; Big Picture Questions &middot; Remediation</span>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small mb-0">These aren't personas or marketing segments. They're implemented as distinct template outputs, scoring engines, and guidance layers &mdash; each backed by deployed code you can verify in our <a href="/architecture" class="text-info text-decoration-none">architecture</a> and <a href="/confidence" class="text-info text-decoration-none">confidence</a> documentation.</p>
                     </div>
 
                     <div class="approach-section">
@@ -473,6 +592,7 @@
                         <a href="/roadmap" class="approach-nav-btn"><i class="fas fa-map me-1"></i>Roadmap</a>
                         <a href="/about" class="approach-nav-btn"><i class="fas fa-book-open me-1"></i>Origin Story</a>
                         <a href="/confidence" class="approach-nav-btn"><i class="fas fa-bullseye me-1"></i>Confidence</a>
+                        <a href="/architecture" class="approach-nav-btn"><i class="fas fa-microchip me-1"></i>Architecture</a>
                         <a href="/sources" class="approach-nav-btn"><i class="fas fa-diagram-project me-1"></i>Intelligence Sources</a>
                     </div>
 
