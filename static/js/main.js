@@ -336,8 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             var a = new Audio('/static/audio/morse-hack-the-planet.m4a');
             a.volume = 0.4;
-            a.play().catch(function() {});
-        } catch(_e) {}
+            a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
+        } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
     }
     var roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
