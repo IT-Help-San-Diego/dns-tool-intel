@@ -130,7 +130,6 @@ func (a *Analyzer) GenerateRemediation(results map[string]any) map[string]any {
 
         if isTLD {
                 fixes = appendDNSSECFixes(fixes, ps)
-                fixes = appendCAAFixes(fixes, ps, domain)
         } else if ps.isNoMailDomain {
                 fixes = appendNoMailHardeningFixes(fixes, ps, domain)
                 fixes = appendDNSSECFixes(fixes, ps)

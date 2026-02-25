@@ -493,10 +493,12 @@ func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulat
                 acc.absent = append(acc.absent, "DNSSEC")
         }
 
-        if ps.caaOK {
-                acc.configured = append(acc.configured, "CAA")
-        } else {
-                acc.absent = append(acc.absent, "CAA")
+        if !isTLD {
+                if ps.caaOK {
+                        acc.configured = append(acc.configured, "CAA")
+                } else {
+                        acc.absent = append(acc.absent, "CAA")
+                }
         }
 }
 
@@ -828,17 +830,11 @@ func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, strin
         return riskCritical, iconExclamationTriangle, "danger", "No-mail domain has no email authentication records"
 }
 
-func classifyRegistryGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
-        if ps.dnssecOK && gi.hasCAA {
-                return riskLow, iconShieldAlt, "success", "Registry zone infrastructure is well-configured with DNSSEC and CAA"
-        }
+func classifyRegistryGrade(ps protocolState, _ gradeInput) (string, string, string, string) {
         if ps.dnssecOK {
-                return riskLow, iconShieldAlt, "success", "Registry zone has DNSSEC signing active"
+                return riskLow, iconShieldAlt, "success", "Registry zone has DNSSEC signing active — delegation chain is cryptographically secured"
         }
-        if gi.hasCAA {
-                return riskMedium, iconShieldAlt, "info", "Registry zone has CAA but lacks DNSSEC"
-        }
-        return riskHigh, iconExclamationTriangle, "warning", "Registry zone lacks both DNSSEC and CAA"
+        return riskHigh, iconExclamationTriangle, "warning", "Registry zone is not DNSSEC-signed — delegation chain lacks cryptographic verification"
 }
 
 func applyMonitoringSuffix(state string, monitoring []string) string {
