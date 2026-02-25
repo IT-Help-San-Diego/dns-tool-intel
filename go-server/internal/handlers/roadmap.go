@@ -63,6 +63,16 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Web/DNS/Email Hosting Detection", Version: "v26.25.43", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Question Branding System (dt-question)", Version: "v26.25.70", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Approach & Methodology Page", Version: "v26.25.83", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "TTL Alignment & Big Picture Questions", Version: "v26.25.93", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Unified Confidence Aggregation (ICD 203)", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Homepage Simplification & TTL Deep Linking", Version: "v26.25.95", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "DMARC External Auth Remediation", Version: "v26.25.95", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Symbiotic Security — Five Archetypes Section", Version: "v26.25.96", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Methodology Page Rename & Cross-Links", Version: "v26.25.96", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Delegation Consistency Analyzer", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Nameserver Fleet Matrix", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "DNSSEC Operations Deep Dive", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Live SonarCloud Badge & Evidence Qualification", Version: "v26.25.97", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
