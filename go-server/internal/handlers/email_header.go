@@ -14,6 +14,7 @@ import (
 )
 
 const emailHeaderTemplate = "email_header.html"
+const activePageEmailHeader = "email-header"
 const maxHeaderSize = 256 * 1024
 
 type EmailHeaderHandler struct {
@@ -31,10 +32,10 @@ func (h *EmailHeaderHandler) EmailHeaderPage(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "CsrfToken":       csrfToken,
-                "ActivePage":      "email-header",
+                "ActivePage":      activePageEmailHeader,
                 "ShowForm":        true,
         }
         mergeAuthData(c, h.Config, data)
@@ -49,10 +50,10 @@ func (h *EmailHeaderHandler) AnalyzeEmailHeader(c *gin.Context) {
                 errData := gin.H{
                         "AppVersion":      h.Config.AppVersion,
                         "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                         "CspNonce":        nonce,
                         "CsrfToken":       csrfToken,
-                        "ActivePage":      "email-header",
+                        "ActivePage":      activePageEmailHeader,
                         "ShowForm":        true,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: msg}},
                 }
@@ -104,10 +105,10 @@ func (h *EmailHeaderHandler) AnalyzeEmailHeader(c *gin.Context) {
         resultData := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "CsrfToken":       csrfToken,
-                "ActivePage":      "email-header",
+                "ActivePage":      activePageEmailHeader,
                 "ShowForm":        false,
                 "ShowResults":     true,
                 "Analysis":        analysis,

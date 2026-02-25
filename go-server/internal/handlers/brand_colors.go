@@ -10,6 +10,11 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+        cvssSpecURL  = "https://www.first.org/cvss/v3-1/specification-document"
+        firstTLPv2   = "FIRST TLP v2.0"
+)
+
 type BrandColor struct {
         Name      string
         Token     string
@@ -33,7 +38,7 @@ func (h *BrandColorsHandler) BrandColors(c *gin.Context) {
         data := gin.H{
                 "AppVersion":       h.Config.AppVersion,
                 "MaintenanceNote":  h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":         nonce,
                 "ActivePage":       "brand-colors",
                 "BrandPalette":     getBrandPalette(),
@@ -176,7 +181,7 @@ func getTLPColors() []BrandColor {
                         Token:     ".tlp-badge-red",
                         Value:     "#FF2B2B",
                         Notes:     "For named recipients only. No further disclosure.",
-                        Source:    "FIRST TLP v2.0",
+                        Source:    firstTLPv2,
                         SourceURL: "https://www.first.org/tlp/",
                 },
                 {
@@ -184,7 +189,7 @@ func getTLPColors() []BrandColor {
                         Token:     ".tlp-badge-amber",
                         Value:     "#FFC000",
                         Notes:     "Limited disclosure within organization and clients. Default classification for DNS Tool reports.",
-                        Source:    "FIRST TLP v2.0",
+                        Source:    firstTLPv2,
                         SourceURL: "https://www.first.org/tlp/",
                 },
                 {
@@ -192,7 +197,7 @@ func getTLPColors() []BrandColor {
                         Token:     ".tlp-badge-amber-strict",
                         Value:     "#FFC000",
                         Notes:     "Limited to organization only, no client sharing.",
-                        Source:    "FIRST TLP v2.0",
+                        Source:    firstTLPv2,
                         SourceURL: "https://www.first.org/tlp/",
                 },
                 {
@@ -200,7 +205,7 @@ func getTLPColors() []BrandColor {
                         Token:     ".tlp-badge-green",
                         Value:     "#33A532",
                         Notes:     "Community-wide sharing permitted.",
-                        Source:    "FIRST TLP v2.0",
+                        Source:    firstTLPv2,
                         SourceURL: "https://www.first.org/tlp/",
                 },
                 {
@@ -208,7 +213,7 @@ func getTLPColors() []BrandColor {
                         Token:     ".tlp-badge-clear",
                         Value:     "#FFFFFF",
                         Notes:     "Unlimited disclosure. White text on dark background, bordered on light.",
-                        Source:    "FIRST TLP v2.0",
+                        Source:    firstTLPv2,
                         SourceURL: "https://www.first.org/tlp/",
                 },
         }
@@ -222,7 +227,7 @@ func getCVSSColors() []BrandColor {
                         Value:     "#cc0000",
                         Notes:     "Score range specified by FIRST CVSS v3.1. Color derived from NVD implementation convention.",
                         Source:    "Ranges: FIRST CVSS v3.1 | Colors: NVD convention",
-                        SourceURL: "https://www.first.org/cvss/v3-1/specification-document",
+                        SourceURL: cvssSpecURL,
                 },
                 {
                         Name:      "High (7.0–8.9)",
@@ -230,7 +235,7 @@ func getCVSSColors() []BrandColor {
                         Value:     "#df3d03",
                         Notes:     "Score range specified by FIRST CVSS v3.1. Color derived from NVD implementation convention.",
                         Source:    "Ranges: FIRST CVSS v3.1 | Colors: NVD convention",
-                        SourceURL: "https://www.first.org/cvss/v3-1/specification-document",
+                        SourceURL: cvssSpecURL,
                 },
                 {
                         Name:      "Medium (4.0–6.9)",
@@ -238,7 +243,7 @@ func getCVSSColors() []BrandColor {
                         Value:     "#f9a009",
                         Notes:     "Score range specified by FIRST CVSS v3.1. Color derived from NVD implementation convention.",
                         Source:    "Ranges: FIRST CVSS v3.1 | Colors: NVD convention",
-                        SourceURL: "https://www.first.org/cvss/v3-1/specification-document",
+                        SourceURL: cvssSpecURL,
                 },
                 {
                         Name:      "Low (0.1–3.9)",
@@ -246,7 +251,7 @@ func getCVSSColors() []BrandColor {
                         Value:     "#ffcb0d",
                         Notes:     "Score range specified by FIRST CVSS v3.1. Color derived from NVD implementation convention.",
                         Source:    "Ranges: FIRST CVSS v3.1 | Colors: NVD convention",
-                        SourceURL: "https://www.first.org/cvss/v3-1/specification-document",
+                        SourceURL: cvssSpecURL,
                 },
                 {
                         Name:      "None (0.0)",
@@ -254,7 +259,7 @@ func getCVSSColors() []BrandColor {
                         Value:     "#53aa33",
                         Notes:     "Score range specified by FIRST CVSS v3.1. Color derived from NVD implementation convention.",
                         Source:    "Ranges: FIRST CVSS v3.1 | Colors: NVD convention",
-                        SourceURL: "https://www.first.org/cvss/v3-1/specification-document",
+                        SourceURL: cvssSpecURL,
                 },
         }
 }

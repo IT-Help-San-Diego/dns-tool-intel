@@ -5,62 +5,64 @@
 // Stub implementations. See github.com/careyjames/dns-tool-intel for the full version.
 package analyzer
 
+const noSaaSDetectedMsg = "No SaaS services detected"
+
 var saasPatterns = []saasPattern{}
 
 func ExtractSaaSTXTFootprint(results map[string]any) map[string]any {
-	basicRecords, ok := results["basic_records"].(map[string]any)
-	if !ok {
-		return map[string]any{
-			"status":        "success",
-			"services":      []map[string]any{},
-			"service_count": 0,
-			"issues":        []string{},
-			"message":       "No SaaS services detected",
-		}
-	}
+        basicRecords, ok := results["basic_records"].(map[string]any)
+        if !ok {
+                return map[string]any{
+                        "status":        "success",
+                        "services":      []map[string]any{},
+                        "service_count": 0,
+                        "issues":        []string{},
+                        "message":       noSaaSDetectedMsg,
+                }
+        }
 
-	txtRaw, ok := basicRecords["TXT"]
-	if !ok {
-		return map[string]any{
-			"status":        "success",
-			"services":      []map[string]any{},
-			"service_count": 0,
-			"issues":        []string{},
-			"message":       "No SaaS services detected",
-		}
-	}
+        txtRaw, ok := basicRecords["TXT"]
+        if !ok {
+                return map[string]any{
+                        "status":        "success",
+                        "services":      []map[string]any{},
+                        "service_count": 0,
+                        "issues":        []string{},
+                        "message":       noSaaSDetectedMsg,
+                }
+        }
 
-	var txtAsAny []any
-	switch v := txtRaw.(type) {
-	case []string:
-		for _, s := range v {
-			txtAsAny = append(txtAsAny, s)
-		}
-	case []any:
-		txtAsAny = v
-	default:
-		return map[string]any{
-			"status":        "success",
-			"services":      []map[string]any{},
-			"service_count": 0,
-			"issues":        []string{},
-			"message":       "No SaaS services detected",
-		}
-	}
+        var txtAsAny []any
+        switch v := txtRaw.(type) {
+        case []string:
+                for _, s := range v {
+                        txtAsAny = append(txtAsAny, s)
+                }
+        case []any:
+                txtAsAny = v
+        default:
+                return map[string]any{
+                        "status":        "success",
+                        "services":      []map[string]any{},
+                        "service_count": 0,
+                        "issues":        []string{},
+                        "message":       noSaaSDetectedMsg,
+                }
+        }
 
-	if len(txtAsAny) == 0 {
-		return map[string]any{
-			"status":        "success",
-			"services":      []map[string]any{},
-			"service_count": 0,
-			"issues":        []string{},
-			"message":       "No SaaS services detected",
-		}
-	}
+        if len(txtAsAny) == 0 {
+                return map[string]any{
+                        "status":        "success",
+                        "services":      []map[string]any{},
+                        "service_count": 0,
+                        "issues":        []string{},
+                        "message":       noSaaSDetectedMsg,
+                }
+        }
 
-	return extractSaaSTXTFromRecords(txtAsAny, commoditySaaSPatterns)
+        return extractSaaSTXTFromRecords(txtAsAny, commoditySaaSPatterns)
 }
 
 func matchSaaSPatterns(txt string, seen map[string]bool, services *[]map[string]any) {
-	// OSS stub: full SaaS pattern matching in dns-tool-intel repository
+        // OSS stub: full SaaS pattern matching in dns-tool-intel repository
 }

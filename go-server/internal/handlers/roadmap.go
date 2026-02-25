@@ -88,6 +88,8 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Documentation Reality Check (LLMs + JSON-LD + Roadmap)", Version: "v26.26.06", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Covert Mode Tactical Red Filter (MIL-STD-3009)", Version: "v26.26.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Covert Mode Environment Presets (Submarine/Tactical/Operator)", Version: "v26.26.10", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Operator Mode Color Science (mix-blend-mode: color)", Version: "v26.26.11", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Covert Environment Icons & Accent Gray Hierarchy", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{

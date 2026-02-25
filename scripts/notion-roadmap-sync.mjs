@@ -84,6 +84,8 @@ const ROADMAP_ITEMS = [
   { title: "Documentation Reality Check (LLMs + JSON-LD + Roadmap)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.06" },
   { title: "Covert Mode Tactical Red Filter (MIL-STD-3009)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.08" },
   { title: "Covert Mode Environment Presets (Submarine/Tactical/Operator)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.10" },
+  { title: "Operator Mode Color Science (mix-blend-mode: color)", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.11" },
+  { title: "Covert Environment Icons & Accent Gray Hierarchy", status: "Done", type: "Feature", priority: "Medium", version: "v26.26.12" },
   { title: "Visual Cohesion — Top-to-Bottom Consistency", status: "In Progress", type: "Feature", priority: "Medium", notes: "Glass treatment, question branding, token system" },
   { title: "Morse Code Easter Egg", status: "In Progress", type: "Feature", priority: "Low", notes: "Web Audio API Morse code on Covert Mode toggle" },
   { title: "DoH/DoT Detection", status: "Next Up", type: "Feature", priority: "High", notes: "DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) posture analysis" },

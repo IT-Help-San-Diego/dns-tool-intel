@@ -121,7 +121,9 @@ const (
         selDrip          = "drip._domainkey"
         selEverlyticKey2 = "everlytickey2._domainkey"
 
-        providerSquareOnline = "Square Online"
+        providerSquareOnline    = "Square Online"
+        providerCustomerIO      = "Customer.io"
+        providerConstantContact = "Constant Contact"
 )
 
 var (
@@ -206,9 +208,9 @@ var selectorProviderMap = map[string]string{
         selSF2:            "Salesforce",
         selKlaviyo:        "Klaviyo",
         selIntercom:       "Intercom",
-        selCustomerio:     "Customer.io",
-        selConstContact:   "Constant Contact",
-        selConstContact2:  "Constant Contact",
+        selCustomerio:     providerCustomerIO,
+        selConstContact:   providerConstantContact,
+        selConstContact2:  providerConstantContact,
         selActiveCampaign: "ActiveCampaign",
         selMailerLite:     "MailerLite",
         selDrip:           "Drip",
@@ -288,8 +290,8 @@ var primaryProviderSelectors = map[string][]string{
         "Salesforce":            {selSalesforce, selSF1, selSF2},
         "Klaviyo":               {selKlaviyo},
         "Intercom":              {selIntercom},
-        "Customer.io":           {selCustomerio},
-        "Constant Contact":      {selConstContact, selConstContact2},
+        providerCustomerIO:      {selCustomerio},
+        providerConstantContact: {selConstContact, selConstContact2},
         "ActiveCampaign":        {selActiveCampaign},
         "MailerLite":            {selMailerLite},
         "Drip":                  {selDrip},
@@ -328,8 +330,8 @@ var spfAncillarySenders = map[string]string{
         "spf.salesforce.com": "Salesforce",
         "spf1.klaviyo.com":  "Klaviyo",
         "intercom.io":       "Intercom",
-        "spf.customerio":    "Customer.io",
-        "spf.constantcontact": "Constant Contact",
+        "spf.customerio":    providerCustomerIO,
+        "spf.constantcontact": providerConstantContact,
         "emsd1.com":         "ActiveCampaign",
         "spf.mailerlite":    "MailerLite",
         "getdrip.com":       "Drip",

@@ -74,6 +74,8 @@ var whoisServers = map[string]string{
         "top": "whois.nic.top",
 }
 
+const providerMicrosoftAzureDNS = "Microsoft Azure DNS"
+
 var nsRegistrarPatterns = map[string]string{
         "awsdns":                "Amazon Registrar",
         "gandi.net":             "Gandi SAS",
@@ -112,10 +114,10 @@ var nsRegistrarPatterns = map[string]string{
         "he.net":                "Hurricane Electric",
         "nsone.net":             "NS1 (IBM)",
         "ultradns.com":          "UltraDNS (Neustar)",
-        "azure-dns.com":         "Microsoft Azure DNS",
-        "azure-dns.net":         "Microsoft Azure DNS",
-        "azure-dns.org":         "Microsoft Azure DNS",
-        "azure-dns.info":        "Microsoft Azure DNS",
+        "azure-dns.com":         providerMicrosoftAzureDNS,
+        "azure-dns.net":         providerMicrosoftAzureDNS,
+        "azure-dns.org":         providerMicrosoftAzureDNS,
+        "azure-dns.info":        providerMicrosoftAzureDNS,
 }
 
 var whoisRestrictedIndicators = []string{

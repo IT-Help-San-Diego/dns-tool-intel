@@ -12,6 +12,8 @@ import (
         "time"
 )
 
+const headerUserAgent = "User-Agent"
+
 type SafeHTTPClient struct {
         client    *http.Client
         userAgent string
@@ -111,7 +113,7 @@ func (s *SafeHTTPClient) GetDirect(ctx context.Context, rawURL string) (*http.Re
         if err != nil {
                 return nil, err
         }
-        req.Header.Set("User-Agent", s.userAgent)
+        req.Header.Set(headerUserAgent, s.userAgent)
         req.Header.Set("Accept", "application/rdap+json, application/json")
 
         return s.client.Do(req)
@@ -126,7 +128,7 @@ func (s *SafeHTTPClient) Get(ctx context.Context, rawURL string) (*http.Response
         if err != nil {
                 return nil, err
         }
-        req.Header.Set("User-Agent", s.userAgent)
+        req.Header.Set(headerUserAgent, s.userAgent)
 
         return s.client.Do(req)
 }
@@ -140,7 +142,7 @@ func (s *SafeHTTPClient) GetWithHeaders(ctx context.Context, rawURL string, head
         if err != nil {
                 return nil, err
         }
-        req.Header.Set("User-Agent", s.userAgent)
+        req.Header.Set(headerUserAgent, s.userAgent)
         for k, v := range headers {
                 req.Header.Set(k, v)
         }

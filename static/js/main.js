@@ -144,9 +144,11 @@ function hideOverlayAndReset(overlay, btn) {
 
 function isBareTopLevelDomain(domain) {
     if (!domain) return false;
-    const d = domain.replace(/^\.+/, '').replace(/\.+$/, '').toLowerCase();
+    var d = domain.toLowerCase();
+    while (d.charAt(0) === '.') d = d.slice(1);
+    while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
     if (!d || d.length > 63) return false;
-    const labels = d.split('.');
+    var labels = d.split('.');
     return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
 }
 
@@ -217,7 +219,9 @@ function showCovertTLDToast(domain, callback) {
 
 function isValidDomain(domain) {
     if (!domain) return false;
-    const d = domain.replace(/^\.+/, '').replace(/\.+$/, '');
+    var d = domain;
+    while (d.charAt(0) === '.') d = d.slice(1);
+    while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
     if (d.length > 253 || d.length === 0) return false;
     const labels = d.split('.');
     if (labels.length === 1) {

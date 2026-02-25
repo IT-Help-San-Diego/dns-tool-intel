@@ -136,6 +136,8 @@ func parseTeamCymruResponse(info map[string]any, record string) {
         info["country"] = strings.TrimSpace(parts[2])
 }
 
+const asnAmazon = "Amazon.com, Inc."
+
 var wellKnownASNames = map[string]string{
         "13335":  "Cloudflare, Inc.",
         "209242": "Cloudflare London, LLC",
@@ -146,11 +148,11 @@ var wellKnownASNames = map[string]string{
         "15169":  "Google LLC",
         "396982": "Google LLC",
         "8075":   "Microsoft Corporation",
-        "16509":  "Amazon.com, Inc.",
-        "14618":  "Amazon.com, Inc.",
-        "38895":  "Amazon.com, Inc.",
-        "16510":  "Amazon.com, Inc.",
-        "36183":  "Amazon.com, Inc.",
+        "16509":  asnAmazon,
+        "14618":  asnAmazon,
+        "38895":  asnAmazon,
+        "16510":  asnAmazon,
+        "36183":  asnAmazon,
         "14061":  "DigitalOcean, LLC",
         "63949":  "Akamai Connected Cloud (Linode)",
         "24940":  "Hetzner Online GmbH",
