@@ -696,6 +696,31 @@
             </div>
         </div>
 
+        {{if .UnifiedConfidence}}
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark bg-opacity-25">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap">
+                            <div class="d-flex align-items-center">
+                                <i class="fas {{.UnifiedConfidence.Icon}} fa-2x text-{{.UnifiedConfidence.BootstrapClass}} me-3"></i>
+                                <div>
+                                    <span class="fw-semibold">Analysis Confidence</span>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} fs-6 px-3 py-2">{{.UnifiedConfidence.Level}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 mt-md-0">
+                                <small class="text-muted d-block">{{.UnifiedConfidence.Explanation}}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
         <!-- Executive Scorecard -->
         <div class="row mb-3">
             <div class="col-12">

@@ -479,6 +479,42 @@
         </div>
         {{end}}
 
+        {{if .UnifiedConfidence}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap">
+                            <div class="d-flex align-items-center">
+                                <i class="fas {{.UnifiedConfidence.Icon}} fa-2x text-{{.UnifiedConfidence.BootstrapClass}} me-3"></i>
+                                <div>
+                                    <span class="fw-semibold">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} fs-6 px-3 py-2">{{.UnifiedConfidence.Level}}</span>
+                                        <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">{{.UnifiedConfidence.Explanation}}</small>
+                                </div>
+                            </div>
+                            <div class="mt-2 mt-md-0 text-end">
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="Calibrated resolver agreement across {{.UnifiedConfidence.ProtocolCount}} protocols"><i class="fas fa-check-double me-1"></i>Accuracy {{.UnifiedConfidence.AccuracyDisplay}}</span>
+                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICuAE data freshness, completeness, and consistency score"><i class="fas fa-clock me-1"></i>Currency {{.UnifiedConfidence.CurrencyDisplay}}/100</span>
+                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICAE system maturity — caps maximum achievable confidence"><i class="fas fa-medal me-1"></i>Maturity {{.UnifiedConfidence.MaturityLevel}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {{if ne .UnifiedConfidence.Level "HIGH"}}
+                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-50">
+                            <small class="text-{{.UnifiedConfidence.BootstrapClass}}"><i class="fas fa-info-circle me-1"></i>Limiting factor: {{.UnifiedConfidence.WeakestDetail}}</small>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
         {{if .CurrencyReport}}
         <div class="row mb-4">
             <div class="col-12">

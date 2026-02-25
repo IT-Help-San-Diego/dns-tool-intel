@@ -377,14 +377,29 @@ func resolveCovertMode(c *gin.Context, asciiDomain string) string {
 }
 
 func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H, results map[string]any, domain string, analysisID int32) {
+        var maturityLevel string
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 data["ICAEMetrics"] = icaeMetrics
+                maturityLevel = icaeMetrics.OverallMaturity
         }
+        var currencyScore float64
         if cr, ok := results["currency_report"]; ok {
                 if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
                         data["CurrencyReport"] = report
+                        currencyScore = report.OverallScore
                 }
         }
+
+        calibrated, _ := results["calibrated_confidence"].(map[string]float64)
+        if calibrated != nil && maturityLevel != "" {
+                uc := unified.ComputeUnifiedConfidence(unified.Input{
+                        CalibratedConfidence: calibrated,
+                        CurrencyScore:        currencyScore,
+                        MaturityLevel:        maturityLevel,
+                })
+                data["UnifiedConfidence"] = uc
+        }
+
         if analysisID > 0 {
                 if sugConfig := buildSuggestedConfig(ctx, h.DB.Queries, domain, analysisID); sugConfig != nil {
                         data["SuggestedConfig"] = sugConfig
