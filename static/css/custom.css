@@ -2166,9 +2166,22 @@ body.covert-mode::after {
 body.covert-submarine::after {
     background: #880000;
 }
+body.covert-basement {
+    background-color: #060303 !important;
+}
 body.covert-basement::after {
-    background: #cc2020;
+    background: rgba(180, 20, 20, 0.85);
     mix-blend-mode: color;
+}
+body.covert-basement .text-muted,
+body.covert-basement .u-covert-disclosure {
+    color: #6b5a5a !important;
+}
+body.covert-basement .u-covert-banner {
+    background: rgba(30, 8, 8, 0.85) !important;
+}
+body.covert-basement .navbar.bg-dark {
+    background-color: #080404 !important;
 }
 .covert-env-selector {
     display: inline-flex;
