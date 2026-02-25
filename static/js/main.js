@@ -271,21 +271,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
     }
-    const covertBtn = document.getElementById('covertToggle');
+    function hasAcceptedROE() {
+        try { return localStorage.getItem('roeAccepted') === '1'; } catch(_e) { return false; }
+    }
+    function markROEAccepted() {
+        try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
+    }
+    function activateCovertOrSwitch() {
+        var idEl = document.querySelector('[data-analysis-id]');
+        var modeMeta = document.querySelector('meta[name="x-report-mode"]');
+        if (idEl && modeMeta) {
+            var aid = idEl.dataset.analysisId;
+            var cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
+            if (aid && (cur === 'E' || cur === 'C')) {
+                var target = cur === 'E' ? 'C' : 'E';
+                globalThis.location.href = '/analysis/' + aid + '/view/' + target;
+                return;
+            }
+        }
+        setCovertMode(!document.body.classList.contains('covert-mode'));
+    }
+    var roeModalEl = document.getElementById('roeModal');
+    var roeModal = null;
+    if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        roeModal = new bootstrap.Modal(roeModalEl);
+    }
+    var roeAcceptBtn = document.getElementById('roeAccept');
+    if (roeAcceptBtn) {
+        roeAcceptBtn.addEventListener('click', function() {
+            markROEAccepted();
+            if (roeModal) { roeModal.hide(); }
+            activateCovertOrSwitch();
+        });
+    }
+    var roeDeclineBtn = document.getElementById('roeDecline');
+    if (roeDeclineBtn) {
+        roeDeclineBtn.addEventListener('click', function() {
+            if (roeModal) { roeModal.hide(); }
+        });
+    }
+    var covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
-            const idEl = document.querySelector('[data-analysis-id]');
-            const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-            if (idEl && modeMeta) {
-                const aid = idEl.dataset.analysisId;
-                const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
-                if (aid && (cur === 'E' || cur === 'C')) {
-                    const target = cur === 'E' ? 'C' : 'E';
-                    globalThis.location.href = '/analysis/' + aid + '/view/' + target;
-                    return;
-                }
+            if (document.body.classList.contains('covert-mode')) {
+                setCovertMode(false);
+                return;
             }
-            setCovertMode(!document.body.classList.contains('covert-mode'));
+            if (!hasAcceptedROE() && roeModal) {
+                roeModal.show();
+                return;
+            }
+            activateCovertOrSwitch();
         });
     }
     const covertExitHome = document.getElementById('covertExitHome');
