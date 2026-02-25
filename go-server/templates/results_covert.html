@@ -639,11 +639,11 @@
 
                         {{if $ct}}
                         <div class="mb-4">
-                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>Subdomain Discovery (Certificate Transparency)</h6>
+                            <h6 class="fw-semibold font-monospace"><i class="fas fa-terminal me-1"></i>Subdomain Discovery (Multi-Source)</h6>
                             {{$ctCount := mapGetFloat "count" $ct}}
                             {{$subdomains := mapGetSlice "subdomains" $ct}}
                             <div class="alert alert-info py-2 mb-2 small">
-                                <i class="fas fa-sitemap me-1"></i>{{formatFloat 0 $ctCount}} subdomain{{if ne $ctCount 1.0}}s{{end}} discovered via Certificate Transparency logs
+                                <i class="fas fa-sitemap me-1"></i>{{formatFloat 0 $ctCount}} subdomain{{if ne $ctCount 1.0}}s{{end}} discovered via CT logs + DNS probing + Nmap SAN extraction
                             </div>
                             {{if $subdomains}}
                             <div class="table-responsive">

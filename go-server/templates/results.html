@@ -5011,6 +5011,20 @@
                                         {{if mapGetBool "is_wildcard" $s}}
                                         <span class="badge bg-warning-subtle text-warning border border-warning-subtle u-fs-060rem">Wildcard</span>
                                         {{end}}
+                                        {{$services := mapGetSlice "services" $s}}
+                                        {{if $services}}
+                                        <div class="mt-1">
+                                            {{range $svc := $services}}
+                                            {{$sv := toMap $svc}}
+                                            {{if $sv}}
+                                            <span class="badge bg-dark bg-opacity-50 text-light u-fs-060rem me-1" title="Service fingerprint from Nmap probe">
+                                                {{mapGetInt "port" $sv}}/{{default "tcp" (mapGetStr "protocol" $sv)}}
+                                                {{if mapGetStr "product" $sv}}{{mapGetStr "product" $sv}}{{else}}{{mapGetStr "service" $sv}}{{end}}
+                                            </span>
+                                            {{end}}
+                                            {{end}}
+                                        </div>
+                                        {{end}}
                                     </td>
                                     <td class="border-secondary text-center">
                                         {{$source := mapGetStr "source" $s}}
@@ -5018,6 +5032,8 @@
                                         <span class="badge bg-info-subtle text-info border border-info-subtle u-fs-060rem" title="Found via DNS A/AAAA record lookup of common service names">DNS</span>
                                         {{else if eq $source "cname"}}
                                         <span class="badge u-badge-ai-sm" title="Discovered via CNAME chain">CNAME</span>
+                                        {{else if eq $source "nmap_san"}}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle u-fs-060rem" title="Discovered via TLS certificate SAN from Nmap probe">Nmap SAN</span>
                                         {{else}}
                                         <span class="badge bg-dark bg-opacity-25 text-muted u-fs-060rem" title="Found in Certificate Transparency logs (RFC 6962)">CT Log</span>
                                         {{end}}

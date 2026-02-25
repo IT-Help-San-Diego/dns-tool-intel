@@ -196,6 +196,17 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 a.enrichSubdomainsV2(ctx, domain, subdomains)
         }
 
+        if len(a.Probes) > 0 && len(subdomains) > 0 {
+                newSANs, nmapEnriched := a.enrichSubdomainsWithNmap(ctx, domain, subdomains)
+                if len(newSANs) > 0 {
+                        subdomains = append(subdomains, newSANs...)
+                        result["nmap_san_discovered"] = len(newSANs)
+                }
+                if nmapEnriched > 0 {
+                        result["nmap_enriched"] = nmapEnriched
+                }
+        }
+
         currentCount, expiredCount := countSubdomainStats(subdomains)
         result["current_count"] = fmt.Sprintf("%d", currentCount)
         result["expired_count"] = fmt.Sprintf("%d", expiredCount)
