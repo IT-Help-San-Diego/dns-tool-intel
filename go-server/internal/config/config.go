@@ -47,6 +47,7 @@ var betaPagesMap = map[string]bool{
         "toolkit":      true,
         "investigate":  true,
         "email-header": true,
+        "ttl-tuner":    true,
 }
 
 var sectionTuningMap = map[string]string{

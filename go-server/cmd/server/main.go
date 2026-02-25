@@ -208,6 +208,10 @@ func main() {
         router.POST("/toolkit/myip", toolkitHandler.MyIP)
         router.POST("/toolkit/portcheck", middleware.AnalyzeRateLimit(rateLimiter), toolkitHandler.PortCheck)
 
+        ttlTunerHandler := handlers.NewTTLTunerHandler(cfg, dnsAnalyzer)
+        router.GET("/ttl-tuner", ttlTunerHandler.TTLTunerPage)
+        router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(rateLimiter), ttlTunerHandler.AnalyzeTTL)
+
         investigateHandler := handlers.NewInvestigateHandler(cfg, dnsAnalyzer)
         router.GET("/investigate", investigateHandler.InvestigatePage)
         router.POST("/investigate", middleware.AnalyzeRateLimit(rateLimiter), investigateHandler.Investigate)

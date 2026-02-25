@@ -12,9 +12,13 @@ import (
 )
 
 const (
-        iconWarning = "fas fa-exclamation-triangle text-warning"
-        iconInfo    = "fas fa-info-circle text-info"
-        iconSuccess = "fas fa-lightbulb text-success"
+        iconWarning        = "fas fa-exclamation-triangle text-warning"
+        iconInfo           = "fas fa-info-circle text-info"
+        iconSuccess        = "fas fa-lightbulb text-success"
+        iconTrendMinus     = "fas fa-minus"
+        iconTrendEquals    = "fas fa-equals"
+        iconTrendUp        = "fas fa-arrow-trend-up"
+        iconTrendDown      = "fas fa-arrow-trend-down"
 )
 
 type DBTX interface {
@@ -196,7 +200,7 @@ func loadTrendData(ctx context.Context, queries DBTX) (string, string) {
         if err == nil && len(trend) >= 2 {
                 return computeTrend(trend)
         }
-        return "insufficient", "fas fa-minus"
+        return "insufficient", iconTrendMinus
 }
 
 func loadGradeDistribution(ctx context.Context, queries DBTX) []GradeDistItem {
@@ -258,7 +262,7 @@ func computeStability(stddev float64) (string, string) {
 func computeTrend(points []dbq.ICuAEGetRecentTrendRow) (string, string) {
         n := len(points)
         if n < 2 {
-                return "insufficient", "fas fa-minus"
+                return "insufficient", iconTrendMinus
         }
 
         recentHalf := points[:n/2]
@@ -269,12 +273,12 @@ func computeTrend(points []dbq.ICuAEGetRecentTrendRow) (string, string) {
 
         delta := recentAvg - olderAvg
         if math.Abs(delta) < 3.0 {
-                return "stable", "fas fa-equals"
+                return "stable", iconTrendEquals
         }
         if delta > 0 {
-                return "improving", "fas fa-arrow-trend-up"
+                return "improving", iconTrendUp
         }
-        return "declining", "fas fa-arrow-trend-down"
+        return "declining", iconTrendDown
 }
 
 func avgScores(rows []dbq.ICuAEGetRecentTrendRow) float64 {

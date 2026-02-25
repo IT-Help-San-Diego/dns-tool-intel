@@ -43,6 +43,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
+                        <i class="fas fa-sliders-h me-1" aria-hidden="true"></i>TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "stats"}} active{{end}}" href="/stats">
                         <i class="fas fa-chart-bar me-1" aria-hidden="true"></i>Statistics
                     </a>
