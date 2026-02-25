@@ -332,10 +332,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
     }
+    function playMorseEasterEgg() {
+        try {
+            var a = new Audio('/static/audio/morse-hack-the-planet.m4a');
+            a.volume = 0.4;
+            a.play().catch(function() {});
+        } catch(_e) {}
+    }
     var roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
         roeAcceptBtn.addEventListener('click', function() {
             markROEAccepted();
+            playMorseEasterEgg();
             if (roeModal) { roeModal.hide(); }
             activateCovertOrSwitch();
         });

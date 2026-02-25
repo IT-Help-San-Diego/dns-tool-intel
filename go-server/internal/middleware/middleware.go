@@ -88,6 +88,7 @@ func SecurityHeaders() gin.HandlerFunc {
                                 "manifest-src 'self'; "+
                                 "object-src 'none'; "+
                                 "frame-src 'none'; "+
+                                "media-src 'self'; "+
                                 "worker-src 'self'; "+
                                 "%s",
                         nonceStr, nonceStr, upgradeDirective,
