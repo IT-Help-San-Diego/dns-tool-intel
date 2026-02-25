@@ -28,6 +28,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
+                        <i class="fas fa-sliders-h me-1" aria-hidden="true"></i>TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "investigate"}} active{{end}}" href="/investigate" title="IP Intelligence — investigate IP addresses">
                         <i class="fas fa-route me-1" aria-hidden="true"></i>IP Intel{{if index .BetaPages "investigate"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
                     </a>
@@ -40,11 +45,6 @@
                 <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "toolkit"}} active{{end}}" href="/toolkit" title="Field Tech Toolkit — guided network troubleshooting">
                         <i class="fas fa-tools me-1" aria-hidden="true"></i>Toolkit{{if index .BetaPages "toolkit"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
-                        <i class="fas fa-sliders-h me-1" aria-hidden="true"></i>TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
                     </a>
                 </li>
                 <li class="nav-item">

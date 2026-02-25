@@ -558,20 +558,7 @@ func EvaluateTTLRelevance(resolverTTLs map[string]uint32) DimensionScore {
 }
 
 func buildTTLFinding(recordType string, observed, typical uint32, ratio float64, severity string) TTLFinding {
-        var direction string
-        if observed < typical {
-                direction = "below"
-        } else {
-                direction = "above"
-        }
-
-        recommendation := fmt.Sprintf(
-                "%s TTL is %s — observed %s, typical value is %s. "+
-                        "Consider setting to %d seconds per NIST SP 800-53 SI-18 relevance guidance.",
-                recordType, direction,
-                formatTTLDuration(observed), formatTTLDuration(typical),
-                typical,
-        )
+        recommendation := ttlRecommendation(recordType, observed, typical)
 
         return TTLFinding{
                 RecordType:     recordType,
@@ -582,6 +569,29 @@ func buildTTLFinding(recordType string, observed, typical uint32, ratio float64,
                 Standard:       StandardNIST80053SI18,
                 Recommendation: recommendation,
         }
+}
+
+func ttlRecommendation(recordType string, observed, typical uint32) string {
+        if observed < typical {
+                return fmt.Sprintf(
+                        "%s TTL is below typical — observed %s, typical value is %s. "+
+                                "Short TTLs increase DNS query volume but enable faster propagation. "+
+                                "If you are preparing for a migration or need rapid failover, this may be intentional (RFC 1035 §3.2.1). "+
+                                "For steady-state production, consider %d seconds per "+StandardNIST80053SI18+" relevance guidance. "+
+                                "Use the TTL Tuner for profile-specific recommendations.",
+                        recordType,
+                        formatTTLDuration(observed), formatTTLDuration(typical),
+                        typical,
+                )
+        }
+        return fmt.Sprintf(
+                "%s TTL is above typical — observed %s, typical value is %s. "+
+                        "Long TTLs reduce DNS query volume but slow propagation when records change. "+
+                        "Consider %d seconds for a balance of performance and flexibility per "+StandardNIST80053SI18+" relevance guidance.",
+                recordType,
+                formatTTLDuration(observed), formatTTLDuration(typical),
+                typical,
+        )
 }
 
 func ttlRelevanceDetails(score float64) string {
