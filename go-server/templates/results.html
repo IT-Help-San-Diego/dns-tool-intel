@@ -2054,6 +2054,7 @@
                             <span><i class="fas fa-certificate me-2"></i>DANE / TLSA</span>
                             {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dane"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                             <a href="/analysis/{{.AnalysisID}}/view/C#section-dane" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — DANE/TLSA certificate pinning analysis. A protocol most DNS tools skip entirely. Click for Recon View."><i class="fas fa-terminal me-1"></i>Recon</a>
+                            <a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none ms-2 u-fs-065rem no-print" data-bs-toggle="tooltip" title="Why DANE matters — most DNS tools skip it entirely"><i class="fas fa-flask me-1"></i>Approach</a>
                             {{if and .SectionTuning (index .SectionTuning "dane")}}{{with index .SectionTuning "dane"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
                             <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Does this zone publish DANE / TLSA records?{{else}}Can mail servers establish identity without a public CA?{{end}}
                                 {{$daneStatus := mapGetStr "status" $dane}}
@@ -3575,6 +3576,7 @@
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span><i class="fas fa-shield-alt me-2"></i>{{if .IsPublicSuffix}}Zone Signing &amp; DNSSEC{{else}}Domain Security{{end}}</span>
                             {{if and .SectionTuning (index .SectionTuning "dnssec")}}{{with index .SectionTuning "dnssec"}}<span class="badge {{sectionStatusCSS .}} ms-2"><i class="fas {{sectionStatusIcon .}} me-1"></i>{{.}}</span>{{end}}{{end}}
+                            <a href="/approach" class="text-muted text-decoration-none ms-2 u-fs-065rem no-print" data-bs-toggle="tooltip" title="Why snapshot checks miss configuration drift"><i class="fas fa-flask me-1"></i>Approach</a>
                             <span class="section-question dt-question dt-question--section">{{if .IsPublicSuffix}}Is this zone cryptographically signed?{{else}}Can DNS responses be tampered with in transit?{{end}}
                                 {{if $posture}}
                                 {{$verdicts := mapGetMap "verdicts" $posture}}

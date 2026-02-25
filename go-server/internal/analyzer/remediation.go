@@ -126,16 +126,21 @@ func (a *Analyzer) GenerateRemediation(results map[string]any) map[string]any {
         ds := classifyDKIMState(ps)
         domain := extractDomain(results)
 
-        if isTLD {
-                ps.isNoMailDomain = true
-        }
-
         var fixes []fix
 
-        if ps.isNoMailDomain {
+        if isTLD {
+                fixes = appendDNSSECFixes(fixes, ps)
+                fixes = appendCAAFixes(fixes, ps, domain)
+        } else if ps.isNoMailDomain {
                 fixes = appendNoMailHardeningFixes(fixes, ps, domain)
+                fixes = appendDNSSECFixes(fixes, ps)
+                fixes = appendDANEFixes(fixes, ps, results, domain)
+                fixes = appendCAAFixes(fixes, ps, domain)
         } else if ps.probableNoMail {
                 fixes = appendProbableNoMailFixes(fixes, ps, domain)
+                fixes = appendDNSSECFixes(fixes, ps)
+                fixes = appendDANEFixes(fixes, ps, results, domain)
+                fixes = appendCAAFixes(fixes, ps, domain)
         } else {
                 fixes = appendSPFFixes(fixes, ps, ds, results, domain)
                 fixes = appendDMARCFixes(fixes, ps, results, domain)
@@ -143,10 +148,10 @@ func (a *Analyzer) GenerateRemediation(results map[string]any) map[string]any {
                 fixes = appendMTASTSFixes(fixes, ps, domain)
                 fixes = appendTLSRPTFixes(fixes, ps, domain)
                 fixes = appendBIMIFixes(fixes, ps, domain)
+                fixes = appendDNSSECFixes(fixes, ps)
+                fixes = appendDANEFixes(fixes, ps, results, domain)
+                fixes = appendCAAFixes(fixes, ps, domain)
         }
-        fixes = appendDNSSECFixes(fixes, ps)
-        fixes = appendDANEFixes(fixes, ps, results, domain)
-        fixes = appendCAAFixes(fixes, ps, domain)
 
         sortFixes(fixes)
 

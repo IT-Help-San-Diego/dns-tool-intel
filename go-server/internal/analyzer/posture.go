@@ -455,31 +455,33 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
         }
 }
 
-func classifySimpleProtocols(ps protocolState, acc *postureAccumulator) {
-        if ps.mtaStsOK {
-                acc.configured = append(acc.configured, protocolMTASTS)
-        } else {
-                acc.absent = append(acc.absent, protocolMTASTS)
-        }
+func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulator) {
+        if !isTLD {
+                if ps.mtaStsOK {
+                        acc.configured = append(acc.configured, protocolMTASTS)
+                } else {
+                        acc.absent = append(acc.absent, protocolMTASTS)
+                }
 
-        if ps.tlsrptOK {
-                acc.configured = append(acc.configured, protocolTLSRPT)
-        } else {
-                acc.absent = append(acc.absent, protocolTLSRPT)
-        }
+                if ps.tlsrptOK {
+                        acc.configured = append(acc.configured, protocolTLSRPT)
+                } else {
+                        acc.absent = append(acc.absent, protocolTLSRPT)
+                }
 
-        if ps.bimiOK {
-                acc.configured = append(acc.configured, "BIMI")
-        } else {
-                acc.absent = append(acc.absent, "BIMI")
-        }
+                if ps.bimiOK {
+                        acc.configured = append(acc.configured, "BIMI")
+                } else {
+                        acc.absent = append(acc.absent, "BIMI")
+                }
 
-        if ps.daneOK {
-                acc.configured = append(acc.configured, "DANE")
-        } else if ps.daneProviderLimited {
-                acc.providerLimited = append(acc.providerLimited, "DANE")
-        } else {
-                acc.absent = append(acc.absent, "DANE")
+                if ps.daneOK {
+                        acc.configured = append(acc.configured, "DANE")
+                } else if ps.daneProviderLimited {
+                        acc.providerLimited = append(acc.providerLimited, "DANE")
+                } else {
+                        acc.absent = append(acc.absent, "DANE")
+                }
         }
 
         if ps.dnssecOK {
@@ -664,7 +666,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
                 classifyDMARC(ps, acc)
                 classifyDKIMPosture(ds, ps.primaryProvider, acc)
         }
-        classifySimpleProtocols(ps, acc)
+        classifySimpleProtocols(ps, isTLD, acc)
         classifyDanglingDNS(results, acc)
         classifyDMARCReportAuth(results, acc)
         classifyCertificateCosts(results, acc)
