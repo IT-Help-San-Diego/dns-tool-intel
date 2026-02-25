@@ -161,6 +161,12 @@ func handleSMTPProbe(w http.ResponseWriter, r *http.Request) {
         if len(req.Hosts) > maxHosts {
                 req.Hosts = req.Hosts[:maxHosts]
         }
+        for _, h := range req.Hosts {
+                if !isValidHostname(h) {
+                        writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid hostname: " + truncate(h, 40)})
+                        return
+                }
+        }
         if len(req.Ports) == 0 {
                 req.Ports = []int{25, 465, 587}
         }
@@ -384,6 +390,10 @@ func handleTestSSL(w http.ResponseWriter, r *http.Request) {
                 writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request: host required"})
                 return
         }
+        if !isValidHostname(req.Host) {
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid hostname"})
+                return
+        }
         if req.Port == 0 {
                 req.Port = 25
         }
@@ -463,6 +473,10 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         }
         if err := json.Unmarshal(body, &req); err != nil || req.Host == "" {
                 writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request: host required"})
+                return
+        }
+        if !isValidHostname(req.Host) {
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid hostname"})
                 return
         }
         if req.Port == 0 {
@@ -602,6 +616,8 @@ func extractCertInfo(conn net.Conn, host string) map[string]any {
         return result
 }
 
+const maxSMTPResponseSize = 64 * 1024
+
 func readSMTPResponse(conn net.Conn, timeout time.Duration) (string, error) {
         conn.SetReadDeadline(time.Now().Add(timeout))
         buf := make([]byte, 4096)
@@ -610,6 +626,9 @@ func readSMTPResponse(conn net.Conn, timeout time.Duration) (string, error) {
                 n, err := conn.Read(buf)
                 if n > 0 {
                         response.Write(buf[:n])
+                        if response.Len() > maxSMTPResponseSize {
+                                return response.String(), fmt.Errorf("SMTP response exceeded %d bytes", maxSMTPResponseSize)
+                        }
                         if smtpComplete(response.String()) {
                                 break
                         }
@@ -683,6 +702,22 @@ func truncate(s string, maxLen int) string {
         return s[:maxLen]
 }
 
+func isValidHostname(host string) bool {
+        if len(host) == 0 || len(host) > 253 {
+                return false
+        }
+        if strings.HasPrefix(host, "-") || strings.HasPrefix(host, ".") {
+                return false
+        }
+        for _, ch := range host {
+                if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
+                        (ch >= '0' && ch <= '9') || ch == '.' || ch == '-') {
+                        return false
+                }
+        }
+        return true
+}
+
 var allowedNSEScripts = map[string]bool{
         "ssl-cert":          true,
         "http-title":        true,
@@ -711,7 +746,7 @@ func handleNmapScan(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        if strings.ContainsAny(req.Host, ";|&$`\n\r") {
+        if !isValidHostname(req.Host) {
                 writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid hostname"})
                 return
         }
