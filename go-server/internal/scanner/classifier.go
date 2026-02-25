@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+const (
+	mapKeyDomain = "domain"
+)
+
 type Classification struct {
 	IsScan bool
 	Source string
@@ -46,7 +50,7 @@ func Classify(domain, clientIP string) Classification {
 		if entry.Pattern.MatchString(domain) {
 			result.IsScan = true
 			result.Source = entry.Source
-			slog.Info("Scanner domain detected", "domain", domain, "source", result.Source, "ip", clientIP)
+			slog.Info("Scanner domain detected", mapKeyDomain, domain, "source", result.Source, "ip", clientIP)
 			return result
 		}
 	}
@@ -54,14 +58,14 @@ func Classify(domain, clientIP string) Classification {
 	if source := matchCISAIP(clientIP); source != "" {
 		result.IsScan = true
 		result.Source = source
-		slog.Info("CISA scanner IP detected", "domain", domain, "source", result.Source, "ip", clientIP)
+		slog.Info("CISA scanner IP detected", mapKeyDomain, domain, "source", result.Source, "ip", clientIP)
 		return result
 	}
 
 	if isHeuristicScanner(domain) {
 		result.IsScan = true
 		result.Source = "Heuristic (automated probe pattern)"
-		slog.Info("Heuristic scanner pattern detected", "domain", domain, "ip", clientIP)
+		slog.Info("Heuristic scanner pattern detected", mapKeyDomain, domain, "ip", clientIP)
 		return result
 	}
 

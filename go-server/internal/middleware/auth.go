@@ -11,6 +11,11 @@ import (
         "github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+        mapKeyAuthenticated = "authenticated"
+        mapKeyUserRole = "user_role"
+)
+
 const sessionCookieName = "_dns_session"
 
 func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
@@ -31,9 +36,9 @@ func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
                 c.Set("user_id", session.UserID)
                 c.Set("user_email", session.Email)
                 c.Set("user_name", session.Name)
-                c.Set("user_role", session.Role)
+                c.Set(mapKeyUserRole, session.Role)
                 c.Set("session_id", session.ID)
-                c.Set("authenticated", true)
+                c.Set(mapKeyAuthenticated, true)
 
                 go func(token string) {
                         ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -47,11 +52,11 @@ func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
 
 func RequireAuth() gin.HandlerFunc {
         return func(c *gin.Context) {
-                auth, exists := c.Get("authenticated")
+                auth, exists := c.Get(mapKeyAuthenticated)
                 authed, _ := auth.(bool)
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
-                                "error": "Authentication required",
+                                mapKeyError: "Authentication required",
                         })
                         c.Abort()
                         return
@@ -62,19 +67,19 @@ func RequireAuth() gin.HandlerFunc {
 
 func RequireAdmin() gin.HandlerFunc {
         return func(c *gin.Context) {
-                auth, exists := c.Get("authenticated")
+                auth, exists := c.Get(mapKeyAuthenticated)
                 authed, _ := auth.(bool)
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
-                                "error": "Authentication required",
+                                mapKeyError: "Authentication required",
                         })
                         c.Abort()
                         return
                 }
-                role, _ := c.Get("user_role")
+                role, _ := c.Get(mapKeyUserRole)
                 if role != "admin" {
                         c.JSON(http.StatusForbidden, gin.H{
-                                "error": "Administrator access required",
+                                mapKeyError: "Administrator access required",
                         })
                         c.Abort()
                         return
@@ -85,14 +90,14 @@ func RequireAdmin() gin.HandlerFunc {
 
 func GetAuthTemplateData(c *gin.Context) map[string]any {
         data := map[string]any{}
-        if auth, exists := c.Get("authenticated"); exists {
+        if auth, exists := c.Get(mapKeyAuthenticated); exists {
                 authed, _ := auth.(bool)
                 if !authed {
                         return data
                 }
                 email, _ := c.Get("user_email")
                 name, _ := c.Get("user_name")
-                role, _ := c.Get("user_role")
+                role, _ := c.Get(mapKeyUserRole)
                 data["Authenticated"] = true
                 data["UserEmail"] = email
                 data["UserName"] = name

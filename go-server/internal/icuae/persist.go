@@ -19,6 +19,9 @@ const (
         iconTrendEquals    = "fas fa-equals"
         iconTrendUp        = "fas fa-arrow-trend-up"
         iconTrendDown      = "fas fa-arrow-trend-down"
+
+
+	mapKeyError = "error"
 )
 
 type DBTX interface {
@@ -43,7 +46,7 @@ func RecordScanResult(ctx context.Context, queries DBTX, domain string, report C
                 AppVersion:    versionPtr,
         })
         if err != nil {
-                slog.Warn("ICuAE: failed to record scan score", "domain", domain, "error", err)
+                slog.Warn("ICuAE: failed to record scan score", "domain", domain, mapKeyError, err)
                 return
         }
 
@@ -55,7 +58,7 @@ func RecordScanResult(ctx context.Context, queries DBTX, domain string, report C
                         Grade:                dim.Grade,
                         RecordTypesEvaluated: int32(dim.RecordTypes),
                 }); err != nil {
-                        slog.Warn("ICuAE: failed to record dimension score", "dimension", dim.Dimension, "error", err)
+                        slog.Warn("ICuAE: failed to record dimension score", "dimension", dim.Dimension, mapKeyError, err)
                 }
         }
 }
@@ -136,7 +139,7 @@ var dimensionTuningThresholds = map[string][]struct {
 func LoadRuntimeMetrics(ctx context.Context, queries DBTX) *RuntimeMetrics {
         stats, err := queries.ICuAEGetAggregateStats(ctx)
         if err != nil {
-                slog.Warn("ICuAE: failed to load aggregate stats", "error", err)
+                slog.Warn("ICuAE: failed to load aggregate stats", mapKeyError, err)
                 return nil
         }
 

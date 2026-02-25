@@ -135,7 +135,7 @@ type RegressionEvent struct {
         RunsSince   int
 }
 
-func NextTierPct(currentLevel string, consecutivePasses int, daysSinceFirst int) int {
+func NextTierPct(currentLevel string, consecutivePasses, daysSinceFirst int) int {
         _, _, nextPasses, nextDays, _, _, atMax := ComputeNextTier(currentLevel, consecutivePasses, daysSinceFirst)
         if atMax {
                 return 100
@@ -227,7 +227,7 @@ func CountCasesByProtocol() map[string]ProtocolCaseCounts {
         return counts
 }
 
-func ComputeNextTier(currentLevel string, consecutivePasses int, daysSinceFirst int) (nextName string, nextKey string, nextPasses int, nextDays int, passesMet bool, daysMet bool, atMax bool) {
+func ComputeNextTier(currentLevel string, consecutivePasses, daysSinceFirst int) (nextName, nextKey string, nextPasses, nextDays int, passesMet, daysMet, atMax bool) {
         switch currentLevel {
         case MaturityDevelopment:
                 return MaturityDisplayNames[MaturityVerified], "verified", ThresholdVerified, 0, consecutivePasses >= ThresholdVerified, true, false

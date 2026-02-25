@@ -16,6 +16,10 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	strCname = "CNAME"
+)
+
 const tplTTLTuner = "ttl_tuner.html"
 
 type TTLTunerHandler struct {
@@ -71,7 +75,7 @@ type TTLTunerResult struct {
 }
 
 var tunerRecordTypes = []string{
-        "A", "AAAA", "MX", "TXT", "NS", "CNAME", "CAA", "SOA",
+        "A", "AAAA", "MX", "TXT", "NS", strCname, "CAA", "SOA",
 }
 
 func (h *TTLTunerHandler) AnalyzeTTL(c *gin.Context) {
@@ -120,7 +124,7 @@ func cleanDomainInput(domain string) string {
         return strings.Split(domain, "/")[0]
 }
 
-var tunerRecordOrder = map[string]int{"A": 0, "AAAA": 1, "CNAME": 2, "MX": 3, "TXT": 4, "NS": 5, "CAA": 6, "SOA": 7}
+var tunerRecordOrder = map[string]int{"A": 0, "AAAA": 1, strCname: 2, "MX": 3, "TXT": 4, "NS": 5, "CAA": 6, "SOA": 7}
 
 func (h *TTLTunerHandler) scanTTLRecords(ctx context.Context, domain, profile string) TTLTunerResult {
         nsResult := h.Analyzer.DNS.QueryDNS(ctx, "NS", domain)
@@ -198,11 +202,11 @@ func formatTotalReduction(totalOldQueries, totalNewQueries float64) string {
 func ttlForProfile(recordType, profile string) uint32 {
         stability := map[string]uint32{
                 "A": 3600, "AAAA": 3600, "MX": 3600, "TXT": 3600,
-                "NS": 86400, "CNAME": 3600, "CAA": 3600, "SOA": 3600,
+                "NS": 86400, strCname: 3600, "CAA": 3600, "SOA": 3600,
         }
         agility := map[string]uint32{
                 "A": 300, "AAAA": 300, "MX": 1800, "TXT": 300,
-                "NS": 3600, "CNAME": 300, "CAA": 3600, "SOA": 3600,
+                "NS": 3600, strCname: 300, "CAA": 3600, "SOA": 3600,
         }
         if profile == "agility" {
                 if v, ok := agility[recordType]; ok {
@@ -246,16 +250,16 @@ func determineTunerStatus(observed, typical uint32, locked bool, lockReason, pro
                 return "Optimal", "success", "No change needed — this TTL is already at the recommended value."
         }
         if observed == 0 {
-                return "Not Set", "warning", fmt.Sprintf("Set TTL to %d seconds (%s) per %s profile.", typical, formatHumanTTL(typical), profileName)
+                return "Not Set", mapKeyWarning, fmt.Sprintf("Set TTL to %d seconds (%s) per %s profile.", typical, formatHumanTTL(typical), profileName)
         }
         ratio := float64(observed) / float64(typical)
         if ratio >= 0.5 && ratio <= 2.0 {
                 return "Acceptable", "info", fmt.Sprintf("Current TTL is acceptable. For optimal %s, consider %d seconds (%s).", profileName, typical, formatHumanTTL(typical))
         }
         if observed > typical {
-                return "Adjust", "warning", fmt.Sprintf("TTL is higher than recommended. Reduce to %d seconds (%s) for better %s.", typical, formatHumanTTL(typical), profileName)
+                return "Adjust", mapKeyWarning, fmt.Sprintf("TTL is higher than recommended. Reduce to %d seconds (%s) for better %s.", typical, formatHumanTTL(typical), profileName)
         }
-        return "Adjust", "warning", fmt.Sprintf("TTL is lower than recommended. Increase to %d seconds (%s) to reduce query volume.", typical, formatHumanTTL(typical))
+        return "Adjust", mapKeyWarning, fmt.Sprintf("TTL is lower than recommended. Increase to %d seconds (%s) to reduce query volume.", typical, formatHumanTTL(typical))
 }
 
 func calculateQueryReduction(observed, typical uint32) string {

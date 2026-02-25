@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+const (
+	mapKeyCnameTarget = "cname_target"
+	mapKeyConfidence = "confidence"
+	mapKeyIssues = "issues"
+	mapKeyReason = "reason"
+	mapKeyService = "service"
+	mapKeySubdomain = "subdomain"
+)
+
 var takeoverFingerprints = map[string]string{
 	".s3.amazonaws.com":          "AWS S3",
 	".s3-website":                "AWS S3",
@@ -55,7 +64,7 @@ func (a *Analyzer) DetectDanglingDNS(ctx context.Context, domain string, subdoma
 		"checked":         true,
 		"dangling_count":  0,
 		"dangling_records": []map[string]any{},
-		"issues":          []string{},
+		mapKeyIssues:          []string{},
 	}
 
 	var danglingRecords []map[string]any
@@ -79,10 +88,10 @@ func (a *Analyzer) DetectDanglingDNS(ctx context.Context, domain string, subdoma
 		for _, dr := range danglingRecords {
 			issues = append(issues, buildDanglingIssue(dr))
 		}
-		result["issues"] = issues
+		result[mapKeyIssues] = issues
 	} else {
 		result["message"] = "No dangling DNS records detected"
-		result["issues"] = []string{}
+		result[mapKeyIssues] = []string{}
 	}
 
 	return result
@@ -96,10 +105,10 @@ func buildDanglingMessage(count int) string {
 }
 
 func buildDanglingIssue(dr map[string]any) string {
-	name, _ := dr["subdomain"].(string)
-	target, _ := dr["cname_target"].(string)
-	service, _ := dr["service"].(string)
-	reason, _ := dr["reason"].(string)
+	name, _ := dr[mapKeySubdomain].(string)
+	target, _ := dr[mapKeyCnameTarget].(string)
+	service, _ := dr[mapKeyService].(string)
+	reason, _ := dr[mapKeyReason].(string)
 	return strings.Join([]string{name, " → ", target, " (", service, ": ", reason, ")"}, "")
 }
 
@@ -122,28 +131,28 @@ func checkSubdomainDangling(sd map[string]any) map[string]any {
 	}
 
 	hasDNS, _ := sd["has_dns"].(bool)
-	subdomain, _ := sd["subdomain"].(string)
+	subdomain, _ := sd[mapKeySubdomain].(string)
 	cnameLower := strings.ToLower(strings.TrimRight(cname, "."))
 
 	if !hasDNS {
 		service := matchTakeoverService(cnameLower)
 		if service != "" {
 			return map[string]any{
-				"subdomain":    subdomain,
-				"cname_target": cnameLower,
-				"service":      service,
-				"reason":       "CNAME points to unclaimed service",
+				mapKeySubdomain:    subdomain,
+				mapKeyCnameTarget: cnameLower,
+				mapKeyService:      service,
+				mapKeyReason:       "CNAME points to unclaimed service",
 				"risk":         "high",
-				"confidence":   ConfidenceObservedMap(MethodDNSRecord),
+				mapKeyConfidence:   ConfidenceObservedMap(MethodDNSRecord),
 			}
 		}
 		return map[string]any{
-			"subdomain":    subdomain,
-			"cname_target": cnameLower,
-			"service":      "Unknown",
-			"reason":       "CNAME target has no DNS resolution (potential NXDOMAIN)",
+			mapKeySubdomain:    subdomain,
+			mapKeyCnameTarget: cnameLower,
+			mapKeyService:      "Unknown",
+			mapKeyReason:       "CNAME target has no DNS resolution (potential NXDOMAIN)",
 			"risk":         "medium",
-			"confidence":   ConfidenceObservedMap(MethodDNSRecord),
+			mapKeyConfidence:   ConfidenceObservedMap(MethodDNSRecord),
 		}
 	}
 
@@ -166,12 +175,12 @@ func (a *Analyzer) checkBaseDomainDangling(ctx context.Context, domain string) [
 				service = "Unknown"
 			}
 			results = append(results, map[string]any{
-				"subdomain":    domain,
-				"cname_target": cnameLower,
-				"service":      service,
-				"reason":       "Base domain CNAME target unresolvable",
+				mapKeySubdomain:    domain,
+				mapKeyCnameTarget: cnameLower,
+				mapKeyService:      service,
+				mapKeyReason:       "Base domain CNAME target unresolvable",
 				"risk":         "critical",
-				"confidence":   ConfidenceObservedMap(MethodDNSRecord),
+				mapKeyConfidence:   ConfidenceObservedMap(MethodDNSRecord),
 			})
 		}
 	}

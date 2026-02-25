@@ -9,6 +9,16 @@ import (
         "strings"
 )
 
+const (
+	mapKeyDmarcLike = "dmarc_like"
+	mapKeyQuarantine = "quarantine"
+	mapKeyRecords = "records"
+	mapKeyReject = "reject"
+	mapKeyRelaxed = "relaxed"
+	mapKeyStatus = "status"
+	mapKeyValidRecords = "valid_records"
+)
+
 var (
         dmarcPolicyRe   = regexp.MustCompile(`(?i)\bp=(\w+)`)
         dmarcSPRe       = regexp.MustCompile(`(?i)\bsp=(\w+)`)
@@ -38,7 +48,7 @@ type dmarcTags struct {
 
 func parseDMARCTags(record string) dmarcTags {
         recordLower := strings.ToLower(record)
-        tags := dmarcTags{pct: 100, aspf: "relaxed", adkim: "relaxed"}
+        tags := dmarcTags{pct: 100, aspf: mapKeyRelaxed, adkim: mapKeyRelaxed}
 
         if m := dmarcPolicyRe.FindStringSubmatch(recordLower); m != nil {
                 tags.policy = &m[1]
@@ -87,10 +97,10 @@ func classifyDMARCPolicyVerdict(policy string, pct int) (string, string, []strin
                 status = "warning"
                 message = "DMARC in monitoring mode (p=none) - spoofed mail still delivered, no enforcement"
                 issues = append(issues, "Policy p=none provides no protection - spoofed emails reach inboxes")
-        case "reject":
-                status, message, issues = classifyEnforcementLevel("reject", pct, "excellent")
-        case "quarantine":
-                status, message, issues = classifyEnforcementLevel("quarantine", pct, "good")
+        case mapKeyReject:
+                status, message, issues = classifyEnforcementLevel(mapKeyReject, pct, "excellent")
+        case mapKeyQuarantine:
+                status, message, issues = classifyEnforcementLevel(mapKeyQuarantine, pct, "good")
         default:
                 status = "info"
                 message = "DMARC record found but policy unclear"
@@ -112,7 +122,7 @@ func checkDMARCSubdomainIssues(tags dmarcTags) []string {
         if tags.policy == nil {
                 return nil
         }
-        if *tags.policy != "reject" && *tags.policy != "quarantine" {
+        if *tags.policy != mapKeyReject && *tags.policy != mapKeyQuarantine {
                 return nil
         }
         var issues []string
@@ -136,13 +146,13 @@ func checkDMARCReportingIssues(tags dmarcTags) []string {
 func buildRUFNote(tags dmarcTags) map[string]any {
         if tags.ruf != nil {
                 return map[string]any{
-                        "status":  "present",
+                        mapKeyStatus:  "present",
                         "summary": "Forensic reporting (ruf) is configured, but most major providers do not send forensic reports.",
                         "detail":  "RFC 7489 §7.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification. Consider removing this tag to simplify your record.",
                 }
         }
         return map[string]any{
-                "status":  "absent",
+                mapKeyStatus:  "absent",
                 "summary": "No forensic reporting (ruf) tag — this is correct.",
                 "detail":  "Many tools flag the absence of ruf= as a gap. It is not. RFC 7489 §7.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests regardless. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification, confirming its deprecation. Omitting ruf= is the recommended modern practice.",
         }
@@ -176,7 +186,7 @@ func classifyDMARCRecords(records []string) (validDMARC, dmarcLike []string) {
 }
 
 func evaluateDMARCRecordSet(validDMARC []string) (string, string, []string, dmarcTags) {
-        tags := dmarcTags{pct: 100, aspf: "relaxed", adkim: "relaxed"}
+        tags := dmarcTags{pct: 100, aspf: mapKeyRelaxed, adkim: mapKeyRelaxed}
 
         if len(validDMARC) == 0 {
                 return "error", "No valid DMARC record found", nil, tags
@@ -219,16 +229,16 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
         dmarcRecords := a.DNS.QueryDNS(ctx, "TXT", fmt.Sprintf("_dmarc.%s", domain))
 
         baseResult := map[string]any{
-                "status":           "missing",
-                "message":          "No DMARC record found",
-                "records":          []string{},
-                "valid_records":    []string{},
-                "dmarc_like":       []string{},
+                mapKeyStatus:           "missing",
+                mapKeyMessage:          "No DMARC record found",
+                mapKeyRecords:          []string{},
+                mapKeyValidRecords:    []string{},
+                mapKeyDmarcLike:       []string{},
                 "policy":           nil,
                 "subdomain_policy": nil,
                 "pct":              100,
-                "aspf":             "relaxed",
-                "adkim":            "relaxed",
+                "aspf":             mapKeyRelaxed,
+                "adkim":            mapKeyRelaxed,
                 "rua":              nil,
                 "ruf":              nil,
                 "ruf_note":         map[string]any{},
@@ -236,7 +246,7 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 "t_testing":        nil,
                 "psd_flag":         nil,
                 "dmarcbis_tags":    map[string]string{},
-                "issues":           []string{},
+                mapKeyIssues:           []string{},
         }
 
         if len(dmarcRecords) == 0 {
@@ -247,11 +257,11 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
         status, message, issues, tags := evaluateDMARCRecordSet(validDMARC)
 
         result := map[string]any{
-                "status":           status,
-                "message":          message,
-                "records":          dmarcRecords,
-                "valid_records":    validDMARC,
-                "dmarc_like":       dmarcLike,
+                mapKeyStatus:           status,
+                mapKeyMessage:          message,
+                mapKeyRecords:          dmarcRecords,
+                mapKeyValidRecords:    validDMARC,
+                mapKeyDmarcLike:       dmarcLike,
                 "policy":           derefStr(tags.policy),
                 "subdomain_policy": derefStr(tags.subdomainPolicy),
                 "pct":              tags.pct,
@@ -264,10 +274,10 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 "t_testing":        derefStr(tags.tTesting),
                 "psd_flag":         derefStr(tags.psdFlag),
                 "dmarcbis_tags":    buildDMARCbisTags(tags),
-                "issues":           issues,
+                mapKeyIssues:           issues,
         }
 
-        ensureStringSlices(result, "valid_records", "dmarc_like", "issues")
+        ensureStringSlices(result, mapKeyValidRecords, mapKeyDmarcLike, mapKeyIssues)
 
         return result
 }
@@ -292,9 +302,9 @@ func DetectMisplacedDMARC(rootTXTRecords []string) map[string]any {
         }
         return map[string]any{
                 "detected":    true,
-                "records":     found,
+                mapKeyRecords:     found,
                 "policy_hint": policy,
-                "message":     "DMARC record found in root TXT records — this is ignored by mail receivers. DMARC records must be published at _dmarc.<domain> per RFC 7489 §6.1.",
+                mapKeyMessage:     "DMARC record found in root TXT records — this is ignored by mail receivers. DMARC records must be published at _dmarc.<domain> per RFC 7489 §6.1.",
         }
 }
 

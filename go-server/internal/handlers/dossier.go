@@ -13,6 +13,10 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	mapKeyDossier = "dossier"
+)
+
 const templateDossier = "dossier.html"
 
 type DossierHandler struct {
@@ -148,12 +152,12 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
         auth, exists := c.Get("authenticated")
         if !exists || auth != true {
                 data := gin.H{
-                        "AppVersion":       h.Config.AppVersion,
-                        "MaintenanceNote":  h.Config.MaintenanceNote,
-                        "BetaPages":        h.Config.BetaPages,
-                        "CspNonce":         nonce,
-                        "CsrfToken":        csrfToken,
-                        "ActivePage":       "dossier",
+                        strAppversion:       h.Config.AppVersion,
+                        strMaintenancenote:  h.Config.MaintenanceNote,
+                        strBetapages:        h.Config.BetaPages,
+                        strCspnonce:         nonce,
+                        strCsrftoken:        csrfToken,
+                        strActivepage:       mapKeyDossier,
                         "RequiresAuth":     true,
                         "TotalReports":     int64(0),
                         "Analyses":         []dossierItem{},
@@ -180,12 +184,12 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
         total, err := h.countUserAnalyses(ctx, userID, searchDomain)
         if err != nil {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-                        "BetaPages":       h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "dossier",
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+                        strBetapages:       h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyDossier,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to load intelligence reports"}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -198,12 +202,12 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
         items, err := h.fetchUserAnalyses(ctx, userID, searchDomain, &pagination)
         if err != nil {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-                        "BetaPages":       h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "dossier",
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+                        strBetapages:       h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyDossier,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to load tasked collections"}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -214,12 +218,12 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
         pd := BuildPagination(page, pagination.TotalPages, total)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "dossier",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      mapKeyDossier,
                 "Analyses":        items,
                 "Pagination":      pd,
                 "SearchDomain":    searchDomain,

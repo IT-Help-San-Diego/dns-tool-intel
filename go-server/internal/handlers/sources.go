@@ -13,6 +13,8 @@ import (
 const (
         rateLimitNone   = "No rate limits."
         methodHTTPSREST = "HTTPS REST API (no authentication required)"
+        strPrimary      = "Primary"
+        strResolver     = "Resolver"
 )
 
 type IntelSource struct {
@@ -41,7 +43,7 @@ func (h *SourcesHandler) Sources(c *gin.Context) {
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":        nonce,
                 "ActivePage":      "sources",
                 "DNSSources":      getDNSSources(),
@@ -61,7 +63,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "Multi-Resolver DNS Consensus",
                         Icon:       "fas fa-network-wired",
-                        Category:   "Primary",
+                        Category:   strPrimary,
                         Purpose:    "All DNS record queries (A, AAAA, MX, NS, TXT, CNAME, DNSKEY, DS, TLSA, CAA, HTTPS, SVCB, CDS, CDNSKEY, SMIMEA, OPENPGPKEY). Five resolvers queried in parallel with majority-agreement consensus to detect censorship, poisoning, or propagation delays.",
                         Method:     "UDP/TCP DNS queries with DoH (DNS-over-HTTPS) fallback",
                         RateLimits: "No rate limits. Public DNS resolvers are free and unrestricted.",
@@ -72,7 +74,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "Cloudflare DNS (1.1.1.1)",
                         Icon:       "fas fa-shield-alt",
-                        Category:   "Resolver",
+                        Category:   strResolver,
                         Purpose:    "Primary consensus resolver. Privacy-focused, DNSSEC-validating resolver operated by Cloudflare.",
                         Method:     "UDP/TCP with DoH fallback via https://cloudflare-dns.com/dns-query",
                         RateLimits: rateLimitNone,
@@ -83,7 +85,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "Google Public DNS (8.8.8.8)",
                         Icon:       "fas fa-globe",
-                        Category:   "Resolver",
+                        Category:   strResolver,
                         Purpose:    "Primary consensus resolver. Globally distributed, DNSSEC-validating resolver operated by Google.",
                         Method:     "UDP/TCP with DoH fallback via https://dns.google/resolve",
                         RateLimits: rateLimitNone,
@@ -94,7 +96,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "Quad9 (9.9.9.9)",
                         Icon:       "fas fa-shield-alt",
-                        Category:   "Resolver",
+                        Category:   strResolver,
                         Purpose:    "Consensus resolver with threat-intelligence filtering. Swiss-based nonprofit, DNSSEC-validating.",
                         Method:     "UDP/TCP with DoH fallback via https://dns.quad9.net/dns-query",
                         RateLimits: rateLimitNone,
@@ -105,7 +107,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "OpenDNS / Cisco Umbrella (208.67.222.222)",
                         Icon:       "fas fa-globe-americas",
-                        Category:   "Resolver",
+                        Category:   strResolver,
                         Purpose:    "Consensus resolver. Enterprise-grade resolver operated by Cisco.",
                         Method:     "UDP/TCP",
                         RateLimits: rateLimitNone,
@@ -116,7 +118,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "DNS4EU (86.54.11.100)",
                         Icon:       "fas fa-flag",
-                        Category:   "Resolver",
+                        Category:   strResolver,
                         Purpose:    "EU-sovereign consensus resolver. Operated by a European Commission-funded consortium across 10 EU member states. Unfiltered variant, DNSSEC-validating, GDPR-compliant. Infrastructure exclusively within EU borders.",
                         Method:     "UDP/TCP with DoH fallback via https://unfiltered.joindns4.eu/dns-query",
                         RateLimits: "1,000 queries/sec per IP.",
@@ -127,7 +129,7 @@ func getDNSSources() []IntelSource {
                 {
                         Name:       "Authoritative NS Direct Query",
                         Icon:       "fas fa-server",
-                        Category:   "Primary",
+                        Category:   strPrimary,
                         Purpose:    "Direct queries to the domain's own authoritative nameservers for DKIM selector probing, delegation checks, and DNSSEC chain validation. Bypasses resolver caching for ground-truth data.",
                         Method:     "UDP/TCP DNS queries to authoritative NS IPs",
                         RateLimits: "No rate limits (querying the domain's own infrastructure).",
@@ -142,7 +144,7 @@ func getInfraSources() []IntelSource {
                 {
                         Name:       "Reverse DNS (PTR Records)",
                         Icon:       "fas fa-arrows-rotate",
-                        Category:   "Primary",
+                        Category:   strPrimary,
                         Purpose:    "Identifies hosting providers by resolving IP addresses back to hostnames. A PTR record for a CloudFront IP returns server-xxx.cloudfront.net, directly revealing the hosting provider without any third-party API.",
                         Method:     "Standard DNS PTR query (dig -x)",
                         RateLimits: "No rate limits. Standard DNS protocol.",
@@ -163,7 +165,7 @@ func getInfraSources() []IntelSource {
                 {
                         Name:       "SMTP Transport Probing",
                         Icon:       "fas fa-envelope",
-                        Category:   "Primary",
+                        Category:   strPrimary,
                         Purpose:    "Live STARTTLS verification of mail servers. Tests TLS version support, cipher suites, certificate validity, and DANE/TLSA matching. Falls back to DNS-inferred analysis when direct connection is unavailable.",
                         Method:     "TCP connection to port 25 with STARTTLS negotiation",
                         RateLimits: "No rate limits (standard SMTP protocol).",

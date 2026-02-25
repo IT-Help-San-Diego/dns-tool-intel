@@ -60,11 +60,11 @@
                                 <input type="text" class="form-control search-input" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Domain to analyze">
                             </div>
 
-                            <fieldset class="border-0 p-0 m-0" role="radiogroup" aria-labelledby="profileLegend">
+                            <fieldset class="border-0 p-0 m-0">
                                 <legend id="profileLegend" class="form-label search-label mb-2"><i class="fas fa-cog me-2" aria-hidden="true"></i>Optimization Profile</legend>
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
+                                        <input class="form-check-input visually-hidden" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
                                         <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" style="cursor:pointer">
                                             <div class="card-body">
                                                 <div class="d-flex align-items-center mb-2">
@@ -78,7 +78,7 @@
                                         </label>
                                     </div>
                                     <div class="col-md-6">
-                                        <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
+                                        <input class="form-check-input visually-hidden" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
                                         <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" style="cursor:pointer">
                                             <div class="card-body">
                                                 <div class="d-flex align-items-center mb-2">

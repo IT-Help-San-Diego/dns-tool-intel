@@ -15,6 +15,7 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+
 type AnalyticsHandler struct {
         DB     *db.Database
         Config *config.Config
@@ -85,7 +86,7 @@ func (h *AnalyticsHandler) fetchDailyAnalytics(ctx context.Context, limit int) [
                  FROM site_analytics
                  ORDER BY date DESC LIMIT $1`, limit)
         if err != nil {
-                slog.Error("Analytics: failed to fetch daily data", "error", err)
+                slog.Error("Analytics: failed to fetch daily data", mapKeyError, err)
                 return nil
         }
         defer rows.Close()
@@ -97,17 +98,17 @@ func (h *AnalyticsHandler) fetchDailyAnalytics(ctx context.Context, limit int) [
                 var refsJSON, pagesJSON []byte
                 if err := rows.Scan(&dateVal, &d.Pageviews, &d.UniqueVisitors, &d.AnalysesRun,
                         &d.UniqueDomainsAnalyzed, &refsJSON, &pagesJSON); err != nil {
-                        slog.Error("Analytics: row scan error", "error", err)
+                        slog.Error("Analytics: row scan error", mapKeyError, err)
                         continue
                 }
                 d.Date = dateVal.Format("2006-01-02")
                 d.ReferrerSources = make(map[string]int)
                 d.TopPages = make(map[string]int)
                 if err := json.Unmarshal(refsJSON, &d.ReferrerSources); err != nil {
-                        slog.Warn("Analytics: unmarshal referrer_sources", "error", err)
+                        slog.Warn("Analytics: unmarshal referrer_sources", mapKeyError, err)
                 }
                 if err := json.Unmarshal(pagesJSON, &d.TopPages); err != nil {
-                        slog.Warn("Analytics: unmarshal top_pages", "error", err)
+                        slog.Warn("Analytics: unmarshal top_pages", mapKeyError, err)
                 }
                 days = append(days, d)
         }

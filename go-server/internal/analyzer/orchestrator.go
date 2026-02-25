@@ -18,6 +18,36 @@ const (
         logTaskCompleted  = "Task completed"
         msgDomainNotExist = "Domain does not exist or is not delegated"
         msgDomainNoExist  = "Domain does not exist"
+
+
+	mapKeyAiSurface = "ai_surface"
+	mapKeyAuthTtl = "auth_ttl"
+	mapKeyBasicRecords = "basic_records"
+	mapKeyCdsCdnskey = "cds_cdnskey"
+	mapKeyCtSubdomains = "ct_subdomains"
+	mapKeyDelegationConsistency = "delegation_consistency"
+	mapKeyDkimAnalysis = "dkim_analysis"
+	mapKeyDmarc = "dmarc"
+	mapKeyDnssecOps = "dnssec_ops"
+	mapKeyElapsedMs = "elapsed_ms"
+	mapKeyEmailHosting = "email_hosting"
+	mapKeyHasNullMx = "has_null_mx"
+	mapKeyHostingSummary = "hosting_summary"
+	mapKeyHttpsSvcb = "https_svcb"
+	mapKeyIsNoMailDomain = "is_no_mail_domain"
+	mapKeyMtaSts = "mta_sts"
+	mapKeyNmapDns = "nmap_dns"
+	mapKeyNsFleet = "ns_fleet"
+	mapKeyRegistrar = "registrar"
+	mapKeyResolverConsensus = "resolver_consensus"
+	mapKeyResolverTtl = "resolver_ttl"
+	mapKeySecretExposure = "secret_exposure"
+	mapKeySecurityTxt = "security_txt"
+	mapKeySmimeaOpenpgpkey = "smimea_openpgpkey"
+	mapKeySmtpTransport = "smtp_transport"
+	mapKeySubdomains = "subdomains"
+	mapKeyTlsrpt = "tlsrpt"
+	strNotChecked = "Not checked"
 )
 
 type AnalysisOptions struct {
@@ -35,15 +65,19 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         if len(opts) > 0 {
                 options = opts[0]
         }
+        queueStart := time.Now()
         select {
         case a.semaphore <- struct{}{}:
                 defer func() { <-a.semaphore }()
-        case <-time.After(10 * time.Second):
+                if waited := time.Since(queueStart); waited > 500*time.Millisecond {
+                        slog.Info("Analysis queued before slot opened", mapKeyDomain, domain, "waited_ms", waited.Milliseconds())
+                }
+        case <-time.After(30 * time.Second):
                 a.backpressureRejections.Add(1)
-                slog.Warn("Backpressure: rejected analysis", "domain", domain)
+                slog.Warn("Backpressure: rejected analysis after 30s queue", mapKeyDomain, domain)
                 return map[string]any{
-                        "domain":           domain,
-                        "error":            "System is currently at capacity. Please try again in a moment.",
+                        mapKeyDomain:           domain,
+                        mapKeyError:            "System is currently at capacity. Please try again in a moment.",
                         "analysis_success": false,
                 }
         }
@@ -60,12 +94,12 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         resultsMap := a.runParallelAnalyses(ctx, domain, customDKIMSelectors)
 
         parallelElapsed := time.Since(analysisStart).Seconds()
-        slog.Info("Parallel lookups completed", "domain", domain, "elapsed_s", fmt.Sprintf("%.2f", parallelElapsed), "tasks", len(resultsMap))
+        slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf("%.2f", parallelElapsed), "tasks", len(resultsMap))
 
         results := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options)
 
         totalElapsed := time.Since(analysisStart).Seconds()
-        slog.Info("Analysis complete", "domain", domain, "total_s", fmt.Sprintf("%.2f", totalElapsed), "parallel_s", fmt.Sprintf("%.2f", parallelElapsed))
+        slog.Info("Analysis complete", mapKeyDomain, domain, "total_s", fmt.Sprintf("%.2f", totalElapsed), "parallel_s", fmt.Sprintf("%.2f", parallelElapsed))
 
         return results
 }
@@ -83,7 +117,7 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
 
         daneStart := time.Now()
         resultsMap["dane"] = a.AnalyzeDANE(ctx, domain, mxForDANE)
-        slog.Info(logTaskCompleted, "task", "dane", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(daneStart).Milliseconds())))
+        slog.Info(logTaskCompleted, "task", "dane", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf("%.0f", float64(time.Since(daneStart).Milliseconds())))
 
         smtpResult := a.computeSMTPResult(ctx, domain, isTLD, mxForDANE, resultsMap)
 
@@ -96,7 +130,7 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         spfAnalysis := getMapResult(resultsMap, "spf")
 
         results := buildCoreResults(domain, domainStatus, domainStatusMessage, basic, auth, resolverTTL, authTTL, authQueryStatus, resultsMap, spfAnalysis)
-        results["smtp_transport"] = smtpResult
+        results[mapKeySmtpTransport] = smtpResult
 
         a.enrichWithHostingAndSecurity(ctx, domain, results, resultsMap, spfAnalysis)
         populateExtendedResults(results, resultsMap)
@@ -114,68 +148,68 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
 
 func buildCoreResults(domain, domainStatus string, domainStatusMessage *string, basic, auth map[string]any, resolverTTL, authTTL, authQueryStatus any, resultsMap map[string]any, spfAnalysis map[string]any) map[string]any {
         return map[string]any{
-                "domain":                 domain,
+                mapKeyDomain:                 domain,
                 "domain_exists":          true,
                 "domain_status":          domainStatus,
                 "domain_status_message":  derefStr(domainStatusMessage),
                 "section_status":         buildSectionStatus(resultsMap),
-                "basic_records":          basic,
+                mapKeyBasicRecords:          basic,
                 "authoritative_records":  auth,
                 "auth_query_status":      authQueryStatus,
-                "resolver_ttl":           resolverTTL,
-                "auth_ttl":               authTTL,
+                mapKeyResolverTtl:           resolverTTL,
+                mapKeyAuthTtl:               authTTL,
                 "propagation_status":     buildPropagationStatus(basic, auth),
-                "spf_analysis":           getOrDefault(resultsMap, "spf", map[string]any{"status": "error"}),
-                "dmarc_analysis":         getOrDefault(resultsMap, "dmarc", map[string]any{"status": "error"}),
-                "dkim_analysis":          getOrDefault(resultsMap, "dkim", map[string]any{"status": "error"}),
-                "mta_sts_analysis":       getOrDefault(resultsMap, "mta_sts", map[string]any{"status": "warning"}),
-                "tlsrpt_analysis":        getOrDefault(resultsMap, "tlsrpt", map[string]any{"status": "warning"}),
-                "bimi_analysis":          getOrDefault(resultsMap, "bimi", map[string]any{"status": "warning"}),
-                "dane_analysis":          getOrDefault(resultsMap, "dane", map[string]any{"status": "info", "has_dane": false, "tlsa_records": []any{}, "issues": []string{}}),
-                "caa_analysis":           getOrDefault(resultsMap, "caa", map[string]any{"status": "warning"}),
-                "dnssec_analysis":        getOrDefault(resultsMap, "dnssec", map[string]any{"status": "warning"}),
-                "ns_delegation_analysis": getOrDefault(resultsMap, "ns_delegation", map[string]any{"status": "warning"}),
-                "registrar_info":         getOrDefault(resultsMap, "registrar", map[string]any{"status": "error", "registrar": nil}),
-                "resolver_consensus":     getOrDefault(resultsMap, "resolver_consensus", map[string]any{}),
-                "ct_subdomains":          getOrDefault(resultsMap, "ct_subdomains", map[string]any{"status": "error", "subdomains": []any{}, "unique_subdomains": 0}),
-                "has_null_mx":            detectNullMX(basic),
-                "is_no_mail_domain":      spfAnalysis["no_mail_intent"] == true,
+                "spf_analysis":           getOrDefault(resultsMap, "spf", map[string]any{mapKeyStatus: mapKeyError}),
+                "dmarc_analysis":         getOrDefault(resultsMap, mapKeyDmarc, map[string]any{mapKeyStatus: mapKeyError}),
+                mapKeyDkimAnalysis:          getOrDefault(resultsMap, "dkim", map[string]any{mapKeyStatus: mapKeyError}),
+                "mta_sts_analysis":       getOrDefault(resultsMap, mapKeyMtaSts, map[string]any{mapKeyStatus: mapKeyWarning}),
+                "tlsrpt_analysis":        getOrDefault(resultsMap, mapKeyTlsrpt, map[string]any{mapKeyStatus: mapKeyWarning}),
+                "bimi_analysis":          getOrDefault(resultsMap, "bimi", map[string]any{mapKeyStatus: mapKeyWarning}),
+                "dane_analysis":          getOrDefault(resultsMap, "dane", map[string]any{mapKeyStatus: "info", "has_dane": false, "tlsa_records": []any{}, mapKeyIssues: []string{}}),
+                "caa_analysis":           getOrDefault(resultsMap, "caa", map[string]any{mapKeyStatus: mapKeyWarning}),
+                "dnssec_analysis":        getOrDefault(resultsMap, "dnssec", map[string]any{mapKeyStatus: mapKeyWarning}),
+                "ns_delegation_analysis": getOrDefault(resultsMap, "ns_delegation", map[string]any{mapKeyStatus: mapKeyWarning}),
+                "registrar_info":         getOrDefault(resultsMap, mapKeyRegistrar, map[string]any{mapKeyStatus: mapKeyError, mapKeyRegistrar: nil}),
+                mapKeyResolverConsensus:     getOrDefault(resultsMap, mapKeyResolverConsensus, map[string]any{}),
+                mapKeyCtSubdomains:          getOrDefault(resultsMap, mapKeyCtSubdomains, map[string]any{mapKeyStatus: mapKeyError, mapKeySubdomains: []any{}, "unique_subdomains": 0}),
+                mapKeyHasNullMx:            detectNullMX(basic),
+                mapKeyIsNoMailDomain:      spfAnalysis["no_mail_intent"] == true,
         }
 }
 
 func (a *Analyzer) enrichWithHostingAndSecurity(ctx context.Context, domain string, results map[string]any, resultsMap map[string]any, spfAnalysis map[string]any) {
-        results["hosting_summary"] = a.GetHostingInfo(ctx, domain, results)
+        results[mapKeyHostingSummary] = a.GetHostingInfo(ctx, domain, results)
         adjustHostingSummary(results)
         results["dns_infrastructure"] = a.AnalyzeDNSInfrastructure(domain, results)
         results["email_security_mgmt"] = a.DetectEmailSecurityManagement(
                 spfAnalysis,
-                getMapResult(resultsMap, "dmarc"),
-                getMapResult(resultsMap, "tlsrpt"),
-                getMapResult(resultsMap, "mta_sts"),
+                getMapResult(resultsMap, mapKeyDmarc),
+                getMapResult(resultsMap, mapKeyTlsrpt),
+                getMapResult(resultsMap, mapKeyMtaSts),
                 domain,
                 getMapResult(resultsMap, "dkim"),
         )
-        results["dmarc_report_auth"] = a.ValidateDMARCExternalAuth(ctx, domain, getMapResult(resultsMap, "dmarc"))
+        results["dmarc_report_auth"] = a.ValidateDMARCExternalAuth(ctx, domain, getMapResult(resultsMap, mapKeyDmarc))
 }
 
 func populateExtendedResults(results map[string]any, resultsMap map[string]any) {
-        results["https_svcb"] = getOrDefault(resultsMap, "https_svcb", map[string]any{"status": "info", "has_https": false, "has_svcb": false})
-        results["cds_cdnskey"] = getOrDefault(resultsMap, "cds_cdnskey", map[string]any{"status": "info", "has_cds": false, "has_cdnskey": false})
-        results["smimea_openpgpkey"] = getOrDefault(resultsMap, "smimea_openpgpkey", map[string]any{"status": "info", "has_smimea": false, "has_openpgpkey": false})
-        results["security_txt"] = getOrDefault(resultsMap, "security_txt", map[string]any{"status": "info", "found": false, "message": "Not checked", "contacts": []string{}, "issues": []string{}})
-        results["ai_surface"] = getOrDefault(resultsMap, "ai_surface", map[string]any{"status": "info", "message": "Not checked"})
-        results["secret_exposure"] = getOrDefault(resultsMap, "secret_exposure", map[string]any{"status": "clear", "message": "Not checked", "finding_count": 0, "findings": []map[string]any{}, "scanned_urls": []string{}})
-        results["nmap_dns"] = getOrDefault(resultsMap, "nmap_dns", map[string]any{"status": "info", "message": "Not checked", "issues": []string{}})
-        results["delegation_consistency"] = getOrDefault(resultsMap, "delegation_consistency", map[string]any{"status": "info", "message": "Not checked"})
-        results["ns_fleet"] = getOrDefault(resultsMap, "ns_fleet", map[string]any{"status": "info", "message": "Not checked", "fleet": []map[string]any{}, "issues": []string{}})
-        results["dnssec_ops"] = getOrDefault(resultsMap, "dnssec_ops", map[string]any{"status": "info", "message": "Not checked"})
+        results[mapKeyHttpsSvcb] = getOrDefault(resultsMap, mapKeyHttpsSvcb, map[string]any{mapKeyStatus: "info", "has_https": false, "has_svcb": false})
+        results[mapKeyCdsCdnskey] = getOrDefault(resultsMap, mapKeyCdsCdnskey, map[string]any{mapKeyStatus: "info", "has_cds": false, "has_cdnskey": false})
+        results[mapKeySmimeaOpenpgpkey] = getOrDefault(resultsMap, mapKeySmimeaOpenpgpkey, map[string]any{mapKeyStatus: "info", "has_smimea": false, "has_openpgpkey": false})
+        results[mapKeySecurityTxt] = getOrDefault(resultsMap, mapKeySecurityTxt, map[string]any{mapKeyStatus: "info", mapKeyFound: false, mapKeyMessage: strNotChecked, "contacts": []string{}, mapKeyIssues: []string{}})
+        results[mapKeyAiSurface] = getOrDefault(resultsMap, mapKeyAiSurface, map[string]any{mapKeyStatus: "info", mapKeyMessage: strNotChecked})
+        results[mapKeySecretExposure] = getOrDefault(resultsMap, mapKeySecretExposure, map[string]any{mapKeyStatus: "clear", mapKeyMessage: strNotChecked, "finding_count": 0, "findings": []map[string]any{}, "scanned_urls": []string{}})
+        results[mapKeyNmapDns] = getOrDefault(resultsMap, mapKeyNmapDns, map[string]any{mapKeyStatus: "info", mapKeyMessage: strNotChecked, mapKeyIssues: []string{}})
+        results[mapKeyDelegationConsistency] = getOrDefault(resultsMap, mapKeyDelegationConsistency, map[string]any{mapKeyStatus: "info", mapKeyMessage: strNotChecked})
+        results[mapKeyNsFleet] = getOrDefault(resultsMap, mapKeyNsFleet, map[string]any{mapKeyStatus: "info", mapKeyMessage: strNotChecked, "fleet": []map[string]any{}, mapKeyIssues: []string{}})
+        results[mapKeyDnssecOps] = getOrDefault(resultsMap, mapKeyDnssecOps, map[string]any{mapKeyStatus: "info", mapKeyMessage: strNotChecked})
 }
 
 func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results map[string]any, resultsMap map[string]any, options AnalysisOptions) {
         if options.ExposureChecks {
                 exposureStart := time.Now()
                 results["web_exposure"] = a.ScanWebExposure(ctx, domain)
-                slog.Info(logTaskCompleted, "task", "web_exposure", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(exposureStart).Milliseconds())))
+                slog.Info(logTaskCompleted, "task", "web_exposure", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf("%.0f", float64(time.Since(exposureStart).Milliseconds())))
         }
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
@@ -183,14 +217,14 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         results["edge_cdn"] = DetectEdgeCDN(results)
         enrichHostingFromEdgeCDN(results)
 
-        ctData := getMapResult(resultsMap, "ct_subdomains")
-        ctSubdomains, _ := ctData["subdomains"].([]map[string]any)
+        ctData := getMapResult(resultsMap, mapKeyCtSubdomains)
+        ctSubdomains, _ := ctData[mapKeySubdomains].([]map[string]any)
         results["dangling_dns"] = a.DetectDanglingDNS(ctx, domain, ctSubdomains)
 }
 
 func populateTTLReports(results map[string]any) {
-        resolverTTLMap, _ := results["resolver_ttl"].(map[string]uint32)
-        authTTLMap, _ := results["auth_ttl"].(map[string]uint32)
+        resolverTTLMap, _ := results[mapKeyResolverTtl].(map[string]uint32)
+        authTTLMap, _ := results[mapKeyAuthTtl].(map[string]uint32)
         if resolverTTLMap == nil {
                 resolverTTLMap = map[string]uint32{}
         }
@@ -204,20 +238,20 @@ func populateTTLReports(results map[string]any) {
 
 func (a *Analyzer) computeSMTPResult(ctx context.Context, domain string, isTLD bool, mxForDANE []string, resultsMap map[string]any) map[string]any {
         if isTLD {
-                for _, key := range []string{"spf", "dmarc", "dkim", "mta_sts", "tlsrpt", "bimi", "ct_subdomains", "smimea_openpgpkey", "security_txt", "ai_surface", "secret_exposure"} {
-                        resultsMap[key] = map[string]any{"status": "n/a"}
+                for _, key := range []string{"spf", mapKeyDmarc, "dkim", mapKeyMtaSts, mapKeyTlsrpt, "bimi", mapKeyCtSubdomains, mapKeySmimeaOpenpgpkey, mapKeySecurityTxt, mapKeyAiSurface, mapKeySecretExposure} {
+                        resultsMap[key] = map[string]any{mapKeyStatus: "n/a"}
                 }
-                slog.Info("TLD analysis — skipped email/subdomain protocols", "domain", domain)
-                return map[string]any{"status": "n/a", "reason": "TLD — email transport not applicable"}
+                slog.Info("TLD analysis — skipped email/subdomain protocols", mapKeyDomain, domain)
+                return map[string]any{mapKeyStatus: "n/a", "reason": "TLD — email transport not applicable"}
         }
         smtpStart := time.Now()
         smtpInputs := AnalysisInputs{
-                MTASTSResult: getMapResult(resultsMap, "mta_sts"),
-                TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
+                MTASTSResult: getMapResult(resultsMap, mapKeyMtaSts),
+                TLSRPTResult: getMapResult(resultsMap, mapKeyTlsrpt),
                 DANEResult:   getMapResult(resultsMap, "dane"),
         }
         result := a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
-        slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
+        slog.Info(logTaskCompleted, "task", mapKeySmtpTransport, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
         return result
 }
 
@@ -227,17 +261,17 @@ func enrichMisplacedDMARC(basic map[string]any, resultsMap map[string]any) {
         if misplacedDMARC["detected"] != true {
                 return
         }
-        dmarcResult, ok := resultsMap["dmarc"].(map[string]any)
+        dmarcResult, ok := resultsMap[mapKeyDmarc].(map[string]any)
         if !ok {
                 return
         }
         dmarcResult["misplaced_dmarc"] = misplacedDMARC
-        if msg, ok := misplacedDMARC["message"].(string); ok && msg != "" {
-                existingIssues, _ := dmarcResult["issues"].([]string)
+        if msg, ok := misplacedDMARC[mapKeyMessage].(string); ok && msg != "" {
+                existingIssues, _ := dmarcResult[mapKeyIssues].([]string)
                 if existingIssues == nil {
                         existingIssues = []string{}
                 }
-                dmarcResult["issues"] = append(existingIssues, msg)
+                dmarcResult[mapKeyIssues] = append(existingIssues, msg)
         }
 }
 
@@ -271,30 +305,30 @@ func (a *Analyzer) buildCoreTasks(ctx context.Context, domain string, ch chan na
                 timedTask(ch, "caa", func() any { return a.AnalyzeCAA(ctx, domain) }),
                 timedTask(ch, "dnssec", func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
                 timedTask(ch, "ns_delegation", func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
-                timedTask(ch, "registrar", func() any { return a.GetRegistrarInfo(ctx, domain) }),
-                timedTask(ch, "resolver_consensus", func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
-                timedTask(ch, "https_svcb", func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
-                timedTask(ch, "cds_cdnskey", func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
-                timedTask(ch, "nmap_dns", func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
-                timedTask(ch, "delegation_consistency", func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
-                timedTask(ch, "ns_fleet", func() any { return a.AnalyzeNSFleet(ctx, domain) }),
-                timedTask(ch, "dnssec_ops", func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
+                timedTask(ch, mapKeyRegistrar, func() any { return a.GetRegistrarInfo(ctx, domain) }),
+                timedTask(ch, mapKeyResolverConsensus, func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
+                timedTask(ch, mapKeyHttpsSvcb, func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
+                timedTask(ch, mapKeyCdsCdnskey, func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
+                timedTask(ch, mapKeyNmapDns, func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
+                timedTask(ch, mapKeyDelegationConsistency, func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
+                timedTask(ch, mapKeyNsFleet, func() any { return a.AnalyzeNSFleet(ctx, domain) }),
+                timedTask(ch, mapKeyDnssecOps, func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
         }
 }
 
 func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDKIMSelectors []string, ch chan namedResult) []func() {
         return []func(){
                 timedTask(ch, "spf", func() any { return a.AnalyzeSPF(ctx, domain) }),
-                timedTask(ch, "dmarc", func() any { return a.AnalyzeDMARC(ctx, domain) }),
+                timedTask(ch, mapKeyDmarc, func() any { return a.AnalyzeDMARC(ctx, domain) }),
                 timedTask(ch, "dkim", func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
-                timedTask(ch, "mta_sts", func() any { return a.AnalyzeMTASTS(ctx, domain) }),
-                timedTask(ch, "tlsrpt", func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
+                timedTask(ch, mapKeyMtaSts, func() any { return a.AnalyzeMTASTS(ctx, domain) }),
+                timedTask(ch, mapKeyTlsrpt, func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
                 timedTask(ch, "bimi", func() any { return a.AnalyzeBIMI(ctx, domain) }),
-                timedTask(ch, "ct_subdomains", func() any { return a.DiscoverSubdomains(ctx, domain) }),
-                timedTask(ch, "smimea_openpgpkey", func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
-                timedTask(ch, "security_txt", func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
-                timedTask(ch, "ai_surface", func() any { return a.AnalyzeAISurface(ctx, domain) }),
-                timedTask(ch, "secret_exposure", func() any { return a.ScanSecretExposure(ctx, domain) }),
+                timedTask(ch, mapKeyCtSubdomains, func() any { return a.DiscoverSubdomains(ctx, domain) }),
+                timedTask(ch, mapKeySmimeaOpenpgpkey, func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
+                timedTask(ch, mapKeySecurityTxt, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                timedTask(ch, mapKeyAiSurface, func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                timedTask(ch, mapKeySecretExposure, func() any { return a.ScanSecretExposure(ctx, domain) }),
         }
 }
 
@@ -324,7 +358,7 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
         resultsMap := make(map[string]any)
         for nr := range resultsCh {
                 resultsMap[nr.key] = nr.result
-                slog.Info(logTaskCompleted, "task", nr.key, "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(nr.elapsed.Milliseconds())))
+                slog.Info(logTaskCompleted, "task", nr.key, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf("%.0f", float64(nr.elapsed.Milliseconds())))
         }
         return resultsMap
 }
@@ -397,7 +431,7 @@ func enrichCurrencyInput(input *icuae.CurrencyReportInput, results map[string]an
                 }
         }
 
-        if br, ok := results["basic_records"].(map[string]any); ok {
+        if br, ok := results[mapKeyBasicRecords].(map[string]any); ok {
                 if nsSlice, ok := br["NS"].([]string); ok {
                         input.NSRecords = nsSlice
                 }
@@ -410,7 +444,7 @@ func enrichCurrencyInput(input *icuae.CurrencyReportInput, results map[string]an
 func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[string]any) icuae.CurrencyReport {
         var agreements []icuae.ResolverAgreement
         resolverCount := 5
-        if consensus, ok := results["resolver_consensus"].(map[string]any); ok {
+        if consensus, ok := results[mapKeyResolverConsensus].(map[string]any); ok {
                 agreements, resolverCount = extractResolverAgreements(consensus)
         }
 
@@ -429,14 +463,14 @@ func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[
 }
 
 func adjustHostingSummary(results map[string]any) {
-        hs, ok := results["hosting_summary"].(map[string]any)
+        hs, ok := results[mapKeyHostingSummary].(map[string]any)
         if !ok {
                 return
         }
-        emailUnknown := hs["email_hosting"] == "Unknown" || hs["email_hosting"] == ""
-        isNoMail := results["is_no_mail_domain"] == true || results["has_null_mx"] == true
+        emailUnknown := hs[mapKeyEmailHosting] == "Unknown" || hs[mapKeyEmailHosting] == ""
+        isNoMail := results[mapKeyIsNoMailDomain] == true || results[mapKeyHasNullMx] == true
         if isNoMail && emailUnknown {
-                hs["email_hosting"] = "No Mail Domain"
+                hs[mapKeyEmailHosting] = "No Mail Domain"
                 return
         }
         if !isNoMail && emailUnknown {
@@ -445,7 +479,7 @@ func adjustHostingSummary(results map[string]any) {
 }
 
 func inferEmailFromDKIM(hs, results map[string]any) {
-        dkim, ok := results["dkim_analysis"].(map[string]any)
+        dkim, ok := results[mapKeyDkimAnalysis].(map[string]any)
         if !ok {
                 return
         }
@@ -453,7 +487,7 @@ func inferEmailFromDKIM(hs, results map[string]any) {
         if !ok || pp == "" || pp == "Unknown" {
                 return
         }
-        hs["email_hosting"] = pp
+        hs[mapKeyEmailHosting] = pp
         if ec, ecOK := hs["email_confidence"].(map[string]any); !ecOK || len(ec) == 0 {
                 hs["email_confidence"] = map[string]any{
                         "level":  "inferred",
@@ -464,11 +498,11 @@ func inferEmailFromDKIM(hs, results map[string]any) {
 }
 
 func enrichBasicRecords(basic, resultsMap map[string]any) {
-        dmarcData := getMapResult(resultsMap, "dmarc")
-        mtaStsData := getMapResult(resultsMap, "mta_sts")
-        tlsrptData := getMapResult(resultsMap, "tlsrpt")
+        dmarcData := getMapResult(resultsMap, mapKeyDmarc)
+        mtaStsData := getMapResult(resultsMap, mapKeyMtaSts)
+        tlsrptData := getMapResult(resultsMap, mapKeyTlsrpt)
 
-        if dmarcData["status"] == "success" || dmarcData["status"] == "warning" {
+        if dmarcData[mapKeyStatus] == mapKeySuccess || dmarcData[mapKeyStatus] == mapKeyWarning {
                 if vr, ok := dmarcData["valid_records"].([]string); ok && len(vr) > 0 {
                         basic["DMARC"] = vr
                 }
@@ -486,21 +520,21 @@ func buildSectionStatus(resultsMap map[string]any) map[string]any {
         for key, result := range resultsMap {
                 rm, ok := result.(map[string]any)
                 if !ok {
-                        sectionStatus[key] = map[string]any{"status": "ok"}
+                        sectionStatus[key] = map[string]any{mapKeyStatus: "ok"}
                         continue
                 }
-                status, _ := rm["status"].(string)
+                status, _ := rm[mapKeyStatus].(string)
                 switch status {
                 case "timeout":
-                        sectionStatus[key] = map[string]any{"status": "timeout", "message": "Query timed out"}
-                case "error":
-                        msg, _ := rm["message"].(string)
+                        sectionStatus[key] = map[string]any{mapKeyStatus: "timeout", mapKeyMessage: "Query timed out"}
+                case mapKeyError:
+                        msg, _ := rm[mapKeyMessage].(string)
                         if msg == "" {
                                 msg = "Lookup failed"
                         }
-                        sectionStatus[key] = map[string]any{"status": "error", "message": msg}
+                        sectionStatus[key] = map[string]any{mapKeyStatus: mapKeyError, mapKeyMessage: msg}
                 default:
-                        sectionStatus[key] = map[string]any{"status": "ok"}
+                        sectionStatus[key] = map[string]any{mapKeyStatus: "ok"}
                 }
         }
         return sectionStatus
@@ -520,51 +554,51 @@ func detectNullMX(basic map[string]any) bool {
 
 func (a *Analyzer) buildNonExistentResult(domain, status string, statusMessage *string) map[string]any {
         return map[string]any{
-                "domain":                 domain,
+                mapKeyDomain:                 domain,
                 "domain_exists":          false,
                 "domain_status":          status,
                 "domain_status_message":  derefStr(statusMessage),
                 "section_status":         map[string]any{},
-                "basic_records":          map[string]any{"A": []string{}, "AAAA": []string{}, "MX": []string{}, "NS": []string{}, "TXT": []string{}, "CNAME": []string{}, "SOA": []string{}},
+                mapKeyBasicRecords:          map[string]any{"A": []string{}, "AAAA": []string{}, "MX": []string{}, "NS": []string{}, "TXT": []string{}, "CNAME": []string{}, "SOA": []string{}},
                 "authoritative_records":  map[string]any{},
                 "auth_query_status":      nil,
-                "resolver_ttl":           nil,
-                "auth_ttl":               nil,
+                mapKeyResolverTtl:           nil,
+                mapKeyAuthTtl:               nil,
                 "propagation_status":     map[string]any{},
-                "resolver_consensus":     map[string]any{},
-                "spf_analysis":           map[string]any{"status": "n/a", "message": msgDomainNotExist},
-                "dmarc_analysis":         map[string]any{"status": "n/a", "message": msgDomainNotExist},
-                "dkim_analysis":          map[string]any{"status": "n/a"},
-                "mta_sts_analysis":       map[string]any{"status": "n/a"},
-                "tlsrpt_analysis":        map[string]any{"status": "n/a"},
-                "bimi_analysis":          map[string]any{"status": "n/a"},
-                "dane_analysis":          map[string]any{"status": "n/a", "has_dane": false, "tlsa_records": []any{}, "issues": []string{}},
-                "caa_analysis":           map[string]any{"status": "n/a"},
-                "dnssec_analysis":        map[string]any{"status": "n/a"},
-                "ns_delegation_analysis": map[string]any{"status": "error", "delegation_ok": false, "message": msgDomainNotExist},
-                "registrar_info":         map[string]any{"status": "n/a", "registrar": nil},
-                "smtp_transport":         map[string]any{"status": "n/a", "message": msgDomainNoExist},
-                "ct_subdomains":          map[string]any{"status": "success", "subdomains": []any{}, "unique_subdomains": 0, "total_certs": 0},
-                "has_null_mx":            false,
-                "is_no_mail_domain":      false,
-                "hosting_summary":        map[string]any{"hosting": "N/A", "dns_hosting": "N/A", "email_hosting": "N/A"},
+                mapKeyResolverConsensus:     map[string]any{},
+                "spf_analysis":           map[string]any{mapKeyStatus: "n/a", mapKeyMessage: msgDomainNotExist},
+                "dmarc_analysis":         map[string]any{mapKeyStatus: "n/a", mapKeyMessage: msgDomainNotExist},
+                mapKeyDkimAnalysis:          map[string]any{mapKeyStatus: "n/a"},
+                "mta_sts_analysis":       map[string]any{mapKeyStatus: "n/a"},
+                "tlsrpt_analysis":        map[string]any{mapKeyStatus: "n/a"},
+                "bimi_analysis":          map[string]any{mapKeyStatus: "n/a"},
+                "dane_analysis":          map[string]any{mapKeyStatus: "n/a", "has_dane": false, "tlsa_records": []any{}, mapKeyIssues: []string{}},
+                "caa_analysis":           map[string]any{mapKeyStatus: "n/a"},
+                "dnssec_analysis":        map[string]any{mapKeyStatus: "n/a"},
+                "ns_delegation_analysis": map[string]any{mapKeyStatus: mapKeyError, "delegation_ok": false, mapKeyMessage: msgDomainNotExist},
+                "registrar_info":         map[string]any{mapKeyStatus: "n/a", mapKeyRegistrar: nil},
+                mapKeySmtpTransport:         map[string]any{mapKeyStatus: "n/a", mapKeyMessage: msgDomainNoExist},
+                mapKeyCtSubdomains:          map[string]any{mapKeyStatus: mapKeySuccess, mapKeySubdomains: []any{}, "unique_subdomains": 0, "total_certs": 0},
+                mapKeyHasNullMx:            false,
+                mapKeyIsNoMailDomain:      false,
+                mapKeyHostingSummary:        map[string]any{"hosting": "N/A", "dns_hosting": "N/A", mapKeyEmailHosting: "N/A"},
                 "dns_infrastructure":     map[string]any{"provider": "N/A", "tier": "N/A"},
                 "email_security_mgmt":    map[string]any{},
-                "dmarc_report_auth":      map[string]any{"status": "success", "checked": false, "external_domains": []map[string]any{}, "issues": []string{}},
-                "https_svcb":             map[string]any{"status": "info", "has_https": false, "has_svcb": false, "https_records": []map[string]any{}, "svcb_records": []map[string]any{}, "supports_http3": false, "supports_ech": false, "issues": []string{}},
-                "cds_cdnskey":            map[string]any{"status": "info", "has_cds": false, "has_cdnskey": false, "cds_records": []map[string]any{}, "cdnskey_records": []map[string]any{}, "automation": "none", "issues": []string{}},
-                "smimea_openpgpkey":      map[string]any{"status": "info", "has_smimea": false, "has_openpgpkey": false, "smimea_records": []map[string]any{}, "openpgpkey_records": []map[string]any{}, "issues": []string{}},
-                "security_txt":          map[string]any{"status": "info", "found": false, "message": msgDomainNoExist, "contacts": []string{}, "issues": []string{}},
-                "ai_surface":            map[string]any{"status": "info", "message": msgDomainNoExist, "llms_txt": map[string]any{"found": false}, "robots_txt": map[string]any{"found": false}, "poisoning": map[string]any{"ioc_count": 0}, "hidden_prompts": map[string]any{"artifact_count": 0}, "evidence": []map[string]any{}, "summary": map[string]any{}},
-                "secret_exposure":       map[string]any{"status": "clear", "message": msgDomainNoExist, "finding_count": 0, "findings": []map[string]any{}, "scanned_urls": []string{}},
-                "saas_txt":               map[string]any{"status": "success", "services": []map[string]any{}, "service_count": 0, "issues": []string{}},
-                "asn_info":               map[string]any{"status": "info", "ipv4_asn": []map[string]any{}, "ipv6_asn": []map[string]any{}, "unique_asns": []map[string]any{}, "issues": []string{}},
-                "edge_cdn":               map[string]any{"status": "success", "is_behind_cdn": false, "cdn_provider": "", "cdn_indicators": []string{}, "origin_visible": true, "issues": []string{}},
-                "dangling_dns":           map[string]any{"status": "success", "checked": true, "dangling_count": 0, "dangling_records": []map[string]any{}, "issues": []string{}},
-                "delegation_consistency": map[string]any{"status": "info", "message": msgDomainNoExist},
-                "ns_fleet":              map[string]any{"status": "info", "message": msgDomainNoExist, "fleet": []map[string]any{}, "issues": []string{}},
-                "dnssec_ops":            map[string]any{"status": "info", "message": msgDomainNoExist},
-                "posture":                map[string]any{"score": 0, "grade": "N/A", "state": "N/A", "label": "Non-existent Domain", "message": msgDomainNotExist, "icon": "times-circle", "issues": []string{msgDomainNotExist}, "monitoring": []string{}, "configured": []string{}, "absent": []string{}, "color": "secondary", "deliberate_monitoring": false, "deliberate_monitoring_note": ""},
+                "dmarc_report_auth":      map[string]any{mapKeyStatus: mapKeySuccess, "checked": false, "external_domains": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeyHttpsSvcb:             map[string]any{mapKeyStatus: "info", "has_https": false, "has_svcb": false, "https_records": []map[string]any{}, "svcb_records": []map[string]any{}, "supports_http3": false, "supports_ech": false, mapKeyIssues: []string{}},
+                mapKeyCdsCdnskey:            map[string]any{mapKeyStatus: "info", "has_cds": false, "has_cdnskey": false, "cds_records": []map[string]any{}, "cdnskey_records": []map[string]any{}, "automation": "none", mapKeyIssues: []string{}},
+                mapKeySmimeaOpenpgpkey:      map[string]any{mapKeyStatus: "info", "has_smimea": false, "has_openpgpkey": false, "smimea_records": []map[string]any{}, "openpgpkey_records": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeySecurityTxt:          map[string]any{mapKeyStatus: "info", mapKeyFound: false, mapKeyMessage: msgDomainNoExist, "contacts": []string{}, mapKeyIssues: []string{}},
+                mapKeyAiSurface:            map[string]any{mapKeyStatus: "info", mapKeyMessage: msgDomainNoExist, "llms_txt": map[string]any{mapKeyFound: false}, "robots_txt": map[string]any{mapKeyFound: false}, "poisoning": map[string]any{"ioc_count": 0}, "hidden_prompts": map[string]any{"artifact_count": 0}, "evidence": []map[string]any{}, "summary": map[string]any{}},
+                mapKeySecretExposure:       map[string]any{mapKeyStatus: "clear", mapKeyMessage: msgDomainNoExist, "finding_count": 0, "findings": []map[string]any{}, "scanned_urls": []string{}},
+                "saas_txt":               map[string]any{mapKeyStatus: mapKeySuccess, "services": []map[string]any{}, "service_count": 0, mapKeyIssues: []string{}},
+                "asn_info":               map[string]any{mapKeyStatus: "info", "ipv4_asn": []map[string]any{}, "ipv6_asn": []map[string]any{}, "unique_asns": []map[string]any{}, mapKeyIssues: []string{}},
+                "edge_cdn":               map[string]any{mapKeyStatus: mapKeySuccess, "is_behind_cdn": false, "cdn_provider": "", "cdn_indicators": []string{}, "origin_visible": true, mapKeyIssues: []string{}},
+                "dangling_dns":           map[string]any{mapKeyStatus: mapKeySuccess, "checked": true, "dangling_count": 0, "dangling_records": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeyDelegationConsistency: map[string]any{mapKeyStatus: "info", mapKeyMessage: msgDomainNoExist},
+                mapKeyNsFleet:              map[string]any{mapKeyStatus: "info", mapKeyMessage: msgDomainNoExist, "fleet": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeyDnssecOps:            map[string]any{mapKeyStatus: "info", mapKeyMessage: msgDomainNoExist},
+                "posture":                map[string]any{"score": 0, "grade": "N/A", "state": "N/A", "label": "Non-existent Domain", mapKeyMessage: msgDomainNotExist, "icon": "times-circle", mapKeyIssues: []string{msgDomainNotExist}, "monitoring": []string{}, "configured": []string{}, "absent": []string{}, "color": "secondary", "deliberate_monitoring": false, "deliberate_monitoring_note": ""},
                 "remediation":            map[string]any{"top_fixes": []map[string]any{}, "posture_achievable": "N/A"},
                 "mail_posture":           map[string]any{"classification": "unknown"},
         }
@@ -614,7 +648,7 @@ func buildPropagationStatus(basic, auth map[string]any) map[string]any {
                 }
 
                 propagation[rtype] = map[string]any{
-                        "status":   status,
+                        mapKeyStatus:   status,
                         "synced":   status == "synchronized",
                         "mismatch": status == "propagating",
                 }

@@ -18,6 +18,7 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+
 const tplZone = "zone.html"
 
 const maxZoneFileSize = 2 << 20 // 2 MB
@@ -36,13 +37,13 @@ func (h *ZoneHandler) UploadForm(c *gin.Context) {
         csrfToken, _ := c.Get("csrf_token")
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "zone",
-                "ShowForm":        true,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
+                strAppversion:      h.Config.AppVersion,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      "zone",
+                strShowform:        true,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplZone, data)
@@ -59,13 +60,13 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
 
         file, header, err := c.Request.FormFile("zone_file")
         if err != nil {
-                h.renderZoneFlash(c, nonce, csrfToken, "danger", "Please select a zone file to upload.")
+                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Please select a zone file to upload.")
                 return
         }
         defer file.Close()
 
         if header.Size > maxZoneFileSize {
-                h.renderZoneFlash(c, nonce, csrfToken, "danger", "Zone file exceeds the 2 MB size limit.")
+                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Zone file exceeds the 2 MB size limit.")
                 return
         }
 
@@ -74,8 +75,8 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
 
         parseResult, rawData, err := zoneparse.ParseZoneFile(file, domainOverride)
         if err != nil {
-                slog.Error("Zone file parse error", "error", err)
-                h.renderZoneFlash(c, nonce, csrfToken, "danger", "Failed to parse zone file: "+err.Error())
+                slog.Error("Zone file parse error", mapKeyError, err)
+                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Failed to parse zone file: "+err.Error())
                 return
         }
 
@@ -86,7 +87,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
 
         domain := parseResult.Domain
         if domain == "" {
-                h.renderZoneFlash(c, nonce, csrfToken, "danger", "Could not determine the domain from the zone file. Please provide a domain override.")
+                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Could not determine the domain from the zone file. Please provide a domain override.")
                 return
         }
 
@@ -98,11 +99,11 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         }
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "zone",
-                "ShowForm":        false,
+                strAppversion:      h.Config.AppVersion,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      "zone",
+                strShowform:        false,
                 "ShowResults":     true,
                 "ParseResult":     parseResult,
                 "DriftReport":     driftReport,
@@ -110,8 +111,8 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
                 "Filename":        header.Filename,
                 "FileSize":        header.Size,
                 "Retained":        retain,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplZone, data)
@@ -123,7 +124,7 @@ func (h *ZoneHandler) persistZoneImport(ctx context.Context, userID int32, domai
                 var err error
                 driftJSON, err = json.Marshal(driftReport)
                 if err != nil {
-                        slog.Warn("Zone: marshal drift report", "error", err)
+                        slog.Warn("Zone: marshal drift report", mapKeyError, err)
                 }
         }
         zoneStr := string(rawData)
@@ -139,7 +140,7 @@ func (h *ZoneHandler) persistZoneImport(ctx context.Context, userID int32, domai
                 DriftSummary:     driftJSON,
         })
         if dbErr != nil {
-                slog.Error("Failed to store zone import", "error", dbErr, "domain", domain, "user_id", userID)
+                slog.Error("Failed to store zone import", mapKeyError, dbErr, "domain", domain, "user_id", userID)
         }
 }
 
@@ -159,14 +160,14 @@ func (h *ZoneHandler) compareZoneDrift(ctx context.Context, domain string, parse
 
 func (h *ZoneHandler) renderZoneFlash(c *gin.Context, nonce, csrfToken any, category, message string) {
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "zone",
-                "ShowForm":        true,
+                strAppversion:      h.Config.AppVersion,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      "zone",
+                strShowform:        true,
                 "FlashMessages":   []FlashMessage{{Category: category, Message: message}},
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplZone, data)

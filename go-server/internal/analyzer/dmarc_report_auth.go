@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+
 func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string, dmarcData map[string]any) map[string]any {
 	result := map[string]any{
 		"status":          "success",
@@ -21,7 +22,7 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
 
 	externalDomains := collectExternalDomains(domain, ruaStr, rufStr)
 	if len(externalDomains) == 0 {
-		result["message"] = "No external reporting domains detected"
+		result[mapKeyMessage] = "No external reporting domains detected"
 		return result
 	}
 
@@ -39,9 +40,9 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
 
 	if len(issues) > 0 {
 		result["status"] = "warning"
-		result["message"] = fmt.Sprintf("%d of %d external reporting domains missing authorization", len(issues), len(externalDomains))
+		result[mapKeyMessage] = fmt.Sprintf("%d of %d external reporting domains missing authorization", len(issues), len(externalDomains))
 	} else {
-		result["message"] = fmt.Sprintf("All %d external reporting domains properly authorized", len(externalDomains))
+		result[mapKeyMessage] = fmt.Sprintf("All %d external reporting domains properly authorized", len(externalDomains))
 	}
 
 	result["external_domains"] = domainResults

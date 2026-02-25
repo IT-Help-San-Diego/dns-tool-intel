@@ -11,11 +11,16 @@ import (
 	"codeberg.org/miekg/dns/dnsutil"
 )
 
+const (
+	mapKeyHasOpenpgpkey = "has_openpgpkey"
+	mapKeyHasSmimea = "has_smimea"
+)
+
 func (a *Analyzer) AnalyzeSMIMEA(ctx context.Context, domain string) map[string]any {
 	result := map[string]any{
 		"status":         "success",
-		"has_smimea":     false,
-		"has_openpgpkey": false,
+		mapKeyHasSmimea:     false,
+		mapKeyHasOpenpgpkey: false,
 		"smimea_records": []map[string]any{},
 		"openpgpkey_records": []map[string]any{},
 		"issues":         []string{},
@@ -25,16 +30,16 @@ func (a *Analyzer) AnalyzeSMIMEA(ctx context.Context, domain string) map[string]
 	openpgpRecords := a.queryOPENPGPKEY(ctx, domain)
 
 	if len(smimeaRecords) > 0 {
-		result["has_smimea"] = true
+		result[mapKeyHasSmimea] = true
 		result["smimea_records"] = parseSMIMEARecords(smimeaRecords)
 	}
 
 	if len(openpgpRecords) > 0 {
-		result["has_openpgpkey"] = true
+		result[mapKeyHasOpenpgpkey] = true
 		result["openpgpkey_records"] = parseOPENPGPKEYRecords(openpgpRecords)
 	}
 
-	if !result["has_smimea"].(bool) && !result["has_openpgpkey"].(bool) {
+	if !result[mapKeyHasSmimea].(bool) && !result[mapKeyHasOpenpgpkey].(bool) {
 		result["status"] = "info"
 		result["message"] = "No SMIMEA or OPENPGPKEY records found — email encryption keys not published via DNS"
 	} else {
@@ -110,10 +115,10 @@ func parseOPENPGPKEYRecords(records []*dns.OPENPGPKEY) []map[string]any {
 
 func buildEmailEncryptionMessage(result map[string]any) string {
 	var parts []string
-	if result["has_smimea"].(bool) {
+	if result[mapKeyHasSmimea].(bool) {
 		parts = append(parts, "S/MIME certificates published via SMIMEA (RFC 8162)")
 	}
-	if result["has_openpgpkey"].(bool) {
+	if result[mapKeyHasOpenpgpkey].(bool) {
 		parts = append(parts, "OpenPGP keys published via OPENPGPKEY (RFC 7929)")
 	}
 	return fmt.Sprintf("%s", strings.Join(parts, "; "))

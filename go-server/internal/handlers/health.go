@@ -14,6 +14,7 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+
 type HealthHandler struct {
         DB        *db.Database
         StartTime time.Time
@@ -90,7 +91,7 @@ func computeOverallHealth(providerStats []telemetry.ProviderStats) string {
 }
 
 func (h *HealthHandler) Healthz(c *gin.Context) {
-        c.JSON(http.StatusOK, gin.H{"status": "ok"})
+        c.JSON(http.StatusOK, gin.H{mapKeyStatus: "ok"})
 }
 
 func (h *HealthHandler) HealthCheck(c *gin.Context) {
@@ -103,11 +104,11 @@ func (h *HealthHandler) HealthCheck(c *gin.Context) {
         runtime.ReadMemStats(&memStats)
 
         response := gin.H{
-                "status":  "ok",
+                mapKeyStatus:  "ok",
                 "runtime": "go",
                 "uptime":  time.Since(h.StartTime).String(),
                 "database": gin.H{
-                        "status": dbStatus,
+                        mapKeyStatus: dbStatus,
                 },
                 "memory": gin.H{
                         "alloc_mb":       memStats.Alloc / 1024 / 1024,

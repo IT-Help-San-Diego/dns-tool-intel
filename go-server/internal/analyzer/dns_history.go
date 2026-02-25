@@ -14,6 +14,12 @@ import (
         "time"
 )
 
+const (
+	mapKeyAdded = "added"
+	mapKeyDomain = "domain"
+	mapKeyRemoved = "removed"
+)
+
 const dateFormatISO = "2006-01-02"
 
 const maxHistoryCacheEntries = 500
@@ -211,7 +217,7 @@ func buildHistoryResult(agg historyAggregation) map[string]any {
                 "changes":       changesMaps,
                 "total_events":  float64(len(agg.changes)),
                 "source":        "SecurityTrails",
-                "status":        status,
+                mapKeyStatus:        status,
                 "rate_limited":  agg.rateLimitedCount > 0,
                 "fully_checked": failedCount == 0,
         }
@@ -222,13 +228,13 @@ func FetchDNSHistoryWithKey(ctx context.Context, domain, userAPIKey string, cach
                 return map[string]any{
                         "available":   false,
                         "api_enabled": false,
-                        "status":      "no_key",
+                        mapKeyStatus:      "no_key",
                 }
         }
 
         if cache != nil {
                 if cached, ok := cache.Get(domain); ok {
-                        slog.Info("DNS history cache hit", "domain", domain)
+                        slog.Info("DNS history cache hit", mapKeyDomain, domain)
                         return cached
                 }
         }
@@ -236,10 +242,10 @@ func FetchDNSHistoryWithKey(ctx context.Context, domain, userAPIKey string, cach
         agg := fetchAllHistoryTypes(ctx, domain, userAPIKey)
         result := buildHistoryResult(agg)
 
-        status, _ := result["status"].(string)
+        status, _ := result[mapKeyStatus].(string)
         if cache != nil && (status == "success" || status == "partial") {
                 cache.Set(domain, result)
-                slog.Info("DNS history cached", "domain", domain, "status", status, "ttl", cache.ttl)
+                slog.Info("DNS history cached", mapKeyDomain, domain, mapKeyStatus, status, "ttl", cache.ttl)
         }
 
         return result
@@ -250,7 +256,7 @@ func determineHistoryStatus(allRateLimited, allFailed, anyFailed bool) string {
                 return "rate_limited"
         }
         if allFailed {
-                return "error"
+                return mapKeyError
         }
         if anyFailed {
                 return "partial"
@@ -263,7 +269,7 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
 
         req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
         if err != nil {
-                slog.Warn("SecurityTrails history: failed to create request", "domain", domain, "type", rtype, "error", err)
+                slog.Warn("SecurityTrails history: failed to create request", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
         req.Header.Set("APIKEY", apiKey)
@@ -271,25 +277,25 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
 
         resp, err := securityTrailsHTTPClient.Do(req)
         if err != nil {
-                slog.Warn("SecurityTrails history: request failed", "domain", domain, "type", rtype, "error", err)
+                slog.Warn("SecurityTrails history: request failed", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
         defer resp.Body.Close()
 
         if resp.StatusCode == http.StatusTooManyRequests {
-                slog.Warn("SecurityTrails history: rate limited", "domain", domain, "type", rtype)
+                slog.Warn("SecurityTrails history: rate limited", mapKeyDomain, domain, "type", rtype)
                 stBudget.markRateLimited()
                 return historyFetchResult{rateLimited: true}
         }
 
         if resp.StatusCode != http.StatusOK {
-                slog.Warn("SecurityTrails history: unexpected status", "domain", domain, "type", rtype, "status", resp.StatusCode)
+                slog.Warn("SecurityTrails history: unexpected status", mapKeyDomain, domain, "type", rtype, mapKeyStatus, resp.StatusCode)
                 return historyFetchResult{errored: true}
         }
 
         var histResp stHistoryResponse
         if err := json.NewDecoder(resp.Body).Decode(&histResp); err != nil {
-                slog.Warn("SecurityTrails history: parse failed", "domain", domain, "type", rtype, "error", err)
+                slog.Warn("SecurityTrails history: parse failed", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
 
@@ -324,10 +330,10 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
                 changes = append(changes, dnsChangeEvent{
                         RecordType:  upperType,
                         Value:       value,
-                        Action:      "added",
+                        Action:      mapKeyAdded,
                         Date:        rec.FirstSeen,
                         Org:         orgLabel,
-                        Description: buildChangeDescription(upperType, value, "added", orgLabel, daysActive),
+                        Description: buildChangeDescription(upperType, value, mapKeyAdded, orgLabel, daysActive),
                         DaysAgo:     int(now.Sub(firstSeen).Hours() / 24),
                 })
 
@@ -336,16 +342,16 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
                         changes = append(changes, dnsChangeEvent{
                                 RecordType:  upperType,
                                 Value:       value,
-                                Action:      "removed",
+                                Action:      mapKeyRemoved,
                                 Date:        *rec.LastSeen,
                                 Org:         orgLabel,
-                                Description: buildChangeDescription(upperType, value, "removed", orgLabel, daysSinceGone),
+                                Description: buildChangeDescription(upperType, value, mapKeyRemoved, orgLabel, daysSinceGone),
                                 DaysAgo:     int(now.Sub(lastSeen).Hours() / 24),
                         })
                 }
         }
 
-        slog.Info("SecurityTrails history: fetched", "domain", domain, "type", rtype, "events", len(changes))
+        slog.Info("SecurityTrails history: fetched", mapKeyDomain, domain, "type", rtype, "events", len(changes))
         return historyFetchResult{changes: changes}
 }
 
@@ -374,12 +380,12 @@ func buildChangeDescription(rtype, value, action, org string, daysMetric int) st
         timeLabel := formatDaysAgo(daysMetric)
 
         switch action {
-        case "added":
+        case mapKeyAdded:
                 if org != "" {
                         return fmt.Sprintf("%s record %s (%s) appeared %s", rtype, value, org, timeLabel)
                 }
                 return fmt.Sprintf("%s record %s appeared %s", rtype, value, timeLabel)
-        case "removed":
+        case mapKeyRemoved:
                 if org != "" {
                         return fmt.Sprintf("%s record %s (%s) was removed %s", rtype, value, org, timeLabel)
                 }

@@ -19,6 +19,11 @@ import (
         "sort"
 )
 
+const (
+	mapKeyMedium = "medium"
+	mapKeyTimeout = "timeout"
+)
+
 type ScannerProfile struct {
         ResolverSet        []string `json:"resolver_set"`
         TimeoutSeconds     int      `json:"timeout_seconds"`
@@ -49,7 +54,7 @@ func (s ProfileSuggestion) SeverityClass() string {
         switch s.Severity {
         case "high":
                 return "danger"
-        case "medium":
+        case mapKeyMedium:
                 return "warning"
         default:
                 return "info"
@@ -62,7 +67,7 @@ func (s ProfileSuggestion) CategoryIcon() string {
                 return "fa-server"
         case "retry":
                 return "fa-arrows-rotate"
-        case "timeout":
+        case mapKeyTimeout:
                 return "fa-clock"
         case "priority":
                 return "fa-cogs"
@@ -95,7 +100,7 @@ func (sc SuggestedConfig) ConfidenceClass() string {
         switch sc.Confidence {
         case "high":
                 return "success"
-        case "medium":
+        case mapKeyMedium:
                 return "info"
         default:
                 return "secondary"
@@ -129,7 +134,7 @@ func GenerateSuggestedConfig(stats RollingStats, current ScannerProfile) Suggest
 
         applySuggestedProfile(&suggested, current, stats, resolverSugs, retrySugs, timeoutSugs, prioritySugs)
 
-        confidence := "medium"
+        confidence := mapKeyMedium
         if stats.ScanCount >= 10 {
                 confidence = "high"
         }
@@ -222,7 +227,7 @@ func suggestRetryChanges(stats RollingStats, current ScannerProfile) []ProfileSu
                                         "Increasing retries from %d to %d reduces transient failures and improves data completeness.",
                                         errorRate, stats.ScanCount, current.RetryCount, suggestedRetries),
                                 Standard: StandardNIST80053SI18,
-                                Severity: "medium",
+                                Severity: mapKeyMedium,
                                 Category: "retry",
                         })
                 }
@@ -244,7 +249,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
                                 stats.AvgScanDuration/1000, current.TimeoutSeconds),
                         Standard: "RFC 8767",
                         Severity: "low",
-                        Category: "timeout",
+                        Category: mapKeyTimeout,
                 })
         } else if stats.AvgScanDuration < 5000 && current.TimeoutSeconds > 5 {
                 suggestions = append(suggestions, ProfileSuggestion{
@@ -256,7 +261,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
                                 stats.AvgScanDuration/1000, current.TimeoutSeconds),
                         Standard: "RFC 8767",
                         Severity: "low",
-                        Category: "timeout",
+                        Category: mapKeyTimeout,
                 })
         }
 
@@ -335,7 +340,7 @@ func resolverSeverity(agreement float64) string {
         if agreement < 50 {
                 return "high"
         }
-        return "medium"
+        return mapKeyMedium
 }
 
 func totalErrorRate(stats RollingStats) float64 {

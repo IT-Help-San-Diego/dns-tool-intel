@@ -396,6 +396,21 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function(){
+        function handleDossierPage(html, respUrl) {
+            document.open();
+            document.write(html);
+            document.close();
+            globalThis.scrollTo(0, 0);
+            const mm=document.querySelector('meta[name="x-report-mode"]');
+            const ie=document.querySelector('[data-analysis-id]');
+            const rm=mm?mm.content:'';
+            const ra=ie?ie.dataset.analysisId:'';
+            if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
+            else if (respUrl && respUrl !== globalThis.location.href) {
+                globalThis.history.replaceState(null, '', respUrl);
+            }
+        }
+
         document.querySelectorAll('.dossier-view-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 const overlay = document.getElementById('dossierViewOverlay');
@@ -426,20 +441,6 @@
                 formData.append('domain', decodeURIComponent(domain));
                 const csrf = document.querySelector('meta[name="csrf-token"]');
                 if(csrf) formData.append('_csrf', csrf.content);
-                function handleDossierPage(html, respUrl) {
-                    document.open();
-                    document.write(html);
-                    document.close();
-                    globalThis.scrollTo(0, 0);
-                    const mm=document.querySelector('meta[name="x-report-mode"]');
-                    const ie=document.querySelector('[data-analysis-id]');
-                    const rm=mm?mm.content:'';
-                    const ra=ie?ie.dataset.analysisId:'';
-                    if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
-                    else if (respUrl && respUrl !== globalThis.location.href) {
-                        globalThis.history.replaceState(null, '', respUrl);
-                    }
-                }
                 fetch('/analyze', {
                     method: 'POST',
                     body: formData,

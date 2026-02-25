@@ -9,6 +9,11 @@ import (
         "time"
 )
 
+const (
+	mapKeyAsName = "as_name"
+	mapKeyCountry = "country"
+)
+
 type ASNInfo struct {
         IP      string `json:"ip"`
         ASN     string `json:"asn"`
@@ -80,7 +85,7 @@ func (a *Analyzer) lookupIPv6ASNs(ctx context.Context, ips []string, asnSet map[
 func (a *Analyzer) lookupIPv4ASN(ctx context.Context, ip string) map[string]any {
         reversed := reverseIPv4(ip)
         if reversed == "" {
-                return map[string]any{"ip": ip, "error": "invalid IPv4"}
+                return map[string]any{"ip": ip, mapKeyError: "invalid IPv4"}
         }
 
         query := fmt.Sprintf("%s.origin.asn.cymru.com", reversed)
@@ -92,7 +97,7 @@ func (a *Analyzer) lookupIPv4ASN(ctx context.Context, ip string) map[string]any 
         }
 
         if len(records) == 0 {
-                info["error"] = "no ASN data"
+                info[mapKeyError] = "no ASN data"
                 return info
         }
 
@@ -104,7 +109,7 @@ func (a *Analyzer) lookupIPv4ASN(ctx context.Context, ip string) map[string]any 
 func (a *Analyzer) lookupIPv6ASN(ctx context.Context, ip string) map[string]any {
         reversed := reverseIPv6(ip)
         if reversed == "" {
-                return map[string]any{"ip": ip, "error": "invalid IPv6"}
+                return map[string]any{"ip": ip, mapKeyError: "invalid IPv6"}
         }
 
         query := fmt.Sprintf("%s.origin6.asn.cymru.com", reversed)
@@ -116,7 +121,7 @@ func (a *Analyzer) lookupIPv6ASN(ctx context.Context, ip string) map[string]any 
         }
 
         if len(records) == 0 {
-                info["error"] = "no ASN data"
+                info[mapKeyError] = "no ASN data"
                 return info
         }
 
@@ -133,7 +138,7 @@ func parseTeamCymruResponse(info map[string]any, record string) {
         }
         info["asn"] = strings.TrimSpace(parts[0])
         info["prefix"] = strings.TrimSpace(parts[1])
-        info["country"] = strings.TrimSpace(parts[2])
+        info[mapKeyCountry] = strings.TrimSpace(parts[2])
 }
 
 const asnAmazon = "Amazon.com, Inc."
@@ -196,14 +201,14 @@ func enrichASName(ctx context.Context, a *Analyzer, info map[string]any) {
                 if len(parts) >= 5 {
                         name := strings.TrimSpace(parts[4])
                         if name != "" {
-                                info["as_name"] = name
+                                info[mapKeyAsName] = name
                                 return
                         }
                 }
         }
 
         if name, ok := wellKnownASNames[asn]; ok {
-                info["as_name"] = name
+                info[mapKeyAsName] = name
         }
 }
 
@@ -215,8 +220,8 @@ func mergeASNSet(set map[string]map[string]any, info map[string]any) {
         if _, exists := set[asn]; !exists {
                 set[asn] = map[string]any{
                         "asn":     asn,
-                        "as_name": info["as_name"],
-                        "country": info["country"],
+                        mapKeyAsName: info[mapKeyAsName],
+                        mapKeyCountry: info[mapKeyCountry],
                 }
         }
 }

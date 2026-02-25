@@ -18,6 +18,11 @@ import (
 const (
         templateCompare       = "compare.html"
         templateCompareSelect = "compare_select.html"
+
+
+	mapKeyCompare = "compare"
+	strDomain = "Domain"
+	strFlashmessages = "FlashMessages"
 )
 
 type CompareHandler struct {
@@ -73,16 +78,16 @@ type compareErrorParams struct {
 
 func renderCompareError(c *gin.Context, p compareErrorParams) {
         data := gin.H{
-                "AppVersion":      p.handler.Config.AppVersion,
-                "MaintenanceNote": p.handler.Config.MaintenanceNote,
-		"BetaPages":      p.handler.Config.BetaPages,
-                "CspNonce":      p.nonce,
-                "CsrfToken":     p.csrfToken,
-                "ActivePage":    "compare",
-                "FlashMessages": []FlashMessage{{Category: "danger", Message: p.message}},
+                strAppversion:      p.handler.Config.AppVersion,
+                strMaintenancenote: p.handler.Config.MaintenanceNote,
+		strBetapages:      p.handler.Config.BetaPages,
+                strCspnonce:      p.nonce,
+                strCsrftoken:     p.csrfToken,
+                strActivepage:    mapKeyCompare,
+                strFlashmessages: []FlashMessage{{Category: "danger", Message: p.message}},
         }
         if p.domain != "" {
-                data["Domain"] = p.domain
+                data[strDomain] = p.domain
         }
         mergeAuthData(c, p.handler.Config, data)
         c.HTML(p.statusCode, p.tmpl, data)
@@ -170,13 +175,13 @@ func (h *CompareHandler) Compare(c *gin.Context) {
         diffItems, changesFound := buildDiffItems(diffs)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                "CspNonce":     nonce,
-                "CsrfToken":   csrfToken,
-                "ActivePage":   "compare",
-                "Domain":       analysisA.Domain,
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                strCspnonce:     nonce,
+                strCsrftoken:   csrfToken,
+                strActivepage:   mapKeyCompare,
+                strDomain:       analysisA.Domain,
                 "AnalysisA":    buildCompareAnalysis(analysisA),
                 "AnalysisB":    buildCompareAnalysis(analysisB),
                 "Diffs":        diffItems,
@@ -192,14 +197,14 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
 
         if domain == "" {
                 emptyData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "compare",
-                        "Domain":          "",
-                        "FlashMessages":   []FlashMessage{{Category: "warning", Message: "Please provide a domain to compare analyses."}},
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyCompare,
+                        strDomain:          "",
+                        strFlashmessages:   []FlashMessage{{Category: "warning", Message: "Please provide a domain to compare analyses."}},
                 }
                 mergeAuthData(c, h.Config, emptyData)
                 c.HTML(http.StatusOK, templateCompareSelect, emptyData)
@@ -213,14 +218,14 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
         })
         if err != nil {
                 fetchErrData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "compare",
-                        "Domain":          domain,
-                        "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}},
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyCompare,
+                        strDomain:          domain,
+                        strFlashmessages:   []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}},
                 }
                 mergeAuthData(c, h.Config, fetchErrData)
                 c.HTML(http.StatusInternalServerError, templateCompareSelect, fetchErrData)
@@ -229,13 +234,13 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
 
         if len(analyses) == 0 {
                 noData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "compare",
-                        "Domain":          domain,
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyCompare,
+                        strDomain:          domain,
                         "AnalysisCount":   0,
                 }
                 mergeAuthData(c, h.Config, noData)
@@ -248,13 +253,13 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                         items = append(items, buildSelectAnalysisItem(a))
                 }
                 fewData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "compare",
-                        "Domain":          domain,
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyCompare,
+                        strDomain:          domain,
                         "Analyses":        items,
                         "AnalysisCount":   len(analyses),
                 }
@@ -269,13 +274,13 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
         }
 
         selectData := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":      h.Config.BetaPages,
-                "CspNonce":   nonce,
-                "CsrfToken":  csrfToken,
-                "ActivePage": "",
-                "Domain":     domain,
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:      h.Config.BetaPages,
+                strCspnonce:   nonce,
+                strCsrftoken:  csrfToken,
+                strActivepage: "",
+                strDomain:     domain,
                 "Analyses":   items,
         }
         mergeAuthData(c, h.Config, selectData)

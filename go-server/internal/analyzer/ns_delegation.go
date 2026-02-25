@@ -11,6 +11,12 @@ import (
         "dnstool/go-server/internal/dnsclient"
 )
 
+const (
+	mapKeyEnterpriseDetail = "enterprise_detail"
+	mapKeyEnterpriseLabel = "enterprise_label"
+	mapKeyEnterprisePattern = "enterprise_pattern"
+)
+
 func normalizeNSList(records []string) []string {
         var result []string
         for _, ns := range records {
@@ -100,7 +106,7 @@ func (a *Analyzer) handleNoChildNS(ctx context.Context, domain string) map[strin
         if len(pzResult) > 0 {
                 parentZoneNS = normalizeNSList(pzResult)
         }
-        return nsDelegationResult("success",
+        return nsDelegationResult(mapKeySuccess,
                 fmt.Sprintf("Subdomain within %s zone - no separate delegation needed", parentZone),
                 nil, parentZoneNS, nil, true,
                 map[string]any{"is_subdomain": true, "parent_zone": parentZone},
@@ -198,9 +204,9 @@ func classifyEnterpriseDNS(domain string, nameservers []string) map[string]any {
         total := len(nameservers)
 
         if dedicated > 0 && managed > 0 {
-                result["enterprise_pattern"] = "mixed"
-                result["enterprise_label"] = "Enterprise DNS (Mixed Configuration)"
-                result["enterprise_detail"] = fmt.Sprintf(
+                result[mapKeyEnterprisePattern] = "mixed"
+                result[mapKeyEnterpriseLabel] = "Enterprise DNS (Mixed Configuration)"
+                result[mapKeyEnterpriseDetail] = fmt.Sprintf(
                         "%d of %d nameservers are dedicated (%s-branded), %d use external provider(s). "+
                                 "This pattern is common in large organizations using split-horizon DNS or "+
                                 "maintaining redundancy across internal and external infrastructure.",
@@ -208,9 +214,9 @@ func classifyEnterpriseDNS(domain string, nameservers []string) map[string]any {
                 result["dedicated_ns"] = dedicatedNS
                 result["managed_ns"] = managedNS
         } else if dedicated == total {
-                result["enterprise_pattern"] = "dedicated"
-                result["enterprise_label"] = "Enterprise DNS (Dedicated Infrastructure)"
-                result["enterprise_detail"] = fmt.Sprintf(
+                result[mapKeyEnterprisePattern] = "dedicated"
+                result[mapKeyEnterpriseLabel] = "Enterprise DNS (Dedicated Infrastructure)"
+                result[mapKeyEnterpriseDetail] = fmt.Sprintf(
                         "All %d nameservers are %s-branded, indicating organization-operated DNS infrastructure. "+
                                 "This is typical of large enterprises, government agencies, and organizations "+
                                 "that maintain full control of their DNS resolution chain.",
@@ -221,17 +227,17 @@ func classifyEnterpriseDNS(domain string, nameservers []string) map[string]any {
                         providerNames = append(providerNames, p)
                 }
                 sort.Strings(providerNames)
-                result["enterprise_pattern"] = "multi-provider"
-                result["enterprise_label"] = "Enterprise DNS (Multi-Provider Redundancy)"
-                result["enterprise_detail"] = fmt.Sprintf(
+                result[mapKeyEnterprisePattern] = "multi-provider"
+                result[mapKeyEnterpriseLabel] = "Enterprise DNS (Multi-Provider Redundancy)"
+                result[mapKeyEnterpriseDetail] = fmt.Sprintf(
                         "Nameservers span %d providers (%s). Multi-provider DNS provides resilience "+
                                 "against single-provider outages — an enterprise best practice for critical domains.",
                         len(providers), strings.Join(providerNames, ", "))
         } else if len(providers) == 1 {
                 for p := range providers {
-                        result["enterprise_pattern"] = "managed"
-                        result["enterprise_label"] = "Managed DNS"
-                        result["enterprise_detail"] = fmt.Sprintf(
+                        result[mapKeyEnterprisePattern] = "managed"
+                        result[mapKeyEnterpriseLabel] = "Managed DNS"
+                        result[mapKeyEnterpriseDetail] = fmt.Sprintf(
                                 "All %d nameservers hosted by %s. Managed DNS provides reliable "+
                                         "resolution with provider-maintained infrastructure.",
                                 total, p)
@@ -265,7 +271,7 @@ func (a *Analyzer) AnalyzeNSDelegation(ctx context.Context, domain string) map[s
                 for k, v := range enterprise {
                         extras[k] = v
                 }
-                return nsDelegationResult("success",
+                return nsDelegationResult(mapKeySuccess,
                         fmt.Sprintf("%d nameserver(s) configured", len(childNS)),
                         childNS, nil, nil, true,
                         extras,
@@ -273,7 +279,7 @@ func (a *Analyzer) AnalyzeNSDelegation(ctx context.Context, domain string) map[s
         }
 
         if stringSetEqual(childNS, parentNS) {
-                return nsDelegationResult("success",
+                return nsDelegationResult(mapKeySuccess,
                         fmt.Sprintf("NS delegation verified - %d nameserver(s) match parent zone", len(childNS)),
                         childNS, parentNS, true, true, enterprise,
                 )

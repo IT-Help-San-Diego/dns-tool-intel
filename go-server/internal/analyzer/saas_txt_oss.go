@@ -11,24 +11,29 @@ var saasPatterns = []saasPattern{}
 
 func ExtractSaaSTXTFootprint(results map[string]any) map[string]any {
         basicRecords, ok := results["basic_records"].(map[string]any)
+
+const (
+	mapKeyServiceCount = "service_count"
+	mapKeyServices = "services"
+)
         if !ok {
                 return map[string]any{
-                        "status":        "success",
-                        "services":      []map[string]any{},
-                        "service_count": 0,
-                        "issues":        []string{},
-                        "message":       noSaaSDetectedMsg,
+                        mapKeyStatus:        mapKeySuccess,
+                        mapKeyServices:      []map[string]any{},
+                        mapKeyServiceCount: 0,
+                        mapKeyIssues:        []string{},
+                        mapKeyMessage:       noSaaSDetectedMsg,
                 }
         }
 
         txtRaw, ok := basicRecords["TXT"]
         if !ok {
                 return map[string]any{
-                        "status":        "success",
-                        "services":      []map[string]any{},
-                        "service_count": 0,
-                        "issues":        []string{},
-                        "message":       noSaaSDetectedMsg,
+                        mapKeyStatus:        mapKeySuccess,
+                        mapKeyServices:      []map[string]any{},
+                        mapKeyServiceCount: 0,
+                        mapKeyIssues:        []string{},
+                        mapKeyMessage:       noSaaSDetectedMsg,
                 }
         }
 
@@ -42,21 +47,21 @@ func ExtractSaaSTXTFootprint(results map[string]any) map[string]any {
                 txtAsAny = v
         default:
                 return map[string]any{
-                        "status":        "success",
-                        "services":      []map[string]any{},
-                        "service_count": 0,
-                        "issues":        []string{},
-                        "message":       noSaaSDetectedMsg,
+                        mapKeyStatus:        mapKeySuccess,
+                        mapKeyServices:      []map[string]any{},
+                        mapKeyServiceCount: 0,
+                        mapKeyIssues:        []string{},
+                        mapKeyMessage:       noSaaSDetectedMsg,
                 }
         }
 
         if len(txtAsAny) == 0 {
                 return map[string]any{
-                        "status":        "success",
-                        "services":      []map[string]any{},
-                        "service_count": 0,
-                        "issues":        []string{},
-                        "message":       noSaaSDetectedMsg,
+                        mapKeyStatus:        mapKeySuccess,
+                        mapKeyServices:      []map[string]any{},
+                        mapKeyServiceCount: 0,
+                        mapKeyIssues:        []string{},
+                        mapKeyMessage:       noSaaSDetectedMsg,
                 }
         }
 

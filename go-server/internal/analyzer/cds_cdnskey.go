@@ -11,14 +11,21 @@ import (
 	"codeberg.org/miekg/dns/dnsutil"
 )
 
+const (
+	mapKeyAutomation = "automation"
+	mapKeyDeleteSignaled = "delete_signaled"
+	mapKeyHasCdnskey = "has_cdnskey"
+	mapKeyHasCds = "has_cds"
+)
+
 func (a *Analyzer) AnalyzeCDSCDNSKEY(ctx context.Context, domain string) map[string]any {
 	result := map[string]any{
 		"status":          "success",
-		"has_cds":         false,
-		"has_cdnskey":     false,
+		mapKeyHasCds:         false,
+		mapKeyHasCdnskey:     false,
 		"cds_records":     []map[string]any{},
 		"cdnskey_records": []map[string]any{},
-		"automation":      "none",
+		mapKeyAutomation:      "none",
 		"issues":          []string{},
 	}
 
@@ -26,18 +33,18 @@ func (a *Analyzer) AnalyzeCDSCDNSKEY(ctx context.Context, domain string) map[str
 	cdnskeyRecords := a.queryCDNSKEY(ctx, domain)
 
 	if len(cdsRecords) > 0 {
-		result["has_cds"] = true
+		result[mapKeyHasCds] = true
 		result["cds_records"] = parseCDSRecords(cdsRecords)
 	}
 
 	if len(cdnskeyRecords) > 0 {
-		result["has_cdnskey"] = true
+		result[mapKeyHasCdnskey] = true
 		result["cdnskey_records"] = parseCDNSKEYRecords(cdnskeyRecords)
 	}
 
-	result["automation"] = classifyCDSAutomation(cdsRecords, cdnskeyRecords)
+	result[mapKeyAutomation] = classifyCDSAutomation(cdsRecords, cdnskeyRecords)
 
-	if !result["has_cds"].(bool) && !result["has_cdnskey"].(bool) {
+	if !result[mapKeyHasCds].(bool) && !result[mapKeyHasCdnskey].(bool) {
 		result["status"] = "info"
 		result["message"] = "No CDS/CDNSKEY records found — no automated DNSSEC key rollover signaling"
 	} else {
@@ -124,12 +131,12 @@ func classifyCDSAutomation(cds []*dns.CDS, cdnskey []*dns.CDNSKEY) string {
 
 	for _, r := range cds {
 		if r.KeyTag == 0 && r.Algorithm == 0 && r.DigestType == 0 {
-			return "delete_signaled"
+			return mapKeyDeleteSignaled
 		}
 	}
 	for _, r := range cdnskey {
 		if r.Flags == 0 && r.Protocol == 3 && r.Algorithm == 0 {
-			return "delete_signaled"
+			return mapKeyDeleteSignaled
 		}
 	}
 
@@ -143,7 +150,7 @@ func classifyCDSAutomation(cds []*dns.CDS, cdnskey []*dns.CDNSKEY) string {
 }
 
 func buildCDSMessage(result map[string]any) string {
-	automation, _ := result["automation"].(string)
+	automation, _ := result[mapKeyAutomation].(string)
 	parts := []string{}
 
 	switch automation {
@@ -153,7 +160,7 @@ func buildCDSMessage(result map[string]any) string {
 		parts = append(parts, "CDS records present for automated DS updates")
 	case "cdnskey_only":
 		parts = append(parts, "CDNSKEY records present for automated key rollover")
-	case "delete_signaled":
+	case mapKeyDeleteSignaled:
 		parts = append(parts, "DNSSEC deletion signaled via CDS/CDNSKEY (RFC 8078 §4)")
 	}
 

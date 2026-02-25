@@ -5892,6 +5892,28 @@
         });
     }
 
+    function handleFetchedPage(html, respUrl) {
+        document.open();
+        document.write(html);
+        document.close();
+        globalThis.scrollTo(0, 0);
+        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+        const idEl = document.querySelector('[data-analysis-id]');
+        const mode = modeMeta ? modeMeta.content : '';
+        const aid = idEl ? idEl.dataset.analysisId : '';
+        if (aid && mode) {
+            globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+        } else if (respUrl && respUrl !== globalThis.location.href) {
+            globalThis.history.replaceState(null, '', respUrl);
+        }
+    }
+
+    function recordTypeColor(rt) {
+        if (rt === 'MX') return 'success';
+        if (rt === 'NS') return 'info';
+        return 'primary';
+    }
+
     function setupHashPreviewLink() {
         const link = document.querySelector('a[href="#report-integrity"]');
         if (link) {
@@ -6093,21 +6115,6 @@
                     }
                     
                     const url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
-                    function handleFetchedPage(html, respUrl) {
-                        document.open();
-                        document.write(html);
-                        document.close();
-                        globalThis.scrollTo(0, 0);
-                        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                        const idEl = document.querySelector('[data-analysis-id]');
-                        const mode = modeMeta ? modeMeta.content : '';
-                        const aid = idEl ? idEl.dataset.analysisId : '';
-                        if (aid && mode) {
-                            globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
-                        } else if (respUrl && respUrl !== globalThis.location.href) {
-                            globalThis.history.replaceState(null, '', respUrl);
-                        }
-                    }
                     fetch(url, {
                         headers: { 'X-Requested-With': 'fetch' },
                         redirect: 'follow'
@@ -6311,11 +6318,6 @@
                 }
 
                 let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
-                function recordTypeColor(rt) {
-                    if (rt === 'MX') return 'success';
-                    if (rt === 'NS') return 'info';
-                    return 'primary';
-                }
                 data.changes.forEach(function(ch) {
                     const typeColor = recordTypeColor(ch.record_type);
                     const actionHtml = ch.action === 'added'

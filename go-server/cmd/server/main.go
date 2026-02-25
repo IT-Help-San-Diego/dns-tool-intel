@@ -29,6 +29,10 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	mapKeyError = "error"
+)
+
 const headerCacheControl = "Cache-Control"
 
 func main() {
@@ -38,7 +42,7 @@ func main() {
 
         cfg, err := config.Load()
         if err != nil {
-                slog.Error("Failed to load config", "error", err)
+                slog.Error("Failed to load config", mapKeyError, err)
                 os.Exit(1)
         }
 
@@ -46,7 +50,7 @@ func main() {
 
         database, err := db.Connect(cfg.DatabaseURL)
         if err != nil {
-                slog.Error("Failed to connect to database", "error", err)
+                slog.Error("Failed to connect to database", mapKeyError, err)
                 os.Exit(1)
         }
         defer database.Close()
@@ -325,7 +329,7 @@ func main() {
 
         go func() {
                 if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-                        slog.Error("Server failed to start", "error", err)
+                        slog.Error("Server failed to start", mapKeyError, err)
                         os.Exit(1)
                 }
         }()
@@ -341,7 +345,7 @@ func main() {
         defer shutdownCancel()
 
         if err := srv.Shutdown(shutdownCtx); err != nil {
-                slog.Error("Server forced to shutdown", "error", err)
+                slog.Error("Server forced to shutdown", mapKeyError, err)
                 os.Exit(1)
         }
 
@@ -430,7 +434,7 @@ func runNotionSync() {
         cmd := exec.CommandContext(ctx, "node", scriptPath)
         output, err := cmd.CombinedOutput()
         if err != nil {
-                slog.Error("Notion sync failed", "error", err, "output", string(output))
+                slog.Error("Notion sync failed", mapKeyError, err, "output", string(output))
                 return
         }
         slog.Info("Notion sync completed", "output", string(output))

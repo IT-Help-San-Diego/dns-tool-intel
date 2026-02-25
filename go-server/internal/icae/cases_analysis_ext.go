@@ -22,6 +22,17 @@ const (
 	rfcDANE7672              = "RFC 7672"
 	testMail1ExampleCom      = "mail1.example.com"
 	testMailExampleCom       = "mail.example.com"
+
+
+	mapKeyEnforce = "enforce"
+	mapKeyMatchingType = "matching_type"
+	mapKeyMtaSts = "mta_sts"
+	mapKeyMxHost = "mx_host"
+	mapKeyTlsrpt = "tlsrpt"
+	mapKeyUsage = "usage"
+	mapKeyWarning = "warning"
+	strAdequate = "Adequate"
+	strEd25519 = "ed25519"
 )
 
 func dkimAnalysisCases() []TestCase {
@@ -87,11 +98,11 @@ func dkimAnalysisCases() []TestCase {
 			Protocol:   "dkim",
 			Layer:      LayerAnalysis,
 			RFCSection: "RFC 8463",
-			Expected:   "ed25519",
+			Expected:   strEd25519,
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportAnalyzeDKIMKey("v=DKIM1; k=ed25519; p=AAAA")
 				keyType, _ := result["key_type"].(string)
-				return keyType, keyType == "ed25519"
+				return keyType, keyType == strEd25519
 			},
 		},
 		{
@@ -197,39 +208,39 @@ func mtaStsAnalysisCases() []TestCase {
 		{
 			CaseID:     "mta_sts-analysis-001",
 			CaseName:   "MTA-STS enforce mode returns success",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcMTASTSSection5,
-			Expected:   "success",
+			Expected:   mapKeySuccess,
 			RunFn: func() (string, bool) {
 				policyData := map[string]any{"mx": []string{testMailExampleCom}}
-				status, _ := analyzer.ExportDetermineMTASTSModeStatus("enforce", policyData)
-				return status, status == "success"
+				status, _ := analyzer.ExportDetermineMTASTSModeStatus(mapKeyEnforce, policyData)
+				return status, status == mapKeySuccess
 			},
 		},
 		{
 			CaseID:     "mta_sts-analysis-002",
 			CaseName:   "MTA-STS testing mode returns warning",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcMTASTSSection5,
-			Expected:   "warning",
+			Expected:   mapKeyWarning,
 			RunFn: func() (string, bool) {
 				policyData := map[string]any{"mx": []string{testMailExampleCom}}
 				status, _ := analyzer.ExportDetermineMTASTSModeStatus("testing", policyData)
-				return status, status == "warning"
+				return status, status == mapKeyWarning
 			},
 		},
 		{
 			CaseID:     "mta_sts-analysis-003",
 			CaseName:   "MTA-STS policy parsing extracts mode and mx",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: "RFC 8461 §3.2",
-			Expected:   "enforce",
+			Expected:   mapKeyEnforce,
 			RunFn: func() (string, bool) {
 				mode, _, mx, hasVersion := analyzer.ExportParseMTASTSPolicyLines("version: STSv1\nmode: enforce\nmax_age: 86400\nmx: mail.example.com\nmx: *.example.com")
-				ok := mode == "enforce" && len(mx) == 2 && hasVersion
+				ok := mode == mapKeyEnforce && len(mx) == 2 && hasVersion
 				actual := fmt.Sprintf("mode=%s mx=%d version=%v", mode, len(mx), hasVersion)
 				if !ok {
 					return actual, false
@@ -240,7 +251,7 @@ func mtaStsAnalysisCases() []TestCase {
 		{
 			CaseID:     "mta_sts-analysis-004",
 			CaseName:   "MTA-STS valid record filtered correctly",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: "RFC 8461 §3.1",
 			Expected:   "1",
@@ -253,7 +264,7 @@ func mtaStsAnalysisCases() []TestCase {
 		{
 			CaseID:     "mta_sts-analysis-005",
 			CaseName:   "MTA-STS ID extracted from record",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: "RFC 8461 §3.1",
 			Expected:   "20230101",
@@ -273,37 +284,37 @@ func tlsrptAnalysisCases() []TestCase {
 		{
 			CaseID:     "tlsrpt-analysis-001",
 			CaseName:   "DKIM key classification: 2048-bit RSA adequate per crypto policy",
-			Protocol:   "tlsrpt",
+			Protocol:   mapKeyTlsrpt,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDKIM8301,
-			Expected:   "Adequate",
+			Expected:   strAdequate,
 			RunFn: func() (string, bool) {
 				c := analyzer.ClassifyDKIMKey("rsa", 2048)
-				return c.Label, c.Label == "Adequate"
+				return c.Label, c.Label == strAdequate
 			},
 		},
 		{
 			CaseID:     "tlsrpt-analysis-002",
 			CaseName:   "DKIM key classification: Ed25519 strong per crypto policy",
-			Protocol:   "tlsrpt",
+			Protocol:   mapKeyTlsrpt,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDKIM8301,
 			Expected:   "Strong",
 			RunFn: func() (string, bool) {
-				c := analyzer.ClassifyDKIMKey("ed25519", 256)
+				c := analyzer.ClassifyDKIMKey(strEd25519, 256)
 				return c.Label, c.Label == "Strong"
 			},
 		},
 		{
 			CaseID:     "tlsrpt-analysis-003",
 			CaseName:   "DS digest type 2 (SHA-256) classified as adequate",
-			Protocol:   "tlsrpt",
+			Protocol:   mapKeyTlsrpt,
 			Layer:      LayerAnalysis,
 			RFCSection: "RFC 8624 §3.3",
-			Expected:   "Adequate",
+			Expected:   strAdequate,
 			RunFn: func() (string, bool) {
 				c := analyzer.ClassifyDSDigest(2)
-				return c.Label, c.Label == "Adequate"
+				return c.Label, c.Label == strAdequate
 			},
 		},
 	}
@@ -398,14 +409,14 @@ func regressionCases() []TestCase {
 		{
 			CaseID:     "brand-regression-001",
 			CaseName:   "Brand verdict: quarantine + BIMI + CAA = Unlikely / Well Protected",
-			Protocol:   "dmarc",
+			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDMARCSection63,
 			Expected:   "answer=Unlikely, label=Well Protected",
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportBuildBrandVerdict(false, "quarantine", true, true)
-				answer, _ := result["answer"].(string)
-				label, _ := result["label"].(string)
+				answer, _ := result[mapKeyAnswer].(string)
+				label, _ := result[mapKeyLabel].(string)
 				actual := fmt.Sprintf(fmtAnswerLabel, answer, label)
 				return actual, answer == "Unlikely" && label == "Well Protected"
 			},
@@ -413,14 +424,14 @@ func regressionCases() []TestCase {
 		{
 			CaseID:     "brand-regression-002",
 			CaseName:   "Brand verdict: reject + BIMI + CAA = No / Protected",
-			Protocol:   "dmarc",
+			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDMARCSection63,
 			Expected:   "answer=No, label=Protected",
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportBuildBrandVerdict(false, "reject", true, true)
-				answer, _ := result["answer"].(string)
-				label, _ := result["label"].(string)
+				answer, _ := result[mapKeyAnswer].(string)
+				label, _ := result[mapKeyLabel].(string)
 				actual := fmt.Sprintf(fmtAnswerLabel, answer, label)
 				return actual, answer == "No" && label == "Protected"
 			},
@@ -428,14 +439,14 @@ func regressionCases() []TestCase {
 		{
 			CaseID:     "brand-regression-003",
 			CaseName:   "Brand verdict: reject + no BIMI + no CAA = Possible / Partially Protected",
-			Protocol:   "dmarc",
+			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDMARCSection63,
 			Expected:   "answer=Possible, label=Partially Protected",
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportBuildBrandVerdict(false, "reject", false, false)
-				answer, _ := result["answer"].(string)
-				label, _ := result["label"].(string)
+				answer, _ := result[mapKeyAnswer].(string)
+				label, _ := result[mapKeyLabel].(string)
 				actual := fmt.Sprintf(fmtAnswerLabel, answer, label)
 				return actual, answer == "Possible" && label == "Partially Protected"
 			},
@@ -443,14 +454,14 @@ func regressionCases() []TestCase {
 		{
 			CaseID:     "brand-regression-004",
 			CaseName:   "Brand verdict: missing DMARC = Yes / Exposed",
-			Protocol:   "dmarc",
+			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDMARCSection63,
 			Expected:   "answer=Yes, label=Exposed",
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportBuildBrandVerdict(true, "", false, false)
-				answer, _ := result["answer"].(string)
-				label, _ := result["label"].(string)
+				answer, _ := result[mapKeyAnswer].(string)
+				label, _ := result[mapKeyLabel].(string)
 				actual := fmt.Sprintf(fmtAnswerLabel, answer, label)
 				return actual, answer == "Yes" && label == "Exposed"
 			},
@@ -458,40 +469,40 @@ func regressionCases() []TestCase {
 		{
 			CaseID:     "mta_sts-regression-001",
 			CaseName:   "MTA-STS enforce mode returns success status",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcMTASTSSection5,
-			Expected:   "success",
+			Expected:   mapKeySuccess,
 			RunFn: func() (string, bool) {
 				policyData := map[string]any{"mx": []string{testMailExampleCom}}
-				status, _ := analyzer.ExportDetermineMTASTSModeStatus("enforce", policyData)
-				return status, status == "success"
+				status, _ := analyzer.ExportDetermineMTASTSModeStatus(mapKeyEnforce, policyData)
+				return status, status == mapKeySuccess
 			},
 		},
 		{
 			CaseID:     "mta_sts-regression-002",
 			CaseName:   "MTA-STS testing mode returns warning status",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcMTASTSSection5,
-			Expected:   "warning",
+			Expected:   mapKeyWarning,
 			RunFn: func() (string, bool) {
 				policyData := map[string]any{"mx": []string{testMailExampleCom}}
 				status, _ := analyzer.ExportDetermineMTASTSModeStatus("testing", policyData)
-				return status, status == "warning"
+				return status, status == mapKeyWarning
 			},
 		},
 		{
 			CaseID:     "mta_sts-regression-003",
 			CaseName:   "MTA-STS none mode returns warning status (disabled policy)",
-			Protocol:   "mta_sts",
+			Protocol:   mapKeyMtaSts,
 			Layer:      LayerAnalysis,
 			RFCSection: rfcMTASTSSection5,
-			Expected:   "warning",
+			Expected:   mapKeyWarning,
 			RunFn: func() (string, bool) {
 				policyData := map[string]any{"mx": []string{}}
 				status, _ := analyzer.ExportDetermineMTASTSModeStatus("none", policyData)
-				return status, status == "warning"
+				return status, status == mapKeyWarning
 			},
 		},
 		{
@@ -530,13 +541,13 @@ func regressionCases() []TestCase {
 			Protocol:   "dane",
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDANE7672,
-			Expected:   "success",
+			Expected:   mapKeySuccess,
 			RunFn: func() (string, bool) {
 				tlsa := []map[string]any{
-					{"mx_host": testMailExampleCom, "usage": 3, "matching_type": 1},
+					{mapKeyMxHost: testMailExampleCom, mapKeyUsage: 3, mapKeyMatchingType: 1},
 				}
 				status, _, _ := analyzer.ExportBuildDANEVerdict(tlsa, []string{testMailExampleCom}, []string{testMailExampleCom}, nil)
-				return status, status == "success"
+				return status, status == mapKeySuccess
 			},
 		},
 		{
@@ -545,13 +556,13 @@ func regressionCases() []TestCase {
 			Protocol:   "dane",
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDANE7672,
-			Expected:   "warning",
+			Expected:   mapKeyWarning,
 			RunFn: func() (string, bool) {
 				tlsa := []map[string]any{
-					{"mx_host": testMail1ExampleCom, "usage": 3, "matching_type": 1},
+					{mapKeyMxHost: testMail1ExampleCom, mapKeyUsage: 3, mapKeyMatchingType: 1},
 				}
 				status, _, _ := analyzer.ExportBuildDANEVerdict(tlsa, []string{testMail1ExampleCom}, []string{testMail1ExampleCom, "mail2.example.com"}, nil)
-				return status, status == "warning"
+				return status, status == mapKeyWarning
 			},
 		},
 	}
@@ -610,13 +621,13 @@ func daneAnalysisCases() []TestCase {
 			Protocol:   "dane",
 			Layer:      LayerAnalysis,
 			RFCSection: rfcDANE7672,
-			Expected:   "success",
+			Expected:   mapKeySuccess,
 			RunFn: func() (string, bool) {
 				tlsa := []map[string]any{
-					{"mx_host": testMailExampleCom, "usage": 3, "matching_type": 1},
+					{mapKeyMxHost: testMailExampleCom, mapKeyUsage: 3, mapKeyMatchingType: 1},
 				}
 				status, _, _ := analyzer.ExportBuildDANEVerdict(tlsa, []string{testMailExampleCom}, []string{testMailExampleCom}, nil)
-				return status, status == "success"
+				return status, status == mapKeySuccess
 			},
 		},
 		{

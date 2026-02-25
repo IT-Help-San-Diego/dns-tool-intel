@@ -77,17 +77,14 @@ var whoisServers = map[string]string{
 const (
         providerMicrosoftAzureDNS = "Microsoft Azure DNS"
 
-        mapKeyDomain     = "domain"
-        mapKeyStatus     = "status"
-        mapKeyRegistrar  = "registrar"
         mapKeySource     = "source"
         statusSuccess    = "success"
-        mapKeyConfidence = "confidence"
         mapKeyEntities   = "entities"
-        mapKeyError      = "error"
-        mapKeyElapsedMs  = "elapsed_ms"
         mapKeyAttempt    = "attempt"
         fmtAttemptTotal  = "%d/%d"
+
+
+	strIonos = "IONOS"
 )
 
 var nsRegistrarPatterns = map[string]string{
@@ -98,9 +95,9 @@ var nsRegistrarPatterns = map[string]string{
         "domaincontrol.com":     "GoDaddy",
         "registrar-servers.com": "Namecheap",
         "name-services.com":     "Enom / Tucows",
-        "ionos.com":             "IONOS",
-        "ui-dns.com":            "IONOS",
-        "ui-dns.de":             "IONOS",
+        "ionos.com":             strIonos,
+        "ui-dns.com":            strIonos,
+        "ui-dns.de":             strIonos,
         "strato.de":             "Strato",
         "hetzner.com":           "Hetzner",
         "inwx.de":               "INWX",

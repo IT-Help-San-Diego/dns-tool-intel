@@ -15,6 +15,19 @@ import (
         "golang.org/x/net/publicsuffix"
 )
 
+const (
+        mapKeyAnswer = "answer"
+        mapKeyPosture = "posture"
+        mapKeyReason = "reason"
+        mapKeySecondary = "secondary"
+        mapKeyState = "state"
+        mapKeySuccess = "success"
+        mapKeyUnknown = "unknown"
+        strPossible = "Possible"
+        strProtected = "Protected"
+        strSecure = "Secure"
+)
+
 type PaginationInfo struct {
         Page       int  `json:"page"`
         PerPage    int  `json:"per_page"`
@@ -61,19 +74,19 @@ func (p PaginationInfo) Pages() []int {
 var normalizeDefaults = map[string]interface{}{
         "basic_records":          map[string]interface{}{},
         "authoritative_records":  map[string]interface{}{},
-        "spf_analysis":           map[string]interface{}{"status": "unknown", "records": []interface{}{}},
-        "dmarc_analysis":         map[string]interface{}{"status": "unknown", "policy": nil, "records": []interface{}{}},
-        "dkim_analysis":          map[string]interface{}{"status": "unknown", "selectors": map[string]interface{}{}},
+        mapKeySpfAnalysis:           map[string]interface{}{mapKeyStatus: mapKeyUnknown, "records": []interface{}{}},
+        mapKeyDmarcAnalysis:         map[string]interface{}{mapKeyStatus: mapKeyUnknown, "policy": nil, "records": []interface{}{}},
+        "dkim_analysis":          map[string]interface{}{mapKeyStatus: mapKeyUnknown, "selectors": map[string]interface{}{}},
         "registrar_info":         map[string]interface{}{"registrar": nil, "source": nil},
-        "posture":                map[string]interface{}{"state": "unknown", "label": "Unknown", "icon": "question-circle", "color": "secondary", "message": "Posture data unavailable", "deliberate_monitoring": false, "deliberate_monitoring_note": "", "issues": []interface{}{}, "monitoring": []interface{}{}, "configured": []interface{}{}, "absent": []interface{}{}},
-        "dane_analysis":          map[string]interface{}{"status": "info", "has_dane": false, "tlsa_records": []interface{}{}, "issues": []interface{}{}},
-        "mta_sts_analysis":       map[string]interface{}{"status": "warning"},
-        "tlsrpt_analysis":        map[string]interface{}{"status": "warning"},
-        "bimi_analysis":          map[string]interface{}{"status": "warning"},
-        "caa_analysis":           map[string]interface{}{"status": "warning"},
-        "dnssec_analysis":        map[string]interface{}{"status": "warning"},
+        mapKeyPosture:                map[string]interface{}{mapKeyState: mapKeyUnknown, "label": "Unknown", "icon": "question-circle", mapKeyColor: mapKeySecondary, "message": "Posture data unavailable", "deliberate_monitoring": false, "deliberate_monitoring_note": "", "issues": []interface{}{}, "monitoring": []interface{}{}, "configured": []interface{}{}, "absent": []interface{}{}},
+        "dane_analysis":          map[string]interface{}{mapKeyStatus: "info", "has_dane": false, "tlsa_records": []interface{}{}, "issues": []interface{}{}},
+        "mta_sts_analysis":       map[string]interface{}{mapKeyStatus: mapKeyWarning},
+        "tlsrpt_analysis":        map[string]interface{}{mapKeyStatus: mapKeyWarning},
+        "bimi_analysis":          map[string]interface{}{mapKeyStatus: mapKeyWarning},
+        "caa_analysis":           map[string]interface{}{mapKeyStatus: mapKeyWarning},
+        "dnssec_analysis":        map[string]interface{}{mapKeyStatus: mapKeyWarning},
         "ct_subdomains":          map[string]interface{}{},
-        "mail_posture":           map[string]interface{}{"classification": "unknown"},
+        "mail_posture":           map[string]interface{}{"classification": mapKeyUnknown},
         "_data_freshness":        map[string]interface{}{},
 }
 
@@ -82,8 +95,8 @@ var legacyPostureStates = map[string]string{
         "Medium":   "Medium Risk",
         "High":     "High Risk",
         "Critical": "Critical Risk",
-        "STRONG":       "Secure",
-        "Informational": "Secure",
+        "STRONG":       strSecure,
+        "Informational": strSecure,
         "MODERATE": "Medium Risk",
         "WEAK":     "High Risk",
         "NONE":     "Critical Risk",
@@ -105,13 +118,13 @@ func NormalizeResults(fullResults json.RawMessage) map[string]interface{} {
                 }
         }
 
-        if posture, ok := results["posture"].(map[string]interface{}); ok {
-                if state, ok := posture["state"].(string); ok {
+        if posture, ok := results[mapKeyPosture].(map[string]interface{}); ok {
+                if state, ok := posture[mapKeyState].(string); ok {
                         if normalized, found := legacyPostureStates[state]; found {
-                                posture["state"] = normalized
+                                posture[mapKeyState] = normalized
                         }
-                        if posture["state"] == "Secure" {
-                                posture["color"] = "success"
+                        if posture[mapKeyState] == strSecure {
+                                posture[mapKeyColor] = mapKeySuccess
                                 posture["icon"] = "shield-alt"
                         }
                 }
@@ -144,14 +157,14 @@ func normalizeEmailAnswer(verdicts map[string]interface{}) {
         if len(parts) == 2 {
                 answer := parts[0]
                 reason := parts[1]
-                color := "warning"
+                color := mapKeyWarning
                 switch {
                 case answer == "No" || answer == "Unlikely":
-                        color = "success"
+                        color = mapKeySuccess
                 case answer == "Yes" || answer == "Likely":
                         color = "danger"
                 case answer == "Partially" || answer == "Uncertain":
-                        color = "warning"
+                        color = mapKeyWarning
                 }
                 verdicts["email_answer_short"] = answer
                 verdicts["email_answer_reason"] = reason
@@ -162,15 +175,15 @@ func normalizeEmailAnswer(verdicts map[string]interface{}) {
 func normalizeVerdictAnswers(verdicts map[string]interface{}) {
         answerMap := map[string]map[string]string{
                 "dns_tampering": {
-                        "Protected":      "No",
+                        strProtected:      "No",
                         "Exposed":        "Yes",
-                        "Not Configured": "Possible",
+                        "Not Configured": strPossible,
                 },
                 "brand_impersonation": {
-                        "Protected":          "No",
+                        strProtected:          "No",
                         "Exposed":            "Yes",
-                        "Mostly Protected":   "Possible",
-                        "Partially Protected": "Possible",
+                        "Mostly Protected":   strPossible,
+                        "Partially Protected": strPossible,
                         "Basic":              "Likely",
                 },
                 "certificate_control": {
@@ -179,7 +192,7 @@ func normalizeVerdictAnswers(verdicts map[string]interface{}) {
                 },
                 "transport": {
                         "Fully Protected": "Yes",
-                        "Protected":       "Yes",
+                        strProtected:       "Yes",
                         "Monitoring":      "Partially",
                         "Not Enforced":    "No",
                 },
@@ -195,18 +208,18 @@ func normalizeVerdictEntry(verdicts map[string]interface{}, key string, labelToA
         if !ok {
                 return
         }
-        if _, hasAnswer := v["answer"]; hasAnswer {
+        if _, hasAnswer := v[mapKeyAnswer]; hasAnswer {
                 return
         }
         label, _ := v["label"].(string)
         if ans, found := labelToAnswer[label]; found {
-                v["answer"] = ans
+                v[mapKeyAnswer] = ans
         }
         reasonPrefixes := []string{"No — ", "Yes — ", "Possible — "}
-        if reason, ok := v["reason"].(string); ok {
+        if reason, ok := v[mapKeyReason].(string); ok {
                 for _, prefix := range reasonPrefixes {
                         if strings.HasPrefix(reason, prefix) {
-                                v["reason"] = strings.TrimPrefix(reason, prefix)
+                                v[mapKeyReason] = strings.TrimPrefix(reason, prefix)
                                 break
                         }
                 }
@@ -217,32 +230,32 @@ func normalizeLLMsTxtVerdict(llmsTxt map[string]interface{}) map[string]interfac
         found, _ := llmsTxt["found"].(bool)
         fullFound, _ := llmsTxt["full_found"].(bool)
         if found && fullFound {
-                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
+                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
         }
         if found {
-                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt published — AI models receive structured context about this domain"}
+                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt published — AI models receive structured context about this domain"}
         }
-        return map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No llms.txt file detected — AI models have no structured instructions for this domain"}
+        return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeySecondary, mapKeyReason: "No llms.txt file detected — AI models have no structured instructions for this domain"}
 }
 
 func normalizeRobotsTxtVerdict(robotsTxt map[string]interface{}) map[string]interface{} {
         found, _ := robotsTxt["found"].(bool)
         blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
         if found && blocksAI {
-                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "robots.txt actively blocks AI crawlers from scraping site content"}
+                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "robots.txt actively blocks AI crawlers from scraping site content"}
         }
         if found {
-                return map[string]interface{}{"answer": "No", "color": "warning", "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped"}
+                return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeyWarning, mapKeyReason: "robots.txt present but does not block AI crawlers — content may be freely scraped"}
         }
-        return map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No robots.txt found — AI crawlers have unrestricted access"}
+        return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeySecondary, mapKeyReason: "No robots.txt found — AI crawlers have unrestricted access"}
 }
 
 func normalizeCountVerdict(section map[string]interface{}, countKey, yesReason, noReason string) map[string]interface{} {
         count := getNumValue(section, countKey)
         if count > 0 {
-                return map[string]interface{}{"answer": "Yes", "color": "danger", "reason": fmt.Sprintf("%.0f %s", count, yesReason)}
+                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: "danger", mapKeyReason: fmt.Sprintf("%.0f %s", count, yesReason)}
         }
-        return map[string]interface{}{"answer": "No", "color": "success", "reason": noReason}
+        return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeySuccess, mapKeyReason: noReason}
 }
 
 func normalizeAIVerdicts(results, verdicts map[string]interface{}) {
@@ -295,8 +308,8 @@ type CompareSectionDef struct {
 }
 
 var CompareSections = []CompareSectionDef{
-        {"spf_analysis", "SPF", "fa-envelope-open-text"},
-        {"dmarc_analysis", "DMARC", "fa-shield-alt"},
+        {mapKeySpfAnalysis, "SPF", "fa-envelope-open-text"},
+        {mapKeyDmarcAnalysis, "DMARC", "fa-shield-alt"},
         {"dkim_analysis", "DKIM", "fa-key"},
         {"dnssec_analysis", "DNSSEC", "fa-lock"},
         {"dane_analysis", "DANE / TLSA", "fa-certificate"},
@@ -304,11 +317,11 @@ var CompareSections = []CompareSectionDef{
         {"tlsrpt_analysis", "TLS-RPT", "fa-file-alt"},
         {"bimi_analysis", "BIMI", "fa-image"},
         {"caa_analysis", "CAA", "fa-certificate"},
-        {"posture", "Mail Posture", "fa-mail-bulk"},
+        {mapKeyPosture, "Mail Posture", "fa-mail-bulk"},
 }
 
 var compareSkipKeys = map[string]bool{
-        "status": true, "state": true, "_schema_version": true,
+        mapKeyStatus: true, mapKeyState: true, "_schema_version": true,
         "_tool_version": true, "_captured_at": true,
 }
 
@@ -329,13 +342,13 @@ type SectionDiff struct {
 }
 
 func getStatus(section map[string]interface{}) string {
-        if s, ok := section["status"].(string); ok {
+        if s, ok := section[mapKeyStatus].(string); ok {
                 return s
         }
-        if s, ok := section["state"].(string); ok {
+        if s, ok := section[mapKeyState].(string); ok {
                 return s
         }
-        return "unknown"
+        return mapKeyUnknown
 }
 
 func ComputeSectionDiff(secA, secB map[string]interface{}, key, label, icon string) SectionDiff {
@@ -402,20 +415,20 @@ func normalizeForCompare(v interface{}) interface{} {
                 }
         }
         sort.Strings(strs)
+        _, firstIsString := arr[0].(string)
         sorted := make([]interface{}, len(strs))
         for i, s := range strs {
-                var parsed interface{}
-                if json.Unmarshal([]byte(s), &parsed) == nil {
-                        if _, isStr := arr[0].(string); isStr {
-                                sorted[i] = s
-                        } else {
-                                sorted[i] = parsed
-                        }
-                } else {
-                        sorted[i] = s
-                }
+                sorted[i] = parseSortedElement(s, firstIsString)
         }
         return sorted
+}
+
+func parseSortedElement(s string, firstIsString bool) interface{} {
+        var parsed interface{}
+        if json.Unmarshal([]byte(s), &parsed) == nil && !firstIsString {
+                return parsed
+        }
+        return s
 }
 
 func ComputeAllDiffs(resultsA, resultsB map[string]interface{}) []SectionDiff {
@@ -484,7 +497,7 @@ type subdomainEmailScope struct {
 }
 
 func isActiveStatus(status string) bool {
-        return status == "success" || status == "warning"
+        return status == mapKeySuccess || status == mapKeyWarning
 }
 
 func parseOrgDMARC(records []string) (bool, string) {
@@ -527,11 +540,11 @@ func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, doma
                 ParentDomain: rootDomain,
         }
 
-        spf, _ := results["spf_analysis"].(map[string]any)
-        dmarc, _ := results["dmarc_analysis"].(map[string]any)
+        spf, _ := results[mapKeySpfAnalysis].(map[string]any)
+        dmarc, _ := results[mapKeyDmarcAnalysis].(map[string]any)
 
-        spfStatus, _ := spf["status"].(string)
-        dmarcStatus, _ := dmarc["status"].(string)
+        spfStatus, _ := spf[mapKeyStatus].(string)
+        dmarcStatus, _ := dmarc[mapKeyStatus].(string)
 
         scope.SPFScope, scope.SPFNote = determineSPFScope(isActiveStatus(spfStatus))
 

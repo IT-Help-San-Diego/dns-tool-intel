@@ -16,6 +16,10 @@ import (
         "golang.org/x/net/html"
 )
 
+const (
+        mapKeyMedium = "medium"
+)
+
 type SecretScanner struct {
         HTTP *dnsclient.SafeHTTPClient
 }
@@ -38,19 +42,19 @@ type secretPattern struct {
 }
 
 var secretPatterns = []secretPattern{
-        {Name: "AWS Access Key ID", Re: regexp.MustCompile(`\bAKIA[0-9A-Z]{16}\b`), Severity: "critical", Confidence: "high", MinLen: 20},
-        {Name: "AWS Secret Access Key", Re: regexp.MustCompile(`(?i)(?:aws|amazon)(?:.{0,30})?(?:secret|key)(?:.{0,10})?[=:]\s*['"]?([A-Za-z0-9/+=]{40})['"]?`), Severity: "critical", Confidence: "high", MinLen: 40},
+        {Name: "AWS Access Key ID", Re: regexp.MustCompile(`\bAKIA[0-9A-Z]{16}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 20},
+        {Name: "AWS Secret Access Key", Re: regexp.MustCompile(`(?i)(?:aws|amazon)(?:.{0,30})?(?:secret|key)(?:.{0,10})?[=:]\s*['"]?([A-Za-z0-9/+=]{40})['"]?`), Severity: mapKeyCritical, Confidence: "high", MinLen: 40},
         {Name: "Google API Key", Re: regexp.MustCompile(`\bAIza[0-9A-Za-z\-_]{35}\b`), Severity: "high", Confidence: "high", MinLen: 39},
-        {Name: "Stripe Secret Key", Re: regexp.MustCompile(`\bsk_live_[0-9a-zA-Z]{24,}\b`), Severity: "critical", Confidence: "high", MinLen: 32},
+        {Name: "Stripe Secret Key", Re: regexp.MustCompile(`\bsk_live_[0-9a-zA-Z]{24,}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 32},
         {Name: "Stripe Publishable Key", Re: regexp.MustCompile(`\bpk_live_[0-9a-zA-Z]{24,}\b`), Severity: "medium", Confidence: "high", MinLen: 32},
-        {Name: "Slack Token", Re: regexp.MustCompile(`\bxox[baprs]-[0-9A-Za-z\-]{10,}\b`), Severity: "critical", Confidence: "high", MinLen: 15},
-        {Name: "GitHub Token", Re: regexp.MustCompile(`\bgh[pousr]_[0-9A-Za-z]{36,}\b`), Severity: "critical", Confidence: "high", MinLen: 40},
-        {Name: "Private Key", Re: regexp.MustCompile(`-----BEGIN\s+(?:RSA|EC|DSA|OPENSSH|ENCRYPTED)?\s*PRIVATE\s+KEY-----`), Severity: "critical", Confidence: "high", MinLen: 27},
-        {Name: "Database Connection String", Re: regexp.MustCompile(`\b(?:postgres|mysql|mongodb(?:\+srv)?)://[^\s"'<>]{10,}\b`), Severity: "critical", Confidence: "high", MinLen: 20},
-        {Name: "Basic Auth in URL", Re: regexp.MustCompile(`https?://[^\s/:@]+:[^\s/@]{3,}@[^\s"'<>]+`), Severity: "critical", Confidence: "high", MinLen: 15},
-        {Name: "Mailgun API Key", Re: regexp.MustCompile(`\bkey-[0-9a-zA-Z]{32}\b`), Severity: "critical", Confidence: "medium", MinLen: 36},
-        {Name: "Twilio API Key", Re: regexp.MustCompile(`\bSK[0-9a-fA-F]{32}\b`), Severity: "critical", Confidence: "medium", MinLen: 34},
-        {Name: "SendGrid API Key", Re: regexp.MustCompile(`\bSG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}\b`), Severity: "critical", Confidence: "high", MinLen: 69},
+        {Name: "Slack Token", Re: regexp.MustCompile(`\bxox[baprs]-[0-9A-Za-z\-]{10,}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 15},
+        {Name: "GitHub Token", Re: regexp.MustCompile(`\bgh[pousr]_[0-9A-Za-z]{36,}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 40},
+        {Name: "Private Key", Re: regexp.MustCompile(`-----BEGIN\s+(?:RSA|EC|DSA|OPENSSH|ENCRYPTED)?\s*PRIVATE\s+KEY-----`), Severity: mapKeyCritical, Confidence: "high", MinLen: 27},
+        {Name: "Database Connection String", Re: regexp.MustCompile(`\b(?:postgres|mysql|mongodb(?:\+srv)?)://[^\s"'<>]{10,}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 20},
+        {Name: "Basic Auth in URL", Re: regexp.MustCompile(`https?://[^\s/:@]+:[^\s/@]{3,}@[^\s"'<>]+`), Severity: mapKeyCritical, Confidence: "high", MinLen: 15},
+        {Name: "Mailgun API Key", Re: regexp.MustCompile(`\bkey-[0-9a-zA-Z]{32}\b`), Severity: mapKeyCritical, Confidence: "medium", MinLen: 36},
+        {Name: "Twilio API Key", Re: regexp.MustCompile(`\bSK[0-9a-fA-F]{32}\b`), Severity: mapKeyCritical, Confidence: "medium", MinLen: 34},
+        {Name: "SendGrid API Key", Re: regexp.MustCompile(`\bSG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}\b`), Severity: mapKeyCritical, Confidence: "high", MinLen: 69},
         {Name: "Heroku API Key", Re: regexp.MustCompile(`(?i)heroku(?:.{0,20})?[=:]\s*['"]?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}['"]?`), Severity: "high", Confidence: "medium", MinLen: 36},
         {Name: "Generic Bearer Token", Re: regexp.MustCompile(`(?i)(?:authorization|bearer|token|api[_-]?key)\s*[=:]\s*['"]?(?:Bearer\s+)?([A-Za-z0-9\-_.]{32,})['"]?`), Severity: "high", Confidence: "medium", MinLen: 32},
 }

@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	mapKeyStatus = "status"
+)
+
 type DomainAnalysis struct {
 	ID                   int              `json:"id" db:"id"`
 	Domain               string           `json:"domain" db:"domain"`
@@ -62,16 +66,16 @@ func (da *DomainAnalysis) ToDict() map[string]interface{} {
 		"basic_records":        da.BasicRecords,
 		"authoritative_records": da.AuthoritativeRecords,
 		"spf_analysis": map[string]interface{}{
-			"status":  da.SPFStatus,
+			mapKeyStatus:  da.SPFStatus,
 			"records": da.SPFRecords,
 		},
 		"dmarc_analysis": map[string]interface{}{
-			"status":  da.DMARCStatus,
+			mapKeyStatus:  da.DMARCStatus,
 			"policy":  da.DMARCPolicy,
 			"records": da.DMARCRecords,
 		},
 		"dkim_analysis": map[string]interface{}{
-			"status":    da.DKIMStatus,
+			mapKeyStatus:    da.DKIMStatus,
 			"selectors": da.DKIMSelectors,
 		},
 		"registrar_info": map[string]interface{}{

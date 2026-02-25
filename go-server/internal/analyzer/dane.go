@@ -13,6 +13,15 @@ import (
 	"dnstool/go-server/internal/providers"
 )
 
+const (
+	mapKeyAlternative = "alternative"
+	mapKeyDaneDeployable = "dane_deployable"
+	mapKeyDaneInbound = "dane_inbound"
+	mapKeyDaneOutbound = "dane_outbound"
+	mapKeyMxHost = "mx_host"
+	mapKeyProviderName = "provider_name"
+)
+
 var daneUsageNames = map[int]string{
 	0: "PKIX-TA (CA constraint)",
 	1: "PKIX-EE (Certificate constraint)",
@@ -37,11 +46,11 @@ func (a *Analyzer) detectMXDANECapability(mxHosts []string) map[string]any {
 		for _, pattern := range info.Patterns {
 			if strings.Contains(mxStr, pattern) {
 				return map[string]any{
-					"provider_name": info.Name,
-					"dane_inbound":  info.DANEInbound,
-					"dane_outbound": info.DANEOutbound,
+					mapKeyProviderName: info.Name,
+					mapKeyDaneInbound:  info.DANEInbound,
+					mapKeyDaneOutbound: info.DANEOutbound,
 					"reason":        info.Reason,
-					"alternative":   info.Alternative,
+					mapKeyAlternative:   info.Alternative,
 				}
 			}
 		}
@@ -65,7 +74,7 @@ func parseTLSAEntry(entry string, mxHost, tlsaName string) (map[string]any, bool
 	}
 
 	rec := map[string]any{
-		"mx_host":          mxHost,
+		mapKeyMxHost:          mxHost,
 		"tlsa_name":        tlsaName,
 		"usage":            usage,
 		"usage_name":       lookupName(daneUsageNames, usage),
@@ -140,10 +149,10 @@ func collectTLSAIssues(allTLSA []map[string]any) []string {
 	for _, rec := range allTLSA {
 		usage := rec["usage"].(int)
 		if usage == 0 || usage == 1 {
-			issues = append(issues, fmt.Sprintf("TLSA for %s: usage %d (PKIX-based) — RFC 7672 §3.1 recommends usage 2 or 3 for SMTP", rec["mx_host"], usage))
+			issues = append(issues, fmt.Sprintf("TLSA for %s: usage %d (PKIX-based) — RFC 7672 §3.1 recommends usage 2 or 3 for SMTP", rec[mapKeyMxHost], usage))
 		}
 		if rec["matching_type"].(int) == 0 {
-			issues = append(issues, fmt.Sprintf("TLSA for %s: exact match (type 0) — SHA-256 (type 1) is preferred for resilience", rec["mx_host"]))
+			issues = append(issues, fmt.Sprintf("TLSA for %s: exact match (type 0) — SHA-256 (type 1) is preferred for resilience", rec[mapKeyMxHost]))
 		}
 	}
 	return issues
@@ -167,8 +176,8 @@ func findMissingHosts(mxHosts, hostsWithDANE []string) []string {
 }
 
 func buildDANEVerdictNoTLSA(mxHosts []string, mxCapability map[string]any) (string, string, []string) {
-	if mxCapability != nil && !mxCapability["dane_inbound"].(bool) {
-		providerName := mxCapability["provider_name"].(string)
+	if mxCapability != nil && !mxCapability[mapKeyDaneInbound].(bool) {
+		providerName := mxCapability[mapKeyProviderName].(string)
 		return "info", fmt.Sprintf("DANE not available — %s does not support inbound DANE/TLSA on its MX infrastructure", providerName), nil
 	}
 	return "info", fmt.Sprintf("No DANE/TLSA records found (checked %d MX host%s)", len(mxHosts), pluralSuffix(len(mxHosts))), nil
@@ -193,10 +202,10 @@ func buildDANEVerdict(allTLSA []map[string]any, hostsWithDANE, mxHosts []string,
 }
 
 func buildTransportDescription(cap map[string]any) string {
-	inbound, _ := cap["dane_inbound"].(bool)
-	outbound, _ := cap["dane_outbound"].(bool)
-	provider, _ := cap["provider_name"].(string)
-	alternative, _ := cap["alternative"].(string)
+	inbound, _ := cap[mapKeyDaneInbound].(bool)
+	outbound, _ := cap[mapKeyDaneOutbound].(bool)
+	provider, _ := cap[mapKeyProviderName].(string)
+	alternative, _ := cap[mapKeyAlternative].(string)
 
 	if inbound && outbound {
 		return "Full DANE support — inbound and outbound SMTP protected"
@@ -212,11 +221,11 @@ func buildTransportDescription(cap map[string]any) string {
 }
 
 func deploymentGuidance(mxCapability map[string]any) string {
-	inbound, _ := mxCapability["dane_inbound"].(bool)
+	inbound, _ := mxCapability[mapKeyDaneInbound].(bool)
 	if inbound {
 		return "Your MX provider supports DANE. Publish TLSA records for your MX hosts to enable DANE protection."
 	}
-	alt, _ := mxCapability["alternative"].(string)
+	alt, _ := mxCapability[mapKeyAlternative].(string)
 	if alt != "" {
 		return fmt.Sprintf("Your MX provider does not support DANE inbound. Consider deploying %s as an alternative for transport security.", alt)
 	}
@@ -225,12 +234,12 @@ func deploymentGuidance(mxCapability map[string]any) string {
 
 func buildProviderContext(mxCapability map[string]any) map[string]any {
 	providerContext := map[string]any{
-		"provider_name":       mxCapability["provider_name"],
-		"dane_inbound":        mxCapability["dane_inbound"],
-		"dane_outbound":       mxCapability["dane_outbound"],
+		mapKeyProviderName:       mxCapability[mapKeyProviderName],
+		mapKeyDaneInbound:        mxCapability[mapKeyDaneInbound],
+		mapKeyDaneOutbound:       mxCapability[mapKeyDaneOutbound],
 		"deployment_guidance": deploymentGuidance(mxCapability),
 	}
-	if alt, ok := mxCapability["alternative"]; ok {
+	if alt, ok := mxCapability[mapKeyAlternative]; ok {
 		providerContext["alternative_protection"] = alt
 	}
 	return providerContext
@@ -238,14 +247,14 @@ func buildProviderContext(mxCapability map[string]any) map[string]any {
 
 func applyMXCapability(baseResult map[string]any, mxCapability map[string]any, domain string) {
 	baseResult["mx_provider"] = mxCapability
-	baseResult["dane_deployable"] = mxCapability["dane_inbound"]
-	if !mxCapability["dane_inbound"].(bool) {
+	baseResult[mapKeyDaneDeployable] = mxCapability[mapKeyDaneInbound]
+	if !mxCapability[mapKeyDaneInbound].(bool) {
 		slog.Info("MX provider does not support inbound DANE",
-			"provider", mxCapability["provider_name"], "domain", domain)
+			"provider", mxCapability[mapKeyProviderName], "domain", domain)
 	}
 	baseResult["transport_security"] = map[string]any{
-		"smtp_inbound":  mxCapability["dane_inbound"],
-		"smtp_outbound": mxCapability["dane_outbound"],
+		"smtp_inbound":  mxCapability[mapKeyDaneInbound],
+		"smtp_outbound": mxCapability[mapKeyDaneOutbound],
 		"description":   buildTransportDescription(mxCapability),
 	}
 	baseResult["provider_context"] = buildProviderContext(mxCapability)
@@ -278,7 +287,7 @@ func collectTLSAFromMXHosts(ctx context.Context, a *Analyzer, mxHosts []string) 
 func newBaseDANEResult() map[string]any {
 	return map[string]any{
 		"status":               "info",
-		"message":              "No DANE/TLSA records found for mail servers",
+		mapKeyMessage:              "No DANE/TLSA records found for mail servers",
 		"has_dane":             false,
 		"mx_hosts_checked":    0,
 		"mx_hosts_with_dane":  0,
@@ -286,7 +295,7 @@ func newBaseDANEResult() map[string]any {
 		"requires_dnssec":     true,
 		"issues":              []string{},
 		"mx_provider":         nil,
-		"dane_deployable":     true,
+		mapKeyDaneDeployable:     true,
 		"dnssec_chain_status": "unknown",
 		"dnssec_required_note": "DANE requires DNSSEC (RFC 6698 §1). TLSA records are only validated when the zone is DNSSEC-signed.",
 	}
@@ -296,14 +305,14 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
 	baseResult := newBaseDANEResult()
 
 	if len(mxRecords) == 0 {
-		baseResult["message"] = "No MX records available — DANE check skipped"
+		baseResult[mapKeyMessage] = "No MX records available — DANE check skipped"
 		return baseResult
 	}
 
 	mxHosts := extractMXHosts(mxRecords)
 
 	if len(mxHosts) == 0 {
-		baseResult["message"] = "No valid MX hosts — DANE check skipped"
+		baseResult[mapKeyMessage] = "No valid MX hosts — DANE check skipped"
 		return baseResult
 	}
 
@@ -324,10 +333,10 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
 
 	status, message, issues := buildDANEVerdict(allTLSA, hostsWithDANE, mxHosts, mxCapability)
 	baseResult["status"] = status
-	baseResult["message"] = message
+	baseResult[mapKeyMessage] = message
 	baseResult["has_dane"] = len(allTLSA) > 0
-	if mxCapability != nil && !mxCapability["dane_inbound"].(bool) {
-		baseResult["dane_deployable"] = false
+	if mxCapability != nil && !mxCapability[mapKeyDaneInbound].(bool) {
+		baseResult[mapKeyDaneDeployable] = false
 	}
 	baseResult["issues"] = issues
 

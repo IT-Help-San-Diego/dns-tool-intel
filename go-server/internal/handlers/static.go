@@ -17,6 +17,10 @@ const (
         headerContentType  = "Content-Type"
         headerCacheControl = "Cache-Control"
         cachePublicDay     = "public, max-age=86400"
+
+
+	mapKeyMonthly = "monthly"
+	mapKeyWeekly = "weekly"
 )
 
 type StaticHandler struct {
@@ -78,18 +82,18 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 Changefreq string
                 Priority   string
         }{
-                {h.BaseURL + "/", "weekly", "1.0"},
-                {h.BaseURL + "/investigate", "weekly", "0.7"},
-                {h.BaseURL + "/email-header", "weekly", "0.7"},
-                {h.BaseURL + "/toolkit", "weekly", "0.7"},
-                {h.BaseURL + "/sources", "monthly", "0.6"},
+                {h.BaseURL + "/", mapKeyWeekly, "1.0"},
+                {h.BaseURL + "/investigate", mapKeyWeekly, "0.7"},
+                {h.BaseURL + "/email-header", mapKeyWeekly, "0.7"},
+                {h.BaseURL + "/toolkit", mapKeyWeekly, "0.7"},
+                {h.BaseURL + "/sources", mapKeyMonthly, "0.6"},
                 {h.BaseURL + "/history", "daily", "0.6"},
                 {h.BaseURL + "/stats", "daily", "0.5"},
-                {h.BaseURL + "/approach", "monthly", "0.6"},
-                {h.BaseURL + "/roadmap", "weekly", "0.5"},
-                {h.BaseURL + "/architecture", "monthly", "0.5"},
-                {h.BaseURL + "/security-policy", "monthly", "0.4"},
-                {h.BaseURL + "/changelog", "monthly", "0.3"},
+                {h.BaseURL + "/approach", mapKeyMonthly, "0.6"},
+                {h.BaseURL + "/roadmap", mapKeyWeekly, "0.5"},
+                {h.BaseURL + "/architecture", mapKeyMonthly, "0.5"},
+                {h.BaseURL + "/security-policy", mapKeyMonthly, "0.4"},
+                {h.BaseURL + "/changelog", mapKeyMonthly, "0.3"},
         }
 
         xml := `<?xml version="1.0" encoding="UTF-8"?>` + "\n"

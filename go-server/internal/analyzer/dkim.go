@@ -124,6 +124,18 @@ const (
         providerSquareOnline    = "Square Online"
         providerCustomerIO      = "Customer.io"
         providerConstantContact = "Constant Contact"
+
+        mapKeyKeyBits     = "key_bits"
+        mapKeyProvider    = "provider"
+        mapKeyRevoked     = "revoked"
+        strActivecampaign = "ActiveCampaign"
+        strEverlytic      = "Everlytic"
+        strFreshdesk      = "Freshdesk"
+        strHubspot        = "HubSpot"
+        strIntercom       = "Intercom"
+        strKlaviyo        = "Klaviyo"
+        strMailerlite     = "MailerLite"
+        strSalesforce     = "Salesforce"
 )
 
 var (
@@ -180,8 +192,8 @@ var selectorProviderMap = map[string]string{
         selSendinblue: providerBrevo,
         selMimecast:  providerMimecast,
         selProofpoint: providerProofpoint,
-        selEverlytic:     "Everlytic",
-        selEverlyticKey2: "Everlytic",
+        selEverlytic:     strEverlytic,
+        selEverlyticKey2: strEverlytic,
         selZendesk1:  providerZendesk,
         selZendesk2:  providerZendesk,
         selCM:        "Campaign Monitor",
@@ -199,20 +211,20 @@ var selectorProviderMap = map[string]string{
         selMailchimp2:     providerMailChimp,
         selBarracuda:      providerBarracuda,
         selHornet:         providerHornetsecurity,
-        selFreshdesk:      "Freshdesk",
-        selHubspot:        "HubSpot",
-        selHS1:            "HubSpot",
-        selHS2:            "HubSpot",
-        selSalesforce:     "Salesforce",
-        selSF1:            "Salesforce",
-        selSF2:            "Salesforce",
-        selKlaviyo:        "Klaviyo",
-        selIntercom:       "Intercom",
+        selFreshdesk:      strFreshdesk,
+        selHubspot:        strHubspot,
+        selHS1:            strHubspot,
+        selHS2:            strHubspot,
+        selSalesforce:     strSalesforce,
+        selSF1:            strSalesforce,
+        selSF2:            strSalesforce,
+        selKlaviyo:        strKlaviyo,
+        selIntercom:       strIntercom,
         selCustomerio:     providerCustomerIO,
         selConstContact:   providerConstantContact,
         selConstContact2:  providerConstantContact,
-        selActiveCampaign: "ActiveCampaign",
-        selMailerLite:     "MailerLite",
+        selActiveCampaign: strActivecampaign,
+        selMailerLite:     strMailerlite,
         selDrip:           "Drip",
 }
 
@@ -286,17 +298,17 @@ var primaryProviderSelectors = map[string][]string{
         providerPostmark:        {selPostmark},
         providerSparkPost:       {selSparkpost},
         providerZendesk:         {selZendesk1, selZendesk2},
-        "HubSpot":               {selHubspot, selHS1, selHS2},
-        "Salesforce":            {selSalesforce, selSF1, selSF2},
-        "Klaviyo":               {selKlaviyo},
-        "Intercom":              {selIntercom},
+        strHubspot:               {selHubspot, selHS1, selHS2},
+        strSalesforce:            {selSalesforce, selSF1, selSF2},
+        strKlaviyo:               {selKlaviyo},
+        strIntercom:              {selIntercom},
         providerCustomerIO:      {selCustomerio},
         providerConstantContact: {selConstContact, selConstContact2},
-        "ActiveCampaign":        {selActiveCampaign},
-        "MailerLite":            {selMailerLite},
+        strActivecampaign:        {selActiveCampaign},
+        strMailerlite:            {selMailerLite},
         "Drip":                  {selDrip},
-        "Freshdesk":             {selFreshdesk},
-        "Everlytic":             {selEverlytic, selEverlyticKey2},
+        strFreshdesk:             {selFreshdesk},
+        strEverlytic:             {selEverlytic, selEverlyticKey2},
 }
 
 var spfMailboxProviders = map[string]string{
@@ -324,16 +336,16 @@ var spfAncillarySenders = map[string]string{
         "spf.mailjet":       providerMailjet,
         "spf.postmarkapp":   providerPostmark,
         "spf.mtasv.net":     providerPostmark,
-        "spf.freshdesk":     "Freshdesk",
+        "spf.freshdesk":     strFreshdesk,
         "hostedrt.com":      "Best Practical RT",
-        "hubspot.net":       "HubSpot",
-        "spf.salesforce.com": "Salesforce",
-        "spf1.klaviyo.com":  "Klaviyo",
-        "intercom.io":       "Intercom",
+        "hubspot.net":       strHubspot,
+        "spf.salesforce.com": strSalesforce,
+        "spf1.klaviyo.com":  strKlaviyo,
+        "intercom.io":       strIntercom,
         "spf.customerio":    providerCustomerIO,
         "spf.constantcontact": providerConstantContact,
-        "emsd1.com":         "ActiveCampaign",
-        "spf.mailerlite":    "MailerLite",
+        "emsd1.com":         strActivecampaign,
+        "spf.mailerlite":    strMailerlite,
         "getdrip.com":       "Drip",
 }
 
@@ -518,10 +530,10 @@ func analyzePublicKey(record string) (keyBits interface{}, revoked bool, issues 
 func analyzeDKIMKey(record string) map[string]any {
         keyInfo := map[string]any{
                 "key_type":  "rsa",
-                "key_bits":  nil,
-                "revoked":   false,
+                mapKeyKeyBits:  nil,
+                mapKeyRevoked:   false,
                 "test_mode": false,
-                "issues":    []string{},
+                mapKeyIssues:    []string{},
         }
 
         keyType := "rsa"
@@ -535,8 +547,8 @@ func analyzeDKIMKey(record string) map[string]any {
         keyInfo["test_mode"] = testMode
 
         keyBits, revoked, pkIssues := analyzePublicKey(record)
-        keyInfo["key_bits"] = keyBits
-        keyInfo["revoked"] = revoked
+        keyInfo[mapKeyKeyBits] = keyBits
+        keyInfo[mapKeyRevoked] = revoked
 
         if keyBits != nil {
                 if bits, ok := keyBits.(int); ok {
@@ -558,7 +570,7 @@ func analyzeDKIMKey(record string) map[string]any {
         if issues == nil {
                 issues = []string{}
         }
-        keyInfo["issues"] = issues
+        keyInfo[mapKeyIssues] = issues
         return keyInfo
 }
 
@@ -623,7 +635,7 @@ func findSPFRecord(records []string) string {
 func collectUnattributed(foundSelectors map[string]map[string]any) []string {
         var unattributed []string
         for selName, selData := range foundSelectors {
-                if selData["provider"].(string) == providerUnknown {
+                if selData[mapKeyProvider].(string) == providerUnknown {
                         unattributed = append(unattributed, selName)
                 }
         }
@@ -645,7 +657,7 @@ func checkPrimaryHasDKIM(foundSelectors map[string]map[string]any, primaryProvid
 
 func inferUnattributedSelectors(foundSelectors map[string]map[string]any, unattributed []string, primaryProvider string, foundProviders map[string]bool) string {
         for _, selName := range unattributed {
-                foundSelectors[selName]["provider"] = primaryProvider
+                foundSelectors[selName][mapKeyProvider] = primaryProvider
                 foundSelectors[selName]["inferred"] = true
                 foundProviders[primaryProvider] = true
         }
@@ -708,7 +720,7 @@ func buildDKIMVerdict(foundSelectors map[string]map[string]any, keyIssues, keySt
                 if strings.Contains(issue, "1024-bit") {
                         hasWeakKey = true
                 }
-                if strings.Contains(issue, "revoked") {
+                if strings.Contains(issue, mapKeyRevoked) {
                         hasRevoked = true
                 }
         }
@@ -757,8 +769,8 @@ func analyzeRecordKeys(records []string) ([]map[string]any, []string, []string) 
         for _, rec := range records {
                 ka := analyzeDKIMKey(rec)
                 keyInfoList = append(keyInfoList, ka)
-                issues = append(issues, ka["issues"].([]string)...)
-                if bits, ok := ka["key_bits"]; ok && bits != nil {
+                issues = append(issues, ka[mapKeyIssues].([]string)...)
+                if bits, ok := ka[mapKeyKeyBits]; ok && bits != nil {
                         if b, ok := bits.(int); ok && b >= 2048 {
                                 strengths = append(strengths, fmt.Sprintf("%d-bit", b))
                         }
@@ -788,7 +800,7 @@ func processDKIMSelector(ctx context.Context, dns interface {
         selectorInfo := map[string]any{
                 "records":   records,
                 "key_info":  keyInfoList,
-                "provider":  provider,
+                mapKeyProvider:  provider,
                 "user_hint": isCustomSelector(selectorName, customSelectors),
         }
 
@@ -803,7 +815,7 @@ func processDKIMSelector(ctx context.Context, dns interface {
 func collectFoundProviders(foundSelectors map[string]map[string]any) map[string]bool {
         providers := make(map[string]bool)
         for _, selData := range foundSelectors {
-                p := selData["provider"].(string)
+                p := selData[mapKeyProvider].(string)
                 if p != providerUnknown {
                         providers[p] = true
                 }
@@ -845,14 +857,14 @@ func inferMailboxBehindGateway(res *ProviderResolution, foundProviders map[strin
 
 func reclassifyAmbiguousSelectors(foundSelectors map[string]map[string]any, finalPrimary string) {
         for selName, selData := range foundSelectors {
-                if selData["provider"].(string) != providerUnknown {
+                if selData[mapKeyProvider].(string) != providerUnknown {
                         continue
                 }
                 if !ambiguousSelectors[selName] {
                         continue
                 }
                 if mapped, ok := selectorProviderMap[selName]; ok && finalPrimary != providerUnknown {
-                        selData["provider"] = mapped
+                        selData[mapKeyProvider] = mapped
                         selData["reclassified"] = true
                 }
         }
@@ -988,7 +1000,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords []s
                 delegationMap = map[string]any{
                         "detected":    true,
                         "nameservers": dkimDelegation.Nameservers,
-                        "provider":    dkimDelegation.Provider,
+                        mapKeyProvider:    dkimDelegation.Provider,
                 }
         }
 

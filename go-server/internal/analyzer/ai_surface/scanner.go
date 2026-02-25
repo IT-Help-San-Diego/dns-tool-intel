@@ -13,6 +13,23 @@ import (
         "dnstool/go-server/internal/dnsclient"
 )
 
+const (
+	mapKeyAllowsAiCrawlers = "allows_ai_crawlers"
+	mapKeyArtifactCount = "artifact_count"
+	mapKeyBlocksAiCrawlers = "blocks_ai_crawlers"
+	mapKeyContentUsage = "content_usage"
+	mapKeyDetail = "detail"
+	mapKeyEvidence = "evidence"
+	mapKeyFound = "found"
+	mapKeyHttps = "https"
+	mapKeyIocCount = "ioc_count"
+	mapKeyMessage = "message"
+	mapKeyStatus = "status"
+	mapKeySuccess = "success"
+	mapKeyWarning = "warning"
+	strObserved = "Observed"
+)
+
 var hiddenPatternRegexes = []struct {
         re     *regexp.Regexp
         method string
@@ -67,12 +84,12 @@ func (s *Scanner) Scan(ctx context.Context, domain string) map[string]any {
                 "robots_txt":     robotsResult,
                 "poisoning":      poisoningResult,
                 "hidden_prompts": hiddenResult,
-                "evidence":       convertEvidenceSlice(evidence),
+                mapKeyEvidence:       convertEvidenceSlice(evidence),
         }
 
         summary := buildSummary(results, evidence)
-        results["status"] = summary["status"]
-        results["message"] = summary["message"]
+        results[mapKeyStatus] = summary[mapKeyStatus]
+        results[mapKeyMessage] = summary[mapKeyMessage]
         results["summary"] = summary
 
         return results
@@ -80,7 +97,7 @@ func (s *Scanner) Scan(ctx context.Context, domain string) map[string]any {
 
 func llmsTxtURLCandidates(domain string) []string {
         var urls []string
-        for _, scheme := range []string{"https", "http"} {
+        for _, scheme := range []string{mapKeyHttps, "http"} {
                 for _, path := range []string{"/.well-known/llms.txt", "/llms.txt"} {
                         urls = append(urls, fmt.Sprintf("%s://%s%s", scheme, domain, path))
                 }
@@ -120,7 +137,7 @@ func (s *Scanner) fetchLLMSTxt(ctx context.Context, domain string, evidence *[]E
                         Source:     u,
                         Detail:     "llms.txt file found providing structured LLM context",
                         Severity:   "info",
-                        Confidence: "Observed",
+                        Confidence: strObserved,
                 })
                 slog.Info("AI Surface: llms.txt found", "domain", domain, "url", u)
                 return true, u, parseLLMSTxtFields(content)
@@ -130,7 +147,7 @@ func (s *Scanner) fetchLLMSTxt(ctx context.Context, domain string, evidence *[]E
 
 func llmsFullTxtURLCandidates(domain string) []string {
         var urls []string
-        for _, scheme := range []string{"https", "http"} {
+        for _, scheme := range []string{mapKeyHttps, "http"} {
                 for _, path := range []string{"/.well-known/llms-full.txt", "/llms-full.txt"} {
                         urls = append(urls, fmt.Sprintf("%s://%s%s", scheme, domain, path))
                 }
@@ -166,7 +183,7 @@ func (s *Scanner) fetchLLMSFullTxt(ctx context.Context, domain string, evidence 
                         Source:     u,
                         Detail:     "llms-full.txt also found (extended LLM context)",
                         Severity:   "info",
-                        Confidence: "Observed",
+                        Confidence: strObserved,
                 })
                 return true, u
         }
@@ -175,16 +192,16 @@ func (s *Scanner) fetchLLMSFullTxt(ctx context.Context, domain string, evidence 
 
 func (s *Scanner) checkLLMSTxt(ctx context.Context, domain string, evidence *[]Evidence) map[string]any {
         result := map[string]any{
-                "found":      false,
+                mapKeyFound:      false,
                 "full_found": false,
                 "url":        nil,
                 "full_url":   nil,
                 "fields":     map[string]any{},
-                "evidence":   []map[string]any{},
+                mapKeyEvidence:   []map[string]any{},
         }
 
         if found, url, fields := s.fetchLLMSTxt(ctx, domain, evidence); found {
-                result["found"] = true
+                result[mapKeyFound] = true
                 result["url"] = url
                 result["fields"] = fields
         }
@@ -217,7 +234,7 @@ func parseLLMSTxtFields(content string) map[string]any {
 }
 
 func (s *Scanner) fetchRobotsTxtContent(ctx context.Context, domain string) (content string, url string, ok bool) {
-        for _, scheme := range []string{"https", "http"} {
+        for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/robots.txt", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -248,7 +265,7 @@ func addCrawlerEvidence(evidence *[]Evidence, url string, blocked []string) {
                         Source:     url,
                         Detail:     fmt.Sprintf("robots.txt blocks %d AI crawler(s): %s", len(blocked), strings.Join(blocked, ", ")),
                         Severity:   "info",
-                        Confidence: "Observed",
+                        Confidence: strObserved,
                 })
                 return
         }
@@ -257,12 +274,12 @@ func addCrawlerEvidence(evidence *[]Evidence, url string, blocked []string) {
                 Source:     url,
                 Detail:     "robots.txt found but no AI-specific blocking directives",
                 Severity:   "low",
-                Confidence: "Observed",
+                Confidence: strObserved,
         })
 }
 
 func addContentUsageEvidence(evidence *[]Evidence, url string, contentUsage map[string]any) {
-        found, ok := contentUsage["found"].(bool)
+        found, ok := contentUsage[mapKeyFound].(bool)
         if !ok || !found {
                 return
         }
@@ -275,21 +292,21 @@ func addContentUsageEvidence(evidence *[]Evidence, url string, contentUsage map[
                 Source:     url,
                 Detail:     detail,
                 Severity:   "info",
-                Confidence: "Observed",
+                Confidence: strObserved,
         })
 }
 
 func (s *Scanner) checkRobotsTxt(ctx context.Context, domain string, evidence *[]Evidence) map[string]any {
         result := map[string]any{
-                "found":              false,
+                mapKeyFound:              false,
                 "url":                nil,
-                "blocks_ai_crawlers": false,
-                "allows_ai_crawlers": false,
+                mapKeyBlocksAiCrawlers: false,
+                mapKeyAllowsAiCrawlers: false,
                 "blocked_crawlers":   []string{},
                 "allowed_crawlers":   []string{},
                 "directives":         []map[string]any{},
-                "content_usage":      map[string]any{},
-                "evidence":           []map[string]any{},
+                mapKeyContentUsage:      map[string]any{},
+                mapKeyEvidence:           []map[string]any{},
         }
 
         content, url, ok := s.fetchRobotsTxtContent(ctx, domain)
@@ -297,29 +314,29 @@ func (s *Scanner) checkRobotsTxt(ctx context.Context, domain string, evidence *[
                 return result
         }
 
-        result["found"] = true
+        result[mapKeyFound] = true
         result["url"] = url
 
         blocked, allowed, directives := parseRobotsTxtForAI(content)
         result["blocked_crawlers"] = blocked
         result["allowed_crawlers"] = allowed
         result["directives"] = directives
-        result["blocks_ai_crawlers"] = len(blocked) > 0
-        result["allows_ai_crawlers"] = len(blocked) == 0
+        result[mapKeyBlocksAiCrawlers] = len(blocked) > 0
+        result[mapKeyAllowsAiCrawlers] = len(blocked) == 0
 
         contentUsage := parseContentUsageDirectives(content)
-        result["content_usage"] = contentUsage
+        result[mapKeyContentUsage] = contentUsage
 
         addCrawlerEvidence(evidence, url, blocked)
         addContentUsageEvidence(evidence, url, contentUsage)
 
-        slog.Info("AI Surface: robots.txt analyzed", "domain", domain, "blocked", len(blocked), "content_usage", contentUsage["found"])
+        slog.Info("AI Surface: robots.txt analyzed", "domain", domain, "blocked", len(blocked), mapKeyContentUsage, contentUsage[mapKeyFound])
         return result
 }
 
 func parseContentUsageDirectives(content string) map[string]any {
         result := map[string]any{
-                "found":      false,
+                mapKeyFound:      false,
                 "raw":        "",
                 "ai_denied":  false,
                 "parameters": map[string]string{},
@@ -328,7 +345,7 @@ func parseContentUsageDirectives(content string) map[string]any {
         rawLines, params := extractContentUsageLines(content)
 
         if len(rawLines) > 0 {
-                result["found"] = true
+                result[mapKeyFound] = true
                 result["raw"] = strings.Join(rawLines, "; ")
         }
         result["parameters"] = params
@@ -484,7 +501,7 @@ func scanForPrefillLinks(content string) []map[string]any {
                 if strings.Contains(strings.ToLower(content), strings.ToLower(pattern)) {
                         iocs = append(iocs, map[string]any{
                                 "type":   "prefilled_prompt_link",
-                                "detail": fmt.Sprintf("Found prefilled AI prompt link pattern: %s", pattern),
+                                mapKeyDetail: fmt.Sprintf("Found prefilled AI prompt link pattern: %s", pattern),
                         })
                 }
         }
@@ -492,7 +509,7 @@ func scanForPrefillLinks(content string) []map[string]any {
 }
 
 func (s *Scanner) fetchHomepageBody(ctx context.Context, domain string) (body string, url string, ok bool) {
-        for _, scheme := range []string{"https", "http"} {
+        for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -518,20 +535,20 @@ func addPoisoningEvidence(evidence *[]Evidence, url string, iocs []map[string]an
                 *evidence = append(*evidence, Evidence{
                         Type:       "poisoning_ioc",
                         Source:     url,
-                        Detail:     ioc["detail"].(string),
+                        Detail:     ioc[mapKeyDetail].(string),
                         Severity:   "medium",
-                        Confidence: "Observed",
+                        Confidence: strObserved,
                 })
         }
 }
 
 func (s *Scanner) checkPoisoning(ctx context.Context, domain string, evidence *[]Evidence) map[string]any {
         result := map[string]any{
-                "status":    "success",
-                "message":   "No AI recommendation poisoning indicators found",
-                "ioc_count": 0,
+                mapKeyStatus:    mapKeySuccess,
+                mapKeyMessage:   "No AI recommendation poisoning indicators found",
+                mapKeyIocCount: 0,
                 "iocs":      []map[string]any{},
-                "evidence":  []map[string]any{},
+                mapKeyEvidence:  []map[string]any{},
         }
 
         body, url, ok := s.fetchHomepageBody(ctx, domain)
@@ -544,10 +561,10 @@ func (s *Scanner) checkPoisoning(ctx context.Context, domain string, evidence *[
                 return result
         }
 
-        result["ioc_count"] = len(iocs)
+        result[mapKeyIocCount] = len(iocs)
         result["iocs"] = iocs
-        result["status"] = "warning"
-        result["message"] = fmt.Sprintf("%d AI recommendation poisoning indicator(s) found", len(iocs))
+        result[mapKeyStatus] = mapKeyWarning
+        result[mapKeyMessage] = fmt.Sprintf("%d AI recommendation poisoning indicator(s) found", len(iocs))
         addPoisoningEvidence(evidence, url, iocs)
 
         return result
@@ -582,7 +599,7 @@ func findKeywordsInRegion(nearby, method string, seen map[string]bool) []map[str
                 seen[key] = true
                 artifacts = append(artifacts, map[string]any{
                         "method": method,
-                        "detail": fmt.Sprintf("Hidden element with prompt keyword '%s' detected near %s pattern", kw, method),
+                        mapKeyDetail: fmt.Sprintf("Hidden element with prompt keyword '%s' detected near %s pattern", kw, method),
                 })
         }
         return artifacts
@@ -605,7 +622,7 @@ func scanForHiddenPrompts(content string) []map[string]any {
 }
 
 func (s *Scanner) fetchHomepageBodyRaw(ctx context.Context, domain string) (body string, url string, ok bool) {
-        for _, scheme := range []string{"https", "http"} {
+        for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -631,20 +648,20 @@ func addHiddenPromptEvidence(evidence *[]Evidence, url string, artifacts []map[s
                 *evidence = append(*evidence, Evidence{
                         Type:       "hidden_prompt",
                         Source:     url,
-                        Detail:     a["detail"].(string),
+                        Detail:     a[mapKeyDetail].(string),
                         Severity:   "high",
-                        Confidence: "Observed",
+                        Confidence: strObserved,
                 })
         }
 }
 
 func (s *Scanner) checkHiddenPrompts(ctx context.Context, domain string, evidence *[]Evidence) map[string]any {
         result := map[string]any{
-                "status":         "success",
-                "message":        "No hidden prompt-like artifacts detected",
-                "artifact_count": 0,
+                mapKeyStatus:         mapKeySuccess,
+                mapKeyMessage:        "No hidden prompt-like artifacts detected",
+                mapKeyArtifactCount: 0,
                 "artifacts":      []map[string]any{},
-                "evidence":       []map[string]any{},
+                mapKeyEvidence:       []map[string]any{},
         }
 
         body, url, ok := s.fetchHomepageBodyRaw(ctx, domain)
@@ -657,10 +674,10 @@ func (s *Scanner) checkHiddenPrompts(ctx context.Context, domain string, evidenc
                 return result
         }
 
-        result["artifact_count"] = len(artifacts)
+        result[mapKeyArtifactCount] = len(artifacts)
         result["artifacts"] = artifacts
-        result["status"] = "warning"
-        result["message"] = fmt.Sprintf("%d hidden prompt artifact(s) found", len(artifacts))
+        result[mapKeyStatus] = mapKeyWarning
+        result[mapKeyMessage] = fmt.Sprintf("%d hidden prompt artifact(s) found", len(artifacts))
         addHiddenPromptEvidence(evidence, url, artifacts)
 
         return result
@@ -672,7 +689,7 @@ func convertEvidenceSlice(evidence []Evidence) []map[string]any {
                 result = append(result, map[string]any{
                         "type":       e.Type,
                         "source":     e.Source,
-                        "detail":     e.Detail,
+                        mapKeyDetail:     e.Detail,
                         "severity":   e.Severity,
                         "confidence": e.Confidence,
                 })
@@ -690,19 +707,19 @@ func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
         poisoning := results["poisoning"].(map[string]any)
         hidden := results["hidden_prompts"].(map[string]any)
 
-        hasLLMS, _ := llms["found"].(bool)
-        blocksAI, _ := robots["blocks_ai_crawlers"].(bool)
-        allowsAI, _ := robots["allows_ai_crawlers"].(bool)
+        hasLLMS, _ := llms[mapKeyFound].(bool)
+        blocksAI, _ := robots[mapKeyBlocksAiCrawlers].(bool)
+        allowsAI, _ := robots[mapKeyAllowsAiCrawlers].(bool)
         hasContentUsage := false
-        if cu, ok := robots["content_usage"].(map[string]any); ok {
-                hasContentUsage, _ = cu["found"].(bool)
+        if cu, ok := robots[mapKeyContentUsage].(map[string]any); ok {
+                hasContentUsage, _ = cu[mapKeyFound].(bool)
         }
         iocCount := 0
-        if v, ok := poisoning["ioc_count"].(int); ok {
+        if v, ok := poisoning[mapKeyIocCount].(int); ok {
                 iocCount = v
         }
         hiddenCount := 0
-        if v, ok := hidden["artifact_count"].(int); ok {
+        if v, ok := hidden[mapKeyArtifactCount].(int); ok {
                 hiddenCount = v
         }
 
@@ -710,10 +727,10 @@ func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
         message := "No significant AI surface findings"
 
         if iocCount > 0 || hiddenCount > 0 {
-                status = "warning"
+                status = mapKeyWarning
                 message = "AI-related risks detected — review recommended"
         } else if hasLLMS || blocksAI || hasContentUsage {
-                status = "success"
+                status = mapKeySuccess
                 message = "AI governance signals observed"
         } else if allowsAI {
                 status = "info"
@@ -721,8 +738,8 @@ func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
         }
 
         return map[string]any{
-                "status":            status,
-                "message":           message,
+                mapKeyStatus:            status,
+                mapKeyMessage:           message,
                 "has_llms_txt":      hasLLMS,
                 "blocks_ai":         blocksAI,
                 "allows_ai":         allowsAI,

@@ -13,6 +13,10 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	strShowform = "ShowForm"
+)
+
 const emailHeaderTemplate = "email_header.html"
 const activePageEmailHeader = "email-header"
 const maxHeaderSize = 256 * 1024
@@ -30,13 +34,13 @@ func (h *EmailHeaderHandler) EmailHeaderPage(c *gin.Context) {
         csrfToken, _ := c.Get("csrf_token")
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":        h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      activePageEmailHeader,
-                "ShowForm":        true,
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:        h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      activePageEmailHeader,
+                strShowform:        true,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, emailHeaderTemplate, data)
@@ -48,13 +52,13 @@ func (h *EmailHeaderHandler) AnalyzeEmailHeader(c *gin.Context) {
 
         renderErr := func(msg string) {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      activePageEmailHeader,
-                        "ShowForm":        true,
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:        h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      activePageEmailHeader,
+                        strShowform:        true,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: msg}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -103,13 +107,13 @@ func (h *EmailHeaderHandler) AnalyzeEmailHeader(c *gin.Context) {
         analysis.SourceFormat = detected.Format
 
         resultData := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":        h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      activePageEmailHeader,
-                "ShowForm":        false,
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:        h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      activePageEmailHeader,
+                strShowform:        false,
                 "ShowResults":     true,
                 "Analysis":        analysis,
         }

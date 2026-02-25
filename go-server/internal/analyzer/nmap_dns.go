@@ -14,28 +14,34 @@ import (
 const (
         msgNotTested        = "Not tested"
         msgTestInconclusive = "Test inconclusive"
+
+
+	mapKeyFound = "found"
+	mapKeyNameserver = "nameserver"
+	mapKeyRecursion = "recursion"
+	mapKeyVulnerable = "vulnerable"
 )
 
 func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string]any {
         result := map[string]any{
-                "status":           "info",
-                "zone_transfer":    map[string]any{"vulnerable": false, "message": msgNotTested},
-                "recursion":        map[string]any{"open": false, "message": msgNotTested},
-                "nsid":             map[string]any{"found": false, "message": msgNotTested},
-                "cache_snoop":      map[string]any{"vulnerable": false, "message": msgNotTested},
+                mapKeyStatus:           "info",
+                "zone_transfer":    map[string]any{mapKeyVulnerable: false, mapKeyMessage: msgNotTested},
+                mapKeyRecursion:        map[string]any{"open": false, mapKeyMessage: msgNotTested},
+                "nsid":             map[string]any{mapKeyFound: false, mapKeyMessage: msgNotTested},
+                "cache_snoop":      map[string]any{mapKeyVulnerable: false, mapKeyMessage: msgNotTested},
                 "nameservers":      []string{},
-                "issues":           []string{},
+                mapKeyIssues:           []string{},
                 "scan_duration_ms": 0,
         }
 
         if _, err := exec.LookPath("nmap"); err != nil {
-                result["message"] = "Nmap not available"
+                result[mapKeyMessage] = "Nmap not available"
                 return result
         }
 
         nsRecords := a.DNS.QueryDNS(ctx, "NS", domain)
         if len(nsRecords) == 0 {
-                result["message"] = "No nameservers found"
+                result[mapKeyMessage] = "No nameservers found"
                 return result
         }
 
@@ -49,7 +55,7 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
         result["nameservers"] = nameservers
 
         if len(nameservers) == 0 {
-                result["message"] = "No valid nameservers"
+                result[mapKeyMessage] = "No valid nameservers"
                 return result
         }
 
@@ -60,12 +66,12 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
 
         zoneResult := a.nmapZoneTransfer(ctx, domain, primaryNS)
         result["zone_transfer"] = zoneResult
-        if zoneResult["vulnerable"] == true {
+        if zoneResult[mapKeyVulnerable] == true {
                 issues = append(issues, fmt.Sprintf("Zone transfer (AXFR) allowed on %s", primaryNS))
         }
 
         recursionResult := a.nmapRecursion(ctx, primaryNS)
-        result["recursion"] = recursionResult
+        result[mapKeyRecursion] = recursionResult
         if recursionResult["open"] == true {
                 issues = append(issues, fmt.Sprintf("Open recursion detected on %s — potential DNS amplification risk", primaryNS))
         }
@@ -75,37 +81,37 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
 
         cacheResult := a.nmapCacheSnoop(ctx, primaryNS)
         result["cache_snoop"] = cacheResult
-        if cacheResult["vulnerable"] == true {
+        if cacheResult[mapKeyVulnerable] == true {
                 issues = append(issues, fmt.Sprintf("DNS cache snooping possible on %s", primaryNS))
         }
 
-        result["issues"] = issues
+        result[mapKeyIssues] = issues
         result["scan_duration_ms"] = time.Since(scanStart).Milliseconds()
 
         if len(issues) > 0 {
-                result["status"] = "warning"
-                result["message"] = fmt.Sprintf("%d issue(s) found across %d nameserver(s)", len(issues), len(nameservers))
+                result[mapKeyStatus] = "warning"
+                result[mapKeyMessage] = fmt.Sprintf("%d issue(s) found across %d nameserver(s)", len(issues), len(nameservers))
         } else {
-                result["status"] = "good"
-                result["message"] = fmt.Sprintf("No DNS server misconfigurations found on %s", primaryNS)
+                result[mapKeyStatus] = "good"
+                result[mapKeyMessage] = fmt.Sprintf("No DNS server misconfigurations found on %s", primaryNS)
         }
 
-        slog.Info("Nmap DNS scan completed", "domain", domain, "ns", primaryNS, "issues", len(issues), "elapsed_ms", time.Since(scanStart).Milliseconds())
+        slog.Info("Nmap DNS scan completed", "domain", domain, "ns", primaryNS, mapKeyIssues, len(issues), "elapsed_ms", time.Since(scanStart).Milliseconds())
 
         return result
 }
 
 func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[string]any {
         result := map[string]any{
-                "vulnerable":   false,
-                "message":      "Zone transfer denied (correct configuration)",
-                "nameserver":   ns,
+                mapKeyVulnerable:   false,
+                mapKeyMessage:      "Zone transfer denied (correct configuration)",
+                mapKeyNameserver:   ns,
                 "record_count": 0,
         }
 
         output, err := runNmapScript(ctx, ns, "dns-zone-transfer", fmt.Sprintf("dns-zone-transfer.domain=%s", domain), 15*time.Second)
         if err != nil {
-                result["message"] = msgTestInconclusive
+                result[mapKeyMessage] = msgTestInconclusive
                 return result
         }
 
@@ -119,8 +125,8 @@ func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[
                         }
                 }
                 if recordCount > 3 {
-                        result["vulnerable"] = true
-                        result["message"] = fmt.Sprintf("Zone transfer allowed — %d records exposed", recordCount)
+                        result[mapKeyVulnerable] = true
+                        result[mapKeyMessage] = fmt.Sprintf("Zone transfer allowed — %d records exposed", recordCount)
                         result["record_count"] = recordCount
                 }
         }
@@ -131,19 +137,19 @@ func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[
 func (a *Analyzer) nmapRecursion(ctx context.Context, ns string) map[string]any {
         result := map[string]any{
                 "open":       false,
-                "message":    "Recursion disabled (correct configuration)",
-                "nameserver": ns,
+                mapKeyMessage:    "Recursion disabled (correct configuration)",
+                mapKeyNameserver: ns,
         }
 
         output, err := runNmapScript(ctx, ns, "dns-recursion", "", 10*time.Second)
         if err != nil {
-                result["message"] = msgTestInconclusive
+                result[mapKeyMessage] = msgTestInconclusive
                 return result
         }
 
-        if strings.Contains(strings.ToLower(output), "recursion") && strings.Contains(strings.ToLower(output), "enabled") {
+        if strings.Contains(strings.ToLower(output), mapKeyRecursion) && strings.Contains(strings.ToLower(output), "enabled") {
                 result["open"] = true
-                result["message"] = "Recursive queries enabled — authoritative servers should disable recursion to prevent DNS amplification attacks (RFC 5358)"
+                result[mapKeyMessage] = "Recursive queries enabled — authoritative servers should disable recursion to prevent DNS amplification attacks (RFC 5358)"
         }
 
         return result
@@ -151,16 +157,16 @@ func (a *Analyzer) nmapRecursion(ctx context.Context, ns string) map[string]any 
 
 func (a *Analyzer) nmapNSID(ctx context.Context, ns string) map[string]any {
         result := map[string]any{
-                "found":      false,
-                "message":    "No nameserver identity information disclosed",
-                "nameserver": ns,
+                mapKeyFound:      false,
+                mapKeyMessage:    "No nameserver identity information disclosed",
+                mapKeyNameserver: ns,
                 "version":    "",
                 "id":         "",
         }
 
         output, err := runNmapScript(ctx, ns, "dns-nsid", "", 10*time.Second)
         if err != nil {
-                result["message"] = msgTestInconclusive
+                result[mapKeyMessage] = msgTestInconclusive
                 return result
         }
 
@@ -168,8 +174,8 @@ func (a *Analyzer) nmapNSID(ctx context.Context, ns string) map[string]any {
                 return result
         }
 
-        result["found"] = true
-        result["message"] = "Nameserver identity information disclosed — consider restricting version queries"
+        result[mapKeyFound] = true
+        result[mapKeyMessage] = "Nameserver identity information disclosed — consider restricting version queries"
         parseNSIDFields(output, result)
 
         return result
@@ -199,20 +205,20 @@ func parseNSIDFields(output string, result map[string]any) {
 
 func (a *Analyzer) nmapCacheSnoop(ctx context.Context, ns string) map[string]any {
         result := map[string]any{
-                "vulnerable": false,
-                "message":    "Cache snooping not possible (correct configuration)",
-                "nameserver": ns,
+                mapKeyVulnerable: false,
+                mapKeyMessage:    "Cache snooping not possible (correct configuration)",
+                mapKeyNameserver: ns,
         }
 
         output, err := runNmapScript(ctx, ns, "dns-cache-snoop", "", 10*time.Second)
         if err != nil {
-                result["message"] = msgTestInconclusive
+                result[mapKeyMessage] = msgTestInconclusive
                 return result
         }
 
-        if strings.Contains(strings.ToLower(output), "positive") || (strings.Contains(strings.ToLower(output), "cache") && strings.Contains(strings.ToLower(output), "found")) {
-                result["vulnerable"] = true
-                result["message"] = "DNS cache snooping detected — attacker can determine which domains this server has recently resolved"
+        if strings.Contains(strings.ToLower(output), "positive") || (strings.Contains(strings.ToLower(output), "cache") && strings.Contains(strings.ToLower(output), mapKeyFound)) {
+                result[mapKeyVulnerable] = true
+                result[mapKeyMessage] = "DNS cache snooping detected — attacker can determine which domains this server has recently resolved"
         }
 
         return result

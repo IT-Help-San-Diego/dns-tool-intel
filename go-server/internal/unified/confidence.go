@@ -12,6 +12,11 @@ const (
 
         ThresholdHigh     = 75.0
         ThresholdModerate = 50.0
+
+
+	mapKeyAccuracy = "accuracy"
+	mapKeyCurrency = "currency"
+	mapKeyMaturity = "maturity"
 )
 
 var maturityCeilings = map[string]float64{
@@ -157,12 +162,12 @@ func scoreToLevel(score float64) string {
 
 func identifyWeakestLink(accuracy, currency float64, maturityCapped bool) (string, string) {
         if maturityCapped {
-                return "maturity", "System maturity is capping the confidence score — the scan data is strong but more scan history is needed to unlock higher tiers"
+                return mapKeyMaturity, "System maturity is capping the confidence score — the scan data is strong but more scan history is needed to unlock higher tiers"
         }
         if accuracy <= currency {
-                return "accuracy", "Resolver agreement is low for this scan — some protocols returned inconsistent results across resolvers"
+                return mapKeyAccuracy, "Resolver agreement is low for this scan — some protocols returned inconsistent results across resolvers"
         }
-        return "currency", "Data currency is degraded — some records may be stale, incomplete, or inconsistent with authoritative sources"
+        return mapKeyCurrency, "Data currency is degraded — some records may be stale, incomplete, or inconsistent with authoritative sources"
 }
 
 func buildExplanation(level string, accuracy, currency float64, maturity, weakest string) string {
@@ -171,22 +176,22 @@ func buildExplanation(level string, accuracy, currency float64, maturity, weakes
                 return "Strong resolver agreement, fresh and complete data, and proven measurement tooling support high confidence in this analysis."
         case LevelModerate:
                 switch weakest {
-                case "accuracy":
+                case mapKeyAccuracy:
                         return "Resolver agreement is inconsistent for some protocols, limiting confidence. Data currency and system maturity are adequate."
-                case "currency":
+                case mapKeyCurrency:
                         return "Some DNS data may be stale or incomplete, limiting confidence. Resolver agreement and system maturity are adequate."
-                case "maturity":
+                case mapKeyMaturity:
                         return "The measurement system is still accumulating scan history. Accuracy and currency are adequate but the system has not yet reached full maturity."
                 default:
                         return "Confidence is moderate — one or more factors are below the high-confidence threshold."
                 }
         default:
                 switch weakest {
-                case "accuracy":
+                case mapKeyAccuracy:
                         return "Significant disagreement between resolvers undermines confidence in the analysis results."
-                case "currency":
+                case mapKeyCurrency:
                         return "DNS data appears stale or substantially incomplete, undermining confidence in the analysis results."
-                case "maturity":
+                case mapKeyMaturity:
                         return "The measurement system is in early development with limited scan history."
                 default:
                         return "Multiple factors are below the confidence threshold."

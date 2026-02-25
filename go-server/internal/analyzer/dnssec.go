@@ -11,6 +11,19 @@ import (
         "dnstool/go-server/internal/dnsclient"
 )
 
+const (
+	mapKeyAdFlag = "ad_flag"
+	mapKeyAdResolver = "ad_resolver"
+	mapKeyAlgorithm = "algorithm"
+	mapKeyAlgorithmName = "algorithm_name"
+	mapKeyAlgorithmObservation = "algorithm_observation"
+	mapKeyChainOfTrust = "chain_of_trust"
+	mapKeyDnskeyRecords = "dnskey_records"
+	mapKeyDsRecords = "ds_records"
+	mapKeyHasDnskey = "has_dnskey"
+	mapKeyHasDs = "has_ds"
+)
+
 var algorithmNames = map[int]string{
         1: "RSAMD5", 3: "DSA", 5: "RSA/SHA-1", 6: "DSA-NSEC3-SHA1",
         7: "RSASHA1-NSEC3-SHA1", 8: "RSA/SHA-256", 10: "RSA/SHA-512",
@@ -72,51 +85,51 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         message = "DNSSEC configured (DNSKEY + DS records present) but AD flag not set — resolver did not confirm chain of trust validation (RFC 4035 §3.2.3). This may indicate a broken chain or a non-validating resolver path."
                 }
                 return map[string]any{
-                        "status":                "success",
-                        "message":               message,
-                        "has_dnskey":            true,
-                        "has_ds":                true,
-                        "dnskey_records":        p.dnskeyRecords,
-                        "ds_records":            p.dsRecords,
-                        "algorithm":             derefInt(p.algorithm),
-                        "algorithm_name":        derefStr(p.algorithmName),
-                        "algorithm_observation": algorithmObservation(p.algorithm),
-                        "chain_of_trust":        "complete",
-                        "ad_flag":               p.adFlag,
-                        "ad_resolver":           derefStr(p.adResolver),
+                        mapKeyStatus:                "success",
+                        mapKeyMessage:               message,
+                        mapKeyHasDnskey:            true,
+                        mapKeyHasDs:                true,
+                        mapKeyDnskeyRecords:        p.dnskeyRecords,
+                        mapKeyDsRecords:            p.dsRecords,
+                        mapKeyAlgorithm:             derefInt(p.algorithm),
+                        mapKeyAlgorithmName:        derefStr(p.algorithmName),
+                        mapKeyAlgorithmObservation: algorithmObservation(p.algorithm),
+                        mapKeyChainOfTrust:        "complete",
+                        mapKeyAdFlag:               p.adFlag,
+                        mapKeyAdResolver:           derefStr(p.adResolver),
                 }
         }
 
         if p.hasDNSKEY && !p.hasDS {
                 return map[string]any{
-                        "status":                "warning",
-                        "message":               "DNSSEC partially configured - DNSKEY exists but DS record missing at registrar",
-                        "has_dnskey":            true,
-                        "has_ds":                false,
-                        "dnskey_records":        p.dnskeyRecords,
-                        "ds_records":            []string{},
-                        "algorithm":             nil,
-                        "algorithm_name":        nil,
-                        "algorithm_observation": nil,
-                        "chain_of_trust":        "broken",
-                        "ad_flag":               false,
-                        "ad_resolver":           derefStr(p.adResolver),
+                        mapKeyStatus:                "warning",
+                        mapKeyMessage:               "DNSSEC partially configured - DNSKEY exists but DS record missing at registrar",
+                        mapKeyHasDnskey:            true,
+                        mapKeyHasDs:                false,
+                        mapKeyDnskeyRecords:        p.dnskeyRecords,
+                        mapKeyDsRecords:            []string{},
+                        mapKeyAlgorithm:             nil,
+                        mapKeyAlgorithmName:        nil,
+                        mapKeyAlgorithmObservation: nil,
+                        mapKeyChainOfTrust:        "broken",
+                        mapKeyAdFlag:               false,
+                        mapKeyAdResolver:           derefStr(p.adResolver),
                 }
         }
 
         return map[string]any{
-                "status":                "warning",
-                "message":               "DNSSEC not configured - DNS responses are unsigned",
-                "has_dnskey":            false,
-                "has_ds":                false,
-                "dnskey_records":        []string{},
-                "ds_records":            []string{},
-                "algorithm":             nil,
-                "algorithm_name":        nil,
-                "algorithm_observation": nil,
-                "chain_of_trust":        "none",
-                "ad_flag":               false,
-                "ad_resolver":           nil,
+                mapKeyStatus:                "warning",
+                mapKeyMessage:               "DNSSEC not configured - DNS responses are unsigned",
+                mapKeyHasDnskey:            false,
+                mapKeyHasDs:                false,
+                mapKeyDnskeyRecords:        []string{},
+                mapKeyDsRecords:            []string{},
+                mapKeyAlgorithm:             nil,
+                mapKeyAlgorithmName:        nil,
+                mapKeyAlgorithmObservation: nil,
+                mapKeyChainOfTrust:        "none",
+                mapKeyAdFlag:               false,
+                mapKeyAdResolver:           nil,
         }
 }
 
@@ -167,18 +180,18 @@ func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlg
                 message = "DNSSEC validated by resolver - DNS responses are authenticated"
         }
         return map[string]any{
-                "status":                "success",
-                "message":               message,
-                "has_dnskey":            false,
-                "has_ds":                false,
-                "dnskey_records":        []string{},
-                "ds_records":            []string{},
-                "algorithm":             derefInt(parentAlgo),
-                "algorithm_name":        derefStr(parentAlgoName),
-                "algorithm_observation": algorithmObservation(parentAlgo),
-                "chain_of_trust":        "inherited",
-                "ad_flag":               true,
-                "ad_resolver":           derefStr(adResolver),
+                mapKeyStatus:                "success",
+                mapKeyMessage:               message,
+                mapKeyHasDnskey:            false,
+                mapKeyHasDs:                false,
+                mapKeyDnskeyRecords:        []string{},
+                mapKeyDsRecords:            []string{},
+                mapKeyAlgorithm:             derefInt(parentAlgo),
+                mapKeyAlgorithmName:        derefStr(parentAlgoName),
+                mapKeyAlgorithmObservation: algorithmObservation(parentAlgo),
+                mapKeyChainOfTrust:        "inherited",
+                mapKeyAdFlag:               true,
+                mapKeyAdResolver:           derefStr(adResolver),
                 "is_subdomain":          true,
                 "parent_zone":           parentZone,
         }

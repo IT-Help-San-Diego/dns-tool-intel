@@ -9,6 +9,10 @@ import (
         "strings"
 )
 
+const (
+	mapKeyRecord = "record"
+)
+
 var tlsrptRUARe = regexp.MustCompile(`(?i)rua=([^;\s]+)`)
 
 func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]any {
@@ -17,9 +21,9 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
 
         if len(records) == 0 {
                 return map[string]any{
-                        "status":  "warning",
-                        "message": "No TLS-RPT record found",
-                        "record":  nil,
+                        mapKeyStatus:  "warning",
+                        mapKeyMessage: "No TLS-RPT record found",
+                        mapKeyRecord:  nil,
                         "rua":     nil,
                 }
         }
@@ -33,9 +37,9 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
 
         if len(validRecords) == 0 {
                 return map[string]any{
-                        "status":  "warning",
-                        "message": "No valid TLS-RPT record found",
-                        "record":  nil,
+                        mapKeyStatus:  "warning",
+                        mapKeyMessage: "No valid TLS-RPT record found",
+                        mapKeyRecord:  nil,
                         "rua":     nil,
                 }
         }
@@ -47,9 +51,9 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
         }
 
         return map[string]any{
-                "status":  "success",
-                "message": "TLS-RPT configured - receiving TLS delivery reports",
-                "record":  record,
+                mapKeyStatus:  "success",
+                mapKeyMessage: "TLS-RPT configured - receiving TLS delivery reports",
+                mapKeyRecord:  record,
                 "rua":     derefStr(rua),
         }
 }

@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+const (
+	mapKeyFormat = "format"
+	mapKeyIssuer = "issuer"
+	mapKeyMessage = "message"
+	mapKeyValid = "valid"
+	mapKeyWarning = "warning"
+)
+
 var (
 	bimiLogoRe = regexp.MustCompile(`(?i)l=([^;\s]+)`)
 	bimiVMCRe  = regexp.MustCompile(`(?i)a=([^;\s]+)`)
@@ -28,25 +36,25 @@ func buildBIMICoreMessage(logoURL, vmcURL *string, logoData, vmcData map[string]
 	status := "success"
 	var parts []string
 
-	if vmcURL != nil && vmcData["valid"] == true {
+	if vmcURL != nil && vmcData[mapKeyValid] == true {
 		parts = append(parts, "BIMI with VMC certificate")
-		if issuer, ok := vmcData["issuer"].(string); ok && issuer != "" {
+		if issuer, ok := vmcData[mapKeyIssuer].(string); ok && issuer != "" {
 			parts = append(parts, fmt.Sprintf("(from %s)", issuer))
 		}
 	} else if vmcURL != nil {
 		parts = append(parts, "BIMI with VMC")
-		if errStr, ok := vmcData["error"].(string); ok && errStr != "" {
-			status = "warning"
+		if errStr, ok := vmcData[mapKeyError].(string); ok && errStr != "" {
+			status = mapKeyWarning
 			parts = append(parts, fmt.Sprintf("- VMC issue: %s", errStr))
 		}
 	} else if logoURL != nil {
 		parts = append(parts, "BIMI configured")
-		if logoData["valid"] == true {
+		if logoData[mapKeyValid] == true {
 			parts = append(parts, "- logo validated")
 		}
 		parts = append(parts, "(VMC recommended for Gmail)")
 	} else {
-		status = "warning"
+		status = mapKeyWarning
 		parts = append(parts, "BIMI record found but missing logo URL")
 	}
 
@@ -54,9 +62,9 @@ func buildBIMICoreMessage(logoURL, vmcURL *string, logoData, vmcData map[string]
 }
 
 func appendBIMILogoIssue(logoURL *string, logoData map[string]any, status *string, parts []string) []string {
-	if logoURL != nil && logoData["valid"] != true {
-		if errStr, ok := logoData["error"].(string); ok && errStr != "" {
-			*status = "warning"
+	if logoURL != nil && logoData[mapKeyValid] != true {
+		if errStr, ok := logoData[mapKeyError].(string); ok && errStr != "" {
+			*status = mapKeyWarning
 			parts = append(parts, fmt.Sprintf("Logo issue: %s", errStr))
 		}
 	}
@@ -103,8 +111,8 @@ func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]an
 	records := a.DNS.QueryDNS(ctx, "TXT", bimiDomain)
 
 	baseResult := map[string]any{
-		"status":      "warning",
-		"message":     "No BIMI record found",
+		"status":      mapKeyWarning,
+		mapKeyMessage:     "No BIMI record found",
 		"record":      nil,
 		"logo_url":    nil,
 		"vmc_url":     nil,
@@ -123,7 +131,7 @@ func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]an
 
 	validRecords := filterBIMIRecords(records)
 	if len(validRecords) == 0 {
-		baseResult["message"] = "No valid BIMI record found"
+		baseResult[mapKeyMessage] = "No valid BIMI record found"
 		return baseResult
 	}
 
@@ -134,42 +142,42 @@ func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]an
 
 	return map[string]any{
 		"status":      status,
-		"message":     message,
+		mapKeyMessage:     message,
 		"record":      record,
 		"logo_url":    derefStr(logoURL),
 		"vmc_url":     derefStr(vmcURL),
-		"logo_valid":  logoData["valid"],
-		"logo_format": logoData["format"],
-		"logo_error":  logoData["error"],
-		"vmc_valid":   vmcData["valid"],
-		"vmc_issuer":  vmcData["issuer"],
+		"logo_valid":  logoData[mapKeyValid],
+		"logo_format": logoData[mapKeyFormat],
+		"logo_error":  logoData[mapKeyError],
+		"vmc_valid":   vmcData[mapKeyValid],
+		"vmc_issuer":  vmcData[mapKeyIssuer],
 		"vmc_subject": vmcData["subject"],
-		"vmc_error":   vmcData["error"],
+		"vmc_error":   vmcData[mapKeyError],
 	}
 }
 
 func (a *Analyzer) validateBIMILogo(ctx context.Context, url string) map[string]any {
-	result := map[string]any{"valid": false, "format": nil, "error": nil}
+	result := map[string]any{mapKeyValid: false, mapKeyFormat: nil, mapKeyError: nil}
 
 	if url == "" {
-		result["error"] = "No URL"
+		result[mapKeyError] = "No URL"
 		return result
 	}
 
 	resp, err := a.HTTP.Get(ctx, url)
 	if err != nil {
-		result["error"] = classifyHTTPError(err, 30)
+		result[mapKeyError] = classifyHTTPError(err, 30)
 		return result
 	}
 
 	body, err := a.HTTP.ReadBody(resp, 1<<20)
 	if err != nil {
-		result["error"] = "Failed to read response"
+		result[mapKeyError] = "Failed to read response"
 		return result
 	}
 
 	if resp.StatusCode != 200 {
-		result["error"] = fmt.Sprintf("HTTP %d", resp.StatusCode)
+		result[mapKeyError] = fmt.Sprintf("HTTP %d", resp.StatusCode)
 		return result
 	}
 
@@ -181,47 +189,47 @@ func classifyBIMILogoFormat(contentType string, body []byte, result map[string]a
 	lowerCT := strings.ToLower(contentType)
 	switch {
 	case strings.Contains(lowerCT, "svg"):
-		result["valid"] = true
-		result["format"] = "SVG"
+		result[mapKeyValid] = true
+		result[mapKeyFormat] = "SVG"
 	case strings.Contains(lowerCT, "image"):
-		result["valid"] = true
+		result[mapKeyValid] = true
 		parts := strings.Split(contentType, "/")
 		if len(parts) >= 2 {
-			result["format"] = strings.ToUpper(parts[1])
+			result[mapKeyFormat] = strings.ToUpper(parts[1])
 		}
 	default:
 		content := strings.ToLower(string(body[:minInt(500, len(body))]))
 		if strings.Contains(content, "<svg") {
-			result["valid"] = true
-			result["format"] = "SVG"
+			result[mapKeyValid] = true
+			result[mapKeyFormat] = "SVG"
 		} else {
-			result["error"] = "Not SVG format"
+			result[mapKeyError] = "Not SVG format"
 		}
 	}
 }
 
 func (a *Analyzer) validateBIMIVMC(ctx context.Context, url string) map[string]any {
-	result := map[string]any{"valid": false, "issuer": nil, "subject": nil, "error": nil}
+	result := map[string]any{mapKeyValid: false, mapKeyIssuer: nil, "subject": nil, mapKeyError: nil}
 
 	if url == "" {
-		result["error"] = "No URL"
+		result[mapKeyError] = "No URL"
 		return result
 	}
 
 	resp, err := a.HTTP.Get(ctx, url)
 	if err != nil {
-		result["error"] = classifyHTTPError(err, 30)
+		result[mapKeyError] = classifyHTTPError(err, 30)
 		return result
 	}
 
 	body, err := a.HTTP.ReadBody(resp, 1<<20)
 	if err != nil {
-		result["error"] = "Failed to read response"
+		result[mapKeyError] = "Failed to read response"
 		return result
 	}
 
 	if resp.StatusCode != 200 {
-		result["error"] = fmt.Sprintf("HTTP %d", resp.StatusCode)
+		result[mapKeyError] = fmt.Sprintf("HTTP %d", resp.StatusCode)
 		return result
 	}
 
@@ -231,18 +239,18 @@ func (a *Analyzer) validateBIMIVMC(ctx context.Context, url string) map[string]a
 
 func classifyVMCCertificate(content string, result map[string]any) {
 	if !strings.Contains(content, "-----BEGIN CERTIFICATE-----") {
-		result["error"] = "Invalid certificate format"
+		result[mapKeyError] = "Invalid certificate format"
 		return
 	}
-	result["valid"] = true
+	result[mapKeyValid] = true
 	switch {
 	case strings.Contains(content, "DigiCert"):
-		result["issuer"] = "DigiCert"
+		result[mapKeyIssuer] = "DigiCert"
 	case strings.Contains(content, "Entrust"):
-		result["issuer"] = "Entrust"
+		result[mapKeyIssuer] = "Entrust"
 	case strings.Contains(content, "GlobalSign"):
-		result["issuer"] = "GlobalSign"
+		result[mapKeyIssuer] = "GlobalSign"
 	default:
-		result["issuer"] = "Verified CA"
+		result[mapKeyIssuer] = "Verified CA"
 	}
 }

@@ -8,8 +8,8 @@ func ExportClassifyAllQualifier(spfRecord string) *string {
 }
 
 func ExportCountSPFLookups(spfRecord string) int {
-        count, _, _, _, _, _, _ := parseSPFMechanisms(spfRecord)
-        return count
+        r := parseSPFMechanisms(spfRecord)
+        return r.lookupCount
 }
 
 func ExportBuildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent bool, validSPF, spfLike []string) (string, string) {
@@ -17,7 +17,8 @@ func ExportBuildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent
 }
 
 func ExportParseSPFMechanisms(spfRecord string) (int, []string, []string, *string, *string, []string, bool) {
-        return parseSPFMechanisms(spfRecord)
+        r := parseSPFMechanisms(spfRecord)
+        return r.lookupCount, r.lookupMechanisms, r.includes, r.permissiveness, r.allMechanism, r.issues, r.noMailIntent
 }
 
 func ExportClassifySPFRecords(records []string) ([]string, []string) {

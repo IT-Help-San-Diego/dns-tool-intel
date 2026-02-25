@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+const (
+	mapKeyFetched = "fetched"
+	mapKeyMaxAge = "max_age"
+	mapKeySuccess = "success"
+)
+
 var mtaStsIDRe = regexp.MustCompile(`(?i)id=([^;\s]+)`)
 
 func filterSTSRecords(records []string) []string {
@@ -39,7 +45,7 @@ func (a *Analyzer) lookupMTASTSCNAME(ctx context.Context, domain string) *string
 }
 
 func extractPolicyMode(policyData map[string]any) *string {
-	if !policyData["fetched"].(bool) {
+	if !policyData[mapKeyFetched].(bool) {
 		return nil
 	}
 	if m, ok := policyData["mode"].(string); ok && m != "" {
@@ -52,7 +58,7 @@ func determineMTASTSStatus(policyData map[string]any, mode *string) (string, str
 	var policyIssues []string
 	hasVersion, _ := policyData["has_version"].(bool)
 
-	if !policyData["fetched"].(bool) || mode == nil {
+	if !policyData[mapKeyFetched].(bool) || mode == nil {
 		return determineMTASTSFallbackStatus(policyData)
 	}
 
@@ -62,8 +68,8 @@ func determineMTASTSStatus(policyData map[string]any, mode *string) (string, str
 
 	status, message := determineMTASTSModeStatus(*mode, policyData)
 
-	if !hasVersion && status == "success" {
-		status = "warning"
+	if !hasVersion && status == mapKeySuccess {
+		status = mapKeyWarning
 		message += " (missing version field in policy)"
 	}
 
@@ -71,10 +77,10 @@ func determineMTASTSStatus(policyData map[string]any, mode *string) (string, str
 }
 
 func determineMTASTSFallbackStatus(policyData map[string]any) (string, string, []string) {
-	if policyData["error"] != nil {
-		return "warning", "MTA-STS DNS record found but policy file inaccessible", nil
+	if policyData[mapKeyError] != nil {
+		return mapKeyWarning, "MTA-STS DNS record found but policy file inaccessible", nil
 	}
-	return "success", "MTA-STS record found", nil
+	return mapKeySuccess, "MTA-STS record found", nil
 }
 
 func determineMTASTSModeStatus(mode string, policyData map[string]any) (string, string) {
@@ -82,15 +88,15 @@ func determineMTASTSModeStatus(mode string, policyData map[string]any) (string, 
 	case "enforce":
 		mxList := policyData["mx"].([]string)
 		if len(mxList) > 0 {
-			return "success", fmt.Sprintf("MTA-STS enforced - TLS required for %d mail server(s)", len(mxList))
+			return mapKeySuccess, fmt.Sprintf("MTA-STS enforced - TLS required for %d mail server(s)", len(mxList))
 		}
-		return "success", "MTA-STS enforced - TLS required for mail delivery"
+		return mapKeySuccess, "MTA-STS enforced - TLS required for mail delivery"
 	case "testing":
-		return "warning", "MTA-STS in testing mode - TLS failures reported but not enforced"
+		return mapKeyWarning, "MTA-STS in testing mode - TLS failures reported but not enforced"
 	case "none":
-		return "warning", "MTA-STS policy disabled (mode=none)"
+		return mapKeyWarning, "MTA-STS policy disabled (mode=none)"
 	default:
-		return "success", "MTA-STS policy found"
+		return mapKeySuccess, "MTA-STS policy found"
 	}
 }
 
@@ -99,8 +105,8 @@ func (a *Analyzer) AnalyzeMTASTS(ctx context.Context, domain string) map[string]
 	records := a.DNS.QueryDNS(ctx, "TXT", mtaStsDomain)
 
 	baseResult := map[string]any{
-		"status":         "warning",
-		"message":        "No MTA-STS record found",
+		"status":         mapKeyWarning,
+		mapKeyMessage:        "No MTA-STS record found",
 		"record":         nil,
 		"dns_id":         nil,
 		"mode":           nil,
@@ -119,7 +125,7 @@ func (a *Analyzer) AnalyzeMTASTS(ctx context.Context, domain string) map[string]
 
 	validRecords := filterSTSRecords(records)
 	if len(validRecords) == 0 {
-		baseResult["message"] = "No valid MTA-STS record found"
+		baseResult[mapKeyMessage] = "No valid MTA-STS record found"
 		return baseResult
 	}
 
@@ -135,16 +141,16 @@ func (a *Analyzer) AnalyzeMTASTS(ctx context.Context, domain string) map[string]
 
 	return map[string]any{
 		"status":         status,
-		"message":        message,
+		mapKeyMessage:        message,
 		"record":         record,
 		"dns_id":         derefStr(dnsID),
 		"mode":           derefStr(mode),
 		"policy":         policyData["raw"],
 		"policy_mode":    policyData["mode"],
-		"policy_max_age": policyData["max_age"],
+		"policy_max_age": policyData[mapKeyMaxAge],
 		"policy_mx":      policyData["mx"],
-		"policy_fetched": policyData["fetched"],
-		"policy_error":   policyData["error"],
+		"policy_fetched": policyData[mapKeyFetched],
+		"policy_error":   policyData[mapKeyError],
 		"hosting_cname":  derefStr(hostingCNAME),
 		"policy_issues":  policyIssues,
 	}
@@ -194,12 +200,12 @@ func parseMTASTSPolicyLine(lower, line string, fields *mtaSTSPolicyFields) {
 
 func (a *Analyzer) fetchMTASTSPolicy(ctx context.Context, policyURL string) map[string]any {
 	result := map[string]any{
-		"fetched": false,
+		mapKeyFetched: false,
 		"raw":     nil,
 		"mode":    nil,
-		"max_age": nil,
+		mapKeyMaxAge: nil,
 		"mx":      []string{},
-		"error":   nil,
+		mapKeyError:   nil,
 	}
 
 	resp, err := a.HTTP.Get(ctx, policyURL)
@@ -208,23 +214,23 @@ func (a *Analyzer) fetchMTASTSPolicy(ctx context.Context, policyURL string) map[
 		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "certificate") {
 			errMsg = "SSL certificate error"
 		}
-		result["error"] = errMsg
+		result[mapKeyError] = errMsg
 		return result
 	}
 
 	body, err := a.HTTP.ReadBody(resp, 1<<20)
 	if err != nil {
-		result["error"] = "Failed to read response"
+		result[mapKeyError] = "Failed to read response"
 		return result
 	}
 
 	if resp.StatusCode != 200 {
-		result["error"] = fmt.Sprintf("HTTP %d", resp.StatusCode)
+		result[mapKeyError] = fmt.Sprintf("HTTP %d", resp.StatusCode)
 		return result
 	}
 
 	policyText := string(body)
-	result["fetched"] = true
+	result[mapKeyFetched] = true
 	result["raw"] = policyText
 
 	fields := parseMTASTSPolicyLines(policyText)
@@ -232,7 +238,7 @@ func (a *Analyzer) fetchMTASTSPolicy(ctx context.Context, policyURL string) map[
 		result["mode"] = fields.mode
 	}
 	if fields.maxAge > 0 {
-		result["max_age"] = fields.maxAge
+		result[mapKeyMaxAge] = fields.maxAge
 	}
 	if len(fields.mx) > 0 {
 		result["mx"] = fields.mx

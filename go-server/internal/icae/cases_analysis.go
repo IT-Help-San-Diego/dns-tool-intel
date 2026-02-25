@@ -25,6 +25,22 @@ const (
         testDomainApple    = "apple.com"
         testSPFIncludeXSoft = "v=spf1 include:x ~all"
         testSPFSoftAll     = "v=spf1 ~all"
+
+
+	mapKeyAnswer = "answer"
+	mapKeyColor = "color"
+	mapKeyDanger = "danger"
+	mapKeyDedicated = "dedicated"
+	mapKeyDmarc = "dmarc"
+	mapKeyDnssec = "dnssec"
+	mapKeyEnterprisePattern = "enterprise_pattern"
+	mapKeyError = "error"
+	mapKeyLabel = "label"
+	mapKeyManaged = "managed"
+	mapKeyReject = "reject"
+	mapKeySuccess = "success"
+	strDangerous = "DANGEROUS"
+	strStrict = "STRICT"
 )
 
 func AnalysisTestCases() []TestCase {
@@ -73,8 +89,8 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
-                        Expected:   "STRICT",
-                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com -all", "STRICT"),
+                        Expected:   strStrict,
+                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com -all", strStrict),
                 },
                 {
                         CaseID:     "spf-analysis-003",
@@ -82,8 +98,8 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
-                        Expected:   "DANGEROUS",
-                        RunFn:      checkQualifier("v=spf1 +all", "DANGEROUS"),
+                        Expected:   strDangerous,
+                        RunFn:      checkQualifier("v=spf1 +all", strDangerous),
                 },
                 {
                         CaseID:     "spf-analysis-004",
@@ -100,8 +116,8 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
-                        Expected:   "DANGEROUS",
-                        RunFn:      checkQualifier("v=spf1 all", "DANGEROUS"),
+                        Expected:   strDangerous,
+                        RunFn:      checkQualifier("v=spf1 all", strDangerous),
                 },
                 {
                         CaseID:     "spf-analysis-006",
@@ -122,10 +138,10 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection464,
-                        Expected:   "error",
+                        Expected:   mapKeyError,
                         RunFn: func() (string, bool) {
                                 status, _ := analyzer.ExportBuildSPFVerdict(11, strPtr("SOFT"), false, []string{testSPFSoftAll}, nil)
-                                return status, status == "error"
+                                return status, status == mapKeyError
                         },
                 },
                 {
@@ -134,10 +150,10 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
-                        Expected:   "success",
+                        Expected:   mapKeySuccess,
                         RunFn: func() (string, bool) {
                                 status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr("SOFT"), false, []string{testSPFIncludeXSoft}, nil)
-                                return status, status == "success"
+                                return status, status == mapKeySuccess
                         },
                 },
                 {
@@ -146,10 +162,10 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7208 §3.2",
-                        Expected:   "error",
+                        Expected:   mapKeyError,
                         RunFn: func() (string, bool) {
                                 status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr("SOFT"), false, []string{testSPFSoftAll, "v=spf1 -all"}, nil)
-                                return status, status == "error"
+                                return status, status == mapKeyError
                         },
                 },
                 {
@@ -170,10 +186,10 @@ func spfAnalysisCases() []TestCase {
                         Protocol:   "spf",
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
-                        Expected:   "success",
+                        Expected:   mapKeySuccess,
                         RunFn: func() (string, bool) {
-                                status, _ := analyzer.ExportBuildSPFVerdict(0, strPtr("STRICT"), true, []string{"v=spf1 -all"}, nil)
-                                return status, status == "success"
+                                status, _ := analyzer.ExportBuildSPFVerdict(0, strPtr(strStrict), true, []string{"v=spf1 -all"}, nil)
+                                return status, status == mapKeySuccess
                         },
                 },
                 {
@@ -231,19 +247,19 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-001",
                         CaseName:   "DMARC reject + SPF + DKIM = not spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
                         Expected:   "No — SPF and DMARC reject policy enforced",
                         RunFn: func() (string, bool) {
-                                answer := analyzer.ExportBuildEmailAnswer(false, "reject", 100, false, true, true)
+                                answer := analyzer.ExportBuildEmailAnswer(false, mapKeyReject, 100, false, true, true)
                                 return answer, answer == "No — SPF and DMARC reject policy enforced"
                         },
                 },
                 {
                         CaseID:     "dmarc-analysis-002",
                         CaseName:   "DMARC p=none is monitor-only (spoofable)",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
                         Expected:   "Yes — DMARC is monitor-only (p=none)",
@@ -255,7 +271,7 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-003",
                         CaseName:   "No SPF + no DMARC = fully spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARC,
                         Expected:   "Yes — no SPF or DMARC protection",
@@ -267,7 +283,7 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-004",
                         CaseName:   "DMARC quarantine at 100% = unlikely spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
                         Expected:   "Unlikely — SPF and DMARC quarantine policy enforced",
@@ -279,7 +295,7 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-005",
                         CaseName:   "DMARC quarantine at partial pct = partially protected",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
                         Expected:   "Partially — DMARC quarantine at limited percentage",
@@ -291,7 +307,7 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-006",
                         CaseName:   "SPF only (no DMARC) = likely spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARC,
                         Expected:   "Likely — SPF alone cannot prevent spoofing",
@@ -303,7 +319,7 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-007",
                         CaseName:   "Null MX (no-mail domain) = not spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7505",
                         Expected:   "No — null MX indicates no-mail domain",
@@ -315,12 +331,12 @@ func dmarcAnalysisCases() []TestCase {
                 {
                         CaseID:     "dmarc-analysis-008",
                         CaseName:   "DMARC present but no SPF = partial protection",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARC,
                         Expected:   "Partially — DMARC present but no SPF",
                         RunFn: func() (string, bool) {
-                                answer := analyzer.ExportBuildEmailAnswer(false, "reject", 100, false, false, true)
+                                answer := analyzer.ExportBuildEmailAnswer(false, mapKeyReject, 100, false, false, true)
                                 return answer, answer == "Partially — DMARC present but no SPF"
                         },
                 },
@@ -349,7 +365,7 @@ func spfVerdictCases() []TestCase {
                         RFCSection: rfcSPFSection5,
                         Expected:   "contains 'anyone can send'",
                         RunFn: func() (string, bool) {
-                                _, msg := analyzer.ExportBuildSPFVerdict(1, strPtr("DANGEROUS"), false, []string{"v=spf1 +all"}, nil)
+                                _, msg := analyzer.ExportBuildSPFVerdict(1, strPtr(strDangerous), false, []string{"v=spf1 +all"}, nil)
                                 return msg, strings.Contains(msg, "anyone can send")
                         },
                 },
@@ -373,40 +389,40 @@ func emailAnswerCases() []TestCase {
                 {
                         CaseID:     "email-answer-001",
                         CaseName:   "Structured email answer for reject = green/success",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
-                        Expected:   "success",
+                        Expected:   mapKeySuccess,
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildEmailAnswerStructured(false, "reject", 100, false, true, true)
-                                color := result["color"]
-                                return color, color == "success"
+                                result := analyzer.ExportBuildEmailAnswerStructured(false, mapKeyReject, 100, false, true, true)
+                                color := result[mapKeyColor]
+                                return color, color == mapKeySuccess
                         },
                 },
                 {
                         CaseID:     "email-answer-002",
                         CaseName:   "Structured email answer for p=none = red/danger",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARCSection63,
-                        Expected:   "danger",
+                        Expected:   mapKeyDanger,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildEmailAnswerStructured(false, "none", 0, false, true, true)
-                                color := result["color"]
-                                return color, color == "danger"
+                                color := result[mapKeyColor]
+                                return color, color == mapKeyDanger
                         },
                 },
                 {
                         CaseID:     "email-answer-003",
                         CaseName:   "Structured email answer for no protection = red/danger",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDMARC,
-                        Expected:   "danger",
+                        Expected:   mapKeyDanger,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildEmailAnswerStructured(false, "", 0, false, false, false)
-                                color := result["color"]
-                                return color, color == "danger"
+                                color := result[mapKeyColor]
+                                return color, color == mapKeyDanger
                         },
                 },
         }
@@ -417,85 +433,85 @@ func dnssecVerdictCases() []TestCase {
                 {
                         CaseID:     "dnssec-verdict-001",
                         CaseName:   "DNSSEC signed = No tampering possible",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "No",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(true, false)
-                                answer := result["answer"].(string)
+                                answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "No"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-002",
                         CaseName:   "DNSSEC signed verdict is Protected",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "Protected",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(true, false)
-                                label := result["label"].(string)
+                                label := result[mapKeyLabel].(string)
                                 return label, label == "Protected"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-003",
                         CaseName:   "DNSSEC broken = tampering possible (Yes)",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSEC,
                         Expected:   "Yes",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(false, true)
-                                answer := result["answer"].(string)
+                                answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "Yes"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-004",
                         CaseName:   "DNSSEC broken label is Exposed",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSEC,
                         Expected:   "Exposed",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(false, true)
-                                label := result["label"].(string)
+                                label := result[mapKeyLabel].(string)
                                 return label, label == "Exposed"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-005",
                         CaseName:   "DNSSEC absent = Possible tampering",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSEC,
                         Expected:   "Possible",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(false, false)
-                                answer := result["answer"].(string)
+                                answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "Possible"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-006",
                         CaseName:   "DNSSEC absent label is Not Configured",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSEC,
                         Expected:   "Not Configured",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportBuildDNSVerdict(false, false)
-                                label := result["label"].(string)
+                                label := result[mapKeyLabel].(string)
                                 return label, label == "Not Configured"
                         },
                 },
                 {
                         CaseID:     "dnssec-verdict-007",
                         CaseName:   "DNSSEC signed reason mentions cryptographic",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "contains 'cryptographic'",
@@ -513,22 +529,22 @@ func enterpriseDNSCases() []TestCase {
                 {
                         CaseID:     "enterprise-dns-001",
                         CaseName:   "All org-branded NS = dedicated infrastructure",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
-                        Expected:   "dedicated",
+                        Expected:   mapKeyDedicated,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportClassifyEnterpriseDNS(testDomainApple, []string{
                                         "a.ns.apple.com", "b.ns.apple.com", "c.ns.apple.com", "d.ns.apple.com",
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
-                                return pattern, pattern == "dedicated"
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
+                                return pattern, pattern == mapKeyDedicated
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-002",
                         CaseName:   "Mixed org-branded + provider NS = mixed configuration",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
                         Expected:   "mixed",
@@ -536,14 +552,14 @@ func enterpriseDNSCases() []TestCase {
                                 result := analyzer.ExportClassifyEnterpriseDNS(testDomainExample, []string{
                                         "ns1.example.com", "ns2.example.com", testNS1Cloudflare,
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
                                 return pattern, pattern == "mixed"
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-003",
                         CaseName:   "Multiple providers = multi-provider redundancy",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
                         Expected:   "multi-provider",
@@ -552,29 +568,29 @@ func enterpriseDNSCases() []TestCase {
                                         testNS1Cloudflare, testNS2Cloudflare,
                                         "pdns1.ultradns.net", "pdns2.ultradns.net",
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
                                 return pattern, pattern == "multi-provider"
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-004",
                         CaseName:   "Single provider = managed DNS",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
-                        Expected:   "managed",
+                        Expected:   mapKeyManaged,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportClassifyEnterpriseDNS(testDomainExample, []string{
                                         testNS1Cloudflare, testNS2Cloudflare,
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
-                                return pattern, pattern == "managed"
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
+                                return pattern, pattern == mapKeyManaged
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-005",
                         CaseName:   "Empty nameservers returns nil (no classification)",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNS,
                         Expected:   "nil",
@@ -586,7 +602,7 @@ func enterpriseDNSCases() []TestCase {
                 {
                         CaseID:     "enterprise-dns-006",
                         CaseName:   "Dedicated label includes org domain name",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
                         Expected:   "contains 'apple.com'",
@@ -601,37 +617,37 @@ func enterpriseDNSCases() []TestCase {
                 {
                         CaseID:     "enterprise-dns-007",
                         CaseName:   "Akamai akam.net nameservers detected as managed provider",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNS,
-                        Expected:   "managed",
+                        Expected:   mapKeyManaged,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportClassifyEnterpriseDNS(testDomainExample, []string{
                                         "a1-1.akam.net", "a2-2.akam.net", "a3-3.akam.net",
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
-                                return pattern, pattern == "managed"
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
+                                return pattern, pattern == mapKeyManaged
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-008",
                         CaseName:   "Multi-label TLD handled correctly (co.uk)",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNSSection22,
-                        Expected:   "dedicated",
+                        Expected:   mapKeyDedicated,
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportClassifyEnterpriseDNS("bbc.co.uk", []string{
                                         "ns1.bbc.co.uk", "ns2.bbc.co.uk",
                                 })
-                                pattern, _ := result["enterprise_pattern"].(string)
-                                return pattern, pattern == "dedicated"
+                                pattern, _ := result[mapKeyEnterprisePattern].(string)
+                                return pattern, pattern == mapKeyDedicated
                         },
                 },
                 {
                         CaseID:     "enterprise-dns-009",
                         CaseName:   "registrableDomain extracts correct base for .com.au",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNS,
                         Expected:   testDomainExampleAU,
@@ -643,7 +659,7 @@ func enterpriseDNSCases() []TestCase {
                 {
                         CaseID:     "enterprise-dns-010",
                         CaseName:   "NS provider detection identifies Route 53",
-                        Protocol:   "dnssec",
+                        Protocol:   mapKeyDnssec,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcDNS,
                         Expected:   "contains 'Route 53'",

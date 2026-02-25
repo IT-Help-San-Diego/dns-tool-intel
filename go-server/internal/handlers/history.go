@@ -17,6 +17,9 @@ import (
 
 const (
         templateHistory = "history.html"
+
+
+	mapKeyHistory = "history"
 )
 
 type HistoryHandler struct {
@@ -101,12 +104,12 @@ func (h *HistoryHandler) History(c *gin.Context) {
         total, err := h.countAnalyses(ctx, searchDomain)
         if err != nil {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "history",
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:        h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyHistory,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to count analyses"}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -119,12 +122,12 @@ func (h *HistoryHandler) History(c *gin.Context) {
         items, err := h.fetchAnalyses(ctx, searchDomain, &pagination)
         if err != nil {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "history",
+                        strAppversion:      h.Config.AppVersion,
+                        strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:        h.Config.BetaPages,
+                        strCspnonce:        nonce,
+                        strCsrftoken:       csrfToken,
+                        strActivepage:      mapKeyHistory,
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -135,12 +138,12 @@ func (h *HistoryHandler) History(c *gin.Context) {
         pd := BuildPagination(page, pagination.TotalPages, total)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                "CspNonce":     nonce,
-                "CsrfToken":   csrfToken,
-                "ActivePage":   "history",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:        h.Config.BetaPages,
+                strCspnonce:     nonce,
+                strCsrftoken:   csrfToken,
+                strActivepage:   mapKeyHistory,
                 "Analyses":     items,
                 "Pagination":   pd,
                 "SearchDomain": searchDomain,

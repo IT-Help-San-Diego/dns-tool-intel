@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+
 type IPInfoResult struct {
 	IP       string `json:"ip"`
 	Hostname string `json:"hostname"`
@@ -59,14 +60,14 @@ func FetchIPInfo(ctx context.Context, ip, token string) (*IPInfoResult, error) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		slog.Warn("IPInfo: failed to create request", "ip", ip, "error", err)
+		slog.Warn("IPInfo: failed to create request", "ip", ip, mapKeyError, err)
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := ipInfoHTTPClient.Do(req)
 	if err != nil {
-		slog.Warn("IPInfo: request failed", "ip", ip, "error", err)
+		slog.Warn("IPInfo: request failed", "ip", ip, mapKeyError, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -88,7 +89,7 @@ func FetchIPInfo(ctx context.Context, ip, token string) (*IPInfoResult, error) {
 
 	var result IPInfoResult
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		slog.Warn("IPInfo: failed to parse response", "ip", ip, "error", err)
+		slog.Warn("IPInfo: failed to parse response", "ip", ip, mapKeyError, err)
 		return nil, err
 	}
 

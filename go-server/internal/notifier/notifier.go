@@ -19,6 +19,10 @@ const (
         maxResponseBody   = 1024
         headerContentType = "Content-Type"
         mimeJSON          = "application/json"
+
+
+	mapKeyDomain = "domain"
+	mapKeyNotificationId = "notification_id"
 )
 
 type NotifierDB interface {
@@ -106,18 +110,18 @@ func (n *Notifier) DeliverPending(ctx context.Context, batchSize int32) (int, er
                         errMsg := sendErr.Error()
                         respBody = &errMsg
                         slog.Error("Notification delivery failed",
-                                "notification_id", notif.ID,
+                                mapKeyNotificationId, notif.ID,
                                 "endpoint_type", notif.EndpointType,
-                                "domain", notif.Domain,
+                                mapKeyDomain, notif.Domain,
                                 "http_code", httpCode,
                                 "error", sendErr,
                         )
                 } else {
                         delivered++
                         slog.Info("Notification delivered",
-                                "notification_id", notif.ID,
+                                mapKeyNotificationId, notif.ID,
                                 "endpoint_type", notif.EndpointType,
-                                "domain", notif.Domain,
+                                mapKeyDomain, notif.Domain,
                                 "http_code", httpCode,
                         )
                 }
@@ -130,7 +134,7 @@ func (n *Notifier) DeliverPending(ctx context.Context, batchSize int32) (int, er
                 })
                 if updateErr != nil {
                         slog.Error("Failed to update notification status",
-                                "notification_id", notif.ID,
+                                mapKeyNotificationId, notif.ID,
                                 "error", updateErr,
                         )
                 }
@@ -198,7 +202,7 @@ func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotific
 func (n *Notifier) sendGenericWebhook(ctx context.Context, notif dbq.ListPendingNotificationsRow) (int, error) {
         payload := map[string]any{
                 "event":     "drift_detected",
-                "domain":    notif.Domain,
+                mapKeyDomain:    notif.Domain,
                 "severity":  notif.Severity,
                 "timestamp": time.Now().UTC().Format(time.RFC3339),
         }

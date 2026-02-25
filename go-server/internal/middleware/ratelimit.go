@@ -17,6 +17,10 @@ const (
         RateLimitWindow      = 60
         RateLimitMaxRequests = 8
         AntiRepeatWindow     = 15
+
+
+	mapKeyReason = "reason"
+	mapKeyWaitSeconds = "wait_seconds"
 )
 
 type RateLimitResult struct {
@@ -143,8 +147,8 @@ func AuthRateLimit(limiter *InMemoryRateLimiter) gin.HandlerFunc {
                         slog.Warn("Auth rate limit triggered",
                                 "ip", clientIP,
                                 "path", c.Request.URL.Path,
-                                "reason", result.Reason,
-                                "wait_seconds", result.WaitSeconds,
+                                mapKeyReason, result.Reason,
+                                mapKeyWaitSeconds, result.WaitSeconds,
                         )
                         c.Redirect(http.StatusFound, "/")
                         c.Abort()
@@ -177,8 +181,8 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                                 "trace_id", traceID,
                                 "ip", clientIP,
                                 "domain", domain,
-                                "reason", result.Reason,
-                                "wait_seconds", result.WaitSeconds,
+                                mapKeyReason, result.Reason,
+                                mapKeyWaitSeconds, result.WaitSeconds,
                         )
 
                         var msg string
@@ -192,8 +196,8 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                         if c.GetHeader("Accept") == "application/json" {
                                 c.JSON(http.StatusTooManyRequests, gin.H{
                                         "error":        msg,
-                                        "reason":       result.Reason,
-                                        "wait_seconds": result.WaitSeconds,
+                                        mapKeyReason:       result.Reason,
+                                        mapKeyWaitSeconds: result.WaitSeconds,
                                 })
                         } else {
                                 http.SetCookie(c.Writer, &http.Cookie{

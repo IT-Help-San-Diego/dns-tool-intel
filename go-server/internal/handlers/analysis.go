@@ -32,6 +32,23 @@ import (
 const (
         templateIndex            = "index.html"
         headerContentDisposition = "Content-Disposition"
+
+
+        mapKeyAuthenticated = "authenticated"
+        mapKeyCovert = "covert"
+        mapKeyCritical = "critical"
+        mapKeyCurrencyReport = "currency_report"
+        mapKeyDanger = "danger"
+        mapKeyDkimAnalysis = "dkim_analysis"
+        mapKeyDmarcAnalysis = "dmarc_analysis"
+        mapKeyDomain = "domain"
+        mapKeyMessage = "message"
+        mapKeySpfAnalysis = "spf_analysis"
+        mapKeyStandard = "standard"
+        mapKeyStatus = "status"
+        mapKeyWarning = "warning"
+        strAnalysisNotFound = "Analysis not found"
+        strUtc = "2006-01-02 15:04:05 UTC"
 )
 
 type AnalysisHandler struct {
@@ -58,11 +75,11 @@ func (h *AnalysisHandler) checkPrivateAccess(c *gin.Context, analysisID int32, p
         if !private {
                 return true
         }
-        auth, exists := c.Get("authenticated")
+        auth, exists := c.Get(mapKeyAuthenticated)
         if !exists || auth != true {
                 return false
         }
-        uid, ok := c.Get("user_id")
+        uid, ok := c.Get(mapKeyUserId)
         if !ok {
                 return false
         }
@@ -94,7 +111,7 @@ func resolveReportMode(c *gin.Context) string {
                         return "E"
                 }
         }
-        if c.Query("covert") == "1" {
+        if c.Query(mapKeyCovert) == "1" {
                 return "C"
         }
         return "E"
@@ -133,14 +150,14 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
-                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, "danger", "Invalid analysis ID")
+                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, "Invalid analysis ID")
                 return
         }
 
         ctx := c.Request.Context()
         analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(analysisID))
         if err != nil {
-                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, "danger", "Analysis not found")
+                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, mapKeyDanger, strAnalysisNotFound)
                 return
         }
 
@@ -150,13 +167,13 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         }
 
         if len(analysis.FullResults) == 0 || string(analysis.FullResults) == "null" {
-                h.renderErrorPage(c, http.StatusGone, nonce, csrfToken, "warning", "This report is no longer available. Please re-analyze the domain.")
+                h.renderErrorPage(c, http.StatusGone, nonce, csrfToken, mapKeyWarning, "This report is no longer available. Please re-analyze the domain.")
                 return
         }
 
         results := NormalizeResults(analysis.FullResults)
         if results == nil {
-                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, "danger", "Failed to parse results")
+                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, "Failed to parse results")
                 return
         }
 
@@ -183,10 +200,10 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         emailScope := h.resolveEmailScope(ctx, isSub, rootDom, analysis.AsciiDomain, results)
 
         viewData := gin.H{
-                "AppVersion":           h.Config.AppVersion,
-                "CspNonce":             nonce,
-                "CsrfToken":            csrfToken,
-                "ActivePage":           "",
+                strAppversion:           h.Config.AppVersion,
+                strCspnonce:             nonce,
+                strCsrftoken:            csrfToken,
+                strActivepage:           "",
                 "Domain":               analysis.Domain,
                 "AsciiDomain":          analysis.AsciiDomain,
                 "Results":              results,
@@ -229,18 +246,18 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
 
-        domain := strings.TrimSpace(c.PostForm("domain"))
+        domain := strings.TrimSpace(c.PostForm(mapKeyDomain))
         if domain == "" {
-                domain = strings.TrimSpace(c.Query("domain"))
+                domain = strings.TrimSpace(c.Query(mapKeyDomain))
         }
 
         if domain == "" {
-                h.renderIndexFlash(c, nonce, csrfToken, "danger", "Please enter a domain name.")
+                h.renderIndexFlash(c, nonce, csrfToken, mapKeyDanger, "Please enter a domain name.")
                 return
         }
 
         if !dnsclient.ValidateDomain(domain) {
-                h.renderIndexFlash(c, nonce, csrfToken, "danger", fmt.Sprintf("Invalid domain name: %s", domain))
+                h.renderIndexFlash(c, nonce, csrfToken, mapKeyDanger, fmt.Sprintf("Invalid domain name: %s", domain))
                 return
         }
 
@@ -270,8 +287,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         h.applyConfidenceEngines(results)
 
         if success, ok := results["analysis_success"].(bool); ok && !success {
-                if errMsg, ok := results["error"].(string); ok {
-                        h.renderIndexFlash(c, nonce, csrfToken, "warning", errMsg)
+                if errMsg, ok := results[mapKeyError].(string); ok {
+                        h.renderIndexFlash(c, nonce, csrfToken, mapKeyWarning, errMsg)
                         return
                 }
         }
@@ -346,7 +363,7 @@ func (h *AnalysisHandler) recordCurrencyIfEligible(ephemeral, domainExists bool,
         if ephemeral || !domainExists {
                 return
         }
-        cr, ok := results["currency_report"]
+        cr, ok := results[mapKeyCurrencyReport]
         if !ok {
                 return
         }
@@ -363,7 +380,7 @@ func applyDevNullHeaders(c *gin.Context, devNull bool) {
 }
 
 func resolveCovertMode(c *gin.Context, asciiDomain string) string {
-        covert := c.PostForm("covert") == "1" || c.Query("covert") == "1"
+        covert := c.PostForm(mapKeyCovert) == "1" || c.Query(mapKeyCovert) == "1"
         isTLD := dnsclient.IsTLDInput(asciiDomain)
         if covert && isTLD {
                 return "CZ"
@@ -384,7 +401,7 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
                 maturityLevel = icaeMetrics.OverallMaturity
         }
         var currencyScore float64
-        if cr, ok := results["currency_report"]; ok {
+        if cr, ok := results[mapKeyCurrencyReport]; ok {
                 if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
                         data["CurrencyReport"] = report
                         currencyScore = report.OverallScore
@@ -469,9 +486,9 @@ func (h *AnalysisHandler) resolveEmailScope(ctx context.Context, isSub bool, roo
 func extractAuthInfo(c *gin.Context) (bool, int32) {
         isAuthenticated := false
         var userID int32
-        if auth, exists := c.Get("authenticated"); exists && auth == true {
+        if auth, exists := c.Get(mapKeyAuthenticated); exists && auth == true {
                 isAuthenticated = true
-                if uid, ok := c.Get("user_id"); ok {
+                if uid, ok := c.Get(mapKeyUserId); ok {
                         userID, _ = uid.(int32)
                 }
         }
@@ -491,7 +508,7 @@ func (h *AnalysisHandler) detectDrift(ctx context.Context, devNull, domainExists
                                         FullResults:    prevRow.FullResults,
                                 }, results)
                         if drift.Detected {
-                                slog.Info("Posture drift detected", "domain", asciiDomain, "prev_hash", drift.PrevHash[:8], "new_hash", postureHash[:8], "changed_fields", len(drift.Fields))
+                                slog.Info("Posture drift detected", mapKeyDomain, asciiDomain, "prev_hash", drift.PrevHash[:8], "new_hash", postureHash[:8], "changed_fields", len(drift.Fields))
                         }
                 }
         }
@@ -515,7 +532,7 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
         isSuccess, _ := extractAnalysisError(p.results)
         if p.ephemeral || p.devNull || (!p.domainExists && isSuccess) {
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
-                return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
+                return 0, time.Now().UTC().Format(strUtc)
         }
         return h.saveAnalysis(ctx, saveAnalysisInput{
                 domain:           p.domain,
@@ -532,11 +549,11 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
 
 func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {
         if devNull {
-                slog.Info("/dev/null scan — full analysis, zero persistence", "domain", asciiDomain)
+                slog.Info("/dev/null scan — full analysis, zero persistence", mapKeyDomain, asciiDomain)
         } else if !domainExists {
-                slog.Info("Non-existent/undelegated domain — not persisted", "domain", asciiDomain)
+                slog.Info("Non-existent/undelegated domain — not persisted", mapKeyDomain, asciiDomain)
         } else {
-                slog.Info("Ephemeral analysis (custom DKIM selectors, unauthenticated) — not persisted", "domain", asciiDomain)
+                slog.Info("Ephemeral analysis (custom DKIM selectors, unauthenticated) — not persisted", mapKeyDomain, asciiDomain)
         }
 }
 
@@ -575,7 +592,7 @@ func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
                         AnalysisID: p.analysisID,
                 })
                 if err != nil {
-                        slog.Error("Failed to record user analysis association", "user_id", p.userID, "analysis_id", p.analysisID, "error", err)
+                        slog.Error("Failed to record user analysis association", mapKeyUserId, p.userID, "analysis_id", p.analysisID, mapKeyError, err)
                 }
         }()
 }
@@ -614,10 +631,10 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
         emailScope := h.resolveEmailScope(ctx, isSub, rootDom, v.asciiDomain, v.results)
 
         analyzeData := gin.H{
-                "AppVersion":           h.Config.AppVersion,
-                "CspNonce":             nonce,
-                "CsrfToken":            csrfToken,
-                "ActivePage":           "",
+                strAppversion:           h.Config.AppVersion,
+                strCspnonce:             nonce,
+                strCsrftoken:            csrfToken,
+                strActivepage:           "",
                 "Domain":               v.domain,
                 "AsciiDomain":          v.asciiDomain,
                 "Results":              v.results,
@@ -654,7 +671,7 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 analyzeData["ICAEMetrics"] = icaeMetrics
         }
-        if cr, ok := v.results["currency_report"]; ok {
+        if cr, ok := v.results[mapKeyCurrencyReport]; ok {
                 if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
                         analyzeData["CurrencyReport"] = report
                 }
@@ -702,18 +719,18 @@ func computeDriftFromPrev(currentHash string, prev prevAnalysisSnapshot, current
 func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, drift driftInfo, currentHash string) {
         diffJSON, err := json.Marshal(drift.Fields)
         if err != nil {
-                slog.Error("Failed to marshal drift diff", "domain", domain, "error", err)
+                slog.Error("Failed to marshal drift diff", mapKeyDomain, domain, mapKeyError, err)
                 return
         }
 
         severity := "info"
         for _, f := range drift.Fields {
-                if f.Severity == "critical" {
-                        severity = "critical"
+                if f.Severity == mapKeyCritical {
+                        severity = mapKeyCritical
                         break
                 }
-                if f.Severity == "warning" && severity != "critical" {
-                        severity = "warning"
+                if f.Severity == mapKeyWarning && severity != mapKeyCritical {
+                        severity = mapKeyWarning
                 }
         }
 
@@ -727,18 +744,18 @@ func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, dri
                 Severity:       severity,
         })
         if insertErr != nil {
-                slog.Error("Failed to persist drift event", "domain", domain, "error", insertErr)
+                slog.Error("Failed to persist drift event", mapKeyDomain, domain, mapKeyError, insertErr)
                 return
         }
-        slog.Info("Drift event persisted", "domain", domain, "severity", severity, "changed_fields", len(drift.Fields))
+        slog.Info("Drift event persisted", mapKeyDomain, domain, "severity", severity, "changed_fields", len(drift.Fields))
 }
 
 func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, category, message string) gin.H {
         data := gin.H{
-                "AppVersion":    h.Config.AppVersion,
-                "CspNonce":      nonce,
-                "CsrfToken":     csrfToken,
-                "ActivePage":    "home",
+                strAppversion:    h.Config.AppVersion,
+                strCspnonce:      nonce,
+                strCsrftoken:     csrfToken,
+                strActivepage:    "home",
                 "FlashMessages": []FlashMessage{{Category: category, Message: message}},
         }
         mergeAuthData(c, h.Config, data)
@@ -746,16 +763,16 @@ func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, c
 }
 
 func (h *AnalysisHandler) renderRestrictedAccess(c *gin.Context, nonce, csrfToken any) {
-        auth, _ := c.Get("authenticated")
+        auth, _ := c.Get(mapKeyAuthenticated)
         if auth != true {
-                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, "danger", "Analysis not found")
+                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, mapKeyDanger, strAnalysisNotFound)
                 return
         }
         msg := "This report includes user-provided intelligence and is restricted to its owner. " +
                 "Custom selectors can reveal internal mail infrastructure and vendor relationships — " +
                 "responsible intelligence handling means sharing only with trusted parties. " +
                 "If you should have access, request it from the report owner."
-        c.HTML(http.StatusForbidden, templateIndex, h.indexFlashData(c, nonce, csrfToken, "warning", msg))
+        c.HTML(http.StatusForbidden, templateIndex, h.indexFlashData(c, nonce, csrfToken, mapKeyWarning, msg))
 }
 
 func (h *AnalysisHandler) renderErrorPage(c *gin.Context, status int, nonce, csrfToken any, category, message string) {
@@ -785,9 +802,9 @@ func extractCustomSelectors(c *gin.Context) []string {
 }
 
 func (h *AnalysisHandler) APIDNSHistory(c *gin.Context) {
-        domain := strings.TrimSpace(c.Query("domain"))
+        domain := strings.TrimSpace(c.Query(mapKeyDomain))
         if domain == "" || !dnsclient.ValidateDomain(domain) {
-                c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid domain"})
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyStatus: mapKeyError, mapKeyMessage: "Invalid domain"})
                 return
         }
         asciiDomain, err := dnsclient.DomainToASCII(domain)
@@ -798,21 +815,21 @@ func (h *AnalysisHandler) APIDNSHistory(c *gin.Context) {
         userAPIKey := strings.TrimSpace(c.GetHeader("X-SecurityTrails-Key"))
 
         if userAPIKey == "" {
-                c.JSON(http.StatusOK, gin.H{"status": "no_key", "message": "SecurityTrails API key required"})
+                c.JSON(http.StatusOK, gin.H{mapKeyStatus: "no_key", mapKeyMessage: "SecurityTrails API key required"})
                 return
         }
 
         result := analyzer.FetchDNSHistoryWithKey(c.Request.Context(), asciiDomain, userAPIKey, h.DNSHistoryCache)
 
-        status, _ := result["status"].(string)
-        if status == "rate_limited" || status == "error" || status == "timeout" {
-                c.JSON(http.StatusOK, gin.H{"status": "unavailable"})
+        status, _ := result[mapKeyStatus].(string)
+        if status == "rate_limited" || status == mapKeyError || status == "timeout" {
+                c.JSON(http.StatusOK, gin.H{mapKeyStatus: "unavailable"})
                 return
         }
 
         available, _ := result["available"].(bool)
         if !available {
-                c.JSON(http.StatusOK, gin.H{"status": "unavailable"})
+                c.JSON(http.StatusOK, gin.H{mapKeyStatus: "unavailable"})
                 return
         }
 
@@ -837,14 +854,14 @@ func resultsDomainExists(results map[string]any) bool {
 }
 
 func (h *AnalysisHandler) APISubdomains(c *gin.Context) {
-        domain := strings.TrimPrefix(c.Param("domain"), "/")
+        domain := strings.TrimPrefix(c.Param(mapKeyDomain), "/")
         domain = strings.TrimSpace(strings.ToLower(domain))
         if domain == "" {
-                c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Domain is required"})
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyStatus: mapKeyError, mapKeyMessage: "Domain is required"})
                 return
         }
         if !dnsclient.ValidateDomain(domain) {
-                c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid domain"})
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyStatus: mapKeyError, mapKeyMessage: "Invalid domain"})
                 return
         }
         result := h.Analyzer.DiscoverSubdomains(c.Request.Context(), domain)
@@ -852,7 +869,7 @@ func (h *AnalysisHandler) APISubdomains(c *gin.Context) {
 }
 
 func (h *AnalysisHandler) ExportSubdomainsCSV(c *gin.Context) {
-        domain := strings.TrimSpace(strings.ToLower(c.Query("domain")))
+        domain := strings.TrimSpace(strings.ToLower(c.Query(mapKeyDomain)))
         if domain == "" {
                 c.Redirect(http.StatusFound, "/")
                 return
@@ -914,7 +931,7 @@ func csvEscape(s string) string {
         return s
 }
 
-func (h *AnalysisHandler) buildAnalysisJSON(analysis dbq.DomainAnalysis) ([]byte, string) {
+func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.DomainAnalysis) ([]byte, string) {
         var fullResults interface{}
         if len(analysis.FullResults) > 0 {
                 json.Unmarshal(analysis.FullResults, &fullResults)
@@ -926,7 +943,7 @@ func (h *AnalysisHandler) buildAnalysisJSON(analysis dbq.DomainAnalysis) ([]byte
 
         var currencyReport interface{}
         if frMap, ok := fullResults.(map[string]interface{}); ok {
-                if cr, exists := frMap["currency_report"]; exists {
+                if cr, exists := frMap[mapKeyCurrencyReport]; exists {
                         currencyReport = cr
                 }
         }
@@ -941,19 +958,18 @@ func (h *AnalysisHandler) buildAnalysisJSON(analysis dbq.DomainAnalysis) ([]byte
                         "icae": map[string]string{
                                 "name":     "Intelligence Confidence Audit Engine",
                                 "purpose":  "Correctness verification via deterministic test cases",
-                                "standard": "ICD 203 Analytic Standards",
+                                mapKeyStandard: "ICD 203 Analytic Standards",
                         },
                         "icuae": map[string]string{
                                 "name":     "Intelligence Currency Audit Engine",
                                 "purpose":  "Data timeliness and validity measurement",
-                                "standard": "ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, RFC 8767",
+                                mapKeyStandard: "ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, RFC 8767",
                         },
                 },
         }
         if currencyReport != nil {
-                provenance["currency_report"] = currencyReport
+                provenance[mapKeyCurrencyReport] = currencyReport
         }
-        ctx := context.Background()
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 provenance["icae_summary"] = map[string]interface{}{
                         "maturity":        icaeMetrics.OverallMaturity,
@@ -977,7 +993,7 @@ func (h *AnalysisHandler) buildAnalysisJSON(analysis dbq.DomainAnalysis) ([]byte
                 "dkim_status":       analysis.DkimStatus,
                 "dmarc_policy":      analysis.DmarcPolicy,
                 "dmarc_status":      analysis.DmarcStatus,
-                "domain":            analysis.Domain,
+                mapKeyDomain:            analysis.Domain,
                 "error_message":     analysis.ErrorMessage,
                 "full_results":      fullResults,
                 "id":                analysis.ID,
@@ -1025,26 +1041,26 @@ func (h *AnalysisHandler) loadAnalysisForAPI(c *gin.Context) (dbq.DomainAnalysis
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
-                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid analysis ID"})
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyError: "Invalid analysis ID"})
                 return dbq.DomainAnalysis{}, false
         }
 
         ctx := c.Request.Context()
         analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(analysisID))
         if err != nil {
-                c.JSON(http.StatusNotFound, gin.H{"error": "Analysis not found"})
+                c.JSON(http.StatusNotFound, gin.H{mapKeyError: strAnalysisNotFound})
                 return dbq.DomainAnalysis{}, false
         }
 
         if !h.checkPrivateAccess(c, analysis.ID, analysis.Private) {
-                auth, _ := c.Get("authenticated")
+                auth, _ := c.Get(mapKeyAuthenticated)
                 if auth == true {
                         c.JSON(http.StatusForbidden, gin.H{
-                                "error":   "restricted",
-                                "message": "This report includes user-provided intelligence and is restricted to its owner. Custom selectors can reveal internal mail infrastructure and vendor relationships.",
+                                mapKeyError:   "restricted",
+                                mapKeyMessage: "This report includes user-provided intelligence and is restricted to its owner. Custom selectors can reveal internal mail infrastructure and vendor relationships.",
                         })
                 } else {
-                        c.JSON(http.StatusNotFound, gin.H{"error": "Analysis not found"})
+                        c.JSON(http.StatusNotFound, gin.H{mapKeyError: strAnalysisNotFound})
                 }
                 return dbq.DomainAnalysis{}, false
         }
@@ -1058,7 +1074,7 @@ func (h *AnalysisHandler) APIAnalysis(c *gin.Context) {
                 return
         }
 
-        jsonBytes, fileHash := h.buildAnalysisJSON(analysis)
+        jsonBytes, fileHash := h.buildAnalysisJSON(c.Request.Context(), analysis)
         filename := fmt.Sprintf("dns-intelligence-%s.json", analysis.AsciiDomain)
 
         if c.Query("download") == "1" || c.Request.Header.Get("Accept") == "application/octet-stream" {
@@ -1074,7 +1090,7 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
                 return
         }
 
-        _, fileHash := h.buildAnalysisJSON(analysis)
+        _, fileHash := h.buildAnalysisJSON(c.Request.Context(), analysis)
         filename := fmt.Sprintf("dns-intelligence-%s.json", analysis.AsciiDomain)
 
         format := c.Query("format")
@@ -1114,7 +1130,7 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
 
         checksumResponse := gin.H{
                 "algorithm": "SHA-3-512",
-                "standard":  "NIST FIPS 202 (Keccak)",
+                mapKeyStandard:  "NIST FIPS 202 (Keccak)",
                 "hash":      fileHash,
                 "filename":  filename,
                 "provenance": gin.H{
@@ -1153,16 +1169,16 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
         basicRecordsJSON := getJSONFromResults(p.results, "basic_records", "")
         authRecordsJSON := getJSONFromResults(p.results, "authoritative_records", "")
 
-        spfStatus := getStringFromResults(p.results, "spf_analysis", "status")
-        dmarcStatus := getStringFromResults(p.results, "dmarc_analysis", "status")
-        dmarcPolicy := getStringFromResults(p.results, "dmarc_analysis", "policy")
-        dkimStatus := getStringFromResults(p.results, "dkim_analysis", "status")
+        spfStatus := getStringFromResults(p.results, mapKeySpfAnalysis, mapKeyStatus)
+        dmarcStatus := getStringFromResults(p.results, mapKeyDmarcAnalysis, mapKeyStatus)
+        dmarcPolicy := getStringFromResults(p.results, mapKeyDmarcAnalysis, "policy")
+        dkimStatus := getStringFromResults(p.results, mapKeyDkimAnalysis, mapKeyStatus)
         registrarName := getStringFromResults(p.results, "registrar_info", "registrar")
         registrarSource := getStringFromResults(p.results, "registrar_info", "source")
 
-        spfRecordsJSON := getJSONFromResults(p.results, "spf_analysis", "records")
-        dmarcRecordsJSON := getJSONFromResults(p.results, "dmarc_analysis", "records")
-        dkimSelectorsJSON := getJSONFromResults(p.results, "dkim_analysis", "selectors")
+        spfRecordsJSON := getJSONFromResults(p.results, mapKeySpfAnalysis, "records")
+        dmarcRecordsJSON := getJSONFromResults(p.results, mapKeyDmarcAnalysis, "records")
+        dkimSelectorsJSON := getJSONFromResults(p.results, mapKeyDkimAnalysis, "selectors")
         ctSubdomainsJSON := getJSONFromResults(p.results, "ct_subdomains", "")
 
         postureHash := analyzer.CanonicalPostureHash(p.results)
@@ -1202,19 +1218,19 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
 
         row, err := h.DB.Queries.InsertAnalysis(ctx, params)
         if err != nil {
-                slog.Error("Failed to save analysis", "domain", p.domain, "error", err)
-                return 0, time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
+                slog.Error("Failed to save analysis", mapKeyDomain, p.domain, mapKeyError, err)
+                return 0, time.Now().UTC().Format(strUtc)
         }
 
         timestamp := "just now"
         if row.CreatedAt.Valid {
-                timestamp = row.CreatedAt.Time.Format("2006-01-02 15:04:05 UTC")
+                timestamp = row.CreatedAt.Time.Format(strUtc)
         }
         return row.ID, timestamp
 }
 
 func extractAnalysisError(results map[string]any) (bool, *string) {
-        if errStr, ok := results["error"].(string); ok && errStr != "" {
+        if errStr, ok := results[mapKeyError].(string); ok && errStr != "" {
                 return false, &errStr
         }
         return true, nil
@@ -1320,7 +1336,7 @@ func extractReportsAndDurations(analyses []dbq.DomainAnalysis) ([]icuae.Currency
                 if json.Unmarshal(ha.FullResults, &fr) != nil {
                         continue
                 }
-                if cr, ok := fr["currency_report"]; ok {
+                if cr, ok := fr[mapKeyCurrencyReport]; ok {
                         if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
                                 reports = append(reports, report)
                         }
@@ -1375,9 +1391,9 @@ func getJSONFromResults(results map[string]any, section, key string) json.RawMes
 }
 
 var protocolResultKeys = map[string]string{
-        "SPF":     "spf_analysis",
-        "DKIM":    "dkim_analysis",
-        "DMARC":   "dmarc_analysis",
+        "SPF":     mapKeySpfAnalysis,
+        "DKIM":    mapKeyDkimAnalysis,
+        "DMARC":   mapKeyDmarcAnalysis,
         "DANE":    "dane_analysis",
         "DNSSEC":  "dnssec_analysis",
         "BIMI":    "bimi_analysis",
@@ -1395,7 +1411,7 @@ var icuaeToDimChart = map[string]string{
 }
 
 func (h *AnalysisHandler) applyConfidenceEngines(results map[string]any) {
-        cr, ok := results["currency_report"].(icuae.CurrencyReport)
+        cr, ok := results[mapKeyCurrencyReport].(icuae.CurrencyReport)
         if !ok {
                 return
         }
@@ -1429,15 +1445,15 @@ func protocolRawConfidence(results map[string]any, resultKey string) float64 {
         if !ok {
                 return 0.0
         }
-        status, _ := section["status"].(string)
+        status, _ := section[mapKeyStatus].(string)
         switch status {
         case "secure", "pass", "valid", "good":
                 return 1.0
-        case "warning", "info", "partial":
+        case mapKeyWarning, "info", "partial":
                 return 0.7
-        case "fail", "danger", "critical":
+        case "fail", mapKeyDanger, mapKeyCritical:
                 return 0.3
-        case "error", "n/a", "":
+        case mapKeyError, "n/a", "":
                 return 0.0
         default:
                 return 0.5

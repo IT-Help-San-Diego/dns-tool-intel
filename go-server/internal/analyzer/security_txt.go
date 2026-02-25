@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+const (
+	mapKeyExpired = "expired"
+	mapKeyExpires = "expires"
+	mapKeyFetchError = "fetch_error"
+	mapKeyLanguages = "languages"
+)
+
 var (
 	secTxtContactRe  = regexp.MustCompile(`(?i)^Contact:\s*(.+)$`)
 	secTxtExpiresRe  = regexp.MustCompile(`(?i)^Expires:\s*(.+)$`)
@@ -102,13 +109,13 @@ func determineSecurityTxtStatus(fields securityTxtFields) (string, string, []str
 	}
 
 	if len(issues) > 0 && len(fields.contacts) == 0 {
-		return "warning", "security.txt found but missing required fields", issues
+		return mapKeyWarning, "security.txt found but missing required fields", issues
 	}
 	if expired {
-		return "warning", "security.txt found but expired", issues
+		return mapKeyWarning, "security.txt found but expired", issues
 	}
 	if len(issues) > 0 {
-		return "warning", "security.txt found with issues", issues
+		return mapKeyWarning, "security.txt found with issues", issues
 	}
 	return "success", "security.txt properly configured", issues
 }
@@ -116,21 +123,21 @@ func determineSecurityTxtStatus(fields securityTxtFields) (string, string, []str
 func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[string]any {
 	baseResult := map[string]any{
 		"status":      "info",
-		"message":     "No security.txt found",
+		mapKeyMessage:     "No security.txt found",
 		"found":       false,
 		"url":         nil,
 		"contacts":    []string{},
-		"expires":     nil,
-		"expired":     false,
+		mapKeyExpires:     nil,
+		mapKeyExpired:     false,
 		"encryption":  []string{},
 		"policy":      []string{},
 		"ack":         []string{},
 		"hiring":      []string{},
 		"canonical":   []string{},
-		"languages":   nil,
+		mapKeyLanguages:   nil,
 		"signed":      false,
 		"issues":      []string{},
-		"fetch_error": nil,
+		mapKeyFetchError: nil,
 	}
 
 	wellKnownURL := fmt.Sprintf("https://%s/.well-known/security.txt", domain)
@@ -138,8 +145,8 @@ func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[st
 
 	body, fetchURL, fetchErr := a.tryFetchSecurityTxt(ctx, wellKnownURL, rootURL)
 	if fetchErr != nil {
-		baseResult["fetch_error"] = classifyHTTPError(fetchErr, 80)
-		baseResult["message"] = "Could not fetch security.txt"
+		baseResult[mapKeyFetchError] = classifyHTTPError(fetchErr, 80)
+		baseResult[mapKeyMessage] = "Could not fetch security.txt"
 		return baseResult
 	}
 	if body == "" {
@@ -153,7 +160,7 @@ func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[st
 
 	result := map[string]any{
 		"status":      status,
-		"message":     message,
+		mapKeyMessage:     message,
 		"found":       true,
 		"url":         fetchURL,
 		"contacts":    fields.contacts,
@@ -164,21 +171,21 @@ func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[st
 		"canonical":   fields.canonical,
 		"signed":      fields.signed,
 		"issues":      issues,
-		"fetch_error": nil,
+		mapKeyFetchError: nil,
 	}
 
 	if fields.expires != "" {
-		result["expires"] = expiryDate
-		result["expired"] = expired
+		result[mapKeyExpires] = expiryDate
+		result[mapKeyExpired] = expired
 	} else {
-		result["expires"] = nil
-		result["expired"] = false
+		result[mapKeyExpires] = nil
+		result[mapKeyExpired] = false
 	}
 
 	if fields.languages != "" {
-		result["languages"] = fields.languages
+		result[mapKeyLanguages] = fields.languages
 	} else {
-		result["languages"] = nil
+		result[mapKeyLanguages] = nil
 	}
 
 	return result

@@ -22,6 +22,9 @@ const (
         maxWatchlistEntries = 25
         timeFormatDisplay   = "2 Jan 2006 15:04 UTC"
         pathWatchlist       = "/watchlist"
+
+
+	mapKeyDaily = "daily"
 )
 
 type WatchlistHandler struct {
@@ -69,7 +72,7 @@ func cadenceToNextRun(cadence string) pgtype.Timestamp {
         switch cadence {
         case "hourly":
                 d = time.Hour
-        case "daily":
+        case mapKeyDaily:
                 d = 24 * time.Hour
         case "weekly":
                 d = 7 * 24 * time.Hour
@@ -95,7 +98,7 @@ func (h *WatchlistHandler) baseTmplData(c *gin.Context) gin.H {
 }
 
 func (h *WatchlistHandler) Watchlist(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 h.renderUnauthenticatedWatchlist(c)
@@ -106,7 +109,7 @@ func (h *WatchlistHandler) Watchlist(c *gin.Context) {
 
         entries, err := h.DB.Queries.ListWatchlistByUser(ctx, userID)
         if err != nil {
-                slog.Error("Failed to load watchlist", "user_id", userID, "error", err)
+                slog.Error("Failed to load watchlist", mapKeyUserId, userID, mapKeyError, err)
                 data := h.baseTmplData(c)
                 data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to load watchlist."}}
                 c.HTML(http.StatusInternalServerError, templateWatchlist, data)
@@ -165,7 +168,7 @@ func convertWatchlistEntries(entries []dbq.DomainWatchlist) []watchlistItem {
 func (h *WatchlistHandler) loadEndpoints(ctx context.Context, userID int32) []endpointItem {
         endpoints, err := h.DB.Queries.ListNotificationEndpointsByUser(ctx, userID)
         if err != nil {
-                slog.Error("Failed to load endpoints", "user_id", userID, "error", err)
+                slog.Error("Failed to load endpoints", mapKeyUserId, userID, mapKeyError, err)
         }
         eps := make([]endpointItem, 0, len(endpoints))
         for _, ep := range endpoints {
@@ -185,7 +188,7 @@ func (h *WatchlistHandler) loadEndpoints(ctx context.Context, userID int32) []en
 }
 
 func (h *WatchlistHandler) AddDomain(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -198,15 +201,15 @@ func (h *WatchlistHandler) AddDomain(c *gin.Context) {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
         }
-        if cadence != "hourly" && cadence != "daily" && cadence != "weekly" {
-                cadence = "daily"
+        if cadence != "hourly" && cadence != mapKeyDaily && cadence != "weekly" {
+                cadence = mapKeyDaily
         }
 
         ctx := c.Request.Context()
 
         count, err := h.DB.Queries.CountWatchlistByUser(ctx, userID)
         if err != nil {
-                slog.Error("Failed to count watchlist", "error", err)
+                slog.Error("Failed to count watchlist", mapKeyError, err)
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
         }
@@ -222,14 +225,14 @@ func (h *WatchlistHandler) AddDomain(c *gin.Context) {
                 NextRunAt: cadenceToNextRun(cadence),
         })
         if err != nil {
-                slog.Error("Failed to add watchlist entry", "user_id", userID, "domain", domain, "error", err)
+                slog.Error("Failed to add watchlist entry", mapKeyUserId, userID, "domain", domain, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
 }
 
 func (h *WatchlistHandler) RemoveDomain(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -248,14 +251,14 @@ func (h *WatchlistHandler) RemoveDomain(c *gin.Context) {
                 ID:     int32(entryID),
                 UserID: userID,
         }); err != nil {
-                slog.Error("Failed to delete watchlist entry", "id", entryID, "error", err)
+                slog.Error("Failed to delete watchlist entry", "id", entryID, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
 }
 
 func (h *WatchlistHandler) ToggleDomain(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -277,14 +280,14 @@ func (h *WatchlistHandler) ToggleDomain(c *gin.Context) {
                 UserID:  userID,
                 Enabled: enabled,
         }); err != nil {
-                slog.Error("Failed to toggle watchlist entry", "id", entryID, "error", err)
+                slog.Error("Failed to toggle watchlist entry", "id", entryID, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
 }
 
 func (h *WatchlistHandler) AddEndpoint(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -311,14 +314,14 @@ func (h *WatchlistHandler) AddEndpoint(c *gin.Context) {
                 Secret:       secretPtr,
         })
         if err != nil {
-                slog.Error("Failed to add notification endpoint", "user_id", userID, "url", url, "error", err)
+                slog.Error("Failed to add notification endpoint", mapKeyUserId, userID, "url", url, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
 }
 
 func (h *WatchlistHandler) RemoveEndpoint(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -337,14 +340,14 @@ func (h *WatchlistHandler) RemoveEndpoint(c *gin.Context) {
                 ID:     int32(endpointID),
                 UserID: userID,
         }); err != nil {
-                slog.Error("Failed to delete notification endpoint", "id", endpointID, "error", err)
+                slog.Error("Failed to delete notification endpoint", "id", endpointID, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
 }
 
 func (h *WatchlistHandler) ToggleEndpoint(c *gin.Context) {
-        uid, _ := c.Get("user_id")
+        uid, _ := c.Get(mapKeyUserId)
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -366,7 +369,7 @@ func (h *WatchlistHandler) ToggleEndpoint(c *gin.Context) {
                 UserID:  userID,
                 Enabled: enabled,
         }); err != nil {
-                slog.Error("Failed to toggle notification endpoint", "id", endpointID, "error", err)
+                slog.Error("Failed to toggle notification endpoint", "id", endpointID, mapKeyError, err)
         }
 
         c.Redirect(http.StatusSeeOther, pathWatchlist)
@@ -380,7 +383,7 @@ func (h *WatchlistHandler) TestWebhook(c *gin.Context) {
         }
         ctx := c.Request.Context()
         if err := h.Notifier.SendTestDiscord(ctx, h.Config.DiscordWebhookURL); err != nil {
-                slog.Error("Test webhook failed", "error", err)
+                slog.Error("Test webhook failed", mapKeyError, err)
         } else {
                 slog.Info("Test webhook sent successfully")
         }

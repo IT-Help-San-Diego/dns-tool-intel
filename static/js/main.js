@@ -242,6 +242,25 @@ function isValidDomain(domain) {
     return true;
 }
 
+function applyFetchedPage(html, respUrl, overlay, btn) {
+    hideOverlayAndReset(overlay, btn);
+    const parsed = new DOMParser().parseFromString(html, 'text/html');
+    document.replaceChild(
+        document.importNode(parsed.documentElement, true),
+        document.documentElement
+    );
+    globalThis.scrollTo(0, 0);
+    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+    const idEl = document.querySelector('[data-analysis-id]');
+    const mode = modeMeta ? modeMeta.getAttribute('content') : '';
+    const aid = idEl ? idEl.dataset.analysisId : '';
+    if (aid && mode) {
+        globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
+    } else if (respUrl && respUrl !== globalThis.location.href) {
+        globalThis.history.replaceState(null, '', respUrl);
+    }
+}
+
 function resetCopyBtn(btn) {
     btn.innerHTML = '<i class="fas fa-copy"></i>';
     btn.classList.remove('copied');
@@ -470,24 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'X-Requested-With': 'fetch' },
                 redirect: 'follow'
             }).then(function(resp) {
-                return resp.text().then(function(html) {
-                    hideOverlayAndReset(overlay, analyzeBtn);
-                    const parsed = new DOMParser().parseFromString(html, 'text/html');
-                    document.replaceChild(
-                        document.importNode(parsed.documentElement, true),
-                        document.documentElement
-                    );
-                    globalThis.scrollTo(0, 0);
-                    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                    const idEl = document.querySelector('[data-analysis-id]');
-                    const mode = modeMeta ? modeMeta.getAttribute('content') : '';
-                    const aid = idEl ? idEl.dataset.analysisId : '';
-                    if (aid && mode) {
-                        globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
-                    } else if (resp.url && resp.url !== globalThis.location.href) {
-                        globalThis.history.replaceState(null, '', resp.url);
-                    }
-                });
+                return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, analyzeBtn); });
             }).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
@@ -528,24 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'X-Requested-With': 'fetch' },
                 redirect: 'follow'
             }).then(function(resp) {
-                return resp.text().then(function(html) {
-                    hideOverlayAndReset(overlay, null);
-                    const parsed = new DOMParser().parseFromString(html, 'text/html');
-                    document.replaceChild(
-                        document.importNode(parsed.documentElement, true),
-                        document.documentElement
-                    );
-                    globalThis.scrollTo(0, 0);
-                    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                    const idEl = document.querySelector('[data-analysis-id]');
-                    const mode = modeMeta ? modeMeta.getAttribute('content') : '';
-                    const aid = idEl ? idEl.dataset.analysisId : '';
-                    if (aid && mode) {
-                        globalThis.history.replaceState(null, '', '/analysis/' + aid + '/view/' + mode);
-                    } else if (resp.url && resp.url !== globalThis.location.href) {
-                        globalThis.history.replaceState(null, '', resp.url);
-                    }
-                });
+                return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, null); });
             }).catch(function() {
                 hideOverlayAndReset(overlay, null);
                 globalThis.location.href = link.href;
@@ -580,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.href.substring(this.href.indexOf('#')));
+            const target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({
                     behavior: 'smooth',

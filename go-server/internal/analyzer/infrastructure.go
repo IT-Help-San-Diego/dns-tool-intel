@@ -19,6 +19,9 @@ const (
 
 	tierEnterprise = "enterprise"
 	tierManaged    = "managed"
+
+
+	strUnknown = "Unknown"
 )
 
 type providerInfo struct {
@@ -47,15 +50,15 @@ func parentZone(domain string) string {
 
 func applyHostingDefaults(hosting, dnsHosting, emailHosting string, isNoMail bool) (string, string, string) {
 	if hosting == "" {
-		hosting = "Unknown"
+		hosting = strUnknown
 	}
 	if dnsHosting == "" {
-		dnsHosting = "Unknown"
+		dnsHosting = strUnknown
 	}
 	if isNoMail && emailHosting == "" {
 		emailHosting = "No Mail Domain"
 	} else if emailHosting == "" {
-		emailHosting = "Unknown"
+		emailHosting = strUnknown
 	}
 	return hosting, dnsHosting, emailHosting
 }

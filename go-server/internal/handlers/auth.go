@@ -34,6 +34,9 @@ const (
         sessionMaxAge     = 30 * 24 * 60 * 60
         oauthHTTPTimeout  = 10 * time.Second
         iatMaxSkew        = 5 * time.Minute
+
+
+        mapKeyEmail = "email"
 )
 
 type AuthHandler struct {
@@ -74,21 +77,21 @@ func computeCodeChallenge(verifier string) string {
 func (h *AuthHandler) Login(c *gin.Context) {
         state, err := generateRandomBase64URL(32)
         if err != nil {
-                slog.Error("Failed to generate OAuth state", "error", err)
+                slog.Error("Failed to generate OAuth state", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
 
         codeVerifier, err := generateRandomBase64URL(48)
         if err != nil {
-                slog.Error("Failed to generate PKCE code verifier", "error", err)
+                slog.Error("Failed to generate PKCE code verifier", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
 
         nonce, err := generateRandomBase64URL(32)
         if err != nil {
-                slog.Error("Failed to generate OIDC nonce", "error", err)
+                slog.Error("Failed to generate OIDC nonce", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
@@ -126,7 +129,7 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 
         tokenData, err := h.exchangeCode(code, codeVerifier)
         if err != nil {
-                slog.Error("OAuth callback: token exchange failed", "error", err)
+                slog.Error("OAuth callback: token exchange failed", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
@@ -134,7 +137,7 @@ func (h *AuthHandler) Callback(c *gin.Context) {
         _ = stateCookie
 
         if err := h.validateIDTokenClaims(tokenData, nonceCookie); err != nil {
-                slog.Error("OAuth callback: ID token validation failed", "error", err)
+                slog.Error("OAuth callback: ID token validation failed", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
@@ -148,7 +151,7 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 
         userInfo, err := h.fetchUserInfo(accessToken)
         if err != nil {
-                slog.Error("OAuth callback: failed to fetch user info", "error", err)
+                slog.Error("OAuth callback: failed to fetch user info", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
@@ -175,23 +178,12 @@ func (h *AuthHandler) Callback(c *gin.Context) {
                 Role:      role,
         })
         if err != nil {
-                slog.Error("OAuth callback: failed to upsert user", "error", err, "email", email)
+                slog.Error("OAuth callback: failed to upsert user", mapKeyError, err, mapKeyEmail, email)
                 c.Redirect(http.StatusFound, "/")
                 return
         }
 
-        if shouldBootstrapAdmin && user.Role != "admin" {
-                err = h.Queries.PromoteUserToAdmin(ctx, user.ID)
-                if err != nil {
-                        slog.Error("OAuth callback: failed to promote user to admin", "error", err, "user_id", user.ID)
-                } else {
-                        user.Role = "admin"
-                        slog.Warn("AUDIT: Existing user promoted to admin via bootstrap",
-                                "email", email,
-                                "user_id", user.ID,
-                        )
-                }
-        }
+        user.Role = h.bootstrapAdminIfNeeded(ctx, user.ID, user.Role, shouldBootstrapAdmin, email)
 
         sessionID, err := h.createUserSession(ctx, user.ID)
         if err != nil {
@@ -199,15 +191,34 @@ func (h *AuthHandler) Callback(c *gin.Context) {
                 return
         }
 
+        h.finalizeLogin(c, sessionID, user, name, email)
+}
+
+func (h *AuthHandler) bootstrapAdminIfNeeded(ctx context.Context, userID int32, currentRole string, shouldBootstrap bool, email string) string {
+        if !shouldBootstrap || currentRole == mapKeyAdmin {
+                return currentRole
+        }
+        if err := h.Queries.PromoteUserToAdmin(ctx, userID); err != nil {
+                slog.Error("OAuth callback: failed to promote user to admin", mapKeyError, err, mapKeyUserId, userID)
+                return currentRole
+        }
+        slog.Warn("AUDIT: Existing user promoted to admin via bootstrap",
+                mapKeyEmail, email,
+                mapKeyUserId, userID,
+        )
+        return mapKeyAdmin
+}
+
+func (h *AuthHandler) finalizeLogin(c *gin.Context, sessionID string, user dbq.User, name, email string) {
         c.SetSameSite(http.SameSiteLaxMode)
         c.SetCookie(sessionCookieName, sessionID, sessionMaxAge, "/", "", true, true)
         c.SetCookie(oauthStateCookie, "", -1, "/", "", true, true)
         c.SetCookie(oauthCVCookie, "", -1, "/", "", true, true)
         c.SetCookie(oauthNonceCookie, "", -1, "/", "", true, true)
 
-        slog.Info("User authenticated", "email", email, "role", user.Role, "user_id", user.ID)
+        slog.Info("User authenticated", mapKeyEmail, email, "role", user.Role, mapKeyUserId, user.ID)
 
-        if user.Role == "admin" {
+        if user.Role == mapKeyAdmin {
                 go h.seedAdminWatchlist(context.Background(), user.ID)
         }
 
@@ -256,7 +267,7 @@ func extractOAuthCallbackParams(c *gin.Context) (string, string, string, string,
 
 func extractUserClaims(userInfo map[string]any) (string, string, string, bool) {
         sub, _ := userInfo["sub"].(string)
-        email, _ := userInfo["email"].(string)
+        email, _ := userInfo[mapKeyEmail].(string)
         name, _ := userInfo["name"].(string)
         emailVerified, _ := userInfo["email_verified"].(bool)
         return sub, email, name, emailVerified
@@ -275,12 +286,12 @@ func (h *AuthHandler) determineRole(ctx context.Context, email string) (string, 
         if h.Config.InitialAdminEmail != "" && strings.EqualFold(email, h.Config.InitialAdminEmail) {
                 adminCount, countErr := h.Queries.CountAdminUsers(ctx)
                 if countErr != nil {
-                        slog.Error("Failed to count admin users", "error", countErr)
+                        slog.Error("Failed to count admin users", mapKeyError, countErr)
                 } else if adminCount == 0 {
-                        role = "admin"
+                        role = mapKeyAdmin
                         shouldBootstrapAdmin = true
                         slog.Warn("AUDIT: Admin bootstrap triggered",
-                                "email", email,
+                                mapKeyEmail, email,
                                 "reason", "zero_admin_users",
                                 "initial_admin_email", h.Config.InitialAdminEmail,
                         )
@@ -292,7 +303,7 @@ func (h *AuthHandler) determineRole(ctx context.Context, email string) (string, 
 func (h *AuthHandler) createUserSession(ctx context.Context, userID int32) (string, error) {
         sessionID, err := generateSessionID()
         if err != nil {
-                slog.Error("OAuth callback: failed to generate session ID", "error", err)
+                slog.Error("OAuth callback: failed to generate session ID", mapKeyError, err)
                 return "", err
         }
 
@@ -306,7 +317,7 @@ func (h *AuthHandler) createUserSession(ctx context.Context, userID int32) (stri
                 },
         })
         if err != nil {
-                slog.Error("OAuth callback: failed to create session", "error", err)
+                slog.Error("OAuth callback: failed to create session", mapKeyError, err)
                 return "", err
         }
         return sessionID, nil
@@ -316,7 +327,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
         cookie, err := c.Cookie(sessionCookieName)
         if err == nil && cookie != "" {
                 if delErr := h.Queries.DeleteSession(c.Request.Context(), cookie); delErr != nil {
-                        slog.Warn("Logout: failed to delete session (cookie will still be cleared)", "error", delErr)
+                        slog.Warn("Logout: failed to delete session (cookie will still be cleared)", mapKeyError, delErr)
                 }
         }
 
@@ -492,7 +503,7 @@ func missionCriticalDomainsFromBaseURL(baseURL string) []string {
 func (h *AuthHandler) seedAdminWatchlist(ctx context.Context, userID int32) {
         existing, err := h.Queries.ListWatchlistByUser(ctx, userID)
         if err != nil {
-                slog.Error("Admin watchlist seed: failed to list existing entries", "error", err)
+                slog.Error("Admin watchlist seed: failed to list existing entries", mapKeyError, err)
                 return
         }
         domainSet := make(map[string]bool, len(existing))
@@ -510,18 +521,22 @@ func (h *AuthHandler) seedAdminWatchlist(ctx context.Context, userID int32) {
                         NextRunAt: pgtype.Timestamp{Time: time.Now().UTC().Add(24 * time.Hour), Valid: true},
                 })
                 if err != nil {
-                        slog.Error("Admin watchlist seed: failed to insert domain", "domain", domain, "error", err)
+                        slog.Error("Admin watchlist seed: failed to insert domain", "domain", domain, mapKeyError, err)
                 } else {
-                        slog.Info("Admin watchlist seed: added mission-critical domain", "domain", domain, "user_id", userID)
+                        slog.Info("Admin watchlist seed: added mission-critical domain", "domain", domain, mapKeyUserId, userID)
                 }
         }
 
+        h.seedDiscordEndpoint(ctx, userID)
+}
+
+func (h *AuthHandler) seedDiscordEndpoint(ctx context.Context, userID int32) {
         if h.Config.DiscordWebhookURL == "" {
                 return
         }
         endpoints, err := h.Queries.ListNotificationEndpointsByUser(ctx, userID)
         if err != nil {
-                slog.Error("Admin watchlist seed: failed to list endpoints", "error", err)
+                slog.Error("Admin watchlist seed: failed to list endpoints", mapKeyError, err)
                 return
         }
         for _, ep := range endpoints {
@@ -536,8 +551,8 @@ func (h *AuthHandler) seedAdminWatchlist(ctx context.Context, userID int32) {
                 Secret:       nil,
         })
         if err != nil {
-                slog.Error("Admin watchlist seed: failed to insert Discord endpoint", "error", err)
+                slog.Error("Admin watchlist seed: failed to insert Discord endpoint", mapKeyError, err)
         } else {
-                slog.Info("Admin watchlist seed: added Discord webhook endpoint", "user_id", userID)
+                slog.Info("Admin watchlist seed: added Discord webhook endpoint", mapKeyUserId, userID)
         }
 }

@@ -18,6 +18,11 @@ import (
         "github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	mapKeyDirect = "direct"
+	mapKeyError = "error"
+)
+
 type AnalyticsCollector struct {
         pool     *pgxpool.Pool
         baseHost string
@@ -110,7 +115,7 @@ func (ac *AnalyticsCollector) Middleware() gin.HandlerFunc {
                 pid := ac.pseudoID(ip, ua)
                 ac.visitors[pid] = true
                 ac.pageCounts[pagePath]++
-                if referer != "" && referer != "direct" {
+                if referer != "" && referer != mapKeyDirect {
                         ac.refCounts[referer]++
                 }
                 ac.mu.Unlock()
@@ -126,15 +131,15 @@ func (ac *AnalyticsCollector) RecordAnalysis(domain string) {
 
 func extractRefOrigin(ref, baseHost string) string {
         if ref == "" {
-                return "direct"
+                return mapKeyDirect
         }
         u, err := url.Parse(ref)
         if err != nil {
-                return "direct"
+                return mapKeyDirect
         }
         host := u.Hostname()
         if host == "" {
-                return "direct"
+                return mapKeyDirect
         }
         if baseHost != "" && (host == baseHost || strings.HasSuffix(host, "."+baseHost)) {
                 return ""
@@ -189,11 +194,11 @@ func (ac *AnalyticsCollector) Flush() {
 
         pagesJSON, err := json.Marshal(topPages)
         if err != nil {
-                slog.Warn("Analytics flush: marshal top_pages", "error", err)
+                slog.Warn("Analytics flush: marshal top_pages", mapKeyError, err)
         }
         refsJSON, err := json.Marshal(refs)
         if err != nil {
-                slog.Warn("Analytics flush: marshal refs", "error", err)
+                slog.Warn("Analytics flush: marshal refs", mapKeyError, err)
         }
 
         ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -234,7 +239,7 @@ func (ac *AnalyticsCollector) Flush() {
                         updated_at = NOW()
         `, today, pv, uv, ar, ud, refsJSON, pagesJSON)
         if err != nil {
-                slog.Error("Analytics flush failed", "error", err)
+                slog.Error("Analytics flush failed", mapKeyError, err)
         } else {
                 slog.Debug("Analytics flushed", "date", today, "pageviews", pv, "unique_visitors", uv)
         }

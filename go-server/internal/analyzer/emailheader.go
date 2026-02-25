@@ -284,19 +284,7 @@ func parseAuthenticationResults(fields []headerField, result *EmailHeaderAnalysi
         arHeaders := extractAllHeaders(fields, "authentication-results")
 
         for _, ar := range arHeaders {
-                parts := strings.Split(ar, ";")
-                for _, part := range parts {
-                        part = strings.TrimSpace(part)
-                        lower := strings.ToLower(part)
-
-                        if strings.HasPrefix(lower, "spf=") {
-                                result.SPFResult = parseAuthPart(part, "spf")
-                        } else if strings.HasPrefix(lower, "dkim=") {
-                                result.DKIMResults = append(result.DKIMResults, parseAuthPart(part, "dkim"))
-                        } else if strings.HasPrefix(lower, "dmarc=") {
-                                result.DMARCResult = parseAuthPart(part, "dmarc")
-                        }
-                }
+                parseAuthResultHeader(ar, result)
         }
 
         if result.SPFResult.Result == "" || (len(result.DKIMResults) == 0 && result.DMARCResult.Result == "") {
@@ -304,19 +292,40 @@ func parseAuthenticationResults(fields []headerField, result *EmailHeaderAnalysi
         }
 
         if result.SPFResult.Result == "" {
-                spfReceived := extractHeader(fields, "received-spf")
-                if spfReceived != "" {
-                        lower := strings.ToLower(spfReceived)
-                        for _, status := range []string{authResultPass, authResultFail, "softfail", "neutral", "none", "temperror", "permerror"} {
-                                if strings.HasPrefix(lower, status) {
-                                        result.SPFResult = AuthResult{
-                                                Result:     status,
-                                                Detail:     spfReceived,
-                                                Confidence: confidenceObserved,
-                                        }
-                                        break
-                                }
+                fallbackSPFFromReceivedSPF(fields, result)
+        }
+}
+
+func parseAuthResultHeader(ar string, result *EmailHeaderAnalysis) {
+        parts := strings.Split(ar, ";")
+        for _, part := range parts {
+                part = strings.TrimSpace(part)
+                lower := strings.ToLower(part)
+
+                if strings.HasPrefix(lower, "spf=") {
+                        result.SPFResult = parseAuthPart(part, "spf")
+                } else if strings.HasPrefix(lower, "dkim=") {
+                        result.DKIMResults = append(result.DKIMResults, parseAuthPart(part, "dkim"))
+                } else if strings.HasPrefix(lower, "dmarc=") {
+                        result.DMARCResult = parseAuthPart(part, "dmarc")
+                }
+        }
+}
+
+func fallbackSPFFromReceivedSPF(fields []headerField, result *EmailHeaderAnalysis) {
+        spfReceived := extractHeader(fields, "received-spf")
+        if spfReceived == "" {
+                return
+        }
+        lower := strings.ToLower(spfReceived)
+        for _, status := range []string{authResultPass, authResultFail, "softfail", "neutral", "none", "temperror", "permerror"} {
+                if strings.HasPrefix(lower, status) {
+                        result.SPFResult = AuthResult{
+                                Result:     status,
+                                Detail:     spfReceived,
+                                Confidence: confidenceObserved,
                         }
+                        return
                 }
         }
 }
@@ -419,61 +428,79 @@ func parseReceivedChain(fields []headerField, result *EmailHeaderAnalysis) {
         received := extractAllHeaders(fields, "received")
         result.HopCount = len(received)
 
-        var timestamps []time.Time
-
+        timestamps := make([]time.Time, 0, len(received))
         for i, r := range received {
-                hop := ReceivedHop{
-                        Index: i + 1,
-                }
-
-                if m := reReceivedFrom.FindStringSubmatch(r); m != nil {
-                        hop.From = m[1]
-                }
-
-                if m := reReceivedBy.FindStringSubmatch(r); m != nil {
-                        hop.By = m[1]
-                }
-
-                if m := reReceivedWith.FindStringSubmatch(r); m != nil {
-                        hop.With = m[1]
-                }
-
-                if m := reIPv4Bracket.FindStringSubmatch(r); m != nil {
-                        hop.IP = m[1]
-                        ip := net.ParseIP(hop.IP)
-                        if ip != nil {
-                                hop.IsPrivate = ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast()
-                        }
-                }
-
-                if semiIdx := strings.LastIndex(r, ";"); semiIdx != -1 {
-                        dateStr := strings.TrimSpace(r[semiIdx+1:])
-                        hop.Timestamp = dateStr
-                        if t, err := parseEmailDate(dateStr); err == nil {
-                                timestamps = append(timestamps, t)
-                        } else {
-                                timestamps = append(timestamps, time.Time{})
-                        }
-                } else {
-                        timestamps = append(timestamps, time.Time{})
-                }
-
+                hop, ts := parseReceivedHop(r, i+1)
                 result.ReceivedHops = append(result.ReceivedHops, hop)
+                timestamps = append(timestamps, ts)
         }
 
-        for i := range result.ReceivedHops {
-                if i < len(timestamps)-1 && !timestamps[i].IsZero() && !timestamps[i+1].IsZero() {
-                        delay := timestamps[i+1].Sub(timestamps[i]).Abs()
-                        if delay < time.Second {
-                                result.ReceivedHops[i].Delay = "<1s"
-                        } else if delay < time.Minute {
-                                result.ReceivedHops[i].Delay = fmt.Sprintf("%.0fs", delay.Seconds())
-                        } else if delay < time.Hour {
-                                result.ReceivedHops[i].Delay = fmt.Sprintf("%.1fm", delay.Minutes())
-                        } else {
-                                result.ReceivedHops[i].Delay = fmt.Sprintf("%.1fh", delay.Hours())
-                        }
+        calculateHopDelays(result.ReceivedHops, timestamps)
+}
+
+func parseReceivedHop(raw string, index int) (ReceivedHop, time.Time) {
+        hop := ReceivedHop{Index: index}
+
+        if m := reReceivedFrom.FindStringSubmatch(raw); m != nil {
+                hop.From = m[1]
+        }
+        if m := reReceivedBy.FindStringSubmatch(raw); m != nil {
+                hop.By = m[1]
+        }
+        if m := reReceivedWith.FindStringSubmatch(raw); m != nil {
+                hop.With = m[1]
+        }
+
+        extractHopIP(&hop, raw)
+
+        ts := extractHopTimestamp(&hop, raw)
+        return hop, ts
+}
+
+func extractHopIP(hop *ReceivedHop, raw string) {
+        m := reIPv4Bracket.FindStringSubmatch(raw)
+        if m == nil {
+                return
+        }
+        hop.IP = m[1]
+        ip := net.ParseIP(hop.IP)
+        if ip != nil {
+                hop.IsPrivate = ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast()
+        }
+}
+
+func extractHopTimestamp(hop *ReceivedHop, raw string) time.Time {
+        semiIdx := strings.LastIndex(raw, ";")
+        if semiIdx == -1 {
+                return time.Time{}
+        }
+        dateStr := strings.TrimSpace(raw[semiIdx+1:])
+        hop.Timestamp = dateStr
+        if t, err := parseEmailDate(dateStr); err == nil {
+                return t
+        }
+        return time.Time{}
+}
+
+func calculateHopDelays(hops []ReceivedHop, timestamps []time.Time) {
+        for i := range hops {
+                if i >= len(timestamps)-1 || timestamps[i].IsZero() || timestamps[i+1].IsZero() {
+                        continue
                 }
+                hops[i].Delay = formatDelay(timestamps[i+1].Sub(timestamps[i]).Abs())
+        }
+}
+
+func formatDelay(delay time.Duration) string {
+        switch {
+        case delay < time.Second:
+                return "<1s"
+        case delay < time.Minute:
+                return fmt.Sprintf("%.0fs", delay.Seconds())
+        case delay < time.Hour:
+                return fmt.Sprintf("%.1fm", delay.Minutes())
+        default:
+                return fmt.Sprintf("%.1fh", delay.Hours())
         }
 }
 
@@ -506,35 +533,41 @@ func checkAlignment(result *EmailHeaderAnalysis) {
         returnPathDomain := extractDomainFromEmailAddress(result.ReturnPath)
 
         if fromDomain != "" && returnPathDomain != "" {
-                if strings.EqualFold(fromDomain, returnPathDomain) {
-                        result.AlignmentFromReturnPath = "aligned"
-                } else if strings.HasSuffix(strings.ToLower(returnPathDomain), "."+strings.ToLower(fromDomain)) ||
-                        strings.HasSuffix(strings.ToLower(fromDomain), "."+strings.ToLower(returnPathDomain)) {
-                        result.AlignmentFromReturnPath = "relaxed"
-                } else {
-                        result.AlignmentFromReturnPath = alignMisaligned
-                }
+                result.AlignmentFromReturnPath = classifyReturnPathAlignment(fromDomain, returnPathDomain)
         }
 
         if len(result.DKIMResults) > 0 && fromDomain != "" {
-                aligned := false
-                for _, dkim := range result.DKIMResults {
-                        if dkim.Domain != "" {
-                                dkimDomain := strings.TrimPrefix(dkim.Domain, "@")
-                                if strings.EqualFold(dkimDomain, fromDomain) ||
-                                        strings.HasSuffix(strings.ToLower(dkimDomain), "."+strings.ToLower(fromDomain)) ||
-                                        strings.HasSuffix(strings.ToLower(fromDomain), "."+strings.ToLower(dkimDomain)) {
-                                        aligned = true
-                                        break
-                                }
-                        }
+                result.AlignmentFromDKIM = classifyDKIMAlignment(result.DKIMResults, fromDomain)
+        }
+}
+
+func classifyReturnPathAlignment(fromDomain, returnPathDomain string) string {
+        if strings.EqualFold(fromDomain, returnPathDomain) {
+                return "aligned"
+        }
+        if domainsRelaxedMatch(fromDomain, returnPathDomain) {
+                return "relaxed"
+        }
+        return alignMisaligned
+}
+
+func domainsRelaxedMatch(a, b string) bool {
+        aLower := strings.ToLower(a)
+        bLower := strings.ToLower(b)
+        return strings.HasSuffix(bLower, "."+aLower) || strings.HasSuffix(aLower, "."+bLower)
+}
+
+func classifyDKIMAlignment(dkimResults []AuthResult, fromDomain string) string {
+        for _, dkim := range dkimResults {
+                if dkim.Domain == "" {
+                        continue
                 }
-                if aligned {
-                        result.AlignmentFromDKIM = "aligned"
-                } else {
-                        result.AlignmentFromDKIM = alignMisaligned
+                dkimDomain := strings.TrimPrefix(dkim.Domain, "@")
+                if strings.EqualFold(dkimDomain, fromDomain) || domainsRelaxedMatch(dkimDomain, fromDomain) {
+                        return "aligned"
                 }
         }
+        return alignMisaligned
 }
 
 func extractDomainFromEmailAddress(addr string) string {
@@ -855,18 +888,32 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
         var indicators []PhishingIndicator
         lower := strings.ToLower(body)
 
+        indicators = scanCryptoAddresses(body, indicators)
+        indicators = scanBodyPhrasePatterns(lower, indicators)
+        indicators = scanURLIndicators(body, indicators)
+        indicators = scanFormattingIndicators(body, indicators)
+        indicators = scanAdvancedPhrasePatterns(lower, indicators)
+        indicators = scanContactMethods(body, indicators)
+
+        return indicators
+}
+
+func scanCryptoAddresses(body string, indicators []PhishingIndicator) []PhishingIndicator {
+        type cryptoPattern struct {
+                re     *regexp.Regexp
+                prefix string
+        }
+        patterns := []cryptoPattern{
+                {reBTCAddress, "BTC: "},
+                {reBTCBech32, "BTC: "},
+                {reETHAddress, "ETH: "},
+                {reXMRAddress, "XMR: "},
+        }
         var cryptoMatches []string
-        if m := reBTCAddress.FindString(body); m != "" {
-                cryptoMatches = append(cryptoMatches, "BTC: "+m[:12]+"...")
-        }
-        if m := reBTCBech32.FindString(body); m != "" {
-                cryptoMatches = append(cryptoMatches, "BTC: "+m[:12]+"...")
-        }
-        if m := reETHAddress.FindString(body); m != "" {
-                cryptoMatches = append(cryptoMatches, "ETH: "+m[:12]+"...")
-        }
-        if m := reXMRAddress.FindString(body); m != "" {
-                cryptoMatches = append(cryptoMatches, "XMR: "+m[:12]+"...")
+        for _, p := range patterns {
+                if m := p.re.FindString(body); m != "" {
+                        cryptoMatches = append(cryptoMatches, p.prefix+m[:12]+"...")
+                }
         }
         if len(cryptoMatches) > 0 {
                 indicators = append(indicators, PhishingIndicator{
@@ -876,7 +923,10 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                         Evidence:    strings.Join(cryptoMatches, ", "),
                 })
         }
+        return indicators
+}
 
+func scanBodyPhrasePatterns(lower string, indicators []PhishingIndicator) []PhishingIndicator {
         if ind := scanPhraseCategory(lower, phraseScanConfig{
                 phrases: []string{
                         "recorded you", "webcam", "compromising video", "compromising photos",
@@ -952,6 +1002,10 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                 indicators = append(indicators, *ind)
         }
 
+        return indicators
+}
+
+func scanURLIndicators(body string, indicators []PhishingIndicator) []PhishingIndicator {
         urls := reURL.FindAllString(body, -1)
         if len(urls) > 5 {
                 indicators = append(indicators, PhishingIndicator{
@@ -961,12 +1015,14 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                         Evidence:    fmt.Sprintf("%d unique URLs found", len(urls)),
                 })
         }
-
         if len(urls) > 0 {
                 phishHits := CheckURLsAgainstOpenPhish(urls)
                 indicators = append(indicators, phishHits...)
         }
+        return indicators
+}
 
+func scanFormattingIndicators(body string, indicators []PhishingIndicator) []PhishingIndicator {
         capsMatches := reCapsWord.FindAllString(body, -1)
         exclamationCount := strings.Count(body, "!!!")
         if len(capsMatches) > 3 || exclamationCount > 2 {
@@ -977,7 +1033,10 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                         Evidence:    fmt.Sprintf("%d ALL-CAPS words, %d triple-exclamations", len(capsMatches), exclamationCount),
                 })
         }
+        return indicators
+}
 
+func scanAdvancedPhrasePatterns(lower string, indicators []PhishingIndicator) []PhishingIndicator {
         if ind := scanPhraseCategory(lower, phraseScanConfig{
                 phrases: []string{
                         "you have won", "you won", "lottery win", "prize winner",
@@ -1028,6 +1087,10 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                 indicators = append(indicators, *ind)
         }
 
+        return indicators
+}
+
+func scanContactMethods(body string, indicators []PhishingIndicator) []PhishingIndicator {
         if m := reContactEmail.FindStringSubmatch(body); m != nil {
                 contactEmail := m[1]
                 indicators = append(indicators, PhishingIndicator{
@@ -1037,7 +1100,6 @@ func scanBodyForPhishingIndicators(body string) []PhishingIndicator {
                         Evidence:    "Contact email: " + contactEmail,
                 })
         }
-
         return indicators
 }
 

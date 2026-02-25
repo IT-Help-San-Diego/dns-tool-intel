@@ -30,6 +30,19 @@ const (
         opsFigmaVerify      = "figma-verify"
         opsMiroSync         = "miro-sync"
         opsFullPipeline     = "full-pipeline"
+
+
+	mapKeyAdmin = "admin"
+	mapKeyCspNonce = "csp_nonce"
+	mapKeyCsrfToken = "csrf_token"
+	mapKeyError = "error"
+	mapKeyUserId = "user_id"
+	strActivepage = "ActivePage"
+	strAppversion = "AppVersion"
+	strBetapages = "BetaPages"
+	strCspnonce = "CspNonce"
+	strCsrftoken = "CsrfToken"
+	strMaintenancenote = "MaintenanceNote"
 )
 
 type AdminHandler struct {
@@ -96,8 +109,8 @@ type AdminICAERun struct {
 }
 
 func (h *AdminHandler) Dashboard(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
         ctx := c.Request.Context()
 
         users := h.fetchUsers(ctx)
@@ -114,12 +127,12 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
         }
 
         data := gin.H{
-                "AppVersion":             h.Config.AppVersion,
-                "MaintenanceNote":        h.Config.MaintenanceNote,
-                "BetaPages":              h.Config.BetaPages,
-                "CspNonce":               nonce,
-                "CsrfToken":              csrfToken,
-                "ActivePage":             "admin",
+                strAppversion:             h.Config.AppVersion,
+                strMaintenancenote:        h.Config.MaintenanceNote,
+                strBetapages:              h.Config.BetaPages,
+                strCspnonce:               nonce,
+                strCsrftoken:              csrfToken,
+                strActivepage:             mapKeyAdmin,
                 "Users":                  users,
                 "RecentAnalyses":         recentAnalyses,
                 "Stats":                  stats,
@@ -145,7 +158,7 @@ func (h *AdminHandler) fetchUsers(ctx context.Context) []AdminUser {
                  ) s ON s.user_id = u.id
                  ORDER BY u.last_login_at DESC NULLS LAST`)
         if err != nil {
-                slog.Error("Admin: failed to fetch users", "error", err)
+                slog.Error("Admin: failed to fetch users", mapKeyError, err)
                 return nil
         }
         defer rows.Close()
@@ -156,7 +169,7 @@ func (h *AdminHandler) fetchUsers(ctx context.Context) []AdminUser {
                 var createdAt, lastLoginAt time.Time
                 if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.Role, &createdAt, &lastLoginAt,
                         &u.SessionCount, &u.ActiveSessions); err != nil {
-                        slog.Error("Admin: failed to scan user row", "error", err)
+                        slog.Error("Admin: failed to scan user row", mapKeyError, err)
                         continue
                 }
                 u.CreatedAt = createdAt.Format(timeFormatAdmin)
@@ -174,7 +187,7 @@ func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis 
                  FROM domain_analyses
                  ORDER BY created_at DESC LIMIT 25`)
         if err != nil {
-                slog.Error("Admin: failed to fetch analyses", "error", err)
+                slog.Error("Admin: failed to fetch analyses", mapKeyError, err)
                 return nil
         }
         defer rows.Close()
@@ -187,7 +200,7 @@ func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis 
                 var createdAt time.Time
                 if err := rows.Scan(&a.ID, &a.Domain, &success, &duration, &createdAt,
                         &a.CountryCode, &a.Private, &a.HasUserSelectors, &a.ScanFlag, &a.ScanSource); err != nil {
-                        slog.Error("Admin: failed to scan analysis row", "error", err)
+                        slog.Error("Admin: failed to scan analysis row", mapKeyError, err)
                         continue
                 }
                 if success != nil {
@@ -220,7 +233,7 @@ func (h *AdminHandler) fetchStats(ctx context.Context) AdminStats {
         }
         for _, q := range queries {
                 if err := h.DB.Pool.QueryRow(ctx, q.sql).Scan(q.dest); err != nil {
-                        slog.Error("Admin: stat query failed", "query", q.sql, "error", err)
+                        slog.Error("Admin: stat query failed", "query", q.sql, mapKeyError, err)
                 }
         }
         return s
@@ -231,7 +244,7 @@ func (h *AdminHandler) fetchICAERuns(ctx context.Context) []AdminICAERun {
                 `SELECT id, app_version, total_cases, total_passed, total_failed, duration_ms, created_at
                  FROM ice_test_runs ORDER BY created_at DESC LIMIT 10`)
         if err != nil {
-                slog.Error("Admin: failed to fetch ICAE runs", "error", err)
+                slog.Error("Admin: failed to fetch ICAE runs", mapKeyError, err)
                 return nil
         }
         defer rows.Close()
@@ -242,7 +255,7 @@ func (h *AdminHandler) fetchICAERuns(ctx context.Context) []AdminICAERun {
                 var createdAt time.Time
                 if err := rows.Scan(&r.ID, &r.AppVersion, &r.TotalCases, &r.TotalPassed,
                         &r.TotalFailed, &r.DurationMs, &createdAt); err != nil {
-                        slog.Error("Admin: failed to scan ICAE run row", "error", err)
+                        slog.Error("Admin: failed to scan ICAE run row", mapKeyError, err)
                         continue
                 }
                 r.CreatedAt = createdAt.Format(timeFormatAdmin)
@@ -259,7 +272,7 @@ func (h *AdminHandler) fetchScannerAlerts(ctx context.Context) []AdminScannerAle
                  WHERE scan_flag = TRUE
                  ORDER BY created_at DESC LIMIT 25`)
         if err != nil {
-                slog.Error("Admin: failed to fetch scanner alerts", "error", err)
+                slog.Error("Admin: failed to fetch scanner alerts", mapKeyError, err)
                 return nil
         }
         defer rows.Close()
@@ -270,7 +283,7 @@ func (h *AdminHandler) fetchScannerAlerts(ctx context.Context) []AdminScannerAle
                 var success *bool
                 var createdAt time.Time
                 if err := rows.Scan(&a.ID, &a.Domain, &a.Source, &a.IP, &success, &createdAt); err != nil {
-                        slog.Error("Admin: failed to scan scanner alert row", "error", err)
+                        slog.Error("Admin: failed to scan scanner alert row", mapKeyError, err)
                         continue
                 }
                 if success != nil {
@@ -296,7 +309,7 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
                 c.String(http.StatusNotFound, "User not found")
                 return
         }
-        if role == "admin" {
+        if role == mapKeyAdmin {
                 c.String(http.StatusForbidden, "Cannot delete admin users from the dashboard")
                 return
         }
@@ -304,7 +317,7 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
         ctx := c.Request.Context()
         tx, err := h.DB.Pool.Begin(ctx)
         if err != nil {
-                slog.Error("Admin: failed to begin transaction", "error", err)
+                slog.Error("Admin: failed to begin transaction", mapKeyError, err)
                 c.String(http.StatusInternalServerError, "Database error")
                 return
         }
@@ -315,18 +328,18 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
         tx.Exec(ctx, `DELETE FROM zone_imports WHERE user_id = $1`, userID)
         _, err = tx.Exec(ctx, `DELETE FROM users WHERE id = $1`, userID)
         if err != nil {
-                slog.Error("Admin: failed to delete user", "error", err, "user_id", userID)
+                slog.Error("Admin: failed to delete user", mapKeyError, err, mapKeyUserId, userID)
                 c.String(http.StatusInternalServerError, "Failed to delete user")
                 return
         }
 
         if err := tx.Commit(ctx); err != nil {
-                slog.Error("Admin: failed to commit user deletion", "error", err)
+                slog.Error("Admin: failed to commit user deletion", mapKeyError, err)
                 c.String(http.StatusInternalServerError, "Failed to commit")
                 return
         }
 
-        slog.Info("Admin: user deleted", "user_id", userID)
+        slog.Info("Admin: user deleted", mapKeyUserId, userID)
         c.Redirect(http.StatusSeeOther, "/ops")
 }
 
@@ -347,12 +360,12 @@ func (h *AdminHandler) ResetUserSessions(c *gin.Context) {
 
         _, err = h.DB.Pool.Exec(c.Request.Context(), `DELETE FROM sessions WHERE user_id = $1`, userID)
         if err != nil {
-                slog.Error("Admin: failed to reset sessions", "error", err, "user_id", userID)
+                slog.Error("Admin: failed to reset sessions", mapKeyError, err, mapKeyUserId, userID)
                 c.String(http.StatusInternalServerError, "Failed to reset sessions")
                 return
         }
 
-        slog.Info("Admin: sessions reset for user", "user_id", userID)
+        slog.Info("Admin: sessions reset for user", mapKeyUserId, userID)
         c.Redirect(http.StatusSeeOther, "/ops")
 }
 
@@ -360,7 +373,7 @@ func (h *AdminHandler) PurgeExpiredSessions(c *gin.Context) {
         result, err := h.DB.Pool.Exec(c.Request.Context(),
                 `DELETE FROM sessions WHERE expires_at <= NOW()`)
         if err != nil {
-                slog.Error("Admin: failed to purge expired sessions", "error", err)
+                slog.Error("Admin: failed to purge expired sessions", mapKeyError, err)
                 c.String(http.StatusInternalServerError, "Failed to purge sessions")
                 return
         }
@@ -471,21 +484,21 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
         }
 
         if !success {
-                slog.Warn("Admin: operation failed", "task", task.ID, "error", err, "stderr", errOutput)
+                slog.Warn("Admin: operation failed", "task", task.ID, mapKeyError, err, "stderr", errOutput)
         } else {
                 slog.Info("Admin: operation completed", "task", task.ID)
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":      csrfToken,
-                "ActivePage":     "admin",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:      csrfToken,
+                strActivepage:     mapKeyAdmin,
                 "OpResult": gin.H{
                         "Task":    task,
                         "Success": success,
@@ -498,16 +511,16 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
 }
 
 func (h *AdminHandler) OperationsPage(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":      csrfToken,
-                "ActivePage":     "admin",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:      csrfToken,
+                strActivepage:     mapKeyAdmin,
                 "OpsTasks":       opsTaskList(),
         }
         mergeAuthData(c, h.Config, data)

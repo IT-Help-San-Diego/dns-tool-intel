@@ -11,6 +11,12 @@ import (
         "time"
 )
 
+const (
+	mapKeyDanger = "danger"
+	mapKeySuccess = "success"
+	mapKeyWarning = "warning"
+)
+
 func FuncMap() template.FuncMap {
         m := template.FuncMap{}
         mergeFuncs(m, dateTimeFuncs())
@@ -604,21 +610,21 @@ const bgDanger = "bg-danger"
 const iconWrench = "fa-wrench"
 
 var statusBadgeClassMap = map[string]string{
-        "success":  "bg-success",
-        "warning":  "bg-warning",
+        mapKeySuccess:  "bg-success",
+        mapKeyWarning:  "bg-warning",
         "info":     "bg-info",
-        "danger":   bgDanger,
+        mapKeyDanger:   bgDanger,
         "error":    bgDanger,
         "critical": bgDanger,
 }
 
 var statusColorMap = map[string]string{
-        "success":  "success",
-        "warning":  "warning",
-        "partial":  "warning",
-        "error":    "danger",
-        "danger":   "danger",
-        "critical": "danger",
+        mapKeySuccess:  mapKeySuccess,
+        mapKeyWarning:  mapKeyWarning,
+        "partial":  mapKeyWarning,
+        "error":    mapKeyDanger,
+        mapKeyDanger:   mapKeyDanger,
+        "critical": mapKeyDanger,
         "info":     "info",
 }
 

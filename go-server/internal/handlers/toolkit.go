@@ -17,6 +17,10 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	mapKeyToolkit = "toolkit"
+)
+
 const tplToolkit = "toolkit.html"
 
 type ToolkitHandler struct {
@@ -28,15 +32,15 @@ func NewToolkitHandler(cfg *config.Config) *ToolkitHandler {
 }
 
 func (h *ToolkitHandler) ToolkitPage(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "toolkit",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      mapKeyToolkit,
                 "ProbeLocations":  h.Config.Probes,
         }
         mergeAuthData(c, h.Config, data)
@@ -44,20 +48,20 @@ func (h *ToolkitHandler) ToolkitPage(c *gin.Context) {
 }
 
 func (h *ToolkitHandler) MyIP(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
 
         clientIP := c.ClientIP()
         userAgent := c.GetHeader("User-Agent")
         platform := detectPlatform(userAgent)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "toolkit",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      mapKeyToolkit,
                 "ClientIP":        clientIP,
                 "Platform":        platform,
                 "ShowMyIP":        true,
@@ -67,8 +71,8 @@ func (h *ToolkitHandler) MyIP(c *gin.Context) {
 }
 
 func (h *ToolkitHandler) PortCheck(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, _ := c.Get(mapKeyCspNonce)
+        csrfToken, _ := c.Get(mapKeyCsrfToken)
 
         targetHost := strings.TrimSpace(c.PostForm("target_host"))
         targetPort := strings.TrimSpace(c.PostForm("target_port"))
@@ -79,12 +83,12 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
         }
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "toolkit",
+                strAppversion:      h.Config.AppVersion,
+                strMaintenancenote: h.Config.MaintenanceNote,
+                strBetapages:       h.Config.BetaPages,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      mapKeyToolkit,
                 "TargetHost":      targetHost,
                 "TargetPort":      targetPort,
                 "ShowPortCheck":   true,

@@ -21,6 +21,16 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+const (
+	mapKeyAction = "action"
+	mapKeyAudit = "audit"
+	mapKeyHealth = "health"
+	mapKeyRestart = "restart"
+	mapKeyUpdate = "update"
+	strProbe01 = "probe-01"
+	strProbe02 = "probe-02"
+)
+
 type ProbeAdminHandler struct {
         DB     *db.Database
         Config *config.Config
@@ -51,14 +61,14 @@ func (h *ProbeAdminHandler) configuredProbes() []probeInfo {
                 if label == "" {
                         label = "US-East (Boston)"
                 }
-                probes = append(probes, probeInfo{ID: "probe-01", Label: label, URL: url})
+                probes = append(probes, probeInfo{ID: strProbe01, Label: label, URL: url})
         }
         if url := os.Getenv("PROBE_API_URL_2"); url != "" {
                 label := os.Getenv("PROBE_LABEL_2")
                 if label == "" {
                         label = "US-East (Kali/02)"
                 }
-                probes = append(probes, probeInfo{ID: "probe-02", Label: label, URL: url})
+                probes = append(probes, probeInfo{ID: strProbe02, Label: label, URL: url})
         }
         return probes
 }
@@ -96,7 +106,7 @@ func (h *ProbeAdminHandler) ProbeDashboard(c *gin.Context) {
 
 func (h *ProbeAdminHandler) RunProbeAction(c *gin.Context) {
         probeID := c.Param("id")
-        action := c.Param("action")
+        action := c.Param(mapKeyAction)
 
         probes := h.configuredProbes()
         var target *probeInfo
@@ -111,24 +121,24 @@ func (h *ProbeAdminHandler) RunProbeAction(c *gin.Context) {
                 return
         }
 
-        slog.Info("Admin: probe action requested", "probe", probeID, "action", action)
+        slog.Info("Admin: probe action requested", "probe", probeID, mapKeyAction, action)
 
         var result probeActionResult
         switch action {
-        case "health":
+        case mapKeyHealth:
                 result = checkProbeHealth(*target)
-        case "update":
-                result = runProbeSSH(*target, "update")
-        case "restart":
-                result = runProbeSSH(*target, "restart")
-        case "audit":
-                result = runProbeSSH(*target, "audit")
+        case mapKeyUpdate:
+                result = runProbeSSH(*target, mapKeyUpdate)
+        case mapKeyRestart:
+                result = runProbeSSH(*target, mapKeyRestart)
+        case mapKeyAudit:
+                result = runProbeSSH(*target, mapKeyAudit)
         default:
                 c.String(http.StatusBadRequest, "Unknown action")
                 return
         }
 
-        slog.Info("Admin: probe action completed", "probe", probeID, "action", action, "success", result.Success)
+        slog.Info("Admin: probe action completed", "probe", probeID, mapKeyAction, action, "success", result.Success)
 
         c.Set("probeActionResult", result)
         h.ProbeDashboard(c)
@@ -149,7 +159,7 @@ func checkProbeHealth(p probeInfo) probeActionResult {
         if err != nil {
                 return probeActionResult{
                         Probe:   p,
-                        Action:  "health",
+                        Action:  mapKeyHealth,
                         Success: false,
                         Output:  fmt.Sprintf("Connection failed: %v", err),
                         Elapsed: elapsed,
@@ -163,7 +173,7 @@ func checkProbeHealth(p probeInfo) probeActionResult {
         if json.Indent(&pretty, body, "", "  ") == nil {
                 return probeActionResult{
                         Probe:   p,
-                        Action:  "health",
+                        Action:  mapKeyHealth,
                         Success: resp.StatusCode == 200,
                         Output:  pretty.String(),
                         Elapsed: elapsed,
@@ -172,7 +182,7 @@ func checkProbeHealth(p probeInfo) probeActionResult {
 
         return probeActionResult{
                 Probe:   p,
-                Action:  "health",
+                Action:  mapKeyHealth,
                 Success: resp.StatusCode == 200,
                 Output:  string(body),
                 Elapsed: elapsed,
@@ -195,11 +205,11 @@ func runProbeSSH(p probeInfo, action string) probeActionResult {
 
         var script string
         switch action {
-        case "update":
+        case mapKeyUpdate:
                 script = probeUpdateScript()
-        case "restart":
+        case mapKeyRestart:
                 script = probeRestartScript()
-        case "audit":
+        case mapKeyAudit:
                 script = probeAuditScript()
         default:
                 return probeActionResult{
@@ -234,26 +244,26 @@ type sshTarget struct {
 
 func resolveProbeSSH(probeID string) (*sshTarget, error) {
         switch probeID {
-        case "probe-01":
+        case strProbe01:
                 host := os.Getenv("PROBE_SSH_HOST")
                 user := os.Getenv("PROBE_SSH_USER")
                 keyB64 := os.Getenv("PROBE_SSH_PRIVATE_KEY")
                 if host == "" || user == "" || keyB64 == "" {
                         return nil, fmt.Errorf("probe-01 SSH credentials not configured (PROBE_SSH_HOST, PROBE_SSH_USER, PROBE_SSH_PRIVATE_KEY)")
                 }
-                keyFile, err := writeKeyFile(keyB64, "probe-01")
+                keyFile, err := writeKeyFile(keyB64, strProbe01)
                 if err != nil {
                         return nil, err
                 }
                 return &sshTarget{host: host, user: user, keyFile: keyFile}, nil
-        case "probe-02":
+        case strProbe02:
                 host := os.Getenv("PROBE_SSH_HOST_2")
                 user := os.Getenv("PROBE2_SSH_USER")
                 keyB64 := os.Getenv("PROBE_SSH_PRIVATE_KEY_2")
                 if host == "" || user == "" || keyB64 == "" {
                         return nil, fmt.Errorf("probe-02 SSH credentials not configured (PROBE_SSH_HOST_2, PROBE2_SSH_USER, PROBE_SSH_PRIVATE_KEY_2)")
                 }
-                keyFile, err := writeKeyFile(keyB64, "probe-02")
+                keyFile, err := writeKeyFile(keyB64, strProbe02)
                 if err != nil {
                         return nil, err
                 }

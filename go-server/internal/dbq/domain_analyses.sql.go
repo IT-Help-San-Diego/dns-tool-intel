@@ -26,9 +26,9 @@ type CheckAnalysisOwnershipParams struct {
 
 func (q *Queries) CheckAnalysisOwnership(ctx context.Context, arg CheckAnalysisOwnershipParams) (bool, error) {
         row := q.db.QueryRow(ctx, checkAnalysisOwnership, arg.AnalysisID, arg.UserID)
-        var is_owner bool
-        err := row.Scan(&is_owner)
-        return is_owner, err
+        var isOwner bool
+        err := row.Scan(&isOwner)
+        return isOwner, err
 }
 
 const countAllAnalyses = `-- name: CountAllAnalyses :one

@@ -42,6 +42,11 @@ const (
         providerRoute53    = "AWS Route 53"
         providerGoDaddy    = "GoDaddy"
         providerNamecheap  = "Namecheap"
+
+
+	mapKeyWarning = "warning"
+	refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22 = "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2"
+	refRfc191222 = "RFC 1912 §2.2"
 )
 
 var providerProfiles = map[string]ProviderProfile{
@@ -58,8 +63,8 @@ var providerProfiles = map[string]ProviderProfile{
                 Notes: []ProviderComplianceNote{
                         {
                                 Title:   "SOA Expire below RFC 1912 recommendation",
-                                RFC:     "RFC 1912 §2.2",
-                                RFCLink: "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2",
+                                RFC:     refRfc191222,
+                                RFCLink: refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
                                 Detail:  "Cloudflare sets SOA Expire to 604,800 seconds (7 days). RFC 1912 §2.2 recommends 1,209,600–2,419,200 seconds (14–28 days). This means secondary nameservers stop serving the zone sooner if the primary becomes unreachable. Cloudflare's position is that their anycast architecture makes traditional zone transfer semantics less relevant. SOA timers are not editable on Free, Pro, or Business plans.",
                                 Verdict: "Below RFC recommendation",
                         },
@@ -72,8 +77,8 @@ var providerProfiles = map[string]ProviderProfile{
                         },
                         {
                                 Title:   "Non-standard SOA serial format",
-                                RFC:     "RFC 1912 §2.2",
-                                RFCLink: "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2",
+                                RFC:     refRfc191222,
+                                RFCLink: refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
                                 Detail:  "RFC 1912 recommends YYYYMMDDNN format for SOA serial numbers (e.g., 2026022501). Cloudflare uses a proprietary serial number format that does not encode the date. RFC 1035 only requires the serial to increment on changes, so this is compliant with the mandatory standard but breaks the convention relied on by monitoring tools.",
                                 Verdict: "Compliant with RFC 1035, deviates from RFC 1912 convention",
                         },
@@ -224,8 +229,8 @@ type SOAComplianceFinding struct {
 
 func (f SOAComplianceFinding) SeverityClass() string {
         switch f.Severity {
-        case "warning":
-                return "warning"
+        case mapKeyWarning:
+                return mapKeyWarning
         case "info":
                 return "info"
         default:
@@ -258,7 +263,7 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
         report.MinTTL = minTTL
 
         if expire < 1209600 {
-                sev := "warning"
+                sev := mapKeyWarning
                 if expire < 604800 {
                         sev = "error"
                 }
@@ -274,8 +279,8 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
                         Field:       "Expire",
                         Observed:    formatTTLDuration(expire),
                         RFCRange:    "14–28 days (1,209,600–2,419,200s)",
-                        RFC:         "RFC 1912 §2.2",
-                        RFCLink:     "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2",
+                        RFC:         refRfc191222,
+                        RFCLink:     refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
                         Severity:    sev,
                         Explanation: explanation,
                 })
@@ -286,8 +291,8 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
                         Field:       "Refresh",
                         Observed:    formatTTLDuration(refresh),
                         RFCRange:    "1,200–43,200s (20 min – 12 hours)",
-                        RFC:         "RFC 1912 §2.2",
-                        RFCLink:     "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2",
+                        RFC:         refRfc191222,
+                        RFCLink:     refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
                         Severity:    "info",
                         Explanation: fmt.Sprintf("SOA Refresh is %s, below the RFC 1912 recommended minimum of 1,200 seconds.", formatTTLDuration(refresh)),
                 })
@@ -298,8 +303,8 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
                         Field:       "Expire vs Refresh+Retry",
                         Observed:    fmt.Sprintf("Expire=%s ≤ Refresh+Retry=%s", formatTTLDuration(expire), formatTTLDuration(refresh+retry)),
                         RFCRange:    "Expire must be > Refresh + Retry",
-                        RFC:         "RFC 1912 §2.2",
-                        RFCLink:     "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2",
+                        RFC:         refRfc191222,
+                        RFCLink:     refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
                         Severity:    "error",
                         Explanation: "If Expire is not greater than Refresh + Retry, secondary nameservers may stop serving the zone before they've had a chance to retry the primary.",
                 })
@@ -312,7 +317,7 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
                         RFCRange:    "300–86,400s (5 min – 1 day)",
                         RFC:         "RFC 2308 §5",
                         RFCLink:     "https://datatracker.ietf.org/doc/html/rfc2308#section-5",
-                        Severity:    "warning",
+                        Severity:    mapKeyWarning,
                         Explanation: fmt.Sprintf("SOA MINIMUM (negative cache TTL) is %s. High values cause NXDOMAIN responses to be cached for extended periods, delaying visibility of newly created records.", formatTTLDuration(minTTL)),
                 })
         }

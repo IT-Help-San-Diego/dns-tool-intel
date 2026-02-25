@@ -13,6 +13,10 @@ import (
         "dnstool/go-server/internal/telemetry"
 )
 
+const (
+	mapKeyError = "error"
+)
+
 type ProbeEndpoint struct {
         ID    string
         Label string
@@ -70,8 +74,8 @@ func New(opts ...Option) *Analyzer {
                 RDAPCache:     telemetry.NewTTLCache[map[string]any]("rdap", 500, 24*time.Hour),
                 ctCache:       make(map[string]ctCacheEntry),
                 ctCacheTTL:    1 * time.Hour,
-                maxConcurrent: 12,
-                semaphore:     make(chan struct{}, 12),
+                maxConcurrent: 20,
+                semaphore:     make(chan struct{}, 20),
         }
         for _, o := range opts {
                 o(a)
@@ -88,13 +92,13 @@ func (a *Analyzer) fetchIANARDAPData() {
 
         resp, err := a.HTTP.Get(ctx, "https://data.iana.org/rdap/dns.json")
         if err != nil {
-                slog.Error("Failed to fetch IANA RDAP data", "error", err)
+                slog.Error("Failed to fetch IANA RDAP data", mapKeyError, err)
                 return
         }
 
         body, err := a.HTTP.ReadBody(resp, 1<<20)
         if err != nil {
-                slog.Error("Failed to read IANA RDAP response", "error", err)
+                slog.Error("Failed to read IANA RDAP response", mapKeyError, err)
                 return
         }
 
@@ -103,7 +107,7 @@ func (a *Analyzer) fetchIANARDAPData() {
         }
 
         if err := jsonUnmarshal(body, &data); err != nil {
-                slog.Error("Failed to parse IANA RDAP data", "error", err)
+                slog.Error("Failed to parse IANA RDAP data", mapKeyError, err)
                 return
         }
 
@@ -126,6 +130,10 @@ func (a *Analyzer) fetchIANARDAPData() {
 
 func (a *Analyzer) BackpressureRejections() int64 {
         return a.backpressureRejections.Load()
+}
+
+func (a *Analyzer) ConcurrentCapacity() (inUse, total int) {
+        return len(a.semaphore), cap(a.semaphore)
 }
 
 func (a *Analyzer) getCTCache(domain string) ([]map[string]any, bool) {

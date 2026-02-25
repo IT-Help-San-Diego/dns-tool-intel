@@ -22,6 +22,12 @@ const (
         colorGrey      = "#9f9f9f"
         contentTypeSVG = "image/svg+xml; charset=utf-8"
         labelDNSTool   = "DNS Tool"
+
+
+	mapKeyColor = "color"
+	mapKeyLabel = "label"
+	mapKeyLightgrey = "lightgrey"
+	strSchemaversion = "schemaVersion"
 )
 
 type BadgeHandler struct {
@@ -34,15 +40,15 @@ func NewBadgeHandler(database *db.Database, cfg *config.Config) *BadgeHandler {
 }
 
 func (h *BadgeHandler) Badge(c *gin.Context) {
-        domain := strings.TrimSpace(c.Query("domain"))
+        domain := strings.TrimSpace(c.Query(mapKeyDomain))
         if domain == "" {
-                c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG("error", "missing domain", colorDanger))
+                c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "missing domain", colorDanger))
                 return
         }
 
         ascii, err := dnsclient.DomainToASCII(domain)
         if err != nil || !dnsclient.ValidateDomain(ascii) {
-                c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG("error", "invalid domain", colorDanger))
+                c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "invalid domain", colorDanger))
                 return
         }
 
@@ -96,7 +102,7 @@ func unmarshalResults(fullResults []byte, caller string) map[string]any {
         }
         var results map[string]any
         if err := json.Unmarshal(fullResults, &results); err != nil {
-                slog.Warn(caller+": unmarshal full_results", "error", err)
+                slog.Warn(caller+": unmarshal full_results", mapKeyError, err)
                 return nil
         }
         return results
@@ -116,12 +122,12 @@ func extractPostureRisk(results map[string]any) (string, string) {
         if !ok {
                 return riskLabel, riskColor
         }
-        if rl, ok := posture["label"].(string); ok && rl != "" {
+        if rl, ok := posture[mapKeyLabel].(string); ok && rl != "" {
                 riskLabel = rl
         } else if rl, ok := posture["grade"].(string); ok && rl != "" {
                 riskLabel = rl
         }
-        if rc, ok := posture["color"].(string); ok {
+        if rc, ok := posture[mapKeyColor].(string); ok {
                 riskColor = rc
         }
         return riskLabel, riskColor
@@ -175,13 +181,13 @@ func badgeSVG(label, value, color string) []byte {
 }
 
 func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
-        domain := strings.TrimSpace(c.Query("domain"))
+        domain := strings.TrimSpace(c.Query(mapKeyDomain))
         if domain == "" {
                 c.JSON(http.StatusOK, gin.H{
-                        "schemaVersion": 1,
-                        "label":         labelDNSTool,
-                        "message":       "missing domain",
-                        "color":         "lightgrey",
+                        strSchemaversion: 1,
+                        mapKeyLabel:         labelDNSTool,
+                        mapKeyMessage:       "missing domain",
+                        mapKeyColor:         mapKeyLightgrey,
                         "isError":       true,
                 })
                 return
@@ -190,10 +196,10 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         ascii, err := dnsclient.DomainToASCII(domain)
         if err != nil || !dnsclient.ValidateDomain(ascii) {
                 c.JSON(http.StatusOK, gin.H{
-                        "schemaVersion": 1,
-                        "label":         labelDNSTool,
-                        "message":       "invalid domain",
-                        "color":         "lightgrey",
+                        strSchemaversion: 1,
+                        mapKeyLabel:         labelDNSTool,
+                        mapKeyMessage:       "invalid domain",
+                        mapKeyColor:         mapKeyLightgrey,
                         "isError":       true,
                 })
                 return
@@ -203,20 +209,20 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, ascii)
         if err != nil {
                 c.JSON(http.StatusOK, gin.H{
-                        "schemaVersion": 1,
-                        "label":         labelDNSTool,
-                        "message":       "not scanned",
-                        "color":         "lightgrey",
+                        strSchemaversion: 1,
+                        mapKeyLabel:         labelDNSTool,
+                        mapKeyMessage:       "not scanned",
+                        mapKeyColor:         mapKeyLightgrey,
                 })
                 return
         }
 
         if analysis.Private {
                 c.JSON(http.StatusOK, gin.H{
-                        "schemaVersion": 1,
-                        "label":         labelDNSTool,
-                        "message":       "private",
-                        "color":         "lightgrey",
+                        strSchemaversion: 1,
+                        mapKeyLabel:         labelDNSTool,
+                        mapKeyMessage:       "private",
+                        mapKeyColor:         mapKeyLightgrey,
                 })
                 return
         }
@@ -230,14 +236,14 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         c.Header("Expires", time.Now().Add(1*time.Hour).UTC().Format(http.TimeFormat))
 
         resp := gin.H{
-                "schemaVersion": 1,
-                "label":         labelDNSTool,
-                "message":       riskLabel,
-                "color":         shieldsColor,
+                strSchemaversion: 1,
+                mapKeyLabel:         labelDNSTool,
+                mapKeyMessage:       riskLabel,
+                mapKeyColor:         shieldsColor,
                 "namedLogo":     "shield",
         }
 
-        if c.Query("domain") != "" {
+        if c.Query(mapKeyDomain) != "" {
                 resp["cacheSeconds"] = 3600
         }
 
@@ -253,7 +259,7 @@ func riskColorToShields(color string) string {
         case "danger":
                 return "red"
         default:
-                return "lightgrey"
+                return mapKeyLightgrey
         }
 }
 

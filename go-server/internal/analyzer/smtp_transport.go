@@ -17,6 +17,38 @@ import (
         "time"
 )
 
+const (
+        mapKeyAgreement = "agreement"
+        mapKeyAllTls = "all_tls"
+        mapKeyCertDaysRemaining = "cert_days_remaining"
+        mapKeyCertIssuer = "cert_issuer"
+        mapKeyCertValid = "cert_valid"
+        mapKeyEnforced = "enforced"
+        mapKeyMonitored = "monitored"
+        mapKeyNoTls = "no_tls"
+        mapKeyObservations = "observations"
+        mapKeyObserved = "observed"
+        mapKeyOpportunistic = "opportunistic"
+        mapKeyPartialTls = "partial_tls"
+        mapKeyPresent = "present"
+        mapKeyProbeCount = "probe_count"
+        mapKeyProbeElapsed = "probe_elapsed"
+        mapKeyProbeHost = "probe_host"
+        mapKeyProbeMethod = "probe_method"
+        mapKeyProbeVerdict = "probe_verdict"
+        mapKeyReachable = "reachable"
+        mapKeyRemote = "remote"
+        mapKeyServers = "servers"
+        mapKeySignals = "signals"
+        mapKeySkipped = "skipped"
+        mapKeyStarttls = "starttls"
+        mapKeyStarttlsSupported = "starttls_supported"
+        mapKeySummary = "summary"
+        mapKeyTlsVersion = "tls_version"
+        mapKeyTlsrptConfigured = "tlsrpt_configured"
+        mapKeyVerdict = "verdict"
+)
+
 type smtpServerResult struct {
         Host              string  `json:"host"`
         Reachable         bool    `json:"reachable"`
@@ -75,7 +107,7 @@ func buildMailTransportResult(a *Analyzer, ctx context.Context, domain string, m
         probe := buildProbeResult(a, ctx, domain, mxHosts)
         result["probe"] = probe
 
-        result["status"] = derivePrimaryStatus(policy, probe)
+        result[mapKeyStatus] = derivePrimaryStatus(policy, probe)
         result["message"] = derivePrimaryMessage(policy, probe, mxHosts)
 
         result["dns_inferred"] = true
@@ -89,12 +121,12 @@ func buildMailTransportResult(a *Analyzer, ctx context.Context, domain string, m
 
 func buildPolicyAssessment(a *Analyzer, ctx context.Context, domain string, mxHosts []string, ai AnalysisInputs) map[string]any {
         policy := map[string]any{
-                "mta_sts":  map[string]any{"present": false, "mode": "none"},
-                "dane":     map[string]any{"present": false},
-                "tlsrpt":   map[string]any{"present": false},
+                mapKeyMtaSts:  map[string]any{mapKeyPresent: false, "mode": "none"},
+                "dane":     map[string]any{mapKeyPresent: false},
+                "tlsrpt":   map[string]any{mapKeyPresent: false},
                 "provider": map[string]any{"identified": false},
-                "verdict":  "none",
-                "signals":  []string{},
+                mapKeyVerdict:  "none",
+                mapKeySignals:  []string{},
         }
 
         var signals []string
@@ -104,8 +136,8 @@ func buildPolicyAssessment(a *Analyzer, ctx context.Context, domain string, mxHo
         signals = assessTLSRPT(a, ctx, domain, ai, policy, signals)
         signals = assessProvider(mxHosts, policy, signals)
 
-        policy["signals"] = signals
-        policy["verdict"] = computePolicyVerdict(policy, signals)
+        policy[mapKeySignals] = signals
+        policy[mapKeyVerdict] = computePolicyVerdict(policy, signals)
 
         return policy
 }
@@ -116,10 +148,10 @@ func assessMTASTS(a *Analyzer, ctx context.Context, domain string, ai AnalysisIn
                 mtaSts = a.AnalyzeMTASTS(ctx, domain)
         }
         if mode, ok := mtaSts["mode"].(string); ok && mode != "" && mode != "none" {
-                policy["mta_sts"] = map[string]any{
-                        "present": true,
+                policy[mapKeyMtaSts] = map[string]any{
+                        mapKeyPresent: true,
                         "mode":    mode,
-                        "status":  mapGetStrSafe(mtaSts, "status"),
+                        mapKeyStatus:  mapGetStrSafe(mtaSts, mapKeyStatus),
                 }
                 if mode == "enforce" {
                         signals = append(signals, "MTA-STS policy in enforce mode requires encrypted transport (RFC 8461)")
@@ -149,7 +181,7 @@ func assessDANE(a *Analyzer, ctx context.Context, mxHosts []string, ai AnalysisI
                 }
         }
         if hasTLSA {
-                policy["dane"] = map[string]any{"present": true}
+                policy["dane"] = map[string]any{mapKeyPresent: true}
                 signals = append(signals, "DANE/TLSA records published — mail servers pin TLS certificates via DNSSEC (RFC 7672)")
         }
         return signals
@@ -160,10 +192,10 @@ func assessTLSRPT(a *Analyzer, ctx context.Context, domain string, ai AnalysisIn
         if tlsrpt == nil {
                 tlsrpt = a.AnalyzeTLSRPT(ctx, domain)
         }
-        if st, ok := tlsrpt["status"].(string); ok && st == "success" {
+        if st, ok := tlsrpt[mapKeyStatus].(string); ok && st == mapKeySuccess {
                 policy["tlsrpt"] = map[string]any{
-                        "present": true,
-                        "status":  st,
+                        mapKeyPresent: true,
+                        mapKeyStatus:  st,
                 }
                 signals = append(signals, "TLS-RPT configured — domain monitors TLS delivery failures (RFC 8460)")
         }
@@ -184,30 +216,30 @@ func assessProvider(mxHosts []string, policy map[string]any, signals []string) [
 }
 
 func computePolicyVerdict(policy map[string]any, signals []string) string {
-        mtaStsMeta, _ := policy["mta_sts"].(map[string]any)
-        mtaStsPresent, _ := mtaStsMeta["present"].(bool)
+        mtaStsMeta, _ := policy[mapKeyMtaSts].(map[string]any)
+        mtaStsPresent, _ := mtaStsMeta[mapKeyPresent].(bool)
         mtaStsMode, _ := mtaStsMeta["mode"].(string)
         daneMeta, _ := policy["dane"].(map[string]any)
-        danePresent, _ := daneMeta["present"].(bool)
+        danePresent, _ := daneMeta[mapKeyPresent].(bool)
 
         if mtaStsPresent && mtaStsMode == "enforce" {
-                return "enforced"
+                return mapKeyEnforced
         }
         if danePresent {
-                return "enforced"
+                return mapKeyEnforced
         }
         if mtaStsPresent && mtaStsMode == "testing" {
-                return "monitored"
+                return mapKeyMonitored
         }
         if len(signals) > 0 {
-                return "opportunistic"
+                return mapKeyOpportunistic
         }
         return "none"
 }
 
 func buildTelemetrySection(ai AnalysisInputs) map[string]any {
         section := map[string]any{
-                "tlsrpt_configured": false,
+                mapKeyTlsrptConfigured: false,
                 "reporting_uris":    []string{},
                 "observability":     false,
         }
@@ -217,8 +249,8 @@ func buildTelemetrySection(ai AnalysisInputs) map[string]any {
                 return section
         }
 
-        if st, ok := tlsrpt["status"].(string); ok && st == "success" {
-                section["tlsrpt_configured"] = true
+        if st, ok := tlsrpt[mapKeyStatus].(string); ok && st == mapKeySuccess {
+                section[mapKeyTlsrptConfigured] = true
                 section["observability"] = true
 
                 if record, ok := tlsrpt["record"].(string); ok && record != "" {
@@ -252,53 +284,53 @@ func extractTLSRPTURIs(record string) []string {
 
 func buildProbeResult(a *Analyzer, ctx context.Context, domain string, mxHosts []string) map[string]any {
         probe := map[string]any{
-                "status":       "skipped",
-                "reason":       "",
-                "observations": []map[string]any{},
+                mapKeyStatus:       mapKeySkipped,
+                mapKeyReason:       "",
+                mapKeyObservations: []map[string]any{},
         }
 
         if len(mxHosts) == 0 {
-                probe["reason"] = "No MX records found for this domain"
-                probe["probe_method"] = "none"
+                probe[mapKeyReason] = "No MX records found for this domain"
+                probe[mapKeyProbeMethod] = "none"
                 return probe
         }
 
         if a.SMTPProbeMode == "skip" || a.SMTPProbeMode == "" {
-                probe["reason"] = "SMTP probe skipped — outbound TCP port 25 is blocked by cloud hosting provider. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
-                probe["probe_method"] = "skip"
-                slog.Info("SMTP probe skipped (mode=skip)", "domain", domain)
+                probe[mapKeyReason] = "SMTP probe skipped — outbound TCP port 25 is blocked by cloud hosting provider. This is standard for all major cloud platforms (AWS, GCP, Azure, Replit) as an anti-spam measure. Transport security is assessed via DNS policy records above, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
+                probe[mapKeyProbeMethod] = "skip"
+                slog.Info("SMTP probe skipped (mode=skip)", mapKeyDomain, domain)
                 return probe
         }
 
-        if a.SMTPProbeMode == "remote" && len(a.Probes) > 0 {
-                probe["probe_method"] = "remote"
-                probe["probe_count"] = len(a.Probes)
+        if a.SMTPProbeMode == mapKeyRemote && len(a.Probes) > 0 {
+                probe[mapKeyProbeMethod] = mapKeyRemote
+                probe[mapKeyProbeCount] = len(a.Probes)
                 if len(a.Probes) == 1 {
                         return runRemoteProbe(ctx, a.Probes[0].URL, a.Probes[0].Key, mxHosts, probe)
                 }
                 return runMultiProbe(ctx, a.Probes, mxHosts, probe)
         }
 
-        if a.SMTPProbeMode == "remote" && a.ProbeAPIURL != "" && len(a.Probes) == 0 {
-                probe["probe_method"] = "remote"
+        if a.SMTPProbeMode == mapKeyRemote && a.ProbeAPIURL != "" && len(a.Probes) == 0 {
+                probe[mapKeyProbeMethod] = mapKeyRemote
                 return runRemoteProbe(ctx, a.ProbeAPIURL, a.ProbeAPIKey, mxHosts, probe)
         }
 
-        if a.SMTPProbeMode == "remote" && a.ProbeAPIURL == "" && len(a.Probes) == 0 {
-                probe["reason"] = "Remote probe configured but PROBE_API_URL is not set — unable to reach external probe infrastructure."
-                probe["probe_method"] = "remote_misconfigured"
-                slog.Error("SMTP probe: mode=remote but PROBE_API_URL is empty", "domain", domain)
+        if a.SMTPProbeMode == mapKeyRemote && a.ProbeAPIURL == "" && len(a.Probes) == 0 {
+                probe[mapKeyReason] = "Remote probe configured but PROBE_API_URL is not set — unable to reach external probe infrastructure."
+                probe[mapKeyProbeMethod] = "remote_misconfigured"
+                slog.Error("SMTP probe: mode=remote but PROBE_API_URL is empty", mapKeyDomain, domain)
                 return probe
         }
 
         if a.SMTPProbeMode == "force" {
-                probe["probe_method"] = "local"
+                probe[mapKeyProbeMethod] = "local"
                 return runLiveProbe(ctx, mxHosts, probe)
         }
 
-        probe["probe_method"] = "unknown"
-        probe["reason"] = fmt.Sprintf("Unrecognized SMTP probe mode: %s", a.SMTPProbeMode)
-        slog.Warn("SMTP probe: unrecognized mode", "mode", a.SMTPProbeMode, "domain", domain)
+        probe[mapKeyProbeMethod] = "unknown"
+        probe[mapKeyReason] = fmt.Sprintf("Unrecognized SMTP probe mode: %s", a.SMTPProbeMode)
+        slog.Warn("SMTP probe: unrecognized mode", "mode", a.SMTPProbeMode, mapKeyDomain, domain)
         return probe
 }
 
@@ -307,15 +339,23 @@ func remoteProbeFailover(ctx context.Context, mxHosts []string, probe map[string
         probe["remote_attempted"] = true
         probe["remote_error"] = remoteError
         result := runLiveProbe(ctx, mxHosts, probe)
-        if result["status"] == "skipped" {
-                result["reason"] = fmt.Sprintf("Remote probe failed (%s) and local port 25 is blocked. Transport security is assessed via DNS policy records per NIST SP 800-177 Rev. 1.", remoteError)
+        if result[mapKeyStatus] == mapKeySkipped {
+                result[mapKeyReason] = fmt.Sprintf("Remote probe failed (%s) and local port 25 is blocked. Transport security is assessed via DNS policy records per NIST SP 800-177 Rev. 1.", remoteError)
         } else {
-                result["probe_method"] = "local_fallback"
+                result[mapKeyProbeMethod] = "local_fallback"
         }
         return result
 }
 
-func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts []string, probe map[string]any) map[string]any {
+type remoteProbeAPIResp struct {
+        ProbeHost      string           `json:"probe_host"`
+        Version        string           `json:"version"`
+        ElapsedSeconds float64          `json:"elapsed_seconds"`
+        Servers        []map[string]any `json:"servers"`
+        AllPorts       []map[string]any `json:"all_ports"`
+}
+
+func marshalRemoteProbeBody(mxHosts []string) ([]byte, string) {
         hostsToCheck := mxHosts
         if len(hostsToCheck) > 5 {
                 hostsToCheck = hostsToCheck[:5]
@@ -326,8 +366,86 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
                 "ports": []int{25, 465, 587},
         })
         if err != nil {
-                slog.Error("Remote probe: failed to marshal request", "error", err)
-                return remoteProbeFailover(ctx, mxHosts, probe, "request encoding error")
+                slog.Error("Remote probe: failed to marshal request", mapKeyError, err)
+                return nil, "request encoding error"
+        }
+        return reqBody, ""
+}
+
+func executeRemoteProbeHTTP(req *http.Request) (*remoteProbeAPIResp, string) {
+        resp, err := http.DefaultClient.Do(req)
+        if err != nil {
+                slog.Warn("Remote probe: request failed", mapKeyError, err)
+                return nil, "connection failed — probe may be offline"
+        }
+        defer resp.Body.Close()
+
+        if failMsg := classifyRemoteProbeStatus(resp.StatusCode); failMsg != "" {
+                return nil, failMsg
+        }
+
+        return readRemoteProbeBody(resp)
+}
+
+func classifyRemoteProbeStatus(code int) string {
+        switch code {
+        case http.StatusOK:
+                return ""
+        case http.StatusUnauthorized:
+                slog.Error("Remote probe: authentication failed (401) — check PROBE_API_KEY")
+                return "authentication failed (401)"
+        case http.StatusTooManyRequests:
+                slog.Warn("Remote probe: rate limited (429)")
+                return "rate limited (429)"
+        default:
+                slog.Warn("Remote probe: non-200 response", mapKeyStatus, code)
+                return fmt.Sprintf("HTTP %d", code)
+        }
+}
+
+func readRemoteProbeBody(resp *http.Response) (*remoteProbeAPIResp, string) {
+        body, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
+        if err != nil {
+                slog.Warn("Remote probe: failed to read response", mapKeyError, err)
+                return nil, "response read error"
+        }
+
+        var apiResp remoteProbeAPIResp
+        if err := json.Unmarshal(body, &apiResp); err != nil {
+                slog.Warn("Remote probe: failed to parse response", mapKeyError, err)
+                return nil, "response parse error"
+        }
+
+        if len(apiResp.Servers) == 0 {
+                slog.Warn("Remote probe: no servers in response")
+                return nil, "empty response from probe"
+        }
+
+        return &apiResp, ""
+}
+
+func applyRemoteProbeMetadata(probe map[string]any, apiResp *remoteProbeAPIResp) {
+        probe[mapKeyProbeHost] = apiResp.ProbeHost
+        probe[mapKeyProbeElapsed] = apiResp.ElapsedSeconds
+        if len(apiResp.AllPorts) > 0 {
+                probe["multi_port"] = apiResp.AllPorts
+        }
+}
+
+func smtpProbeVerdictFromSummary(summary *smtpSummary) string {
+        if summary.StartTLSSupport == summary.Reachable && summary.ValidCerts == summary.StartTLSSupport {
+                return mapKeyAllTls
+        }
+        if summary.StartTLSSupport > 0 {
+                return mapKeyPartialTls
+        }
+        return mapKeyNoTls
+}
+
+func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts []string, probe map[string]any) map[string]any {
+        reqBody, failMsg := marshalRemoteProbeBody(mxHosts)
+        if reqBody == nil {
+                return remoteProbeFailover(ctx, mxHosts, probe, failMsg)
         }
 
         probeCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
@@ -335,7 +453,7 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
 
         req, err := http.NewRequestWithContext(probeCtx, "POST", apiURL+"/probe/smtp", bytes.NewReader(reqBody))
         if err != nil {
-                slog.Error("Remote probe: failed to create request", "error", err)
+                slog.Error("Remote probe: failed to create request", mapKeyError, err)
                 return remoteProbeFailover(ctx, mxHosts, probe, "request creation error")
         }
         req.Header.Set("Content-Type", "application/json")
@@ -343,47 +461,9 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
                 req.Header.Set("X-Probe-Key", apiKey)
         }
 
-        resp, err := http.DefaultClient.Do(req)
-        if err != nil {
-                slog.Warn("Remote probe: request failed", "error", err)
-                return remoteProbeFailover(ctx, mxHosts, probe, "connection failed — probe may be offline")
-        }
-        defer resp.Body.Close()
-
-        if resp.StatusCode == http.StatusUnauthorized {
-                slog.Error("Remote probe: authentication failed (401) — check PROBE_API_KEY")
-                return remoteProbeFailover(ctx, mxHosts, probe, "authentication failed (401)")
-        }
-        if resp.StatusCode == http.StatusTooManyRequests {
-                slog.Warn("Remote probe: rate limited (429)")
-                return remoteProbeFailover(ctx, mxHosts, probe, "rate limited (429)")
-        }
-        if resp.StatusCode != http.StatusOK {
-                slog.Warn("Remote probe: non-200 response", "status", resp.StatusCode)
-                return remoteProbeFailover(ctx, mxHosts, probe, fmt.Sprintf("HTTP %d", resp.StatusCode))
-        }
-
-        body, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
-        if err != nil {
-                slog.Warn("Remote probe: failed to read response", "error", err)
-                return remoteProbeFailover(ctx, mxHosts, probe, "response read error")
-        }
-
-        var apiResp struct {
-                ProbeHost      string           `json:"probe_host"`
-                Version        string           `json:"version"`
-                ElapsedSeconds float64          `json:"elapsed_seconds"`
-                Servers        []map[string]any `json:"servers"`
-                AllPorts       []map[string]any `json:"all_ports"`
-        }
-        if err := json.Unmarshal(body, &apiResp); err != nil {
-                slog.Warn("Remote probe: failed to parse response", "error", err)
-                return remoteProbeFailover(ctx, mxHosts, probe, "response parse error")
-        }
-
-        if len(apiResp.Servers) == 0 {
-                slog.Warn("Remote probe: no servers in response")
-                return remoteProbeFailover(ctx, mxHosts, probe, "empty response from probe")
+        apiResp, failMsg := executeRemoteProbeHTTP(req)
+        if apiResp == nil {
+                return remoteProbeFailover(ctx, mxHosts, probe, failMsg)
         }
 
         summary := &smtpSummary{TotalServers: len(apiResp.Servers)}
@@ -391,44 +471,27 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
                 updateSummary(summary, srv)
         }
 
-        reachable := summary.Reachable
-        if reachable == 0 {
-                probe["status"] = "skipped"
-                probe["reason"] = "SMTP port 25 not reachable from probe host — all MX servers rejected or timed out on port 25. Transport security assessed via DNS policy records."
-                probe["probe_host"] = apiResp.ProbeHost
-                probe["probe_elapsed"] = apiResp.ElapsedSeconds
-                if len(apiResp.AllPorts) > 0 {
-                        probe["multi_port"] = apiResp.AllPorts
-                }
+        applyRemoteProbeMetadata(probe, apiResp)
+
+        if summary.Reachable == 0 {
+                probe[mapKeyStatus] = mapKeySkipped
+                probe[mapKeyReason] = "SMTP port 25 not reachable from probe host — all MX servers rejected or timed out on port 25. Transport security assessed via DNS policy records."
                 return probe
         }
 
-        probe["status"] = "observed"
-        probe["reason"] = ""
-        probe["observations"] = apiResp.Servers
-        probe["summary"] = summaryToMap(summary)
-        probe["probe_host"] = apiResp.ProbeHost
-        probe["probe_elapsed"] = apiResp.ElapsedSeconds
-
-        if len(apiResp.AllPorts) > 0 {
-                probe["multi_port"] = apiResp.AllPorts
-        }
-
-        if summary.StartTLSSupport == reachable && summary.ValidCerts == summary.StartTLSSupport {
-                probe["probe_verdict"] = "all_tls"
-        } else if summary.StartTLSSupport > 0 {
-                probe["probe_verdict"] = "partial_tls"
-        } else {
-                probe["probe_verdict"] = "no_tls"
-        }
+        probe[mapKeyStatus] = mapKeyObserved
+        probe[mapKeyReason] = ""
+        probe[mapKeyObservations] = apiResp.Servers
+        probe[mapKeySummary] = summaryToMap(summary)
+        probe[mapKeyProbeVerdict] = smtpProbeVerdictFromSummary(summary)
 
         slog.Info("Remote SMTP probe completed",
-                "probe_host", apiResp.ProbeHost,
+                mapKeyProbeHost, apiResp.ProbeHost,
                 "version", apiResp.Version,
-                "servers", len(apiResp.Servers),
+                mapKeyServers, len(apiResp.Servers),
                 "all_ports", len(apiResp.AllPorts),
-                "reachable", reachable,
-                "starttls", summary.StartTLSSupport,
+                mapKeyReachable, summary.Reachable,
+                mapKeyStarttls, summary.StartTLSSupport,
                 "elapsed", apiResp.ElapsedSeconds,
         )
 
@@ -460,16 +523,16 @@ func runMultiProbe(ctx context.Context, probes []ProbeEndpoint, mxHosts []string
         applyPrimaryResult(probe, primaryResult)
 
         probe["multi_probe"] = multiResults
-        probe["probe_method"] = "multi_remote"
-        probe["probe_count"] = len(probes)
+        probe[mapKeyProbeMethod] = "multi_remote"
+        probe[mapKeyProbeCount] = len(probes)
 
         consensus := computeProbeConsensus(multiResults)
         probe["probe_consensus"] = consensus
 
         slog.Info("Multi-probe SMTP completed",
-                "probe_count", len(probes),
+                mapKeyProbeCount, len(probes),
                 "results", len(multiResults),
-                "consensus", consensus["agreement"],
+                "consensus", consensus[mapKeyAgreement],
         )
 
         return probe
@@ -479,18 +542,18 @@ func buildMultiProbeEntry(r smtpProbeResult) map[string]any {
         entry := map[string]any{
                 "probe_id":    r.id,
                 "probe_label": r.label,
-                "status":      r.data["status"],
-                "probe_host":  r.data["probe_host"],
-                "elapsed":     r.data["probe_elapsed"],
+                mapKeyStatus:      r.data[mapKeyStatus],
+                mapKeyProbeHost:  r.data[mapKeyProbeHost],
+                "elapsed":     r.data[mapKeyProbeElapsed],
         }
-        if obs, ok := r.data["observations"]; ok {
-                entry["observations"] = obs
+        if obs, ok := r.data[mapKeyObservations]; ok {
+                entry[mapKeyObservations] = obs
         }
-        if s, ok := r.data["summary"]; ok {
-                entry["summary"] = s
+        if s, ok := r.data[mapKeySummary]; ok {
+                entry[mapKeySummary] = s
         }
-        if v, ok := r.data["probe_verdict"]; ok {
-                entry["probe_verdict"] = v
+        if v, ok := r.data[mapKeyProbeVerdict]; ok {
+                entry[mapKeyProbeVerdict] = v
         }
         return entry
 }
@@ -502,7 +565,7 @@ func collectMultiProbeResults(probes []ProbeEndpoint, results <-chan smtpProbeRe
                 r := <-results
                 entry := buildMultiProbeEntry(r)
                 multiResults = append(multiResults, entry)
-                if primaryResult == nil && r.data["status"] == "observed" {
+                if primaryResult == nil && r.data[mapKeyStatus] == mapKeyObserved {
                         primaryResult = r.data
                 }
         }
@@ -514,7 +577,7 @@ func resolveMultiProbeFallback(ctx context.Context, probes []ProbeEndpoint, mult
                 return nil
         }
         for _, mr := range multiResults {
-                if mr["status"] == "observed" {
+                if mr[mapKeyStatus] == mapKeyObserved {
                         return nil
                 }
         }
@@ -538,7 +601,7 @@ func applyPrimaryResult(probe, primaryResult map[string]any) {
 func computeProbeConsensus(results []map[string]any) map[string]any {
         consensus := map[string]any{
                 "total_probes": len(results),
-                "agreement":    "unknown",
+                mapKeyAgreement:    "unknown",
         }
 
         if len(results) == 0 {
@@ -551,34 +614,34 @@ func computeProbeConsensus(results []map[string]any) map[string]any {
         noTLS := 0
 
         for _, r := range results {
-                if r["status"] == "observed" {
+                if r[mapKeyStatus] == mapKeyObserved {
                         observed++
-                        switch r["probe_verdict"] {
-                        case "all_tls":
+                        switch r[mapKeyProbeVerdict] {
+                        case mapKeyAllTls:
                                 allTLS++
-                        case "partial_tls":
+                        case mapKeyPartialTls:
                                 partialTLS++
-                        case "no_tls":
+                        case mapKeyNoTls:
                                 noTLS++
                         }
                 }
         }
 
-        consensus["observed"] = observed
-        consensus["all_tls"] = allTLS
-        consensus["partial_tls"] = partialTLS
-        consensus["no_tls"] = noTLS
+        consensus[mapKeyObserved] = observed
+        consensus[mapKeyAllTls] = allTLS
+        consensus[mapKeyPartialTls] = partialTLS
+        consensus[mapKeyNoTls] = noTLS
 
         if observed == 0 {
-                consensus["agreement"] = "no_data"
+                consensus[mapKeyAgreement] = "no_data"
         } else if allTLS == observed {
-                consensus["agreement"] = "unanimous_tls"
+                consensus[mapKeyAgreement] = "unanimous_tls"
         } else if noTLS == observed {
-                consensus["agreement"] = "unanimous_no_tls"
+                consensus[mapKeyAgreement] = "unanimous_no_tls"
         } else if allTLS > 0 && partialTLS == 0 && noTLS == 0 {
-                consensus["agreement"] = "unanimous_tls"
+                consensus[mapKeyAgreement] = "unanimous_tls"
         } else {
-                consensus["agreement"] = "split"
+                consensus[mapKeyAgreement] = "split"
         }
 
         return consensus
@@ -594,51 +657,51 @@ func runLiveProbe(ctx context.Context, mxHosts []string, probe map[string]any) m
         servers := probeSMTPServers(ctx, hostsToCheck, summary)
 
         if summary.Reachable == 0 {
-                probe["status"] = "skipped"
-                probe["reason"] = "SMTP port 25 not reachable from this host — outbound port 25 is likely blocked by the hosting provider. Transport security is assessed via DNS policy records, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
+                probe[mapKeyStatus] = mapKeySkipped
+                probe[mapKeyReason] = "SMTP port 25 not reachable from this host — outbound port 25 is likely blocked by the hosting provider. Transport security is assessed via DNS policy records, which is the standards-aligned primary method per NIST SP 800-177 Rev. 1."
                 return probe
         }
 
-        probe["status"] = "observed"
-        probe["reason"] = ""
-        probe["observations"] = servers
-        probe["summary"] = summaryToMap(summary)
+        probe[mapKeyStatus] = mapKeyObserved
+        probe[mapKeyReason] = ""
+        probe[mapKeyObservations] = servers
+        probe[mapKeySummary] = summaryToMap(summary)
 
         if summary.StartTLSSupport == summary.Reachable && summary.ValidCerts == summary.StartTLSSupport {
-                probe["probe_verdict"] = "all_tls"
+                probe[mapKeyProbeVerdict] = mapKeyAllTls
         } else if summary.StartTLSSupport > 0 {
-                probe["probe_verdict"] = "partial_tls"
+                probe[mapKeyProbeVerdict] = mapKeyPartialTls
         } else {
-                probe["probe_verdict"] = "no_tls"
+                probe[mapKeyProbeVerdict] = mapKeyNoTls
         }
 
         return probe
 }
 
 func derivePrimaryStatus(policy, probe map[string]any) string {
-        verdict, _ := policy["verdict"].(string)
-        probeStatus, _ := probe["status"].(string)
+        verdict, _ := policy[mapKeyVerdict].(string)
+        probeStatus, _ := probe[mapKeyStatus].(string)
 
-        if probeStatus == "observed" {
-                probeVerdict, _ := probe["probe_verdict"].(string)
-                if probeVerdict == "all_tls" && (verdict == "enforced" || verdict == "monitored") {
-                        return "success"
+        if probeStatus == mapKeyObserved {
+                probeVerdict, _ := probe[mapKeyProbeVerdict].(string)
+                if probeVerdict == mapKeyAllTls && (verdict == mapKeyEnforced || verdict == mapKeyMonitored) {
+                        return mapKeySuccess
                 }
-                if probeVerdict == "all_tls" {
-                        return "success"
+                if probeVerdict == mapKeyAllTls {
+                        return mapKeySuccess
                 }
-                if probeVerdict == "partial_tls" {
+                if probeVerdict == mapKeyPartialTls {
                         return "warning"
                 }
-                return "error"
+                return mapKeyError
         }
 
         switch verdict {
-        case "enforced":
-                return "success"
-        case "monitored":
+        case mapKeyEnforced:
+                return mapKeySuccess
+        case mapKeyMonitored:
                 return "info"
-        case "opportunistic":
+        case mapKeyOpportunistic:
                 return "inferred"
         default:
                 return "info"
@@ -646,19 +709,19 @@ func derivePrimaryStatus(policy, probe map[string]any) string {
 }
 
 func derivePrimaryMessage(policy, probe map[string]any, mxHosts []string) string {
-        verdict, _ := policy["verdict"].(string)
-        probeStatus, _ := probe["status"].(string)
-        signals, _ := policy["signals"].([]string)
+        verdict, _ := policy[mapKeyVerdict].(string)
+        probeStatus, _ := probe[mapKeyStatus].(string)
+        signals, _ := policy[mapKeySignals].([]string)
 
         if len(mxHosts) == 0 {
                 return "No MX records found"
         }
 
-        if probeStatus == "observed" {
-                probeSummary, _ := probe["summary"].(map[string]any)
+        if probeStatus == mapKeyObserved {
+                probeSummary, _ := probe[mapKeySummary].(map[string]any)
                 if probeSummary != nil {
-                        reachable := int(toFloat64Val(probeSummary["reachable"]))
-                        starttls := int(toFloat64Val(probeSummary["starttls_supported"]))
+                        reachable := int(toFloat64Val(probeSummary[mapKeyReachable]))
+                        starttls := int(toFloat64Val(probeSummary[mapKeyStarttlsSupported]))
                         if starttls == reachable && reachable > 0 {
                                 return fmt.Sprintf("All %d server(s) verified: encrypted transport confirmed via direct SMTP probe and DNS policy", reachable)
                         }
@@ -667,11 +730,11 @@ func derivePrimaryMessage(policy, probe map[string]any, mxHosts []string) string
         }
 
         switch verdict {
-        case "enforced":
+        case mapKeyEnforced:
                 return fmt.Sprintf("Transport encryption enforced via DNS policy (%d signal(s))", len(signals))
-        case "monitored":
+        case mapKeyMonitored:
                 return fmt.Sprintf("Transport security in monitoring mode (%d signal(s))", len(signals))
-        case "opportunistic":
+        case mapKeyOpportunistic:
                 return fmt.Sprintf("Transport security inferred from %d signal(s) — no enforcement policy active", len(signals))
         default:
                 return "No transport encryption policy detected — mail delivery relies on opportunistic TLS"
@@ -679,19 +742,19 @@ func derivePrimaryMessage(policy, probe map[string]any, mxHosts []string) string
 }
 
 func buildInferenceNote(probe map[string]any) string {
-        probeStatus, _ := probe["status"].(string)
-        if probeStatus == "observed" {
+        probeStatus, _ := probe[mapKeyStatus].(string)
+        if probeStatus == mapKeyObserved {
                 return ""
         }
         return "Transport security assessed via DNS policy records (MTA-STS, DANE, TLS-RPT) — the standards-aligned primary method per NIST SP 800-177 Rev. 1 and RFC 8461. Direct SMTP probing is a supplementary verification step."
 }
 
 func buildInferenceSignals(policy, telemetrySection map[string]any) []string {
-        signals, _ := policy["signals"].([]string)
+        signals, _ := policy[mapKeySignals].([]string)
         result := make([]string, len(signals))
         copy(result, signals)
 
-        if configured, ok := telemetrySection["tlsrpt_configured"].(bool); ok && configured {
+        if configured, ok := telemetrySection[mapKeyTlsrptConfigured].(bool); ok && configured {
                 hasTLSRPTSignal := false
                 for _, s := range result {
                         if strings.Contains(s, "TLS-RPT") {
@@ -708,19 +771,19 @@ func buildInferenceSignals(policy, telemetrySection map[string]any) []string {
 }
 
 func backfillLegacyFields(result map[string]any, policy, probe map[string]any) {
-        probeStatus, _ := probe["status"].(string)
+        probeStatus, _ := probe[mapKeyStatus].(string)
 
-        if probeStatus == "observed" {
-                observations, _ := probe["observations"].([]map[string]any)
-                result["servers"] = observations
-                if probeSummary, ok := probe["summary"].(map[string]any); ok {
-                        result["summary"] = probeSummary
+        if probeStatus == mapKeyObserved {
+                observations, _ := probe[mapKeyObservations].([]map[string]any)
+                result[mapKeyServers] = observations
+                if probeSummary, ok := probe[mapKeySummary].(map[string]any); ok {
+                        result[mapKeySummary] = probeSummary
                 } else {
-                        result["summary"] = emptyLegacySummary()
+                        result[mapKeySummary] = emptyLegacySummary()
                 }
         } else {
-                result["servers"] = []map[string]any{}
-                result["summary"] = emptyLegacySummary()
+                result[mapKeyServers] = []map[string]any{}
+                result[mapKeySummary] = emptyLegacySummary()
         }
 
         result["issues"] = []string{}
@@ -729,8 +792,8 @@ func backfillLegacyFields(result map[string]any, policy, probe map[string]any) {
 func emptyLegacySummary() map[string]any {
         return map[string]any{
                 "total_servers":      0,
-                "reachable":          0,
-                "starttls_supported": 0,
+                mapKeyReachable:          0,
+                mapKeyStarttlsSupported: 0,
                 "tls_1_3":            0,
                 "tls_1_2":            0,
                 "valid_certs":        0,
@@ -812,17 +875,17 @@ func probeSMTPServers(ctx context.Context, hosts []string, summary *smtpSummary)
 func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
         result := map[string]any{
                 "host":                host,
-                "reachable":           false,
-                "starttls":            false,
-                "tls_version":         nil,
+                mapKeyReachable:           false,
+                mapKeyStarttls:            false,
+                mapKeyTlsVersion:         nil,
                 "cipher":              nil,
                 "cipher_bits":         nil,
-                "cert_valid":          false,
+                mapKeyCertValid:          false,
                 "cert_expiry":         nil,
-                "cert_days_remaining": nil,
-                "cert_issuer":         nil,
+                mapKeyCertDaysRemaining: nil,
+                mapKeyCertIssuer:         nil,
                 "cert_subject":        nil,
-                "error":               nil,
+                mapKeyError:               nil,
         }
 
         probeCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -830,63 +893,56 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
 
         conn, err := dialSMTP(probeCtx, host)
         if err != nil {
-                errStr := classifySMTPError(err)
-                result["error"] = errStr
+                result[mapKeyError] = classifySMTPError(err)
                 return result
         }
         defer conn.Close()
 
-        result["reachable"] = true
+        result[mapKeyReachable] = true
 
         banner, err := readSMTPResponse(conn, 2*time.Second)
         if err != nil || !strings.HasPrefix(banner, "220") {
-                errStr := "Unexpected SMTP banner"
-                result["error"] = errStr
+                result[mapKeyError] = "Unexpected SMTP banner"
                 return result
         }
 
         _, err = fmt.Fprintf(conn, "EHLO dnstool.local\r\n")
         if err != nil {
-                errStr := "EHLO failed"
-                result["error"] = errStr
+                result[mapKeyError] = "EHLO failed"
                 return result
         }
 
         ehloResp, err := readSMTPResponse(conn, 2*time.Second)
         if err != nil {
-                errStr := "EHLO response timeout"
-                result["error"] = errStr
+                result[mapKeyError] = "EHLO response timeout"
                 return result
         }
 
         if !strings.Contains(strings.ToUpper(ehloResp), "STARTTLS") {
-                errStr := "STARTTLS not supported"
-                result["error"] = errStr
+                result[mapKeyError] = "STARTTLS not supported"
                 return result
         }
 
-        result["starttls"] = true
+        result[mapKeyStarttls] = true
 
         _, err = fmt.Fprintf(conn, "STARTTLS\r\n")
         if err != nil {
-                errStr := "STARTTLS command failed"
-                result["error"] = errStr
+                result[mapKeyError] = "STARTTLS command failed"
                 return result
         }
 
         starttlsResp, err := readSMTPResponse(conn, 2*time.Second)
         if err != nil || !strings.HasPrefix(starttlsResp, "220") {
-                errStr := fmt.Sprintf("STARTTLS rejected: %s", truncate(starttlsResp, 50))
-                result["error"] = errStr
+                result[mapKeyError] = fmt.Sprintf("STARTTLS rejected: %s", truncate(starttlsResp, 50))
                 return result
         }
 
-        negotiateTLS(conn, host, result)
+        negotiateTLS(probeCtx, conn, host, result)
 
         return result
 }
 
-func negotiateTLS(conn net.Conn, host string, result map[string]any) {
+func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[string]any) {
         tlsCfg := &tls.Config{ //nolint:gosec // Intentional: diagnostic tool must connect to servers with self-signed/expired/mismatched certs to inspect and report on their TLS configuration. Certificate validation is performed separately in verifyCert().
                 ServerName:         host,
                 InsecureSkipVerify: true, //NOSONAR — S4830/S5527: deliberate diagnostic probe; verifyCert() validates independently
@@ -895,26 +951,20 @@ func negotiateTLS(conn net.Conn, host string, result map[string]any) {
         defer tlsConn.Close()
 
         if err := tlsConn.Handshake(); err != nil {
-                errStr := fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 80))
-                result["error"] = errStr
+                result[mapKeyError] = fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 80))
                 return
         }
 
         state := tlsConn.ConnectionState()
-        tlsVer := tlsVersionString(state.Version)
-        result["tls_version"] = tlsVer
+        result[mapKeyTlsVersion] = tlsVersionString(state.Version)
+        result["cipher"] = tls.CipherSuiteName(state.CipherSuite)
+        result["cipher_bits"] = cipherBits(state.CipherSuite)
 
-        cipherName := tls.CipherSuiteName(state.CipherSuite)
-        result["cipher"] = cipherName
-
-        bits := cipherBits(state.CipherSuite)
-        result["cipher_bits"] = bits
-
-        verifyCert(host, result)
+        verifyCert(ctx, host, result)
 }
 
-func verifyCert(host string, result map[string]any) {
-        verifyCtx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+func verifyCert(ctx context.Context, host string, result map[string]any) {
+        verifyCtx, cancel := context.WithTimeout(ctx, 4*time.Second)
         defer cancel()
 
         dialer := &net.Dialer{Timeout: 2 * time.Second}
@@ -941,25 +991,22 @@ func verifyCert(host string, result map[string]any) {
         defer verifyTLS.Close()
 
         if err := verifyTLS.Handshake(); err != nil {
-                result["cert_valid"] = false
-                errStr := fmt.Sprintf("Certificate invalid: %s", truncate(err.Error(), 100))
-                result["error"] = errStr
+                result[mapKeyCertValid] = false
+                result[mapKeyError] = fmt.Sprintf("Certificate invalid: %s", truncate(err.Error(), 100))
                 return
         }
 
-        result["cert_valid"] = true
+        result[mapKeyCertValid] = true
         certs := verifyTLS.ConnectionState().PeerCertificates
         if len(certs) > 0 {
                 leaf := certs[0]
-                expiry := leaf.NotAfter.Format("2006-01-02")
-                result["cert_expiry"] = expiry
-                daysRemaining := int(time.Until(leaf.NotAfter).Hours() / 24)
-                result["cert_days_remaining"] = daysRemaining
+                result["cert_expiry"] = leaf.NotAfter.Format("2006-01-02")
+                result[mapKeyCertDaysRemaining] = int(time.Until(leaf.NotAfter).Hours() / 24)
                 result["cert_subject"] = leaf.Subject.CommonName
                 if leaf.Issuer.Organization != nil && len(leaf.Issuer.Organization) > 0 {
-                        result["cert_issuer"] = leaf.Issuer.Organization[0]
+                        result[mapKeyCertIssuer] = leaf.Issuer.Organization[0]
                 } else {
-                        result["cert_issuer"] = leaf.Issuer.CommonName
+                        result[mapKeyCertIssuer] = leaf.Issuer.CommonName
                 }
         }
 }
@@ -1059,23 +1106,23 @@ func truncate(s string, maxLen int) string {
 }
 
 func updateSummary(s *smtpSummary, sr map[string]any) {
-        if sr["reachable"] == true {
+        if sr[mapKeyReachable] == true {
                 s.Reachable++
         }
-        if sr["starttls"] == true {
+        if sr[mapKeyStarttls] == true {
                 s.StartTLSSupport++
         }
-        if v, ok := sr["tls_version"].(string); ok {
+        if v, ok := sr[mapKeyTlsVersion].(string); ok {
                 if v == "TLSv1.3" {
                         s.TLS13++
                 } else if v == "TLSv1.2" {
                         s.TLS12++
                 }
         }
-        if sr["cert_valid"] == true {
+        if sr[mapKeyCertValid] == true {
                 s.ValidCerts++
         }
-        if dr, ok := sr["cert_days_remaining"].(int); ok && dr < 30 {
+        if dr, ok := sr[mapKeyCertDaysRemaining].(int); ok && dr < 30 {
                 s.ExpiringSoon++
         }
 }
@@ -1083,8 +1130,8 @@ func updateSummary(s *smtpSummary, sr map[string]any) {
 func summaryToMap(s *smtpSummary) map[string]any {
         return map[string]any{
                 "total_servers":      s.TotalServers,
-                "reachable":          s.Reachable,
-                "starttls_supported": s.StartTLSSupport,
+                mapKeyReachable:          s.Reachable,
+                mapKeyStarttlsSupported: s.StartTLSSupport,
                 "tls_1_3":            s.TLS13,
                 "tls_1_2":            s.TLS12,
                 "valid_certs":        s.ValidCerts,

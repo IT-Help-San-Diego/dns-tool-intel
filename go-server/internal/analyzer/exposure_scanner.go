@@ -13,6 +13,10 @@ import (
         "dnstool/go-server/internal/dnsclient"
 )
 
+const (
+	mapKeyCritical = "critical"
+)
+
 const categoryServerInfo = "Server Info"
 
 type ExposureScanner struct {
@@ -43,7 +47,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/.env",
                 Category:    "Environment File",
-                Severity:    "critical",
+                Severity:    mapKeyCritical,
                 Risk:        "May contain database credentials, API keys, and application secrets",
                 Remediation: "Block access via web server config (deny all for dotfiles) or remove from web root",
                 SuccessOn:   []int{200},
@@ -58,7 +62,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/.git/config",
                 Category:    "Git Repository",
-                Severity:    "critical",
+                Severity:    mapKeyCritical,
                 Risk:        "Exposed .git directory allows full source code download including commit history",
                 Remediation: "Block access to .git directory in web server config or remove from web root",
                 SuccessOn:   []int{200},
@@ -69,7 +73,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/.git/HEAD",
                 Category:    "Git Repository",
-                Severity:    "critical",
+                Severity:    mapKeyCritical,
                 Risk:        "Confirms .git directory exposure — full repository can likely be reconstructed",
                 Remediation: "Block access to .git directory in web server config",
                 SuccessOn:   []int{200},
@@ -115,7 +119,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/wp-config.php.bak",
                 Category:    "Backup File",
-                Severity:    "critical",
+                Severity:    mapKeyCritical,
                 Risk:        "WordPress config backup exposes database credentials and secret keys in plain text",
                 Remediation: "Remove all backup files from web root; never store backups in publicly accessible directories",
                 SuccessOn:   []int{200},
@@ -145,7 +149,7 @@ func (e *ExposureScanner) Scan(ctx context.Context, domain string) map[string]an
         baseURL := e.resolveBaseURL(ctx, domain)
         if baseURL == "" {
                 return map[string]any{
-                        "status":        "unreachable",
+                        mapKeyStatus:        "unreachable",
                         "message":       "Domain web server is not reachable",
                         "finding_count": 0,
                         "findings":      []map[string]any{},
@@ -161,7 +165,7 @@ func (e *ExposureScanner) Scan(ctx context.Context, domain string) map[string]an
         for i, f := range findings {
                 findingsMaps[i] = map[string]any{
                         "path":        f.Path,
-                        "status":      f.Status,
+                        mapKeyStatus:      f.Status,
                         "severity":    f.Severity,
                         "category":    f.Category,
                         "detail":      f.Detail,
@@ -171,7 +175,7 @@ func (e *ExposureScanner) Scan(ctx context.Context, domain string) map[string]an
         }
 
         return map[string]any{
-                "status":        status,
+                mapKeyStatus:        status,
                 "message":       message,
                 "finding_count": len(findings),
                 "findings":      findingsMaps,
@@ -303,13 +307,13 @@ func classifyExposureResults(findings []ExposureFinding, checkedPaths []string) 
         }
         hasCritical := false
         for _, f := range findings {
-                if f.Severity == "critical" {
+                if f.Severity == mapKeyCritical {
                         hasCritical = true
                         break
                 }
         }
         if hasCritical {
-                return "critical", fmt.Sprintf("%d critical exposure(s) found in well-known paths", len(findings))
+                return mapKeyCritical, fmt.Sprintf("%d critical exposure(s) found in well-known paths", len(findings))
         }
         return "exposed", fmt.Sprintf("%d exposure(s) found in well-known paths", len(findings))
 }

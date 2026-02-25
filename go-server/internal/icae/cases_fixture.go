@@ -19,6 +19,7 @@ import (
         "strings"
 )
 
+
 func FixtureTestCases() []TestCase {
         var cases []TestCase
         cases = append(cases, wellConfiguredDomainFixtures()...)
@@ -33,7 +34,7 @@ func wellConfiguredDomainFixtures() []TestCase {
                 {
                         CaseID:     "fixture-wellcfg-001",
                         CaseName:   "Well-configured domain: reject + SPF + DMARC = not spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 §6.3 + RFC 7208 (end-to-end)",
                         Expected:   "No — SPF and DMARC reject policy enforced",
@@ -49,13 +50,13 @@ func wellConfiguredDomainFixtures() []TestCase {
                 {
                         CaseID:     "fixture-wellcfg-002",
                         CaseName:   "Well-configured domain: reject + BIMI + CAA = brand protected",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 + BIMI Spec + RFC 8659 (end-to-end)",
                         Expected:   "answer=No, label=Protected",
                         RunFn: func() (string, bool) {
                                 verdict := analyzer.ExportBuildBrandVerdict(false, "reject", true, true)
-                                answer, _ := verdict["answer"].(string)
+                                answer, _ := verdict[mapKeyAnswer].(string)
                                 label, _ := verdict["label"].(string)
                                 actual := fmt.Sprintf("answer=%s, label=%s", answer, label)
                                 return actual, answer == "No" && label == "Protected"
@@ -70,7 +71,7 @@ func wellConfiguredDomainFixtures() []TestCase {
                         Expected:   "tampering=No, provider=Cloudflare",
                         RunFn: func() (string, bool) {
                                 dnsVerdict := analyzer.ExportBuildDNSVerdict(true, false)
-                                answer, _ := dnsVerdict["answer"].(string)
+                                answer, _ := dnsVerdict[mapKeyAnswer].(string)
 
                                 enterprise := analyzer.ExportClassifyEnterpriseDNS("example.com", []string{"ns1.cloudflare.com.", "ns2.cloudflare.com."})
                                 providers, _ := enterprise["dns_providers"].([]string)
@@ -112,7 +113,7 @@ func wellConfiguredDomainFixtures() []TestCase {
                                         "mx": mx,
                                 })
                                 actual := fmt.Sprintf("mode=%s, status=%s, max_age=%d", mode, status, maxAge)
-                                return actual, status == "success"
+                                return actual, status == mapKeySuccess
                         },
                 },
                 {
@@ -142,7 +143,7 @@ func wellConfiguredDomainFixtures() []TestCase {
                                 status, _, _ := analyzer.ExportBuildDANEVerdict(allTLSA, hostsWithDANE, mxHosts, nil)
 
                                 actual := fmt.Sprintf("status=%s, mx=%d, dane_hosts=%d", status, len(mxHosts), len(hostsWithDANE))
-                                return actual, status == "success"
+                                return actual, status == mapKeySuccess
                         },
                 },
         }
@@ -153,7 +154,7 @@ func noMailDomainFixtures() []TestCase {
                 {
                         CaseID:     "fixture-nomail-001",
                         CaseName:   "No-mail domain: null MX + SPF -all = not spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7505 + RFC 7208 (end-to-end)",
                         Expected:   "No — null MX indicates no-mail domain",
@@ -185,7 +186,7 @@ func noMailDomainFixtures() []TestCase {
                                 count, _, _, perm, _, _, noMail := analyzer.ExportParseSPFMechanisms(testSPFDenyAll)
                                 status, _ := analyzer.ExportBuildSPFVerdict(count, perm, noMail, []string{testSPFDenyAll}, nil)
                                 actual := fmt.Sprintf("status=%s, noMail=%t", status, noMail)
-                                return actual, status == "success" && noMail
+                                return actual, status == mapKeySuccess && noMail
                         },
                 },
         }
@@ -196,13 +197,13 @@ func partialProtectionFixtures() []TestCase {
                 {
                         CaseID:     "fixture-partial-001",
                         CaseName:   "Partial protection: quarantine + no BIMI + no CAA",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 + BIMI + RFC 8659 (end-to-end)",
                         Expected:   "answer=Likely, label=Basic",
                         RunFn: func() (string, bool) {
                                 verdict := analyzer.ExportBuildBrandVerdict(false, "quarantine", false, false)
-                                answer, _ := verdict["answer"].(string)
+                                answer, _ := verdict[mapKeyAnswer].(string)
                                 label, _ := verdict["label"].(string)
                                 actual := fmt.Sprintf("answer=%s, label=%s", answer, label)
                                 return actual, answer == "Likely" && label == "Basic"
@@ -211,7 +212,7 @@ func partialProtectionFixtures() []TestCase {
                 {
                         CaseID:     "fixture-partial-002",
                         CaseName:   "Partial protection: p=none with SPF = monitor-only spoofable",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 §6.3 (end-to-end)",
                         Expected:   "monitor-only (spoofable)",
@@ -226,7 +227,7 @@ func partialProtectionFixtures() []TestCase {
                 {
                         CaseID:     "fixture-partial-003",
                         CaseName:   "Partial protection: quarantine at 25% = limited coverage",
-                        Protocol:   "dmarc",
+                        Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 §6.3 (end-to-end)",
                         Expected:   "partial percentage flagged",

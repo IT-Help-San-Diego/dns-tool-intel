@@ -13,6 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	mapKeyInvestigate = "investigate"
+)
+
 const investigateTemplate = "investigate.html"
 
 type InvestigateHandler struct {
@@ -25,33 +29,33 @@ func NewInvestigateHandler(cfg *config.Config, a *analyzer.Analyzer) *Investigat
 }
 
 func (h *InvestigateHandler) InvestigatePage(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	csrfToken, _ := c.Get("csrf_token")
+	nonce, _ := c.Get(mapKeyCspNonce)
+	csrfToken, _ := c.Get(mapKeyCsrfToken)
 
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"CsrfToken":       csrfToken,
-		"ActivePage":      "investigate",
-		"ShowForm":        true,
+		strAppversion:      h.Config.AppVersion,
+		strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:       h.Config.BetaPages,
+		strCspnonce:        nonce,
+		strCsrftoken:       csrfToken,
+		strActivepage:      mapKeyInvestigate,
+		strShowform:        true,
 	}
 	mergeAuthData(c, h.Config, data)
 	c.HTML(http.StatusOK, investigateTemplate, data)
 }
 
 func (h *InvestigateHandler) renderInvestigateError(c *gin.Context, category, msg, domain, ip string, statusCode int) {
-	nonce, _ := c.Get("csp_nonce")
-	csrfToken, _ := c.Get("csrf_token")
+	nonce, _ := c.Get(mapKeyCspNonce)
+	csrfToken, _ := c.Get(mapKeyCsrfToken)
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"CsrfToken":       csrfToken,
-		"ActivePage":      "investigate",
-		"ShowForm":        true,
+		strAppversion:      h.Config.AppVersion,
+		strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:       h.Config.BetaPages,
+		strCspnonce:        nonce,
+		strCsrftoken:       csrfToken,
+		strActivepage:      mapKeyInvestigate,
+		strShowform:        true,
 		"FlashMessages":   []FlashMessage{{Category: category, Message: msg}},
 		"FormDomain":      domain,
 		"FormIP":          ip,
@@ -61,24 +65,24 @@ func (h *InvestigateHandler) renderInvestigateError(c *gin.Context, category, ms
 }
 
 func (h *InvestigateHandler) Investigate(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	csrfToken, _ := c.Get("csrf_token")
+	nonce, _ := c.Get(mapKeyCspNonce)
+	csrfToken, _ := c.Get(mapKeyCsrfToken)
 
 	domain := strings.TrimSpace(c.PostForm("domain"))
 	ip := strings.TrimSpace(c.PostForm("ip_address"))
 
 	if domain == "" || ip == "" {
-		h.renderInvestigateError(c, "danger", "Please enter both a domain name and an IP address.", domain, ip, http.StatusOK)
+		h.renderInvestigateError(c, mapKeyDanger, "Please enter both a domain name and an IP address.", domain, ip, http.StatusOK)
 		return
 	}
 
 	if !dnsclient.ValidateDomain(domain) {
-		h.renderInvestigateError(c, "danger", "Invalid domain name. Enter a domain like example.com.", domain, ip, http.StatusOK)
+		h.renderInvestigateError(c, mapKeyDanger, "Invalid domain name. Enter a domain like example.com.", domain, ip, http.StatusOK)
 		return
 	}
 
 	if !analyzer.ValidateIPAddress(ip) {
-		h.renderInvestigateError(c, "danger", "Invalid IP address. Enter a valid IPv4 or IPv6 address.", domain, ip, http.StatusOK)
+		h.renderInvestigateError(c, mapKeyDanger, "Invalid IP address. Enter a valid IPv4 or IPv6 address.", domain, ip, http.StatusOK)
 		return
 	}
 
@@ -163,13 +167,13 @@ func (h *InvestigateHandler) Investigate(c *gin.Context) {
 	}
 
 	resultsData := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"CsrfToken":       csrfToken,
-		"ActivePage":      "investigate",
-		"ShowForm":        false,
+		strAppversion:      h.Config.AppVersion,
+		strMaintenancenote: h.Config.MaintenanceNote,
+		strBetapages:       h.Config.BetaPages,
+		strCspnonce:        nonce,
+		strCsrftoken:       csrfToken,
+		strActivepage:      mapKeyInvestigate,
+		strShowform:        false,
 		"ShowResults":     true,
 		"Domain":          domain,
 		"AsciiDomain":     asciiDomain,

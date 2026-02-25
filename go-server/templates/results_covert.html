@@ -1473,6 +1473,22 @@
         });
     }
 
+    function handleReconPage(html, respUrl) {
+        document.open();
+        document.write(html);
+        document.close();
+        globalThis.scrollTo(0, 0);
+        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+        const idEl = document.querySelector('[data-analysis-id]');
+        const rMode = modeMeta ? modeMeta.content : '';
+        const rAid = idEl ? idEl.dataset.analysisId : '';
+        if (rAid && rMode) {
+            globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
+        } else if (respUrl && respUrl !== globalThis.location.href) {
+            globalThis.history.replaceState(null, '', respUrl);
+        }
+    }
+
     function setupIntegrityHashCopy() {
         const btn = document.getElementById('copyIntegrityHash');
         if (btn) {
@@ -1575,21 +1591,6 @@
                     }
 
                     const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
-                    function handleReconPage(html, respUrl) {
-                        document.open();
-                        document.write(html);
-                        document.close();
-                        globalThis.scrollTo(0, 0);
-                        const modeMeta = document.querySelector('meta[name="x-report-mode"]');
-                        const idEl = document.querySelector('[data-analysis-id]');
-                        const rMode = modeMeta ? modeMeta.content : '';
-                        const rAid = idEl ? idEl.dataset.analysisId : '';
-                        if (rAid && rMode) {
-                            globalThis.history.replaceState(null, '', '/analysis/' + rAid + '/view/' + rMode);
-                        } else if (respUrl && respUrl !== globalThis.location.href) {
-                            globalThis.history.replaceState(null, '', respUrl);
-                        }
-                    }
                     fetch(url, {
                         headers: { 'X-Requested-With': 'fetch' },
                         redirect: 'follow'

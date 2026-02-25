@@ -22,6 +22,11 @@ const (
         nameLinode          = "Linode"
         nameNamecheap       = "Namecheap"
         nameAmazonRoute53   = "Amazon Route 53"
+
+
+	mapKeyLabel = "label"
+	mapKeyLevel = "level"
+	mapKeyMethod = "method"
 )
 
 var enterpriseProviders = map[string]providerInfo{}
@@ -60,16 +65,16 @@ func (a *Analyzer) GetHostingInfo(ctx context.Context, domain string, results ma
         emailHosting := identifyEmailProviderOSS(mxRecords)
 
         hostConf := map[string]any{}
-        if webHosting != "Unknown" {
-                hostConf = map[string]any{"level": "observed", "label": "Observed", "method": "CNAME record analysis"}
+        if webHosting != strUnknown {
+                hostConf = map[string]any{mapKeyLevel: "observed", mapKeyLabel: "Observed", mapKeyMethod: "CNAME record analysis"}
         }
         dnsConf := map[string]any{}
-        if dnsHosting != "Unknown" {
-                dnsConf = map[string]any{"level": "observed", "label": "Observed", "method": "NS record analysis"}
+        if dnsHosting != strUnknown {
+                dnsConf = map[string]any{mapKeyLevel: "observed", mapKeyLabel: "Observed", mapKeyMethod: "NS record analysis"}
         }
         emailConf := map[string]any{}
-        if emailHosting != "Unknown" {
-                emailConf = map[string]any{"level": "inferred", "label": "Inferred", "method": "MX record analysis"}
+        if emailHosting != strUnknown {
+                emailConf = map[string]any{mapKeyLevel: "inferred", mapKeyLabel: "Inferred", mapKeyMethod: "MX record analysis"}
         }
 
         return map[string]any{
@@ -101,7 +106,7 @@ func identifyWebHostingOSS(cnameRecords []string) string {
                         }
                 }
         }
-        return "Unknown"
+        return strUnknown
 }
 
 func identifyDNSProviderOSS(nsRecords []string) string {
@@ -111,7 +116,7 @@ func identifyDNSProviderOSS(nsRecords []string) string {
                         return provider
                 }
         }
-        return "Unknown"
+        return strUnknown
 }
 
 func identifyEmailProviderOSS(mxRecords []string) string {
@@ -125,7 +130,7 @@ func identifyEmailProviderOSS(mxRecords []string) string {
                         }
                 }
         }
-        return "Unknown"
+        return strUnknown
 }
 
 func (a *Analyzer) DetectEmailSecurityManagement(spf, dmarc, tlsrpt, mtasts map[string]any, domain string, dkim map[string]any) map[string]any {

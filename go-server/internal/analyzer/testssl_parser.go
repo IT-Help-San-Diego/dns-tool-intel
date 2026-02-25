@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	strCritical = "CRITICAL"
+)
+
 type TestSSLFinding struct {
 	ID       string `json:"id"`
 	Severity string `json:"severity"`
@@ -71,7 +75,7 @@ func classifyFindings(result *TestSSLResult, findings []TestSSLFinding) {
 		case isVulnerability(id):
 			result.Vulnerabilities = append(result.Vulnerabilities, f)
 		default:
-			if f.Severity == "CRITICAL" || f.Severity == "HIGH" || f.Severity == "MEDIUM" {
+			if f.Severity == strCritical || f.Severity == "HIGH" || f.Severity == "MEDIUM" {
 				result.Vulnerabilities = append(result.Vulnerabilities, f)
 			}
 		}
@@ -122,7 +126,7 @@ func analyzeVulnerabilities(result *TestSSLResult) {
 		finding := strings.ToLower(v.Finding)
 		vulnerable := strings.Contains(finding, "vulnerable") ||
 			strings.Contains(finding, "offered") ||
-			sev == "CRITICAL" || sev == "HIGH"
+			sev == strCritical || sev == "HIGH"
 
 		if vulnerable && !strings.Contains(finding, "not vulnerable") &&
 			!strings.Contains(finding, "not offered") {
@@ -160,7 +164,7 @@ func rateOverall(result *TestSSLResult) {
 	highCount := 0
 	for _, v := range result.Vulnerabilities {
 		sev := strings.ToUpper(v.Severity)
-		if sev == "CRITICAL" {
+		if sev == strCritical {
 			critCount++
 		}
 		if sev == "HIGH" {

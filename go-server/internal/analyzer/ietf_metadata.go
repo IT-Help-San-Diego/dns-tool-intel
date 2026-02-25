@@ -12,6 +12,7 @@ import (
         "time"
 )
 
+
 type RFCMetadata struct {
         Number      string `json:"number"`
         Title       string `json:"title"`
@@ -97,7 +98,7 @@ func fetchSingleRFC(number string) *RFCMetadata {
         defer resp.Body.Close()
 
         if resp.StatusCode != http.StatusOK {
-                slog.Debug("IETF metadata: unexpected status", "rfc", number, "status", resp.StatusCode)
+                slog.Debug("IETF metadata: unexpected status", "rfc", number, mapKeyStatus, resp.StatusCode)
                 return nil
         }
 
@@ -192,7 +193,7 @@ func GetAllRFCMetadata() map[string]map[string]any {
                 entry := map[string]any{
                         "number":      v.Number,
                         "title":       v.Title,
-                        "status":      v.Status,
+                        mapKeyStatus:      v.Status,
                         "is_obsolete": v.IsObsolete,
                 }
                 if len(v.ObsoletedBy) > 0 {
@@ -217,7 +218,7 @@ func GetObsoleteWarnings() []map[string]any {
                                 "rfc":          fmt.Sprintf("RFC %s", meta.Number),
                                 "title":        meta.Title,
                                 "obsoleted_by": meta.ObsoletedBy,
-                                "status":       meta.Status,
+                                mapKeyStatus:       meta.Status,
                         })
                 }
         }

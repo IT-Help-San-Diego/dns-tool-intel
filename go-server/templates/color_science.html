@@ -201,6 +201,18 @@
             return e;
         }
 
+        function wcagBadgeClass(cr, passThreshold, warnThreshold) {
+            if (cr >= passThreshold) return 'bg-success';
+            if (cr >= warnThreshold) return 'bg-warning text-dark';
+            return 'bg-danger';
+        }
+
+        function wcagBadgeLabel(cr, passThreshold, warnThreshold, passLabel, warnLabel) {
+            if (cr >= passThreshold) return passLabel;
+            if (cr >= warnThreshold) return warnLabel;
+            return 'Fail';
+        }
+
         const container = document.getElementById('palette-cards');
 
         colors.forEach(function(color) {
@@ -315,18 +327,14 @@
                     td.appendChild(el('div', 'small text-muted', '\u2014'));
                 } else {
                     const aaDiv = el('div', 'small');
-                    const aaClass = cr >= 4.5 ? 'bg-success' : (cr >= 3 ? 'bg-warning text-dark' : 'bg-danger');
-                    const aaLabel = cr >= 4.5 ? 'AA' : (cr >= 3 ? 'AA-lg' : 'Fail');
-                    const aaBadge = el('span', 'badge ' + aaClass);
-                    aaBadge.textContent = aaLabel;
+                    const aaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 4.5, 3));
+                    aaBadge.textContent = wcagBadgeLabel(cr, 4.5, 3, 'AA', 'AA-lg');
                     aaDiv.appendChild(aaBadge);
                     td.appendChild(aaDiv);
 
                     const aaaDiv = el('div', 'small');
-                    const aaaClass = cr >= 7 ? 'bg-success' : (cr >= 4.5 ? 'bg-warning text-dark' : 'bg-danger');
-                    const aaaLabel = cr >= 7 ? 'AAA' : (cr >= 4.5 ? 'AAA-lg' : 'Fail');
-                    const aaaBadge = el('span', 'badge ' + aaaClass);
-                    aaaBadge.textContent = aaaLabel;
+                    const aaaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 7, 4.5));
+                    aaaBadge.textContent = wcagBadgeLabel(cr, 7, 4.5, 'AAA', 'AAA-lg');
                     aaaDiv.appendChild(aaaBadge);
                     td.appendChild(aaaDiv);
                 }

@@ -14,6 +14,13 @@ const (
         roadmapDateFeb2026    = "Feb 2026"
         roadmapVersionV2620   = "v26.20.0+"
         roadmapTypeFeature    = "Feature"
+
+
+	strMedium = "Medium"
+	strQuality = "Quality"
+	strV262594 = "v26.25.94"
+	strV262602 = "v26.26.02"
+	strV262605 = "v26.26.05"
 )
 
 type RoadmapItem struct {
@@ -64,38 +71,38 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Question Branding System (dt-question)", Version: "v26.25.70", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Approach & Methodology Page", Version: "v26.25.83", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "TTL Alignment & Big Picture Questions", Version: "v26.25.93", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Unified Confidence Aggregation (ICD 203)", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Unified Confidence Aggregation (ICD 203)", Version: strV262594, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Homepage Simplification & TTL Deep Linking", Version: "v26.25.95", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "DMARC External Auth Remediation", Version: "v26.25.95", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Symbiotic Security — Five Archetypes Section", Version: "v26.25.96", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Methodology Page Rename & Cross-Links", Version: "v26.25.96", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Delegation Consistency Analyzer", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Nameserver Fleet Matrix", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "DNSSEC Operations Deep Dive", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Delegation Consistency Analyzer", Version: strV262594, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Nameserver Fleet Matrix", Version: strV262594, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "DNSSEC Operations Deep Dive", Version: strV262594, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Live SonarCloud Badge & Evidence Qualification", Version: "v26.25.97", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Probe Network Second Node (Kali)", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Multi-Probe Consensus Engine", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Public Roadmap Page", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "SonarCloud Quality Gate Fix", Version: "v26.26.03", Date: roadmapDateFeb2026, Type: "Quality"},
-                {Title: "Nmap Subdomain Enrichment", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Admin Probe Management Panel", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Probe Network Second Node (Kali)", Version: strV262602, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Multi-Probe Consensus Engine", Version: strV262602, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Public Roadmap Page", Version: strV262602, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "SonarCloud Quality Gate Fix", Version: "v26.26.03", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "Nmap Subdomain Enrichment", Version: strV262602, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Admin Probe Management Panel", Version: strV262602, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "LLMs.txt & JSON-LD Consistency Audit", Version: "v26.26.04", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Stats Page Visual Redesign", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Notion Bidirectional Sync", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Covert Mode Color Leak Audit", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Stats Confidence Engine Preview Card", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Failed Analysis Transparency Page", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Stats Page Visual Redesign", Version: strV262605, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Notion Bidirectional Sync", Version: strV262605, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Covert Mode Color Leak Audit", Version: strV262605, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Stats Confidence Engine Preview Card", Version: strV262605, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Failed Analysis Transparency Page", Version: strV262605, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Documentation Reality Check (LLMs + JSON-LD + Roadmap)", Version: "v26.26.06", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Covert Mode Tactical Red Filter (MIL-STD-3009)", Version: "v26.26.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Covert Mode Environment Presets (Submarine/Tactical/Operator)", Version: "v26.26.10", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Operator Mode Color Science (mix-blend-mode: color)", Version: "v26.26.11", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Covert Environment Icons & Accent Gray Hierarchy", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "SonarCloud Deep Sweep — String Constants & Regex Hardening", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: "Quality"},
-                {Title: "SonarCloud Hotspot & Vulnerability Review — Full Audit Trail", Version: "v26.26.15", Date: roadmapDateFeb2026, Type: "Quality"},
+                {Title: "SonarCloud Deep Sweep — String Constants & Regex Hardening", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "SonarCloud Hotspot & Vulnerability Review — Full Audit Trail", Version: "v26.26.15", Date: roadmapDateFeb2026, Type: strQuality},
         }
 
         inProgress := []RoadmapItem{
-                {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass treatment, question branding, and token system across all report modes"},
+                {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Glass treatment, question branding, and token system across all report modes"},
                 {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: "Low", Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
         }
 
@@ -107,12 +114,12 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
         }
 
         backlog := []RoadmapItem{
-                {Title: "Personal Analysis History", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Per-user session tracking and analysis library"},
-                {Title: "Drift Engine Alerts", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Webhook/email notifications when domain security posture changes"},
-                {Title: "Saved Reports", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Bookmark and revisit past analyses with snapshot storage"},
-                {Title: "Drift Engine Phases 3–4", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Timeline visualization and scheduled monitoring with baselines"},
-                {Title: "Probe Security.txt + Landing Pages", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Transparency artifacts for probe VPS nodes"},
-                {Title: "Homebrew Distribution", Type: roadmapTypeFeature, Priority: "Medium", Notes: "macOS/Linux package distribution for CLI app"},
+                {Title: "Personal Analysis History", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Per-user session tracking and analysis library"},
+                {Title: "Drift Engine Alerts", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Webhook/email notifications when domain security posture changes"},
+                {Title: "Saved Reports", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Bookmark and revisit past analyses with snapshot storage"},
+                {Title: "Drift Engine Phases 3–4", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Timeline visualization and scheduled monitoring with baselines"},
+                {Title: "Probe Security.txt + Landing Pages", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Transparency artifacts for probe VPS nodes"},
+                {Title: "Homebrew Distribution", Type: roadmapTypeFeature, Priority: strMedium, Notes: "macOS/Linux package distribution for CLI app"},
                 {Title: "Globalping.io Integration", Type: roadmapTypeFeature, Priority: "Low", Notes: "Distributed DNS resolution from 100+ global locations"},
                 {Title: "Zone File Import as Drift Baseline", Type: roadmapTypeFeature, Priority: "Low", Notes: "Upload zone files to establish posture baseline for drift detection"},
                 {Title: "Raw Intelligence API Access", Type: roadmapTypeFeature, Priority: "Low", Notes: "Direct access to collected intelligence without processing layers"},

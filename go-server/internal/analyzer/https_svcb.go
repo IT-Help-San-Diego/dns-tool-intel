@@ -13,15 +13,22 @@ import (
         "codeberg.org/miekg/dns/svcb"
 )
 
+const (
+	mapKeyHasHttps = "has_https"
+	mapKeyHasSvcb = "has_svcb"
+	mapKeySupportsEch = "supports_ech"
+	strSupportsHttp3 = "supports_http3"
+)
+
 func (a *Analyzer) AnalyzeHTTPSSVCB(ctx context.Context, domain string) map[string]any {
         result := map[string]any{
                 "status":          "success",
-                "has_https":       false,
-                "has_svcb":        false,
+                mapKeyHasHttps:       false,
+                mapKeyHasSvcb:        false,
                 "https_records":   []map[string]any{},
                 "svcb_records":    []map[string]any{},
-                "supports_http3":  false,
-                "supports_ech":    false,
+                strSupportsHttp3:  false,
+                mapKeySupportsEch:    false,
                 "issues":          []string{},
         }
 
@@ -29,19 +36,19 @@ func (a *Analyzer) AnalyzeHTTPSSVCB(ctx context.Context, domain string) map[stri
         svcbRecords := a.querySVCBRecords(ctx, domain)
 
         if len(httpsRecords) > 0 {
-                result["has_https"] = true
+                result[mapKeyHasHttps] = true
                 parsed := parseHTTPSRecords(httpsRecords)
                 result["https_records"] = parsed
                 updateSVCBCapabilities(result, parsed)
         }
 
         if len(svcbRecords) > 0 {
-                result["has_svcb"] = true
+                result[mapKeyHasSvcb] = true
                 parsed := parseSVCBRecords(svcbRecords)
                 result["svcb_records"] = parsed
         }
 
-        if !result["has_https"].(bool) && !result["has_svcb"].(bool) {
+        if !result[mapKeyHasHttps].(bool) && !result[mapKeyHasSvcb].(bool) {
                 result["status"] = "info"
                 result["message"] = "No HTTPS or SVCB records found"
         } else {
@@ -171,23 +178,23 @@ func hasHTTP3(alpnList []string) bool {
 func updateSVCBCapabilities(result map[string]any, parsed []map[string]any) {
         for _, rec := range parsed {
                 if h3, ok := rec["http3"].(bool); ok && h3 {
-                        result["supports_http3"] = true
+                        result[strSupportsHttp3] = true
                 }
                 if ech, ok := rec["ech"].(bool); ok && ech {
-                        result["supports_ech"] = true
+                        result[mapKeySupportsEch] = true
                 }
         }
 }
 
 func buildHTTPSMessage(result map[string]any) string {
         parts := []string{}
-        if result["has_https"].(bool) {
+        if result[mapKeyHasHttps].(bool) {
                 parts = append(parts, "HTTPS records found")
         }
-        if result["supports_http3"].(bool) {
+        if result[strSupportsHttp3].(bool) {
                 parts = append(parts, "HTTP/3 supported")
         }
-        if result["supports_ech"].(bool) {
+        if result[mapKeySupportsEch].(bool) {
                 parts = append(parts, "ECH (Encrypted Client Hello) enabled")
         }
         if len(parts) == 0 {

@@ -12,6 +12,7 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+
 const templateDrift = "drift.html"
 
 type DriftHandler struct {
@@ -56,7 +57,7 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
         domain := c.Query("domain")
         if domain == "" {
                 data := h.driftBaseData(c, "")
-                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Domain parameter is required. Use ?domain=example.com"}}
+                data[strFlashmessages] = []FlashMessage{{Category: mapKeyDanger, Message: "Domain parameter is required. Use ?domain=example.com"}}
                 c.HTML(http.StatusBadRequest, templateDrift, data)
                 return
         }
@@ -69,7 +70,7 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
         })
         if err != nil {
                 data := h.driftBaseData(c, domain)
-                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to load drift events"}}
+                data[strFlashmessages] = []FlashMessage{{Category: mapKeyDanger, Message: "Failed to load drift events"}}
                 c.HTML(http.StatusInternalServerError, templateDrift, data)
                 return
         }
@@ -80,7 +81,7 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
         })
         if err != nil {
                 data := h.driftBaseData(c, domain)
-                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to load analysis history"}}
+                data[strFlashmessages] = []FlashMessage{{Category: mapKeyDanger, Message: "Failed to load analysis history"}}
                 c.HTML(http.StatusInternalServerError, templateDrift, data)
                 return
         }

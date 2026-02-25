@@ -23,6 +23,12 @@ const (
         stSubdomainCacheTTL = 24 * time.Hour
         stMaxSubdomainCache = 500
         stRateLimitCooldown = 6 * time.Hour
+
+
+	mapKeyCount = "count"
+	mapKeyMonth = "month"
+	strAccept = "Accept"
+	strApikey = "APIKEY"
 )
 
 var (
@@ -49,7 +55,7 @@ func (b *stAPIBudget) canSpend(n int) bool {
                 b.callCount = 0
                 b.monthKey = currentMonth
                 b.rateLimitedAt = time.Time{}
-                slog.Info("SecurityTrails budget: new month reset", "month", currentMonth)
+                slog.Info("SecurityTrails budget: new month reset", mapKeyMonth, currentMonth)
         }
 
         if !b.rateLimitedAt.IsZero() && time.Since(b.rateLimitedAt) < stRateLimitCooldown {
@@ -78,11 +84,11 @@ func (b *stAPIBudget) stats() map[string]any {
         defer b.mu.Unlock()
         currentMonth := time.Now().UTC().Format("2006-01")
         if b.monthKey != currentMonth {
-                return map[string]any{"month": currentMonth, "used": 0, "budget": stMonthlyBudget, "available": true}
+                return map[string]any{mapKeyMonth: currentMonth, "used": 0, "budget": stMonthlyBudget, "available": true}
         }
         cooldownActive := !b.rateLimitedAt.IsZero() && time.Since(b.rateLimitedAt) < stRateLimitCooldown
         return map[string]any{
-                "month":            b.monthKey,
+                mapKeyMonth:            b.monthKey,
                 "used":             b.callCount,
                 "budget":           stMonthlyBudget,
                 "available":        b.callCount < stMonthlyBudget-stBudgetReserve && !cooldownActive,
@@ -187,12 +193,12 @@ func FetchSubdomains(ctx context.Context, domain string) ([]string, *STFetchStat
         }
 
         if cached, ok := getSubdomainCache(domain); ok {
-                slog.Info("SecurityTrails subdomains: cache hit", "domain", domain, "count", len(cached))
+                slog.Info("SecurityTrails subdomains: cache hit", mapKeyDomain, domain, mapKeyCount, len(cached))
                 return cached, nil, nil
         }
 
         if !stBudget.canSpend(1) {
-                slog.Info("SecurityTrails subdomains: budget exhausted, skipping", "domain", domain)
+                slog.Info("SecurityTrails subdomains: budget exhausted, skipping", mapKeyDomain, domain)
                 return []string{}, nil, nil
         }
 
@@ -200,34 +206,34 @@ func FetchSubdomains(ctx context.Context, domain string) ([]string, *STFetchStat
 
         req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
         if err != nil {
-                slog.Warn("SecurityTrails: failed to create request", "domain", domain, "error", err)
+                slog.Warn("SecurityTrails: failed to create request", mapKeyDomain, domain, mapKeyError, err)
                 return []string{}, &STFetchStatus{Errored: true}, nil
         }
-        req.Header.Set("APIKEY", securityTrailsAPIKey)
-        req.Header.Set("Accept", contentTypeJSON)
+        req.Header.Set(strApikey, securityTrailsAPIKey)
+        req.Header.Set(strAccept, contentTypeJSON)
 
         stBudget.spend(1)
         resp, err := securityTrailsHTTPClient.Do(req)
         if err != nil {
-                slog.Warn("SecurityTrails: request failed", "domain", domain, "error", err)
+                slog.Warn("SecurityTrails: request failed", mapKeyDomain, domain, mapKeyError, err)
                 return []string{}, &STFetchStatus{Errored: true}, nil
         }
         defer resp.Body.Close()
 
         if resp.StatusCode == http.StatusTooManyRequests {
-                slog.Warn("SecurityTrails: rate limited (429)", "domain", domain)
+                slog.Warn("SecurityTrails: rate limited (429)", mapKeyDomain, domain)
                 stBudget.markRateLimited()
                 return []string{}, &STFetchStatus{RateLimited: true}, nil
         }
 
         if resp.StatusCode != http.StatusOK {
-                slog.Warn("SecurityTrails: unexpected status", "domain", domain, "status", resp.StatusCode)
+                slog.Warn("SecurityTrails: unexpected status", mapKeyDomain, domain, mapKeyStatus, resp.StatusCode)
                 return []string{}, &STFetchStatus{Errored: true}, nil
         }
 
         var stResp stSubdomainsResponse
         if err := json.NewDecoder(resp.Body).Decode(&stResp); err != nil {
-                slog.Warn("SecurityTrails: failed to parse response", "domain", domain, "error", err)
+                slog.Warn("SecurityTrails: failed to parse response", mapKeyDomain, domain, mapKeyError, err)
                 return []string{}, &STFetchStatus{Errored: true}, nil
         }
 
@@ -240,7 +246,7 @@ func FetchSubdomains(ctx context.Context, domain string) ([]string, *STFetchStat
         }
 
         setSubdomainCache(domain, fqdns)
-        slog.Info("SecurityTrails: discovered subdomains", "domain", domain, "count", len(fqdns))
+        slog.Info("SecurityTrails: discovered subdomains", mapKeyDomain, domain, mapKeyCount, len(fqdns))
         return fqdns, nil, nil
 }
 
@@ -272,22 +278,22 @@ func fetchDomainsByIPInternal(ctx context.Context, ip, apiKey string) ([]string,
         }
         body, err := json.Marshal(payload)
         if err != nil {
-                slog.Warn("SecurityTrails: failed to marshal search payload", "ip", ip, "error", err)
+                slog.Warn("SecurityTrails: failed to marshal search payload", "ip", ip, mapKeyError, err)
                 return []string{}, nil
         }
 
         req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.securitytrails.com/v1/search/list", bytes.NewReader(body))
         if err != nil {
-                slog.Warn("SecurityTrails: failed to create search request", "ip", ip, "error", err)
+                slog.Warn("SecurityTrails: failed to create search request", "ip", ip, mapKeyError, err)
                 return []string{}, nil
         }
-        req.Header.Set("APIKEY", apiKey)
-        req.Header.Set("Accept", contentTypeJSON)
+        req.Header.Set(strApikey, apiKey)
+        req.Header.Set(strAccept, contentTypeJSON)
         req.Header.Set("Content-Type", contentTypeJSON)
 
         resp, err := securityTrailsHTTPClient.Do(req)
         if err != nil {
-                slog.Warn("SecurityTrails: search request failed", "ip", ip, "error", err)
+                slog.Warn("SecurityTrails: search request failed", "ip", ip, mapKeyError, err)
                 return nil, fmt.Errorf("connection_error")
         }
         defer resp.Body.Close()
@@ -298,18 +304,18 @@ func fetchDomainsByIPInternal(ctx context.Context, ip, apiKey string) ([]string,
         }
 
         if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
-                slog.Warn("SecurityTrails: auth failed", "ip", ip, "status", resp.StatusCode)
+                slog.Warn("SecurityTrails: auth failed", "ip", ip, mapKeyStatus, resp.StatusCode)
                 return nil, fmt.Errorf("auth_failed")
         }
 
         if resp.StatusCode != http.StatusOK {
-                slog.Warn("SecurityTrails: search unexpected status", "ip", ip, "status", resp.StatusCode)
+                slog.Warn("SecurityTrails: search unexpected status", "ip", ip, mapKeyStatus, resp.StatusCode)
                 return nil, fmt.Errorf("api_error_%d", resp.StatusCode)
         }
 
         var stResp stSearchResponse
         if err := json.NewDecoder(resp.Body).Decode(&stResp); err != nil {
-                slog.Warn("SecurityTrails: failed to parse search response", "ip", ip, "error", err)
+                slog.Warn("SecurityTrails: failed to parse search response", "ip", ip, mapKeyError, err)
                 return []string{}, nil
         }
 
@@ -320,7 +326,7 @@ func fetchDomainsByIPInternal(ctx context.Context, ip, apiKey string) ([]string,
                 }
         }
 
-        slog.Info("SecurityTrails: discovered domains by IP", "ip", ip, "count", len(domains))
+        slog.Info("SecurityTrails: discovered domains by IP", "ip", ip, mapKeyCount, len(domains))
         return domains, nil
 }
 
@@ -335,8 +341,8 @@ func FetchSubdomainsWithKey(ctx context.Context, domain, userAPIKey string) ([]s
         if err != nil {
                 return nil, err
         }
-        req.Header.Set("APIKEY", userAPIKey)
-        req.Header.Set("Accept", contentTypeJSON)
+        req.Header.Set(strApikey, userAPIKey)
+        req.Header.Set(strAccept, contentTypeJSON)
 
         resp, err := securityTrailsHTTPClient.Do(req)
         if err != nil {
@@ -360,6 +366,6 @@ func FetchSubdomainsWithKey(ctx context.Context, domain, userAPIKey string) ([]s
                 }
         }
 
-        slog.Info("SecurityTrails: discovered subdomains (user key)", "domain", domain, "count", len(fqdns))
+        slog.Info("SecurityTrails: discovered subdomains (user key)", mapKeyDomain, domain, mapKeyCount, len(fqdns))
         return fqdns, nil
 }

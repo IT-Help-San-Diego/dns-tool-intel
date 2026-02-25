@@ -18,6 +18,25 @@ const (
 
         protocolMTASTS = "MTA-STS"
         protocolTLSRPT = "TLS-RPT"
+
+
+        mapKeyAiCrawlerGovernance = "ai_crawler_governance"
+        mapKeyAiLlmsTxt = "ai_llms_txt"
+        mapKeyAnswer = "answer"
+        mapKeyBrandImpersonation = "brand_impersonation"
+        mapKeyColor = "color"
+        mapKeyDanger = "danger"
+        mapKeyDnsTampering = "dns_tampering"
+        mapKeyEmailSpoofing = "email_spoofing"
+        mapKeySecondary = "secondary"
+        mapKeyTransport = "transport"
+        strBasic = "Basic"
+        strExposed = "Exposed"
+        strLikely = "Likely"
+        strPartially = "Partially"
+        strPossible = "Possible"
+        strProtected = "Protected"
+        strUnlikely = "Unlikely"
 )
 
 type protocolState struct {
@@ -86,11 +105,11 @@ func evaluateSPFState(spf map[string]any) (spfOK, spfWarning, spfMissing, spfHar
                 return
         }
 
-        status, _ := spf["status"].(string)
+        status, _ := spf[mapKeyStatus].(string)
         switch status {
-        case "success":
+        case mapKeySuccess:
                 spfOK = true
-        case "warning":
+        case mapKeyWarning:
                 spfWarning = true
                 spfOK = true
         default:
@@ -121,11 +140,11 @@ func evaluateDMARCState(dmarc map[string]any) (dmarcOK, dmarcWarning, dmarcMissi
                 return
         }
 
-        status, _ := dmarc["status"].(string)
+        status, _ := dmarc[mapKeyStatus].(string)
         switch status {
-        case "success":
+        case mapKeySuccess:
                 dmarcOK = true
-        case "warning":
+        case mapKeyWarning:
                 dmarcWarning = true
                 dmarcOK = true
         default:
@@ -145,11 +164,11 @@ func evaluateDKIMState(dkim map[string]any) (dkimOK, dkimProvider, dkimPartial, 
                 return
         }
 
-        status, _ := dkim["status"].(string)
+        status, _ := dkim[mapKeyStatus].(string)
         switch status {
-        case "success":
+        case mapKeySuccess:
                 dkimOK = true
-        case "warning":
+        case mapKeyWarning:
                 dkimOK = true
         }
 
@@ -172,7 +191,7 @@ func evaluateSimpleProtocolState(analysis map[string]any, successField string) b
                 return false
         }
         status, _ := analysis[successField].(string)
-        return status == "success"
+        return status == mapKeySuccess
 }
 
 func evaluateProtocolStates(results map[string]any) protocolState {
@@ -202,10 +221,10 @@ func evaluateProtocolStates(results map[string]any) protocolState {
         ps.dmarcOK, ps.dmarcWarning, ps.dmarcMissing, ps.dmarcHasRua, ps.dmarcPolicy, ps.dmarcPct = evaluateDMARCState(dmarc)
         ps.dkimOK, ps.dkimProvider, ps.dkimPartial, ps.dkimWeakKeys, ps.dkimThirdPartyOnly, ps.primaryProvider = evaluateDKIMState(dkim)
 
-        ps.caaOK = evaluateSimpleProtocolState(caa, "status")
-        ps.mtaStsOK = evaluateSimpleProtocolState(mtaSts, "status")
-        ps.tlsrptOK = evaluateSimpleProtocolState(tlsrpt, "status")
-        ps.bimiOK = evaluateSimpleProtocolState(bimi, "status")
+        ps.caaOK = evaluateSimpleProtocolState(caa, mapKeyStatus)
+        ps.mtaStsOK = evaluateSimpleProtocolState(mtaSts, mapKeyStatus)
+        ps.tlsrptOK = evaluateSimpleProtocolState(tlsrpt, mapKeyStatus)
+        ps.bimiOK = evaluateSimpleProtocolState(bimi, mapKeyStatus)
 
         evaluateDANEState(dane, &ps)
         evaluateDNSSECState(dnssec, &ps)
@@ -229,9 +248,9 @@ func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
         if isMissingRecord(dnssec) {
                 return
         }
-        status, _ := dnssec["status"].(string)
+        status, _ := dnssec[mapKeyStatus].(string)
         switch status {
-        case "success":
+        case mapKeySuccess:
                 ps.dnssecOK = true
         case "error":
                 ps.dnssecBroken = true
@@ -263,7 +282,7 @@ func isMissingRecord(m map[string]any) bool {
         if m == nil {
                 return true
         }
-        status, _ := m["status"].(string)
+        status, _ := m[mapKeyStatus].(string)
         return status == "error" || status == "missing" || status == "n/a"
 }
 
@@ -329,7 +348,7 @@ func evaluateDKIMIssues(dkim map[string]any) (weakKeys, thirdPartyOnly bool) {
                 thirdPartyOnly = true
         }
 
-        if issues, ok := dkim["issues"].([]any); ok {
+        if issues, ok := dkim[mapKeyIssues].([]any); ok {
                 for _, issue := range issues {
                         if s, ok := issue.(string); ok {
                                 lower := strings.ToLower(s)
@@ -398,9 +417,9 @@ func classifyDMARC(ps protocolState, acc *postureAccumulator) {
 
 func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
         switch ps.dmarcPolicy {
-        case "reject":
+        case mapKeyReject:
                 acc.configured = append(acc.configured, "DMARC (reject)")
-        case "quarantine":
+        case mapKeyQuarantine:
                 if ps.dmarcPct >= 100 {
                         acc.configured = append(acc.configured, "DMARC (quarantine, 100%)")
                         acc.recommendations = append(acc.recommendations, "Upgrade DMARC policy from quarantine to reject (p=reject) for maximum spoofing protection")
@@ -526,7 +545,7 @@ func classifyDMARCReportAuth(results map[string]any, acc *postureAccumulator) {
                 return
         }
 
-        issues, _ := reportAuth["issues"].([]string)
+        issues, _ := reportAuth[mapKeyIssues].([]string)
         for _, issue := range issues {
                 acc.monitoring = append(acc.monitoring, issue)
         }
@@ -646,10 +665,10 @@ func evaluateDeliberateMonitoring(ps protocolState, configuredCount int) (bool, 
         if ps.dmarcPolicy == "none" && configuredCount >= 2 {
                 return true, "Domain appears to be in deliberate DMARC monitoring phase with aggregate reporting enabled"
         }
-        if ps.dmarcPolicy == "quarantine" && ps.dmarcPct < 100 && configuredCount >= 2 {
+        if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100 && configuredCount >= 2 {
                 return true, "Domain appears to be in deliberate DMARC deployment phase — quarantine at partial enforcement with reporting enabled"
         }
-        if ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100 && configuredCount >= 2 {
+        if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct >= 100 && configuredCount >= 2 {
                 return true, "Domain appears to be in deliberate DMARC deployment phase — quarantine fully enforced with reporting, consider upgrading to reject"
         }
         return false, ""
@@ -724,12 +743,12 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
         return map[string]any{
                 "score":                      score,
                 "grade":                      grade,
-                "label":                      label,
+                mapKeyLabel:                      label,
                 "state":                      state,
                 "icon":                       icon,
-                "color":                      color,
+                mapKeyColor:                      color,
                 "message":                    message,
-                "issues":                     acc.issues,
+                mapKeyIssues:                     acc.issues,
                 "critical_issues":            criticalIssues,
                 "recommendations":            acc.recommendations,
                 "monitoring":                 acc.monitoring,
@@ -744,9 +763,9 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
 
 func determineGrade(ps protocolState, ds DKIMState, gi gradeInput) (state, icon, color, message string) {
         gi.corePresent = gi.hasSPF && gi.hasDMARC
-        gi.dmarcFullEnforcing = ps.dmarcPolicy == "reject" || (ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100)
-        gi.dmarcPartialEnforcing = ps.dmarcPolicy == "quarantine" && ps.dmarcPct < 100
-        gi.dmarcStrict = ps.dmarcPolicy == "reject"
+        gi.dmarcFullEnforcing = ps.dmarcPolicy == mapKeyReject || (ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct >= 100)
+        gi.dmarcPartialEnforcing = ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100
+        gi.dmarcStrict = ps.dmarcPolicy == mapKeyReject
         gi.hasCAA = ps.caaOK
         gi.dkimInconclusive = ds == DKIMInconclusive
         gi.isNoMail = ps.isNoMailDomain
@@ -757,7 +776,7 @@ func determineGrade(ps protocolState, ds DKIMState, gi gradeInput) (state, icon,
 
 func classifyGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
         if ps.dnssecBroken {
-                return riskCritical, iconExclamationTriangle, "danger", "DNSSEC validation is broken — DNS responses may be tampered with"
+                return riskCritical, iconExclamationTriangle, mapKeyDanger, "DNSSEC validation is broken — DNS responses may be tampered with"
         }
 
         if ps.isTLD {
@@ -773,7 +792,7 @@ func classifyGrade(ps protocolState, gi gradeInput) (string, string, string, str
 
 func classifyMailGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
         if !gi.hasSPF && !gi.hasDMARC {
-                return riskCritical, iconExclamationTriangle, "danger", "No SPF or DMARC records — domain is unprotected against email spoofing"
+                return riskCritical, iconExclamationTriangle, mapKeyDanger, "No SPF or DMARC records — domain is unprotected against email spoofing"
         }
 
         if !gi.hasSPF || !gi.hasDMARC {
@@ -787,7 +806,7 @@ func classifyMailCorePresent(ps protocolState, gi gradeInput) (string, string, s
         if gi.dmarcFullEnforcing && gi.hasDKIM {
                 state := riskLow
                 msg := buildDescriptiveMessage(ps, gi.configured, gi.absent, gi.monitoring)
-                return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, "success", msg
+                return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, mapKeySuccess, msg
         }
 
         if gi.dmarcFullEnforcing && !gi.hasDKIM {
@@ -808,7 +827,7 @@ func classifyMailCorePresent(ps protocolState, gi gradeInput) (string, string, s
                         msg := "DMARC is in monitoring mode (p=none) with reporting enabled"
                         return applyMonitoringSuffix(state, gi.monitoring), iconShieldAlt, "info", msg
                 }
-                return riskHigh, iconExclamationTriangle, "warning", "DMARC policy is 'none' with no reporting — no protection or visibility"
+                return riskHigh, iconExclamationTriangle, mapKeyWarning, "DMARC policy is 'none' with no reporting — no protection or visibility"
         }
 
         state := riskMedium
@@ -818,29 +837,29 @@ func classifyMailCorePresent(ps protocolState, gi gradeInput) (string, string, s
 
 func classifyMailPartial(gi gradeInput) (string, string, string, string) {
         if gi.hasSPF && !gi.hasDMARC {
-                return riskHigh, iconExclamationTriangle, "warning", "SPF present but no DMARC — spoofed emails may still be delivered"
+                return riskHigh, iconExclamationTriangle, mapKeyWarning, "SPF present but no DMARC — spoofed emails may still be delivered"
         }
-        return riskHigh, iconExclamationTriangle, "warning", "DMARC present but no SPF — mail authentication is incomplete"
+        return riskHigh, iconExclamationTriangle, mapKeyWarning, "DMARC present but no SPF — mail authentication is incomplete"
 }
 
 func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
         if gi.hasSPF && gi.hasDMARC {
                 if gi.dmarcStrict || gi.dmarcFullEnforcing {
-                        return riskLow, iconShieldAlt, "success", "No-mail domain properly configured with SPF and DMARC reject policy"
+                        return riskLow, iconShieldAlt, mapKeySuccess, "No-mail domain properly configured with SPF and DMARC reject policy"
                 }
                 return riskMedium, iconShieldAlt, "info", "No-mail domain has SPF and DMARC but policy is not reject"
         }
         if gi.hasSPF || gi.hasDMARC {
-                return riskHigh, iconExclamationTriangle, "warning", "No-mail domain is missing SPF or DMARC"
+                return riskHigh, iconExclamationTriangle, mapKeyWarning, "No-mail domain is missing SPF or DMARC"
         }
-        return riskCritical, iconExclamationTriangle, "danger", "No-mail domain has no email authentication records"
+        return riskCritical, iconExclamationTriangle, mapKeyDanger, "No-mail domain has no email authentication records"
 }
 
 func classifyRegistryGrade(ps protocolState, _ gradeInput) (string, string, string, string) {
         if ps.dnssecOK {
-                return riskLow, iconShieldAlt, "success", "Registry zone has DNSSEC signing active — delegation chain is cryptographically secured"
+                return riskLow, iconShieldAlt, mapKeySuccess, "Registry zone has DNSSEC signing active — delegation chain is cryptographically secured"
         }
-        return riskHigh, iconExclamationTriangle, "warning", "Registry zone is not DNSSEC-signed — delegation chain lacks cryptographic verification"
+        return riskHigh, iconExclamationTriangle, mapKeyWarning, "Registry zone is not DNSSEC-signed — delegation chain lacks cryptographic verification"
 }
 
 func applyMonitoringSuffix(state string, monitoring []string) string {
@@ -888,9 +907,9 @@ func buildVerdicts(vi verdictInput) map[string]any {
 
         verdicts["email_answer"] = buildEmailAnswer(vi.ps, vi.hasSPF, vi.hasDMARC)
         ea := buildEmailAnswerStructured(vi.ps, vi.hasSPF, vi.hasDMARC)
-        verdicts["email_answer_short"] = ea["answer"]
-        verdicts["email_answer_reason"] = ea["reason"]
-        verdicts["email_answer_color"] = ea["color"]
+        verdicts["email_answer_short"] = ea[mapKeyAnswer]
+        verdicts["email_answer_reason"] = ea[mapKeyReason]
+        verdicts["email_answer_color"] = ea[mapKeyColor]
 
         buildTransportVerdict(vi.ps, verdicts)
 
@@ -900,157 +919,197 @@ func buildVerdicts(vi verdictInput) map[string]any {
 func buildCAAVerdict(ps protocolState, verdicts map[string]any) {
         if ps.caaOK {
                 verdicts["certificate_control"] = map[string]any{
-                        "label":  "Configured",
-                        "color":  "success",
+                        mapKeyLabel:  "Configured",
+                        mapKeyColor:  mapKeySuccess,
                         "icon":   iconShieldAlt,
-                        "answer": "Yes",
-                        "reason": "CAA records restrict which certificate authorities may issue certificates",
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "CAA records restrict which certificate authorities may issue certificates",
                 }
         } else {
                 verdicts["certificate_control"] = map[string]any{
-                        "label":  "Not Configured",
-                        "color":  "secondary",
+                        mapKeyLabel:  "Not Configured",
+                        mapKeyColor:  mapKeySecondary,
                         "icon":   iconShieldAlt,
-                        "answer": "No",
-                        "reason": "No CAA records — any certificate authority may issue certificates for this domain",
+                        mapKeyAnswer: "No",
+                        mapKeyReason: "No CAA records — any certificate authority may issue certificates for this domain",
                 }
         }
 }
 
-func buildEmailAnswer(ps protocolState, hasSPF, hasDMARC bool) string {
+type emailSpoofClass int
+
+const (
+        emailSpoofNoMail emailSpoofClass = iota
+        emailSpoofUnprotected
+        emailSpoofReject
+        emailSpoofQuarantineFull
+        emailSpoofQuarantinePartial
+        emailSpoofMonitorOnly
+        emailSpoofSPFOnly
+        emailSpoofDMARCOnly
+        emailSpoofUncertain
+)
+
+func classifyEmailSpoofability(ps protocolState, hasSPF, hasDMARC bool) emailSpoofClass {
         if ps.isNoMailDomain {
-                return "No — null MX indicates no-mail domain"
+                return emailSpoofNoMail
         }
         if !hasSPF && !hasDMARC {
-                return "Yes — no SPF or DMARC protection"
+                return emailSpoofUnprotected
         }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "reject" {
-                return "No — SPF and DMARC reject policy enforced"
+        if hasSPF && hasDMARC {
+                return classifyDMARCPolicy(ps)
         }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100 {
-                return "Unlikely — SPF and DMARC quarantine policy enforced"
+        if hasSPF {
+                return emailSpoofSPFOnly
         }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "quarantine" {
-                return "Partially — DMARC quarantine at limited percentage"
+        if hasDMARC {
+                return emailSpoofDMARCOnly
         }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "none" {
-                return "Yes — DMARC is monitor-only (p=none)"
+        return emailSpoofUncertain
+}
+
+func classifyDMARCPolicy(ps protocolState) emailSpoofClass {
+        switch ps.dmarcPolicy {
+        case mapKeyReject:
+                return emailSpoofReject
+        case mapKeyQuarantine:
+                if ps.dmarcPct >= 100 {
+                        return emailSpoofQuarantineFull
+                }
+                return emailSpoofQuarantinePartial
+        case "none":
+                return emailSpoofMonitorOnly
+        default:
+                return emailSpoofUncertain
         }
-        if hasSPF && !hasDMARC {
-                return "Likely — SPF alone cannot prevent spoofing"
+}
+
+var emailAnswerText = map[emailSpoofClass]string{
+        emailSpoofNoMail:            "No — null MX indicates no-mail domain",
+        emailSpoofUnprotected:       "Yes — no SPF or DMARC protection",
+        emailSpoofReject:            "No — SPF and DMARC reject policy enforced",
+        emailSpoofQuarantineFull:    "Unlikely — SPF and DMARC quarantine policy enforced",
+        emailSpoofQuarantinePartial: "Partially — DMARC quarantine at limited percentage",
+        emailSpoofMonitorOnly:       "Yes — DMARC is monitor-only (p=none)",
+        emailSpoofSPFOnly:           "Likely — SPF alone cannot prevent spoofing",
+        emailSpoofDMARCOnly:         "Partially — DMARC present but no SPF",
+        emailSpoofUncertain:         "Uncertain — incomplete configuration",
+}
+
+type emailAnswerDetail struct {
+        answer string
+        reason string
+        color  string
+}
+
+var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
+        emailSpoofNoMail:            {"No", "null MX indicates no-mail domain", mapKeySuccess},
+        emailSpoofUnprotected:       {"Yes", "no SPF or DMARC protection", mapKeyDanger},
+        emailSpoofReject:            {"No", "SPF and DMARC reject policy enforced", mapKeySuccess},
+        emailSpoofQuarantineFull:    {strUnlikely, "SPF and DMARC quarantine policy enforced", mapKeySuccess},
+        emailSpoofQuarantinePartial: {strPartially, "DMARC quarantine at limited percentage", mapKeyWarning},
+        emailSpoofMonitorOnly:       {"Yes", "DMARC is monitor-only (p=none)", mapKeyDanger},
+        emailSpoofSPFOnly:           {strLikely, "SPF alone cannot prevent spoofing", mapKeyDanger},
+        emailSpoofDMARCOnly:         {strPartially, "DMARC present but no SPF", mapKeyWarning},
+        emailSpoofUncertain:         {"Uncertain", "incomplete configuration", mapKeyWarning},
+}
+
+func buildEmailAnswer(ps protocolState, hasSPF, hasDMARC bool) string {
+        cls := classifyEmailSpoofability(ps, hasSPF, hasDMARC)
+        if text, ok := emailAnswerText[cls]; ok {
+                return text
         }
-        if !hasSPF && hasDMARC {
-                return "Partially — DMARC present but no SPF"
-        }
-        return "Uncertain — incomplete configuration"
+        return emailAnswerText[emailSpoofUncertain]
 }
 
 func buildEmailAnswerStructured(ps protocolState, hasSPF, hasDMARC bool) map[string]string {
-        if ps.isNoMailDomain {
-                return map[string]string{"answer": "No", "reason": "null MX indicates no-mail domain", "color": "success"}
+        cls := classifyEmailSpoofability(ps, hasSPF, hasDMARC)
+        detail, ok := emailAnswerDetails[cls]
+        if !ok {
+                detail = emailAnswerDetails[emailSpoofUncertain]
         }
-        if !hasSPF && !hasDMARC {
-                return map[string]string{"answer": "Yes", "reason": "no SPF or DMARC protection", "color": "danger"}
-        }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "reject" {
-                return map[string]string{"answer": "No", "reason": "SPF and DMARC reject policy enforced", "color": "success"}
-        }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "quarantine" && ps.dmarcPct >= 100 {
-                return map[string]string{"answer": "Unlikely", "reason": "SPF and DMARC quarantine policy enforced", "color": "success"}
-        }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "quarantine" {
-                return map[string]string{"answer": "Partially", "reason": "DMARC quarantine at limited percentage", "color": "warning"}
-        }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "none" {
-                return map[string]string{"answer": "Yes", "reason": "DMARC is monitor-only (p=none)", "color": "danger"}
-        }
-        if hasSPF && !hasDMARC {
-                return map[string]string{"answer": "Likely", "reason": "SPF alone cannot prevent spoofing", "color": "danger"}
-        }
-        if !hasSPF && hasDMARC {
-                return map[string]string{"answer": "Partially", "reason": "DMARC present but no SPF", "color": "warning"}
-        }
-        return map[string]string{"answer": "Uncertain", "reason": "incomplete configuration", "color": "warning"}
+        return map[string]string{mapKeyAnswer: detail.answer, mapKeyReason: detail.reason, mapKeyColor: detail.color}
 }
 
 func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
-        if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == "reject" || (vi.ps.dmarcPolicy == "quarantine" && vi.ps.dmarcPct >= 100)) {
+        if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == mapKeyReject || (vi.ps.dmarcPolicy == mapKeyQuarantine && vi.ps.dmarcPct >= 100)) {
                 buildEnforcingEmailVerdict(vi.ps, vi.ds, verdicts)
                 return
         }
 
         if vi.hasSPF && !vi.hasDMARC {
-                verdicts["email_spoofing"] = map[string]any{
-                        "label": "Basic",
-                        "color": "warning",
+                verdicts[mapKeyEmailSpoofing] = map[string]any{
+                        mapKeyLabel: strBasic,
+                        mapKeyColor: mapKeyWarning,
                         "icon":  iconShieldAlt,
                 }
                 return
         }
 
         if !vi.hasSPF && !vi.hasDMARC {
-                verdicts["email_spoofing"] = map[string]any{
-                        "label": "Exposed",
-                        "color": "danger",
+                verdicts[mapKeyEmailSpoofing] = map[string]any{
+                        mapKeyLabel: strExposed,
+                        mapKeyColor: mapKeyDanger,
                         "icon":  iconExclamationTriangle,
                 }
                 return
         }
 
         if vi.hasSPF && vi.hasDMARC {
-                verdicts["email_spoofing"] = map[string]any{
-                        "label": "Basic",
-                        "color": "warning",
+                verdicts[mapKeyEmailSpoofing] = map[string]any{
+                        mapKeyLabel: strBasic,
+                        mapKeyColor: mapKeyWarning,
                         "icon":  iconShieldAlt,
                 }
                 return
         }
 
-        verdicts["email_spoofing"] = map[string]any{
-                "label": "Exposed",
-                "color": "danger",
+        verdicts[mapKeyEmailSpoofing] = map[string]any{
+                mapKeyLabel: strExposed,
+                mapKeyColor: mapKeyDanger,
                 "icon":  iconExclamationTriangle,
         }
 }
 
 func buildEnforcingEmailVerdict(ps protocolState, ds DKIMState, verdicts map[string]any) {
-        verdicts["email_spoofing"] = map[string]any{
-                "label": "Protected",
-                "color": "success",
+        verdicts[mapKeyEmailSpoofing] = map[string]any{
+                mapKeyLabel: strProtected,
+                mapKeyColor: mapKeySuccess,
                 "icon":  iconShieldAlt,
         }
 }
 
 func buildBrandVerdict(ps protocolState, verdicts map[string]any) {
         if ps.dmarcMissing {
-                verdicts["brand_impersonation"] = map[string]any{
-                        "label":  "Exposed",
-                        "color":  "danger",
+                verdicts[mapKeyBrandImpersonation] = map[string]any{
+                        mapKeyLabel:  strExposed,
+                        mapKeyColor:  mapKeyDanger,
                         "icon":   iconExclamationTriangle,
-                        "answer": "Yes",
-                        "reason": "No DMARC policy (RFC 7489) — attackers can send email appearing to be from this domain with no sender-authentication barrier",
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "No DMARC policy (RFC 7489) — attackers can send email appearing to be from this domain with no sender-authentication barrier",
                 }
                 return
         }
 
         switch ps.dmarcPolicy {
-        case "reject":
-                verdicts["brand_impersonation"] = buildBrandRejectVerdict(ps)
-        case "quarantine":
-                verdicts["brand_impersonation"] = buildBrandQuarantineVerdict(ps)
+        case mapKeyReject:
+                verdicts[mapKeyBrandImpersonation] = buildBrandRejectVerdict(ps)
+        case mapKeyQuarantine:
+                verdicts[mapKeyBrandImpersonation] = buildBrandQuarantineVerdict(ps)
         default:
-                verdicts["brand_impersonation"] = buildBrandWeakVerdict(ps)
+                verdicts[mapKeyBrandImpersonation] = buildBrandWeakVerdict(ps)
         }
 }
 
 func buildBrandRejectVerdict(ps protocolState) map[string]any {
         if ps.bimiOK && ps.caaOK {
                 return map[string]any{
-                        "label":  "Protected",
-                        "color":  "success",
+                        mapKeyLabel:  strProtected,
+                        mapKeyColor:  mapKeySuccess,
                         "icon":   iconShieldAlt,
-                        "answer": "No",
-                        "reason": "DMARC reject policy enforced (RFC 7489 §6.3), BIMI brand verification active (BIMI Spec), and certificate issuance restricted by CAA (RFC 8659 §4) — all three brand-faking vectors addressed",
+                        mapKeyAnswer: "No",
+                        mapKeyReason: "DMARC reject policy enforced (RFC 7489 §6.3), BIMI brand verification active (BIMI Spec), and certificate issuance restricted by CAA (RFC 8659 §4) — all three brand-faking vectors addressed",
                 }
         }
         if ps.bimiOK {
@@ -1059,39 +1118,39 @@ func buildBrandRejectVerdict(ps protocolState) map[string]any {
                         reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
                 }
                 return map[string]any{
-                        "label":  "Well Protected",
-                        "color":  "success",
+                        mapKeyLabel:  "Well Protected",
+                        mapKeyColor:  mapKeySuccess,
                         "icon":   iconShieldAlt,
-                        "answer": "Unlikely",
-                        "reason": reason,
+                        mapKeyAnswer: strUnlikely,
+                        mapKeyReason: reason,
                 }
         }
         if ps.caaOK {
                 return map[string]any{
-                        "label":  "Mostly Protected",
-                        "color":  "info",
+                        mapKeyLabel:  "Mostly Protected",
+                        mapKeyColor:  "info",
                         "icon":   iconShieldAlt,
-                        "answer": "Possible",
-                        "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but no BIMI brand verification — lookalike domains display identically in inboxes without visual proof of authenticity",
+                        mapKeyAnswer: strPossible,
+                        mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but no BIMI brand verification — lookalike domains display identically in inboxes without visual proof of authenticity",
                 }
         }
         return map[string]any{
-                "label":  "Partially Protected",
-                "color":  "warning",
+                mapKeyLabel:  "Partially Protected",
+                mapKeyColor:  mapKeyWarning,
                 "icon":   iconExclamationTriangle,
-                "answer": "Possible",
-                "reason": "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but no BIMI brand verification and no CAA certificate restriction (RFC 8659) — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
+                mapKeyAnswer: strPossible,
+                mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but no BIMI brand verification and no CAA certificate restriction (RFC 8659) — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
         }
 }
 
 func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
         if ps.bimiOK && ps.caaOK {
                 return map[string]any{
-                        "label":  "Well Protected",
-                        "color":  "success",
+                        mapKeyLabel:  "Well Protected",
+                        mapKeyColor:  mapKeySuccess,
                         "icon":   iconShieldAlt,
-                        "answer": "Unlikely",
-                        "reason": "DMARC quarantine enforced (RFC 7489 §6.3) with BIMI brand verification (VMC-validated logo in inboxes) and CAA certificate restriction (RFC 8659 §4) — all three brand-faking vectors addressed; upgrade to p=reject to block spoofed mail outright instead of flagging",
+                        mapKeyAnswer: strUnlikely,
+                        mapKeyReason: "DMARC quarantine enforced (RFC 7489 §6.3) with BIMI brand verification (VMC-validated logo in inboxes) and CAA certificate restriction (RFC 8659 §4) — all three brand-faking vectors addressed; upgrade to p=reject to block spoofed mail outright instead of flagging",
                 }
         }
         if ps.bimiOK {
@@ -1100,28 +1159,28 @@ func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
                         reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
                 }
                 return map[string]any{
-                        "label":  "Mostly Protected",
-                        "color":  "info",
+                        mapKeyLabel:  "Mostly Protected",
+                        mapKeyColor:  "info",
                         "icon":   iconShieldAlt,
-                        "answer": "Possible",
-                        "reason": reason,
+                        mapKeyAnswer: strPossible,
+                        mapKeyReason: reason,
                 }
         }
         if ps.caaOK {
                 return map[string]any{
-                        "label":  "Partially Protected",
-                        "color":  "warning",
+                        mapKeyLabel:  "Partially Protected",
+                        mapKeyColor:  mapKeyWarning,
                         "icon":   iconExclamationTriangle,
-                        "answer": "Likely",
-                        "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and no BIMI brand verification — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
+                        mapKeyAnswer: strLikely,
+                        mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and no BIMI brand verification — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
                 }
         }
         return map[string]any{
-                "label":  "Basic",
-                "color":  "warning",
+                mapKeyLabel:  strBasic,
+                mapKeyColor:  mapKeyWarning,
                 "icon":   iconExclamationTriangle,
-                "answer": "Likely",
-                "reason": "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — no BIMI or CAA (RFC 8659) reinforcement leaves brand impersonation largely unaddressed",
+                mapKeyAnswer: strLikely,
+                mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — no BIMI or CAA (RFC 8659) reinforcement leaves brand impersonation largely unaddressed",
         }
 }
 
@@ -1131,77 +1190,77 @@ func buildBrandWeakVerdict(ps protocolState) map[string]any {
                 reason = "DMARC is monitor-only p=none (RFC 7489 §6.3) — spoofed mail is not blocked, brand faking is trivial"
         }
         return map[string]any{
-                "label":  "Basic",
-                "color":  "warning",
+                mapKeyLabel:  strBasic,
+                mapKeyColor:  mapKeyWarning,
                 "icon":   iconExclamationTriangle,
-                "answer": "Likely",
-                "reason": reason,
+                mapKeyAnswer: strLikely,
+                mapKeyReason: reason,
         }
 }
 
 func buildDNSVerdict(ps protocolState, verdicts map[string]any) {
         if ps.dnssecOK {
-                verdicts["dns_tampering"] = map[string]any{
-                        "label":  "Protected",
-                        "color":  "success",
+                verdicts[mapKeyDnsTampering] = map[string]any{
+                        mapKeyLabel:  strProtected,
+                        mapKeyColor:  mapKeySuccess,
                         "icon":   iconShieldAlt,
-                        "answer": "No",
-                        "reason": "DNSSEC signed and validated, cryptographic chain of trust verified",
+                        mapKeyAnswer: "No",
+                        mapKeyReason: "DNSSEC signed and validated, cryptographic chain of trust verified",
                 }
         } else if ps.dnssecBroken {
-                verdicts["dns_tampering"] = map[string]any{
-                        "label":  "Exposed",
-                        "color":  "danger",
+                verdicts[mapKeyDnsTampering] = map[string]any{
+                        mapKeyLabel:  strExposed,
+                        mapKeyColor:  mapKeyDanger,
                         "icon":   iconExclamationTriangle,
-                        "answer": "Yes",
-                        "reason": "DNSSEC validation is failing, DNS responses cannot be trusted",
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "DNSSEC validation is failing, DNS responses cannot be trusted",
                 }
         } else {
-                verdicts["dns_tampering"] = map[string]any{
-                        "label":  "Not Configured",
-                        "color":  "secondary",
+                verdicts[mapKeyDnsTampering] = map[string]any{
+                        mapKeyLabel:  "Not Configured",
+                        mapKeyColor:  mapKeySecondary,
                         "icon":   iconShieldAlt,
-                        "answer": "Possible",
-                        "reason": "DNSSEC is not deployed, DNS responses are not cryptographically verified",
+                        mapKeyAnswer: strPossible,
+                        mapKeyReason: "DNSSEC is not deployed, DNS responses are not cryptographically verified",
                 }
         }
 }
 
 func buildTransportVerdict(ps protocolState, verdicts map[string]any) {
         if ps.mtaStsOK && ps.daneOK {
-                verdicts["transport"] = map[string]any{
-                        "label":  "Fully Protected",
-                        "color":  "success",
-                        "answer": "Yes",
-                        "reason": "Both MTA-STS and DANE enforce encrypted mail delivery",
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  "Fully Protected",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "Both MTA-STS and DANE enforce encrypted mail delivery",
                 }
         } else if ps.mtaStsOK {
-                verdicts["transport"] = map[string]any{
-                        "label":  "Protected",
-                        "color":  "success",
-                        "answer": "Yes",
-                        "reason": "MTA-STS enforces TLS for all inbound mail delivery",
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  strProtected,
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "MTA-STS enforces TLS for all inbound mail delivery",
                 }
         } else if ps.daneOK {
-                verdicts["transport"] = map[string]any{
-                        "label":  "Protected",
-                        "color":  "success",
-                        "answer": "Yes",
-                        "reason": "DANE/TLSA provides cryptographic transport verification",
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  strProtected,
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyAnswer: "Yes",
+                        mapKeyReason: "DANE/TLSA provides cryptographic transport verification",
                 }
         } else if ps.tlsrptOK {
-                verdicts["transport"] = map[string]any{
-                        "label":  "Monitoring",
-                        "color":  "info",
-                        "answer": "Partially",
-                        "reason": "TLS reporting is configured but no transport enforcement policy is active",
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  "Monitoring",
+                        mapKeyColor:  "info",
+                        mapKeyAnswer: strPartially,
+                        mapKeyReason: "TLS reporting is configured but no transport enforcement policy is active",
                 }
         } else {
-                verdicts["transport"] = map[string]any{
-                        "label":  "Not Enforced",
-                        "color":  "secondary",
-                        "answer": "No",
-                        "reason": "No MTA-STS or DANE — mail transport encryption is opportunistic only",
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  "Not Enforced",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyAnswer: "No",
+                        mapKeyReason: "No MTA-STS or DANE — mail transport encryption is opportunistic only",
                 }
         }
 }
@@ -1246,22 +1305,22 @@ func buildLlmsTxtVerdict(llmsTxt, verdicts map[string]any) {
         found, _ := llmsTxt["found"].(bool)
         fullFound, _ := llmsTxt["full_found"].(bool)
         if found && fullFound {
-                verdicts["ai_llms_txt"] = map[string]any{
-                        "answer": "Yes",
-                        "color":  "success",
-                        "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain",
+                verdicts[mapKeyAiLlmsTxt] = map[string]any{
+                        mapKeyAnswer: "Yes",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyReason: "llms.txt and llms-full.txt published — AI models receive structured context about this domain",
                 }
         } else if found {
-                verdicts["ai_llms_txt"] = map[string]any{
-                        "answer": "Yes",
-                        "color":  "success",
-                        "reason": "llms.txt published — AI models receive structured context about this domain",
+                verdicts[mapKeyAiLlmsTxt] = map[string]any{
+                        mapKeyAnswer: "Yes",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyReason: "llms.txt published — AI models receive structured context about this domain",
                 }
         } else {
-                verdicts["ai_llms_txt"] = map[string]any{
-                        "answer": "No",
-                        "color":  "secondary",
-                        "reason": "No llms.txt file detected — AI models have no structured instructions for this domain",
+                verdicts[mapKeyAiLlmsTxt] = map[string]any{
+                        mapKeyAnswer: "No",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyReason: "No llms.txt file detected — AI models have no structured instructions for this domain",
                 }
         }
 }
@@ -1273,22 +1332,22 @@ func buildRobotsTxtVerdict(robotsTxt, verdicts map[string]any) {
         found, _ := robotsTxt["found"].(bool)
         blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
         if found && blocksAI {
-                verdicts["ai_crawler_governance"] = map[string]any{
-                        "answer": "Yes",
-                        "color":  "success",
-                        "reason": "robots.txt actively blocks AI crawlers from scraping site content",
+                verdicts[mapKeyAiCrawlerGovernance] = map[string]any{
+                        mapKeyAnswer: "Yes",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyReason: "robots.txt actively blocks AI crawlers from scraping site content",
                 }
         } else if found {
-                verdicts["ai_crawler_governance"] = map[string]any{
-                        "answer": "No",
-                        "color":  "warning",
-                        "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped",
+                verdicts[mapKeyAiCrawlerGovernance] = map[string]any{
+                        mapKeyAnswer: "No",
+                        mapKeyColor:  mapKeyWarning,
+                        mapKeyReason: "robots.txt present but does not block AI crawlers — content may be freely scraped",
                 }
         } else {
-                verdicts["ai_crawler_governance"] = map[string]any{
-                        "answer": "No",
-                        "color":  "secondary",
-                        "reason": "No robots.txt found — AI crawlers have unrestricted access",
+                verdicts[mapKeyAiCrawlerGovernance] = map[string]any{
+                        mapKeyAnswer: "No",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyReason: "No robots.txt found — AI crawlers have unrestricted access",
                 }
         }
 }
@@ -1300,15 +1359,15 @@ func buildPoisoningVerdict(poisoning, verdicts map[string]any) {
         iocCount := getNumericValue(poisoning, "ioc_count")
         if iocCount > 0 {
                 verdicts["ai_poisoning"] = map[string]any{
-                        "answer": "Yes",
-                        "color":  "danger",
-                        "reason": fmt.Sprintf("%.0f indicator(s) of AI recommendation manipulation detected on homepage", iocCount),
+                        mapKeyAnswer: "Yes",
+                        mapKeyColor:  mapKeyDanger,
+                        mapKeyReason: fmt.Sprintf("%.0f indicator(s) of AI recommendation manipulation detected on homepage", iocCount),
                 }
         } else {
                 verdicts["ai_poisoning"] = map[string]any{
-                        "answer": "No",
-                        "color":  "success",
-                        "reason": "No indicators of AI recommendation manipulation found",
+                        mapKeyAnswer: "No",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyReason: "No indicators of AI recommendation manipulation found",
                 }
         }
 }
@@ -1320,15 +1379,15 @@ func buildHiddenPromptsVerdict(hiddenPrompts, verdicts map[string]any) {
         artifactCount := getNumericValue(hiddenPrompts, "artifact_count")
         if artifactCount > 0 {
                 verdicts["ai_hidden_prompts"] = map[string]any{
-                        "answer": "Yes",
-                        "color":  "danger",
-                        "reason": fmt.Sprintf("%.0f hidden prompt-like artifact(s) detected in page source", artifactCount),
+                        mapKeyAnswer: "Yes",
+                        mapKeyColor:  mapKeyDanger,
+                        mapKeyReason: fmt.Sprintf("%.0f hidden prompt-like artifact(s) detected in page source", artifactCount),
                 }
         } else {
                 verdicts["ai_hidden_prompts"] = map[string]any{
-                        "answer": "No",
-                        "color":  "success",
-                        "reason": "No hidden prompt artifacts found in page source",
+                        mapKeyAnswer: "No",
+                        mapKeyColor:  mapKeySuccess,
+                        mapKeyReason: "No hidden prompt artifacts found in page source",
                 }
         }
 }
@@ -1363,9 +1422,9 @@ func computeDMARCScore(ps protocolState) int {
                 return 0
         }
         switch ps.dmarcPolicy {
-        case "reject":
+        case mapKeyReject:
                 return 30
-        case "quarantine":
+        case mapKeyQuarantine:
                 if ps.dmarcPct >= 100 {
                         return 25
                 }

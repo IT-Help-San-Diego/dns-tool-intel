@@ -15,6 +15,7 @@ import (
         "codeberg.org/miekg/dns/dnsutil"
 )
 
+
 type DSRecord struct {
         KeyTag     uint16 `json:"key_tag"`
         Algorithm  uint8  `json:"algorithm"`
@@ -541,7 +542,7 @@ func (a *Analyzer) AnalyzeDelegationConsistency(ctx context.Context, domain stri
                 "glue_analysis":    structToMap(glueAnalysis),
                 "ttl_comparison":   structToMap(ttlComp),
                 "soa_consistency":  structToMap(soaConsistency),
-                "issues":           allIssues,
+                mapKeyIssues:           allIssues,
         }
 }
 
@@ -589,7 +590,7 @@ func dsKeyAlignmentToMap(val DSKeyAlignment) map[string]any {
                 "matched_pairs":  matchedPairs,
                 "unmatched_ds":   unmatchedDS,
                 "unmatched_keys": unmatchedKeys,
-                "issues":         val.Issues,
+                mapKeyIssues:         val.Issues,
         }
 }
 
@@ -621,7 +622,7 @@ func glueAnalysisToMap(val GlueAnalysis) map[string]any {
                 "glue_present":      val.GluePresent,
                 "glue_missing":      val.GlueMissing,
                 "nameservers":       nameservers,
-                "issues":            val.Issues,
+                mapKeyIssues:            val.Issues,
         }
 }
 
@@ -629,7 +630,7 @@ func ttlComparisonToMap(val TTLComparison) map[string]any {
         m := map[string]any{
                 "match":     val.Match,
                 "drift_secs": val.DriftSecs,
-                "issues":    val.Issues,
+                mapKeyIssues:    val.Issues,
         }
         if val.ParentTTL != nil {
                 m["parent_ttl"] = *val.ParentTTL
@@ -649,6 +650,6 @@ func soaConsistencyToMap(val SOAConsistency) map[string]any {
                 "consistent":   val.Consistent,
                 "serials":      serialsMap,
                 "unique_count": val.UniqueCount,
-                "issues":       val.Issues,
+                mapKeyIssues:       val.Issues,
         }
 }

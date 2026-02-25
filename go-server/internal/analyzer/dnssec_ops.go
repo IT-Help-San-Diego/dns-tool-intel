@@ -13,6 +13,10 @@ import (
         "codeberg.org/miekg/dns/dnsutil"
 )
 
+const (
+	mapKeyPartial = "partial"
+)
+
 type DNSSECKeyInfo struct {
         Flags     uint16 `json:"flags"`
         Protocol  uint8  `json:"protocol"`
@@ -235,7 +239,7 @@ func determineAutomationLevel(hasCDS, hasCDNSKEY bool) string {
                 return "full"
         }
         if hasCDS || hasCDNSKEY {
-                return "partial"
+                return mapKeyPartial
         }
         return "none"
 }
@@ -247,11 +251,11 @@ func determineReadinessLevel(kskCount int, hasCDS, hasCDNSKEY bool, issues *[]st
         }
         if kskCount > 1 {
                 *issues = append(*issues, "Multiple KSKs present but no CDS/CDNSKEY automation for rollover signaling")
-                return "partial"
+                return mapKeyPartial
         }
         if hasAutomation {
                 *issues = append(*issues, "CDS/CDNSKEY automation present but only single KSK — pre-publish second KSK before rollover")
-                return "partial"
+                return mapKeyPartial
         }
         *issues = append(*issues, "Single KSK with no CDS/CDNSKEY automation — manual rollover required")
         return "not_ready"

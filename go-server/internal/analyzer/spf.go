@@ -9,6 +9,13 @@ import (
         "strings"
 )
 
+const (
+        mapKeyIncludes = "includes"
+        mapKeyLookupMechanisms = "lookup_mechanisms"
+        mapKeySpfLike = "spf_like"
+        strStrict = "STRICT"
+)
+
 const spfRecordNone = "(none)"
 
 var (
@@ -96,13 +103,23 @@ func classifyAllQualifier(spfLower string) (*string, *string, []string) {
         case "~":
                 p = "SOFT"
         case "-":
-                p = "STRICT"
+                p = strStrict
         }
 
         return &p, &am, issues
 }
 
-func parseSPFMechanisms(spfRecord string) (int, []string, []string, *string, *string, []string, bool) {
+type spfParseResult struct {
+        lookupCount      int
+        lookupMechanisms []string
+        includes         []string
+        permissiveness   *string
+        allMechanism     *string
+        issues           []string
+        noMailIntent     bool
+}
+
+func parseSPFMechanisms(spfRecord string) spfParseResult {
         spfLower := strings.ToLower(spfRecord)
 
         r := countSPFLookupMechanisms(spfLower)
@@ -110,7 +127,7 @@ func parseSPFMechanisms(spfRecord string) (int, []string, []string, *string, *st
         issues := append(r.issues, allIssues...)
 
         hasSenders := len(r.includes) > 0 || len(spfAMechRe.FindAllString(spfLower, -1)) > 0 || len(spfMXMechRe.FindAllString(spfLower, -1)) > 0
-        if permissiveness != nil && *permissiveness == "STRICT" && hasSenders {
+        if permissiveness != nil && *permissiveness == strStrict && hasSenders {
                 issues = append(issues, "RFC 7489 §10.1: -all may cause rejection before DMARC evaluation, preventing DKIM from being checked")
         }
 
@@ -120,43 +137,51 @@ func parseSPFMechanisms(spfRecord string) (int, []string, []string, *string, *st
                 noMailIntent = true
         }
 
-        return r.lookupCount, r.lookupMechanisms, r.includes, permissiveness, allMechanism, issues, noMailIntent
+        return spfParseResult{
+                lookupCount:      r.lookupCount,
+                lookupMechanisms: r.lookupMechanisms,
+                includes:         r.includes,
+                permissiveness:   permissiveness,
+                allMechanism:     allMechanism,
+                issues:           issues,
+                noMailIntent:     noMailIntent,
+        }
 }
 
 func buildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent bool, validSPF, spfLike []string) (string, string) {
         if len(validSPF) > 1 {
-                return "error", "Multiple SPF records found - this causes SPF to fail (RFC 7208)"
+                return mapKeyError, "Multiple SPF records found - this causes SPF to fail (RFC 7208)"
         }
         if len(validSPF) == 0 {
                 if len(spfLike) > 0 {
-                        return "warning", "SPF-like record found but not valid — check syntax"
+                        return mapKeyWarning, "SPF-like record found but not valid — check syntax"
                 }
                 return "missing", "No SPF record found"
         }
 
         if lookupCount > 10 {
-                return "error", fmt.Sprintf("SPF exceeds 10 DNS lookup limit (%d/10) — PermError per RFC 7208 §4.6.4", lookupCount)
+                return mapKeyError, fmt.Sprintf("SPF exceeds 10 DNS lookup limit (%d/10) — PermError per RFC 7208 §4.6.4", lookupCount)
         }
         if lookupCount == 10 {
-                return "warning", "SPF at lookup limit (10/10 lookups) - no room for growth"
+                return mapKeyWarning, "SPF at lookup limit (10/10 lookups) - no room for growth"
         }
         if permissiveness != nil && *permissiveness == "DANGEROUS" {
-                return "error", "SPF uses +all - anyone can send as this domain"
+                return mapKeyError, "SPF uses +all - anyone can send as this domain"
         }
         if permissiveness != nil && *permissiveness == "NEUTRAL" {
-                return "warning", "SPF uses ?all - provides no protection"
+                return mapKeyWarning, "SPF uses ?all - provides no protection"
         }
 
         if noMailIntent {
-                return "success", "Valid SPF (no mail allowed) - domain declares it sends no email"
+                return mapKeySuccess, "Valid SPF (no mail allowed) - domain declares it sends no email"
         }
-        if permissiveness != nil && *permissiveness == "STRICT" {
-                return "success", fmt.Sprintf("SPF valid with strict enforcement (-all), %d/10 lookups", lookupCount)
+        if permissiveness != nil && *permissiveness == strStrict {
+                return mapKeySuccess, fmt.Sprintf("SPF valid with strict enforcement (-all), %d/10 lookups", lookupCount)
         }
         if permissiveness != nil && *permissiveness == "SOFT" {
-                return "success", fmt.Sprintf("SPF valid with industry-standard soft fail (~all), %d/10 lookups", lookupCount)
+                return mapKeySuccess, fmt.Sprintf("SPF valid with industry-standard soft fail (~all), %d/10 lookups", lookupCount)
         }
-        return "success", fmt.Sprintf("SPF valid, %d/10 lookups", lookupCount)
+        return mapKeySuccess, fmt.Sprintf("SPF valid, %d/10 lookups", lookupCount)
 }
 
 func classifySPFRecords(records []string) (validSPF, spfLike []string) {
@@ -174,29 +199,23 @@ func classifySPFRecords(records []string) (validSPF, spfLike []string) {
         return
 }
 
-func evaluateSPFRecordSet(validSPF []string) (int, []string, []string, *string, *string, []string, bool) {
-        var issues []string
-        lookupCount := 0
-        var lookupMechanisms []string
-        var permissiveness *string
-        var allMechanism *string
-        var includes []string
-        noMailIntent := false
+func evaluateSPFRecordSet(validSPF []string) spfParseResult {
+        result := spfParseResult{}
 
         if len(validSPF) > 1 {
-                issues = append(issues, "Multiple SPF records (hard fail)")
+                result.issues = append(result.issues, "Multiple SPF records (hard fail)")
         }
 
         if len(validSPF) == 1 {
-                lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, issues, noMailIntent = parseSPFMechanisms(validSPF[0])
-                if lookupCount > 10 {
-                        issues = append(issues, fmt.Sprintf("Exceeds 10 DNS lookup limit (%d lookups)", lookupCount))
-                } else if lookupCount == 10 {
-                        issues = append(issues, "At lookup limit (10/10)")
+                result = parseSPFMechanisms(validSPF[0])
+                if result.lookupCount > 10 {
+                        result.issues = append(result.issues, fmt.Sprintf("Exceeds 10 DNS lookup limit (%d lookups)", result.lookupCount))
+                } else if result.lookupCount == 10 {
+                        result.issues = append(result.issues, "At lookup limit (10/10)")
                 }
         }
 
-        return lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, issues, noMailIntent
+        return result
 }
 
 func extractRedirectTarget(spfRecord string) string {
@@ -318,16 +337,16 @@ type spfEvalState struct {
 }
 
 func mergeResolvedSPF(resolved string, s *spfEvalState) {
-        _, resolvedMechs, resolvedIncludes, resolvedPerm, resolvedAll, _, resolvedNoMail := parseSPFMechanisms(resolved)
-        s.lookupMechanisms = append(s.lookupMechanisms, resolvedMechs...)
-        s.includes = append(s.includes, resolvedIncludes...)
-        if resolvedPerm != nil {
-                s.permissiveness = resolvedPerm
+        r := parseSPFMechanisms(resolved)
+        s.lookupMechanisms = append(s.lookupMechanisms, r.lookupMechanisms...)
+        s.includes = append(s.includes, r.includes...)
+        if r.permissiveness != nil {
+                s.permissiveness = r.permissiveness
         }
-        if resolvedAll != nil {
-                s.allMechanism = resolvedAll
+        if r.allMechanism != nil {
+                s.allMechanism = r.allMechanism
         }
-        if resolvedNoMail {
+        if r.noMailIntent {
                 s.noMailIntent = true
         }
 }
@@ -362,14 +381,14 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 "status":            "missing",
                 "message":           "No SPF record found",
                 "records":           []string{},
-                "valid_records":     []string{},
-                "spf_like":          []string{},
+                mapKeyValidRecords:     []string{},
+                mapKeySpfLike:          []string{},
                 "lookup_count":      0,
-                "lookup_mechanisms": []string{},
+                mapKeyLookupMechanisms: []string{},
                 "permissiveness":    nil,
                 "all_mechanism":     nil,
-                "issues":            []string{},
-                "includes":          []string{},
+                mapKeyIssues:            []string{},
+                mapKeyIncludes:          []string{},
                 "no_mail_intent":    false,
                 "redirect_chain":    []map[string]any{},
                 "resolved_spf":     "",
@@ -380,16 +399,16 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
         }
 
         validSPF, spfLike := classifySPFRecords(txtRecords)
-        lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, issues, noMailIntent := evaluateSPFRecordSet(validSPF)
+        parsed := evaluateSPFRecordSet(validSPF)
 
         s := &spfEvalState{
-                lookupCount:      lookupCount,
-                lookupMechanisms: lookupMechanisms,
-                includes:         includes,
-                permissiveness:   permissiveness,
-                allMechanism:     allMechanism,
-                noMailIntent:     noMailIntent,
-                issues:           issues,
+                lookupCount:      parsed.lookupCount,
+                lookupMechanisms: parsed.lookupMechanisms,
+                includes:         parsed.includes,
+                permissiveness:   parsed.permissiveness,
+                allMechanism:     parsed.allMechanism,
+                noMailIntent:     parsed.noMailIntent,
+                issues:           parsed.issues,
         }
 
         redirectChainMaps, resolvedSPF := a.handleSPFRedirectChain(ctx, validSPF, s)
@@ -412,20 +431,20 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 "status":            status,
                 "message":           message,
                 "records":           txtRecords,
-                "valid_records":     validSPF,
-                "spf_like":          spfLike,
+                mapKeyValidRecords:     validSPF,
+                mapKeySpfLike:          spfLike,
                 "lookup_count":      s.lookupCount,
-                "lookup_mechanisms": s.lookupMechanisms,
+                mapKeyLookupMechanisms: s.lookupMechanisms,
                 "permissiveness":    derefStr(s.permissiveness),
                 "all_mechanism":     derefStr(s.allMechanism),
-                "issues":            s.issues,
-                "includes":          s.includes,
+                mapKeyIssues:            s.issues,
+                mapKeyIncludes:          s.includes,
                 "no_mail_intent":    s.noMailIntent,
                 "redirect_chain":    redirectChainMaps,
                 "resolved_spf":     resolvedSPF,
         }
 
-        ensureStringSlices(result, "valid_records", "spf_like", "lookup_mechanisms", "issues", "includes")
+        ensureStringSlices(result, mapKeyValidRecords, mapKeySpfLike, mapKeyLookupMechanisms, mapKeyIssues, mapKeyIncludes)
 
         return result
 }

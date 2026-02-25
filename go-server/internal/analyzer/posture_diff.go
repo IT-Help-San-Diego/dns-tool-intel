@@ -4,6 +4,11 @@ package analyzer
 
 import "strings"
 
+const (
+        mapKeyDaneAnalysis  = "dane_analysis"
+        mapKeyDmarcAnalysis = "dmarc_analysis"
+)
+
 type PostureDiffField struct {
         Label    string
         Previous string
@@ -19,17 +24,17 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
         }
 
         fields := []fieldSpec{
-                {"SPF Status", "spf_analysis", "status"},
-                {"DMARC Status", "dmarc_analysis", "status"},
-                {"DMARC Policy", "dmarc_analysis", "policy"},
-                {"DKIM Status", "dkim_analysis", "status"},
-                {"MTA-STS Status", "mta_sts_analysis", "status"},
+                {"SPF Status", "spf_analysis", mapKeyStatus},
+                {"DMARC Status", mapKeyDmarcAnalysis, mapKeyStatus},
+                {"DMARC Policy", mapKeyDmarcAnalysis, "policy"},
+                {"DKIM Status", "dkim_analysis", mapKeyStatus},
+                {"MTA-STS Status", "mta_sts_analysis", mapKeyStatus},
                 {"MTA-STS Mode", "mta_sts_analysis", "mode"},
-                {"TLS-RPT Status", "tlsrpt_analysis", "status"},
-                {"BIMI Status", "bimi_analysis", "status"},
-                {"DANE Status", "dane_analysis", "status"},
-                {"CAA Status", "caa_analysis", "status"},
-                {"DNSSEC Status", "dnssec_analysis", "status"},
+                {"TLS-RPT Status", "tlsrpt_analysis", mapKeyStatus},
+                {"BIMI Status", "bimi_analysis", mapKeyStatus},
+                {"DANE Status", mapKeyDaneAnalysis, mapKeyStatus},
+                {"CAA Status", "caa_analysis", mapKeyStatus},
+                {"DNSSEC Status", "dnssec_analysis", mapKeyStatus},
                 {"Mail Posture", "mail_posture", "label"},
         }
 
@@ -56,7 +61,7 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 {"DKIM Selectors", extractSortedSelectors},
                 {"CAA Tags", extractSortedCAATags},
                 {"SPF Records", func(r map[string]any) string { return extractSortedRecords(r, "spf_analysis", "records") }},
-                {"DMARC Records", func(r map[string]any) string { return extractSortedRecords(r, "dmarc_analysis", "records") }},
+                {"DMARC Records", func(r map[string]any) string { return extractSortedRecords(r, mapKeyDmarcAnalysis, "records") }},
                 {"MX Records", extractSortedMX},
                 {"NS Records", extractSortedNS},
         }
@@ -73,8 +78,8 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 }
         }
 
-        prevDANE := extractPostureBool(prev, "dane_analysis", "has_dane")
-        currDANE := extractPostureBool(curr, "dane_analysis", "has_dane")
+        prevDANE := extractPostureBool(prev, mapKeyDaneAnalysis, "has_dane")
+        currDANE := extractPostureBool(curr, mapKeyDaneAnalysis, "has_dane")
         if prevDANE != currDANE {
                 diffs = append(diffs, PostureDiffField{
                         Label:    "DANE Present",

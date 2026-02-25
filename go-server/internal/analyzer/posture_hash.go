@@ -12,33 +12,40 @@ import (
         "golang.org/x/crypto/sha3"
 )
 
+const (
+	mapKeyCaaAnalysis = "caa_analysis"
+	mapKeyFalse = "false"
+	mapKeyMtaStsAnalysis = "mta_sts_analysis"
+	mapKeySpfAnalysis = "spf_analysis"
+)
+
 func CanonicalPostureHash(results map[string]any) string {
         var parts []string
 
-        parts = append(parts, "spf:"+extractPostureField(results, "spf_analysis", "status"))
-        parts = append(parts, "spf_records:"+extractSortedRecords(results, "spf_analysis", "records"))
+        parts = append(parts, "spf:"+extractPostureField(results, mapKeySpfAnalysis, mapKeyStatus))
+        parts = append(parts, "spf_records:"+extractSortedRecords(results, mapKeySpfAnalysis, mapKeyRecords))
 
-        parts = append(parts, "dmarc:"+extractPostureField(results, "dmarc_analysis", "status"))
-        parts = append(parts, "dmarc_policy:"+extractPostureField(results, "dmarc_analysis", "policy"))
-        parts = append(parts, "dmarc_records:"+extractSortedRecords(results, "dmarc_analysis", "records"))
+        parts = append(parts, "dmarc:"+extractPostureField(results, mapKeyDmarcAnalysis, mapKeyStatus))
+        parts = append(parts, "dmarc_policy:"+extractPostureField(results, mapKeyDmarcAnalysis, "policy"))
+        parts = append(parts, "dmarc_records:"+extractSortedRecords(results, mapKeyDmarcAnalysis, mapKeyRecords))
 
-        parts = append(parts, "dkim:"+extractPostureField(results, "dkim_analysis", "status"))
+        parts = append(parts, "dkim:"+extractPostureField(results, mapKeyDkimAnalysis, mapKeyStatus))
         parts = append(parts, "dkim_selectors:"+extractSortedSelectors(results))
 
-        parts = append(parts, "mta_sts:"+extractPostureField(results, "mta_sts_analysis", "status"))
-        parts = append(parts, "mta_sts_mode:"+extractPostureField(results, "mta_sts_analysis", "mode"))
+        parts = append(parts, "mta_sts:"+extractPostureField(results, mapKeyMtaStsAnalysis, mapKeyStatus))
+        parts = append(parts, "mta_sts_mode:"+extractPostureField(results, mapKeyMtaStsAnalysis, "mode"))
 
-        parts = append(parts, "tlsrpt:"+extractPostureField(results, "tlsrpt_analysis", "status"))
+        parts = append(parts, "tlsrpt:"+extractPostureField(results, "tlsrpt_analysis", mapKeyStatus))
 
-        parts = append(parts, "bimi:"+extractPostureField(results, "bimi_analysis", "status"))
+        parts = append(parts, "bimi:"+extractPostureField(results, "bimi_analysis", mapKeyStatus))
 
-        parts = append(parts, "dane:"+extractPostureField(results, "dane_analysis", "status"))
-        parts = append(parts, "dane_has:"+extractPostureBool(results, "dane_analysis", "has_dane"))
+        parts = append(parts, "dane:"+extractPostureField(results, mapKeyDaneAnalysis, mapKeyStatus))
+        parts = append(parts, "dane_has:"+extractPostureBool(results, mapKeyDaneAnalysis, "has_dane"))
 
-        parts = append(parts, "caa:"+extractPostureField(results, "caa_analysis", "status"))
+        parts = append(parts, "caa:"+extractPostureField(results, mapKeyCaaAnalysis, mapKeyStatus))
         parts = append(parts, "caa_tags:"+extractSortedCAATags(results))
 
-        parts = append(parts, "dnssec:"+extractPostureField(results, "dnssec_analysis", "status"))
+        parts = append(parts, "dnssec:"+extractPostureField(results, "dnssec_analysis", mapKeyStatus))
 
         parts = append(parts, "mail_posture:"+extractPostureField(results, "mail_posture", "label"))
 
@@ -53,22 +60,22 @@ func CanonicalPostureHash(results map[string]any) string {
 func CanonicalPostureHashLegacySHA256(results map[string]any) string {
         var parts []string
 
-        parts = append(parts, "spf:"+extractPostureField(results, "spf_analysis", "status"))
-        parts = append(parts, "spf_records:"+extractSortedRecords(results, "spf_analysis", "records"))
-        parts = append(parts, "dmarc:"+extractPostureField(results, "dmarc_analysis", "status"))
-        parts = append(parts, "dmarc_policy:"+extractPostureField(results, "dmarc_analysis", "policy"))
-        parts = append(parts, "dmarc_records:"+extractSortedRecords(results, "dmarc_analysis", "records"))
-        parts = append(parts, "dkim:"+extractPostureField(results, "dkim_analysis", "status"))
+        parts = append(parts, "spf:"+extractPostureField(results, mapKeySpfAnalysis, mapKeyStatus))
+        parts = append(parts, "spf_records:"+extractSortedRecords(results, mapKeySpfAnalysis, mapKeyRecords))
+        parts = append(parts, "dmarc:"+extractPostureField(results, mapKeyDmarcAnalysis, mapKeyStatus))
+        parts = append(parts, "dmarc_policy:"+extractPostureField(results, mapKeyDmarcAnalysis, "policy"))
+        parts = append(parts, "dmarc_records:"+extractSortedRecords(results, mapKeyDmarcAnalysis, mapKeyRecords))
+        parts = append(parts, "dkim:"+extractPostureField(results, mapKeyDkimAnalysis, mapKeyStatus))
         parts = append(parts, "dkim_selectors:"+extractSortedSelectors(results))
-        parts = append(parts, "mta_sts:"+extractPostureField(results, "mta_sts_analysis", "status"))
-        parts = append(parts, "mta_sts_mode:"+extractPostureField(results, "mta_sts_analysis", "mode"))
-        parts = append(parts, "tlsrpt:"+extractPostureField(results, "tlsrpt_analysis", "status"))
-        parts = append(parts, "bimi:"+extractPostureField(results, "bimi_analysis", "status"))
-        parts = append(parts, "dane:"+extractPostureField(results, "dane_analysis", "status"))
-        parts = append(parts, "dane_has:"+extractPostureBool(results, "dane_analysis", "has_dane"))
-        parts = append(parts, "caa:"+extractPostureField(results, "caa_analysis", "status"))
+        parts = append(parts, "mta_sts:"+extractPostureField(results, mapKeyMtaStsAnalysis, mapKeyStatus))
+        parts = append(parts, "mta_sts_mode:"+extractPostureField(results, mapKeyMtaStsAnalysis, "mode"))
+        parts = append(parts, "tlsrpt:"+extractPostureField(results, "tlsrpt_analysis", mapKeyStatus))
+        parts = append(parts, "bimi:"+extractPostureField(results, "bimi_analysis", mapKeyStatus))
+        parts = append(parts, "dane:"+extractPostureField(results, mapKeyDaneAnalysis, mapKeyStatus))
+        parts = append(parts, "dane_has:"+extractPostureBool(results, mapKeyDaneAnalysis, "has_dane"))
+        parts = append(parts, "caa:"+extractPostureField(results, mapKeyCaaAnalysis, mapKeyStatus))
         parts = append(parts, "caa_tags:"+extractSortedCAATags(results))
-        parts = append(parts, "dnssec:"+extractPostureField(results, "dnssec_analysis", "status"))
+        parts = append(parts, "dnssec:"+extractPostureField(results, "dnssec_analysis", mapKeyStatus))
         parts = append(parts, "mail_posture:"+extractPostureField(results, "mail_posture", "label"))
         parts = append(parts, "mx:"+extractSortedMX(results))
         parts = append(parts, "ns:"+extractSortedNS(results))
@@ -93,16 +100,16 @@ func extractPostureField(results map[string]any, section, key string) string {
 func extractPostureBool(results map[string]any, section, key string) string {
         sectionData, ok := results[section].(map[string]any)
         if !ok {
-                return "false"
+                return mapKeyFalse
         }
         v, ok := sectionData[key].(bool)
         if !ok {
-                return "false"
+                return mapKeyFalse
         }
         if v {
                 return "true"
         }
-        return "false"
+        return mapKeyFalse
 }
 
 func extractSortedRecords(results map[string]any, section, key string) string {
@@ -136,7 +143,7 @@ func extractSortedRecords(results map[string]any, section, key string) string {
 }
 
 func extractSortedSelectors(results map[string]any) string {
-        dkim, ok := results["dkim_analysis"].(map[string]any)
+        dkim, ok := results[mapKeyDkimAnalysis].(map[string]any)
         if !ok {
                 return ""
         }
@@ -162,11 +169,11 @@ func extractSortedSelectors(results map[string]any) string {
 }
 
 func extractSortedCAATags(results map[string]any) string {
-        caa, ok := results["caa_analysis"].(map[string]any)
+        caa, ok := results[mapKeyCaaAnalysis].(map[string]any)
         if !ok {
                 return ""
         }
-        records, ok := caa["records"]
+        records, ok := caa[mapKeyRecords]
         if !ok {
                 return ""
         }
