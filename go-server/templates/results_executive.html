@@ -1286,7 +1286,7 @@
             {{end}}
 
             <!-- AI Surface Scanner -->
-            {{if $ai_surface}}
+            {{if and $ai_surface (not .IsTLD)}}
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
@@ -1426,7 +1426,7 @@
             {{end}}
 
             <!-- Secret Exposure -->
-            {{if $secret_exposure}}
+            {{if and $secret_exposure (not .IsTLD)}}
             {{$secretStatus := mapGetStr "status" $secret_exposure}}
             {{$secretCount := mapGetFloat "finding_count" $secret_exposure}}
             {{if eq $secretStatus "exposed"}}

@@ -549,7 +549,7 @@
                                     <small class="text-muted d-block mt-2"><i class="fas fa-book me-1"></i>Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale)</small>
                                     {{if .CurrencyReport.ProviderName}}
                                     <small class="text-muted d-block mt-1"><i class="fas fa-building me-1"></i>DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
-                                    {{else}}
+                                    {{else if not .IsPublicSuffix}}
                                     <small class="text-muted d-block mt-1"><i class="fas fa-exclamation-circle me-1"></i>Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a recommendation targets a record you cannot edit, the finding reflects the observed value rather than a configuration error on your part.</small>
                                     {{end}}
                                 </div>
@@ -2595,7 +2595,7 @@
         </div>
 
         <!-- security.txt Section (RFC 9116) -->
-        {{if $security_txt}}
+        {{if and $security_txt (not .IsPublicSuffix)}}
         <div class="row section-security-txt" id="section-securitytxt">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -2724,10 +2724,10 @@
         </div>
         {{end}}
 
-        <hr class="section-separator-major">
+        {{if not .IsPublicSuffix}}<hr class="section-separator-major">{{end}}
 
         <!-- AI Surface Scanner Section -->
-        {{if $ai_surface}}
+        {{if and $ai_surface (not .IsPublicSuffix)}}
         <div class="row section-ai-surface" id="section-ai">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -3001,7 +3001,7 @@
         {{end}}
 
         <!-- Secret Exposure Section (Public Exposure Checks) -->
-        {{if $secret_exposure}}
+        {{if and $secret_exposure (not .IsPublicSuffix)}}
         <div class="row section-secret-exposure" id="section-secrets">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -3955,7 +3955,7 @@
         {{end}}
 
         <!-- Infrastructure Intelligence Section -->
-        {{if or $asn_info $edge_cdn $saas_txt}}
+        {{if and (or $asn_info $edge_cdn $saas_txt) (not .IsPublicSuffix)}}
         <div class="row section-infrastructure-intel" id="section-infra">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -4543,6 +4543,7 @@
         </div>
 
         <!-- Traffic & Routing Section -->
+        {{if not .IsPublicSuffix}}
         <div class="row section-traffic-routing" id="section-traffic">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -4682,6 +4683,8 @@
                 </div>
             </div>
         </div>
+
+        {{end}}
 
         {{if not .IsPublicSuffix}}
         <div class="row section-subdomain-discovery mt-4" id="section-subdomains">
@@ -5254,7 +5257,7 @@
         </div>
 
         <!-- DNS History: user-provided SecurityTrails API key input -->
-        {{if not $dns_history_available}}
+        {{if and (not $dns_history_available) (not .IsPublicSuffix)}}
         <div class="col-12 mb-3 dns-history-load-wrapper">
             <div class="card bg-dark bg-opacity-25 u-border-soft">
                 <div class="card-body py-3">

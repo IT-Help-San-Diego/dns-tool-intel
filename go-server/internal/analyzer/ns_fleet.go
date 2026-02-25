@@ -315,6 +315,18 @@ func checkSerialConsensus(entries []NSFleetEntry) bool {
 func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serialConsensus bool) []string {
         issues := make([]string, 0)
 
+        resolvedCount := 0
+        allUnreachable := true
+        for _, e := range entries {
+                if len(e.IPv4) > 0 || len(e.IPv6) > 0 {
+                        resolvedCount++
+                        if e.UDPReach || e.TCPReach {
+                                allUnreachable = false
+                        }
+                }
+        }
+        networkRestricted := resolvedCount > 1 && allUnreachable
+
         for _, e := range entries {
                 if len(e.IPv4) == 0 && len(e.IPv6) == 0 {
                         issues = append(issues, fmt.Sprintf("%s: no IP addresses resolved", e.Hostname))
@@ -322,12 +334,18 @@ func collectFleetIssues(entries []NSFleetEntry, diversity FleetDiversity, serial
                 if e.IsLame {
                         issues = append(issues, fmt.Sprintf("%s: lame delegation — responds but not authoritative (no AA flag)", e.Hostname))
                 }
-                if !e.UDPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
-                        issues = append(issues, fmt.Sprintf("%s: UDP unreachable on port 53", e.Hostname))
+                if !networkRestricted {
+                        if !e.UDPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
+                                issues = append(issues, fmt.Sprintf("%s: UDP unreachable on port 53", e.Hostname))
+                        }
+                        if !e.TCPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
+                                issues = append(issues, fmt.Sprintf("%s: TCP unreachable on port 53", e.Hostname))
+                        }
                 }
-                if !e.TCPReach && (len(e.IPv4) > 0 || len(e.IPv6) > 0) {
-                        issues = append(issues, fmt.Sprintf("%s: TCP unreachable on port 53", e.Hostname))
-                }
+        }
+
+        if networkRestricted {
+                issues = append(issues, fmt.Sprintf("Reachability probes skipped — all %d resolved nameservers failed both UDP and TCP, indicating the scanning environment's network restricts outbound DNS on port 53", resolvedCount))
         }
 
         if !serialConsensus {

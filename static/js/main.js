@@ -144,6 +144,31 @@ function isBareTopLevelDomain(domain) {
     return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
 }
 
+function swapToTLDScanPhases(overlay) {
+    var checklist = overlay.querySelector('#scanChecklist');
+    if (!checklist) return;
+    var isCovert = document.body.classList.contains('covert-mode');
+    var phases = [
+        { delay: 0, normal: 'DNS records \u2014 Cloudflare, Google, Quad9, OpenDNS, DNS4EU', covert: 'Enumerating DNS across 5 resolvers\u2026' },
+        { delay: 1200, normal: 'DNSSEC chain of trust \u2014 DS/DNSKEY validation', covert: 'Testing DNS poison resistance \u2014 DNSSEC, DANE' },
+        { delay: 2500, normal: 'Nameserver fleet \u2014 reachability, ASN diversity, SOA sync', covert: 'Probing NS fleet \u2014 reachability, ASN, SOA serial' },
+        { delay: 3500, normal: 'Delegation consistency \u2014 glue, TTL, DS alignment', covert: 'Auditing delegation chain \u2014 glue, DS, TTL drift' },
+        { delay: 5000, normal: 'DNS server security \u2014 Nmap probes', covert: 'Nmap fingerprinting nameservers\u2026' },
+        { delay: 7000, normal: 'SOA compliance \u2014 timers, zone health', covert: 'Checking SOA timers against RFC 1912' },
+        { delay: 9000, normal: 'Registrar \u0026 RDAP analysis', covert: 'Mapping registrar \u0026 RDAP footprint' },
+        { delay: 12000, normal: 'Classifying \u0026 Interpreting Intelligence', covert: 'Correlating attack surface\u2026' }
+    ];
+    checklist.innerHTML = '';
+    phases.forEach(function(p) {
+        var div = document.createElement('div');
+        div.className = 'scan-phase';
+        div.dataset.delay = p.delay;
+        div.innerHTML = '<i class="fas fa-circle-notch fa-spin scan-icon scan-pending" aria-hidden="true"></i>' +
+            '<span class="' + (isCovert ? 'covert-show' : 'covert-hide') + '">' + (isCovert ? p.covert : p.normal) + '</span>';
+        checklist.appendChild(div);
+    });
+}
+
 function showCovertTLDToast(domain, callback) {
     const existing = document.getElementById('tldReconToast');
     if (existing) existing.remove();
@@ -324,6 +349,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (overlay) {
                 if (loadingDomain) {
                     loadingDomain.textContent = domain;
+                }
+                if (isBareTopLevelDomain(domain)) {
+                    swapToTLDScanPhases(overlay);
                 }
                 showOverlay(overlay);
                 startStatusCycle(overlay);

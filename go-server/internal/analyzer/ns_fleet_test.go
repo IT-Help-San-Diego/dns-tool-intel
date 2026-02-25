@@ -220,6 +220,55 @@ func TestCollectFleetIssues_SerialMismatch(t *testing.T) {
         }
 }
 
+func TestCollectFleetIssues_NetworkRestricted(t *testing.T) {
+        entries := []NSFleetEntry{
+                {Hostname: "a.gtld-servers.net", IPv4: []string{"192.5.6.30"}, UDPReach: false, TCPReach: false},
+                {Hostname: "b.gtld-servers.net", IPv4: []string{"192.33.14.30"}, UDPReach: false, TCPReach: false},
+                {Hostname: "c.gtld-servers.net", IPv4: []string{"192.26.92.30"}, UDPReach: false, TCPReach: false},
+        }
+        diversity := scoreFleetDiversity(entries)
+        issues := collectFleetIssues(entries, diversity, true)
+
+        networkRestricted := false
+        for _, issue := range issues {
+                if strings.Contains(issue, "scanning environment") {
+                        networkRestricted = true
+                }
+                if strings.Contains(issue, "UDP unreachable") || strings.Contains(issue, "TCP unreachable") {
+                        t.Error("should not list individual unreachable issues when network is restricted")
+                }
+        }
+        if !networkRestricted {
+                t.Error("expected network restriction notice when all nameservers fail both UDP and TCP")
+        }
+}
+
+func TestCollectFleetIssues_PartialUnreachable(t *testing.T) {
+        entries := []NSFleetEntry{
+                {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: true, TCPReach: true},
+                {Hostname: "ns2.example.com", IPv4: []string{"5.6.7.8"}, UDPReach: false, TCPReach: false},
+        }
+        diversity := scoreFleetDiversity(entries)
+        issues := collectFleetIssues(entries, diversity, true)
+
+        hasUDP := false
+        hasNetworkRestricted := false
+        for _, issue := range issues {
+                if strings.Contains(issue, "UDP unreachable") {
+                        hasUDP = true
+                }
+                if strings.Contains(issue, "scanning environment") {
+                        hasNetworkRestricted = true
+                }
+        }
+        if !hasUDP {
+                t.Error("expected individual unreachable issues when only some nameservers fail")
+        }
+        if hasNetworkRestricted {
+                t.Error("should not show network restriction notice when some nameservers are reachable")
+        }
+}
+
 func TestNSFleetToMap(t *testing.T) {
         result := NSFleetResult{
                 Status:          "success",
