@@ -155,7 +155,7 @@ All DNS record types displayed:
 - SRV Records (service discovery)
 
 **Multi-Resolver Consensus**
-Results from Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), and OpenDNS (208.67.222.222). Discrepancies between resolvers are flagged.
+Results from Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), OpenDNS (208.67.222.222), and DNS4EU (194.242.2.2). Discrepancies between resolvers are flagged.
 
 **DNS Infrastructure Detection**
 Enterprise DNS providers identified (Cloudflare, AWS Route 53, Google Cloud DNS, Akamai, Azure DNS, etc.)
@@ -312,7 +312,7 @@ Public accountability page showing every failed analysis with sanitized error ca
 
 ### Public Roadmap
 URL: `https://dnstool.it-help.tech/roadmap`
-Transparent kanban-style project roadmap showing all development progress. Four columns: Done (45+ shipped features including ICAE, ICuAE, Unified Confidence Aggregation, Delegation Consistency Analyzer, Nameserver Fleet Matrix, DNSSEC Operations Deep Dive, Symbiotic Security Archetypes, Email Header Analyzer, Drift Engine, Architecture Page, Covert Recon Mode, Glass Badge System, Probe Network Second Node, Multi-Probe Consensus Engine, SonarCloud Quality Gate Fix, Admin Probe Management Panel, Failed Analysis Transparency Page, Covert Mode Color Leak Audit, Notion Bidirectional Sync), In Progress (visual cohesion, Morse code Easter egg), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (50+ shipped features including ICAE, ICuAE, Unified Confidence Aggregation, Delegation Consistency Analyzer, Nameserver Fleet Matrix, DNSSEC Operations Deep Dive, Symbiotic Security Archetypes, Email Header Analyzer, Drift Engine, Architecture Page, Covert Recon Mode, Glass Badge System, Probe Network Second Node, Multi-Probe Consensus Engine, SonarCloud Quality Gate Fix, Admin Probe Management Panel, Failed Analysis Transparency Page, Covert Mode Color Leak Audit, Notion Bidirectional Sync, Documentation Reality Check), In Progress (visual cohesion, Morse code Easter egg), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
 
 ---
 
