@@ -1,6 +1,12 @@
 (function() {
     if (document.documentElement.classList.contains('covert-mode')) {
         document.body.classList.add('covert-mode');
+        try {
+            var env = localStorage.getItem('covertEnv') || 'tactical';
+            document.body.classList.add('covert-' + env);
+        } catch(_e) {
+            document.body.classList.add('covert-tactical');
+        }
     }
 })();
 
@@ -263,11 +269,37 @@ function createCopyHandler(codeBlock, btn) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var covertEnvClasses = ['covert-submarine', 'covert-tactical', 'covert-basement'];
+    function clearCovertEnv() {
+        covertEnvClasses.forEach(function(c) { document.body.classList.remove(c); });
+    }
+    function setCovertEnv(env) {
+        clearCovertEnv();
+        if (env && covertEnvClasses.indexOf('covert-' + env) !== -1) {
+            document.body.classList.add('covert-' + env);
+        } else {
+            document.body.classList.add('covert-tactical');
+            env = 'tactical';
+        }
+        try { localStorage.setItem('covertEnv', env); } catch(_e) { /* storage unavailable */ } // NOSONAR
+        updateEnvButtons(env);
+    }
+    function getCovertEnv() {
+        try { return localStorage.getItem('covertEnv') || 'tactical'; } catch(_e) { return 'tactical'; }
+    }
+    function updateEnvButtons(env) {
+        var btns = document.querySelectorAll('.covert-env-btn');
+        btns.forEach(function(b) {
+            b.classList.toggle('active', b.dataset.env === env);
+        });
+    }
     function setCovertMode(active) {
         if (active) {
             document.body.classList.add('covert-mode');
+            setCovertEnv(getCovertEnv());
         } else {
             document.body.classList.remove('covert-mode');
+            clearCovertEnv();
         }
         try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
     }
@@ -324,11 +356,20 @@ document.addEventListener('DOMContentLoaded', function() {
             activateCovertOrSwitch();
         });
     }
-    const covertExitHome = document.getElementById('covertExitHome');
+    var covertExitHome = document.getElementById('covertExitHome');
     if (covertExitHome) {
         covertExitHome.addEventListener('click', function() {
             setCovertMode(false);
         });
+    }
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.covert-env-btn');
+        if (btn && btn.dataset.env) {
+            setCovertEnv(btn.dataset.env);
+        }
+    });
+    if (document.body.classList.contains('covert-mode')) {
+        setCovertEnv(getCovertEnv());
     }
 
     const domainForm = document.getElementById('domainForm');

@@ -1397,8 +1397,8 @@ main.container {
     }
 
     footer img {
-        width: 48px;
-        height: 48px;
+        width: 80px;
+        height: 80px;
     }
     
     footer p {
@@ -2159,9 +2159,54 @@ body.covert-mode::after {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: #ff0000;
+    background: #dd0000;
     mix-blend-mode: multiply;
     pointer-events: none;
+}
+body.covert-submarine::after {
+    background: #990000;
+}
+body.covert-basement::after {
+    background: #ff2a2a;
+}
+.covert-env-selector {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-left: 0.75rem;
+    vertical-align: middle;
+}
+.covert-env-btn {
+    background: rgba(140, 20, 20, 0.15);
+    border: 1px solid rgba(180, 30, 30, 0.3);
+    color: #cc2828;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+}
+.covert-env-btn:hover {
+    background: rgba(180, 30, 30, 0.25);
+    border-color: rgba(204, 40, 40, 0.5);
+}
+.covert-env-btn.active {
+    background: rgba(204, 40, 40, 0.3);
+    border-color: #cc2828;
+    color: #ff4444;
+    box-shadow: 0 0 8px rgba(204, 40, 40, 0.3);
+}
+.covert-env-label {
+    font-size: 0.6rem;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-right: 0.25rem;
+    vertical-align: middle;
 }
 body.covert-mode .navbar.bg-dark {
     background-color: #0e1015 !important;

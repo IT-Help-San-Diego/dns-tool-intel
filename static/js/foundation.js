@@ -5,6 +5,12 @@
     if (document.documentElement.classList.contains('covert-mode') &&
         !document.body.classList.contains('covert-mode')) {
         document.body.classList.add('covert-mode');
+        try {
+            var env = localStorage.getItem('covertEnv') || 'tactical';
+            document.body.classList.add('covert-' + env);
+        } catch(_e) {
+            document.body.classList.add('covert-tactical');
+        }
     }
 
     /* ── Collapse ── */
