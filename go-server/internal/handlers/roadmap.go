@@ -73,11 +73,18 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Nameserver Fleet Matrix", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "DNSSEC Operations Deep Dive", Version: "v26.25.94", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Live SonarCloud Badge & Evidence Qualification", Version: "v26.25.97", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Probe Network Second Node (Kali)", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Multi-Probe Consensus Engine", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Public Roadmap Page", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "SonarCloud Quality Gate Fix", Version: "v26.26.03", Date: roadmapDateFeb2026, Type: "Quality"},
+                {Title: "Nmap Subdomain Enrichment", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Admin Probe Management Panel", Version: "v26.26.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass treatment, question branding, and token system across all report modes"},
-                {Title: "Public Roadmap Page", Type: roadmapTypeFeature, Priority: "Medium", Notes: "This page — kanban view of project progress"},
+                {Title: "LLMs.txt & JSON-LD Consistency Audit", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Cross-validate documentation, schema markup, and feature claims against actual site state"},
+                {Title: "Stats Page Visual Redesign", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass/gradient aesthetic matching rest of site — polished data presentation"},
         }
 
         nextUp := []RoadmapItem{
@@ -85,8 +92,6 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Distributed Probe Mesh (Good Net Citizens)", Type: roadmapTypeFeature, Priority: "High", Notes: "Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues"},
                 {Title: "API Access (Programmatic Analysis)", Type: roadmapTypeFeature, Priority: "High", Notes: "Programmatic analysis for automation workflows with rate limiting, authentication, versioning"},
                 {Title: "CLI App (Homebrew/Binary)", Type: roadmapTypeFeature, Priority: "High", Notes: "Terminal application for macOS/Linux — works without login for basic analysis"},
-                {Title: "Probe Network Second Node (Kali)", Type: roadmapTypeFeature, Priority: "High", Notes: "SMTP/TLS verification (STARTTLS), DANE/DNSSEC validation, testssl.sh analysis, SMTPTLS policy checks from Kali OSINT node"},
-                {Title: "Multi-Probe Consensus Engine", Type: roadmapTypeFeature, Priority: "High", Notes: "Cross-probe agreement analysis — require ≥3 independent ASNs and ≥2 regions for consensus, trusted anchor nodes, volunteer probe integration"},
         }
 
         backlog := []RoadmapItem{

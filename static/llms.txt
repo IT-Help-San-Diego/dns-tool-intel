@@ -46,16 +46,26 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/investigate` — IP Intelligence: determine how an IP address relates to a domain (Direct Asset, Email Provider, CDN/Edge, DNS Provider, SPF-Authorized Sender)
 - `/email-header` — Email Header Analyzer: paste headers, upload .eml files, or import JSON from Gmail API, Microsoft Graph, Postmark, SendGrid, Mailgun, and MBOX archives for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, subject line scam analysis (phone number obfuscation, fake payment amounts, homoglyph brand impersonation), third-party spam vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), and brand mismatch detection
 - `/toolkit` — Field Tech Toolkit (Beta): guided network troubleshooting for everyone — triage matrix with 6 scenario cards for quick entry, step-by-step wizard with 6 diagnostic steps, What's My IP, external port check, DNS test, dual-network remote support, command-line reference (including macOS networkQuality), command preflight guidance for password-protected commands, recommended external tools, step navigator, and "Found Something?" discovery mechanism at each step
+- `/confidence` — Confidence Engine dashboard: ICAE (129 deterministic tests, 9 protocols) and ICuAE (29 currency tests, 5 dimensions) results, maturity levels, audit log, Bayesian calibration and EWMA control charts
+- `/dossier` — Domain Dossier: comprehensive single-page intelligence report combining all analysis modules for a domain
+- `/drift` — Drift Timeline: longitudinal posture change tracking via SHA-3-512 canonical hashing — detect when a domain's security configuration changes over time
+- `/ttl-tuner` — TTL Tuner: interactive DNS TTL analysis and optimization recommendations
 - `/changelog` — What's New: complete changelog of improvements and new features
 - `/history` — List of recently analyzed domains
-- `/stats` — Usage statistics and trends
+- `/stats` — Usage statistics and trends with global reach, daily activity, and operational insights
 - `/compare` — Side-by-side domain comparison
 - `/architecture` — TLP:GREEN public system architecture overview: intelligence pipeline, dual-engine confidence framework (ICAE/ICuAE), protocol coverage, open-core design, standards foundation
 - `/approach` — Our Methodology: five analytic perspectives (Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro) encoded as a precision algorithm — Symbiotic Security model, RFC provenance for every finding, time-series verification, and the architecture behind building a forensic audit engine instead of a simple checker
-- `/roadmap` — Public Roadmap: kanban-style view of project progress — completed features (25+), in-progress work, next-up priorities, and backlog items with transparent status tracking
+- `/roadmap` — Public Roadmap: kanban-style view of project progress — completed features (37+), in-progress work, next-up priorities, and backlog items with transparent status tracking
+- `/about` — About page with project background and team information
+- `/color-science` — Color Science: CIE scotopic luminance calculations, WCAG contrast analysis, and the science behind the platform's dark-mode color system
+- `/brand-colors` — Brand Colors: platform color palette with accessibility rationale
+- `/badge` — Badge System: embeddable security posture badges (SVG, Shields.io format) for domain security status
+- `/faq/subdomains` — Subdomain Discovery FAQ: methodology explanation for Certificate Transparency and DNS-based subdomain enumeration
 
 ## Intelligence Sources & Transparency
 DNS Tool uses only open-source Unix commands and public protocols. Every conclusion can be independently verified. Sources include:
+- **Multi-Probe Infrastructure**: Probe-01 (Boston, SMTP/DNS) + Probe-02 (Kali, Go v2.1.0, SMTP/testssl/DANE/Nmap) — geographically distributed verification from independent ASNs
 - **4 DNS Resolvers**: Cloudflare, Google, Quad9, OpenDNS — queried in parallel with majority-agreement consensus
 - **Reverse DNS (PTR)**: Identifies hosting providers from IP addresses without any third-party API
 - **Team Cymru**: Community DNS service for IP-to-ASN attribution (no API key, no rate limits)
