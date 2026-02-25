@@ -263,7 +263,7 @@ func resolveProbeSSH(probeID string) (*sshTarget, error) {
         }
 }
 
-func writeKeyFile(b64Key string, label string) (string, error) {
+func writeKeyFile(b64Key, label string) (string, error) {
         decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(b64Key))
         if err != nil {
                 raw := strings.TrimSpace(b64Key)

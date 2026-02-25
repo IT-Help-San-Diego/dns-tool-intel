@@ -18,7 +18,7 @@ type DetectedFormat struct {
         Error   string
 }
 
-func DetectAndExtractHeaders(raw string, filename string) *DetectedFormat {
+func DetectAndExtractHeaders(raw, filename string) *DetectedFormat {
         trimmed := strings.TrimSpace(raw)
 
         if isBinaryContent(trimmed) {

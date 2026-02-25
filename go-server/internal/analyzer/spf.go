@@ -9,6 +9,8 @@ import (
         "strings"
 )
 
+const spfRecordNone = "(none)"
+
 var (
         spfIncludeRe  = regexp.MustCompile(`(?i)include:([^\s]+)`)
         spfAMechRe    = regexp.MustCompile(`(?i)\ba[:/]`)
@@ -220,7 +222,7 @@ func (a *Analyzer) processSPFRedirectHop(ctx context.Context, target string, cum
 
         if len(targetValid) == 0 {
                 issues = append(issues, fmt.Sprintf("SPF redirect target %s has no valid SPF record — results in PermError (RFC 7208 §6.1)", target))
-                hop = spfRedirectHop{Domain: target, SPFRecord: "(none)"}
+                hop = spfRedirectHop{Domain: target, SPFRecord: spfRecordNone}
                 return
         }
         if len(targetValid) > 1 {
@@ -276,7 +278,7 @@ func (a *Analyzer) followSPFRedirectChain(ctx context.Context, spfRecord string,
                 cumulativeLookups += hopLookups
                 redirectIssues = append(redirectIssues, hopIssues...)
 
-                if hop.SPFRecord == "(none)" {
+                if hop.SPFRecord == spfRecordNone {
                         break
                 }
 
@@ -305,56 +307,52 @@ func redirectChainToMaps(chain []spfRedirectHop) []map[string]any {
         return maps
 }
 
-func mergeResolvedSPF(resolved string, lookupMechanisms []string, includes []string, permissiveness, allMechanism *string, noMailIntent bool) ([]string, []string, *string, *string, bool) {
-        _, resolvedMechs, resolvedIncludes, resolvedPerm, resolvedAll, _, resolvedNoMail := parseSPFMechanisms(resolved)
-        lookupMechanisms = append(lookupMechanisms, resolvedMechs...)
-        includes = append(includes, resolvedIncludes...)
-        if resolvedPerm != nil {
-                permissiveness = resolvedPerm
-        }
-        if resolvedAll != nil {
-                allMechanism = resolvedAll
-        }
-        if resolvedNoMail {
-                noMailIntent = true
-        }
-        return lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent
+type spfEvalState struct {
+        lookupCount      int
+        lookupMechanisms []string
+        includes         []string
+        permissiveness   *string
+        allMechanism     *string
+        noMailIntent     bool
+        issues           []string
 }
 
-func (a *Analyzer) handleSPFRedirectChain(
-        ctx context.Context,
-        validSPF []string,
-        lookupCount int,
-        lookupMechanisms []string,
-        includes []string,
-        permissiveness *string,
-        allMechanism *string,
-        noMailIntent bool,
-        issues []string,
-) ([]map[string]any, string, int, []string, []string, *string, *string, bool, []string) {
-        var redirectChainMaps []map[string]any
-        resolvedSPF := ""
+func mergeResolvedSPF(resolved string, s *spfEvalState) {
+        _, resolvedMechs, resolvedIncludes, resolvedPerm, resolvedAll, _, resolvedNoMail := parseSPFMechanisms(resolved)
+        s.lookupMechanisms = append(s.lookupMechanisms, resolvedMechs...)
+        s.includes = append(s.includes, resolvedIncludes...)
+        if resolvedPerm != nil {
+                s.permissiveness = resolvedPerm
+        }
+        if resolvedAll != nil {
+                s.allMechanism = resolvedAll
+        }
+        if resolvedNoMail {
+                s.noMailIntent = true
+        }
+}
 
+func (a *Analyzer) handleSPFRedirectChain(ctx context.Context, validSPF []string, s *spfEvalState) ([]map[string]any, string) {
         if len(validSPF) != 1 {
-                return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues
+                return nil, ""
         }
 
         target := extractRedirectTarget(validSPF[0])
         if target == "" || hasAllMechanism(validSPF[0]) {
-                return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues
+                return nil, ""
         }
 
-        chain, resolved, totalLookups, redirectIssues := a.followSPFRedirectChain(ctx, validSPF[0], lookupCount)
-        lookupCount = totalLookups
-        issues = append(issues, redirectIssues...)
-        redirectChainMaps = redirectChainToMaps(chain)
+        chain, resolved, totalLookups, redirectIssues := a.followSPFRedirectChain(ctx, validSPF[0], s.lookupCount)
+        s.lookupCount = totalLookups
+        s.issues = append(s.issues, redirectIssues...)
+        redirectChainMaps := redirectChainToMaps(chain)
 
-        if resolved != "" && resolved != "(none)" {
-                resolvedSPF = resolved
-                lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent = mergeResolvedSPF(resolved, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent)
+        if resolved != "" && resolved != spfRecordNone {
+                mergeResolvedSPF(resolved, s)
+                return redirectChainMaps, resolved
         }
 
-        return redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues
+        return redirectChainMaps, ""
 }
 
 func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any {
@@ -384,10 +382,19 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
         validSPF, spfLike := classifySPFRecords(txtRecords)
         lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, issues, noMailIntent := evaluateSPFRecordSet(validSPF)
 
-        redirectChainMaps, resolvedSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues :=
-                a.handleSPFRedirectChain(ctx, validSPF, lookupCount, lookupMechanisms, includes, permissiveness, allMechanism, noMailIntent, issues)
+        s := &spfEvalState{
+                lookupCount:      lookupCount,
+                lookupMechanisms: lookupMechanisms,
+                includes:         includes,
+                permissiveness:   permissiveness,
+                allMechanism:     allMechanism,
+                noMailIntent:     noMailIntent,
+                issues:           issues,
+        }
 
-        status, message := buildSPFVerdict(lookupCount, permissiveness, noMailIntent, validSPF, spfLike)
+        redirectChainMaps, resolvedSPF := a.handleSPFRedirectChain(ctx, validSPF, s)
+
+        status, message := buildSPFVerdict(s.lookupCount, s.permissiveness, s.noMailIntent, validSPF, spfLike)
 
         if len(redirectChainMaps) > 0 && resolvedSPF != "" {
                 chainDomains := make([]string, 0, len(redirectChainMaps))
@@ -407,13 +414,13 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 "records":           txtRecords,
                 "valid_records":     validSPF,
                 "spf_like":          spfLike,
-                "lookup_count":      lookupCount,
-                "lookup_mechanisms": lookupMechanisms,
-                "permissiveness":    derefStr(permissiveness),
-                "all_mechanism":     derefStr(allMechanism),
-                "issues":            issues,
-                "includes":          includes,
-                "no_mail_intent":    noMailIntent,
+                "lookup_count":      s.lookupCount,
+                "lookup_mechanisms": s.lookupMechanisms,
+                "permissiveness":    derefStr(s.permissiveness),
+                "all_mechanism":     derefStr(s.allMechanism),
+                "issues":            s.issues,
+                "includes":          s.includes,
+                "no_mail_intent":    s.noMailIntent,
                 "redirect_chain":    redirectChainMaps,
                 "resolved_spf":     resolvedSPF,
         }

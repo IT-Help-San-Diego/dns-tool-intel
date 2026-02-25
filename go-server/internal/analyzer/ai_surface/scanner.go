@@ -375,14 +375,23 @@ func parseContentUsageDirectives(content string) map[string]any {
         return result
 }
 
-func processRobotsDirective(line, lower string, currentAgents []string, blockedSet, allowedSet map[string]bool, blocked, allowed []string, directives []map[string]any) ([]string, []string, []map[string]any) {
-        for _, agent := range currentAgents {
+type robotsParseState struct {
+        currentAgents []string
+        blockedSet    map[string]bool
+        allowedSet    map[string]bool
+        blocked       []string
+        allowed       []string
+        directives    []map[string]any
+}
+
+func processRobotsDirective(line, lower string, state *robotsParseState) {
+        for _, agent := range state.currentAgents {
                 if strings.HasPrefix(lower, "disallow:") {
                         disallowPath := strings.TrimSpace(line[len("disallow:"):])
-                        if disallowPath != "" && !blockedSet[agent] {
-                                blockedSet[agent] = true
-                                blocked = append(blocked, agent)
-                                directives = append(directives, map[string]any{
+                        if disallowPath != "" && !state.blockedSet[agent] {
+                                state.blockedSet[agent] = true
+                                state.blocked = append(state.blocked, agent)
+                                state.directives = append(state.directives, map[string]any{
                                         "agent":     agent,
                                         "directive": "Disallow",
                                         "path":      disallowPath,
@@ -390,13 +399,12 @@ func processRobotsDirective(line, lower string, currentAgents []string, blockedS
                         }
                 } else if strings.HasPrefix(lower, "allow:") {
                         allowPath := strings.TrimSpace(line[len("allow:"):])
-                        if allowPath != "" && !allowedSet[agent] {
-                                allowedSet[agent] = true
-                                allowed = append(allowed, agent)
+                        if allowPath != "" && !state.allowedSet[agent] {
+                                state.allowedSet[agent] = true
+                                state.allowed = append(state.allowed, agent)
                         }
                 }
         }
-        return blocked, allowed, directives
 }
 
 func buildAICrawlerSet() map[string]bool {
@@ -421,9 +429,10 @@ func handleUserAgentLine(line string, currentAgents []string, aiCrawlerSet map[s
 
 func parseRobotsTxtForAI(content string) (blocked []string, allowed []string, directives []map[string]any) {
         sc := bufio.NewScanner(strings.NewReader(content))
-        var currentAgents []string
-        blockedSet := map[string]bool{}
-        allowedSet := map[string]bool{}
+        state := &robotsParseState{
+                blockedSet: map[string]bool{},
+                allowedSet: map[string]bool{},
+        }
         aiCrawlerSet := buildAICrawlerSet()
 
         for sc.Scan() {
@@ -435,18 +444,18 @@ func parseRobotsTxtForAI(content string) (blocked []string, allowed []string, di
                 lower := strings.ToLower(line)
 
                 if strings.HasPrefix(lower, "user-agent:") {
-                        currentAgents = handleUserAgentLine(line, currentAgents, aiCrawlerSet)
+                        state.currentAgents = handleUserAgentLine(line, state.currentAgents, aiCrawlerSet)
                         continue
                 }
 
-                if len(currentAgents) == 0 {
+                if len(state.currentAgents) == 0 {
                         continue
                 }
 
-                blocked, allowed, directives = processRobotsDirective(line, lower, currentAgents, blockedSet, allowedSet, blocked, allowed, directives)
+                processRobotsDirective(line, lower, state)
         }
 
-        return blocked, allowed, directives
+        return state.blocked, state.allowed, state.directives
 }
 
 func scanForPrefillLinks(content string) []map[string]any {

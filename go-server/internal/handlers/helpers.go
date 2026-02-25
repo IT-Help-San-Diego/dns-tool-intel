@@ -185,29 +185,64 @@ func normalizeVerdictAnswers(verdicts map[string]interface{}) {
                 },
         }
 
-        reasonPrefixes := []string{"No — ", "Yes — ", "Possible — "}
-
         for key, labelToAnswer := range answerMap {
-                v, ok := verdicts[key].(map[string]interface{})
-                if !ok {
-                        continue
-                }
-                if _, hasAnswer := v["answer"]; hasAnswer {
-                        continue
-                }
-                label, _ := v["label"].(string)
-                if ans, found := labelToAnswer[label]; found {
-                        v["answer"] = ans
-                }
-                if reason, ok := v["reason"].(string); ok {
-                        for _, prefix := range reasonPrefixes {
-                                if strings.HasPrefix(reason, prefix) {
-                                        v["reason"] = strings.TrimPrefix(reason, prefix)
-                                        break
-                                }
+                normalizeVerdictEntry(verdicts, key, labelToAnswer)
+        }
+}
+
+func normalizeVerdictEntry(verdicts map[string]interface{}, key string, labelToAnswer map[string]string) {
+        v, ok := verdicts[key].(map[string]interface{})
+        if !ok {
+                return
+        }
+        if _, hasAnswer := v["answer"]; hasAnswer {
+                return
+        }
+        label, _ := v["label"].(string)
+        if ans, found := labelToAnswer[label]; found {
+                v["answer"] = ans
+        }
+        reasonPrefixes := []string{"No — ", "Yes — ", "Possible — "}
+        if reason, ok := v["reason"].(string); ok {
+                for _, prefix := range reasonPrefixes {
+                        if strings.HasPrefix(reason, prefix) {
+                                v["reason"] = strings.TrimPrefix(reason, prefix)
+                                break
                         }
                 }
         }
+}
+
+func normalizeLLMsTxtVerdict(llmsTxt map[string]interface{}) map[string]interface{} {
+        found, _ := llmsTxt["found"].(bool)
+        fullFound, _ := llmsTxt["full_found"].(bool)
+        if found && fullFound {
+                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
+        }
+        if found {
+                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt published — AI models receive structured context about this domain"}
+        }
+        return map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No llms.txt file detected — AI models have no structured instructions for this domain"}
+}
+
+func normalizeRobotsTxtVerdict(robotsTxt map[string]interface{}) map[string]interface{} {
+        found, _ := robotsTxt["found"].(bool)
+        blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
+        if found && blocksAI {
+                return map[string]interface{}{"answer": "Yes", "color": "success", "reason": "robots.txt actively blocks AI crawlers from scraping site content"}
+        }
+        if found {
+                return map[string]interface{}{"answer": "No", "color": "warning", "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped"}
+        }
+        return map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No robots.txt found — AI crawlers have unrestricted access"}
+}
+
+func normalizeCountVerdict(section map[string]interface{}, countKey, yesReason, noReason string) map[string]interface{} {
+        count := getNumValue(section, countKey)
+        if count > 0 {
+                return map[string]interface{}{"answer": "Yes", "color": "danger", "reason": fmt.Sprintf("%.0f %s", count, yesReason)}
+        }
+        return map[string]interface{}{"answer": "No", "color": "success", "reason": noReason}
 }
 
 func normalizeAIVerdicts(results, verdicts map[string]interface{}) {
@@ -221,45 +256,19 @@ func normalizeAIVerdicts(results, verdicts map[string]interface{}) {
         }
 
         if llmsTxt, ok := aiSurface["llms_txt"].(map[string]interface{}); ok {
-                found, _ := llmsTxt["found"].(bool)
-                fullFound, _ := llmsTxt["full_found"].(bool)
-                if found && fullFound {
-                        verdicts["ai_llms_txt"] = map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
-                } else if found {
-                        verdicts["ai_llms_txt"] = map[string]interface{}{"answer": "Yes", "color": "success", "reason": "llms.txt published — AI models receive structured context about this domain"}
-                } else {
-                        verdicts["ai_llms_txt"] = map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No llms.txt file detected — AI models have no structured instructions for this domain"}
-                }
+                verdicts["ai_llms_txt"] = normalizeLLMsTxtVerdict(llmsTxt)
         }
 
         if robotsTxt, ok := aiSurface["robots_txt"].(map[string]interface{}); ok {
-                found, _ := robotsTxt["found"].(bool)
-                blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
-                if found && blocksAI {
-                        verdicts["ai_crawler_governance"] = map[string]interface{}{"answer": "Yes", "color": "success", "reason": "robots.txt actively blocks AI crawlers from scraping site content"}
-                } else if found {
-                        verdicts["ai_crawler_governance"] = map[string]interface{}{"answer": "No", "color": "warning", "reason": "robots.txt present but does not block AI crawlers — content may be freely scraped"}
-                } else {
-                        verdicts["ai_crawler_governance"] = map[string]interface{}{"answer": "No", "color": "secondary", "reason": "No robots.txt found — AI crawlers have unrestricted access"}
-                }
+                verdicts["ai_crawler_governance"] = normalizeRobotsTxtVerdict(robotsTxt)
         }
 
         if poisoning, ok := aiSurface["poisoning"].(map[string]interface{}); ok {
-                iocCount := getNumValue(poisoning, "ioc_count")
-                if iocCount > 0 {
-                        verdicts["ai_poisoning"] = map[string]interface{}{"answer": "Yes", "color": "danger", "reason": fmt.Sprintf("%.0f indicator(s) of AI recommendation manipulation detected on homepage", iocCount)}
-                } else {
-                        verdicts["ai_poisoning"] = map[string]interface{}{"answer": "No", "color": "success", "reason": "No indicators of AI recommendation manipulation found"}
-                }
+                verdicts["ai_poisoning"] = normalizeCountVerdict(poisoning, "ioc_count", "indicator(s) of AI recommendation manipulation detected on homepage", "No indicators of AI recommendation manipulation found")
         }
 
         if hidden, ok := aiSurface["hidden_prompts"].(map[string]interface{}); ok {
-                count := getNumValue(hidden, "artifact_count")
-                if count > 0 {
-                        verdicts["ai_hidden_prompts"] = map[string]interface{}{"answer": "Yes", "color": "danger", "reason": fmt.Sprintf("%.0f hidden prompt-like artifact(s) detected in page source", count)}
-                } else {
-                        verdicts["ai_hidden_prompts"] = map[string]interface{}{"answer": "No", "color": "success", "reason": "No hidden prompt artifacts found in page source"}
-                }
+                verdicts["ai_hidden_prompts"] = normalizeCountVerdict(hidden, "artifact_count", "hidden prompt-like artifact(s) detected in page source", "No hidden prompt artifacts found in page source")
         }
 }
 
@@ -441,26 +450,27 @@ func extractRootDomain(domain string) (isSubdomain bool, root string) {
 func isPublicSuffixDomain(domain string) bool {
         domain = strings.TrimRight(domain, ".")
         _, err := publicsuffix.EffectiveTLDPlusOne(domain)
-        if err != nil {
-                suffix, icann := publicsuffix.PublicSuffix(domain)
-                if icann && strings.EqualFold(domain, suffix) {
-                        return true
-                }
-                if !icann && strings.EqualFold(domain, suffix) {
-                        return true
-                }
-                parts := strings.Split(domain, ".")
-                if len(parts) >= 2 {
-                        joined := strings.Join(parts[len(parts)-2:], ".")
-                        if strings.EqualFold(domain, joined) {
-                                suffixCheck, _ := publicsuffix.PublicSuffix(domain)
-                                if strings.EqualFold(suffixCheck, domain) {
-                                        return true
-                                }
-                        }
-                }
+        if err == nil {
+                return false
         }
-        return false
+        return isDomainMatchingSuffix(domain)
+}
+
+func isDomainMatchingSuffix(domain string) bool {
+        suffix, _ := publicsuffix.PublicSuffix(domain)
+        if strings.EqualFold(domain, suffix) {
+                return true
+        }
+        parts := strings.Split(domain, ".")
+        if len(parts) < 2 {
+                return false
+        }
+        joined := strings.Join(parts[len(parts)-2:], ".")
+        if !strings.EqualFold(domain, joined) {
+                return false
+        }
+        suffixCheck, _ := publicsuffix.PublicSuffix(domain)
+        return strings.EqualFold(suffixCheck, domain)
 }
 
 type subdomainEmailScope struct {
@@ -471,6 +481,44 @@ type subdomainEmailScope struct {
         SPFNote       string `json:"spf_note"`
         DMARCNote     string `json:"dmarc_note"`
         HasLocalEmail bool   `json:"has_local_email"`
+}
+
+func isActiveStatus(status string) bool {
+        return status == "success" || status == "warning"
+}
+
+func parseOrgDMARC(records []string) (bool, string) {
+        for _, r := range records {
+                lower := strings.ToLower(strings.TrimSpace(r))
+                if lower != "v=dmarc1" && !strings.HasPrefix(lower, "v=dmarc1;") && !strings.HasPrefix(lower, "v=dmarc1 ") {
+                        continue
+                }
+                policy := ""
+                if idx := strings.Index(lower, "p="); idx >= 0 {
+                        rest := lower[idx+2:]
+                        if semi := strings.IndexByte(rest, ';'); semi >= 0 {
+                                policy = strings.TrimSpace(rest[:semi])
+                        } else {
+                                policy = strings.TrimSpace(rest)
+                        }
+                }
+                return true, policy
+        }
+        return false, ""
+}
+
+func determineDMARCScope(subHasDMARC, orgHasDMARC bool, orgDMARCPolicy, rootDomain string) (string, string) {
+        if subHasDMARC {
+                return "local", "DMARC record published at this subdomain"
+        }
+        if orgHasDMARC {
+                policyNote := ""
+                if orgDMARCPolicy != "" {
+                        policyNote = fmt.Sprintf(" (p=%s)", orgDMARCPolicy)
+                }
+                return "inherited", fmt.Sprintf("No subdomain DMARC record — organizational domain policy from %s%s applies per RFC 7489 §6.6.3", rootDomain, policyNote)
+        }
+        return "none", fmt.Sprintf("No DMARC record at this subdomain or organizational domain %s", rootDomain)
 }
 
 func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, domain, rootDomain string, results map[string]any) subdomainEmailScope {
@@ -485,27 +533,11 @@ func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, doma
         spfStatus, _ := spf["status"].(string)
         dmarcStatus, _ := dmarc["status"].(string)
 
-        subHasSPF := spfStatus == "success" || spfStatus == "warning"
-        subHasDMARC := dmarcStatus == "success" || dmarcStatus == "warning"
+        subHasSPF := isActiveStatus(spfStatus)
+        subHasDMARC := isActiveStatus(dmarcStatus)
 
         orgDMARCRecords := dns.QueryDNS(ctx, "TXT", fmt.Sprintf("_dmarc.%s", rootDomain))
-        orgHasDMARC := false
-        orgDMARCPolicy := ""
-        for _, r := range orgDMARCRecords {
-                lower := strings.ToLower(strings.TrimSpace(r))
-                if lower == "v=dmarc1" || strings.HasPrefix(lower, "v=dmarc1;") || strings.HasPrefix(lower, "v=dmarc1 ") {
-                        orgHasDMARC = true
-                        if idx := strings.Index(lower, "p="); idx >= 0 {
-                                rest := lower[idx+2:]
-                                if semi := strings.IndexByte(rest, ';'); semi >= 0 {
-                                        orgDMARCPolicy = strings.TrimSpace(rest[:semi])
-                                } else {
-                                        orgDMARCPolicy = strings.TrimSpace(rest)
-                                }
-                        }
-                        break
-                }
-        }
+        orgHasDMARC, orgDMARCPolicy := parseOrgDMARC(orgDMARCRecords)
 
         if subHasSPF {
                 scope.SPFScope = "local"
@@ -515,20 +547,7 @@ func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, doma
                 scope.SPFNote = "No SPF record at this subdomain — SPF does not inherit from parent domains"
         }
 
-        if subHasDMARC {
-                scope.DMARCScope = "local"
-                scope.DMARCNote = "DMARC record published at this subdomain"
-        } else if orgHasDMARC {
-                scope.DMARCScope = "inherited"
-                policyNote := ""
-                if orgDMARCPolicy != "" {
-                        policyNote = fmt.Sprintf(" (p=%s)", orgDMARCPolicy)
-                }
-                scope.DMARCNote = fmt.Sprintf("No subdomain DMARC record — organizational domain policy from %s%s applies per RFC 7489 §6.6.3", rootDomain, policyNote)
-        } else {
-                scope.DMARCScope = "none"
-                scope.DMARCNote = fmt.Sprintf("No DMARC record at this subdomain or organizational domain %s", rootDomain)
-        }
+        scope.DMARCScope, scope.DMARCNote = determineDMARCScope(subHasDMARC, orgHasDMARC, orgDMARCPolicy, rootDomain)
 
         basic, _ := results["basic_records"].(map[string]any)
         if basic != nil {

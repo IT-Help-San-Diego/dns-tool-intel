@@ -2,7 +2,7 @@
 SELECT protocol, layer, maturity, total_runs, consecutive_passes,
        first_pass_at, last_regression_at, last_evaluated_at
 FROM ice_maturity
-ORDER BY protocol, layer;
+ORDER BY protocol ASC, layer ASC;
 
 -- name: ICAEGetMaturity :one
 SELECT protocol, layer, maturity, total_runs, consecutive_passes,
@@ -66,7 +66,7 @@ SELECT protocol, layer,
 FROM ice_results
 WHERE run_id = $1
 GROUP BY protocol, layer
-ORDER BY protocol, layer;
+ORDER BY protocol ASC, layer ASC;
 
 -- name: ICAEUpsertMaturity :exec
 INSERT INTO ice_maturity (protocol, layer, maturity, total_runs, consecutive_passes, first_pass_at, last_regression_at, last_evaluated_at, updated_at)

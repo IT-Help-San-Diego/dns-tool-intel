@@ -29,6 +29,8 @@ const (
         smtpReadTimeout = 2 * time.Second
         tlsTimeout      = 4 * time.Second
         requestTimeout  = 45 * time.Second
+
+        errInvalidHostRequired = "invalid request: host required"
 )
 
 var (
@@ -387,7 +389,7 @@ func handleTestSSL(w http.ResponseWriter, r *http.Request) {
                 Port int    `json:"port"`
         }
         if err := json.Unmarshal(body, &req); err != nil || req.Host == "" {
-                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request: host required"})
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": errInvalidHostRequired})
                 return
         }
         if !isValidHostname(req.Host) {
@@ -472,7 +474,7 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
                 Port int    `json:"port"`
         }
         if err := json.Unmarshal(body, &req); err != nil || req.Host == "" {
-                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request: host required"})
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": errInvalidHostRequired})
                 return
         }
         if !isValidHostname(req.Host) {
@@ -742,7 +744,7 @@ func handleNmapScan(w http.ResponseWriter, r *http.Request) {
                 Scripts []string `json:"scripts"`
         }
         if err := json.Unmarshal(body, &req); err != nil || req.Host == "" {
-                writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request: host required"})
+                writeJSON(w, http.StatusBadRequest, map[string]string{"error": errInvalidHostRequired})
                 return
         }
 
@@ -882,17 +884,21 @@ func parseNmapXML(xmlData string) map[string]any {
                 Ports []NmapPort `xml:"ports>port"`
         }
 
+        type NmapFinished struct {
+                TimeStr string `xml:"timestr,attr"`
+                Elapsed string `xml:"elapsed,attr"`
+        }
+
+        type NmapRunStats struct {
+                Finished NmapFinished `xml:"finished"`
+        }
+
         type NmapRun struct {
-                Scanner   string     `xml:"scanner,attr"`
-                StartStr  string     `xml:"startstr,attr"`
-                Version   string     `xml:"version,attr"`
-                Hosts     []NmapHost `xml:"host"`
-                RunStats  struct {
-                        Finished struct {
-                                TimeStr string `xml:"timestr,attr"`
-                                Elapsed string `xml:"elapsed,attr"`
-                        } `xml:"finished"`
-                } `xml:"runstats"`
+                Scanner  string       `xml:"scanner,attr"`
+                StartStr string       `xml:"startstr,attr"`
+                Version  string       `xml:"version,attr"`
+                Hosts    []NmapHost   `xml:"host"`
+                RunStats NmapRunStats `xml:"runstats"`
         }
 
         var nmapRun NmapRun

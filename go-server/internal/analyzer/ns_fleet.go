@@ -138,37 +138,9 @@ func (a *Analyzer) probeNameserver(ctx context.Context, domain, hostname string)
                 entry.IPv6 = ipv6
         }
 
-        if len(ipv4) > 0 {
-                asnInfo := a.lookupIPv4ASN(ctx, ipv4[0])
-                if asn, ok := asnInfo["asn"].(string); ok {
-                        entry.ASN = asn
-                }
-                if name, ok := asnInfo["as_name"].(string); ok {
-                        entry.ASName = name
-                }
-                if prefix, ok := asnInfo["prefix"].(string); ok {
-                        entry.Prefix = prefix
-                }
-        } else if len(ipv6) > 0 {
-                asnInfo := a.lookupIPv6ASN(ctx, ipv6[0])
-                if asn, ok := asnInfo["asn"].(string); ok {
-                        entry.ASN = asn
-                }
-                if name, ok := asnInfo["as_name"].(string); ok {
-                        entry.ASName = name
-                }
-                if prefix, ok := asnInfo["prefix"].(string); ok {
-                        entry.Prefix = prefix
-                }
-        }
+        a.populateASNInfo(ctx, &entry)
 
-        var targetIP string
-        if len(ipv4) > 0 {
-                targetIP = ipv4[0]
-        } else if len(ipv6) > 0 {
-                targetIP = ipv6[0]
-        }
-
+        targetIP := firstIP(entry.IPv4, entry.IPv6)
         if targetIP != "" {
                 entry.UDPReach, entry.TCPReach, entry.AAFlag, entry.SOASerial = probeNSReachability(ctx, domain, targetIP)
                 entry.IsLame = !entry.AAFlag && entry.UDPReach
@@ -176,6 +148,36 @@ func (a *Analyzer) probeNameserver(ctx context.Context, domain, hostname string)
         }
 
         return entry
+}
+
+func (a *Analyzer) populateASNInfo(ctx context.Context, entry *NSFleetEntry) {
+        var asnInfo map[string]any
+        if len(entry.IPv4) > 0 {
+                asnInfo = a.lookupIPv4ASN(ctx, entry.IPv4[0])
+        } else if len(entry.IPv6) > 0 {
+                asnInfo = a.lookupIPv6ASN(ctx, entry.IPv6[0])
+        } else {
+                return
+        }
+        if asn, ok := asnInfo["asn"].(string); ok {
+                entry.ASN = asn
+        }
+        if name, ok := asnInfo["as_name"].(string); ok {
+                entry.ASName = name
+        }
+        if prefix, ok := asnInfo["prefix"].(string); ok {
+                entry.Prefix = prefix
+        }
+}
+
+func firstIP(ipv4, ipv6 []string) string {
+        if len(ipv4) > 0 {
+                return ipv4[0]
+        }
+        if len(ipv6) > 0 {
+                return ipv6[0]
+        }
+        return ""
 }
 
 func probeNSReachability(ctx context.Context, domain, ip string) (udpOK, tcpOK, aaFlag bool, soaSerial uint32) {

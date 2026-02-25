@@ -53,21 +53,10 @@ func shortHash(s string) string {
 }
 
 func (h *DriftHandler) Timeline(c *gin.Context) {
-        nonce := c.MustGet("csp_nonce")
-        csrfToken := c.MustGet("csrf_token")
-
         domain := c.Query("domain")
         if domain == "" {
-                data := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "",
-                        "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Domain parameter is required. Use ?domain=example.com"}},
-                }
-                mergeAuthData(c, h.Config, data)
+                data := h.driftBaseData(c, "")
+                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Domain parameter is required. Use ?domain=example.com"}}
                 c.HTML(http.StatusBadRequest, templateDrift, data)
                 return
         }
@@ -79,17 +68,8 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
                 Limit:  50,
         })
         if err != nil {
-                data := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "",
-                        "Domain":          domain,
-                        "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to load drift events"}},
-                }
-                mergeAuthData(c, h.Config, data)
+                data := h.driftBaseData(c, domain)
+                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to load drift events"}}
                 c.HTML(http.StatusInternalServerError, templateDrift, data)
                 return
         }
@@ -99,21 +79,41 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
                 Limit:  50,
         })
         if err != nil {
-                data := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                        "CspNonce":        nonce,
-                        "CsrfToken":       csrfToken,
-                        "ActivePage":      "",
-                        "Domain":          domain,
-                        "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to load analysis history"}},
-                }
-                mergeAuthData(c, h.Config, data)
+                data := h.driftBaseData(c, domain)
+                data["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to load analysis history"}}
                 c.HTML(http.StatusInternalServerError, templateDrift, data)
                 return
         }
 
+        timeline := convertDriftEvents(driftEvents)
+        hashHistory := buildHashHistory(analyses)
+
+        data := h.driftBaseData(c, domain)
+        data["DriftEvents"] = timeline
+        data["HashHistory"] = hashHistory
+        data["HasDrift"] = len(timeline) > 0
+        c.HTML(http.StatusOK, templateDrift, data)
+}
+
+func (h *DriftHandler) driftBaseData(c *gin.Context, domain string) gin.H {
+        nonce := c.MustGet("csp_nonce")
+        csrfToken := c.MustGet("csrf_token")
+        data := gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "CsrfToken":       csrfToken,
+                "ActivePage":      "",
+        }
+        if domain != "" {
+                data["Domain"] = domain
+        }
+        mergeAuthData(c, h.Config, data)
+        return data
+}
+
+func convertDriftEvents(driftEvents []dbq.DriftEvent) []driftTimelineEvent {
         timeline := make([]driftTimelineEvent, 0, len(driftEvents))
         for _, ev := range driftEvents {
                 te := driftTimelineEvent{
@@ -138,7 +138,10 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
                 }
                 timeline = append(timeline, te)
         }
+        return timeline
+}
 
+func buildHashHistory(analyses []dbq.DomainAnalysis) []postureHashEntry {
         hashHistory := make([]postureHashEntry, 0, len(analyses))
         prevHash := ""
         for i := len(analyses) - 1; i >= 0; i-- {
@@ -164,19 +167,5 @@ func (h *DriftHandler) Timeline(c *gin.Context) {
         for i, j := 0, len(hashHistory)-1; i < j; i, j = i+1, j-1 {
                 hashHistory[i], hashHistory[j] = hashHistory[j], hashHistory[i]
         }
-
-        data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "CsrfToken":       csrfToken,
-                "ActivePage":      "",
-                "Domain":          domain,
-                "DriftEvents":     timeline,
-                "HashHistory":     hashHistory,
-                "HasDrift":        len(timeline) > 0,
-        }
-        mergeAuthData(c, h.Config, data)
-        c.HTML(http.StatusOK, templateDrift, data)
+        return hashHistory
 }

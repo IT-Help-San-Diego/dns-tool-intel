@@ -60,36 +60,38 @@
                                 <input type="text" class="form-control search-input" id="ttlDomain" name="domain" placeholder="example.com" value="{{.Domain}}" required autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Domain to analyze">
                             </div>
 
-                            <label class="form-label search-label mb-2"><i class="fas fa-cog me-2" aria-hidden="true"></i>Optimization Profile</label>
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
-                                    <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" role="button" style="cursor:pointer" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
-                                                <h3 class="h6 text-success mb-0">Stability</h3>
-                                                <span class="badge bg-success ms-auto">Recommended</span>
+                            <fieldset class="border-0 p-0 m-0">
+                                <legend class="form-label search-label mb-2"><i class="fas fa-cog me-2" aria-hidden="true"></i>Optimization Profile</legend>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <input class="form-check-input d-none" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
+                                        <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileStability" style="cursor:pointer">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
+                                                    <h3 class="h6 text-success mb-0">Stability</h3>
+                                                    <span class="badge bg-success ms-auto">Recommended</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Longer TTLs, fewer DNS queries, faster page loads for returning visitors, slower propagation when records change.</p>
+                                                <p class="small mb-0"><strong>Best for:</strong> Production websites, corporate domains, email infrastructure &mdash; anything that doesn&rsquo;t change often. This is the right choice for most sites.</p>
                                             </div>
-                                            <p class="small text-muted mb-2">Longer TTLs, fewer DNS queries, faster page loads for returning visitors, slower propagation when records change.</p>
-                                            <p class="small mb-0"><strong>Best for:</strong> Production websites, corporate domains, email infrastructure &mdash; anything that doesn&rsquo;t change often. This is the right choice for most sites.</p>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="col-md-6">
-                                    <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
-                                    <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" role="button" style="cursor:pointer" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
-                                                <h3 class="h6 text-warning mb-0">Agility</h3>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input class="form-check-input d-none" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
+                                        <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card" for="profileAgility" style="cursor:pointer">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
+                                                    <h3 class="h6 text-warning mb-0">Agility</h3>
+                                                </div>
+                                                <p class="small text-muted mb-2">Shorter TTLs, faster propagation when records change, more DNS queries per day, slightly slower repeat visits.</p>
+                                                <p class="small mb-0"><strong>Best for:</strong> Active migrations, failover architectures, load-balanced infrastructure, CI/CD pipelines that update DNS records frequently, or preparing for an IP change.</p>
                                             </div>
-                                            <p class="small text-muted mb-2">Shorter TTLs, faster propagation when records change, more DNS queries per day, slightly slower repeat visits.</p>
-                                            <p class="small mb-0"><strong>Best for:</strong> Active migrations, failover architectures, load-balanced infrastructure, CI/CD pipelines that update DNS records frequently, or preparing for an IP change.</p>
-                                        </div>
-                                    </label>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <div class="text-center">
                                 <button type="submit" class="btn btn-analyze btn-lg px-5"><i class="fas fa-sliders-h me-2" aria-hidden="true"></i>Analyze TTLs</button>

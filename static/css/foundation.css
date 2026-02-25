@@ -173,8 +173,7 @@ small, .small { font-size: 0.875em; }
 .g-5 { --bs-gutter-x: 3rem; --bs-gutter-y: 3rem; }
 
 .g-1, .g-2, .g-3, .g-4, .g-5 { margin-right: calc(var(--bs-gutter-x) * -0.5); margin-left: calc(var(--bs-gutter-x) * -0.5); }
-.g-1 > *, .g-2 > *, .g-3 > *, .g-4 > *, .g-5 > * { padding-right: calc(var(--bs-gutter-x) * 0.5); padding-left: calc(var(--bs-gutter-x) * 0.5); }
-.g-1 > *, .g-2 > *, .g-3 > *, .g-4 > *, .g-5 > * { margin-top: var(--bs-gutter-y); }
+.g-1 > *, .g-2 > *, .g-3 > *, .g-4 > *, .g-5 > * { padding-right: calc(var(--bs-gutter-x) * 0.5); padding-left: calc(var(--bs-gutter-x) * 0.5); margin-top: var(--bs-gutter-y); }
 
 /* === 4. Display Utilities === */
 
@@ -1156,7 +1155,7 @@ small, .small { font-size: 0.875em; }
 
 .accordion-button:focus { z-index: 3; border-color: var(--accent-violet); outline: 0; box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25); }
 
-.accordion-collapse { }
+.accordion-collapse { /* inherits default collapse behavior */ }
 
 .accordion-body { padding: 1rem 1.25rem; }
 
@@ -1207,7 +1206,7 @@ small, .small { font-size: 0.875em; }
 .fade { transition: opacity 0.15s linear; opacity: 0; }
 .fade.show { opacity: 1; }
 
-.active { }
+.active { /* state class — styles applied via compound selectors */ }
 
 .disabled, :disabled { pointer-events: none; opacity: 0.65; }
 

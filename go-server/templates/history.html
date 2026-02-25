@@ -116,7 +116,7 @@
 
         <div class="card mb-4">
             <div class="card-body py-2">
-                <form action="/history" method="GET" role="search" class="d-flex align-items-center gap-2">
+                <search><form action="/history" method="GET" class="d-flex align-items-center gap-2">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-secondary">
                             <i class="fas fa-search text-muted"></i>
@@ -133,7 +133,7 @@
                             <i class="fas fa-times"></i>
                         </a>
                     {{end}}
-                </form>
+                </form></search>
             </div>
         </div>
 
@@ -346,21 +346,21 @@
         {{template "footer" .}}
     </main>
 
-    <div id="historyViewOverlay" class="loading-overlay" role="status" aria-live="polite" aria-label="Loading stored results">
+    <output id="historyViewOverlay" class="loading-overlay" aria-live="polite" aria-label="Loading stored results">
         <div class="loading-content">
             <div class="spinner-border text-primary mb-3 u-icon-3rem"><span class="visually-hidden">Loading...</span></div>
             <div class="text-light fw-medium" id="historyViewText">Loading analysis results...</div>
         </div>
-    </div>
+    </output>
 
-    <div id="historyAnalyzeOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
+    <output id="historyAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
         <div class="loading-content">
             <div class="loading-spinner" aria-hidden="true">
                 <i class="fas fa-globe fa-spin covert-hide" aria-hidden="true"></i>
                 <i class="fas fa-crosshairs fa-spin covert-show" aria-hidden="true"></i>
             </div>
-            <p class="mt-4 mb-2 h4 covert-hide" role="status">Running Multi-Source Intelligence Audit</p>
-            <p class="mt-4 mb-2 h4 covert-show" role="status">Initiating Recon Sweep</p>
+            <output class="mt-4 mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
+            <output class="mt-4 mb-2 h4 covert-show">Initiating Recon Sweep</output>
             <p class="text-muted mb-0" id="historyAnalyzeDomain"></p>
             <div class="loading-elapsed mt-2">
                 <span class="text-muted small" id="loadingTimer">0s</span>
@@ -420,7 +420,7 @@
                 <i class="fas fa-exclamation-triangle me-1"></i>Analysis is taking longer than expected. <a href="/" class="text-info">Try from the home page</a> or refresh to retry.
             </p>
         </div>
-    </div>
+    </output>
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
@@ -440,7 +440,7 @@
     }
     function covertUrl(url){
         if(!isCovertActive()) return url;
-        const sep=url.indexOf('?')===-1?'?':'&';
+        const sep=!url.includes('?')?'?':'&';
         return url+sep+'covert=1';
     }
     document.addEventListener('DOMContentLoaded',function(){

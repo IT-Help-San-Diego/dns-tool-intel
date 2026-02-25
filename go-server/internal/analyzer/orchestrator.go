@@ -76,47 +76,12 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         resultsMap["dane"] = a.AnalyzeDANE(ctx, domain, mxForDANE)
         slog.Info(logTaskCompleted, "task", "dane", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(daneStart).Milliseconds())))
 
-        var smtpResult map[string]any
-        if !isTLD {
-                smtpStart := time.Now()
-                smtpInputs := AnalysisInputs{
-                        MTASTSResult: getMapResult(resultsMap, "mta_sts"),
-                        TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
-                        DANEResult:   resultsMap["dane"].(map[string]any),
-                }
-                smtpResult = a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
-                slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
-        } else {
-                smtpResult = map[string]any{"status": "n/a", "reason": "TLD — email transport not applicable"}
-                resultsMap["spf"] = map[string]any{"status": "n/a"}
-                resultsMap["dmarc"] = map[string]any{"status": "n/a"}
-                resultsMap["dkim"] = map[string]any{"status": "n/a"}
-                resultsMap["mta_sts"] = map[string]any{"status": "n/a"}
-                resultsMap["tlsrpt"] = map[string]any{"status": "n/a"}
-                resultsMap["bimi"] = map[string]any{"status": "n/a"}
-                resultsMap["ct_subdomains"] = map[string]any{"status": "n/a"}
-                resultsMap["smimea_openpgpkey"] = map[string]any{"status": "n/a"}
-                resultsMap["security_txt"] = map[string]any{"status": "n/a"}
-                resultsMap["ai_surface"] = map[string]any{"status": "n/a"}
-                resultsMap["secret_exposure"] = map[string]any{"status": "n/a"}
-                slog.Info("TLD analysis — skipped email/subdomain protocols", "domain", domain)
-        }
+        smtpResult := a.computeSMTPResult(ctx, domain, isTLD, mxForDANE, resultsMap)
 
         enrichBasicRecords(basic, resultsMap)
 
-        rootTXT, _ := basic["TXT"].([]string)
-        misplacedDMARC := DetectMisplacedDMARC(rootTXT)
-        if !isTLD && misplacedDMARC["detected"] == true {
-                if dmarcResult, ok := resultsMap["dmarc"].(map[string]any); ok {
-                        dmarcResult["misplaced_dmarc"] = misplacedDMARC
-                        if msg, ok := misplacedDMARC["message"].(string); ok && msg != "" {
-                                existingIssues, _ := dmarcResult["issues"].([]string)
-                                if existingIssues == nil {
-                                        existingIssues = []string{}
-                                }
-                                dmarcResult["issues"] = append(existingIssues, msg)
-                        }
-                }
+        if !isTLD {
+                enrichMisplacedDMARC(basic, resultsMap)
         }
 
         propagationStatus := buildPropagationStatus(basic, auth)
@@ -222,6 +187,45 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 }
 
 
+func (a *Analyzer) computeSMTPResult(ctx context.Context, domain string, isTLD bool, mxForDANE []string, resultsMap map[string]any) map[string]any {
+        if isTLD {
+                for _, key := range []string{"spf", "dmarc", "dkim", "mta_sts", "tlsrpt", "bimi", "ct_subdomains", "smimea_openpgpkey", "security_txt", "ai_surface", "secret_exposure"} {
+                        resultsMap[key] = map[string]any{"status": "n/a"}
+                }
+                slog.Info("TLD analysis — skipped email/subdomain protocols", "domain", domain)
+                return map[string]any{"status": "n/a", "reason": "TLD — email transport not applicable"}
+        }
+        smtpStart := time.Now()
+        smtpInputs := AnalysisInputs{
+                MTASTSResult: getMapResult(resultsMap, "mta_sts"),
+                TLSRPTResult: getMapResult(resultsMap, "tlsrpt"),
+                DANEResult:   resultsMap["dane"].(map[string]any),
+        }
+        result := a.AnalyzeSMTPTransport(ctx, domain, mxForDANE, smtpInputs)
+        slog.Info(logTaskCompleted, "task", "smtp_transport", "domain", domain, "elapsed_ms", fmt.Sprintf("%.0f", float64(time.Since(smtpStart).Milliseconds())))
+        return result
+}
+
+func enrichMisplacedDMARC(basic map[string]any, resultsMap map[string]any) {
+        rootTXT, _ := basic["TXT"].([]string)
+        misplacedDMARC := DetectMisplacedDMARC(rootTXT)
+        if misplacedDMARC["detected"] != true {
+                return
+        }
+        dmarcResult, ok := resultsMap["dmarc"].(map[string]any)
+        if !ok {
+                return
+        }
+        dmarcResult["misplaced_dmarc"] = misplacedDMARC
+        if msg, ok := misplacedDMARC["message"].(string); ok && msg != "" {
+                existingIssues, _ := dmarcResult["issues"].([]string)
+                if existingIssues == nil {
+                        existingIssues = []string{}
+                }
+                dmarcResult["issues"] = append(existingIssues, msg)
+        }
+}
+
 func (a *Analyzer) checkDomainExists(ctx context.Context, domain string) (bool, string, *string) {
         for _, rtype := range []string{"A", "TXT", "MX"} {
                 if len(a.DNS.QueryDNS(ctx, rtype, domain)) > 0 {
@@ -304,7 +308,7 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
         return resultsMap
 }
 
-func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[string]any) icuae.CurrencyReport {
+func buildRecordCurrencies(resolverTTLMap map[string]uint32) []icuae.RecordCurrency {
         var records []icuae.RecordCurrency
         for rt, ttl := range resolverTTLMap {
                 records = append(records, icuae.RecordCurrency{
@@ -315,7 +319,10 @@ func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[
                         TTLRatio:    0,
                 })
         }
+        return records
+}
 
+func buildObservedTypes(resolverTTLMap, authTTLMap map[string]uint32) map[string]bool {
         observedTypes := make(map[string]bool)
         for rt := range authTTLMap {
                 observedTypes[rt] = true
@@ -323,45 +330,46 @@ func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[
         for rt := range resolverTTLMap {
                 observedTypes[rt] = true
         }
+        return observedTypes
+}
+
+func extractResolverAgreements(consensus map[string]any) ([]icuae.ResolverAgreement, int) {
+        resolverCount := 5
+        if rq, ok := consensus["resolvers_queried"].(int); ok {
+                resolverCount = rq
+        }
+
+        perRecord, ok := consensus["per_record_consensus"].(map[string]any)
+        if !ok {
+                return nil, resolverCount
+        }
 
         var agreements []icuae.ResolverAgreement
-        resolverCount := 5
-        if consensus, ok := results["resolver_consensus"].(map[string]any); ok {
-                if rq, ok := consensus["resolvers_queried"].(int); ok {
-                        resolverCount = rq
+        for rt, data := range perRecord {
+                rd, ok := data.(map[string]any)
+                if !ok {
+                        continue
                 }
-                if perRecord, ok := consensus["per_record_consensus"].(map[string]any); ok {
-                        for rt, data := range perRecord {
-                                if rd, ok := data.(map[string]any); ok {
-                                        isConsensus, _ := rd["consensus"].(bool)
-                                        rc, _ := rd["resolver_count"].(int)
-                                        agreeCount := rc
-                                        if !isConsensus {
-                                                agreeCount = rc - 1
-                                                if agreeCount < 0 {
-                                                        agreeCount = 0
-                                                }
-                                        }
-                                        agreements = append(agreements, icuae.ResolverAgreement{
-                                                RecordType:     rt,
-                                                AgreeCount:     agreeCount,
-                                                TotalResolvers: rc,
-                                                Unanimous:      isConsensus,
-                                        })
-                                }
+                isConsensus, _ := rd["consensus"].(bool)
+                rc, _ := rd["resolver_count"].(int)
+                agreeCount := rc
+                if !isConsensus {
+                        agreeCount = rc - 1
+                        if agreeCount < 0 {
+                                agreeCount = 0
                         }
                 }
+                agreements = append(agreements, icuae.ResolverAgreement{
+                        RecordType:     rt,
+                        AgreeCount:     agreeCount,
+                        TotalResolvers: rc,
+                        Unanimous:      isConsensus,
+                })
         }
+        return agreements, resolverCount
+}
 
-        input := icuae.CurrencyReportInput{
-                Records:       records,
-                ResolverTTLs:  resolverTTLMap,
-                AuthTTLs:      authTTLMap,
-                ObservedTypes: observedTypes,
-                Agreements:    agreements,
-                ResolverCount: resolverCount,
-        }
-
+func enrichCurrencyInput(input *icuae.CurrencyReportInput, results map[string]any) {
         if ns, ok := results["ns"].(map[string]any); ok {
                 if providers, ok := ns["dns_providers"].([]string); ok {
                         input.DNSProviders = providers
@@ -376,6 +384,25 @@ func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[
                         input.SOARaw = soaSlice[0]
                 }
         }
+}
+
+func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[string]any) icuae.CurrencyReport {
+        var agreements []icuae.ResolverAgreement
+        resolverCount := 5
+        if consensus, ok := results["resolver_consensus"].(map[string]any); ok {
+                agreements, resolverCount = extractResolverAgreements(consensus)
+        }
+
+        input := icuae.CurrencyReportInput{
+                Records:       buildRecordCurrencies(resolverTTLMap),
+                ResolverTTLs:  resolverTTLMap,
+                AuthTTLs:      authTTLMap,
+                ObservedTypes: buildObservedTypes(resolverTTLMap, authTTLMap),
+                Agreements:    agreements,
+                ResolverCount: resolverCount,
+        }
+
+        enrichCurrencyInput(&input, results)
 
         return icuae.BuildCurrencyReportWithProvider(input)
 }

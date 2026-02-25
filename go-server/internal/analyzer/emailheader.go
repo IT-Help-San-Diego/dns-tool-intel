@@ -349,7 +349,7 @@ func scanRawForAuthResults(result *EmailHeaderAnalysis) {
         }
 }
 
-func parseAuthPart(part string, authType string) AuthResult {
+func parseAuthPart(part, authType string) AuthResult {
         ar := AuthResult{Confidence: "Observed"}
 
         eqIdx := strings.Index(part, "=")

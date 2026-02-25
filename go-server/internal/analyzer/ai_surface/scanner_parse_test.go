@@ -428,82 +428,84 @@ func TestLlmsFullTxtURLCandidates_SpecialDomain(t *testing.T) {
 }
 
 func TestProcessRobotsDirective_DeduplicateBlocked(t *testing.T) {
-        blockedSet := map[string]bool{"GPTBot": true}
-        blocked, _, directives := processRobotsDirective(
-                "Disallow: /", "disallow: /",
-                []string{"GPTBot"},
-                blockedSet, map[string]bool{},
-                []string{"GPTBot"}, nil, nil,
-        )
-        if len(blocked) != 1 {
-                t.Errorf("blocked = %v, should not duplicate already-blocked agent", blocked)
+        state := &robotsParseState{
+                currentAgents: []string{"GPTBot"},
+                blockedSet:    map[string]bool{"GPTBot": true},
+                allowedSet:    map[string]bool{},
+                blocked:       []string{"GPTBot"},
         }
-        if len(directives) != 0 {
-                t.Errorf("directives = %v, should not add duplicate directive", directives)
+        processRobotsDirective("Disallow: /", "disallow: /", state)
+        if len(state.blocked) != 1 {
+                t.Errorf("blocked = %v, should not duplicate already-blocked agent", state.blocked)
+        }
+        if len(state.directives) != 0 {
+                t.Errorf("directives = %v, should not add duplicate directive", state.directives)
         }
 }
 
 func TestProcessRobotsDirective_DeduplicateAllowed(t *testing.T) {
-        allowedSet := map[string]bool{"CCBot": true}
-        _, allowed, _ := processRobotsDirective(
-                "Allow: /public", "allow: /public",
-                []string{"CCBot"},
-                map[string]bool{}, allowedSet,
-                nil, []string{"CCBot"}, nil,
-        )
-        if len(allowed) != 1 {
-                t.Errorf("allowed = %v, should not duplicate already-allowed agent", allowed)
+        state := &robotsParseState{
+                currentAgents: []string{"CCBot"},
+                blockedSet:    map[string]bool{},
+                allowedSet:    map[string]bool{"CCBot": true},
+                allowed:       []string{"CCBot"},
+        }
+        processRobotsDirective("Allow: /public", "allow: /public", state)
+        if len(state.allowed) != 1 {
+                t.Errorf("allowed = %v, should not duplicate already-allowed agent", state.allowed)
         }
 }
 
 func TestProcessRobotsDirective_EmptyDisallowPath(t *testing.T) {
-        blocked, _, _ := processRobotsDirective(
-                "Disallow:", "disallow:",
-                []string{"GPTBot"},
-                map[string]bool{}, map[string]bool{},
-                nil, nil, nil,
-        )
-        if len(blocked) != 0 {
-                t.Errorf("empty disallow path should not block, got %v", blocked)
+        state := &robotsParseState{
+                currentAgents: []string{"GPTBot"},
+                blockedSet:    map[string]bool{},
+                allowedSet:    map[string]bool{},
+        }
+        processRobotsDirective("Disallow:", "disallow:", state)
+        if len(state.blocked) != 0 {
+                t.Errorf("empty disallow path should not block, got %v", state.blocked)
         }
 }
 
 func TestProcessRobotsDirective_EmptyAllowPath(t *testing.T) {
-        _, allowed, _ := processRobotsDirective(
-                "Allow:", "allow:",
-                []string{"CCBot"},
-                map[string]bool{}, map[string]bool{},
-                nil, nil, nil,
-        )
-        if len(allowed) != 0 {
-                t.Errorf("empty allow path should not add agent, got %v", allowed)
+        state := &robotsParseState{
+                currentAgents: []string{"CCBot"},
+                blockedSet:    map[string]bool{},
+                allowedSet:    map[string]bool{},
+        }
+        processRobotsDirective("Allow:", "allow:", state)
+        if len(state.allowed) != 0 {
+                t.Errorf("empty allow path should not add agent, got %v", state.allowed)
         }
 }
 
 func TestProcessRobotsDirective_UnrelatedDirective(t *testing.T) {
-        blocked, allowed, directives := processRobotsDirective(
-                "Sitemap: https://example.com/sitemap.xml", "sitemap: https://example.com/sitemap.xml",
-                []string{"GPTBot"},
-                map[string]bool{}, map[string]bool{},
-                nil, nil, nil,
+        state := &robotsParseState{
+                currentAgents: []string{"GPTBot"},
+                blockedSet:    map[string]bool{},
+                allowedSet:    map[string]bool{},
+        }
+        processRobotsDirective(
+                "Sitemap: https://example.com/sitemap.xml", "sitemap: https://example.com/sitemap.xml", state,
         )
-        if len(blocked) != 0 || len(allowed) != 0 || len(directives) != 0 {
+        if len(state.blocked) != 0 || len(state.allowed) != 0 || len(state.directives) != 0 {
                 t.Error("unrelated directive should produce no results")
         }
 }
 
 func TestProcessRobotsDirective_MultipleAgents(t *testing.T) {
-        blocked, _, directives := processRobotsDirective(
-                "Disallow: /", "disallow: /",
-                []string{"GPTBot", "CCBot"},
-                map[string]bool{}, map[string]bool{},
-                nil, nil, nil,
-        )
-        if len(blocked) != 2 {
-                t.Errorf("blocked = %v, want 2 agents", blocked)
+        state := &robotsParseState{
+                currentAgents: []string{"GPTBot", "CCBot"},
+                blockedSet:    map[string]bool{},
+                allowedSet:    map[string]bool{},
         }
-        if len(directives) != 2 {
-                t.Errorf("directives = %v, want 2 entries", directives)
+        processRobotsDirective("Disallow: /", "disallow: /", state)
+        if len(state.blocked) != 2 {
+                t.Errorf("blocked = %v, want 2 agents", state.blocked)
+        }
+        if len(state.directives) != 2 {
+                t.Errorf("directives = %v, want 2 entries", state.directives)
         }
 }
 

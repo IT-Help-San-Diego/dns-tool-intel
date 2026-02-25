@@ -126,7 +126,7 @@ var providerProfiles = map[string]ProviderProfile{
         },
 }
 
-func DetectDNSProvider(dnsProviders []string, nsRecords []string) string {
+func DetectDNSProvider(dnsProviders, nsRecords []string) string {
         all := strings.Join(append(dnsProviders, nsRecords...), " ")
         lower := strings.ToLower(all)
 
@@ -233,7 +233,7 @@ func (f SOAComplianceFinding) SeverityClass() string {
         }
 }
 
-func AnalyzeSOACompliance(soaRaw string, providerName string) SOAComplianceReport {
+func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
         report := SOAComplianceReport{Provider: providerName}
 
         parts := strings.Fields(soaRaw)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+        "context"
         "log/slog"
         "net/http"
         "strconv"
@@ -97,18 +98,7 @@ func (h *WatchlistHandler) Watchlist(c *gin.Context) {
         uid, _ := c.Get("user_id")
         userID, ok := uid.(int32)
         if !ok || userID == 0 {
-                data := h.baseTmplData(c)
-                data["FlashMessages"] = []FlashMessage{{Category: "warning", Message: "Sign in to manage your watchlist."}}
-                data["WatchlistItems"] = []watchlistItem{}
-                data["Endpoints"] = []endpointItem{}
-                data["WatchlistCount"] = 0
-                data["MaxWatchlist"] = maxWatchlistEntries
-                c.HTML(http.StatusOK, templateWatchlist, data)
-                if !c.Writer.Written() {
-                        slog.Error("Watchlist template produced no output — possible execution error")
-                } else {
-                        slog.Debug("Watchlist rendered", "size", c.Writer.Size())
-                }
+                h.renderUnauthenticatedWatchlist(c)
                 return
         }
 
@@ -123,6 +113,33 @@ func (h *WatchlistHandler) Watchlist(c *gin.Context) {
                 return
         }
 
+        items := convertWatchlistEntries(entries)
+        eps := h.loadEndpoints(ctx, userID)
+
+        data := h.baseTmplData(c)
+        data["WatchlistItems"] = items
+        data["Endpoints"] = eps
+        data["WatchlistCount"] = len(items)
+        data["MaxWatchlist"] = maxWatchlistEntries
+        c.HTML(http.StatusOK, templateWatchlist, data)
+}
+
+func (h *WatchlistHandler) renderUnauthenticatedWatchlist(c *gin.Context) {
+        data := h.baseTmplData(c)
+        data["FlashMessages"] = []FlashMessage{{Category: "warning", Message: "Sign in to manage your watchlist."}}
+        data["WatchlistItems"] = []watchlistItem{}
+        data["Endpoints"] = []endpointItem{}
+        data["WatchlistCount"] = 0
+        data["MaxWatchlist"] = maxWatchlistEntries
+        c.HTML(http.StatusOK, templateWatchlist, data)
+        if !c.Writer.Written() {
+                slog.Error("Watchlist template produced no output — possible execution error")
+        } else {
+                slog.Debug("Watchlist rendered", "size", c.Writer.Size())
+        }
+}
+
+func convertWatchlistEntries(entries []dbq.DomainWatchlist) []watchlistItem {
         items := make([]watchlistItem, 0, len(entries))
         for _, e := range entries {
                 wi := watchlistItem{
@@ -142,7 +159,10 @@ func (h *WatchlistHandler) Watchlist(c *gin.Context) {
                 }
                 items = append(items, wi)
         }
+        return items
+}
 
+func (h *WatchlistHandler) loadEndpoints(ctx context.Context, userID int32) []endpointItem {
         endpoints, err := h.DB.Queries.ListNotificationEndpointsByUser(ctx, userID)
         if err != nil {
                 slog.Error("Failed to load endpoints", "user_id", userID, "error", err)
@@ -161,13 +181,7 @@ func (h *WatchlistHandler) Watchlist(c *gin.Context) {
                 }
                 eps = append(eps, ei)
         }
-
-        data := h.baseTmplData(c)
-        data["WatchlistItems"] = items
-        data["Endpoints"] = eps
-        data["WatchlistCount"] = len(items)
-        data["MaxWatchlist"] = maxWatchlistEntries
-        c.HTML(http.StatusOK, templateWatchlist, data)
+        return eps
 }
 
 func (h *WatchlistHandler) AddDomain(c *gin.Context) {

@@ -5817,12 +5817,12 @@
     </main>
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
         <div class="loading-content">
             <div class="loading-spinner">
                 <i class="fas fa-globe fa-spin" aria-hidden="true"></i>
             </div>
-            <p class="mt-4 mb-2 h4" role="status">Running Multi-Source Intelligence Audit</p>
+            <output class="mt-4 mb-2 h4">Running Multi-Source Intelligence Audit</output>
             <p class="text-muted mb-0" id="loadingDomain">{{.Domain}}</p>
             <div class="loading-elapsed mt-2">
                 <span class="text-muted small" id="loadingTimer">0s</span>
@@ -5868,7 +5868,7 @@
                 Every result includes terminal commands you can run to independently verify the underlying data. No proprietary magic.
             </p>
         </div>
-    </div>
+    </output>
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
@@ -6120,9 +6120,9 @@
                 const VISIBLE = 20;
                 if (total <= VISIBLE) return;
                 const hidden = total - VISIBLE;
-                for (let i = VISIBLE; i < total; i++) {
-                    rows[i].style.display = 'none';
-                    rows[i].classList.add('subdomain-collapsed-row');
+                for (const row of Array.from(rows).slice(VISIBLE)) {
+                    row.style.display = 'none';
+                    row.classList.add('subdomain-collapsed-row');
                 }
                 const expandRow = document.createElement('tr');
                 expandRow.id = 'subdomainExpandRow';
@@ -6135,8 +6135,8 @@
                 btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Show All ' + total + ' Subdomains <span class="text-muted ms-1">(' + hidden + ' more)</span>';
                 btn.addEventListener('click', function() {
                     const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (let j = 0; j < hiddenRows.length; j++) {
-                        hiddenRows[j].style.display = '';
+                    for (const hiddenRow of hiddenRows) {
+                        hiddenRow.style.display = '';
                     }
                     expandRow.style.display = 'none';
                     if (!collapseRow.parentNode) {
@@ -6147,7 +6147,7 @@
                 td.appendChild(btn);
                 expandRow.appendChild(td);
                 const refRow = rows[VISIBLE];
-                tbody.insertBefore(expandRow, refRow);
+                refRow.before(expandRow);
                 const collapseRow = document.createElement('tr');
                 collapseRow.id = 'subdomainCollapseRow';
                 collapseRow.style.display = 'none';
@@ -6160,8 +6160,8 @@
                 collapseBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i>Collapse to Top ' + VISIBLE;
                 collapseBtn.addEventListener('click', function() {
                     const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (let j = 0; j < hiddenRows.length; j++) {
-                        hiddenRows[j].style.display = 'none';
+                    for (const hiddenRow of hiddenRows) {
+                        hiddenRow.style.display = 'none';
                     }
                     collapseRow.style.display = 'none';
                     expandRow.style.display = '';
@@ -6320,7 +6320,7 @@
                 html += '</tbody></table></div>';
                 if (body) body.innerHTML = html;
             })
-            .catch(function(err) {
+            .catch(function() {
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-search me-1"></i>Go';

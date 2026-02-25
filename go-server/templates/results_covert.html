@@ -1419,14 +1419,14 @@
 
     </main>
 
-    <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true" aria-label="Running recon scan">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running recon scan">
         <div class="loading-content">
             <div class="loading-spinner">
                 <i class="fas fa-crosshairs fa-spin covert-show" aria-hidden="true"></i>
                 <i class="fas fa-globe fa-spin covert-hide" aria-hidden="true"></i>
             </div>
-            <p class="mt-4 mb-2 h4 covert-show" role="status">Running Target Reconnaissance</p>
-            <p class="mt-4 mb-2 h4 covert-hide" role="status">Running Multi-Source Intelligence Audit</p>
+            <output class="mt-4 mb-2 h4 covert-show">Running Target Reconnaissance</output>
+            <output class="mt-4 mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
             <p class="text-muted mb-0" id="loadingDomain">{{.Domain}}</p>
             <div class="loading-elapsed mt-2">
                 <span class="text-muted small" id="loadingTimer">0s</span>
@@ -1472,7 +1472,7 @@
                 Every result includes terminal commands for independent verification. No proprietary magic. No black boxes.
             </p>
         </div>
-    </div>
+    </output>
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
@@ -1512,13 +1512,13 @@
 
             document.querySelectorAll('.u-covert-exit-btn').forEach(function(link) {
                 link.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch(ignore) { void ignore; }
+                    try { localStorage.setItem('covertMode', '0'); } catch { /* intentional */ }
                 });
             });
             const engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
             if (engBtn) {
                 engBtn.addEventListener('click', function() {
-                    try { localStorage.setItem('covertMode', '0'); } catch(ignore) { void ignore; }
+                    try { localStorage.setItem('covertMode', '0'); } catch { /* intentional */ }
                 });
             }
 

@@ -47,7 +47,7 @@ globalThis.addEventListener('fetch', function(event) {
     return;
   }
 
-  const isVersioned = url.search.indexOf('v=') !== -1;
+  const isVersioned = url.search.includes('v=');
 
   if (isVersioned) {
     event.respondWith(

@@ -47,7 +47,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-7">
                     <div class="search-card">
-                        <form method="POST" action="/email-header" id="emailHeaderForm" enctype="multipart/form-data">
+                        <form method="POST" action="/email-header" id="emailHeaderForm" enctype="multipart/form-data" aria-label="Email header analysis">
                             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                             <label for="raw_header" class="form-label search-label">
                                 <i class="fas fa-search me-2"></i>Email Header

@@ -287,7 +287,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-7 col-xl-6">
                     <div class="search-card">
-                        <form method="POST" action="/analyze" id="domainForm" role="search">
+                        <search><form method="POST" action="/analyze" id="domainForm">
                             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                             <input type="hidden" name="covert" id="covertField" value="">
                             <label for="domain" class="form-label search-label">
@@ -391,7 +391,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </form>
+                        </form></search>
                     </div>
                 </div>
             </div>
@@ -885,14 +885,14 @@
     </div>
     </main>
 
-    <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
         <div class="loading-content">
             <div class="loading-spinner" aria-hidden="true">
                 <i class="fas fa-globe fa-spin covert-hide" aria-hidden="true"></i>
                 <i class="fas fa-crosshairs fa-spin covert-show" aria-hidden="true"></i>
             </div>
-            <p class="mt-4 mb-2 h4 covert-hide" role="status">Running Multi-Source Intelligence Audit</p>
-            <p class="mt-4 mb-2 h4 covert-show" role="status">Initiating Recon Sweep</p>
+            <output class="mt-4 mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
+            <output class="mt-4 mb-2 h4 covert-show">Initiating Recon Sweep</output>
             <p class="text-muted mb-0" id="loadingDomain"></p>
             <div class="loading-elapsed mt-2">
                 <span class="text-muted small" id="loadingTimer">0s</span>
@@ -949,7 +949,7 @@
                 Optimized for low-light tactical environments. Easy on the eyes for all-night recon.
             </p>
         </div>
-    </div>
+    </output>
     <script nonce="{{.CspNonce}}">
     (function() {
         document.addEventListener('DOMContentLoaded', function() {

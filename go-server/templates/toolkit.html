@@ -42,7 +42,7 @@
 
     <div class="container pb-5">
 
-        <div class="tk-chain-track mb-4" role="img" aria-label="Network diagnostic chain showing the path from your device to the internet">
+        <figure class="tk-chain-track mb-4" aria-label="Network diagnostic chain showing the path from your device to the internet">
             <div class="tk-chain-node" id="chainDevice">
                 <div class="tk-chain-icon"><i class="fas fa-laptop" aria-hidden="true"></i></div>
                 <div class="tk-chain-label">Your Device</div>
@@ -72,7 +72,7 @@
                 <div class="tk-chain-icon"><i class="fas fa-globe" aria-hidden="true"></i></div>
                 <div class="tk-chain-label">Internet</div>
             </div>
-        </div>
+        </figure>
 
         <div class="card bg-dark border-secondary mb-4" id="tkTriageMatrix">
             <div class="card-body">
@@ -153,7 +153,7 @@
             </div>
         </div>
 
-        <div class="tk-step-nav" role="navigation" aria-label="Jump to step">
+        <nav class="tk-step-nav" aria-label="Jump to step">
             <span class="tk-step-nav-label">Jump to Any Step</span>
             <a href="#stepCellular">0: Cellular Check</a>
             <a href="#stepConnection">1: Connection</a>
@@ -168,7 +168,7 @@
             <a href="#stepDualNetwork">Dual-Network</a>
             <a href="#stepCLI">CLI Commands</a>
             <a href="#stepExternalTools">External Tools</a>
-        </div>
+        </nav>
 
         <div class="row g-4">
             <div class="col-lg-8 mx-auto">
@@ -703,7 +703,7 @@
                             {{end}}
                         {{end}}
 
-                        <form method="POST" action="/toolkit/portcheck">
+                        <form method="POST" action="/toolkit/portcheck" aria-label="Port reachability check">
                             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                             <div class="row g-2 align-items-end">
                                 <div class="col-sm-5">
@@ -1059,8 +1059,8 @@
     <script nonce="{{.CspNonce}}">
     (function(){
         const toggles = document.querySelectorAll('.tk-why-toggle, .tk-discovery-toggle');
-        for (let i = 0; i < toggles.length; i++) {
-            toggles[i].addEventListener('click', function() {
+        for (const toggle of toggles) {
+            toggle.addEventListener('click', function() {
                 const targetId = this.dataset.target;
                 const target = document.getElementById(targetId);
                 if (target) {

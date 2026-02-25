@@ -130,7 +130,7 @@
 
         <div class="card mb-4">
             <div class="card-body py-2">
-                <form action="/dossier" method="GET" role="search" class="d-flex align-items-center gap-2">
+                <search><form action="/dossier" method="GET" class="d-flex align-items-center gap-2">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-secondary">
                             <i class="fas fa-search text-muted"></i>
@@ -147,7 +147,7 @@
                             <i class="fas fa-times"></i>
                         </a>
                     {{end}}
-                </form>
+                </form></search>
             </div>
         </div>
 
@@ -370,19 +370,19 @@
         {{template "footer" .}}
     </main>
 
-    <div id="dossierViewOverlay" class="loading-overlay" role="status" aria-live="polite" aria-label="Loading stored results">
+    <output id="dossierViewOverlay" class="loading-overlay" aria-live="polite" aria-label="Loading stored results">
         <div class="loading-content">
             <div class="spinner-border text-primary mb-3 u-icon-3rem"><span class="visually-hidden">Loading...</span></div>
             <div class="text-light fw-medium" id="dossierViewText">Loading intelligence report...</div>
         </div>
-    </div>
+    </output>
 
-    <div id="dossierAnalyzeOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true" aria-label="Running domain assessment">
+    <output id="dossierAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain assessment">
         <div class="loading-content">
             <div class="loading-spinner">
                 <i class="fas fa-globe fa-spin"></i>
             </div>
-            <p class="mt-4 mb-2 h4" role="status">Running Multi-Source Intelligence Audit</p>
+            <output class="mt-4 mb-2 h4">Running Multi-Source Intelligence Audit</output>
             <p class="text-muted mb-0" id="dossierAnalyzeDomain"></p>
             <div class="loading-elapsed mt-2">
                 <span class="text-muted small" id="dossierLoadingTimer">0s</span>
@@ -391,7 +391,7 @@
                 <span></span><span></span><span></span>
             </div>
         </div>
-    </div>
+    </output>
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">

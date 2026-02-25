@@ -2,9 +2,9 @@
     if (document.documentElement.classList.contains('covert-mode')) {
         document.body.classList.add('covert-mode');
         try {
-            var env = localStorage.getItem('covertEnv') || 'tactical';
+            const env = localStorage.getItem('covertEnv') || 'tactical';
             document.body.classList.add('covert-' + env);
-        } catch(_e) {
+        } catch(_e) { /* localStorage unavailable — fall back to tactical */ // NOSONAR
             document.body.classList.add('covert-tactical');
         }
     }
@@ -144,19 +144,19 @@ function hideOverlayAndReset(overlay, btn) {
 
 function isBareTopLevelDomain(domain) {
     if (!domain) return false;
-    var d = domain.toLowerCase();
+    let d = domain.toLowerCase();
     while (d.charAt(0) === '.') d = d.slice(1);
     while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
     if (!d || d.length > 63) return false;
-    var labels = d.split('.');
+    const labels = d.split('.');
     return labels.length === 1 && (/^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].indexOf('xn--') === 0);
 }
 
 function swapToTLDScanPhases(overlay) {
-    var checklist = overlay.querySelector('#scanChecklist');
+    const checklist = overlay.querySelector('#scanChecklist');
     if (!checklist) return;
-    var isCovert = document.body.classList.contains('covert-mode');
-    var phases = [
+    const isCovert = document.body.classList.contains('covert-mode');
+    const phases = [
         { delay: 0, normal: 'DNS records \u2014 Cloudflare, Google, Quad9, OpenDNS, DNS4EU', covert: 'Enumerating DNS across 5 resolvers\u2026' },
         { delay: 1200, normal: 'DNSSEC chain of trust \u2014 DS/DNSKEY validation', covert: 'Testing DNS poison resistance \u2014 DNSSEC, DANE' },
         { delay: 2500, normal: 'Nameserver fleet \u2014 reachability, ASN diversity, SOA sync', covert: 'Probing NS fleet \u2014 reachability, ASN, SOA serial' },
@@ -168,7 +168,7 @@ function swapToTLDScanPhases(overlay) {
     ];
     checklist.innerHTML = '';
     phases.forEach(function(p) {
-        var div = document.createElement('div');
+        const div = document.createElement('div');
         div.className = 'scan-phase';
         div.dataset.delay = p.delay;
         div.innerHTML = '<i class="fas fa-circle-notch fa-spin scan-icon scan-pending" aria-hidden="true"></i>' +
@@ -272,74 +272,84 @@ function createCopyHandler(codeBlock, btn) {
     };
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var covertEnvClasses = ['covert-submarine', 'covert-tactical', 'covert-basement'];
-    function clearCovertEnv() {
-        covertEnvClasses.forEach(function(c) { document.body.classList.remove(c); });
+const covertEnvClasses = ['covert-submarine', 'covert-tactical', 'covert-basement'];
+
+function clearCovertEnv() {
+    covertEnvClasses.forEach(function(c) { document.body.classList.remove(c); });
+}
+
+function getCovertEnv() {
+    try { return localStorage.getItem('covertEnv') || 'tactical'; } catch(_e) { return 'tactical'; } // NOSONAR
+}
+
+function hasAcceptedROE() {
+    try { return localStorage.getItem('roeAccepted') === '1'; } catch(_e) { return false; } // NOSONAR
+}
+
+function markROEAccepted() {
+    try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
+}
+
+function playMorseEasterEgg() {
+    try {
+        const a = new Audio('/static/audio/morse-hack-the-planet.m4a');
+        a.volume = 0.4;
+        a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
+    } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
+}
+
+function updateEnvButtons(env) {
+    const btns = document.querySelectorAll('.covert-env-btn');
+    btns.forEach(function(b) {
+        b.classList.toggle('active', b.dataset.env === env);
+    });
+}
+
+function setCovertEnv(env) {
+    clearCovertEnv();
+    if (env && covertEnvClasses.includes('covert-' + env)) {
+        document.body.classList.add('covert-' + env);
+    } else {
+        document.body.classList.add('covert-tactical');
+        env = 'tactical';
     }
-    function setCovertEnv(env) {
+    try { localStorage.setItem('covertEnv', env); } catch(_e) { /* storage unavailable */ } // NOSONAR
+    updateEnvButtons(env);
+}
+
+function setCovertMode(active) {
+    if (active) {
+        document.body.classList.add('covert-mode');
+        setCovertEnv(getCovertEnv());
+    } else {
+        document.body.classList.remove('covert-mode');
         clearCovertEnv();
-        if (env && covertEnvClasses.indexOf('covert-' + env) !== -1) {
-            document.body.classList.add('covert-' + env);
-        } else {
-            document.body.classList.add('covert-tactical');
-            env = 'tactical';
+    }
+    try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
+}
+
+function activateCovertOrSwitch() {
+    const idEl = document.querySelector('[data-analysis-id]');
+    const modeMeta = document.querySelector('meta[name="x-report-mode"]');
+    if (idEl && modeMeta) {
+        const aid = idEl.dataset.analysisId;
+        const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
+        if (aid && (cur === 'E' || cur === 'C')) {
+            const target = cur === 'E' ? 'C' : 'E';
+            globalThis.location.href = '/analysis/' + aid + '/view/' + target;
+            return;
         }
-        try { localStorage.setItem('covertEnv', env); } catch(_e) { /* storage unavailable */ } // NOSONAR
-        updateEnvButtons(env);
     }
-    function getCovertEnv() {
-        try { return localStorage.getItem('covertEnv') || 'tactical'; } catch(_e) { return 'tactical'; }
-    }
-    function updateEnvButtons(env) {
-        var btns = document.querySelectorAll('.covert-env-btn');
-        btns.forEach(function(b) {
-            b.classList.toggle('active', b.dataset.env === env);
-        });
-    }
-    function setCovertMode(active) {
-        if (active) {
-            document.body.classList.add('covert-mode');
-            setCovertEnv(getCovertEnv());
-        } else {
-            document.body.classList.remove('covert-mode');
-            clearCovertEnv();
-        }
-        try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
-    }
-    function hasAcceptedROE() {
-        try { return localStorage.getItem('roeAccepted') === '1'; } catch(_e) { return false; }
-    }
-    function markROEAccepted() {
-        try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
-    }
-    function activateCovertOrSwitch() {
-        var idEl = document.querySelector('[data-analysis-id]');
-        var modeMeta = document.querySelector('meta[name="x-report-mode"]');
-        if (idEl && modeMeta) {
-            var aid = idEl.dataset.analysisId;
-            var cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
-            if (aid && (cur === 'E' || cur === 'C')) {
-                var target = cur === 'E' ? 'C' : 'E';
-                globalThis.location.href = '/analysis/' + aid + '/view/' + target;
-                return;
-            }
-        }
-        setCovertMode(!document.body.classList.contains('covert-mode'));
-    }
-    var roeModalEl = document.getElementById('roeModal');
-    var roeModal = null;
+    setCovertMode(!document.body.classList.contains('covert-mode'));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const roeModalEl = document.getElementById('roeModal');
+    let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
     }
-    function playMorseEasterEgg() {
-        try {
-            var a = new Audio('/static/audio/morse-hack-the-planet.m4a');
-            a.volume = 0.4;
-            a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
-        } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
-    }
-    var roeAcceptBtn = document.getElementById('roeAccept');
+    const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
         roeAcceptBtn.addEventListener('click', function() {
             markROEAccepted();
@@ -348,13 +358,13 @@ document.addEventListener('DOMContentLoaded', function() {
             activateCovertOrSwitch();
         });
     }
-    var roeDeclineBtn = document.getElementById('roeDecline');
+    const roeDeclineBtn = document.getElementById('roeDecline');
     if (roeDeclineBtn) {
         roeDeclineBtn.addEventListener('click', function() {
             if (roeModal) { roeModal.hide(); }
         });
     }
-    var covertBtn = document.getElementById('covertToggle');
+    const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
             if (document.body.classList.contains('covert-mode')) {
@@ -368,15 +378,15 @@ document.addEventListener('DOMContentLoaded', function() {
             activateCovertOrSwitch();
         });
     }
-    var covertExitHome = document.getElementById('covertExitHome');
+    const covertExitHome = document.getElementById('covertExitHome');
     if (covertExitHome) {
         covertExitHome.addEventListener('click', function() {
             setCovertMode(false);
         });
     }
     document.addEventListener('click', function(e) {
-        var btn = e.target.closest('.covert-env-btn');
-        if (btn && btn.dataset.env) {
+        const btn = e.target.closest('.covert-env-btn');
+        if (btn?.dataset?.env) {
             setCovertEnv(btn.dataset.env);
         }
     });
@@ -487,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.className = 'btn-close';
-                closeBtn.setAttribute('data-bs-dismiss', 'alert');
+                closeBtn.dataset.bsDismiss = 'alert';
                 flash.appendChild(closeBtn);
                 domainForm.parentNode.insertBefore(flash, domainForm);
             });
@@ -623,6 +633,72 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+function createHistoryRow(ch) {
+    let typeColor = 'secondary';
+    if (ch.record_type === 'A' || ch.record_type === 'AAAA') {
+        typeColor = 'primary';
+    } else if (ch.record_type === 'MX') {
+        typeColor = 'success';
+    } else if (ch.record_type === 'NS') {
+        typeColor = 'info';
+    }
+    const tr = document.createElement('tr');
+
+    const tdDate = document.createElement('td');
+    const codeDate = document.createElement('code');
+    codeDate.className = 'text-muted u-fs-080em';
+    codeDate.textContent = ch.date || '';
+    tdDate.appendChild(codeDate);
+
+    const tdType = document.createElement('td');
+    const badgeType = document.createElement('span');
+    badgeType.className = 'badge bg-' + typeColor;
+    badgeType.textContent = ch.record_type || '';
+    tdType.appendChild(badgeType);
+
+    const tdAction = document.createElement('td');
+    const actionSpan = document.createElement('span');
+    const actionIcon = document.createElement('i');
+    if (ch.action === 'added') {
+        actionSpan.className = 'text-success';
+        actionIcon.className = 'fas fa-plus-circle me-1';
+        actionSpan.appendChild(actionIcon);
+        actionSpan.appendChild(document.createTextNode('Added'));
+    } else {
+        actionSpan.className = 'text-danger';
+        actionIcon.className = 'fas fa-minus-circle me-1';
+        actionSpan.appendChild(actionIcon);
+        actionSpan.appendChild(document.createTextNode('Removed'));
+    }
+    tdAction.appendChild(actionSpan);
+
+    const tdValue = document.createElement('td');
+    const codeValue = document.createElement('code');
+    codeValue.className = 'u-fs-085em';
+    codeValue.textContent = ch.value || '';
+    tdValue.appendChild(codeValue);
+
+    const tdOrg = document.createElement('td');
+    const spanOrg = document.createElement('span');
+    spanOrg.className = 'text-muted';
+    spanOrg.textContent = ch.org || '\u2014';
+    tdOrg.appendChild(spanOrg);
+
+    const tdDesc = document.createElement('td');
+    const spanDesc = document.createElement('span');
+    spanDesc.className = 'text-muted u-fs-085em';
+    spanDesc.textContent = ch.description || '';
+    tdDesc.appendChild(spanDesc);
+
+    tr.appendChild(tdDate);
+    tr.appendChild(tdType);
+    tr.appendChild(tdAction);
+    tr.appendChild(tdValue);
+    tr.appendChild(tdOrg);
+    tr.appendChild(tdDesc);
+    return tr;
+}
+
 function loadDNSHistory(domain) {
     const btn = document.getElementById('dns-history-btn');
     if (!btn) return;
@@ -674,69 +750,7 @@ function loadDNSHistory(domain) {
                 table.appendChild(thead);
                 const tbody = document.createElement('tbody');
                 changes.forEach(function(ch) {
-                    let typeColor = 'secondary';
-                    if (ch.record_type === 'A' || ch.record_type === 'AAAA') {
-                        typeColor = 'primary';
-                    } else if (ch.record_type === 'MX') {
-                        typeColor = 'success';
-                    } else if (ch.record_type === 'NS') {
-                        typeColor = 'info';
-                    }
-                    const tr = document.createElement('tr');
-
-                    const tdDate = document.createElement('td');
-                    const codeDate = document.createElement('code');
-                    codeDate.className = 'text-muted u-fs-080em';
-                    codeDate.textContent = ch.date || '';
-                    tdDate.appendChild(codeDate);
-
-                    const tdType = document.createElement('td');
-                    const badgeType = document.createElement('span');
-                    badgeType.className = 'badge bg-' + typeColor;
-                    badgeType.textContent = ch.record_type || '';
-                    tdType.appendChild(badgeType);
-
-                    const tdAction = document.createElement('td');
-                    const actionSpan = document.createElement('span');
-                    const actionIcon = document.createElement('i');
-                    if (ch.action === 'added') {
-                        actionSpan.className = 'text-success';
-                        actionIcon.className = 'fas fa-plus-circle me-1';
-                        actionSpan.appendChild(actionIcon);
-                        actionSpan.appendChild(document.createTextNode('Added'));
-                    } else {
-                        actionSpan.className = 'text-danger';
-                        actionIcon.className = 'fas fa-minus-circle me-1';
-                        actionSpan.appendChild(actionIcon);
-                        actionSpan.appendChild(document.createTextNode('Removed'));
-                    }
-                    tdAction.appendChild(actionSpan);
-
-                    const tdValue = document.createElement('td');
-                    const codeValue = document.createElement('code');
-                    codeValue.className = 'u-fs-085em';
-                    codeValue.textContent = ch.value || '';
-                    tdValue.appendChild(codeValue);
-
-                    const tdOrg = document.createElement('td');
-                    const spanOrg = document.createElement('span');
-                    spanOrg.className = 'text-muted';
-                    spanOrg.textContent = ch.org || '\u2014';
-                    tdOrg.appendChild(spanOrg);
-
-                    const tdDesc = document.createElement('td');
-                    const spanDesc = document.createElement('span');
-                    spanDesc.className = 'text-muted u-fs-085em';
-                    spanDesc.textContent = ch.description || '';
-                    tdDesc.appendChild(spanDesc);
-
-                    tr.appendChild(tdDate);
-                    tr.appendChild(tdType);
-                    tr.appendChild(tdAction);
-                    tr.appendChild(tdValue);
-                    tr.appendChild(tdOrg);
-                    tr.appendChild(tdDesc);
-                    tbody.appendChild(tr);
+                    tbody.appendChild(createHistoryRow(ch));
                 });
                 table.appendChild(tbody);
                 wrap.appendChild(table);

@@ -62,6 +62,8 @@ const (
         ver262225 = "26.22.25"
         ver262088 = "26.20.88"
         ver262076 = "26.20.76"
+
+        iconShieldAlt = "fas fa-shield-alt"
 )
 
 type ChangelogEntry struct {
@@ -227,7 +229,7 @@ func GetChangelog() []ChangelogEntry {
                         Category:    "Reliability",
                         Title:       "CT Log Resilience (Certspotter Fallback)",
                         Description: "Added Certspotter API as a fallback Certificate Transparency source when crt.sh is unavailable (502/timeout). Expanded DNS subdomain probe list from ~130 to ~280 common subdomains. Probe concurrency increased from 20 to 30 workers with a 25-second timeout.",
-                        Icon:        "fas fa-shield-alt",
+                        Icon:        iconShieldAlt,
                 },
                 {
                         Version:     "26.20.74",
@@ -291,7 +293,7 @@ func GetChangelog() []ChangelogEntry {
                         Category:    "Security",
                         Title:       "CSP Compliance & XSS Hardening",
                         Description: "Eliminated all inline style attributes from Engineer and Executive report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes (u-print-hash, u-ls-tight, u-fs-072rem-lh15, u-fs-078rem-break, u-hash-label, etc.). DNS history table rendering refactored from innerHTML string concatenation to safe DOM methods (createElement + textContent + appendChild), eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
-                        Icon:        "fas fa-shield-alt",
+                        Icon:        iconShieldAlt,
                 },
                 {
                         Version:     "26.17.1",
@@ -331,7 +333,7 @@ func GetChangelog() []ChangelogEntry {
                         Category:    "Reporting",
                         Title:       "TLP:AMBER Default & Colored Selector",
                         Description: "Report distribution now defaults to TLP:AMBER per CISA/FIRST standards for security posture reports. TLP selector button and dropdown badges show FIRST TLP v2.0 colors (amber, green, clear). Font cache-busting ensures all icons render correctly across browsers.",
-                        Icon:        "fas fa-shield-alt",
+                        Icon:        iconShieldAlt,
                 },
                 {
                         Version:     "26.15.26",
@@ -476,7 +478,7 @@ func GetChangelog() []ChangelogEntry {
                         Category:    "Analysis",
                         Title:       "DANE/TLSA Deep Analysis",
                         Description: "Full TLSA record parsing for every MX host with certificate usage, selector, matching type validation, and DNSSEC dependency checking per RFC 7672.",
-                        Icon:        "fas fa-shield-alt",
+                        Icon:        iconShieldAlt,
                 },
                 {
                         Version:     "26.12.1",

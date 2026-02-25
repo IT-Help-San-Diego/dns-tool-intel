@@ -27,8 +27,8 @@ type ResolverConfig struct {
 }
 
 var DefaultResolvers = []ResolverConfig{
-        {Name: "Cloudflare", IP: "1.1.1.1", DoH: "https://cloudflare-dns.com/dns-query"},
-        {Name: "Google", IP: "8.8.8.8", DoH: "https://dns.google/resolve"},
+        {Name: "Cloudflare", IP: resolverCloudflare, DoH: "https://cloudflare-dns.com/dns-query"},
+        {Name: "Google", IP: resolverGoogle, DoH: "https://dns.google/resolve"},
         {Name: "Quad9", IP: "9.9.9.9"},
         {Name: "OpenDNS", IP: "208.67.222.222"},
         {Name: "DNS4EU", IP: "86.54.11.100", DoH: "https://unfiltered.joindns4.eu/dns-query"},
@@ -45,6 +45,9 @@ const (
         defaultTimeout  = 2 * time.Second
         defaultLifetime = 4 * time.Second
         consensusWait   = 5 * time.Second
+
+        resolverCloudflare = "1.1.1.1"
+        resolverGoogle     = "8.8.8.8"
 )
 
 type ConsensusResult struct {
@@ -463,7 +466,7 @@ func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) m
 
 func (c *Client) CheckDNSSECADFlag(ctx context.Context, domain string) ADFlagResult {
         result := ADFlagResult{}
-        validatingResolvers := []string{"8.8.8.8", "1.1.1.1"}
+        validatingResolvers := []string{resolverGoogle, resolverCloudflare}
 
         for _, resolverIP := range validatingResolvers {
                 fqdn := dnsutil.Fqdn(domain)
@@ -689,10 +692,10 @@ func (c *Client) ProbeExists(ctx context.Context, domain string) (exists bool, c
 
         dnsClient := newDNSClient(3 * time.Second)
 
-        resolverIP := "8.8.8.8"
+        resolverIP := resolverGoogle
         r, _, err := dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
         if err != nil {
-                resolverIP = "1.1.1.1"
+                resolverIP = resolverCloudflare
                 r, _, err = dnsClient.Exchange(ctx, msg, "udp", net.JoinHostPort(resolverIP, "53"))
                 if err != nil {
                         return false, ""

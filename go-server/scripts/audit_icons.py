@@ -108,59 +108,54 @@ def scan_font():
         return None
 
 
+def classify_icons(template_icons, css_icons, font_cmap):
+    missing_css = []
+    missing_font = []
+    unknown = []
+    for icon in sorted(template_icons):
+        if icon not in FA6_CODEPOINTS:
+            unknown.append(icon)
+            continue
+        if icon not in css_icons:
+            missing_css.append(icon)
+        if font_cmap is not None and FA6_CODEPOINTS[icon] not in font_cmap:
+            missing_font.append(icon)
+    return missing_css, missing_font, unknown
+
+
+def report_missing(label, items):
+    if not items:
+        return True
+    print(f"\n{label} ({len(items)}):")
+    for i in items:
+        print(f"  fa-{i}")
+    return False
+
+
 def main():
     template_icons = scan_templates()
     css_icons = scan_css()
     font_cmap = scan_font()
 
-    missing_css = []
-    missing_font = []
-    unknown = []
-
-    for icon in sorted(template_icons):
-        if icon not in FA6_CODEPOINTS:
-            unknown.append(icon)
-            continue
-
-        if icon not in css_icons:
-            missing_css.append(icon)
-
-        if font_cmap is not None:
-            cp = FA6_CODEPOINTS[icon]
-            if cp not in font_cmap:
-                missing_font.append(icon)
+    missing_css, missing_font, unknown = classify_icons(template_icons, css_icons, font_cmap)
 
     print(f"Template icons found: {len(template_icons)}")
     print(f"CSS rules present: {len(css_icons)}")
     if font_cmap:
         print(f"Font glyphs present: {len(font_cmap)}")
 
-    ok = True
-    if missing_css:
-        print(f"\nMISSING FROM CSS ({len(missing_css)}):")
-        for i in missing_css:
-            print(f"  fa-{i}")
-        ok = False
-
-    if missing_font:
-        print(f"\nMISSING FROM FONT ({len(missing_font)}):")
-        for i in missing_font:
-            print(f"  fa-{i}")
-        ok = False
-
+    ok = report_missing("MISSING FROM CSS", missing_css)
+    ok = report_missing("MISSING FROM FONT", missing_font) and ok
     if unknown:
-        print(f"\nUNKNOWN — not in codepoint map, cannot verify ({len(unknown)}):")
-        for i in unknown:
-            print(f"  fa-{i}")
+        report_missing("UNKNOWN — not in codepoint map, cannot verify", unknown)
         print("  Add these to FA6_CODEPOINTS dict to track them.")
         ok = False
 
     if ok:
         print("\nAll icons present in both CSS and font.")
         return 0
-    else:
-        print("\nFAILED: Missing icons detected.")
-        return 1
+    print("\nFAILED: Missing icons detected.")
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())

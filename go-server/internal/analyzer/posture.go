@@ -455,35 +455,25 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
         }
 }
 
-func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulator) {
-        if !isTLD {
-                if ps.mtaStsOK {
-                        acc.configured = append(acc.configured, protocolMTASTS)
-                } else {
-                        acc.absent = append(acc.absent, protocolMTASTS)
-                }
-
-                if ps.tlsrptOK {
-                        acc.configured = append(acc.configured, protocolTLSRPT)
-                } else {
-                        acc.absent = append(acc.absent, protocolTLSRPT)
-                }
-
-                if ps.bimiOK {
-                        acc.configured = append(acc.configured, "BIMI")
-                } else {
-                        acc.absent = append(acc.absent, "BIMI")
-                }
-
-                if ps.daneOK {
-                        acc.configured = append(acc.configured, "DANE")
-                } else if ps.daneProviderLimited {
-                        acc.providerLimited = append(acc.providerLimited, "DANE")
-                } else {
-                        acc.absent = append(acc.absent, "DANE")
-                }
+func classifyPresence(ok bool, name string, acc *postureAccumulator) {
+        if ok {
+                acc.configured = append(acc.configured, name)
+        } else {
+                acc.absent = append(acc.absent, name)
         }
+}
 
+func classifyDANE(ps protocolState, acc *postureAccumulator) {
+        if ps.daneOK {
+                acc.configured = append(acc.configured, "DANE")
+        } else if ps.daneProviderLimited {
+                acc.providerLimited = append(acc.providerLimited, "DANE")
+        } else {
+                acc.absent = append(acc.absent, "DANE")
+        }
+}
+
+func classifyDNSSEC(ps protocolState, acc *postureAccumulator) {
         if ps.dnssecOK {
                 acc.configured = append(acc.configured, "DNSSEC")
         } else if ps.dnssecBroken {
@@ -492,13 +482,20 @@ func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulat
         } else {
                 acc.absent = append(acc.absent, "DNSSEC")
         }
+}
+
+func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulator) {
+        if !isTLD {
+                classifyPresence(ps.mtaStsOK, protocolMTASTS, acc)
+                classifyPresence(ps.tlsrptOK, protocolTLSRPT, acc)
+                classifyPresence(ps.bimiOK, "BIMI", acc)
+                classifyDANE(ps, acc)
+        }
+
+        classifyDNSSEC(ps, acc)
 
         if !isTLD {
-                if ps.caaOK {
-                        acc.configured = append(acc.configured, "CAA")
-                } else {
-                        acc.absent = append(acc.absent, "CAA")
-                }
+                classifyPresence(ps.caaOK, "CAA", acc)
         }
 }
 

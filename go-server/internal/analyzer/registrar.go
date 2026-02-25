@@ -317,23 +317,13 @@ func (a *Analyzer) buildRDAPEndpoints(tld string) []string {
         seen := make(map[string]bool)
 
         if ep, ok := directRDAPEndpoints[tld]; ok && ep != "" {
-                if isValidRDAPEndpoint(ep) {
-                        endpoints = append(endpoints, ep)
-                        seen[ep] = true
-                } else {
-                        slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld)
-                }
+                appendValidEndpoint(&endpoints, seen, ep, tld, "direct")
         }
 
         if ianaEps, ok := a.IANARDAPMap[tld]; ok {
                 for _, ep := range ianaEps {
                         if ep != "" && !seen[ep] {
-                                if isValidRDAPEndpoint(ep) {
-                                        endpoints = append(endpoints, ep)
-                                        seen[ep] = true
-                                } else {
-                                        slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld, "source", "IANA")
-                                }
+                                appendValidEndpoint(&endpoints, seen, ep, tld, "IANA")
                         }
                 }
         }
@@ -344,6 +334,15 @@ func (a *Analyzer) buildRDAPEndpoints(tld string) []string {
         }
 
         return endpoints
+}
+
+func appendValidEndpoint(endpoints *[]string, seen map[string]bool, ep, tld, source string) {
+        if isValidRDAPEndpoint(ep) {
+                *endpoints = append(*endpoints, ep)
+                seen[ep] = true
+        } else {
+                slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld, "source", source)
+        }
 }
 
 func isValidRDAPEndpoint(endpoint string) bool {
@@ -573,7 +572,7 @@ var knownRestrictedTLDs = map[string]string{
         "kr": "KISA (South Korea)", "cn": "CNNIC (China)", "ru": "RIPN (Russia)",
 }
 
-func isWhoisRestricted(output string, tld string) (bool, bool) {
+func isWhoisRestricted(output, tld string) (bool, bool) {
         trimmed := strings.TrimSpace(output)
         if len(trimmed) < 50 {
                 if _, known := knownRestrictedTLDs[tld]; known {

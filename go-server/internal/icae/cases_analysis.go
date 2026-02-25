@@ -46,6 +46,16 @@ func AnalysisTestCases() []TestCase {
         return cases
 }
 
+func checkQualifier(spfRecord, expected string) func() (string, bool) {
+        return func() (string, bool) {
+                result := analyzer.ExportClassifyAllQualifier(spfRecord)
+                if result == nil {
+                        return "nil", false
+                }
+                return *result, *result == expected
+        }
+}
+
 func spfAnalysisCases() []TestCase {
         return []TestCase{
                 {
@@ -55,13 +65,7 @@ func spfAnalysisCases() []TestCase {
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "SOFT",
-                        RunFn: func() (string, bool) {
-                                result := analyzer.ExportClassifyAllQualifier("v=spf1 include:_spf.google.com ~all")
-                                if result == nil {
-                                        return "nil", false
-                                }
-                                return *result, *result == "SOFT"
-                        },
+                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com ~all", "SOFT"),
                 },
                 {
                         CaseID:     "spf-analysis-002",
@@ -70,13 +74,7 @@ func spfAnalysisCases() []TestCase {
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "STRICT",
-                        RunFn: func() (string, bool) {
-                                result := analyzer.ExportClassifyAllQualifier("v=spf1 include:_spf.google.com -all")
-                                if result == nil {
-                                        return "nil", false
-                                }
-                                return *result, *result == "STRICT"
-                        },
+                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com -all", "STRICT"),
                 },
                 {
                         CaseID:     "spf-analysis-003",
@@ -85,13 +83,7 @@ func spfAnalysisCases() []TestCase {
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "DANGEROUS",
-                        RunFn: func() (string, bool) {
-                                result := analyzer.ExportClassifyAllQualifier("v=spf1 +all")
-                                if result == nil {
-                                        return "nil", false
-                                }
-                                return *result, *result == "DANGEROUS"
-                        },
+                        RunFn:      checkQualifier("v=spf1 +all", "DANGEROUS"),
                 },
                 {
                         CaseID:     "spf-analysis-004",
@@ -100,13 +92,7 @@ func spfAnalysisCases() []TestCase {
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "NEUTRAL",
-                        RunFn: func() (string, bool) {
-                                result := analyzer.ExportClassifyAllQualifier("v=spf1 ?all")
-                                if result == nil {
-                                        return "nil", false
-                                }
-                                return *result, *result == "NEUTRAL"
-                        },
+                        RunFn:      checkQualifier("v=spf1 ?all", "NEUTRAL"),
                 },
                 {
                         CaseID:     "spf-analysis-005",
@@ -115,13 +101,7 @@ func spfAnalysisCases() []TestCase {
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "DANGEROUS",
-                        RunFn: func() (string, bool) {
-                                result := analyzer.ExportClassifyAllQualifier("v=spf1 all")
-                                if result == nil {
-                                        return "nil", false
-                                }
-                                return *result, *result == "DANGEROUS"
-                        },
+                        RunFn:      checkQualifier("v=spf1 all", "DANGEROUS"),
                 },
                 {
                         CaseID:     "spf-analysis-006",
