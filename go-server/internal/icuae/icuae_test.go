@@ -598,3 +598,95 @@ func TestHydrateCurrencyReport_Nil(t *testing.T) {
                 t.Error("expected hydration to fail for nil input")
         }
 }
+
+func TestDetectTrafficEngineering_GooglePattern(t *testing.T) {
+        ttls := map[string]uint32{
+                "A":   28,
+                "MX":  148,
+                "TXT": 248,
+                "SOA": 50,
+                "NS":  11697,
+                "CAA": 16815,
+        }
+        te := detectTrafficEngineering(ttls)
+        if te == nil {
+                t.Fatal("expected traffic engineering detection for Google-like TTLs")
+        }
+        if !te.Detected {
+                t.Error("Detected should be true")
+        }
+        if te.ShortCount < 3 {
+                t.Errorf("ShortCount = %d, want >= 3", te.ShortCount)
+        }
+        if te.Pattern == "" {
+                t.Error("Pattern should not be empty")
+        }
+}
+
+func TestDetectTrafficEngineering_NormalDomain(t *testing.T) {
+        ttls := map[string]uint32{
+                "A":   300,
+                "MX":  3600,
+                "TXT": 3600,
+                "SOA": 3600,
+                "NS":  86400,
+        }
+        te := detectTrafficEngineering(ttls)
+        if te != nil {
+                t.Error("expected no traffic engineering detection for normal TTLs")
+        }
+}
+
+func TestDetectTrafficEngineering_LowAOnly(t *testing.T) {
+        ttls := map[string]uint32{
+                "A":   30,
+                "MX":  3600,
+                "TXT": 3600,
+                "SOA": 3600,
+        }
+        te := detectTrafficEngineering(ttls)
+        if te != nil {
+                t.Error("expected no detection when only A is low (below threshold of 3 short types)")
+        }
+}
+
+func TestDetectTrafficEngineering_NoARecord(t *testing.T) {
+        ttls := map[string]uint32{
+                "MX":  100,
+                "TXT": 100,
+                "SOA": 50,
+        }
+        te := detectTrafficEngineering(ttls)
+        if te != nil {
+                t.Error("expected no detection without an A record")
+        }
+}
+
+func TestDetectTrafficEngineering_HighARecord(t *testing.T) {
+        ttls := map[string]uint32{
+                "A":   300,
+                "MX":  100,
+                "TXT": 100,
+                "SOA": 50,
+        }
+        te := detectTrafficEngineering(ttls)
+        if te != nil {
+                t.Error("expected no detection when A TTL is above threshold (120s)")
+        }
+}
+
+func TestBuildCurrencyReport_TrafficEngineering(t *testing.T) {
+        input := CurrencyReportInput{
+                ResolverTTLs:  map[string]uint32{"A": 28, "MX": 148, "TXT": 248, "SOA": 50},
+                AuthTTLs:      map[string]uint32{"A": 300, "MX": 300, "TXT": 300, "SOA": 60},
+                ObservedTypes: map[string]bool{"A": true, "MX": true, "TXT": true, "SOA": true},
+                ResolverCount: 5,
+        }
+        report := BuildCurrencyReportWithProvider(input)
+        if report.TrafficEngineering == nil {
+                t.Fatal("expected TrafficEngineering to be set")
+        }
+        if !report.TrafficEngineering.Detected {
+                t.Error("expected traffic engineering Detected = true")
+        }
+}

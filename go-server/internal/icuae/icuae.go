@@ -143,15 +143,23 @@ func formatTTLDuration(ttl uint32) string {
         return fmt.Sprintf("%ds", ttl)
 }
 
+type TrafficEngineeringContext struct {
+        Detected    bool   `json:"detected"`
+        Explanation string `json:"explanation"`
+        Pattern     string `json:"pattern"`
+        ShortCount  int    `json:"short_count"`
+}
+
 type CurrencyReport struct {
-        OverallGrade   string               `json:"overall_grade"`
-        OverallScore   float64              `json:"overall_score"`
-        Dimensions     []DimensionScore     `json:"dimensions"`
-        ResolverCount  int                  `json:"resolver_count"`
-        RecordCount    int                  `json:"record_count"`
-        Guidance       string               `json:"guidance"`
-        ProviderName   string               `json:"provider_name,omitempty"`
-        SOACompliance  *SOAComplianceReport `json:"soa_compliance,omitempty"`
+        OverallGrade       string                      `json:"overall_grade"`
+        OverallScore       float64                     `json:"overall_score"`
+        Dimensions         []DimensionScore            `json:"dimensions"`
+        ResolverCount      int                         `json:"resolver_count"`
+        RecordCount        int                         `json:"record_count"`
+        Guidance           string                      `json:"guidance"`
+        ProviderName       string                      `json:"provider_name,omitempty"`
+        SOACompliance      *SOAComplianceReport        `json:"soa_compliance,omitempty"`
+        TrafficEngineering *TrafficEngineeringContext   `json:"traffic_engineering,omitempty"`
 }
 
 func (r CurrencyReport) HasProviderIntel() bool {
@@ -679,7 +687,51 @@ func BuildCurrencyReportWithProvider(input CurrencyReportInput) CurrencyReport {
                 report.SOACompliance = &soa
         }
 
+        report.TrafficEngineering = detectTrafficEngineering(input.ResolverTTLs)
+
         return report
+}
+
+const (
+        teThresholdA    uint32 = 120
+        teThresholdCore uint32 = 300
+        teMinShortTypes int    = 3
+)
+
+var teTrafficTypes = []string{"A", "AAAA", "MX", "TXT", "SOA"}
+
+func detectTrafficEngineering(resolverTTLs map[string]uint32) *TrafficEngineeringContext {
+        aTTL, hasA := resolverTTLs["A"]
+        if !hasA || aTTL > teThresholdA {
+                return nil
+        }
+
+        shortCount := 0
+        for _, rt := range teTrafficTypes {
+                if ttl, ok := resolverTTLs[rt]; ok && ttl < teThresholdCore {
+                        shortCount++
+                }
+        }
+
+        if shortCount < teMinShortTypes {
+                return nil
+        }
+
+        return &TrafficEngineeringContext{
+                Detected:   true,
+                ShortCount: shortCount,
+                Pattern:    "DNS-based Global Server Load Balancing (GSLB)",
+                Explanation: fmt.Sprintf(
+                        "This domain uses short TTLs across %d record types (A record at %ds), consistent with "+
+                                "DNS-based traffic management (GSLB). Enterprises operating large anycast networks "+
+                                "intentionally use short TTLs to enable rapid failover, geographic steering, and "+
+                                "load distribution. This is a deliberate infrastructure choice, not a misconfiguration. "+
+                                "RFC 1035 §3.2.1 permits any TTL value the zone administrator selects. "+
+                                "The findings below reflect deviation from typical values for reference, "+
+                                "not necessarily actionable recommendations for this class of infrastructure.",
+                        shortCount, aTTL,
+                ),
+        }
 }
 
 func overallGuidance(score float64) string {
