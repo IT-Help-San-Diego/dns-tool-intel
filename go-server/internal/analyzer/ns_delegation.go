@@ -78,6 +78,8 @@ func nsDelegationResult(status, message string, childNS, parentNS []string, matc
                 "message":       message,
                 "child_ns":      childNS,
                 "parent_ns":     parentNS,
+                "ns_count":      float64(len(childNS)),
+                "nameservers":   childNS,
                 "match":         match,
                 "delegation_ok": delegationOK,
         }

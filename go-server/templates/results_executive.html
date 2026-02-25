@@ -701,7 +701,9 @@
                         <div class="row g-3 text-center">
                             <div class="col-6 col-md-3">
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
-                                {{if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
+                                {{if .IsTLD}}
+                                <span class="badge bg-secondary px-3 py-2">N/A &mdash; Registry</span>
+                                {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}
                                 <span class="badge bg-info px-3 py-2">Monitoring</span>
@@ -713,7 +715,9 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="small text-muted text-uppercase mb-1">Brand Impersonation</div>
-                                {{if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
+                                {{if .IsTLD}}
+                                <span class="badge bg-secondary px-3 py-2">N/A &mdash; Registry</span>
+                                {{else if and $bimi (eq (mapGetStr "status" $bimi) "success") (mapGetBool "vmc_valid" $bimi)}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}
                                 <span class="badge bg-info px-3 py-2">Basic</span>
@@ -733,7 +737,9 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="small text-muted text-uppercase mb-1">Certificate Control</div>
-                                {{if and $caa (eq (mapGetStr "status" $caa) "success")}}
+                                {{if .IsTLD}}
+                                <span class="badge bg-secondary px-3 py-2">N/A &mdash; Registry</span>
+                                {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}
                                 <span class="badge bg-success px-3 py-2">Configured</span>
                                 {{else}}
                                 <span class="badge bg-secondary px-3 py-2">Open</span>
@@ -781,6 +787,7 @@
                 <h5 class="exec-section-title"><i class="fas fa-question-circle text-warning me-2"></i>The BIG Questions</h5>
                 <div class="card border-0 bg-dark bg-opacity-25 exec-big-questions">
                     <div class="card-body py-3">
+                        {{if not $.IsTLD}}
                         {{$emailShort := mapGetStr "email_answer_short" $verdicts}}
                         {{$emailReason := mapGetStr "email_answer_reason" $verdicts}}
                         {{$emailColor := mapGetStr "email_answer_color" $verdicts}}
@@ -793,6 +800,7 @@
                                 {{else}}<span class="badge bg-secondary px-3 py-2">Not Assessed</span>{{end}}
                             </span>
                         </div>
+                        {{end}}
                         {{$dnsVerdict := mapGetMap "dns_tampering" $verdicts}}
                         <div class="exec-finding-row">
                             <span class="exec-finding-label dt-question">Can DNS itself be tampered with?</span>
@@ -804,6 +812,7 @@
                                 {{else}}<span class="badge bg-secondary px-3 py-2">Not Assessed</span>{{end}}
                             </span>
                         </div>
+                        {{if not $.IsTLD}}
                         {{$brandVerdict := mapGetMap "brand_impersonation" $verdicts}}
                         <div class="exec-finding-row">
                             <span class="exec-finding-label dt-question">Can this brand be convincingly faked?</span>
@@ -837,6 +846,7 @@
                                 {{else}}<span class="badge bg-secondary px-3 py-2">Not Assessed</span>{{end}}
                             </span>
                         </div>
+                        {{end}}
                         {{$aiLlmsVerdict := mapGetMap "ai_llms_txt" $verdicts}}
                         {{if $aiLlmsVerdict}}
                         <div class="exec-finding-row">
@@ -924,6 +934,7 @@
             <h4 class="mb-3"><i class="fas fa-search-plus text-info me-2"></i>Technical Findings</h4>
 
             <!-- Email Authentication -->
+            {{if not .IsTLD}}
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Email Authentication</h5>
@@ -1014,7 +1025,7 @@
             <!-- Transport Security -->
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Transport Security</h5>
+                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Mail Transport Security</h5>
                 </div>
                 <div class="card-body">
                     {{if $posture}}
@@ -1102,6 +1113,7 @@
                     </div>
                 </div>
             </div>
+            {{end}}
 
             <!-- DNS Security -->
             <div class="card mb-3">
@@ -1164,6 +1176,7 @@
             </div>
 
             <!-- Brand & Certificate -->
+            {{if not .IsTLD}}
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-certificate me-2"></i>Brand &amp; Certificate Controls</h5>
@@ -1223,6 +1236,7 @@
                     </div>
                 </div>
             </div>
+            {{end}}
 
             <!-- AI Surface Scanner -->
             {{if $ai_surface}}

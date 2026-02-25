@@ -1,6 +1,6 @@
 # DNS Tool — Roadmap
 
-> Last updated: February 23, 2026
+> Last updated: February 25, 2026
 
 ---
 
@@ -31,6 +31,9 @@
 | Hash Integrity Audit Engine | v26.21.45 | Feb 2026 |
 | Download Verification (SHA-3-512 Checksums, Kali-Style Sidecar) | v26.21.49–50 | Feb 2026 |
 | Accountability Log (/confidence/audit-log) | v26.21.46 | Feb 2026 |
+| TTL Tuner (Beta) | v26.25.86–88 | Feb 2026 |
+| Six-Agent Security & Performance Audit | v26.25.88 | Feb 2026 |
+| TLD NS Count Bug Fix + Executive TLD Gating | v26.25.90 | Feb 2026 |
 
 ---
 
@@ -52,6 +55,14 @@
 | Zone File Import as Drift Baseline | Queued | Low | "Baseline Snapshot" comparison. Upload zone file to establish posture baseline for future drift detection. Zone parsing library selected; UX copy/disclaimer to be drafted. |
 | Raw Intelligence API Access | Queued | Low | Direct access to collected intelligence without processing layers. Requires access control and audit logging. |
 | ISC Recommendation Path Integration | Queued | Low | Integration with ISC (Internet Systems Consortium) remediation/hardening recommendations. Requires partnership or integration with ISC tooling. |
+| TLD Zone Health: Parent/Child Delegation Consistency | Queued | High | Compare NS set in parent (root zone) vs child (TLD zone), DS/DNSKEY alignment, glue completeness (esp. in-bailiwick NS for ccTLDs), TTLs at parent vs child. This is "delegation security" as registries understand it. |
+| TLD Zone Health: Nameserver Fleet Matrix | Queued | High | Per-nameserver characterization: IPv4+IPv6 addresses, ASN/operator diversity scoring, UDP+TCP reachability (v4/v6), EDNS0 buffer sizing, truncation/TCP fallback, AA flag + lame delegation check, SOA serial per NS (detect sync issues). Currently we show NS hostnames but don't characterize the fleet. |
+| TLD Zone Health: DNSSEC Operations Deep Dive | Queued | High | Beyond current "Signed, algorithm, AD flag, DS record" — add: DNSKEY RRset (KSK vs ZSK key tags, key sizes), RRSIG inception/expiration windows (how close to expiry?), NSEC vs NSEC3 with parameter sanity, rollover readiness signals (multiple DNSKEYs present? DS aligned?). Heart of "zone health" for operators. |
+| TLD Zone Health: Multi-Vantage Availability | Queued | Medium | Global latency distribution, timeout/SERVFAIL rates, regional anomalies, regressions over time. Complements multi-resolver consensus. Requires probe network expansion (probe-02+). Similar to RIPE DNSMON concept but with change detection. |
+| TLD Zone Health: Pre-Delegation Simulation Mode | Queued | Medium | Let TLD operators paste candidate NS set (hostnames + IPs) and/or candidate DS/DNSKEY, then run full delegation + DNSSEC verification as if live. Maps to Zonemaster "delegation quality" testing and ICANN PDT readiness. |
+| TLD Zone Health: Change Detection & Alerting | Queued | Medium | Registry-specific drift: "What changed since last run?" (NS/DS/DNSKEY/SOA timers). Alerts on DS mismatch, DNSKEY changes, SOA serial divergence, NS unreachable, DNSSEC validation failures. Timeline keyed to "incident start." Builds on existing drift engine. |
+| TLD Zone Health: Machine-Consumable Outputs | Queued | Low | Stable versioned JSON API for current TLD status, webhook events for state transitions, export formats for NOC tooling. Leverages existing integrity hashes. |
+| TLD Zone Health: Registry Identification & IANA Metadata | Queued | Low | Show registry operator + IANA metadata instead of "Registrar unknown / DNS hosting unknown." Current domain-owner fields don't map to registry reality. |
 
 ---
 
@@ -79,9 +90,9 @@ All items in the "Completed" section have working implementations in the codebas
 
 Items in "In Progress / Queued" are documented, architected, but not yet implemented. Priority reflects relative importance:
 
-- **High**: API access and CLI app unlock programmatic workflows and terminal-first users. Strategic for market expansion.
-- **Medium**: Personal history, drift alerts, saved reports, Homebrew distribution, Phases 3–4 require moderate engineering and provide strong user value.
-- **Low**: Raw intelligence API, ISC integration, zone file import are specialized features with narrower user bases.
+- **High**: API access, CLI app, and TLD Zone Health features (delegation consistency, fleet matrix, DNSSEC deep dive) unlock programmatic workflows, terminal-first users, and the registry operator market. Strategic for market expansion.
+- **Medium**: Personal history, drift alerts, saved reports, Homebrew distribution, Phases 3–4, TLD pre-delegation simulation, TLD change detection require moderate engineering and provide strong user value.
+- **Low**: Raw intelligence API, ISC integration, zone file import, TLD machine-consumable outputs, TLD registry metadata are specialized features with narrower user bases.
 
 **API Access** and **CLI App** are strategically important for automation workflows and developer adoption. Both require authentication, rate limiting, and careful versioning.
 
@@ -100,7 +111,7 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: February 23, 2026  
+**Last Updated**: February 25, 2026  
 **Next Review**: Post-v26.26.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
