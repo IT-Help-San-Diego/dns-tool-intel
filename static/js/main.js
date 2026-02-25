@@ -236,7 +236,7 @@ function isValidDomain(domain) {
     const hasNonAscii = /[^\u0020-\u007F]/.test(d);
     if (!hasNonAscii) {
         for (const label of labels) {
-            if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(label)) return false;
+            if (!/^[a-zA-Z0-9-]+$/.test(label)) return false;
         }
     }
     return true;

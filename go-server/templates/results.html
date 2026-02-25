@@ -5968,7 +5968,7 @@
             };
             document.querySelectorAll('.protocol-link').forEach(function(el) {
                 const proto = el.dataset.protocol;
-                const cleaned = proto.replace(/\s*\([^)]*\)/, '');
+                const cleaned = proto.replace(/\([^)]*\)/, '').trim();
                 const target = protocolSectionMap[cleaned];
                 if (target) {
                     el.classList.add('u-link-dotted');
