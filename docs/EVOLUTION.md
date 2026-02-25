@@ -2939,3 +2939,44 @@ Added 5 new ignore rules in `sonar-project.properties`:
 - Migration `002_intelligence_confidence_engine.sql` reviewed — contains ICAE table DDL only (schema structure, not intelligence logic). Acceptable in public repo per two-repo pattern.
 
 ### Version: v26.26.03
+
+
+---
+
+## Session: v26.26.04 — Documentation Reality Check & Stats Page Redesign
+**Date**: 2026-02-25 (Session 2)
+**Version**: 26.26.03 → 26.26.04
+
+### Changes
+1. **Stats Page Visual Redesign** — Redesigned `/stats` from plain Bootstrap cards to match the platform's glass/gradient design language. Hero area with "Live Telemetry" badge and pulse animation. Four KPI cards with colored top-line accents (blue/green/cyan/purple), monospace numbers, and icon badges. Glass-effect section cards with gradient headers. Country grid with hover effects. Styled data table with monospace typography. All template variables preserved.
+
+2. **LLMs.txt Consistency Audit** — Added 9 missing pages to `llms.txt` navigation: `/confidence`, `/dossier`, `/drift`, `/ttl-tuner`, `/color-science`, `/brand-colors`, `/badge`, `/about`, `/faq/subdomains`. Added 10 pages to `llms-full.txt`. Added multi-probe infrastructure to intelligence sources. Updated roadmap count from "25+"/"36+" to "37+". Added quality gates to technical details.
+
+3. **JSON-LD Schema Update** — Added `CAA Checker`, `BIMI Checker`, `Domain Dossier`, `DMARCbis Checker` to `alternateName`. Fixed "Intelligence Currency Audit Engine" → "Intelligence Currency Assurance Engine".
+
+4. **Roadmap Update** — Moved 6 items to Done: Probe Network Second Node (Kali), Multi-Probe Consensus Engine, Public Roadmap Page, SonarCloud Quality Gate Fix, Nmap Subdomain Enrichment, Admin Probe Management Panel. Updated In Progress (visual cohesion, LLMs audit, stats redesign) and Next Up (DoH/DoT, distributed probe mesh, API access, CLI app).
+
+5. **Notion Roadmap Sync** — Updated `scripts/notion-roadmap-sync.mjs` with all 59 roadmap items matching `roadmap.go`. Ran sync: 27 new items created, 32 existing. Note: sync creates only — does not update existing item statuses.
+
+6. **Intel Repo Sync** — Pushed updated `docs/llms.txt` and `docs/llms-full.txt` safety copies to `dns-tool-intel`.
+
+### Intelligence Leakage Audit
+- **Clean**: All changes are documentation, templates, and data updates — zero proprietary content
+- No `_intel.go` files created or modified
+- No scoring formulas, provider databases, or intelligence logic in any changed file
+- JSON-LD schema reveals feature names and page routes only (public information)
+
+### Files Changed
+- `go-server/templates/stats.html` — full redesign
+- `go-server/internal/handlers/roadmap.go` — data update
+- `go-server/internal/config/config.go` — version bump
+- `go-server/templates/index.html` — JSON-LD alternateName update
+- `static/llms.txt` — 9 pages added, probe infrastructure
+- `static/llms-full.txt` — 10 pages added, technical details
+- `scripts/notion-roadmap-sync.mjs` — full roadmap item sync
+- `replit.md` — session documentation
+
+### Verification
+- All 18 Go packages pass
+- All 20 documented routes verified (200 OK; drift/badge return 400 without required domain param — correct behavior)
+- Build: `dns-tool-server v26.26.04`
