@@ -273,7 +273,10 @@ func buildProbeResult(a *Analyzer, ctx context.Context, domain string, mxHosts [
         if a.SMTPProbeMode == "remote" && len(a.Probes) > 0 {
                 probe["probe_method"] = "remote"
                 probe["probe_count"] = len(a.Probes)
-                return runRemoteProbe(ctx, a.Probes[0].URL, a.Probes[0].Key, mxHosts, probe)
+                if len(a.Probes) == 1 {
+                        return runRemoteProbe(ctx, a.Probes[0].URL, a.Probes[0].Key, mxHosts, probe)
+                }
+                return runMultiProbe(ctx, a.Probes, mxHosts, probe)
         }
 
         if a.SMTPProbeMode == "remote" && a.ProbeAPIURL != "" && len(a.Probes) == 0 {
@@ -430,6 +433,133 @@ func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts [
         )
 
         return probe
+}
+
+func runMultiProbe(ctx context.Context, probes []ProbeEndpoint, mxHosts []string, probe map[string]any) map[string]any {
+        type probeResult struct {
+                id    string
+                label string
+                data  map[string]any
+                err   error
+        }
+
+        results := make(chan probeResult, len(probes))
+        for _, p := range probes {
+                go func(ep ProbeEndpoint) {
+                        single := make(map[string]any)
+                        single = runRemoteProbe(ctx, ep.URL, ep.Key, mxHosts, single)
+                        results <- probeResult{id: ep.ID, label: ep.Label, data: single}
+                }(p)
+        }
+
+        var multiResults []map[string]any
+        var primaryResult map[string]any
+        for range probes {
+                r := <-results
+                entry := map[string]any{
+                        "probe_id":    r.id,
+                        "probe_label": r.label,
+                        "status":      r.data["status"],
+                        "probe_host":  r.data["probe_host"],
+                        "elapsed":     r.data["probe_elapsed"],
+                }
+                if obs, ok := r.data["observations"]; ok {
+                        entry["observations"] = obs
+                }
+                if s, ok := r.data["summary"]; ok {
+                        entry["summary"] = s
+                }
+                if v, ok := r.data["probe_verdict"]; ok {
+                        entry["probe_verdict"] = v
+                }
+                multiResults = append(multiResults, entry)
+                if primaryResult == nil && r.data["status"] == "observed" {
+                        primaryResult = r.data
+                }
+        }
+
+        if primaryResult == nil && len(multiResults) > 0 {
+                for _, mr := range multiResults {
+                        if mr["status"] == "observed" {
+                                break
+                        }
+                }
+                if len(probes) > 0 {
+                        first := make(map[string]any)
+                        first = runRemoteProbe(ctx, probes[0].URL, probes[0].Key, mxHosts, first)
+                        primaryResult = first
+                }
+        }
+
+        if primaryResult != nil {
+                for k, v := range primaryResult {
+                        probe[k] = v
+                }
+        }
+
+        probe["multi_probe"] = multiResults
+        probe["probe_method"] = "multi_remote"
+        probe["probe_count"] = len(probes)
+
+        consensus := computeProbeConsensus(multiResults)
+        probe["probe_consensus"] = consensus
+
+        slog.Info("Multi-probe SMTP completed",
+                "probe_count", len(probes),
+                "results", len(multiResults),
+                "consensus", consensus["agreement"],
+        )
+
+        return probe
+}
+
+func computeProbeConsensus(results []map[string]any) map[string]any {
+        consensus := map[string]any{
+                "total_probes": len(results),
+                "agreement":    "unknown",
+        }
+
+        if len(results) == 0 {
+                return consensus
+        }
+
+        observed := 0
+        allTLS := 0
+        partialTLS := 0
+        noTLS := 0
+
+        for _, r := range results {
+                if r["status"] == "observed" {
+                        observed++
+                        switch r["probe_verdict"] {
+                        case "all_tls":
+                                allTLS++
+                        case "partial_tls":
+                                partialTLS++
+                        case "no_tls":
+                                noTLS++
+                        }
+                }
+        }
+
+        consensus["observed"] = observed
+        consensus["all_tls"] = allTLS
+        consensus["partial_tls"] = partialTLS
+        consensus["no_tls"] = noTLS
+
+        if observed == 0 {
+                consensus["agreement"] = "no_data"
+        } else if allTLS == observed {
+                consensus["agreement"] = "unanimous_tls"
+        } else if noTLS == observed {
+                consensus["agreement"] = "unanimous_no_tls"
+        } else if allTLS > 0 && partialTLS == 0 && noTLS == 0 {
+                consensus["agreement"] = "unanimous_tls"
+        } else {
+                consensus["agreement"] = "split"
+        }
+
+        return consensus
 }
 
 func runLiveProbe(ctx context.Context, mxHosts []string, probe map[string]any) map[string]any {

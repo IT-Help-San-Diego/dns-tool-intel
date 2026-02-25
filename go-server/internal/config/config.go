@@ -9,7 +9,7 @@ import (
 )
 
 var (
-        Version   = "26.25.98"
+        Version   = "26.25.99"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -107,7 +107,7 @@ func Load() (*Config, error) {
         if probeAPIURL2 != "" {
                 label2 := os.Getenv("PROBE_LABEL_2")
                 if label2 == "" {
-                        label2 = "EU-West (France)"
+                        label2 = "US-East (Kali/02)"
                 }
                 probes = append(probes, ProbeEndpoint{
                         ID:    "probe-02",

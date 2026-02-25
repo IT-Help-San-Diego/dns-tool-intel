@@ -896,6 +896,24 @@
                                 <div class="code-block font-monospace small">{{$smtpBanner}}</div>
                             </div>
                             {{end}}
+                            {{$smtpProbeCovert := mapGetMap "probe" $smtp}}
+                            {{if $smtpProbeCovert}}
+                            {{$multiProbeC := mapGetSlice "multi_probe" $smtpProbeCovert}}
+                            {{if $multiProbeC}}
+                            <div class="mb-2">
+                                <div class="small text-muted text-uppercase mb-1 font-monospace">Multi-Probe Recon</div>
+                                {{$consensusC := mapGetMap "probe_consensus" $smtpProbeCovert}}
+                                {{if $consensusC}}
+                                {{$agreementC := mapGetStr "agreement" $consensusC}}
+                                <div class="code-block font-monospace small mb-1">consensus: {{$agreementC}} | probes: {{mapGetFloat "total_probes" $consensusC}} | observed: {{mapGetFloat "observed" $consensusC}}</div>
+                                {{end}}
+                                {{range $multiProbeC}}
+                                {{$mpc := toMap .}}
+                                <div class="code-block font-monospace small mb-1">[{{mapGetStr "probe_label" $mpc}}] status={{mapGetStr "status" $mpc}} verdict={{mapGetStr "probe_verdict" $mpc}}</div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                            {{end}}
                         </div>
                         {{end}}
 

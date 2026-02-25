@@ -1134,6 +1134,13 @@
                             <span class="badge bg-secondary">Not Assessed</span>
                             {{end}}
                             <span class="text-muted ms-2 small">Policy-assessed</span>
+                            {{$smtpProbeExec := mapGetMap "probe" $smtp}}
+                            {{if $smtpProbeExec}}
+                            {{$probeCountExec := mapGetFloat "probe_count" $smtpProbeExec}}
+                            {{if gt $probeCountExec 1}}
+                            <span class="badge bg-info ms-1" title="Verified from multiple geographic locations">{{$probeCountExec}} probes</span>
+                            {{end}}
+                            {{end}}
                             {{else}}
                             <span class="text-muted">Not assessed</span>
                             {{end}}

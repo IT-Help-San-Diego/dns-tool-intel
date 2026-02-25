@@ -3903,6 +3903,53 @@
                                     </table>
                                 </div>
                             {{end}}
+
+                            {{$multiProbe := mapGetSlice "multi_probe" $smtpProbe}}
+                            {{if $multiProbe}}
+                            <div class="mt-3">
+                                <div class="small text-uppercase text-muted mb-2 fw-semibold"><i class="fas fa-globe me-1"></i>Multi-Vantage Probe Results</div>
+                                {{$consensus := mapGetMap "probe_consensus" $smtpProbe}}
+                                {{if $consensus}}
+                                {{$agreement := mapGetStr "agreement" $consensus}}
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-{{if eq $agreement "unanimous_tls"}}success{{else if eq $agreement "unanimous_no_tls"}}danger{{else if eq $agreement "split"}}warning{{else}}secondary{{end}}">
+                                        {{if eq $agreement "unanimous_tls"}}Unanimous: TLS verified
+                                        {{else if eq $agreement "unanimous_no_tls"}}Unanimous: No TLS
+                                        {{else if eq $agreement "split"}}Split verdict
+                                        {{else if eq $agreement "no_data"}}No data
+                                        {{else}}{{$agreement}}{{end}}
+                                    </span>
+                                    <span class="small text-muted">{{mapGetFloat "total_probes" $consensus}} probes, {{mapGetFloat "observed" $consensus}} responded</span>
+                                </div>
+                                {{end}}
+                                <div class="row g-2">
+                                {{range $multiProbe}}
+                                {{$mp := toMap .}}
+                                <div class="col-md-6">
+                                    <div class="p-2 rounded u-bg-soft small">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-semibold"><i class="fas fa-satellite-dish me-1"></i>{{mapGetStr "probe_label" $mp}}</span>
+                                            {{$mpStatus := mapGetStr "status" $mp}}
+                                            <span class="badge bg-{{if eq $mpStatus "observed"}}success{{else}}secondary{{end}}">{{$mpStatus}}</span>
+                                        </div>
+                                        {{$mpVerdict := mapGetStr "probe_verdict" $mp}}
+                                        {{if $mpVerdict}}
+                                        <div class="text-muted">
+                                            {{if eq $mpVerdict "all_tls"}}<i class="fas fa-lock text-success me-1"></i>All servers support TLS
+                                            {{else if eq $mpVerdict "partial_tls"}}<i class="fas fa-exclamation-triangle text-warning me-1"></i>Partial TLS support
+                                            {{else if eq $mpVerdict "no_tls"}}<i class="fas fa-unlock text-danger me-1"></i>No TLS detected
+                                            {{else}}{{$mpVerdict}}{{end}}
+                                        </div>
+                                        {{end}}
+                                        {{$mpElapsed := mapGetFloat "elapsed" $mp}}
+                                        {{if gt $mpElapsed 0}}<div class="text-muted mt-1" style="font-size:0.7em">{{$mpElapsed}}s</div>{{end}}
+                                    </div>
+                                </div>
+                                {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+
                             {{else}}
                                 {{$probeReason := mapGetStr "reason" $smtpProbe}}
                                 <div class="small text-muted p-2 rounded u-bg-soft">
