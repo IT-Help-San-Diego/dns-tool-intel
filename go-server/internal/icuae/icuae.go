@@ -94,7 +94,10 @@ type TTLFinding struct {
         Severity       string `json:"severity"`
         Standard       string `json:"standard"`
         Recommendation string `json:"recommendation"`
+        ProviderNote   string `json:"provider_note,omitempty"`
 }
+
+func (f TTLFinding) HasProviderNote() bool { return f.ProviderNote != "" }
 
 func (f TTLFinding) SeverityClass() string {
         switch f.Severity {
@@ -141,12 +144,18 @@ func formatTTLDuration(ttl uint32) string {
 }
 
 type CurrencyReport struct {
-        OverallGrade string           `json:"overall_grade"`
-        OverallScore float64          `json:"overall_score"`
-        Dimensions   []DimensionScore `json:"dimensions"`
-        ResolverCount int             `json:"resolver_count"`
-        RecordCount   int             `json:"record_count"`
-        Guidance      string          `json:"guidance"`
+        OverallGrade   string               `json:"overall_grade"`
+        OverallScore   float64              `json:"overall_score"`
+        Dimensions     []DimensionScore     `json:"dimensions"`
+        ResolverCount  int                  `json:"resolver_count"`
+        RecordCount    int                  `json:"record_count"`
+        Guidance       string               `json:"guidance"`
+        ProviderName   string               `json:"provider_name,omitempty"`
+        SOACompliance  *SOAComplianceReport `json:"soa_compliance,omitempty"`
+}
+
+func (r CurrencyReport) HasProviderIntel() bool {
+        return r.ProviderName != "" || (r.SOACompliance != nil && r.SOACompliance.HasFindings())
 }
 
 func (r CurrencyReport) BootstrapClass() string {
@@ -576,6 +585,18 @@ func ttlRelevanceDetails(score float64) string {
         }
 }
 
+type CurrencyReportInput struct {
+        Records       []RecordCurrency
+        ResolverTTLs  map[string]uint32
+        AuthTTLs      map[string]uint32
+        ObservedTypes map[string]bool
+        Agreements    []ResolverAgreement
+        ResolverCount int
+        DNSProviders  []string
+        NSRecords     []string
+        SOARaw        string
+}
+
 func BuildCurrencyReport(
         records []RecordCurrency,
         resolverTTLs, authTTLs map[string]uint32,
@@ -583,12 +604,33 @@ func BuildCurrencyReport(
         agreements []ResolverAgreement,
         resolverCount int,
 ) CurrencyReport {
+        return BuildCurrencyReportWithProvider(CurrencyReportInput{
+                Records:       records,
+                ResolverTTLs:  resolverTTLs,
+                AuthTTLs:      authTTLs,
+                ObservedTypes: observedTypes,
+                Agreements:    agreements,
+                ResolverCount: resolverCount,
+        })
+}
+
+func BuildCurrencyReportWithProvider(input CurrencyReportInput) CurrencyReport {
         dims := []DimensionScore{
-                EvaluateCurrentness(records),
-                EvaluateTTLCompliance(resolverTTLs, authTTLs),
-                EvaluateCompleteness(observedTypes),
-                EvaluateSourceCredibility(agreements),
-                EvaluateTTLRelevance(resolverTTLs),
+                EvaluateCurrentness(input.Records),
+                EvaluateTTLCompliance(input.ResolverTTLs, input.AuthTTLs),
+                EvaluateCompleteness(input.ObservedTypes),
+                EvaluateSourceCredibility(input.Agreements),
+                EvaluateTTLRelevance(input.ResolverTTLs),
+        }
+
+        providerName := DetectDNSProvider(input.DNSProviders, input.NSRecords)
+
+        if providerName != "" {
+                for i := range dims {
+                        for j := range dims[i].Findings {
+                                AnnotateFindingForProvider(&dims[i].Findings[j], providerName)
+                        }
+                }
         }
 
         totalScore := 0.0
@@ -597,14 +639,22 @@ func BuildCurrencyReport(
         }
         overallScore := totalScore / float64(len(dims))
 
-        return CurrencyReport{
+        report := CurrencyReport{
                 OverallGrade:  scoreToGrade(overallScore),
                 OverallScore:  overallScore,
                 Dimensions:    dims,
-                ResolverCount: resolverCount,
-                RecordCount:   len(records),
+                ResolverCount: input.ResolverCount,
+                RecordCount:   len(input.Records),
                 Guidance:      overallGuidance(overallScore),
+                ProviderName:  providerName,
         }
+
+        if input.SOARaw != "" {
+                soa := AnalyzeSOACompliance(input.SOARaw, providerName)
+                report.SOACompliance = &soa
+        }
+
+        return report
 }
 
 func overallGuidance(score float64) string {

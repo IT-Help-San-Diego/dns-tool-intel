@@ -530,18 +530,107 @@
                                                     <td><code>{{.ObservedDisplay}}</code></td>
                                                     <td><code>{{.TypicalDisplay}}</code></td>
                                                     <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
-                                                    <td class="small">{{.Recommendation}}</td>
+                                                    <td class="small">
+                                                        {{.Recommendation}}
+                                                        {{if .HasProviderNote}}
+                                                        <div class="mt-1 p-2 rounded bg-dark bg-opacity-50 border-start border-warning border-2">
+                                                            <i class="fas fa-building me-1 text-warning"></i><strong>Provider Note:</strong> {{.ProviderNote}}
+                                                        </div>
+                                                        {{end}}
+                                                    </td>
                                                 </tr>
                                                 {{end}}
                                             </tbody>
                                         </table>
                                     </div>
                                     <small class="text-muted d-block mt-2"><i class="fas fa-book me-1"></i>Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale)</small>
+                                    {{if .CurrencyReport.ProviderName}}
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-building me-1"></i>DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
+                                    {{else}}
                                     <small class="text-muted d-block mt-1"><i class="fas fa-exclamation-circle me-1"></i>Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a recommendation targets a record you cannot edit, the finding reflects the observed value rather than a configuration error on your part.</small>
+                                    {{end}}
                                 </div>
                             </div>
                         </div>
                         {{end}}
+
+                        {{if .CurrencyReport.SOACompliance}}
+                        {{with .CurrencyReport.SOACompliance}}
+                        {{if .HasSOA}}
+                        <div class="mt-3 border-top border-secondary pt-3">
+                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#soaCompliance" type="button" aria-expanded="false" aria-controls="soaCompliance">
+                                <i class="fas fa-server text-info me-2"></i>
+                                <span class="fw-semibold small">SOA Timer RFC Compliance</span>
+                                {{if .HasFindings}}
+                                <span class="badge bg-warning text-dark ms-2">{{len .Findings}} {{if eq (len .Findings) 1}}Finding{{else}}Findings{{end}}</span>
+                                {{else}}
+                                <span class="badge bg-success ms-2">Compliant</span>
+                                {{end}}
+                                <i class="fas fa-chevron-down ms-auto small"></i>
+                            </button>
+                            <div class="collapse" id="soaCompliance">
+                                <div class="mt-2">
+                                    <div class="row mb-2">
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Primary NS</small>
+                                            <code class="small">{{.PrimaryNS}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Serial</small>
+                                            <code class="small">{{.Serial}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Admin</small>
+                                            <code class="small">{{.AdminEmail}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Provider</small>
+                                            <span class="small">{{if .Provider}}{{.Provider}}{{else}}Unknown{{end}}</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-dark table-sm mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Timer</th>
+                                                    <th scope="col">Value</th>
+                                                    <th scope="col">RFC 1912 Range</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Refresh</td><td><code>{{.Refresh}}s</code></td><td class="small">1,200–43,200s (20 min – 12 hrs)</td></tr>
+                                                <tr><td>Retry</td><td><code>{{.Retry}}s</code></td><td class="small">Fraction of Refresh</td></tr>
+                                                <tr><td>Expire</td><td><code>{{.Expire}}s</code></td><td class="small">1,209,600–2,419,200s (14–28 days)</td></tr>
+                                                <tr><td>Minimum (Neg. Cache)</td><td><code>{{.MinTTL}}s</code></td><td class="small">300–86,400s (5 min – 1 day)</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {{if .HasFindings}}
+                                    {{range .Findings}}
+                                    <div class="alert alert-{{.SeverityClass}} py-2 mb-2 small">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                                            <div>
+                                                <strong>{{.Field}}</strong>: {{.Explanation}}
+                                                <div class="mt-1">
+                                                    <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>{{.RFC}}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    {{else}}
+                                    <div class="alert alert-success py-2 mb-2 small">
+                                        <i class="fas fa-check-circle me-2"></i>All SOA timer values are within RFC 1912 recommended ranges.
+                                    </div>
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+                        {{end}}
+                        {{end}}
+
                     </div>
                 </div>
             </div>

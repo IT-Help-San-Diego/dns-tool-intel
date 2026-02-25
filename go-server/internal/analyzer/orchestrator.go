@@ -347,7 +347,31 @@ func buildICuAEReport(resolverTTLMap, authTTLMap map[string]uint32, results map[
                 }
         }
 
-        return icuae.BuildCurrencyReport(records, resolverTTLMap, authTTLMap, observedTypes, agreements, resolverCount)
+        input := icuae.CurrencyReportInput{
+                Records:       records,
+                ResolverTTLs:  resolverTTLMap,
+                AuthTTLs:      authTTLMap,
+                ObservedTypes: observedTypes,
+                Agreements:    agreements,
+                ResolverCount: resolverCount,
+        }
+
+        if ns, ok := results["ns"].(map[string]any); ok {
+                if providers, ok := ns["dns_providers"].([]string); ok {
+                        input.DNSProviders = providers
+                }
+        }
+
+        if br, ok := results["basic_records"].(map[string]any); ok {
+                if nsSlice, ok := br["NS"].([]string); ok {
+                        input.NSRecords = nsSlice
+                }
+                if soaSlice, ok := br["SOA"].([]string); ok && len(soaSlice) > 0 {
+                        input.SOARaw = soaSlice[0]
+                }
+        }
+
+        return icuae.BuildCurrencyReportWithProvider(input)
 }
 
 func adjustHostingSummary(results map[string]any) {
