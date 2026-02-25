@@ -124,6 +124,21 @@ LIMIT $1;
 -- name: CountScannerAlerts :one
 SELECT COUNT(*) FROM domain_analyses WHERE scan_flag = TRUE;
 
+-- name: ListFailedAnalyses :many
+SELECT id, domain, error_message, created_at
+FROM domain_analyses
+WHERE analysis_success = FALSE
+  AND private = FALSE
+  AND scan_flag = FALSE
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountFailedAnalyses :one
+SELECT COUNT(*) FROM domain_analyses
+WHERE analysis_success = FALSE
+  AND private = FALSE
+  AND scan_flag = FALSE;
+
 -- name: GetPreviousPostureHash :one
 SELECT posture_hash, created_at FROM domain_analyses
 WHERE domain = $1

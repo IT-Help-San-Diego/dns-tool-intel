@@ -82,11 +82,15 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "LLMs.txt & JSON-LD Consistency Audit", Version: "v26.26.04", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Stats Page Visual Redesign", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Notion Bidirectional Sync", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Covert Mode Color Leak Audit", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Stats Confidence Engine Preview Card", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Failed Analysis Transparency Page", Version: "v26.26.05", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Documentation Reality Check (LLMs + JSON-LD + Roadmap)", Version: "v26.26.06", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Glass treatment, question branding, and token system across all report modes"},
-                {Title: "Covert Mode Color Leak Audit", Type: roadmapTypeFeature, Priority: "Medium", Notes: "Fixing white text leaking through in recon mode — search labels, utility colors, card text"},
+                {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: "Low", Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
         }
 
         nextUp := []RoadmapItem{

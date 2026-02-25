@@ -178,6 +178,9 @@ func main() {
         router.GET("/stats", statsHandler.Stats)
         router.GET("/statistics", statsHandler.StatisticsRedirect)
 
+        failuresHandler := handlers.NewFailuresHandler(database, cfg)
+        router.GET("/failures", failuresHandler.Failures)
+
         router.GET("/compare", compareHandler.Compare)
 
         adminHandler := handlers.NewAdminHandler(database, cfg, dnsAnalyzer.BackpressureRejections)

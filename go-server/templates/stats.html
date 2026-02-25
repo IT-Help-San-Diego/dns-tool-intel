@@ -368,7 +368,8 @@
             border-bottom: 1px solid rgba(125,142,168,0.06);
         }
         .stats-table tbody tr:last-child td { border-bottom: none; }
-        .stats-table tbody tr:hover td { background: rgba(88,166,255,0.04); }
+        .stats-table tbody tr:nth-child(even) td { background: rgba(88,166,255,0.02); }
+        .stats-table tbody tr:hover td { background: rgba(88,166,255,0.06); }
 
         .stats-insights-grid {
             display: grid;
@@ -498,7 +499,7 @@
                 <div class="stats-kpi kpi-success">
                     <div class="stats-kpi-icon"><i class="fas fa-check-double"></i></div>
                     <div class="stats-kpi-value">
-                        {{.SuccessfulAnalyses}}{{if gt .FailedAnalyses 0}}<span style="font-size:0.55em;color:#f85149;font-weight:400"> / {{.FailedAnalyses}}</span>{{end}}
+                        {{.SuccessfulAnalyses}}{{if gt .FailedAnalyses 0}}<a href="/failures" style="font-size:0.55em;color:#f85149;font-weight:400;text-decoration:none" title="View failure transparency log"> / {{.FailedAnalyses}}</a>{{end}}
                     </div>
                     <div class="stats-kpi-label">Successful</div>
                 </div>
@@ -593,7 +594,7 @@
                                         <td style="color:#8b949e">{{$s.Date}}</td>
                                         <td>{{$s.TotalAnalyses}}</td>
                                         <td>
-                                            <span style="color:#3fb950">{{$s.SuccessfulAnalyses}}</span>{{if gt $s.FailedAnalyses 0}}<span style="color:#f85149;font-size:0.75em"> /{{$s.FailedAnalyses}}</span>{{end}}
+                                            <span style="color:#3fb950">{{$s.SuccessfulAnalyses}}</span>{{if gt $s.FailedAnalyses 0}}<a href="/failures" style="color:#f85149;font-size:0.75em;text-decoration:none" title="View failure log"> /{{$s.FailedAnalyses}}</a>{{end}}
                                         </td>
                                         <td>{{$s.UniqueDomains}}</td>
                                         <td style="color:#8b949e">

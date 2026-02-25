@@ -306,9 +306,13 @@ Project background, team information, and mission statement.
 URL: `https://dnstool.it-help.tech/faq/subdomains`
 Methodology explanation for Certificate Transparency and DNS-based subdomain enumeration techniques used by DNS Tool.
 
+### Analysis Transparency Log
+URL: `https://dnstool.it-help.tech/failures`
+Public accountability page showing every failed analysis with sanitized error categories. Error messages are classified into categories (DNS Resolution Timeout, Domain Not Found/NXDOMAIN, Connection Refused, DNS Server Failure/SERVFAIL, Network Unreachable, TLS/Certificate Error, Rate Limited, Invalid Input) with IP addresses and file paths redacted. KPI cards show total failures, total analyses, and failure rate. Philosophy statement explains why failures are published publicly. Most recent 50 failures displayed with domain, category icon, and relative timestamp.
+
 ### Public Roadmap
 URL: `https://dnstool.it-help.tech/roadmap`
-Transparent kanban-style project roadmap showing all development progress. Four columns: Done (37+ shipped features including ICAE, ICuAE, Unified Confidence Aggregation, Delegation Consistency Analyzer, Nameserver Fleet Matrix, DNSSEC Operations Deep Dive, Symbiotic Security Archetypes, Email Header Analyzer, Drift Engine, Architecture Page, Covert Recon Mode, Glass Badge System, Probe Network Second Node, Multi-Probe Consensus Engine, SonarCloud Quality Gate Fix, Admin Probe Management Panel), In Progress (visual cohesion, stats page redesign), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (45+ shipped features including ICAE, ICuAE, Unified Confidence Aggregation, Delegation Consistency Analyzer, Nameserver Fleet Matrix, DNSSEC Operations Deep Dive, Symbiotic Security Archetypes, Email Header Analyzer, Drift Engine, Architecture Page, Covert Recon Mode, Glass Badge System, Probe Network Second Node, Multi-Probe Consensus Engine, SonarCloud Quality Gate Fix, Admin Probe Management Panel, Failed Analysis Transparency Page, Covert Mode Color Leak Audit, Notion Bidirectional Sync), In Progress (visual cohesion, Morse code Easter egg), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
 
 ---
 
