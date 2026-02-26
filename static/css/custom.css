@@ -4163,6 +4163,7 @@ body.covert-mode .proto-dkim.bg-info {
         text-align: right;
         flex-shrink: 0;
         padding-left: 20pt;
+        min-width: 140pt;
     }
 
     .print-report-brand {
@@ -4199,6 +4200,7 @@ body.covert-mode .proto-dkim.bg-info {
         font-size: 7.5pt;
         color: #6b7280;
         line-height: 1.7;
+        white-space: nowrap;
     }
 
     .print-meta-label {

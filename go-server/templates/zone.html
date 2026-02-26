@@ -123,7 +123,7 @@
                             </tr>
                             <tr>
                                 <th scope="row" class="text-muted">SHA-3-512</th>
-                                <td><code class="small">{{slice .ParseResult.IntegrityHash 0 16}}…</code></td>
+                                <td><code class="small">{{slice .ParseResult.IntegrityHash 0 16}}&hellip;</code></td>
                             </tr>
                             <tr>
                                 <th scope="row" class="text-muted">Retained</th>
@@ -147,78 +147,47 @@
         {{end}}
 
         {{if $zh}}
+
         <div class="row mb-4">
             <div class="col-lg-6 mb-4">
                 <div class="card bg-dark border-secondary h-100">
                     <div class="card-header border-secondary">
-                        <h5 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Zone Completeness
-                            {{if ge $zh.CompletenessScore 90}}<span class="badge bg-success ms-2">{{$zh.CompletenessVerdict}}</span>
-                            {{else if ge $zh.CompletenessScore 70}}<span class="badge bg-info ms-2">{{$zh.CompletenessVerdict}}</span>
-                            {{else if ge $zh.CompletenessScore 50}}<span class="badge bg-warning text-dark ms-2">{{$zh.CompletenessVerdict}}</span>
-                            {{else}}<span class="badge bg-danger ms-2">{{$zh.CompletenessVerdict}}</span>
+                        <h5 class="mb-0"><i class="fas fa-gavel me-2"></i>Zone Structural Validity
+                            {{if ge $zh.StructuralScore 90}}<span class="badge bg-success ms-2">{{$zh.StructuralVerdict}}</span>
+                            {{else if ge $zh.StructuralScore 70}}<span class="badge bg-info ms-2">{{$zh.StructuralVerdict}}</span>
+                            {{else if ge $zh.StructuralScore 50}}<span class="badge bg-warning text-dark ms-2">{{$zh.StructuralVerdict}}</span>
+                            {{else}}<span class="badge bg-danger ms-2">{{$zh.StructuralVerdict}}</span>
                             {{end}}
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-1">
-                                <span class="small text-muted">Completeness Score</span>
-                                <span class="small fw-bold">{{$zh.CompletenessScore}}%</span>
+                                <span class="small text-muted">Structural Score</span>
+                                <span class="small fw-bold">{{$zh.StructuralScore}}%</span>
                             </div>
                             <div class="progress" style="height:8px">
-                                {{if ge $zh.CompletenessScore 90}}<div class="progress-bar bg-success" style="width:{{$zh.CompletenessScore}}%"></div>
-                                {{else if ge $zh.CompletenessScore 70}}<div class="progress-bar bg-info" style="width:{{$zh.CompletenessScore}}%"></div>
-                                {{else if ge $zh.CompletenessScore 50}}<div class="progress-bar bg-warning" style="width:{{$zh.CompletenessScore}}%"></div>
-                                {{else}}<div class="progress-bar bg-danger" style="width:{{$zh.CompletenessScore}}%"></div>
+                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" style="width:{{$zh.StructuralScore}}%"></div>
+                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" style="width:{{$zh.StructuralScore}}%"></div>
+                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" style="width:{{$zh.StructuralScore}}%"></div>
+                                {{else}}<div class="progress-bar bg-danger" style="width:{{$zh.StructuralScore}}%"></div>
                                 {{end}}
                             </div>
                         </div>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasSOA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
-                                    <span class="small">SOA Record</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasNS}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
-                                    <span class="small">NS Records</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-muted me-2"></i>{{end}}
-                                    <span class="small">A Records</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasAAAA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
-                                    <span class="small">AAAA (IPv6)</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasMX}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-muted me-2"></i>{{end}}
-                                    <span class="small">MX Records</span>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasSPF}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
-                                    <span class="small">SPF (Email Auth)</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasDMARC}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
-                                    <span class="small">DMARC</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasDKIM}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
-                                    <span class="small">DKIM</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasCAA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
-                                    <span class="small">CAA (Cert Auth)</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    {{if $zh.HasDNSSEC}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
-                                    <span class="small">DNSSEC</span>
-                                </div>
+                        <p class="small text-muted mb-3">Evaluates zone file structure per RFC 1035, RFC 1912, and RFC 2182. Operational records (SPF, DMARC, DKIM) are reported separately and do not affect this score.</p>
+                        {{range $zh.StructuralChecks}}
+                        <div class="d-flex align-items-start mb-2">
+                            {{if .Pass}}<i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                            {{else if eq .Severity "critical"}}<i class="fas fa-times-circle text-danger me-2 mt-1"></i>
+                            {{else if eq .Severity "warning"}}<i class="fas fa-exclamation-circle text-warning me-2 mt-1"></i>
+                            {{else}}<i class="fas fa-info-circle text-muted me-2 mt-1"></i>
+                            {{end}}
+                            <div>
+                                <span class="small">{{.Label}} <span class="text-muted">({{.RFC}})</span></span>
+                                <div class="small text-muted">{{.Detail}}</div>
                             </div>
                         </div>
+                        {{end}}
                     </div>
                 </div>
             </div>
@@ -259,6 +228,61 @@
             </div>
         </div>
 
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Operational Policy Signals
+                    <span class="badge bg-secondary ms-2">Informational</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">These records are often managed outside the zone file (e.g., by email or DNS hosting providers). Their presence here is noted but does not affect the structural validity score.</p>
+                <div class="row g-3">
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasSPF}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">SPF <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">SPF not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasDMARC}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">DMARC <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">DMARC not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasDKIM}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">DKIM <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">DKIM not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasCAA}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">CAA <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">CAA not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasMX}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">MX <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">MX not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center">
+                            {{if $zh.HasTLSA}}<i class="fas fa-check-circle text-success me-2"></i><span class="small">TLSA/DANE <span class="text-success">detected</span></span>
+                            {{else}}<i class="fas fa-minus-circle text-muted me-2"></i><span class="small text-muted">TLSA/DANE not present</span>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{if gt $zh.NSCount 0}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
@@ -284,7 +308,7 @@
                         <div class="text-muted small">DNSSEC Signed</div>
                         <div class="fs-5">
                             {{if $zh.HasDNSSEC}}<span class="text-success"><i class="fas fa-lock me-1"></i>Yes</span>
-                            {{else}}<span class="text-danger"><i class="fas fa-unlock me-1"></i>No</span>
+                            {{else}}<span class="text-muted"><i class="fas fa-unlock me-1"></i>No</span>
                             {{end}}
                         </div>
                     </div>
@@ -306,9 +330,69 @@
         </div>
         {{end}}
 
+        {{if $zh.SOATimers}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>TTL Analysis</h5>
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>SOA Timer Analysis
+                    {{if eq (len $zh.SOATimers.Findings) 0}}<span class="badge bg-success ms-2">RFC-Compliant</span>
+                    {{else}}<span class="badge bg-warning text-dark ms-2">{{len $zh.SOATimers.Findings}} finding{{if gt (len $zh.SOATimers.Findings) 1}}s{{end}}</span>
+                    {{end}}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3 text-center">
+                    <div class="col">
+                        <div class="small text-muted">Serial</div>
+                        <div class="fs-6 fw-bold">{{$zh.SOATimers.Serial}}</div>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">Refresh</div>
+                        <div class="fs-6 fw-bold">{{$zh.SOATimers.Refresh}}s</div>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">Retry</div>
+                        <div class="fs-6 fw-bold">{{$zh.SOATimers.Retry}}s</div>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">Expire</div>
+                        <div class="fs-6 fw-bold">{{$zh.SOATimers.Expire}}s</div>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">Minimum</div>
+                        <div class="fs-6 fw-bold">{{$zh.SOATimers.Minimum}}s</div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="small text-muted">MNAME</div>
+                        <div><code>{{$zh.SOATimers.MName}}</code></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted">RNAME</div>
+                        <div><code>{{$zh.SOATimers.RName}}</code></div>
+                    </div>
+                </div>
+                {{if gt (len $zh.SOATimers.Findings) 0}}
+                <div class="mt-3">
+                    {{range $zh.SOATimers.Findings}}
+                    <div class="d-flex align-items-start mb-2">
+                        {{if eq .Severity "warning"}}<i class="fas fa-exclamation-triangle text-warning me-2 mt-1"></i>
+                        {{else}}<i class="fas fa-info-circle text-info me-2 mt-1"></i>
+                        {{end}}
+                        <span class="small">{{.Message}}</span>
+                    </div>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>TTL Analysis
+                    {{if $zh.TTLSpreadHigh}}<span class="badge bg-warning text-dark ms-2">High Spread</span>{{end}}
+                </h5>
             </div>
             <div class="card-body">
                 <div class="row mb-3 text-center">
@@ -325,6 +409,12 @@
                         <div class="small text-muted">Maximum TTL</div>
                     </div>
                 </div>
+                {{if $zh.TTLSpreadHigh}}
+                <div class="alert alert-warning py-2 mb-3 small">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    TTL spread exceeds 100&times; ratio ({{$zh.MinTTL}}s to {{$zh.MaxTTL}}s). This may indicate inconsistent TTL policy or records that need review.
+                </div>
+                {{end}}
                 <div class="table-responsive">
                     <table class="table table-dark table-sm table-striped mb-0">
                         <thead><tr><th scope="col">Type</th><th scope="col">Count</th><th scope="col">Min TTL</th><th scope="col">Max TTL</th><th scope="col">Consistency</th></tr></thead>
@@ -383,6 +473,35 @@
             </div>
         </div>
         {{end}}
+
+        {{if gt (len $zh.Duplicates) 0}}
+        <div class="card bg-dark border-warning mb-4">
+            <div class="card-header border-warning">
+                <h5 class="mb-0"><i class="fas fa-clone text-warning me-2"></i>Duplicate Records
+                    <span class="badge bg-warning text-dark ms-2">{{len $zh.Duplicates}} duplicate{{if gt (len $zh.Duplicates) 1}}s{{end}}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Exact duplicate RRsets (same name, type, and rdata) per RFC 2181 &sect;5.2. These may indicate copy-paste errors in the zone file.</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm mb-0">
+                        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Count</th><th scope="col">Data</th></tr></thead>
+                        <tbody>
+                        {{range $zh.Duplicates}}
+                        <tr>
+                            <td><code>{{.Name}}</code></td>
+                            <td><span class="badge bg-info text-dark">{{.Type}}</span></td>
+                            <td><span class="text-warning">{{.Count}}&times;</span></td>
+                            <td class="small"><code>{{.RData}}</code></td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
         {{end}}
 
         <div class="card bg-dark border-secondary mb-4">
@@ -573,7 +692,7 @@
                 {{if eq .DriftReport.TotalDrifts 0}}
                 <div class="text-center py-4">
                     <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
-                    <p class="text-muted">Zone file is consistent with live DNS — no drift detected.</p>
+                    <p class="text-muted">Zone file is consistent with live DNS &mdash; no drift detected.</p>
                 </div>
                 {{end}}
             </div>
