@@ -17,7 +17,7 @@ func TestMaskURL(t *testing.T) {
         }{
                 {"short url", "https://example.com", "https://example.com"},
                 {"exactly 30", "https://example.com/path12345/", "https://example.com/path12345/"},
-                {"long url", "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX", "https://hooks.slack....XXXXXXXXXX"},
+                {"long url", "https://example.com/very-long-webhook-path/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX", "https://example.com/...XXXXXXXXXX"},
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
