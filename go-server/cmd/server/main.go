@@ -226,6 +226,7 @@ func main() {
 
         ttlTunerHandler := handlers.NewTTLTunerHandler(cfg, dnsAnalyzer)
         router.GET("/ttl-tuner", ttlTunerHandler.TTLTunerPage)
+        router.GET("/ttl-tuner/analyze", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/ttl-tuner") })
         router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(rateLimiter), ttlTunerHandler.AnalyzeTTL)
 
         investigateHandler := handlers.NewInvestigateHandler(cfg, dnsAnalyzer)

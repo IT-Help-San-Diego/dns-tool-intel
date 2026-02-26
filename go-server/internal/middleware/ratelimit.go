@@ -6,6 +6,7 @@ import (
         "fmt"
         "log/slog"
         "net/http"
+        "net/url"
         "strings"
         "sync"
         "time"
@@ -19,8 +20,8 @@ const (
         AntiRepeatWindow     = 15
 
 
-	mapKeyReason = "reason"
-	mapKeyWaitSeconds = "wait_seconds"
+        mapKeyReason = "reason"
+        mapKeyWaitSeconds = "wait_seconds"
 )
 
 type RateLimitResult struct {
@@ -218,7 +219,13 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                                         Secure:   true,
                                         SameSite: http.SameSiteStrictMode,
                                 })
-                                c.Redirect(http.StatusSeeOther, "/")
+                                redirectTo := "/"
+                                if ref := c.Request.Referer(); ref != "" {
+                                        if u, err := url.Parse(ref); err == nil && u.Path != "" {
+                                                redirectTo = u.Path
+                                        }
+                                }
+                                c.Redirect(http.StatusSeeOther, redirectTo)
                         }
                         c.Abort()
                         return
