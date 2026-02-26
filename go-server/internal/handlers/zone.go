@@ -5,6 +5,7 @@ package handlers
 import (
         "context"
         "encoding/json"
+        "fmt"
         "log/slog"
         "mime/multipart"
         "net/http"
@@ -57,7 +58,14 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         uid, _ := c.Get("user_id")
         userID, _ := uid.(int32)
 
-        c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxZoneFileSize+1024)
+        maxSize := int64(maxZoneFileSizeUnauth)
+        sizeLabel := "1 MB"
+        if userID > 0 {
+                maxSize = maxZoneFileSizeAuth
+                sizeLabel = "2 MB"
+        }
+
+        c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxSize+1024)
 
         file, header, err := c.Request.FormFile("zone_file")
         if err != nil {
@@ -66,8 +74,8 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         }
         defer file.Close()
 
-        if header.Size > maxZoneFileSize {
-                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Zone file exceeds the 2 MB size limit.")
+        if header.Size > maxSize {
+                h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, fmt.Sprintf("Zone file exceeds the %s size limit.", sizeLabel))
                 return
         }
 
