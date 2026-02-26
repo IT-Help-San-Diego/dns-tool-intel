@@ -1170,6 +1170,22 @@ main.container {
 }
 
 /* ============================================
+   TTL TUNER — Profile Card Selection
+   ============================================ */
+.ttl-profile-card {
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ttl-profile-check {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.25rem;
+    color: var(--bs-info, #0dcaf0);
+}
+
+/* ============================================
    NAVBAR COLLAPSE — Right-Aligned Dropdown Overlay
    ============================================ */
 .navbar > .container {

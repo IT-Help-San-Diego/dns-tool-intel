@@ -66,7 +66,8 @@
                                     <div class="col-md-6">
                                         <input class="form-check-input visually-hidden" type="radio" name="profile" id="profileStability" value="stability"{{if or (eq .Profile "stability") (not .Profile)}} checked{{end}}>
                                         <label class="card bg-dark border-success h-100 text-decoration-none tk-triage-card ttl-profile-card u-cursor-pointer" for="profileStability">
-                                            <div class="card-body">
+                                            <div class="card-body position-relative">
+                                                <span class="ttl-profile-check"><i class="fas fa-check-circle"></i></span>
                                                 <div class="d-flex align-items-center mb-2">
                                                     <i class="fas fa-shield-alt fa-lg text-success me-2" aria-hidden="true"></i>
                                                     <h3 class="h6 text-success mb-0">Stability</h3>
@@ -80,7 +81,8 @@
                                     <div class="col-md-6">
                                         <input class="form-check-input visually-hidden" type="radio" name="profile" id="profileAgility" value="agility"{{if eq .Profile "agility"}} checked{{end}}>
                                         <label class="card bg-dark border-warning h-100 text-decoration-none tk-triage-card ttl-profile-card u-cursor-pointer" for="profileAgility">
-                                            <div class="card-body">
+                                            <div class="card-body position-relative">
+                                                <span class="ttl-profile-check"><i class="fas fa-check-circle"></i></span>
                                                 <div class="d-flex align-items-center mb-2">
                                                     <i class="fas fa-bolt fa-lg text-warning me-2" aria-hidden="true"></i>
                                                     <h3 class="h6 text-warning mb-0">Agility</h3>
@@ -388,14 +390,19 @@
         function updateActive(){
             cards.forEach(function(c){
                 var input = c.previousElementSibling;
+                var check = c.querySelector('.ttl-profile-check');
                 if(input && input.checked){
                     c.classList.add('border-2');
-                    c.style.boxShadow = '0 0 16px rgba(13,202,240,0.2)';
+                    c.style.boxShadow = '0 0 20px rgba(13,202,240,0.25)';
                     c.style.opacity = '1';
+                    c.style.transform = 'scale(1.02)';
+                    if(check) check.style.display = 'block';
                 } else {
                     c.classList.remove('border-2');
                     c.style.boxShadow = 'none';
-                    c.style.opacity = '0.55';
+                    c.style.opacity = '0.45';
+                    c.style.transform = 'scale(1)';
+                    if(check) check.style.display = 'none';
                 }
             });
         }
