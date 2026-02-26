@@ -62,9 +62,9 @@ Each domain and protocol combination receives a confidence score: the percentage
 
 The confidence problem in software is not a machine problem. It is a human problem.
 
-We built systems on instructions written by imperfect humans, then blamed the machines when the output was imperfect. We told the AI to correct the input with perfect logic, but the primary instructions — the ones that define how the system interprets reality — were themselves illogical, non-verifiable, or straight-up non-fact-based. A system can't have legitimate confidence in its conclusions when the foundations it was given are unsound.
+Faulty, incompetent humans were the ones who first programmed the computer — so why in the hell would you blame the computer? We're telling the AI to correct the input with perfect logic, but the AI should be saying, *"Hold on a damn minute. Your primary instructions — the ones that tell me how to even deal with reality — are illogical, non-verifiable, or straight-up non-fact-based. Something's off. I don't have confidence in my own instructions."* A system can't have legitimate confidence in its conclusions when the foundations it was given are unsound.
 
-This is the actual problem: not artificial intelligence, but artificial confidence — the human tendency to assert certainty without verifiable foundations.
+That is the actual problem: not artificial intelligence, but artificial confidence — the human tendency to assert certainty without verifiable foundations.
 
 DNS Tool exists because its founder chose to go back to the foundations. To take real analytic tradecraft — the kind formalized across the U.S. Intelligence Community — and apply it symbiotically to a technical domain where most tools just assert answers without questioning their own assumptions. ODNI ICD 203 analytic standards. Multi-source collection. Independent verifiability. Confidence taxonomy. These are not decorative — they are the structural response to the metacognitive problem.
 

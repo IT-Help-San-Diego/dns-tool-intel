@@ -642,9 +642,9 @@
                                 <div class="stats-insight-label">Reliability</div>
                                 <div class="stats-insight-value">
                                     {{if gt .TotalAnalyses 0}}
-                                        {{successRate .SuccessfulAnalyses .TotalAnalyses}}% success rate across all operations
+                                        {{successRate .SuccessfulAnalyses .TotalAnalyses}}% success rate across {{.TotalAnalyses}} operations
                                     {{else}}
-                                        No reliability data available
+                                        No reliability data available yet
                                     {{end}}
                                 </div>
                             </div>
