@@ -19,8 +19,12 @@ const (
         cachePublicDay     = "public, max-age=86400"
 
 
-	mapKeyMonthly = "monthly"
-	mapKeyWeekly = "weekly"
+        mapKeyMonthly = "monthly"
+        mapKeyWeekly  = "weekly"
+
+        sitemapPriorityHigh   = "0.7"
+        sitemapPriorityMedium = "0.6"
+        sitemapPriorityLow    = "0.5"
 )
 
 type StaticHandler struct {
@@ -83,15 +87,15 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 Priority   string
         }{
                 {h.BaseURL + "/", mapKeyWeekly, "1.0"},
-                {h.BaseURL + "/investigate", mapKeyWeekly, "0.7"},
-                {h.BaseURL + "/email-header", mapKeyWeekly, "0.7"},
-                {h.BaseURL + "/toolkit", mapKeyWeekly, "0.7"},
-                {h.BaseURL + "/sources", mapKeyMonthly, "0.6"},
-                {h.BaseURL + "/history", "daily", "0.6"},
-                {h.BaseURL + "/stats", "daily", "0.5"},
-                {h.BaseURL + "/approach", mapKeyMonthly, "0.6"},
-                {h.BaseURL + "/roadmap", mapKeyWeekly, "0.5"},
-                {h.BaseURL + "/architecture", mapKeyMonthly, "0.5"},
+                {h.BaseURL + "/investigate", mapKeyWeekly, sitemapPriorityHigh},
+                {h.BaseURL + "/email-header", mapKeyWeekly, sitemapPriorityHigh},
+                {h.BaseURL + "/toolkit", mapKeyWeekly, sitemapPriorityHigh},
+                {h.BaseURL + "/sources", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/history", "daily", sitemapPriorityMedium},
+                {h.BaseURL + "/stats", "daily", sitemapPriorityLow},
+                {h.BaseURL + "/approach", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/roadmap", mapKeyWeekly, sitemapPriorityLow},
+                {h.BaseURL + "/architecture", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/security-policy", mapKeyMonthly, "0.4"},
                 {h.BaseURL + "/changelog", mapKeyMonthly, "0.3"},
         }

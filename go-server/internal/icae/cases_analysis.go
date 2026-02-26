@@ -27,20 +27,22 @@ const (
         testSPFSoftAll     = "v=spf1 ~all"
 
 
-	mapKeyAnswer = "answer"
-	mapKeyColor = "color"
-	mapKeyDanger = "danger"
-	mapKeyDedicated = "dedicated"
-	mapKeyDmarc = "dmarc"
-	mapKeyDnssec = "dnssec"
-	mapKeyEnterprisePattern = "enterprise_pattern"
-	mapKeyError = "error"
-	mapKeyLabel = "label"
-	mapKeyManaged = "managed"
-	mapKeyReject = "reject"
-	mapKeySuccess = "success"
-	strDangerous = "DANGEROUS"
-	strStrict = "STRICT"
+        mapKeyAnswer = "answer"
+        mapKeyColor = "color"
+        mapKeyDanger = "danger"
+        mapKeyDedicated = "dedicated"
+        mapKeyDmarc = "dmarc"
+        mapKeyDnssec = "dnssec"
+        mapKeyEnterprisePattern = "enterprise_pattern"
+        mapKeyError = "error"
+        mapKeyLabel = "label"
+        mapKeyManaged = "managed"
+        mapKeyReject = "reject"
+        mapKeySuccess = "success"
+        strDangerous = "DANGEROUS"
+        strStrict    = "STRICT"
+        strSoft      = "SOFT"
+        protoSPF     = "spf"
 )
 
 func AnalysisTestCases() []TestCase {
@@ -77,16 +79,16 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-001",
                         CaseName:   "SPF ~all classified as SOFT (industry standard)",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
-                        Expected:   "SOFT",
-                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com ~all", "SOFT"),
+                        Expected:   strSoft,
+                        RunFn:      checkQualifier("v=spf1 include:_spf.google.com ~all", strSoft),
                 },
                 {
                         CaseID:     "spf-analysis-002",
                         CaseName:   "SPF -all classified as STRICT",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   strStrict,
@@ -95,7 +97,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-003",
                         CaseName:   "SPF +all classified as DANGEROUS",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   strDangerous,
@@ -104,7 +106,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-004",
                         CaseName:   "SPF ?all classified as NEUTRAL",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "NEUTRAL",
@@ -113,7 +115,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-005",
                         CaseName:   "SPF bare all (no qualifier) defaults to DANGEROUS (+all)",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   strDangerous,
@@ -122,7 +124,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-006",
                         CaseName:   "SPF lookup count with includes",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection464,
                         Expected:   "3 lookups",
@@ -135,43 +137,43 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-007",
                         CaseName:   "SPF over 10 lookup limit detected as error",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection464,
                         Expected:   mapKeyError,
                         RunFn: func() (string, bool) {
-                                status, _ := analyzer.ExportBuildSPFVerdict(11, strPtr("SOFT"), false, []string{testSPFSoftAll}, nil)
+                                status, _ := analyzer.ExportBuildSPFVerdict(11, strPtr(strSoft), false, []string{testSPFSoftAll}, nil)
                                 return status, status == mapKeyError
                         },
                 },
                 {
                         CaseID:     "spf-analysis-008",
                         CaseName:   "SPF valid ~all with 3 lookups classified as success",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
                         Expected:   mapKeySuccess,
                         RunFn: func() (string, bool) {
-                                status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr("SOFT"), false, []string{testSPFIncludeXSoft}, nil)
+                                status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr(strSoft), false, []string{testSPFIncludeXSoft}, nil)
                                 return status, status == mapKeySuccess
                         },
                 },
                 {
                         CaseID:     "spf-analysis-009",
                         CaseName:   "Multiple SPF records classified as error",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7208 §3.2",
                         Expected:   mapKeyError,
                         RunFn: func() (string, bool) {
-                                status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr("SOFT"), false, []string{testSPFSoftAll, "v=spf1 -all"}, nil)
+                                status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr(strSoft), false, []string{testSPFSoftAll, "v=spf1 -all"}, nil)
                                 return status, status == mapKeyError
                         },
                 },
                 {
                         CaseID:     "spf-analysis-010",
                         CaseName:   "No SPF record classified as missing",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
                         Expected:   "missing",
@@ -183,7 +185,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-011",
                         CaseName:   "SPF no-mail intent (v=spf1 -all) classified as success",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
                         Expected:   mapKeySuccess,
@@ -195,7 +197,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-012",
                         CaseName:   "SPF -all with senders triggers RFC 7489 §10.1 warning",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 §10.1",
                         Expected:   "contains RFC 7489 warning",
@@ -212,7 +214,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-013",
                         CaseName:   "SPF ~all does NOT trigger RFC 7489 premature rejection warning",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7489 §10.1",
                         Expected:   "no RFC 7489 warning",
@@ -229,7 +231,7 @@ func spfAnalysisCases() []TestCase {
                 {
                         CaseID:     "spf-analysis-014",
                         CaseName:   "SPF record classification separates valid from spf-like",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: "RFC 7208 §3",
                         Expected:   "1 valid, 1 spf-like",
@@ -348,19 +350,19 @@ func spfVerdictCases() []TestCase {
                 {
                         CaseID:     "spf-verdict-001",
                         CaseName:   "~all verdict message contains 'industry-standard'",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPF,
                         Expected:   "contains 'industry-standard'",
                         RunFn: func() (string, bool) {
-                                _, msg := analyzer.ExportBuildSPFVerdict(3, strPtr("SOFT"), false, []string{testSPFIncludeXSoft}, nil)
+                                _, msg := analyzer.ExportBuildSPFVerdict(3, strPtr(strSoft), false, []string{testSPFIncludeXSoft}, nil)
                                 return msg, strings.Contains(msg, "industry-standard")
                         },
                 },
                 {
                         CaseID:     "spf-verdict-002",
                         CaseName:   "+all verdict message warns 'anyone can send'",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection5,
                         Expected:   "contains 'anyone can send'",
@@ -372,12 +374,12 @@ func spfVerdictCases() []TestCase {
                 {
                         CaseID:     "spf-verdict-003",
                         CaseName:   "SPF over 10 lookups verdict cites RFC 7208 §4.6.4",
-                        Protocol:   "spf",
+                        Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcSPFSection464,
                         Expected:   "contains 'RFC 7208'",
                         RunFn: func() (string, bool) {
-                                _, msg := analyzer.ExportBuildSPFVerdict(11, strPtr("SOFT"), false, []string{testSPFSoftAll}, nil)
+                                _, msg := analyzer.ExportBuildSPFVerdict(11, strPtr(strSoft), false, []string{testSPFSoftAll}, nil)
                                 return msg, strings.Contains(msg, rfcSPF)
                         },
                 },

@@ -50,9 +50,11 @@ const (
         strInvalidRequestBody = "invalid request body"
         strSD = "%s:%d"
         strStarttlsRN = "STARTTLS\r\n"
-        mapKeyHost = "host"
-        mapKeyPort = "port"
-        protocolTCP = "tcp"
+        mapKeyHost      = "host"
+        mapKeyPort      = "port"
+        protocolTCP     = "tcp"
+        smtpBannerOK    = "220"
+        mapKeyScripts   = "scripts"
 )
 
 var (
@@ -275,7 +277,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
         result[mapKeyReachable] = true
 
         banner, err := readSMTPResponse(conn, smtpReadTimeout)
-        if err != nil || !strings.HasPrefix(banner, "220") {
+        if err != nil || !strings.HasPrefix(banner, smtpBannerOK) {
                 result[mapKeyError] = "Unexpected SMTP banner"
                 return result
         }
@@ -295,7 +297,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
 
         fmt.Fprintf(conn, strStarttlsRN)
         startResp, err := readSMTPResponse(conn, smtpReadTimeout)
-        if err != nil || !strings.HasPrefix(startResp, "220") {
+        if err != nil || !strings.HasPrefix(startResp, smtpBannerOK) {
                 result[mapKeyError] = "STARTTLS rejected"
                 return result
         }
@@ -336,7 +338,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         if bannerErr != nil {
                 slog.Debug("verifySMTPCert: banner read error", mapKeyHost, host, mapKeyError, bannerErr)
         }
-        if !strings.HasPrefix(banner, "220") {
+        if !strings.HasPrefix(banner, smtpBannerOK) {
                 return
         }
         fmt.Fprintf(conn, strEhloSRN, ehloHostname)
@@ -349,7 +351,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         if respErr != nil {
                 slog.Debug("verifySMTPCert: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
         }
-        if !strings.HasPrefix(resp, "220") {
+        if !strings.HasPrefix(resp, smtpBannerOK) {
                 return
         }
 
@@ -584,7 +586,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         if bannerErr != nil {
                 slog.Debug("getCertViaSMTP: banner read error", mapKeyHost, host, mapKeyError, bannerErr)
         }
-        if !strings.HasPrefix(banner, "220") {
+        if !strings.HasPrefix(banner, smtpBannerOK) {
                 result[mapKeyError] = "Bad SMTP banner"
                 return result
         }
@@ -604,7 +606,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         if respErr != nil {
                 slog.Debug("getCertViaSMTP: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
         }
-        if !strings.HasPrefix(resp, "220") {
+        if !strings.HasPrefix(resp, smtpBannerOK) {
                 result[mapKeyError] = "STARTTLS rejected"
                 return result
         }
@@ -858,7 +860,7 @@ func runNmapScan(ctx context.Context, nmapPath string, req nmapRequest, validScr
                 req.Host,
         }
 
-        slog.Info("Nmap scan requested", mapKeyHost, req.Host, mapKeyPorts, req.Ports, "scripts", validScripts)
+        slog.Info("Nmap scan requested", mapKeyHost, req.Host, mapKeyPorts, req.Ports, mapKeyScripts, validScripts)
 
         cmd := exec.CommandContext(ctx, nmapPath, args...)
         var stdout, stderr bytes.Buffer
@@ -1048,7 +1050,7 @@ func convertNmapPort(p nmapPort) map[string]any {
                 scripts = append(scripts, map[string]any{"id": s.ID, "output": s.Output})
         }
         if len(scripts) > 0 {
-                port["scripts"] = scripts
+                port[mapKeyScripts] = scripts
         }
         return port
 }

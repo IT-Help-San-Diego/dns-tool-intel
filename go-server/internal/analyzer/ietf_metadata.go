@@ -156,11 +156,11 @@ func extractRFCNumbers(refs []string) []string {
         var numbers []string
         for _, ref := range refs {
                 ref = strings.TrimSpace(ref)
-                if strings.Contains(ref, "rfc") {
+                if strings.Contains(ref, mapKeyRfcNum) {
                         parts := strings.Split(ref, "/")
                         for _, p := range parts {
-                                if strings.HasPrefix(p, "rfc") {
-                                        num := strings.TrimPrefix(p, "rfc")
+                                if strings.HasPrefix(p, mapKeyRfcNum) {
+                                        num := strings.TrimPrefix(p, mapKeyRfcNum)
                                         num = strings.TrimSuffix(num, "/")
                                         if num != "" {
                                                 numbers = append(numbers, num)
@@ -173,7 +173,7 @@ func extractRFCNumbers(refs []string) []string {
 }
 
 func GetRFCMetadata(number string) *RFCMetadata {
-        number = strings.TrimPrefix(strings.ToLower(number), "rfc")
+        number = strings.TrimPrefix(strings.ToLower(number), mapKeyRfcNum)
         number = strings.TrimSpace(number)
 
         rfcCacheMu.RLock()
@@ -275,7 +275,7 @@ func applyRFCMetaToFix(fix map[string]any, meta *RFCMetadata) {
 func extractRFCNumberFromRef(ref string) string {
         ref = strings.TrimSpace(ref)
         ref = strings.TrimPrefix(ref, "RFC ")
-        ref = strings.TrimPrefix(ref, "rfc")
+        ref = strings.TrimPrefix(ref, mapKeyRfcNum)
 
         parts := strings.Fields(ref)
         if len(parts) > 0 {

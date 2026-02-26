@@ -21,7 +21,7 @@ SELECT
     COUNT(*)::integer AS count
 FROM icuae_scan_scores
 GROUP BY overall_grade
-ORDER BY overall_grade;
+ORDER BY overall_grade ASC;
 
 -- name: ICuAEGetDimensionAverages :many
 SELECT
@@ -31,7 +31,7 @@ SELECT
     COUNT(*)::integer AS sample_count
 FROM icuae_dimension_scores
 GROUP BY dimension
-ORDER BY dimension;
+ORDER BY dimension ASC;
 
 -- name: ICuAEGetRecentTrend :many
 SELECT

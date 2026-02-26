@@ -141,25 +141,25 @@
                 {{end}}
 
                 <div class="probe-actions">
-                    <form method="POST" action="/ops/probes/{{$probe.ID}}/health" style="margin:0">
+                    <form method="POST" action="/ops/probes/{{$probe.ID}}/health" class="m-0">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-success btn-sm text-nowrap">
                             <i class="fas fa-heartbeat me-1"></i>Health
                         </button>
                     </form>
-                    <form method="POST" action="/ops/probes/{{$probe.ID}}/audit" style="margin:0">
+                    <form method="POST" action="/ops/probes/{{$probe.ID}}/audit" class="m-0">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-info btn-sm text-nowrap">
                             <i class="fas fa-shield-alt me-1"></i>Audit
                         </button>
                     </form>
-                    <form method="POST" action="/ops/probes/{{$probe.ID}}/update" style="margin:0" class="probe-confirm-form" data-confirm="Run full system update on {{$probe.Label}}?">
+                    <form method="POST" action="/ops/probes/{{$probe.ID}}/update" class="m-0 probe-confirm-form" data-confirm="Run full system update on {{$probe.Label}}?">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-warning btn-sm text-nowrap">
                             <i class="fas fa-arrow-circle-up me-1"></i>Update
                         </button>
                     </form>
-                    <form method="POST" action="/ops/probes/{{$probe.ID}}/restart" style="margin:0" class="probe-confirm-form" data-confirm="Restart probe service on {{$probe.Label}}?">
+                    <form method="POST" action="/ops/probes/{{$probe.ID}}/restart" class="m-0 probe-confirm-form" data-confirm="Restart probe service on {{$probe.Label}}?">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-danger btn-sm text-nowrap">
                             <i class="fas fa-sync me-1"></i>Restart

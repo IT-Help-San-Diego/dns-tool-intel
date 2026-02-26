@@ -21,6 +21,9 @@ const (
         mapKeyKeyTag     = "key_tag"
         mapKeyRaw        = "raw"
         mapKeyComplete   = "complete"
+
+        keyRoleKSK = "KSK"
+        keyRoleZSK = "ZSK"
 )
 
 type DNSSECKeyInfo struct {
@@ -87,10 +90,10 @@ type DNSSECOpsResult struct {
 
 func classifyKeyRole(flags uint16) string {
         if flags == 257 {
-                return "KSK"
+                return keyRoleKSK
         }
         if flags == 256 {
-                return "ZSK"
+                return keyRoleZSK
         }
         if flags&1 != 0 {
                 return "KSK-like"
@@ -231,9 +234,9 @@ func assessRolloverReadiness(keys []DNSSECKeyInfo, hasCDS, hasCDNSKEY bool) Roll
 func countKeyRoles(keys []DNSSECKeyInfo) (kskCount, zskCount int) {
         for _, k := range keys {
                 switch k.KeyRole {
-                case "KSK":
+                case keyRoleKSK:
                         kskCount++
-                case "ZSK":
+                case keyRoleZSK:
                         zskCount++
                 }
         }
@@ -432,9 +435,9 @@ func (a *Analyzer) AnalyzeDNSSECOps(ctx context.Context, domain string) map[stri
 
         var kskAlgs, zskAlgs []string
         for _, k := range keys {
-                if k.KeyRole == "KSK" {
+                if k.KeyRole == keyRoleKSK {
                         kskAlgs = append(kskAlgs, k.AlgName)
-                } else if k.KeyRole == "ZSK" {
+                } else if k.KeyRole == keyRoleZSK {
                         zskAlgs = append(zskAlgs, k.AlgName)
                 }
         }

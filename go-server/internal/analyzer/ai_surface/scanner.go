@@ -106,7 +106,7 @@ func (s *Scanner) Scan(ctx context.Context, domain string) map[string]any {
 
 func llmsTxtURLCandidates(domain string) []string {
         var urls []string
-        for _, scheme := range []string{mapKeyHttps, "http"} {
+        for _, scheme := range []string{mapKeyHttps, mapKeyHttp} {
                 for _, path := range []string{"/.well-known/llms.txt", "/llms.txt"} {
                         urls = append(urls, fmt.Sprintf("%s://%s%s", scheme, domain, path))
                 }
@@ -145,7 +145,7 @@ func (s *Scanner) fetchLLMSTxt(ctx context.Context, domain string, evidence *[]E
                         Type:       "llms_txt_found",
                         Source:     u,
                         Detail:     "llms.txt file found providing structured LLM context",
-                        Severity:   "info",
+                        Severity:   mapKeyInfo,
                         Confidence: strObserved,
                 })
                 slog.Info("AI Surface: llms.txt found", "domain", domain, mapKeyUrl, u)
@@ -156,7 +156,7 @@ func (s *Scanner) fetchLLMSTxt(ctx context.Context, domain string, evidence *[]E
 
 func llmsFullTxtURLCandidates(domain string) []string {
         var urls []string
-        for _, scheme := range []string{mapKeyHttps, "http"} {
+        for _, scheme := range []string{mapKeyHttps, mapKeyHttp} {
                 for _, path := range []string{"/.well-known/llms-full.txt", "/llms-full.txt"} {
                         urls = append(urls, fmt.Sprintf("%s://%s%s", scheme, domain, path))
                 }
@@ -191,7 +191,7 @@ func (s *Scanner) fetchLLMSFullTxt(ctx context.Context, domain string, evidence 
                         Type:       "llms_full_txt_found",
                         Source:     u,
                         Detail:     "llms-full.txt also found (extended LLM context)",
-                        Severity:   "info",
+                        Severity:   mapKeyInfo,
                         Confidence: strObserved,
                 })
                 return true, u
@@ -243,7 +243,7 @@ func parseLLMSTxtFields(content string) map[string]any {
 }
 
 func (s *Scanner) fetchRobotsTxtContent(ctx context.Context, domain string) (content, url string, ok bool) {
-        for _, scheme := range []string{mapKeyHttps, "http"} {
+        for _, scheme := range []string{mapKeyHttps, mapKeyHttp} {
                 u := fmt.Sprintf("%s://%s/robots.txt", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -273,7 +273,7 @@ func addCrawlerEvidence(evidence *[]Evidence, url string, blocked []string) {
                         Type:       "robots_txt_blocks_ai",
                         Source:     url,
                         Detail:     fmt.Sprintf("robots.txt blocks %d AI crawler(s): %s", len(blocked), strings.Join(blocked, ", ")),
-                        Severity:   "info",
+                        Severity:   mapKeyInfo,
                         Confidence: strObserved,
                 })
                 return
@@ -300,7 +300,7 @@ func addContentUsageEvidence(evidence *[]Evidence, url string, contentUsage map[
                 Type:       "content_usage_directive",
                 Source:     url,
                 Detail:     detail,
-                Severity:   "info",
+                Severity:   mapKeyInfo,
                 Confidence: strObserved,
         })
 }
@@ -509,7 +509,7 @@ func scanForPrefillLinks(content string) []map[string]any {
         for _, pattern := range prefillPatterns {
                 if strings.Contains(strings.ToLower(content), strings.ToLower(pattern)) {
                         iocs = append(iocs, map[string]any{
-                                "type":   "prefilled_prompt_link",
+                                mapKeyType:   "prefilled_prompt_link",
                                 mapKeyDetail: fmt.Sprintf("Found prefilled AI prompt link pattern: %s", pattern),
                         })
                 }
@@ -518,7 +518,7 @@ func scanForPrefillLinks(content string) []map[string]any {
 }
 
 func (s *Scanner) fetchHomepageBody(ctx context.Context, domain string) (body, url string, ok bool) {
-        for _, scheme := range []string{mapKeyHttps, "http"} {
+        for _, scheme := range []string{mapKeyHttps, mapKeyHttp} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -631,7 +631,7 @@ func scanForHiddenPrompts(content string) []map[string]any {
 }
 
 func (s *Scanner) fetchHomepageBodyRaw(ctx context.Context, domain string) (body, url string, ok bool) {
-        for _, scheme := range []string{mapKeyHttps, "http"} {
+        for _, scheme := range []string{mapKeyHttps, mapKeyHttp} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
                 if err != nil {
@@ -696,7 +696,7 @@ func convertEvidenceSlice(evidence []Evidence) []map[string]any {
         result := make([]map[string]any, 0, len(evidence))
         for _, e := range evidence {
                 result = append(result, map[string]any{
-                        "type":       e.Type,
+                        mapKeyType:       e.Type,
                         "source":     e.Source,
                         mapKeyDetail:     e.Detail,
                         "severity":   e.Severity,
@@ -732,7 +732,7 @@ func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
                 hiddenCount = v
         }
 
-        status := "info"
+        status := mapKeyInfo
         message := "No significant AI surface findings"
 
         if iocCount > 0 || hiddenCount > 0 {
@@ -742,7 +742,7 @@ func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
                 status = mapKeySuccess
                 message = "AI governance signals observed"
         } else if allowsAI {
-                status = "info"
+                status = mapKeyInfo
                 message = "No AI governance measures detected"
         }
 

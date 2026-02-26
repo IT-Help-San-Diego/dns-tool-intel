@@ -7046,3 +7046,29 @@ body.covert-mode .math-copy-btn--copied {
 }
 .tld-recon-toast-footer i { margin-right: 0.3rem; }
 .tld-recon-toast-dismissing { opacity: 0; transition: opacity 0.3s ease-out; }
+.u-opacity-85 { opacity: 0.85; }
+.u-roe-warning-box { background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.2); }
+.u-roe-footer-box { background: rgba(255,255,255,0.03); }
+.archetype-icon-intel { background:rgba(88,166,255,0.12); color:#58a6ff; border:1px solid rgba(88,166,255,0.2); }
+.archetype-tag-intel { background:rgba(88,166,255,0.1); color:rgba(88,166,255,0.8); border:1px solid rgba(88,166,255,0.18); }
+.archetype-icon-eng { background:rgba(63,185,80,0.12); color:#3fb950; border:1px solid rgba(63,185,80,0.2); }
+.archetype-tag-eng { background:rgba(63,185,80,0.1); color:rgba(63,185,80,0.8); border:1px solid rgba(63,185,80,0.18); }
+.archetype-icon-hacker { background:rgba(196,60,60,0.12); color:#c43c3c; border:1px solid rgba(196,60,60,0.2); }
+.archetype-tag-hacker { background:rgba(196,60,60,0.1); color:rgba(196,100,100,0.8); border:1px solid rgba(196,60,60,0.18); }
+.archetype-icon-exec { background:rgba(210,153,34,0.12); color:#d29922; border:1px solid rgba(210,153,34,0.2); }
+.archetype-tag-exec { background:rgba(210,153,34,0.1); color:rgba(210,153,34,0.8); border:1px solid rgba(210,153,34,0.18); }
+.archetype-icon-itpro { background:rgba(125,142,168,0.12); color:#7d8ea8; border:1px solid rgba(125,142,168,0.2); }
+.archetype-tag-itpro { background:rgba(125,142,168,0.1); color:rgba(125,142,168,0.8); border:1px solid rgba(125,142,168,0.18); }
+.u-z1 { position:relative; z-index:1; }
+.u-text-red-bright { color:#f85149; }
+.u-text-blue-bright { color:#58a6ff; }
+.u-text-green-bright { color:#3fb950; }
+.u-text-muted-dim { color:#8b949e; }
+.u-font-07em { font-size:0.7em; }
+.u-font-055em { font-size:0.55em; }
+.u-font-075em { font-size:0.75em; }
+.u-stats-fail-link { font-size:0.55em; color:#f85149; font-weight:400; text-decoration:none; }
+.u-stats-fail-inline { color:#f85149; font-size:0.75em; text-decoration:none; }
+.u-pad-half-0 { padding:0.5rem 0; }
+.u-pad-half-075 { padding:0.5rem 0.75rem; }
+.u-cursor-pointer { cursor:pointer; }

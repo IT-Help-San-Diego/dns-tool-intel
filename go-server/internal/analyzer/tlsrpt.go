@@ -10,21 +10,22 @@ import (
 )
 
 const (
-	mapKeyRecord = "record"
+        mapKeyRecord = "record"
+        mapKeyRua    = "rua"
 )
 
 var tlsrptRUARe = regexp.MustCompile(`(?i)rua=([^;\s]+)`)
 
 func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]any {
         tlsrptDomain := fmt.Sprintf("_smtp._tls.%s", domain)
-        records := a.DNS.QueryDNS(ctx, "TXT", tlsrptDomain)
+        records := a.DNS.QueryDNS(ctx, dnsTypeTXT, tlsrptDomain)
 
         if len(records) == 0 {
                 return map[string]any{
                         mapKeyStatus:  "warning",
                         mapKeyMessage: "No TLS-RPT record found",
                         mapKeyRecord:  nil,
-                        "rua":     nil,
+                        mapKeyRua:     nil,
                 }
         }
 
@@ -40,7 +41,7 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
                         mapKeyStatus:  "warning",
                         mapKeyMessage: "No valid TLS-RPT record found",
                         mapKeyRecord:  nil,
-                        "rua":     nil,
+                        mapKeyRua:     nil,
                 }
         }
 
@@ -54,6 +55,6 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
                 mapKeyStatus:  "success",
                 mapKeyMessage: "TLS-RPT configured - receiving TLS delivery reports",
                 mapKeyRecord:  record,
-                "rua":     derefStr(rua),
+                mapKeyRua:     derefStr(rua),
         }
 }

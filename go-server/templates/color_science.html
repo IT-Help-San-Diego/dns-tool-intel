@@ -296,7 +296,7 @@
         const matrixBody = document.getElementById('matrix-body');
 
         const headRow = el('tr');
-        headRow.appendChild(el('th', 'cs-matrix-cell', 'FG \\ BG'));
+        headRow.appendChild(el('th', 'cs-matrix-cell', String.raw`FG \ BG`));
         for (const c of colors) {
             const th = el('th', 'cs-matrix-header');
             th.textContent = c.hex;

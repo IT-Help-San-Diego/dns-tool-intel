@@ -13,7 +13,12 @@ func ExportCountSPFLookups(spfRecord string) int {
 }
 
 func ExportBuildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent bool, validSPF, spfLike []string) (string, string) {
-        return buildSPFVerdict(lookupCount, permissiveness, noMailIntent, validSPF, spfLike)
+        s := &spfEvalState{
+                lookupCount:    lookupCount,
+                permissiveness: permissiveness,
+                noMailIntent:   noMailIntent,
+        }
+        return buildSPFVerdict(s, validSPF, spfLike)
 }
 
 func ExportParseSPFMechanisms(spfRecord string) (int, []string, []string, *string, *string, []string, bool) {

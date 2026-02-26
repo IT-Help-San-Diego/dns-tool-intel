@@ -38,7 +38,7 @@ var srvPrefixes = []string{
 }
 
 func (a *Analyzer) GetBasicRecords(ctx context.Context, domain string) map[string]any {
-        recordTypes := []string{"A", "AAAA", "MX", "TXT", "NS", "CNAME", "CAA", "SOA"}
+        recordTypes := []string{"A", rtAAAA, "MX", dnsTypeTXT, "NS", strCname, rtCAA, rtSOA}
         records := make(map[string]any)
         for _, t := range recordTypes {
                 records[t] = []string{}
@@ -86,7 +86,7 @@ func (a *Analyzer) GetBasicRecords(ctx context.Context, domain string) map[strin
 }
 
 func (a *Analyzer) GetAuthoritativeRecords(ctx context.Context, domain string) map[string]any {
-        recordTypes := []string{"A", "AAAA", "MX", "TXT", "NS", "CAA", "SOA"}
+        recordTypes := []string{"A", rtAAAA, "MX", dnsTypeTXT, "NS", rtCAA, rtSOA}
         emailSubdomains := map[string]string{
                 "DMARC":   fmt.Sprintf("_dmarc.%s", domain),
                 "MTA-STS": fmt.Sprintf("_mta-sts.%s", domain),
@@ -171,7 +171,7 @@ func (a *Analyzer) queryAuthRecords(ctx context.Context, domain, resolverIP stri
                 wg.Add(1)
                 go func(k, sd string) {
                         defer wg.Done()
-                        recs, err := a.DNS.QuerySpecificResolver(ctx, "TXT", sd, resolverIP)
+                        recs, err := a.DNS.QuerySpecificResolver(ctx, dnsTypeTXT, sd, resolverIP)
                         mu.Lock()
                         if err == nil && len(recs) > 0 {
                                 results[k] = recs

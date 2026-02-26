@@ -14,6 +14,11 @@ import (
         "codeberg.org/miekg/dns/dnsutil"
 )
 
+const (
+        mapKeyASName = "as_name"
+        mapKeyPrefix = "prefix"
+)
+
 type NSFleetEntry struct {
         Hostname    string   `json:"hostname"`
         IPv4        []string `json:"ipv4"`
@@ -159,13 +164,13 @@ func (a *Analyzer) populateASNInfo(ctx context.Context, entry *NSFleetEntry) {
         } else {
                 return
         }
-        if asn, ok := asnInfo["asn"].(string); ok {
+        if asn, ok := asnInfo[mapKeyASN].(string); ok {
                 entry.ASN = asn
         }
-        if name, ok := asnInfo["as_name"].(string); ok {
+        if name, ok := asnInfo[mapKeyASName].(string); ok {
                 entry.ASName = name
         }
-        if prefix, ok := asnInfo["prefix"].(string); ok {
+        if prefix, ok := asnInfo[mapKeyPrefix].(string); ok {
                 entry.Prefix = prefix
         }
 }
@@ -392,9 +397,9 @@ func nsFleetToMap(result NSFleetResult) map[string]any {
                         "hostname":       e.Hostname,
                         "ipv4":           e.IPv4,
                         "ipv6":           e.IPv6,
-                        "asn":            e.ASN,
-                        "as_name":        e.ASName,
-                        "prefix":         e.Prefix,
+                        mapKeyASN:            e.ASN,
+                        mapKeyASName:        e.ASName,
+                        mapKeyPrefix:         e.Prefix,
                         "udp_reachable":  e.UDPReach,
                         "tcp_reachable":  e.TCPReach,
                         "aa_flag":        e.AAFlag,

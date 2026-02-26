@@ -15,6 +15,9 @@ const (
         rtBIMI   = "BIMI"
         rtTLSA   = "TLSA"
         rtDANE   = "DANE"
+        rtCAA    = "CAA"
+        rtSOA    = "SOA"
+        rtSPF    = "SPF"
 )
 
 type CurrencyEntry struct {
@@ -30,12 +33,12 @@ var typicalTTLs = map[string]uint32{
         "A":      300,
         rtAAAA:   300,
         "MX":     3600,
-        "TXT":    3600,
+        dnsTypeTXT:    3600,
         "NS":     86400,
         strCname:  300,
-        "CAA":    3600,
-        "SOA":    3600,
-        "SPF":    3600,
+        rtCAA:    3600,
+        rtSOA:    3600,
+        rtSPF:    3600,
         strDmarc:  3600,
         rtDKIM:   3600,
         rtMTASTS: 86400,
@@ -50,12 +53,12 @@ var propagationNotes = map[string]string{
         "A":      "A records typically propagate within 5 minutes. Some resolvers may cache up to the TTL value.",
         rtAAAA:   "AAAA records follow the same propagation pattern as A records.",
         "MX":     "MX record changes may take up to 1 hour to propagate. Mail delivery may be affected during transition.",
-        "TXT":    "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers.",
+        dnsTypeTXT:    "TXT records (including SPF) typically propagate within 1 hour. Verify with multiple resolvers.",
         "NS":     "Nameserver changes can take 24\u201348 hours for full global propagation due to parent zone TTLs.",
         strCname:  "CNAME changes propagate quickly but downstream records inherit the CNAME TTL.",
-        "CAA":    "CAA record changes take effect within TTL. Certificate authorities check at issuance time.",
-        "SOA":    "SOA changes propagate to secondaries based on the Refresh interval in the SOA record.",
-        "SPF":    "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results.",
+        rtCAA:    "CAA record changes take effect within TTL. Certificate authorities check at issuance time.",
+        rtSOA:    "SOA changes propagate to secondaries based on the Refresh interval in the SOA record.",
+        rtSPF:    "SPF record changes propagate within the TXT record TTL. Test with dig before relying on scan results.",
         strDmarc:  "DMARC policy changes at _dmarc subdomain propagate within TTL. Reporting changes take 24\u201348h to reflect in aggregate reports.",
         rtDKIM:   "DKIM selector records propagate within TTL. New selectors are available immediately once published; key rotation requires overlap period.",
         rtMTASTS: "MTA-STS policy changes require updating both the DNS TXT record AND the policy file at /.well-known/mta-sts.txt. The max_age directive in the policy controls how long senders cache it.",
@@ -79,9 +82,9 @@ const (
 func BuildCurrencyMatrix(resolverTTL, authTTL map[string]uint32) map[string]any {
         entries := []CurrencyEntry{}
 
-        allTypes := []string{"A", rtAAAA, "MX", "TXT", "NS", strCname, "CAA", "SOA"}
+        allTypes := []string{"A", rtAAAA, "MX", dnsTypeTXT, "NS", strCname, rtCAA, rtSOA}
 
-        protocolTypes := []string{"SPF", strDmarc, rtDKIM, rtMTASTS, rtTLSRPT, rtBIMI, rtTLSA, strDnssec, rtDANE}
+        protocolTypes := []string{rtSPF, strDmarc, rtDKIM, rtMTASTS, rtTLSRPT, rtBIMI, rtTLSA, strDnssec, rtDANE}
         allTypes = append(allTypes, protocolTypes...)
 
         for _, rt := range allTypes {

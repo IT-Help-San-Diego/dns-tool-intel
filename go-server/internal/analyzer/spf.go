@@ -148,7 +148,7 @@ func parseSPFMechanisms(spfRecord string) spfParseResult {
         }
 }
 
-func buildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent bool, validSPF, spfLike []string) (string, string) {
+func buildSPFVerdict(s *spfEvalState, validSPF, spfLike []string) (string, string) {
         if len(validSPF) > 1 {
                 return mapKeyError, "Multiple SPF records found - this causes SPF to fail (RFC 7208)"
         }
@@ -159,29 +159,29 @@ func buildSPFVerdict(lookupCount int, permissiveness *string, noMailIntent bool,
                 return "missing", "No SPF record found"
         }
 
-        if lookupCount > 10 {
-                return mapKeyError, fmt.Sprintf("SPF exceeds 10 DNS lookup limit (%d/10) — PermError per RFC 7208 §4.6.4", lookupCount)
+        if s.lookupCount > 10 {
+                return mapKeyError, fmt.Sprintf("SPF exceeds 10 DNS lookup limit (%d/10) — PermError per RFC 7208 §4.6.4", s.lookupCount)
         }
-        if lookupCount == 10 {
+        if s.lookupCount == 10 {
                 return mapKeyWarning, "SPF at lookup limit (10/10 lookups) - no room for growth"
         }
-        if permissiveness != nil && *permissiveness == "DANGEROUS" {
+        if s.permissiveness != nil && *s.permissiveness == "DANGEROUS" {
                 return mapKeyError, "SPF uses +all - anyone can send as this domain"
         }
-        if permissiveness != nil && *permissiveness == "NEUTRAL" {
+        if s.permissiveness != nil && *s.permissiveness == "NEUTRAL" {
                 return mapKeyWarning, "SPF uses ?all - provides no protection"
         }
 
-        if noMailIntent {
+        if s.noMailIntent {
                 return mapKeySuccess, "Valid SPF (no mail allowed) - domain declares it sends no email"
         }
-        if permissiveness != nil && *permissiveness == strStrict {
-                return mapKeySuccess, fmt.Sprintf("SPF valid with strict enforcement (-all), %d/10 lookups", lookupCount)
+        if s.permissiveness != nil && *s.permissiveness == strStrict {
+                return mapKeySuccess, fmt.Sprintf("SPF valid with strict enforcement (-all), %d/10 lookups", s.lookupCount)
         }
-        if permissiveness != nil && *permissiveness == "SOFT" {
-                return mapKeySuccess, fmt.Sprintf("SPF valid with industry-standard soft fail (~all), %d/10 lookups", lookupCount)
+        if s.permissiveness != nil && *s.permissiveness == "SOFT" {
+                return mapKeySuccess, fmt.Sprintf("SPF valid with industry-standard soft fail (~all), %d/10 lookups", s.lookupCount)
         }
-        return mapKeySuccess, fmt.Sprintf("SPF valid, %d/10 lookups", lookupCount)
+        return mapKeySuccess, fmt.Sprintf("SPF valid, %d/10 lookups", s.lookupCount)
 }
 
 func classifySPFRecords(records []string) (validSPF, spfLike []string) {
@@ -413,7 +413,7 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
 
         redirectChainMaps, resolvedSPF := a.handleSPFRedirectChain(ctx, validSPF, s)
 
-        status, message := buildSPFVerdict(s.lookupCount, s.permissiveness, s.noMailIntent, validSPF, spfLike)
+        status, message := buildSPFVerdict(s, validSPF, spfLike)
 
         if len(redirectChainMaps) > 0 && resolvedSPF != "" {
                 chainDomains := make([]string, 0, len(redirectChainMaps))

@@ -15,6 +15,7 @@ const (
         jsonKeyHeaders  = "headers"
         jsonKeyName     = "name"
         formatRaw       = "raw"
+        jsonKeyHeadersUC = "Headers"
 )
 
 type DetectedFormat struct {
@@ -231,7 +232,7 @@ func extractGmailAPIHeaders(obj map[string]interface{}) string {
 
 func extractPostmarkHeaders(obj map[string]interface{}) string {
         _, hasMessageID := obj["MessageID"]
-        headersRaw, hasHeaders := obj["Headers"]
+        headersRaw, hasHeaders := obj[jsonKeyHeadersUC]
         if !hasMessageID || !hasHeaders {
                 return ""
         }
@@ -328,7 +329,7 @@ func extractMailgunHeaders(obj map[string]interface{}) string {
 }
 
 func extractGenericJSONHeaders(obj map[string]interface{}) string {
-        for _, key := range []string{jsonKeyHeaders, "Headers", "email_headers", "emailHeaders", "message_headers", "raw_headers", formatRaw + "Headers"} {
+        for _, key := range []string{jsonKeyHeaders, jsonKeyHeadersUC, "email_headers", "emailHeaders", "message_headers", "raw_headers", formatRaw + "Headers"} {
                 val, ok := obj[key]
                 if !ok {
                         continue

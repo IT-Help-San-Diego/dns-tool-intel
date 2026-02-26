@@ -386,14 +386,14 @@ func classifySPF(ps protocolState, acc *postureAccumulator) {
         if ps.spfMissing {
                 acc.issues = append(acc.issues, "No SPF record found — domain is vulnerable to email spoofing")
                 acc.recommendations = append(acc.recommendations, "Publish an SPF record to authorize legitimate mail senders")
-                acc.absent = append(acc.absent, "SPF")
+                acc.absent = append(acc.absent, rtSPF)
                 return
         }
 
         if ps.spfDangerous {
                 acc.issues = append(acc.issues, "SPF record uses +all — allows any server to send mail as this domain")
                 acc.recommendations = append(acc.recommendations, "Change SPF mechanism from +all to ~all or -all")
-                acc.configured = append(acc.configured, "SPF")
+                acc.configured = append(acc.configured, rtSPF)
                 return
         }
 
@@ -413,7 +413,7 @@ func classifySPF(ps protocolState, acc *postureAccumulator) {
         if ps.spfHardFail {
                 acc.configured = append(acc.configured, "SPF (hard fail)")
         } else if ps.spfOK {
-                acc.configured = append(acc.configured, "SPF")
+                acc.configured = append(acc.configured, rtSPF)
         }
 }
 
@@ -510,11 +510,11 @@ func classifyPresence(ok bool, name string, acc *postureAccumulator) {
 
 func classifyDANE(ps protocolState, acc *postureAccumulator) {
         if ps.daneOK {
-                acc.configured = append(acc.configured, "DANE")
+                acc.configured = append(acc.configured, rtDANE)
         } else if ps.daneProviderLimited {
-                acc.providerLimited = append(acc.providerLimited, "DANE")
+                acc.providerLimited = append(acc.providerLimited, rtDANE)
         } else {
-                acc.absent = append(acc.absent, "DANE")
+                acc.absent = append(acc.absent, rtDANE)
         }
 }
 

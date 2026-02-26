@@ -59,6 +59,9 @@ const (
         mapKeyValidCerts        = "valid_certs"
         mapKeyVerdict           = "verdict"
         mapKeyVersion           = "version"
+
+        smtpBannerPrefix = "220"
+        verdictNone      = "none"
 )
 
 type smtpServerResult struct {
@@ -133,11 +136,11 @@ func buildMailTransportResult(a *Analyzer, ctx context.Context, domain string, m
 
 func buildPolicyAssessment(a *Analyzer, ctx context.Context, domain string, mxHosts []string, ai AnalysisInputs) map[string]any {
         policy := map[string]any{
-                mapKeyMtaSts:  map[string]any{mapKeyPresent: false, mapKeyMode: "none"},
+                mapKeyMtaSts:  map[string]any{mapKeyPresent: false, mapKeyMode: verdictNone},
                 mapKeyDane:     map[string]any{mapKeyPresent: false},
                 "tlsrpt":   map[string]any{mapKeyPresent: false},
                 "provider": map[string]any{"identified": false},
-                mapKeyVerdict:  "none",
+                mapKeyVerdict:  verdictNone,
                 mapKeySignals:  []string{},
         }
 
@@ -159,7 +162,7 @@ func assessMTASTS(a *Analyzer, ctx context.Context, domain string, ai AnalysisIn
         if mtaSts == nil {
                 mtaSts = a.AnalyzeMTASTS(ctx, domain)
         }
-        if mode, ok := mtaSts["mode"].(string); ok && mode != "" && mode != "none" {
+        if mode, ok := mtaSts["mode"].(string); ok && mode != "" && mode != verdictNone {
                 policy[mapKeyMtaSts] = map[string]any{
                         mapKeyPresent: true,
                         mapKeyMode:    mode,
@@ -246,7 +249,7 @@ func computePolicyVerdict(policy map[string]any, signals []string) string {
         if len(signals) > 0 {
                 return mapKeyOpportunistic
         }
-        return "none"
+        return verdictNone
 }
 
 func buildTelemetrySection(ai AnalysisInputs) map[string]any {
@@ -303,7 +306,7 @@ func buildProbeResult(a *Analyzer, ctx context.Context, domain string, mxHosts [
 
         if len(mxHosts) == 0 {
                 probe[mapKeyReason] = "No MX records found for this domain"
-                probe[mapKeyProbeMethod] = "none"
+                probe[mapKeyProbeMethod] = verdictNone
                 return probe
         }
 
@@ -913,7 +916,7 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
         result[mapKeyReachable] = true
 
         banner, err := readSMTPResponse(conn, 2*time.Second)
-        if err != nil || !strings.HasPrefix(banner, "220") {
+        if err != nil || !strings.HasPrefix(banner, smtpBannerPrefix) {
                 result[mapKeyError] = "Unexpected SMTP banner"
                 return result
         }
@@ -944,7 +947,7 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
         }
 
         starttlsResp, err := readSMTPResponse(conn, 2*time.Second)
-        if err != nil || !strings.HasPrefix(starttlsResp, "220") {
+        if err != nil || !strings.HasPrefix(starttlsResp, smtpBannerPrefix) {
                 result[mapKeyError] = fmt.Sprintf("STARTTLS rejected: %s", truncate(starttlsResp, 50))
                 return result
         }
@@ -987,14 +990,14 @@ func verifyCert(ctx context.Context, host string, result map[string]any) {
         defer verifyConn.Close()
 
         banner, _ := readSMTPResponse(verifyConn, 1*time.Second)
-        if !strings.HasPrefix(banner, "220") {
+        if !strings.HasPrefix(banner, smtpBannerPrefix) {
                 return
         }
         fmt.Fprintf(verifyConn, "EHLO dnstool.local\r\n")
         readSMTPResponse(verifyConn, 1*time.Second)
         fmt.Fprintf(verifyConn, "STARTTLS\r\n")
         resp, _ := readSMTPResponse(verifyConn, 1*time.Second)
-        if !strings.HasPrefix(resp, "220") {
+        if !strings.HasPrefix(resp, smtpBannerPrefix) {
                 return
         }
 

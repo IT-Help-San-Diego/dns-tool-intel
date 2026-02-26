@@ -153,7 +153,7 @@
                                     <td class="py-1 text-end">
                                         <div class="btn-group">
                                             {{if .Enabled}}
-                                            <form method="POST" action="/watchlist/{{.ID}}/toggle" style="display:inline">
+                                            <form method="POST" action="/watchlist/{{.ID}}/toggle" class="d-inline">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="false">
                                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Pause monitoring">
@@ -161,7 +161,7 @@
                                                 </button>
                                             </form>
                                             {{else}}
-                                            <form method="POST" action="/watchlist/{{.ID}}/toggle" style="display:inline">
+                                            <form method="POST" action="/watchlist/{{.ID}}/toggle" class="d-inline">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="true">
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Resume monitoring">
@@ -169,7 +169,7 @@
                                                 </button>
                                             </form>
                                             {{end}}
-                                            <form method="POST" action="/watchlist/{{.ID}}/delete" style="display:inline">
+                                            <form method="POST" action="/watchlist/{{.ID}}/delete" class="d-inline">
                                                 <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from watchlist">
                                                     <i class="fas fa-unlink"></i>
