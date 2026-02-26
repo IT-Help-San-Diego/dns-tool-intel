@@ -436,6 +436,277 @@ func TestDANEAbsenceNotFlagged(t *testing.T) {
         }
 }
 
+// ============================================================================
+// GOLDEN RULES — Zone Health Policy Signals
+//
+// These tests encode RFC-mandated behaviors that MUST NEVER be weakened.
+// If a test here fails, the code change is wrong — not the test.
+//
+// Core principles:
+//   1. SPF absence = spoofable (RFC 7208 §2.1) — attackers send FROM the
+//      domain, they do not need the domain to receive mail.
+//   2. DMARC absence = no enforcement (RFC 7489 §4) — receiving servers
+//      have no policy to act on.
+//   3. Both MUST be flagged for ALL non-delegation zones, including parked,
+//      web-only, minimal, and zones with zero email infrastructure.
+//   4. Only TLD/delegation-only zones are exempt (SPF/DMARC do not apply
+//      at the TLD level).
+//   5. DANE/TLSA absence is NEVER flagged — it is per-service
+//      (_443._tcp.host) and typically managed externally.
+//   6. Policy signals MUST NEVER affect the structural score.
+// ============================================================================
+
+func TestGoldenRuleSPFAlwaysFlaggedNonDelegation(t *testing.T) {
+        profiles := []struct {
+                name    string
+                records []ParsedRecord
+        }{
+                {"Full-Service (MX present)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "MX", RData: "10 mail.ex.com."},
+                }},
+                {"Web-Only (no MX)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                }},
+                {"Minimal (CNAME only)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "CNAME", RData: "other.example.net."},
+                }},
+                {"Parked domain (SOA+NS+A, zero email)", []ParsedRecord{
+                        {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.parked.com. admin.parked.com. 1 3600 900 1209600 86400"},
+                        {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.parked.com."},
+                        {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.parked.com."},
+                        {Name: "parked.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                }},
+        }
+
+        for _, tc := range profiles {
+                t.Run(tc.name, func(t *testing.T) {
+                        h := AnalyzeHealth(tc.records)
+                        if h.ZoneProfile == "Delegation-Only" {
+                                t.Fatalf("test case %q should NOT be Delegation-Only", tc.name)
+                        }
+                        var hasSPFMissing bool
+                        for _, s := range h.PolicySignals {
+                                if s.Label == "SPF" && s.Status == "missing" {
+                                        hasSPFMissing = true
+                                }
+                        }
+                        if !hasSPFMissing {
+                                t.Errorf("RFC 7208: %s zone without SPF MUST flag missing — any server can spoof this domain. Profile=%s", tc.name, h.ZoneProfile)
+                        }
+                })
+        }
+}
+
+func TestGoldenRuleDMARCAlwaysFlaggedNonDelegation(t *testing.T) {
+        profiles := []struct {
+                name    string
+                records []ParsedRecord
+        }{
+                {"Full-Service (MX present)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "MX", RData: "10 mail.ex.com."},
+                }},
+                {"Web-Only (no email at all)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                }},
+                {"Minimal (bare domain)", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "CNAME", RData: "other.example.net."},
+                }},
+        }
+
+        for _, tc := range profiles {
+                t.Run(tc.name, func(t *testing.T) {
+                        h := AnalyzeHealth(tc.records)
+                        if h.ZoneProfile == "Delegation-Only" {
+                                t.Fatalf("test case %q should NOT be Delegation-Only", tc.name)
+                        }
+                        var hasDMARCMissing bool
+                        for _, s := range h.PolicySignals {
+                                if s.Label == "DMARC" && s.Status == "missing" {
+                                        hasDMARCMissing = true
+                                }
+                        }
+                        if !hasDMARCMissing {
+                                t.Errorf("RFC 7489: %s zone without DMARC MUST flag missing — no enforcement policy for spoofed email. Profile=%s", tc.name, h.ZoneProfile)
+                        }
+                })
+        }
+}
+
+func TestGoldenRuleDelegationOnlySuppressesSPFDMARC(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "com.", TTL: 86400, Class: "IN", Type: "SOA", RData: "a.gtld-servers.net. nstld.verisign-grs.com. 1 1800 900 604800 86400"},
+                {Name: "com.", TTL: 172800, Class: "IN", Type: "NS", RData: "a.gtld-servers.net."},
+                {Name: "com.", TTL: 172800, Class: "IN", Type: "NS", RData: "b.gtld-servers.net."},
+                {Name: "example.com.", TTL: 86400, Class: "IN", Type: "DS", RData: "12345 8 2 abc123"},
+        }
+        h := AnalyzeHealth(records)
+        if h.ZoneProfile != "Delegation-Only" {
+                t.Fatalf("expected Delegation-Only, got %s", h.ZoneProfile)
+        }
+        for _, s := range h.PolicySignals {
+                if s.Label == "SPF" || s.Label == "DMARC" {
+                        t.Errorf("TLD/delegation-only zone MUST NOT flag SPF/DMARC — they do not apply at TLD level. Found: %s (%s)", s.Label, s.Status)
+                }
+        }
+}
+
+func TestGoldenRuleDANENeverFlaggedMissing(t *testing.T) {
+        scenarios := []struct {
+                name    string
+                records []ParsedRecord
+        }{
+                {"Full-Service with MX", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "MX", RData: "10 mail.ex.com."},
+                }},
+                {"Web-Only", []ParsedRecord{
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                        {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                        {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                }},
+                {"Delegation-Only", []ParsedRecord{
+                        {Name: "com.", TTL: 86400, Class: "IN", Type: "SOA", RData: "a.gtld-servers.net. nstld.verisign-grs.com. 1 1800 900 604800 86400"},
+                        {Name: "com.", TTL: 172800, Class: "IN", Type: "NS", RData: "a.gtld-servers.net."},
+                }},
+        }
+
+        for _, tc := range scenarios {
+                t.Run(tc.name, func(t *testing.T) {
+                        h := AnalyzeHealth(tc.records)
+                        for _, s := range h.PolicySignals {
+                                if s.Label == "TLSA/DANE" && s.Status == "missing" {
+                                        t.Errorf("DANE/TLSA absence MUST NEVER be flagged as missing — it is per-service (_443._tcp) and typically managed outside the zone file")
+                                }
+                        }
+                })
+        }
+}
+
+func TestGoldenRuleDANEPresentIsDetected(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                {Name: "_443._tcp.ex.com.", TTL: 3600, Class: "IN", Type: "TLSA", RData: "3 1 1 abc123"},
+        }
+        h := AnalyzeHealth(records)
+        if !h.HasTLSA {
+                t.Fatal("expected HasTLSA when TLSA record present")
+        }
+        var found bool
+        for _, s := range h.PolicySignals {
+                if s.Label == "TLSA/DANE" && s.Status == "detected" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("DANE/TLSA present in zone MUST appear as 'detected' signal")
+        }
+}
+
+func TestGoldenRulePolicySignalsNeverAffectStructuralScore(t *testing.T) {
+        base := []ParsedRecord{
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "AAAA", RData: "::1"},
+        }
+
+        full := make([]ParsedRecord, len(base))
+        copy(full, base)
+        full = append(full,
+                ParsedRecord{Name: "ex.com.", TTL: 3600, Class: "IN", Type: "MX", RData: "10 mail.ex.com."},
+                ParsedRecord{Name: "ex.com.", TTL: 3600, Class: "IN", Type: "TXT", RData: "v=spf1 -all"},
+                ParsedRecord{Name: "_dmarc.ex.com.", TTL: 3600, Class: "IN", Type: "TXT", RData: "v=DMARC1; p=reject"},
+                ParsedRecord{Name: "ex.com.", TTL: 3600, Class: "IN", Type: "CAA", RData: "0 issue \"letsencrypt.org\""},
+                ParsedRecord{Name: "_443._tcp.ex.com.", TTL: 3600, Class: "IN", Type: "TLSA", RData: "3 1 1 abc123"},
+        )
+
+        hBare := AnalyzeHealth(base)
+        hFull := AnalyzeHealth(full)
+
+        if hBare.StructuralScore != hFull.StructuralScore {
+                t.Errorf("structural score MUST NOT change based on policy records: bare=%d, full=%d — SPF/DMARC/CAA/TLSA are operational, not structural",
+                        hBare.StructuralScore, hFull.StructuralScore)
+        }
+}
+
+func TestGoldenRuleSPFPresentIsDetected(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "TXT", RData: "v=spf1 include:_spf.google.com ~all"},
+        }
+        h := AnalyzeHealth(records)
+        var found bool
+        for _, s := range h.PolicySignals {
+                if s.Label == "SPF" && s.Status == "detected" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("SPF present in zone MUST appear as 'detected' signal — not 'missing'")
+        }
+}
+
+func TestGoldenRuleDMARCPresentIsDetected(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.ex.com. a.ex.com. 2025010101 3600 900 1209600 86400"},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.ex.com."},
+                {Name: "ex.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.ex.com."},
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+                {Name: "_dmarc.ex.com.", TTL: 3600, Class: "IN", Type: "TXT", RData: "v=DMARC1; p=reject"},
+        }
+        h := AnalyzeHealth(records)
+        var found bool
+        for _, s := range h.PolicySignals {
+                if s.Label == "DMARC" && s.Status == "detected" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("DMARC present in zone MUST appear as 'detected' signal — not 'missing'")
+        }
+}
+
+func TestGoldenRuleMissingSPFMessage(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "ex.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+        }
+        h := AnalyzeHealth(records)
+        for _, s := range h.PolicySignals {
+                if s.Label == "SPF" && s.Status == "missing" {
+                        if s.Detail == "" {
+                                t.Error("missing SPF signal must have non-empty detail explaining the risk")
+                        }
+                        return
+                }
+        }
+        t.Error("expected missing SPF signal for A-only zone")
+}
+
 func TestTTLSpreadHigh(t *testing.T) {
         records := []ParsedRecord{
                 {Name: "ex.com.", TTL: 60, Class: "IN", Type: "A", RData: "1.2.3.4"},
