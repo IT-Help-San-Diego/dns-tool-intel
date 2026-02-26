@@ -8,6 +8,12 @@
             document.body.classList.add('covert-tactical');
         }
     }
+    if (!document.getElementById('covertFilterOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'covertFilterOverlay';
+        overlay.className = 'covert-filter-overlay';
+        document.body.appendChild(overlay);
+    }
 })();
 
 if ('serviceWorker' in navigator) {
