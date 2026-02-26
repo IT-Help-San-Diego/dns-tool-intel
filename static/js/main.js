@@ -171,8 +171,14 @@ function swapToTLDScanPhases(overlay) {
         const div = document.createElement('div');
         div.className = 'scan-phase';
         div.dataset.delay = p.delay;
-        div.innerHTML = '<i class="fas fa-circle-notch fa-spin scan-icon scan-pending" aria-hidden="true"></i>' +
-            '<span class="' + (isCovert ? 'covert-show' : 'covert-hide') + '">' + (isCovert ? p.covert : p.normal) + '</span>';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-circle-notch fa-spin scan-icon scan-pending';
+        icon.setAttribute('aria-hidden', 'true');
+        const span = document.createElement('span');
+        span.className = isCovert ? 'covert-show' : 'covert-hide';
+        span.textContent = isCovert ? p.covert : p.normal;
+        div.appendChild(icon);
+        div.appendChild(span);
         checklist.appendChild(div);
     });
 }
