@@ -369,7 +369,7 @@ func TestPolicySignalsWebOnlyNoCAA(t *testing.T) {
         }
 }
 
-func TestPolicySignalsSuppressedForMinimal(t *testing.T) {
+func TestPolicySignalsMinimalZoneStillWarns(t *testing.T) {
         records := []ParsedRecord{
                 {Name: "ex.com.", TTL: 300, Class: "IN", Type: "CNAME", RData: "other.example.net."},
         }
@@ -377,10 +377,45 @@ func TestPolicySignalsSuppressedForMinimal(t *testing.T) {
         if h.ZoneProfile != "Minimal" {
                 t.Errorf("expected Minimal profile, got %s", h.ZoneProfile)
         }
+        var hasSPFMissing, hasDMARCMissing bool
         for _, s := range h.PolicySignals {
-                if s.Status == "missing" {
-                        t.Errorf("minimal zone should not have 'missing' signals, found: %s", s.Label)
+                if s.Label == "SPF" && s.Status == "missing" {
+                        hasSPFMissing = true
                 }
+                if s.Label == "DMARC" && s.Status == "missing" {
+                        hasDMARCMissing = true
+                }
+        }
+        if !hasSPFMissing {
+                t.Error("minimal zone (owned domain) must still warn about missing SPF — domain is spoofable (RFC 7208)")
+        }
+        if !hasDMARCMissing {
+                t.Error("minimal zone (owned domain) must still warn about missing DMARC — no enforcement policy (RFC 7489)")
+        }
+}
+
+func TestPolicySignalsParkedDomainSpoofable(t *testing.T) {
+        records := []ParsedRecord{
+                {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "SOA", RData: "ns1.parked.com. admin.parked.com. 2025010101 3600 900 1209600 86400"},
+                {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns1.parked.com."},
+                {Name: "parked.com.", TTL: 3600, Class: "IN", Type: "NS", RData: "ns2.parked.com."},
+                {Name: "parked.com.", TTL: 300, Class: "IN", Type: "A", RData: "1.2.3.4"},
+        }
+        h := AnalyzeHealth(records)
+        var hasSPFMissing, hasDMARCMissing bool
+        for _, s := range h.PolicySignals {
+                if s.Label == "SPF" && s.Status == "missing" {
+                        hasSPFMissing = true
+                }
+                if s.Label == "DMARC" && s.Status == "missing" {
+                        hasDMARCMissing = true
+                }
+        }
+        if !hasSPFMissing {
+                t.Error("parked domain with no email infrastructure must warn about missing SPF — attackers can spoof FROM this domain without needing MX")
+        }
+        if !hasDMARCMissing {
+                t.Error("parked domain with no email infrastructure must warn about missing DMARC — no policy enforcement for spoofed emails")
         }
 }
 

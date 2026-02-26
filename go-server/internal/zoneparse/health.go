@@ -303,7 +303,6 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
         var signals []PolicySignal
 
         isDelegation := h.ZoneProfile == "Delegation-Only"
-        isMinimal := h.ZoneProfile == "Minimal"
         emailIntent := h.HasMX || h.HasSPF || h.HasDMARC || h.HasDKIM
         webIntent := h.HasA || h.HasAAAA
 
@@ -315,6 +314,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Status: "detected",
                 })
         }
+
         if h.HasSPF {
                 signals = append(signals, PolicySignal{
                         Label:  "SPF",
@@ -322,14 +322,15 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Detail: "Sender Policy Framework record detected",
                         Status: "detected",
                 })
-        } else if emailIntent && !isDelegation && !isMinimal {
+        } else if !isDelegation {
                 signals = append(signals, PolicySignal{
                         Label:  "SPF",
                         Icon:   "envelope",
-                        Detail: "Email infrastructure detected without SPF sender authentication",
+                        Detail: "No SPF record — any server can claim to send email as this domain (RFC 7208)",
                         Status: "missing",
                 })
         }
+
         if h.HasDMARC {
                 signals = append(signals, PolicySignal{
                         Label:  "DMARC",
@@ -337,14 +338,15 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Detail: "Domain-based Message Authentication policy detected",
                         Status: "detected",
                 })
-        } else if emailIntent && !isDelegation && !isMinimal {
+        } else if !isDelegation {
                 signals = append(signals, PolicySignal{
                         Label:  "DMARC",
                         Icon:   "shield-alt",
-                        Detail: "Email infrastructure detected without DMARC policy",
+                        Detail: "No DMARC policy — receiving servers have no spoofing policy to enforce (RFC 7489)",
                         Status: "missing",
                 })
         }
+
         if h.HasDKIM {
                 signals = append(signals, PolicySignal{
                         Label:  "DKIM",
@@ -352,7 +354,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Detail: "DomainKeys Identified Mail selector detected",
                         Status: "detected",
                 })
-        } else if emailIntent && !isDelegation && !isMinimal {
+        } else if emailIntent && !isDelegation {
                 signals = append(signals, PolicySignal{
                         Label:  "DKIM",
                         Icon:   "key",
@@ -360,6 +362,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Status: "info",
                 })
         }
+
         if h.HasCAA {
                 signals = append(signals, PolicySignal{
                         Label:  "CAA",
@@ -367,7 +370,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Detail: "Certificate Authority Authorization records present",
                         Status: "detected",
                 })
-        } else if webIntent && !isDelegation && !isMinimal {
+        } else if webIntent && !isDelegation {
                 signals = append(signals, PolicySignal{
                         Label:  "CAA",
                         Icon:   "certificate",
@@ -375,6 +378,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Status: "info",
                 })
         }
+
         if h.HasTLSA {
                 signals = append(signals, PolicySignal{
                         Label:  "TLSA/DANE",

@@ -249,7 +249,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="small text-muted mb-3">Context-aware analysis of operational policy records based on the zone&rsquo;s <span class="text-info">{{$zh.ZoneProfile}}</span> profile. Signals are only evaluated when the zone shows clear intent (e.g., email infrastructure or web presence).</p>
+                <p class="small text-muted mb-3">Security posture analysis for this <span class="text-info">{{$zh.ZoneProfile}}</span> zone. SPF and DMARC are always evaluated &mdash; a domain without them is spoofable regardless of whether it sends email (RFC 7208, RFC 7489). These signals do not affect the structural score.</p>
                 <div class="row g-3">
                     {{range $zh.PolicySignals}}
                     <div class="col-md-6 col-12">
