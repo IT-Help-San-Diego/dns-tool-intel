@@ -43,6 +43,16 @@ const (
         providerGoDaddy    = "GoDaddy"
         providerNamecheap  = "Namecheap"
         providerHostinger  = "Hostinger"
+        providerGandi      = "Gandi"
+        providerPorkbun    = "Porkbun"
+        providerHetzner    = "Hetzner"
+        providerDigitalOcean = "DigitalOcean"
+        providerLinode     = "Linode (Akamai)"
+        providerOVH        = "OVH"
+        providerDynDNS     = "Dyn"
+        providerNS1        = "NS1 (IBM)"
+        providerDNSMadeEasy = "DNS Made Easy"
+        providerGoogle     = "Google Cloud DNS"
 
 
         mapKeyWarning = "warning"
@@ -136,15 +146,66 @@ var providerProfiles = map[string]ProviderProfile{
                 TTLEditable:   true,
                 SOAEditable:   false,
                 MinAllowedTTL: 0,
-                Notes: []ProviderComplianceNote{
-                        {
-                                Title:   "NS record TTLs managed by Hostinger",
-                                RFC:     "RFC 1035 §3.2.1",
-                                RFCLink: "https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1",
-                                Detail:  "Hostinger manages NS record TTLs on their default nameservers (ns1/ns2.dns-parking.com). You cannot change NS TTLs unless you delegate DNS to another provider such as Cloudflare or AWS Route 53. Other record types (A, AAAA, MX, TXT, CAA, CNAME) can have their TTLs adjusted in the Hostinger DNS panel.",
-                                Verdict: "NS TTLs locked to registrar defaults",
-                        },
-                },
+        },
+        providerGandi: {
+                Name:          providerGandi,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 300,
+        },
+        providerPorkbun: {
+                Name:          providerPorkbun,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 300,
+        },
+        providerHetzner: {
+                Name:          providerHetzner,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 0,
+        },
+        providerDigitalOcean: {
+                Name:          providerDigitalOcean,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 30,
+        },
+        providerLinode: {
+                Name:          providerLinode,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 300,
+        },
+        providerOVH: {
+                Name:          providerOVH,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 60,
+        },
+        providerDynDNS: {
+                Name:          providerDynDNS,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 30,
+        },
+        providerNS1: {
+                Name:          providerNS1,
+                TTLEditable:   true,
+                SOAEditable:   true,
+                MinAllowedTTL: 0,
+        },
+        providerDNSMadeEasy: {
+                Name:          providerDNSMadeEasy,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 30,
+        },
+        providerGoogle: {
+                Name:          providerGoogle,
+                TTLEditable:   true,
+                SOAEditable:   true,
+                MinAllowedTTL: 0,
         },
 }
 
@@ -163,6 +224,26 @@ func DetectDNSProvider(dnsProviders, nsRecords []string) string {
                 return providerNamecheap
         case strings.Contains(lower, "hostinger") || strings.Contains(lower, "dns-parking"):
                 return providerHostinger
+        case strings.Contains(lower, "gandi"):
+                return providerGandi
+        case strings.Contains(lower, "porkbun"):
+                return providerPorkbun
+        case strings.Contains(lower, "hetzner"):
+                return providerHetzner
+        case strings.Contains(lower, "digitalocean"):
+                return providerDigitalOcean
+        case strings.Contains(lower, "linode") || strings.Contains(lower, "akamai"):
+                return providerLinode
+        case strings.Contains(lower, "ovh"):
+                return providerOVH
+        case strings.Contains(lower, "dynect") || strings.Contains(lower, "dyn.com"):
+                return providerDynDNS
+        case strings.Contains(lower, "nsone") || strings.Contains(lower, "ns1.p") || strings.Contains(lower, "dns1.p09.nsone"):
+                return providerNS1
+        case strings.Contains(lower, "dnsmadeeasy"):
+                return providerDNSMadeEasy
+        case strings.Contains(lower, "googledomains") || strings.Contains(lower, "google"):
+                return providerGoogle
         default:
                 return ""
         }
