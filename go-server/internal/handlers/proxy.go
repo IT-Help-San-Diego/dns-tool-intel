@@ -68,7 +68,12 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
                 },
         }
 
-        req, _ := http.NewRequestWithContext(c.Request.Context(), "GET", safeURL, nil)
+        req, err := http.NewRequestWithContext(c.Request.Context(), "GET", safeURL, nil)
+        if err != nil {
+                slog.Error("Failed to create BIMI request", "error", err)
+                c.String(http.StatusInternalServerError, "Internal error")
+                return
+        }
         req.Header.Set("User-Agent", "DNS-Analyzer/1.0 BIMI-Logo-Fetcher")
 
         resp, err := client.Do(req)
@@ -170,7 +175,12 @@ func (h *ProxyHandler) followRedirects(c *gin.Context, client *http.Client, resp
 
                 resp.Body.Close()
                 validatedRedirect := buildSafeURL(rParsed)
-                req, _ := http.NewRequestWithContext(c.Request.Context(), "GET", validatedRedirect, nil)
+                req, err := http.NewRequestWithContext(c.Request.Context(), "GET", validatedRedirect, nil)
+                if err != nil {
+                        slog.Error("Failed to create redirect request", "error", err)
+                        c.String(http.StatusInternalServerError, "Internal error")
+                        return nil, err
+                }
                 req.Header.Set("User-Agent", "DNS-Analyzer/1.0 BIMI-Logo-Fetcher")
                 resp, err = client.Do(req)
                 if err != nil {

@@ -13,8 +13,13 @@
 //  2. Use (or create) a named date constant below.
 //  3. Reference the constant — never inline a date string.
 //
-// Canonical date mapping (verified Feb 23, 2026):
+// Canonical date mapping (verified Feb 26, 2026):
 //
+//      dateFeb26 — CSRF Form Fix (TTL Tuner & Watchlist), TTL Tuner UX Overhaul,
+//                  DNS Provider Detection Expansion (5→15), NS Provider-Locked Display,
+//                  Mobile Homepage Scroll Fix, Navbar Dropdown Refinement,
+//                  HTTP Observatory A+ Infrastructure, Secure Cookie Infrastructure,
+//                  TTL Tuner Mobile Responsive Table, SonarCloud Quality Gate Fixes
 //      dateFeb23 — Architecture Page TLP:GREEN Redesign, Currency Level Hero Card Label,
 //                  PWA Icon Edge Cleanup
 //      dateFeb21 — Misplaced DMARC Record Detection, Covert Mode Recon Report UI,
@@ -40,6 +45,7 @@
 package handlers
 
 const (
+        dateFeb26 = "Feb 26, 2026"
         dateFeb23 = "Feb 23, 2026"
         dateFeb21 = "Feb 21, 2026"
         dateFeb19 = "Feb 19, 2026"
@@ -58,6 +64,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262701 = "26.27.01"
         ver262525 = "26.25.25"
         ver262225 = "26.22.25"
         ver262088 = "26.20.88"
@@ -95,6 +102,62 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catSecurity,
+                        Title:       "HTTP Observatory A+ Score — Infrastructure Hardening",
+                        Description: "Achieved a perfect A+ score (140/100, 10/10 tests passed) on Mozilla HTTP Observatory. Secure cookie flag now enforced in production via Replit infrastructure. Combined with existing Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, X-Frame-Options, and Referrer-Policy headers for comprehensive HTTP security posture.",
+                        Icon:        iconShieldAlt,
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catSecurity,
+                        Title:       "CSRF Form Field Fix — TTL Tuner & Watchlist",
+                        Description: "Corrected CSRF token field name from '_csrf' to 'csrf_token' in TTL Tuner analysis, re-scan, and Watchlist forms. The mismatch caused silent form submission failures — POST requests were rejected by the CSRF middleware and redirected to the homepage without any user-visible error. All form submissions on these pages now work correctly.",
+                        Icon:        "fas fa-bug",
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catUX,
+                        Title:       "TTL Tuner UX Overhaul",
+                        Description: "Added loading overlay with spinner during TTL analysis to prevent double-submission and provide visual feedback. Results auto-scroll into view on completion. Profile card selection now shows a checkmark with opacity and scale transition for clear visual confirmation. GET requests to /ttl-tuner/analyze now redirect to the TTL Tuner page instead of returning a 404. Mobile-responsive table hides Current TTL and Impact columns on small screens to prevent horizontal scrolling.",
+                        Icon:        "fas fa-sliders-h",
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catIntelligence,
+                        Title:       "DNS Provider Detection Expansion — 5 to 15 Providers",
+                        Description: "Expanded DNS provider detection from 5 providers (Cloudflare, AWS Route 53, GoDaddy, Namecheap, Hostinger) to 15 by adding Gandi, Porkbun, Hetzner, DigitalOcean, Linode (Akamai), OVH, Dyn, NS1 (IBM), DNS Made Easy, and Google Cloud DNS. Each provider includes nameserver pattern matching and minimum TTL constraints where applicable. NS records for all detected providers are now marked as 'Provider-Locked' with an explanation that NS TTL control requires DNS delegation migration.",
+                        Icon:        "fas fa-network-wired",
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catUX,
+                        Title:       "Mobile Homepage Scroll Fix",
+                        Description: "Removed HTML autofocus attribute from the domain input field to prevent iOS Safari from scrolling the viewport to the input and opening the keyboard on page load. Desktop browsers now receive focus via JavaScript only when the viewport is 768px or wider and the device is non-touch.",
+                        Icon:        "fas fa-mobile-alt",
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catUX,
+                        Title:       "Navbar Dropdown Refinement",
+                        Description: "Unified the navbar dropdown background color with the navbar itself using rgba(28, 35, 51, 0.97) with backdrop-filter blur. Removed the top border so the dropdown extends seamlessly from the navbar. History page 'New Analysis' button now uses the glass-style btn-analyze treatment consistent with the homepage.",
+                        Icon:        "fas fa-bars",
+                },
+                {
+                        Version:     ver262701,
+                        Date:        dateFeb26,
+                        Category:    catCore,
+                        Title:       "SonarCloud Quality Gate Fixes",
+                        Description: "Fixed unchecked error returns across multiple files: http.NewRequestWithContext in proxy.go, io.ReadAll in notifier.go, database query errors in stats.go, and json.Marshal in export.go and compare.go. All ignored errors now have proper handling with logging and graceful degradation.",
+                        Icon:        "fas fa-code",
+                },
                 {
                         Version:     ver262525,
                         Date:        dateFeb23,

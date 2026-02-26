@@ -21,8 +21,8 @@ const (
         mimeJSON          = "application/json"
 
 
-	mapKeyDomain = "domain"
-	mapKeyNotificationId = "notification_id"
+        mapKeyDomain = "domain"
+        mapKeyNotificationId = "notification_id"
 )
 
 type NotifierDB interface {
@@ -193,7 +193,10 @@ func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotific
         defer resp.Body.Close()
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-                respBody, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                if readErr != nil {
+                        slog.Warn("Failed to read Discord error response body", "error", readErr)
+                }
                 return resp.StatusCode, fmt.Errorf("Discord returned %d: %s", resp.StatusCode, string(respBody))
         }
         return resp.StatusCode, nil
@@ -233,7 +236,10 @@ func (n *Notifier) sendGenericWebhook(ctx context.Context, notif dbq.ListPending
         defer resp.Body.Close()
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-                respBody, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                if readErr != nil {
+                        slog.Warn("Failed to read webhook error response body", "error", readErr)
+                }
                 return resp.StatusCode, fmt.Errorf("webhook returned %d: %s", resp.StatusCode, string(respBody))
         }
         return resp.StatusCode, nil
@@ -275,7 +281,10 @@ func (n *Notifier) SendTestDiscord(ctx context.Context, webhookURL string) error
         defer resp.Body.Close()
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-                respBody, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
+                if readErr != nil {
+                        slog.Warn("Failed to read test Discord error response body", "error", readErr)
+                }
                 return fmt.Errorf("Discord returned %d: %s", resp.StatusCode, string(respBody))
         }
         return nil

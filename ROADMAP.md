@@ -1,6 +1,6 @@
 # DNS Tool — Roadmap
 
-> Last updated: February 25, 2026
+> Last updated: February 26, 2026
 
 ---
 
@@ -34,6 +34,14 @@
 | TTL Tuner (Beta) | v26.25.86–88 | Feb 2026 |
 | Six-Agent Security & Performance Audit | v26.25.88 | Feb 2026 |
 | TLD NS Count Bug Fix + Executive TLD Gating | v26.25.90 | Feb 2026 |
+| CSRF Form Fix (TTL Tuner & Watchlist) | v26.26.41 | Feb 2026 |
+| TTL Tuner UX Overhaul (Loading, Auto-Scroll, Profile Selection) | v26.26.42–43 | Feb 2026 |
+| DNS Provider Detection Expansion (5→15 Providers) | v26.26.44 | Feb 2026 |
+| NS Provider-Locked Display + Rate Limit Redirect Fix | v26.26.44 | Feb 2026 |
+| HTTP Observatory A+ Infrastructure (Secure Cookies, Full Header Suite) | v26.27.01 | Feb 2026 |
+| Mobile Homepage Scroll Fix + Navbar Dropdown Refinement | v26.27.01 | Feb 2026 |
+| TTL Tuner Mobile Responsive Table | v26.27.02 | Feb 2026 |
+| SonarCloud Quality Gate Fixes (Unchecked Error Returns) | v26.27.02 | Feb 2026 |
 
 ---
 
@@ -78,7 +86,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.25.27 as of February 23, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.27.02 as of February 26, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
@@ -111,8 +119,8 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: February 25, 2026  
-**Next Review**: Post-v26.26.0 release or every two weeks  
+**Last Updated**: February 26, 2026  
+**Next Review**: Post-v26.28.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
 When marking items as complete:

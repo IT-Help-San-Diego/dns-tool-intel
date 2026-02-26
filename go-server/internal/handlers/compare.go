@@ -20,9 +20,9 @@ const (
         templateCompareSelect = "compare_select.html"
 
 
-	mapKeyCompare = "compare"
-	strDomain = "Domain"
-	strFlashmessages = "FlashMessages"
+        mapKeyCompare = "compare"
+        strDomain = "Domain"
+        strFlashmessages = "FlashMessages"
 )
 
 type CompareHandler struct {
@@ -41,7 +41,10 @@ func formatDiffValue(v interface{}) string {
         if s, ok := v.(string); ok {
                 return s
         }
-        b, _ := json.Marshal(v)
+        b, err := json.Marshal(v)
+        if err != nil {
+                return fmt.Sprintf("%v", v)
+        }
         return string(b)
 }
 
@@ -80,7 +83,7 @@ func renderCompareError(c *gin.Context, p compareErrorParams) {
         data := gin.H{
                 strAppversion:      p.handler.Config.AppVersion,
                 strMaintenancenote: p.handler.Config.MaintenanceNote,
-		strBetapages:      p.handler.Config.BetaPages,
+                strBetapages:      p.handler.Config.BetaPages,
                 strCspnonce:      p.nonce,
                 strCsrftoken:     p.csrfToken,
                 strActivepage:    mapKeyCompare,
@@ -177,7 +180,7 @@ func (h *CompareHandler) Compare(c *gin.Context) {
         data := gin.H{
                 strAppversion:      h.Config.AppVersion,
                 strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                 strCspnonce:     nonce,
                 strCsrftoken:   csrfToken,
                 strActivepage:   mapKeyCompare,
@@ -199,7 +202,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 emptyData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyCompare,
@@ -220,7 +223,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 fetchErrData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyCompare,
@@ -236,7 +239,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 noData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyCompare,
@@ -255,7 +258,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
                 fewData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyCompare,
@@ -276,7 +279,7 @@ func (h *CompareHandler) selectDomain(c *gin.Context, domain string) {
         selectData := gin.H{
                 strAppversion:      h.Config.AppVersion,
                 strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:      h.Config.BetaPages,
+                strBetapages:      h.Config.BetaPages,
                 strCspnonce:   nonce,
                 strCsrftoken:  csrfToken,
                 strActivepage: "",

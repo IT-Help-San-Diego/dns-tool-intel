@@ -146,10 +146,10 @@
                         <thead>
                             <tr class="border-info">
                                 <th scope="col">Record</th>
-                                <th scope="col">Current TTL</th>
+                                <th scope="col" class="d-none d-md-table-cell">Current TTL</th>
                                 <th scope="col">Recommended</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Impact</th>
+                                <th scope="col" class="d-none d-lg-table-cell">Impact</th>
                                 <th scope="col" class="text-end">Action</th>
                             </tr>
                         </thead>
@@ -157,7 +157,7 @@
                             {{range .Records}}
                             <tr>
                                 <td><strong class="text-info">{{.RecordType}}</strong></td>
-                                <td>
+                                <td class="d-none d-md-table-cell">
                                     {{if eq .ObservedTTL 0}}
                                     <span class="text-muted">N/A</span>
                                     {{else}}
@@ -172,7 +172,7 @@
                                     <span class="badge bg-{{.StatusClass}}">{{.Status}}</span>
                                     {{end}}
                                 </td>
-                                <td>
+                                <td class="d-none d-lg-table-cell">
                                     {{if .QueryReduction}}
                                     <span class="small">{{.QueryReduction}}</span>
                                     {{else}}
@@ -194,7 +194,7 @@
                                 </td>
                             </tr>
                             <tr class="collapse" id="fix-{{.RecordType}}">
-                                <td colspan="6" class="border-0 pt-0" style="white-space:normal;max-width:1px">
+                                <td colspan="6" class="border-0 pt-0" style="white-space:normal;word-break:break-word">
                                     <div class="u-bg-info-soft rounded p-3 mt-1 mb-2">
                                         <p class="mb-2 small">{{.Recommendation}}</p>
                                         {{if .PropagationNote}}

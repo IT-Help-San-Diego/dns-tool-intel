@@ -61,7 +61,10 @@ func (h *ExportHandler) ExportJSON(c *gin.Context) {
                                 "full_results":     fullResults,
                         }
 
-                        line, _ := json.Marshal(record)
+                        line, err := json.Marshal(record)
+                        if err != nil {
+                                continue
+                        }
                         c.Writer.Write(line)
                         c.Writer.Write([]byte("\n"))
                 }

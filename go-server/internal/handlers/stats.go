@@ -3,6 +3,7 @@
 package handlers
 
 import (
+        "log/slog"
         "net/http"
         "strings"
 
@@ -43,16 +44,31 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 return
         }
 
-        storedCount, _ := h.DB.Queries.CountAllAnalyses(ctx)
-        uniqueDomains, _ := h.DB.Queries.CountUniqueDomainsTotal(ctx)
+        storedCount, err := h.DB.Queries.CountAllAnalyses(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count analyses", mapKeyError, err)
+        }
+        uniqueDomains, err := h.DB.Queries.CountUniqueDomainsTotal(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count unique domains", mapKeyError, err)
+        }
 
-        aggregateStats, _ := h.DB.Queries.SumAnalysisStats(ctx)
+        aggregateStats, err := h.DB.Queries.SumAnalysisStats(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to sum analysis stats", mapKeyError, err)
+        }
         failedFromStats := aggregateStats.Failed
         totalAnalyses := storedCount + failedFromStats
         successfulAnalyses := storedCount
 
-        popularDomains, _ := h.DB.Queries.ListPopularDomains(ctx, 10)
-        countryStats, _ := h.DB.Queries.ListCountryDistribution(ctx, 20)
+        popularDomains, err := h.DB.Queries.ListPopularDomains(ctx, 10)
+        if err != nil {
+                slog.Warn("Stats: failed to list popular domains", mapKeyError, err)
+        }
+        countryStats, err := h.DB.Queries.ListCountryDistribution(ctx, 20)
+        if err != nil {
+                slog.Warn("Stats: failed to list country distribution", mapKeyError, err)
+        }
 
         maxRecentStats := 7
         if len(recentStats) < maxRecentStats {
