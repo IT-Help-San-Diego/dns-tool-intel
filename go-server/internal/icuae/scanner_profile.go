@@ -22,9 +22,11 @@ import (
 const severityHigh = "high"
 
 const (
-        mapKeyMedium = "medium"
-        mapKeyTimeout = "timeout"
-        severityLow = "low"
+        mapKeyMedium       = "medium"
+        mapKeyTimeout      = "timeout"
+        severityLow        = "low"
+        paramTimeoutSecs   = "timeout_seconds"
+        paramRetryCount    = "retry_count"
 )
 
 type ScannerProfile struct {
@@ -165,7 +167,7 @@ func applySuggestedProfile(suggested *ScannerProfile, current ScannerProfile, st
 
 func applyRetryCount(suggested *ScannerProfile, retrySugs []ProfileSuggestion, agreement float64) {
         for _, s := range retrySugs {
-                if s.Parameter != "retry_count" {
+                if s.Parameter != paramRetryCount {
                         continue
                 }
                 switch {
@@ -223,7 +225,7 @@ func suggestRetryChanges(stats RollingStats, current ScannerProfile) []ProfileSu
 
                 if suggestedRetries > current.RetryCount {
                         suggestions = append(suggestions, ProfileSuggestion{
-                                Parameter: "retry_count",
+                                Parameter: paramRetryCount,
                                 Current:   fmt.Sprintf("%d retries", current.RetryCount),
                                 Suggested: fmt.Sprintf("%d retries", suggestedRetries),
                                 Rationale: fmt.Sprintf("Record lookup error rate is %.1f%% across %d scans. "+
@@ -244,7 +246,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
 
         if stats.AvgScanDuration > 30000 && current.TimeoutSeconds < 8 {
                 suggestions = append(suggestions, ProfileSuggestion{
-                        Parameter: "timeout_seconds",
+                        Parameter: paramTimeoutSecs,
                         Current:   fmt.Sprintf("%ds", current.TimeoutSeconds),
                         Suggested: "8s",
                         Rationale: fmt.Sprintf("Average scan duration is %.1fs, suggesting DNS responses are slow for this domain. "+
@@ -256,7 +258,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
                 })
         } else if stats.AvgScanDuration < 5000 && current.TimeoutSeconds > 5 {
                 suggestions = append(suggestions, ProfileSuggestion{
-                        Parameter: "timeout_seconds",
+                        Parameter: paramTimeoutSecs,
                         Current:   fmt.Sprintf("%ds", current.TimeoutSeconds),
                         Suggested: "5s",
                         Rationale: fmt.Sprintf("Average scan duration is %.1fs, well within normal range. "+

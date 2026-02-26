@@ -1523,6 +1523,10 @@
         updateCovertButton(btn, seconds);
     }
 
+    function handleCovertReanalyzeResponse(resp) {
+        return resp.text().then(function(html) { handleReconPage(html, resp.url); });
+    }
+
     function submitCovertReanalyze(btn) {
         const domain = btn.dataset.domain;
         const overlay = document.getElementById('loadingOverlay');
@@ -1547,7 +1551,7 @@
             headers: { 'X-Requested-With': 'fetch' },
             redirect: 'follow'
         }).then(function(resp) {
-            return resp.text().then(function(html) { handleReconPage(html, resp.url); });
+            return handleCovertReanalyzeResponse(resp);
         }).catch(function() {
             globalThis.location.href = url;
         });

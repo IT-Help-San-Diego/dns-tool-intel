@@ -44,9 +44,10 @@ const (
         providerNamecheap  = "Namecheap"
 
 
-	mapKeyWarning = "warning"
-	refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22 = "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2"
-	refRfc191222 = "RFC 1912 §2.2"
+        mapKeyWarning = "warning"
+        severityInfo  = "info"
+        refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22 = "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2"
+        refRfc191222 = "RFC 1912 §2.2"
 )
 
 var providerProfiles = map[string]ProviderProfile{
@@ -231,8 +232,8 @@ func (f SOAComplianceFinding) SeverityClass() string {
         switch f.Severity {
         case mapKeyWarning:
                 return mapKeyWarning
-        case "info":
-                return "info"
+        case severityInfo:
+                return severityInfo
         default:
                 return "danger"
         }
@@ -293,7 +294,7 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
                         RFCRange:    "1,200–43,200s (20 min – 12 hours)",
                         RFC:         refRfc191222,
                         RFCLink:     refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22,
-                        Severity:    "info",
+                        Severity:    severityInfo,
                         Explanation: fmt.Sprintf("SOA Refresh is %s, below the RFC 1912 recommended minimum of 1,200 seconds.", formatTTLDuration(refresh)),
                 })
         }

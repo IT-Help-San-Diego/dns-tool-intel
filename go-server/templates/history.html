@@ -456,9 +456,12 @@
         const msg=document.getElementById('historyTimeoutMsg');
         if(msg)msg.classList.remove('d-none');
     }
+    function handleHistoryFetchResponse(resp){
+        return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
+    }
     function fetchHistoryReanalyze(href){
         fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
-            return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
+            return handleHistoryFetchResponse(resp);
         }).catch(function(){globalThis.location.href=href;});
     }
     document.addEventListener('DOMContentLoaded',function(){

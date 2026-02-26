@@ -14,6 +14,7 @@ const (
         jsonKeyValue    = "value"
         jsonKeyHeaders  = "headers"
         jsonKeyName     = "name"
+        formatRaw       = "raw"
 )
 
 type DetectedFormat struct {
@@ -38,7 +39,7 @@ func DetectAndExtractHeaders(raw, filename string) *DetectedFormat {
         }
 
         return &DetectedFormat{
-                Format:  "raw",
+                Format:  formatRaw,
                 Headers: raw,
         }
 }
@@ -79,7 +80,7 @@ func tryExtractFromJSON(raw string) *DetectedFormat {
 
         obj := unmarshalJSONObject(raw)
         if obj == nil {
-                return &DetectedFormat{Format: "raw", Headers: raw}
+                return &DetectedFormat{Format: formatRaw, Headers: raw}
         }
 
         return matchJSONProvider(obj)
@@ -327,7 +328,7 @@ func extractMailgunHeaders(obj map[string]interface{}) string {
 }
 
 func extractGenericJSONHeaders(obj map[string]interface{}) string {
-        for _, key := range []string{jsonKeyHeaders, "Headers", "email_headers", "emailHeaders", "message_headers", "raw_headers", "rawHeaders"} {
+        for _, key := range []string{jsonKeyHeaders, "Headers", "email_headers", "emailHeaders", "message_headers", "raw_headers", formatRaw + "Headers"} {
                 val, ok := obj[key]
                 if !ok {
                         continue
@@ -338,7 +339,7 @@ func extractGenericJSONHeaders(obj map[string]interface{}) string {
                 }
         }
 
-        for _, key := range []string{"raw", "Raw"} {
+        for _, key := range []string{formatRaw, "Raw"} {
                 if raw, ok := obj[key].(string); ok && hasHeaderFields(raw) {
                         return raw
                 }

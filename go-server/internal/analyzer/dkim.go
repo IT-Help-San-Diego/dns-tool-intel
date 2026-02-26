@@ -36,6 +36,7 @@ const (
         providerSpamExperts     = "SpamExperts"
         providerZendesk         = "Zendesk"
         providerUnknown         = "Unknown"
+        providerDrip            = "Drip"
 
         selDefault     = "default._domainkey"
         selDKIM        = "dkim._domainkey"
@@ -225,7 +226,7 @@ var selectorProviderMap = map[string]string{
         selConstContact2:  providerConstantContact,
         selActiveCampaign: strActivecampaign,
         selMailerLite:     strMailerlite,
-        selDrip:           "Drip",
+        selDrip:           providerDrip,
 }
 
 var mxToDKIMProvider = map[string]string{
@@ -306,7 +307,7 @@ var primaryProviderSelectors = map[string][]string{
         providerConstantContact: {selConstContact, selConstContact2},
         strActivecampaign:        {selActiveCampaign},
         strMailerlite:            {selMailerLite},
-        "Drip":                  {selDrip},
+        providerDrip:            {selDrip},
         strFreshdesk:             {selFreshdesk},
         strEverlytic:             {selEverlytic, selEverlyticKey2},
 }
@@ -346,7 +347,7 @@ var spfAncillarySenders = map[string]string{
         "spf.constantcontact": providerConstantContact,
         "emsd1.com":         strActivecampaign,
         "spf.mailerlite":    strMailerlite,
-        "getdrip.com":       "Drip",
+        "getdrip.com":       providerDrip,
 }
 
 var ambiguousSelectors = map[string]bool{

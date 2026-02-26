@@ -368,6 +368,28 @@ function activateCovertOrSwitch() {
     setCovertMode(!document.body.classList.contains('covert-mode'));
 }
 
+function handleAnalyzeLinkClick(e) {
+    e.preventDefault();
+    const link = e.currentTarget;
+    const overlay = document.getElementById('loadingOverlay');
+    const loadingDomain = document.getElementById('loadingDomain');
+    const url = new URL(link.href, globalThis.location.origin);
+    const domain = url.searchParams.get('domain') || '';
+    if (overlay) {
+        if (loadingDomain) loadingDomain.textContent = domain;
+        showOverlay(overlay);
+        startStatusCycle(overlay);
+    }
+    document.body.classList.add('loading');
+    fetchAndApplyPage(link.href, {
+        headers: { 'X-Requested-With': 'fetch' },
+        redirect: 'follow'
+    }, overlay, null).catch(function() {
+        hideOverlayAndReset(overlay, null);
+        globalThis.location.href = link.href;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
@@ -518,26 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="/analyze?domain="]').forEach(function(link) {
         if (link.id === 'reanalyzeBtn') return;
         if (link.classList.contains('history-reanalyze-btn')) return;
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const overlay = document.getElementById('loadingOverlay');
-            const loadingDomain = document.getElementById('loadingDomain');
-            const url = new URL(link.href, globalThis.location.origin);
-            const domain = url.searchParams.get('domain') || '';
-            if (overlay) {
-                if (loadingDomain) loadingDomain.textContent = domain;
-                showOverlay(overlay);
-                startStatusCycle(overlay);
-            }
-            document.body.classList.add('loading');
-            fetchAndApplyPage(link.href, {
-                headers: { 'X-Requested-With': 'fetch' },
-                redirect: 'follow'
-            }, overlay, null).catch(function() {
-                hideOverlayAndReset(overlay, null);
-                globalThis.location.href = link.href;
-            });
-        });
+        link.addEventListener('click', handleAnalyzeLinkClick);
     });
 
     document.querySelectorAll('.alert-dismissible:not(.alert-persistent)').forEach(function(alert) {

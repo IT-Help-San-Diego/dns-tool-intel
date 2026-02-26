@@ -5944,6 +5944,12 @@
         }
     }
 
+    function triggerDelayedPrint() {
+        requestAnimationFrame(function() {
+            setTimeout(function() { globalThis.print(); }, 600);
+        });
+    }
+
     function setupCollapseKeyboardHandlers() {
         for (const el of document.querySelectorAll('[role="button"][data-bs-toggle="collapse"]')) {
             el.addEventListener('keydown', function(e) {
@@ -6042,6 +6048,10 @@
         tbody.appendChild(collapseRow);
     }
 
+    function handleReanalyzeResponse(resp) {
+        return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
+    }
+
     function submitReanalyzeFetch(btn) {
         const domain = btn.dataset.domain;
         const overlay = document.getElementById('loadingOverlay');
@@ -6066,7 +6076,7 @@
             headers: { 'X-Requested-With': 'fetch' },
             redirect: 'follow'
         }).then(function(resp) {
-            return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
+            return handleReanalyzeResponse(resp);
         }).catch(function() {
             globalThis.location.href = url;
         });
@@ -6089,9 +6099,7 @@
             const params = new URLSearchParams(globalThis.location.search);
             if (params.has('print')) {
                 history.replaceState(null, '', globalThis.location.pathname + globalThis.location.hash);
-                requestAnimationFrame(function() {
-                    setTimeout(function() { globalThis.print(); }, 600);
-                });
+                triggerDelayedPrint();
             }
 
             const histForm = document.getElementById('dns-history-form');

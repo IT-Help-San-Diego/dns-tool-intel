@@ -26,6 +26,7 @@ const (
         authResultNone      = "none"
         catSPF              = "SPF"
         catDKIM             = "DKIM"
+        spamTriggerYes      = "yes"
 )
 
 type EmailHeaderAnalysis struct {
@@ -1170,9 +1171,9 @@ func detectHeaderIntelligence(headers []headerField, result *EmailHeaderAnalysis
 
 func detectSpamFlags(headers []headerField, result *EmailHeaderAnalysis) {
         spamHeaders := map[string]string{
-                "x-spam-flag":      "yes",
+                "x-spam-flag":      spamTriggerYes,
                 "x-suspected-spam": "true",
-                "x-spam-status":    "yes",
+                "x-spam-status":    spamTriggerYes,
                 "x-clx-spam":       "true",
         }
         for headerName, triggerVal := range spamHeaders {
@@ -1196,7 +1197,7 @@ func detectSpamFlags(headers []headerField, result *EmailHeaderAnalysis) {
         }
 
         barracudaStatus := extractHeader(headers, "x-barracuda-spam-status")
-        if strings.EqualFold(strings.TrimSpace(barracudaStatus), "yes") {
+        if strings.EqualFold(strings.TrimSpace(barracudaStatus), spamTriggerYes) {
                 result.SpamFlagged = true
                 result.SpamFlagSources = append(result.SpamFlagSources, "X-Barracuda-Spam-Status: "+barracudaStatus)
         }

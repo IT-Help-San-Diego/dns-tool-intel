@@ -71,6 +71,7 @@ const (
         catBrand         = "Brand"
         catOrigins       = "Origins"
         catCore          = "Core"
+        catUX            = "UX"
 )
 
 type ChangelogEntry struct {
@@ -105,7 +106,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262525,
                         Date:        dateFeb23,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "Currency Level Hero Card Label",
                         Description: "Added \"Currency Level:\" label to the homepage ICAE hero card, paralleling the existing \"Confidence Level:\" label. This surfaces ICuAE's data timeliness assessment alongside ICAE's correctness assessment, completing the dual-engine confidence display at the first point of user contact.",
                         Icon:        "fas fa-clock",
@@ -129,7 +130,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262225,
                         Date:        dateFeb21,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "Covert Mode Recon Report UI",
                         Description: "Fixed Recon Report buttons in Covert Mode to use proper red-themed styling consistent with the tactical red-light aesthetic. Buttons now use the covert accent palette instead of default blue, maintaining the adversarial perspective throughout the report view.",
                         Icon:        "fas fa-user-secret",
@@ -153,7 +154,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262225,
                         Date:        dateFeb21,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "ASCII Art Homepage Hero",
                         Description: "Desktop homepage hero title rendered as a Unicode block-character ASCII art banner for visual impact. Responsive design with automatic mobile text fallback below 768px width. The art uses CSS monospace rendering with careful line-height tuning for consistent cross-browser display.",
                         Icon:        "fas fa-terminal",
@@ -201,7 +202,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     ver262076,
                         Date:        dateFeb19,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "UNLIKELY Badge Color Unification",
                         Description: "Unified the UNLIKELY verdict color to green/success across both email spoofing and brand impersonation assessments. Email spoofing with DMARC quarantine at 100% now shows success (green) instead of warning (amber). Brand impersonation with quarantine + BIMI + CAA also uses success (green). Consistent visual language: UNLIKELY = green across all verdict types.",
                         Icon:        "fas fa-palette",
@@ -241,7 +242,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.20.74",
                         Date:        dateFeb19,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "History Table Cleanup",
                         Description: "Removed the redundant status column from the analysis history table. Failed analyses are already excluded from history (they appear in statistics only). The green checkmark column was wasting horizontal space without adding information.",
                         Icon:        "fas fa-list",
@@ -361,7 +362,7 @@ func GetChangelog() []ChangelogEntry {
                 {
                         Version:     "26.15.24",
                         Date:        dateFeb15,
-                        Category:    "UX",
+                        Category:    catUX,
                         Title:       "Email Header Analyzer Homepage Promotion",
                         Description: "Added a promotional banner for the Email Header Analyzer on the homepage, matching the IP Investigate card style. Makes the feature more discoverable for users landing on the main page.",
                         Icon:        "fas fa-envelope",

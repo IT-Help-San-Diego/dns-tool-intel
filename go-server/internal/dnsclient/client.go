@@ -56,6 +56,7 @@ const (
         mapKeyError         = "error"
         mapKeyDomain        = "domain"
         mapKeyResolver      = "resolver"
+        dnsTypeTXT          = "TXT"
 )
 
 type ConsensusResult struct {
@@ -172,7 +173,7 @@ func dnsTypeFromString(recordType string) (uint16, error) {
                 return dns.TypeAAAA, nil
         case "MX":
                 return dns.TypeMX, nil
-        case "TXT":
+        case dnsTypeTXT:
                 return dns.TypeTXT, nil
         case "NS":
                 return dns.TypeNS, nil
@@ -446,7 +447,7 @@ func findConsensus(resolverResults map[string][]string) (records []string, allSa
 }
 
 func (c *Client) ValidateResolverConsensus(ctx context.Context, domain string) map[string]any {
-        criticalTypes := []string{"A", "MX", "NS", "TXT"}
+        criticalTypes := []string{"A", "MX", "NS", dnsTypeTXT}
         result := map[string]any{
                 "consensus_reached":    true,
                 "resolvers_queried":    len(c.resolvers),
@@ -709,7 +710,7 @@ func parseDohResponse(body []byte, recordType string) RecordWithTTL {
                 if rd == "" {
                         continue
                 }
-                if strings.ToUpper(recordType) == "TXT" {
+                if strings.ToUpper(recordType) == dnsTypeTXT {
                         rd = strings.Trim(rd, "\"")
                 }
                 if !seen[rd] {

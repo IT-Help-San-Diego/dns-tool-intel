@@ -13,11 +13,11 @@ import (
         "github.com/jackc/pgx/v5/pgtype"
 )
 
-type ICAEMaturitySource interface {
+type MaturitySource interface {
         ICAEGetAllMaturity(ctx context.Context) ([]dbq.ICAEGetAllMaturityRow, error)
 }
 
-func LoadReportMetrics(ctx context.Context, queries ICAEMaturitySource) *ReportMetrics {
+func LoadReportMetrics(ctx context.Context, queries MaturitySource) *ReportMetrics {
         rows, err := queries.ICAEGetAllMaturity(ctx)
         if err != nil {
                 slog.Warn("ICAE: failed to load maturity data", "error", err)

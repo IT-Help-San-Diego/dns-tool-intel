@@ -12,7 +12,10 @@ import (
         "time"
 )
 
-const headerUserAgent = "User-Agent"
+const (
+        headerUserAgent = "User-Agent"
+        httpMethodGet   = "GET"
+)
 
 type SafeHTTPClient struct {
         client    *http.Client
@@ -110,7 +113,7 @@ func (s *SafeHTTPClient) GetDirect(ctx context.Context, rawURL string) (*http.Re
                 }
         }
 
-        req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
+        req, err := http.NewRequestWithContext(ctx, httpMethodGet, rawURL, nil)
         if err != nil {
                 return nil, err
         }
@@ -125,7 +128,7 @@ func (s *SafeHTTPClient) Get(ctx context.Context, rawURL string) (*http.Response
                 return nil, fmt.Errorf("SSRF protection: URL target resolves to private/reserved IP")
         }
 
-        req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
+        req, err := http.NewRequestWithContext(ctx, httpMethodGet, rawURL, nil)
         if err != nil {
                 return nil, err
         }
@@ -139,7 +142,7 @@ func (s *SafeHTTPClient) GetWithHeaders(ctx context.Context, rawURL string, head
                 return nil, fmt.Errorf("SSRF protection: URL target resolves to private/reserved IP range")
         }
 
-        req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
+        req, err := http.NewRequestWithContext(ctx, httpMethodGet, rawURL, nil)
         if err != nil {
                 return nil, err
         }

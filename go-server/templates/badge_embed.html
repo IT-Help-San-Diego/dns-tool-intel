@@ -129,6 +129,26 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
+    function onCopyFieldSuccess(btnId) {
+        const btn = document.getElementById(btnId);
+        const icon = btn.querySelector('i');
+        icon.className = 'fas fa-check';
+        setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
+    }
+
+    function handleCopyFieldClick(btnId, fieldId) {
+        const el = document.getElementById(fieldId);
+        navigator.clipboard.writeText(el.value).then(function() {
+            onCopyFieldSuccess(btnId);
+        });
+    }
+
+    function copyField(btnId, fieldId) {
+        document.getElementById(btnId).addEventListener('click', function() {
+            handleCopyFieldClick(btnId, fieldId);
+        });
+    }
+
     (function() {
         const baseURL = '{{.BaseURL}}';
         const domain = document.getElementById('badgeDomain');
@@ -170,21 +190,6 @@
             document.getElementById('embedShieldsMarkdown').value = '[![DNS Tool Security](' + shieldsURL + ')](' + reportURL + ')';
         });
 
-        function onCopyFieldSuccess(btnId) {
-            const btn = document.getElementById(btnId);
-            const icon = btn.querySelector('i');
-            icon.className = 'fas fa-check';
-            setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
-        }
-
-        function copyField(btnId, fieldId) {
-            document.getElementById(btnId).addEventListener('click', function() {
-                const el = document.getElementById(fieldId);
-                navigator.clipboard.writeText(el.value).then(function() {
-                    onCopyFieldSuccess(btnId);
-                });
-            });
-        }
         copyField('copyHTML', 'embedHTML');
         copyField('copyMarkdown', 'embedMarkdown');
         copyField('copyURL', 'embedURL');

@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	mapKeyAsName = "as_name"
-	mapKeyCountry = "country"
+        mapKeyAsName  = "as_name"
+        mapKeyCountry = "country"
+        mapKeyASN     = "asn"
 )
 
 type ASNInfo struct {
@@ -89,7 +90,7 @@ func (a *Analyzer) lookupIPv4ASN(ctx context.Context, ip string) map[string]any 
         }
 
         query := fmt.Sprintf("%s.origin.asn.cymru.com", reversed)
-        records := a.DNS.QueryDNS(ctx, "TXT", query)
+        records := a.DNS.QueryDNS(ctx, dnsTypeTXT, query)
 
         info := map[string]any{
                 "ip":         ip,
@@ -113,7 +114,7 @@ func (a *Analyzer) lookupIPv6ASN(ctx context.Context, ip string) map[string]any 
         }
 
         query := fmt.Sprintf("%s.origin6.asn.cymru.com", reversed)
-        records := a.DNS.QueryDNS(ctx, "TXT", query)
+        records := a.DNS.QueryDNS(ctx, dnsTypeTXT, query)
 
         info := map[string]any{
                 "ip":         ip,
@@ -136,7 +137,7 @@ func parseTeamCymruResponse(info map[string]any, record string) {
         if len(parts) < 3 {
                 return
         }
-        info["asn"] = strings.TrimSpace(parts[0])
+        info[mapKeyASN] = strings.TrimSpace(parts[0])
         info["prefix"] = strings.TrimSpace(parts[1])
         info[mapKeyCountry] = strings.TrimSpace(parts[2])
 }
@@ -189,12 +190,12 @@ var wellKnownASNames = map[string]string{
 }
 
 func enrichASName(ctx context.Context, a *Analyzer, info map[string]any) {
-        asn, _ := info["asn"].(string)
+        asn, _ := info[mapKeyASN].(string)
         if asn == "" {
                 return
         }
         query := fmt.Sprintf("AS%s.peer.asn.cymru.com", asn)
-        records := a.DNS.QueryDNS(ctx, "TXT", query)
+        records := a.DNS.QueryDNS(ctx, dnsTypeTXT, query)
         if len(records) > 0 {
                 record := strings.Trim(records[0], "\"")
                 parts := strings.Split(record, "|")
@@ -213,13 +214,13 @@ func enrichASName(ctx context.Context, a *Analyzer, info map[string]any) {
 }
 
 func mergeASNSet(set map[string]map[string]any, info map[string]any) {
-        asn, _ := info["asn"].(string)
+        asn, _ := info[mapKeyASN].(string)
         if asn == "" {
                 return
         }
         if _, exists := set[asn]; !exists {
                 set[asn] = map[string]any{
-                        "asn":     asn,
+                        mapKeyASN: asn,
                         mapKeyAsName: info[mapKeyAsName],
                         mapKeyCountry: info[mapKeyCountry],
                 }
