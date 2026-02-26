@@ -574,15 +574,15 @@ func dsKeyAlignmentToMap(val DSKeyAlignment) map[string]any {
         unmatchedDS := make([]map[string]any, 0, len(val.UnmatchedDS))
         for _, d := range val.UnmatchedDS {
                 unmatchedDS = append(unmatchedDS, map[string]any{
-                        "key_tag": d.KeyTag, "algorithm": d.Algorithm,
-                        "digest_type": d.DigestType, "raw": d.Raw,
+                        mapKeyKeyTag: d.KeyTag, mapKeyAlgorithm: d.Algorithm,
+                        "digest_type": d.DigestType, mapKeyRaw: d.Raw,
                 })
         }
         unmatchedKeys := make([]map[string]any, 0, len(val.UnmatchedKeys))
         for _, k := range val.UnmatchedKeys {
                 unmatchedKeys = append(unmatchedKeys, map[string]any{
-                        "flags": k.Flags, "algorithm": k.Algorithm,
-                        "key_tag": k.KeyTag, "is_ksk": k.IsKSK, "raw": k.Raw,
+                        "flags": k.Flags, mapKeyAlgorithm: k.Algorithm,
+                        mapKeyKeyTag: k.KeyTag, "is_ksk": k.IsKSK, mapKeyRaw: k.Raw,
                 })
         }
         return map[string]any{
@@ -600,7 +600,7 @@ func glueStatusToMap(ns GlueStatus) map[string]any {
                 "in_bailiwick":  ns.InBailiwick,
                 "has_ipv4_glue": ns.HasIPv4Glue,
                 "has_ipv6_glue": ns.HasIPv6Glue,
-                "complete":      ns.Complete,
+                mapKeyComplete:      ns.Complete,
         }
         if len(ns.IPv4Addrs) > 0 {
                 entry["ipv4_addrs"] = ns.IPv4Addrs
@@ -617,7 +617,7 @@ func glueAnalysisToMap(val GlueAnalysis) map[string]any {
                 nameservers = append(nameservers, glueStatusToMap(ns))
         }
         return map[string]any{
-                "complete":           val.Complete,
+                mapKeyComplete:           val.Complete,
                 "in_bailiwick_count": val.InBailiwickCount,
                 "glue_present":      val.GluePresent,
                 "glue_missing":      val.GlueMissing,

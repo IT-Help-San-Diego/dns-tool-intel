@@ -430,10 +430,10 @@
         return el?el.textContent.trim():'';
     }
     function disableAllActions(){
-        document.querySelectorAll('.history-view-btn,.history-reanalyze-btn').forEach(function(b){
+        for(const b of document.querySelectorAll('.history-view-btn,.history-reanalyze-btn')){
             b.classList.add('disabled');
             b.ariaDisabled = 'true';
-        });
+        }
     }
     function isCovertActive(){
         return document.body.classList.contains('covert-mode');
@@ -462,7 +462,7 @@
         }).catch(function(){globalThis.location.href=href;});
     }
     document.addEventListener('DOMContentLoaded',function(){
-        document.querySelectorAll('.history-view-btn').forEach(function(btn){
+        for(const btn of document.querySelectorAll('.history-view-btn')){
             btn.addEventListener('click',function(e){
                 e.preventDefault();
                 const name=getDomain(btn);
@@ -474,8 +474,8 @@
                 btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
                 globalThis.location.href=covertUrl(btn.href);
             });
-        });
-        document.querySelectorAll('.history-reanalyze-btn').forEach(function(btn){
+        }
+        for(const btn of document.querySelectorAll('.history-reanalyze-btn')){
             btn.addEventListener('click',function(e){
                 e.preventDefault();
                 const name=getDomain(btn);
@@ -491,7 +491,7 @@
                 btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
                 fetchHistoryReanalyze(covertUrl(btn.href));
             });
-        });
+        }
     });
     </script>
 </body>

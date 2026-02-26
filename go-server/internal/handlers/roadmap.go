@@ -15,12 +15,13 @@ const (
         roadmapVersionV2620   = "v26.20.0+"
         roadmapTypeFeature    = "Feature"
 
-
-	strMedium = "Medium"
-	strQuality = "Quality"
-	strV262594 = "v26.25.94"
-	strV262602 = "v26.26.02"
-	strV262605 = "v26.26.05"
+        priorityLow  = "Low"
+        priorityHigh = "High"
+        strMedium = "Medium"
+        strQuality = "Quality"
+        strV262594 = "v26.25.94"
+        strV262602 = "v26.26.02"
+        strV262605 = "v26.26.05"
 )
 
 type RoadmapItem struct {
@@ -103,14 +104,14 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
 
         inProgress := []RoadmapItem{
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Glass treatment, question branding, and token system across all report modes"},
-                {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: "Low", Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
+                {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
         }
 
         nextUp := []RoadmapItem{
-                {Title: "DoH/DoT Detection", Type: roadmapTypeFeature, Priority: "High", Notes: "Test whether domains support DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) — encrypted transport posture analysis"},
-                {Title: "Distributed Probe Mesh (Good Net Citizens)", Type: roadmapTypeFeature, Priority: "High", Notes: "Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues"},
-                {Title: "API Access (Programmatic Analysis)", Type: roadmapTypeFeature, Priority: "High", Notes: "Programmatic analysis for automation workflows with rate limiting, authentication, versioning"},
-                {Title: "CLI App (Homebrew/Binary)", Type: roadmapTypeFeature, Priority: "High", Notes: "Terminal application for macOS/Linux — works without login for basic analysis"},
+                {Title: "DoH/DoT Detection", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Test whether domains support DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) — encrypted transport posture analysis"},
+                {Title: "Distributed Probe Mesh (Good Net Citizens)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues"},
+                {Title: "API Access (Programmatic Analysis)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Programmatic analysis for automation workflows with rate limiting, authentication, versioning"},
+                {Title: "CLI App (Homebrew/Binary)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Terminal application for macOS/Linux — works without login for basic analysis"},
         }
 
         backlog := []RoadmapItem{
@@ -120,10 +121,10 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Drift Engine Phases 3–4", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Timeline visualization and scheduled monitoring with baselines"},
                 {Title: "Probe Security.txt + Landing Pages", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Transparency artifacts for probe VPS nodes"},
                 {Title: "Homebrew Distribution", Type: roadmapTypeFeature, Priority: strMedium, Notes: "macOS/Linux package distribution for CLI app"},
-                {Title: "Globalping.io Integration", Type: roadmapTypeFeature, Priority: "Low", Notes: "Distributed DNS resolution from 100+ global locations"},
-                {Title: "Zone File Import as Drift Baseline", Type: roadmapTypeFeature, Priority: "Low", Notes: "Upload zone files to establish posture baseline for drift detection"},
-                {Title: "Raw Intelligence API Access", Type: roadmapTypeFeature, Priority: "Low", Notes: "Direct access to collected intelligence without processing layers"},
-                {Title: "ISC Recommendation Path Integration", Type: roadmapTypeFeature, Priority: "Low", Notes: "Integration with ISC remediation/hardening recommendations"},
+                {Title: "Globalping.io Integration", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Distributed DNS resolution from 100+ global locations"},
+                {Title: "Zone File Import as Drift Baseline", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Upload zone files to establish posture baseline for drift detection"},
+                {Title: "Raw Intelligence API Access", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Direct access to collected intelligence without processing layers"},
+                {Title: "ISC Recommendation Path Integration", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Integration with ISC remediation/hardening recommendations"},
         }
 
         data := gin.H{

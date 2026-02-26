@@ -26,6 +26,7 @@ const (
         strPossible = "Possible"
         strProtected = "Protected"
         strSecure = "Secure"
+        answerYes = "Yes"
 )
 
 type PaginationInfo struct {
@@ -161,7 +162,7 @@ func normalizeEmailAnswer(verdicts map[string]interface{}) {
                 switch {
                 case answer == "No" || answer == "Unlikely":
                         color = mapKeySuccess
-                case answer == "Yes" || answer == "Likely":
+                case answer == answerYes || answer == "Likely":
                         color = "danger"
                 case answer == "Partially" || answer == "Uncertain":
                         color = mapKeyWarning
@@ -176,23 +177,23 @@ func normalizeVerdictAnswers(verdicts map[string]interface{}) {
         answerMap := map[string]map[string]string{
                 "dns_tampering": {
                         strProtected:      "No",
-                        "Exposed":        "Yes",
+                        "Exposed":        answerYes,
                         "Not Configured": strPossible,
                 },
                 "brand_impersonation": {
                         strProtected:          "No",
-                        "Exposed":            "Yes",
+                        "Exposed":            answerYes,
                         "Mostly Protected":   strPossible,
                         "Partially Protected": strPossible,
                         "Basic":              "Likely",
                 },
                 "certificate_control": {
-                        "Configured":     "Yes",
+                        "Configured":     answerYes,
                         "Not Configured": "No",
                 },
                 "transport": {
-                        "Fully Protected": "Yes",
-                        strProtected:       "Yes",
+                        "Fully Protected": answerYes,
+                        strProtected:       answerYes,
                         "Monitoring":      "Partially",
                         "Not Enforced":    "No",
                 },
@@ -230,10 +231,10 @@ func normalizeLLMsTxtVerdict(llmsTxt map[string]interface{}) map[string]interfac
         found, _ := llmsTxt["found"].(bool)
         fullFound, _ := llmsTxt["full_found"].(bool)
         if found && fullFound {
-                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
+                return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
         }
         if found {
-                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt published — AI models receive structured context about this domain"}
+                return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt published — AI models receive structured context about this domain"}
         }
         return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeySecondary, mapKeyReason: "No llms.txt file detected — AI models have no structured instructions for this domain"}
 }
@@ -242,7 +243,7 @@ func normalizeRobotsTxtVerdict(robotsTxt map[string]interface{}) map[string]inte
         found, _ := robotsTxt["found"].(bool)
         blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
         if found && blocksAI {
-                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: mapKeySuccess, mapKeyReason: "robots.txt actively blocks AI crawlers from scraping site content"}
+                return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: mapKeySuccess, mapKeyReason: "robots.txt actively blocks AI crawlers from scraping site content"}
         }
         if found {
                 return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeyWarning, mapKeyReason: "robots.txt present but does not block AI crawlers — content may be freely scraped"}
@@ -253,7 +254,7 @@ func normalizeRobotsTxtVerdict(robotsTxt map[string]interface{}) map[string]inte
 func normalizeCountVerdict(section map[string]interface{}, countKey, yesReason, noReason string) map[string]interface{} {
         count := getNumValue(section, countKey)
         if count > 0 {
-                return map[string]interface{}{mapKeyAnswer: "Yes", mapKeyColor: "danger", mapKeyReason: fmt.Sprintf("%.0f %s", count, yesReason)}
+                return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: "danger", mapKeyReason: fmt.Sprintf("%.0f %s", count, yesReason)}
         }
         return map[string]interface{}{mapKeyAnswer: "No", mapKeyColor: mapKeySuccess, mapKeyReason: noReason}
 }

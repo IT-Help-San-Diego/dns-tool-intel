@@ -14,7 +14,13 @@ import (
 )
 
 const (
-	mapKeyPartial = "partial"
+        mapKeyPartial    = "partial"
+        mapKeyFlags      = "flags"
+        mapKeyHasCDS     = "has_cds"
+        mapKeyHasCDNSKEY = "has_cdnskey"
+        mapKeyKeyTag     = "key_tag"
+        mapKeyRaw        = "raw"
+        mapKeyComplete   = "complete"
 )
 
 type DNSSECKeyInfo struct {
@@ -407,8 +413,8 @@ func (a *Analyzer) AnalyzeDNSSECOps(ctx context.Context, domain string) map[stri
         nsec3Records := a.queryNSEC3Typed(ctx, domain)
 
         cdsResult := a.AnalyzeCDSCDNSKEY(ctx, domain)
-        hasCDS, _ := cdsResult["has_cds"].(bool)
-        hasCDNSKEY, _ := cdsResult["has_cdnskey"].(bool)
+        hasCDS, _ := cdsResult[mapKeyHasCDS].(bool)
+        hasCDNSKEY, _ := cdsResult[mapKeyHasCDNSKEY].(bool)
 
         now := time.Now().UTC()
 
@@ -440,7 +446,7 @@ func (a *Analyzer) AnalyzeDNSSECOps(ctx context.Context, domain string) map[stri
                 "signatures":          sigMaps,
                 "denial_of_existence": doeMaps,
                 "rollover_readiness":  rolloverMap,
-                "issues":              issues,
+                mapKeyIssues:              issues,
                 "ksk_algorithms":      kskAlgs,
                 "zsk_algorithms":      zskAlgs,
                 "key_count":           len(keys),
@@ -452,10 +458,10 @@ func dnssecKeysToMaps(keys []DNSSECKeyInfo) []map[string]any {
         result := make([]map[string]any, len(keys))
         for i, k := range keys {
                 result[i] = map[string]any{
-                        "flags":          k.Flags,
+                        mapKeyFlags:      k.Flags,
                         "protocol":       k.Protocol,
-                        "algorithm":      k.Algorithm,
-                        "key_tag":        k.KeyTag,
+                        mapKeyAlgorithm:      k.Algorithm,
+                        mapKeyKeyTag:        k.KeyTag,
                         "key_role":       k.KeyRole,
                         "algorithm_name": k.AlgName,
                         "key_size":       k.KeySize,
@@ -469,14 +475,14 @@ func rrsigInfosToMaps(sigs []RRSIGInfo) []map[string]any {
         for i, s := range sigs {
                 result[i] = map[string]any{
                         "type_covered": s.TypeCovered,
-                        "algorithm":    s.Algorithm,
+                        mapKeyAlgorithm:    s.Algorithm,
                         "labels":       s.Labels,
                         "ttl":          s.OriginalTTL,
                         "expiration":   s.Expiration.Format(time.RFC3339),
                         "inception":    s.Inception.Format(time.RFC3339),
-                        "key_tag":      s.KeyTag,
+                        mapKeyKeyTag:      s.KeyTag,
                         "signer":       s.SignerName,
-                        "expired":      s.Expired,
+                        mapKeyExpired:  s.Expired,
                         "expiring_soon": s.ExpiringSoon,
                         "time_to_expiry": s.TimeToExpiry.String(),
                 }
@@ -496,7 +502,7 @@ func denialToMap(d DenialOfExistence) map[string]any {
                 result["nsec3_high_iterations"] = d.NSEC3Params.HighIterations
         }
         if len(d.Issues) > 0 {
-                result["issues"] = d.Issues
+                result[mapKeyIssues] = d.Issues
         }
         return result
 }
@@ -504,8 +510,8 @@ func denialToMap(d DenialOfExistence) map[string]any {
 func rolloverToMap(r RolloverReadiness) map[string]any {
         return map[string]any{
                 "multiple_ksks": r.MultipleKSKs,
-                "has_cds":       r.HasCDS,
-                "has_cdnskey":   r.HasCDNSKEY,
+                mapKeyHasCDS:    r.HasCDS,
+                mapKeyHasCDNSKEY: r.HasCDNSKEY,
                 "automation":    r.AutomationLevel,
                 "readiness":     r.ReadinessLevel,
         }

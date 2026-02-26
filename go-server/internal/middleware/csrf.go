@@ -79,7 +79,7 @@ func (m *CSRFMiddleware) Handler() gin.HandlerFunc {
         return func(c *gin.Context) {
                 if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
                         token := m.ensureToken(c)
-                        c.Set("csrf_token", token)
+                        c.Set(csrfFormField, token)
                         c.Next()
                         return
                 }
@@ -111,7 +111,7 @@ func (m *CSRFMiddleware) Handler() gin.HandlerFunc {
                         return
                 }
 
-                c.Set("csrf_token", token)
+                c.Set(csrfFormField, token)
                 c.Next()
         }
 }
@@ -141,9 +141,9 @@ func (m *CSRFMiddleware) ensureToken(c *gin.Context) string {
 }
 
 func (m *CSRFMiddleware) rejectCSRF(c *gin.Context, reason string) {
-        traceID, _ := c.Get("trace_id")
+        traceID, _ := c.Get(ginKeyTraceID)
         slog.Warn("CSRF validation failed",
-                "trace_id", traceID,
+                ginKeyTraceID, traceID,
                 "reason", reason,
                 "method", c.Request.Method,
                 "path", c.Request.URL.Path,
@@ -163,7 +163,7 @@ func (m *CSRFMiddleware) rejectCSRF(c *gin.Context, reason string) {
 }
 
 func GetCSRFToken(c *gin.Context) string {
-        token, exists := c.Get("csrf_token")
+        token, exists := c.Get(csrfFormField)
         if !exists {
                 return ""
         }

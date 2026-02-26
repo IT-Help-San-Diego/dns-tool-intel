@@ -17,7 +17,11 @@ import (
 )
 
 const (
-	strCname = "CNAME"
+        strCname  = "CNAME"
+        rtAAAATuner = "AAAA"
+        rtTXTTuner  = "TXT"
+        rtCAATuner  = "CAA"
+        rtSOATuner  = "SOA"
 )
 
 const tplTTLTuner = "ttl_tuner.html"
@@ -75,7 +79,7 @@ type TTLTunerResult struct {
 }
 
 var tunerRecordTypes = []string{
-        "A", "AAAA", "MX", "TXT", "NS", strCname, "CAA", "SOA",
+        "A", rtAAAATuner, "MX", rtTXTTuner, "NS", strCname, rtCAATuner, rtSOATuner,
 }
 
 func (h *TTLTunerHandler) AnalyzeTTL(c *gin.Context) {
@@ -124,7 +128,7 @@ func cleanDomainInput(domain string) string {
         return strings.Split(domain, "/")[0]
 }
 
-var tunerRecordOrder = map[string]int{"A": 0, "AAAA": 1, strCname: 2, "MX": 3, "TXT": 4, "NS": 5, "CAA": 6, "SOA": 7}
+var tunerRecordOrder = map[string]int{"A": 0, rtAAAATuner: 1, strCname: 2, "MX": 3, rtTXTTuner: 4, "NS": 5, rtCAATuner: 6, rtSOATuner: 7}
 
 func (h *TTLTunerHandler) scanTTLRecords(ctx context.Context, domain, profile string) TTLTunerResult {
         nsResult := h.Analyzer.DNS.QueryDNS(ctx, "NS", domain)
@@ -177,7 +181,7 @@ func (h *TTLTunerHandler) collectTTLRecords(ctx context.Context, domain, profile
 
 func hasMigrationRecord(records []TTLRecordResult) bool {
         for _, r := range records {
-                if r.RecordType == "A" || r.RecordType == "AAAA" {
+                if r.RecordType == "A" || r.RecordType == rtAAAATuner {
                         return true
                 }
         }
@@ -201,12 +205,12 @@ func formatTotalReduction(totalOldQueries, totalNewQueries float64) string {
 
 func ttlForProfile(recordType, profile string) uint32 {
         stability := map[string]uint32{
-                "A": 3600, "AAAA": 3600, "MX": 3600, "TXT": 3600,
-                "NS": 86400, strCname: 3600, "CAA": 3600, "SOA": 3600,
+                "A": 3600, rtAAAATuner: 3600, "MX": 3600, rtTXTTuner: 3600,
+                "NS": 86400, strCname: 3600, rtCAATuner: 3600, rtSOATuner: 3600,
         }
         agility := map[string]uint32{
-                "A": 300, "AAAA": 300, "MX": 1800, "TXT": 300,
-                "NS": 3600, strCname: 300, "CAA": 3600, "SOA": 3600,
+                "A": 300, rtAAAATuner: 300, "MX": 1800, rtTXTTuner: 300,
+                "NS": 3600, strCname: 300, rtCAATuner: 3600, rtSOATuner: 3600,
         }
         if profile == "agility" {
                 if v, ok := agility[recordType]; ok {
@@ -280,7 +284,7 @@ func calculateQueryReduction(observed, typical uint32) string {
 }
 
 func buildPropagationNote(rt string, observed uint32) string {
-        if rt != "A" && rt != "AAAA" {
+        if rt != "A" && rt != rtAAAATuner {
                 return ""
         }
         if observed > 3600 {
@@ -297,7 +301,7 @@ func checkProviderLock(rt string, observed uint32, providerName string, profile 
                 return false, ""
         }
 
-        if providerName == "Cloudflare" && (rt == "A" || rt == "AAAA") && observed == profile.ProxiedTTL {
+        if providerName == "Cloudflare" && (rt == "A" || rt == rtAAAATuner) && observed == profile.ProxiedTTL {
                 return true, fmt.Sprintf(
                         "Cloudflare enforces a fixed TTL of %s for proxied (orange-cloud) records. "+
                                 "You cannot change this TTL while the record is proxied. "+
@@ -306,7 +310,7 @@ func checkProviderLock(rt string, observed uint32, providerName string, profile 
                 )
         }
 
-        if providerName == "AWS Route 53" && (rt == "A" || rt == "AAAA") && (observed == profile.AliasTTL || observed == 0) {
+        if providerName == "AWS Route 53" && (rt == "A" || rt == rtAAAATuner) && (observed == profile.AliasTTL || observed == 0) {
                 return true, fmt.Sprintf(
                         "AWS Route 53 alias records have a fixed TTL of %s when pointing to AWS resources (ELB, CloudFront, S3). "+
                                 "To set a custom TTL, use a standard A/AAAA record instead of an alias.",

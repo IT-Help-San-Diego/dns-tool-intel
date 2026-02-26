@@ -215,7 +215,7 @@
 
         const container = document.getElementById('palette-cards');
 
-        colors.forEach(function(color) {
+        for (const color of colors) {
             const rgb = parseHex(color.hex);
             const lum = relativeLuminance(rgb.r, rgb.g, rgb.b);
             const wl = color.wavelength || estimateDominantWavelength(rgb.r, rgb.g, rgb.b);
@@ -290,21 +290,21 @@
             card.appendChild(row);
             col.appendChild(card);
             container.appendChild(col);
-        });
+        }
 
         const matrixHead = document.getElementById('matrix-head');
         const matrixBody = document.getElementById('matrix-body');
 
         const headRow = el('tr');
         headRow.appendChild(el('th', 'cs-matrix-cell', 'FG \\ BG'));
-        colors.forEach(function(c) {
+        for (const c of colors) {
             const th = el('th', 'cs-matrix-header');
             th.textContent = c.hex;
             headRow.appendChild(th);
-        });
+        }
         matrixHead.appendChild(headRow);
 
-        colors.forEach(function(fg) {
+        for (const fg of colors) {
             const fgRgb = parseHex(fg.hex);
             const fgLum = relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
             const tr = el('tr');
@@ -313,7 +313,7 @@
             label.style.cssText = 'color:' + fg.hex;
             tr.appendChild(label);
 
-            colors.forEach(function(bg) {
+            for (const bg of colors) {
                 const bgRgb = parseHex(bg.hex);
                 const bgLum = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
                 const cr = contrastRatio(fgLum, bgLum);
@@ -340,10 +340,10 @@
                 }
 
                 tr.appendChild(td);
-            });
+            }
 
             matrixBody.appendChild(tr);
-        });
+        }
     })();
     </script>
 </body>

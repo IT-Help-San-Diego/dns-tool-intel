@@ -20,6 +20,11 @@ type contextKey string
 const (
         CSPNonceKey contextKey = "csp_nonce"
         TraceIDKey  contextKey = "trace_id"
+
+        ginKeyCSPNonce    = "csp_nonce"
+        ginKeyTraceID     = "trace_id"
+        ginKeyRequestStart = "request_start"
+        ginKeyCSRFToken   = "csrf_token"
 )
 
 func generateNonce() string {
@@ -35,9 +40,9 @@ func RequestContext() gin.HandlerFunc {
                 traceID := uuid.New().String()[:8]
                 start := time.Now()
 
-                c.Set("csp_nonce", nonce)
-                c.Set("trace_id", traceID)
-                c.Set("request_start", start)
+                c.Set(ginKeyCSPNonce, nonce)
+                c.Set(ginKeyTraceID, traceID)
+                c.Set(ginKeyRequestStart, start)
 
                 ctx := context.WithValue(c.Request.Context(), CSPNonceKey, nonce)
                 ctx = context.WithValue(ctx, TraceIDKey, traceID)
@@ -47,7 +52,7 @@ func RequestContext() gin.HandlerFunc {
 
                 duration := time.Since(start)
                 slog.Info("Request completed",
-                        "trace_id", traceID,
+                        ginKeyTraceID, traceID,
                         "method", c.Request.Method,
                         "path", c.Request.URL.Path,
                         "status", c.Writer.Status(),
@@ -58,7 +63,7 @@ func RequestContext() gin.HandlerFunc {
 
 func SecurityHeaders() gin.HandlerFunc {
         return func(c *gin.Context) {
-                nonce, _ := c.Get("csp_nonce")
+                nonce, _ := c.Get(ginKeyCSPNonce)
                 nonceStr, _ := nonce.(string)
 
                 c.Header("X-Content-Type-Options", "nosniff")
@@ -103,14 +108,14 @@ func Recovery(appVersion string) gin.HandlerFunc {
         return func(c *gin.Context) {
                 defer func() {
                         if err := recover(); err != nil {
-                                traceID, _ := c.Get("trace_id")
+                                traceID, _ := c.Get(ginKeyTraceID)
                                 slog.Error("Panic recovered",
-                                        "trace_id", traceID,
+                                        ginKeyTraceID, traceID,
                                         "error", fmt.Sprintf("%v", err),
                                         "path", c.Request.URL.Path,
                                 )
-                                nonce, _ := c.Get("csp_nonce")
-                                csrfToken, _ := c.Get("csrf_token")
+                                nonce, _ := c.Get(ginKeyCSPNonce)
+                                csrfToken, _ := c.Get(ginKeyCSRFToken)
                                 type flashMsg struct {
                                         Category string
                                         Message  string

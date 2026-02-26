@@ -450,7 +450,7 @@
         const toast = document.getElementById('copyToast');
         let toastTimeout;
 
-        values.forEach(function(el) {
+        for (const el of values) {
             el.addEventListener('click', function() {
                 const text = el.dataset.copy;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -468,7 +468,7 @@
                     showToast('Copied ' + text);
                 }
             });
-        });
+        }
 
         function showToast(msg) {
             toast.textContent = msg;

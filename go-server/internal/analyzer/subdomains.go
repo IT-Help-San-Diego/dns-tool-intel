@@ -24,6 +24,8 @@ const (
         mapKeyIsCurrent = "is_current"
         mapKeyIssuers = "issuers"
         mapKeyUniqueSubdomains = "unique_subdomains"
+        mapKeyName = "name"
+        mapKeyDns  = "dns"
 )
 
 type ctEntry struct {
@@ -58,7 +60,7 @@ var commonSubdomainProbes = []string{
         "demo", "sandbox", "beta", "alpha", "preview", "uat", "qa", "preprod", "pre",
         "cdn", "cdn1", "cdn2", "cdn3", "static", "static1", "static2",
         "assets", "media", "img", "images", "image", "photos", "video", "videos",
-        "ns", "ns1", "ns2", "ns3", "ns4", "ns5", "ns6", "dns", "dns1", "dns2",
+        "ns", "ns1", "ns2", "ns3", "ns4", "ns5", "ns6", mapKeyDns, "dns1", "dns2",
         "cloud", "host", "hosting", "vps", "dedicated",
         "db", "db1", "db2", "database", "sql", "mysql", "postgres", "mongo", "mongodb",
         "monitor", "monitoring", mapKeyStatus, "uptime", "health", "healthcheck",
@@ -501,7 +503,7 @@ func sortSubdomainsSmartOrder(subdomains []map[string]any) []map[string]any {
         }
 
         sort.Slice(current, func(i, j int) bool {
-                return current[i]["name"].(string) < current[j]["name"].(string)
+                return current[i][mapKeyName].(string) < current[j][mapKeyName].(string)
         })
 
         sort.Slice(historical, func(i, j int) bool {
@@ -722,7 +724,7 @@ func buildCASummary(entries []ctEntry) []map[string]any {
         for _, name := range caOrder[:maxCAs] {
                 s := caMap[name]
                 entry := map[string]any{
-                        "name":       s.name,
+                        mapKeyName:       s.name,
                         mapKeyCertCount: s.certCount,
                         mapKeyFirstSeen: s.firstSeen.Format(dateFormatISO),
                         "last_seen":  s.lastSeen.Format(dateFormatISO),
@@ -776,7 +778,7 @@ func processSingleCTEntry(entry ctEntry, domain string, now time.Time, subdomain
                         mergeCTSubdomain(existing, isCurrent, issuer)
                 } else {
                         subdomainSet[name] = map[string]any{
-                                "name":       name,
+                                mapKeyName:       name,
                                 mapKeySource:     "ct",
                                 mapKeyIsCurrent: isCurrent,
                                 mapKeyCertCount: "1",
@@ -812,7 +814,7 @@ func enrichDNSWithCTData(ctEntries []ctEntry, domain string, subdomainSet map[st
         now := time.Now()
         for name, entry := range subdomainSet {
                 src, _ := entry[mapKeySource].(string)
-                if src != "dns" {
+                if src != mapKeyDns {
                         continue
                 }
                 enrichSingleDNSEntry(name, entry, ctEntries, now)
@@ -913,8 +915,8 @@ func (a *Analyzer) probeCommonSubdomains(ctx context.Context, domain string, sub
                         }
 
                         entry := map[string]any{
-                                "name":       name,
-                                mapKeySource:     "dns",
+                                mapKeyName:       name,
+                                mapKeySource:     mapKeyDns,
                                 mapKeyIsCurrent: true,
                                 mapKeyCertCount: "—",
                                 mapKeyFirstSeen: "—",
@@ -957,9 +959,9 @@ func (a *Analyzer) enrichSubdomainsV2(ctx context.Context, baseDomain string, su
                         defer func() { <-sem }()
 
                         sd := subdomains[idx]
-                        name := sd["name"].(string)
+                        name := sd[mapKeyName].(string)
 
-                        if sd[mapKeySource] == "dns" {
+                        if sd[mapKeySource] == mapKeyDns {
                                 return
                         }
 

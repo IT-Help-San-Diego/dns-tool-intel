@@ -1470,9 +1470,9 @@
     }
 
     function setupCopyCommandButtons() {
-        document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
+        for (const btn of document.querySelectorAll('.copy-cmd-btn')) {
             btn.addEventListener('click', function() { handleCopyCmd(btn); });
-        });
+        }
     }
 
     function handleReconPage(html, respUrl) {
@@ -1558,11 +1558,11 @@
             setupCopyCommandButtons();
             setupIntegrityHashCopy();
 
-            document.querySelectorAll('.u-covert-exit-btn').forEach(function(link) {
+            for (const link of document.querySelectorAll('.u-covert-exit-btn')) {
                 link.addEventListener('click', function() {
                     try { localStorage.setItem('covertMode', '0'); } catch(error_) { /* intentional */ }
                 });
-            });
+            }
             const engBtn = document.querySelector('.results-header-actions a[href*="/view"]');
             if (engBtn) {
                 engBtn.addEventListener('click', function() {
@@ -1577,16 +1577,14 @@
 
             const tooltipInstances = [];
             const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function(el) {
-                const t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
-                tooltipInstances.push(t);
-                return t;
-            });
+            for (const el of tooltipTriggerList) {
+                tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+            }
             let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
                 scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
-                tooltipInstances.forEach(function(t) { t.hide(); });
+                for (const t of tooltipInstances) { t.hide(); }
             }, { passive: true });
 
             const reanalyzeBtn = document.getElementById('reanalyzeBtn');

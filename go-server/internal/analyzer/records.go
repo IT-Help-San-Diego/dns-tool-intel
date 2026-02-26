@@ -8,6 +8,11 @@ import (
         "sync"
 )
 
+const (
+        rtSRV     = "SRV"
+        mapKeyTTL = "_ttl"
+)
+
 type BasicRecords struct {
         A     []string            `json:"A"`
         AAAA  []string            `json:"AAAA"`
@@ -38,7 +43,7 @@ func (a *Analyzer) GetBasicRecords(ctx context.Context, domain string) map[strin
         for _, t := range recordTypes {
                 records[t] = []string{}
         }
-        records["SRV"] = []string{}
+        records[rtSRV] = []string{}
         ttls := make(map[string]uint32)
 
         var mu sync.Mutex
@@ -62,21 +67,21 @@ func (a *Analyzer) GetBasicRecords(ctx context.Context, domain string) map[strin
                 wg.Add(1)
                 go func(p string) {
                         defer wg.Done()
-                        srvResults := a.DNS.QueryDNS(ctx, "SRV", fmt.Sprintf("%s.%s", p, domain))
+                        srvResults := a.DNS.QueryDNS(ctx, rtSRV, fmt.Sprintf("%s.%s", p, domain))
                         if len(srvResults) > 0 {
                                 mu.Lock()
-                                existing := records["SRV"].([]string)
+                                existing := records[rtSRV].([]string)
                                 for _, rec := range srvResults {
                                         existing = append(existing, fmt.Sprintf("%s: %s", p, rec))
                                 }
-                                records["SRV"] = existing
+                                records[rtSRV] = existing
                                 mu.Unlock()
                         }
                 }(prefix)
         }
 
         wg.Wait()
-        records["_ttl"] = ttls
+        records[mapKeyTTL] = ttls
         return records
 }
 
@@ -108,7 +113,7 @@ func initAuthResults(recordTypes []string, emailSubdomains map[string]string) ma
                 results[key] = []string{}
         }
         results["_query_status"] = map[string]string{}
-        results["_ttl"] = map[string]uint32{}
+        results[mapKeyTTL] = map[string]uint32{}
         return results
 }
 
@@ -155,7 +160,7 @@ func (a *Analyzer) queryAuthRecords(ctx context.Context, domain, resolverIP stri
                                 results[rtype] = r.Records
                         }
                         if r.TTL != nil {
-                                ttls := results["_ttl"].(map[string]uint32)
+                                ttls := results[mapKeyTTL].(map[string]uint32)
                                 ttls[rtype] = *r.TTL
                         }
                         mu.Unlock()

@@ -5889,9 +5889,9 @@
     }
 
     function setupCopyCommandButtons() {
-        document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
+        for (const btn of document.querySelectorAll('.copy-cmd-btn')) {
             btn.addEventListener('click', function() { handleCopyCmd(btn); });
-        });
+        }
     }
 
     function handleFetchedPage(html, respUrl) {
@@ -5945,14 +5945,14 @@
     }
 
     function setupCollapseKeyboardHandlers() {
-        document.querySelectorAll('[role="button"][data-bs-toggle="collapse"]').forEach(function(el) {
+        for (const el of document.querySelectorAll('[role="button"][data-bs-toggle="collapse"]')) {
             el.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     this.click();
                 }
             });
-        });
+        }
     }
 
     function updateReanalyzeButton(btn, seconds) {
@@ -6112,7 +6112,7 @@
                 'BIMI': '#section-brand', 'CAA': '#section-brand',
                 'DNSSEC': '#section-dnssec'
             };
-            document.querySelectorAll('.protocol-link').forEach(function(el) {
+            for (const el of document.querySelectorAll('.protocol-link')) {
                 const proto = el.dataset.protocol;
                 const cleaned = proto.replace(/\([^)]*\)/, '').trim();
                 const target = protocolSectionMap[cleaned];
@@ -6123,7 +6123,7 @@
                         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     });
                 }
-            });
+            }
 
             const tlpConfig = {
                 red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',

@@ -441,14 +441,14 @@
             });
         }
 
-        document.querySelectorAll('.dossier-view-btn').forEach(function(btn){
+        for(const btn of document.querySelectorAll('.dossier-view-btn')){
             btn.addEventListener('click', function(e){
                 const overlay = document.getElementById('dossierViewOverlay');
                 if(overlay) overlay.classList.add('active');
             });
-        });
+        }
 
-        document.querySelectorAll('.dossier-reanalyze-btn').forEach(function(btn){
+        for(const btn of document.querySelectorAll('.dossier-reanalyze-btn')){
             btn.addEventListener('click', function(e){
                 e.preventDefault();
                 const domain = btn.href.split('domain=')[1] || '';
@@ -462,7 +462,7 @@
 
                 submitDossierReanalyze(btn.href, overlay);
             });
-        });
+        }
     })();
     </script>
 </body>

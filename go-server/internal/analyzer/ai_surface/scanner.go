@@ -28,8 +28,15 @@ const (
         mapKeySuccess = "success"
         mapKeyWarning = "warning"
         strObserved = "Observed"
-        mapKeyUrl = "url"
-        mapKeyRaw = "raw"
+        mapKeyUrl           = "url"
+        mapKeyRaw           = "raw"
+        mapKeyLLMSTxt       = "llms_txt"
+        mapKeyRobotsTxt     = "robots_txt"
+        mapKeyPoisoning     = "poisoning"
+        mapKeyHiddenPrompts = "hidden_prompts"
+        mapKeyHttp          = "http"
+        mapKeyType          = "type"
+        mapKeyInfo          = "info"
 )
 
 var hiddenPatternRegexes = []struct {
@@ -82,10 +89,10 @@ func (s *Scanner) Scan(ctx context.Context, domain string) map[string]any {
         hiddenResult := s.checkHiddenPrompts(ctx, domain, &evidence)
 
         results := map[string]any{
-                "llms_txt":       llmsResult,
-                "robots_txt":     robotsResult,
-                "poisoning":      poisoningResult,
-                "hidden_prompts": hiddenResult,
+                mapKeyLLMSTxt:       llmsResult,
+                mapKeyRobotsTxt:     robotsResult,
+                mapKeyPoisoning:      poisoningResult,
+                mapKeyHiddenPrompts: hiddenResult,
                 mapKeyEvidence:       convertEvidenceSlice(evidence),
         }
 
@@ -704,10 +711,10 @@ func convertEvidenceToMaps(result map[string]any) {
 }
 
 func buildSummary(results map[string]any, evidence []Evidence) map[string]any {
-        llms := results["llms_txt"].(map[string]any)
-        robots := results["robots_txt"].(map[string]any)
-        poisoning := results["poisoning"].(map[string]any)
-        hidden := results["hidden_prompts"].(map[string]any)
+        llms := results[mapKeyLLMSTxt].(map[string]any)
+        robots := results[mapKeyRobotsTxt].(map[string]any)
+        poisoning := results[mapKeyPoisoning].(map[string]any)
+        hidden := results[mapKeyHiddenPrompts].(map[string]any)
 
         hasLLMS, _ := llms[mapKeyFound].(bool)
         blocksAI, _ := robots[mapKeyBlocksAiCrawlers].(bool)

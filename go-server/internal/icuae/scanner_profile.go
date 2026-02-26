@@ -19,6 +19,8 @@ import (
         "sort"
 )
 
+const severityHigh = "high"
+
 const (
         mapKeyMedium = "medium"
         mapKeyTimeout = "timeout"
@@ -53,7 +55,7 @@ type ProfileSuggestion struct {
 
 func (s ProfileSuggestion) SeverityClass() string {
         switch s.Severity {
-        case "high":
+        case severityHigh:
                 return "danger"
         case mapKeyMedium:
                 return "warning"
@@ -99,7 +101,7 @@ func (sc SuggestedConfig) HasSuggestions() bool {
 
 func (sc SuggestedConfig) ConfidenceClass() string {
         switch sc.Confidence {
-        case "high":
+        case severityHigh:
                 return "success"
         case mapKeyMedium:
                 return "info"
@@ -137,7 +139,7 @@ func GenerateSuggestedConfig(stats RollingStats, current ScannerProfile) Suggest
 
         confidence := mapKeyMedium
         if stats.ScanCount >= 10 {
-                confidence = "high"
+                confidence = severityHigh
         }
 
         return SuggestedConfig{
@@ -339,7 +341,7 @@ func BuildRollingStats(reports []CurrencyReport, scanDurations []float64) Rollin
 
 func resolverSeverity(agreement float64) string {
         if agreement < 50 {
-                return "high"
+                return severityHigh
         }
         return mapKeyMedium
 }

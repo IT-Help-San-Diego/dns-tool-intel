@@ -140,7 +140,7 @@ func mxExtractionCases() []TestCase {
                 {
                         CaseID:     "mx-collection-001",
                         CaseName:   "MX host extraction strips priority prefix",
-                        Protocol:   "dane",
+                        Protocol:   protocolDANE,
                         Layer:      LayerCollection,
                         RFCSection: "RFC 5321 §5",
                         Expected:   "2 hosts extracted",
@@ -153,7 +153,7 @@ func mxExtractionCases() []TestCase {
                 {
                         CaseID:     "mx-collection-002",
                         CaseName:   "Null MX (priority 0, dot) returns empty",
-                        Protocol:   "dane",
+                        Protocol:   protocolDANE,
                         Layer:      LayerCollection,
                         RFCSection: "RFC 7505",
                         Expected:   "0 hosts (null MX)",
@@ -166,7 +166,7 @@ func mxExtractionCases() []TestCase {
                 {
                         CaseID:     "mx-collection-003",
                         CaseName:   "Empty MX input returns empty slice",
-                        Protocol:   "dane",
+                        Protocol:   protocolDANE,
                         Layer:      LayerCollection,
                         RFCSection: "RFC 5321 §5",
                         Expected:   "0 hosts",
@@ -314,7 +314,7 @@ func recordParsingCases() []TestCase {
                 {
                         CaseID:     "tlsa-collection-001",
                         CaseName:   "TLSA entry parsing extracts usage and selector fields",
-                        Protocol:   "dane",
+                        Protocol:   protocolDANE,
                         Layer:      LayerCollection,
                         RFCSection: "RFC 6698 §2.1",
                         Expected:   "valid TLSA with usage_name",

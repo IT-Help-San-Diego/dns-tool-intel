@@ -32,17 +32,17 @@ const (
         opsFullPipeline     = "full-pipeline"
 
 
-	mapKeyAdmin = "admin"
-	mapKeyCspNonce = "csp_nonce"
-	mapKeyCsrfToken = "csrf_token"
-	mapKeyError = "error"
-	mapKeyUserId = "user_id"
-	strActivepage = "ActivePage"
-	strAppversion = "AppVersion"
-	strBetapages = "BetaPages"
-	strCspnonce = "CspNonce"
-	strCsrftoken = "CsrfToken"
-	strMaintenancenote = "MaintenanceNote"
+        mapKeyAdmin = "admin"
+        mapKeyCspNonce = "csp_nonce"
+        mapKeyCsrfToken = "csrf_token"
+        mapKeyError = "error"
+        mapKeyUserId = "user_id"
+        strActivepage = "ActivePage"
+        strAppversion = "AppVersion"
+        strBetapages = "BetaPages"
+        strCspnonce = "CspNonce"
+        strCsrftoken = "CsrfToken"
+        strMaintenancenote = "MaintenanceNote"
 )
 
 type AdminHandler struct {
@@ -383,6 +383,11 @@ func (h *AdminHandler) PurgeExpiredSessions(c *gin.Context) {
         c.Redirect(http.StatusSeeOther, "/ops")
 }
 
+const (
+        cmdNode    = "node"
+        mapKeyTask = "task"
+)
+
 type opsTask struct {
         ID      string
         Label   string
@@ -396,21 +401,21 @@ var opsWhitelist = map[string]opsTask{
                 ID:      opsCSSCohesion,
                 Label:   "CSS Cohesion Audit",
                 Icon:    "fa-palette",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/audit-css-cohesion.js"},
         },
         opsFeatureInventory: {
                 ID:      opsFeatureInventory,
                 Label:   "Feature Inventory",
                 Icon:    "fa-boxes-stacked",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/feature-inventory.js"},
         },
         opsScientificColors: {
                 ID:      opsScientificColors,
                 Label:   "Scientific Color Validation",
                 Icon:    "fa-flask",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/validate-scientific-colors.js"},
         },
         opsRenderDiagrams: {
@@ -424,28 +429,28 @@ var opsWhitelist = map[string]opsTask{
                 ID:      opsFigmaBundle,
                 Label:   "Figma Asset Bundle",
                 Icon:    "fa-box-archive",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/figma-asset-bundle.mjs"},
         },
         opsFigmaVerify: {
                 ID:      opsFigmaVerify,
                 Label:   "Figma Verification",
                 Icon:    "fa-magnifying-glass-chart",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/figma-verify.mjs"},
         },
         opsMiroSync: {
                 ID:      opsMiroSync,
                 Label:   "Sync Diagrams to Miro",
                 Icon:    "fa-arrow-up-from-bracket",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/sync-mermaid-miro.mjs"},
         },
         opsFullPipeline: {
                 ID:      opsFullPipeline,
                 Label:   "Full Pipeline Sync",
                 Icon:    "fa-rotate",
-                Command: "node",
+                Command: cmdNode,
                 Args:    []string{"scripts/sync-pipeline.mjs"},
         },
 }
@@ -454,12 +459,12 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
         taskID := c.Param("task")
         task, ok := opsWhitelist[taskID]
         if !ok {
-                slog.Warn("Admin: unknown operation requested", "task", taskID)
+                slog.Warn("Admin: unknown operation requested", mapKeyTask, taskID)
                 c.String(http.StatusBadRequest, "Unknown operation")
                 return
         }
 
-        slog.Info("Admin: running operation", "task", task.ID, "command", task.Command, "args", task.Args)
+        slog.Info("Admin: running operation", mapKeyTask, task.ID, "command", task.Command, "args", task.Args)
 
         ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
         defer cancel()
@@ -484,9 +489,9 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
         }
 
         if !success {
-                slog.Warn("Admin: operation failed", "task", task.ID, mapKeyError, err, "stderr", errOutput)
+                slog.Warn("Admin: operation failed", mapKeyTask, task.ID, mapKeyError, err, "stderr", errOutput)
         } else {
-                slog.Info("Admin: operation completed", "task", task.ID)
+                slog.Info("Admin: operation completed", mapKeyTask, task.ID)
         }
 
         nonce, _ := c.Get(mapKeyCspNonce)

@@ -18,37 +18,47 @@ import (
 )
 
 const (
-        mapKeyAgreement = "agreement"
-        mapKeyAllTls = "all_tls"
+        mapKeyAgreement         = "agreement"
+        mapKeyAllTls            = "all_tls"
         mapKeyCertDaysRemaining = "cert_days_remaining"
-        mapKeyCertIssuer = "cert_issuer"
-        mapKeyCertValid = "cert_valid"
-        mapKeyEnforced = "enforced"
-        mapKeyMonitored = "monitored"
-        mapKeyNoTls = "no_tls"
-        mapKeyObservations = "observations"
-        mapKeyObserved = "observed"
-        mapKeyOpportunistic = "opportunistic"
-        mapKeyPartialTls = "partial_tls"
-        mapKeyPresent = "present"
-        mapKeyProbeCount = "probe_count"
-        mapKeyProbeElapsed = "probe_elapsed"
-        mapKeyProbeHost = "probe_host"
-        mapKeyProbeMethod = "probe_method"
-        mapKeyProbeVerdict = "probe_verdict"
-        mapKeyReachable = "reachable"
-        mapKeyRemote = "remote"
-        mapKeyServers = "servers"
-        mapKeySignals = "signals"
-        mapKeySkipped = "skipped"
-        mapKeyStarttls = "starttls"
+        mapKeyCertExpiry        = "cert_expiry"
+        mapKeyCertIssuer        = "cert_issuer"
+        mapKeyCertSubject       = "cert_subject"
+        mapKeyCertValid         = "cert_valid"
+        mapKeyCipher            = "cipher"
+        mapKeyCipherBits        = "cipher_bits"
+        mapKeyDane              = "dane"
+        mapKeyEnforced          = "enforced"
+        mapKeyExpiringSoon      = "expiring_soon"
+        mapKeyMode              = "mode"
+        mapKeyMonitored         = "monitored"
+        mapKeyNoTls             = "no_tls"
+        mapKeyObservations      = "observations"
+        mapKeyObserved          = "observed"
+        mapKeyOpportunistic     = "opportunistic"
+        mapKeyPartialTls        = "partial_tls"
+        mapKeyPresent           = "present"
+        mapKeyProbeCount        = "probe_count"
+        mapKeyProbeElapsed      = "probe_elapsed"
+        mapKeyProbeHost         = "probe_host"
+        mapKeyProbeMethod       = "probe_method"
+        mapKeyProbeVerdict      = "probe_verdict"
+        mapKeyReachable         = "reachable"
+        mapKeyRemote            = "remote"
+        mapKeyServers           = "servers"
+        mapKeySignals           = "signals"
+        mapKeySkipped           = "skipped"
+        mapKeyStarttls          = "starttls"
         mapKeyStarttlsSupported = "starttls_supported"
-        mapKeySummary = "summary"
-        mapKeyTlsVersion = "tls_version"
-        mapKeyMode = "mode"
-        mapKeyDane = "dane"
-        mapKeyTlsrptConfigured = "tlsrpt_configured"
-        mapKeyVerdict = "verdict"
+        mapKeySummary           = "summary"
+        mapKeyTlsVersion        = "tls_version"
+        mapKeyTlsrptConfigured  = "tlsrpt_configured"
+        mapKeyTls12             = "tls_1_2"
+        mapKeyTls13             = "tls_1_3"
+        mapKeyTotalServers      = "total_servers"
+        mapKeyValidCerts        = "valid_certs"
+        mapKeyVerdict           = "verdict"
+        mapKeyVersion           = "version"
 )
 
 type smtpServerResult struct {
@@ -97,7 +107,7 @@ func (a *Analyzer) AnalyzeSMTPTransport(ctx context.Context, domain string, mxRe
 
 func buildMailTransportResult(a *Analyzer, ctx context.Context, domain string, mxHosts []string, ai AnalysisInputs) map[string]any {
         result := map[string]any{
-                "version": 2,
+                mapKeyVersion: 2,
         }
 
         policy := buildPolicyAssessment(a, ctx, domain, mxHosts, ai)
@@ -489,7 +499,7 @@ func runRemoteProbe(ctx context.Context, apiURL, apiKey string, mxHosts []string
 
         slog.Info("Remote SMTP probe completed",
                 mapKeyProbeHost, apiResp.ProbeHost,
-                "version", apiResp.Version,
+                mapKeyVersion, apiResp.Version,
                 mapKeyServers, len(apiResp.Servers),
                 "all_ports", len(apiResp.AllPorts),
                 mapKeyReachable, summary.Reachable,
@@ -793,13 +803,13 @@ func backfillLegacyFields(result map[string]any, policy, probe map[string]any) {
 
 func emptyLegacySummary() map[string]any {
         return map[string]any{
-                "total_servers":      0,
-                mapKeyReachable:          0,
+                mapKeyTotalServers:      0,
+                mapKeyReachable:         0,
                 mapKeyStarttlsSupported: 0,
-                "tls_1_3":            0,
-                "tls_1_2":            0,
-                "valid_certs":        0,
-                "expiring_soon":      0,
+                mapKeyTls13:             0,
+                mapKeyTls12:             0,
+                mapKeyValidCerts:        0,
+                mapKeyExpiringSoon:      0,
         }
 }
 
@@ -880,13 +890,13 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
                 mapKeyReachable:           false,
                 mapKeyStarttls:            false,
                 mapKeyTlsVersion:         nil,
-                "cipher":              nil,
-                "cipher_bits":         nil,
+                mapKeyCipher:          nil,
+                mapKeyCipherBits:      nil,
                 mapKeyCertValid:          false,
-                "cert_expiry":         nil,
+                mapKeyCertExpiry:      nil,
                 mapKeyCertDaysRemaining: nil,
                 mapKeyCertIssuer:         nil,
-                "cert_subject":        nil,
+                mapKeyCertSubject:     nil,
                 mapKeyError:               nil,
         }
 
@@ -959,8 +969,8 @@ func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[st
 
         state := tlsConn.ConnectionState()
         result[mapKeyTlsVersion] = tlsVersionString(state.Version)
-        result["cipher"] = tls.CipherSuiteName(state.CipherSuite)
-        result["cipher_bits"] = cipherBits(state.CipherSuite)
+        result[mapKeyCipher] = tls.CipherSuiteName(state.CipherSuite)
+        result[mapKeyCipherBits] = cipherBits(state.CipherSuite)
 
         verifyCert(ctx, host, result)
 }
@@ -1002,9 +1012,9 @@ func verifyCert(ctx context.Context, host string, result map[string]any) {
         certs := verifyTLS.ConnectionState().PeerCertificates
         if len(certs) > 0 {
                 leaf := certs[0]
-                result["cert_expiry"] = leaf.NotAfter.Format("2006-01-02")
+                result[mapKeyCertExpiry] = leaf.NotAfter.Format("2006-01-02")
                 result[mapKeyCertDaysRemaining] = int(time.Until(leaf.NotAfter).Hours() / 24)
-                result["cert_subject"] = leaf.Subject.CommonName
+                result[mapKeyCertSubject] = leaf.Subject.CommonName
                 if leaf.Issuer.Organization != nil && len(leaf.Issuer.Organization) > 0 {
                         result[mapKeyCertIssuer] = leaf.Issuer.Organization[0]
                 } else {
@@ -1131,13 +1141,13 @@ func updateSummary(s *smtpSummary, sr map[string]any) {
 
 func summaryToMap(s *smtpSummary) map[string]any {
         return map[string]any{
-                "total_servers":      s.TotalServers,
-                mapKeyReachable:          s.Reachable,
+                mapKeyTotalServers:      s.TotalServers,
+                mapKeyReachable:         s.Reachable,
                 mapKeyStarttlsSupported: s.StartTLSSupport,
-                "tls_1_3":            s.TLS13,
-                "tls_1_2":            s.TLS12,
-                "valid_certs":        s.ValidCerts,
-                "expiring_soon":      s.ExpiringSoon,
+                mapKeyTls13:             s.TLS13,
+                mapKeyTls12:             s.TLS12,
+                mapKeyValidCerts:        s.ValidCerts,
+                mapKeyExpiringSoon:      s.ExpiringSoon,
         }
 }
 
