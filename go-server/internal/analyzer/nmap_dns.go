@@ -16,18 +16,20 @@ const (
         msgTestInconclusive = "Test inconclusive"
 
 
-	mapKeyFound = "found"
-	mapKeyNameserver = "nameserver"
-	mapKeyRecursion = "recursion"
-	mapKeyVulnerable = "vulnerable"
+        mapKeyFound = "found"
+        mapKeyNameserver = "nameserver"
+        mapKeyRecursion = "recursion"
+        mapKeyVulnerable = "vulnerable"
+        mapKeyOpen = "open"
+        mapKeyNsid = "nsid"
 )
 
 func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string]any {
         result := map[string]any{
                 mapKeyStatus:           "info",
                 "zone_transfer":    map[string]any{mapKeyVulnerable: false, mapKeyMessage: msgNotTested},
-                mapKeyRecursion:        map[string]any{"open": false, mapKeyMessage: msgNotTested},
-                "nsid":             map[string]any{mapKeyFound: false, mapKeyMessage: msgNotTested},
+                mapKeyRecursion:        map[string]any{mapKeyOpen: false, mapKeyMessage: msgNotTested},
+                mapKeyNsid:             map[string]any{mapKeyFound: false, mapKeyMessage: msgNotTested},
                 "cache_snoop":      map[string]any{mapKeyVulnerable: false, mapKeyMessage: msgNotTested},
                 "nameservers":      []string{},
                 mapKeyIssues:           []string{},
@@ -72,12 +74,12 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
 
         recursionResult := a.nmapRecursion(ctx, primaryNS)
         result[mapKeyRecursion] = recursionResult
-        if recursionResult["open"] == true {
+        if recursionResult[mapKeyOpen] == true {
                 issues = append(issues, fmt.Sprintf("Open recursion detected on %s — potential DNS amplification risk", primaryNS))
         }
 
         nsidResult := a.nmapNSID(ctx, primaryNS)
-        result["nsid"] = nsidResult
+        result[mapKeyNsid] = nsidResult
 
         cacheResult := a.nmapCacheSnoop(ctx, primaryNS)
         result["cache_snoop"] = cacheResult
@@ -136,7 +138,7 @@ func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[
 
 func (a *Analyzer) nmapRecursion(ctx context.Context, ns string) map[string]any {
         result := map[string]any{
-                "open":       false,
+                mapKeyOpen:       false,
                 mapKeyMessage:    "Recursion disabled (correct configuration)",
                 mapKeyNameserver: ns,
         }
@@ -148,7 +150,7 @@ func (a *Analyzer) nmapRecursion(ctx context.Context, ns string) map[string]any 
         }
 
         if strings.Contains(strings.ToLower(output), mapKeyRecursion) && strings.Contains(strings.ToLower(output), "enabled") {
-                result["open"] = true
+                result[mapKeyOpen] = true
                 result[mapKeyMessage] = "Recursive queries enabled — authoritative servers should disable recursion to prevent DNS amplification attacks (RFC 5358)"
         }
 

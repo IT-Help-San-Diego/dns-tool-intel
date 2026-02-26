@@ -5765,7 +5765,7 @@
         <!-- Screen Footer -->
         <footer class="text-center mt-5 mb-4 text-muted small screen-only" aria-label="Site footer">
             <a href="https://www.it-help.tech" target="_blank" rel="noopener">
-                <img src="/static/images/owl-of-athena.png" alt="IT Help San Diego - Owl of Athena" width="64" height="64" loading="lazy" decoding="async" class="mb-2 u-rounded-circle">
+                <picture><source srcset="/static/images/owl-of-athena.webp" type="image/webp"><img src="/static/images/owl-of-athena.png" alt="IT Help San Diego - Owl of Athena" width="64" height="64" loading="lazy" decoding="async" class="mb-2 u-rounded-circle"></picture>
             </a>
             <p class="mb-1">Report reflects evaluated DNS security posture at time of generation.</p>
             <p class="mb-1">Made by <a href="https://www.it-help.tech/blog/dns-security-best-practices/" target="_blank" rel="noopener" class="text-info">IT Help San Diego Inc.</a></p>
@@ -5879,16 +5879,18 @@
         el.innerHTML = '<i class="fas fa-check"></i>';
         setTimeout(function() { resetCopyIcon(el); }, 1500);
     }
+    function handleCopyCmd(btn) {
+        const cmd = btn.dataset.cmd;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(cmd).then(function() {
+                onCopySuccess(btn);
+            }).catch(function() { /* clipboard write failed — ignored */ });
+        }
+    }
+
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const cmd = this.dataset.cmd;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(cmd).then(function() {
-                        onCopySuccess(btn);
-                    }).catch(function() { /* clipboard write failed — ignored */ });
-                }
-            });
+            btn.addEventListener('click', function() { handleCopyCmd(btn); });
         });
     }
 
@@ -5950,6 +5952,123 @@
                     this.click();
                 }
             });
+        });
+    }
+
+    function updateReanalyzeButton(btn, seconds) {
+        if (seconds <= 0) {
+            btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Re-analyze';
+            btn.classList.remove('disabled', 'btn-secondary');
+            btn.classList.add('btn-analyze');
+        } else {
+            btn.innerHTML = '<i class="fas fa-clock me-2"></i>Ready in ' + seconds + 's';
+            setTimeout(function() { updateReanalyzeButton(btn, seconds - 1); }, 1000);
+        }
+    }
+
+    function startReanalyzeCountdown(btn, seconds) {
+        btn.classList.add('disabled');
+        btn.classList.remove('btn-analyze');
+        btn.classList.add('btn-secondary');
+        updateReanalyzeButton(btn, seconds);
+    }
+
+    function expandSubdomains(tbody, expandRow, collapseRow) {
+        const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
+        for (const hiddenRow of hiddenRows) {
+            hiddenRow.style.display = '';
+        }
+        expandRow.style.display = 'none';
+        if (!collapseRow.parentNode) {
+            tbody.appendChild(collapseRow);
+        }
+        collapseRow.style.display = '';
+    }
+
+    function collapseSubdomains(tbody, expandRow, collapseRow) {
+        const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
+        for (const hiddenRow of hiddenRows) {
+            hiddenRow.style.display = 'none';
+        }
+        collapseRow.style.display = 'none';
+        expandRow.style.display = '';
+        const table = document.getElementById('subdomainTable');
+        if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function setupSubdomainCollapse() {
+        const tbody = document.getElementById('subdomainTbody');
+        if (!tbody) return;
+        const rows = tbody.querySelectorAll('tr');
+        const total = rows.length;
+        const VISIBLE = 20;
+        if (total <= VISIBLE) return;
+        const hidden = total - VISIBLE;
+        for (const row of Array.from(rows).slice(VISIBLE)) {
+            row.style.display = 'none';
+            row.classList.add('subdomain-collapsed-row');
+        }
+        const expandRow = document.createElement('tr');
+        expandRow.id = 'subdomainExpandRow';
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.className = 'text-center py-3 border-secondary';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-info btn-sm';
+        btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Show All ' + total + ' Subdomains <span class="text-muted ms-1">(' + hidden + ' more)</span>';
+        const collapseRow = document.createElement('tr');
+        collapseRow.id = 'subdomainCollapseRow';
+        collapseRow.style.display = 'none';
+        btn.addEventListener('click', function() {
+            expandSubdomains(tbody, expandRow, collapseRow);
+        });
+        td.appendChild(btn);
+        expandRow.appendChild(td);
+        const refRow = rows[VISIBLE];
+        refRow.before(expandRow);
+        const collapseTd = document.createElement('td');
+        collapseTd.colSpan = 7;
+        collapseTd.className = 'text-center py-3 border-secondary';
+        const collapseBtn = document.createElement('button');
+        collapseBtn.type = 'button';
+        collapseBtn.className = 'btn btn-outline-secondary btn-sm';
+        collapseBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i>Collapse to Top ' + VISIBLE;
+        collapseBtn.addEventListener('click', function() {
+            collapseSubdomains(tbody, expandRow, collapseRow);
+        });
+        collapseTd.appendChild(collapseBtn);
+        collapseRow.appendChild(collapseTd);
+        tbody.appendChild(collapseRow);
+    }
+
+    function submitReanalyzeFetch(btn) {
+        const domain = btn.dataset.domain;
+        const overlay = document.getElementById('loadingOverlay');
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+        btn.classList.add('disabled');
+        document.body.classList.add('loading');
+
+        if (overlay) {
+            if (typeof showOverlay === 'function') {
+                showOverlay(overlay);
+            } else {
+                overlay.classList.add('is-active');
+            }
+            if (typeof startStatusCycle === 'function') {
+                startStatusCycle(overlay);
+            }
+        }
+
+        const url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
+        fetch(url, {
+            headers: { 'X-Requested-With': 'fetch' },
+            redirect: 'follow'
+        }).then(function(resp) {
+            return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
+        }).catch(function() {
+            globalThis.location.href = url;
         });
     }
 
@@ -6019,7 +6138,7 @@
                     footer: '<strong>TLP:CLEAR</strong> \u2014 No restrictions on distribution. DNS records are public data queried via open-standard protocols.' }
             };
             const copyrightSuffix = ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.';
-            document.querySelectorAll('.tlp-option').forEach(function(item) {
+            for (const item of document.querySelectorAll('.tlp-option')) {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const tlp = this.dataset.tlp;
@@ -6038,56 +6157,32 @@
                     const dd = bootstrap.Dropdown.getInstance(selectorBtn);
                     if (dd) dd.hide();
                 });
-            });
+            }
 
-            document.querySelectorAll('.bimi-logo-img').forEach(function(img) {
+            for (const img of document.querySelectorAll('.bimi-logo-img')) {
                 img.addEventListener('error', function() {
                     this.classList.add('d-none');
                     const fallback = this.nextElementSibling;
                     if (fallback) fallback.classList.remove('d-none');
                 });
-            });
+            }
             const tooltipInstances = [];
-            const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function(el) {
-                const t = new bootstrap.Tooltip(el, { trigger: 'hover focus' });
-                tooltipInstances.push(t);
-                return t;
-            });
+            for (const el of document.querySelectorAll('[data-bs-toggle="tooltip"]')) {
+                tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+            }
             let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
                 scrollTimer = setTimeout(function() { scrollTimer = null; }, 100);
-                tooltipInstances.forEach(function(t) { t.hide(); });
+                for (const t of tooltipInstances) { t.hide(); }
             }, { passive: true });
             
             const reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (reanalyzeBtn) {
                 const waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
-                let countdownInterval = null;
-                
-                function startCountdown(seconds) {
-                    reanalyzeBtn.classList.add('disabled');
-                    reanalyzeBtn.classList.remove('btn-analyze');
-                    reanalyzeBtn.classList.add('btn-secondary');
-                    
-                    function updateButton() {
-                        if (seconds <= 0) {
-                            clearInterval(countdownInterval);
-                            reanalyzeBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Re-analyze';
-                            reanalyzeBtn.classList.remove('disabled', 'btn-secondary');
-                            reanalyzeBtn.classList.add('btn-analyze');
-                        } else {
-                            reanalyzeBtn.innerHTML = '<i class="fas fa-clock me-2"></i>Ready in ' + seconds + 's';
-                            seconds--;
-                            countdownInterval = setTimeout(updateButton, 1000);
-                        }
-                    }
-                    updateButton();
-                }
                 
                 if (waitSeconds > 0) {
-                    startCountdown(waitSeconds);
+                    startReanalyzeCountdown(reanalyzeBtn, waitSeconds);
                 }
 
                 reanalyzeBtn.addEventListener('click', function(e) {
@@ -6095,96 +6190,10 @@
                     if (this.classList.contains('disabled')) {
                         return;
                     }
-                    
-                    const domain = this.dataset.domain;
-                    const overlay = document.getElementById('loadingOverlay');
-                    
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
-                    this.classList.add('disabled');
-                    document.body.classList.add('loading');
-                    
-                    if (overlay) {
-                        if (typeof showOverlay === 'function') {
-                            showOverlay(overlay);
-                        } else {
-                            overlay.classList.add('is-active');
-                        }
-                        if (typeof startStatusCycle === 'function') {
-                            startStatusCycle(overlay);
-                        }
-                    }
-                    
-                    const url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
-                    fetch(url, {
-                        headers: { 'X-Requested-With': 'fetch' },
-                        redirect: 'follow'
-                    }).then(function(resp) {
-                        return resp.text().then(function(html) { handleFetchedPage(html, resp.url); });
-                    }).catch(function() {
-                        globalThis.location.href = url;
-                    });
+                    submitReanalyzeFetch(this);
                 });
             }
-            (function setupSubdomainCollapse() {
-                const tbody = document.getElementById('subdomainTbody');
-                if (!tbody) return;
-                const rows = tbody.querySelectorAll('tr');
-                const total = rows.length;
-                const VISIBLE = 20;
-                if (total <= VISIBLE) return;
-                const hidden = total - VISIBLE;
-                for (const row of Array.from(rows).slice(VISIBLE)) {
-                    row.style.display = 'none';
-                    row.classList.add('subdomain-collapsed-row');
-                }
-                const expandRow = document.createElement('tr');
-                expandRow.id = 'subdomainExpandRow';
-                const td = document.createElement('td');
-                td.colSpan = 7;
-                td.className = 'text-center py-3 border-secondary';
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-outline-info btn-sm';
-                btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Show All ' + total + ' Subdomains <span class="text-muted ms-1">(' + hidden + ' more)</span>';
-                btn.addEventListener('click', function() {
-                    const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (const hiddenRow of hiddenRows) {
-                        hiddenRow.style.display = '';
-                    }
-                    expandRow.style.display = 'none';
-                    if (!collapseRow.parentNode) {
-                        tbody.appendChild(collapseRow);
-                    }
-                    collapseRow.style.display = '';
-                });
-                td.appendChild(btn);
-                expandRow.appendChild(td);
-                const refRow = rows[VISIBLE];
-                refRow.before(expandRow);
-                const collapseRow = document.createElement('tr');
-                collapseRow.id = 'subdomainCollapseRow';
-                collapseRow.style.display = 'none';
-                const collapseTd = document.createElement('td');
-                collapseTd.colSpan = 7;
-                collapseTd.className = 'text-center py-3 border-secondary';
-                const collapseBtn = document.createElement('button');
-                collapseBtn.type = 'button';
-                collapseBtn.className = 'btn btn-outline-secondary btn-sm';
-                collapseBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i>Collapse to Top ' + VISIBLE;
-                collapseBtn.addEventListener('click', function() {
-                    const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
-                    for (const hiddenRow of hiddenRows) {
-                        hiddenRow.style.display = 'none';
-                    }
-                    collapseRow.style.display = 'none';
-                    expandRow.style.display = '';
-                    const table = document.getElementById('subdomainTable');
-                    if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-                collapseTd.appendChild(collapseBtn);
-                collapseRow.appendChild(collapseTd);
-                tbody.appendChild(collapseRow);
-            })();
+            setupSubdomainCollapse();
 
             setupCopyCommandButtons();
             setupIntegrityHashCopy();
@@ -6318,7 +6327,7 @@
                 }
 
                 let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th scope="col" class="u-w-80px">Date</th><th scope="col" class="u-w-60px">Type</th><th scope="col" class="u-w-70px">Action</th><th scope="col">Value</th><th scope="col">Organization</th><th scope="col">Timeline</th></tr></thead><tbody>';
-                data.changes.forEach(function(ch) {
+                for (const ch of data.changes) {
                     const typeColor = recordTypeColor(ch.record_type);
                     const actionHtml = ch.action === 'added'
                         ? '<span class="text-success"><i class="fas fa-plus-circle me-1"></i>Added</span>'
@@ -6329,7 +6338,7 @@
                          + '<td><code class="u-fs-085em">' + (ch.value || '') + '</code></td>'
                          + '<td><span class="text-muted">' + (ch.org || '&mdash;') + '</span></td>'
                          + '<td><span class="text-muted u-fs-085em">' + (ch.description || '') + '</span></td></tr>';
-                });
+                }
                 html += '</tbody></table></div>';
                 if (body) body.innerHTML = html;
             })

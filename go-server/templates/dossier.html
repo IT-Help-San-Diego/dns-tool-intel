@@ -411,6 +411,36 @@
             }
         }
 
+        function startDossierTimer(timerEl) {
+            const start = Date.now();
+            setInterval(function(){
+                timerEl.textContent = Math.floor((Date.now()-start)/1000) + 's';
+            }, 1000);
+        }
+
+        function submitDossierReanalyze(href, overlay) {
+            const domain = href.split('domain=')[1] || '';
+            const formData = new FormData();
+            formData.append('domain', decodeURIComponent(domain));
+            const csrf = document.querySelector('meta[name="csrf-token"]');
+            if(csrf) formData.append('_csrf', csrf.content);
+            fetch('/analyze', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                if (resp.redirected) {
+                    globalThis.location.href = resp.url;
+                    return;
+                }
+                return resp.text().then(function(html) { handleDossierPage(html, resp.url); });
+            }).catch(function() {
+                if(overlay) overlay.classList.remove('active');
+                alert('Network error — please check your connection and try again.');
+            });
+        }
+
         document.querySelectorAll('.dossier-view-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 const overlay = document.getElementById('dossierViewOverlay');
@@ -421,41 +451,16 @@
         document.querySelectorAll('.dossier-reanalyze-btn').forEach(function(btn){
             btn.addEventListener('click', function(e){
                 e.preventDefault();
-                const href = btn.href;
-                const domain = href.split('domain=')[1] || '';
+                const domain = btn.href.split('domain=')[1] || '';
                 const overlay = document.getElementById('dossierAnalyzeOverlay');
                 const domainEl = document.getElementById('dossierAnalyzeDomain');
                 if(domainEl) domainEl.textContent = decodeURIComponent(domain);
                 if(overlay) overlay.classList.add('active');
 
                 const timerEl = document.getElementById('dossierLoadingTimer');
-                const start = Date.now();
-                if(timerEl){
-                    setInterval(function(){
-                        const elapsed = Math.floor((Date.now()-start)/1000);
-                        timerEl.textContent = elapsed + 's';
-                    }, 1000);
-                }
+                if(timerEl) startDossierTimer(timerEl);
 
-                const formData = new FormData();
-                formData.append('domain', decodeURIComponent(domain));
-                const csrf = document.querySelector('meta[name="csrf-token"]');
-                if(csrf) formData.append('_csrf', csrf.content);
-                fetch('/analyze', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'fetch' },
-                    redirect: 'follow'
-                }).then(function(resp) {
-                    if (resp.redirected) {
-                        globalThis.location.href = resp.url;
-                        return;
-                    }
-                    return resp.text().then(function(html) { handleDossierPage(html, resp.url); });
-                }).catch(function() {
-                    if(overlay) overlay.classList.remove('active');
-                    alert('Network error — please check your connection and try again.');
-                });
+                submitDossierReanalyze(btn.href, overlay);
             });
         });
     })();

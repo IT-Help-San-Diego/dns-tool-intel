@@ -432,7 +432,7 @@
     function disableAllActions(){
         document.querySelectorAll('.history-view-btn,.history-reanalyze-btn').forEach(function(b){
             b.classList.add('disabled');
-            b.setAttribute('aria-disabled','true');
+            b.ariaDisabled = 'true';
         });
     }
     function isCovertActive(){
@@ -440,7 +440,7 @@
     }
     function covertUrl(url){
         if(!isCovertActive()) return url;
-        const sep=!url.includes('?')?'?':'&';
+        const sep=url.includes('?')?'&':'?';
         return url+sep+'covert=1';
     }
     function handleHistoryPage(html,respUrl){
@@ -451,6 +451,15 @@
         const ra=ie?ie.dataset.analysisId:'';
         if(ra&&rm){globalThis.history.replaceState(null,'','/analysis/'+ra+'/view/'+rm);}
         else if(respUrl&&respUrl!==globalThis.location.href){globalThis.history.replaceState(null,'',respUrl);}
+    }
+    function showHistoryTimeoutMsg(){
+        const msg=document.getElementById('historyTimeoutMsg');
+        if(msg)msg.classList.remove('d-none');
+    }
+    function fetchHistoryReanalyze(href){
+        fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
+            return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
+        }).catch(function(){globalThis.location.href=href;});
     }
     document.addEventListener('DOMContentLoaded',function(){
         document.querySelectorAll('.history-view-btn').forEach(function(btn){
@@ -476,17 +485,11 @@
                 if(overlay){
                     if(typeof showOverlay==='function'){showOverlay(overlay);}else{overlay.classList.add('is-active');}
                     if(typeof startStatusCycle==='function'){startStatusCycle(overlay);}
-                    setTimeout(function(){
-                        const msg=document.getElementById('historyTimeoutMsg');
-                        if(msg)msg.classList.remove('d-none');
-                    },90000);
+                    setTimeout(showHistoryTimeoutMsg,90000);
                 }
                 disableAllActions();
                 btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
-                const href=covertUrl(btn.href);
-                fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
-                    return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
-                }).catch(function(){globalThis.location.href=href;});
+                fetchHistoryReanalyze(covertUrl(btn.href));
             });
         });
     });

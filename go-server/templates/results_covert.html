@@ -1460,16 +1460,18 @@
         el.innerHTML = '<i class="fas fa-check"></i>';
         setTimeout(function() { resetCopyIcon(el); }, 1500);
     }
+    function handleCopyCmd(btn) {
+        const cmd = btn.dataset.cmd;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(cmd).then(function() {
+                onCopySuccess(btn);
+            }).catch(function() { /* clipboard write failed — ignored */ });
+        }
+    }
+
     function setupCopyCommandButtons() {
         document.querySelectorAll('.copy-cmd-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const cmd = this.dataset.cmd;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(cmd).then(function() {
-                        onCopySuccess(btn);
-                    }).catch(function() { /* clipboard write failed — ignored */ });
-                }
-            });
+            btn.addEventListener('click', function() { handleCopyCmd(btn); });
         });
     }
 
@@ -1501,6 +1503,54 @@
                 }
             });
         }
+    }
+
+    function updateCovertButton(btn, seconds) {
+        if (seconds <= 0) {
+            btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Re-scan';
+            btn.classList.remove('disabled', 'btn-secondary');
+            btn.classList.add('btn-analyze');
+        } else {
+            btn.innerHTML = '<i class="fas fa-clock me-2"></i>Ready in ' + seconds + 's';
+            setTimeout(function() { updateCovertButton(btn, seconds - 1); }, 1000);
+        }
+    }
+
+    function startCovertCountdown(btn, seconds) {
+        btn.classList.add('disabled');
+        btn.classList.remove('btn-analyze');
+        btn.classList.add('btn-secondary');
+        updateCovertButton(btn, seconds);
+    }
+
+    function submitCovertReanalyze(btn) {
+        const domain = btn.dataset.domain;
+        const overlay = document.getElementById('loadingOverlay');
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Scanning...';
+        btn.classList.add('disabled');
+        document.body.classList.add('loading');
+
+        if (overlay) {
+            if (typeof showOverlay === 'function') {
+                showOverlay(overlay);
+            } else {
+                overlay.classList.add('is-active');
+            }
+            if (typeof startStatusCycle === 'function') {
+                startStatusCycle(overlay);
+            }
+        }
+
+        const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
+        fetch(url, {
+            headers: { 'X-Requested-With': 'fetch' },
+            redirect: 'follow'
+        }).then(function(resp) {
+            return resp.text().then(function(html) { handleReconPage(html, resp.url); });
+        }).catch(function() {
+            globalThis.location.href = url;
+        });
     }
 
     (function() {
@@ -1542,63 +1592,15 @@
             const reanalyzeBtn = document.getElementById('reanalyzeBtn');
             if (reanalyzeBtn) {
                 const waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
-                let countdownInterval = null;
-
-                function startCountdown(seconds) {
-                    reanalyzeBtn.classList.add('disabled');
-                    reanalyzeBtn.classList.remove('btn-analyze');
-                    reanalyzeBtn.classList.add('btn-secondary');
-
-                    function updateButton() {
-                        if (seconds <= 0) {
-                            clearInterval(countdownInterval);
-                            reanalyzeBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Re-scan';
-                            reanalyzeBtn.classList.remove('disabled', 'btn-secondary');
-                            reanalyzeBtn.classList.add('btn-analyze');
-                        } else {
-                            reanalyzeBtn.innerHTML = '<i class="fas fa-clock me-2"></i>Ready in ' + seconds + 's';
-                            seconds--;
-                            countdownInterval = setTimeout(updateButton, 1000);
-                        }
-                    }
-                    updateButton();
-                }
 
                 if (waitSeconds > 0) {
-                    startCountdown(waitSeconds);
+                    startCovertCountdown(reanalyzeBtn, waitSeconds);
                 }
 
                 reanalyzeBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (this.classList.contains('disabled')) return;
-
-                    const domain = this.dataset.domain;
-                    const overlay = document.getElementById('loadingOverlay');
-
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Scanning...';
-                    this.classList.add('disabled');
-                    document.body.classList.add('loading');
-
-                    if (overlay) {
-                        if (typeof showOverlay === 'function') {
-                            showOverlay(overlay);
-                        } else {
-                            overlay.classList.add('is-active');
-                        }
-                        if (typeof startStatusCycle === 'function') {
-                            startStatusCycle(overlay);
-                        }
-                    }
-
-                    const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
-                    fetch(url, {
-                        headers: { 'X-Requested-With': 'fetch' },
-                        redirect: 'follow'
-                    }).then(function(resp) {
-                        return resp.text().then(function(html) { handleReconPage(html, resp.url); });
-                    }).catch(function() {
-                        globalThis.location.href = url;
-                    });
+                    submitCovertReanalyze(this);
                 });
             }
         });

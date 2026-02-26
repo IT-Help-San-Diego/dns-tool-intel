@@ -183,8 +183,8 @@ function showCovertTLDToast(domain, callback) {
 
     const toast = document.createElement('div');
     toast.id = 'tldReconToast';
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
+    toast.role = 'alert';
+    toast.ariaLive = 'assertive';
     toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;max-width:480px;width:90%;padding:1.5rem 2rem;border-radius:0.5rem;border:1px solid rgba(196,60,60,0.35);background:rgba(14,8,8,0.95);box-shadow:0 0 40px rgba(140,40,40,0.3),0 0 80px rgba(0,0,0,0.5);backdrop-filter:blur(12px);text-align:center;animation:toastFadeIn 0.3s ease-out';
     toast.innerHTML = '<div style="font-size:1.1rem;font-weight:600;color:rgba(196,60,60,0.85);margin-bottom:0.6rem;font-family:monospace">'
         + '<i class="fas fa-globe-americas" style="margin-right:0.4rem"></i>'
@@ -240,6 +240,12 @@ function isValidDomain(domain) {
         }
     }
     return true;
+}
+
+function fetchAndApplyPage(url, options, overlay, btn) {
+    return fetch(url, options).then(function(resp) {
+        return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, btn); });
+    });
 }
 
 function applyFetchedPage(html, respUrl, overlay, btn) {
@@ -483,19 +489,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('loading');
             analysisSubmitted = true;
             const formData = new FormData(domainForm);
-            fetch(domainForm.action, {
+            fetchAndApplyPage(domainForm.action, {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-Requested-With': 'fetch' },
                 redirect: 'follow'
-            }).then(function(resp) {
-                return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, analyzeBtn); });
-            }).catch(function() {
+            }, overlay, analyzeBtn).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
                 const flash = document.createElement('div');
                 flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                flash.setAttribute('role', 'alert');
+                flash.role = 'alert';
                 flash.textContent = 'Network error — please check your connection and try again.';
                 const closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
@@ -526,12 +530,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 startStatusCycle(overlay);
             }
             document.body.classList.add('loading');
-            fetch(link.href, {
+            fetchAndApplyPage(link.href, {
                 headers: { 'X-Requested-With': 'fetch' },
                 redirect: 'follow'
-            }).then(function(resp) {
-                return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, null); });
-            }).catch(function() {
+            }, overlay, null).catch(function() {
                 hideOverlayAndReset(overlay, null);
                 globalThis.location.href = link.href;
             });
@@ -582,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'copy-btn';
-        btn.setAttribute('aria-label', 'Copy to clipboard');
+        btn.ariaLabel = 'Copy to clipboard';
         btn.innerHTML = '<i class="fas fa-copy"></i>';
         codeBlock.appendChild(btn);
 

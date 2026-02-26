@@ -929,7 +929,7 @@ func (a *Analyzer) detectDKIMDelegation(ctx context.Context, domain string) DKIM
         }
 }
 
-func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords []string, customSelectors []string) map[string]any {
+func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, customSelectors []string) map[string]any {
         selectors := buildSelectorList(customSelectors)
 
         if len(mxRecords) == 0 {

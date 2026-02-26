@@ -94,6 +94,22 @@ func (h *HealthHandler) Healthz(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{mapKeyStatus: "ok"})
 }
 
+func (h *HealthHandler) Capacity(c *gin.Context) {
+        if h.Analyzer == nil {
+                c.JSON(http.StatusOK, gin.H{mapKeyStatus: "ok", "available": true})
+                return
+        }
+        inUse, total := h.Analyzer.ConcurrentCapacity()
+        available := total - inUse
+        c.JSON(http.StatusOK, gin.H{
+                mapKeyStatus: "ok",
+                "in_use":     inUse,
+                "total":      total,
+                "available":  available,
+                "ready":      available > 0,
+        })
+}
+
 func (h *HealthHandler) HealthCheck(c *gin.Context) {
         dbStatus := "healthy"
         if err := h.DB.HealthCheck(c.Request.Context()); err != nil {

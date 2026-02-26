@@ -152,7 +152,7 @@
             const d = domain.value.trim();
             if (!d) return;
 
-            const badgeURL = baseURL + '/badge?domain=' + encodeURIComponent(d) + (style !== 'flat' ? '&style=' + style : '');
+            const badgeURL = baseURL + '/badge?domain=' + encodeURIComponent(d) + (style === 'flat' ? '' : '&style=' + style);
             const reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(d);
 
             preview.innerHTML = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge for ' + d + '"></a>';
@@ -170,14 +170,18 @@
             document.getElementById('embedShieldsMarkdown').value = '[![DNS Tool Security](' + shieldsURL + ')](' + reportURL + ')';
         });
 
+        function onCopyFieldSuccess(btnId) {
+            const btn = document.getElementById(btnId);
+            const icon = btn.querySelector('i');
+            icon.className = 'fas fa-check';
+            setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
+        }
+
         function copyField(btnId, fieldId) {
             document.getElementById(btnId).addEventListener('click', function() {
                 const el = document.getElementById(fieldId);
                 navigator.clipboard.writeText(el.value).then(function() {
-                    const btn = document.getElementById(btnId);
-                    const icon = btn.querySelector('i');
-                    icon.className = 'fas fa-check';
-                    setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
+                    onCopyFieldSuccess(btnId);
                 });
             });
         }

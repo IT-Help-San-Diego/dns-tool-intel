@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	mapKeyMedium = "medium"
-	mapKeyTimeout = "timeout"
+        mapKeyMedium = "medium"
+        mapKeyTimeout = "timeout"
+        severityLow = "low"
 )
 
 type ScannerProfile struct {
@@ -116,7 +117,7 @@ func GenerateSuggestedConfig(stats RollingStats, current ScannerProfile) Suggest
                         Profile:     current,
                         Suggestions: nil,
                         BasedOn:     stats.ScanCount,
-                        Confidence:  "low",
+                        Confidence:  severityLow,
                 }
         }
 
@@ -248,7 +249,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
                                 "Increasing timeout from %ds to 8s prevents premature resolution failures.",
                                 stats.AvgScanDuration/1000, current.TimeoutSeconds),
                         Standard: "RFC 8767",
-                        Severity: "low",
+                        Severity: severityLow,
                         Category: mapKeyTimeout,
                 })
         } else if stats.AvgScanDuration < 5000 && current.TimeoutSeconds > 5 {
@@ -260,7 +261,7 @@ func suggestTimeoutChanges(stats RollingStats, current ScannerProfile) []Profile
                                 "Timeout can be reduced from %ds to 5s without risk of failures.",
                                 stats.AvgScanDuration/1000, current.TimeoutSeconds),
                         Standard: "RFC 8767",
-                        Severity: "low",
+                        Severity: severityLow,
                         Category: mapKeyTimeout,
                 })
         }
@@ -289,7 +290,7 @@ func suggestRecordPriority(stats RollingStats, current ScannerProfile) []Profile
                                 "improving overall scan efficiency.",
                                 errorRecords, stats.ScanCount),
                         Standard: StandardNIST80053SI18,
-                        Severity: "low",
+                        Severity: severityLow,
                         Category: "priority",
                 })
         }

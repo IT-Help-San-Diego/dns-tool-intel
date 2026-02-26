@@ -30,7 +30,7 @@
         }
         const triggers = document.querySelectorAll('[data-bs-target="#' + target.id + '"]');
         for (let i = 0; i < triggers.length; i++) {
-            triggers[i].setAttribute('aria-expanded', String(!isShown));
+            triggers[i].ariaExpanded = String(!isShown);
             if (!isShown) {
                 triggers[i].classList.remove('collapsed');
             } else {
@@ -58,7 +58,7 @@
             const parent = openMenus[i].closest('.dropdown');
             if (parent) {
                 const toggle = parent.querySelector('[data-bs-toggle="dropdown"]');
-                if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                if (toggle) toggle.ariaExpanded = 'false';
             }
         }
     }
@@ -76,7 +76,7 @@
             closeAllDropdowns();
             if (!isOpen) {
                 menu.classList.add('show');
-                trigger.setAttribute('aria-expanded', 'true');
+                trigger.ariaExpanded = 'true';
             }
             return;
         }
@@ -96,7 +96,7 @@
                     if (!parent) return;
                     const menu = parent.querySelector('.dropdown-menu');
                     if (menu) menu.classList.remove('show');
-                    el.setAttribute('aria-expanded', 'false');
+                    el.ariaExpanded = 'false';
                 }
             };
         }
@@ -109,7 +109,7 @@
         if (tooltipEl) return tooltipEl;
         tooltipEl = document.createElement('div');
         tooltipEl.className = 'tooltip-popup';
-        tooltipEl.setAttribute('role', 'tooltip');
+        tooltipEl.role = 'tooltip';
         const isCovert = document.body.classList.contains('covert-mode');
         const fg = isCovert ? '#cc2828' : '#e6edf3';
         const bg = isCovert ? '#0c0a0a' : '#30363d';
@@ -125,7 +125,7 @@
         const title = trigger.getAttribute('title') || trigger.getAttribute('data-bs-original-title');
         if (!title) return;
         if (trigger.getAttribute('title')) {
-            trigger.setAttribute('data-bs-original-title', title);
+            trigger.dataset.bsOriginalTitle = title;
             trigger.removeAttribute('title');
         }
         const tip = createTooltipEl();
@@ -175,7 +175,7 @@
         if (tooltipEl) tooltipEl.style.opacity = '0';
         if (trigger) {
             const orig = trigger.getAttribute('data-bs-original-title');
-            if (orig) trigger.setAttribute('title', orig);
+            if (orig) trigger.title = orig;
         }
     }
 
@@ -227,11 +227,11 @@
             const siblings = parent.querySelectorAll('.nav-link');
             for (let i = 0; i < siblings.length; i++) {
                 siblings[i].classList.remove('active');
-                siblings[i].setAttribute('aria-selected', 'false');
+                siblings[i].ariaSelected = 'false';
             }
         }
         trigger.classList.add('active');
-        trigger.setAttribute('aria-selected', 'true');
+        trigger.ariaSelected = 'true';
         const container = tabContent.parentNode;
         if (container) {
             const panes = container.querySelectorAll('.tab-pane');

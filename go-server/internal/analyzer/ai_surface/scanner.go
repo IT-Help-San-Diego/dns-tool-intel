@@ -14,20 +14,22 @@ import (
 )
 
 const (
-	mapKeyAllowsAiCrawlers = "allows_ai_crawlers"
-	mapKeyArtifactCount = "artifact_count"
-	mapKeyBlocksAiCrawlers = "blocks_ai_crawlers"
-	mapKeyContentUsage = "content_usage"
-	mapKeyDetail = "detail"
-	mapKeyEvidence = "evidence"
-	mapKeyFound = "found"
-	mapKeyHttps = "https"
-	mapKeyIocCount = "ioc_count"
-	mapKeyMessage = "message"
-	mapKeyStatus = "status"
-	mapKeySuccess = "success"
-	mapKeyWarning = "warning"
-	strObserved = "Observed"
+        mapKeyAllowsAiCrawlers = "allows_ai_crawlers"
+        mapKeyArtifactCount = "artifact_count"
+        mapKeyBlocksAiCrawlers = "blocks_ai_crawlers"
+        mapKeyContentUsage = "content_usage"
+        mapKeyDetail = "detail"
+        mapKeyEvidence = "evidence"
+        mapKeyFound = "found"
+        mapKeyHttps = "https"
+        mapKeyIocCount = "ioc_count"
+        mapKeyMessage = "message"
+        mapKeyStatus = "status"
+        mapKeySuccess = "success"
+        mapKeyWarning = "warning"
+        strObserved = "Observed"
+        mapKeyUrl = "url"
+        mapKeyRaw = "raw"
 )
 
 var hiddenPatternRegexes = []struct {
@@ -139,7 +141,7 @@ func (s *Scanner) fetchLLMSTxt(ctx context.Context, domain string, evidence *[]E
                         Severity:   "info",
                         Confidence: strObserved,
                 })
-                slog.Info("AI Surface: llms.txt found", "domain", domain, "url", u)
+                slog.Info("AI Surface: llms.txt found", "domain", domain, mapKeyUrl, u)
                 return true, u, parseLLMSTxtFields(content)
         }
         return false, "", nil
@@ -194,7 +196,7 @@ func (s *Scanner) checkLLMSTxt(ctx context.Context, domain string, evidence *[]E
         result := map[string]any{
                 mapKeyFound:      false,
                 "full_found": false,
-                "url":        nil,
+                mapKeyUrl:        nil,
                 "full_url":   nil,
                 "fields":     map[string]any{},
                 mapKeyEvidence:   []map[string]any{},
@@ -202,7 +204,7 @@ func (s *Scanner) checkLLMSTxt(ctx context.Context, domain string, evidence *[]E
 
         if found, url, fields := s.fetchLLMSTxt(ctx, domain, evidence); found {
                 result[mapKeyFound] = true
-                result["url"] = url
+                result[mapKeyUrl] = url
                 result["fields"] = fields
         }
 
@@ -233,7 +235,7 @@ func parseLLMSTxtFields(content string) map[string]any {
         return fields
 }
 
-func (s *Scanner) fetchRobotsTxtContent(ctx context.Context, domain string) (content string, url string, ok bool) {
+func (s *Scanner) fetchRobotsTxtContent(ctx context.Context, domain string) (content, url string, ok bool) {
         for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/robots.txt", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
@@ -284,7 +286,7 @@ func addContentUsageEvidence(evidence *[]Evidence, url string, contentUsage map[
                 return
         }
         detail := "Content-Usage directive present in robots.txt"
-        if raw, ok := contentUsage["raw"].(string); ok {
+        if raw, ok := contentUsage[mapKeyRaw].(string); ok {
                 detail = fmt.Sprintf("Content-Usage directive observed: %s", raw)
         }
         *evidence = append(*evidence, Evidence{
@@ -299,7 +301,7 @@ func addContentUsageEvidence(evidence *[]Evidence, url string, contentUsage map[
 func (s *Scanner) checkRobotsTxt(ctx context.Context, domain string, evidence *[]Evidence) map[string]any {
         result := map[string]any{
                 mapKeyFound:              false,
-                "url":                nil,
+                mapKeyUrl:                nil,
                 mapKeyBlocksAiCrawlers: false,
                 mapKeyAllowsAiCrawlers: false,
                 "blocked_crawlers":   []string{},
@@ -315,7 +317,7 @@ func (s *Scanner) checkRobotsTxt(ctx context.Context, domain string, evidence *[
         }
 
         result[mapKeyFound] = true
-        result["url"] = url
+        result[mapKeyUrl] = url
 
         blocked, allowed, directives := parseRobotsTxtForAI(content)
         result["blocked_crawlers"] = blocked
@@ -337,7 +339,7 @@ func (s *Scanner) checkRobotsTxt(ctx context.Context, domain string, evidence *[
 func parseContentUsageDirectives(content string) map[string]any {
         result := map[string]any{
                 mapKeyFound:      false,
-                "raw":        "",
+                mapKeyRaw:        "",
                 "ai_denied":  false,
                 "parameters": map[string]string{},
         }
@@ -346,7 +348,7 @@ func parseContentUsageDirectives(content string) map[string]any {
 
         if len(rawLines) > 0 {
                 result[mapKeyFound] = true
-                result["raw"] = strings.Join(rawLines, "; ")
+                result[mapKeyRaw] = strings.Join(rawLines, "; ")
         }
         result["parameters"] = params
         result["ai_denied"] = isAIDenied(params)
@@ -457,7 +459,7 @@ func handleUserAgentLine(line string, currentAgents []string, aiCrawlerSet map[s
         return currentAgents
 }
 
-func parseRobotsTxtForAI(content string) (blocked []string, allowed []string, directives []map[string]any) {
+func parseRobotsTxtForAI(content string) (blocked, allowed []string, directives []map[string]any) {
         sc := bufio.NewScanner(strings.NewReader(content))
         state := &robotsParseState{
                 blockedSet: map[string]bool{},
@@ -508,7 +510,7 @@ func scanForPrefillLinks(content string) []map[string]any {
         return iocs
 }
 
-func (s *Scanner) fetchHomepageBody(ctx context.Context, domain string) (body string, url string, ok bool) {
+func (s *Scanner) fetchHomepageBody(ctx context.Context, domain string) (body, url string, ok bool) {
         for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)
@@ -621,7 +623,7 @@ func scanForHiddenPrompts(content string) []map[string]any {
         return artifacts
 }
 
-func (s *Scanner) fetchHomepageBodyRaw(ctx context.Context, domain string) (body string, url string, ok bool) {
+func (s *Scanner) fetchHomepageBodyRaw(ctx context.Context, domain string) (body, url string, ok bool) {
         for _, scheme := range []string{mapKeyHttps, "http"} {
                 u := fmt.Sprintf("%s://%s/", scheme, domain)
                 resp, err := s.HTTP.Get(ctx, u)

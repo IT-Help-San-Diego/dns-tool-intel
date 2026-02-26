@@ -23,6 +23,7 @@ const (
         detailRawHeaderScan = "Extracted from raw header scan"
         authResultPass      = "pass"
         authResultFail      = "fail"
+        authResultNone      = "none"
         catSPF              = "SPF"
         catDKIM             = "DKIM"
 )
@@ -155,7 +156,7 @@ var (
         reEmailAddress   = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
 )
 
-func SeparateHeadersAndBody(raw string) (headers string, body string, hadBody bool) {
+func SeparateHeadersAndBody(raw string) (headers, body string, hadBody bool) {
         normalized := strings.ReplaceAll(raw, "\r\n", "\n")
 
         separators := []string{"\n\n"}
@@ -318,7 +319,7 @@ func fallbackSPFFromReceivedSPF(fields []headerField, result *EmailHeaderAnalysi
                 return
         }
         lower := strings.ToLower(spfReceived)
-        for _, status := range []string{authResultPass, authResultFail, "softfail", "neutral", "none", "temperror", "permerror"} {
+        for _, status := range []string{authResultPass, authResultFail, "softfail", "neutral", authResultNone, "temperror", "permerror"} {
                 if strings.HasPrefix(lower, status) {
                         result.SPFResult = AuthResult{
                                 Result:     status,
@@ -605,7 +606,7 @@ func generateSPFFlags(result *EmailHeaderAnalysis) {
                         Category: catSPF,
                         Message:  fmt.Sprintf("SPF check returned %s — the sending server may not be authorized to send email for this domain.", result.SPFResult.Result),
                 })
-        case "none":
+        case authResultNone:
                 result.Flags = append(result.Flags, HeaderFlag{
                         Severity: sevWarning,
                         Category: catSPF,
@@ -731,7 +732,7 @@ func generateIntelFlags(result *EmailHeaderAnalysis) {
                         Message:  fmt.Sprintf("The sender's originating IP was %s — this reveals where the sender was when they composed the email, which may differ from the mail server location.", result.OriginatingIP),
                 })
         }
-        if result.DMARCPolicy == "none" {
+        if result.DMARCPolicy == authResultNone {
                 result.Flags = append(result.Flags, HeaderFlag{
                         Severity: sevWarning,
                         Category: "DMARC Policy",
@@ -1559,7 +1560,7 @@ func generateContextBigQuestions(result *EmailHeaderAnalysis) {
                         Icon:     "globe",
                 })
         }
-        if result.DMARCPolicy == "none" {
+        if result.DMARCPolicy == authResultNone {
                 fromDomain := extractDomainFromEmailAddress(result.From)
                 result.BigQuestions = append(result.BigQuestions, BigQuestion{
                         Question: "Is the sender's domain protected against spoofing?",

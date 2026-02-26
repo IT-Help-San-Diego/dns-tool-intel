@@ -45,6 +45,8 @@ const (
         mapKeyStarttlsSupported = "starttls_supported"
         mapKeySummary = "summary"
         mapKeyTlsVersion = "tls_version"
+        mapKeyMode = "mode"
+        mapKeyDane = "dane"
         mapKeyTlsrptConfigured = "tlsrpt_configured"
         mapKeyVerdict = "verdict"
 )
@@ -121,8 +123,8 @@ func buildMailTransportResult(a *Analyzer, ctx context.Context, domain string, m
 
 func buildPolicyAssessment(a *Analyzer, ctx context.Context, domain string, mxHosts []string, ai AnalysisInputs) map[string]any {
         policy := map[string]any{
-                mapKeyMtaSts:  map[string]any{mapKeyPresent: false, "mode": "none"},
-                "dane":     map[string]any{mapKeyPresent: false},
+                mapKeyMtaSts:  map[string]any{mapKeyPresent: false, mapKeyMode: "none"},
+                mapKeyDane:     map[string]any{mapKeyPresent: false},
                 "tlsrpt":   map[string]any{mapKeyPresent: false},
                 "provider": map[string]any{"identified": false},
                 mapKeyVerdict:  "none",
@@ -150,7 +152,7 @@ func assessMTASTS(a *Analyzer, ctx context.Context, domain string, ai AnalysisIn
         if mode, ok := mtaSts["mode"].(string); ok && mode != "" && mode != "none" {
                 policy[mapKeyMtaSts] = map[string]any{
                         mapKeyPresent: true,
-                        "mode":    mode,
+                        mapKeyMode:    mode,
                         mapKeyStatus:  mapGetStrSafe(mtaSts, mapKeyStatus),
                 }
                 if mode == "enforce" {
@@ -181,7 +183,7 @@ func assessDANE(a *Analyzer, ctx context.Context, mxHosts []string, ai AnalysisI
                 }
         }
         if hasTLSA {
-                policy["dane"] = map[string]any{mapKeyPresent: true}
+                policy[mapKeyDane] = map[string]any{mapKeyPresent: true}
                 signals = append(signals, "DANE/TLSA records published — mail servers pin TLS certificates via DNSSEC (RFC 7672)")
         }
         return signals
@@ -219,7 +221,7 @@ func computePolicyVerdict(policy map[string]any, signals []string) string {
         mtaStsMeta, _ := policy[mapKeyMtaSts].(map[string]any)
         mtaStsPresent, _ := mtaStsMeta[mapKeyPresent].(bool)
         mtaStsMode, _ := mtaStsMeta["mode"].(string)
-        daneMeta, _ := policy["dane"].(map[string]any)
+        daneMeta, _ := policy[mapKeyDane].(map[string]any)
         danePresent, _ := daneMeta[mapKeyPresent].(bool)
 
         if mtaStsPresent && mtaStsMode == "enforce" {
@@ -330,7 +332,7 @@ func buildProbeResult(a *Analyzer, ctx context.Context, domain string, mxHosts [
 
         probe[mapKeyProbeMethod] = "unknown"
         probe[mapKeyReason] = fmt.Sprintf("Unrecognized SMTP probe mode: %s", a.SMTPProbeMode)
-        slog.Warn("SMTP probe: unrecognized mode", "mode", a.SMTPProbeMode, mapKeyDomain, domain)
+        slog.Warn("SMTP probe: unrecognized mode", mapKeyMode, a.SMTPProbeMode, mapKeyDomain, domain)
         return probe
 }
 
@@ -442,7 +444,7 @@ func smtpProbeVerdictFromSummary(summary *smtpSummary) string {
         return mapKeyNoTls
 }
 
-func runRemoteProbe(ctx context.Context, apiURL string, apiKey string, mxHosts []string, probe map[string]any) map[string]any {
+func runRemoteProbe(ctx context.Context, apiURL, apiKey string, mxHosts []string, probe map[string]any) map[string]any {
         reqBody, failMsg := marshalRemoteProbeBody(mxHosts)
         if reqBody == nil {
                 return remoteProbeFailover(ctx, mxHosts, probe, failMsg)

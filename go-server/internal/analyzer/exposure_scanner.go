@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	mapKeyCritical = "critical"
+        mapKeyCritical = "critical"
+        mapKeyHighSev  = "high"
 )
 
 const categoryServerInfo = "Server Info"
@@ -95,7 +96,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/server-status",
                 Category:    categoryServerInfo,
-                Severity:    "high",
+                Severity:    mapKeyHighSev,
                 Risk:        "Apache server-status page reveals active connections, client IPs, and request URLs",
                 Remediation: "Restrict mod_status to localhost only or disable in production",
                 SuccessOn:   []int{200},
@@ -107,7 +108,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/server-info",
                 Category:    categoryServerInfo,
-                Severity:    "high",
+                Severity:    mapKeyHighSev,
                 Risk:        "Apache server-info page reveals module configuration, loaded modules, and compile settings",
                 Remediation: "Restrict mod_info to localhost only or disable in production",
                 SuccessOn:   []int{200},
@@ -130,7 +131,7 @@ var exposureChecks = []exposureCheck{
         {
                 Path:        "/phpinfo.php",
                 Category:    categoryServerInfo,
-                Severity:    "high",
+                Severity:    mapKeyHighSev,
                 Risk:        "phpinfo() reveals PHP version, extensions, environment variables, and server paths",
                 Remediation: "Remove phpinfo.php from production servers",
                 SuccessOn:   []int{200},

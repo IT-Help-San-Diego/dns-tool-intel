@@ -84,7 +84,9 @@ const (
         fmtAttemptTotal  = "%d/%d"
 
 
-	strIonos = "IONOS"
+        strIonos = "IONOS"
+        mapKeyUrl = "url"
+        mapKeyTld = "tld"
 )
 
 var nsRegistrarPatterns = map[string]string{
@@ -261,7 +263,7 @@ func (a *Analyzer) rdapLookup(ctx context.Context, domain string) map[string]any
         providerName := "rdap:" + tld
 
         endpoints := a.buildRDAPEndpoints(tld)
-        slog.Info("RDAP lookup starting", mapKeyDomain, domain, "tld", tld, "endpoint_count", len(endpoints))
+        slog.Info("RDAP lookup starting", mapKeyDomain, domain, mapKeyTld, tld, "endpoint_count", len(endpoints))
 
         type rdapResult struct {
                 data     map[string]any
@@ -352,7 +354,7 @@ func appendValidEndpoint(endpoints *[]string, seen map[string]bool, ep, tld, sou
                 *endpoints = append(*endpoints, ep)
                 seen[ep] = true
         } else {
-                slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, "tld", tld, mapKeySource, source)
+                slog.Warn("RDAP endpoint rejected (not HTTPS)", "endpoint", ep, mapKeyTld, tld, mapKeySource, source)
         }
 }
 
@@ -362,22 +364,22 @@ func isValidRDAPEndpoint(endpoint string) bool {
 
 func (a *Analyzer) tryRDAPEndpoint(ctx context.Context, domain, endpoint, providerName string, attempt, total int) map[string]any {
         rdapURL := fmt.Sprintf("%sdomain/%s", strings.TrimRight(endpoint, "/")+"/", domain)
-        slog.Info("RDAP trying endpoint", "url", rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
+        slog.Info("RDAP trying endpoint", mapKeyUrl, rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
 
         start := time.Now()
         resp, err := a.RDAPHTTP.GetDirect(ctx, rdapURL)
         if err != nil {
-                slog.Warn("RDAP endpoint failed", mapKeyDomain, domain, "url", rdapURL, mapKeyError, err, mapKeyElapsedMs, time.Since(start).Milliseconds(), mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
+                slog.Warn("RDAP endpoint failed", mapKeyDomain, domain, mapKeyUrl, rdapURL, mapKeyError, err, mapKeyElapsedMs, time.Since(start).Milliseconds(), mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total))
                 return nil
         }
 
         body, err := a.RDAPHTTP.ReadBody(resp, 1<<20)
         if err != nil {
-                slog.Warn("RDAP body read failed", "url", rdapURL, mapKeyError, err)
+                slog.Warn("RDAP body read failed", mapKeyUrl, rdapURL, mapKeyError, err)
                 return nil
         }
 
-        slog.Info("RDAP response received", "url", rdapURL, mapKeyStatus, resp.StatusCode, "body_len", len(body), mapKeyElapsedMs, time.Since(start).Milliseconds())
+        slog.Info("RDAP response received", mapKeyUrl, rdapURL, mapKeyStatus, resp.StatusCode, "body_len", len(body), mapKeyElapsedMs, time.Since(start).Milliseconds())
 
         if resp.StatusCode >= 400 {
                 return nil
@@ -385,17 +387,17 @@ func (a *Analyzer) tryRDAPEndpoint(ctx context.Context, domain, endpoint, provid
 
         var data map[string]any
         if json.Unmarshal(body, &data) != nil {
-                slog.Warn("RDAP JSON parse failed", "url", rdapURL, "body_preview", string(body[:min(200, len(body))]))
+                slog.Warn("RDAP JSON parse failed", mapKeyUrl, rdapURL, "body_preview", string(body[:min(200, len(body))]))
                 return nil
         }
 
         if _, hasError := data["errorCode"]; hasError {
-                slog.Warn("RDAP error in response", "url", rdapURL, "error_code", data["errorCode"])
+                slog.Warn("RDAP error in response", mapKeyUrl, rdapURL, "error_code", data["errorCode"])
                 return nil
         }
 
         a.Telemetry.RecordSuccess(providerName, time.Since(start))
-        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, "url", rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total), mapKeyElapsedMs, time.Since(start).Milliseconds())
+        slog.Info("RDAP lookup succeeded", mapKeyDomain, domain, mapKeyUrl, rdapURL, mapKeyAttempt, fmt.Sprintf(fmtAttemptTotal, attempt, total), mapKeyElapsedMs, time.Since(start).Milliseconds())
         return data
 }
 
@@ -565,7 +567,7 @@ func (a *Analyzer) whoisLookup(ctx context.Context, domain string) (string, bool
 
         restricted, empty := isWhoisRestricted(output, tld)
         if empty && !restricted {
-                slog.Info("WHOIS returned empty/minimal response (not a known restricted TLD)", mapKeyDomain, domain, "tld", tld, "response_len", len(strings.TrimSpace(output)))
+                slog.Info("WHOIS returned empty/minimal response (not a known restricted TLD)", mapKeyDomain, domain, mapKeyTld, tld, "response_len", len(strings.TrimSpace(output)))
                 return "", false, ""
         }
         if restricted {

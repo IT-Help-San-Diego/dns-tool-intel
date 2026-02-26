@@ -12,7 +12,7 @@ import (
         "golang.org/x/crypto/sha3"
 )
 
-func ReportIntegrityHash(domain string, analysisID int32, timestamp string, toolVersion string, results map[string]any) string {
+func ReportIntegrityHash(domain string, analysisID int32, timestamp, toolVersion string, results map[string]any) string {
         var parts []string
 
         parts = append(parts, "domain:"+strings.ToLower(strings.TrimSpace(domain)))

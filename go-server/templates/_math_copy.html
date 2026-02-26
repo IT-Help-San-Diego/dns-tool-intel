@@ -25,7 +25,7 @@
         const btn = document.createElement('button');
         btn.className = 'math-copy-btn';
         btn.title = 'Copy LaTeX';
-        btn.setAttribute('aria-label', 'Copy LaTeX formula');
+        btn.ariaLabel = 'Copy LaTeX formula';
         btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
         block.appendChild(btn);
         btn.addEventListener('click', function() {

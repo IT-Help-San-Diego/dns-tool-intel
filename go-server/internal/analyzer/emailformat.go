@@ -13,6 +13,7 @@ const (
         headerSep       = "\r\n"
         jsonKeyValue    = "value"
         jsonKeyHeaders  = "headers"
+        jsonKeyName     = "name"
 )
 
 type DetectedFormat struct {
@@ -133,7 +134,7 @@ func extractMicrosoftGraphHeaders(obj map[string]interface{}) string {
         if !ok {
                 return ""
         }
-        lines := extractHeaderArray(arr, "name", "value")
+        lines := extractHeaderArray(arr, jsonKeyName, "value")
 
         lines = prependMissingHeader(lines, "subject:", func() string {
                 if subject, ok := obj["subject"].(string); ok && subject != "" {
@@ -161,7 +162,7 @@ func extractMSGraphFrom(obj map[string]interface{}) string {
                 return ""
         }
         addr, _ := ea["address"].(string)
-        name, _ := ea["name"].(string)
+        name, _ := ea[jsonKeyName].(string)
         if addr == "" {
                 return ""
         }
@@ -215,7 +216,7 @@ func extractGmailAPIHeaders(obj map[string]interface{}) string {
                 if !ok {
                         continue
                 }
-                name, _ := header["name"].(string)
+                name, _ := header[jsonKeyName].(string)
                 value, _ := header[jsonKeyValue].(string)
                 if name != "" {
                         lines = append(lines, name+": "+value)
@@ -279,7 +280,7 @@ func extractSendGridHeaders(obj map[string]interface{}) string {
 
         if from, ok := obj["from"].(map[string]interface{}); ok {
                 email, _ := from["email"].(string)
-                name, _ := from["name"].(string)
+                name, _ := from[jsonKeyName].(string)
                 if email != "" {
                         if name != "" {
                                 lines = append([]string{headerFrom + name + " <" + email + ">"}, lines...)
@@ -370,7 +371,7 @@ func tryExtractFromHeaderArray(arr []interface{}) string {
                 if !ok {
                         continue
                 }
-                name := firstString(header, "name", "Name", "key", "Key", "header")
+                name := firstString(header, jsonKeyName, "Name", "key", "Key", "header")
                 value := firstString(header, jsonKeyValue, "Value", "val")
                 if name != "" {
                         lines = append(lines, name+": "+value)

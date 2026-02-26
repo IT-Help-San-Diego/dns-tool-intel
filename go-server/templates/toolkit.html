@@ -716,7 +716,6 @@
                                            autocapitalize="none"
                                            spellcheck="false"
                                            autocomplete="off"
-                                           aria-label="Target host for port check"
                                            value="{{.TargetHost}}">
                                 </div>
                                 <div class="col-sm-2">
@@ -728,7 +727,6 @@
                                            placeholder="80"
                                            inputmode="numeric"
                                            autocomplete="off"
-                                           aria-label="Port number to check"
                                            value="{{.TargetPort}}">
                                 </div>
                                 {{if and .ProbeLocations (gt (len .ProbeLocations) 1)}}
@@ -1066,7 +1064,7 @@
                 if (target) {
                     const isVisible = target.classList.contains('show');
                     target.classList.toggle('show');
-                    this.setAttribute('aria-expanded', !isVisible);
+                    this.ariaExpanded = String(!isVisible);
                 }
             });
         }

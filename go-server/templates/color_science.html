@@ -229,7 +229,7 @@
             const row = el('div', 'd-flex align-items-start gap-3');
 
             const swatch = el('div', 'cs-swatch');
-            swatch.setAttribute('aria-label', 'Color swatch for ' + color.hex);
+            swatch.ariaLabel = 'Color swatch for ' + color.hex;
             swatch.style.cssText = 'background-color:' + color.hex;
             row.appendChild(swatch);
 

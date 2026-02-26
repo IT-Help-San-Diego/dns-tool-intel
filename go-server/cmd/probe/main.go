@@ -50,6 +50,9 @@ const (
         strInvalidRequestBody = "invalid request body"
         strSD = "%s:%d"
         strStarttlsRN = "STARTTLS\r\n"
+        mapKeyHost = "host"
+        mapKeyPort = "port"
+        protocolTCP = "tcp"
 )
 
 var (
@@ -98,7 +101,7 @@ func main() {
         }
 
         go func() {
-                slog.Info("DNS Tool Probe Server starting", "port", port, mapKeyVersion, probeVersion, "hostname", hostname)
+                slog.Info("DNS Tool Probe Server starting", mapKeyPort, port, mapKeyVersion, probeVersion, "hostname", hostname)
                 if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
                         slog.Error("Server failed", mapKeyError, err)
                         os.Exit(1)
@@ -245,7 +248,7 @@ func probeAllServers(ctx context.Context, hosts []string) []map[string]any {
 
 func probeSMTPServer(ctx context.Context, host string) map[string]any {
         result := map[string]any{
-                "host":                host,
+                mapKeyHost:                host,
                 mapKeyReachable:           false,
                 "starttls":            false,
                 mapKeyTlsVersion:         nil,
@@ -263,7 +266,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
         defer cancel()
 
         dialer := &net.Dialer{Timeout: smtpDialTimeout}
-        conn, err := dialer.DialContext(probeCtx, "tcp", net.JoinHostPort(host, "25"))
+        conn, err := dialer.DialContext(probeCtx, protocolTCP, net.JoinHostPort(host, "25"))
         if err != nil {
                 result[mapKeyError] = classifyError(err)
                 return result
@@ -323,7 +326,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         defer cancel()
 
         dialer := &net.Dialer{Timeout: smtpDialTimeout}
-        conn, err := dialer.DialContext(verifyCtx, "tcp", net.JoinHostPort(host, "25"))
+        conn, err := dialer.DialContext(verifyCtx, protocolTCP, net.JoinHostPort(host, "25"))
         if err != nil {
                 return
         }
@@ -331,7 +334,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
 
         banner, bannerErr := readSMTPResponse(conn, 1*time.Second)
         if bannerErr != nil {
-                slog.Debug("verifySMTPCert: banner read error", "host", host, mapKeyError, bannerErr)
+                slog.Debug("verifySMTPCert: banner read error", mapKeyHost, host, mapKeyError, bannerErr)
         }
         if !strings.HasPrefix(banner, "220") {
                 return
@@ -339,12 +342,12 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         fmt.Fprintf(conn, strEhloSRN, ehloHostname)
         _, ehloErr := readSMTPResponse(conn, 1*time.Second)
         if ehloErr != nil {
-                slog.Debug("verifySMTPCert: EHLO read error", "host", host, mapKeyError, ehloErr)
+                slog.Debug("verifySMTPCert: EHLO read error", mapKeyHost, host, mapKeyError, ehloErr)
         }
         fmt.Fprintf(conn, strStarttlsRN)
         resp, respErr := readSMTPResponse(conn, 1*time.Second)
         if respErr != nil {
-                slog.Debug("verifySMTPCert: STARTTLS read error", "host", host, mapKeyError, respErr)
+                slog.Debug("verifySMTPCert: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
         }
         if !strings.HasPrefix(resp, "220") {
                 return
@@ -377,15 +380,15 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
 
 func probePort(ctx context.Context, host string, port int) map[string]any {
         result := map[string]any{
-                "host":      host,
-                "port":      port,
+                mapKeyHost:      host,
+                mapKeyPort:      port,
                 mapKeyReachable: false,
                 "tls":       false,
                 mapKeyError:     nil,
         }
 
         dialer := &net.Dialer{Timeout: smtpDialTimeout}
-        conn, err := dialer.DialContext(ctx, "tcp", fmt.Sprintf(strSD, host, port))
+        conn, err := dialer.DialContext(ctx, protocolTCP, fmt.Sprintf(strSD, host, port))
         if err != nil {
                 result[mapKeyError] = classifyError(err)
                 return result
@@ -468,8 +471,8 @@ func handleTestSSL(w http.ResponseWriter, r *http.Request) {
         response := map[string]any{
                 mapKeyProbeHost:      hostname,
                 mapKeyVersion:         probeVersion,
-                "host":            req.Host,
-                "port":            req.Port,
+                mapKeyHost:            req.Host,
+                mapKeyPort:            req.Port,
                 mapKeyElapsedSeconds: time.Since(start).Seconds(),
         }
 
@@ -526,8 +529,8 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         response := map[string]any{
                 mapKeyProbeHost:      hostname,
                 mapKeyVersion:         probeVersion,
-                "host":            req.Host,
-                "port":            req.Port,
+                mapKeyHost:            req.Host,
+                mapKeyPort:            req.Port,
                 mapKeyElapsedSeconds: 0.0,
         }
 
@@ -570,7 +573,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         result := map[string]any{"method": "smtp_starttls"}
 
         dialer := &net.Dialer{Timeout: smtpDialTimeout}
-        conn, err := dialer.DialContext(ctx, "tcp", net.JoinHostPort(host, "25"))
+        conn, err := dialer.DialContext(ctx, protocolTCP, net.JoinHostPort(host, "25"))
         if err != nil {
                 result[mapKeyError] = classifyError(err)
                 return result
@@ -579,7 +582,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
 
         banner, bannerErr := readSMTPResponse(conn, smtpReadTimeout)
         if bannerErr != nil {
-                slog.Debug("getCertViaSMTP: banner read error", "host", host, mapKeyError, bannerErr)
+                slog.Debug("getCertViaSMTP: banner read error", mapKeyHost, host, mapKeyError, bannerErr)
         }
         if !strings.HasPrefix(banner, "220") {
                 result[mapKeyError] = "Bad SMTP banner"
@@ -589,7 +592,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         fmt.Fprintf(conn, strEhloSRN, ehloHostname)
         ehlo, ehloErr := readSMTPResponse(conn, smtpReadTimeout)
         if ehloErr != nil {
-                slog.Debug("getCertViaSMTP: EHLO read error", "host", host, mapKeyError, ehloErr)
+                slog.Debug("getCertViaSMTP: EHLO read error", mapKeyHost, host, mapKeyError, ehloErr)
         }
         if !strings.Contains(strings.ToUpper(ehlo), "STARTTLS") {
                 result[mapKeyError] = "STARTTLS not supported"
@@ -599,7 +602,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
         fmt.Fprintf(conn, strStarttlsRN)
         resp, respErr := readSMTPResponse(conn, smtpReadTimeout)
         if respErr != nil {
-                slog.Debug("getCertViaSMTP: STARTTLS read error", "host", host, mapKeyError, respErr)
+                slog.Debug("getCertViaSMTP: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
         }
         if !strings.HasPrefix(resp, "220") {
                 result[mapKeyError] = "STARTTLS rejected"
@@ -613,7 +616,7 @@ func getCertViaTLS(ctx context.Context, host string, port int) map[string]any {
         result := map[string]any{"method": "direct_tls"}
 
         dialer := &net.Dialer{Timeout: smtpDialTimeout}
-        conn, err := dialer.DialContext(ctx, "tcp", fmt.Sprintf(strSD, host, port))
+        conn, err := dialer.DialContext(ctx, protocolTCP, fmt.Sprintf(strSD, host, port))
         if err != nil {
                 result[mapKeyError] = classifyError(err)
                 return result
@@ -855,7 +858,7 @@ func runNmapScan(ctx context.Context, nmapPath string, req nmapRequest, validScr
                 req.Host,
         }
 
-        slog.Info("Nmap scan requested", "host", req.Host, mapKeyPorts, req.Ports, "scripts", validScripts)
+        slog.Info("Nmap scan requested", mapKeyHost, req.Host, mapKeyPorts, req.Ports, "scripts", validScripts)
 
         cmd := exec.CommandContext(ctx, nmapPath, args...)
         var stdout, stderr bytes.Buffer
@@ -866,7 +869,7 @@ func runNmapScan(ctx context.Context, nmapPath string, req nmapRequest, validScr
         response := map[string]any{
                 mapKeyProbeHost:      hostname,
                 mapKeyVersion:         probeVersion,
-                "host":            req.Host,
+                mapKeyHost:            req.Host,
                 mapKeyPorts:           req.Ports,
                 "scripts_run":     validScripts,
                 mapKeyElapsedSeconds: time.Since(start).Seconds(),
@@ -916,37 +919,58 @@ type nmapPortService struct {
         Tunnel  string `xml:"tunnel,attr"`
 }
 
+type nmapScriptTableElem struct {
+        Key   string `xml:"key,attr"`
+        Value string `xml:",chardata"`
+}
+
+type nmapScriptTable struct {
+        Key   string               `xml:"key,attr"`
+        Elems []nmapScriptTableElem `xml:"elem"`
+}
+
+type nmapScript struct {
+        ID     string            `xml:"id,attr"`
+        Output string            `xml:"output,attr"`
+        Tables []nmapScriptTable `xml:"table"`
+}
+
 type nmapPort struct {
         Protocol string          `xml:"protocol,attr"`
         PortID   int             `xml:"portid,attr"`
         State    nmapPortState   `xml:"state"`
         Service  nmapPortService `xml:"service"`
-        Scripts []struct {
-                ID     string `xml:"id,attr"`
-                Output string `xml:"output,attr"`
-                Tables []struct {
-                        Key   string `xml:"key,attr"`
-                        Elems []struct {
-                                Key   string `xml:"key,attr"`
-                                Value string `xml:",chardata"`
-                        } `xml:"elem"`
-                } `xml:"table"`
-        } `xml:"script"`
+        Scripts  []nmapScript    `xml:"script"`
+}
+
+type nmapHostStatus struct {
+        State string `xml:"state,attr"`
+}
+
+type nmapAddress struct {
+        Addr     string `xml:"addr,attr"`
+        AddrType string `xml:"addrtype,attr"`
+}
+
+type nmapHostname struct {
+        Name string `xml:"name,attr"`
+        Type string `xml:"type,attr"`
 }
 
 type nmapHost struct {
-        Status struct {
-                State string `xml:"state,attr"`
-        } `xml:"status"`
-        Addresses []struct {
-                Addr     string `xml:"addr,attr"`
-                AddrType string `xml:"addrtype,attr"`
-        } `xml:"address"`
-        Hostnames []struct {
-                Name string `xml:"name,attr"`
-                Type string `xml:"type,attr"`
-        } `xml:"hostnames>hostname"`
-        Ports []nmapPort `xml:"ports>port"`
+        Status    nmapHostStatus `xml:"status"`
+        Addresses []nmapAddress  `xml:"address"`
+        Hostnames []nmapHostname `xml:"hostnames>hostname"`
+        Ports     []nmapPort     `xml:"ports>port"`
+}
+
+type nmapFinished struct {
+        TimeStr string `xml:"timestr,attr"`
+        Elapsed string `xml:"elapsed,attr"`
+}
+
+type nmapRunStats struct {
+        Finished nmapFinished `xml:"finished"`
 }
 
 type nmapRun struct {
@@ -954,12 +978,7 @@ type nmapRun struct {
         StartStr string     `xml:"startstr,attr"`
         Version  string     `xml:"version,attr"`
         Hosts    []nmapHost `xml:"host"`
-        RunStats struct {
-                Finished struct {
-                        TimeStr string `xml:"timestr,attr"`
-                        Elapsed string `xml:"elapsed,attr"`
-                } `xml:"finished"`
-        } `xml:"runstats"`
+        RunStats nmapRunStats `xml:"runstats"`
 }
 
 func parseNmapXML(xmlData string) map[string]any {
@@ -1010,7 +1029,7 @@ func convertNmapHost(h nmapHost) map[string]any {
 
 func convertNmapPort(p nmapPort) map[string]any {
         port := map[string]any{
-                "port":     p.PortID,
+                mapKeyPort:     p.PortID,
                 "protocol": p.Protocol,
                 "state":    p.State.State,
                 "service":  p.Service.Name,

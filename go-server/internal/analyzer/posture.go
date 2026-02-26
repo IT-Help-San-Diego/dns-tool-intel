@@ -349,20 +349,33 @@ func evaluateDKIMIssues(dkim map[string]any) (weakKeys, thirdPartyOnly bool) {
         }
 
         if issues, ok := dkim[mapKeyIssues].([]any); ok {
-                for _, issue := range issues {
-                        if s, ok := issue.(string); ok {
-                                lower := strings.ToLower(s)
-                                if strings.Contains(lower, "weak") || strings.Contains(lower, "1024") {
-                                        weakKeys = true
-                                }
-                                if strings.Contains(lower, "third-party") || strings.Contains(lower, "third party") {
-                                        thirdPartyOnly = true
-                                }
-                        }
+                wk, tpo := scanDKIMIssueStrings(issues)
+                if wk {
+                        weakKeys = true
+                }
+                if tpo {
+                        thirdPartyOnly = true
                 }
         }
 
         return weakKeys, thirdPartyOnly
+}
+
+func scanDKIMIssueStrings(issues []any) (weakKeys, thirdPartyOnly bool) {
+        for _, issue := range issues {
+                s, ok := issue.(string)
+                if !ok {
+                        continue
+                }
+                lower := strings.ToLower(s)
+                if strings.Contains(lower, "weak") || strings.Contains(lower, "1024") {
+                        weakKeys = true
+                }
+                if strings.Contains(lower, "third-party") || strings.Contains(lower, "third party") {
+                        thirdPartyOnly = true
+                }
+        }
+        return
 }
 
 func classifySPF(ps protocolState, acc *postureAccumulator) {

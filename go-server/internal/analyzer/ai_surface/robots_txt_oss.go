@@ -10,26 +10,26 @@ import "context"
 var knownAICrawlers = []string{}
 
 func (s *Scanner) CheckRobotsTxtAI(ctx context.Context, domain string) map[string]any {
-	return map[string]any{
-		"found":              false,
-		"url":                nil,
-		"blocks_ai_crawlers": false,
-		"allows_ai_crawlers": false,
-		"blocked_crawlers":   []string{},
-		"allowed_crawlers":   []string{},
-		"directives":         []robotsDirective{},
-		"evidence":           []Evidence{},
-	}
+        return map[string]any{
+                "found":              false,
+                "url":                nil,
+                "blocks_ai_crawlers": false,
+                "allows_ai_crawlers": false,
+                "blocked_crawlers":   []string{},
+                "allowed_crawlers":   []string{},
+                "directives":         []robotsDirective{},
+                "evidence":           []Evidence{},
+        }
 }
 
-func parseRobotsForAI(body string) (blocked []string, allowed []string, directives []robotsDirective) {
-	return nil, nil, nil
+func parseRobotsForAI(body string) (blocked, allowed []string, directives []robotsDirective) {
+        return nil, nil, nil
 }
 
-func processRobotsLine(lower, line string, currentUA string, seenBlocked, seenAllowed map[string]bool, directives *[]robotsDirective) {
-	// OSS stub: full implementation in dns-tool-intel repository
+func processRobotsLine(lower, line, currentUA string, seenBlocked, seenAllowed map[string]bool, directives *[]robotsDirective) {
+        // OSS stub: full implementation in dns-tool-intel repository
 }
 
 func matchAICrawler(userAgent string) string {
-	return ""
+        return ""
 }

@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	mapKeyError = "error"
+        mapKeyError = "error"
 )
 
 const headerCacheControl = "Cache-Control"
@@ -140,6 +140,7 @@ func main() {
 
         router.GET("/", homeHandler.Index)
         router.GET("/healthz", healthHandler.Healthz)
+        router.GET("/api/capacity", healthHandler.Capacity)
         router.GET("/go/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
         router.GET("/.well-known/security.txt", staticHandler.SecurityTxt)

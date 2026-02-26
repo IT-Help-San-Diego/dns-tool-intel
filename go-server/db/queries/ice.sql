@@ -50,13 +50,13 @@ LIMIT 1;
 SELECT protocol, layer, case_id, case_name, passed, expected, actual, rfc_section, notes
 FROM ice_results
 WHERE run_id = $1
-ORDER BY protocol, layer, case_id;
+ORDER BY protocol ASC, layer ASC, case_id ASC;
 
 -- name: ICAEGetFailedResultsByRun :many
 SELECT protocol, layer, case_id, case_name, expected, actual, rfc_section, notes
 FROM ice_results
 WHERE run_id = $1 AND passed = false
-ORDER BY protocol, layer, case_id;
+ORDER BY protocol ASC, layer ASC, case_id ASC;
 
 -- name: ICAECountResultsByProtocol :many
 SELECT protocol, layer,

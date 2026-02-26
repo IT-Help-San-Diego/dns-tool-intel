@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	mapKeyAdded = "added"
-	mapKeyDomain = "domain"
-	mapKeyRemoved = "removed"
+        mapKeyAdded = "added"
+        mapKeyDomain = "domain"
+        mapKeyRemoved = "removed"
+        mapKeyType = "type"
 )
 
 const dateFormatISO = "2006-01-02"
@@ -269,7 +270,7 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
 
         req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
         if err != nil {
-                slog.Warn("SecurityTrails history: failed to create request", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
+                slog.Warn("SecurityTrails history: failed to create request", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
         req.Header.Set("APIKEY", apiKey)
@@ -277,25 +278,25 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
 
         resp, err := securityTrailsHTTPClient.Do(req)
         if err != nil {
-                slog.Warn("SecurityTrails history: request failed", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
+                slog.Warn("SecurityTrails history: request failed", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
         defer resp.Body.Close()
 
         if resp.StatusCode == http.StatusTooManyRequests {
-                slog.Warn("SecurityTrails history: rate limited", mapKeyDomain, domain, "type", rtype)
+                slog.Warn("SecurityTrails history: rate limited", mapKeyDomain, domain, mapKeyType, rtype)
                 stBudget.markRateLimited()
                 return historyFetchResult{rateLimited: true}
         }
 
         if resp.StatusCode != http.StatusOK {
-                slog.Warn("SecurityTrails history: unexpected status", mapKeyDomain, domain, "type", rtype, mapKeyStatus, resp.StatusCode)
+                slog.Warn("SecurityTrails history: unexpected status", mapKeyDomain, domain, mapKeyType, rtype, mapKeyStatus, resp.StatusCode)
                 return historyFetchResult{errored: true}
         }
 
         var histResp stHistoryResponse
         if err := json.NewDecoder(resp.Body).Decode(&histResp); err != nil {
-                slog.Warn("SecurityTrails history: parse failed", mapKeyDomain, domain, "type", rtype, mapKeyError, err)
+                slog.Warn("SecurityTrails history: parse failed", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
 
@@ -351,7 +352,7 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
                 }
         }
 
-        slog.Info("SecurityTrails history: fetched", mapKeyDomain, domain, "type", rtype, "events", len(changes))
+        slog.Info("SecurityTrails history: fetched", mapKeyDomain, domain, mapKeyType, rtype, "events", len(changes))
         return historyFetchResult{changes: changes}
 }
 

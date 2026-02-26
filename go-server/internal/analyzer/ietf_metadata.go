@@ -12,6 +12,9 @@ import (
         "time"
 )
 
+const (
+        mapKeyRfcNum = "rfc"
+)
 
 type RFCMetadata struct {
         Number      string `json:"number"`
@@ -92,19 +95,19 @@ func fetchSingleRFC(number string) *RFCMetadata {
 
         resp, err := ietfHTTPClient.Get(url)
         if err != nil {
-                slog.Debug("IETF metadata: fetch failed", "rfc", number, "error", err)
+                slog.Debug("IETF metadata: fetch failed", mapKeyRfcNum, number, "error", err)
                 return nil
         }
         defer resp.Body.Close()
 
         if resp.StatusCode != http.StatusOK {
-                slog.Debug("IETF metadata: unexpected status", "rfc", number, mapKeyStatus, resp.StatusCode)
+                slog.Debug("IETF metadata: unexpected status", mapKeyRfcNum, number, mapKeyStatus, resp.StatusCode)
                 return nil
         }
 
         var doc ietfDocResponse
         if err := json.NewDecoder(resp.Body).Decode(&doc); err != nil {
-                slog.Debug("IETF metadata: parse failed", "rfc", number, "error", err)
+                slog.Debug("IETF metadata: parse failed", mapKeyRfcNum, number, "error", err)
                 return nil
         }
 
@@ -215,7 +218,7 @@ func GetObsoleteWarnings() []map[string]any {
         for _, meta := range rfcCache {
                 if meta.IsObsolete {
                         warnings = append(warnings, map[string]any{
-                                "rfc":          fmt.Sprintf("RFC %s", meta.Number),
+                                mapKeyRfcNum:          fmt.Sprintf("RFC %s", meta.Number),
                                 "title":        meta.Title,
                                 "obsoleted_by": meta.ObsoletedBy,
                                 mapKeyStatus:       meta.Status,
@@ -244,7 +247,7 @@ func EnrichRemediationWithRFCMeta(remediation map[string]any) map[string]any {
 
 func enrichFixesWithRFCMeta(fixes []map[string]any) {
         for i, fix := range fixes {
-                rfcRef, _ := fix["rfc"].(string)
+                rfcRef, _ := fix[mapKeyRfcNum].(string)
                 if rfcRef == "" {
                         continue
                 }
