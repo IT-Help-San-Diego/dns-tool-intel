@@ -73,6 +73,7 @@ type AdminAnalysis struct {
         Duration         string
         CreatedAt        string
         CountryCode      string
+        ScanIP           string
         Private          bool
         HasUserSelectors bool
         ScanFlag         bool
@@ -182,7 +183,7 @@ func (h *AdminHandler) fetchUsers(ctx context.Context) []AdminUser {
 func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis {
         rows, err := h.DB.Pool.Query(ctx,
                 `SELECT id, domain, analysis_success, analysis_duration, created_at,
-                        COALESCE(country_code, ''), private, has_user_selectors,
+                        COALESCE(country_code, ''), COALESCE(scan_ip, ''), private, has_user_selectors,
                         scan_flag, COALESCE(scan_source, '')
                  FROM domain_analyses
                  ORDER BY created_at DESC LIMIT 25`)
@@ -199,7 +200,7 @@ func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis 
                 var duration *float64
                 var createdAt time.Time
                 if err := rows.Scan(&a.ID, &a.Domain, &success, &duration, &createdAt,
-                        &a.CountryCode, &a.Private, &a.HasUserSelectors, &a.ScanFlag, &a.ScanSource); err != nil {
+                        &a.CountryCode, &a.ScanIP, &a.Private, &a.HasUserSelectors, &a.ScanFlag, &a.ScanSource); err != nil {
                         slog.Error("Admin: failed to scan analysis row", mapKeyError, err)
                         continue
                 }

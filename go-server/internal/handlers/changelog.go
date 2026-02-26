@@ -15,11 +15,13 @@
 //
 // Canonical date mapping (verified Feb 26, 2026):
 //
-//      dateFeb26 — CSRF Form Fix (TTL Tuner & Watchlist), TTL Tuner UX Overhaul,
-//                  DNS Provider Detection Expansion (5→15), NS Provider-Locked Display,
-//                  Mobile Homepage Scroll Fix, Navbar Dropdown Refinement,
-//                  HTTP Observatory A+ Infrastructure, Secure Cookie Infrastructure,
-//                  TTL Tuner Mobile Responsive Table, SonarCloud Quality Gate Fixes
+//      dateFeb26 — Stats Success Rate Fix, Daily Analysis Stats Tracking,
+//                  Admin IP Audit Trail, CSRF Form Fix (TTL Tuner & Watchlist),
+//                  TTL Tuner UX Overhaul, DNS Provider Detection Expansion (5→15),
+//                  NS Provider-Locked Display, Mobile Homepage Scroll Fix,
+//                  Navbar Dropdown Refinement, HTTP Observatory A+ Infrastructure,
+//                  Secure Cookie Infrastructure, TTL Tuner Mobile Responsive Table,
+//                  SonarCloud Quality Gate Fixes
 //      dateFeb23 — Architecture Page TLP:GREEN Redesign, Currency Level Hero Card Label,
 //                  PWA Icon Edge Cleanup
 //      dateFeb21 — Misplaced DMARC Record Detection, Covert Mode Recon Report UI,
@@ -64,6 +66,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262703 = "26.27.03"
         ver262701 = "26.27.01"
         ver262525 = "26.25.25"
         ver262225 = "26.22.25"
@@ -102,6 +105,30 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262703,
+                        Date:        dateFeb26,
+                        Category:    catTransparency,
+                        Title:       "Stats Page Success Rate Fix",
+                        Description: "Fixed success rate calculation that reported 100% by counting all stored analyses as successful. Now uses actual analysis_success field from domain_analyses for accurate success/failure counts.",
+                        Icon:        "fas fa-chart-pie",
+                },
+                {
+                        Version:     ver262703,
+                        Date:        dateFeb26,
+                        Category:    catCore,
+                        Title:       "Daily Analysis Stats Tracking",
+                        Description: "Wired up daily_stats recording for every completed analysis. Each scan now increments the analysis_stats table with success/failure status and duration, enabling accurate per-day trend reporting.",
+                        Icon:        "fas fa-database",
+                },
+                {
+                        Version:     ver262703,
+                        Date:        dateFeb26,
+                        Category:    catSecurity,
+                        Title:       "Admin IP Audit Trail",
+                        Description: "Added scan_ip and country origin column to admin dashboard recent analyses table, enabling traffic pattern investigation and external scan source identification.",
+                        Icon:        "fas fa-map-marker-alt",
+                },
                 {
                         Version:     ver262701,
                         Date:        dateFeb26,

@@ -44,22 +44,19 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 return
         }
 
-        storedCount, err := h.DB.Queries.CountAllAnalyses(ctx)
+        totalAnalyses, err := h.DB.Queries.CountAllAnalyses(ctx)
         if err != nil {
                 slog.Warn("Stats: failed to count analyses", mapKeyError, err)
         }
+        successfulAnalyses, err := h.DB.Queries.CountSuccessfulAnalysesTotal(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count successful analyses", mapKeyError, err)
+        }
+        failedAnalyses := totalAnalyses - successfulAnalyses
         uniqueDomains, err := h.DB.Queries.CountUniqueDomainsTotal(ctx)
         if err != nil {
                 slog.Warn("Stats: failed to count unique domains", mapKeyError, err)
         }
-
-        aggregateStats, err := h.DB.Queries.SumAnalysisStats(ctx)
-        if err != nil {
-                slog.Warn("Stats: failed to sum analysis stats", mapKeyError, err)
-        }
-        failedFromStats := aggregateStats.Failed
-        totalAnalyses := storedCount + failedFromStats
-        successfulAnalyses := storedCount
 
         popularDomains, err := h.DB.Queries.ListPopularDomains(ctx, 10)
         if err != nil {
@@ -100,7 +97,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 "ActivePage":         "stats",
                 "TotalAnalyses":      totalAnalyses,
                 "SuccessfulAnalyses": successfulAnalyses,
-                "FailedAnalyses":     failedFromStats,
+                "FailedAnalyses":     failedAnalyses,
                 "UniqueDomains":      uniqueDomains,
                 "CountryStats":       countryItems,
                 "PopularDomains":     popItems,

@@ -322,15 +322,18 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 devNull:           devNull,
         })
 
+        analysisSuccess, _ := extractAnalysisError(results)
         h.handlePostAnalysisSideEffects(ctx, c, sideEffectsParams{
-                asciiDomain:     asciiDomain,
-                analysisID:      analysisID,
-                isAuthenticated: isAuthenticated,
-                userID:          userID,
-                ephemeral:       ephemeral,
-                domainExists:    domainExists,
-                drift:           drift,
-                postureHash:     postureHash,
+                asciiDomain:      asciiDomain,
+                analysisID:       analysisID,
+                isAuthenticated:  isAuthenticated,
+                userID:           userID,
+                ephemeral:        ephemeral,
+                domainExists:     domainExists,
+                drift:            drift,
+                postureHash:      postureHash,
+                analysisSuccess:  analysisSuccess,
+                analysisDuration: analysisDuration,
         })
 
         h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
@@ -558,14 +561,16 @@ func logEphemeralReason(asciiDomain string, devNull, domainExists bool) {
 }
 
 type sideEffectsParams struct {
-        asciiDomain     string
-        analysisID      int32
-        isAuthenticated bool
-        userID          int32
-        ephemeral       bool
-        domainExists    bool
-        drift           driftInfo
-        postureHash     string
+        asciiDomain      string
+        analysisID       int32
+        isAuthenticated  bool
+        userID           int32
+        ephemeral        bool
+        domainExists     bool
+        drift            driftInfo
+        postureHash      string
+        analysisSuccess  bool
+        analysisDuration float64
 }
 
 func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, p sideEffectsParams) {
@@ -580,6 +585,8 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
                 icae.EvaluateAndRecord(c.Request.Context(), h.DB.Queries, h.Config.AppVersion)
                 recordAnalyticsCollector(c, p.asciiDomain)
         }
+
+        go h.recordDailyStats(p.analysisSuccess, p.analysisDuration)
 }
 
 func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
@@ -595,6 +602,36 @@ func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
                         slog.Error("Failed to record user analysis association", mapKeyUserId, p.userID, "analysis_id", p.analysisID, mapKeyError, err)
                 }
         }()
+}
+
+func (h *AnalysisHandler) recordDailyStats(success bool, duration float64) {
+        ctx := context.Background()
+        today := time.Now().UTC().Truncate(24 * time.Hour)
+
+        successInt := 0
+        failedInt := 0
+        if success {
+                successInt = 1
+        } else {
+                failedInt = 1
+        }
+
+        _, err := h.DB.Pool.Exec(ctx,
+                `INSERT INTO analysis_stats (date, total_analyses, successful_analyses, failed_analyses, unique_domains, avg_analysis_time, created_at, updated_at)
+                 VALUES ($1, 1, $2, $3, 0, $4, NOW(), NOW())
+                 ON CONFLICT (date) DO UPDATE SET
+                     total_analyses = COALESCE(analysis_stats.total_analyses, 0) + 1,
+                     successful_analyses = COALESCE(analysis_stats.successful_analyses, 0) + $2,
+                     failed_analyses = COALESCE(analysis_stats.failed_analyses, 0) + $3,
+                     avg_analysis_time = CASE
+                         WHEN COALESCE(analysis_stats.total_analyses, 0) = 0 THEN $4
+                         ELSE (COALESCE(analysis_stats.avg_analysis_time, 0) * COALESCE(analysis_stats.total_analyses, 0) + $4) / (COALESCE(analysis_stats.total_analyses, 0) + 1)
+                     END,
+                     updated_at = NOW()`,
+                today, successInt, failedInt, duration)
+        if err != nil {
+                slog.Error("Failed to record daily stats", mapKeyError, err)
+        }
 }
 
 func recordAnalyticsCollector(c *gin.Context, domain string) {

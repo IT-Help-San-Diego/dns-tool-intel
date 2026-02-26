@@ -329,6 +329,7 @@
                                         <th scope="col">Status</th>
                                         <th scope="col">Duration</th>
                                         <th scope="col">Flags</th>
+                                        <th scope="col">Origin</th>
                                         <th scope="col">Date</th>
                                     </tr>
                                 </thead>
@@ -350,7 +351,10 @@
                                             {{if .ScanFlag}}<span class="badge bg-danger" title="Scanner: {{.ScanSource}}"><i class="fas fa-satellite-dish"></i></span>{{end}}
                                             {{if .Private}}<span class="badge bg-warning text-dark" title="Private">P</span>{{end}}
                                             {{if .HasUserSelectors}}<span class="badge bg-secondary" title="Custom DKIM Selectors">S</span>{{end}}
+                                        </td>
+                                        <td>
                                             {{if .CountryCode}}<small class="text-muted">{{.CountryCode}}</small>{{end}}
+                                            {{if .ScanIP}}<small class="text-muted d-block" style="font-size:0.7rem" title="{{.ScanIP}}">{{.ScanIP}}</small>{{end}}
                                         </td>
                                         <td><small>{{.CreatedAt}}</small></td>
                                     </tr>
