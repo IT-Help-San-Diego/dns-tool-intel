@@ -48,6 +48,36 @@
       "purpose": "any"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "New Analysis",
+      "short_name": "Analyze",
+      "description": "Run a new domain security analysis",
+      "url": "/",
+      "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
+    },
+    {
+      "name": "Public Stats",
+      "short_name": "Stats",
+      "description": "View analysis statistics and trends",
+      "url": "/stats",
+      "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
+    },
+    {
+      "name": "Changelog",
+      "short_name": "Changes",
+      "description": "View recent updates and improvements",
+      "url": "/changelog",
+      "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
+    },
+    {
+      "name": "TTL Tuner",
+      "short_name": "TTL",
+      "description": "Optimize DNS TTL values for your domain",
+      "url": "/ttl-tuner",
+      "icons": [{ "src": "/static/icons/favicon-48x48.png", "sizes": "48x48", "type": "image/png" }]
+    }
+  ],
   "categories": ["utilities", "security"],
   "lang": "en",
   "dir": "ltr",

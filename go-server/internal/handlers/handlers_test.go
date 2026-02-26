@@ -261,7 +261,7 @@ func TestManifestJSON(t *testing.T) {
 
 func TestServiceWorker(t *testing.T) {
         tempDir := t.TempDir()
-        swContent := "var CACHE_NAME = 'dnstool-SW_VERSION_PLACEHOLDER';"
+        swContent := "var CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';\nvar CACHE_NAME = 'dnstool-' + CACHE_VERSION;"
         swPath := filepath.Join(tempDir, "sw.js")
         if err := os.WriteFile(swPath, []byte(swContent), 0644); err != nil {
                 t.Fatalf("failed to create test sw.js: %v", err)
@@ -283,8 +283,8 @@ func TestServiceWorker(t *testing.T) {
         }
 
         body := w.Body.String()
-        if !contains(body, "dnstool-26.14.6") {
-                t.Error("expected version-injected cache name in service worker response")
+        if !contains(body, "'26.14.6'") {
+                t.Error("expected version-injected CACHE_VERSION in service worker response")
         }
         if contains(body, "SW_VERSION_PLACEHOLDER") {
                 t.Error("placeholder should be replaced with actual version")
