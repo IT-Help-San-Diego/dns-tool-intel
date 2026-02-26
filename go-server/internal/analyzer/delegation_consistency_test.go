@@ -799,3 +799,216 @@ func TestSoaConsistencyToMap(t *testing.T) {
                 t.Error("expected 2 serials in map")
         }
 }
+
+func TestCheckDSKeyAlignment_MultipleMatches(t *testing.T) {
+        ds := []DSRecord{
+                {KeyTag: 100, Algorithm: 13, DigestType: 2, Digest: "abc"},
+                {KeyTag: 200, Algorithm: 8, DigestType: 2, Digest: "def"},
+        }
+        keys := []DNSKEYRecord{
+                {Flags: 257, Protocol: 3, Algorithm: 13, KeyTag: 100, IsKSK: true},
+                {Flags: 257, Protocol: 3, Algorithm: 8, KeyTag: 200, IsKSK: true},
+                {Flags: 256, Protocol: 3, Algorithm: 13, KeyTag: 300, IsZSK: true},
+        }
+
+        result := CheckDSKeyAlignment(ds, keys)
+
+        if !result.Aligned {
+                t.Error("expected aligned with multiple matches")
+        }
+        if len(result.MatchedPairs) != 2 {
+                t.Errorf("expected 2 matched pairs, got %d", len(result.MatchedPairs))
+        }
+        if len(result.UnmatchedDS) != 0 {
+                t.Errorf("expected 0 unmatched DS, got %d", len(result.UnmatchedDS))
+        }
+        if len(result.UnmatchedKeys) != 0 {
+                t.Errorf("expected 0 unmatched KSK keys, got %d", len(result.UnmatchedKeys))
+        }
+}
+
+func TestCheckGlueCompleteness_MixedBailiwick(t *testing.T) {
+        nameservers := []string{"ns1.example.com.", "ns1.cloudflare.com."}
+        domain := "example.com"
+        glueIPv4 := map[string][]string{
+                "ns1.example.com": {"1.2.3.4"},
+        }
+        glueIPv6 := map[string][]string{
+                "ns1.example.com": {"2001:db8::1"},
+        }
+
+        result := CheckGlueCompleteness(nameservers, domain, glueIPv4, glueIPv6)
+
+        if result.InBailiwickCount != 1 {
+                t.Errorf("expected 1 in-bailiwick, got %d", result.InBailiwickCount)
+        }
+        if result.GluePresent != 1 {
+                t.Errorf("expected 1 glue present, got %d", result.GluePresent)
+        }
+        if len(result.Nameservers) != 2 {
+                t.Errorf("expected 2 nameservers, got %d", len(result.Nameservers))
+        }
+}
+
+func TestIsInBailiwick_ExactDomainMatch(t *testing.T) {
+        if !isInBailiwick("example.com", "example.com") {
+                t.Error("expected exact domain match to be in bailiwick")
+        }
+        if !isInBailiwick("example.com.", "example.com.") {
+                t.Error("expected exact match with trailing dots to be in bailiwick")
+        }
+}
+
+func TestEvaluateInBailiwickGlue_IPv6Only(t *testing.T) {
+        status := &GlueStatus{}
+        result := &GlueAnalysis{Issues: []string{}}
+
+        glueIPv4 := map[string][]string{}
+        glueIPv6 := map[string][]string{"ns1.example.com": {"2001:db8::1"}}
+
+        evaluateInBailiwickGlue("ns1.example.com", glueIPv4, glueIPv6, status, result)
+
+        if status.HasIPv4Glue {
+                t.Error("expected no IPv4 glue")
+        }
+        if !status.HasIPv6Glue {
+                t.Error("expected IPv6 glue")
+        }
+        if status.Complete {
+                t.Error("expected incomplete (missing IPv4)")
+        }
+        if result.GluePresent != 1 {
+                t.Errorf("expected 1 glue present, got %d", result.GluePresent)
+        }
+        if len(result.Issues) == 0 {
+                t.Error("expected issues for missing IPv4 glue")
+        }
+}
+
+func TestTtlComparisonToMap_WithValues(t *testing.T) {
+        p := uint32(3600)
+        c := uint32(3600)
+        comp := TTLComparison{
+                ParentTTL: &p,
+                ChildTTL:  &c,
+                Match:     true,
+                DriftSecs: 0,
+                Issues:    []string{},
+        }
+
+        m := ttlComparisonToMap(comp)
+
+        if m["parent_ttl"] != uint32(3600) {
+                t.Errorf("expected parent_ttl=3600, got %v", m["parent_ttl"])
+        }
+        if m["child_ttl"] != uint32(3600) {
+                t.Errorf("expected child_ttl=3600, got %v", m["child_ttl"])
+        }
+        if m["match"] != true {
+                t.Error("expected match=true")
+        }
+}
+
+func TestParseSOASerial_LargeSerial(t *testing.T) {
+        serial, ok := parseSOASerial("ns1.example.com. admin.example.com. 4294967295 3600 900 604800 86400")
+        if !ok {
+                t.Error("expected ok for max uint32 serial")
+        }
+        if serial != 4294967295 {
+                t.Errorf("expected serial 4294967295, got %d", serial)
+        }
+}
+
+func TestParseSOASerial_ZeroSerial(t *testing.T) {
+        serial, ok := parseSOASerial("ns1.example.com. admin.example.com. 0 3600 900 604800 86400")
+        if !ok {
+                t.Error("expected ok for zero serial")
+        }
+        if serial != 0 {
+                t.Errorf("expected serial 0, got %d", serial)
+        }
+}
+
+func TestParseSOASerial_EmptyString(t *testing.T) {
+        _, ok := parseSOASerial("")
+        if ok {
+                t.Error("expected not ok for empty string")
+        }
+}
+
+func TestCheckSOAConsistency_ThreeWaySplit(t *testing.T) {
+        serials := map[string]uint32{
+                "ns1.example.com": 100,
+                "ns2.example.com": 200,
+                "ns3.example.com": 300,
+        }
+
+        result := CheckSOAConsistency(serials)
+
+        if result.Consistent {
+                t.Error("expected inconsistent with 3-way split")
+        }
+        if result.UniqueCount != 3 {
+                t.Errorf("expected 3 unique serials, got %d", result.UniqueCount)
+        }
+}
+
+func TestGlueStatusToMap_BothAddrs(t *testing.T) {
+        gs := GlueStatus{
+                NS:          "ns1.example.com",
+                InBailiwick: true,
+                HasIPv4Glue: true,
+                HasIPv6Glue: true,
+                IPv4Addrs:   []string{"1.2.3.4"},
+                IPv6Addrs:   []string{"2001:db8::1"},
+                Complete:    true,
+        }
+
+        m := glueStatusToMap(gs)
+
+        if _, ok := m["ipv4_addrs"]; !ok {
+                t.Error("expected ipv4_addrs present")
+        }
+        if _, ok := m["ipv6_addrs"]; !ok {
+                t.Error("expected ipv6_addrs present")
+        }
+        if m["complete"] != true {
+                t.Error("expected complete=true")
+        }
+}
+
+func TestCheckGlueCompleteness_Empty(t *testing.T) {
+        result := CheckGlueCompleteness([]string{}, "example.com", map[string][]string{}, map[string][]string{})
+
+        if !result.Complete {
+                t.Error("expected complete for empty nameservers")
+        }
+        if len(result.Nameservers) != 0 {
+                t.Errorf("expected 0 nameservers, got %d", len(result.Nameservers))
+        }
+}
+
+func TestCollectUnmatchedRecords_AllMatched(t *testing.T) {
+        dsRecords := []DSRecord{
+                {KeyTag: 100, Algorithm: 13},
+        }
+        dnskeyRecords := []DNSKEYRecord{
+                {Flags: 257, Algorithm: 13, KeyTag: 100, IsKSK: true},
+        }
+        dsMatched := map[int]bool{0: true}
+        keyMatched := map[uint16]bool{100: true}
+
+        result := &DSKeyAlignment{
+                UnmatchedDS:   []DSRecord{},
+                UnmatchedKeys: []DNSKEYRecord{},
+        }
+
+        collectUnmatchedRecords(dsRecords, dnskeyRecords, dsMatched, keyMatched, result)
+
+        if len(result.UnmatchedDS) != 0 {
+                t.Errorf("expected 0 unmatched DS, got %d", len(result.UnmatchedDS))
+        }
+        if len(result.UnmatchedKeys) != 0 {
+                t.Errorf("expected 0 unmatched keys, got %d", len(result.UnmatchedKeys))
+        }
+}

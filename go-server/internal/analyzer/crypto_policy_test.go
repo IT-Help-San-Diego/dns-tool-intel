@@ -5,6 +5,7 @@ package analyzer
 import (
         "errors"
         "fmt"
+        "strings"
         "testing"
 )
 
@@ -358,5 +359,102 @@ func TestMaxInt(t *testing.T) {
         }
         if got := maxInt(4, 4); got != 4 {
                 t.Errorf("maxInt(4,4) = %d", got)
+        }
+}
+
+func TestClassifyDNSSECAlgorithm_AllHaveRFCAndQuantumNote(t *testing.T) {
+        algos := []int{1, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 0, 99, 255}
+        for _, alg := range algos {
+                got := ClassifyDNSSECAlgorithm(alg)
+                if got.RFC != rfcDNSSEC {
+                        t.Errorf("Algorithm %d: RFC = %q, want %q", alg, got.RFC, rfcDNSSEC)
+                }
+                if got.QuantumNote != pqcNote {
+                        t.Errorf("Algorithm %d: QuantumNote mismatch", alg)
+                }
+        }
+}
+
+func TestClassifyDKIMKey_RSABoundaries(t *testing.T) {
+        tests := []struct {
+                name         string
+                bits         int
+                wantStrength string
+        }{
+                {"RSA 0 bits", 0, "deprecated"},
+                {"RSA 512 bits", 512, "deprecated"},
+                {"RSA 1023 bits", 1023, "deprecated"},
+                {"RSA 1024 bits", 1024, "weak"},
+                {"RSA 1025 bits", 1025, "weak"},
+                {"RSA 2047 bits", 2047, "weak"},
+                {"RSA 2048 bits", 2048, "adequate"},
+                {"RSA 2049 bits", 2049, "adequate"},
+                {"RSA 3072 bits", 3072, "adequate"},
+                {"RSA 4096 bits", 4096, "strong"},
+                {"RSA 8192 bits", 8192, "adequate"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := ClassifyDKIMKey("rsa", tt.bits)
+                        if got.Strength != tt.wantStrength {
+                                t.Errorf("ClassifyDKIMKey(rsa, %d) strength = %q, want %q", tt.bits, got.Strength, tt.wantStrength)
+                        }
+                })
+        }
+}
+
+func TestClassifyDKIMKey_AllHaveRFC(t *testing.T) {
+        cases := []struct{ keyType string; bits int }{
+                {"rsa", 512}, {"rsa", 1024}, {"rsa", 2048}, {"rsa", 4096},
+                {"ed25519", 256}, {"unknown", 0}, {"", 0},
+        }
+        for _, c := range cases {
+                got := ClassifyDKIMKey(c.keyType, c.bits)
+                if got.RFC != rfcDKIM {
+                        t.Errorf("ClassifyDKIMKey(%q, %d): RFC = %q, want %q", c.keyType, c.bits, got.RFC, rfcDKIM)
+                }
+        }
+}
+
+func TestClassifyDKIMKey_ObservationContent(t *testing.T) {
+        got := ClassifyDKIMKey("rsa", 3072)
+        if !strings.Contains(got.Observation, "3072") {
+                t.Errorf("expected observation to contain key bits, got: %s", got.Observation)
+        }
+
+        got2 := ClassifyDKIMKey("chacha20", 256)
+        if !strings.Contains(got2.Observation, "chacha20") {
+                t.Errorf("expected observation to contain key type, got: %s", got2.Observation)
+        }
+}
+
+func TestClassifyDSDigest_ObservationContent(t *testing.T) {
+        got := ClassifyDSDigest(42)
+        expected := fmt.Sprintf("DS digest type %d — not classified in RFC 8624", 42)
+        if got.Observation != expected {
+                t.Errorf("Observation = %q, want %q", got.Observation, expected)
+        }
+}
+
+func TestClassifyHTTPError_EmptyTruncateLen(t *testing.T) {
+        got := classifyHTTPError(errors.New("some random error"), 0)
+        if got != "some random error" {
+                t.Errorf("expected full error string, got: %q", got)
+        }
+}
+
+func TestJsonUnmarshal(t *testing.T) {
+        var result map[string]string
+        err := jsonUnmarshal([]byte(`{"key":"value"}`), &result)
+        if err != nil {
+                t.Errorf("unexpected error: %v", err)
+        }
+        if result["key"] != "value" {
+                t.Errorf("expected value, got %q", result["key"])
+        }
+
+        err = jsonUnmarshal([]byte(`invalid`), &result)
+        if err == nil {
+                t.Error("expected error for invalid JSON")
         }
 }

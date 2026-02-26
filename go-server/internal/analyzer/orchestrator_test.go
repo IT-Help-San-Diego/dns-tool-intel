@@ -480,3 +480,240 @@ func TestBuildICuAEReport_WithConsensus(t *testing.T) {
                 t.Error("expected non-empty overall grade")
         }
 }
+
+func TestBuildSectionStatus_TimeoutStatus(t *testing.T) {
+        resultsMap := map[string]any{
+                "spf": map[string]any{"status": "timeout"},
+        }
+        status := buildSectionStatus(resultsMap)
+        spf, ok := status["spf"].(map[string]any)
+        if !ok {
+                t.Fatal("expected spf entry")
+        }
+        if spf["status"] != "timeout" {
+                t.Errorf("expected status=timeout, got %v", spf["status"])
+        }
+        if spf["message"] != "Query timed out" {
+                t.Errorf("expected 'Query timed out' message, got %v", spf["message"])
+        }
+}
+
+func TestBuildSectionStatus_ErrorWithMessage(t *testing.T) {
+        resultsMap := map[string]any{
+                "dmarc": map[string]any{"status": "error", "message": "DNS failure"},
+        }
+        status := buildSectionStatus(resultsMap)
+        dmarc, ok := status["dmarc"].(map[string]any)
+        if !ok {
+                t.Fatal("expected dmarc entry")
+        }
+        if dmarc["status"] != "error" {
+                t.Errorf("expected status=error, got %v", dmarc["status"])
+        }
+        if dmarc["message"] != "DNS failure" {
+                t.Errorf("expected 'DNS failure', got %v", dmarc["message"])
+        }
+}
+
+func TestBuildSectionStatus_ErrorNoMessage(t *testing.T) {
+        resultsMap := map[string]any{
+                "dkim": map[string]any{"status": "error"},
+        }
+        status := buildSectionStatus(resultsMap)
+        dkim, ok := status["dkim"].(map[string]any)
+        if !ok {
+                t.Fatal("expected dkim entry")
+        }
+        if dkim["message"] != "Lookup failed" {
+                t.Errorf("expected default 'Lookup failed', got %v", dkim["message"])
+        }
+}
+
+func TestBuildSectionStatus_NonMapResult(t *testing.T) {
+        resultsMap := map[string]any{
+                "something": "not a map",
+        }
+        status := buildSectionStatus(resultsMap)
+        entry, ok := status["something"].(map[string]any)
+        if !ok {
+                t.Fatal("expected something entry")
+        }
+        if entry["status"] != "ok" {
+                t.Errorf("expected status=ok for non-map result, got %v", entry["status"])
+        }
+}
+
+func TestBuildSectionStatus_SuccessStatus(t *testing.T) {
+        resultsMap := map[string]any{
+                "caa": map[string]any{"status": "success"},
+        }
+        status := buildSectionStatus(resultsMap)
+        caa, ok := status["caa"].(map[string]any)
+        if !ok {
+                t.Fatal("expected caa entry")
+        }
+        if caa["status"] != "ok" {
+                t.Errorf("expected status=ok for success, got %v", caa["status"])
+        }
+}
+
+func TestAdjustHostingSummary_NotAMap(t *testing.T) {
+        results := map[string]any{
+                "hosting_summary": "not a map",
+        }
+        adjustHostingSummary(results)
+        if results["hosting_summary"] != "not a map" {
+                t.Error("expected hosting_summary to remain unchanged when not a map")
+        }
+}
+
+func TestAdjustHostingSummary_KnownEmailProvider(t *testing.T) {
+        results := map[string]any{
+                "is_no_mail_domain": false,
+                "has_null_mx":       false,
+                "hosting_summary":   map[string]any{"email_hosting": "Google Workspace"},
+        }
+        adjustHostingSummary(results)
+        hs := results["hosting_summary"].(map[string]any)
+        if hs["email_hosting"] != "Google Workspace" {
+                t.Errorf("expected email_hosting to remain 'Google Workspace', got %v", hs["email_hosting"])
+        }
+}
+
+func TestAdjustHostingSummary_UnknownNotNoMail(t *testing.T) {
+        results := map[string]any{
+                "is_no_mail_domain": false,
+                "has_null_mx":       false,
+                "hosting_summary":   map[string]any{"email_hosting": "Unknown"},
+                "dkim_analysis": map[string]any{
+                        "primary_provider": "Microsoft 365",
+                },
+        }
+        adjustHostingSummary(results)
+        hs := results["hosting_summary"].(map[string]any)
+        if hs["email_hosting"] != "Microsoft 365" {
+                t.Errorf("expected email_hosting inferred to 'Microsoft 365', got %v", hs["email_hosting"])
+        }
+}
+
+func TestInferEmailFromDKIM_NoDKIMKey(t *testing.T) {
+        hs := map[string]any{"email_hosting": "Unknown"}
+        results := map[string]any{}
+        inferEmailFromDKIM(hs, results)
+        if hs["email_hosting"] != "Unknown" {
+                t.Errorf("expected unchanged when no dkim_analysis, got %v", hs["email_hosting"])
+        }
+}
+
+func TestInferEmailFromDKIM_EmptyProvider(t *testing.T) {
+        hs := map[string]any{"email_hosting": "Unknown"}
+        results := map[string]any{
+                "dkim_analysis": map[string]any{
+                        "primary_provider": "",
+                },
+        }
+        inferEmailFromDKIM(hs, results)
+        if hs["email_hosting"] != "Unknown" {
+                t.Errorf("expected unchanged for empty provider, got %v", hs["email_hosting"])
+        }
+}
+
+func TestInferEmailFromDKIM_PreservesExistingConfidence(t *testing.T) {
+        existingConfidence := map[string]any{
+                "level":  "confirmed",
+                "label":  "Confirmed",
+                "method": "MX record match",
+        }
+        hs := map[string]any{
+                "email_hosting":     "Unknown",
+                "email_confidence": existingConfidence,
+        }
+        results := map[string]any{
+                "dkim_analysis": map[string]any{
+                        "primary_provider": "Google Workspace",
+                },
+        }
+        inferEmailFromDKIM(hs, results)
+        if hs["email_hosting"] != "Google Workspace" {
+                t.Errorf("expected 'Google Workspace', got %v", hs["email_hosting"])
+        }
+        ec := hs["email_confidence"].(map[string]any)
+        if ec["level"] != "confirmed" {
+                t.Error("expected existing email_confidence to be preserved")
+        }
+}
+
+func TestDetectNullMX_MultipleWithOneNull(t *testing.T) {
+        basic := map[string]any{
+                "MX": []string{"10 mail.example.com.", "0 ."},
+        }
+        if !detectNullMX(basic) {
+                t.Error("expected null MX detection when one record is null")
+        }
+}
+
+func TestEnrichMisplacedDMARC_NilIssuesList(t *testing.T) {
+        basic := map[string]any{
+                "TXT": []string{"v=DMARC1; p=reject"},
+        }
+        resultsMap := map[string]any{
+                "dmarc": map[string]any{
+                        "status": "warning",
+                },
+        }
+
+        enrichMisplacedDMARC(basic, resultsMap)
+
+        dmarcResult := resultsMap["dmarc"].(map[string]any)
+        if dmarcResult["misplaced_dmarc"] == nil {
+                t.Error("expected misplaced_dmarc to be set")
+        }
+        issues, ok := dmarcResult["issues"].([]string)
+        if !ok {
+                t.Fatal("expected issues to be a string slice")
+        }
+        if len(issues) == 0 {
+                t.Error("expected at least one issue appended")
+        }
+}
+
+func TestBuildPropagationStatus_EmptyMaps(t *testing.T) {
+        propagation := buildPropagationStatus(map[string]any{}, map[string]any{})
+        if len(propagation) != 0 {
+                t.Errorf("expected empty propagation for empty inputs, got %d entries", len(propagation))
+        }
+}
+
+func TestExtractResolverAgreements_InvalidPerRecordEntry(t *testing.T) {
+        consensus := map[string]any{
+                "per_record_consensus": map[string]any{
+                        "A": "not a map",
+                },
+        }
+
+        agreements, _ := extractResolverAgreements(consensus)
+        if len(agreements) != 0 {
+                t.Errorf("expected 0 agreements for invalid per_record entry, got %d", len(agreements))
+        }
+}
+
+func TestMakeStringSet_Empty(t *testing.T) {
+        set := makeStringSet([]string{})
+        if len(set) != 0 {
+                t.Errorf("expected empty set, got %d", len(set))
+        }
+}
+
+func TestMakeStringSet_Nil(t *testing.T) {
+        set := makeStringSet(nil)
+        if len(set) != 0 {
+                t.Errorf("expected empty set for nil input, got %d", len(set))
+        }
+}
+
+func TestKeysOf_Empty(t *testing.T) {
+        keys := keysOf(map[string]bool{})
+        if len(keys) != 0 {
+                t.Errorf("expected empty keys, got %d", len(keys))
+        }
+}

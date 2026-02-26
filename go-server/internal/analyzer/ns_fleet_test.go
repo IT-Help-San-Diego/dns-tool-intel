@@ -509,3 +509,195 @@ func TestCollectFleetIssues_Clean(t *testing.T) {
         }
 }
 
+func TestScoreFleetDiversity_Empty(t *testing.T) {
+        d := scoreFleetDiversity([]NSFleetEntry{})
+        if d.UniqueASNs != 0 {
+                t.Errorf("UniqueASNs = %d, want 0", d.UniqueASNs)
+        }
+        if d.UniqueOperators != 0 {
+                t.Errorf("UniqueOperators = %d, want 0", d.UniqueOperators)
+        }
+        if d.UniquePrefix24s != 0 {
+                t.Errorf("UniquePrefix24s = %d, want 0", d.UniquePrefix24s)
+        }
+        if d.Score != "unknown" {
+                t.Errorf("Score = %q, want unknown", d.Score)
+        }
+}
+
+func TestScoreFleetDiversity_NoASNInfo(t *testing.T) {
+        entries := []NSFleetEntry{
+                {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}},
+                {Hostname: "ns2.example.com", IPv4: []string{"5.6.7.8"}},
+        }
+        d := scoreFleetDiversity(entries)
+        if d.UniqueASNs != 0 {
+                t.Errorf("UniqueASNs = %d, want 0", d.UniqueASNs)
+        }
+        if d.UniquePrefix24s != 2 {
+                t.Errorf("UniquePrefix24s = %d, want 2", d.UniquePrefix24s)
+        }
+}
+
+func TestScoreFleetDiversity_IPv6Only(t *testing.T) {
+        entries := []NSFleetEntry{
+                {ASN: "13335", ASName: "Cloudflare", IPv6: []string{"2001:db8::1"}},
+                {ASN: "15169", ASName: "Google", IPv6: []string{"2001:db8::2"}},
+        }
+        d := scoreFleetDiversity(entries)
+        if d.UniqueASNs != 2 {
+                t.Errorf("UniqueASNs = %d, want 2", d.UniqueASNs)
+        }
+        if d.UniquePrefix24s != 0 {
+                t.Errorf("UniquePrefix24s = %d, want 0 (IPv6 not counted)", d.UniquePrefix24s)
+        }
+}
+
+func TestComputeDiversityScore_Detail(t *testing.T) {
+        tests := []struct {
+                name       string
+                asns       int
+                ops        int
+                prefixes   int
+                total      int
+                wantScore  string
+                wantNonEmpty bool
+        }{
+                {"excellent includes counts", 3, 2, 3, 4, "excellent", true},
+                {"good includes counts", 2, 1, 2, 3, "good", true},
+                {"fair includes counts", 2, 1, 1, 2, "fair", true},
+                {"poor includes total", 1, 1, 1, 4, "poor", true},
+                {"unknown no detail", 0, 0, 0, 0, "unknown", true},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        score, detail := computeDiversityScore(tt.asns, tt.ops, tt.prefixes, tt.total)
+                        if score != tt.wantScore {
+                                t.Errorf("score = %q, want %q", score, tt.wantScore)
+                        }
+                        if tt.wantNonEmpty && detail == "" {
+                                t.Error("expected non-empty detail string")
+                        }
+                })
+        }
+}
+
+func TestNSFleetToMap_EmptyNameservers(t *testing.T) {
+        result := NSFleetResult{
+                Status:          "info",
+                Message:         "No NS records found",
+                SerialConsensus: true,
+                Issues:          []string{},
+                Nameservers:     []NSFleetEntry{},
+                Diversity:       FleetDiversity{Score: "unknown"},
+        }
+        m := nsFleetToMap(result)
+        if m["status"] != "info" {
+                t.Errorf("status = %v, want info", m["status"])
+        }
+        ns, ok := m["nameservers"].([]map[string]any)
+        if !ok {
+                t.Fatal("expected nameservers to be []map[string]any")
+        }
+        if len(ns) != 0 {
+                t.Errorf("expected 0 nameservers, got %d", len(ns))
+        }
+}
+
+func TestNSFleetToMap_AllFields(t *testing.T) {
+        result := NSFleetResult{
+                Status:  "warning",
+                Message: "test",
+                Nameservers: []NSFleetEntry{
+                        {
+                                Hostname:    "ns1.example.com",
+                                IPv4:        []string{"1.2.3.4"},
+                                IPv6:        []string{"2001:db8::1"},
+                                ASN:         "13335",
+                                ASName:      "Cloudflare",
+                                Prefix:      "1.2.3.0/24",
+                                UDPReach:    true,
+                                TCPReach:    false,
+                                AAFlag:      true,
+                                IsLame:      false,
+                                SOASerial:   2024010101,
+                                SOASerialOK: true,
+                        },
+                },
+                Diversity:       FleetDiversity{UniqueASNs: 1, Score: "poor", ScoreDetail: "detail"},
+                SerialConsensus: false,
+                Issues:          []string{"issue1"},
+        }
+        m := nsFleetToMap(result)
+        ns := m["nameservers"].([]map[string]any)
+        entry := ns[0]
+        if entry["hostname"] != "ns1.example.com" {
+                t.Errorf("hostname = %v", entry["hostname"])
+        }
+        if entry["udp_reachable"] != true {
+                t.Errorf("udp_reachable = %v", entry["udp_reachable"])
+        }
+        if entry["tcp_reachable"] != false {
+                t.Errorf("tcp_reachable = %v", entry["tcp_reachable"])
+        }
+        if entry["aa_flag"] != true {
+                t.Errorf("aa_flag = %v", entry["aa_flag"])
+        }
+        if entry["soa_serial"] != uint32(2024010101) {
+                t.Errorf("soa_serial = %v", entry["soa_serial"])
+        }
+        if m["serial_consensus"] != false {
+                t.Errorf("serial_consensus = %v", m["serial_consensus"])
+        }
+}
+
+func TestCollectFleetIssues_PoorDiversity(t *testing.T) {
+        entries := []NSFleetEntry{
+                {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: true, TCPReach: true, AAFlag: true, SOASerial: 100, SOASerialOK: true},
+        }
+        diversity := FleetDiversity{UniqueASNs: 1, UniqueOperators: 1, UniquePrefix24s: 1, Score: "poor"}
+        issues := collectFleetIssues(entries, diversity, true)
+
+        found := false
+        for _, issue := range issues {
+                if strings.Contains(issue, "Low nameserver diversity") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected low diversity issue for poor score")
+        }
+}
+
+func TestCheckSerialConsensus_AllWithoutSerial(t *testing.T) {
+        entries := []NSFleetEntry{
+                {SOASerial: 0, SOASerialOK: false},
+                {SOASerial: 0, SOASerialOK: false},
+        }
+        if !checkSerialConsensus(entries) {
+                t.Error("expected consensus when no serials are valid")
+        }
+}
+
+func TestExtractPrefix24_EdgeCases(t *testing.T) {
+        tests := []struct {
+                name     string
+                ip       string
+                expected string
+        }{
+                {"five octets", "1.2.3.4.5", ""},
+                {"two octets", "1.2", ""},
+                {"with spaces", "1.2.3 .4", "1.2.3 .0/24"},
+                {"zeros", "0.0.0.0", "0.0.0.0/24"},
+                {"max values", "255.255.255.255", "255.255.255.0/24"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := extractPrefix24(tt.ip)
+                        if got != tt.expected {
+                                t.Errorf("extractPrefix24(%q) = %q, want %q", tt.ip, got, tt.expected)
+                        }
+                })
+        }
+}
+

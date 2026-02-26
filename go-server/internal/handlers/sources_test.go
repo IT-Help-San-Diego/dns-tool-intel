@@ -3,6 +3,8 @@ package handlers
 import (
         "encoding/json"
         "testing"
+
+        "dnstool/go-server/internal/config"
 )
 
 func TestGetDNSSources(t *testing.T) {
@@ -955,5 +957,337 @@ func TestNormalizeResultsWithVerdicts(t *testing.T) {
         cert := verdicts["certificate_control"].(map[string]interface{})
         if cert["answer"] != "Yes" {
                 t.Errorf("expected certificate_control answer 'Yes', got %v", cert["answer"])
+        }
+}
+
+func TestAllSourcesHaveUniqueNames(t *testing.T) {
+        allSources := []IntelSource{}
+        allSources = append(allSources, getDNSSources()...)
+        allSources = append(allSources, getInfraSources()...)
+        allSources = append(allSources, getThreatSources()...)
+        allSources = append(allSources, getHistorySources()...)
+        allSources = append(allSources, getMetaSources()...)
+
+        seen := map[string]bool{}
+        for _, s := range allSources {
+                if seen[s.Name] {
+                        t.Errorf("duplicate source name: %s", s.Name)
+                }
+                seen[s.Name] = true
+        }
+}
+
+func TestAllSourcesAreFree(t *testing.T) {
+        allSources := []IntelSource{}
+        allSources = append(allSources, getDNSSources()...)
+        allSources = append(allSources, getInfraSources()...)
+        allSources = append(allSources, getThreatSources()...)
+        allSources = append(allSources, getHistorySources()...)
+        allSources = append(allSources, getMetaSources()...)
+
+        for _, s := range allSources {
+                if !s.Free {
+                        t.Errorf("source %q is not free", s.Name)
+                }
+        }
+}
+
+func TestDNSSourcesHaveVerifyCmd(t *testing.T) {
+        for _, s := range getDNSSources() {
+                if s.VerifyCmd == "" {
+                        t.Errorf("DNS source %q missing VerifyCmd", s.Name)
+                }
+        }
+}
+
+func TestInfraSourcesHaveVerifyCmd(t *testing.T) {
+        for _, s := range getInfraSources() {
+                if s.VerifyCmd == "" {
+                        t.Errorf("infra source %q missing VerifyCmd", s.Name)
+                }
+        }
+}
+
+func TestThreatSourcesHaveURL(t *testing.T) {
+        for _, s := range getThreatSources() {
+                if s.URL == "" {
+                        t.Errorf("threat source %q missing URL", s.Name)
+                }
+        }
+}
+
+func TestMetaSourcesHaveURL(t *testing.T) {
+        for _, s := range getMetaSources() {
+                if s.URL == "" {
+                        t.Errorf("meta source %q missing URL", s.Name)
+                }
+        }
+}
+
+func TestDNSSourceCount(t *testing.T) {
+        sources := getDNSSources()
+        if len(sources) < 5 {
+                t.Errorf("expected at least 5 DNS sources, got %d", len(sources))
+        }
+}
+
+func TestInfraSourceCount(t *testing.T) {
+        sources := getInfraSources()
+        if len(sources) < 2 {
+                t.Errorf("expected at least 2 infra sources, got %d", len(sources))
+        }
+}
+
+func TestSourcesHandlerWithConfig(t *testing.T) {
+        cfg := &config.Config{AppVersion: "1.0.0", MaintenanceNote: "test"}
+        h := NewSourcesHandler(cfg)
+        if h.Config != cfg {
+                t.Error("expected Config to match")
+        }
+        if h.Config.AppVersion != "1.0.0" {
+                t.Errorf("AppVersion = %q, want %q", h.Config.AppVersion, "1.0.0")
+        }
+}
+
+func TestBrandColorConstants(t *testing.T) {
+        if cvssSpecURL == "" {
+                t.Error("cvssSpecURL should not be empty")
+        }
+        if firstTLPv2 == "" {
+                t.Error("firstTLPv2 should not be empty")
+        }
+        if firstTLPURL == "" {
+                t.Error("firstTLPURL should not be empty")
+        }
+}
+
+func TestTLPColorsHaveSourceURL(t *testing.T) {
+        for _, c := range getTLPColors() {
+                if c.SourceURL == "" {
+                        t.Errorf("TLP color %q missing SourceURL", c.Name)
+                }
+                if c.Source == "" {
+                        t.Errorf("TLP color %q missing Source", c.Name)
+                }
+        }
+}
+
+func TestCVSSColorsCount(t *testing.T) {
+        colors := getCVSSColors()
+        if len(colors) != 5 {
+                t.Errorf("expected 5 CVSS severity levels, got %d", len(colors))
+        }
+}
+
+func TestTLPColorsCount(t *testing.T) {
+        colors := getTLPColors()
+        if len(colors) != 5 {
+                t.Errorf("expected 5 TLP colors, got %d", len(colors))
+        }
+}
+
+func TestBrandPaletteHasBackgroundPrimary(t *testing.T) {
+        palette := getBrandPalette()
+        found := false
+        for _, c := range palette {
+                if c.Name == "Background Primary" {
+                        found = true
+                        if c.Token != "--bg-primary" {
+                                t.Errorf("expected token --bg-primary, got %s", c.Token)
+                        }
+                }
+        }
+        if !found {
+                t.Error("expected Background Primary in brand palette")
+        }
+}
+
+func TestAnalysisItemStruct(t *testing.T) {
+        item := AnalysisItem{
+                ID:               1,
+                Domain:           "example.com",
+                AsciiDomain:      "example.com",
+                SpfStatus:        "success",
+                DmarcStatus:      "warning",
+                DkimStatus:       "success",
+                AnalysisSuccess:  true,
+                AnalysisDuration: 1.5,
+                CreatedAt:        "2025-01-01",
+                ToolVersion:      "1.0.0",
+        }
+        if item.ID != 1 {
+                t.Errorf("ID = %d, want 1", item.ID)
+        }
+        if item.Domain != "example.com" {
+                t.Errorf("Domain = %q, want %q", item.Domain, "example.com")
+        }
+        if !item.AnalysisSuccess {
+                t.Error("expected AnalysisSuccess to be true")
+        }
+}
+
+func TestCountryStatStruct(t *testing.T) {
+        cs := CountryStat{Code: "US", Name: "United States", Count: 100, Flag: "🇺🇸"}
+        if cs.Code != "US" {
+                t.Errorf("Code = %q, want %q", cs.Code, "US")
+        }
+        if cs.Count != 100 {
+                t.Errorf("Count = %d, want 100", cs.Count)
+        }
+}
+
+func TestPopularDomainStruct(t *testing.T) {
+        pd := PopularDomain{Domain: "google.com", Count: 500}
+        if pd.Domain != "google.com" {
+                t.Errorf("Domain = %q, want %q", pd.Domain, "google.com")
+        }
+        if pd.Count != 500 {
+                t.Errorf("Count = %d, want 500", pd.Count)
+        }
+}
+
+func TestDailyStatStruct(t *testing.T) {
+        ds := DailyStat{
+                Date:               "2025-01-01",
+                TotalAnalyses:      100,
+                SuccessfulAnalyses: 95,
+                FailedAnalyses:     5,
+                UniqueDomains:      80,
+                AvgAnalysisTime:    2.5,
+                HasAvgTime:         true,
+        }
+        if ds.TotalAnalyses != 100 {
+                t.Errorf("TotalAnalyses = %d, want 100", ds.TotalAnalyses)
+        }
+        if ds.SuccessfulAnalyses+ds.FailedAnalyses != ds.TotalAnalyses {
+                t.Error("successful + failed should equal total")
+        }
+        if !ds.HasAvgTime {
+                t.Error("expected HasAvgTime to be true")
+        }
+}
+
+func TestPageItemStruct(t *testing.T) {
+        active := PageItem{Number: 1, IsActive: true, IsGap: false}
+        if !active.IsActive {
+                t.Error("expected active page")
+        }
+        gap := PageItem{IsGap: true}
+        if !gap.IsGap {
+                t.Error("expected gap page")
+        }
+}
+
+func TestPaginationDataStruct(t *testing.T) {
+        pd := BuildPagination(2, 5, 25)
+        if pd.CurrentPage != 2 {
+                t.Errorf("CurrentPage = %d, want 2", pd.CurrentPage)
+        }
+        if pd.TotalPages != 5 {
+                t.Errorf("TotalPages = %d, want 5", pd.TotalPages)
+        }
+        if !pd.HasPrev {
+                t.Error("expected HasPrev on page 2")
+        }
+        if !pd.HasNext {
+                t.Error("expected HasNext on page 2 of 5")
+        }
+        if pd.PrevPage != 1 {
+                t.Errorf("PrevPage = %d, want 1", pd.PrevPage)
+        }
+        if pd.NextPage != 3 {
+                t.Errorf("NextPage = %d, want 3", pd.NextPage)
+        }
+}
+
+func TestBuildPaginationFirstPage(t *testing.T) {
+        pd := BuildPagination(1, 3, 30)
+        if pd.HasPrev {
+                t.Error("first page should not have prev")
+        }
+        if !pd.HasNext {
+                t.Error("first page of 3 should have next")
+        }
+}
+
+func TestBuildPaginationLastPage(t *testing.T) {
+        pd := BuildPagination(3, 3, 30)
+        if !pd.HasPrev {
+                t.Error("last page should have prev")
+        }
+        if pd.HasNext {
+                t.Error("last page should not have next")
+        }
+}
+
+func TestBuildPaginationSinglePage(t *testing.T) {
+        pd := BuildPagination(1, 1, 5)
+        if pd.HasPrev {
+                t.Error("single page should not have prev")
+        }
+        if pd.HasNext {
+                t.Error("single page should not have next")
+        }
+        if len(pd.Pages) != 1 {
+                t.Errorf("expected 1 page item, got %d", len(pd.Pages))
+        }
+}
+
+func TestIterPagesSmall(t *testing.T) {
+        pages := iterPages(1, 3)
+        if len(pages) != 3 {
+                t.Errorf("expected 3 page items, got %d", len(pages))
+        }
+        if !pages[0].IsActive {
+                t.Error("first page should be active")
+        }
+        if pages[1].IsActive {
+                t.Error("second page should not be active")
+        }
+}
+
+func TestIterPagesLargeWithGaps(t *testing.T) {
+        pages := iterPages(10, 20)
+        hasGap := false
+        for _, p := range pages {
+                if p.IsGap {
+                        hasGap = true
+                        break
+                }
+        }
+        if !hasGap {
+                t.Error("expected gaps in large pagination")
+        }
+}
+
+func TestDiffItemStruct(t *testing.T) {
+        di := DiffItem{
+                Label:   "SPF",
+                Icon:    "fa-envelope",
+                Changed: true,
+                StatusA: "success",
+                StatusB: "warning",
+        }
+        if di.Label != "SPF" {
+                t.Errorf("Label = %q, want %q", di.Label, "SPF")
+        }
+        if !di.Changed {
+                t.Error("expected Changed to be true")
+        }
+}
+
+func TestCompareAnalysisStruct(t *testing.T) {
+        ca := CompareAnalysis{
+                CreatedAt:        "2025-01-01",
+                ToolVersion:      "1.0.0",
+                AnalysisDuration: "2.5s",
+                HasToolVersion:   true,
+                HasDuration:      true,
+        }
+        if !ca.HasToolVersion {
+                t.Error("expected HasToolVersion")
+        }
+        if ca.ToolVersion != "1.0.0" {
+                t.Errorf("ToolVersion = %q, want %q", ca.ToolVersion, "1.0.0")
         }
 }
