@@ -201,7 +201,9 @@ function showCovertTLDToast(domain, callback) {
         + 'No SPF/DKIM/DMARC at zone scope.</div>'
         + '<div class="tld-recon-toast-footer">'
         + '<i class="fas fa-satellite-dish"></i>'
-        + 'Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only</div>';
+        + '</div>';
+    const toastFooter = toast.querySelector('.tld-recon-toast-footer');
+    toastFooter.appendChild(document.createTextNode('Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only'));
 
     document.body.appendChild(toast);
 
