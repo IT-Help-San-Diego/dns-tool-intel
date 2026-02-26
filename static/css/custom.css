@@ -698,7 +698,7 @@ code {
     border-radius: 0.5rem 0 0 0.5rem !important;
     outline: 2px solid transparent;
     outline-offset: -2px;
-    transition: border-color 0.15s ease-in-out !important;
+    transition: outline-color 0.15s ease-in-out !important;
 }
 
 .search-input:focus {
