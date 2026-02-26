@@ -216,3 +216,231 @@ func TestBuildPriorityOrder(t *testing.T) {
                 t.Error("TLSA should not be first (highest errors)")
         }
 }
+
+func TestTotalErrorRate_ZeroScans(t *testing.T) {
+        stats := RollingStats{ScanCount: 0}
+        rate := totalErrorRate(stats)
+        if rate != 0 {
+                t.Errorf("expected 0, got %.1f", rate)
+        }
+}
+
+func TestTotalErrorRate_WithErrors(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        10,
+                RecordTypeErrors: map[string]int{"A": 5, "MX": 3},
+        }
+        rate := totalErrorRate(stats)
+        if rate <= 0 {
+                t.Errorf("expected positive error rate, got %.1f", rate)
+        }
+}
+
+func TestSuggestRetryChanges_HighErrorRate(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        10,
+                RecordTypeErrors: map[string]int{"A": 8, "MX": 6},
+        }
+        current := ScannerProfile{RetryCount: 2}
+        suggestions := suggestRetryChanges(stats, current)
+        if len(suggestions) == 0 {
+                t.Error("expected retry suggestions for high error rate")
+        }
+}
+
+func TestSuggestRetryChanges_VeryHighErrorRate(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        3,
+                RecordTypeErrors: map[string]int{"A": 3, "MX": 3, "TXT": 3},
+        }
+        current := ScannerProfile{RetryCount: 2}
+        suggestions := suggestRetryChanges(stats, current)
+        found := false
+        for _, s := range suggestions {
+                if s.Parameter == "retry_count" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected retry_count suggestion for very high error rate")
+        }
+}
+
+func TestSuggestRetryChanges_NoSuggestionWhenAlreadyHigh(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        10,
+                RecordTypeErrors: map[string]int{"A": 5},
+        }
+        current := ScannerProfile{RetryCount: 5}
+        suggestions := suggestRetryChanges(stats, current)
+        if len(suggestions) != 0 {
+                t.Errorf("expected no suggestions when retry count already exceeds suggested, got %d", len(suggestions))
+        }
+}
+
+func TestSuggestTimeoutChanges_ReduceTimeout(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:       5,
+                AvgScanDuration: 3000,
+        }
+        current := ScannerProfile{TimeoutSeconds: 10}
+        suggestions := suggestTimeoutChanges(stats, current)
+        if len(suggestions) == 0 {
+                t.Error("expected timeout reduction suggestion for fast scans with high timeout")
+        }
+}
+
+func TestSuggestTimeoutChanges_NoChange(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:       5,
+                AvgScanDuration: 15000,
+        }
+        current := ScannerProfile{TimeoutSeconds: 5}
+        suggestions := suggestTimeoutChanges(stats, current)
+        if len(suggestions) != 0 {
+                t.Errorf("expected no timeout suggestions for moderate duration, got %d", len(suggestions))
+        }
+}
+
+func TestSuggestRecordPriority_HighErrorTypes(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        9,
+                RecordTypeErrors: map[string]int{"TLSA": 5, "DANE": 4},
+        }
+        current := DefaultProfile
+        suggestions := suggestRecordPriority(stats, current)
+        if len(suggestions) == 0 {
+                t.Error("expected priority suggestions for error-prone record types")
+        }
+}
+
+func TestSuggestRecordPriority_NoErrors(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        10,
+                RecordTypeErrors: map[string]int{},
+        }
+        current := DefaultProfile
+        suggestions := suggestRecordPriority(stats, current)
+        if len(suggestions) != 0 {
+                t.Errorf("expected no priority suggestions, got %d", len(suggestions))
+        }
+}
+
+func TestApplyRetryCount_LowAgreement(t *testing.T) {
+        suggested := ScannerProfile{RetryCount: 2}
+        sug := []ProfileSuggestion{{Parameter: "retry_count"}}
+        applyRetryCount(&suggested, sug, 50)
+        if suggested.RetryCount != 4 {
+                t.Errorf("expected retry count 4 for agreement < 60, got %d", suggested.RetryCount)
+        }
+}
+
+func TestApplyRetryCount_ModerateAgreement(t *testing.T) {
+        suggested := ScannerProfile{RetryCount: 2}
+        sug := []ProfileSuggestion{{Parameter: "retry_count"}}
+        applyRetryCount(&suggested, sug, 70)
+        if suggested.RetryCount != 3 {
+                t.Errorf("expected retry count 3 for agreement 70, got %d", suggested.RetryCount)
+        }
+}
+
+func TestApplyRetryCount_HighAgreement(t *testing.T) {
+        suggested := ScannerProfile{RetryCount: 2}
+        sug := []ProfileSuggestion{{Parameter: "retry_count"}}
+        applyRetryCount(&suggested, sug, 90)
+        if suggested.RetryCount != 2 {
+                t.Errorf("expected retry count unchanged for agreement >= 80, got %d", suggested.RetryCount)
+        }
+}
+
+func TestApplyRetryCount_NoSuggestions(t *testing.T) {
+        suggested := ScannerProfile{RetryCount: 2}
+        applyRetryCount(&suggested, nil, 50)
+        if suggested.RetryCount != 2 {
+                t.Errorf("expected retry count unchanged with no suggestions, got %d", suggested.RetryCount)
+        }
+}
+
+func TestApplyRetryCount_WrongParameter(t *testing.T) {
+        suggested := ScannerProfile{RetryCount: 2}
+        sug := []ProfileSuggestion{{Parameter: "resolver_set"}}
+        applyRetryCount(&suggested, sug, 50)
+        if suggested.RetryCount != 2 {
+                t.Errorf("expected retry count unchanged for wrong parameter, got %d", suggested.RetryCount)
+        }
+}
+
+func TestSuggestRetryChanges_ErrorRateAbove30(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        3,
+                RecordTypeErrors: map[string]int{"A": 3},
+        }
+        current := ScannerProfile{RetryCount: 1}
+        suggestions := suggestRetryChanges(stats, current)
+        if len(suggestions) == 0 {
+                t.Fatal("expected retry suggestions for error rate > 30")
+        }
+        if suggestions[0].Suggested != "4 retries" {
+                t.Errorf("expected 4 retries for >30%% error rate, got %q", suggestions[0].Suggested)
+        }
+}
+
+func TestSuggestRetryChanges_ErrorRateBetween10And30(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:        10,
+                RecordTypeErrors: map[string]int{"A": 2},
+        }
+        current := ScannerProfile{RetryCount: 1}
+        suggestions := suggestRetryChanges(stats, current)
+        if len(suggestions) == 0 {
+                t.Fatal("expected retry suggestions for error rate > 10")
+        }
+        if suggestions[0].Suggested != "3 retries" {
+                t.Errorf("expected 3 retries for 10-30%% error rate, got %q", suggestions[0].Suggested)
+        }
+}
+
+func TestApplySuggestedProfile_WithAllSuggestions(t *testing.T) {
+        current := DefaultProfile
+        suggested := current
+        stats := RollingStats{
+                ScanCount:            5,
+                AvgResolverAgreement: 50,
+                AvgScanDuration:      35000,
+                RecordTypeErrors:     map[string]int{"TLSA": 5},
+        }
+        resolverSugs := []ProfileSuggestion{{Parameter: "resolver_set", Category: "resolver"}}
+        retrySugs := []ProfileSuggestion{{Parameter: "retry_count", Category: "retry"}}
+        timeoutSugs := []ProfileSuggestion{{Parameter: "timeout_seconds", Category: "timeout"}}
+        prioritySugs := []ProfileSuggestion{{Parameter: "record_type_priority", Category: "priority"}}
+
+        applySuggestedProfile(&suggested, current, stats, resolverSugs, retrySugs, timeoutSugs, prioritySugs)
+
+        if suggested.TimeoutSeconds != 8 {
+                t.Errorf("expected timeout 8 for slow scans, got %d", suggested.TimeoutSeconds)
+        }
+        if suggested.RetryCount != 4 {
+                t.Errorf("expected retry 4 for low agreement, got %d", suggested.RetryCount)
+        }
+}
+
+func TestGenerateSuggestedConfig_WithRecordPriority(t *testing.T) {
+        stats := RollingStats{
+                ScanCount:            5,
+                AvgResolverAgreement: 90,
+                AvgScanDuration:      8000,
+                TTLDeviations:        map[string]float64{},
+                DimensionTrends:      map[string][]float64{},
+                RecordTypeErrors:     map[string]int{"TLSA": 4},
+        }
+        config := GenerateSuggestedConfig(stats, DefaultProfile)
+        found := false
+        for _, s := range config.Suggestions {
+                if s.Category == "priority" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected priority suggestion for error-prone TLSA type")
+        }
+}

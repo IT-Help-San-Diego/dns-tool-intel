@@ -690,3 +690,445 @@ func TestBuildCurrencyReport_TrafficEngineering(t *testing.T) {
                 t.Error("expected traffic engineering Detected = true")
         }
 }
+
+func TestOverallGuidance_AllGrades(t *testing.T) {
+        tests := []struct {
+                score    float64
+                contains string
+        }{
+                {95, "fresh, consistent"},
+                {80, "mostly current"},
+                {60, "some aging"},
+                {30, "degraded"},
+                {10, "stale"},
+        }
+        for _, tt := range tests {
+                g := overallGuidance(tt.score)
+                if g == "" {
+                        t.Errorf("overallGuidance(%.0f) returned empty string", tt.score)
+                }
+        }
+}
+
+func TestCurrentnessDetails_AllBranches(t *testing.T) {
+        tests := []struct {
+                score float64
+                want  string
+        }{
+                {95, "All record data is within its TTL validity window"},
+                {80, "Most record data is within its TTL validity window"},
+                {60, "Some records may have aged beyond their TTL windows"},
+                {30, "Multiple records have aged beyond TTL validity — consider re-scanning"},
+                {10, "Record data has significantly aged beyond TTL windows — re-scan recommended"},
+        }
+        for _, tt := range tests {
+                got := currentnessDetails(tt.score, 5)
+                if got != tt.want {
+                        t.Errorf("currentnessDetails(%.0f) = %q, want %q", tt.score, got, tt.want)
+                }
+        }
+}
+
+func TestTTLComplianceDetails_AllBranches(t *testing.T) {
+        got := ttlComplianceDetails(5, 5)
+        if got != "All resolver TTLs are within authoritative limits (RFC 8767 compliant)" {
+                t.Errorf("all compliant: got %q", got)
+        }
+
+        got = ttlComplianceDetails(4, 5)
+        if got != "1 resolver TTL exceeds its authoritative value — possible caching violation" {
+                t.Errorf("1 violation: got %q", got)
+        }
+
+        got = ttlComplianceDetails(3, 5)
+        if got != "2 of 5 resolver TTLs exceed authoritative values — possible caching violations" {
+                t.Errorf("2 violations: got %q", got)
+        }
+}
+
+func TestCompletenessDetails_AllBranches(t *testing.T) {
+        total := len(expectedRecordTypes)
+
+        got := completenessDetails(total, total)
+        if got != "All expected record types have authoritative TTL data" {
+                t.Errorf("all present: got %q", got)
+        }
+
+        got = completenessDetails(total-1, total)
+        if got != "1 expected record type is missing TTL data" {
+                t.Errorf("1 missing: got %q", got)
+        }
+
+        got = completenessDetails(total-3, total)
+        if got == "" {
+                t.Error("multiple missing: got empty string")
+        }
+}
+
+func TestCredibilityDetails_AllBranches(t *testing.T) {
+        tests := []struct {
+                score float64
+                want  string
+        }{
+                {95, "All resolvers return consistent data — high source credibility"},
+                {80, "Most resolvers agree — good source credibility"},
+                {60, "Some resolver disagreements detected — moderate credibility"},
+                {30, "Significant resolver disagreements — credibility concerns"},
+                {10, "Resolvers return conflicting data — investigate DNS propagation"},
+        }
+        for _, tt := range tests {
+                got := credibilityDetails(tt.score)
+                if got != tt.want {
+                        t.Errorf("credibilityDetails(%.0f) = %q, want %q", tt.score, got, tt.want)
+                }
+        }
+}
+
+func TestTTLRelevanceDetails_AllBranches(t *testing.T) {
+        tests := []struct {
+                score float64
+                want  string
+        }{
+                {95, "All observed TTLs are within typical ranges for their record types"},
+                {80, "Most TTLs are within expected ranges"},
+                {60, "Some TTLs deviate from typical ranges — may indicate custom configuration"},
+                {30, "Multiple TTLs significantly deviate from standards — review DNS configuration"},
+                {10, "TTL values are far outside expected ranges — possible misconfiguration"},
+        }
+        for _, tt := range tests {
+                got := ttlRelevanceDetails(tt.score)
+                if got != tt.want {
+                        t.Errorf("ttlRelevanceDetails(%.0f) = %q, want %q", tt.score, got, tt.want)
+                }
+        }
+}
+
+func TestTTLRecommendation_AboveTypical(t *testing.T) {
+        got := ttlRecommendation("MX", 7200, 3600)
+        if got == "" {
+                t.Error("expected non-empty recommendation for above-typical TTL")
+        }
+}
+
+func TestTTLRecommendation_BelowTypical(t *testing.T) {
+        got := ttlRecommendation("MX", 300, 3600)
+        if got == "" {
+                t.Error("expected non-empty recommendation for below-typical TTL")
+        }
+}
+
+func TestTTLFindingHasProviderNote(t *testing.T) {
+        f := TTLFinding{ProviderNote: ""}
+        if f.HasProviderNote() {
+                t.Error("empty note: expected false")
+        }
+
+        f.ProviderNote = "test note"
+        if !f.HasProviderNote() {
+                t.Error("non-empty note: expected true")
+        }
+}
+
+func TestTTLFindingSeverityClass_AllBranches(t *testing.T) {
+        tests := []struct {
+                severity string
+                want     string
+        }{
+                {"high", "danger"},
+                {"medium", "warning"},
+                {"low", "info"},
+                {"", "info"},
+        }
+        for _, tt := range tests {
+                f := TTLFinding{Severity: tt.severity}
+                if got := f.SeverityClass(); got != tt.want {
+                        t.Errorf("SeverityClass(%q) = %q, want %q", tt.severity, got, tt.want)
+                }
+        }
+}
+
+func TestCurrencyReportHasProviderIntel(t *testing.T) {
+        r := CurrencyReport{}
+        if r.HasProviderIntel() {
+                t.Error("empty report should not have provider intel")
+        }
+
+        r.ProviderName = "Cloudflare"
+        if !r.HasProviderIntel() {
+                t.Error("report with provider should have provider intel")
+        }
+
+        r2 := CurrencyReport{
+                SOACompliance: &SOAComplianceReport{
+                        Findings: []SOAComplianceFinding{{Field: "Expire"}},
+                },
+        }
+        if !r2.HasProviderIntel() {
+                t.Error("report with SOA findings should have provider intel")
+        }
+}
+
+func TestCurrencyReportProviderComplianceNotes(t *testing.T) {
+        r := CurrencyReport{ProviderName: ""}
+        if r.ProviderComplianceNotes() != nil {
+                t.Error("empty provider should return nil notes")
+        }
+
+        r2 := CurrencyReport{ProviderName: "nonexistent_provider_xyz"}
+        if r2.ProviderComplianceNotes() != nil {
+                t.Error("unknown provider should return nil notes")
+        }
+
+        r3 := CurrencyReport{ProviderName: "Cloudflare"}
+        notes := r3.ProviderComplianceNotes()
+        if len(notes) == 0 {
+                t.Error("Cloudflare should have compliance notes")
+        }
+}
+
+func TestCurrencyReportHasProviderComplianceNotes(t *testing.T) {
+        r := CurrencyReport{ProviderName: "Cloudflare"}
+        if !r.HasProviderComplianceNotes() {
+                t.Error("Cloudflare report should have compliance notes")
+        }
+
+        r2 := CurrencyReport{}
+        if r2.HasProviderComplianceNotes() {
+                t.Error("empty report should not have compliance notes")
+        }
+}
+
+func TestEvaluateTTLCompliance_NoOverlap(t *testing.T) {
+        resolver := map[string]uint32{"A": 300}
+        auth := map[string]uint32{"MX": 3600}
+        result := EvaluateTTLCompliance(resolver, auth)
+        if result.Grade != GradeAdequate {
+                t.Errorf("no overlap: expected %q, got %q", GradeAdequate, result.Grade)
+        }
+}
+
+func TestEvaluateSourceCredibility_ZeroTotalResolvers(t *testing.T) {
+        agreements := []ResolverAgreement{
+                {RecordType: "A", AgreeCount: 0, TotalResolvers: 0, Unanimous: false},
+        }
+        result := EvaluateSourceCredibility(agreements)
+        if result.Score != 0 {
+                t.Errorf("zero resolvers: expected 0, got %.1f", result.Score)
+        }
+}
+
+func TestBuildCurrencyReportWithProvider_SOA(t *testing.T) {
+        input := CurrencyReportInput{
+                Records:       []RecordCurrency{{RecordType: "A", ObservedTTL: 3600, DataAgeS: 100}},
+                ResolverTTLs:  map[string]uint32{"A": 3600},
+                AuthTTLs:      map[string]uint32{"A": 3600},
+                ObservedTypes: map[string]bool{"A": true},
+                Agreements:    []ResolverAgreement{{RecordType: "A", AgreeCount: 5, TotalResolvers: 5, Unanimous: true}},
+                ResolverCount: 5,
+                SOARaw:        "ns1.example.com. admin.example.com. 2025010101 3600 900 1209600 86400",
+        }
+        report := BuildCurrencyReportWithProvider(input)
+        if report.SOACompliance == nil {
+                t.Fatal("expected SOACompliance to be populated")
+        }
+        if !report.SOACompliance.HasSOA {
+                t.Error("expected HasSOA = true")
+        }
+}
+
+func TestBuildCurrencyReportWithProvider_WithDNSProvider(t *testing.T) {
+        input := CurrencyReportInput{
+                Records:       []RecordCurrency{{RecordType: "A", ObservedTTL: 60, DataAgeS: 10}},
+                ResolverTTLs:  map[string]uint32{"A": 60},
+                AuthTTLs:      map[string]uint32{"A": 300},
+                ObservedTypes: map[string]bool{"A": true},
+                DNSProviders:  []string{"cloudflare"},
+                NSRecords:     []string{"ns1.cloudflare.com"},
+                ResolverCount: 3,
+        }
+        report := BuildCurrencyReportWithProvider(input)
+        if report.ProviderName == "" {
+                t.Error("expected provider detection for cloudflare")
+        }
+}
+
+func TestAnalyzeSOACompliance_ShortSOA(t *testing.T) {
+        report := AnalyzeSOACompliance("ns1.example.com. admin", "")
+        if report.HasSOA {
+                t.Error("short SOA string should not parse")
+        }
+}
+
+func TestAnalyzeSOACompliance_LowExpire(t *testing.T) {
+        report := AnalyzeSOACompliance("ns1.example.com. admin.example.com. 2025010101 3600 900 604000 300", "")
+        if !report.HasSOA {
+                t.Fatal("expected HasSOA = true")
+        }
+        if len(report.Findings) == 0 {
+                t.Error("expected findings for low expire value")
+        }
+}
+
+func TestAnalyzeSOACompliance_LowRefresh(t *testing.T) {
+        report := AnalyzeSOACompliance("ns1.example.com. admin.example.com. 2025010101 600 900 1209600 300", "")
+        found := false
+        for _, f := range report.Findings {
+                if f.Field == "Refresh" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected a Refresh finding for value < 1200")
+        }
+}
+
+func TestAnalyzeSOACompliance_ExpireVsRefreshRetry(t *testing.T) {
+        report := AnalyzeSOACompliance("ns1.example.com. admin.example.com. 2025010101 3600 900 4500 300", "")
+        found := false
+        for _, f := range report.Findings {
+                if f.Field == "Expire vs Refresh+Retry" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected Expire vs Refresh+Retry finding when expire <= refresh + retry")
+        }
+}
+
+func TestAnalyzeSOACompliance_HighMinTTL(t *testing.T) {
+        report := AnalyzeSOACompliance("ns1.example.com. admin.example.com. 2025010101 3600 900 1209600 100000", "")
+        found := false
+        for _, f := range report.Findings {
+                if f.Field == "Minimum (Negative Cache TTL)" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected finding for min TTL > 86400")
+        }
+}
+
+func TestSOAComplianceFindingSeverityClass(t *testing.T) {
+        tests := []struct {
+                severity string
+                want     string
+        }{
+                {"warning", "warning"},
+                {"info", "info"},
+                {"error", "danger"},
+                {"", "danger"},
+        }
+        for _, tt := range tests {
+                f := SOAComplianceFinding{Severity: tt.severity}
+                if got := f.SeverityClass(); got != tt.want {
+                        t.Errorf("SeverityClass(%q) = %q, want %q", tt.severity, got, tt.want)
+                }
+        }
+}
+
+func TestAnnotateFindingForProvider_CloudflareSOA(t *testing.T) {
+        f := &TTLFinding{RecordType: "SOA", ObservedTTL: 300}
+        AnnotateFindingForProvider(f, "Cloudflare")
+        if f.ProviderNote == "" {
+                t.Error("expected provider note for Cloudflare SOA")
+        }
+}
+
+func TestAnnotateFindingForProvider_CloudflareProxiedA(t *testing.T) {
+        f := &TTLFinding{RecordType: "A", ObservedTTL: 300}
+        AnnotateFindingForProvider(f, "Cloudflare")
+        if f.ProviderNote == "" {
+                t.Error("expected provider note for Cloudflare proxied A record with TTL 300")
+        }
+}
+
+func TestAnnotateFindingForProvider_DefaultMinAllowed(t *testing.T) {
+        f := &TTLFinding{RecordType: "TXT", ObservedTTL: 300, TypicalTTL: 10}
+        AnnotateFindingForProvider(f, "Cloudflare")
+        if f.ProviderNote == "" {
+                t.Error("expected min TTL note for Cloudflare when typical < min allowed")
+        }
+}
+
+func TestHydrateCurrencyReport_InvalidJSON(t *testing.T) {
+        _, ok := HydrateCurrencyReport("not a valid json object at all")
+        if ok {
+                t.Error("expected hydration to fail for invalid input")
+        }
+}
+
+func TestCurrencyReportOverallGradeDisplay(t *testing.T) {
+        r := CurrencyReport{OverallGrade: GradeExcellent}
+        if r.OverallGradeDisplay() == "" || r.OverallGradeDisplay() == "Unknown" {
+                t.Errorf("expected display name for Excellent, got %q", r.OverallGradeDisplay())
+        }
+
+        r2 := CurrencyReport{OverallGrade: "nonexistent"}
+        if r2.OverallGradeDisplay() != "Unknown" {
+                t.Errorf("expected Unknown for bad grade, got %q", r2.OverallGradeDisplay())
+        }
+}
+
+func TestDimensionScoreDisplayName(t *testing.T) {
+        d := DimensionScore{Dimension: DimensionCurrentness}
+        if d.DisplayName() == "" || d.DisplayName() == DimensionCurrentness {
+                t.Errorf("expected human-readable display name, got %q", d.DisplayName())
+        }
+
+        d2 := DimensionScore{Dimension: "unknown_dim"}
+        if d2.DisplayName() != "unknown_dim" {
+                t.Errorf("unknown dimension should return raw name, got %q", d2.DisplayName())
+        }
+}
+
+func TestDimensionScoreGradeDisplay(t *testing.T) {
+        d := DimensionScore{Grade: GradeGood}
+        if d.GradeDisplay() == "Unknown" {
+                t.Error("expected valid grade display for Good")
+        }
+
+        d2 := DimensionScore{Grade: "bad_grade"}
+        if d2.GradeDisplay() != "Unknown" {
+                t.Errorf("expected Unknown for bad grade, got %q", d2.GradeDisplay())
+        }
+}
+
+func TestDimensionScoreBootstrapClass_Unknown(t *testing.T) {
+        d := DimensionScore{Grade: "bad_grade"}
+        if d.BootstrapClass() != "secondary" {
+                t.Errorf("expected secondary for unknown grade, got %q", d.BootstrapClass())
+        }
+}
+
+func TestCurrencyReportBootstrapClass_Unknown(t *testing.T) {
+        r := CurrencyReport{OverallGrade: "bad_grade"}
+        if r.BootstrapClass() != "secondary" {
+                t.Errorf("expected secondary for unknown grade, got %q", r.BootstrapClass())
+        }
+}
+
+func TestTypicalTTLFor_Known(t *testing.T) {
+        got := TypicalTTLFor("A")
+        if got != 3600 {
+                t.Errorf("TypicalTTLFor(A) = %d, want 3600", got)
+        }
+}
+
+func TestTypicalTTLFor_Unknown(t *testing.T) {
+        got := TypicalTTLFor("UNKNOWN_TYPE")
+        if got != 300 {
+                t.Errorf("TypicalTTLFor(UNKNOWN_TYPE) = %d, want 300", got)
+        }
+}
+
+func TestSOAComplianceReport_HasFindings(t *testing.T) {
+        r := SOAComplianceReport{}
+        if r.HasFindings() {
+                t.Error("empty findings should return false")
+        }
+
+        r.Findings = []SOAComplianceFinding{{Field: "test"}}
+        if !r.HasFindings() {
+                t.Error("non-empty findings should return true")
+        }
+}

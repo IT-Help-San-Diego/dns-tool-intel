@@ -309,3 +309,97 @@ func TestOverflowCurrencyClamp(t *testing.T) {
                 t.Errorf("expected currency clamped to 100, got %.1f", uc.CurrencyFactor)
         }
 }
+
+func TestIconUnknownLevel(t *testing.T) {
+        uc := UnifiedConfidence{Level: "UNKNOWN"}
+        if got := uc.Icon(); got != "fa-question-circle" {
+                t.Errorf("unknown level Icon() = %q, want fa-question-circle", got)
+        }
+}
+
+func TestIconModerateLevel(t *testing.T) {
+        uc := UnifiedConfidence{Level: LevelModerate}
+        if got := uc.Icon(); got == "fa-question-circle" {
+                t.Error("MODERATE should have a specific icon, not the default")
+        }
+}
+
+func TestIconLowLevel(t *testing.T) {
+        uc := UnifiedConfidence{Level: LevelLow}
+        if got := uc.Icon(); got == "fa-question-circle" {
+                t.Error("LOW should have a specific icon, not the default")
+        }
+}
+
+func TestBuildExplanation_ModerateAccuracy(t *testing.T) {
+        got := buildExplanation(LevelModerate, 60, 80, "verified", mapKeyAccuracy)
+        if got == "" {
+                t.Error("expected non-empty explanation for moderate accuracy")
+        }
+}
+
+func TestBuildExplanation_ModerateCurrency(t *testing.T) {
+        got := buildExplanation(LevelModerate, 80, 60, "verified", mapKeyCurrency)
+        if got == "" {
+                t.Error("expected non-empty explanation for moderate currency")
+        }
+}
+
+func TestBuildExplanation_ModerateMaturity(t *testing.T) {
+        got := buildExplanation(LevelModerate, 80, 80, "verified", mapKeyMaturity)
+        if got == "" {
+                t.Error("expected non-empty explanation for moderate maturity")
+        }
+}
+
+func TestBuildExplanation_ModerateDefault(t *testing.T) {
+        got := buildExplanation(LevelModerate, 80, 80, "verified", "unknown")
+        if got == "" {
+                t.Error("expected non-empty explanation for moderate default case")
+        }
+}
+
+func TestBuildExplanation_LowAccuracy(t *testing.T) {
+        got := buildExplanation(LevelLow, 20, 80, "dev", mapKeyAccuracy)
+        if got == "" {
+                t.Error("expected non-empty explanation for low accuracy")
+        }
+}
+
+func TestBuildExplanation_LowCurrency(t *testing.T) {
+        got := buildExplanation(LevelLow, 80, 20, "dev", mapKeyCurrency)
+        if got == "" {
+                t.Error("expected non-empty explanation for low currency")
+        }
+}
+
+func TestBuildExplanation_LowMaturity(t *testing.T) {
+        got := buildExplanation(LevelLow, 80, 80, "development", mapKeyMaturity)
+        if got == "" {
+                t.Error("expected non-empty explanation for low maturity")
+        }
+}
+
+func TestBuildExplanation_LowDefault(t *testing.T) {
+        got := buildExplanation(LevelLow, 20, 20, "dev", "unknown")
+        if got == "" {
+                t.Error("expected non-empty explanation for low default case")
+        }
+}
+
+func TestComputeUnifiedConfidence_ModerateLevel(t *testing.T) {
+        input := Input{
+                CalibratedConfidence: map[string]float64{
+                        "spf": 0.7, "dkim": 0.8, "dmarc": 0.6,
+                },
+                CurrencyScore: 70.0,
+                MaturityLevel: "gold_master",
+        }
+        uc := ComputeUnifiedConfidence(input)
+        if uc.Level != LevelModerate {
+                t.Errorf("expected MODERATE, got %s (score=%.1f)", uc.Level, uc.Score)
+        }
+        if uc.Explanation == "" {
+                t.Error("explanation should not be empty")
+        }
+}

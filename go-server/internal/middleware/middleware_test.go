@@ -381,3 +381,249 @@ func TestSecurityHeadersUpgradeInsecureHTTPS(t *testing.T) {
                 t.Error("CSP should contain upgrade-insecure-requests for HTTPS requests")
         }
 }
+
+func TestRequestContextSetsNonceAndTraceID(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequestContext())
+
+        var nonce, traceID string
+        router.GET("/test", func(c *gin.Context) {
+                n, _ := c.Get("csp_nonce")
+                nonce, _ = n.(string)
+                t, _ := c.Get("trace_id")
+                traceID, _ = t.(string)
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/test", nil)
+        router.ServeHTTP(w, req)
+
+        if nonce == "" {
+                t.Error("csp_nonce should be set by RequestContext")
+        }
+        if traceID == "" {
+                t.Error("trace_id should be set by RequestContext")
+        }
+}
+
+func TestCSRFEnsureTokenReusesCookie(t *testing.T) {
+        router, _ := setupCSRFRouter()
+
+        var token1, token2 string
+        router.GET("/form", func(c *gin.Context) {
+                token1 = middleware.GetCSRFToken(c)
+                c.String(http.StatusOK, "ok")
+        })
+
+        w1 := httptest.NewRecorder()
+        req1 := httptest.NewRequest("GET", "/form", nil)
+        router.ServeHTTP(w1, req1)
+
+        var csrfCookie string
+        for _, ck := range w1.Result().Cookies() {
+                if ck.Name == "_csrf" {
+                        csrfCookie = ck.Value
+                        break
+                }
+        }
+
+        router2, _ := setupCSRFRouter()
+        router2.GET("/form2", func(c *gin.Context) {
+                token2 = middleware.GetCSRFToken(c)
+                c.String(http.StatusOK, "ok")
+        })
+        w2 := httptest.NewRecorder()
+        req2 := httptest.NewRequest("GET", "/form2", nil)
+        req2.AddCookie(&http.Cookie{Name: "_csrf", Value: csrfCookie})
+        router2.ServeHTTP(w2, req2)
+
+        if token1 == "" || token2 == "" {
+                t.Fatal("tokens should not be empty")
+        }
+        if token1 != token2 {
+                t.Errorf("token should be reused from valid cookie; got %q vs %q", token1, token2)
+        }
+}
+
+func TestAnalyzeRateLimitPostBlocked(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AnalyzeRateLimit(limiter))
+        router.POST("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w1 := httptest.NewRecorder()
+        req1 := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain=example.com"))
+        req1.Header.Set(headerContentType, contentTypeForm)
+        router.ServeHTTP(w1, req1)
+        if w1.Code != http.StatusOK {
+                t.Fatalf("first request: expected 200, got %d", w1.Code)
+        }
+
+        w2 := httptest.NewRecorder()
+        req2 := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain=example.com"))
+        req2.Header.Set(headerContentType, contentTypeForm)
+        router.ServeHTTP(w2, req2)
+        if w2.Code != http.StatusSeeOther {
+                t.Fatalf("repeat request: expected 303 redirect, got %d", w2.Code)
+        }
+}
+
+func TestAnalyzeRateLimitGetPassthrough(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AnalyzeRateLimit(limiter))
+        router.GET("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/analyze", nil)
+        router.ServeHTTP(w, req)
+        if w.Code != http.StatusOK {
+                t.Fatalf("GET should pass through, got %d", w.Code)
+        }
+}
+
+func TestAnalyzeRateLimitEmptyDomain(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AnalyzeRateLimit(limiter))
+        router.POST("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain="))
+        req.Header.Set(headerContentType, contentTypeForm)
+        router.ServeHTTP(w, req)
+        if w.Code != http.StatusOK {
+                t.Fatalf("empty domain POST should pass through, got %d", w.Code)
+        }
+}
+
+func TestAnalyzeRateLimitJSONResponse(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AnalyzeRateLimit(limiter))
+        router.POST("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w1 := httptest.NewRecorder()
+        req1 := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain=test.com"))
+        req1.Header.Set(headerContentType, contentTypeForm)
+        router.ServeHTTP(w1, req1)
+
+        w2 := httptest.NewRecorder()
+        req2 := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain=test.com"))
+        req2.Header.Set(headerContentType, contentTypeForm)
+        req2.Header.Set("Accept", "application/json")
+        router.ServeHTTP(w2, req2)
+        if w2.Code != http.StatusTooManyRequests {
+                t.Fatalf("JSON rate limit: expected 429, got %d", w2.Code)
+        }
+}
+
+func TestAnalyzeRateLimitMaxRequests(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AnalyzeRateLimit(limiter))
+        router.POST("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        for i := 0; i < 8; i++ {
+                w := httptest.NewRecorder()
+                body := fmt.Sprintf("domain=domain%d.com", i)
+                req := httptest.NewRequest("POST", "/analyze", strings.NewReader(body))
+                req.Header.Set(headerContentType, contentTypeForm)
+                router.ServeHTTP(w, req)
+        }
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("POST", "/analyze", strings.NewReader("domain=domain99.com"))
+        req.Header.Set(headerContentType, contentTypeForm)
+        router.ServeHTTP(w, req)
+        if w.Code == http.StatusOK {
+                t.Fatal("9th request should be rate limited")
+        }
+}
+
+func TestAuthRateLimitBlocks(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AuthRateLimit(limiter))
+        router.GET("/auth/login", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w1 := httptest.NewRecorder()
+        req1 := httptest.NewRequest("GET", "/auth/login", nil)
+        router.ServeHTTP(w1, req1)
+        if w1.Code != http.StatusOK {
+                t.Fatalf("first auth request: expected 200, got %d", w1.Code)
+        }
+
+        w2 := httptest.NewRecorder()
+        req2 := httptest.NewRequest("GET", "/auth/login", nil)
+        router.ServeHTTP(w2, req2)
+        if w2.Code != http.StatusFound {
+                t.Fatalf("repeat auth request: expected 302 redirect, got %d", w2.Code)
+        }
+}
+
+func TestAuthRateLimitCallbackPath(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+        router := gin.New()
+        router.Use(middleware.AuthRateLimit(limiter))
+        router.GET("/auth/callback", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w1 := httptest.NewRecorder()
+        req1 := httptest.NewRequest("GET", "/auth/callback", nil)
+        router.ServeHTTP(w1, req1)
+        if w1.Code != http.StatusOK {
+                t.Fatalf("first callback: expected 200, got %d", w1.Code)
+        }
+
+        w2 := httptest.NewRecorder()
+        req2 := httptest.NewRequest("GET", "/auth/callback", nil)
+        router.ServeHTTP(w2, req2)
+        if w2.Code != http.StatusFound {
+                t.Fatalf("repeat callback: expected 302, got %d", w2.Code)
+        }
+}
+
+func TestRateLimitWaitSecondsMinimum(t *testing.T) {
+        limiter := middleware.NewInMemoryRateLimiter()
+
+        for i := 0; i < 8; i++ {
+                limiter.CheckAndRecord("10.10.10.10", fmt.Sprintf("d%d.com", i))
+        }
+
+        result := limiter.CheckAndRecord("10.10.10.10", "extra.com")
+        if result.Allowed {
+                t.Fatal("should be blocked")
+        }
+        if result.WaitSeconds < 1 {
+                t.Errorf("WaitSeconds should be >= 1, got %d", result.WaitSeconds)
+        }
+}
+
+func TestCSRFPostWithEmptyBody(t *testing.T) {
+        router, _ := setupCSRFRouter()
+        router.POST(pathSubmit, func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("POST", pathSubmit, nil)
+        router.ServeHTTP(w, req)
+        if w.Code != http.StatusSeeOther {
+                t.Fatalf("POST with no body: expected 303, got %d", w.Code)
+        }
+}
