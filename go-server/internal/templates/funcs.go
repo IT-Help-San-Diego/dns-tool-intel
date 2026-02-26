@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	mapKeyDanger = "danger"
-	mapKeySuccess = "success"
-	mapKeyWarning = "warning"
+        mapKeyDanger = "danger"
+        mapKeySuccess = "success"
+        mapKeyWarning = "warning"
 )
 
 func FuncMap() template.FuncMap {
@@ -219,6 +219,18 @@ func urlEncode(s string) string {
         return url.QueryEscape(s)
 }
 
+func slugify(s string) string {
+        var b strings.Builder
+        for _, c := range strings.ToLower(s) {
+                if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
+                        b.WriteRune(c)
+                } else {
+                        b.WriteByte('-')
+                }
+        }
+        return b.String()
+}
+
 func bimiProxyURL(logoURL string) template.URL {
         return template.URL("/proxy/bimi-logo?url=" + url.QueryEscape(logoURL))
 }
@@ -238,6 +250,7 @@ func stringFuncs() template.FuncMap {
                 "replace":      replaceStr,
                 "urlEncode":    urlEncode,
                 "bimiProxyURL": bimiProxyURL,
+                "slugify":      slugify,
         }
 }
 

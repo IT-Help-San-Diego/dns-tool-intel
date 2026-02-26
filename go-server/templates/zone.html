@@ -89,8 +89,9 @@
     {{end}}
 
     {{if .ShowResults}}
+    {{$zh := .ZoneHealth}}
     <section class="container mt-4 mb-5">
-        <h2 class="mb-4"><i class="fas fa-file me-2"></i>Zone File Analysis</h2>
+        <h2 class="mb-4"><i class="fas fa-file-alt me-2"></i>Zone Health Intelligence</h2>
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
@@ -145,11 +146,291 @@
         </div>
         {{end}}
 
+        {{if $zh}}
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-header border-secondary">
+                        <h5 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Zone Completeness
+                            {{if ge $zh.CompletenessScore 90}}<span class="badge bg-success ms-2">{{$zh.CompletenessVerdict}}</span>
+                            {{else if ge $zh.CompletenessScore 70}}<span class="badge bg-info ms-2">{{$zh.CompletenessVerdict}}</span>
+                            {{else if ge $zh.CompletenessScore 50}}<span class="badge bg-warning text-dark ms-2">{{$zh.CompletenessVerdict}}</span>
+                            {{else}}<span class="badge bg-danger ms-2">{{$zh.CompletenessVerdict}}</span>
+                            {{end}}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted">Completeness Score</span>
+                                <span class="small fw-bold">{{$zh.CompletenessScore}}%</span>
+                            </div>
+                            <div class="progress" style="height:8px">
+                                {{if ge $zh.CompletenessScore 90}}<div class="progress-bar bg-success" style="width:{{$zh.CompletenessScore}}%"></div>
+                                {{else if ge $zh.CompletenessScore 70}}<div class="progress-bar bg-info" style="width:{{$zh.CompletenessScore}}%"></div>
+                                {{else if ge $zh.CompletenessScore 50}}<div class="progress-bar bg-warning" style="width:{{$zh.CompletenessScore}}%"></div>
+                                {{else}}<div class="progress-bar bg-danger" style="width:{{$zh.CompletenessScore}}%"></div>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasSOA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
+                                    <span class="small">SOA Record</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasNS}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
+                                    <span class="small">NS Records</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-muted me-2"></i>{{end}}
+                                    <span class="small">A Records</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasAAAA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
+                                    <span class="small">AAAA (IPv6)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasMX}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-muted me-2"></i>{{end}}
+                                    <span class="small">MX Records</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasSPF}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
+                                    <span class="small">SPF (Email Auth)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasDMARC}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
+                                    <span class="small">DMARC</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasDKIM}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
+                                    <span class="small">DKIM</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasCAA}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-minus-circle text-warning me-2"></i>{{end}}
+                                    <span class="small">CAA (Cert Auth)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    {{if $zh.HasDNSSEC}}<i class="fas fa-check-circle text-success me-2"></i>{{else}}<i class="fas fa-times-circle text-danger me-2"></i>{{end}}
+                                    <span class="small">DNSSEC</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-header border-secondary">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Record Type Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3 text-center">
+                            <div class="col-4">
+                                <div class="fs-4 fw-bold text-info">{{$zh.TotalRecords}}</div>
+                                <div class="small text-muted">Total Records</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fs-4 fw-bold text-info">{{$zh.UniqueHostnames}}</div>
+                                <div class="small text-muted">Unique Names</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fs-4 fw-bold text-info">{{len $zh.TypeDistribution}}</div>
+                                <div class="small text-muted">Record Types</div>
+                            </div>
+                        </div>
+                        {{range $zh.TypeDistribution}}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small"><span class="badge bg-info text-dark me-1">{{.Type}}</span></span>
+                                <span class="small text-muted">{{.Count}} ({{printf "%.1f" .Percent}}%)</span>
+                            </div>
+                            <div class="progress" style="height:5px">
+                                <div class="progress-bar bg-info" style="width:{{printf "%.1f" .Percent}}%"></div>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{if gt $zh.NSCount 0}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Parsed Records</h5>
+                <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>Delegation Intelligence
+                    <span class="badge bg-secondary ms-2">{{$zh.NSCount}} nameserver{{if gt $zh.NSCount 1}}s{{end}}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Nameservers in Zone</div>
+                        <div class="fs-5">{{$zh.NSCount}}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">IPv6 Glue Present</div>
+                        <div class="fs-5">
+                            {{if $zh.HasIPv6Glue}}<span class="text-success"><i class="fas fa-check me-1"></i>Yes</span>
+                            {{else}}<span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>No</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">DNSSEC Signed</div>
+                        <div class="fs-5">
+                            {{if $zh.HasDNSSEC}}<span class="text-success"><i class="fas fa-lock me-1"></i>Yes</span>
+                            {{else}}<span class="text-danger"><i class="fas fa-unlock me-1"></i>No</span>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-striped mb-0">
+                        <thead><tr><th scope="col">#</th><th scope="col">Nameserver</th></tr></thead>
+                        <tbody>
+                        {{range $i, $ns := $zh.NSTargets}}
+                        <tr>
+                            <td class="text-muted">{{add $i 1}}</td>
+                            <td><code>{{$ns}}</code></td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>TTL Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3 text-center">
+                    <div class="col-4">
+                        <div class="fs-5 fw-bold">{{$zh.MinTTL}}s</div>
+                        <div class="small text-muted">Minimum TTL</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-5 fw-bold text-info">{{$zh.MedianTTL}}s</div>
+                        <div class="small text-muted">Median TTL</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-5 fw-bold">{{$zh.MaxTTL}}s</div>
+                        <div class="small text-muted">Maximum TTL</div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-striped mb-0">
+                        <thead><tr><th scope="col">Type</th><th scope="col">Count</th><th scope="col">Min TTL</th><th scope="col">Max TTL</th><th scope="col">Consistency</th></tr></thead>
+                        <tbody>
+                        {{range $zh.TTLByType}}
+                        <tr>
+                            <td><span class="badge bg-info text-dark">{{.Type}}</span></td>
+                            <td>{{.Count}}</td>
+                            <td>{{.MinTTL}}s</td>
+                            <td>{{.MaxTTL}}s</td>
+                            <td>
+                                {{if .Uniform}}<span class="text-success"><i class="fas fa-check me-1"></i>Uniform</span>
+                                {{else}}<span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Mixed</span>
+                                {{end}}
+                            </td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{if $zh.HasDNSSEC}}
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>DNSSEC Coverage in Zone File</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.DNSKEYCount 0}}text-success{{else}}text-muted{{end}}">{{$zh.DNSKEYCount}}</div>
+                        <div class="small text-muted">DNSKEY</div>
+                    </div>
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.RRSIGCount 0}}text-success{{else}}text-muted{{end}}">{{$zh.RRSIGCount}}</div>
+                        <div class="small text-muted">RRSIG</div>
+                    </div>
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.DSCount 0}}text-success{{else}}text-muted{{end}}">{{$zh.DSCount}}</div>
+                        <div class="small text-muted">DS</div>
+                    </div>
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.NSECCount 0}}text-success{{else}}text-muted{{end}}">{{$zh.NSECCount}}</div>
+                        <div class="small text-muted">NSEC</div>
+                    </div>
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.NSEC3Count 0}}text-success{{else}}text-muted{{end}}">{{$zh.NSEC3Count}}</div>
+                        <div class="small text-muted">NSEC3</div>
+                    </div>
+                    <div class="col">
+                        <div class="fs-4 fw-bold {{if gt $zh.NSEC3ParamCount 0}}text-success{{else}}text-muted{{end}}">{{$zh.NSEC3ParamCount}}</div>
+                        <div class="small text-muted">NSEC3PARAM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        {{end}}
+
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-th-list me-2"></i>Records by Type</h5>
+                <span class="badge bg-secondary">{{.ParseResult.RecordCount}} total</span>
             </div>
             <div class="card-body p-0">
+                {{if $zh}}
+                {{range $zh.TypeDistribution}}
+                {{$records := index $zh.RecordsByType .Type}}
+                {{if $records}}
+                <div class="border-bottom border-secondary">
+                    <button class="btn btn-link text-decoration-none text-light w-100 text-start p-3 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#records-{{slugify .Type}}" aria-expanded="false">
+                        <span>
+                            <span class="badge bg-info text-dark me-2">{{.Type}}</span>
+                            <span class="small text-muted">{{.Count}} record{{if gt .Count 1}}s{{end}}</span>
+                        </span>
+                        <i class="fas fa-chevron-down small text-muted"></i>
+                    </button>
+                    <div class="collapse" id="records-{{slugify .Type}}">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">TTL</th>
+                                        <th scope="col">Class</th>
+                                        <th scope="col">Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{range $records}}
+                                <tr>
+                                    <td><code class="small">{{.Name}}</code></td>
+                                    <td>{{.TTL}}</td>
+                                    <td>{{.Class}}</td>
+                                    <td class="small"><code>{{.RData}}</code></td>
+                                </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+                {{end}}
+                {{else}}
                 <div class="table-responsive">
                     <table class="table table-dark table-striped table-sm mb-0">
                         <thead>
@@ -174,6 +455,7 @@
                         </tbody>
                     </table>
                 </div>
+                {{end}}
             </div>
         </div>
 

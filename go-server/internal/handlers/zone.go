@@ -93,6 +93,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
 
         ctx := c.Request.Context()
         driftReport, liveAnalysisID := h.compareZoneDrift(ctx, domain, parseResult)
+        zoneHealth := zoneparse.AnalyzeHealth(parseResult.Records)
 
         if retain && userID > 0 {
                 h.persistZoneImport(ctx, userID, domain, parseResult, header, rawData, driftReport)
@@ -106,6 +107,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
                 strShowform:        false,
                 "ShowResults":     true,
                 "ParseResult":     parseResult,
+                "ZoneHealth":      zoneHealth,
                 "DriftReport":     driftReport,
                 "LiveAnalysisID":  liveAnalysisID,
                 "Filename":        header.Filename,
