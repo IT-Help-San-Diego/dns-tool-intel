@@ -114,7 +114,7 @@
         {{if .Result}}
         {{with .Result}}
 
-        <div class="card bg-dark border-info mb-4">
+        <div id="ttl-results" class="card bg-dark border-info mb-4">
             <div class="card-header bg-dark border-info d-flex justify-content-between align-items-center">
                 <h2 class="h5 mb-0"><i class="fas fa-tachometer-alt me-2 text-info" aria-hidden="true"></i>TTL Analysis: {{.Domain}}</h2>
                 <span class="text-muted small">{{.ScanTime}}</span>
@@ -384,27 +384,53 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function(){
-        const cards = document.querySelectorAll('.ttl-profile-card');
+        var cards = document.querySelectorAll('.ttl-profile-card');
         function updateActive(){
             cards.forEach(function(c){
-                const input = c.previousElementSibling;
+                var input = c.previousElementSibling;
                 if(input && input.checked){
                     c.classList.add('border-2');
-                    c.style.boxShadow = '0 0 12px rgba(13,202,240,0.15)';
+                    c.style.boxShadow = '0 0 16px rgba(13,202,240,0.2)';
+                    c.style.opacity = '1';
                 } else {
                     c.classList.remove('border-2');
                     c.style.boxShadow = 'none';
+                    c.style.opacity = '0.55';
                 }
             });
         }
         cards.forEach(function(c){
             c.addEventListener('click', function(){
-                const input = c.previousElementSibling;
+                var input = c.previousElementSibling;
                 if(input){ input.checked = true; }
                 updateActive();
             });
         });
         updateActive();
+
+        var form = document.querySelector('form[action="/ttl-tuner/analyze"]');
+        if(form){
+            form.addEventListener('submit', function(){
+                var btn = form.querySelector('button[type="submit"]');
+                if(btn){
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing\u2026';
+                }
+                var overlay = document.createElement('div');
+                overlay.id = 'ttl-loading';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+                var box = document.createElement('div');
+                box.style.cssText = 'background:rgba(28,35,51,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:2rem 3rem;text-align:center;box-shadow:0 1rem 3rem rgba(0,0,0,0.5);';
+                box.innerHTML = '<div style="margin-bottom:1rem"><i class="fas fa-spinner fa-spin fa-2x text-info"></i></div><div style="color:#e0e0e0;font-size:1.1rem;font-weight:500">Scanning DNS records\u2026</div><div style="color:#888;font-size:0.85rem;margin-top:0.5rem">This typically takes 5\u201310 seconds</div>';
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+            });
+        }
+
+        var results = document.getElementById('ttl-results');
+        if(results){
+            results.scrollIntoView({behavior:'smooth', block:'start'});
+        }
     })();
     </script>
 </body>
