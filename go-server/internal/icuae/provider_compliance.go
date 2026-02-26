@@ -42,6 +42,7 @@ const (
         providerRoute53    = "AWS Route 53"
         providerGoDaddy    = "GoDaddy"
         providerNamecheap  = "Namecheap"
+        providerHostinger  = "Hostinger"
 
 
         mapKeyWarning = "warning"
@@ -130,6 +131,21 @@ var providerProfiles = map[string]ProviderProfile{
                         },
                 },
         },
+        providerHostinger: {
+                Name:          providerHostinger,
+                TTLEditable:   true,
+                SOAEditable:   false,
+                MinAllowedTTL: 0,
+                Notes: []ProviderComplianceNote{
+                        {
+                                Title:   "NS record TTLs managed by Hostinger",
+                                RFC:     "RFC 1035 §3.2.1",
+                                RFCLink: "https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1",
+                                Detail:  "Hostinger manages NS record TTLs on their default nameservers (ns1/ns2.dns-parking.com). You cannot change NS TTLs unless you delegate DNS to another provider such as Cloudflare or AWS Route 53. Other record types (A, AAAA, MX, TXT, CAA, CNAME) can have their TTLs adjusted in the Hostinger DNS panel.",
+                                Verdict: "NS TTLs locked to registrar defaults",
+                        },
+                },
+        },
 }
 
 func DetectDNSProvider(dnsProviders, nsRecords []string) string {
@@ -145,6 +161,8 @@ func DetectDNSProvider(dnsProviders, nsRecords []string) string {
                 return providerGoDaddy
         case strings.Contains(lower, "namecheap") || strings.Contains(lower, "registrar-servers"):
                 return providerNamecheap
+        case strings.Contains(lower, "hostinger") || strings.Contains(lower, "dns-parking"):
+                return providerHostinger
         default:
                 return ""
         }

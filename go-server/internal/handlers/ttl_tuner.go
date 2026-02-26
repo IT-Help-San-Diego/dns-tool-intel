@@ -301,6 +301,16 @@ func checkProviderLock(rt string, observed uint32, providerName string, profile 
                 return false, ""
         }
 
+        if rt == "NS" {
+                return true, fmt.Sprintf(
+                        "NS record TTLs are controlled by %s, your current DNS provider. "+
+                                "You cannot change NS TTLs in your DNS panel — they are set by the nameserver operator. "+
+                                "To gain control over NS TTLs, you would need to delegate your DNS to a different provider "+
+                                "(e.g., Cloudflare, AWS Route 53) and update your domain's nameservers at your registrar.",
+                        providerName,
+                )
+        }
+
         if providerName == "Cloudflare" && (rt == "A" || rt == rtAAAATuner) && observed == profile.ProxiedTTL {
                 return true, fmt.Sprintf(
                         "Cloudflare enforces a fixed TTL of %s for proxied (orange-cloud) records. "+
