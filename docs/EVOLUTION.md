@@ -2980,3 +2980,62 @@ Added 5 new ignore rules in `sonar-project.properties`:
 - All 18 Go packages pass
 - All 20 documented routes verified (200 OK; drift/badge return 400 without required domain param — correct behavior)
 - Build: `dns-tool-server v26.26.04`
+
+
+---
+
+## Session: February 26, 2026 (v26.26.25–v26.26.28 — SonarCloud Sweep + PageSpeed Best Practices Fix)
+
+### Problem Statement
+SonarCloud grades and PageSpeed Best Practices 100 were the targets. Multiple sessions appeared to fix issues but SonarCloud grades didn't improve and PageSpeed stayed at 92.
+
+### Root Cause Analysis (Loop Diagnosis)
+
+#### Why SonarCloud Fixes Weren't Landing
+1. **`sonar-project.properties` was stale**: `sonar.projectVersion=26.26.02` hadn't been updated in 24+ versions. SonarCloud's "new code" period was miscalibrated — issues fixed locally were still counted as "overall code" issues, not showing improvement.
+2. **foundation.js was EXCLUDED from SonarCloud scanning**: `sonar.exclusions` included `static/js/foundation.js` — our custom Bootstrap replacement. SonarCloud never saw our JS fixes to this file.
+3. **Subagent false positives**: Subagents reported "all issues already fixed" because they checked the CURRENT code state, not what SonarCloud was actually flagging. The code was fixed from prior sessions but SonarCloud hadn't picked up the changes due to (1) and (2).
+
+#### Why PageSpeed Best Practices Was Stuck at 92
+1. **Wrong focus**: We fixated on `element.style` writes in JavaScript (foundation.js, main.js) — these were real CSP violations but weren't the ONLY ones.
+2. **Actual root cause was HTML inline `style=""` attributes in `_nav.html`**: Three inline styles (`style="opacity: 0.85"`, `style="background: rgba(220,53,69,0.08)..."`, `style="background: rgba(255,255,255,0.03)"`, plus `style="margin:0"`) were present in the navigation partial — loaded on EVERY page including the homepage that Lighthouse tests.
+3. **CSP `style-src 'self' 'nonce-...'` blocks ALL inline styles**: Both `el.style.x = y` in JS AND `<div style="...">` in HTML. We fixed the JS side but missed the HTML side.
+
+### Changes Made
+
+#### v26.26.25–v26.26.26 — SonarCloud Sweep
+- Go S1192: 4 new constant files (dnsclient/client.go, http.go, icuae/provider_compliance.go, scanner_profile.go)
+- Go S8196: Renamed `ICAEMaturitySource` → `MaturitySource` (Go naming convention)
+- JS S2004: Flattened nested functions in main.js, results.html, results_covert.html, dossier.html, history.html, badge_embed.html
+- Go CC: All functions confirmed ≤15 across handlers, analyzers, probe, config, icae (previously fixed)
+
+#### v26.26.28 — PageSpeed Best Practices Fix
+- **foundation.js rewrite**: Eliminated ALL `element.style` writes:
+  - Collapse: CSS `grid-template-rows: 0fr→1fr` transition replaces `el.style.height`
+  - Tooltips: `.tooltip-popup` / `.tooltip-covert` CSS classes replace inline styling; nonce'd `<style>` element for dynamic positioning
+  - Alerts: `.alert-dismissing` CSS class replaces `el.style.opacity`
+- **main.js cleanup**: 
+  - Animation restart: `.anim-restart { animation: none !important }` class toggle replaces `el.style.animation`
+  - Toast: `.tld-recon-toast` CSS classes replace `toast.style.cssText`
+- **_nav.html**: Replaced 4 inline `style=""` attributes with CSS utility classes (`.u-opacity-85`, `.u-roe-warning-box`, `.u-roe-footer-box`, `.m-0`)
+- **sonar-project.properties**: Updated version to 26.26.28, removed `static/js/foundation.js` from exclusions
+
+### Lessons Learned (Anti-Circle Rules)
+1. **Check quality tool configuration FIRST**: Before fixing issues, verify the quality tool can actually see your files. SonarCloud exclusions silently hid our fixes for sessions.
+2. **CSP violations come from BOTH JS and HTML**: `element.style` in JS is only half the story. HTML `style=""` attributes violate the same CSP policy. Always grep ALL templates for `style="`.
+3. **Subagent "already done" reports need verification**: When subagents report all issues as "already fixed," verify against the ACTUAL quality tool output, not just the code state.
+4. **Version sync matters**: Quality tools use version numbers to define "new code" periods. A stale version means fixes get lost in "overall code" noise.
+
+### Files Changed
+- `static/js/foundation.js` — complete CSP-safe rewrite (zero inline style writes)
+- `static/js/main.js` — toast + animation restart CSS class-based
+- `static/css/custom.css` — added .anim-restart, .tld-recon-toast, .u-opacity-85, .u-roe-warning-box, .u-roe-footer-box
+- `static/css/foundation.css` — CSS grid collapse, .tooltip-popup, .alert-dismissing
+- `go-server/templates/_nav.html` — replaced 4 inline styles with CSS classes
+- `sonar-project.properties` — version bump, removed foundation.js exclusion
+
+### Verification
+- Zero `style="` in shared templates (_nav.html, _footer.html, _head.html, index.html)
+- Zero `.style.` / `.cssText` / `setProperty` in foundation.js and main.js
+- All Go tests pass (19 packages)
+- Build clean, server running v26.26.28
