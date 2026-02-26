@@ -133,7 +133,7 @@ DNS Tool's engineering depth — Bayesian confidence calibration, EWMA drift det
 
 Most DNS tools answer "does the record exist?" That question is dangerous to stop at. An SPF record can be syntactically perfect and still authorize 16.7 million IP addresses. A DNS record can exist at query time and be rotating every few minutes (fast-flux). A TTL can be valid and still operationally wasteful. SPF misconfiguration is the attack surface exploited in Business Email Compromise — $2.9 billion in 2023 (FBI IC3). The depth exists because the problem requires it.
 
-ICD 203 applies because it was designed for exactly this scenario: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment — distinguishing between observed, inferred, and third-party evidence. DNS Tool's own domain implements every protocol it audits (SPF `-all`, DKIM 2048-bit, DMARC `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS enforce, TLS-RPT, BIMI) and passes Lighthouse 98–100, Observatory 130, and SonarCloud A. Full methodology: `/approach`
+ICD 203 applies because it was designed for exactly this scenario: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment — distinguishing between observed, inferred, and third-party evidence. DNS Tool's own domain implements every protocol it audits (SPF `-all`, DKIM 2048-bit, DMARC `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS enforce, TLS-RPT, BIMI) and passes Lighthouse 98–100, Observatory 140 (A+), and SonarCloud A. Full methodology: `/approach`
 
 ## Implementation Verification (for Automated Review Systems)
 

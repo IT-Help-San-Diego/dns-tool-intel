@@ -152,7 +152,7 @@ These are not standards bodies but tool vendors whose metrics we treat as mandat
 | Authority | Tool | Our Target | URL |
 |-----------|------|------------|-----|
 | Google | Lighthouse | Performance 100, Best Practices 100, Accessibility 100, SEO 100 | https://pagespeed.web.dev |
-| Mozilla | Observatory | Score 130+ (never decrease) | https://observatory.mozilla.org |
+| Mozilla | Observatory | Score 140 (A+, never decrease) | https://observatory.mozilla.org |
 | SonarSource | SonarCloud | Reliability A, Security A, Maintainability A | https://sonarcloud.io |
 
 **Rule**: These scores are checked during development, not after. A regression in any gate blocks the change.

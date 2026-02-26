@@ -72,7 +72,7 @@ Every change must maintain or improve these scores. **Never ship a regression.**
 | Lighthouse | Best Practices | 100 | 100 (errors = broken UX) |
 | Lighthouse | Accessibility | 100 | 100 (no excuses) |
 | Lighthouse | SEO | 100 | 100 (no excuses) |
-| Mozilla Observatory | Security | 130 | 130 (never go backwards) |
+| Mozilla Observatory | Security | 140 | 140 (never go backwards) |
 | SonarCloud | Reliability | A | A (zero new bugs) |
 | SonarCloud | Security | A | A (zero new vulnerabilities) |
 | SonarCloud | Maintainability | A | A (zero new code smells) |
@@ -81,7 +81,7 @@ Every change must maintain or improve these scores. **Never ship a regression.**
 - [ ] Lighthouse Best Practices = 100
 - [ ] Lighthouse Accessibility = 100
 - [ ] Lighthouse SEO = 100
-- [ ] Mozilla Observatory ≥ 130
+- [ ] Mozilla Observatory ≥ 140
 - [ ] SonarCloud Quality Gate passes (Reliability A, Security A, Maintainability A)
 - [ ] No new bugs, vulnerabilities, or code smells introduced
 - [ ] Security hotspots reviewed (not left unreviewed)
