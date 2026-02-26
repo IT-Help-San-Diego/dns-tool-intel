@@ -220,7 +220,7 @@
                             <li><strong>DNS queries</strong> &mdash; Live, every time. Cache disabled (TTL=0). When you change a record and rescan, you see the new state immediately.</li>
                             <li><strong>RDAP data</strong> &mdash; Cached 24 hours. This is rate-limit protection &mdash; registrar RDAP services throttle aggressively, and hammering them helps nobody.</li>
                             <li><strong>Certificate Transparency data</strong> &mdash; Cached 1 hour. CT logs are append-only by design, so historical data doesn&rsquo;t go stale.</li>
-                            <li><strong>Scan results</strong> &mdash; Stored for history and drift analysis. No results are shared with third parties.</li>
+                            <li><strong>Scan results</strong> &mdash; Stored for history and drift analysis. All scans query public DNS records &mdash; the same data anyone can retrieve with <code>dig</code>. We never share user accounts, sessions, or private settings with anyone.</li>
                             <li><strong>RFC metadata</strong> &mdash; Cached 24 hours. Reference data that changes on the scale of years, not minutes.</li>
                         </ul>
                         <p class="mb-0">All findings include verification commands &mdash; <code>dig</code>, <code>openssl</code>, <code>curl</code> &mdash; so you can reproduce every result independently in your own terminal. We don&rsquo;t ask you to trust us. We give you the tools to verify.</p>
