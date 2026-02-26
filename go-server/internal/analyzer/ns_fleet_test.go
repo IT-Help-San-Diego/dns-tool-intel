@@ -304,6 +304,198 @@ func TestNSFleetToMap(t *testing.T) {
         }
 }
 
+func TestFirstIP(t *testing.T) {
+        tests := []struct {
+                name string
+                ipv4 []string
+                ipv6 []string
+                want string
+        }{
+                {"ipv4 first", []string{"1.2.3.4", "5.6.7.8"}, []string{"2001:db8::1"}, "1.2.3.4"},
+                {"ipv6 fallback", []string{}, []string{"2001:db8::1", "2001:db8::2"}, "2001:db8::1"},
+                {"both empty", []string{}, []string{}, ""},
+                {"nil slices", nil, nil, ""},
+                {"ipv4 nil ipv6 present", nil, []string{"::1"}, "::1"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := firstIP(tt.ipv4, tt.ipv6)
+                        if got != tt.want {
+                                t.Errorf("firstIP() = %q, want %q", got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestDetectNetworkRestriction(t *testing.T) {
+        tests := []struct {
+                name               string
+                entries            []NSFleetEntry
+                wantResolved       int
+                wantRestricted     bool
+        }{
+                {
+                        "empty entries",
+                        []NSFleetEntry{},
+                        0, false,
+                },
+                {
+                        "all unreachable with IPs",
+                        []NSFleetEntry{
+                                {IPv4: []string{"1.2.3.4"}, UDPReach: false, TCPReach: false},
+                                {IPv4: []string{"5.6.7.8"}, UDPReach: false, TCPReach: false},
+                        },
+                        2, true,
+                },
+                {
+                        "some reachable",
+                        []NSFleetEntry{
+                                {IPv4: []string{"1.2.3.4"}, UDPReach: true, TCPReach: true},
+                                {IPv4: []string{"5.6.7.8"}, UDPReach: false, TCPReach: false},
+                        },
+                        2, false,
+                },
+                {
+                        "single unreachable not restricted",
+                        []NSFleetEntry{
+                                {IPv4: []string{"1.2.3.4"}, UDPReach: false, TCPReach: false},
+                        },
+                        1, false,
+                },
+                {
+                        "no IPs resolved",
+                        []NSFleetEntry{
+                                {IPv4: []string{}, IPv6: []string{}},
+                                {IPv4: []string{}, IPv6: []string{}},
+                        },
+                        0, false,
+                },
+                {
+                        "ipv6 only unreachable",
+                        []NSFleetEntry{
+                                {IPv6: []string{"2001:db8::1"}, UDPReach: false, TCPReach: false},
+                                {IPv6: []string{"2001:db8::2"}, UDPReach: false, TCPReach: false},
+                        },
+                        2, true,
+                },
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        resolved, restricted := detectNetworkRestriction(tt.entries)
+                        if resolved != tt.wantResolved {
+                                t.Errorf("resolvedCount = %d, want %d", resolved, tt.wantResolved)
+                        }
+                        if restricted != tt.wantRestricted {
+                                t.Errorf("networkRestricted = %v, want %v", restricted, tt.wantRestricted)
+                        }
+                })
+        }
+}
+
+func TestCollectPerEntryIssues(t *testing.T) {
+        t.Run("no IPs", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", IPv4: []string{}, IPv6: []string{}},
+                }
+                issues := collectPerEntryIssues(entries, false)
+                if len(issues) == 0 {
+                        t.Error("expected issue for no IP addresses")
+                }
+        })
+
+        t.Run("lame delegation", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, IsLame: true, UDPReach: true},
+                }
+                issues := collectPerEntryIssues(entries, false)
+                found := false
+                for _, i := range issues {
+                        if strings.Contains(i, "lame delegation") {
+                                found = true
+                        }
+                }
+                if !found {
+                        t.Error("expected lame delegation issue")
+                }
+        })
+
+        t.Run("skips reachability when network restricted", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: false, TCPReach: false},
+                }
+                issues := collectPerEntryIssues(entries, true)
+                for _, i := range issues {
+                        if strings.Contains(i, "UDP unreachable") || strings.Contains(i, "TCP unreachable") {
+                                t.Error("should skip reachability issues when network restricted")
+                        }
+                }
+        })
+
+        t.Run("reports UDP and TCP unreachable", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: false, TCPReach: false},
+                }
+                issues := collectPerEntryIssues(entries, false)
+                hasUDP, hasTCP := false, false
+                for _, i := range issues {
+                        if strings.Contains(i, "UDP unreachable") {
+                                hasUDP = true
+                        }
+                        if strings.Contains(i, "TCP unreachable") {
+                                hasTCP = true
+                        }
+                }
+                if !hasUDP {
+                        t.Error("expected UDP unreachable issue")
+                }
+                if !hasTCP {
+                        t.Error("expected TCP unreachable issue")
+                }
+        })
+}
+
+func TestCollectSerialInconsistencyIssues(t *testing.T) {
+        t.Run("consistent serials", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", SOASerial: 100, SOASerialOK: true},
+                        {Hostname: "ns2.example.com", SOASerial: 100, SOASerialOK: true},
+                }
+                issues := collectSerialInconsistencyIssues(entries)
+                if len(issues) != 1 {
+                        t.Errorf("expected 1 serial group, got %d", len(issues))
+                }
+        })
+
+        t.Run("inconsistent serials", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", SOASerial: 100, SOASerialOK: true},
+                        {Hostname: "ns2.example.com", SOASerial: 200, SOASerialOK: true},
+                }
+                issues := collectSerialInconsistencyIssues(entries)
+                if len(issues) != 2 {
+                        t.Errorf("expected 2 serial groups, got %d", len(issues))
+                }
+        })
+
+        t.Run("skips entries without serial", func(t *testing.T) {
+                entries := []NSFleetEntry{
+                        {Hostname: "ns1.example.com", SOASerial: 100, SOASerialOK: true},
+                        {Hostname: "ns2.example.com", SOASerial: 0, SOASerialOK: false},
+                }
+                issues := collectSerialInconsistencyIssues(entries)
+                if len(issues) != 1 {
+                        t.Errorf("expected 1 serial group, got %d", len(issues))
+                }
+        })
+
+        t.Run("empty entries", func(t *testing.T) {
+                issues := collectSerialInconsistencyIssues([]NSFleetEntry{})
+                if len(issues) != 0 {
+                        t.Errorf("expected 0 issues, got %d", len(issues))
+                }
+        })
+}
+
 func TestCollectFleetIssues_Clean(t *testing.T) {
         entries := []NSFleetEntry{
                 {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: true, TCPReach: true, AAFlag: true, SOASerial: 100, SOASerialOK: true, ASN: "13335"},
