@@ -21,7 +21,8 @@ import (
 
 const tplZone = "zone.html"
 
-const maxZoneFileSize = 2 << 20 // 2 MB
+const maxZoneFileSizeAuth = 2 << 20   // 2 MB — authenticated users
+const maxZoneFileSizeUnauth = 1 << 20 // 1 MB — non-authenticated users
 
 type ZoneHandler struct {
         DB     *db.Database
