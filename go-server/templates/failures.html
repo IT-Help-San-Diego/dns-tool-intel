@@ -233,6 +233,9 @@
             margin-bottom: 0.75rem;
             display: block;
         }
+        .failures-empty i.fa-info-circle {
+            color: #58a6ff;
+        }
         .failures-empty p {
             font-size: 0.85rem;
             margin: 0;
@@ -243,6 +246,9 @@
             font-weight: 600;
             color: #3fb950;
             margin-bottom: 0.3rem;
+        }
+        .failures-empty .info-label {
+            color: #58a6ff;
         }
 
         @media (max-width: 768px) {
@@ -310,11 +316,19 @@
                     </div>
                     {{end}}
                     {{else}}
+                        {{if gt .TotalFailed 0}}
+                    <div class="failures-empty">
+                        <i class="fas fa-info-circle"></i>
+                        <p class="success-label">{{.TotalFailed}} Failures Counted</p>
+                        <p>Our telemetry recorded {{.TotalFailed}} failed analyses, but detailed error logs were not preserved for these events. This typically occurs when a failure happens before the analysis record is persisted &mdash; for example, DNS resolution timeouts during initial domain validation. The count is accurate; only the per-record details are unavailable.</p>
+                    </div>
+                        {{else}}
                     <div class="failures-empty">
                         <i class="fas fa-check-circle"></i>
                         <p class="success-label">Zero Failures</p>
                         <p>No failed analyses recorded. This is either impressive or suspicious &mdash; we prefer honest.</p>
                     </div>
+                        {{end}}
                     {{end}}
                 </div>
             </div>

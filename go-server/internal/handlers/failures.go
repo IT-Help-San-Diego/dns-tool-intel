@@ -114,8 +114,11 @@ func (h *FailuresHandler) Failures(c *gin.Context) {
         csrfToken, _ := c.Get("csrf_token")
         ctx := c.Request.Context()
 
-        totalFailed, _ := h.DB.Queries.CountFailedAnalyses(ctx)
-        totalAll, _ := h.DB.Queries.CountAllAnalyses(ctx)
+        aggregateStats, _ := h.DB.Queries.SumAnalysisStats(ctx)
+        statsFailedCount := aggregateStats.Failed
+
+        storedCount, _ := h.DB.Queries.CountAllAnalyses(ctx)
+        totalAll := storedCount + statsFailedCount
 
         failures, err := h.DB.Queries.ListFailedAnalyses(ctx, dbq.ListFailedAnalysesParams{
                 Limit:  50,
@@ -156,7 +159,7 @@ func (h *FailuresHandler) Failures(c *gin.Context) {
 
         var failureRate float64
         if totalAll > 0 {
-                failureRate = float64(totalFailed) / float64(totalAll) * 100
+                failureRate = float64(statsFailedCount) / float64(totalAll) * 100
         }
 
         data := gin.H{
@@ -167,7 +170,7 @@ func (h *FailuresHandler) Failures(c *gin.Context) {
                 "CsrfToken":       csrfToken,
                 "ActivePage":      "failures",
                 "Failures":        entries,
-                "TotalFailed":     totalFailed,
+                "TotalFailed":     statsFailedCount,
                 "TotalAnalyses":   totalAll,
                 "FailureRate":     failureRate,
         }
