@@ -461,7 +461,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 analyzeBtn.disabled = false;
             }
         });
-        
+
+        if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
+            domainInput.focus();
+        }
+
         let analysisSubmitted = false;
         domainForm.addEventListener('submit', function(e) {
             if (analysisSubmitted) return;

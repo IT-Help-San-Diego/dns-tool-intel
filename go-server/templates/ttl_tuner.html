@@ -194,7 +194,7 @@
                                 </td>
                             </tr>
                             <tr class="collapse" id="fix-{{.RecordType}}">
-                                <td colspan="6" class="border-0 pt-0">
+                                <td colspan="6" class="border-0 pt-0" style="white-space:normal;max-width:1px">
                                     <div class="u-bg-info-soft rounded p-3 mt-1 mb-2">
                                         <p class="mb-2 small">{{.Recommendation}}</p>
                                         {{if .PropagationNote}}
@@ -288,7 +288,7 @@
 
                 <div class="text-center">
                     <form method="POST" action="/ttl-tuner/analyze" class="d-inline">
-                        <input type="hidden" name="_csrf" value="{{$.CsrfToken}}">
+                        <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <input type="hidden" name="domain" value="{{.Domain}}">
                         <input type="hidden" name="profile" value="{{$.Profile}}">
                         <button type="submit" class="btn btn-outline-info"><i class="fas fa-sync-alt me-1" aria-hidden="true"></i>Re-Scan to Verify Changes</button>
