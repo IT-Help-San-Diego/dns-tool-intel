@@ -5,8 +5,9 @@ channel = "stable-24_05"
 packages = ["cacert", "chromium", "dnsutils", "freetype", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "openjpeg", "openssl", "postgresql", "potrace", "python312Packages.nmapthon2", "sqlc", "tcl", "tk", "unzip", "whois", "zlib", "subfinder", "amass", "dnsx", "testssl", "httpx", "nuclei"]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "vm"
 run = ["sh", "-c", "./dns-tool-server"]
+build = ["bash", "build.sh"]
 
 [workflows]
 runButton = "Project"
