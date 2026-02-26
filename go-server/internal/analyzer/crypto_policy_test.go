@@ -443,6 +443,81 @@ func TestClassifyHTTPError_EmptyTruncateLen(t *testing.T) {
         }
 }
 
+func TestClassifyDNSSECAlgorithm_DeprecatedObservations(t *testing.T) {
+        deprecated := []int{1, 3, 6, 12}
+        for _, alg := range deprecated {
+                got := ClassifyDNSSECAlgorithm(alg)
+                if got.Strength != "deprecated" {
+                        t.Errorf("Algorithm %d: strength = %q, want deprecated", alg, got.Strength)
+                }
+                if !strings.Contains(got.Observation, "MUST NOT") {
+                        t.Errorf("Algorithm %d: observation should contain 'MUST NOT', got: %s", alg, got.Observation)
+                }
+        }
+}
+
+func TestClassifyDNSSECAlgorithm_ModernObservations(t *testing.T) {
+        modern := []int{13, 14, 15, 16}
+        for _, alg := range modern {
+                got := ClassifyDNSSECAlgorithm(alg)
+                if got.Strength != "modern" {
+                        t.Errorf("Algorithm %d: strength = %q, want modern", alg, got.Strength)
+                }
+                if got.RFC != rfcDNSSEC {
+                        t.Errorf("Algorithm %d: RFC = %q, want %q", alg, got.RFC, rfcDNSSEC)
+                }
+        }
+}
+
+func TestClassifyDSDigest_AllKnownTypes(t *testing.T) {
+        expectedStrengths := map[int]string{
+                1: "deprecated",
+                2: "adequate",
+                3: "deprecated",
+                4: "strong",
+        }
+        for dtype, wantStrength := range expectedStrengths {
+                got := ClassifyDSDigest(dtype)
+                if got.Strength != wantStrength {
+                        t.Errorf("DS digest %d: strength = %q, want %q", dtype, got.Strength, wantStrength)
+                }
+        }
+}
+
+func TestClassifyDKIMKey_Ed25519IgnoresBits(t *testing.T) {
+        bits := []int{0, 128, 256, 512, 4096}
+        for _, b := range bits {
+                got := ClassifyDKIMKey("ed25519", b)
+                if got.Strength != "strong" {
+                        t.Errorf("ed25519 with %d bits: strength = %q, want strong", b, got.Strength)
+                }
+        }
+}
+
+func TestClassifyDKIMKey_UnknownTypes(t *testing.T) {
+        unknownTypes := []string{"dsa", "ecdsa", "p256", ""}
+        for _, kt := range unknownTypes {
+                got := ClassifyDKIMKey(kt, 2048)
+                if got.Strength != "adequate" {
+                        t.Errorf("key type %q: strength = %q, want adequate", kt, got.Strength)
+                }
+                if got.RFC != rfcDKIM {
+                        t.Errorf("key type %q: RFC = %q, want %q", kt, got.RFC, rfcDKIM)
+                }
+        }
+}
+
+func TestClassifyDSDigest_MultipleUnknownTypes(t *testing.T) {
+        unknownTypes := []int{0, 5, 100, 255}
+        for _, dtype := range unknownTypes {
+                got := ClassifyDSDigest(dtype)
+                expected := fmt.Sprintf("DS digest type %d — not classified in RFC 8624", dtype)
+                if got.Observation != expected {
+                        t.Errorf("DS digest %d: observation = %q, want %q", dtype, got.Observation, expected)
+                }
+        }
+}
+
 func TestJsonUnmarshal(t *testing.T) {
         var result map[string]string
         err := jsonUnmarshal([]byte(`{"key":"value"}`), &result)

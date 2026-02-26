@@ -118,3 +118,93 @@ func TestZoneHandlerNilConfig(t *testing.T) {
                 t.Error("expected nil Config")
         }
 }
+
+func TestMaxZoneFileSizeExactValue(t *testing.T) {
+        if maxZoneFileSize != 2097152 {
+                t.Errorf("maxZoneFileSize = %d, want exactly 2097152 (2 MB)", maxZoneFileSize)
+        }
+}
+
+func TestMaxZoneFileSizeBitShift(t *testing.T) {
+        calculated := int64(2 << 20)
+        manual := int64(2 * 1024 * 1024)
+        if calculated != manual {
+                t.Errorf("bit shift %d != manual %d", calculated, manual)
+        }
+        if maxZoneFileSize != calculated {
+                t.Errorf("maxZoneFileSize = %d, want %d", maxZoneFileSize, calculated)
+        }
+}
+
+func TestZoneHandlerConfigPropagation(t *testing.T) {
+        tests := []struct {
+                name      string
+                version   string
+                maint     string
+                betaPages map[string]bool
+        }{
+                {"empty config", "", "", nil},
+                {"full config", "4.0.0", "scheduled maintenance", map[string]bool{"zone": true, "drift": false}},
+                {"version only", "1.2.3", "", nil},
+                {"maintenance only", "", "down for updates", nil},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        cfg := &config.Config{
+                                AppVersion:      tt.version,
+                                MaintenanceNote: tt.maint,
+                                BetaPages:       tt.betaPages,
+                        }
+                        h := NewZoneHandler(nil, cfg)
+                        if h.Config.AppVersion != tt.version {
+                                t.Errorf("AppVersion = %q, want %q", h.Config.AppVersion, tt.version)
+                        }
+                        if h.Config.MaintenanceNote != tt.maint {
+                                t.Errorf("MaintenanceNote = %q, want %q", h.Config.MaintenanceNote, tt.maint)
+                        }
+                })
+        }
+}
+
+func TestFlashMessageVariousCategories(t *testing.T) {
+        categories := []string{"danger", "warning", "success", "info", "primary", "secondary"}
+        for _, cat := range categories {
+                fm := FlashMessage{Category: cat, Message: "test message for " + cat}
+                if fm.Category != cat {
+                        t.Errorf("Category = %q, want %q", fm.Category, cat)
+                }
+                if fm.Message == "" {
+                        t.Error("expected non-empty message")
+                }
+        }
+}
+
+func TestFlashMessageLongContent(t *testing.T) {
+        longMsg := ""
+        for i := 0; i < 50; i++ {
+                longMsg += "error detail "
+        }
+        fm := FlashMessage{Category: "danger", Message: longMsg}
+        if fm.Message != longMsg {
+                t.Error("FlashMessage should preserve long messages")
+        }
+}
+
+func TestTplZoneConstant(t *testing.T) {
+        if tplZone == "" {
+                t.Error("tplZone should not be empty")
+        }
+        if tplZone != "zone.html" {
+                t.Errorf("tplZone = %q, want zone.html", tplZone)
+        }
+}
+
+func TestZoneHandlerDBFieldType(t *testing.T) {
+        h := &ZoneHandler{}
+        if h.DB != nil {
+                t.Error("zero-value DB should be nil")
+        }
+        if h.Config != nil {
+                t.Error("zero-value Config should be nil")
+        }
+}

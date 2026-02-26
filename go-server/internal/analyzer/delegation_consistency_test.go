@@ -1012,3 +1012,181 @@ func TestCollectUnmatchedRecords_AllMatched(t *testing.T) {
                 t.Errorf("expected 0 unmatched keys, got %d", len(result.UnmatchedKeys))
         }
 }
+
+func TestCheckDSKeyAlignment_OnlyZSKKeys(t *testing.T) {
+        ds := []DSRecord{
+                {KeyTag: 100, Algorithm: 13, DigestType: 2, Digest: "abc"},
+        }
+        keys := []DNSKEYRecord{
+                {Flags: 256, Protocol: 3, Algorithm: 13, KeyTag: 100, IsZSK: true},
+        }
+
+        result := CheckDSKeyAlignment(ds, keys)
+
+        if result.Aligned {
+                t.Error("expected not aligned when only ZSK keys exist (no KSK)")
+        }
+        if len(result.UnmatchedDS) != 1 {
+                t.Errorf("expected 1 unmatched DS, got %d", len(result.UnmatchedDS))
+        }
+}
+
+func TestCompareTTLs_ReverseDrift(t *testing.T) {
+        parent := uint32(300)
+        child := uint32(3600)
+
+        result := CompareTTLs(&parent, &child)
+
+        if result.Match {
+                t.Error("expected no match")
+        }
+        if result.DriftSecs != 3300 {
+                t.Errorf("expected drift 3300, got %d", result.DriftSecs)
+        }
+}
+
+func TestGlueAnalysisToMap(t *testing.T) {
+        ga := GlueAnalysis{
+                Complete:         false,
+                InBailiwickCount: 1,
+                GluePresent:      0,
+                GlueMissing:      1,
+                Nameservers: []GlueStatus{
+                        {NS: "ns1.example.com", InBailiwick: true, Complete: false},
+                },
+                Issues: []string{"missing glue"},
+        }
+
+        m := glueAnalysisToMap(ga)
+
+        if m["complete"] != false {
+                t.Error("expected complete=false")
+        }
+        if m["in_bailiwick_count"] != 1 {
+                t.Errorf("expected in_bailiwick_count=1, got %v", m["in_bailiwick_count"])
+        }
+        if m["glue_present"] != 0 {
+                t.Errorf("expected glue_present=0, got %v", m["glue_present"])
+        }
+        if m["glue_missing"] != 1 {
+                t.Errorf("expected glue_missing=1, got %v", m["glue_missing"])
+        }
+        nsList, ok := m["nameservers"].([]map[string]any)
+        if !ok || len(nsList) != 1 {
+                t.Error("expected 1 nameserver in map")
+        }
+        issues, ok := m["issues"].([]string)
+        if !ok || len(issues) != 1 {
+                t.Error("expected 1 issue")
+        }
+}
+
+func TestGlueAnalysisToMap_Empty(t *testing.T) {
+        ga := GlueAnalysis{
+                Complete:    true,
+                Nameservers: []GlueStatus{},
+                Issues:      []string{},
+        }
+
+        m := glueAnalysisToMap(ga)
+
+        nsList, ok := m["nameservers"].([]map[string]any)
+        if !ok || len(nsList) != 0 {
+                t.Error("expected 0 nameservers in map")
+        }
+}
+
+func TestIsInBailiwick_CaseInsensitive(t *testing.T) {
+        if !isInBailiwick("NS1.EXAMPLE.COM.", "example.com") {
+                t.Error("expected case-insensitive match")
+        }
+        if !isInBailiwick("ns1.example.com", "EXAMPLE.COM") {
+                t.Error("expected case-insensitive match")
+        }
+}
+
+func TestCheckGlueCompleteness_MultipleInBailiwick(t *testing.T) {
+        nameservers := []string{"ns1.example.com.", "ns2.example.com.", "ns3.example.com."}
+        domain := "example.com"
+        glueIPv4 := map[string][]string{
+                "ns1.example.com": {"1.2.3.4"},
+                "ns2.example.com": {"5.6.7.8"},
+        }
+        glueIPv6 := map[string][]string{
+                "ns1.example.com": {"2001:db8::1"},
+                "ns2.example.com": {"2001:db8::2"},
+        }
+
+        result := CheckGlueCompleteness(nameservers, domain, glueIPv4, glueIPv6)
+
+        if result.InBailiwickCount != 3 {
+                t.Errorf("expected 3 in-bailiwick, got %d", result.InBailiwickCount)
+        }
+        if result.GluePresent != 2 {
+                t.Errorf("expected 2 glue present, got %d", result.GluePresent)
+        }
+        if result.GlueMissing != 1 {
+                t.Errorf("expected 1 glue missing, got %d", result.GlueMissing)
+        }
+        if result.Complete {
+                t.Error("expected incomplete when one NS has no glue")
+        }
+}
+
+func TestSoaConsistencyToMap_Empty(t *testing.T) {
+        soa := SOAConsistency{
+                Consistent:  true,
+                Serials:     map[string]uint32{},
+                UniqueCount: 0,
+                Issues:      []string{},
+        }
+
+        m := soaConsistencyToMap(soa)
+
+        serials, ok := m["serials"].(map[string]any)
+        if !ok || len(serials) != 0 {
+                t.Error("expected empty serials map")
+        }
+}
+
+func TestDsKeyAlignmentToMap_Empty(t *testing.T) {
+        val := DSKeyAlignment{
+                Aligned:       true,
+                MatchedPairs:  []DSKeyPair{},
+                UnmatchedDS:   []DSRecord{},
+                UnmatchedKeys: []DNSKEYRecord{},
+                Issues:        []string{},
+        }
+
+        m := dsKeyAlignmentToMap(val)
+
+        pairs, ok := m["matched_pairs"].([]map[string]any)
+        if !ok || len(pairs) != 0 {
+                t.Error("expected 0 matched pairs")
+        }
+        unmatchedDS, ok := m["unmatched_ds"].([]map[string]any)
+        if !ok || len(unmatchedDS) != 0 {
+                t.Error("expected 0 unmatched DS")
+        }
+        unmatchedKeys, ok := m["unmatched_keys"].([]map[string]any)
+        if !ok || len(unmatchedKeys) != 0 {
+                t.Error("expected 0 unmatched keys")
+        }
+}
+
+func TestParseSOASerial_ExtraWhitespace(t *testing.T) {
+        serial, ok := parseSOASerial("ns1.example.com.  admin.example.com.  2026022201  3600  900")
+        if !ok {
+                t.Error("expected ok for SOA with extra whitespace")
+        }
+        if serial != 2026022201 {
+                t.Errorf("expected serial 2026022201, got %d", serial)
+        }
+}
+
+func TestParseSOASerial_OverflowUint32(t *testing.T) {
+        _, ok := parseSOASerial("ns1.example.com. admin.example.com. 9999999999999 3600 900")
+        if ok {
+                t.Error("expected not ok for serial exceeding uint32 range")
+        }
+}

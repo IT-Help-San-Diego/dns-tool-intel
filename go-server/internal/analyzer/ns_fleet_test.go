@@ -679,6 +679,109 @@ func TestCheckSerialConsensus_AllWithoutSerial(t *testing.T) {
         }
 }
 
+func TestScoreFleetDiversity_MixedASNs(t *testing.T) {
+        entries := []NSFleetEntry{
+                {ASN: "13335", ASName: "Cloudflare, Inc.", IPv4: []string{"104.18.1.1"}},
+                {ASN: "15169", ASName: "Google LLC", IPv4: []string{"216.239.32.10"}},
+                {ASN: "16509", ASName: "Amazon.com, Inc.", IPv4: []string{"205.251.192.1"}},
+        }
+        d := scoreFleetDiversity(entries)
+        if d.UniqueASNs != 3 {
+                t.Errorf("UniqueASNs = %d, want 3", d.UniqueASNs)
+        }
+        if d.UniqueOperators != 3 {
+                t.Errorf("UniqueOperators = %d, want 3", d.UniqueOperators)
+        }
+        if d.UniquePrefix24s != 3 {
+                t.Errorf("UniquePrefix24s = %d, want 3", d.UniquePrefix24s)
+        }
+        if d.Score != "excellent" {
+                t.Errorf("Score = %q, want excellent", d.Score)
+        }
+}
+
+func TestCollectFleetIssues_TCPUnreachable(t *testing.T) {
+        entries := []NSFleetEntry{
+                {Hostname: "ns1.example.com", IPv4: []string{"1.2.3.4"}, UDPReach: true, TCPReach: false, AAFlag: true, SOASerial: 100, SOASerialOK: true},
+        }
+        diversity := scoreFleetDiversity(entries)
+        issues := collectFleetIssues(entries, diversity, true)
+
+        found := false
+        for _, issue := range issues {
+                if strings.Contains(issue, "TCP unreachable") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected TCP unreachable issue")
+        }
+}
+
+func TestNSFleetToMap_VerifyDiversityFields(t *testing.T) {
+        result := NSFleetResult{
+                Status:          "success",
+                Message:         "test",
+                Nameservers:     []NSFleetEntry{},
+                SerialConsensus: true,
+                Issues:          []string{},
+                Diversity: FleetDiversity{
+                        UniqueASNs:      3,
+                        UniqueOperators: 2,
+                        UniquePrefix24s: 4,
+                        ASNList:         []string{"13335", "15169", "16509"},
+                        OperatorList:    []string{"Cloudflare", "Google"},
+                        Score:           "excellent",
+                        ScoreDetail:     "3 ASNs, 2 operators, 4 /24 prefixes across 4 nameservers",
+                },
+        }
+        m := nsFleetToMap(result)
+        div := m["diversity"].(map[string]any)
+        if div["unique_asns"] != 3 {
+                t.Errorf("unique_asns = %v, want 3", div["unique_asns"])
+        }
+        if div["unique_operators"] != 2 {
+                t.Errorf("unique_operators = %v, want 2", div["unique_operators"])
+        }
+        if div["unique_prefix24s"] != 4 {
+                t.Errorf("unique_prefix24s = %v, want 4", div["unique_prefix24s"])
+        }
+        if div["score"] != "excellent" {
+                t.Errorf("score = %v, want excellent", div["score"])
+        }
+        if div["score_detail"] == nil || div["score_detail"] == "" {
+                t.Error("score_detail should not be empty")
+        }
+        asnList := div["asn_list"].([]string)
+        if len(asnList) != 3 {
+                t.Errorf("asn_list length = %d, want 3", len(asnList))
+        }
+}
+
+func TestDetectNetworkRestriction_MixedIPVersions(t *testing.T) {
+        entries := []NSFleetEntry{
+                {IPv4: []string{"1.2.3.4"}, IPv6: []string{"2001:db8::1"}, UDPReach: false, TCPReach: false},
+                {IPv4: []string{}, IPv6: []string{"2001:db8::2"}, UDPReach: false, TCPReach: false},
+        }
+        resolved, restricted := detectNetworkRestriction(entries)
+        if resolved != 2 {
+                t.Errorf("resolvedCount = %d, want 2", resolved)
+        }
+        if !restricted {
+                t.Error("expected network restricted when all fail")
+        }
+}
+
+func TestCheckSerialConsensus_LargeSerials(t *testing.T) {
+        entries := []NSFleetEntry{
+                {SOASerial: 4294967295, SOASerialOK: true},
+                {SOASerial: 4294967295, SOASerialOK: true},
+        }
+        if !checkSerialConsensus(entries) {
+                t.Error("expected consensus for max uint32 serials")
+        }
+}
+
 func TestExtractPrefix24_EdgeCases(t *testing.T) {
         tests := []struct {
                 name     string

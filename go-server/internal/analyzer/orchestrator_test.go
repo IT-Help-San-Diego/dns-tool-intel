@@ -717,3 +717,224 @@ func TestKeysOf_Empty(t *testing.T) {
                 t.Errorf("expected empty keys, got %d", len(keys))
         }
 }
+
+func TestTimedTask(t *testing.T) {
+        ch := make(chan namedResult, 1)
+        fn := timedTask(ch, "test_key", func() any {
+                return map[string]any{"status": "ok"}
+        })
+
+        fn()
+
+        nr := <-ch
+        if nr.key != "test_key" {
+                t.Errorf("expected key 'test_key', got %q", nr.key)
+        }
+        if nr.elapsed <= 0 {
+                t.Error("expected positive elapsed duration")
+        }
+        result, ok := nr.result.(map[string]any)
+        if !ok {
+                t.Fatal("expected map result")
+        }
+        if result["status"] != "ok" {
+                t.Errorf("expected status=ok, got %v", result["status"])
+        }
+}
+
+func TestTimedTask_NilResult(t *testing.T) {
+        ch := make(chan namedResult, 1)
+        fn := timedTask(ch, "nil_key", func() any {
+                return nil
+        })
+
+        fn()
+
+        nr := <-ch
+        if nr.key != "nil_key" {
+                t.Errorf("expected key 'nil_key', got %q", nr.key)
+        }
+        if nr.result != nil {
+                t.Error("expected nil result")
+        }
+}
+
+func TestPopulateExtendedResults_Defaults(t *testing.T) {
+        results := map[string]any{}
+        resultsMap := map[string]any{}
+
+        populateExtendedResults(results, resultsMap)
+
+        expectedKeys := []string{
+                "https_svcb", "cds_cdnskey", "smimea_openpgpkey",
+                "security_txt", "ai_surface", "secret_exposure",
+                "nmap_dns", "delegation_consistency", "ns_fleet", "dnssec_ops",
+        }
+        for _, key := range expectedKeys {
+                if results[key] == nil {
+                        t.Errorf("expected key %q to be populated with default", key)
+                }
+        }
+}
+
+func TestPopulateExtendedResults_ExistingValues(t *testing.T) {
+        results := map[string]any{}
+        customVal := map[string]any{"status": "custom", "custom_field": true}
+        resultsMap := map[string]any{
+                "https_svcb": customVal,
+        }
+
+        populateExtendedResults(results, resultsMap)
+
+        got, ok := results["https_svcb"].(map[string]any)
+        if !ok {
+                t.Fatal("expected map for https_svcb")
+        }
+        if got["status"] != "custom" {
+                t.Errorf("expected custom status, got %v", got["status"])
+        }
+        if got["custom_field"] != true {
+                t.Error("expected custom_field=true")
+        }
+}
+
+func TestBuildCoreResults(t *testing.T) {
+        domain := "example.com"
+        domainStatus := "active"
+        msg := "All good"
+        domainStatusMessage := &msg
+        basic := map[string]any{"A": []string{"1.2.3.4"}}
+        auth := map[string]any{"A": []string{"1.2.3.4"}}
+        resolverTTL := map[string]uint32{"A": 300}
+        authTTL := map[string]uint32{"A": 300}
+        authQueryStatus := "ok"
+        resultsMap := map[string]any{
+                "spf":   map[string]any{"status": "success", "no_mail_intent": false},
+                "dmarc": map[string]any{"status": "success"},
+        }
+        spfAnalysis := map[string]any{"no_mail_intent": false}
+
+        results := buildCoreResults(domain, domainStatus, domainStatusMessage, basic, auth, resolverTTL, authTTL, authQueryStatus, resultsMap, spfAnalysis)
+
+        if results["domain"] != "example.com" {
+                t.Errorf("expected domain=example.com, got %v", results["domain"])
+        }
+        if results["domain_exists"] != true {
+                t.Error("expected domain_exists=true")
+        }
+        if results["domain_status"] != "active" {
+                t.Errorf("expected domain_status=active, got %v", results["domain_status"])
+        }
+        if results["auth_query_status"] != "ok" {
+                t.Errorf("expected auth_query_status=ok, got %v", results["auth_query_status"])
+        }
+        if results["has_null_mx"] == nil {
+                t.Error("expected has_null_mx to be set")
+        }
+        if results["section_status"] == nil {
+                t.Error("expected section_status to be set")
+        }
+}
+
+func TestBuildCoreResults_NilStatusMessage(t *testing.T) {
+        results := buildCoreResults("test.com", "active", nil, map[string]any{}, map[string]any{}, nil, nil, nil, map[string]any{}, map[string]any{})
+
+        if _, exists := results["domain_status_message"]; !exists {
+                t.Error("expected domain_status_message key to exist")
+        }
+}
+
+func TestBuildCoreResults_NoMailIntent(t *testing.T) {
+        spfAnalysis := map[string]any{"no_mail_intent": true}
+        results := buildCoreResults("test.com", "active", nil, map[string]any{}, map[string]any{}, nil, nil, nil, map[string]any{}, spfAnalysis)
+
+        if results["is_no_mail_domain"] != true {
+                t.Error("expected is_no_mail_domain=true when spf has no_mail_intent")
+        }
+}
+
+func TestBuildCoreResults_DefaultAnalyses(t *testing.T) {
+        results := buildCoreResults("test.com", "active", nil, map[string]any{}, map[string]any{}, nil, nil, nil, map[string]any{}, map[string]any{})
+
+        analysisKeys := []string{
+                "spf_analysis", "dmarc_analysis", "dkim_analysis",
+                "mta_sts_analysis", "tlsrpt_analysis", "bimi_analysis",
+                "dane_analysis", "caa_analysis", "dnssec_analysis",
+                "ns_delegation_analysis", "registrar_info",
+                "resolver_consensus", "ct_subdomains",
+        }
+        for _, key := range analysisKeys {
+                if results[key] == nil {
+                        t.Errorf("expected %q to have a default value", key)
+                }
+        }
+}
+
+func TestDetectNullMX_ZeroOnly(t *testing.T) {
+        basic := map[string]any{
+                "MX": []string{"0"},
+        }
+        if !detectNullMX(basic) {
+                t.Error("expected null MX detection for '0'")
+        }
+}
+
+func TestDetectNullMX_NonStringSlice(t *testing.T) {
+        basic := map[string]any{
+                "MX": "not a slice",
+        }
+        if detectNullMX(basic) {
+                t.Error("expected no null MX for non-slice MX value")
+        }
+}
+
+func TestGetMapResult_NonMap(t *testing.T) {
+        m := map[string]any{
+                "test": "string value",
+        }
+        result := getMapResult(m, "test")
+        if len(result) != 0 {
+                t.Error("expected empty map for non-map value")
+        }
+}
+
+func TestGetOrDefault_NonMapValue(t *testing.T) {
+        m := map[string]any{
+                "test": "string value",
+        }
+        defaultVal := map[string]any{"status": "default"}
+        result := getOrDefault(m, "test", defaultVal)
+        if result != "string value" {
+                t.Errorf("expected string value, got %v", result)
+        }
+}
+
+func TestBuildPropagationStatus_MultipleRecordTypes(t *testing.T) {
+        basic := map[string]any{
+                "A":    []string{"1.2.3.4"},
+                "AAAA": []string{"2001:db8::1"},
+                "MX":   []string{"10 mail.example.com."},
+        }
+        auth := map[string]any{
+                "A":    []string{"1.2.3.4"},
+                "AAAA": []string{},
+                "MX":   []string{"10 mail2.example.com."},
+        }
+
+        propagation := buildPropagationStatus(basic, auth)
+
+        aEntry := propagation["A"].(map[string]any)
+        if aEntry["status"] != "synchronized" {
+                t.Errorf("expected A synchronized, got %v", aEntry["status"])
+        }
+
+        aaaaEntry := propagation["AAAA"].(map[string]any)
+        if aaaaEntry["status"] != "unknown" {
+                t.Errorf("expected AAAA unknown, got %v", aaaaEntry["status"])
+        }
+
+        mxEntry := propagation["MX"].(map[string]any)
+        if mxEntry["status"] != "propagating" {
+                t.Errorf("expected MX propagating, got %v", mxEntry["status"])
+        }
+}

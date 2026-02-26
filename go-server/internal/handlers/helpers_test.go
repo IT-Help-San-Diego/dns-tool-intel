@@ -1280,6 +1280,276 @@ func TestParseSortedElement(t *testing.T) {
         })
 }
 
+func TestIsTwoPartSuffix(t *testing.T) {
+        tests := []struct {
+                name   string
+                domain string
+                want   bool
+        }{
+                {"co.uk is suffix", "co.uk", true},
+                {"com is not two-part", "com", false},
+                {"example.com is not suffix", "example.com", false},
+                {"www.example.com not suffix", "www.example.com", false},
+                {"empty string", "", false},
+                {"single part", "localhost", false},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := isTwoPartSuffix(tt.domain)
+                        if got != tt.want {
+                                t.Errorf("isTwoPartSuffix(%q) = %v, want %v", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestNormalizeVerdictAnswersAllKeys(t *testing.T) {
+        t.Run("sets dns_tampering answer from Protected label", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "dns_tampering": map[string]interface{}{
+                                "label": "Protected",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["dns_tampering"].(map[string]interface{})
+                if v["answer"] != "No" {
+                        t.Errorf("answer = %v, want No", v["answer"])
+                }
+        })
+
+        t.Run("sets dns_tampering answer from Exposed label", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "dns_tampering": map[string]interface{}{
+                                "label": "Exposed",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["dns_tampering"].(map[string]interface{})
+                if v["answer"] != "Yes" {
+                        t.Errorf("answer = %v, want Yes", v["answer"])
+                }
+        })
+
+        t.Run("sets brand_impersonation answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "brand_impersonation": map[string]interface{}{
+                                "label": "Protected",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["brand_impersonation"].(map[string]interface{})
+                if v["answer"] != "No" {
+                        t.Errorf("answer = %v, want No", v["answer"])
+                }
+        })
+
+        t.Run("sets certificate_control answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "certificate_control": map[string]interface{}{
+                                "label": "Configured",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["certificate_control"].(map[string]interface{})
+                if v["answer"] != "Yes" {
+                        t.Errorf("answer = %v, want Yes", v["answer"])
+                }
+        })
+
+        t.Run("sets transport answer from Fully Protected", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "transport": map[string]interface{}{
+                                "label": "Fully Protected",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["transport"].(map[string]interface{})
+                if v["answer"] != "Yes" {
+                        t.Errorf("answer = %v, want Yes", v["answer"])
+                }
+        })
+
+        t.Run("sets transport Monitoring to Partially", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "transport": map[string]interface{}{
+                                "label": "Monitoring",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["transport"].(map[string]interface{})
+                if v["answer"] != "Partially" {
+                        t.Errorf("answer = %v, want Partially", v["answer"])
+                }
+        })
+
+        t.Run("handles multiple verdicts at once", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "dns_tampering": map[string]interface{}{
+                                "label": "Exposed",
+                        },
+                        "brand_impersonation": map[string]interface{}{
+                                "label": "Exposed",
+                        },
+                        "transport": map[string]interface{}{
+                                "label": "Not Enforced",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                if verdicts["dns_tampering"].(map[string]interface{})["answer"] != "Yes" {
+                        t.Error("dns_tampering answer should be Yes")
+                }
+                if verdicts["brand_impersonation"].(map[string]interface{})["answer"] != "Yes" {
+                        t.Error("brand_impersonation answer should be Yes")
+                }
+                if verdicts["transport"].(map[string]interface{})["answer"] != "No" {
+                        t.Error("transport answer should be No")
+                }
+        })
+
+        t.Run("skips unknown labels", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "dns_tampering": map[string]interface{}{
+                                "label": "UnknownLabel",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["dns_tampering"].(map[string]interface{})
+                if _, ok := v["answer"]; ok {
+                        t.Error("should not set answer for unknown label")
+                }
+        })
+
+        t.Run("does not overwrite existing answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "dns_tampering": map[string]interface{}{
+                                "answer": "existing",
+                                "label":  "Protected",
+                        },
+                }
+                normalizeVerdictAnswers(verdicts)
+                v := verdicts["dns_tampering"].(map[string]interface{})
+                if v["answer"] != "existing" {
+                        t.Errorf("answer = %v, want existing", v["answer"])
+                }
+        })
+}
+
+func TestNormalizeVerdictsIntegration(t *testing.T) {
+        t.Run("without verdicts key does nothing", func(t *testing.T) {
+                results := map[string]interface{}{}
+                posture := map[string]interface{}{}
+                normalizeVerdicts(results, posture)
+                if _, ok := posture["verdicts"]; ok {
+                        t.Error("should not create verdicts key")
+                }
+        })
+
+        t.Run("with empty verdicts", func(t *testing.T) {
+                results := map[string]interface{}{}
+                posture := map[string]interface{}{
+                        "verdicts": map[string]interface{}{},
+                }
+                normalizeVerdicts(results, posture)
+                verdicts := posture["verdicts"].(map[string]interface{})
+                if len(verdicts) != 0 {
+                        t.Error("empty verdicts should remain empty without ai_surface")
+                }
+        })
+
+        t.Run("with verdict labels", func(t *testing.T) {
+                results := map[string]interface{}{}
+                posture := map[string]interface{}{
+                        "verdicts": map[string]interface{}{
+                                "dns_tampering": map[string]interface{}{
+                                        "label": "Protected",
+                                },
+                        },
+                }
+                normalizeVerdicts(results, posture)
+                verdicts := posture["verdicts"].(map[string]interface{})
+                v := verdicts["dns_tampering"].(map[string]interface{})
+                if v["answer"] != "No" {
+                        t.Errorf("answer = %v, want No", v["answer"])
+                }
+        })
+}
+
+func TestSubdomainEmailScopeStruct(t *testing.T) {
+        scope := subdomainEmailScope{
+                IsSubdomain:   true,
+                ParentDomain:  "example.com",
+                SPFScope:      "local",
+                DMARCScope:    "inherited",
+                SPFNote:       "SPF record published at this subdomain",
+                DMARCNote:     "inherited from org",
+                HasLocalEmail: true,
+        }
+        if !scope.IsSubdomain {
+                t.Error("expected IsSubdomain to be true")
+        }
+        if scope.ParentDomain != "example.com" {
+                t.Errorf("ParentDomain = %q, want example.com", scope.ParentDomain)
+        }
+        if scope.SPFScope != "local" {
+                t.Errorf("SPFScope = %q, want local", scope.SPFScope)
+        }
+        if scope.DMARCScope != "inherited" {
+                t.Errorf("DMARCScope = %q, want inherited", scope.DMARCScope)
+        }
+        if !scope.HasLocalEmail {
+                t.Error("expected HasLocalEmail to be true")
+        }
+}
+
+func TestDetermineDMARCScopeNotes(t *testing.T) {
+        t.Run("local note", func(t *testing.T) {
+                _, note := determineDMARCScope(true, false, "", "example.com")
+                if note != "DMARC record published at this subdomain" {
+                        t.Errorf("note = %q", note)
+                }
+        })
+
+        t.Run("inherited with policy note", func(t *testing.T) {
+                _, note := determineDMARCScope(false, true, "reject", "example.com")
+                if note == "" {
+                        t.Error("expected non-empty note")
+                }
+                if !contains(note, "p=reject") {
+                        t.Errorf("note should contain p=reject: %q", note)
+                }
+                if !contains(note, "example.com") {
+                        t.Errorf("note should contain domain: %q", note)
+                }
+        })
+
+        t.Run("inherited without policy note", func(t *testing.T) {
+                _, note := determineDMARCScope(false, true, "", "example.com")
+                if contains(note, "p=") {
+                        t.Errorf("note should not contain p= when policy is empty: %q", note)
+                }
+        })
+
+        t.Run("none note", func(t *testing.T) {
+                _, note := determineDMARCScope(false, false, "", "example.com")
+                if !contains(note, "example.com") {
+                        t.Errorf("note should contain domain: %q", note)
+                }
+        })
+}
+
+func contains(s, substr string) bool {
+        return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
+}
+
+func containsHelper(s, substr string) bool {
+        for i := 0; i <= len(s)-len(substr); i++ {
+                if s[i:i+len(substr)] == substr {
+                        return true
+                }
+        }
+        return false
+}
+
 func strPtr(s string) *string {
         return &s
 }

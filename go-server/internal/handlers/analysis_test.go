@@ -466,3 +466,30 @@ func TestComputeIntegrityHash(t *testing.T) {
                 }
         })
 }
+
+func TestDriftInfoStruct(t *testing.T) {
+        di := driftInfo{}
+        if di.Detected {
+                t.Error("expected zero-value Detected to be false")
+        }
+        if di.PrevHash != "" {
+                t.Error("expected empty PrevHash")
+        }
+        if di.PrevID != 0 {
+                t.Error("expected zero PrevID")
+        }
+}
+
+func TestIcuaeToDimChart(t *testing.T) {
+        if len(icuaeToDimChart) == 0 {
+                t.Error("expected non-empty icuaeToDimChart mapping")
+        }
+        for dimKey, chartKey := range icuaeToDimChart {
+                if dimKey == "" {
+                        t.Error("dimension key should not be empty")
+                }
+                if chartKey == "" {
+                        t.Errorf("chart key for dimension %q should not be empty", dimKey)
+                }
+        }
+}

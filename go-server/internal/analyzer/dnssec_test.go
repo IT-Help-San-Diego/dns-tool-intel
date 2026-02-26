@@ -508,6 +508,160 @@ func TestBuildDNSSECResult_AlgorithmObservationIncluded(t *testing.T) {
         }
 }
 
+func TestBuildDNSSECResult_NoDNSKEYWithDS(t *testing.T) {
+        algo := 8
+        algoName := "RSA/SHA-256"
+        r := buildDNSSECResult(dnssecParams{
+                hasDNSKEY:     false,
+                hasDS:         true,
+                adFlag:        false,
+                dnskeyRecords: nil,
+                dsRecords:     []string{"12345 8 2 AABB"},
+                algorithm:     &algo,
+                algorithmName: &algoName,
+        })
+        if r[mapKeyStatus] != "warning" {
+                t.Errorf("status = %v, want warning", r[mapKeyStatus])
+        }
+        if r[mapKeyChainOfTrust] != "none" {
+                t.Errorf("chain_of_trust = %v, want none", r[mapKeyChainOfTrust])
+        }
+}
+
+func TestBuildDNSSECResult_NilAlgorithm(t *testing.T) {
+        r := buildDNSSECResult(dnssecParams{
+                hasDNSKEY:     true,
+                hasDS:         true,
+                adFlag:        true,
+                dnskeyRecords: []string{"key1"},
+                dsRecords:     []string{"ds1"},
+                algorithm:     nil,
+                algorithmName: nil,
+                adResolver:    nil,
+        })
+        if r[mapKeyStatus] != "success" {
+                t.Errorf("status = %v, want success", r[mapKeyStatus])
+        }
+        if r[mapKeyAlgorithm] != nil {
+                t.Errorf("algorithm = %v, want nil", r[mapKeyAlgorithm])
+        }
+        if r[mapKeyAlgorithmName] != nil {
+                t.Errorf("algorithm_name = %v, want nil", r[mapKeyAlgorithmName])
+        }
+}
+
+func TestCollectDNSKEYRecords_ExactLength100(t *testing.T) {
+        rec := strings.Repeat("A", 100)
+        has, records := collectDNSKEYRecords([]string{rec})
+        if !has {
+                t.Error("expected has=true")
+        }
+        if len(records) != 1 {
+                t.Fatalf("expected 1 record, got %d", len(records))
+        }
+        if records[0] != rec {
+                t.Errorf("expected record to be unchanged at exactly 100 chars")
+        }
+}
+
+func TestCollectDNSKEYRecords_Length101Truncated(t *testing.T) {
+        rec := strings.Repeat("B", 101)
+        _, records := collectDNSKEYRecords([]string{rec})
+        if len(records[0]) != 103 {
+                t.Errorf("expected truncated to 103 (100+...), got %d", len(records[0]))
+        }
+        if !strings.HasSuffix(records[0], "...") {
+                t.Error("expected truncated record to end with ...")
+        }
+}
+
+func TestCollectDSRecords_PreservesRecordContent(t *testing.T) {
+        input := []string{"12345 8 2 AABBCCDD", "67890 13 2 EEFF0011"}
+        has, records := collectDSRecords(input)
+        if !has {
+                t.Error("expected has=true")
+        }
+        if len(records) != 2 {
+                t.Fatalf("expected 2 records, got %d", len(records))
+        }
+        for i, r := range records {
+                if r != input[i] {
+                        t.Errorf("record %d = %q, want %q", i, r, input[i])
+                }
+        }
+}
+
+func TestBuildInheritedDNSSECResult_NilResolver(t *testing.T) {
+        r := buildInheritedDNSSECResult("example.com", nil, nil, nil)
+        if r[mapKeyStatus] != "success" {
+                t.Errorf("status = %v, want success", r[mapKeyStatus])
+        }
+        if r[mapKeyAdResolver] != nil {
+                t.Errorf("ad_resolver = %v, want nil", r[mapKeyAdResolver])
+        }
+        if r[mapKeyAlgorithm] != nil {
+                t.Errorf("algorithm = %v, want nil", r[mapKeyAlgorithm])
+        }
+}
+
+func TestBuildInheritedDNSSECResult_WithAlgorithm(t *testing.T) {
+        resolver := "9.9.9.9"
+        algo := 15
+        algoName := "Ed25519"
+        r := buildInheritedDNSSECResult("sub.example.com", &resolver, &algo, &algoName)
+        if r[mapKeyAlgorithm] != 15 {
+                t.Errorf("algorithm = %v, want 15", r[mapKeyAlgorithm])
+        }
+        if r[mapKeyAlgorithmName] != "Ed25519" {
+                t.Errorf("algorithm_name = %v, want Ed25519", r[mapKeyAlgorithmName])
+        }
+        obs := r[mapKeyAlgorithmObservation]
+        if obs == nil {
+                t.Fatal("expected algorithm_observation to be non-nil")
+        }
+        obsMap := obs.(map[string]any)
+        if obsMap["strength"] != "modern" {
+                t.Errorf("strength = %v, want modern", obsMap["strength"])
+        }
+}
+
+func TestParseAlgorithm_WhitespaceFields(t *testing.T) {
+        algo, name := parseAlgorithm([]string{"12345  8  2  AABB"})
+        if algo == nil || *algo != 8 {
+                t.Errorf("expected algorithm 8 with extra whitespace, got %v", algo)
+        }
+        if name == nil || *name != "RSA/SHA-256" {
+                t.Errorf("expected name RSA/SHA-256, got %v", name)
+        }
+}
+
+func TestAlgorithmObservation_AllKnownAlgorithms(t *testing.T) {
+        knownAlgos := []int{1, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16}
+        for _, alg := range knownAlgos {
+                a := alg
+                obs := algorithmObservation(&a)
+                if obs == nil {
+                        t.Errorf("algorithm %d: expected non-nil observation", alg)
+                        continue
+                }
+                if obs["strength"] == nil {
+                        t.Errorf("algorithm %d: missing strength field", alg)
+                }
+                if obs["label"] == nil {
+                        t.Errorf("algorithm %d: missing label field", alg)
+                }
+                if obs["rfc"] == nil {
+                        t.Errorf("algorithm %d: missing rfc field", alg)
+                }
+                if obs["observation"] == nil {
+                        t.Errorf("algorithm %d: missing observation field", alg)
+                }
+                if obs["quantum_note"] == nil {
+                        t.Errorf("algorithm %d: missing quantum_note field", alg)
+                }
+        }
+}
+
 func intPtr(n int) *int {
         return &n
 }
