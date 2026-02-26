@@ -38,6 +38,26 @@ Core analysis runs on free, public data sources. No API key is required for a co
 ### 10. Reality Over Marketing
 Every claim in our reports must be backed by implemented, tested code. If a feature is planned but not shipped, we say "on the roadmap." We do not present aspirational capabilities as current functionality.
 
+## Testing Philosophy — The Confidence Bridge
+
+### Mock Tests Verified Against Reality
+Mock tests exist for CI speed — they run in milliseconds, catch regressions instantly, and require no network access. But speed without truthfulness is dangerous. Every mock-based test is verified against real-world golden fixtures captured from production scans. If the mocks diverge from reality, the Confidence Bridge catches it.
+
+### The Intelligence Vault
+Golden fixtures in `tests/golden_fixtures/` are captured from real production scans of real domains (google.com, cloudflare.com, whitehouse.gov, example.com). These are not synthetic test data — they are the intelligence vault, preserving what the real DNS ecosystem actually looks like at a point in time.
+
+### Fresh Scans, Historical Cross-Referencing
+Public scans are always fresh (non-cached) — every user gets current data. But the intelligence engine uses historical data from the vault for cross-referencing and confidence validation. What the universe has given us, used intelligently — every scan result feeds back into the intelligence vault for future cross-referencing.
+
+### Parallel Verification System
+The Confidence Bridge is a parallel verification layer: mocks run fast in CI, golden fixtures prove the mocks are truthful. The bridge loads golden fixture data, runs the same analysis through the mock pipeline, and compares structural output. If the mock produces a different shape of result than reality, the bridge flags it.
+
+### Reality Drift Detection
+Automated comparison between mock expectations and real-world golden data catches when mocks diverge from reality. This is structural confidence — the mock must produce the right shape of output (correct keys, correct nesting, correct protocol coverage), not necessarily identical values. A mock SPF record of `v=spf1 include:X ~all` and a real record of `v=spf1 include:Y ~all` have HIGH structural confidence because the shape matches.
+
+### Confidence Scoring
+Each domain and protocol combination receives a confidence score: the percentage of structural keys that match between golden (real) and mock (simulated). Scores above 90% pass. Scores between 80–90% warn. Below 80% fails. This ensures mock fidelity degrades visibly, not silently.
+
 ---
 
 *"Go out and gather as many different redundant sources of intelligence as you can, and then classify and analyze."*
