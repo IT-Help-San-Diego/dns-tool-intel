@@ -7,21 +7,19 @@ import (
         "fmt"
         "strconv"
         "strings"
-
-        "dnstool/go-server/internal/dnsclient"
 )
 
 const (
-	mapKeyAdFlag = "ad_flag"
-	mapKeyAdResolver = "ad_resolver"
-	mapKeyAlgorithm = "algorithm"
-	mapKeyAlgorithmName = "algorithm_name"
-	mapKeyAlgorithmObservation = "algorithm_observation"
-	mapKeyChainOfTrust = "chain_of_trust"
-	mapKeyDnskeyRecords = "dnskey_records"
-	mapKeyDsRecords = "ds_records"
-	mapKeyHasDnskey = "has_dnskey"
-	mapKeyHasDs = "has_ds"
+        mapKeyAdFlag = "ad_flag"
+        mapKeyAdResolver = "ad_resolver"
+        mapKeyAlgorithm = "algorithm"
+        mapKeyAlgorithmName = "algorithm_name"
+        mapKeyAlgorithmObservation = "algorithm_observation"
+        mapKeyChainOfTrust = "chain_of_trust"
+        mapKeyDnskeyRecords = "dnskey_records"
+        mapKeyDsRecords = "ds_records"
+        mapKeyHasDnskey = "has_dnskey"
+        mapKeyHasDs = "has_ds"
 )
 
 var algorithmNames = map[int]string{
@@ -220,7 +218,7 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
                 })
         }
 
-        parentZone := dnsclient.FindParentZone(a.DNS, ctx, domain)
+        parentZone := findParentZone(a.DNS, ctx, domain)
         parentAlgo, parentAlgoName := parseAlgorithm(parentDSRecords(a, ctx, parentZone))
 
         return buildInheritedDNSSECResult(parentZone, adResolver, parentAlgo, parentAlgoName)

@@ -10,8 +10,6 @@ import (
         "sort"
         "strings"
 
-        "dnstool/go-server/internal/dnsclient"
-
         "golang.org/x/net/publicsuffix"
 )
 
@@ -535,7 +533,11 @@ func determineDMARCScope(subHasDMARC, orgHasDMARC bool, orgDMARCPolicy, rootDoma
         return "none", fmt.Sprintf("No DMARC record at this subdomain or organizational domain %s", rootDomain)
 }
 
-func computeSubdomainEmailScope(ctx context.Context, dns *dnsclient.Client, domain, rootDomain string, results map[string]any) subdomainEmailScope {
+type dnsQuerier interface {
+        QueryDNS(ctx context.Context, recordType, domain string) []string
+}
+
+func computeSubdomainEmailScope(ctx context.Context, dns dnsQuerier, domain, rootDomain string, results map[string]any) subdomainEmailScope {
         scope := subdomainEmailScope{
                 IsSubdomain:  true,
                 ParentDomain: rootDomain,

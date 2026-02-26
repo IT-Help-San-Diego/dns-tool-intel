@@ -11,8 +11,6 @@ import (
         "strings"
         "time"
 
-        "dnstool/go-server/internal/dnsclient"
-
         "golang.org/x/net/html"
 )
 
@@ -21,7 +19,7 @@ const (
 )
 
 type SecretScanner struct {
-        HTTP *dnsclient.SafeHTTPClient
+        HTTP HTTPClient
 }
 
 type SecretFinding struct {
@@ -61,7 +59,7 @@ var secretPatterns = []secretPattern{
 
 var placeholderPatterns = regexp.MustCompile(`(?i)(?:example|sample|dummy|test|placeholder|your[_-]?|xxx+|change[_-]?me|insert[_-]?|replace|todo|fixme|REDACTED|demo|fake)`)
 
-func NewSecretScanner(httpClient *dnsclient.SafeHTTPClient) *SecretScanner {
+func NewSecretScanner(httpClient HTTPClient) *SecretScanner {
         return &SecretScanner{HTTP: httpClient}
 }
 

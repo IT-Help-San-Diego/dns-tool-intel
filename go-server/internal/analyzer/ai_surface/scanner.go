@@ -10,8 +10,12 @@ import (
         "regexp"
         "strings"
 
-        "dnstool/go-server/internal/dnsclient"
 )
+
+type HTTPClient interface {
+        Get(ctx context.Context, rawURL string) (*http.Response, error)
+        ReadBody(resp *http.Response, maxBytes int64) ([]byte, error)
+}
 
 const (
         mapKeyAllowsAiCrawlers = "allows_ai_crawlers"
@@ -54,10 +58,10 @@ var hiddenPatternRegexes = []struct {
 }
 
 type Scanner struct {
-        HTTP *dnsclient.SafeHTTPClient
+        HTTP HTTPClient
 }
 
-func NewScanner(httpClient *dnsclient.SafeHTTPClient) *Scanner {
+func NewScanner(httpClient HTTPClient) *Scanner {
         return &Scanner{HTTP: httpClient}
 }
 

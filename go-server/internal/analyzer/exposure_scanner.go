@@ -10,7 +10,6 @@ import (
         "sync"
         "time"
 
-        "dnstool/go-server/internal/dnsclient"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 const categoryServerInfo = "Server Info"
 
 type ExposureScanner struct {
-        HTTP *dnsclient.SafeHTTPClient
+        HTTP HTTPClient
 }
 
 type ExposureFinding struct {
@@ -142,7 +141,7 @@ var exposureChecks = []exposureCheck{
         },
 }
 
-func NewExposureScanner(httpClient *dnsclient.SafeHTTPClient) *ExposureScanner {
+func NewExposureScanner(httpClient HTTPClient) *ExposureScanner {
         return &ExposureScanner{HTTP: httpClient}
 }
 

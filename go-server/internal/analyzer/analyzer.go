@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	mapKeyError = "error"
+        mapKeyError = "error"
 )
 
 type ProbeEndpoint struct {
@@ -25,10 +25,10 @@ type ProbeEndpoint struct {
 }
 
 type Analyzer struct {
-        DNS        *dnsclient.Client
-        HTTP       *dnsclient.SafeHTTPClient
-        SlowHTTP   *dnsclient.SafeHTTPClient
-        RDAPHTTP   *dnsclient.SafeHTTPClient
+        DNS        DNSQuerier
+        HTTP       HTTPClient
+        SlowHTTP   HTTPClient
+        RDAPHTTP   HTTPClient
         IANARDAPMap map[string][]string
         ianaMu     sync.RWMutex
         Telemetry  *telemetry.Registry

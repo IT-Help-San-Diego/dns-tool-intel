@@ -12,8 +12,6 @@ import (
         "strings"
         "sync"
         "time"
-
-        "dnstool/go-server/internal/dnsclient"
 )
 
 var (
@@ -224,7 +222,7 @@ func formatRegistrarWithRegistrant(registrar, registrant string) string {
 }
 
 func (a *Analyzer) tryParentZoneLookup(ctx context.Context, domain string) map[string]any {
-        parentZone := dnsclient.FindParentZone(a.DNS, ctx, domain)
+        parentZone := findParentZone(a.DNS, ctx, domain)
         if parentZone == "" || parentZone == domain {
                 return nil
         }
@@ -237,7 +235,7 @@ func (a *Analyzer) tryParentZoneLookup(ctx context.Context, domain string) map[s
 }
 
 func (a *Analyzer) tryNSInference(ctx context.Context, domain string, restricted bool, restrictedTLD string) map[string]any {
-        parentZone := dnsclient.FindParentZone(a.DNS, ctx, domain)
+        parentZone := findParentZone(a.DNS, ctx, domain)
         lookupDomain := domain
         if parentZone != "" && parentZone != domain {
                 lookupDomain = parentZone

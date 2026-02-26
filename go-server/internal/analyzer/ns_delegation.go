@@ -7,14 +7,12 @@ import (
         "fmt"
         "sort"
         "strings"
-
-        "dnstool/go-server/internal/dnsclient"
 )
 
 const (
-	mapKeyEnterpriseDetail = "enterprise_detail"
-	mapKeyEnterpriseLabel = "enterprise_label"
-	mapKeyEnterprisePattern = "enterprise_pattern"
+        mapKeyEnterpriseDetail = "enterprise_detail"
+        mapKeyEnterpriseLabel = "enterprise_label"
+        mapKeyEnterprisePattern = "enterprise_pattern"
 )
 
 func normalizeNSList(records []string) []string {
@@ -96,7 +94,7 @@ func nsDelegationResult(status, message string, childNS, parentNS []string, matc
 }
 
 func (a *Analyzer) handleNoChildNS(ctx context.Context, domain string) map[string]any {
-        parentZone := dnsclient.FindParentZone(a.DNS, ctx, domain)
+        parentZone := findParentZone(a.DNS, ctx, domain)
         if parentZone == "" {
                 return nsDelegationResult("error", "Could not retrieve NS records", nil, nil, false, false, nil)
         }
