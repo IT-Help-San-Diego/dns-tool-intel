@@ -7016,3 +7016,33 @@ body.covert-mode .math-copy-btn--copied {
 .u-status-ok { background: #198754; }
 .u-status-busy { background: #ffc107; }
 .u-status-full { background: #dc3545; }
+
+.anim-restart { animation: none !important; }
+
+@keyframes toastFadeIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.tld-recon-toast {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 99999; max-width: 480px; width: 90%; padding: 1.5rem 2rem;
+    border-radius: 0.5rem; border: 1px solid rgba(196,60,60,0.35);
+    background: rgba(14,8,8,0.95);
+    box-shadow: 0 0 40px rgba(140,40,40,0.3), 0 0 80px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px); text-align: center;
+    animation: toastFadeIn 0.3s ease-out;
+}
+.tld-recon-toast-title {
+    font-size: 1.1rem; font-weight: 600; color: rgba(196,60,60,0.85);
+    margin-bottom: 0.6rem; font-family: monospace;
+}
+.tld-recon-toast-title i { margin-right: 0.4rem; }
+.tld-recon-toast-body {
+    font-size: 0.82rem; color: rgba(170,178,188,0.6);
+    line-height: 1.5; margin-bottom: 0.8rem;
+}
+.tld-recon-toast-footer {
+    font-size: 0.7rem; color: rgba(196,60,60,0.45); font-family: monospace;
+}
+.tld-recon-toast-footer i { margin-right: 0.3rem; }
+.tld-recon-toast-dismissing { opacity: 0; transition: opacity 0.3s ease-out; }

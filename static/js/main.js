@@ -68,14 +68,14 @@ function showOverlay(overlay) {
     overlay.classList.add('is-active');
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
-            overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span').forEach(function(el) {
+            for (const el of overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span')) {
                 const anim = getComputedStyle(el).animationName;
                 if (anim && anim !== 'none') {
-                    el.style.animation = 'none';
+                    el.classList.add('anim-restart');
                     void el.offsetWidth; // NOSONAR — Safari reflow
-                    el.style.animation = '';
+                    el.classList.remove('anim-restart');
                 }
-            });
+            }
         });
     });
 }
@@ -185,21 +185,17 @@ function showCovertTLDToast(domain, callback) {
     toast.id = 'tldReconToast';
     toast.role = 'alert';
     toast.ariaLive = 'assertive';
-    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;max-width:480px;width:90%;padding:1.5rem 2rem;border-radius:0.5rem;border:1px solid rgba(196,60,60,0.35);background:rgba(14,8,8,0.95);box-shadow:0 0 40px rgba(140,40,40,0.3),0 0 80px rgba(0,0,0,0.5);backdrop-filter:blur(12px);text-align:center;animation:toastFadeIn 0.3s ease-out';
-    toast.innerHTML = '<div style="font-size:1.1rem;font-weight:600;color:rgba(196,60,60,0.85);margin-bottom:0.6rem;font-family:monospace">'
-        + '<i class="fas fa-globe-americas" style="margin-right:0.4rem"></i>'
+    toast.className = 'tld-recon-toast';
+    toast.innerHTML = '<div class="tld-recon-toast-title">'
+        + '<i class="fas fa-globe-americas"></i>'
         + 'Planning to hack the planet, Zero Cool?</div>'
-        + '<div style="font-size:0.82rem;color:rgba(170,178,188,0.6);line-height:1.5;margin-bottom:0.8rem">'
+        + '<div class="tld-recon-toast-body">'
         + 'Bare\u2011TLD recon maps registry infrastructure only \u2014 '
         + 'DNSSEC, NS delegation, CAA, registrar, Nmap, SVCB. '
         + 'No SPF/DKIM/DMARC at zone scope.</div>'
-        + '<div style="font-size:0.7rem;color:rgba(196,60,60,0.45);font-family:monospace">'
-        + '<i class="fas fa-satellite-dish" style="margin-right:0.3rem"></i>'
+        + '<div class="tld-recon-toast-footer">'
+        + '<i class="fas fa-satellite-dish"></i>'
         + 'Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only</div>';
-
-    const style = document.createElement('style');
-    style.textContent = '@keyframes toastFadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}';
-    toast.appendChild(style);
 
     document.body.appendChild(toast);
 
@@ -208,8 +204,7 @@ function showCovertTLDToast(domain, callback) {
     });
 
     setTimeout(function() {
-        toast.style.transition = 'opacity 0.3s ease-out';
-        toast.style.opacity = '0';
+        toast.classList.add('tld-recon-toast-dismissing');
         setTimeout(function() {
             toast.remove();
             if (callback) callback();
