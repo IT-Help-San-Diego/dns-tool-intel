@@ -595,3 +595,266 @@ func TestTryExtractFromHeaderMap_SingleItem(t *testing.T) {
         }
 }
 
+func TestTryExtractGenericVal_String(t *testing.T) {
+        result := tryExtractGenericVal("From: test@example.com\nTo: user@example.com")
+        if result == "" {
+                t.Error("expected non-empty for valid header string")
+        }
+}
+
+func TestTryExtractGenericVal_StringNoHeaders(t *testing.T) {
+        result := tryExtractGenericVal("just plain text")
+        if result != "" {
+                t.Error("expected empty for non-header string")
+        }
+}
+
+func TestTryExtractGenericVal_Array(t *testing.T) {
+        arr := []interface{}{
+                map[string]interface{}{"name": "From", "value": "a@b.com"},
+                map[string]interface{}{"name": "To", "value": "c@d.com"},
+        }
+        result := tryExtractGenericVal(arr)
+        if result == "" {
+                t.Error("expected non-empty for valid header array")
+        }
+}
+
+func TestTryExtractGenericVal_Map(t *testing.T) {
+        m := map[string]interface{}{
+                "From": "a@b.com",
+                "To":   "c@d.com",
+        }
+        result := tryExtractGenericVal(m)
+        if result == "" {
+                t.Error("expected non-empty for valid header map")
+        }
+}
+
+func TestTryExtractGenericVal_NonHeaderType(t *testing.T) {
+        result := tryExtractGenericVal(42)
+        if result != "" {
+                t.Error("expected empty for non-string/array/map type")
+        }
+}
+
+func TestMatchJSONProvider_MicrosoftGraph(t *testing.T) {
+        obj := map[string]interface{}{
+                "internetMessageHeaders": []interface{}{
+                        map[string]interface{}{"name": "X-A", "value": "1"},
+                        map[string]interface{}{"name": "X-B", "value": "2"},
+                },
+        }
+        result := matchJSONProvider(obj)
+        if result.Format != "json-microsoft-graph" {
+                t.Errorf("expected json-microsoft-graph, got %q", result.Format)
+        }
+}
+
+func TestMatchJSONProvider_Unrecognized(t *testing.T) {
+        obj := map[string]interface{}{
+                "randomKey": "randomValue",
+        }
+        result := matchJSONProvider(obj)
+        if result.Format != "json" {
+                t.Errorf("expected json, got %q", result.Format)
+        }
+        if result.Error == "" {
+                t.Error("expected error message for unrecognized JSON")
+        }
+}
+
+func TestDetectAndExtractHeaders_WhitespaceOnly(t *testing.T) {
+        result := DetectAndExtractHeaders("   \n\t  ", "test.eml")
+        if result.Format != "raw" {
+                t.Errorf("expected format 'raw', got %q", result.Format)
+        }
+}
+
+func TestExtractSendGridHeaders_HeadersNotMap(t *testing.T) {
+        obj := map[string]interface{}{
+                "headers": "not-a-map",
+        }
+        result := extractSendGridHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when headers is not a map")
+        }
+}
+
+func TestExtractMicrosoftGraphHeaders_NotArray(t *testing.T) {
+        obj := map[string]interface{}{
+                "internetMessageHeaders": "not-an-array",
+        }
+        result := extractMicrosoftGraphHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when internetMessageHeaders is not an array")
+        }
+}
+
+func TestExtractPostmarkHeaders_HeadersNotArray(t *testing.T) {
+        obj := map[string]interface{}{
+                "MessageID": "msg-123",
+                "Headers":   "not-an-array",
+        }
+        result := extractPostmarkHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when Headers is not an array")
+        }
+}
+
+func TestExtractMailgunHeaders_NotArray(t *testing.T) {
+        obj := map[string]interface{}{
+                "message-headers": "not-an-array",
+        }
+        result := extractMailgunHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when message-headers is not an array")
+        }
+}
+
+func TestExtractGenericJSONHeaders_EmailHeaders(t *testing.T) {
+        obj := map[string]interface{}{
+                "email_headers": "From: test@example.com\nTo: user@example.com\nSubject: Test",
+        }
+        result := extractGenericJSONHeaders(obj)
+        if result == "" {
+                t.Error("expected non-empty result for email_headers key")
+        }
+}
+
+func TestExtractGenericJSONHeaders_NoMatch(t *testing.T) {
+        obj := map[string]interface{}{
+                "unrelated_key": "unrelated_value",
+        }
+        result := extractGenericJSONHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when no matching keys")
+        }
+}
+
+func TestExtractGmailAPIHeaders_SingleHeader(t *testing.T) {
+        obj := map[string]interface{}{
+                "payload": map[string]interface{}{
+                        "headers": []interface{}{
+                                map[string]interface{}{"name": "From", "value": "sender@gmail.com"},
+                        },
+                },
+        }
+        result := extractGmailAPIHeaders(obj)
+        if result != "" {
+                t.Error("expected empty for single header (need >= 2)")
+        }
+}
+
+func TestExtractMailgunHeaders_SinglePair(t *testing.T) {
+        obj := map[string]interface{}{
+                "message-headers": []interface{}{
+                        []interface{}{"From", "sender@mailgun.com"},
+                },
+        }
+        result := extractMailgunHeaders(obj)
+        if result != "" {
+                t.Error("expected empty for single pair (need >= 2)")
+        }
+}
+
+func TestUnmarshalJSONObject_ArrayOfNonObjects(t *testing.T) {
+        obj := unmarshalJSONObject(`["string1", "string2"]`)
+        if obj != nil {
+                t.Error("expected nil for array of non-objects")
+        }
+}
+
+func TestExtractMicrosoftGraphHeaders_SubjectPrepended(t *testing.T) {
+        obj := map[string]interface{}{
+                "subject": "Test Subject",
+                "internetMessageHeaders": []interface{}{
+                        map[string]interface{}{"name": "X-Custom", "value": "val"},
+                },
+        }
+        result := extractMicrosoftGraphHeaders(obj)
+        if result == "" {
+                t.Error("expected non-empty when subject is prepended to single header (total >= 2)")
+        }
+        if !strings.Contains(result, "Subject: Test Subject") {
+                t.Error("expected Subject header to be prepended")
+        }
+}
+
+func TestIsBinaryContent_ExactThreshold(t *testing.T) {
+        data := make([]byte, 100)
+        for i := range data {
+                data[i] = 'A'
+        }
+        for i := 0; i < 4; i++ {
+                data[i] = 0
+        }
+        got := isBinaryContent(string(data))
+        if got {
+                t.Error("expected false with exactly 4 null bytes (need > 4)")
+        }
+
+        data[4] = 0
+        got = isBinaryContent(string(data))
+        if !got {
+                t.Error("expected true with 5 null bytes")
+        }
+}
+
+func TestExtractPostmarkHeaders_WithMessageIDField(t *testing.T) {
+        obj := map[string]interface{}{
+                "MessageID": "msg-123",
+                "Headers": []interface{}{
+                        map[string]interface{}{"Name": "X-Custom", "Value": "val1"},
+                },
+        }
+        result := extractPostmarkHeaders(obj)
+        if result == "" {
+                t.Error("expected non-empty when MessageID is appended to header list")
+        }
+}
+
+func TestExtractSendGridHeaders_SingleLine(t *testing.T) {
+        obj := map[string]interface{}{
+                "headers": map[string]interface{}{
+                        "X-Custom": "val1",
+                },
+        }
+        result := extractSendGridHeaders(obj)
+        if result != "" {
+                t.Error("expected empty when total lines < 2")
+        }
+}
+
+func TestExtractGenericJSONHeaders_RawUppercase(t *testing.T) {
+        obj := map[string]interface{}{
+                "Raw": "From: test@example.com\nTo: user@example.com\nSubject: Test",
+        }
+        result := extractGenericJSONHeaders(obj)
+        if result == "" {
+                t.Error("expected non-empty result for Raw key")
+        }
+}
+
+func TestTryExtractFromHeaderArray_NonMapItems(t *testing.T) {
+        arr := []interface{}{
+                "not-a-map",
+                42,
+        }
+        result := tryExtractFromHeaderArray(arr)
+        if result != "" {
+                t.Error("expected empty for non-map array items")
+        }
+}
+
+func TestExtractHeaderArray_EmptyNames(t *testing.T) {
+        arr := []interface{}{
+                map[string]interface{}{"name": "", "value": "val1"},
+                map[string]interface{}{"name": "", "value": "val2"},
+        }
+        lines := extractHeaderArray(arr, "name", "value")
+        if len(lines) != 0 {
+                t.Errorf("expected 0 lines for empty names, got %d", len(lines))
+        }
+}
+

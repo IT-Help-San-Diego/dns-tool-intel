@@ -1034,3 +1034,780 @@ func TestScanCryptoAddresses(t *testing.T) {
                 t.Error("expected crypto address indicator")
         }
 }
+
+func TestScanCryptoAddresses_NoCrypto(t *testing.T) {
+        indicators := scanCryptoAddresses("Hello world, no crypto here", nil)
+        if len(indicators) != 0 {
+                t.Error("expected no indicators for non-crypto text")
+        }
+}
+
+func TestDetectSpamFlags(t *testing.T) {
+        tests := []struct {
+                name        string
+                fields      []headerField
+                wantFlagged bool
+        }{
+                {
+                        "x-spam-flag yes",
+                        []headerField{{Name: "x-spam-flag", Value: "Yes"}},
+                        true,
+                },
+                {
+                        "x-suspected-spam true",
+                        []headerField{{Name: "x-suspected-spam", Value: "true"}},
+                        true,
+                },
+                {
+                        "x-apple-action junk",
+                        []headerField{{Name: "x-apple-action", Value: "JUNK"}},
+                        true,
+                },
+                {
+                        "x-apple-movetofolder junk",
+                        []headerField{{Name: "x-apple-movetofolder", Value: "Junk"}},
+                        true,
+                },
+                {
+                        "x-barracuda-spam-status yes",
+                        []headerField{{Name: "x-barracuda-spam-status", Value: "Yes"}},
+                        true,
+                },
+                {
+                        "no spam headers",
+                        []headerField{{Name: "from", Value: "test@example.com"}},
+                        false,
+                },
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        r := &EmailHeaderAnalysis{}
+                        detectSpamFlags(tt.fields, r)
+                        if r.SpamFlagged != tt.wantFlagged {
+                                t.Errorf("SpamFlagged = %v, want %v", r.SpamFlagged, tt.wantFlagged)
+                        }
+                })
+        }
+}
+
+func TestDetectVendorSpamScores(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-barracuda-spam-score", Value: "5.5"},
+                {Name: "x-mimecast-spam-score", Value: "3"},
+                {Name: "x-proofpoint-spam-details-enc", Value: "encoded-data"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectVendorSpamScores(fields, r)
+        if len(r.SpamFlagSources) != 3 {
+                t.Errorf("expected 3 spam flag sources, got %d", len(r.SpamFlagSources))
+        }
+}
+
+func TestDetectVendorSpamScores_MicrosoftSCL(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-forefront-antispam-report", Value: "SCL:7;SFV:SKI"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectVendorSpamScores(fields, r)
+        if !r.MicrosoftSCLFound {
+                t.Error("expected MicrosoftSCLFound to be true")
+        }
+        if r.MicrosoftSCL != 7 {
+                t.Errorf("expected SCL 7, got %d", r.MicrosoftSCL)
+        }
+        if !r.SpamFlagged {
+                t.Error("expected SpamFlagged for SCL >= 5")
+        }
+}
+
+func TestDetectVendorSpamScores_MicrosoftSCLLow(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-forefront-antispam-report", Value: "SCL:1"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectVendorSpamScores(fields, r)
+        if r.SpamFlagged {
+                t.Error("expected not SpamFlagged for low SCL")
+        }
+}
+
+func TestDetectVendorSpamScores_CLXScore(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-clx-score", Value: "-500"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectVendorSpamScores(fields, r)
+        if len(r.SpamFlagSources) == 0 {
+                t.Error("expected spam flag source for very negative CLX score")
+        }
+}
+
+func TestDetectBCCDelivery(t *testing.T) {
+        fields := []headerField{
+                {Name: "delivered-to", Value: "hidden@example.com"},
+        }
+        r := &EmailHeaderAnalysis{
+                To: "visible@example.com",
+        }
+        detectBCCDelivery(fields, r)
+        if !r.BCCDelivery {
+                t.Error("expected BCC delivery to be detected")
+        }
+        if r.BCCRecipient != "hidden@example.com" {
+                t.Errorf("BCCRecipient = %q, want 'hidden@example.com'", r.BCCRecipient)
+        }
+}
+
+func TestDetectBCCDelivery_MatchingTo(t *testing.T) {
+        fields := []headerField{
+                {Name: "delivered-to", Value: "user@example.com"},
+        }
+        r := &EmailHeaderAnalysis{
+                To: "user@example.com",
+        }
+        detectBCCDelivery(fields, r)
+        if r.BCCDelivery {
+                t.Error("expected no BCC when delivered-to matches To")
+        }
+}
+
+func TestDetectBCCDelivery_EmptyTo(t *testing.T) {
+        fields := []headerField{
+                {Name: "delivered-to", Value: "user@example.com"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectBCCDelivery(fields, r)
+        if r.BCCDelivery {
+                t.Error("expected no BCC when To is empty")
+        }
+}
+
+func TestDetectBCCDelivery_OriginalRecipient(t *testing.T) {
+        fields := []headerField{
+                {Name: "original-recipient", Value: "rfc822;hidden@example.com"},
+        }
+        r := &EmailHeaderAnalysis{
+                To: "visible@example.com",
+        }
+        detectBCCDelivery(fields, r)
+        if !r.BCCDelivery {
+                t.Error("expected BCC delivery via original-recipient")
+        }
+}
+
+func TestScanRawForAuthResults(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                RawHeaders: "spf=pass dkim=fail header.d=example.com dmarc=none header.from=example.com",
+        }
+        scanRawForAuthResults(r)
+        if r.SPFResult.Result != "pass" {
+                t.Errorf("SPF = %q, want 'pass'", r.SPFResult.Result)
+        }
+        if len(r.DKIMResults) == 0 || r.DKIMResults[0].Result != "fail" {
+                t.Error("expected DKIM fail from raw scan")
+        }
+        if r.DMARCResult.Result != "none" {
+                t.Errorf("DMARC = %q, want 'none'", r.DMARCResult.Result)
+        }
+}
+
+func TestScanRawForAuthResults_AlreadySet(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                RawHeaders:  "spf=fail dkim=fail dmarc=fail",
+                SPFResult:   AuthResult{Result: "pass"},
+                DKIMResults: []AuthResult{{Result: "pass"}},
+                DMARCResult: AuthResult{Result: "pass"},
+        }
+        scanRawForAuthResults(r)
+        if r.SPFResult.Result != "pass" {
+                t.Error("should not overwrite existing SPF result")
+        }
+        if r.DKIMResults[0].Result != "pass" {
+                t.Error("should not overwrite existing DKIM result")
+        }
+        if r.DMARCResult.Result != "pass" {
+                t.Error("should not overwrite existing DMARC result")
+        }
+}
+
+func TestParseAuthResultHeader(t *testing.T) {
+        r := &EmailHeaderAnalysis{}
+        parseAuthResultHeader("mx.google.com; spf=pass; dkim=pass header.d=example.com; dmarc=pass header.from=example.com", r)
+        if r.SPFResult.Result != "pass" {
+                t.Errorf("SPF = %q, want 'pass'", r.SPFResult.Result)
+        }
+        if len(r.DKIMResults) == 0 {
+                t.Error("expected DKIM result")
+        }
+        if r.DMARCResult.Result != "pass" {
+                t.Errorf("DMARC = %q, want 'pass'", r.DMARCResult.Result)
+        }
+}
+
+func TestCheckAlignment(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                From:       "user@example.com",
+                ReturnPath: "<bounce@other.com>",
+                DKIMResults: []AuthResult{
+                        {Result: "pass", Domain: "example.com"},
+                },
+        }
+        checkAlignment(r)
+        if r.AlignmentFromReturnPath != "misaligned" {
+                t.Errorf("ReturnPath alignment = %q, want 'misaligned'", r.AlignmentFromReturnPath)
+        }
+        if r.AlignmentFromDKIM != "aligned" {
+                t.Errorf("DKIM alignment = %q, want 'aligned'", r.AlignmentFromDKIM)
+        }
+}
+
+func TestCheckAlignment_NoReturnPath(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                From: "user@example.com",
+        }
+        checkAlignment(r)
+        if r.AlignmentFromReturnPath != "" {
+                t.Error("expected empty alignment when no return path")
+        }
+}
+
+func TestParseReceivedChain(t *testing.T) {
+        fields := []headerField{
+                {Name: "received", Value: "from server1.example.com ([1.2.3.4]) by mx.test.com with ESMTP; Mon, 02 Jan 2006 15:04:05 -0700"},
+                {Name: "received", Value: "from server2.example.com ([5.6.7.8]) by server1.example.com with SMTP; Mon, 02 Jan 2006 15:03:55 -0700"},
+        }
+        r := &EmailHeaderAnalysis{}
+        parseReceivedChain(fields, r)
+        if r.HopCount != 2 {
+                t.Errorf("HopCount = %d, want 2", r.HopCount)
+        }
+        if len(r.ReceivedHops) != 2 {
+                t.Errorf("expected 2 hops, got %d", len(r.ReceivedHops))
+        }
+}
+
+func TestExtractHopTimestamp(t *testing.T) {
+        hop := &ReceivedHop{}
+        ts := extractHopTimestamp(hop, "from server by mx; Mon, 02 Jan 2006 15:04:05 -0700")
+        if ts.IsZero() {
+                t.Error("expected non-zero timestamp")
+        }
+        if hop.Timestamp == "" {
+                t.Error("expected timestamp to be set")
+        }
+}
+
+func TestExtractHopTimestamp_NoSemicolon(t *testing.T) {
+        hop := &ReceivedHop{}
+        ts := extractHopTimestamp(hop, "from server by mx")
+        if !ts.IsZero() {
+                t.Error("expected zero timestamp when no semicolon")
+        }
+}
+
+func TestGenerateContextBigQuestions_BCCDelivery(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                BCCDelivery:  true,
+                BCCRecipient: "hidden@example.com",
+                To:           "visible@example.com",
+        }
+        generateContextBigQuestions(r)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for BCC delivery")
+        }
+}
+
+func TestGenerateContextBigQuestions_OriginatingIP(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                OriginatingIP: "1.2.3.4",
+                From:          "user@example.com",
+        }
+        generateContextBigQuestions(r)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for originating IP")
+        }
+}
+
+func TestGenerateContextBigQuestions_DMARCPolicyNone(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                DMARCPolicy: "none",
+                From:        "user@example.com",
+        }
+        generateContextBigQuestions(r)
+        found := false
+        for _, q := range r.BigQuestions {
+                if strings.Contains(q.Question, "spoofing") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected big question about DMARC p=none")
+        }
+}
+
+func TestGenerateContextBigQuestions_BrandMismatch(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SenderBrandMismatch:       true,
+                SenderBrandMismatchDetail: "References 'PayPal' but sent from fakeemail.com",
+        }
+        generateContextBigQuestions(r)
+        found := false
+        for _, q := range r.BigQuestions {
+                if strings.Contains(q.Question, "brand") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected big question about brand mismatch")
+        }
+}
+
+func TestGenerateContextBigQuestions_SpamFlagged(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SpamFlagged:     true,
+                SpamFlagSources: []string{"X-Spam-Flag: Yes"},
+        }
+        generateContextBigQuestions(r)
+        found := false
+        for _, q := range r.BigQuestions {
+                if strings.Contains(q.Question, "spam") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected big question about spam flagging")
+        }
+}
+
+func TestGenerateContextBigQuestions_MisalignedReturnPath(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                AlignmentFromReturnPath: "misaligned",
+                SPFResult:               AuthResult{Result: "pass"},
+                From:                    "user@example.com",
+                ReturnPath:              "bounce@other.com",
+        }
+        generateContextBigQuestions(r)
+        found := false
+        for _, q := range r.BigQuestions {
+                if strings.Contains(q.Question, "Return-Path") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected big question about misaligned return-path")
+        }
+}
+
+func TestGenerateContextBigQuestions_ManyHops(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                HopCount: 6,
+        }
+        generateContextBigQuestions(r)
+        found := false
+        for _, q := range r.BigQuestions {
+                if strings.Contains(q.Question, "hops") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected big question about many hops")
+        }
+}
+
+func TestGenerateAuthBigQuestions_SpamAndSubject(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SPFResult:          AuthResult{Result: "pass"},
+                DMARCResult:        AuthResult{Result: "pass"},
+                DKIMResults:        []AuthResult{{Result: "pass"}},
+                SpamFlagged:        true,
+                HasSubjectAnalysis: true,
+        }
+        generateAuthBigQuestions(r, true)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for spam+subject+all auth pass")
+        }
+        if r.BigQuestions[0].Severity != "danger" {
+                t.Errorf("expected danger severity, got %q", r.BigQuestions[0].Severity)
+        }
+}
+
+func TestGenerateAuthBigQuestions_SpamOnly(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SpamFlagged: true,
+        }
+        generateAuthBigQuestions(r, true)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for spam+all auth pass")
+        }
+}
+
+func TestGenerateAuthBigQuestions_SubjectOnly(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                HasSubjectAnalysis: true,
+        }
+        generateAuthBigQuestions(r, true)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for subject analysis+all auth pass")
+        }
+}
+
+func TestGenerateAuthBigQuestions_BodyAnalysis(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                HasBodyAnalysis: true,
+        }
+        generateAuthBigQuestions(r, true)
+        if len(r.BigQuestions) == 0 {
+                t.Error("expected big question for body analysis+all auth pass")
+        }
+        if r.BigQuestions[0].Severity != "warning" {
+                t.Errorf("expected warning severity, got %q", r.BigQuestions[0].Severity)
+        }
+}
+
+func TestGenerateAuthBigQuestions_NotAllPass(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SpamFlagged: true,
+        }
+        generateAuthBigQuestions(r, false)
+        if len(r.BigQuestions) != 0 {
+                t.Error("expected no big questions when not all auth pass")
+        }
+}
+
+func TestGenerateBigQuestions(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                BCCDelivery:  true,
+                BCCRecipient: "hidden@example.com",
+                To:           "visible@example.com",
+        }
+        generateBigQuestions(r)
+        if !r.HasBigQuestions {
+                t.Error("expected HasBigQuestions to be true")
+        }
+}
+
+func TestGenerateBigQuestions_NoBigQuestions(t *testing.T) {
+        r := &EmailHeaderAnalysis{}
+        generateBigQuestions(r)
+        if r.HasBigQuestions {
+                t.Error("expected HasBigQuestions to be false")
+        }
+}
+
+func TestScanBodyPhrasePatterns_SextortionMulti(t *testing.T) {
+        body := "i recorded you through webcam while you visited adult website"
+        indicators := scanBodyPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "Sextortion Language" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected sextortion indicator for multiple matches")
+        }
+}
+
+func TestScanBodyPhrasePatterns_UrgencyMulti(t *testing.T) {
+        body := "act now within 24 hours or your account will be suspended"
+        indicators := scanBodyPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "Urgency Pressure" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected urgency pressure indicator")
+        }
+}
+
+func TestScanBodyPhrasePatterns_GenericGreeting(t *testing.T) {
+        body := "dear customer, please verify your account"
+        indicators := scanBodyPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "Generic Greeting" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected generic greeting indicator")
+        }
+}
+
+func TestScanBodyPhrasePatterns_PaymentDemand(t *testing.T) {
+        body := "please send payment via wire transfer immediately"
+        indicators := scanBodyPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "Payment Demand" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected payment demand indicator")
+        }
+}
+
+func TestScanAdvancedPhrasePatterns_LotteryFraud(t *testing.T) {
+        body := "you have won a prize in the lottery. claim your winnings now"
+        indicators := scanAdvancedPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "Lottery / Advance-Fee Fraud" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected lottery fraud indicator")
+        }
+}
+
+func TestScanAdvancedPhrasePatterns_BusinessScam(t *testing.T) {
+        body := "we noticed your growth potential and would like to offer a business loan with guaranteed approval and no pressure to commit"
+        indicators := scanAdvancedPhrasePatterns(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if strings.Contains(ind.Category, "Social Engineering") || strings.Contains(ind.Category, "Business") {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected business social engineering indicator")
+        }
+}
+
+func TestScanURLIndicators_HighDensity(t *testing.T) {
+        body := "Click http://a.com http://b.com http://c.com http://d.com http://e.com http://f.com for deals"
+        indicators := scanURLIndicators(body, nil)
+        found := false
+        for _, ind := range indicators {
+                if ind.Category == "High URL Density" {
+                        found = true
+                }
+        }
+        if !found {
+                t.Error("expected high URL density indicator")
+        }
+}
+
+func TestScanFormattingIndicators_NoMatches(t *testing.T) {
+        body := "This is a normal email with nothing suspicious."
+        indicators := scanFormattingIndicators(body, nil)
+        if len(indicators) != 0 {
+                t.Error("expected no formatting indicators for normal text")
+        }
+}
+
+func TestScanContactMethods_NoContact(t *testing.T) {
+        body := "Hello, this is a normal email without suspicious contacts."
+        indicators := scanContactMethods(body, nil)
+        if len(indicators) != 0 {
+                t.Error("expected no contact method indicators")
+        }
+}
+
+func TestAnalyzeSubjectLine_WithIndicators(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                Subject: "Your payment of $499.99 invoice confirmed - security alert",
+        }
+        analyzeSubjectLine(r)
+        if !r.HasSubjectAnalysis {
+                t.Error("expected HasSubjectAnalysis to be true")
+        }
+}
+
+func TestDetectHeaderIntelligence(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-originating-ip", Value: "[10.0.0.1]"},
+                {Name: "x-dmarc-policy", Value: "p=reject"},
+        }
+        r := &EmailHeaderAnalysis{
+                From:    "user@example.com",
+                Subject: "Test",
+        }
+        detectHeaderIntelligence(fields, r)
+        if r.OriginatingIP != "10.0.0.1" {
+                t.Errorf("OriginatingIP = %q, want '10.0.0.1'", r.OriginatingIP)
+        }
+        if r.DMARCPolicy != "reject" {
+                t.Errorf("DMARCPolicy = %q, want 'reject'", r.DMARCPolicy)
+        }
+}
+
+func TestFallbackSPFFromReceivedSPF_SoftFail(t *testing.T) {
+        fields := []headerField{
+                {Name: "received-spf", Value: "Softfail (domain of sender)"},
+        }
+        r := &EmailHeaderAnalysis{}
+        fallbackSPFFromReceivedSPF(fields, r)
+        if r.SPFResult.Result != "softfail" {
+                t.Errorf("expected 'softfail', got %q", r.SPFResult.Result)
+        }
+}
+
+func TestFallbackSPFFromReceivedSPF_NoMatch(t *testing.T) {
+        fields := []headerField{
+                {Name: "received-spf", Value: "unknown-status"},
+        }
+        r := &EmailHeaderAnalysis{}
+        fallbackSPFFromReceivedSPF(fields, r)
+        if r.SPFResult.Result != "" {
+                t.Errorf("expected empty, got %q", r.SPFResult.Result)
+        }
+}
+
+func TestScanPhraseCategory_JoinAllEvidence(t *testing.T) {
+        cfg := phraseScanConfig{
+                phrases:               []string{"urgent", "act now"},
+                multiCategory:         "Multi",
+                multiSev:              "danger",
+                multiDesc:             "multiple",
+                minForMulti:           3,
+                singleCategory:        "Single",
+                singleSev:             "warning",
+                singleDesc:            "single",
+                singleEvidenceJoinAll: true,
+        }
+        result := scanPhraseCategory("this is urgent", cfg)
+        if result == nil {
+                t.Fatal("expected non-nil for single match")
+        }
+        if !strings.Contains(result.Evidence, "Phrases matched:") {
+                t.Errorf("expected 'Phrases matched:' in evidence with joinAll, got %q", result.Evidence)
+        }
+}
+
+func TestCalculateHopDelays_ZeroTimestamp(t *testing.T) {
+        hops := []ReceivedHop{{}, {}}
+        timestamps := []time.Time{time.Now(), {}}
+        calculateHopDelays(hops, timestamps)
+        if hops[0].Delay != "" {
+                t.Error("expected empty delay when one timestamp is zero")
+        }
+}
+
+func TestParseReceivedHop_NoIP(t *testing.T) {
+        raw := "from mail.example.com by mx.test.com with ESMTP; Mon, 02 Jan 2006 15:04:05 -0700"
+        hop, _ := parseReceivedHop(raw, 1)
+        if hop.IP != "" {
+                t.Errorf("expected empty IP, got %q", hop.IP)
+        }
+}
+
+func TestUnfoldHeaders_ContinuationAsNewField(t *testing.T) {
+        input := "Subject: Test\n\tX-New-Header: value\nFrom: a@b.com"
+        result := unfoldHeaders(input)
+        if !strings.Contains(result, "X-New-Header:") {
+                t.Error("expected continuation line starting with header field to be treated as new field")
+        }
+}
+
+func TestDetectDMARCPolicy_Reject(t *testing.T) {
+        fields := []headerField{
+                {Name: "x-dmarc-policy", Value: "p=reject"},
+        }
+        r := &EmailHeaderAnalysis{}
+        detectDMARCPolicy(fields, r)
+        if r.DMARCPolicy != "reject" {
+                t.Errorf("expected 'reject', got %q", r.DMARCPolicy)
+        }
+}
+
+func TestDetectDMARCPolicy_NoHeader(t *testing.T) {
+        fields := []headerField{}
+        r := &EmailHeaderAnalysis{}
+        detectDMARCPolicy(fields, r)
+        if r.DMARCPolicy != "" {
+                t.Errorf("expected empty, got %q", r.DMARCPolicy)
+        }
+}
+
+func TestStripHTMLTags_Entities(t *testing.T) {
+        html := `&lt;hello&gt; &quot;world&quot; &#39;test&#39; &mdash; &ndash; &rsquo; &lsquo; &rdquo; &ldquo; &apos;`
+        result := stripHTMLTags(html)
+        if !strings.Contains(result, "<hello>") {
+                t.Error("expected &lt; to be decoded")
+        }
+        if !strings.Contains(result, `"world"`) {
+                t.Error("expected &quot; to be decoded")
+        }
+}
+
+func TestGenerateVerdict_Caution_BodyIndicators(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                BodyIndicators: []PhishingIndicator{{Severity: "warning"}},
+        }
+        generateVerdict(r)
+        if r.Verdict != "caution" {
+                t.Errorf("verdict = %q, want 'caution'", r.Verdict)
+        }
+}
+
+func TestGenerateVerdict_Caution_SpamFlagged(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SpamFlagged: true,
+        }
+        generateVerdict(r)
+        if r.Verdict != "caution" {
+                t.Errorf("verdict = %q, want 'caution'", r.Verdict)
+        }
+}
+
+func TestGenerateVerdict_Suspicious_MultiplePhishing(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                BodyIndicators: []PhishingIndicator{
+                        {Severity: "danger"},
+                        {Severity: "danger"},
+                },
+        }
+        generateVerdict(r)
+        if r.Verdict != "suspicious" {
+                t.Errorf("verdict = %q, want 'suspicious'", r.Verdict)
+        }
+}
+
+func TestGenerateVerdict_Suspicious_SubjectDanger(t *testing.T) {
+        r := &EmailHeaderAnalysis{
+                SubjectScamIndicators: []PhishingIndicator{
+                        {Severity: "danger"},
+                        {Severity: "danger"},
+                },
+        }
+        generateVerdict(r)
+        if r.Verdict != "suspicious" {
+                t.Errorf("verdict = %q, want 'suspicious'", r.Verdict)
+        }
+}
+
+func TestAnalyzeEmailHeaders_WithBody(t *testing.T) {
+        raw := "From: sender@example.com\nTo: recipient@test.com\nContent-Type: text/plain\n\nThis is the body with dear customer please send payment"
+        result := AnalyzeEmailHeaders(raw)
+        if !result.BodyStripped {
+                t.Error("expected BodyStripped to be true")
+        }
+}
+
+func TestIsSuspicious_BigQDanger(t *testing.T) {
+        vc := verdictCounts{bigQDanger: 2}
+        if !isSuspicious(vc, false) {
+                t.Error("expected suspicious with bigQDanger >= 2")
+        }
+}
+
+func TestIsSuspicious_SpamAndSubjectDanger(t *testing.T) {
+        vc := verdictCounts{subjectDanger: 1}
+        if !isSuspicious(vc, true) {
+                t.Error("expected suspicious with spam + subjectDanger")
+        }
+}
+
+func TestSuspiciousSummary_PhishingDangerNoAuthDanger(t *testing.T) {
+        vc := verdictCounts{phishingDanger: 2, danger: 0}
+        r := &EmailHeaderAnalysis{}
+        got := suspiciousSummary(vc, r)
+        if !strings.Contains(strings.ToLower(got), "mass-mail") {
+                t.Errorf("expected mass-mail reference, got %q", got)
+        }
+}

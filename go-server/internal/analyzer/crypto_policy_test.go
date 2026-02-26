@@ -305,7 +305,7 @@ func TestGetMap(t *testing.T) {
         }
 }
 
-func TestMapKeys(t *testing.T) {
+func TestMapKeysCryptoPolicy(t *testing.T) {
         m := map[string]any{"a": 1, "b": 2}
         got := mapKeys(m)
         if len(got) != 2 {

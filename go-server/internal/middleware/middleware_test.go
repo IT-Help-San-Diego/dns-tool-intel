@@ -471,7 +471,7 @@ func TestAnalyzeRateLimitPostBlocked(t *testing.T) {
         }
 }
 
-func TestAnalyzeRateLimitGetPassthrough(t *testing.T) {
+func TestAnalyzeRateLimitGetPassthroughExt(t *testing.T) {
         limiter := middleware.NewInMemoryRateLimiter()
         router := gin.New()
         router.Use(middleware.AnalyzeRateLimit(limiter))
@@ -487,7 +487,7 @@ func TestAnalyzeRateLimitGetPassthrough(t *testing.T) {
         }
 }
 
-func TestAnalyzeRateLimitEmptyDomain(t *testing.T) {
+func TestAnalyzeRateLimitEmptyDomainExt(t *testing.T) {
         limiter := middleware.NewInMemoryRateLimiter()
         router := gin.New()
         router.Use(middleware.AnalyzeRateLimit(limiter))
@@ -575,7 +575,7 @@ func TestAuthRateLimitBlocks(t *testing.T) {
         }
 }
 
-func TestAuthRateLimitCallbackPath(t *testing.T) {
+func TestAuthRateLimitCallbackPathExt(t *testing.T) {
         limiter := middleware.NewInMemoryRateLimiter()
         router := gin.New()
         router.Use(middleware.AuthRateLimit(limiter))

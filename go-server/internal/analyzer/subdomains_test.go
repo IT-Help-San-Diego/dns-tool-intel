@@ -519,3 +519,346 @@ func TestEnrichDNSWithCTData(t *testing.T) {
                 t.Error("ct source entries should not be enriched")
         }
 }
+
+func TestProcessSingleCTEntry(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour)
+        set := make(map[string]map[string]any)
+
+        entry := ctEntry{
+                NameValue:  "www.example.com\napi.example.com",
+                NotBefore:  "2024-01-01",
+                NotAfter:   future.Format("2006-01-02"),
+                IssuerName: "O=TestCA",
+        }
+        processSingleCTEntry(entry, "example.com", time.Now(), set)
+        if len(set) != 2 {
+                t.Errorf("got %d subdomains, want 2", len(set))
+        }
+        if set["www.example.com"][mapKeyIsCurrent] != true {
+                t.Error("expected www to be current")
+        }
+        if set["api.example.com"][mapKeySource] != "ct" {
+                t.Error("expected source=ct")
+        }
+}
+
+func TestProcessSingleCTEntryMerge(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour)
+        set := map[string]map[string]any{
+                "www.example.com": {
+                        mapKeyName:      "www.example.com",
+                        mapKeySource:    "ct",
+                        mapKeyIsCurrent: false,
+                        mapKeyCertCount: "1",
+                        mapKeyFirstSeen: "2023-01-01",
+                        mapKeyIssuers:   []string{"CA1"},
+                },
+        }
+        entry := ctEntry{
+                NameValue:  "www.example.com",
+                NotBefore:  "2024-01-01",
+                NotAfter:   future.Format("2006-01-02"),
+                IssuerName: "O=CA2",
+        }
+        processSingleCTEntry(entry, "example.com", time.Now(), set)
+        if set["www.example.com"][mapKeyCertCount] != "2" {
+                t.Errorf("cert_count = %v, want 2", set["www.example.com"][mapKeyCertCount])
+        }
+        if set["www.example.com"][mapKeyIsCurrent] != true {
+                t.Error("expected is_current=true after merge with current cert")
+        }
+}
+
+func TestEnrichSingleDNSEntry(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour).Format("2006-01-02")
+        now := time.Now()
+
+        t.Run("match found", func(t *testing.T) {
+                entry := map[string]any{
+                        mapKeyName:   "www.example.com",
+                        mapKeySource: "dns",
+                }
+                ctEntries := []ctEntry{
+                        {NameValue: "www.example.com", NotBefore: "2024-01-01", NotAfter: future, IssuerName: "O=TestCA"},
+                }
+                enrichSingleDNSEntry("www.example.com", entry, ctEntries, now)
+                if entry[mapKeyCertCount] != "1" {
+                        t.Errorf("cert_count = %v, want 1", entry[mapKeyCertCount])
+                }
+                if entry[mapKeyIsCurrent] != true {
+                        t.Error("expected is_current=true")
+                }
+        })
+
+        t.Run("no match", func(t *testing.T) {
+                entry := map[string]any{
+                        mapKeyName:   "unknown.example.com",
+                        mapKeySource: "dns",
+                }
+                ctEntries := []ctEntry{
+                        {NameValue: "www.example.com", NotBefore: "2024-01-01", NotAfter: future, IssuerName: "O=TestCA"},
+                }
+                enrichSingleDNSEntry("unknown.example.com", entry, ctEntries, now)
+                if _, ok := entry[mapKeyCertCount]; ok {
+                        t.Error("should not set cert_count when no match")
+                }
+        })
+}
+
+func TestProcessWildcardEntry(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour)
+        now := time.Now()
+        acc := &wildcardAccum{
+                issuerSeen: make(map[string]bool),
+                sanSet:     make(map[string]bool),
+        }
+
+        entry := ctEntry{
+                NameValue:  "*.example.com\nwww.example.com",
+                NotBefore:  "2024-01-01",
+                NotAfter:   future.Format("2006-01-02"),
+                IssuerName: "O=TestCA",
+        }
+        processWildcardEntry(entry, "*.example.com", "example.com", now, acc)
+
+        if !acc.hasWildcard {
+                t.Error("expected hasWildcard=true")
+        }
+        if acc.certCount != 1 {
+                t.Errorf("certCount = %d, want 1", acc.certCount)
+        }
+        if !acc.isCurrent {
+                t.Error("expected isCurrent=true")
+        }
+        if len(acc.issuers) != 1 {
+                t.Errorf("issuers = %d, want 1", len(acc.issuers))
+        }
+}
+
+func TestProcessWildcardEntryNotWildcard(t *testing.T) {
+        now := time.Now()
+        acc := &wildcardAccum{
+                issuerSeen: make(map[string]bool),
+                sanSet:     make(map[string]bool),
+        }
+
+        entry := ctEntry{
+                NameValue:  "www.example.com",
+                NotBefore:  "2024-01-01",
+                NotAfter:   "2025-01-01",
+                IssuerName: "O=TestCA",
+        }
+        processWildcardEntry(entry, "*.example.com", "example.com", now, acc)
+
+        if acc.hasWildcard {
+                t.Error("expected hasWildcard=false for non-wildcard entry")
+        }
+        if acc.certCount != 0 {
+                t.Errorf("certCount = %d, want 0", acc.certCount)
+        }
+}
+
+func TestSortSubdomainsSmartOrderEmpty(t *testing.T) {
+        sorted := sortSubdomainsSmartOrder(nil)
+        if len(sorted) != 0 {
+                t.Errorf("expected empty, got %d", len(sorted))
+        }
+}
+
+func TestSortSubdomainsSmartOrderAllCurrent(t *testing.T) {
+        subs := []map[string]any{
+                {mapKeyName: "z.example.com", mapKeyIsCurrent: true},
+                {mapKeyName: "a.example.com", mapKeyIsCurrent: true},
+                {mapKeyName: "m.example.com", mapKeyIsCurrent: true},
+        }
+        sorted := sortSubdomainsSmartOrder(subs)
+        if sorted[0][mapKeyName] != "a.example.com" {
+                t.Errorf("first = %v, want a.example.com", sorted[0][mapKeyName])
+        }
+        if sorted[2][mapKeyName] != "z.example.com" {
+                t.Errorf("last = %v, want z.example.com", sorted[2][mapKeyName])
+        }
+}
+
+func TestApplySubdomainDisplayCapExactCap(t *testing.T) {
+        result := map[string]any{}
+        subs := make([]map[string]any, 200)
+        applySubdomainDisplayCap(result, subs, 100)
+        if result[mapKeyDisplayedCount] != 200 {
+                t.Errorf("displayed_count = %v, want 200", result[mapKeyDisplayedCount])
+        }
+        if _, ok := result["display_capped"]; ok {
+                t.Error("should not be capped at exactly 200")
+        }
+}
+
+func TestApplySubdomainDisplayCapCurrentExceedsCap(t *testing.T) {
+        result := map[string]any{}
+        subs := make([]map[string]any, 300)
+        applySubdomainDisplayCap(result, subs, 300)
+        if result[mapKeyDisplayedCount] != 300 {
+                t.Errorf("displayed_count = %v, want 300", result[mapKeyDisplayedCount])
+        }
+}
+
+func TestCountSubdomainStatsEmpty(t *testing.T) {
+        current, expired := countSubdomainStats(nil)
+        if current != 0 || expired != 0 {
+                t.Errorf("got current=%d, expired=%d for nil input", current, expired)
+        }
+}
+
+func TestCollectSubdomainsEmpty(t *testing.T) {
+        subs, cnameCount := collectSubdomains(map[string]map[string]any{})
+        if len(subs) != 0 {
+                t.Errorf("got %d subdomains for empty set", len(subs))
+        }
+        if cnameCount != 0 {
+                t.Errorf("cnameCount = %d for empty set", cnameCount)
+        }
+}
+
+func TestDeduplicateCTEntriesEmpty(t *testing.T) {
+        got := deduplicateCTEntries(nil)
+        if len(got) != 0 {
+                t.Errorf("got %d entries for nil input", len(got))
+        }
+}
+
+func TestDeduplicateCTEntriesAllEmpty(t *testing.T) {
+        entries := []ctEntry{
+                {SerialNumber: "", NameValue: "a.example.com"},
+                {SerialNumber: "", NameValue: "b.example.com"},
+        }
+        got := deduplicateCTEntries(entries)
+        if len(got) != 2 {
+                t.Errorf("got %d entries, want 2 (entries with empty serial are all kept)", len(got))
+        }
+}
+
+func TestMatchCTForNameNoMatch(t *testing.T) {
+        entries := []ctEntry{
+                {NameValue: "other.example.com", NotBefore: "2024-01-01", NotAfter: "2025-01-01", IssuerName: "O=TestCA"},
+        }
+        result := matchCTForName("www.example.com", entries, time.Now())
+        if result.certCount != 0 {
+                t.Errorf("certCount = %d, want 0", result.certCount)
+        }
+}
+
+func TestMatchCTForNameWildcard(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour).Format("2006-01-02")
+        entries := []ctEntry{
+                {NameValue: "*.example.com", NotBefore: "2024-01-01", NotAfter: future, IssuerName: "O=WildCA"},
+        }
+        result := matchCTForName("www.example.com", entries, time.Now())
+        if result.certCount != 1 {
+                t.Errorf("certCount = %d, want 1", result.certCount)
+        }
+        if !result.isCurrent {
+                t.Error("expected isCurrent=true")
+        }
+}
+
+func TestConvertCertspotterEntriesEmpty(t *testing.T) {
+        got := convertCertspotterEntries(nil)
+        if len(got) != 0 {
+                t.Errorf("got %d entries for nil input", len(got))
+        }
+}
+
+func TestBuildCASummaryMultipleCAs(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour).Format("2006-01-02")
+        entries := []ctEntry{
+                {IssuerName: "O=CA1", NotBefore: "2024-01-01", NotAfter: future},
+                {IssuerName: "O=CA2", NotBefore: "2024-02-01", NotAfter: future},
+                {IssuerName: "O=CA3", NotBefore: "2024-03-01", NotAfter: "2023-01-01"},
+        }
+        summary := buildCASummary(entries)
+        if len(summary) != 3 {
+                t.Fatalf("got %d CAs, want 3", len(summary))
+        }
+        for _, ca := range summary {
+                if ca[mapKeyCertCount] != 1 {
+                        t.Errorf("each CA should have 1 cert, got %v", ca[mapKeyCertCount])
+                }
+        }
+}
+
+func TestBuildCASummarySorting(t *testing.T) {
+        future := time.Now().Add(365 * 24 * time.Hour).Format("2006-01-02")
+        entries := []ctEntry{
+                {IssuerName: "O=RareCA", NotBefore: "2024-01-01", NotAfter: future},
+                {IssuerName: "O=CommonCA", NotBefore: "2024-01-01", NotAfter: future},
+                {IssuerName: "O=CommonCA", NotBefore: "2024-02-01", NotAfter: future},
+                {IssuerName: "O=CommonCA", NotBefore: "2024-03-01", NotAfter: future},
+        }
+        summary := buildCASummary(entries)
+        if summary[0][mapKeyName] != "CommonCA" {
+                t.Errorf("first CA should be CommonCA (most certs), got %v", summary[0][mapKeyName])
+        }
+        if summary[0][mapKeyCertCount] != 3 {
+                t.Errorf("CommonCA cert_count = %v, want 3", summary[0][mapKeyCertCount])
+        }
+}
+
+func TestPopulateCTResultsNotAvailableNoSideEffect(t *testing.T) {
+        result := map[string]any{"existing": "value"}
+        populateCTResults(result, nil, nil, "example.com", false)
+        if _, ok := result["total_certs"]; ok {
+                t.Error("should not set total_certs when ct not available")
+        }
+        if result["existing"] != "value" {
+                t.Error("should not modify existing values")
+        }
+}
+
+func TestCtEntryCoversNameCaseInsensitive(t *testing.T) {
+        entry := ctEntry{NameValue: "WWW.EXAMPLE.COM"}
+        if !ctEntryCoversName(entry, "www.example.com") {
+                t.Error("should match case-insensitively")
+        }
+}
+
+func TestNormalizeCTNameDeepSubdomain(t *testing.T) {
+        got := normalizeCTName("deep.sub.example.com", "example.com")
+        if got != "deep.sub.example.com" {
+                t.Errorf("got %q, want deep.sub.example.com", got)
+        }
+}
+
+func TestNormalizeCTNameWildcardDeep(t *testing.T) {
+        got := normalizeCTName("*.sub.example.com", "example.com")
+        if got != "sub.example.com" {
+                t.Errorf("got %q, want sub.example.com", got)
+        }
+}
+
+func TestMergeCTSubdomainDuplicateIssuer(t *testing.T) {
+        existing := map[string]any{
+                mapKeyCertCount: "1",
+                mapKeyIsCurrent: false,
+                mapKeyIssuers:   []string{"CA1"},
+        }
+        mergeCTSubdomain(existing, false, "CA1")
+        issuers := existing[mapKeyIssuers].([]string)
+        if len(issuers) != 1 {
+                t.Errorf("should not add duplicate issuer, got %d", len(issuers))
+        }
+        if existing[mapKeyCertCount] != "2" {
+                t.Errorf("cert_count = %v, want 2", existing[mapKeyCertCount])
+        }
+}
+
+func TestMergeCTSubdomainIssuerCap(t *testing.T) {
+        existing := map[string]any{
+                mapKeyCertCount: "5",
+                mapKeyIsCurrent: true,
+                mapKeyIssuers:   []string{"CA1", "CA2", "CA3", "CA4", "CA5"},
+        }
+        mergeCTSubdomain(existing, true, "CA6")
+        issuers := existing[mapKeyIssuers].([]string)
+        if len(issuers) != 5 {
+                t.Errorf("should cap issuers at 5, got %d", len(issuers))
+        }
+}

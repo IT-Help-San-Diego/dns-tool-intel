@@ -697,6 +697,589 @@ func TestIterPages(t *testing.T) {
         })
 }
 
+func TestNewPaginationHelper(t *testing.T) {
+        tests := []struct {
+                name       string
+                page       int
+                perPage    int
+                total      int64
+                wantPage   int
+                wantPages  int
+                wantPrev   bool
+                wantNext   bool
+        }{
+                {"first page", 1, 10, 50, 1, 5, false, true},
+                {"middle page", 3, 10, 50, 3, 5, true, true},
+                {"last page", 5, 10, 50, 5, 5, true, false},
+                {"single page", 1, 10, 5, 1, 1, false, false},
+                {"zero total", 1, 10, 0, 1, 1, false, false},
+                {"negative page clamps to 1", -1, 10, 50, 1, 5, false, true},
+                {"zero page clamps to 1", 0, 10, 50, 1, 5, false, true},
+                {"exact fit", 1, 10, 10, 1, 1, false, false},
+                {"partial last page", 1, 10, 11, 1, 2, false, true},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        p := NewPagination(tt.page, tt.perPage, tt.total)
+                        if p.Page != tt.wantPage {
+                                t.Errorf("Page = %d, want %d", p.Page, tt.wantPage)
+                        }
+                        if p.TotalPages != tt.wantPages {
+                                t.Errorf("TotalPages = %d, want %d", p.TotalPages, tt.wantPages)
+                        }
+                        if p.HasPrev != tt.wantPrev {
+                                t.Errorf("HasPrev = %v, want %v", p.HasPrev, tt.wantPrev)
+                        }
+                        if p.HasNext != tt.wantNext {
+                                t.Errorf("HasNext = %v, want %v", p.HasNext, tt.wantNext)
+                        }
+                })
+        }
+}
+
+func TestPaginationOffsetHelper(t *testing.T) {
+        p := NewPagination(3, 10, 100)
+        if p.Offset() != 20 {
+                t.Errorf("Offset = %d, want 20", p.Offset())
+        }
+}
+
+func TestPaginationLimitHelper(t *testing.T) {
+        p := NewPagination(1, 25, 100)
+        if p.Limit() != 25 {
+                t.Errorf("Limit = %d, want 25", p.Limit())
+        }
+}
+
+func TestPaginationPagesHelper(t *testing.T) {
+        p := NewPagination(1, 10, 30)
+        pages := p.Pages()
+        if len(pages) != 3 {
+                t.Fatalf("expected 3 pages, got %d", len(pages))
+        }
+        for i, pg := range pages {
+                if pg != i+1 {
+                        t.Errorf("pages[%d] = %d, want %d", i, pg, i+1)
+                }
+        }
+}
+
+func TestNormalizeResultsHelper(t *testing.T) {
+        t.Run("nil input", func(t *testing.T) {
+                got := NormalizeResults(nil)
+                if got != nil {
+                        t.Error("expected nil for nil input")
+                }
+        })
+
+        t.Run("empty input", func(t *testing.T) {
+                got := NormalizeResults([]byte{})
+                if got != nil {
+                        t.Error("expected nil for empty input")
+                }
+        })
+
+        t.Run("invalid JSON", func(t *testing.T) {
+                got := NormalizeResults([]byte("not json"))
+                if got != nil {
+                        t.Error("expected nil for invalid JSON")
+                }
+        })
+
+        t.Run("fills defaults for missing keys", func(t *testing.T) {
+                got := NormalizeResults([]byte(`{"some_key": "value"}`))
+                if got == nil {
+                        t.Fatal("expected non-nil result")
+                }
+                if _, ok := got["spf_analysis"]; !ok {
+                        t.Error("expected spf_analysis default")
+                }
+                if _, ok := got["dmarc_analysis"]; !ok {
+                        t.Error("expected dmarc_analysis default")
+                }
+                if _, ok := got["posture"]; !ok {
+                        t.Error("expected posture default")
+                }
+        })
+
+        t.Run("does not overwrite existing keys", func(t *testing.T) {
+                got := NormalizeResults([]byte(`{"spf_analysis": {"status": "success"}}`))
+                if got == nil {
+                        t.Fatal("expected non-nil result")
+                }
+                spf, ok := got["spf_analysis"].(map[string]interface{})
+                if !ok {
+                        t.Fatal("expected spf_analysis to be map")
+                }
+                if spf["status"] != "success" {
+                        t.Errorf("spf status = %v, want success", spf["status"])
+                }
+        })
+
+        t.Run("normalizes legacy posture states", func(t *testing.T) {
+                got := NormalizeResults([]byte(`{"posture": {"state": "STRONG"}}`))
+                if got == nil {
+                        t.Fatal("expected non-nil result")
+                }
+                posture := got["posture"].(map[string]interface{})
+                if posture["state"] != "Secure" {
+                        t.Errorf("state = %v, want Secure", posture["state"])
+                }
+                if posture["color"] != "success" {
+                        t.Errorf("color = %v, want success", posture["color"])
+                }
+        })
+
+        t.Run("normalizes WEAK to High Risk", func(t *testing.T) {
+                got := NormalizeResults([]byte(`{"posture": {"state": "WEAK"}}`))
+                posture := got["posture"].(map[string]interface{})
+                if posture["state"] != "High Risk" {
+                        t.Errorf("state = %v, want High Risk", posture["state"])
+                }
+        })
+}
+
+func TestNormalizeEmailAnswerHelper(t *testing.T) {
+        t.Run("already has short answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer_short": "existing",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_short"] != "existing" {
+                        t.Error("should not overwrite existing short answer")
+                }
+        })
+
+        t.Run("no email_answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{}
+                normalizeEmailAnswer(verdicts)
+                if _, ok := verdicts["email_answer_short"]; ok {
+                        t.Error("should not set short answer without email_answer")
+                }
+        })
+
+        t.Run("parses No answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "No — domain has strong protections",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_short"] != "No" {
+                        t.Errorf("short = %v, want No", verdicts["email_answer_short"])
+                }
+                if verdicts["email_answer_reason"] != "domain has strong protections" {
+                        t.Errorf("reason = %v", verdicts["email_answer_reason"])
+                }
+                if verdicts["email_answer_color"] != "success" {
+                        t.Errorf("color = %v, want success", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("parses Yes answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "Yes — domain is vulnerable",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_color"] != "danger" {
+                        t.Errorf("color = %v, want danger", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("parses Unlikely answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "Unlikely — well protected",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_color"] != "success" {
+                        t.Errorf("color = %v, want success", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("parses Likely answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "Likely — weak protections",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_color"] != "danger" {
+                        t.Errorf("color = %v, want danger", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("parses Partially answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "Partially — some protections",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_color"] != "warning" {
+                        t.Errorf("color = %v, want warning", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("parses Uncertain answer", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "Uncertain — unclear status",
+                }
+                normalizeEmailAnswer(verdicts)
+                if verdicts["email_answer_color"] != "warning" {
+                        t.Errorf("color = %v, want warning", verdicts["email_answer_color"])
+                }
+        })
+
+        t.Run("no separator does nothing", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "email_answer": "No separator here",
+                }
+                normalizeEmailAnswer(verdicts)
+                if _, ok := verdicts["email_answer_short"]; ok {
+                        t.Error("should not set short answer without separator")
+                }
+        })
+}
+
+func TestNormalizeLLMsTxtVerdictHelper(t *testing.T) {
+        tests := []struct {
+                name       string
+                input      map[string]interface{}
+                wantAnswer string
+        }{
+                {"both found", map[string]interface{}{"found": true, "full_found": true}, "Yes"},
+                {"only found", map[string]interface{}{"found": true, "full_found": false}, "Yes"},
+                {"not found", map[string]interface{}{"found": false}, "No"},
+                {"empty map", map[string]interface{}{}, "No"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := normalizeLLMsTxtVerdict(tt.input)
+                        if got["answer"] != tt.wantAnswer {
+                                t.Errorf("answer = %v, want %v", got["answer"], tt.wantAnswer)
+                        }
+                })
+        }
+}
+
+func TestNormalizeRobotsTxtVerdictHelper(t *testing.T) {
+        tests := []struct {
+                name       string
+                input      map[string]interface{}
+                wantAnswer string
+                wantColor  string
+        }{
+                {"found and blocks AI", map[string]interface{}{"found": true, "blocks_ai_crawlers": true}, "Yes", "success"},
+                {"found but no block", map[string]interface{}{"found": true, "blocks_ai_crawlers": false}, "No", "warning"},
+                {"not found", map[string]interface{}{"found": false}, "No", "secondary"},
+                {"empty", map[string]interface{}{}, "No", "secondary"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := normalizeRobotsTxtVerdict(tt.input)
+                        if got["answer"] != tt.wantAnswer {
+                                t.Errorf("answer = %v, want %v", got["answer"], tt.wantAnswer)
+                        }
+                        if got["color"] != tt.wantColor {
+                                t.Errorf("color = %v, want %v", got["color"], tt.wantColor)
+                        }
+                })
+        }
+}
+
+func TestNormalizeCountVerdictHelper(t *testing.T) {
+        t.Run("positive count", func(t *testing.T) {
+                section := map[string]interface{}{"ioc_count": float64(3)}
+                got := normalizeCountVerdict(section, "ioc_count", "indicator(s) found", "None found")
+                if got["answer"] != "Yes" {
+                        t.Errorf("answer = %v, want Yes", got["answer"])
+                }
+                if got["color"] != "danger" {
+                        t.Errorf("color = %v, want danger", got["color"])
+                }
+        })
+
+        t.Run("zero count", func(t *testing.T) {
+                section := map[string]interface{}{"ioc_count": float64(0)}
+                got := normalizeCountVerdict(section, "ioc_count", "indicator(s) found", "None found")
+                if got["answer"] != "No" {
+                        t.Errorf("answer = %v, want No", got["answer"])
+                }
+                if got["color"] != "success" {
+                        t.Errorf("color = %v, want success", got["color"])
+                }
+        })
+
+        t.Run("missing key", func(t *testing.T) {
+                section := map[string]interface{}{}
+                got := normalizeCountVerdict(section, "ioc_count", "found", "None found")
+                if got["answer"] != "No" {
+                        t.Errorf("answer = %v, want No", got["answer"])
+                }
+        })
+}
+
+func TestGetNumValueHelper(t *testing.T) {
+        tests := []struct {
+                name string
+                m    map[string]interface{}
+                key  string
+                want float64
+        }{
+                {"float64", map[string]interface{}{"k": float64(42)}, "k", 42},
+                {"int", map[string]interface{}{"k": int(7)}, "k", 7},
+                {"int64", map[string]interface{}{"k": int64(99)}, "k", 99},
+                {"missing key", map[string]interface{}{}, "k", 0},
+                {"string value", map[string]interface{}{"k": "hello"}, "k", 0},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := getNumValue(tt.m, tt.key)
+                        if got != tt.want {
+                                t.Errorf("got %v, want %v", got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestGetStatusHelper(t *testing.T) {
+        tests := []struct {
+                name string
+                m    map[string]interface{}
+                want string
+        }{
+                {"has status", map[string]interface{}{"status": "success"}, "success"},
+                {"has state", map[string]interface{}{"state": "Secure"}, "Secure"},
+                {"prefers status over state", map[string]interface{}{"status": "warning", "state": "Secure"}, "warning"},
+                {"empty map", map[string]interface{}{}, "unknown"},
+                {"non-string status", map[string]interface{}{"status": 42}, "unknown"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := getStatus(tt.m)
+                        if got != tt.want {
+                                t.Errorf("got %q, want %q", got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestComputeSectionDiffHelper(t *testing.T) {
+        t.Run("identical sections", func(t *testing.T) {
+                secA := map[string]interface{}{"status": "success", "records": []interface{}{"a"}}
+                secB := map[string]interface{}{"status": "success", "records": []interface{}{"a"}}
+                diff := ComputeSectionDiff(secA, secB, "spf", "SPF", "fa-envelope")
+                if diff.Changed {
+                        t.Error("expected no change for identical sections")
+                }
+                if diff.StatusA != "success" || diff.StatusB != "success" {
+                        t.Errorf("statuses = %q, %q", diff.StatusA, diff.StatusB)
+                }
+        })
+
+        t.Run("different status", func(t *testing.T) {
+                secA := map[string]interface{}{"status": "success"}
+                secB := map[string]interface{}{"status": "warning"}
+                diff := ComputeSectionDiff(secA, secB, "spf", "SPF", "fa-envelope")
+                if !diff.Changed {
+                        t.Error("expected change for different status")
+                }
+        })
+
+        t.Run("different field values", func(t *testing.T) {
+                secA := map[string]interface{}{"status": "success", "policy": "reject"}
+                secB := map[string]interface{}{"status": "success", "policy": "quarantine"}
+                diff := ComputeSectionDiff(secA, secB, "dmarc", "DMARC", "fa-shield")
+                if !diff.Changed {
+                        t.Error("expected change")
+                }
+                if len(diff.DetailChanges) != 1 {
+                        t.Fatalf("expected 1 detail change, got %d", len(diff.DetailChanges))
+                }
+                if diff.DetailChanges[0].Old != "reject" {
+                        t.Errorf("old = %v, want reject", diff.DetailChanges[0].Old)
+                }
+        })
+
+        t.Run("skips status and state keys", func(t *testing.T) {
+                secA := map[string]interface{}{"status": "success", "state": "a", "_schema_version": "1"}
+                secB := map[string]interface{}{"status": "success", "state": "a", "_schema_version": "2"}
+                diff := ComputeSectionDiff(secA, secB, "test", "Test", "fa-test")
+                if diff.Changed {
+                        t.Error("expected no change since skip keys differ")
+                }
+        })
+
+        t.Run("key and label preserved", func(t *testing.T) {
+                diff := ComputeSectionDiff(map[string]interface{}{}, map[string]interface{}{}, "k", "L", "i")
+                if diff.Key != "k" || diff.Label != "L" || diff.Icon != "i" {
+                        t.Error("key/label/icon not preserved")
+                }
+        })
+}
+
+func TestComputeAllDiffsHelper(t *testing.T) {
+        resultsA := map[string]interface{}{
+                "spf_analysis": map[string]interface{}{"status": "success"},
+        }
+        resultsB := map[string]interface{}{
+                "spf_analysis": map[string]interface{}{"status": "warning"},
+        }
+        diffs := ComputeAllDiffs(resultsA, resultsB)
+        if len(diffs) != len(CompareSections) {
+                t.Errorf("expected %d diffs, got %d", len(CompareSections), len(diffs))
+        }
+        if diffs[0].Key != "spf_analysis" {
+                t.Errorf("first diff key = %q, want spf_analysis", diffs[0].Key)
+        }
+        if !diffs[0].Changed {
+                t.Error("expected SPF section to be changed")
+        }
+}
+
+func TestGetSectionHelper(t *testing.T) {
+        t.Run("existing key", func(t *testing.T) {
+                results := map[string]interface{}{
+                        "spf": map[string]interface{}{"status": "success"},
+                }
+                s := getSection(results, "spf")
+                if s["status"] != "success" {
+                        t.Errorf("status = %v", s["status"])
+                }
+        })
+
+        t.Run("missing key", func(t *testing.T) {
+                s := getSection(map[string]interface{}{}, "spf")
+                if len(s) != 0 {
+                        t.Error("expected empty map for missing key")
+                }
+        })
+
+        t.Run("wrong type", func(t *testing.T) {
+                results := map[string]interface{}{"spf": "not a map"}
+                s := getSection(results, "spf")
+                if len(s) != 0 {
+                        t.Error("expected empty map for wrong type")
+                }
+        })
+}
+
+func TestExtractRootDomainHelper(t *testing.T) {
+        tests := []struct {
+                name    string
+                domain  string
+                wantSub bool
+                wantRoot string
+        }{
+                {"subdomain", "www.example.com", true, "example.com"},
+                {"root domain", "example.com", false, ""},
+                {"deep subdomain", "a.b.example.com", true, "example.com"},
+                {"trailing dot", "www.example.com.", true, "example.com"},
+                {"root with trailing dot", "example.com.", false, ""},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        isSub, root := extractRootDomain(tt.domain)
+                        if isSub != tt.wantSub {
+                                t.Errorf("isSub = %v, want %v", isSub, tt.wantSub)
+                        }
+                        if root != tt.wantRoot {
+                                t.Errorf("root = %q, want %q", root, tt.wantRoot)
+                        }
+                })
+        }
+}
+
+func TestIsPublicSuffixDomainHelper(t *testing.T) {
+        tests := []struct {
+                name string
+                domain string
+                want bool
+        }{
+                {"regular domain", "example.com", false},
+                {"TLD", "com", true},
+                {"co.uk suffix", "co.uk", true},
+                {"subdomain", "www.example.com", false},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        got := isPublicSuffixDomain(tt.domain)
+                        if got != tt.want {
+                                t.Errorf("isPublicSuffixDomain(%q) = %v, want %v", tt.domain, got, tt.want)
+                        }
+                })
+        }
+}
+
+func TestNormalizeAIVerdictsHelper(t *testing.T) {
+        t.Run("skips if ai_llms_txt already present", func(t *testing.T) {
+                verdicts := map[string]interface{}{
+                        "ai_llms_txt": map[string]interface{}{"answer": "existing"},
+                }
+                results := map[string]interface{}{}
+                normalizeAIVerdicts(results, verdicts)
+                v := verdicts["ai_llms_txt"].(map[string]interface{})
+                if v["answer"] != "existing" {
+                        t.Error("should not overwrite existing ai_llms_txt")
+                }
+        })
+
+        t.Run("no ai_surface does nothing", func(t *testing.T) {
+                verdicts := map[string]interface{}{}
+                results := map[string]interface{}{}
+                normalizeAIVerdicts(results, verdicts)
+                if _, ok := verdicts["ai_llms_txt"]; ok {
+                        t.Error("should not create ai_llms_txt without ai_surface")
+                }
+        })
+
+        t.Run("populates all AI verdicts", func(t *testing.T) {
+                verdicts := map[string]interface{}{}
+                results := map[string]interface{}{
+                        "ai_surface": map[string]interface{}{
+                                "llms_txt":       map[string]interface{}{"found": true},
+                                "robots_txt":     map[string]interface{}{"found": true, "blocks_ai_crawlers": true},
+                                "poisoning":      map[string]interface{}{"ioc_count": float64(2)},
+                                "hidden_prompts": map[string]interface{}{"artifact_count": float64(0)},
+                        },
+                }
+                normalizeAIVerdicts(results, verdicts)
+                if _, ok := verdicts["ai_llms_txt"]; !ok {
+                        t.Error("expected ai_llms_txt")
+                }
+                if _, ok := verdicts["ai_crawler_governance"]; !ok {
+                        t.Error("expected ai_crawler_governance")
+                }
+                if _, ok := verdicts["ai_poisoning"]; !ok {
+                        t.Error("expected ai_poisoning")
+                }
+                if _, ok := verdicts["ai_hidden_prompts"]; !ok {
+                        t.Error("expected ai_hidden_prompts")
+                }
+        })
+}
+
+func TestParseSortedElement(t *testing.T) {
+        t.Run("string when firstIsString", func(t *testing.T) {
+                got := parseSortedElement("hello", true)
+                if got != "hello" {
+                        t.Errorf("got %v, want hello", got)
+                }
+        })
+
+        t.Run("parses JSON when not firstIsString", func(t *testing.T) {
+                got := parseSortedElement(`{"a":"b"}`, false)
+                m, ok := got.(map[string]interface{})
+                if !ok {
+                        t.Fatal("expected map result")
+                }
+                if m["a"] != "b" {
+                        t.Errorf("got %v", m)
+                }
+        })
+
+        t.Run("returns string for invalid JSON when not firstIsString", func(t *testing.T) {
+                got := parseSortedElement("not json {", false)
+                if got != "not json {" {
+                        t.Errorf("got %v", got)
+                }
+        })
+}
+
 func strPtr(s string) *string {
         return &s
 }

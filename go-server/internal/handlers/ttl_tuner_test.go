@@ -293,6 +293,186 @@ func TestTunerRecordOrder(t *testing.T) {
         }
 }
 
+func TestCheckProviderLockCloudflareProxied(t *testing.T) {
+        profile := icuae.ProviderProfile{ProxiedTTL: 300}
+        locked, reason := checkProviderLock("A", 300, "Cloudflare", profile, true)
+        if !locked {
+                t.Error("expected locked for Cloudflare proxied A record")
+        }
+        if reason == "" {
+                t.Error("expected non-empty lock reason")
+        }
+}
+
+func TestCheckProviderLockRoute53Alias(t *testing.T) {
+        profile := icuae.ProviderProfile{AliasTTL: 60}
+        locked, reason := checkProviderLock("A", 60, "AWS Route 53", profile, true)
+        if !locked {
+                t.Error("expected locked for Route 53 alias A record")
+        }
+        if reason == "" {
+                t.Error("expected non-empty lock reason")
+        }
+
+        locked2, reason2 := checkProviderLock("A", 0, "AWS Route 53", profile, true)
+        if !locked2 {
+                t.Error("expected locked for Route 53 alias A record with TTL 0")
+        }
+        if reason2 == "" {
+                t.Error("expected non-empty lock reason")
+        }
+}
+
+func TestCheckProviderLockMinAllowedTTL(t *testing.T) {
+        profile := icuae.ProviderProfile{MinAllowedTTL: 120}
+        locked, reason := checkProviderLock("MX", 300, "SomeProvider", profile, true)
+        if locked {
+                t.Error("expected not locked for min TTL note")
+        }
+        if reason == "" {
+                t.Error("expected non-empty note about minimum TTL")
+        }
+}
+
+func TestCheckProviderLockAAAA(t *testing.T) {
+        profile := icuae.ProviderProfile{ProxiedTTL: 300}
+        locked, _ := checkProviderLock("AAAA", 300, "Cloudflare", profile, true)
+        if !locked {
+                t.Error("expected locked for Cloudflare proxied AAAA record")
+        }
+}
+
+func TestCalculateQueryReductionReduction(t *testing.T) {
+        got := calculateQueryReduction(300, 3600)
+        if got == "" {
+                t.Error("expected non-empty reduction string")
+        }
+        if !stringContains(got, "fewer") {
+                t.Errorf("expected 'fewer' in result, got %q", got)
+        }
+}
+
+func TestCalculateQueryReductionIncrease(t *testing.T) {
+        got := calculateQueryReduction(86400, 3600)
+        if got == "" {
+                t.Error("expected non-empty increase string")
+        }
+        if !stringContains(got, "more") {
+                t.Errorf("expected 'more' in result, got %q", got)
+        }
+}
+
+func TestBuildTunerRecordWithProvider(t *testing.T) {
+        profile := icuae.ProviderProfile{ProxiedTTL: 300}
+        rec := buildTunerRecord("A", 300, 3600, "Cloudflare", profile, true, "stability")
+        if !rec.Locked {
+                t.Error("expected record to be locked for Cloudflare proxied A")
+        }
+        if rec.Status != "Provider-Locked" {
+                t.Errorf("expected Provider-Locked status, got %q", rec.Status)
+        }
+}
+
+func TestBuildTunerRecordOptimal(t *testing.T) {
+        rec := buildTunerRecord("MX", 3600, 3600, "", dummyProfile(), false, "stability")
+        if rec.Status != "Optimal" {
+                t.Errorf("expected Optimal status, got %q", rec.Status)
+        }
+        if rec.StatusClass != "success" {
+                t.Errorf("expected success class, got %q", rec.StatusClass)
+        }
+}
+
+func TestDetermineTunerStatusAcceptableRange(t *testing.T) {
+        status, class, _ := determineTunerStatus(1800, 3600, false, "", "stability")
+        if status != "Acceptable" {
+                t.Errorf("expected Acceptable, got %q", status)
+        }
+        if class != "info" {
+                t.Errorf("expected info class, got %q", class)
+        }
+
+        status2, _, _ := determineTunerStatus(7200, 3600, false, "", "stability")
+        if status2 != "Acceptable" {
+                t.Errorf("expected Acceptable for ratio=2.0, got %q", status2)
+        }
+}
+
+func TestDetermineTunerStatusAdjustLow(t *testing.T) {
+        status, class, rec := determineTunerStatus(30, 3600, false, "", "stability")
+        if status != "Adjust" {
+                t.Errorf("expected Adjust, got %q", status)
+        }
+        if class != "warning" {
+                t.Errorf("expected warning class, got %q", class)
+        }
+        if rec == "" {
+                t.Error("expected non-empty recommendation")
+        }
+}
+
+func TestFormatHumanTTLEdgeCases(t *testing.T) {
+        tests := []struct {
+                ttl      uint32
+                expected string
+        }{
+                {259200, "3 days"},
+                {10800, "3 hours"},
+                {120, "2 minutes"},
+                {45, "45 seconds"},
+        }
+        for _, tc := range tests {
+                got := formatHumanTTL(tc.ttl)
+                if got != tc.expected {
+                        t.Errorf("formatHumanTTL(%d) = %q, want %q", tc.ttl, got, tc.expected)
+                }
+        }
+}
+
+func TestTunerRecordTypes(t *testing.T) {
+        expected := []string{"A", "AAAA", "MX", "TXT", "NS", "CNAME", "CAA", "SOA"}
+        if len(tunerRecordTypes) != len(expected) {
+                t.Fatalf("tunerRecordTypes has %d items, want %d", len(tunerRecordTypes), len(expected))
+        }
+        for i, want := range expected {
+                if tunerRecordTypes[i] != want {
+                        t.Errorf("tunerRecordTypes[%d] = %q, want %q", i, tunerRecordTypes[i], want)
+                }
+        }
+}
+
+func TestBuildRoute53JSONContents(t *testing.T) {
+        got := buildRoute53JSON("MX", 1800)
+        if !stringContains(got, `"Type": "MX"`) {
+                t.Error("expected MX record type in JSON")
+        }
+        if !stringContains(got, `"TTL": 1800`) {
+                t.Error("expected TTL 1800 in JSON")
+        }
+        if !stringContains(got, `"Action": "UPSERT"`) {
+                t.Error("expected UPSERT action in JSON")
+        }
+}
+
+func TestBuildPropagationNoteDetails(t *testing.T) {
+        note := buildPropagationNote("A", 86400)
+        if !stringContains(note, "1 day") {
+                t.Errorf("expected '1 day' in propagation note, got %q", note)
+        }
+
+        note2 := buildPropagationNote("AAAA", 300)
+        if !stringContains(note2, "5 minutes") {
+                t.Errorf("expected '5 minutes' in propagation note, got %q", note2)
+        }
+}
+
+func TestFormatTotalReductionNegative(t *testing.T) {
+        got := formatTotalReduction(-10, 100)
+        if got != "" {
+                t.Errorf("expected empty for negative old, got %q", got)
+        }
+}
+
 func stringContains(s, substr string) bool {
         for i := 0; i <= len(s)-len(substr); i++ {
                 if s[i:i+len(substr)] == substr {

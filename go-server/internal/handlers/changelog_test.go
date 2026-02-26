@@ -1,6 +1,7 @@
 package handlers
 
 import (
+        "strings"
         "testing"
 )
 
@@ -128,5 +129,121 @@ func TestChangelogDateConstants(t *testing.T) {
         }
         if dateFeb23 != "Feb 23, 2026" {
                 t.Errorf("unexpected dateFeb23: %q", dateFeb23)
+        }
+}
+
+func TestChangelogVersionConstants(t *testing.T) {
+        versions := []struct {
+                name string
+                val  string
+        }{
+                {"ver262525", ver262525},
+                {"ver262225", ver262225},
+                {"ver262088", ver262088},
+                {"ver262076", ver262076},
+        }
+        for _, v := range versions {
+                if v.val == "" {
+                        t.Errorf("%s is empty", v.name)
+                }
+        }
+}
+
+func TestChangelogIconConstants(t *testing.T) {
+        if iconShieldAlt != "fas fa-shield-alt" {
+                t.Errorf("unexpected iconShieldAlt: %q", iconShieldAlt)
+        }
+}
+
+func TestChangelogCategoryConstants(t *testing.T) {
+        cats := map[string]string{
+                "catIntelligence":  catIntelligence,
+                "catSecurity":      catSecurity,
+                "catTransparency":  catTransparency,
+                "catBrand":         catBrand,
+                "catOrigins":       catOrigins,
+                "catCore":          catCore,
+                "catUX":            catUX,
+        }
+        for name, val := range cats {
+                if val == "" {
+                        t.Errorf("%s is empty", name)
+                }
+        }
+}
+
+func TestChangelogEntryStructFields(t *testing.T) {
+        entry := ChangelogEntry{
+                Version:     "1.0.0",
+                Date:        "Jan 1, 2026",
+                Category:    "Test",
+                Title:       "Test Entry",
+                Description: "A test",
+                Icon:        "fas fa-test",
+                IsIncident:  true,
+                IsLegacy:    false,
+        }
+        if entry.Version != "1.0.0" {
+                t.Errorf("unexpected Version: %q", entry.Version)
+        }
+        if !entry.IsIncident {
+                t.Error("expected IsIncident=true")
+        }
+        if entry.IsLegacy {
+                t.Error("expected IsLegacy=false")
+        }
+}
+
+func TestGetRecentChangelogZero(t *testing.T) {
+        recent := GetRecentChangelog(0)
+        if len(recent) != 0 {
+                t.Errorf("expected 0 entries for n=0, got %d", len(recent))
+        }
+}
+
+func TestGetRecentChangelogPreservesOrder(t *testing.T) {
+        all := GetChangelog()
+        if len(all) < 5 {
+                t.Skip("not enough changelog entries")
+        }
+        recent := GetRecentChangelog(5)
+        for i := 0; i < 5; i++ {
+                if recent[i].Version != all[i].Version || recent[i].Title != all[i].Title {
+                        t.Errorf("entry[%d] mismatch between recent and all", i)
+                }
+        }
+}
+
+func TestChangelogAllIconsHavePrefix(t *testing.T) {
+        entries := GetChangelog()
+        for i, e := range entries {
+                if !strings.HasPrefix(e.Icon, "fas fa-") && !strings.HasPrefix(e.Icon, "fab fa-") {
+                        t.Errorf("entry[%d] (%s) icon %q does not start with 'fas fa-' or 'fab fa-'", i, e.Title, e.Icon)
+                }
+        }
+}
+
+func TestLegacyChangelogAllIsLegacy(t *testing.T) {
+        entries := GetLegacyChangelog()
+        for i, e := range entries {
+                if !e.IsLegacy {
+                        t.Errorf("legacy entry[%d] (%s) should have IsLegacy=true", i, e.Title)
+                }
+        }
+}
+
+func TestChangelogNonLegacy(t *testing.T) {
+        entries := GetChangelog()
+        for i, e := range entries {
+                if e.IsLegacy {
+                        t.Errorf("entry[%d] (%s) should not have IsLegacy=true in main changelog", i, e.Title)
+                }
+        }
+}
+
+func TestNewChangelogHandler(t *testing.T) {
+        h := NewChangelogHandler(nil)
+        if h == nil {
+                t.Fatal("expected non-nil ChangelogHandler")
         }
 }
