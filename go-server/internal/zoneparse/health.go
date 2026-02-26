@@ -14,6 +14,9 @@ type ZoneHealth struct {
         UniqueHostnames  int         `json:"unique_hostnames"`
         TotalRecords     int         `json:"total_records"`
 
+        ZoneProfile     string `json:"zone_profile"`
+        ZoneProfileDesc string `json:"zone_profile_desc"`
+
         HasSOA    bool `json:"has_soa"`
         HasNS     bool `json:"has_ns"`
         HasMX     bool `json:"has_mx"`
@@ -25,6 +28,8 @@ type ZoneHealth struct {
         HasCAA    bool `json:"has_caa"`
         HasTLSA   bool `json:"has_tlsa"`
         HasDNSSEC bool `json:"has_dnssec"`
+
+        PolicySignals []PolicySignal `json:"policy_signals,omitempty"`
 
         StructuralScore   int    `json:"structural_score"`
         StructuralVerdict string `json:"structural_verdict"`
@@ -51,6 +56,12 @@ type ZoneHealth struct {
         Duplicates   []DuplicateRRset  `json:"duplicates,omitempty"`
 
         RecordsByType map[string][]ParsedRecord `json:"-"`
+}
+
+type PolicySignal struct {
+        Label string `json:"label"`
+        Icon  string `json:"icon"`
+        Detail string `json:"detail"`
 }
 
 type StructuralCheck struct {
@@ -251,10 +262,89 @@ func AnalyzeHealth(records []ParsedRecord) *ZoneHealth {
 
         h.SOATimers = analyzeSOA(records)
         h.Duplicates = findDuplicates(records)
+        h.ZoneProfile, h.ZoneProfileDesc = classifyZoneProfile(h)
+        h.PolicySignals = buildPolicySignals(h)
         h.StructuralChecks = runStructuralChecks(h)
         h.StructuralScore, h.StructuralVerdict = computeStructuralScore(h.StructuralChecks)
 
         return h
+}
+
+func classifyZoneProfile(h *ZoneHealth) (string, string) {
+        hasDelegations := h.DSCount > 0
+        hasAddresses := h.HasA || h.HasAAAA
+        hasEmail := h.HasMX || h.HasSPF || h.HasDMARC || h.HasDKIM
+
+        if hasDelegations && !hasAddresses && !hasEmail {
+                return "Delegation-Only", "This zone contains only delegation records (SOA, NS, DS). Typical of TLD/registry zones or parent zones that delegate to child zones."
+        }
+
+        if h.HasNS && !hasAddresses && !hasEmail && !hasDelegations {
+                return "Delegation-Only", "This zone contains structural records (SOA, NS) without address or email records. Typical of delegation-only zones."
+        }
+
+        if hasAddresses && hasEmail {
+                return "Full-Service", "This zone serves address records and email infrastructure. Typical of a standard domain zone."
+        }
+
+        if hasAddresses && !hasEmail {
+                return "Web-Only", "This zone contains address records but no email infrastructure. Email may be managed by an external provider."
+        }
+
+        if !hasAddresses && hasEmail {
+                return "Email-Only", "This zone contains email records but no address records. Web hosting may use a CNAME or external service."
+        }
+
+        return "Minimal", "This zone contains limited record types."
+}
+
+func buildPolicySignals(h *ZoneHealth) []PolicySignal {
+        var signals []PolicySignal
+
+        if h.HasSPF {
+                signals = append(signals, PolicySignal{
+                        Label:  "SPF",
+                        Icon:   "envelope",
+                        Detail: "Sender Policy Framework record detected in zone file",
+                })
+        }
+        if h.HasDMARC {
+                signals = append(signals, PolicySignal{
+                        Label:  "DMARC",
+                        Icon:   "shield-alt",
+                        Detail: "Domain-based Message Authentication policy detected",
+                })
+        }
+        if h.HasDKIM {
+                signals = append(signals, PolicySignal{
+                        Label:  "DKIM",
+                        Icon:   "key",
+                        Detail: "DomainKeys Identified Mail selector detected",
+                })
+        }
+        if h.HasMX {
+                signals = append(signals, PolicySignal{
+                        Label:  "MX",
+                        Icon:   "mail-bulk",
+                        Detail: "Mail exchange records present",
+                })
+        }
+        if h.HasCAA {
+                signals = append(signals, PolicySignal{
+                        Label:  "CAA",
+                        Icon:   "certificate",
+                        Detail: "Certificate Authority Authorization records present",
+                })
+        }
+        if h.HasTLSA {
+                signals = append(signals, PolicySignal{
+                        Label:  "TLSA/DANE",
+                        Icon:   "lock",
+                        Detail: "DNS-Based Authentication of Named Entities records present",
+                })
+        }
+
+        return signals
 }
 
 func runStructuralChecks(h *ZoneHealth) []StructuralCheck {
