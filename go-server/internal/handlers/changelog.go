@@ -15,8 +15,9 @@
 //
 // Canonical date mapping (verified Feb 26, 2026):
 //
-//      dateFeb26 — Stats Success Rate Fix, Daily Analysis Stats Tracking,
-//                  Admin IP Audit Trail, CSRF Form Fix (TTL Tuner & Watchlist),
+//      dateFeb26 — Safari Covert Mode Fix, Stats Success Rate Fix,
+//                  Daily Analysis Stats Tracking, Admin IP Audit Trail,
+//                  CSRF Form Fix (TTL Tuner & Watchlist),
 //                  TTL Tuner UX Overhaul, DNS Provider Detection Expansion (5→15),
 //                  NS Provider-Locked Display, Mobile Homepage Scroll Fix,
 //                  Navbar Dropdown Refinement, HTTP Observatory A+ Infrastructure,
@@ -66,6 +67,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262704 = "26.27.04"
         ver262703 = "26.27.03"
         ver262701 = "26.27.01"
         ver262525 = "26.25.25"
@@ -105,6 +107,14 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262704,
+                        Date:        dateFeb26,
+                        Category:    catUX,
+                        Title:       "Safari Covert Mode Fix",
+                        Description: "Fixed operator environment buttons (Submarine, Tactical, Operator) not responding to clicks in Safari. Replaced CSS pseudo-element overlay with a real DOM element to resolve WebKit mix-blend-mode pointer-events bug.",
+                        Icon:        "fab fa-safari",
+                },
                 {
                         Version:     ver262703,
                         Date:        dateFeb26,
