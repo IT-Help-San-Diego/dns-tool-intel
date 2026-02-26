@@ -59,9 +59,10 @@ type ZoneHealth struct {
 }
 
 type PolicySignal struct {
-        Label string `json:"label"`
-        Icon  string `json:"icon"`
+        Label  string `json:"label"`
+        Icon   string `json:"icon"`
         Detail string `json:"detail"`
+        Status string `json:"status"`
 }
 
 type StructuralCheck struct {
@@ -301,11 +302,32 @@ func classifyZoneProfile(h *ZoneHealth) (string, string) {
 func buildPolicySignals(h *ZoneHealth) []PolicySignal {
         var signals []PolicySignal
 
+        isDelegation := h.ZoneProfile == "Delegation-Only"
+        isMinimal := h.ZoneProfile == "Minimal"
+        emailIntent := h.HasMX || h.HasSPF || h.HasDMARC || h.HasDKIM
+        webIntent := h.HasA || h.HasAAAA
+
+        if h.HasMX {
+                signals = append(signals, PolicySignal{
+                        Label:  "MX",
+                        Icon:   "mail-bulk",
+                        Detail: "Mail exchange records present",
+                        Status: "detected",
+                })
+        }
         if h.HasSPF {
                 signals = append(signals, PolicySignal{
                         Label:  "SPF",
                         Icon:   "envelope",
-                        Detail: "Sender Policy Framework record detected in zone file",
+                        Detail: "Sender Policy Framework record detected",
+                        Status: "detected",
+                })
+        } else if emailIntent && !isDelegation && !isMinimal {
+                signals = append(signals, PolicySignal{
+                        Label:  "SPF",
+                        Icon:   "envelope",
+                        Detail: "Email infrastructure detected without SPF sender authentication",
+                        Status: "missing",
                 })
         }
         if h.HasDMARC {
@@ -313,6 +335,14 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Label:  "DMARC",
                         Icon:   "shield-alt",
                         Detail: "Domain-based Message Authentication policy detected",
+                        Status: "detected",
+                })
+        } else if emailIntent && !isDelegation && !isMinimal {
+                signals = append(signals, PolicySignal{
+                        Label:  "DMARC",
+                        Icon:   "shield-alt",
+                        Detail: "Email infrastructure detected without DMARC policy",
+                        Status: "missing",
                 })
         }
         if h.HasDKIM {
@@ -320,13 +350,14 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Label:  "DKIM",
                         Icon:   "key",
                         Detail: "DomainKeys Identified Mail selector detected",
+                        Status: "detected",
                 })
-        }
-        if h.HasMX {
+        } else if emailIntent && !isDelegation && !isMinimal {
                 signals = append(signals, PolicySignal{
-                        Label:  "MX",
-                        Icon:   "mail-bulk",
-                        Detail: "Mail exchange records present",
+                        Label:  "DKIM",
+                        Icon:   "key",
+                        Detail: "No DKIM selector found in zone file — may be managed by email provider",
+                        Status: "info",
                 })
         }
         if h.HasCAA {
@@ -334,6 +365,14 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Label:  "CAA",
                         Icon:   "certificate",
                         Detail: "Certificate Authority Authorization records present",
+                        Status: "detected",
+                })
+        } else if webIntent && !isDelegation && !isMinimal {
+                signals = append(signals, PolicySignal{
+                        Label:  "CAA",
+                        Icon:   "certificate",
+                        Detail: "Web presence detected without CAA records restricting certificate issuance",
+                        Status: "info",
                 })
         }
         if h.HasTLSA {
@@ -341,6 +380,7 @@ func buildPolicySignals(h *ZoneHealth) []PolicySignal {
                         Label:  "TLSA/DANE",
                         Icon:   "lock",
                         Detail: "DNS-Based Authentication of Named Entities records present",
+                        Status: "detected",
                 })
         }
 

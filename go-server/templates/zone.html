@@ -244,19 +244,26 @@
         {{if gt (len $zh.PolicySignals) 0}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-flag me-2"></i>Policy Signals Detected
-                    <span class="badge bg-secondary ms-2">Informational</span>
+                <h5 class="mb-0"><i class="fas fa-flag me-2"></i>Policy &amp; Security Signals
+                    <span class="badge bg-secondary ms-2">Does not affect structural score</span>
                 </h5>
             </div>
             <div class="card-body">
-                <p class="small text-muted mb-3">Operational policy records found in this zone file. These do not affect the structural validity score &mdash; their absence from a zone file is normal, as they are often managed by external providers.</p>
+                <p class="small text-muted mb-3">Context-aware analysis of operational policy records based on the zone&rsquo;s <span class="text-info">{{$zh.ZoneProfile}}</span> profile. Signals are only evaluated when the zone shows clear intent (e.g., email infrastructure or web presence).</p>
                 <div class="row g-3">
                     {{range $zh.PolicySignals}}
-                    <div class="col-md-4 col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-{{.Icon}} text-success me-2"></i>
+                    <div class="col-md-6 col-12">
+                        <div class="d-flex align-items-start">
+                            {{if eq .Status "detected"}}<i class="fas fa-{{.Icon}} text-success me-2 mt-1"></i>
+                            {{else if eq .Status "missing"}}<i class="fas fa-{{.Icon}} text-warning me-2 mt-1"></i>
+                            {{else}}<i class="fas fa-{{.Icon}} text-muted me-2 mt-1"></i>
+                            {{end}}
                             <div>
-                                <span class="small fw-bold">{{.Label}}</span>
+                                <span class="small fw-bold{{if eq .Status "detected"}} text-success{{else if eq .Status "missing"}} text-warning{{end}}">{{.Label}}
+                                    {{if eq .Status "detected"}}<span class="badge bg-success bg-opacity-25 text-success ms-1" style="font-size:0.65rem">detected</span>
+                                    {{else if eq .Status "missing"}}<span class="badge bg-warning bg-opacity-25 text-warning ms-1" style="font-size:0.65rem">expected</span>
+                                    {{end}}
+                                </span>
                                 <div class="small text-muted">{{.Detail}}</div>
                             </div>
                         </div>
