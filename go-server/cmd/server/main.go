@@ -61,6 +61,9 @@ func main() {
         slog.Info("Trusted proxies disabled — using direct connection IP for rate limiting")
 
         router.Use(middleware.Recovery(cfg.AppVersion))
+        if !cfg.IsDevEnvironment {
+                router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
+        }
         router.Use(gzip.Gzip(gzip.BestSpeed))
         router.Use(middleware.RequestContext())
         router.Use(middleware.SecurityHeaders())

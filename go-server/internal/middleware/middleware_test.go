@@ -614,6 +614,99 @@ func TestRateLimitWaitSecondsMinimum(t *testing.T) {
         }
 }
 
+func TestCanonicalHostRedirect_ReplitAppRedirects(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.CanonicalHostRedirect("https://dnstool.it-help.tech"))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "https://dns-tool.replit.app/", nil)
+        req.Host = "dns-tool.replit.app"
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusMovedPermanently {
+                t.Fatalf("expected 301, got %d", w.Code)
+        }
+        loc := w.Header().Get("Location")
+        if loc != "https://dnstool.it-help.tech/" {
+                t.Errorf("expected redirect to canonical host, got %s", loc)
+        }
+}
+
+func TestCanonicalHostRedirect_CanonicalHostPasses(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.CanonicalHostRedirect("https://dnstool.it-help.tech"))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "https://dnstool.it-help.tech/", nil)
+        req.Host = "dnstool.it-help.tech"
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Fatalf(msgExpect200, w.Code)
+        }
+}
+
+func TestCanonicalHostRedirect_PreservesPath(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.CanonicalHostRedirect("https://dnstool.it-help.tech"))
+        router.GET("/analyze", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "https://dns-tool.replit.app/analyze?domain=example.com", nil)
+        req.Host = "dns-tool.replit.app"
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusMovedPermanently {
+                t.Fatalf("expected 301, got %d", w.Code)
+        }
+        loc := w.Header().Get("Location")
+        if loc != "https://dnstool.it-help.tech/analyze?domain=example.com" {
+                t.Errorf("expected path+query preserved, got %s", loc)
+        }
+}
+
+func TestCanonicalHostRedirect_ReplitDevRedirects(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.CanonicalHostRedirect("https://dnstool.it-help.tech"))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/", nil)
+        req.Host = "something.replit.dev"
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusMovedPermanently {
+                t.Fatalf("expected 301 for .replit.dev, got %d", w.Code)
+        }
+}
+
+func TestCanonicalHostRedirect_InvalidURLDisablesMiddleware(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.CanonicalHostRedirect(""))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/", nil)
+        req.Host = "dns-tool.replit.app"
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Fatalf("middleware should be disabled for invalid URL, got %d", w.Code)
+        }
+}
+
 func TestCSRFPostWithEmptyBody(t *testing.T) {
         router, _ := setupCSRFRouter()
         router.POST(pathSubmit, func(c *gin.Context) {
