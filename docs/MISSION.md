@@ -89,6 +89,12 @@ Research confirmed 99%+ of domains have zone files under 100 KB. Only ISP/operat
 ### Golden Rules Export (v26.27.08)
 Golden rules exported in two formats for external audit and AI-assisted review: `go-server/exports/golden-rules.json` (machine-readable, 9 rules + 7 advisory protocols + structural scoring + drift engine spec) and `go-server/exports/golden-rules.md` (human-readable). These lock RFC-correct zone health behavior: SPF/DMARC absence MUST be flagged for all non-Delegation zones (RFC 7208/7489), DANE/TLSA absence NEVER flagged, policy signals NEVER affect structural score.
 
+### SonarCloud Coverage Push (v26.27.10)
+Session focused on increasing test coverage across all Go packages. Subagents deployed in parallel to write coverage tests for handlers (35.7% baseline), dnsclient (63.2% → 80%+ target), middleware (79.7% → 85%+ target), and analyzer (61.9% → 70%+ target). Strategy: test exported helpers, struct construction, validation logic, error paths, and edge cases without requiring HTTP infrastructure. Golden rule tests remain locked at 9 functions / 15 sub-tests. Coverage targets: dnsclient 80%+, middleware 85%+, analyzer 70%+, handlers 50%+.
+
+### Coverage Session v26.27.09 (SonarCloud Push)
+Previous coverage push achieved: dnsclient 85.7% (target 80%+), middleware 85.7% (target 85%+), analyzer 65.2% (up from 61.9%), handlers 39.2% (up from 35.7%). Sub-agent test file cleanup required (duplicate function names, wrong field names, wrong signatures). `analyzer_options_test.go` written covering WithMaxConcurrent, BackpressureRejections, ConcurrentCapacity, GetCTCache, buildEmailAnswer branches, classifyEmailSpoofability, DKIMState methods.
+
 ### PWA Hardening (v26.27.07)
 Service worker upgraded: offline page with branding, network-first page caching, manifest shortcuts, Apple splash screens for 10 iOS device resolutions. Offline page serves branded DNS Tool content instead of generic browser error.
 
