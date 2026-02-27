@@ -100,14 +100,23 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Covert Environment Icons & Accent Gray Hierarchy", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "SonarCloud Deep Sweep — String Constants & Regex Hardening", Version: "v26.26.12", Date: roadmapDateFeb2026, Type: strQuality},
                 {Title: "SonarCloud Hotspot & Vulnerability Review — Full Audit Trail", Version: "v26.26.15", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "Zone Health — Context-Aware Policy & Security Signals", Version: "v26.27.07", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Zone Health Golden Rules (9 Tests, 15 Sub-Tests)", Version: "v26.27.07", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "Zone File Upload — Auth-Aware Size Limits (1 MB/2 MB)", Version: "v26.27.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Golden Rules Export (JSON + Markdown for External Audit)", Version: "v26.27.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "PWA Hardening (Offline Page, Page Cache, Splash Screens)", Version: "v26.27.07", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
         }
 
         inProgress := []RoadmapItem{
+                {Title: "Non-Authenticated Zone Upload (One-Time View)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Open zone upload to non-auth users with 1 MB limit, IP rate limiting, no persistence — funnel to signup"},
+                {Title: "SonarCloud Coverage Push (80%+ Target)", Type: strQuality, Priority: priorityHigh, Notes: "Systematic coverage improvement across handlers, analyzer, dnsclient, and middleware packages"},
                 {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Glass treatment, question branding, and token system across all report modes"},
                 {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
         }
 
         nextUp := []RoadmapItem{
+                {Title: "Paid Storage Tier (TLD Operators)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Account storage quotas for serious operators — free users get persistence, paid tier expands storage for large zone files and history retention"},
+                {Title: "Drift UI — Divergence Caveats", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Label drift results as divergence with caveats for known false-positive edges (CNAME flattening, DNSSEC records, resolver TTL caching)"},
                 {Title: "DoH/DoT Detection", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Test whether domains support DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) — encrypted transport posture analysis"},
                 {Title: "Distributed Probe Mesh (Good Net Citizens)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues"},
                 {Title: "API Access (Programmatic Analysis)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Programmatic analysis for automation workflows with rate limiting, authentication, versioning"},

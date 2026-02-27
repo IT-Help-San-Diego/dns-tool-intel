@@ -78,6 +78,20 @@ The symbiotic interface between human intelligence and machine intelligence will
 
 DNS Tool is one builder's attempt to demonstrate that this can be done. That you can apply intelligence-grade analytic discipline to a technical domain. That you can build systems that question their own confidence. That imperfection, acknowledged and compensated for, produces more trustworthy output than false certainty ever will.
 
+## Intel Breadcrumbs
+
+### Drift Terminology (Confirmed v26.27.08)
+"Drift" is the correct term for declared-vs-actual state divergence. Confirmed across NIST SP 800-128 (Security-Focused Configuration Management), Terraform, CloudFormation, Ansible, and all major IaC platforms. "Divergence" was considered but rejected — "drift" is the universal standard. The drift engine compares zone file declarations against live DNS resolution to detect configuration drift. Known false-positive edges: CNAME flattening (provider synthesizes A/AAAA from CNAME), DNSSEC-generated records (RRSIG/NSEC not in zone file), resolver TTL caching (observed TTL differs from declared). These must be labeled as caveats in the drift UI.
+
+### Zone File Size Limits (Confirmed v26.27.08)
+Research confirmed 99%+ of domains have zone files under 100 KB. Only ISP/operator-scale domains (10,000+ records) exceed 1 MB. Size limits: `maxZoneFileSizeUnauth` = 1 MB (non-authenticated, one-time view, no persistence), `maxZoneFileSizeAuth` = 2 MB (authenticated, with persistence and history). The 1 MB non-auth limit is scientifically defensible and serves as a conversion funnel: users see results, want to save them, sign up.
+
+### Golden Rules Export (v26.27.08)
+Golden rules exported in two formats for external audit and AI-assisted review: `go-server/exports/golden-rules.json` (machine-readable, 9 rules + 7 advisory protocols + structural scoring + drift engine spec) and `go-server/exports/golden-rules.md` (human-readable). These lock RFC-correct zone health behavior: SPF/DMARC absence MUST be flagged for all non-Delegation zones (RFC 7208/7489), DANE/TLSA absence NEVER flagged, policy signals NEVER affect structural score.
+
+### PWA Hardening (v26.27.07)
+Service worker upgraded: offline page with branding, network-first page caching, manifest shortcuts, Apple splash screens for 10 iOS device resolutions. Offline page serves branded DNS Tool content instead of generic browser error.
+
 ---
 
 *"Go out and gather as many different redundant sources of intelligence as you can, and then classify and analyze."*
