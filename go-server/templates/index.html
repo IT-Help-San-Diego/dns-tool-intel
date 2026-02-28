@@ -34,6 +34,7 @@
         "url": "https://dnstool.it-help.tech",
         "applicationCategory": "SecurityApplication",
         "operatingSystem": "Web Browser",
+        "softwareVersion": "{{.AppVersion}}",
         "audience": {
             "@type": "Audience",
             "audienceType": "IT Professionals, Security Researchers, Red Teams, Business Executives, DNS Administrators"
@@ -43,6 +44,64 @@
             "price": "0",
             "priceCurrency": "USD"
         },
+        "featureList": [
+            "SPF Analysis — RFC 7208 (Standards Track) — Sender Policy Framework validation with lookup counting, mechanism parsing, and +all/~all/-all policy evaluation",
+            "DKIM Analysis — RFC 6376 (Internet Standard) — DomainKeys Identified Mail key discovery, selector probing, key strength assessment (RSA 1024/2048/4096, Ed25519), l= tag vulnerability detection",
+            "DMARC Analysis — RFC 7489 (Informational) — Domain-based Message Authentication policy enforcement, aggregate reporting, subdomain inheritance per §6.6.3, DMARCbis readiness (np=, t=, psd= tag detection)",
+            "DANE/TLSA Analysis — RFC 6698 + RFC 7672 (Standards Track) — DNS-based Authentication of Named Entities for SMTP, TLSA record validation per certificate usage/selector/matching type, DNSSEC dependency verification",
+            "DNSSEC Analysis — RFC 4035 (Standards Track) — DNS Security Extensions chain validation, algorithm strength assessment (RSA/ECDSA/Ed25519), DS/DNSKEY record verification",
+            "MTA-STS Analysis — RFC 8461 (Standards Track) — Mail Transfer Agent Strict Transport Security policy retrieval and validation, mode enforcement (enforce/testing/none)",
+            "TLS-RPT Analysis — RFC 8460 (Standards Track) — SMTP TLS Reporting endpoint validation, DANE and MTA-STS failure reporting coverage",
+            "BIMI Analysis — draft-brand-indicators-for-message-identification — Brand Indicators for Message Identification, VMC certificate detection, DMARC p=quarantine+ prerequisite verification",
+            "CAA Analysis — RFC 8659 (Standards Track) — Certificate Authority Authorization with MPIC (Multi-Perspective Issuance Corroboration) context, issue/issuewild/iodef tag parsing",
+            "Multi-Resolver Consensus — Parallel queries to Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), OpenDNS (208.67.222.222), DNS4EU with majority-agreement verification",
+            "ICIE Intelligence Engine — Integrated Confidence in Ingested Evidence — central analysis engine processing all intelligence sources into scored findings",
+            "ICAE Confidence Audit — Intelligence Confidence Audit Engine — accuracy validation against golden fixtures and known-good reference data",
+            "ICuAE Currency Audit — Intelligence Currency Assurance Engine — temporal freshness verification ensuring analysis reflects current DNS state",
+            "Posture Drift Detection — Canonical hashing of DNS security configuration for change detection across time-series scans",
+            "Email Header Analyzer — RFC 5322 header parsing with authentication chain reconstruction, OpenPhish URL intelligence, spoofing indicator detection",
+            "IP Intelligence — ASN attribution via Team Cymru, PTR-based hosting detection, geolocation, abuse contact lookup",
+            "Subdomain Discovery — Multi-layer enumeration via Certificate Transparency logs and DNS intelligence with horizontal correlation",
+            "Email Security Management Detection — Automated identification of DMARC monitoring, SPF flattening, and TLS-RPT reporting service providers"
+        ],
+        "hasPart": [
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://dnstool.it-help.tech/#icie",
+                "name": "ICIE — Integrated Confidence in Ingested Evidence",
+                "description": "Central analysis engine that processes intelligence from 5 DNS resolvers, RDAP/WHOIS registries, IETF metadata, CISA threat feeds, and active probe fleet (SMTP, DANE, TLS) into RFC-cited security findings with confidence indicators.",
+                "applicationCategory": "SecurityApplication",
+                "url": "https://dnstool.it-help.tech/approach"
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://dnstool.it-help.tech/#icae",
+                "name": "ICAE — Intelligence Confidence Audit Engine",
+                "description": "Accuracy validation subsystem that audits ICIE analysis output against golden fixture reference data and known-good baselines to ensure finding correctness.",
+                "applicationCategory": "SecurityApplication",
+                "url": "https://dnstool.it-help.tech/confidence"
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://dnstool.it-help.tech/#icuae",
+                "name": "ICuAE — Intelligence Currency Assurance Engine",
+                "description": "Temporal freshness verification subsystem that validates analysis currency, ensuring findings reflect the current DNS state rather than stale cached data.",
+                "applicationCategory": "SecurityApplication",
+                "url": "https://dnstool.it-help.tech/confidence"
+            }
+        ],
+        "isBasedOn": [
+            {"@type": "CreativeWork", "name": "RFC 7208 — Sender Policy Framework (SPF)", "url": "https://datatracker.ietf.org/doc/html/rfc7208"},
+            {"@type": "CreativeWork", "name": "RFC 6376 — DomainKeys Identified Mail (DKIM)", "url": "https://datatracker.ietf.org/doc/html/rfc6376"},
+            {"@type": "CreativeWork", "name": "RFC 7489 — DMARC", "url": "https://datatracker.ietf.org/doc/html/rfc7489"},
+            {"@type": "CreativeWork", "name": "RFC 6698 — DANE/TLSA", "url": "https://datatracker.ietf.org/doc/html/rfc6698"},
+            {"@type": "CreativeWork", "name": "RFC 7672 — DANE for SMTP", "url": "https://datatracker.ietf.org/doc/html/rfc7672"},
+            {"@type": "CreativeWork", "name": "RFC 4035 — DNSSEC Protocol", "url": "https://datatracker.ietf.org/doc/html/rfc4035"},
+            {"@type": "CreativeWork", "name": "RFC 8461 — MTA-STS", "url": "https://datatracker.ietf.org/doc/html/rfc8461"},
+            {"@type": "CreativeWork", "name": "RFC 8460 — TLS-RPT", "url": "https://datatracker.ietf.org/doc/html/rfc8460"},
+            {"@type": "CreativeWork", "name": "RFC 8659 — CAA", "url": "https://datatracker.ietf.org/doc/html/rfc8659"},
+            {"@type": "CreativeWork", "name": "draft-ietf-dmarc-dmarcbis — DMARCbis", "url": "https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/"}
+        ],
         "author": {
             "@type": "Organization",
             "name": "IT Help San Diego Inc.",
@@ -60,7 +119,34 @@
             "@type": "SearchAction",
             "target": "https://dnstool.it-help.tech/analyze?domain={domain}",
             "query-input": "required name=domain"
-        }
+        },
+        "additionalProperty": [
+            {
+                "@type": "PropertyValue",
+                "name": "Intelligence Sources",
+                "value": "Cloudflare DNS (1.1.1.1), Google DNS (8.8.8.8), Quad9 (9.9.9.9), OpenDNS (208.67.222.222), DNS4EU, RDAP/WHOIS, Certificate Transparency, Team Cymru ASN, CISA KEV"
+            },
+            {
+                "@type": "PropertyValue",
+                "name": "Protocol Coverage",
+                "value": "9 protocol families: SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, MTA-STS, TLS-RPT, BIMI, CAA"
+            },
+            {
+                "@type": "PropertyValue",
+                "name": "Output Formats",
+                "value": "Engineer's DNS Intelligence Report, Executive's DNS Intelligence Brief, Covert Recon Report, Domain Comparison, JSON API, SVG Posture Badges, Schema.org Structured Data"
+            },
+            {
+                "@type": "PropertyValue",
+                "name": "Risk Classification",
+                "value": "CVSS-aligned 5-level scoring: Critical, High, Medium, Low, Informational"
+            },
+            {
+                "@type": "PropertyValue",
+                "name": "Security Vulnerability Coverage",
+                "value": "CVE-2024-7208 (multi-tenant SPF spoofing), CVE-2024-7209 (shared SPF exploitation), CVE-2024-49040 (Exchange sender spoofing), DKIM l= tag body length vulnerability, DKIM replay attacks, weak DKIM key cracking"
+            }
+        ]
     }
     </script>
     

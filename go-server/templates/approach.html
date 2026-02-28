@@ -19,6 +19,78 @@
     <meta name="twitter:description" content="DNS is the foundation of internet security. It deserves forensic scrutiny. We built an audit engine with five analytic perspectives. Here's why.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/approach">
+    <script type="application/ld+json" nonce="{{.CspNonce}}">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "DNS Tool Methodology — Five Perspectives, One Algorithm",
+        "description": "DNS Tool combines the intelligence officer, DNS engineer, hacker, executive, and field technician into a symbiotic security engine with cited findings, RFC provenance, and time-series verification.",
+        "url": "https://dnstool.it-help.tech/approach",
+        "mainEntityOfPage": "https://dnstool.it-help.tech/approach",
+        "datePublished": "2025-01-15",
+        "dateModified": "2026-02-28",
+        "image": "https://dnstool.it-help.tech/static/images/og-image.png",
+        "author": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://dnstool.it-help.tech/static/images/owl-of-athena.png"
+            }
+        },
+        "about": [
+            {
+                "@type": "Thing",
+                "name": "ICIE — Integrated Confidence in Ingested Evidence",
+                "description": "Central analysis engine processing DNS resolver data, RDAP registries, IETF metadata, CISA threat feeds, and active probe telemetry into RFC-cited security findings.",
+                "url": "https://dnstool.it-help.tech/approach"
+            },
+            {
+                "@type": "Thing",
+                "name": "ICAE — Intelligence Confidence Audit Engine",
+                "description": "Accuracy validation subsystem auditing analysis output against golden fixture reference data and known-good baselines.",
+                "url": "https://dnstool.it-help.tech/confidence"
+            },
+            {
+                "@type": "Thing",
+                "name": "ICuAE — Intelligence Currency Assurance Engine",
+                "description": "Temporal freshness verification ensuring findings reflect the current DNS state rather than stale cached data.",
+                "url": "https://dnstool.it-help.tech/confidence"
+            },
+            {
+                "@type": "Thing",
+                "name": "Multi-Resolver Consensus Verification",
+                "description": "Parallel DNS queries to Cloudflare, Google, Quad9, OpenDNS, and DNS4EU with majority-agreement verification to detect split-horizon DNS and resolver-specific anomalies."
+            },
+            {
+                "@type": "Thing",
+                "name": "Posture Drift Detection",
+                "description": "Canonical hashing of DNS security configuration enabling change detection across time-series scans and automated watchlist monitoring."
+            }
+        ],
+        "isBasedOn": [
+            {"@type": "CreativeWork", "name": "RFC 7208 — SPF", "url": "https://datatracker.ietf.org/doc/html/rfc7208"},
+            {"@type": "CreativeWork", "name": "RFC 6376 — DKIM", "url": "https://datatracker.ietf.org/doc/html/rfc6376"},
+            {"@type": "CreativeWork", "name": "RFC 7489 — DMARC", "url": "https://datatracker.ietf.org/doc/html/rfc7489"},
+            {"@type": "CreativeWork", "name": "RFC 4035 — DNSSEC", "url": "https://datatracker.ietf.org/doc/html/rfc4035"},
+            {"@type": "CreativeWork", "name": "RFC 6698 — DANE", "url": "https://datatracker.ietf.org/doc/html/rfc6698"},
+            {"@type": "CreativeWork", "name": "RFC 8461 — MTA-STS", "url": "https://datatracker.ietf.org/doc/html/rfc8461"},
+            {"@type": "CreativeWork", "name": "RFC 8460 — TLS-RPT", "url": "https://datatracker.ietf.org/doc/html/rfc8460"},
+            {"@type": "CreativeWork", "name": "RFC 8659 — CAA", "url": "https://datatracker.ietf.org/doc/html/rfc8659"}
+        ],
+        "isPartOf": {
+            "@type": "WebApplication",
+            "name": "DNS Tool",
+            "url": "https://dnstool.it-help.tech"
+        }
+    }
+    </script>
     <style nonce="{{.CspNonce}}">
         .approach-section {
             background: linear-gradient(145deg, #0c1018 0%, #111720 50%, #0e141c 100%);
