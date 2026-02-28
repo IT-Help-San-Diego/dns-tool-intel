@@ -4246,17 +4246,34 @@
                                     {{$dnsReason := mapGetStr "reason" $dnsVerdict}}
                                     {{$dnsLabel := mapGetStr "label" $dnsVerdict}}
                                     {{if $dnsAnswer}}
+                                        {{if .IsPublicSuffix}}
+                                        <span class="intel-verdict">
+                                            <span class="intel-verdict-answer verdict-{{if eq $dnsAnswer "No"}}success{{else if eq $dnsAnswer "Yes"}}danger{{else if eq $dnsAnswer "Possible"}}warning{{else}}secondary{{end}}">{{if eq $dnsAnswer "No"}}YES{{else if eq $dnsAnswer "Yes"}}NO{{else}}{{$dnsAnswer}}{{end}}</span>
+                                            {{if $dnsReason}}<span class="intel-verdict-reason">{{$dnsReason}}</span>{{end}}
+                                        </span>
+                                        {{else}}
                                         <span class="intel-verdict">
                                             <span class="intel-verdict-answer verdict-{{if eq $dnsAnswer "No"}}success{{else if eq $dnsAnswer "Yes"}}danger{{else if eq $dnsAnswer "Possible"}}warning{{else}}secondary{{end}}">{{$dnsAnswer}}</span>
                                             {{if $dnsReason}}<span class="intel-verdict-reason">{{$dnsReason}}</span>{{end}}
                                         </span>
+                                        {{end}}
                                     {{else}}
-                                        {{if eq $dnsLabel "Protected"}}
-                                            <span class="badge bg-success ms-2">No</span>
-                                        {{else if eq $dnsLabel "Exposed"}}
-                                            <span class="badge bg-danger ms-2">Yes</span>
+                                        {{if .IsPublicSuffix}}
+                                            {{if eq $dnsLabel "Protected"}}
+                                                <span class="badge bg-success ms-2">Yes</span>
+                                            {{else if eq $dnsLabel "Exposed"}}
+                                                <span class="badge bg-danger ms-2">No</span>
+                                            {{else}}
+                                                <span class="badge bg-secondary ms-2">Not Configured</span>
+                                            {{end}}
                                         {{else}}
-                                            <span class="badge bg-secondary ms-2">Not Configured</span>
+                                            {{if eq $dnsLabel "Protected"}}
+                                                <span class="badge bg-success ms-2">No</span>
+                                            {{else if eq $dnsLabel "Exposed"}}
+                                                <span class="badge bg-danger ms-2">Yes</span>
+                                            {{else}}
+                                                <span class="badge bg-secondary ms-2">Not Configured</span>
+                                            {{end}}
                                         {{end}}
                                     {{end}}
                                 {{end}}
