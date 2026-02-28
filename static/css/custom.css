@@ -1274,6 +1274,13 @@ main.container {
         max-width: calc(100vw - 90px);
         white-space: nowrap;
         font-size: 1rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .navbar-brand .nav-version-badge {
+        font-size: 0.55rem;
+        padding: 0.1rem 0.4rem;
     }
 
     .u-maintenance-tag {

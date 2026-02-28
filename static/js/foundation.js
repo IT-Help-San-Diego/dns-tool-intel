@@ -38,12 +38,25 @@
 
     document.addEventListener('click', function(e) {
         var trigger = e.target.closest('[data-bs-toggle="collapse"]');
-        if (!trigger) return;
-        e.preventDefault();
-        var selector = trigger.getAttribute('data-bs-target');
-        if (!selector) return;
-        var target = document.querySelector(selector);
-        toggleCollapse(target);
+        if (trigger) {
+            e.preventDefault();
+            var selector = trigger.getAttribute('data-bs-target');
+            if (!selector) return;
+            var target = document.querySelector(selector);
+            toggleCollapse(target);
+            return;
+        }
+        var navCollapse = document.getElementById('navbarNav');
+        if (navCollapse && navCollapse.classList.contains('show')) {
+            var insideNav = e.target.closest('#navbarNav');
+            if (!insideNav) {
+                toggleCollapse(navCollapse);
+                return;
+            }
+            if (e.target.closest('.nav-link:not(.dropdown-toggle)') || e.target.closest('.dropdown-item')) {
+                toggleCollapse(navCollapse);
+            }
+        }
     });
 
     /* ── Dropdown ── */
