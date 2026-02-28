@@ -70,6 +70,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262821 = "26.28.21"
         ver262820 = "26.28.20"
         ver262704 = "26.27.04"
         ver262703 = "26.27.03"
@@ -111,6 +112,14 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262821,
+                        Date:        dateFeb28,
+                        Category:    catTransparency,
+                        Title:       "IC Framing Defense — Addressing the Criticism",
+                        Description: "Expanded the Addressing the Criticism section on /approach with a dedicated IC framing defense. Directly addresses the 'cosplay' critique: ICD 203 applies because the problem matches (high-stakes decisions on incomplete data, $2.9B/year BEC). ICAE/ICuAE naming enforces subsystem separation between correctness and currency with IC-precise terminology. Hacker culture aesthetic defended via DEF CON argument — CVE authors and Easter egg finders are the same community. Scotopic vision science citations added (doi:10.1016/j.visres.2004.07.040, MIL-STD-3009). Anchor #addressing-the-criticism added. llms.txt and llms-full.txt updated with IC framing subsection. Marketing voice directive applied: removed comparative 'most tools' language.",
+                        Icon:        "fas fa-crosshairs",
+                },
                 {
                         Version:     ver262820,
                         Date:        dateFeb28,
