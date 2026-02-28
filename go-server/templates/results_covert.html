@@ -377,7 +377,7 @@
                                 {{if eq $dmarcPolicy "reject"}}
                                 <i class="fas fa-shield-alt me-1"></i>DMARC p=reject &mdash; hard enforcement. Spoofing will be rejected.
                                 {{else if eq $dmarcPolicy "quarantine"}}
-                                <i class="fas fa-exclamation-triangle me-1"></i>DMARC p=quarantine &mdash; some protection, but mail may still reach spam
+                                <i class="fas fa-exclamation-triangle me-1"></i>DMARC p=quarantine &mdash; authentication failures are sequestered, not rejected. Forensic telemetry is preserved (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain this posture as a deliberate monitoring strategy. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177</a>
                                 {{else if eq $dmarcPolicy "none"}}
                                 <i class="fas fa-bug me-1"></i>DMARC p=none &mdash; monitoring only, no enforcement. Spoofing is trivial.
                                 {{else}}
