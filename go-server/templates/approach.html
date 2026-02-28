@@ -10,13 +10,13 @@
     <meta property="og:url" content="https://dnstool.it-help.tech/approach">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Our Methodology - DNS Tool">
-    <meta property="og:description" content="DNS is the foundation of internet security. We built a forensic audit engine that examines it through five analytic perspectives. Here's why.">
+    <meta property="og:description" content="DNS is the foundation of internet security. It deserves forensic scrutiny. We built an audit engine with five analytic perspectives. Here's why.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/approach">
     <meta name="twitter:title" content="Our Methodology - DNS Tool">
-    <meta name="twitter:description" content="DNS is the foundation of internet security. We built a forensic audit engine that examines it through five analytic perspectives. Here's why.">
+    <meta name="twitter:description" content="DNS is the foundation of internet security. It deserves forensic scrutiny. We built an audit engine with five analytic perspectives. Here's why.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/approach">
     <style nonce="{{.CspNonce}}">
@@ -414,7 +414,7 @@
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
                                     <div class="approach-example-title"><i class="fas fa-landmark me-1"></i>The CISA Softfail Tension</div>
-                                    <p>CISA mandates <code>-all</code>. RFC 7208 permits <code>~all</code>. Most tools pick a side without telling you why. We surface the conflict with citations.</p>
+                                    <p>CISA guidance leans toward <code>-all</code>. RFC 7208 permits <code>~all</code>. We make that tension explicit and cite the basis for both.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -444,7 +444,7 @@
                         <h2><i class="fas fa-shield-alt"></i>Addressing the Criticism</h2>
                         <p>We've received feedback that this level of rigor is "too much" for a DNS checker. That applying time-series drift detection, Bayesian confidence calibration, and multi-probe verification to DNS records is excessive. That we're over-engineering.</p>
                         <p>We understand the reaction. When 99% of DNS checkers are simple scripts wrapped in marketing, anything that goes deeper looks like it's trying too hard. That's the <strong>heuristic trap</strong> &mdash; pattern-matching against a low bar and treating the outlier as suspicious rather than serious.</p>
-                        <p>But the criticism reveals the actual problem: <strong>most tools are under-engineered relative to what DNS security actually requires.</strong> Email security misconfiguration causes real, costly harm. A record can exist, pass a syntax check, and still be operationally dangerous. The problem was never too small for rigor. The industry just decided not to apply it.</p>
+                        <p>But the criticism reveals the actual problem: <strong>DNS security has historically been under-engineered relative to what it actually requires.</strong> Email security misconfiguration causes real, costly harm. A record can exist, pass a syntax check, and still be operationally dangerous. The problem was never too small for rigor. The industry just decided not to apply it.</p>
                         <p>Yes, you can use DNS Tool as a DNS checker &mdash; and it will give you accurate results. But we built it to go further: cited findings, epistemic provenance, and time-series verification for when a simple check isn't enough. It's a forensic audit engine for the protocol that underpins every email, every certificate, and every domain on the internet. If all you need today is a quick check, start there. The depth is here when you're ready for it.</p>
                         <p>And yes, there are Easter eggs. Hacker poems in the console. An adversarial red theme built on scotopic vision science. RFC 1392 nods in the source. These aren't decoration &mdash; they're signals to a specific subculture of security professionals who recognize the difference between aesthetic choices and engineering choices. Underneath the aesthetic: EWMA control charts with 3&sigma; control limits, Bayesian confidence calibration with Beta-Bernoulli conjugate priors, SHA-3-512 tamper-evident audit trails, structured JSON export, PWA offline support, and a drift engine that mathematically proves whether a record is stable. The surface is a toolkit. The core is a high-assurance engine.</p>
                     </div>
@@ -458,7 +458,7 @@
                         </div>
                         <div class="approach-example">
                             <div class="approach-example-title"><i class="fas fa-landmark me-1"></i>The CISA Softfail Tension</div>
-                            <p>CISA's binding operational directive tells federal agencies to enforce <code>-all</code> in SPF. RFC 7208 defines <code>~all</code> as a valid softfail. Operational reality falls somewhere between &mdash; aggressive enforcement breaks legitimate mail flows. Most tools pick a side without telling you why. We surface the conflict, cite both the directive and the RFC, and let the engineer make the decision with full context.</p>
+                            <p>CISA's BOD 18-01 requires valid SPF and uses <code>v=spf1 -all</code> for non-sending domains. RFC 7208 permits <code>~all</code> as softfail and leaves disposition to local policy. Stricter enforcement requires confidence that legitimate senders are fully accounted for. We surface that tension, cite both sources, and let the engineer decide with full context.</p>
                         </div>
                         <div class="approach-example">
                             <div class="approach-example-title"><i class="fas fa-wave-square me-1"></i>Snapshot vs. Stability</div>
@@ -466,7 +466,7 @@
                         </div>
                         <div class="approach-example">
                             <div class="approach-example-title"><i class="fas fa-clock me-1"></i>TTL Is an Operational Decision, Not a Default</div>
-                            <p>Most tools ignore TTL entirely. But a record set to <code>300</code> seconds (5 minutes) when the zone is stable means thousands of unnecessary upstream queries per hour &mdash; increased cost, increased attack surface, increased latency. A TTL of <code>3600</code> for a stable record reduces resolver load and improves cache efficiency (RFC 1035 &sect;3.2.1). Conversely, during a migration or incident response, a low TTL is essential for rapid propagation. The right TTL depends on context &mdash; and most scanners don't tell you that. We do.</p>
+                            <p>TTL is rarely examined in DNS audits. But a record set to <code>300</code> seconds (5 minutes) when the zone is stable means thousands of unnecessary upstream queries per hour &mdash; increased cost, increased attack surface, increased latency. A TTL of <code>3600</code> for a stable record reduces resolver load and improves cache efficiency (RFC 1035 &sect;3.2.1). Conversely, during a migration or incident response, a low TTL is essential for rapid propagation. The right TTL depends on context, and we surface that context with specific recommendations.</p>
                         </div>
                     </div>
 

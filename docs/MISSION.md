@@ -66,7 +66,7 @@ Faulty, incompetent humans were the ones who first programmed the computer — s
 
 That is the actual problem: not artificial intelligence, but artificial confidence — the human tendency to assert certainty without verifiable foundations.
 
-DNS Tool exists because its founder chose to go back to the foundations. To take real analytic tradecraft — the kind formalized across the U.S. Intelligence Community — and apply it symbiotically to a technical domain where most tools just assert answers without questioning their own assumptions. ODNI ICD 203 analytic standards. Multi-source collection. Independent verifiability. Confidence taxonomy. These are not decorative — they are the structural response to the metacognitive problem.
+DNS Tool exists because its founder chose to go back to the foundations. To take real analytic tradecraft — the kind formalized across the U.S. Intelligence Community — and apply it to a technical domain where we don't want to assert answers without questioning our own assumptions. ODNI ICD 203 analytic standards. Multi-source collection. Independent verifiability. Confidence taxonomy. These are not decorative — they are the structural response to the metacognitive problem.
 
 **Think about your thinking.** That is the core discipline. Not just "think differently" — think about *how* you think. Put yourself deliberately into a metacognitive state. Question the assumptions underneath the assumptions. Accept imperfection as input, then build systems that compensate for it through redundancy, cross-referencing, and transparent confidence scoring.
 
