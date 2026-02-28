@@ -434,6 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roeDeclineBtn) {
         roeDeclineBtn.addEventListener('click', function() {
             if (roeModal) { roeModal.hide(); }
+            window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
         });
     }
     const covertBtn = document.getElementById('covertToggle');
