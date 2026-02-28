@@ -10,9 +10,9 @@
             position: relative;
             width: 100%;
             height: calc(100vh - 80px);
-            min-height: 600px;
+            min-height: 700px;
             overflow: hidden;
-            background: #0a0c10;
+            background: #070a0f;
             border-radius: 8px;
         }
         .topo-canvas-wrap canvas {
@@ -24,39 +24,60 @@
             position: absolute;
             bottom: 16px;
             left: 16px;
-            background: rgba(10, 12, 16, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(7, 10, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 6px;
             padding: 12px 16px;
-            font-size: 0.75rem;
-            color: #8892a4;
+            font-size: 0.7rem;
+            color: #6b7a8d;
             backdrop-filter: blur(8px);
+            max-width: 220px;
+        }
+        .topo-legend-section {
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .topo-legend-section:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .topo-legend-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a5568;
+            margin-bottom: 4px;
         }
         .topo-legend-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            line-height: 1.3;
         }
         .topo-legend-item:last-child { margin-bottom: 0; }
         .topo-legend-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .topo-legend-rect {
+            width: 10px;
+            height: 6px;
+            border-radius: 2px;
             flex-shrink: 0;
         }
         .topo-title-overlay {
             position: absolute;
             top: 16px;
             left: 16px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
         }
         .topo-title-overlay strong {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
             display: block;
             letter-spacing: 0.05em;
         }
@@ -69,19 +90,26 @@
             <div class="topo-canvas-wrap" id="topoWrap">
                 <canvas id="topoCanvas"></canvas>
                 <div class="topo-title-overlay">
-                    <strong>Protocol Topology</strong>
-                    DNS Security Dependency Graph
+                    <strong>Intelligence Topology</strong>
+                    DNS Security Pipeline &amp; Dependency Graph
                 </div>
                 <div class="topo-legend">
-                    <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#4fc3f7"></span> Email Authentication</div>
-                    <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#81c784"></span> Transport Security</div>
-                    <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#ffb74d"></span> Policy &amp; Trust</div>
-                    <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#ce93d8"></span> Brand Verification</div>
-                    <div class="topo-legend-item" style="margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
-                        <span style="color: rgba(255,255,255,0.35);">&#8594;</span> Hard dependency
+                    <div class="topo-legend-section">
+                        <div class="topo-legend-label">Intelligence Sources</div>
+                        <div class="topo-legend-item"><span class="topo-legend-rect" style="background:#5c6bc0"></span> DNS Infrastructure</div>
+                        <div class="topo-legend-item"><span class="topo-legend-rect" style="background:#78909c"></span> External Intelligence</div>
                     </div>
-                    <div class="topo-legend-item">
-                        <span style="color: rgba(255,255,255,0.2);">&#8674;</span> Alignment / reporting
+                    <div class="topo-legend-section">
+                        <div class="topo-legend-label">Protocol Analysis</div>
+                        <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#4fc3f7"></span> Email Authentication</div>
+                        <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#81c784"></span> Transport Security</div>
+                        <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#ffb74d"></span> Policy &amp; Trust</div>
+                        <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#ce93d8"></span> Brand Verification</div>
+                    </div>
+                    <div class="topo-legend-section">
+                        <div class="topo-legend-label">Data Flow</div>
+                        <div class="topo-legend-item"><span style="color:rgba(255,255,255,0.3);">&#9472;&#9472;&#9654;</span> Query / response</div>
+                        <div class="topo-legend-item"><span style="color:rgba(255,255,255,0.2);">&#9476;&#9476;&#9655;</span> Dependency</div>
                     </div>
                 </div>
             </div>
@@ -107,65 +135,141 @@
             canvas.width = W * dpr;
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            positionNodes();
+            layoutAll();
         }
 
-        var CATEGORIES = {
+        var COLORS = {
             email: '#4fc3f7',
             transport: '#81c784',
             policy: '#ffb74d',
-            brand: '#ce93d8'
+            brand: '#ce93d8',
+            source: '#5c6bc0',
+            intel: '#78909c',
+            engine: '#e0e0e0'
         };
 
-        var PROTOCOLS = [
-            { id: 'spf',     label: 'SPF',      rfc: '7208',  cat: 'email',     ring: 1, angle: -90 },
-            { id: 'dkim',    label: 'DKIM',     rfc: '6376',  cat: 'email',     ring: 1, angle: -30 },
-            { id: 'dmarc',   label: 'DMARC',    rfc: '7489',  cat: 'email',     ring: 0, angle: -60 },
-            { id: 'dnssec',  label: 'DNSSEC',   rfc: '4035',  cat: 'policy',    ring: 1, angle: 150 },
-            { id: 'dane',    label: 'DANE',     rfc: '6698',  cat: 'transport', ring: 1, angle: 210 },
-            { id: 'mtasts',  label: 'MTA-STS',  rfc: '8461',  cat: 'transport', ring: 1, angle: 30 },
-            { id: 'tlsrpt',  label: 'TLS-RPT',  rfc: '8460',  cat: 'transport', ring: 2, angle: 60 },
-            { id: 'bimi',    label: 'BIMI',     rfc: '8617',  cat: 'brand',     ring: 2, angle: -120 },
-            { id: 'caa',     label: 'CAA',      rfc: '8659',  cat: 'policy',    ring: 2, angle: 180 }
+        function hexToRgba(hex, a) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+        }
+
+        var SOURCES = [
+            { id: 'resolvers', label: 'DNS Resolvers',   sub: 'Cloudflare · Google · Quad9\nOpenDNS · DNS4EU', color: COLORS.source, zone: 'source' },
+            { id: 'root',      label: 'Root / TLD',      sub: 'IANA Root Zone\nTLD Registries',                  color: COLORS.source, zone: 'source' },
+            { id: 'rdap',      label: 'RDAP / WHOIS',    sub: 'Registration Data\nAccess Protocol',              color: COLORS.intel,  zone: 'source' },
+            { id: 'ietf',      label: 'IETF Metadata',   sub: 'RFC Status · Errata\nDraft Tracker',              color: COLORS.intel,  zone: 'source' },
+            { id: 'cisa',      label: 'CISA / Threat',   sub: 'Known Exploited\nVulnerabilities',                color: COLORS.intel,  zone: 'source' },
+            { id: 'probes',    label: 'Probe Fleet',     sub: 'SMTP · DANE · TLS\nNmap · testssl.sh',            color: COLORS.source, zone: 'source' }
         ];
 
-        var EDGES = [
+        var ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 40, _initialized: false };
+
+        var CONFIDENCE = [
+            { id: 'icae', label: 'ICAE', sub: 'Accuracy Audit',  color: '#ef9a9a', zone: 'confidence' },
+            { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit', color: '#a5d6a7', zone: 'confidence' }
+        ];
+
+        var PROTOCOLS = [
+            { id: 'spf',     label: 'SPF',      rfc: '7208',  cat: 'email' },
+            { id: 'dkim',    label: 'DKIM',      rfc: '6376',  cat: 'email' },
+            { id: 'dmarc',   label: 'DMARC',     rfc: '7489',  cat: 'email' },
+            { id: 'dnssec',  label: 'DNSSEC',    rfc: '4035',  cat: 'policy' },
+            { id: 'dane',    label: 'DANE',      rfc: '6698',  cat: 'transport' },
+            { id: 'mtasts',  label: 'MTA-STS',   rfc: '8461',  cat: 'transport' },
+            { id: 'tlsrpt',  label: 'TLS-RPT',   rfc: '8460',  cat: 'transport' },
+            { id: 'bimi',    label: 'BIMI',      rfc: 'draft', cat: 'brand' },
+            { id: 'caa',     label: 'CAA',       rfc: '8659',  cat: 'policy' }
+        ];
+
+        var PROTO_EDGES = [
             { from: 'dmarc', to: 'spf',    type: 'hard',  label: 'alignment' },
             { from: 'dmarc', to: 'dkim',   type: 'hard',  label: 'alignment' },
             { from: 'dane',  to: 'dnssec', type: 'hard',  label: 'requires' },
             { from: 'bimi',  to: 'dmarc',  type: 'hard',  label: 'requires p=quarantine+' },
             { from: 'tlsrpt', to: 'mtasts', type: 'soft', label: 'reports on' },
             { from: 'tlsrpt', to: 'dane',  type: 'soft',  label: 'reports on' },
-            { from: 'mtasts', to: 'spf',   type: 'soft',  label: 'MX reference' },
             { from: 'caa',   to: 'dnssec', type: 'soft',  label: 'strengthened by' }
         ];
 
-        var nodeMap = {};
-        PROTOCOLS.forEach(function(p) {
-            p.x = 0; p.y = 0; p.vx = 0; p.vy = 0;
-            p.radius = p.ring === 0 ? 32 : (p.ring === 1 ? 26 : 22);
-            p.color = CATEGORIES[p.cat];
-            nodeMap[p.id] = p;
+        var allNodes = {};
+
+        SOURCES.forEach(function(s) {
+            s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
+            s.radius = 28; s._initialized = false;
+            s.shape = 'rect';
+            allNodes[s.id] = s;
         });
 
-        function positionNodes() {
-            var cx = W / 2;
-            var cy = H / 2;
-            var baseRadius = Math.min(W, H) * 0.3;
-            PROTOCOLS.forEach(function(p) {
-                var r = p.ring === 0 ? 0 : baseRadius * (p.ring === 1 ? 0.65 : 1.05);
-                var a = p.angle * Math.PI / 180;
-                p.targetX = cx + r * Math.cos(a);
-                p.targetY = cy + r * Math.sin(a);
-                if (!p._initialized) {
-                    p.x = p.targetX + (Math.random() - 0.5) * 40;
-                    p.y = p.targetY + (Math.random() - 0.5) * 40;
-                    p._initialized = true;
-                }
+        CONFIDENCE.forEach(function(c) {
+            c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
+            c.radius = 22; c._initialized = false;
+            c.shape = 'diamond';
+            allNodes[c.id] = c;
+        });
+
+        allNodes[ENGINE.id] = ENGINE;
+
+        PROTOCOLS.forEach(function(p) {
+            p.x = 0; p.y = 0; p.targetX = 0; p.targetY = 0;
+            p.radius = 30;
+            p.color = COLORS[p.cat];
+            p.shape = 'circle';
+            p._initialized = false;
+            p.zone = 'protocol';
+            allNodes[p.id] = p;
+        });
+
+        var FLOW_EDGES = [];
+        SOURCES.forEach(function(s) {
+            FLOW_EDGES.push({ from: s.id, to: 'engine', type: 'flow', label: '' });
+        });
+        FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
+        PROTOCOLS.forEach(function(p) {
+            FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
+        });
+
+        function layoutAll() {
+            var cx = W * 0.48;
+            var cy = H * 0.48;
+
+            var srcX = W * 0.1;
+            var srcStartY = H * 0.12;
+            var srcSpacing = (H * 0.76) / (SOURCES.length - 1);
+            SOURCES.forEach(function(s, i) {
+                s.targetX = srcX + (i % 2 === 0 ? 0 : W * 0.04);
+                s.targetY = srcStartY + i * srcSpacing;
+                if (!s._initialized) { s.x = s.targetX - 30; s.y = s.targetY; s._initialized = true; }
+            });
+
+            ENGINE.targetX = cx;
+            ENGINE.targetY = cy;
+            if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
+
+            CONFIDENCE[0].targetX = cx - 50;
+            CONFIDENCE[0].targetY = cy + H * 0.22;
+            CONFIDENCE[1].targetX = cx + 50;
+            CONFIDENCE[1].targetY = cy + H * 0.22;
+            CONFIDENCE.forEach(function(c) {
+                if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
+            });
+
+            var protoX = W * 0.78;
+            var protoCx = protoX;
+            var protoCy = cy;
+            var protoR = Math.min(W * 0.18, H * 0.32);
+            var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
+            PROTOCOLS.forEach(function(p, i) {
+                var a = protoAngles[i] * Math.PI / 180;
+                p.targetX = protoCx + protoR * Math.cos(a);
+                p.targetY = protoCy + protoR * Math.sin(a);
+                if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
         }
 
-        var AMBIENT_COUNT = 80;
+        var AMBIENT_COUNT = 60;
         var ambientParticles = [];
         function initAmbient() {
             ambientParticles = [];
@@ -173,26 +277,37 @@
                 ambientParticles.push({
                     x: Math.random() * (W || 1200),
                     y: Math.random() * (H || 700),
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3 + 0.05,
-                    size: Math.random() * 1.5 + 0.5,
-                    alpha: Math.random() * 0.3 + 0.05
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: (Math.random() - 0.5) * 0.15 + 0.03,
+                    size: Math.random() * 1.2 + 0.3,
+                    alpha: Math.random() * 0.15 + 0.03
                 });
             }
         }
 
-        var edgeParticles = [];
-        var EDGE_PARTICLE_COUNT = 3;
-        function initEdgeParticles() {
-            edgeParticles = [];
-            EDGES.forEach(function(e) {
-                for (var i = 0; i < EDGE_PARTICLE_COUNT; i++) {
-                    edgeParticles.push({
+        var flowParticles = [];
+        function initFlowParticles() {
+            flowParticles = [];
+            FLOW_EDGES.forEach(function(e) {
+                var count = e.from === 'engine' && allNodes[e.to] && allNodes[e.to].zone === 'protocol' ? 2 : 3;
+                for (var i = 0; i < count; i++) {
+                    flowParticles.push({
                         edge: e,
                         t: Math.random(),
-                        speed: 0.002 + Math.random() * 0.003,
-                        size: e.type === 'hard' ? 2.5 : 1.8,
-                        alpha: e.type === 'hard' ? 0.7 : 0.4
+                        speed: 0.0015 + Math.random() * 0.003,
+                        size: 2,
+                        alpha: 0.5
+                    });
+                }
+            });
+            PROTO_EDGES.forEach(function(e) {
+                for (var i = 0; i < 2; i++) {
+                    flowParticles.push({
+                        edge: e,
+                        t: Math.random(),
+                        speed: 0.002 + Math.random() * 0.002,
+                        size: 1.8,
+                        alpha: 0.4
                     });
                 }
             });
@@ -201,20 +316,23 @@
         var hoverNode = null;
         var mouseX = -1, mouseY = -1;
 
+        function hitTest(mx, my) {
+            var allArr = SOURCES.concat(CONFIDENCE, PROTOCOLS, [ENGINE]);
+            for (var i = 0; i < allArr.length; i++) {
+                var n = allArr[i];
+                var dx = mx - n.x;
+                var dy = my - n.y;
+                var hr = n.radius + 10;
+                if (dx * dx + dy * dy < hr * hr) return n;
+            }
+            return null;
+        }
+
         canvas.addEventListener('mousemove', function(ev) {
             var rect = canvas.getBoundingClientRect();
             mouseX = ev.clientX - rect.left;
             mouseY = ev.clientY - rect.top;
-            hoverNode = null;
-            for (var i = 0; i < PROTOCOLS.length; i++) {
-                var p = PROTOCOLS[i];
-                var dx = mouseX - p.x;
-                var dy = mouseY - p.y;
-                if (dx * dx + dy * dy < (p.radius + 8) * (p.radius + 8)) {
-                    hoverNode = p;
-                    break;
-                }
-            }
+            hoverNode = hitTest(mouseX, mouseY);
             canvas.style.cursor = hoverNode ? 'pointer' : 'default';
         });
 
@@ -227,14 +345,12 @@
 
         function update() {
             time += 0.016;
-
-            PROTOCOLS.forEach(function(p) {
-                var breathX = Math.sin(time * 0.4 + p.angle * 0.1) * 3;
-                var breathY = Math.cos(time * 0.3 + p.angle * 0.15) * 2;
-                var tx = p.targetX + breathX;
-                var ty = p.targetY + breathY;
-                p.x += (tx - p.x) * 0.03;
-                p.y += (ty - p.y) * 0.03;
+            var allArr = SOURCES.concat(CONFIDENCE, PROTOCOLS, [ENGINE]);
+            allArr.forEach(function(n) {
+                var bx = Math.sin(time * 0.3 + (n.targetX * 0.01)) * 2;
+                var by = Math.cos(time * 0.25 + (n.targetY * 0.01)) * 1.5;
+                n.x += (n.targetX + bx - n.x) * 0.04;
+                n.y += (n.targetY + by - n.y) * 0.04;
             });
 
             ambientParticles.forEach(function(ap) {
@@ -246,81 +362,212 @@
                 if (ap.y > H) ap.y = 0;
             });
 
-            edgeParticles.forEach(function(ep) {
-                ep.t += ep.speed;
-                if (ep.t > 1) ep.t -= 1;
+            flowParticles.forEach(function(fp) {
+                fp.t += fp.speed;
+                if (fp.t > 1) fp.t -= 1;
             });
         }
 
-        function drawEdge(e) {
-            var from = nodeMap[e.from];
-            var to = nodeMap[e.to];
+        function isNodeInEdge(nodeId, edge) {
+            return edge.from === nodeId || edge.to === nodeId;
+        }
+
+        function getConnectedNodeIds(nodeId) {
+            var ids = {};
+            FLOW_EDGES.concat(PROTO_EDGES).forEach(function(e) {
+                if (e.from === nodeId) ids[e.to] = true;
+                if (e.to === nodeId) ids[e.from] = true;
+            });
+            return ids;
+        }
+
+        function drawFlowEdge(e) {
+            var from = allNodes[e.from];
+            var to = allNodes[e.to];
             if (!from || !to) return;
 
             var isHighlight = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
-            var alpha = isHighlight ? 0.5 : (e.type === 'hard' ? 0.2 : 0.08);
+            var alpha;
+            if (e.type === 'flow') {
+                alpha = isHighlight ? 0.25 : 0.06;
+            } else {
+                alpha = isHighlight ? 0.4 : (e.type === 'hard' ? 0.15 : 0.06);
+            }
 
             ctx.beginPath();
             ctx.moveTo(from.x, from.y);
             ctx.lineTo(to.x, to.y);
             ctx.strokeStyle = 'rgba(255, 255, 255, ' + alpha + ')';
-            ctx.lineWidth = e.type === 'hard' ? 1.5 : 1;
             if (e.type === 'soft') {
-                ctx.setLineDash([4, 6]);
+                ctx.setLineDash([3, 5]);
+                ctx.lineWidth = 0.8;
+            } else if (e.type === 'flow') {
+                ctx.setLineDash([2, 4]);
+                ctx.lineWidth = 0.6;
             } else {
                 ctx.setLineDash([]);
+                ctx.lineWidth = 1.2;
             }
             ctx.stroke();
             ctx.setLineDash([]);
 
-            if (isHighlight) {
+            if (isHighlight && e.label) {
                 var mx = (from.x + to.x) / 2;
                 var my = (from.y + to.y) / 2;
-                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 ctx.textAlign = 'center';
-                ctx.fillText(e.label, mx, my - 6);
+                ctx.fillText(e.label, mx, my - 5);
             }
         }
 
-        function drawNode(p) {
-            var isHover = hoverNode && hoverNode.id === p.id;
-            var isConnected = false;
-            if (hoverNode && !isHover) {
-                for (var i = 0; i < EDGES.length; i++) {
-                    var e = EDGES[i];
-                    if ((e.from === hoverNode.id && e.to === p.id) ||
-                        (e.to === hoverNode.id && e.from === p.id)) {
-                        isConnected = true;
-                        break;
-                    }
-                }
-            }
-
-            var r = p.radius;
+        function drawSourceNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[n.id];
             var dimmed = hoverNode && !isHover && !isConnected;
 
-            var glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, r * 2.5);
-            glow.addColorStop(0, p.color + (dimmed ? '08' : (isHover ? '30' : '15')));
-            glow.addColorStop(1, p.color + '00');
+            var w = n.radius * 2.6;
+            var h = n.radius * 1.6;
+            var r = 4;
+
             ctx.beginPath();
-            ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+            ctx.moveTo(n.x - w/2 + r, n.y - h/2);
+            ctx.lineTo(n.x + w/2 - r, n.y - h/2);
+            ctx.quadraticCurveTo(n.x + w/2, n.y - h/2, n.x + w/2, n.y - h/2 + r);
+            ctx.lineTo(n.x + w/2, n.y + h/2 - r);
+            ctx.quadraticCurveTo(n.x + w/2, n.y + h/2, n.x + w/2 - r, n.y + h/2);
+            ctx.lineTo(n.x - w/2 + r, n.y + h/2);
+            ctx.quadraticCurveTo(n.x - w/2, n.y + h/2, n.x - w/2, n.y + h/2 - r);
+            ctx.lineTo(n.x - w/2, n.y - h/2 + r);
+            ctx.quadraticCurveTo(n.x - w/2, n.y - h/2, n.x - w/2 + r, n.y - h/2);
+            ctx.closePath();
+
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            ctx.font = (isHover ? 'bold ' : '') + '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.7)');
+            ctx.fillText(n.label, n.x, n.y - (isHover ? 5 : 0));
+
+            if (isHover && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                lines.forEach(function(line, i) {
+                    ctx.fillText(line, n.x, n.y + 8 + i * 10);
+                });
+            }
+        }
+
+        function drawEngineNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var dimmed = hoverNode && !isHover;
+
+            var pulseR = n.radius + Math.sin(time * 1.5) * 3;
+
+            var glow = ctx.createRadialGradient(n.x, n.y, pulseR * 0.2, n.x, n.y, pulseR * 3);
+            glow.addColorStop(0, hexToRgba(n.color, dimmed ? 0.03 : (isHover ? 0.15 : 0.08)));
+            glow.addColorStop(1, hexToRgba(n.color, 0));
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR * 3, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.05 : (isHover ? 0.2 : 0.1));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.15 : (isHover ? 0.8 : 0.4));
+            ctx.lineWidth = isHover ? 2 : 1.2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR * 0.55, 0, Math.PI * 2);
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.06 : 0.15);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            ctx.fillText(n.label, n.x, n.y - (isHover ? 6 : 0));
+
+            if (isHover) {
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillText(n.sub, n.x, n.y + 12);
+            }
+        }
+
+        function drawConfidenceNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[n.id];
+            var dimmed = hoverNode && !isHover && !isConnected;
+
+            var r = n.radius;
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.rotate(Math.PI / 4);
+            ctx.beginPath();
+            var s = r * 0.8;
+            ctx.rect(-s, -s, s * 2, s * 2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.35));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.font = (isHover ? 'bold ' : '') + '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
+            ctx.fillText(n.label, n.x, n.y - (isHover ? 5 : 0));
+
+            if (isHover) {
+                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.fillText(n.sub, n.x, n.y + 10);
+            }
+        }
+
+        function drawProtocolNode(p) {
+            var isHover = hoverNode && hoverNode.id === p.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[p.id];
+            var dimmed = hoverNode && !isHover && !isConnected;
+
+            var r = p.radius;
+
+            var glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, r * 2.2);
+            glow.addColorStop(0, hexToRgba(p.color, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
+            glow.addColorStop(1, hexToRgba(p.color, 0));
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * 2.2, 0, Math.PI * 2);
             ctx.fillStyle = glow;
             ctx.fill();
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            var nodeAlpha = dimmed ? 0.15 : (isHover ? 0.35 : 0.2);
-            ctx.fillStyle = p.color + (dimmed ? '12' : (isHover ? '28' : '18'));
+            ctx.fillStyle = hexToRgba(p.color, dimmed ? 0.05 : (isHover ? 0.22 : 0.1));
             ctx.fill();
-            ctx.strokeStyle = p.color + (dimmed ? '30' : (isHover ? 'cc' : '80'));
+            ctx.strokeStyle = hexToRgba(p.color, dimmed ? 0.12 : (isHover ? 0.85 : 0.45));
             ctx.lineWidth = isHover ? 2 : 1;
             ctx.stroke();
 
-            ctx.font = (isHover ? 'bold ' : '') + (p.ring === 0 ? '13px' : '11px') + ' -apple-system, BlinkMacSystemFont, sans-serif';
+            var fontSize = p.label.length > 5 ? 10 : 12;
+            ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
             ctx.fillText(p.label, p.x, p.y - (isHover ? 6 : 0));
 
             if (isHover) {
@@ -339,43 +586,20 @@
             });
         }
 
-        function drawEdgeParticles() {
-            edgeParticles.forEach(function(ep) {
-                var from = nodeMap[ep.edge.from];
-                var to = nodeMap[ep.edge.to];
+        function drawFlowParticles() {
+            flowParticles.forEach(function(fp) {
+                var from = allNodes[fp.edge.from];
+                var to = allNodes[fp.edge.to];
                 if (!from || !to) return;
-                var x = from.x + (to.x - from.x) * ep.t;
-                var y = from.y + (to.y - from.y) * ep.t;
-                var isHighlight = hoverNode && (hoverNode.id === ep.edge.from || hoverNode.id === ep.edge.to);
-                var alpha = isHighlight ? ep.alpha * 1.5 : ep.alpha;
-                var color = nodeMap[ep.edge.from].color;
+                var x = from.x + (to.x - from.x) * fp.t;
+                var y = from.y + (to.y - from.y) * fp.t;
+                var isHighlight = hoverNode && (hoverNode.id === fp.edge.from || hoverNode.id === fp.edge.to);
+                var alpha = isHighlight ? fp.alpha * 1.8 : fp.alpha * 0.6;
+                var color = from.color || COLORS.engine;
                 ctx.beginPath();
-                ctx.arc(x, y, ep.size, 0, Math.PI * 2);
-                ctx.fillStyle = color.replace(')', ', ' + alpha + ')').replace('rgb', 'rgba');
-
-                var hex = color;
-                var rr = parseInt(hex.slice(1, 3), 16);
-                var gg = parseInt(hex.slice(3, 5), 16);
-                var bb = parseInt(hex.slice(5, 7), 16);
-                ctx.fillStyle = 'rgba(' + rr + ',' + gg + ',' + bb + ',' + alpha + ')';
+                ctx.arc(x, y, fp.size * (isHighlight ? 1.3 : 1), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(color, alpha);
                 ctx.fill();
-            });
-        }
-
-        function drawConnectionLines() {
-            if (mouseX < 0) return;
-            ambientParticles.forEach(function(ap) {
-                var dx = ap.x - mouseX;
-                var dy = ap.y - mouseY;
-                var dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 120) {
-                    ctx.beginPath();
-                    ctx.moveTo(ap.x, ap.y);
-                    ctx.lineTo(mouseX, mouseY);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, ' + (0.06 * (1 - dist / 120)) + ')';
-                    ctx.lineWidth = 0.5;
-                    ctx.stroke();
-                }
             });
         }
 
@@ -383,13 +607,16 @@
             ctx.clearRect(0, 0, W, H);
 
             drawAmbient();
-            drawConnectionLines();
 
-            EDGES.forEach(function(e) { drawEdge(e); });
+            FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
+            PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
 
-            drawEdgeParticles();
+            drawFlowParticles();
 
-            PROTOCOLS.forEach(function(p) { drawNode(p); });
+            SOURCES.forEach(function(s) { drawSourceNode(s); });
+            CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
+            PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
+            drawEngineNode(ENGINE);
         }
 
         function loop() {
@@ -400,7 +627,7 @@
 
         resize();
         initAmbient();
-        initEdgeParticles();
+        initFlowParticles();
         window.addEventListener('resize', function() {
             resize();
             initAmbient();
