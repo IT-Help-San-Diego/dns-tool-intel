@@ -70,6 +70,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262823 = "26.28.23"
         ver262822 = "26.28.22"
         ver262821 = "26.28.21"
         ver262820 = "26.28.20"
@@ -113,6 +114,22 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262823,
+                        Date:        dateFeb28,
+                        Category:    catTransparency,
+                        Title:       "Privacy Banner — Straight Talk About Your Data",
+                        Description: "Added a fixed-position privacy banner that appears once on first visit regardless of entry page. Lists the exact two cookies used (_csrf for security, _dns_session only if you sign in), explains IP logging for rate limiting and security, and geo checks for DNS analysis accuracy. States plainly: no tracking cookies, no analytics cookies, no ad networks, no data brokers. Links to open source code for verification and Privacy Pledge for full details. Mentions future one-click account delete. Banner is permanently dismissed via localStorage on acknowledgment, compatible with fetch-based navigation, and accessible (role=region, aria-label). Covert mode compatible with red spectrum overrides.",
+                        Icon:        "fas fa-shield-halved",
+                },
+                {
+                        Version:     ver262823,
+                        Date:        dateFeb28,
+                        Category:    catIntelligence,
+                        Title:       "DMARC Quarantine Monitoring Posture Note",
+                        Description: "Added a contextual note to the DMARC RFC & Security Context panel when p=quarantine is detected. Notes that quarantine sequesters authentication failures while preserving full DMARC forensic telemetry (RFC 7489 §7), and that some organizations maintain quarantine rather than reject as a deliberate monitoring strategy. Cites NIST SP 800-177 Rev. 1 for enforcement tradeoffs. Appears universally for all domains with p=quarantine — no special treatment based on domain owner. Applied to both Engineer's Report and Covert Recon Report templates.",
+                        Icon:        "fas fa-satellite-dish",
+                },
                 {
                         Version:     ver262822,
                         Date:        dateFeb28,
