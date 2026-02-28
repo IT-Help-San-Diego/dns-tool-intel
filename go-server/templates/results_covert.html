@@ -271,7 +271,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-shield-alt me-1"></i>DNSSEC Chain</span>
                                 <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-certificate me-1"></i>CAA Policy</span>
-                                <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-lock me-1"></i>DANE / TLSA</span>
+                                {{if not .IsPublicSuffix}}<span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-lock me-1"></i>DANE / TLSA</span>{{end}}
                                 <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-server me-1"></i>NS Delegation</span>
                                 <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-terminal me-1"></i>Nmap DNS</span>
                                 <span class="badge bg-info bg-opacity-10 border border-info border-opacity-25 font-monospace small py-1 px-2"><i class="fas fa-bolt me-1"></i>HTTPS / SVCB</span>
@@ -407,6 +407,7 @@
             </div>
         </div>
 
+        {{if not .IsPublicSuffix}}
         <div class="row" id="section-dane">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -484,6 +485,7 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
         <div class="row" id="section-brand">
             <div class="col-12 mb-4">

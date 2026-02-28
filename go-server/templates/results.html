@@ -817,7 +817,7 @@
                                     {{$caaStatus := mapGetStr "status" $caa}}
                                     <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}}"><i class="fas fa-lock me-1"></i>CAA: {{if eq $caaStatus "success"}}Configured{{else}}Not Set{{end}}</span>
                                     {{end}}
-                                    {{if $dane}}
+                                    {{if and $dane (not .IsPublicSuffix)}}
                                     {{$daneStatus := mapGetStr "status" $dane}}
                                     <span class="badge bg-{{if eq $daneStatus "success"}}success{{else}}secondary{{end}}"><i class="fas fa-certificate me-1"></i>DANE: {{title $daneStatus}}</span>
                                     {{end}}
@@ -2250,7 +2250,7 @@
         <hr class="section-separator-major">
 
         <!-- DANE/TLSA & Email Transport Security Section -->
-        {{if $dane}}
+        {{if and $dane (not .IsPublicSuffix)}}
         <div class="row section-dane-transport" id="section-dane">
             <div class="col-12 mb-4">
                 <div class="card">
