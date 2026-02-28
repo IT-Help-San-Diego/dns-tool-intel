@@ -431,6 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 roeModal.show();
                 return;
             }
+            playMorseEasterEgg();
             activateCovertOrSwitch();
         });
     }
