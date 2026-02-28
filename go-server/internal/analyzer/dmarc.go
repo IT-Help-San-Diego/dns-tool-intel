@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	mapKeyDmarcLike = "dmarc_like"
-	mapKeyQuarantine = "quarantine"
-	mapKeyRecords = "records"
-	mapKeyReject = "reject"
-	mapKeyRelaxed = "relaxed"
-	mapKeyStatus = "status"
-	mapKeyValidRecords = "valid_records"
+        mapKeyDmarcLike = "dmarc_like"
+        mapKeyQuarantine = "quarantine"
+        mapKeyRecords = "records"
+        mapKeyReject = "reject"
+        mapKeyRelaxed = "relaxed"
+        mapKeyStatus = "status"
+        mapKeyValidRecords = "valid_records"
 )
 
 var (
@@ -154,7 +154,7 @@ func buildRUFNote(tags dmarcTags) map[string]any {
         return map[string]any{
                 mapKeyStatus:  "absent",
                 "summary": "No forensic reporting (ruf) tag — this is correct.",
-                "detail":  "Many tools flag the absence of ruf= as a gap. It is not. RFC 7489 §7.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests regardless. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification, confirming its deprecation. Omitting ruf= is the recommended modern practice.",
+                "detail":  "The absence of ruf= is not a gap. RFC 7489 §7.3 warns that forensic reports can expose PII (full message headers or bodies). Google, Microsoft, and Yahoo do not honour ruf= requests regardless. The DMARCbis draft (draft-ietf-dmarc-dmarcbis) has formally removed ruf= from the specification, confirming its deprecation. Omitting ruf= is the recommended modern practice.",
         }
 }
 
