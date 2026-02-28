@@ -6,6 +6,7 @@
     <meta name="description" content="Red team recon report for {{.Domain}}. Attack surface analysis: SPF, DKIM, DMARC, DANE, DNSSEC, MTA-STS, BIMI, CAA.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="x-report-mode" content="{{.ReportMode}}">
+    <meta name="x-public-suffix" content="{{if .IsPublicSuffix}}1{{else}}0{{end}}">
     {{template "head_css" .}}
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
@@ -38,8 +39,8 @@
                     </div>
                 </div>
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-sm btn-outline-secondary text-nowrap u-covert-exit-btn">
-                    <i class="fas fa-eye me-1"></i>Exit Covert Mode
+                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-sm text-nowrap u-covert-exit-btn">
+                    <i class="fas fa-sign-out-alt me-1"></i>Exit Covert Mode
                 </a>
                 {{end}}
             </div>

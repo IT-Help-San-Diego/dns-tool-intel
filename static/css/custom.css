@@ -196,6 +196,12 @@ code {
 .hero-ascii-covert {
     display: none !important;
 }
+body.covert-mode .hero-ascii-covert {
+    display: block !important;
+}
+body.covert-mode .hero-text-standard {
+    display: none !important;
+}
 
 .hero-ascii-pre {
     font-family: 'Courier New', 'Lucida Console', monospace;
@@ -236,13 +242,13 @@ code {
     pointer-events: none;
 }
 
+@media (max-width: 767.98px) {
+    body.covert-mode .hero-ascii-pre {
+        font-size: 0.32rem;
+        line-height: 1.0;
+    }
+}
 @media (min-width: 768px) {
-    body.covert-mode .hero-ascii-covert {
-        display: block !important;
-    }
-    body.covert-mode .hero-text-standard {
-        display: none !important;
-    }
     .hero-ascii-pre {
         font-size: 0.68rem;
     }
@@ -2675,8 +2681,25 @@ body.covert-mode .rfc-label {
     color: #cc2020;
 }
 .u-covert-exit-btn {
-    color: rgba(170, 178, 188, 0.4) !important;
-    border-color: rgba(140, 40, 40, 0.25) !important;
+    color: #cc3030 !important;
+    border-color: rgba(204, 48, 48, 0.6) !important;
+    background: rgba(140, 30, 30, 0.15) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0.75rem !important;
+    text-shadow: 0 0 6px rgba(204, 48, 48, 0.3);
+    box-shadow: 0 0 8px rgba(140, 30, 30, 0.2), inset 0 0 4px rgba(140, 30, 30, 0.1);
+    transition: all 0.2s ease;
+}
+.u-covert-exit-btn:hover,
+.u-covert-exit-btn:focus {
+    color: #ff4040 !important;
+    border-color: rgba(255, 64, 64, 0.7) !important;
+    background: rgba(180, 30, 30, 0.25) !important;
+    box-shadow: 0 0 14px rgba(204, 48, 48, 0.35), inset 0 0 6px rgba(140, 30, 30, 0.15);
+    text-shadow: 0 0 10px rgba(255, 64, 64, 0.4);
 }
 .u-covert-muted-btn {
     opacity: 0.45;
@@ -2872,14 +2895,9 @@ body.covert-mode .u-covert-exit-home {
     margin-bottom: 1rem;
 }
 body.covert-mode .u-covert-exit-home .u-covert-exit-btn {
-    color: rgba(160, 50, 50, 0.6);
-    border-color: rgba(140, 40, 40, 0.35);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
 }
 body.covert-mode .u-covert-exit-home .u-covert-exit-btn:hover {
-    color: rgba(200, 60, 60, 0.8);
-    border-color: rgba(160, 50, 50, 0.5);
-    background: rgba(140, 40, 40, 0.08);
 }
 .u-covert-beta-tag {
     display: none;

@@ -424,6 +424,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
             if (document.body.classList.contains('covert-mode')) {
+                var idEl = document.querySelector('[data-analysis-id]');
+                if (idEl && idEl.dataset.analysisId) {
+                    var aid = idEl.dataset.analysisId;
+                    setCovertMode(false);
+                    var psMeta = document.querySelector('meta[name="x-public-suffix"]');
+                    var exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
+                    return;
+                }
                 setCovertMode(false);
                 return;
             }
