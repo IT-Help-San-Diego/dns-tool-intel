@@ -78,6 +78,20 @@ The symbiotic interface between human intelligence and machine intelligence will
 
 DNS Tool is one builder's attempt to demonstrate that this can be done. That you can apply intelligence-grade analytic discipline to a technical domain. That you can build systems that question their own confidence. That imperfection, acknowledged and compensated for, produces more trustworthy output than false certainty ever will.
 
+## The DNS Proving Grounds
+
+We chose to build on the core of the internet — DNS — for a reason.
+
+DNS is governed by RFCs: cold, hard, mathematically precise ground truth. When an SPF record says `v=spf1 -all`, there is no ambiguity about what that means. When a DNSSEC signature expires, it is expired — not "probably expired" or "expired in some contexts." The RFCs define correct, and the live infrastructure provides an observable, auditable state at any moment. Ground truth is not an aspiration here. It is the starting condition.
+
+This is why DNS is the proving ground for the experiment. The confidence engine, the currency engine, the drift engine — these are not just tools for auditing domain security. They are the first implementation of a broader thesis: that a system can be built to detect when human decisions drift away from known-good states, to measure the gap between declared intent and observable reality, and to do so with calibrated, transparent confidence rather than asserted certainty.
+
+If this can be proven in a domain with ground truth this strong — where every claim can be independently verified against RFC specifications and live DNS resolution — then the same principles can be extended to fuzzier domains. Domains where the rules are less rigid, where "correct" is harder to define, where the gap between human intention and system state is wider and more consequential.
+
+That is the vision. DNS is the foundation. The mathematical rigor, the log data, the historical intelligence vault, the confidence scoring — all of it is being collected and preserved not just to serve today's domain security audits, but to build the dataset and the methodology that proves this approach works. Every scan, every confidence score, every drift detection feeds forward into that proof.
+
+The symbiotic interface between human intelligence and machine intelligence starts here, with ground truth. It grows from here, into the harder problems.
+
 ## Intel Breadcrumbs
 
 ### Drift Terminology (Confirmed v26.27.08)
@@ -91,6 +105,9 @@ Golden rules exported in two formats for external audit and AI-assisted review: 
 
 ### Marketing Voice Directive v26.28.01
 Comprehensive audit of all customer-facing copy, documentation, and code to eliminate competitive positioning language ("most tools," "other tools," "many tools," "most scanners"). 18 instances across 8 files rewritten. New directive codified: Never position against competitors. Position against the complexity of DNS and the consequence of getting it wrong. Lead with capability, not comparison. We tell the truth — but the truth is about what DNS requires, not about what others fail to do. CISA SPF language corrected: "CISA mandates -all" replaced with precise "CISA's BOD 18-01 requires valid SPF and uses v=spf1 -all for non-sending domains." FAQ question "How is this different from other DNS lookup tools?" reframed to "What does DNS Tool analyze?" DANE sections reframed from "most tools ignore DANE" to "Why DANE is underrepresented in DNS audits." Files changed: go-server/templates/index.html, go-server/templates/approach.html, go-server/templates/results.html, go-server/templates/faq_subdomains.html, templates/index.html, templates/results.html, static/llms-full.txt, go-server/internal/analyzer/dmarc.go, docs/MISSION.md, replit.md. Zero instances remaining as of v26.28.01.
+
+### DNS Proving Grounds Vision Codified (v26.28.08)
+"The DNS Proving Grounds" section added to MISSION.md. DNS chosen as the experiment ground because it provides the strongest possible ground truth — RFC-defined correctness with observable, auditable live state. The confidence engine, currency engine, and drift engine are the first implementation of a broader thesis: detecting when human decisions drift from known-good states, with calibrated confidence. If proven here, the same principles extend to "fuzzier domains" where rules are less rigid. Storage hygiene directive added to replit.md — intelligence vault data is strategic, but operational attachments (temp uploads, one-time zone results) need periodic pruning. Coverage push: handlers 62.1%, analyzer 70.5%.
 
 ### Coverage Push v26.27.13 (Handlers 62%, Analyzer 70.6%)
 Continuation of coverage push. Added `coverage_boost12_test.go` handler tests (timeAgo, matchErrorCategory, sanitizeErrorMessage, formatDiffValue, buildCompareAnalysis, aggregateResolverAgreement, protocolRawConfidence, determineSPFScope, determineDMARCScope, extractScanFields, parseOrgDMARC, getStringFromResults, validateParsedURL, buildSafeURL) and `coverage_boost9_test.go` analyzer tests (27 tests covering dnssecKeysToMaps, rrsigInfosToMaps, denialToMap, rolloverToMap, classifyFindings, isVulnerability, parseDSRecordTyped, parseDNSKEYRecordTyped, identifyCAIssuer, CAA/BIMI/dangling pure functions, parseSMIMEARecords, parseOPENPGPKEYRecords, buildNewSubdomainsFromSANs, selectNmapTargets, setCTCache). Final coverage: handlers 62.0% (target 60%+ met), analyzer 70.6% (target 70%+ met). Version bumped to 26.27.13.
