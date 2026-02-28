@@ -44,6 +44,14 @@ type dmarcTags struct {
         npPolicy        *string
         tTesting        *string
         psdFlag         *string
+        unknownTags     []string
+}
+
+var knownDMARCTags = map[string]bool{
+        "v": true, "p": true, "sp": true, "pct": true,
+        "aspf": true, "adkim": true, "rua": true, "ruf": true,
+        "fo": true, "rf": true, "ri": true,
+        "np": true, "t": true, "psd": true,
 }
 
 func parseDMARCTags(record string) dmarcTags {
@@ -85,7 +93,32 @@ func parseDMARCTags(record string) dmarcTags {
                 tags.psdFlag = &m[1]
         }
 
+        tags.unknownTags = detectUnknownDMARCTags(record)
+
         return tags
+}
+
+func detectUnknownDMARCTags(record string) []string {
+        var unknown []string
+        parts := strings.Split(record, ";")
+        for _, part := range parts {
+                part = strings.TrimSpace(part)
+                if part == "" {
+                        continue
+                }
+                eqIdx := strings.Index(part, "=")
+                if eqIdx < 0 {
+                        continue
+                }
+                tagName := strings.TrimSpace(strings.ToLower(part[:eqIdx]))
+                if tagName == "" {
+                        continue
+                }
+                if !knownDMARCTags[tagName] {
+                        unknown = append(unknown, part)
+                }
+        }
+        return unknown
 }
 
 func classifyDMARCPolicyVerdict(policy string, pct int) (string, string, []string) {
@@ -166,8 +199,22 @@ func evaluateDMARCPolicy(tags dmarcTags) (string, string, []string) {
         status, message, issues := classifyDMARCPolicyVerdict(*tags.policy, tags.pct)
         issues = append(issues, checkDMARCSubdomainIssues(tags)...)
         issues = append(issues, checkDMARCReportingIssues(tags)...)
+        issues = append(issues, checkDMARCUnknownTags(tags)...)
 
         return status, message, issues
+}
+
+func checkDMARCUnknownTags(tags dmarcTags) []string {
+        if len(tags.unknownTags) == 0 {
+                return nil
+        }
+        var issues []string
+        for _, tag := range tags.unknownTags {
+                eqIdx := strings.Index(tag, "=")
+                tagName := strings.TrimSpace(tag[:eqIdx])
+                issues = append(issues, fmt.Sprintf("Unrecognized DMARC tag '%s' — per RFC 7489 §11, mail receivers will silently ignore this tag. If this is a typo, your intended policy is not being enforced", tagName))
+        }
+        return issues
 }
 
 func classifyDMARCRecords(records []string) (validDMARC, dmarcLike []string) {
@@ -246,6 +293,7 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 "t_testing":        nil,
                 "psd_flag":         nil,
                 "dmarcbis_tags":    map[string]string{},
+                "unknown_tags":     []string(nil),
                 mapKeyIssues:           []string{},
         }
 
@@ -274,6 +322,7 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 "t_testing":        derefStr(tags.tTesting),
                 "psd_flag":         derefStr(tags.psdFlag),
                 "dmarcbis_tags":    buildDMARCbisTags(tags),
+                "unknown_tags":     tags.unknownTags,
                 mapKeyIssues:           issues,
         }
 

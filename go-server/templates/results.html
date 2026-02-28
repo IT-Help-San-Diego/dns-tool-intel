@@ -1782,6 +1782,17 @@
                                         <a href="https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/" target="_blank" rel="noopener" class="ms-1 text-muted rfc-link small"><span class="rfc-label">DMARCbis</span></a>
                                     </div>
                                 {{end}}
+                                {{$unknownTags := mapGetSlice "unknown_tags" $dmarc}}
+                                {{if $unknownTags}}
+                                    <div class="mt-2 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded small">
+                                        <i class="fas fa-ghost text-danger me-1"></i>
+                                        <strong class="text-danger">Unrecognized DMARC Tags Detected</strong>
+                                        <span class="text-muted d-block mt-1">Per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-11" target="_blank" rel="noopener" class="text-danger">RFC 7489 &sect;11</a>, mail receivers <strong>silently ignore</strong> unknown tags. If these are typos, your intended policy is not being enforced.</span>
+                                        {{range $tag := $unknownTags}}
+                                            <div class="mt-1 font-monospace u-fs-075rem text-danger"><code>{{$tag}}</code></div>
+                                        {{end}}
+                                    </div>
+                                {{end}}
                                 {{$dmarcIssues := mapGetSlice "issues" $dmarc}}
                                 {{if $dmarcIssues}}
                                     <div class="mt-2 small">
