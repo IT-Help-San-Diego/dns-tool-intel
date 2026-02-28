@@ -2420,6 +2420,7 @@
         <hr class="section-separator-major">
 
         <!-- Brand Security Section -->
+        {{if not .IsPublicSuffix}}
         <div class="row section-brand-security" id="section-brand">
             <div class="col-12 mb-4">
                 <div class="card">
@@ -2667,6 +2668,7 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
         <!-- security.txt Section (RFC 9116) -->
         {{if and $security_txt (not .IsPublicSuffix)}}
