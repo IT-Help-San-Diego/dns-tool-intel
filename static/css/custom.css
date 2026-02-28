@@ -7164,3 +7164,4 @@ body.covert-mode .math-copy-btn--copied {
 .u-pad-half-0 { padding:0.5rem 0; }
 .u-pad-half-075 { padding:0.5rem 0.75rem; }
 .u-cursor-pointer { cursor:pointer; }
+.btn { white-space: nowrap; }

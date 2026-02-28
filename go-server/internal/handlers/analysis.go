@@ -306,6 +306,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
 
+        h.snapshotICAEMetrics(ctx, results)
+
         isPrivate := hasNovelSelectors && isAuthenticated
         analysisID, timestamp := h.persistOrLogEphemeral(c.Request.Context(), persistParams{
                 domain:            domain,
@@ -398,6 +400,11 @@ func resolveCovertMode(c *gin.Context, asciiDomain string) string {
 }
 
 func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H, results map[string]any, domain string, analysisID int32) {
+        if snap, ok := results["_icae_snapshot"].(map[string]any); ok {
+                h.enrichFromSnapshot(ctx, data, results, snap, domain, analysisID)
+                return
+        }
+
         var maturityLevel string
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 data["ICAEMetrics"] = icaeMetrics
@@ -426,6 +433,106 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
                         data["SuggestedConfig"] = sugConfig
                 }
         }
+}
+
+func (h *AnalysisHandler) enrichFromSnapshot(ctx context.Context, data gin.H, results map[string]any, snap map[string]any, domain string, analysisID int32) {
+        if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
+                snappedMaturity, _ := snap["overall_maturity"].(string)
+                if snappedMaturity != "" {
+                        icaeMetrics.OverallMaturity = snappedMaturity
+                        icaeMetrics.OverallMaturityDisplay = snappedMaturity
+                }
+                data["ICAEMetrics"] = icaeMetrics
+        }
+        if cr, ok := results[mapKeyCurrencyReport]; ok {
+                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                        data["CurrencyReport"] = report
+                }
+        }
+        if uc, ok := snap["unified_confidence"]; ok {
+                if ucMap, valid := uc.(map[string]any); valid {
+                        data["UnifiedConfidence"] = restoreUnifiedConfidence(ucMap)
+                }
+        }
+        if analysisID > 0 {
+                if sugConfig := buildSuggestedConfig(ctx, h.DB.Queries, domain, analysisID); sugConfig != nil {
+                        data["SuggestedConfig"] = sugConfig
+                }
+        }
+}
+
+func restoreUnifiedConfidence(m map[string]any) unified.UnifiedConfidence {
+        uc := unified.UnifiedConfidence{}
+        if v, ok := m["level"].(string); ok {
+                uc.Level = v
+        }
+        if v, ok := m["score"].(float64); ok {
+                uc.Score = v
+        }
+        if v, ok := m["accuracy_factor"].(float64); ok {
+                uc.AccuracyFactor = v
+        }
+        if v, ok := m["currency_factor"].(float64); ok {
+                uc.CurrencyFactor = v
+        }
+        if v, ok := m["maturity_ceiling"].(float64); ok {
+                uc.MaturityCeiling = v
+        }
+        if v, ok := m["maturity_level"].(string); ok {
+                uc.MaturityLevel = v
+        }
+        if v, ok := m["weakest_link"].(string); ok {
+                uc.WeakestLink = v
+        }
+        if v, ok := m["weakest_detail"].(string); ok {
+                uc.WeakestDetail = v
+        }
+        if v, ok := m["explanation"].(string); ok {
+                uc.Explanation = v
+        }
+        if v, ok := m["protocol_count"].(float64); ok {
+                uc.ProtocolCount = int(v)
+        }
+        return uc
+}
+
+func (h *AnalysisHandler) snapshotICAEMetrics(ctx context.Context, results map[string]any) {
+        snapshot := map[string]any{}
+
+        if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
+                snapshot["overall_maturity"] = icaeMetrics.OverallMaturity
+        }
+
+        var currencyScore float64
+        if cr, ok := results[mapKeyCurrencyReport]; ok {
+                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                        currencyScore = report.OverallScore
+                }
+        }
+
+        calibrated, _ := results["calibrated_confidence"].(map[string]float64)
+        maturityLevel, _ := snapshot["overall_maturity"].(string)
+        if calibrated != nil && maturityLevel != "" {
+                uc := unified.ComputeUnifiedConfidence(unified.Input{
+                        CalibratedConfidence: calibrated,
+                        CurrencyScore:        currencyScore,
+                        MaturityLevel:        maturityLevel,
+                })
+                snapshot["unified_confidence"] = map[string]any{
+                        "level":             uc.Level,
+                        "score":             uc.Score,
+                        "accuracy_factor":   uc.AccuracyFactor,
+                        "currency_factor":   uc.CurrencyFactor,
+                        "maturity_ceiling":  uc.MaturityCeiling,
+                        "maturity_level":    uc.MaturityLevel,
+                        "weakest_link":      uc.WeakestLink,
+                        "weakest_detail":    uc.WeakestDetail,
+                        "explanation":       uc.Explanation,
+                        "protocol_count":    uc.ProtocolCount,
+                }
+        }
+
+        results["_icae_snapshot"] = snapshot
 }
 
 func analysisTimestamp(analysis dbq.DomainAnalysis) string {

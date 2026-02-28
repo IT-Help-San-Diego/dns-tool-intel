@@ -200,7 +200,9 @@ func (a *Analyzer) enrichWithHostingAndSecurity(ctx context.Context, domain stri
                 domain,
                 getMapResult(resultsMap, mapKeyDkimOrch),
         )
-        results["dmarc_report_auth"] = a.ValidateDMARCExternalAuth(ctx, domain, getMapResult(resultsMap, mapKeyDmarc))
+        authCtx, authCancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer authCancel()
+        results["dmarc_report_auth"] = a.ValidateDMARCExternalAuth(authCtx, domain, getMapResult(resultsMap, mapKeyDmarc))
 }
 
 func populateExtendedResults(results map[string]any, resultsMap map[string]any) {
