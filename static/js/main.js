@@ -265,6 +265,7 @@ function applyFetchedPage(html, respUrl, overlay, btn) {
         document.documentElement
     );
     globalThis.scrollTo(0, 0);
+    initPrivacyBanner();
     const modeMeta = document.querySelector('meta[name="x-report-mode"]');
     const idEl = document.querySelector('[data-analysis-id]');
     const mode = modeMeta ? modeMeta.getAttribute('content') : '';
@@ -399,6 +400,21 @@ function handleAnalyzeLinkClick(e) {
     });
 }
 
+function initPrivacyBanner() {
+    var banner = document.getElementById('privacyBanner');
+    if (!banner) { return; }
+    var dismissed = false;
+    try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
+    if (dismissed) { banner.remove(); return; }
+    var acceptBtn = document.getElementById('privacyAccept');
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', function() {
+            try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
+            banner.remove();
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
@@ -459,6 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
     }
+
+    initPrivacyBanner();
 
     const domainForm = document.getElementById('domainForm');
     const domainInput = document.getElementById('domain');

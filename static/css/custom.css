@@ -7172,6 +7172,46 @@ body.covert-mode .math-copy-btn--copied {
 .u-z1 { position:relative; z-index:1; }
 .u-text-red-bright { color:#f85149; }
 .u-text-blue-bright { color:#58a6ff; }
+
+.u-privacy-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: #131720;
+    border-top: 1px solid rgba(63, 185, 80, 0.25);
+    padding: 1rem 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+.u-privacy-banner code {
+    color: #58a6ff;
+    font-size: 0.85em;
+}
+.u-privacy-banner p,
+.u-privacy-banner li {
+    color: rgba(200, 210, 220, 0.85);
+}
+.u-privacy-accept-btn {
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+body.covert-mode .u-privacy-banner {
+    border-top-color: rgba(196, 60, 60, 0.35);
+}
+body.covert-mode .u-privacy-banner code {
+    color: #cc5030;
+}
+body.covert-mode .u-privacy-accept-btn {
+    color: #cc3030 !important;
+    border-color: rgba(204, 48, 48, 0.5) !important;
+}
+body.covert-mode .u-privacy-accept-btn:hover {
+    background: rgba(140, 30, 30, 0.15) !important;
+}
 .u-text-green-bright { color:#3fb950; }
 .u-text-muted-dim { color:#8b949e; }
 .u-font-07em { font-size:0.7em; }

@@ -1,4 +1,24 @@
 {{define "footer"}}
+<div id="privacyBanner" class="u-privacy-banner" role="region" aria-label="Privacy notice">
+    <div class="container">
+        <div class="d-flex align-items-start gap-3 flex-wrap">
+            <div class="flex-grow-1">
+                <p class="mb-2"><i class="fas fa-shield-halved me-1 text-success"></i><strong>Straight talk about your data.</strong></p>
+                <p class="mb-2 small">We use <strong>two cookies</strong>, both essential:</p>
+                <ul class="small mb-2">
+                    <li><code>_csrf</code> &mdash; Prevents cross-site request forgery. Required for form submissions. Security-only.</li>
+                    <li><code>_dns_session</code> &mdash; Only exists if you choose to sign in. No account required to use DNS Tool.</li>
+                </ul>
+                <p class="mb-2 small">We log your <strong>IP address</strong> for two reasons: rate limiting (so nobody abuses the service) and security (identifying malicious actors and complying with legal obligations). We check source geography for <strong>analysis accuracy</strong> &mdash; DNS responses vary by region, and knowing which resolver answered from where makes the science better.</p>
+                <p class="mb-2 small"><strong>No tracking cookies. No analytics cookies. No ad networks. No data brokers.</strong> Our code is <a href="https://github.com/careyjames/dns-tool-web" target="_blank" rel="noopener" class="text-info">open source</a> &mdash; verify it yourself.</p>
+                <p class="mb-0 small">If you create an account and want out, there will be a <strong>one-click delete</strong> that removes your login and scan history. Public domain analyses remain available because they contain only public DNS records, already hashed. Full details: <a href="/security-policy#privacy-pledge" class="text-info">Privacy Pledge</a>.</p>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-success text-nowrap u-privacy-accept-btn" id="privacyAccept" aria-label="Acknowledge privacy notice">
+                <i class="fas fa-check me-1"></i>Got it
+            </button>
+        </div>
+    </div>
+</div>
 <footer class="text-center mt-5 mb-4 text-muted small">
     <a href="https://www.it-help.tech" target="_blank" rel="noopener" aria-label="IT Help San Diego">
         <picture><source srcset="{{staticVersionURL "images/owl-of-athena.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/owl-of-athena.png" .AppVersion}}" alt="IT Help San Diego - Owl of Athena" width="120" height="120" loading="lazy" decoding="async" class="mb-2 u-rounded-circle"></picture>
