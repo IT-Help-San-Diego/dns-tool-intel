@@ -266,10 +266,80 @@
         }
     };
 
-    /* ── Public API (replaces bootstrap.Dropdown, bootstrap.Tooltip, bootstrap.Alert) ── */
+    /* ── Modal ── */
+    function ModalAPI(el) {
+        if (!el) return;
+        var self = this;
+        self._el = el;
+        self._backdrop = null;
+        self._isShown = false;
+        var staticBackdrop = el.getAttribute('data-bs-backdrop') === 'static';
+        var noKeyboard = el.getAttribute('data-bs-keyboard') === 'false';
+
+        self._onKeydown = function(e) {
+            if (e.key === 'Escape' && self._isShown && !noKeyboard) {
+                self.hide();
+            }
+        };
+        self._onBackdropClick = function(e) {
+            if (e.target === el && !staticBackdrop) {
+                self.hide();
+            }
+        };
+        self._onDismissClick = function(e) {
+            var btn = e.target.closest('[data-bs-dismiss="modal"]');
+            if (btn) self.hide();
+        };
+    }
+    ModalAPI.prototype.show = function() {
+        if (this._isShown) return;
+        this._isShown = true;
+        var el = this._el;
+        var bd = document.createElement('div');
+        bd.className = 'modal-backdrop fade';
+        document.body.appendChild(bd);
+        void bd.offsetHeight;
+        bd.classList.add('show');
+        this._backdrop = bd;
+        document.body.classList.add('modal-open');
+        el.style.display = 'block';
+        el.removeAttribute('aria-hidden');
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('role', 'dialog');
+        void el.offsetHeight;
+        el.classList.add('show');
+        document.addEventListener('keydown', this._onKeydown);
+        el.addEventListener('click', this._onBackdropClick);
+        el.addEventListener('click', this._onDismissClick);
+    };
+    ModalAPI.prototype.hide = function() {
+        if (!this._isShown) return;
+        this._isShown = false;
+        var el = this._el;
+        var bd = this._backdrop;
+        el.classList.remove('show');
+        document.removeEventListener('keydown', this._onKeydown);
+        el.removeEventListener('click', this._onBackdropClick);
+        el.removeEventListener('click', this._onDismissClick);
+        setTimeout(function() {
+            el.style.display = 'none';
+            el.setAttribute('aria-hidden', 'true');
+            el.removeAttribute('aria-modal');
+            el.removeAttribute('role');
+            document.body.classList.remove('modal-open');
+            if (bd && bd.parentNode) {
+                bd.classList.remove('show');
+                setTimeout(function() { if (bd.parentNode) bd.parentNode.removeChild(bd); }, 150);
+            }
+        }, 150);
+        this._backdrop = null;
+    };
+
+    /* ── Public API (replaces bootstrap.Dropdown, bootstrap.Tooltip, bootstrap.Alert, bootstrap.Modal) ── */
     window.bootstrap = {
         Dropdown: DropdownAPI,
         Tooltip: TooltipAPI,
-        Alert: AlertAPI
+        Alert: AlertAPI,
+        Modal: ModalAPI
     };
 })();
