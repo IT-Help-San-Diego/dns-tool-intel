@@ -7,6 +7,8 @@ import (
         "fmt"
         "log/slog"
         "strings"
+
+        "golang.org/x/net/publicsuffix"
 )
 
 
@@ -53,18 +55,35 @@ func (a *Analyzer) ValidateDMARCExternalAuth(ctx context.Context, domain string,
 
 func collectExternalDomains(domain, ruaStr, rufStr string) map[string][]string {
         external := make(map[string][]string)
+        domainOrg := orgDomain(domain)
 
         for _, d := range ExtractMailtoDomains(ruaStr) {
-                if !strings.EqualFold(d, domain) {
+                if !sameOrgDomain(d, domain, domainOrg) {
                         external[d] = appendUnique(external[d], "rua")
                 }
         }
         for _, d := range ExtractMailtoDomains(rufStr) {
-                if !strings.EqualFold(d, domain) {
+                if !sameOrgDomain(d, domain, domainOrg) {
                         external[d] = appendUnique(external[d], "ruf")
                 }
         }
         return external
+}
+
+func orgDomain(d string) string {
+        d = strings.TrimRight(d, ".")
+        reg, err := publicsuffix.EffectiveTLDPlusOne(d)
+        if err != nil {
+                return strings.ToLower(d)
+        }
+        return strings.ToLower(reg)
+}
+
+func sameOrgDomain(a, b, bOrg string) bool {
+        if strings.EqualFold(a, b) {
+                return true
+        }
+        return strings.EqualFold(orgDomain(a), bOrg)
 }
 
 func appendUnique(slice []string, val string) []string {
