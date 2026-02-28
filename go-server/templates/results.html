@@ -1577,6 +1577,30 @@
                                         {{end}}
                                     </div>
                                 {{end}}
+                                <div class="mt-2 border-top border-secondary border-opacity-25 pt-2">
+                                    <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#spfRFCContext" type="button" aria-expanded="false" aria-controls="spfRFCContext">
+                                        <i class="fas fa-balance-scale text-muted me-1"></i>
+                                        <span class="small text-muted">RFC &amp; Security Context</span>
+                                        <i class="fas fa-chevron-down ms-auto small text-muted"></i>
+                                    </button>
+                                    <div class="collapse" id="spfRFCContext">
+                                        <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
+                                            {{if eq $spfStatus "success"}}
+                                            <div class="mb-2"><i class="fas fa-check-circle text-success me-1"></i><strong class="text-success">RFC 7208 Conformant</strong> &mdash; This SPF record conforms to the syntax and semantics defined in <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4</a>.</div>
+                                            {{else if eq $spfStatus "missing"}}
+                                            <div class="mb-2"><i class="fas fa-info-circle text-warning me-1"></i><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> defines the SPF mechanism for domains that choose to publish sender authorization. The standard does not mandate SPF publication &mdash; it is a voluntary security control.</div>
+                                            <div class="mb-2"><i class="fas fa-shield-alt text-danger me-1"></i><strong class="text-danger">Operational Security:</strong> We flag its absence because any server on the internet can send email claiming to be this domain. Attackers send <em>from</em> a domain &mdash; they do not need the domain to have email infrastructure.</div>
+                                            {{else}}
+                                            <div class="mb-2"><i class="fas fa-exclamation-circle text-warning me-1"></i><strong class="text-warning">RFC 7208 Deviation:</strong> This SPF record deviates from <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> requirements.</div>
+                                            {{end}}
+                                            <div class="text-muted"><i class="fas fa-bug me-1"></i><strong>Related CVEs:</strong>
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant domain spoofing),
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7209" target="_blank" rel="noopener" class="text-info">CVE-2024-7209</a> (shared SPF exploitation),
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2023-51764" target="_blank" rel="noopener" class="text-info">CVE-2023-51764</a> (SMTP smuggling bypasses SPF)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
                                 {{$dmarcStatus := mapGetStr "status" $dmarc}}
                                 {{if eq $spfPerm "SOFT"}}
@@ -1858,6 +1882,30 @@
                                 {{end}}
                                 {{end}}
                                 {{end}}
+                                <div class="mt-2 border-top border-secondary border-opacity-25 pt-2">
+                                    <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#dmarcRFCContext" type="button" aria-expanded="false" aria-controls="dmarcRFCContext">
+                                        <i class="fas fa-balance-scale text-muted me-1"></i>
+                                        <span class="small text-muted">RFC &amp; Security Context</span>
+                                        <i class="fas fa-chevron-down ms-auto small text-muted"></i>
+                                    </button>
+                                    <div class="collapse" id="dmarcRFCContext">
+                                        <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
+                                            {{if and (eq $dmarcStatus "success") (eq $dmarcPolicy "reject")}}
+                                            <div class="mb-2"><i class="fas fa-check-circle text-success me-1"></i><strong class="text-success">RFC 7489 Conformant</strong> &mdash; DMARC record conforms to <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a> with full enforcement.</div>
+                                            {{else if eq $dmarcStatus "missing"}}
+                                            <div class="mb-2"><i class="fas fa-info-circle text-warning me-1"></i><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener" class="text-info">RFC 7489</a> is classified as <strong>Informational</strong> (not Standards Track). DMARC is a widely adopted industry practice but is not an IETF-mandated standard.</div>
+                                            <div class="mb-2"><i class="fas fa-shield-alt text-danger me-1"></i><strong class="text-danger">Operational Security:</strong> Without DMARC, receiving mail servers have no policy for handling SPF/DKIM failures. Spoofed messages may be delivered to recipients.</div>
+                                            {{else}}
+                                            <div class="mb-2"><i class="fas fa-check-circle text-info me-1"></i><strong class="text-info">RFC 7489 Present</strong> &mdash; DMARC record published per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>.</div>
+                                            {{end}}
+                                            <div class="mb-2"><i class="fas fa-arrow-circle-up text-info me-1"></i><strong class="text-info">DMARCbis (Pending):</strong> <a href="https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/" target="_blank" rel="noopener" class="text-info">draft-ietf-dmarc-dmarcbis</a> will elevate DMARC to <strong>Standards Track</strong>, obsolete RFC 7489, replace <code>pct=</code> with <code>t=</code> (testing flag), add <code>np=</code> (non-existent subdomain policy), and mandate DNS tree walk for policy discovery instead of the Public Suffix List.</div>
+                                            <div class="text-muted"><i class="fas fa-bug me-1"></i><strong>Related CVEs:</strong>
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-49040" target="_blank" rel="noopener" class="text-info">CVE-2024-49040</a> (Exchange sender spoofing),
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant DMARC bypass)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- DKIM Analysis -->
@@ -1988,6 +2036,30 @@
                                         {{end}}
                                     {{end}}
                                 {{end}}
+                                <div class="mt-2 border-top border-secondary border-opacity-25 pt-2">
+                                    <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#dkimRFCContext" type="button" aria-expanded="false" aria-controls="dkimRFCContext">
+                                        <i class="fas fa-balance-scale text-muted me-1"></i>
+                                        <span class="small text-muted">RFC &amp; Security Context</span>
+                                        <i class="fas fa-chevron-down ms-auto small text-muted"></i>
+                                    </button>
+                                    <div class="collapse" id="dkimRFCContext">
+                                        <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
+                                            {{if eq $dkimStatus "success"}}
+                                            <div class="mb-2"><i class="fas fa-check-circle text-success me-1"></i><strong class="text-success">RFC 6376 Conformant</strong> &mdash; DKIM keys and signatures conform to <a href="https://datatracker.ietf.org/doc/html/rfc6376#section-3.6" target="_blank" rel="noopener" class="text-info">RFC 6376 &sect;3.6</a> (Internet Standard).</div>
+                                            {{else if or (eq $dkimStatus "info") $dkimIsKnownProviderQ}}
+                                            <div class="mb-2"><i class="fas fa-check-circle text-info me-1"></i><strong class="text-info">RFC 6376 (Provider-Managed)</strong> &mdash; DKIM signing managed by the detected mail provider per <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a>.</div>
+                                            {{else}}
+                                            <div class="mb-2"><i class="fas fa-info-circle text-muted me-1"></i><strong class="text-muted">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a> (Internet Standard) defines the DKIM mechanism. DKIM selectors are not publicly enumerable &mdash; absence in a scan does not prove absence of signing.</div>
+                                            {{end}}
+                                            <div class="text-muted"><i class="fas fa-bug me-1"></i><strong>Known Vulnerabilities:</strong>
+                                                DKIM <code>l=</code> tag body length vulnerability (attacker appends unsigned content to signed mail),
+                                                weak key exploitation (keys below 1024-bit are cryptographically breakable per RFC 6376 &sect;3.3.3),
+                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant authentication bypass),
+                                                DKIM replay attacks (re-sending legitimately signed messages at scale)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         

@@ -384,14 +384,14 @@ func scanDKIMIssueStrings(issues []any) (weakKeys, thirdPartyOnly bool) {
 
 func classifySPF(ps protocolState, acc *postureAccumulator) {
         if ps.spfMissing {
-                acc.issues = append(acc.issues, "No SPF record found — domain is vulnerable to email spoofing")
+                acc.issues = append(acc.issues, "No SPF record published — RFC 7208 defines the SPF mechanism but does not mandate publication. Without SPF, any server can send email claiming to be this domain (CVE-2024-7208, CVE-2024-7209)")
                 acc.recommendations = append(acc.recommendations, "Publish an SPF record to authorize legitimate mail senders")
                 acc.absent = append(acc.absent, rtSPF)
                 return
         }
 
         if ps.spfDangerous {
-                acc.issues = append(acc.issues, "SPF record uses +all — allows any server to send mail as this domain")
+                acc.issues = append(acc.issues, "SPF record uses +all — allows any server to send mail as this domain (RFC 7208 §5.1 defines +all as passing all senders)")
                 acc.recommendations = append(acc.recommendations, "Change SPF mechanism from +all to ~all or -all")
                 acc.configured = append(acc.configured, rtSPF)
                 return
@@ -419,7 +419,7 @@ func classifySPF(ps protocolState, acc *postureAccumulator) {
 
 func classifyDMARC(ps protocolState, acc *postureAccumulator) {
         if ps.dmarcMissing {
-                acc.issues = append(acc.issues, "No DMARC record found — domain has no policy against email spoofing")
+                acc.issues = append(acc.issues, "No DMARC record published — RFC 7489 is Informational (not Standards Track); DMARCbis will elevate to Standards Track. Without DMARC, receivers have no policy for handling SPF/DKIM failures — spoofed mail may be delivered (CVE-2024-49040)")
                 acc.recommendations = append(acc.recommendations, "Publish a DMARC record starting with p=none and rua reporting")
                 acc.absent = append(acc.absent, "DMARC")
                 return
@@ -487,7 +487,7 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
                 acc.recommendations = append(acc.recommendations, "Configure DKIM signing for your primary domain selector in addition to third-party services")
         case DKIMWeakKeysOnly:
                 acc.configured = append(acc.configured, "DKIM (weak keys)")
-                acc.issues = append(acc.issues, "DKIM keys are weak (1024-bit or less) — vulnerable to brute-force attacks")
+                acc.issues = append(acc.issues, "DKIM keys are weak (1024-bit or less) — RFC 6376 §3.3.3 requires minimum 1024-bit RSA; 2048-bit is the current operational standard. Keys below 1024-bit are considered cryptographically breakable")
                 acc.recommendations = append(acc.recommendations, "Upgrade DKIM keys to 2048-bit RSA or Ed25519")
         case DKIMNoMailDomain:
                 acc.configured = append(acc.configured, "DKIM (not applicable — no-mail domain)")
@@ -496,7 +496,7 @@ func classifyDKIMPosture(ds DKIMState, primaryProvider string, acc *postureAccum
                 acc.absent = append(acc.absent, "DKIM (inconclusive)")
         case DKIMAbsent:
                 acc.absent = append(acc.absent, "DKIM")
-                acc.recommendations = append(acc.recommendations, "Configure DKIM signing to cryptographically authenticate outgoing email")
+                acc.recommendations = append(acc.recommendations, "Configure DKIM signing to cryptographically authenticate outgoing email — RFC 6376 defines the mechanism; without it, messages cannot be verified as unaltered in transit")
         }
 }
 
@@ -751,7 +751,7 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
                 criticalIssues = append(criticalIssues, "DNSSEC validation is failing")
         }
         if !isTLD && ps.spfMissing && ps.dmarcMissing {
-                criticalIssues = append(criticalIssues, "No SPF and no DMARC — domain is completely unprotected against email spoofing")
+                criticalIssues = append(criticalIssues, "No SPF and no DMARC — domain is completely unprotected against email spoofing. Both protocols are RFC-recommended (not mandatory), but their absence leaves the domain open to impersonation (CVE-2024-7208, CVE-2024-49040)")
         }
 
         grade := state
