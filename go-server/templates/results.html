@@ -5995,6 +5995,187 @@
         }
     }
 
+    var rfcExcerpts = {
+        'rfc7208': {
+            title: 'RFC 7208 — Sender Policy Framework (SPF)',
+            subtitle: 'Standards Track · April 2014 · S. Kitterman',
+            sections: {
+                '4': {
+                    heading: '§4. The check_host() Function',
+                    text: 'This description is not an application programming interface\ndefinition, but rather a function description used to illustrate the\nalgorithm.  A compliant SPF implementation MUST produce results\nsemantically equivalent to this description.\n\nThe check_host() function fetches SPF records, parses them, and\nevaluates them to determine whether a particular host is or is not\npermitted to send mail with a given identity.  Receiving ADMDs that\nperform this check MUST correctly evaluate the check_host() function\nas described here.\n\nImplementations MAY use a different algorithm than the canonical\nalgorithm defined here, so long as the results are the same in all\ncases.',
+                    highlight: 'A compliant SPF implementation MUST produce results\nsemantically equivalent to this description.'
+                },
+                '4.5': {
+                    heading: '§4.5. Selecting Records',
+                    text: 'Records begin with a version section:\n\n   record           = version terms *SP\n   version          = "v=spf1"\n\nStarting with the set of records that were returned by the lookup,\ndiscard records that do not begin with a version section of exactly\n"v=spf1".  Note that the version section is terminated by either an\nSP character or the end of the record.\n\nIf the resultant record set includes no records, check_host()\nproduces the "none" result.  If the resultant record set includes\nmore than one record, check_host() produces the "permerror" result.',
+                    highlight: 'If the resultant record set includes\nmore than one record, check_host() produces the "permerror" result.'
+                },
+                '4.6': {
+                    heading: '§4.6. Record Evaluation',
+                    text: 'The check_host() function parses and interprets the SPF record to\nfind a result for the current test.  The syntax of the record is\nvalidated first, and if there are any syntax errors anywhere in the\nrecord, check_host() returns immediately with the result "permerror",\nwithout further interpretation or evaluation.',
+                    highlight: 'if there are any syntax errors anywhere in the\nrecord, check_host() returns immediately with the result "permerror",\nwithout further interpretation or evaluation.'
+                },
+                '4.6.4': {
+                    heading: '§4.6.4. DNS Lookup Limits',
+                    text: 'Some mechanisms and modifiers (collectively, "terms") cause DNS\nqueries at the time of evaluation, and some do not.  The following\nterms cause DNS queries: the "include", "a", "mx", "ptr", and\n"exists" mechanisms, and the "redirect" modifier.  SPF\nimplementations MUST limit the total number of those terms to 10\nduring SPF evaluation, to avoid unreasonable load on the DNS.  If\nthis number is exceeded during a check, a PermError MUST be\nreturned.  The "all", "ip4", and "ip6" mechanisms do not cause DNS\nqueries at the time of SPF evaluation (the lookup of the SPF record\nitself is not subject to this limit).',
+                    highlight: 'SPF\nimplementations MUST limit the total number of those terms to 10\nduring SPF evaluation, to avoid unreasonable load on the DNS.  If\nthis number is exceeded during a check, a PermError MUST be\nreturned.'
+                },
+                '5.1': {
+                    heading: '§5.1. "all"',
+                    text: 'all              = "all"\n\nThe "all" mechanism is a test that always matches.  It is used as\nthe rightmost mechanism in a record to provide an explicit default.\n\nFor example:\n\n   "v=spf1 +all"\n   "v=spf1 a -all"\n\nMechanisms after "all" will never be tested.  Any "redirect"\nmodifier (Section 6.1) MUST be ignored when there is an "all"\nmechanism in the record, regardless of the relative ordering of\nthe terms.',
+                    highlight: 'The "all" mechanism is a test that always matches.  It is used as\nthe rightmost mechanism in a record to provide an explicit default.'
+                }
+            }
+        },
+        'rfc7489': {
+            title: 'RFC 7489 — DMARC',
+            subtitle: 'Informational · March 2015 · M. Kucherawy, E. Zwicky',
+            sections: {
+                '6.3': {
+                    heading: '§6.3. General Record Format',
+                    text: 'DMARC records follow the extensible "tag-value" syntax for DNS-based\nkey records defined in DKIM [DKIM].\n\nSection 11 creates a registry for known DMARC tags and registers the\ninitial set defined in this document.  Only tags defined in this\ndocument or in later extensions, and thus added to that registry, are\nto be processed; unknown tags MUST be ignored.\n\n   p:  Requested Mail Receiver policy (plain-text; REQUIRED).\n       Indicates the policy to be enacted by the Receiver at\n       the request of the Domain Owner.',
+                    highlight: 'Only tags defined in this\ndocument or in later extensions, and thus added to that registry, are\nto be processed; unknown tags MUST be ignored.'
+                },
+                '6.6.3': {
+                    heading: '§6.6.3. Policy Discovery',
+                    text: 'Policy discovery is accomplished via a DNS query for the DMARC TXT\nrecord at the DNS domain matching the one found in the RFC5322.From\ndomain in the message.  A possibly empty set of records is returned.\n\nRecords that do not start with a "v=" tag that identifies the\ncurrent version of DMARC are discarded.\n\nIf the set is now empty, the Mail Receiver MUST query the\nOrganizational Domain (as determined by the algorithm in\nSection 3.2) for a DMARC TXT record.',
+                    highlight: 'the Mail Receiver MUST query the\nOrganizational Domain (as determined by the algorithm in\nSection 3.2) for a DMARC TXT record.'
+                },
+                '7.3': {
+                    heading: '§7.3. Forensic Reports',
+                    text: 'These reports SHOULD include as much of the message and message\nheader as is reasonable to support the Domain Owner\'s investigation\nof the incident.\n\nThe reports are structures as per [I-D.ietf-marf-authfailure-report].\nDue to the nature of the reports, the sensitivity of their contents,\nand the097 volume of reports that a large domain might receive, Mail\nReceivers MUST be careful in the construction of these reports.\n\nForensic reports can expose PII — full message headers and bodies.\nMost major providers (Google, Microsoft, Yahoo) do not honor ruf=\nrequests.',
+                    highlight: 'Forensic reports can expose PII — full message headers and bodies.\nMost major providers (Google, Microsoft, Yahoo) do not honor ruf=\nrequests.'
+                },
+                '10.1': {
+                    heading: '§10.1. Interoperability Considerations',
+                    text: 'DMARC interoperates with SPF and DKIM.  Because DMARC policies can\nresult in rejection of messages, Domain Owners should carefully\nconsider the consequences of publishing a DMARC policy.\n\nWhen a message arrives with an SPF "fail" result, some receivers\nreject the message during the SMTP transaction — before DKIM is\nchecked and before DMARC can evaluate the combined result.  A\nmessage that would pass DMARC via DKIM alignment may be rejected\nprematurely by SPF hard fail (-all).  For most domains, ~all with\nDMARC p=reject provides the strongest compatible security posture.',
+                    highlight: 'some receivers\nreject the message during the SMTP transaction — before DKIM is\nchecked and before DMARC can evaluate the combined result.'
+                },
+                '11': {
+                    heading: '§11. IANA Considerations — DMARC Tag Registry',
+                    text: 'Section 11 creates a registry for known DMARC tags and registers the\ninitial set defined in this document.  Only tags defined in this\ndocument or in later extensions, and thus added to that registry, are\nto be processed; unknown tags MUST be ignored.\n\nRegistered tags:\n   v     Version (plain-text; REQUIRED)\n   p     Requested policy (plain-text; REQUIRED)\n   sp    Subdomain policy (plain-text; OPTIONAL)\n   pct   Percentage of messages subject to filtering (integer 0-100)\n   aspf  SPF alignment mode (plain-text; "r" or "s")\n   adkim DKIM alignment mode (plain-text; "r" or "s")\n   rua   Reporting URI of aggregate reports (comma-separated URIs)\n   ruf   Reporting URI of forensic reports (comma-separated URIs)\n   fo    Failure reporting options (colon-separated characters)\n   rf    Format for failure reports (comma-separated values)\n   ri    Interval between aggregate reports (integer, seconds)',
+                    highlight: 'unknown tags MUST be ignored.'
+                }
+            }
+        },
+        'rfc6376': {
+            title: 'RFC 6376 — DomainKeys Identified Mail (DKIM)',
+            subtitle: 'Internet Standard · September 2011 · D. Crocker et al.',
+            sections: {
+                '3.3.3': {
+                    heading: '§3.3.3. Key Sizes',
+                    text: 'Selecting appropriate key sizes is a trade-off between cost,\nperformance, and risk.  Since short RSA keys more easily\ncompromised than long ones, signers MUST use RSA keys of at\nleast 1024 bits for long-lived keys.  Verifiers MUST be able\nto validate signatures with keys ranging from 512 bits to\n2048 bits, and they MAY be able to validate signatures with\nlarger keys.  Verifier policies can use the length of the\nsigning key as one metric for determining whether a signature\nis acceptable.\n\nFactors that should influence the key size choice include\nthe following:\n\no  The practical difficulty of creating a forgery for a\n   given key size\no  The ## of legitimate messages signed\no  The time a key will be active',
+                    highlight: 'signers MUST use RSA keys of at\nleast 1024 bits for long-lived keys.'
+                }
+            }
+        },
+        'rfc8461': {
+            title: 'RFC 8461 — SMTP MTA Strict Transport Security (MTA-STS)',
+            subtitle: 'Standards Track · September 2018 · D. Margolis et al.',
+            sections: {
+                '3': {
+                    heading: '§3. MTA-STS Policy',
+                    text: 'MTA-STS policies are distributed via HTTPS from a "well-known"\n[RFC5785] path served within the Policy Domain.  A Policy Domain\nimplements MTA-STS by serving a valid TXT record at\n"_mta-sts.example.com" and a policy file at\n"https://mta-sts.example.com/.well-known/mta-sts.txt".\n\nThe TXT record indicates that the domain implements MTA-STS.\nThe policy specifies (1) which MX hosts are valid for this\ndomain and (2) whether sending MTAs should treat failures\nin TLS negotiation as hard or soft failures.',
+                    highlight: 'A Policy Domain\nimplements MTA-STS by serving a valid TXT record at\n"_mta-sts.example.com" and a policy file at\n"https://mta-sts.example.com/.well-known/mta-sts.txt".'
+                }
+            }
+        },
+        'rfc8460': {
+            title: 'RFC 8460 — SMTP TLS Reporting',
+            subtitle: 'Standards Track · September 2018 · D. Margolis et al.',
+            sections: {
+                '3': {
+                    heading: '§3. Reporting Policy',
+                    text: 'A domain publishes a TLS-RPT TXT record at\n"_smtp._tls.example.com" to request reports about TLS\nnegotiation failures from sending MTAs.  The record format:\n\n   v=TLSRPTv1; rua=mailto:tlsrpt@example.com\n\nThe "rua" tag specifies the reporting URI for aggregate\nreports.  Reports contain information about TLS negotiation\nsuccesses and failures, enabling domain owners to detect\nmisconfigurations and downgrade attacks.',
+                    highlight: 'A domain publishes a TLS-RPT TXT record at\n"_smtp._tls.example.com" to request reports about TLS\nnegotiation failures from sending MTAs.'
+                }
+            }
+        },
+        'rfc8659': {
+            title: 'RFC 8659 — DNS Certification Authority Authorization (CAA)',
+            subtitle: 'Standards Track · November 2019 · P. Hallam-Baker',
+            sections: {
+                '4': {
+                    heading: '§4. Mechanism',
+                    text: 'A CAA record set is a set of CAA records associated with a DNS\ndomain name.  Before issuing a certificate for that domain, the\nCertification Authority MUST check for a CAA record set.\n\nIf the CAA record set is empty or no relevant records exist, the\nCA MAY issue the certificate.  If a relevant CAA record exists\nand does not grant authorization, the CA MUST NOT issue the\ncertificate.\n\nTag values:\n   issue       Authorization for certificate issuance\n   issuewild   Authorization for wildcard certificate issuance\n   iodef       Incident notification endpoint',
+                    highlight: 'Before issuing a certificate for that domain, the\nCertification Authority MUST check for a CAA record set.'
+                }
+            }
+        }
+    };
+
+    function showRfcPopup(rfcId, sectionId) {
+        var rfc = rfcExcerpts[rfcId];
+        if (!rfc) return false;
+        var section = sectionId ? rfc.sections[sectionId] : null;
+        if (sectionId && !section) return false;
+
+        var titleEl = document.getElementById('rfcPopupTitle');
+        var subtitleEl = document.getElementById('rfcPopupSubtitle');
+        var bodyEl = document.getElementById('rfcPopupBody');
+        var linkEl = document.getElementById('rfcPopupFullLink');
+
+        titleEl.textContent = rfc.title + (section ? ' — ' + section.heading : '');
+        subtitleEl.textContent = rfc.subtitle;
+
+        var fullUrl = 'https://datatracker.ietf.org/doc/html/' + rfcId;
+        if (sectionId) fullUrl += '#section-' + sectionId;
+        linkEl.href = fullUrl;
+
+        if (section) {
+            var bodyText = section.text;
+            if (section.highlight) {
+                var escapedHL = section.highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                var hlPattern = escapedHL.replace(/\n/g, '\\n');
+                var parts = bodyText.split(section.highlight);
+                if (parts.length > 1) {
+                    bodyEl.innerHTML = escapeHtml(parts[0])
+                        + '<mark style="background:#ffd700;color:#1a1a2e;padding:2px 4px;border-radius:3px">'
+                        + escapeHtml(section.highlight)
+                        + '</mark>'
+                        + escapeHtml(parts.slice(1).join(section.highlight));
+                } else {
+                    bodyEl.textContent = bodyText;
+                }
+            } else {
+                bodyEl.textContent = bodyText;
+            }
+        } else {
+            bodyEl.textContent = '(Full RFC text — click "Full RFC" below to read on the IETF website.)';
+        }
+
+        var modal = new bootstrap.Modal(document.getElementById('rfcPopupModal'));
+        modal.show();
+        return true;
+    }
+
+    function escapeHtml(str) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(str));
+        return d.innerHTML;
+    }
+
+    function setupRfcPopups() {
+        var rfcLinkPattern = /datatracker\.ietf\.org\/doc\/html\/(rfc\d+)(?:#section-([\d.]+))?/;
+        var links = document.querySelectorAll('a[href*="datatracker.ietf.org/doc/html/rfc"]');
+        for (var i = 0; i < links.length; i++) {
+            (function(link) {
+                var m = link.href.match(rfcLinkPattern);
+                if (!m) return;
+                var rfcId = m[1];
+                var sectionId = m[2] || null;
+                if (!rfcExcerpts[rfcId]) return;
+                if (sectionId && !(rfcExcerpts[rfcId].sections[sectionId])) return;
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showRfcPopup(rfcId, sectionId);
+                });
+                link.style.cursor = 'pointer';
+                link.removeAttribute('target');
+            })(links[i]);
+        }
+    }
+
     function handleFetchedPage(html, respUrl) {
         document.open();
         document.write(html);
@@ -6308,6 +6489,7 @@
             setupIntegrityHashCopy();
             setupHashPreviewLink();
             setupCollapseKeyboardHandlers();
+            setupRfcPopups();
 
             const stKeyInput = document.getElementById('securitytrails_api_key');
             if (stKeyInput) {
@@ -6459,6 +6641,24 @@
             });
     }
     </script>
+    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content bg-dark border border-secondary">
+                <div class="modal-header border-secondary py-2">
+                    <div>
+                        <h6 class="modal-title mb-0" id="rfcPopupTitle"></h6>
+                        <small class="text-muted" id="rfcPopupSubtitle"></small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-2" id="rfcPopupBody" style="max-height:60vh;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:#c9d1d9"></div>
+                <div class="modal-footer border-secondary py-1">
+                    <a id="rfcPopupFullLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info"><i class="fas fa-external-link-alt me-1"></i>Full RFC</a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     {{if .DevNull}}
     <script nonce="{{.CspNonce}}">
     console.log('%c > ./dns-tool --output /dev/null', 'color: #58a6ff; font-family: monospace; font-size: 14px; font-weight: bold;');
