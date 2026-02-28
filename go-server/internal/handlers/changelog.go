@@ -70,6 +70,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262822 = "26.28.22"
         ver262821 = "26.28.21"
         ver262820 = "26.28.20"
         ver262704 = "26.27.04"
@@ -112,6 +113,14 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262822,
+                        Date:        dateFeb28,
+                        Category:    catUX,
+                        Title:       "Covert Recon Mode — Mobile ASCII Art, Exit Sign, Toggle Fix",
+                        Description: "Three fixes to Covert Recon Mode: ASCII art hero now displays on mobile Safari (was gated behind 768px media query, now global with 0.32rem mobile scaling). Exit button restyled as scotopic-correct emergency exit sign — solid #cc3030 with red glow, uppercase, fa-sign-out-alt icon, hover brightens to #ff4040. Toggle button on results page now navigates to standard view instead of just removing CSS class (prevented users getting stuck on covert template with standard styling). Hardened toggle logic to redirect whenever analysis ID is present regardless of report mode value. Added x-public-suffix meta tag to results_covert.html for correct exit routing.",
+                        Icon:        "fas fa-sign-out-alt",
+                },
                 {
                         Version:     ver262821,
                         Date:        dateFeb28,
