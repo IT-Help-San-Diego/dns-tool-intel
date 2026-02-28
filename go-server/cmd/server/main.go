@@ -243,6 +243,9 @@ func main() {
         architectureHandler := handlers.NewArchitectureHandler(cfg)
         router.GET("/architecture", architectureHandler.Architecture)
 
+        topologyHandler := handlers.NewTopologyHandler(cfg)
+        router.GET("/topology", topologyHandler.Topology)
+
         changelogHandler := handlers.NewChangelogHandler(cfg)
         router.GET("/changelog", changelogHandler.Changelog)
 
