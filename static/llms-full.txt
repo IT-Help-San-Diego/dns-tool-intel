@@ -511,6 +511,17 @@ DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audi
 ### The Heuristic Trap
 When 99% of DNS checkers are simple scripts wrapped in marketing, anything deeper looks like it is trying too hard. That is the heuristic trap — pattern-matching against a low bar and treating the outlier as suspicious rather than serious. The criticism reveals the actual problem: DNS security has historically been under-engineered relative to what it actually requires. DNS Tool can be used as a simple checker — and it will give accurate results. The depth is there for when a simple check is not enough.
 
+### On the Intelligence Community Framing
+The IC-style naming (ICAE — Intelligence Confidence Audit Engine, ICuAE — Intelligence Currency Assurance Engine, TLP classification) has been called "theatrical" when applied to DNS analysis. We address this directly.
+
+ICD 203 was designed for operators making high-stakes decisions on incomplete, potentially ambiguous data. Business Email Compromise is a $2.9 billion/year problem driven by SPF/DKIM/DMARC misconfiguration. When an engineer evaluates an SPF finding, they need structured confidence: was it observed directly or inferred? Confirmed across multiple resolvers or seen by one? Degraded by caching artifacts? ICD 203 provides that structure. The alternative — presenting every finding as equally certain — is what causes the alert fatigue that makes security tools useless.
+
+The naming enforces separation between two fundamentally different subsystems: ICAE measures correctness ("Did we interpret the data correctly?"), ICuAE measures currency ("Is the data still valid?"). Those are different failure modes requiring different test methodologies, different statistical methods (Bayesian calibration vs EWMA drift detection), and different standards citations (ISO/IEC 25012 vs NIST SP 800-53). "Accuracy Checker" and "Freshness Checker" would have been imprecise — accuracy implies measurement precision, while confidence implies epistemic rigor about the basis for a conclusion. Currency implies temporal validity of evidence, not just recency. The IC terminology is precise because the IC spent decades making it precise.
+
+The hacker culture aesthetic (Easter eggs, Covert Recon Mode built on scotopic vision science, adversarial red theme per MIL-STD-3009) coexists with the science because security researchers who write CVEs and break protocols also appreciate craft, culture, and intrinsic motivation. These are not mutually exclusive communities. The person who finds the Morse code Easter egg in Covert Recon Mode might be the same person who found CVE-2024-49040. Dismissing the aesthetic as cosplay says more about the critic's assumptions than about the engineering underneath.
+
+DNS Tool is built for the engineer who wants cited findings, the executive who needs a clear verdict, and the security researcher who appreciates both the science and the craft. Full defense: `/approach`
+
 Full methodology documentation: `/approach`
 
 ---
