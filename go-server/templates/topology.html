@@ -145,7 +145,9 @@
             brand: '#ce93d8',
             source: '#5c6bc0',
             intel: '#78909c',
-            engine: '#e0e0e0'
+            engine: '#e0e0e0',
+            storage: '#ff8a65',
+            output: '#90caf9'
         };
 
         function hexToRgba(hex, a) {
@@ -169,6 +171,18 @@
         var CONFIDENCE = [
             { id: 'icae', label: 'ICAE', sub: 'Accuracy Audit',  color: '#ef9a9a', zone: 'confidence' },
             { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit', color: '#a5d6a7', zone: 'confidence' }
+        ];
+
+        var STORAGE = [
+            { id: 'postgres',  label: 'PostgreSQL',     sub: 'Scan Results · History\nDrift · Analytics',      color: COLORS.storage, zone: 'storage' },
+            { id: 'vault',     label: 'Intel Vault',     sub: 'Golden Fixtures\nConfidence Bridge',             color: COLORS.storage, zone: 'storage' }
+        ];
+
+        var OUTPUTS = [
+            { id: 'reports',   label: 'Reports',        sub: 'Engineer · Executive\nRecon · Comparison',       color: COLORS.output, zone: 'output' },
+            { id: 'jsonapi',   label: 'JSON API',       sub: 'Analysis · Checksums\nSubdomains · Health',      color: COLORS.output, zone: 'output' },
+            { id: 'seo',       label: 'Schema.org',     sub: 'JSON-LD Structured Data\nGoogle · Rich Results',  color: COLORS.output, zone: 'output' },
+            { id: 'badges',    label: 'SVG Badges',     sub: 'Posture Indicators\nEmbeddable',                 color: COLORS.output, zone: 'output' }
         ];
 
         var PROTOCOLS = [
@@ -209,6 +223,20 @@
             allNodes[c.id] = c;
         });
 
+        STORAGE.forEach(function(s) {
+            s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
+            s.radius = 24; s._initialized = false;
+            s.shape = 'cylinder';
+            allNodes[s.id] = s;
+        });
+
+        OUTPUTS.forEach(function(o) {
+            o.x = 0; o.y = 0; o.targetX = 0; o.targetY = 0;
+            o.radius = 22; o._initialized = false;
+            o.shape = 'hexagon';
+            allNodes[o.id] = o;
+        });
+
         allNodes[ENGINE.id] = ENGINE;
 
         PROTOCOLS.forEach(function(p) {
@@ -227,19 +255,26 @@
         });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'engine', to: 'postgres', type: 'flow', label: 'persist' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'vault', type: 'flow', label: 'golden fixtures' });
+        FLOW_EDGES.push({ from: 'vault', to: 'icae', type: 'flow', label: 'validates' });
         PROTOCOLS.forEach(function(p) {
             FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
         });
+        OUTPUTS.forEach(function(o) {
+            FLOW_EDGES.push({ from: 'engine', to: o.id, type: 'flow', label: '' });
+        });
+        FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
 
         function layoutAll() {
-            var cx = W * 0.48;
-            var cy = H * 0.48;
+            var cx = W * 0.38;
+            var cy = H * 0.42;
 
-            var srcX = W * 0.1;
-            var srcStartY = H * 0.12;
-            var srcSpacing = (H * 0.76) / (SOURCES.length - 1);
+            var srcX = W * 0.08;
+            var srcStartY = H * 0.1;
+            var srcSpacing = (H * 0.72) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
-                s.targetX = srcX + (i % 2 === 0 ? 0 : W * 0.04);
+                s.targetX = srcX + (i % 2 === 0 ? 0 : W * 0.03);
                 s.targetY = srcStartY + i * srcSpacing;
                 if (!s._initialized) { s.x = s.targetX - 30; s.y = s.targetY; s._initialized = true; }
             });
@@ -248,24 +283,40 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 50;
-            CONFIDENCE[0].targetY = cy + H * 0.22;
-            CONFIDENCE[1].targetX = cx + 50;
-            CONFIDENCE[1].targetY = cy + H * 0.22;
+            CONFIDENCE[0].targetX = cx - 45;
+            CONFIDENCE[0].targetY = cy + H * 0.2;
+            CONFIDENCE[1].targetX = cx + 45;
+            CONFIDENCE[1].targetY = cy + H * 0.2;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            var protoX = W * 0.78;
-            var protoCx = protoX;
-            var protoCy = cy;
-            var protoR = Math.min(W * 0.18, H * 0.32);
+            STORAGE[0].targetX = cx - 10;
+            STORAGE[0].targetY = cy + H * 0.35;
+            STORAGE[1].targetX = cx - 65;
+            STORAGE[1].targetY = cy + H * 0.35;
+            STORAGE.forEach(function(s) {
+                if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
+            });
+
+            var protoCx = W * 0.68;
+            var protoCy = cy - H * 0.02;
+            var protoR = Math.min(W * 0.15, H * 0.28);
             var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
             PROTOCOLS.forEach(function(p, i) {
                 var a = protoAngles[i] * Math.PI / 180;
                 p.targetX = protoCx + protoR * Math.cos(a);
                 p.targetY = protoCy + protoR * Math.sin(a);
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
+            });
+
+            var outX = W * 0.92;
+            var outStartY = H * 0.18;
+            var outSpacing = (H * 0.55) / (OUTPUTS.length - 1);
+            OUTPUTS.forEach(function(o, i) {
+                o.targetX = outX - (i % 2 === 0 ? 0 : W * 0.02);
+                o.targetY = outStartY + i * outSpacing;
+                if (!o._initialized) { o.x = o.targetX + 20; o.y = o.targetY; o._initialized = true; }
             });
         }
 
