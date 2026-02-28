@@ -550,6 +550,12 @@ DNS Tool follows the same open-core disclosure model used by HashiCorp, GitLab, 
 - Provider-specific detection databases and fingerprint libraries
 This is a deliberate engineering decision, not an indication of incomplete implementation.
 
+### Schema.org Structured Data (Search Engine Intelligence)
+DNS Tool embeds rich JSON-LD structured data on indexed pages, mapping the full intelligence pipeline to Google's knowledge graph:
+- **Index page (WebApplication)**: `featureList` enumerates 18 protocol analyzers with RFC citations. `hasPart` declares ICIE, ICAE, and ICuAE as named SoftwareApplication entities with `@id` identifiers. `isBasedOn` links 10 RFC/draft references as CreativeWork objects to IETF DataTracker. `additionalProperty` documents intelligence sources (5 resolvers + RDAP + CT + Team Cymru + CISA), protocol coverage (9 families), output formats, risk classification, and CVE coverage. FAQPage schema with 12 expert Q&A entries for rich search results.
+- **Approach page (Article)**: Maps methodology components (ICIE, ICAE, ICuAE, multi-resolver consensus, posture drift detection) with `isBasedOn` RFC references, full Google Article eligibility (headline, datePublished, dateModified, image, publisher with logo), and `about` entities linking to confidence engine pages.
+- **Design decisions**: RFCs use `CreativeWork` type (not `TechArticle`) because Schema.org defines TechArticle as instructional content — RFCs are specifications. `hasPart` entities include `@id` fragment identifiers for Google entity connection. Live `softwareVersion` injection via Go template variables.
+
 ### Architecture Diagrams (Public, Version-Controlled)
 Four Mermaid-sourced engineering diagrams are maintained in `docs/diagrams/*.mmd` (Git-diffable canonical source) with pre-rendered SVGs on the `/architecture` page:
 - `intelligence-pipeline.mmd` — Domain Input → Collection → Analysis → Privacy Gate → 5 Products

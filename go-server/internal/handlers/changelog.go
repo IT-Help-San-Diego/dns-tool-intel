@@ -13,8 +13,10 @@
 //  2. Use (or create) a named date constant below.
 //  3. Reference the constant — never inline a date string.
 //
-// Canonical date mapping (verified Feb 26, 2026):
+// Canonical date mapping (verified Feb 28, 2026):
 //
+//      dateFeb28 — Schema.org Intelligence Pipeline Mapping,
+//                  Intelligence Pipeline Topology Visualization
 //      dateFeb26 — Safari Covert Mode Fix, Stats Success Rate Fix,
 //                  Daily Analysis Stats Tracking, Admin IP Audit Trail,
 //                  CSRF Form Fix (TTL Tuner & Watchlist),
@@ -48,6 +50,7 @@
 package handlers
 
 const (
+        dateFeb28 = "Feb 28, 2026"
         dateFeb26 = "Feb 26, 2026"
         dateFeb23 = "Feb 23, 2026"
         dateFeb21 = "Feb 21, 2026"
@@ -67,6 +70,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver262820 = "26.28.20"
         ver262704 = "26.27.04"
         ver262703 = "26.27.03"
         ver262701 = "26.27.01"
@@ -107,6 +111,22 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver262820,
+                        Date:        dateFeb28,
+                        Category:    catIntelligence,
+                        Title:       "Schema.org Intelligence Pipeline Mapping",
+                        Description: "Rich JSON-LD structured data on indexed pages now maps the full intelligence pipeline to Google's knowledge graph. Index page WebApplication schema includes featureList (18 protocol analyzers with RFC citations), hasPart (ICIE/ICAE/ICuAE as named SoftwareApplication entities with @id identifiers), isBasedOn (10 RFC/draft references as CreativeWork), and additionalProperty (intelligence sources, protocol coverage, output formats, risk classification, CVE coverage). Approach page Article schema maps methodology components with isBasedOn RFC references. Live version injection via template variables.",
+                        Icon:        "fas fa-project-diagram",
+                },
+                {
+                        Version:     ver262820,
+                        Date:        dateFeb28,
+                        Category:    catIntelligence,
+                        Title:       "Intelligence Pipeline Topology Visualization",
+                        Description: "Expanded the unlisted /topology page to show the full system architecture: source nodes (DNS resolvers, Root/TLD, RDAP/WHOIS, IETF metadata, CISA/Threat, Probe Fleet), pulsing ICIE engine center, ICAE/ICuAE confidence auditor diamonds, 9 protocol analysis circles with RFC-based dependency edges, PostgreSQL/Intel Vault storage cylinders, and output hexagons (Reports, JSON API, Schema.org, SVG Badges). Particles flow through the intelligence pipeline showing data movement from sources through engine to outputs.",
+                        Icon:        "fas fa-network-wired",
+                },
                 {
                         Version:     ver262704,
                         Date:        dateFeb26,
