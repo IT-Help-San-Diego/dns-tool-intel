@@ -28,11 +28,11 @@
             background: rgba(7, 10, 15, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 6px;
-            padding: 10px 14px;
-            font-size: 0.65rem;
-            color: #6b7a8d;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            color: #8b9aad;
             backdrop-filter: blur(8px);
-            max-width: 200px;
+            max-width: 220px;
         }
         .topo-legend-section {
             margin-bottom: 8px;
@@ -41,10 +41,10 @@
         }
         .topo-legend-section:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
         .topo-legend-label {
-            font-size: 0.6rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #4a5568;
+            color: #5a6878;
             margin-bottom: 4px;
         }
         .topo-legend-item {
@@ -72,13 +72,13 @@
             top: 16px;
             left: 16px;
             color: rgba(255, 255, 255, 0.4);
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
         }
         .topo-title-overlay strong {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 0.8rem;
+            font-size: 0.95rem;
             display: block;
             letter-spacing: 0.05em;
         }
@@ -519,15 +519,15 @@
                 var nx = -dy / len;
                 var ny = dx / len;
                 var labelOffset = 10;
-                ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.45)';
+                ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.5)';
                 ctx.textAlign = 'center';
                 ctx.fillText(e.label, mx + nx * labelOffset, my + ny * labelOffset);
             } else if (e.label) {
                 var mx = (from.x + to.x) / 2;
                 var my = (from.y + to.y) / 2;
-                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.35)';
+                ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.4)';
                 ctx.textAlign = 'center';
                 ctx.fillText(e.label, mx, my - 12);
             }
@@ -561,15 +561,15 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            ctx.font = (isHover ? 'bold ' : '') + '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.8)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
             ctx.fillText(n.label, n.x, n.y - (isHover ? 6 : 0));
 
             if (isHover && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 lines.forEach(function(line, i) {
                     ctx.fillText(line, n.x, n.y + 8 + i * 11);
@@ -605,15 +605,15 @@
             ctx.lineWidth = 0.5;
             ctx.stroke();
 
-            ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
             ctx.fillText(n.label, n.x, n.y - 8);
 
-            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.45)';
-            ctx.fillText(n.sub, n.x, n.y + 10);
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)';
+            ctx.fillText(n.sub, n.x, n.y + 12);
         }
 
         function drawConfidenceNode(n) {
@@ -636,15 +636,15 @@
             ctx.stroke();
             ctx.restore();
 
-            ctx.font = (isHover ? 'bold ' : '') + '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + '14px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.8)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
             ctx.fillText(n.label, n.x, n.y - 7);
 
-            ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.35)');
-            ctx.fillText(n.sub, n.x, n.y + 9);
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)');
+            ctx.fillText(n.sub, n.x, n.y + 10);
         }
 
         function drawProtocolNode(p) {
@@ -671,16 +671,16 @@
             ctx.lineWidth = isHover ? 2 : 1;
             ctx.stroke();
 
-            var fontSize = p.label.length > 6 ? 11 : (p.label.length > 4 ? 12 : 14);
+            var fontSize = p.label.length > 6 ? 13 : (p.label.length > 4 ? 14 : 16);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
             ctx.fillText(p.label, p.x, p.y - 6);
 
-            ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.08)' : (isHover ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.3)');
-            ctx.fillText(p.rfc === 'draft' ? 'Draft' : p.rfc, p.x, p.y + 10);
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.08)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.35)');
+            ctx.fillText(p.rfc === 'draft' ? 'Draft' : p.rfc, p.x, p.y + 11);
         }
 
         function drawStorageNode(n) {
@@ -711,16 +711,16 @@
             ctx.lineWidth = 0.6;
             ctx.stroke();
 
-            var fontSize = n.label.length > 8 ? 10 : 11;
+            var fontSize = n.label.length > 8 ? 12 : 13;
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.7)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
             ctx.fillText(n.label, n.x, n.y + 2);
 
             if (isHover && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 lines.forEach(function(line, i) {
                     ctx.fillText(line, n.x, n.y + h/2 + 14 + i * 11);
@@ -750,16 +750,16 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            var fontSize = n.label.length > 10 ? 9 : (n.label.length > 7 ? 10 : 12);
+            var fontSize = n.label.length > 10 ? 11 : (n.label.length > 7 ? 12 : 14);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.7)');
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
             ctx.fillText(n.label, n.x, n.y);
 
             if (isHover && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 lines.forEach(function(line, i) {
                     ctx.fillText(line, n.x, n.y + r + 10 + i * 11);
