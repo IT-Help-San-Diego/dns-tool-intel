@@ -186,7 +186,7 @@
 
         .stats-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -217,6 +217,7 @@
         }
         .stats-kpi.kpi-total::before { background: linear-gradient(90deg, transparent, #58a6ff, transparent); }
         .stats-kpi.kpi-success::before { background: linear-gradient(90deg, transparent, #3fb950, transparent); }
+        .stats-kpi.kpi-failed::before { background: linear-gradient(90deg, transparent, #f85149, transparent); }
         .stats-kpi.kpi-unique::before { background: linear-gradient(90deg, transparent, #79c0ff, transparent); }
         .stats-kpi.kpi-rate::before { background: linear-gradient(90deg, transparent, #d2a8ff, transparent); }
         .stats-kpi-icon {
@@ -231,6 +232,7 @@
         }
         .kpi-total .stats-kpi-icon { background: rgba(88,166,255,0.1); color: #58a6ff; border: 1px solid rgba(88,166,255,0.2); }
         .kpi-success .stats-kpi-icon { background: rgba(63,185,80,0.1); color: #3fb950; border: 1px solid rgba(63,185,80,0.2); }
+        .kpi-failed .stats-kpi-icon { background: rgba(248,81,73,0.1); color: #f85149; border: 1px solid rgba(248,81,73,0.2); }
         .kpi-unique .stats-kpi-icon { background: rgba(121,192,255,0.1); color: #79c0ff; border: 1px solid rgba(121,192,255,0.2); }
         .kpi-rate .stats-kpi-icon { background: rgba(210,168,255,0.1); color: #d2a8ff; border: 1px solid rgba(210,168,255,0.2); }
         .stats-kpi-value {
@@ -481,7 +483,7 @@
                         </div>
                         <div class="stats-confidence-metric">
                             <div class="stats-confidence-metric-value u-green">{{if gt .TotalAnalyses 0}}{{successRate .SuccessfulAnalyses .TotalAnalyses}}%{{else}}&mdash;{{end}}</div>
-                            <div class="stats-confidence-metric-label">Accuracy</div>
+                            <div class="stats-confidence-metric-label">Reliability</div>
                         </div>
                     </div>
                     <div class="stats-confidence-preview-link">
@@ -498,10 +500,13 @@
                 </div>
                 <div class="stats-kpi kpi-success">
                     <div class="stats-kpi-icon"><i class="fas fa-check-double"></i></div>
-                    <div class="stats-kpi-value">
-                        {{.SuccessfulAnalyses}}{{if gt .FailedAnalyses 0}}<a href="/failures" class="u-stats-fail-link" title="View failure transparency log"> / {{.FailedAnalyses}}</a>{{end}}
-                    </div>
+                    <div class="stats-kpi-value">{{.SuccessfulAnalyses}}</div>
                     <div class="stats-kpi-label">Successful</div>
+                </div>
+                <div class="stats-kpi kpi-failed">
+                    <div class="stats-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stats-kpi-value">{{.FailedAnalyses}}</div>
+                    <div class="stats-kpi-label">Failed</div>
                 </div>
                 <div class="stats-kpi kpi-unique">
                     <div class="stats-kpi-icon"><i class="fas fa-fingerprint"></i></div>
@@ -584,6 +589,7 @@
                                         <th>Date</th>
                                         <th>Total</th>
                                         <th>Success</th>
+                                        <th>Failed</th>
                                         <th>Unique</th>
                                         <th>Avg Time</th>
                                     </tr>
@@ -593,9 +599,8 @@
                                     <tr>
                                         <td class="u-text-muted-dim">{{$s.Date}}</td>
                                         <td>{{$s.TotalAnalyses}}</td>
-                                        <td>
-                                            <span class="u-text-green-bright">{{$s.SuccessfulAnalyses}}</span>{{if gt $s.FailedAnalyses 0}}<a href="/failures" class="u-stats-fail-inline" title="View failure log"> /{{$s.FailedAnalyses}}</a>{{end}}
-                                        </td>
+                                        <td><span class="u-text-green-bright">{{$s.SuccessfulAnalyses}}</span></td>
+                                        <td>{{if gt $s.FailedAnalyses 0}}<span class="u-text-red-bright">{{$s.FailedAnalyses}}</span>{{else}}<span class="u-text-muted-dim">0</span>{{end}}</td>
                                         <td>{{$s.UniqueDomains}}</td>
                                         <td class="u-text-muted-dim">
                                             {{if $s.HasAvgTime}}{{formatFloat 2 $s.AvgAnalysisTime}}s{{else}}&mdash;{{end}}

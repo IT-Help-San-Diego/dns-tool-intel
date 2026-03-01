@@ -44,15 +44,13 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 return
         }
 
-        totalAnalyses, err := h.DB.Queries.CountAllAnalyses(ctx)
+        statsSummary, err := h.DB.Queries.SumAnalysisStats(ctx)
         if err != nil {
-                slog.Warn("Stats: failed to count analyses", mapKeyError, err)
+                slog.Warn("Stats: failed to sum analysis stats", mapKeyError, err)
         }
-        successfulAnalyses, err := h.DB.Queries.CountSuccessfulAnalysesTotal(ctx)
-        if err != nil {
-                slog.Warn("Stats: failed to count successful analyses", mapKeyError, err)
-        }
-        failedAnalyses := totalAnalyses - successfulAnalyses
+        totalAnalyses := statsSummary.Total
+        successfulAnalyses := statsSummary.Successful
+        failedAnalyses := statsSummary.Failed
         uniqueDomains, err := h.DB.Queries.CountUniqueDomainsTotal(ctx)
         if err != nil {
                 slog.Warn("Stats: failed to count unique domains", mapKeyError, err)

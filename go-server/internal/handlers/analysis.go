@@ -288,6 +288,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         if success, ok := results["analysis_success"].(bool); ok && !success {
                 if errMsg, ok := results[mapKeyError].(string); ok {
+                        go h.recordDailyStats(false, analysisDuration)
                         h.renderIndexFlash(c, nonce, csrfToken, mapKeyWarning, errMsg)
                         return
                 }
