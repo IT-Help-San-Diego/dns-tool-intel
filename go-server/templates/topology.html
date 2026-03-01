@@ -10,7 +10,7 @@
             position: relative;
             width: 100%;
             height: calc(100vh - 80px);
-            min-height: 700px;
+            min-height: 750px;
             overflow: hidden;
             background: #070a0f;
             border-radius: 8px;
@@ -218,21 +218,21 @@
 
         CONFIDENCE.forEach(function(c) {
             c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
-            c.radius = 30; c._initialized = false;
+            c.radius = 36; c._initialized = false;
             c.shape = 'diamond';
             allNodes[c.id] = c;
         });
 
         STORAGE.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = 32; s._initialized = false;
+            s.radius = 34; s._initialized = false;
             s.shape = 'cylinder';
             allNodes[s.id] = s;
         });
 
         OUTPUTS.forEach(function(o) {
             o.x = 0; o.y = 0; o.targetX = 0; o.targetY = 0;
-            o.radius = 30; o._initialized = false;
+            o.radius = 36; o._initialized = false;
             o.shape = 'hexagon';
             allNodes[o.id] = o;
         });
@@ -267,12 +267,12 @@
         FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
 
         function layoutAll() {
-            var cx = W * 0.28;
-            var cy = H * 0.32;
+            var cx = W * 0.22;
+            var cy = H * 0.3;
 
-            var srcX = W * 0.08;
-            var srcStartY = H * 0.08;
-            var srcEndY = H * 0.78;
+            var srcX = W * 0.07;
+            var srcStartY = H * 0.12;
+            var srcEndY = H * 0.88;
             var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
@@ -284,25 +284,25 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 65;
-            CONFIDENCE[0].targetY = cy + H * 0.24;
-            CONFIDENCE[1].targetX = cx + 65;
-            CONFIDENCE[1].targetY = cy + H * 0.24;
+            CONFIDENCE[0].targetX = cx - 80;
+            CONFIDENCE[0].targetY = cy + H * 0.25;
+            CONFIDENCE[1].targetX = cx + 80;
+            CONFIDENCE[1].targetY = cy + H * 0.25;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 40;
-            STORAGE[0].targetY = cy + H * 0.42;
+            STORAGE[0].targetX = cx + 60;
+            STORAGE[0].targetY = cy + H * 0.45;
             STORAGE[1].targetX = cx - 80;
-            STORAGE[1].targetY = cy + H * 0.42;
+            STORAGE[1].targetY = cy + H * 0.45;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
-            var protoCx = W * 0.6;
-            var protoCy = H * 0.4;
-            var protoR = Math.min(W * 0.2, H * 0.3);
+            var protoCx = W * 0.57;
+            var protoCy = H * 0.42;
+            var protoR = Math.min(W * 0.22, H * 0.32);
             var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
             PROTOCOLS.forEach(function(p, i) {
                 var a = protoAngles[i] * Math.PI / 180;
@@ -311,9 +311,9 @@
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
 
-            var outX = W * 0.9;
+            var outX = W * 0.88;
             var outStartY = H * 0.1;
-            var outSpacing = (H * 0.65) / (OUTPUTS.length - 1);
+            var outSpacing = (H * 0.72) / (OUTPUTS.length - 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = outStartY + i * outSpacing;
@@ -437,15 +437,15 @@
                 return { x: node.x + nx * t, y: node.y + ny * t };
             }
             if (node.shape === 'diamond') {
-                var s = node.radius * 0.75 + pad;
+                var s = node.radius * 0.8 + pad;
                 var absDx = Math.abs(nx);
                 var absDy = Math.abs(ny);
                 var t = s / (absDx + absDy || 1);
                 return { x: node.x + nx * t, y: node.y + ny * t };
             }
             if (node.shape === 'cylinder') {
-                var hw = (node.radius * 2.2) / 2 + pad;
-                var hh = (node.radius * 1.5) / 2 + 6 + pad;
+                var hw = (node.radius * 2.4) / 2 + pad;
+                var hh = (node.radius * 1.6) / 2 + 7 + pad;
                 var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx, ty);
@@ -626,7 +626,7 @@
             ctx.translate(n.x, n.y);
             ctx.rotate(Math.PI / 4);
             ctx.beginPath();
-            var s = r * 0.75;
+            var s = r * 0.8;
             ctx.rect(-s, -s, s * 2, s * 2);
             ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
             ctx.fill();
@@ -635,15 +635,15 @@
             ctx.stroke();
             ctx.restore();
 
-            ctx.font = (isHover ? 'bold ' : '') + '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + '12px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.8)');
-            ctx.fillText(n.label, n.x, n.y - 6);
+            ctx.fillText(n.label, n.x, n.y - 7);
 
-            ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.35)');
-            ctx.fillText(n.sub, n.x, n.y + 8);
+            ctx.fillText(n.sub, n.x, n.y + 9);
         }
 
         function drawProtocolNode(p) {
@@ -688,10 +688,10 @@
             var isConnected = hoverNode && connected[n.id];
             var dimmed = hoverNode && !isHover && !isConnected;
 
-            var w = n.radius * 2.2;
-            var h = n.radius * 1.5;
+            var w = n.radius * 2.4;
+            var h = n.radius * 1.6;
             var ew = w / 2;
-            var eh = 6;
+            var eh = 7;
 
             ctx.beginPath();
             ctx.ellipse(n.x, n.y - h/2, ew, eh, 0, Math.PI, Math.PI * 2);
@@ -749,7 +749,7 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            var fontSize = n.label.length > 8 ? 9 : 11;
+            var fontSize = n.label.length > 10 ? 9 : (n.label.length > 7 ? 10 : 12);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
