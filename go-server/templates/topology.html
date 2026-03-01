@@ -23,21 +23,24 @@
         .u-privacy-banner { display: none !important; }
         .topo-legend {
             position: absolute;
-            bottom: 16px;
-            right: 16px;
-            background: rgba(7, 10, 15, 0.9);
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(7, 10, 15, 0.92);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 6px;
-            padding: 12px 16px;
+            padding: 10px 24px;
             font-size: 0.8rem;
             color: #8b9aad;
             backdrop-filter: blur(8px);
-            max-width: 220px;
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
         }
         .topo-legend-section {
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
         .topo-legend-section:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
         .topo-legend-label {
@@ -167,7 +170,7 @@
             { id: 'probes',    label: 'Probe Fleet',     sub: 'SMTP · DANE · TLS\nNmap · testssl.sh',            color: COLORS.source, zone: 'source' }
         ];
 
-        var ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 52, _initialized: false };
+        var ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 58, _initialized: false };
 
         var CONFIDENCE = [
             { id: 'icae', label: 'ICAE', sub: 'Accuracy Audit',  color: '#ef9a9a', zone: 'confidence' },
@@ -212,28 +215,28 @@
 
         SOURCES.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = 28; s._initialized = false;
+            s.radius = 34; s._initialized = false;
             s.shape = 'rect';
             allNodes[s.id] = s;
         });
 
         CONFIDENCE.forEach(function(c) {
             c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
-            c.radius = 36; c._initialized = false;
+            c.radius = 40; c._initialized = false;
             c.shape = 'diamond';
             allNodes[c.id] = c;
         });
 
         STORAGE.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = 34; s._initialized = false;
+            s.radius = 40; s._initialized = false;
             s.shape = 'cylinder';
             allNodes[s.id] = s;
         });
 
         OUTPUTS.forEach(function(o) {
             o.x = 0; o.y = 0; o.targetX = 0; o.targetY = 0;
-            o.radius = 36; o._initialized = false;
+            o.radius = 40; o._initialized = false;
             o.shape = 'hexagon';
             allNodes[o.id] = o;
         });
@@ -242,7 +245,7 @@
 
         PROTOCOLS.forEach(function(p) {
             p.x = 0; p.y = 0; p.targetX = 0; p.targetY = 0;
-            p.radius = 36;
+            p.radius = 40;
             p.color = COLORS[p.cat];
             p.shape = 'circle';
             p._initialized = false;
