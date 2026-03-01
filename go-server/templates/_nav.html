@@ -5,16 +5,16 @@
         <a class="navbar-brand" href="/">
             <picture><source srcset="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "icons/icon-48x48.png" .AppVersion}}" width="24" height="24" alt="" class="me-2 u-valign-n3 rounded-circle" aria-hidden="true"></picture>DNS Tool <span class="nav-version-badge ms-1">v{{.AppVersion}}</span>
         </a>
-        {{if .MaintenanceNote}}<span class="u-maintenance-tag"><i class="fas fa-wrench me-1" aria-hidden="true"></i>{{.MaintenanceNote}}</span>{{end}}
-        <span class="d-flex align-items-center ms-auto">
-            <span class="u-covert-beta-tag me-2">Beta</span>
+        <div class="u-nav-controls d-flex align-items-center ms-auto gap-2">
+            {{if .MaintenanceNote}}<span class="u-maintenance-tag"><i class="fas fa-wrench me-1" aria-hidden="true"></i>{{.MaintenanceNote}}</span>{{end}}
+            <span class="u-covert-beta-tag">Beta</span>
             <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-label="Toggle Covert Recon Mode">
                 <i class="fas fa-biohazard" aria-hidden="true"></i>
             </button>
-            <button class="navbar-toggler ms-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation menu">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation menu">
                 <span class="navbar-toggler-icon"></span>
             </button>
-        </span>
+        </div>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">

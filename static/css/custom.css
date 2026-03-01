@@ -1271,11 +1271,12 @@ main.container {
     }
 
     .navbar-brand {
-        max-width: calc(100vw - 90px);
+        max-width: calc(100vw - 160px);
         white-space: nowrap;
         font-size: 1rem;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex-shrink: 1;
     }
 
     .navbar-brand .nav-version-badge {
@@ -1299,6 +1300,11 @@ main.container {
     .u-beta-tag {
         font-size: 0.45rem;
         padding: 0.1em 0.35em;
+    }
+
+    .u-nav-controls {
+        gap: 0.4rem !important;
+        flex-shrink: 0;
     }
 
     .u-covert-toggle {
@@ -7186,9 +7192,17 @@ body.covert-mode .math-copy-btn--copied {
     left: 0;
     right: 0;
     z-index: 1050;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+.u-privacy-card {
     background: #131720;
     border-top: 1px solid rgba(63, 185, 80, 0.25);
-    padding: 1rem 0;
+    border-radius: 0;
+    padding: 1rem;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
     max-height: 60vh;
     overflow-y: auto;
@@ -7202,12 +7216,36 @@ body.covert-mode .math-copy-btn--copied {
     color: rgba(200, 210, 220, 0.85);
 }
 .u-privacy-accept-btn {
-    margin-top: 0.25rem;
     white-space: nowrap;
-    align-self: flex-start;
+    flex-shrink: 0;
+}
+@media (max-width: 767px) {
+    .u-privacy-banner {
+        align-items: center;
+        top: 0;
+        padding: 1rem;
+    }
+    .u-privacy-card {
+        border: 1px solid rgba(63, 185, 80, 0.25);
+        border-radius: 0.75rem;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .u-privacy-details {
+        max-height: 55vh;
+        overflow-y: auto;
+    }
+    .u-privacy-accept-btn {
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
 }
 body.covert-mode .u-privacy-banner {
-    border-top-color: rgba(196, 60, 60, 0.35);
+    background: rgba(0, 0, 0, 0.7);
+}
+body.covert-mode .u-privacy-card {
+    border-color: rgba(196, 60, 60, 0.35);
 }
 body.covert-mode .u-privacy-banner code {
     color: #cc5030;

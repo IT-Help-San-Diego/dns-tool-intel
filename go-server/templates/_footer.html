@@ -1,9 +1,14 @@
 {{define "footer"}}
 <div id="privacyBanner" class="u-privacy-banner" role="region" aria-label="Privacy notice">
     <div class="container">
-        <div class="d-flex align-items-start gap-3 flex-wrap">
-            <div class="flex-grow-1">
-                <p class="mb-2"><i class="fas fa-shield-halved me-1 text-success"></i><strong>Straight talk about your data.</strong></p>
+        <div class="u-privacy-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fas fa-shield-halved me-1 text-success"></i><strong>Straight talk about your data.</strong></span>
+                <button type="button" class="btn btn-sm btn-outline-success text-nowrap u-privacy-accept-btn ms-3" id="privacyAccept" aria-label="Acknowledge privacy notice">
+                    <i class="fas fa-check me-1"></i>Got it
+                </button>
+            </div>
+            <div class="u-privacy-details">
                 <p class="mb-2 small">We use <strong>two cookies</strong>, both essential:</p>
                 <ul class="small mb-2">
                     <li><code>_csrf</code> &mdash; Prevents cross-site request forgery. Required for form submissions. Security-only.</li>
@@ -13,9 +18,6 @@
                 <p class="mb-2 small"><strong>No tracking cookies. No analytics cookies. No ad networks. No data brokers.</strong> Our code is <a href="https://github.com/careyjames/dns-tool-web" target="_blank" rel="noopener" class="text-info">open source</a> &mdash; verify it yourself.</p>
                 <p class="mb-0 small">If you create an account and want out, there will be a <strong>one-click delete</strong> that removes your login and scan history. Public domain analyses remain available because they contain only public DNS records, already hashed. Full details: <a href="/security-policy#privacy-pledge" class="text-info">Privacy Pledge</a>.</p>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-success text-nowrap u-privacy-accept-btn" id="privacyAccept" aria-label="Acknowledge privacy notice">
-                <i class="fas fa-check me-1"></i>Got it
-            </button>
         </div>
     </div>
 </div>
