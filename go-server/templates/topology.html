@@ -20,6 +20,7 @@
             width: 100%;
             height: 100%;
         }
+        .u-privacy-banner { display: none !important; }
         .topo-legend {
             position: absolute;
             bottom: 16px;
@@ -211,7 +212,7 @@
 
         SOURCES.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = 36; s._initialized = false;
+            s.radius = 28; s._initialized = false;
             s.shape = 'rect';
             allNodes[s.id] = s;
         });
@@ -292,10 +293,10 @@
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 60;
-            STORAGE[0].targetY = cy + H * 0.45;
+            STORAGE[0].targetX = cx + 80;
+            STORAGE[0].targetY = cy + H * 0.48;
             STORAGE[1].targetX = cx - 80;
-            STORAGE[1].targetY = cy + H * 0.45;
+            STORAGE[1].targetY = cy + H * 0.48;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
@@ -313,7 +314,7 @@
 
             var outX = W * 0.88;
             var outStartY = H * 0.1;
-            var outSpacing = (H * 0.72) / (OUTPUTS.length - 1);
+            var outSpacing = (H * 0.58) / (OUTPUTS.length - 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = outStartY + i * outSpacing;
@@ -429,8 +430,8 @@
             var pad = 5;
 
             if (node.shape === 'rect') {
-                var hw = (node.radius * 2.8) / 2 + pad;
-                var hh = (node.radius * 1.8) / 2 + pad;
+                var hw = (node.radius * 2.6) / 2 + pad;
+                var hh = (node.radius * 1.4) / 2 + pad;
                 var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx, ty);
@@ -525,10 +526,10 @@
             } else if (e.label) {
                 var mx = (from.x + to.x) / 2;
                 var my = (from.y + to.y) / 2;
-                ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.35)';
                 ctx.textAlign = 'center';
-                ctx.fillText(e.label, mx, my - 6);
+                ctx.fillText(e.label, mx, my - 12);
             }
         }
 
@@ -538,8 +539,8 @@
             var isConnected = hoverNode && connected[n.id];
             var dimmed = hoverNode && !isHover && !isConnected;
 
-            var w = n.radius * 2.8;
-            var h = n.radius * 1.8;
+            var w = n.radius * 2.6;
+            var h = n.radius * 1.4;
             var r = 5;
 
             ctx.beginPath();
@@ -560,15 +561,15 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            ctx.font = (isHover ? 'bold ' : '') + '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + '11px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.8)');
-            ctx.fillText(n.label, n.x, n.y - (isHover ? 7 : 0));
+            ctx.fillText(n.label, n.x, n.y - (isHover ? 6 : 0));
 
             if (isHover && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 lines.forEach(function(line, i) {
                     ctx.fillText(line, n.x, n.y + 8 + i * 11);
