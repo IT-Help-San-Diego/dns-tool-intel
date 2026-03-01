@@ -126,11 +126,14 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         isTLD := dnsclient.IsTLDInput(domain)
         mxForDANE, _ := basic["MX"].([]string)
 
+        postCtx, postCancel := context.WithTimeout(context.Background(), 15*time.Second)
+        defer postCancel()
+
         daneStart := time.Now()
-        resultsMap[mapKeyDaneOrch] = a.AnalyzeDANE(ctx, domain, mxForDANE)
+        resultsMap[mapKeyDaneOrch] = a.AnalyzeDANE(postCtx, domain, mxForDANE)
         slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeyDaneOrch, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(time.Since(daneStart).Milliseconds())))
 
-        smtpResult := a.computeSMTPResult(ctx, domain, isTLD, mxForDANE, resultsMap)
+        smtpResult := a.computeSMTPResult(postCtx, domain, isTLD, mxForDANE, resultsMap)
 
         enrichBasicRecords(basic, resultsMap)
 
