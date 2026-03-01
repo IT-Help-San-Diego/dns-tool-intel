@@ -201,10 +201,10 @@
             { from: 'dmarc', to: 'spf',    type: 'hard',  label: 'alignment' },
             { from: 'dmarc', to: 'dkim',   type: 'hard',  label: 'alignment' },
             { from: 'dane',  to: 'dnssec', type: 'hard',  label: 'requires' },
-            { from: 'bimi',  to: 'dmarc',  type: 'hard',  label: 'requires p=quarantine+' },
-            { from: 'tlsrpt', to: 'mtasts', type: 'soft', label: 'reports on' },
-            { from: 'tlsrpt', to: 'dane',  type: 'soft',  label: 'reports on' },
-            { from: 'caa',   to: 'dnssec', type: 'soft',  label: 'strengthened by' }
+            { from: 'bimi',  to: 'dmarc',  type: 'hard',  label: 'p=quarantine+' },
+            { from: 'tlsrpt', to: 'mtasts', type: 'soft', label: 'reports' },
+            { from: 'tlsrpt', to: 'dane',  type: 'soft',  label: 'reports' },
+            { from: 'caa',   to: 'dnssec', type: 'soft',  label: 'strengthens' }
         ];
 
         var allNodes = {};
@@ -462,11 +462,24 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            if (isHighlight && e.label) {
+            if (e.label && (e.type === 'hard' || e.type === 'soft')) {
                 var mx = (from.x + to.x) / 2;
                 var my = (from.y + to.y) / 2;
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                var dx = to.x - from.x;
+                var dy = to.y - from.y;
+                var len = Math.sqrt(dx * dx + dy * dy) || 1;
+                var nx = -dy / len;
+                var ny = dx / len;
+                var labelOffset = 8;
+                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.25)';
+                ctx.textAlign = 'center';
+                ctx.fillText(e.label, mx + nx * labelOffset, my + ny * labelOffset);
+            } else if (isHighlight && e.label) {
+                var mx = (from.x + to.x) / 2;
+                var my = (from.y + to.y) / 2;
+                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
                 ctx.textAlign = 'center';
                 ctx.fillText(e.label, mx, my - 5);
             }
@@ -614,17 +627,106 @@
             ctx.lineWidth = isHover ? 2 : 1;
             ctx.stroke();
 
-            var fontSize = p.label.length > 5 ? 10 : 12;
+            var fontSize = p.label.length > 6 ? 9 : (p.label.length > 4 ? 10 : 12);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
-            ctx.fillText(p.label, p.x, p.y - (isHover ? 6 : 0));
+            ctx.fillText(p.label, p.x, isHover ? p.y - 6 : p.y - 2);
+
+            if (!isHover && !dimmed) {
+                ctx.font = '7px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillText(p.rfc === 'draft' ? 'Draft' : p.rfc, p.x, p.y + 10);
+            }
 
             if (isHover) {
                 ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
                 ctx.fillText('RFC ' + p.rfc, p.x, p.y + 10);
+            }
+        }
+
+        function drawStorageNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[n.id];
+            var dimmed = hoverNode && !isHover && !isConnected;
+
+            var w = n.radius * 2;
+            var h = n.radius * 1.4;
+            var ew = w / 2;
+            var eh = 5;
+
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y - h/2, ew, eh, 0, Math.PI, Math.PI * 2);
+            ctx.lineTo(n.x + ew, n.y + h/2);
+            ctx.ellipse(n.x, n.y + h/2, ew, eh, 0, 0, Math.PI);
+            ctx.lineTo(n.x - ew, n.y - h/2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y - h/2, ew, eh, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.08 : (isHover ? 0.5 : 0.2));
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            ctx.font = (isHover ? 'bold ' : '') + '9px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.7)');
+            ctx.fillText(n.label, n.x, n.y + 2);
+
+            if (isHover && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = '7px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                lines.forEach(function(line, i) {
+                    ctx.fillText(line, n.x, n.y + h/2 + 12 + i * 9);
+                });
+            }
+        }
+
+        function drawOutputNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[n.id];
+            var dimmed = hoverNode && !isHover && !isConnected;
+
+            var r = n.radius;
+            ctx.beginPath();
+            for (var i = 0; i < 6; i++) {
+                var angle = Math.PI / 6 + i * Math.PI / 3;
+                var hx = n.x + r * Math.cos(angle);
+                var hy = n.y + r * Math.sin(angle);
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            var fontSize = n.label.length > 8 ? 8 : 9;
+            ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.7)');
+            ctx.fillText(n.label, n.x, n.y);
+
+            if (isHover && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = '7px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                lines.forEach(function(line, i) {
+                    ctx.fillText(line, n.x, n.y + r + 8 + i * 9);
+                });
             }
         }
 
@@ -665,7 +767,9 @@
             drawFlowParticles();
 
             SOURCES.forEach(function(s) { drawSourceNode(s); });
+            STORAGE.forEach(function(s) { drawStorageNode(s); });
             CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
+            OUTPUTS.forEach(function(o) { drawOutputNode(o); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
             drawEngineNode(ENGINE);
         }

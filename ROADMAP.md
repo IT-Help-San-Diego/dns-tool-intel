@@ -1,6 +1,6 @@
 # DNS Tool — Roadmap
 
-> Last updated: February 26, 2026
+> Last updated: March 1, 2026
 
 ---
 
@@ -42,6 +42,11 @@
 | Mobile Homepage Scroll Fix + Navbar Dropdown Refinement | v26.27.01 | Feb 2026 |
 | TTL Tuner Mobile Responsive Table | v26.27.02 | Feb 2026 |
 | SonarCloud Quality Gate Fixes (Unchecked Error Returns) | v26.27.02 | Feb 2026 |
+| RFC Compliance vs Operational Security Pattern (SPF/DKIM/DMARC) | v26.28.36 | Mar 2026 |
+| CVE Context in Email Security Panels (CVE-2024-7208/7209/49040) | v26.28.36 | Mar 2026 |
+| DMARCbis Forward-Looking Notes (Standards Track, pct→t, np=) | v26.28.36 | Mar 2026 |
+| DANE Context Deadline Fix (Fresh Context for Post-Parallel Tasks) | v26.28.34 | Feb 2026 |
+| DNS Intelligence Upgrade (EDNS0 + DO Bit, AD Flag Tracking) | v26.28.35 | Feb 2026 |
 
 ---
 
@@ -63,6 +68,8 @@
 | Zone File Import as Drift Baseline | Queued | Low | "Baseline Snapshot" comparison. Upload zone file to establish posture baseline for future drift detection. Zone parsing library selected; UX copy/disclaimer to be drafted. |
 | Raw Intelligence API Access | Queued | Low | Direct access to collected intelligence without processing layers. Requires access control and audit logging. |
 | ISC Recommendation Path Integration | Queued | Low | Integration with ISC (Internet Systems Consortium) remediation/hardening recommendations. Requires partnership or integration with ISC tooling. |
+| CVE Database Matching | Queued | Medium | Automated CVE cross-referencing for protocol findings. Map discovered configurations to known vulnerabilities (NVD/MITRE). Currently manual CVE citations; future automated matching against live CVE feeds. |
+| DMARCbis Standards Track Tracking | Queued | Medium | Monitor draft-ietf-dmarc-dmarcbis progression through IETF. Auto-update compliance guidance when RFC is published. Track pct→t migration, np= tag adoption, DNS tree walk mandate. |
 | TLD Zone Health: Parent/Child Delegation Consistency | Queued | High | Compare NS set in parent (root zone) vs child (TLD zone), DS/DNSKEY alignment, glue completeness (esp. in-bailiwick NS for ccTLDs), TTLs at parent vs child. This is "delegation security" as registries understand it. |
 | TLD Zone Health: Nameserver Fleet Matrix | Queued | High | Per-nameserver characterization: IPv4+IPv6 addresses, ASN/operator diversity scoring, UDP+TCP reachability (v4/v6), EDNS0 buffer sizing, truncation/TCP fallback, AA flag + lame delegation check, SOA serial per NS (detect sync issues). Currently we show NS hostnames but don't characterize the fleet. |
 | TLD Zone Health: DNSSEC Operations Deep Dive | Queued | High | Beyond current "Signed, algorithm, AD flag, DS record" — add: DNSKEY RRset (KSK vs ZSK key tags, key sizes), RRSIG inception/expiration windows (how close to expiry?), NSEC vs NSEC3 with parameter sanity, rollover readiness signals (multiple DNSKEYs present? DS aligned?). Heart of "zone health" for operators. |
@@ -119,8 +126,8 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: February 26, 2026  
-**Next Review**: Post-v26.28.0 release or every two weeks  
+**Last Updated**: March 1, 2026  
+**Next Review**: Post-v26.29.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
 When marking items as complete:

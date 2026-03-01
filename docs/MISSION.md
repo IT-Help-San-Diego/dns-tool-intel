@@ -20,8 +20,10 @@ We read publicly available DNS records, check publicly accessible URLs, and prod
 ### 4. Independent Verifiability
 Every conclusion we present must be reproducible. We provide "Verify It Yourself" terminal commands — `dig`, `openssl`, `curl` — so any analyst can confirm our findings independently. If we cannot show you how to verify a claim, we should not be making it.
 
-### 5. RFC Compliance
+### 5. RFC Compliance vs Operational Security
 Our analysis is grounded in the RFCs that define the protocols we examine. SPF evaluation follows RFC 7208. DMARC alignment follows RFC 7489. Certificate Transparency follows RFC 6962. DANE/TLSA follows RFC 6698. We do not invent interpretations — we implement the standards.
+
+We maintain a strict separation between **RFC compliance** (what a standard requires, recommends, or permits) and **operational security** (what happens when a control is absent). RFC 7208 classifies SPF as SHOULD, not MUST — we say so. RFC 7489 is Informational, not Standards Track — we say so. But we also explain that the absence of these controls creates concrete attack surfaces, citing real CVEs (CVE-2024-7208, CVE-2024-7209, CVE-2024-49040). The severity stays the same; the language becomes honest about the distinction. DMARCbis (draft-ietf-dmarc-dmarcbis) will elevate DMARC to Standards Track — we track its progress and display forward-looking context to users.
 
 ### 6. Confidence Taxonomy
 Every attribution is classified: **Observed** (directly witnessed in authoritative data), **Inferred** (derived from patterns in primary data), or **Third-party** (sourced from external enrichment). The consumer always knows the basis for each finding.
