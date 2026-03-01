@@ -4844,6 +4844,15 @@
                                             <span class="badge bg-secondary bg-opacity-50"><i class="fas fa-envelope me-1"></i>{{$mxEmailProvider}}</span>
                                         </div>
                                         {{end}}
+                                        {{$dkimData := mapGetMap "dkim" $results}}
+                                        {{if $dkimData}}
+                                            {{$mxLegacyNote := mapGetStr "mx_legacy_note" $dkimData}}
+                                            {{if $mxLegacyNote}}
+                                            <div class="alert alert-info py-1 px-2 small mb-0 mt-2">
+                                                <i class="fas fa-lightbulb me-1"></i>{{$mxLegacyNote}}
+                                            </div>
+                                            {{end}}
+                                        {{end}}
                                     {{end}}
                                 {{else}}
                                     <div class="text-muted small"><i class="fas fa-minus me-1"></i>No MX records</div>

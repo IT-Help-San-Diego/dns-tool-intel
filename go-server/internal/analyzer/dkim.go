@@ -361,10 +361,11 @@ var ambiguousSelectors = map[string]bool{
 }
 
 type ProviderResolution struct {
-        Primary          string
-        Gateway          string
-        SPFAncillaryNote string
+        Primary           string
+        Gateway           string
+        SPFAncillaryNote  string
         DKIMInferenceNote string
+        MXLegacyNote      string
 }
 
 func (pr *ProviderResolution) GatewayOrNil() interface{} {
@@ -418,23 +419,62 @@ func resolveProviderWithGateway(mxProvider, spfMailbox string) (primary, gateway
         return providerUnknown, ""
 }
 
+func detectAllSPFMailboxProviders(spfRecord string) []string {
+        if spfRecord == "" {
+                return nil
+        }
+        lower := strings.ToLower(spfRecord)
+        var found []string
+        seen := map[string]bool{}
+        for key, provider := range spfMailboxProviders {
+                if strings.Contains(lower, key) && !seen[provider] {
+                        found = append(found, provider)
+                        seen[provider] = true
+                }
+        }
+        return found
+}
+
 func detectPrimaryMailProvider(mxRecords []string, spfRecord string) ProviderResolution {
         if len(mxRecords) == 0 && spfRecord == "" {
                 return ProviderResolution{Primary: providerUnknown}
         }
 
         mxProvider := detectMXProvider(mxRecords)
-        spfMailbox := detectSPFMailboxProvider(spfRecord)
-
+        spfProviders := detectAllSPFMailboxProviders(spfRecord)
+        spfMailbox := ""
         ancillaryNote := ""
 
-        if spfMailbox != "" && mxProvider != "" && spfMailbox != mxProvider && !securityGateways[mxProvider] {
-                ancillaryNote = fmt.Sprintf(
-                        "SPF authorizes %s servers, but MX records point to %s. "+
-                                "The %s SPF include likely supports ancillary services "+
-                                "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
-                        spfMailbox, mxProvider, spfMailbox)
-                spfMailbox = ""
+        if mxProvider != "" && len(spfProviders) > 0 {
+                var ancillaryProviders []string
+                mxMatchedInSPF := false
+                for _, sp := range spfProviders {
+                        if sp == mxProvider {
+                                mxMatchedInSPF = true
+                        } else {
+                                ancillaryProviders = append(ancillaryProviders, sp)
+                        }
+                }
+                if mxMatchedInSPF {
+                        spfMailbox = mxProvider
+                        if len(ancillaryProviders) > 0 {
+                                ancillaryNote = fmt.Sprintf(
+                                        "SPF authorizes %s alongside primary mail provider %s. "+
+                                                "The %s SPF include likely supports ancillary services "+
+                                                "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
+                                        strings.Join(ancillaryProviders, ", "), mxProvider, strings.Join(ancillaryProviders, ", "))
+                        }
+                } else if securityGateways[mxProvider] {
+                        spfMailbox = spfProviders[0]
+                } else {
+                        ancillaryNote = fmt.Sprintf(
+                                "SPF authorizes %s servers, but MX records point to %s. "+
+                                        "The %s SPF include likely supports ancillary services "+
+                                        "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
+                                spfProviders[0], mxProvider, spfProviders[0])
+                }
+        } else if len(spfProviders) > 0 {
+                spfMailbox = spfProviders[0]
         }
 
         if spfMailbox != "" && mxProvider == "" && len(mxRecords) > 0 {
@@ -458,7 +498,29 @@ func detectPrimaryMailProvider(mxRecords []string, spfRecord string) ProviderRes
 
         primary, gateway := resolveProviderWithGateway(mxProvider, spfMailbox)
 
-        return ProviderResolution{Primary: primary, Gateway: gateway, SPFAncillaryNote: ancillaryNote}
+        mxLegacyNote := detectGoogleLegacyMX(mxRecords, mxProvider)
+
+        return ProviderResolution{Primary: primary, Gateway: gateway, SPFAncillaryNote: ancillaryNote, MXLegacyNote: mxLegacyNote}
+}
+
+func detectGoogleLegacyMX(mxRecords []string, mxProvider string) string {
+        if mxProvider != providerGoogleWS || len(mxRecords) < 4 {
+                return ""
+        }
+        googleCount := 0
+        for _, mx := range mxRecords {
+                if strings.Contains(strings.ToLower(mx), "aspmx.l.google.com") ||
+                        strings.Contains(strings.ToLower(mx), "googlemail.com") {
+                        googleCount++
+                }
+        }
+        if googleCount >= 4 {
+                return fmt.Sprintf(
+                        "Google Workspace now requires only a single MX record (aspmx.l.google.com). "+
+                                "This domain has %d legacy Google MX records that can be consolidated.",
+                        googleCount)
+        }
+        return ""
 }
 
 func classifySelectorProvider(selectorName, primaryProvider string) string {
@@ -1018,6 +1080,7 @@ func (a *Analyzer) AnalyzeDKIM(ctx context.Context, domain string, mxRecords, cu
                 "primary_dkim_note":   primaryDKIMNote,
                 "found_providers":     sortedProviders,
                 "spf_ancillary_note":  res.SPFAncillaryNote,
+                "mx_legacy_note":      res.MXLegacyNote,
                 "domainkey_delegation": delegationMap,
         }
 }

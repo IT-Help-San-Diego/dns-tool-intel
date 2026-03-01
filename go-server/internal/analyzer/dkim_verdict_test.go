@@ -200,6 +200,25 @@ func TestDetectPrimaryMailProvider_AncillaryNote(t *testing.T) {
         }
 }
 
+func TestDetectPrimaryMailProvider_DualSPFWithMXMatch(t *testing.T) {
+        res := detectPrimaryMailProvider(
+                []string{"aspmx.l.google.com", "alt1.aspmx.l.google.com", "alt2.aspmx.l.google.com"},
+                "v=spf1 include:_spf.google.com include:spf.protection.outlook.com -all",
+        )
+        if res.Primary != providerGoogleWS {
+                t.Fatalf("expected primary=%s, got %s", providerGoogleWS, res.Primary)
+        }
+        if res.SPFAncillaryNote == "" {
+                t.Fatal("expected ancillary note for secondary SPF provider")
+        }
+        if !strings.Contains(res.SPFAncillaryNote, providerMicrosoft365) {
+                t.Fatalf("ancillary note should mention %s, got: %s", providerMicrosoft365, res.SPFAncillaryNote)
+        }
+        if strings.Contains(res.SPFAncillaryNote, "but MX records point to") {
+                t.Fatal("note should NOT frame as mismatch when MX matches one of the SPF providers")
+        }
+}
+
 func TestDetectPrimaryMailProvider_SelfHostedWithSPF(t *testing.T) {
         res := detectPrimaryMailProvider(
                 []string{"mail.example.com"},
