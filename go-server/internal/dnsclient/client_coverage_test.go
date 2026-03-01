@@ -442,8 +442,9 @@ func TestDohResponse_StructFields(t *testing.T) {
                 Answer: []struct {
                         Data string `json:"data"`
                         TTL  uint32 `json:"TTL"`
+                        Type int    `json:"type"`
                 }{
-                        {Data: "1.2.3.4", TTL: 300},
+                        {Data: "1.2.3.4", TTL: 300, Type: 1},
                 },
         }
         if resp.Status != 0 {

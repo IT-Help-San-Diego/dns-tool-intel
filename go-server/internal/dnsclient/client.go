@@ -51,6 +51,7 @@ const (
 
         dnsPort            = "53"
         protoUDP           = "udp"
+        dohTypeRRSIG       = 46
 
         mapKeyDiscrepancies = "discrepancies"
         mapKeyError         = "error"
@@ -68,8 +69,9 @@ type ConsensusResult struct {
 }
 
 type RecordWithTTL struct {
-        Records []string
-        TTL     *uint32
+        Records       []string
+        TTL           *uint32
+        Authenticated bool
 }
 
 type ADFlagResult struct {
@@ -649,10 +651,12 @@ func (c *Client) dohQuery(ctx context.Context, domain, recordType string) []stri
 }
 
 type dohResponse struct {
-        Status int `json:"Status"`
+        Status int  `json:"Status"`
+        AD     bool `json:"AD"`
         Answer []struct {
                 Data string `json:"data"`
                 TTL  uint32 `json:"TTL"`
+                Type int    `json:"type"`
         } `json:"Answer"`
 }
 
@@ -665,6 +669,7 @@ func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string)
         q := url.Values{}
         q.Set("name", domain)
         q.Set("type", strings.ToUpper(recordType))
+        q.Set("do", "1")
         req.URL.RawQuery = q.Encode()
         req.Header.Set("Accept", "application/dns-json")
         req.Header.Set("User-Agent", UserAgent)
@@ -702,10 +707,14 @@ func parseDohResponse(body []byte, recordType string) RecordWithTTL {
                 return RecordWithTTL{}
         }
 
+        requestedRRSIG := strings.ToUpper(recordType) == "RRSIG"
         var results []string
         var ttl *uint32
         seen := make(map[string]bool)
         for _, answer := range data.Answer {
+                if answer.Type == dohTypeRRSIG && !requestedRRSIG {
+                        continue
+                }
                 rd := strings.TrimSpace(answer.Data)
                 if rd == "" {
                         continue
@@ -723,7 +732,7 @@ func parseDohResponse(body []byte, recordType string) RecordWithTTL {
                 }
         }
 
-        return RecordWithTTL{Records: results, TTL: ttl}
+        return RecordWithTTL{Records: results, TTL: ttl, Authenticated: data.AD}
 }
 
 func (c *Client) ProbeExists(ctx context.Context, domain string) (exists bool, cname string) {
@@ -780,6 +789,7 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
         fqdn := dnsutil.Fqdn(domain)
         msg := dns.NewMsg(fqdn, qtype)
         msg.RecursionDesired = true
+        msg.UDPSize, msg.Security = 4096, true
 
         dnsClient := newDNSClient(c.timeout)
 
@@ -795,6 +805,9 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
         var results []string
         var ttl *uint32
         for _, rr := range r.Answer {
+                if _, isRRSIG := rr.(*dns.RRSIG); isRRSIG && qtype != dns.TypeRRSIG {
+                        continue
+                }
                 s := rrToString(rr)
                 if s != "" {
                         results = append(results, s)
@@ -805,7 +818,7 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
                 }
         }
 
-        return RecordWithTTL{Records: results, TTL: ttl}
+        return RecordWithTTL{Records: results, TTL: ttl, Authenticated: r.AuthenticatedData}
 }
 
 func newDNSClient(timeout time.Duration) *dns.Client {

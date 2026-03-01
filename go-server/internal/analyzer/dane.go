@@ -94,22 +94,23 @@ func parseTLSAEntry(entry string, mxHost, tlsaName string) (map[string]any, bool
         return rec, true
 }
 
-func (a *Analyzer) checkMXTLSA(ctx context.Context, mxHost string) (string, []map[string]any) {
+func (a *Analyzer) checkMXTLSA(ctx context.Context, mxHost string) (string, []map[string]any, bool) {
         tlsaName := fmt.Sprintf("_25._tcp.%s", mxHost)
         var found []map[string]any
 
-        raw := a.DNS.QueryDNS(ctx, "TLSA", tlsaName)
-        if len(raw) == 0 {
-                return mxHost, found
+        result := a.DNS.QueryDNSWithTTL(ctx, "TLSA", tlsaName)
+        if len(result.Records) == 0 {
+                return mxHost, found, false
         }
 
-        for _, entry := range raw {
+        for _, entry := range result.Records {
                 if rec, ok := parseTLSAEntry(entry, mxHost, tlsaName); ok {
+                        rec["dnssec_authenticated"] = result.Authenticated
                         found = append(found, rec)
                 }
         }
 
-        return mxHost, found
+        return mxHost, found, result.Authenticated
 }
 
 func lookupName(m map[int]string, key int) string {
@@ -261,9 +262,11 @@ func applyMXCapability(baseResult map[string]any, mxCapability map[string]any, d
         baseResult["provider_context"] = buildProviderContext(mxCapability)
 }
 
-func collectTLSAFromMXHosts(ctx context.Context, a *Analyzer, mxHosts []string) ([]map[string]any, []string) {
+func collectTLSAFromMXHosts(ctx context.Context, a *Analyzer, mxHosts []string) ([]map[string]any, []string, bool) {
         var allTLSA []map[string]any
         var hostsWithDANE []string
+        allAuthenticated := true
+        anyFound := false
         var mu sync.Mutex
         var wg sync.WaitGroup
 
@@ -271,18 +274,22 @@ func collectTLSAFromMXHosts(ctx context.Context, a *Analyzer, mxHosts []string) 
                 wg.Add(1)
                 go func(h string) {
                         defer wg.Done()
-                        mxHost, records := a.checkMXTLSA(ctx, h)
+                        mxHost, records, authenticated := a.checkMXTLSA(ctx, h)
                         mu.Lock()
                         if len(records) > 0 {
                                 hostsWithDANE = append(hostsWithDANE, mxHost)
                                 allTLSA = append(allTLSA, records...)
+                                anyFound = true
+                                if !authenticated {
+                                        allAuthenticated = false
+                                }
                         }
                         mu.Unlock()
                 }(host)
         }
         wg.Wait()
 
-        return allTLSA, hostsWithDANE
+        return allTLSA, hostsWithDANE, anyFound && allAuthenticated
 }
 
 func newBaseDANEResult() map[string]any {
@@ -326,11 +333,12 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
                 applyMXCapability(baseResult, mxCapability, domain)
         }
 
-        allTLSA, hostsWithDANE := collectTLSAFromMXHosts(ctx, a, mxHosts)
+        allTLSA, hostsWithDANE, tlsaAuthenticated := collectTLSAFromMXHosts(ctx, a, mxHosts)
 
         baseResult["mx_hosts_checked"] = len(mxHosts)
         baseResult["mx_hosts_with_dane"] = len(hostsWithDANE)
         baseResult["tlsa_records"] = allTLSA
+        baseResult["dnssec_authenticated"] = tlsaAuthenticated
 
         status, message, issues := buildDANEVerdict(allTLSA, hostsWithDANE, mxHosts, mxCapability)
         baseResult["status"] = status
@@ -340,6 +348,11 @@ func (a *Analyzer) AnalyzeDANE(ctx context.Context, domain string, mxRecords []s
                 baseResult[mapKeyDaneDeployable] = false
         }
         baseResult["issues"] = issues
+
+        if len(allTLSA) > 0 && !tlsaAuthenticated {
+                issues = append(issues, "TLSA records found but DNSSEC AD flag not set — DANE requires DNSSEC validation (RFC 6698 §1)")
+                baseResult["issues"] = issues
+        }
 
         return baseResult
 }
