@@ -64,7 +64,7 @@ func main() {
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
         }
-        router.Use(gzip.Gzip(gzip.BestSpeed))
+        router.Use(gzip.Gzip(gzip.DefaultCompression))
         router.Use(middleware.RequestContext())
         router.Use(middleware.SecurityHeaders())
 
