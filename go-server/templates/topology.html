@@ -174,7 +174,8 @@
 
         var CONFIDENCE = [
             { id: 'icae', label: 'ICAE', sub: 'Accuracy Audit',  color: '#ef9a9a', zone: 'confidence' },
-            { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit', color: '#a5d6a7', zone: 'confidence' }
+            { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit', color: '#a5d6a7', zone: 'confidence' },
+            { id: 'ede', label: 'EDE', sub: 'Epistemic Integrity\nLedger', color: '#ffab91', zone: 'confidence' }
         ];
 
         var STORAGE = [
@@ -275,6 +276,9 @@
         });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'icae', to: 'ede', type: 'flow', label: 'corrections' });
+        FLOW_EDGES.push({ from: 'icuae', to: 'ede', type: 'flow', label: 'corrections' });
+        FLOW_EDGES.push({ from: 'ede', to: 'engine', type: 'flow', label: 'recalibrate' });
         FLOW_EDGES.push({ from: 'engine', to: 'act_persist', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'act_persist', to: 'postgres', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'postgres', to: 'act_seeds', type: 'flow', label: '' });
@@ -345,13 +349,15 @@
             ENGINE.targetY = engZone.y0 + engH * 0.14;
             if (!ENGINE._initialized) { ENGINE.x = ENGINE.targetX; ENGINE.y = ENGINE.targetY; ENGINE._initialized = true; }
 
-            var confY = engZone.y0 + engH * 0.40;
+            var confY = engZone.y0 + engH * 0.38;
             var confSpread = engW * 0.22;
             var confMinX = engZone.x0 + engW * 0.18;
             CONFIDENCE[0].targetX = Math.max(engCx - confSpread, confMinX);
             CONFIDENCE[0].targetY = confY;
             CONFIDENCE[1].targetX = engCx + confSpread;
             CONFIDENCE[1].targetY = confY;
+            CONFIDENCE[2].targetX = engCx;
+            CONFIDENCE[2].targetY = confY + engH * 0.12;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
