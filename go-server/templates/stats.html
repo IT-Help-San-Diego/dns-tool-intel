@@ -679,7 +679,7 @@
                     <h2 class="stats-section-title">Epistemic Integrity Ledger</h2>
                 </div>
                 <div class="stats-section-body">
-                    <p class="text-muted small mb-3">Epistemic Disclosure Events (EDEs) document instances where the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine&rsquo;s</a> inference model, scoring calibration, or evidence interpretation required structural correction. This is not an error log &mdash; it is a formalized record of epistemic self-correction, modeled on scientific corrigenda culture and high-reliability engineering practice. Each EDE triggers a confidence recalibration across affected protocols.</p>
+                    <p class="text-muted small mb-3">Epistemic Disclosure Events (EDEs) document instances where the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine&rsquo;s</a> scoring model, evidence weighting, or detection logic required structural correction. This is not an error log &mdash; it is a formalized record of model self-correction, inspired by scientific corrigenda culture and high-reliability engineering practice (NASA anomaly reporting, medical adverse event systems). Each EDE triggers a confidence recalibration across affected protocols.</p>
                     <div class="row g-3 mb-3">
                         <div class="col-6 col-md-3">
                             <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
@@ -724,7 +724,7 @@
                     </div>
                     {{end}}
 
-                    <p class="text-muted mt-3 mb-0" style="font-size:0.75rem;"><i class="fas fa-lock me-1"></i>Every EDE is permanent and append-only. Corrections cannot be deleted or hidden. This ledger is the mathematical proof that our confidence levels are earned, not asserted. Protocols affected by an EDE undergo full recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
+                    <p class="text-muted mt-3 mb-0" style="font-size:0.75rem;"><i class="fas fa-lock me-1"></i>EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
                 </div>
             </div>
 

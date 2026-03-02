@@ -7320,128 +7320,137 @@ body.covert-mode .u-privacy-accept-btn:hover {
     border-radius: 12px;
     overflow: hidden;
     margin: 1rem 0;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .verify-infographic {
-    position: relative;
     display: flex;
-    min-height: 260px;
+    align-items: stretch;
 }
 .verify-panel {
     flex: 1;
-    padding: 1.75rem 1.5rem;
+    padding: 1.5rem 1.25rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
 }
 .verify-panel-trust {
     background: linear-gradient(135deg, #0a1628 0%, #0d2847 60%, #132e4f 100%);
     text-align: left;
-    padding-right: 5rem;
 }
 .verify-panel-accuse {
     background: linear-gradient(225deg, #1a0808 0%, #3a0f0f 60%, #4a1515 100%);
     text-align: right;
-    padding-left: 5rem;
 }
 .verify-panel-title {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
 }
 .verify-panel-trust .verify-panel-title { color: #7ec8e3; }
 .verify-panel-accuse .verify-panel-title { color: #e87070; }
 .verify-panel-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 400;
-    opacity: 0.7;
-    margin-bottom: 0.5rem;
+    opacity: 0.6;
+    margin-bottom: 0.4rem;
 }
 .verify-panel-desc {
-    font-size: 0.78rem;
-    opacity: 0.55;
-    line-height: 1.5;
+    font-size: 0.72rem;
+    opacity: 0.5;
+    line-height: 1.45;
     margin: 0;
 }
 .verify-center-gear {
-    position: absolute;
-    left: 50%;
-    top: 42%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    text-align: center;
-    pointer-events: none;
+    flex: 0 0 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #0d1b2a 0%, #101820 100%);
+    padding: 1rem 0.5rem;
+    z-index: 1;
 }
 .verify-gear-circle {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     background: radial-gradient(circle, #1a2a3a 0%, #0d1b2a 70%);
     border: 3px solid rgba(126, 200, 227, 0.5);
-    box-shadow: 0 0 30px rgba(126, 200, 227, 0.2), 0 0 60px rgba(126, 200, 227, 0.08);
+    box-shadow: 0 0 25px rgba(126, 200, 227, 0.2), 0 0 50px rgba(126, 200, 227, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    position: relative;
 }
 .verify-gear-circle .fa-cogs {
-    font-size: 1.4rem;
-    color: rgba(126, 200, 227, 0.4);
+    font-size: 1.2rem;
+    color: rgba(126, 200, 227, 0.35);
     position: absolute;
-    top: 10px;
+    top: 8px;
 }
 .verify-gear-text {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 800;
     letter-spacing: 0.15em;
     color: #fff;
     text-transform: uppercase;
 }
 .verify-ribbon {
-    margin-top: 0.4rem;
+    margin-top: 0.5rem;
     background: linear-gradient(90deg, #8b7328, #c4a84a, #8b7328);
     color: #1a1400;
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 0.15rem 0.75rem;
+    padding: 0.15rem 0.6rem;
     border-radius: 3px;
-    display: inline-block;
     white-space: nowrap;
 }
 .verify-formula-row {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
-    padding: 1.25rem 1.75rem;
+    padding: 1.25rem 1.5rem;
     background: rgba(0,0,0,0.65);
     border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.85rem;
-    gap: 1rem;
+    gap: 0.5rem;
+    overflow-x: auto;
 }
 .verify-formula-cell {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+.verify-formula-math {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #e6edf3;
+}
+.verify-formula-math .katex {
+    font-size: 1em;
+}
+.verify-formula-main .katex {
+    font-size: 1.1em;
 }
 .verify-formula-cell:last-child { text-align: right; }
 .verify-formula-cell:nth-child(2) { text-align: center; }
 .verify-formula-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     opacity: 0.5;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.25rem;
 }
-@media (max-width: 575px) {
-    .verify-infographic { flex-direction: column; min-height: auto; }
-    .verify-panel { padding: 1.25rem 1rem; text-align: center !important; }
-    .verify-panel-trust { padding-right: 1rem; }
-    .verify-panel-accuse { padding-left: 1rem; }
-    .verify-center-gear { position: relative; left: auto; top: auto; transform: none; padding: 0.75rem 0; }
+@media (max-width: 767px) {
+    .verify-infographic { flex-direction: column; }
+    .verify-panel { text-align: center !important; padding: 1.25rem 1rem; }
+    .verify-center-gear { flex-basis: auto; padding: 0.75rem 0; flex-direction: row; gap: 0.75rem; }
+    .verify-gear-circle { width: 70px; height: 70px; }
+    .verify-gear-circle .fa-cogs { font-size: 1rem; top: 6px; }
+    .verify-gear-text { font-size: 0.8rem; }
     .verify-formula-row { flex-direction: column; gap: 0.75rem; text-align: center; padding: 1rem; }
     .verify-formula-cell, .verify-formula-cell:last-child, .verify-formula-cell:nth-child(2) { text-align: center; }
-    .verify-panel-title { font-size: 1.15rem; }
-    .verify-gear-circle { width: 85px; height: 85px; }
+    .verify-panel-title { font-size: 1.05rem; }
 }

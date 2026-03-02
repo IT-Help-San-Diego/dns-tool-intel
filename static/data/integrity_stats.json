@@ -28,7 +28,7 @@
       "protocols_affected": ["DMARC"],
       "confidence_impact": "ICIE weight recalibration: p=none+rua now scores higher than p=none without reporting. Prior model treated both identically, understating domains with partial monitoring.",
       "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting. Affected scans retroactively flagged in drift history.",
-      "bayesian_note": "Prior P(secure|p=none) was uniform. Updated posterior splits on presence of rua= directive as differentiating evidence."
+      "bayesian_note": "Heuristic confidence adjustment: the scoring model previously assigned equal weight to p=none regardless of reporting configuration. The presence of rua= is now treated as differentiating evidence that increases the confidence level for partial DMARC deployment."
     },
     {
       "id": "EDE-002",
@@ -40,7 +40,7 @@
       "protocols_affected": ["DANE"],
       "confidence_impact": "Verdict logic conflated absence-of-response with absence-of-record. Confidence was asserted at levels the evidence did not support.",
       "resolution": "Timeout now yields UNKNOWN status with degraded confidence instead of FAIL. Confidence engine marks result as low-certainty when resolver timeout occurs.",
-      "bayesian_note": "P(misconfigured|timeout) was treated as ~1.0. Corrected to reflect that timeout is ambiguous evidence: P(misconfigured|timeout) ≈ P(network_issue|timeout)."
+      "bayesian_note": "Confidence adjustment: timeout was incorrectly treated as strong evidence of misconfiguration (near-certainty). Corrected to reflect that timeout is ambiguous — it carries roughly equal weight as evidence of misconfiguration or network failure, and confidence must degrade accordingly."
     },
     {
       "id": "EDE-003",
@@ -52,7 +52,7 @@
       "protocols_affected": ["Drift"],
       "confidence_impact": "Drift engine false-negative rate was non-zero for CNAME-dependent records. Domains with CNAME flattening could change posture without triggering detection.",
       "resolution": "Drift engine now resolves CNAME chains before hashing canonical form. All historical drift baselines regenerated.",
-      "bayesian_note": "Detection model assumed record stability at query level. Updated to normalize at canonical resolution level before computing hash."
+      "bayesian_note": "Detection model assumed record stability at query level. Updated to normalize at canonical resolution level before computing hash, eliminating a class of false negatives in change detection."
     }
   ]
 }
