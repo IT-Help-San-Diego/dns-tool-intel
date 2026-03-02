@@ -385,10 +385,10 @@
                 if (!n._initialized) { n.x = n.targetX; n.y = n.targetY; n._initialized = true; }
             }
 
-            placeAction('act_persist', 'engine', 'postgres', engW * 0.15, 0);
-            placeAction('act_seeds', 'postgres', 'fixtures', 12, 0);
-            placeAction('act_baselines', 'fixtures', 'vault', -12, 0);
-            placeAction('act_validates', 'vault', 'icae', -12, 0);
+            placeAction('act_persist', 'engine', 'postgres', engW * 0.25, -engH * 0.06);
+            placeAction('act_seeds', 'postgres', 'fixtures', 0, -8);
+            placeAction('act_baselines', 'fixtures', 'vault', 0, -8);
+            placeAction('act_validates', 'vault', 'icae', 8, 0);
 
             var protoW = protoZone.x1 - protoZone.x0;
             var protoH = protoZone.y1 - protoZone.y0;
@@ -611,15 +611,14 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            if (e.label) {
+            if (e.label && isHighlight) {
                 var t = e.labelT || 0.5;
                 var lx = from.x + (to.x - from.x) * t;
                 var ly = from.y + (to.y - from.y) * t;
-                var fontSize = (e.type === 'hard' || e.type === 'soft') ? 10 : 9;
-                ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.4)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
                 ctx.fillText(e.label, lx, ly - 8);
             }
         }
