@@ -964,7 +964,7 @@
                         $$ \text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMA.Add()</code>, <code>EWMAControlChart.Evaluate()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, L=3.0)</code></p>
+                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, L=3.0)</code></p>
                 </div>
 
                 <div class="mb-4">
@@ -973,8 +973,8 @@
                     <div class="math-display" data-latex="C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
                         $$ C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>
-                    <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\text{Beta}(\alpha, \beta)\) is the conjugate prior for the protocol category. This is Bayesian conjugate updating with the Beta-Bernoulli model &mdash; the same framework used in intelligence analysis per ICD 203.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.Calibrate()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
+                    <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\text{Beta}(\alpha, \beta)\) is the conjugate prior for the protocol category. The prior mean \(\frac{\alpha}{\alpha+\beta}\) anchors the estimate when measurement quality is low; as resolver agreement increases, the raw observation dominates. Prior parameters evolve via Beta-Bernoulli conjugate updating: each passing test increments \(\alpha\), each failure increments \(\beta\).</p>
+                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.CalibratedConfidence()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
                 </div>
 
                 <div class="mb-4">
@@ -994,7 +994,7 @@
                         $$ H = \text{SHA-3-512}\left(\text{Canonical}(R)\right) $$
                     </div>
                     <p class="text-muted small mb-2">Where \(R\) is the complete analysis result including metadata, timestamps, and engine versions. The digest is independently verifiable &mdash; anyone with the JSON export can recompute and confirm integrity.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>analyzer/posture.go</code> &rarr; <code>computePostureHash()</code> &middot; Canonical JSON serialization with deterministic key ordering, verified by <code>icae/hash_audit.go</code></p>
+                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>analyzer/posture_hash.go</code> &rarr; <code>CanonicalPostureHash()</code> &middot; Canonical JSON serialization with deterministic key ordering, verified by <code>icae/hash_audit.go</code></p>
                 </div>
             </div>
         </div>

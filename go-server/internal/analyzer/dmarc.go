@@ -212,7 +212,7 @@ func checkDMARCUnknownTags(tags dmarcTags) []string {
         for _, tag := range tags.unknownTags {
                 eqIdx := strings.Index(tag, "=")
                 tagName := strings.TrimSpace(tag[:eqIdx])
-                issues = append(issues, fmt.Sprintf("Unrecognized DMARC tag '%s' — per RFC 7489 §11, mail receivers will silently ignore this tag. If this is a typo, your intended policy is not being enforced", tagName))
+                issues = append(issues, fmt.Sprintf("Unrecognized DMARC tag '%s' — per RFC 7489 §6.3, mail receivers will silently ignore this tag. If this is a typo, your intended policy is not being enforced", tagName))
         }
         return issues
 }

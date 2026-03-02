@@ -311,7 +311,7 @@ Public accountability page showing every failed analysis with sanitized error ca
 
 ### Public Roadmap
 URL: `https://dnstool.it-help.tech/roadmap`
-Transparent kanban-style project roadmap showing all development progress. Four columns: Done (55+ shipped features), In Progress (current work), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (60+ shipped features), In Progress (current work), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
 
 ---
 
@@ -498,7 +498,7 @@ The question "does the record exist?" is dangerous to stop at:
 
 - **Syntactically valid, semantically dangerous**: An SPF record like `v=spf1 a mx ip4:10.0.0.0/8 ~all` passes every simple checker. But it authorizes 16.7 million IP addresses to send email on the domain's behalf. A tool that reports "SPF: Present" has just told the operator everything is fine. It isn't.
 - **Regulatory tension**: CISA's BOD 18-01 requires federal agencies to publish valid SPF and uses `v=spf1 -all` for non-sending domains. RFC 7208 defines `~all` as a valid softfail and leaves disposition to local policy. Stricter enforcement requires confidence that legitimate senders are fully accounted for. DNS Tool surfaces that tension, cites both sources, and lets the engineer decide with full context.
-- **Snapshot vs. stability**: A DNS record that existed at query time does not mean it is stable. Fast-flux DNS — a technique used by malware — rotates records every few minutes. A snapshot scanner says "record present." Statistical control charts mathematically prove whether a record is stable or flickering. That is the only way to detect that class of threat.
+- **Snapshot vs. stability**: A DNS record that existed at query time does not mean it is stable. Fast-flux DNS — a technique used by malware — rotates records every few minutes. A snapshot scanner says "record present." Statistical control charts (EWMA with 3&sigma; limits) statistically determine whether a record is stable or flickering. That is the only way to detect that class of threat.
 - **TTL as operational decision**: TTL is rarely examined in DNS audits. But a TTL of 300 seconds for a stable zone means thousands of unnecessary upstream queries per hour — increased cost, increased attack surface. A TTL of 3600 reduces resolver load (RFC 1035 §3.2.1). The right TTL depends on context, and DNS Tool surfaces that context with specific recommendations.
 
 ### Why ICD 203 Applies to DNS

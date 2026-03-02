@@ -186,7 +186,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3 mb-md-0">
                                 <h6 class="text-info">RFC-Grounded Test Coverage</h6>
-                                <p class="text-muted small mb-2"><strong>45 deterministic test cases</strong> across three protocol families validate analysis accuracy against RFC-specified expected outcomes:</p>
+                                <p class="text-muted small mb-2"><strong>129 deterministic test cases</strong> across nine protocol families validate analysis accuracy against RFC-specified expected outcomes:</p>
                                 <table class="table table-sm table-borderless mb-0 sources-audit-table">
                                     <tbody>
                                         <tr><th scope="row" class="text-muted small py-1">SPF</th><td class="text-light small py-1">17 cases &mdash; <a href="https://datatracker.ietf.org/doc/html/rfc7208" class="text-info" target="_blank" rel="noopener">RFC 7208</a> mechanisms, qualifiers, lookup limits, verdict logic, cross-protocol warnings (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-10.1" class="text-info" target="_blank" rel="noopener">RFC 7489 &sect;10.1</a>)</td></tr>
@@ -197,14 +197,14 @@
                             </div>
                             <div class="col-md-6">
                                 <h6 class="text-info">Maturity Progression</h6>
-                                <p class="text-muted small mb-2">Each protocol earns a maturity grade based on sustained accuracy over time &mdash; not marketing, not self-assessment, but measured pass rates:</p>
+                                <p class="text-muted small mb-2">Each protocol earns a maturity grade based on consecutive passes and sustained accuracy over time:</p>
                                 <table class="table table-sm table-borderless mb-2">
                                     <tbody>
-                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-development">Development</span></th><td class="text-muted small py-1">&lt; 50% pass rate</td></tr>
-                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-verified">Verified</span></th><td class="text-muted small py-1">50&ndash;70% pass rate</td></tr>
-                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-consistent">Consistent</span></th><td class="text-muted small py-1">70&ndash;90% pass rate</td></tr>
-                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-gold">Gold</span></th><td class="text-muted small py-1">90&ndash;99% pass rate</td></tr>
-                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-gold_master">Gold Master</span></th><td class="text-muted small py-1">100% sustained</td></tr>
+                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-development">Development</span></th><td class="text-muted small py-1">&lt; 100 consecutive passes</td></tr>
+                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-verified">Verified</span></th><td class="text-muted small py-1">100+ consecutive passes</td></tr>
+                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-consistent">Consistent</span></th><td class="text-muted small py-1">500+ passes &amp; 30+ days sustained</td></tr>
+                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-gold">Gold</span></th><td class="text-muted small py-1">1,000+ passes &amp; 90+ days sustained</td></tr>
+                                        <tr><th scope="row" class="small py-1"><span class="badge icae-maturity-badge-deep icae-maturity-deep-gold_master">Gold Master</span></th><td class="text-muted small py-1">5,000+ passes &amp; 180+ days sustained</td></tr>
                                     </tbody>
                                 </table>
                                 <p class="text-muted small mb-0">Regressions are tracked per protocol with automatic detection. If a previously passing test case fails, it&rsquo;s flagged immediately &mdash; not buried in logs.</p>
@@ -219,7 +219,7 @@
                         <p class="text-muted small text-center mb-3">Every algorithm classification cites the governing RFC. No proprietary risk scores &mdash; only standards-body guidance.</p>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-info">DNSSEC Algorithms <span class="text-muted small">(RFC 8624 / RFC 9904)</span></h6>
+                                <h6 class="text-info">DNSSEC Algorithms <span class="text-muted small">(RFC 8624 / RFC 9157)</span></h6>
                                 <table class="table table-sm table-borderless mb-2">
                                     <tbody>
                                         <tr><th scope="row" class="small py-1"><span class="badge bg-danger">Deprecated</span></th><td class="text-muted small py-1">RSAMD5, DSA, ECC-GOST &mdash; MUST NOT use</td></tr>

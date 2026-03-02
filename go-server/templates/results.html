@@ -1593,7 +1593,7 @@
                                             {{else}}
                                             <div class="mb-2"><i class="fas fa-exclamation-circle text-warning me-1"></i><strong class="text-warning">RFC 7208 Deviation:</strong> This SPF record deviates from <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> requirements.</div>
                                             {{end}}
-                                            <div class="text-muted mb-2"><i class="fas fa-shield-alt me-1"></i><strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-11" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;11</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4.6" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
+                                            <div class="text-muted mb-2"><i class="fas fa-shield-alt me-1"></i><strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4.6" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
                                             <div class="text-muted"><i class="fas fa-bug me-1"></i><strong>Related CVEs:</strong>
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant domain spoofing),
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7209" target="_blank" rel="noopener" class="text-info">CVE-2024-7209</a> (shared SPF exploitation),
@@ -1788,7 +1788,7 @@
                                     <div class="mt-2 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded small">
                                         <i class="fas fa-ghost text-danger me-1"></i>
                                         <strong class="text-danger">Unrecognized DMARC Tags Detected</strong>
-                                        <span class="text-muted d-block mt-1">Per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-11" target="_blank" rel="noopener" class="text-danger">RFC 7489 &sect;11</a>, mail receivers <strong>silently ignore</strong> unknown tags. If these are typos, your intended policy is not being enforced.</span>
+                                        <span class="text-muted d-block mt-1">Per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-danger">RFC 7489 &sect;6.3</a>, mail receivers <strong>silently ignore</strong> unknown tags. If these are typos, your intended policy is not being enforced.</span>
                                         {{range $tag := $unknownTags}}
                                             <div class="mt-1 font-monospace u-fs-075rem text-danger"><code>{{$tag}}</code></div>
                                         {{end}}
@@ -2069,7 +2069,6 @@
                                             <div class="text-muted"><i class="fas fa-bug me-1"></i><strong>Known Vulnerabilities:</strong>
                                                 DKIM <code>l=</code> tag body length vulnerability (attacker appends unsigned content to signed mail),
                                                 weak key exploitation (keys below 1024-bit are cryptographically breakable per RFC 6376 &sect;3.3.3),
-                                                <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant authentication bypass),
                                                 DKIM replay attacks (re-sending legitimately signed messages at scale)
                                             </div>
                                         </div>
