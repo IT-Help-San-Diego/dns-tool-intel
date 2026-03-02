@@ -252,6 +252,42 @@
             color: rgba(88,166,255,0.95);
             box-shadow: 0 2px 8px rgba(88,166,255,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
         }
+        .approach-video-wrapper {
+            max-width: 560px;
+            margin: 1.25rem auto;
+            background: rgba(13,17,23,0.6);
+            border: 1px solid rgba(125,142,168,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .approach-video-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(88,166,255,0.75);
+            padding: 0.5rem 0.85rem 0.35rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .approach-video-label i {
+            margin-right: 0.35rem;
+        }
+        .approach-video {
+            display: block;
+            width: 100%;
+            border-radius: 0;
+        }
+        .approach-video-caption {
+            font-size: 0.75rem;
+            color: rgba(170,178,188,0.55);
+            padding: 0.5rem 0.85rem 0.65rem;
+            line-height: 1.4;
+        }
+        body.covert-mode .approach-video-wrapper {
+            border-color: rgba(140,40,40,0.2);
+        }
+        body.covert-mode .approach-video-label {
+            color: rgba(196,100,100,0.75);
+        }
         body.covert-mode .approach-section {
             border-color: rgba(140,40,40,0.15);
         }
@@ -420,11 +456,13 @@
                     <div class="approach-section" id="dormant-domains">
                         <h2><i class="fas fa-shield-alt"></i>Why This Rigor Exists</h2>
                         <p>A domain registered for ten years with no published mail policy is not dormant — it is exposed. Without SPF, DMARC, and a Null MX record, any domain becomes a free spoofing vector. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
-                        <div class="text-center my-3">
-                            <video controls preload="metadata" style="max-width:100%;border-radius:8px;border:1px solid rgba(0,0,0,0.1);" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
+                        <div class="approach-video-wrapper">
+                            <div class="approach-video-label"><i class="fas fa-play-circle"></i> Case Study</div>
+                            <video controls preload="metadata" poster="/static/images/og-forgotten-domain.png" class="approach-video" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
                                 <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
+                            <div class="approach-video-caption">A ten-year-old domain with no mail policy — exposed for a decade without anyone noticing.</div>
                         </div>
                     </div>
 
