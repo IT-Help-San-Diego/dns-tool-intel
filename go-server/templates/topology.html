@@ -291,19 +291,19 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 50;
-            CONFIDENCE[0].targetY = H * 0.58;
-            CONFIDENCE[1].targetX = cx + 80;
-            CONFIDENCE[1].targetY = H * 0.58;
+            CONFIDENCE[0].targetX = cx - 55;
+            CONFIDENCE[0].targetY = H * 0.54;
+            CONFIDENCE[1].targetX = cx + 85;
+            CONFIDENCE[1].targetY = H * 0.54;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 100;
-            STORAGE[0].targetY = H * 0.78;
+            STORAGE[0].targetX = cx + 110;
+            STORAGE[0].targetY = H * 0.84;
             STORAGE[1].targetX = cx - 60;
-            STORAGE[1].targetY = H * 0.78;
-            STORAGE[2].targetX = cx + 20;
+            STORAGE[1].targetY = H * 0.84;
+            STORAGE[2].targetX = cx + 25;
             STORAGE[2].targetY = H * 0.69;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
