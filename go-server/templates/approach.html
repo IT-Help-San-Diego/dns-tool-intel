@@ -450,7 +450,7 @@
                     <div class="text-center mb-4">
                         <h1 class="fw-bold mb-2"><i class="fas fa-flask me-2 text-info"></i>Our Methodology</h1>
                         <div class="approach-intro">
-                            <p>Most DNS tools give you a score. We give you a cited finding, tell you where it came from, and show you the terminal command to verify it yourself &mdash; because we've seen what happens when an engineer trusts a tool that was optimizing for clean-looking output instead of accurate output.</p>
+                            <p>A score without a citation is an opinion. We give you a cited finding, tell you where it came from, and show you the terminal command to verify it yourself &mdash; because we&rsquo;ve seen what happens when an engineer trusts a tool that was optimizing for clean-looking output instead of accurate output.</p>
                         </div>
                     </div>
 
@@ -525,40 +525,42 @@
 
                     <div class="approach-section">
                         <h2><i class="fas fa-balance-scale me-2"></i>The Verification Principle</h2>
-                        <p class="mb-3">Every DNS security tool sits somewhere on this spectrum. Most lean toward one side without admitting it. We chose the middle &mdash; and built the math to prove it.</p>
+                        <p class="mb-3">DNS security analysis demands a position on this spectrum. The pressure to simplify pulls toward one extreme or the other &mdash; and the pull is rarely acknowledged. We chose the middle, and built the math to prove it.</p>
 
-                        <div class="verify-infographic">
-                            <div class="verify-panel verify-panel-trust">
-                                <div class="verify-panel-title">Blind Trust</div>
-                                <div class="verify-panel-subtitle">Unquestioning Acceptance</div>
-                                <p class="mt-2 mb-0" style="font-size:0.8rem; opacity:0.65;">Accept every record at face value. If the syntax parses, call it &ldquo;configured.&rdquo; Ignore context, ignore drift, ignore what the record actually authorizes.</p>
-                            </div>
-                            <div class="verify-center-gear">
-                                <div class="verify-gear-circle">
-                                    <i class="fas fa-cogs"></i>
-                                    <span class="verify-gear-text">Verify</span>
+                        <div class="verify-wrapper">
+                            <div class="verify-infographic">
+                                <div class="verify-panel verify-panel-trust">
+                                    <div class="verify-panel-title">Blind Trust</div>
+                                    <div class="verify-panel-subtitle">Unquestioning Acceptance</div>
+                                    <p class="verify-panel-desc">Accept every record at face value. If the syntax parses, call it &ldquo;configured.&rdquo; Ignore context, ignore drift, ignore what the record actually authorizes.</p>
                                 </div>
-                                <div class="verify-ribbon">The Balancing Algorithm</div>
+                                <div class="verify-center-gear">
+                                    <div class="verify-gear-circle">
+                                        <i class="fas fa-cogs"></i>
+                                        <span class="verify-gear-text">Verify</span>
+                                    </div>
+                                    <div class="verify-ribbon">The Balancing Algorithm</div>
+                                </div>
+                                <div class="verify-panel verify-panel-accuse">
+                                    <div class="verify-panel-title">Blind Accusations</div>
+                                    <div class="verify-panel-subtitle">Unfounded Judgments</div>
+                                    <p class="verify-panel-desc">Flag everything as dangerous. Inflate severity to sell remediation. Infer malicious intent from common misconfigurations.</p>
+                                </div>
                             </div>
-                            <div class="verify-panel verify-panel-accuse">
-                                <div class="verify-panel-title">Blind Accusations</div>
-                                <div class="verify-panel-subtitle">Unfounded Judgments</div>
-                                <p class="mt-2 mb-0" style="font-size:0.8rem; opacity:0.65;">Flag everything as dangerous. Inflate severity to sell remediation. Infer malicious intent from common misconfigurations.</p>
-                            </div>
-                        </div>
 
-                        <div class="verify-formula-row">
-                            <div>
-                                <div class="verify-formula-label">When Trust Is Blind</div>
-                                $$P(H|E) \to 1 \quad \text{regardless of } E$$
-                            </div>
-                            <div class="text-center">
-                                <div class="verify-formula-label">Bayesian Verification</div>
-                                $$P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}$$
-                            </div>
-                            <div class="text-end">
-                                <div class="verify-formula-label">When Accusation Is Blind</div>
-                                $$P(H|E) \to 0 \quad \text{regardless of } E$$
+                            <div class="verify-formula-row">
+                                <div class="verify-formula-cell">
+                                    <div class="verify-formula-label">When Trust Is Blind</div>
+                                    $$P(H|E) \to 1 \quad \text{regardless of } E$$
+                                </div>
+                                <div class="verify-formula-cell">
+                                    <div class="verify-formula-label">Bayesian Verification</div>
+                                    $$P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}$$
+                                </div>
+                                <div class="verify-formula-cell">
+                                    <div class="verify-formula-label">When Accusation Is Blind</div>
+                                    $$P(H|E) \to 0 \quad \text{regardless of } E$$
+                                </div>
                             </div>
                         </div>
 
@@ -567,7 +569,7 @@
 
                     <div class="approach-section">
                         <h2><i class="fas fa-exclamation-triangle"></i>Four Reasons &ldquo;Record Present&rdquo; Isn&rsquo;t Enough</h2>
-                        <p class="mb-2">Most DNS tools stop at existence checks. Here&rsquo;s why that&rsquo;s dangerous:</p>
+                        <p class="mb-2">A record existing is not the same as a record working. DNS security requires looking past the presence check &mdash; here&rsquo;s why:</p>
                         <div class="row g-2 mb-2">
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
@@ -672,7 +674,7 @@
                             <li><strong>Inferred</strong> &mdash; Derived from patterns in primary data</li>
                             <li><strong>Third-party</strong> &mdash; Sourced from external enrichment</li>
                         </ul>
-                        <p>Most security tools return verdicts with no provenance &mdash; you don't know if a finding was observed, inferred, or pulled from a third-party API. Making that distinction explicit is genuinely rare. It's also the only way to build trust with the engineers who have to act on the findings.</p>
+                        <p>A verdict without provenance is unfalsifiable &mdash; you can&rsquo;t know if a finding was observed, inferred, or pulled from a third-party API unless the tool tells you. Making that distinction explicit is the only way to build trust with the engineers who have to act on the findings.</p>
                         <div class="approach-quote">
                             If we cannot show you how to verify a claim, we should not be making it.
                         </div>
@@ -680,7 +682,7 @@
 
                     <div class="approach-section">
                         <h2><i class="fas fa-balance-scale"></i>Rigor Is Dogfooding</h2>
-                        <p>Most security tools have a "do as I say, not as I do" problem &mdash; they flag vulnerabilities on other sites while their own security headers are incomplete, their own Content Security Policy is missing, and their own performance is an afterthought. If we can't secure our own web delivery, why should anyone trust our DNS analysis?</p>
+                        <p>There is a credibility problem in security tooling: flagging vulnerabilities on other domains while your own security headers are incomplete, your own Content Security Policy is missing, and your own performance is an afterthought. If we can&rsquo;t secure our own web delivery, why should anyone trust our DNS analysis?</p>
                         <p>We hold ourselves to the same standards that Google, Mozilla, and the security community created for exactly this purpose. Not as vanity metrics &mdash; as proof that we practice what we measure.</p>
                         <p>This philosophy extends to how our scanners and probes interact with the systems they analyze. Every DNS query, every SMTP probe, every certificate check is designed to be a best-practices good internet citizen &mdash; optimized query patterns, respectful rate limiting, symbiotic interaction with the infrastructure we depend on. We don't just measure good behavior. We practice it. If we're going to tell you your TTL is too aggressive, ours had better be right too.</p>
                         <p>This isn't theoretical. Over the years, multiple professional development agencies &mdash; real enterprise shops &mdash; were hired to build and maintain this platform. Every one promised Lighthouse, Observatory, and security compliance up front. Every one failed to deliver it. The authoritative tools to verify quality existed the entire time. They just weren't used. That experience is why every quality gate now runs on every build, not as a final check, but as a build requirement. The tools are right there. The only question is whether you use them.</p>

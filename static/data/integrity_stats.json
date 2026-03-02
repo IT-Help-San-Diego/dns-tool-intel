@@ -1,36 +1,58 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "last_updated": "2026-03-02",
+  "taxonomy": {
+    "scoring_calibration": "Confidence weighting or scoring logic required adjustment",
+    "evidence_reinterpretation": "Evidence was weighted or classified incorrectly",
+    "drift_detection": "Change detection model missed or misidentified a transition",
+    "resolver_trust": "Upstream resolver behavior produced misleading results",
+    "false_positive": "A finding was asserted that did not reflect reality",
+    "confidence_decay": "Temporal decay model required recalibration"
+  },
   "summary": {
     "total_events": 3,
     "open": 0,
     "closed": 3,
-    "last_event_date": "2026-02-15"
+    "last_event_date": "2026-02-15",
+    "confidence_recalibrations": 2,
+    "protocols_affected": ["DMARC", "DANE", "Drift"]
   },
   "events": [
     {
       "id": "EDE-001",
       "date": "2025-11-20",
       "category": "scoring_calibration",
+      "severity": "moderate",
       "title": "DMARC confidence weighting adjusted for aggregate-only policies",
       "status": "closed",
-      "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting"
+      "protocols_affected": ["DMARC"],
+      "confidence_impact": "ICIE weight recalibration: p=none+rua now scores higher than p=none without reporting. Prior model treated both identically, understating domains with partial monitoring.",
+      "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting. Affected scans retroactively flagged in drift history.",
+      "bayesian_note": "Prior P(secure|p=none) was uniform. Updated posterior splits on presence of rua= directive as differentiating evidence."
     },
     {
       "id": "EDE-002",
       "date": "2026-01-08",
       "category": "false_positive",
+      "severity": "significant",
       "title": "DANE TLSA timeout incorrectly scored as misconfiguration",
       "status": "closed",
-      "resolution": "Timeout now yields UNKNOWN status with degraded confidence instead of FAIL"
+      "protocols_affected": ["DANE"],
+      "confidence_impact": "Verdict logic conflated absence-of-response with absence-of-record. Confidence was asserted at levels the evidence did not support.",
+      "resolution": "Timeout now yields UNKNOWN status with degraded confidence instead of FAIL. Confidence engine marks result as low-certainty when resolver timeout occurs.",
+      "bayesian_note": "P(misconfigured|timeout) was treated as ~1.0. Corrected to reflect that timeout is ambiguous evidence: P(misconfigured|timeout) ≈ P(network_issue|timeout)."
     },
     {
       "id": "EDE-003",
       "date": "2026-02-15",
       "category": "drift_detection",
+      "severity": "moderate",
       "title": "Hash comparison missed CNAME-flattened record changes",
       "status": "closed",
-      "resolution": "Drift engine now resolves CNAME chains before hashing canonical form"
+      "protocols_affected": ["Drift"],
+      "confidence_impact": "Drift engine false-negative rate was non-zero for CNAME-dependent records. Domains with CNAME flattening could change posture without triggering detection.",
+      "resolution": "Drift engine now resolves CNAME chains before hashing canonical form. All historical drift baselines regenerated.",
+      "bayesian_note": "Detection model assumed record stability at query level. Updated to normalize at canonical resolution level before computing hash."
     }
   ]
 }

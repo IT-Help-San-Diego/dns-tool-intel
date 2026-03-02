@@ -16,29 +16,52 @@ import (
         "github.com/gin-gonic/gin"
 )
 
-type IntegrityStats struct {
-        TotalEvents   int    `json:"total_events"`
-        Open          int    `json:"open"`
-        Closed        int    `json:"closed"`
-        LastEventDate string `json:"last_event_date"`
+type IntegrityEvent struct {
+        ID               string   `json:"id"`
+        Date             string   `json:"date"`
+        Category         string   `json:"category"`
+        Severity         string   `json:"severity"`
+        Title            string   `json:"title"`
+        Status           string   `json:"status"`
+        ProtocolsAffected []string `json:"protocols_affected"`
+        ConfidenceImpact string   `json:"confidence_impact"`
+        Resolution       string   `json:"resolution"`
+        BayesianNote     string   `json:"bayesian_note"`
+}
+
+type IntegritySummary struct {
+        TotalEvents             int      `json:"total_events"`
+        Open                    int      `json:"open"`
+        Closed                  int      `json:"closed"`
+        LastEventDate           string   `json:"last_event_date"`
+        ConfidenceRecalibrations int     `json:"confidence_recalibrations"`
+        ProtocolsAffected       []string `json:"protocols_affected"`
+}
+
+type IntegrityData struct {
+        Summary  IntegritySummary  `json:"summary"`
+        Events   []IntegrityEvent  `json:"events"`
+        Taxonomy map[string]string `json:"taxonomy"`
 }
 
 type integrityStatsFile struct {
-        Summary IntegrityStats `json:"summary"`
+        Summary  IntegritySummary  `json:"summary"`
+        Events   []IntegrityEvent  `json:"events"`
+        Taxonomy map[string]string `json:"taxonomy"`
 }
 
-func loadIntegrityStats() IntegrityStats {
+func loadIntegrityData() IntegrityData {
         data, err := os.ReadFile("static/data/integrity_stats.json")
         if err != nil {
                 slog.Warn("Stats: failed to read integrity_stats.json", mapKeyError, err)
-                return IntegrityStats{}
+                return IntegrityData{}
         }
         var f integrityStatsFile
         if err := json.Unmarshal(data, &f); err != nil {
                 slog.Warn("Stats: failed to parse integrity_stats.json", mapKeyError, err)
-                return IntegrityStats{}
+                return IntegrityData{}
         }
-        return f.Summary
+        return IntegrityData{Summary: f.Summary, Events: f.Events, Taxonomy: f.Taxonomy}
 }
 
 type StatsHandler struct {
@@ -118,7 +141,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 slog.Warn("Stats: failed to count remediated domains", mapKeyError, err)
         }
 
-        integrityStats := loadIntegrityStats()
+        integrityData := loadIntegrityData()
 
         data := gin.H{
                 "AppVersion":         h.Config.AppVersion,
@@ -135,7 +158,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 "PopularDomains":     popItems,
                 "RecentStats":        statItems,
                 "RemediatedDomains":  remediatedDomains,
-                "IntegrityStats":     integrityStats,
+                "IntegrityData":      integrityData,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "stats.html", data)
