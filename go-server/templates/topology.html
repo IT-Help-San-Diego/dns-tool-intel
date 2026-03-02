@@ -212,7 +212,7 @@
         var PROTO_EDGES = [
             { from: 'dmarc', to: 'spf',    type: 'hard',  label: 'alignment',     labelT: 0.45 },
             { from: 'dmarc', to: 'dkim',   type: 'hard',  label: 'alignment',     labelT: 0.45 },
-            { from: 'dane',  to: 'dnssec', type: 'hard',  label: 'requires',      labelT: 0.5 },
+            { from: 'dane',  to: 'dnssec', type: 'hard',  label: 'requires',      labelT: 0.35 },
             { from: 'bimi',  to: 'dmarc',  type: 'hard',  label: 'p=quarantine+', labelT: 0.5 },
             { from: 'tlsrpt', to: 'mtasts', type: 'soft', label: 'reports',       labelT: 0.5 },
             { from: 'tlsrpt', to: 'dane',  type: 'soft',  label: 'reports',       labelT: 0.4 },
@@ -613,25 +613,14 @@
 
             if (e.label) {
                 var t = e.labelT || 0.5;
-                var mx = from.x + (to.x - from.x) * t;
-                var my = from.y + (to.y - from.y) * t;
-                var dx = to.x - from.x;
-                var dy = to.y - from.y;
-                var len = Math.sqrt(dx * dx + dy * dy) || 1;
-                var nx = -dy / len;
-                var ny = dx / len;
-                var labelOffset = 12;
-                var fontSize = (e.type === 'hard' || e.type === 'soft') ? 11 : 10;
+                var lx = from.x + (to.x - from.x) * t;
+                var ly = from.y + (to.y - from.y) * t;
+                var fontSize = (e.type === 'hard' || e.type === 'soft') ? 10 : 9;
                 ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-                var tw = ctx.measureText(e.label).width;
-                var lx = mx + nx * labelOffset;
-                var ly = my + ny * labelOffset;
-                ctx.fillStyle = 'rgba(7, 10, 15, 0.7)';
-                ctx.fillRect(lx - tw / 2 - 4, ly - 7, tw + 8, 14);
-                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.55)';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(e.label, lx, ly);
+                ctx.fillStyle = isHighlight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.4)';
+                ctx.fillText(e.label, lx, ly - 8);
             }
         }
 
