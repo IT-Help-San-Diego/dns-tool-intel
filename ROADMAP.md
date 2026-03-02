@@ -52,6 +52,11 @@
 | Action Pill Nodes (Persist, Seeds, Baselines, Validates) | v26.28.39 | Mar 2026 |
 | Fully Responsive Zone-Based Layout with Collision Enforcement | v26.28.40 | Mar 2026 |
 | Edge Labels Hover-Only, Explicit Protocol Angle Mapping, Persist Pill Repositioned | v26.28.41 | Mar 2026 |
+| Unified OG Image System (6 images, consistent design, ImageMagick generator script) | v26.28.44 | Mar 2026 |
+| Forgotten Domain Video (embedded on approach page, dedicated sharing page at /video/forgotten-domain) | v26.28.44 | Mar 2026 |
+| Performance Optimization (gzip DefaultCompression, CSS/font preload hints) | v26.28.45 | Mar 2026 |
+| Video Styling Fix (approach page — constrained width, poster, label, caption) | v26.28.46 | Mar 2026 |
+| Test Coverage Expansion (exports_ice_test.go, coverage_boost14_test.go, main_test.go) | v26.28.46 | Mar 2026 |
 
 ---
 
@@ -98,7 +103,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.28.41 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.28.46 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
