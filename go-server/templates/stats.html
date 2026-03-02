@@ -520,6 +520,11 @@
                     </div>
                     <div class="stats-kpi-label">Success Rate</div>
                 </div>
+                <div class="stats-kpi kpi-success">
+                    <div class="stats-kpi-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stats-kpi-value">{{.RemediatedDomains}}</div>
+                    <div class="stats-kpi-label">Domains Remediated</div>
+                </div>
             </div>
 
             <div class="stats-section">
@@ -667,6 +672,42 @@
                 </div>
             </div>
             {{end}}
+
+            <div class="stats-section">
+                <div class="stats-section-header">
+                    <i class="fas fa-flask stats-section-icon"></i>
+                    <h2 class="stats-section-title">Epistemic Integrity</h2>
+                </div>
+                <div class="stats-section-body">
+                    <p class="text-muted small mb-3">Epistemic Disclosure Events (EDEs) track instances where the engine's confidence model, scoring calibration, or evidence interpretation required correction. This is a self-imposed transparency mechanism &mdash; not an error log.</p>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#7ec8e3;">{{.IntegrityStats.TotalEvents}}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Total EDEs</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#f0ad4e;">{{.IntegrityStats.Open}}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Open</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#3fb950;">{{.IntegrityStats.Closed}}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Resolved</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
+                                <div style="font-size:1.1rem; font-weight:600; color:#8b949e;">{{.IntegrityStats.LastEventDate}}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Last Event</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {{template "footer" .}}
         </div>

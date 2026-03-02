@@ -3,8 +3,10 @@
 package handlers
 
 import (
+        "encoding/json"
         "log/slog"
         "net/http"
+        "os"
         "strings"
 
         "dnstool/go-server/internal/config"
@@ -13,6 +15,31 @@ import (
 
         "github.com/gin-gonic/gin"
 )
+
+type IntegrityStats struct {
+        TotalEvents   int    `json:"total_events"`
+        Open          int    `json:"open"`
+        Closed        int    `json:"closed"`
+        LastEventDate string `json:"last_event_date"`
+}
+
+type integrityStatsFile struct {
+        Summary IntegrityStats `json:"summary"`
+}
+
+func loadIntegrityStats() IntegrityStats {
+        data, err := os.ReadFile("static/data/integrity_stats.json")
+        if err != nil {
+                slog.Warn("Stats: failed to read integrity_stats.json", mapKeyError, err)
+                return IntegrityStats{}
+        }
+        var f integrityStatsFile
+        if err := json.Unmarshal(data, &f); err != nil {
+                slog.Warn("Stats: failed to parse integrity_stats.json", mapKeyError, err)
+                return IntegrityStats{}
+        }
+        return f.Summary
+}
 
 type StatsHandler struct {
         DB     *db.Database
@@ -86,6 +113,13 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 countryItems = append(countryItems, buildCountryStat(cs))
         }
 
+        remediatedDomains, err := h.DB.Queries.CountRemediatedDomains(ctx)
+        if err != nil {
+                slog.Warn("Stats: failed to count remediated domains", mapKeyError, err)
+        }
+
+        integrityStats := loadIntegrityStats()
+
         data := gin.H{
                 "AppVersion":         h.Config.AppVersion,
                 "MaintenanceNote":    h.Config.MaintenanceNote,
@@ -100,6 +134,8 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 "CountryStats":       countryItems,
                 "PopularDomains":     popItems,
                 "RecentStats":        statItems,
+                "RemediatedDomains":  remediatedDomains,
+                "IntegrityStats":     integrityStats,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "stats.html", data)

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "last_updated": "2026-03-02",
+  "summary": {
+    "total_events": 3,
+    "open": 0,
+    "closed": 3,
+    "last_event_date": "2026-02-15"
+  },
+  "events": [
+    {
+      "id": "EDE-001",
+      "date": "2025-11-20",
+      "category": "scoring_calibration",
+      "title": "DMARC confidence weighting adjusted for aggregate-only policies",
+      "status": "closed",
+      "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting"
+    },
+    {
+      "id": "EDE-002",
+      "date": "2026-01-08",
+      "category": "false_positive",
+      "title": "DANE TLSA timeout incorrectly scored as misconfiguration",
+      "status": "closed",
+      "resolution": "Timeout now yields UNKNOWN status with degraded confidence instead of FAIL"
+    },
+    {
+      "id": "EDE-003",
+      "date": "2026-02-15",
+      "category": "drift_detection",
+      "title": "Hash comparison missed CNAME-flattened record changes",
+      "status": "closed",
+      "resolution": "Drift engine now resolves CNAME chains before hashing canonical form"
+    }
+  ]
+}

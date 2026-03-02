@@ -46,3 +46,8 @@ WHERE created_at::date = $1;
 
 -- name: UpdateUniqueDomainCount :exec
 UPDATE analysis_stats SET unique_domains = $2, updated_at = NOW() WHERE date = $1;
+
+-- name: CountRemediatedDomains :one
+SELECT COUNT(DISTINCT domain)::bigint AS count
+FROM drift_events
+WHERE diff_summary @> '[{"Severity": "success"}]'::jsonb;

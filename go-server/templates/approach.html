@@ -4,6 +4,7 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
+    {{template "head_katex" .}}
     <title>Our Methodology - DNS Tool</title>
     <meta name="robots" content="index, follow">
     <meta name="description" content="Five perspectives, one algorithm. DNS Tool combines the intelligence officer, DNS engineer, hacker, executive, and field technician into a symbiotic security engine with cited findings, RFC provenance, and time-series verification.">
@@ -520,6 +521,48 @@
                         </div>
 
                         <p class="text-muted small mb-0">These aren't personas or marketing segments. They're implemented as distinct template outputs, scoring engines, and guidance layers &mdash; each backed by deployed code you can verify in our <a href="/architecture" class="text-info text-decoration-none">architecture</a> and <a href="/confidence" class="text-info text-decoration-none">confidence</a> documentation.</p>
+                    </div>
+
+                    <div class="approach-section">
+                        <h2><i class="fas fa-balance-scale me-2"></i>The Verification Principle</h2>
+                        <p class="mb-3">Every DNS security tool sits somewhere on this spectrum. Most lean toward one side without admitting it. We chose the middle &mdash; and built the math to prove it.</p>
+
+                        <div class="verify-infographic">
+                            <div class="verify-panel verify-panel-trust">
+                                <div class="verify-panel-title">Blind Trust</div>
+                                <div class="verify-panel-subtitle">Unquestioning Acceptance</div>
+                                <p class="mt-2 mb-0" style="font-size:0.8rem; opacity:0.65;">Accept every record at face value. If the syntax parses, call it &ldquo;configured.&rdquo; Ignore context, ignore drift, ignore what the record actually authorizes.</p>
+                            </div>
+                            <div class="verify-center-gear">
+                                <div class="verify-gear-circle">
+                                    <i class="fas fa-cogs"></i>
+                                    <span class="verify-gear-text">Verify</span>
+                                </div>
+                                <div class="verify-ribbon">The Balancing Algorithm</div>
+                            </div>
+                            <div class="verify-panel verify-panel-accuse">
+                                <div class="verify-panel-title">Blind Accusations</div>
+                                <div class="verify-panel-subtitle">Unfounded Judgments</div>
+                                <p class="mt-2 mb-0" style="font-size:0.8rem; opacity:0.65;">Flag everything as dangerous. Inflate severity to sell remediation. Infer malicious intent from common misconfigurations.</p>
+                            </div>
+                        </div>
+
+                        <div class="verify-formula-row">
+                            <div>
+                                <div class="verify-formula-label">When Trust Is Blind</div>
+                                $$P(H|E) \to 1 \quad \text{regardless of } E$$
+                            </div>
+                            <div class="text-center">
+                                <div class="verify-formula-label">Bayesian Verification</div>
+                                $$P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}$$
+                            </div>
+                            <div class="text-end">
+                                <div class="verify-formula-label">When Accusation Is Blind</div>
+                                $$P(H|E) \to 0 \quad \text{regardless of } E$$
+                            </div>
+                        </div>
+
+                        <p class="text-muted small mt-3 mb-0"><i class="fas fa-flask me-1"></i>DNS Tool uses Bayesian calibration to weight evidence without prejudice. The prior is empirical, not editorial. Confidence degrades visibly when evidence is ambiguous &mdash; it never hides uncertainty behind a clean score. See the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine</a> for the full mathematical framework.</p>
                     </div>
 
                     <div class="approach-section">
