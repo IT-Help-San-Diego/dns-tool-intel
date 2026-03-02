@@ -271,12 +271,12 @@
         FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
 
         function layoutAll() {
-            var cx = W * 0.22;
-            var cy = H * 0.3;
+            var cx = W * 0.2;
+            var cy = H * 0.28;
 
             var srcX = W * 0.07;
-            var srcStartY = H * 0.12;
-            var srcEndY = H * 0.88;
+            var srcStartY = H * 0.1;
+            var srcEndY = H * 0.82;
             var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
@@ -288,25 +288,25 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 80;
-            CONFIDENCE[0].targetY = cy + H * 0.25;
-            CONFIDENCE[1].targetX = cx + 80;
-            CONFIDENCE[1].targetY = cy + H * 0.25;
+            CONFIDENCE[0].targetX = cx - 90;
+            CONFIDENCE[0].targetY = cy + H * 0.22;
+            CONFIDENCE[1].targetX = cx + 90;
+            CONFIDENCE[1].targetY = cy + H * 0.22;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 80;
-            STORAGE[0].targetY = cy + H * 0.48;
-            STORAGE[1].targetX = cx - 80;
-            STORAGE[1].targetY = cy + H * 0.48;
+            STORAGE[0].targetX = cx + 90;
+            STORAGE[0].targetY = cy + H * 0.45;
+            STORAGE[1].targetX = cx - 90;
+            STORAGE[1].targetY = cy + H * 0.45;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
-            var protoCx = W * 0.57;
-            var protoCy = H * 0.42;
-            var protoR = Math.min(W * 0.22, H * 0.32);
+            var protoCx = W * 0.56;
+            var protoCy = H * 0.4;
+            var protoR = Math.min(W * 0.22, H * 0.3);
             var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
             PROTOCOLS.forEach(function(p, i) {
                 var a = protoAngles[i] * Math.PI / 180;
@@ -317,7 +317,7 @@
 
             var outX = W * 0.88;
             var outStartY = H * 0.1;
-            var outSpacing = (H * 0.58) / (OUTPUTS.length - 1);
+            var outSpacing = (H * 0.55) / (OUTPUTS.length - 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = outStartY + i * outSpacing;
