@@ -321,12 +321,17 @@
 
         function layoutAll() {
             var padX = W * 0.04;
-            var padY = H * 0.06;
+            var titleSafe = Math.max(H * 0.12, 70);
+            var legendSafe = H * 0.88;
 
-            var srcZone = { x0: padX, x1: W * 0.15, y0: padY, y1: H * 0.70 };
-            var engZone = { x0: W * 0.16, x1: W * 0.38, y0: padY, y1: H * 0.90 };
-            var protoZone = { x0: W * 0.39, x1: W * 0.76, y0: padY, y1: H * 0.85 };
-            var outZone = { x0: W * 0.82, x1: W - padX, y0: padY, y1: H * 0.72 };
+            var srcZone  = { x0: padX, x1: W * 0.14, y0: titleSafe, y1: H * 0.72 };
+            var engZone  = { x0: W * 0.17, x1: W * 0.40, y0: titleSafe, y1: legendSafe };
+            var protoZone = { x0: W * 0.42, x1: W * 0.76, y0: titleSafe, y1: legendSafe - H * 0.06 };
+            var outZone  = { x0: W * 0.80, x1: W - padX, y0: titleSafe, y1: H * 0.72 };
+
+            var engW = engZone.x1 - engZone.x0;
+            var engH = engZone.y1 - engZone.y0;
+            var engCx = (engZone.x0 + engZone.x1) / 2;
 
             var srcCx = (srcZone.x0 + srcZone.x1) / 2;
             var srcSpacing = (srcZone.y1 - srcZone.y0) / (SOURCES.length - 1);
@@ -336,14 +341,14 @@
                 if (!s._initialized) { s.x = s.targetX - 30; s.y = s.targetY; s._initialized = true; }
             });
 
-            var engCx = (engZone.x0 + engZone.x1) / 2;
             ENGINE.targetX = engCx;
-            ENGINE.targetY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.18;
+            ENGINE.targetY = engZone.y0 + engH * 0.14;
             if (!ENGINE._initialized) { ENGINE.x = ENGINE.targetX; ENGINE.y = ENGINE.targetY; ENGINE._initialized = true; }
 
-            var confY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.48;
-            var confSpread = (engZone.x1 - engZone.x0) * 0.35;
-            CONFIDENCE[0].targetX = engCx - confSpread;
+            var confY = engZone.y0 + engH * 0.40;
+            var confSpread = engW * 0.22;
+            var confMinX = engZone.x0 + engW * 0.18;
+            CONFIDENCE[0].targetX = Math.max(engCx - confSpread, confMinX);
             CONFIDENCE[0].targetY = confY;
             CONFIDENCE[1].targetX = engCx + confSpread;
             CONFIDENCE[1].targetY = confY;
@@ -351,12 +356,12 @@
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            var fixY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.62;
+            var fixY = engZone.y0 + engH * 0.58;
             STORAGE[2].targetX = engCx;
             STORAGE[2].targetY = fixY;
 
-            var storeY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.82;
-            var storeSpread = (engZone.x1 - engZone.x0) * 0.35;
+            var storeY = engZone.y0 + engH * 0.80;
+            var storeSpread = engW * 0.28;
             STORAGE[0].targetX = engCx + storeSpread;
             STORAGE[0].targetY = storeY;
             STORAGE[1].targetX = engCx - storeSpread;
@@ -365,42 +370,39 @@
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
-            separateNodes(CONFIDENCE.concat(STORAGE), 12);
+            separateNodes(CONFIDENCE.concat(STORAGE), 16);
 
-            function edgeMid(idA, idB, offX, offY) {
-                var a = allNodes[idA], b = allNodes[idB];
-                return { x: (a.targetX + b.targetX) / 2 + (offX || 0), y: (a.targetY + b.targetY) / 2 + (offY || 0) };
+            CONFIDENCE.forEach(function(c) {
+                c.targetX = Math.max(c.targetX, engZone.x0 + 50);
+                c.targetX = Math.min(c.targetX, engZone.x1 - 30);
+            });
+
+            function placeAction(id, fromId, toId, offX, offY) {
+                var a = allNodes[fromId], b = allNodes[toId];
+                var n = allNodes[id];
+                n.targetX = (a.targetX + b.targetX) / 2 + (offX || 0);
+                n.targetY = (a.targetY + b.targetY) / 2 + (offY || 0);
+                if (!n._initialized) { n.x = n.targetX; n.y = n.targetY; n._initialized = true; }
             }
-            var mp;
 
-            mp = edgeMid('engine', 'postgres', 10, 0);
-            allNodes['act_persist'].targetX = mp.x;
-            allNodes['act_persist'].targetY = mp.y;
-            if (!allNodes['act_persist']._initialized) { allNodes['act_persist'].x = mp.x; allNodes['act_persist'].y = mp.y; allNodes['act_persist']._initialized = true; }
+            placeAction('act_persist', 'engine', 'postgres', engW * 0.15, 0);
+            placeAction('act_seeds', 'postgres', 'fixtures', 12, 0);
+            placeAction('act_baselines', 'fixtures', 'vault', -12, 0);
+            placeAction('act_validates', 'vault', 'icae', -12, 0);
 
-            mp = edgeMid('postgres', 'fixtures', 12, 0);
-            allNodes['act_seeds'].targetX = mp.x;
-            allNodes['act_seeds'].targetY = mp.y;
-            if (!allNodes['act_seeds']._initialized) { allNodes['act_seeds'].x = mp.x; allNodes['act_seeds'].y = mp.y; allNodes['act_seeds']._initialized = true; }
-
-            mp = edgeMid('fixtures', 'vault', -12, 0);
-            allNodes['act_baselines'].targetX = mp.x;
-            allNodes['act_baselines'].targetY = mp.y;
-            if (!allNodes['act_baselines']._initialized) { allNodes['act_baselines'].x = mp.x; allNodes['act_baselines'].y = mp.y; allNodes['act_baselines']._initialized = true; }
-
-            mp = edgeMid('vault', 'icae', -12, 0);
-            allNodes['act_validates'].targetX = mp.x;
-            allNodes['act_validates'].targetY = mp.y;
-            if (!allNodes['act_validates']._initialized) { allNodes['act_validates'].x = mp.x; allNodes['act_validates'].y = mp.y; allNodes['act_validates']._initialized = true; }
-
+            var protoW = protoZone.x1 - protoZone.x0;
+            var protoH = protoZone.y1 - protoZone.y0;
             var protoCx = (protoZone.x0 + protoZone.x1) / 2;
-            var protoCy = (protoZone.y0 + protoZone.y1) / 2 - H * 0.02;
-            var protoR = Math.min((protoZone.x1 - protoZone.x0) * 0.42, (protoZone.y1 - protoZone.y0) * 0.42);
-            var startAngle = -110;
+            var protoCy = (protoZone.y0 + protoZone.y1) / 2 + H * 0.03;
+            var protoR = Math.min(protoW * 0.40, protoH * 0.40);
+
+            var angleMap = [-130, -90, -50, 30, 70, 150, 190, -10, 110];
             PROTOCOLS.forEach(function(p, i) {
-                var a = (startAngle + i * 40) * Math.PI / 180;
+                var a = angleMap[i] * Math.PI / 180;
                 p.targetX = protoCx + protoR * Math.cos(a);
                 p.targetY = protoCy + protoR * Math.sin(a);
+                p.targetY = Math.max(p.targetY, titleSafe + p.radius);
+                p.targetY = Math.min(p.targetY, legendSafe - p.radius);
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
 
