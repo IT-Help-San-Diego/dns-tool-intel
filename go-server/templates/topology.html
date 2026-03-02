@@ -183,6 +183,13 @@
             { id: 'fixtures',  label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds',    color: '#ffcc80',       zone: 'storage' }
         ];
 
+        var ACTIONS = [
+            { id: 'act_persist',   label: 'persist',    color: 'rgba(255,255,255,0.5)', zone: 'action' },
+            { id: 'act_seeds',     label: 'seeds',      color: 'rgba(255,255,255,0.5)', zone: 'action' },
+            { id: 'act_baselines', label: 'baselines',  color: 'rgba(255,255,255,0.5)', zone: 'action' },
+            { id: 'act_validates', label: 'validates',  color: 'rgba(255,255,255,0.5)', zone: 'action' }
+        ];
+
         var OUTPUTS = [
             { id: 'reports',   label: 'Reports',        sub: 'Engineer · Executive\nRecon · Comparison',       color: COLORS.output, zone: 'output' },
             { id: 'jsonapi',   label: 'JSON API',       sub: 'Analysis · Checksums\nSubdomains · Health',      color: COLORS.output, zone: 'output' },
@@ -223,17 +230,24 @@
 
         CONFIDENCE.forEach(function(c) {
             c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
-            c.radius = 40; c._initialized = false;
+            c.radius = 48; c._initialized = false;
             c.shape = 'diamond';
             allNodes[c.id] = c;
         });
 
         STORAGE.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = (s.id === 'fixtures') ? 34 : 40;
+            s.radius = (s.id === 'fixtures') ? 38 : 40;
             s._initialized = false;
             s.shape = 'cylinder';
             allNodes[s.id] = s;
+        });
+
+        ACTIONS.forEach(function(a) {
+            a.x = 0; a.y = 0; a.targetX = 0; a.targetY = 0;
+            a.radius = 18; a._initialized = false;
+            a.shape = 'pill';
+            allNodes[a.id] = a;
         });
 
         OUTPUTS.forEach(function(o) {
@@ -261,10 +275,14 @@
         });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'engine', to: 'postgres', type: 'flow', label: 'persist' });
-        FLOW_EDGES.push({ from: 'postgres', to: 'fixtures', type: 'flow', label: 'seeds' });
-        FLOW_EDGES.push({ from: 'fixtures', to: 'vault', type: 'flow', label: 'baselines' });
-        FLOW_EDGES.push({ from: 'vault', to: 'icae', type: 'flow', label: 'validates' });
+        FLOW_EDGES.push({ from: 'engine', to: 'act_persist', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'act_persist', to: 'postgres', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'act_seeds', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'act_seeds', to: 'fixtures', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'fixtures', to: 'act_baselines', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'act_baselines', to: 'vault', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'vault', to: 'act_validates', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'act_validates', to: 'icae', type: 'flow', label: '' });
         PROTOCOLS.forEach(function(p) {
             FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
         });
@@ -279,7 +297,7 @@
 
             var srcX = W * 0.08;
             var srcStartY = H * 0.14;
-            var srcEndY = H * 0.68;
+            var srcEndY = H * 0.66;
             var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
@@ -291,28 +309,48 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 55;
-            CONFIDENCE[0].targetY = H * 0.55;
-            CONFIDENCE[1].targetX = cx + 85;
-            CONFIDENCE[1].targetY = H * 0.55;
+            CONFIDENCE[0].targetX = cx - 60;
+            CONFIDENCE[0].targetY = H * 0.54;
+            CONFIDENCE[1].targetX = cx + 90;
+            CONFIDENCE[1].targetY = H * 0.54;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 120;
-            STORAGE[0].targetY = H * 0.80;
-            STORAGE[1].targetX = cx - 70;
-            STORAGE[1].targetY = H * 0.80;
+            STORAGE[0].targetX = cx + 130;
+            STORAGE[0].targetY = H * 0.82;
+            STORAGE[1].targetX = cx - 80;
+            STORAGE[1].targetY = H * 0.82;
             STORAGE[2].targetX = cx + 25;
             STORAGE[2].targetY = H * 0.68;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
+            var act_persist = allNodes['act_persist'];
+            act_persist.targetX = cx + 30;
+            act_persist.targetY = H * 0.42;
+            if (!act_persist._initialized) { act_persist.x = act_persist.targetX; act_persist.y = act_persist.targetY; act_persist._initialized = true; }
+
+            var act_seeds = allNodes['act_seeds'];
+            act_seeds.targetX = cx + 100;
+            act_seeds.targetY = H * 0.75;
+            if (!act_seeds._initialized) { act_seeds.x = act_seeds.targetX; act_seeds.y = act_seeds.targetY; act_seeds._initialized = true; }
+
+            var act_baselines = allNodes['act_baselines'];
+            act_baselines.targetX = cx - 25;
+            act_baselines.targetY = H * 0.75;
+            if (!act_baselines._initialized) { act_baselines.x = act_baselines.targetX; act_baselines.y = act_baselines.targetY; act_baselines._initialized = true; }
+
+            var act_validates = allNodes['act_validates'];
+            act_validates.targetX = cx - 80;
+            act_validates.targetY = H * 0.68;
+            if (!act_validates._initialized) { act_validates.x = act_validates.targetX; act_validates.y = act_validates.targetY; act_validates._initialized = true; }
+
             var protoCx = W * 0.56;
             var protoCy = H * 0.4;
             var protoR = Math.min(W * 0.24, H * 0.32);
-            var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
+            var protoAngles = [-100, -55, -10, 40, 85, 130, 175, -145, -170];
             PROTOCOLS.forEach(function(p, i) {
                 var a = protoAngles[i] * Math.PI / 180;
                 p.targetX = protoCx + protoR * Math.cos(a);
@@ -378,7 +416,7 @@
         var mouseX = -1, mouseY = -1;
 
         function hitTest(mx, my) {
-            var allArr = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE]);
+            var allArr = SOURCES.concat(CONFIDENCE, STORAGE, ACTIONS, OUTPUTS, PROTOCOLS, [ENGINE]);
             for (var i = 0; i < allArr.length; i++) {
                 var n = allArr[i];
                 var dx = mx - n.x;
@@ -455,6 +493,14 @@
             if (node.shape === 'cylinder') {
                 var hw = (node.radius * 2.6) / 2 + pad;
                 var hh = (node.radius * 1.5) / 2 + 8 + pad;
+                var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
+                var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
+                var t = Math.min(tx, ty);
+                return { x: node.x + nx * t, y: node.y + ny * t };
+            }
+            if (node.shape === 'pill') {
+                var hw = ((node._drawW || 50)) / 2 + pad;
+                var hh = ((node._drawH || 18)) / 2 + pad;
                 var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx, ty);
@@ -592,6 +638,40 @@
                     ctx.fillText(line, n.x, n.y + 8 + i * 11);
                 });
             }
+        }
+
+        function drawActionNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var connected = hoverNode ? getConnectedNodeIds(hoverNode.id) : {};
+            var isConnected = hoverNode && connected[n.id];
+            var dimmed = hoverNode && !isHover && !isConnected;
+
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            var tw = ctx.measureText(n.label).width;
+            var pw = tw + 16;
+            var ph = 18;
+            var pr = ph / 2;
+            n._drawW = pw;
+            n._drawH = ph;
+
+            ctx.beginPath();
+            ctx.moveTo(n.x - pw/2 + pr, n.y - ph/2);
+            ctx.lineTo(n.x + pw/2 - pr, n.y - ph/2);
+            ctx.arc(n.x + pw/2 - pr, n.y, pr, -Math.PI/2, Math.PI/2);
+            ctx.lineTo(n.x - pw/2 + pr, n.y + ph/2);
+            ctx.arc(n.x - pw/2 + pr, n.y, pr, Math.PI/2, -Math.PI/2);
+            ctx.closePath();
+
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.02)' : (isHover ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)');
+            ctx.fill();
+            ctx.strokeStyle = dimmed ? 'rgba(255,255,255,0.06)' : (isHover ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)');
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)');
+            ctx.fillText(n.label, n.x, n.y);
         }
 
         function drawEngineNode(n) {
@@ -824,6 +904,7 @@
 
             SOURCES.forEach(function(s) { drawSourceNode(s); });
             STORAGE.forEach(function(s) { drawStorageNode(s); });
+            ACTIONS.forEach(function(a) { drawActionNode(a); });
             CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
             OUTPUTS.forEach(function(o) { drawOutputNode(o); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
