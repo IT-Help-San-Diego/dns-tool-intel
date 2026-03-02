@@ -1198,6 +1198,8 @@ main.container {
    ============================================ */
 .navbar > .container {
     position: relative;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .navbar .navbar-collapse {
@@ -1271,12 +1273,12 @@ main.container {
     }
 
     .navbar-brand {
-        max-width: calc(100vw - 160px);
         white-space: nowrap;
         font-size: 1rem;
         overflow: hidden;
         text-overflow: ellipsis;
         flex-shrink: 1;
+        min-width: 0;
     }
 
     .navbar-brand .nav-version-badge {
@@ -1288,7 +1290,7 @@ main.container {
         font-size: 0.5rem;
         padding: 0.15em 0.4em;
         white-space: nowrap;
-        display: inline-block;
+        display: inline-flex;
         vertical-align: middle;
         line-height: 1.4;
     }
