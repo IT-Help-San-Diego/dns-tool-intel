@@ -1,6 +1,6 @@
 # DNS Tool — Feature Overview
 
-**Last Updated:** February 22, 2026 (v26.23.47)
+**Last Updated:** March 2, 2026 (v26.29.55)
 **Implementation:** Go/Gin
 
 ---
@@ -24,7 +24,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - **MTA-STS Analysis** (RFC 8461) — policy file validation, mode parsing
 - **TLS-RPT Analysis** (RFC 8460) — reporting address extraction
 - **BIMI Analysis** (RFC 9495) — logo and VMC validation
-- **DANE/TLSA Analysis** (RFC 7671) — per-MX-host TLSA evaluation, DNSSEC requirement verification
+- **DANE/TLSA Analysis** (RFC 6698, RFC 7672) — per-MX-host TLSA evaluation, DNSSEC requirement verification
 - **DNSSEC Analysis** (RFC 4035) — chain of trust verification
 - **CAA Analysis** (RFC 8659) — authorized CA parsing, MPIC awareness
 - **NS Delegation Analysis** (RFC 1034) — delegation consistency, lame delegation detection

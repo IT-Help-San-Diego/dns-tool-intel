@@ -357,8 +357,8 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1"><span class="text-info">TLS-RPT</span> <span class="text-muted u-fs-075em">&mdash; {{with index .ICAEMetrics.ByKey "tlsrpt"}}{{.TotalCases}} total ({{.AnalysisCases}} analysis + {{.CollectionCases}} collection){{end}} test cases</span></h3>
-                                <p class="text-muted small mb-1">Validates cryptographic key classification for DKIM (2048-bit RSA adequate per <a href="https://datatracker.ietf.org/doc/html/rfc8301" class="text-info" target="_blank" rel="noopener">RFC 8301</a>, Ed25519 strong) and DS digest type classification (SHA-256 per <a href="https://datatracker.ietf.org/doc/html/rfc8624#section-3.3" class="text-info" target="_blank" rel="noopener">RFC 8624 &sect;3.3</a>).</p>
-                                <p class="text-muted small mb-0"><strong>Methodology:</strong> Known algorithm + key size inputs &rarr; expected strength label.</p>
+                                <p class="text-muted small mb-1">Validates TLS-RPT URI extraction from <code>rua</code> fields (<a href="https://datatracker.ietf.org/doc/html/rfc8460#section-3" class="text-info" target="_blank" rel="noopener">RFC 8460 &sect;3</a>), plus cross-protocol cryptographic strength classification: DKIM key strength (2048-bit RSA adequate per <a href="https://datatracker.ietf.org/doc/html/rfc8301" class="text-info" target="_blank" rel="noopener">RFC 8301</a>, Ed25519 strong) and DS digest type classification (SHA-256 per <a href="https://datatracker.ietf.org/doc/html/rfc8624#section-3.3" class="text-info" target="_blank" rel="noopener">RFC 8624 &sect;3.3</a>).</p>
+                                <p class="text-muted small mb-0"><strong>Methodology:</strong> Synthetic TLS-RPT records &rarr; expected URI extraction; known algorithm + key size inputs &rarr; expected strength label.</p>
                             </div>
                         </div>
                     </div>

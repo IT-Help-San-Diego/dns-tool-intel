@@ -166,7 +166,8 @@
             { id: 'root',      label: 'Root / TLD',      sub: 'IANA Root Zone\nTLD Registries',                  color: COLORS.source, zone: 'source' },
             { id: 'rdap',      label: 'RDAP / WHOIS',    sub: 'Registration Data\nAccess Protocol',              color: COLORS.intel,  zone: 'source' },
             { id: 'ietf',      label: 'IETF Metadata',   sub: 'RFC Status · Errata\nDraft Tracker',              color: COLORS.intel,  zone: 'source' },
-            { id: 'cisa',      label: 'CISA / Threat',   sub: 'Known Exploited\nVulnerabilities',                color: COLORS.intel,  zone: 'source' },
+            { id: 'ct',        label: 'CT / Subdomains', sub: 'crt.sh · Certspotter\nTransparency Logs',          color: COLORS.intel,  zone: 'source' },
+            { id: 'cisa',      label: 'CISA / Threat',   sub: 'BOD 19-02\nIP Scanner Detection',                 color: COLORS.intel,  zone: 'source' },
             { id: 'probes',    label: 'Probe Fleet',     sub: 'SMTP · DANE · TLS\nNmap · testssl.sh',            color: COLORS.source, zone: 'source' }
         ];
 
@@ -175,20 +176,17 @@
         var CONFIDENCE = [
             { id: 'icae', label: 'ICAE', sub: 'Accuracy Audit',  color: '#ef9a9a', zone: 'confidence' },
             { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit', color: '#a5d6a7', zone: 'confidence' },
-            { id: 'ede', label: 'EDE', sub: 'Epistemic Integrity\nLedger', color: '#ffab91', zone: 'confidence' }
+            { id: 'ede', label: 'EDE', sub: 'Epistemic Disclosure\nEvents', color: '#ffab91', zone: 'confidence' }
         ];
 
         var STORAGE = [
             { id: 'postgres',  label: 'PostgreSQL',     sub: 'Scan Results · History\nDrift · Analytics',      color: COLORS.storage, zone: 'storage' },
-            { id: 'vault',     label: 'Intel Vault',     sub: 'RFC Baselines\nConfidence Bridge',               color: COLORS.storage, zone: 'storage' },
             { id: 'fixtures',  label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds',    color: '#ffcc80',       zone: 'storage' }
         ];
 
         var ACTIONS = [
             { id: 'act_persist',   label: 'persist',    color: 'rgba(255,255,255,0.5)', zone: 'action' },
-            { id: 'act_seeds',     label: 'seeds',      color: 'rgba(255,255,255,0.5)', zone: 'action' },
-            { id: 'act_baselines', label: 'baselines',  color: 'rgba(255,255,255,0.5)', zone: 'action' },
-            { id: 'act_validates', label: 'validates',  color: 'rgba(255,255,255,0.5)', zone: 'action' }
+            { id: 'act_seeds',     label: 'seeds',      color: 'rgba(255,255,255,0.5)', zone: 'action' }
         ];
 
         var OUTPUTS = [
@@ -276,17 +274,12 @@
         });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'icae', to: 'ede', type: 'flow', label: 'corrections' });
-        FLOW_EDGES.push({ from: 'icuae', to: 'ede', type: 'flow', label: 'corrections' });
-        FLOW_EDGES.push({ from: 'ede', to: 'engine', type: 'flow', label: 'recalibrate' });
+        FLOW_EDGES.push({ from: 'icae', to: 'ede', type: 'flow', label: 'discloses' });
+        FLOW_EDGES.push({ from: 'icuae', to: 'ede', type: 'flow', label: 'discloses' });
         FLOW_EDGES.push({ from: 'engine', to: 'act_persist', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'act_persist', to: 'postgres', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'postgres', to: 'act_seeds', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'act_seeds', to: 'fixtures', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'fixtures', to: 'act_baselines', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'act_baselines', to: 'vault', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'vault', to: 'act_validates', type: 'flow', label: '' });
-        FLOW_EDGES.push({ from: 'act_validates', to: 'icae', type: 'flow', label: '' });
         PROTOCOLS.forEach(function(p) {
             FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
         });
@@ -393,8 +386,6 @@
 
             placeAction('act_persist', 'engine', 'postgres', engW * 0.25, -engH * 0.06);
             placeAction('act_seeds', 'postgres', 'fixtures', 0, -8);
-            placeAction('act_baselines', 'fixtures', 'vault', 0, -8);
-            placeAction('act_validates', 'vault', 'icae', 8, 0);
 
             var protoW = protoZone.x1 - protoZone.x0;
             var protoH = protoZone.y1 - protoZone.y0;

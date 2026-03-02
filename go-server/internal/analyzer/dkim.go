@@ -579,9 +579,15 @@ func analyzePublicKey(record string) (keyBits interface{}, revoked bool, issues 
         if publicKey == "" {
                 return nil, true, []string{"Key revoked (p= empty)"}
         }
-        decoded, err := base64.StdEncoding.DecodeString(publicKey + "==")
+        for len(publicKey)%4 != 0 {
+                publicKey += "="
+        }
+        decoded, err := base64.StdEncoding.DecodeString(publicKey)
         if err != nil {
-                return nil, false, nil
+                decoded, err = base64.RawStdEncoding.DecodeString(strings.TrimRight(publicKey, "="))
+                if err != nil {
+                        return nil, false, nil
+                }
         }
         bits := estimateKeyBits(len(decoded))
         if bits == 1024 {

@@ -20,9 +20,9 @@ const spfRecordNone = "(none)"
 
 var (
         spfIncludeRe  = regexp.MustCompile(`(?i)include:([^\s]+)`)
-        spfAMechRe    = regexp.MustCompile(`(?i)\ba[:/]`)
-        spfMXMechRe   = regexp.MustCompile(`(?i)\bmx[:/\s]`)
-        spfPTRMechRe  = regexp.MustCompile(`(?i)\bptr[:/\s]`)
+        spfAMechRe    = regexp.MustCompile(`(?i)\ba([:/\s]|$)`)
+        spfMXMechRe   = regexp.MustCompile(`(?i)\bmx([:/\s]|$)`)
+        spfPTRMechRe  = regexp.MustCompile(`(?i)\bptr([:/\s]|$)`)
         spfExistsRe   = regexp.MustCompile(`(?i)exists:`)
         spfRedirectRe = regexp.MustCompile(`(?i)redirect=([^\s]+)`)
         spfAllRe      = regexp.MustCompile(`(?i)([+\-~?]?)all\b`)

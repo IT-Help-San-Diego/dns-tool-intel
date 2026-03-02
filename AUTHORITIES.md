@@ -90,7 +90,7 @@
 | 7505 | Null MX | Standards Track | No-mail domain detection and hardening |
 | 6698 | DANE/TLSA | Standards Track | Certificate pinning for mail transport |
 | 7672 | SMTP Security via DANE | Standards Track | Transport security, DANE precedence over MTA-STS |
-| 9495 | BIMI | Standards Track | Brand indicator detection (recently ratified) |
+| 9495 | BIMI | Experimental | Brand indicator detection |
 
 ### Email Authentication — Active Drafts
 

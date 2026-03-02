@@ -72,6 +72,7 @@ func canonicalizeValue(v any) string {
                 for _, item := range val {
                         items = append(items, canonicalizeValue(item))
                 }
+                sort.Strings(items)
                 return "[" + strings.Join(items, ",") + "]"
         case []map[string]any:
                 var items []string
@@ -100,7 +101,7 @@ func CountVerifiedRFCs(results map[string]any) int {
                 "dkim_analysis":   {"RFC 6376"},
                 "mta_sts_analysis": {"RFC 8461"},
                 "tlsrpt_analysis": {"RFC 8460"},
-                "bimi_analysis":   {"RFC draft-brand-indicators-for-message-identification"},
+                "bimi_analysis":   {"RFC 9495"},
                 "dane_analysis":   {"RFC 6698", "RFC 7671"},
                 "caa_analysis":    {"RFC 8659"},
                 "dnssec_analysis": {"RFC 4033", "RFC 4034", "RFC 4035"},

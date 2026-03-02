@@ -311,7 +311,7 @@ Public accountability page showing every failed analysis with sanitized error ca
 
 ### Public Roadmap
 URL: `https://dnstool.it-help.tech/roadmap`
-Transparent kanban-style project roadmap showing all development progress. Four columns: Done (60+ shipped features), In Progress (current work), Next Up (DoH/DoT detection, API access, CLI app, distributed probe mesh), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (60+ shipped features), In Progress (current work), Next Up (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
 
 ---
 
