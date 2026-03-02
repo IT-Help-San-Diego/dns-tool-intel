@@ -271,12 +271,12 @@
         FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
 
         function layoutAll() {
-            var cx = W * 0.2;
-            var cy = H * 0.28;
+            var cx = W * 0.22;
+            var cy = H * 0.26;
 
-            var srcX = W * 0.07;
-            var srcStartY = H * 0.1;
-            var srcEndY = H * 0.82;
+            var srcX = W * 0.08;
+            var srcStartY = H * 0.08;
+            var srcEndY = H * 0.68;
             var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
@@ -288,25 +288,25 @@
             ENGINE.targetY = cy;
             if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
 
-            CONFIDENCE[0].targetX = cx - 90;
-            CONFIDENCE[0].targetY = cy + H * 0.22;
-            CONFIDENCE[1].targetX = cx + 90;
-            CONFIDENCE[1].targetY = cy + H * 0.22;
+            CONFIDENCE[0].targetX = cx - 50;
+            CONFIDENCE[0].targetY = H * 0.58;
+            CONFIDENCE[1].targetX = cx + 80;
+            CONFIDENCE[1].targetY = H * 0.58;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 90;
-            STORAGE[0].targetY = cy + H * 0.45;
-            STORAGE[1].targetX = cx - 90;
-            STORAGE[1].targetY = cy + H * 0.45;
+            STORAGE[0].targetX = cx + 80;
+            STORAGE[0].targetY = H * 0.78;
+            STORAGE[1].targetX = cx - 50;
+            STORAGE[1].targetY = H * 0.78;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
             var protoCx = W * 0.56;
             var protoCy = H * 0.4;
-            var protoR = Math.min(W * 0.22, H * 0.3);
+            var protoR = Math.min(W * 0.24, H * 0.32);
             var protoAngles = [-100, -55, -10, 35, 80, 125, 170, -145, -170];
             PROTOCOLS.forEach(function(p, i) {
                 var a = protoAngles[i] * Math.PI / 180;
@@ -315,9 +315,9 @@
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
 
-            var outX = W * 0.88;
-            var outStartY = H * 0.1;
-            var outSpacing = (H * 0.55) / (OUTPUTS.length - 1);
+            var outX = W * 0.9;
+            var outStartY = H * 0.08;
+            var outSpacing = (H * 0.6) / (OUTPUTS.length - 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = outStartY + i * outSpacing;
@@ -433,23 +433,23 @@
             var pad = 5;
 
             if (node.shape === 'rect') {
-                var hw = (node.radius * 2.6) / 2 + pad;
-                var hh = (node.radius * 1.4) / 2 + pad;
+                var hw = ((node._drawW || node.radius * 2.6)) / 2 + pad;
+                var hh = ((node._drawH || node.radius * 1.3)) / 2 + pad;
                 var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx, ty);
                 return { x: node.x + nx * t, y: node.y + ny * t };
             }
             if (node.shape === 'diamond') {
-                var s = node.radius * 0.8 + pad;
+                var s = node.radius * 0.85 + pad;
                 var absDx = Math.abs(nx);
                 var absDy = Math.abs(ny);
                 var t = s / (absDx + absDy || 1);
                 return { x: node.x + nx * t, y: node.y + ny * t };
             }
             if (node.shape === 'cylinder') {
-                var hw = (node.radius * 2.4) / 2 + pad;
-                var hh = (node.radius * 1.6) / 2 + 7 + pad;
+                var hw = (node.radius * 2.6) / 2 + pad;
+                var hh = (node.radius * 1.5) / 2 + 8 + pad;
                 var tx = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx, ty);
@@ -542,8 +542,12 @@
             var isConnected = hoverNode && connected[n.id];
             var dimmed = hoverNode && !isHover && !isConnected;
 
-            var w = n.radius * 2.6;
-            var h = n.radius * 1.4;
+            ctx.font = (isHover ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
+            var tw = ctx.measureText(n.label).width;
+            var w = Math.max(n.radius * 2.6, tw + 24);
+            var h = n.radius * 1.3;
+            n._drawW = w;
+            n._drawH = h;
             var r = 5;
 
             ctx.beginPath();
@@ -564,7 +568,6 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            ctx.font = (isHover ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
@@ -630,7 +633,7 @@
             ctx.translate(n.x, n.y);
             ctx.rotate(Math.PI / 4);
             ctx.beginPath();
-            var s = r * 0.8;
+            var s = r * 0.85;
             ctx.rect(-s, -s, s * 2, s * 2);
             ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
             ctx.fill();
@@ -643,10 +646,10 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
-            ctx.fillText(n.label, n.x, n.y - 7);
+            ctx.fillText(n.label, n.x, n.y - 8);
 
-            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)');
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.45)');
             ctx.fillText(n.sub, n.x, n.y + 10);
         }
 
@@ -692,10 +695,10 @@
             var isConnected = hoverNode && connected[n.id];
             var dimmed = hoverNode && !isHover && !isConnected;
 
-            var w = n.radius * 2.4;
-            var h = n.radius * 1.6;
+            var w = n.radius * 2.6;
+            var h = n.radius * 1.5;
             var ew = w / 2;
-            var eh = 7;
+            var eh = 8;
 
             ctx.beginPath();
             ctx.ellipse(n.x, n.y - h/2, ew, eh, 0, Math.PI, Math.PI * 2);
