@@ -144,7 +144,9 @@ func main() {
         proxyHandler := handlers.NewProxyHandler()
 
         router.GET("/", homeHandler.Index)
+        router.HEAD("/", homeHandler.Index)
         router.GET("/healthz", healthHandler.Healthz)
+        router.HEAD("/healthz", healthHandler.Healthz)
         router.GET("/api/capacity", healthHandler.Capacity)
         router.GET("/go/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
