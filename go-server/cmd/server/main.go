@@ -57,8 +57,10 @@ func main() {
 
         gin.SetMode(gin.ReleaseMode)
         router := gin.New()
-        router.SetTrustedProxies(nil)
-        slog.Info("Trusted proxies disabled — using direct connection IP for rate limiting")
+        router.SetTrustedProxies([]string{"127.0.0.1/8", "::1/128"})
+        router.ForwardedByClientIP = true
+        router.RemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-Ip"}
+        slog.Info("Trusted proxies configured — reading client IP from X-Forwarded-For via local proxy")
 
         router.Use(middleware.Recovery(cfg.AppVersion))
         if !cfg.IsDevEnvironment {
