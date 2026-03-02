@@ -1194,13 +1194,32 @@ main.container {
 }
 
 /* ============================================
-   NAVBAR COLLAPSE — Right-Aligned Dropdown Overlay
+   NAVBAR LAYOUT — Single-Row at All Widths
    ============================================ */
 .navbar > .container {
     position: relative;
+    display: flex;
     flex-wrap: nowrap;
     align-items: center;
+    justify-content: space-between;
 }
+
+.navbar .navbar-brand {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar .u-nav-controls {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* ============================================
+   NAVBAR COLLAPSE — Right-Aligned Dropdown Overlay
+   ============================================ */
 
 .navbar .navbar-collapse {
     position: absolute;
@@ -1337,8 +1356,14 @@ main.container {
     }
     
     .navbar-toggler {
-        min-width: 48px;
-        min-height: 48px;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .navbar .u-covert-toggle,
+    .navbar .u-maintenance-tag {
+        min-height: auto;
     }
     
     .hero-section {
@@ -1506,6 +1531,26 @@ main.container {
     
     footer p {
         font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 390px) {
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+
+    .navbar-brand .nav-version-badge {
+        font-size: 0.5rem;
+        padding: 0.08rem 0.3rem;
+    }
+
+    .u-maintenance-tag {
+        font-size: 0.45rem;
+        padding: 0.1em 0.35em;
+    }
+
+    .u-nav-controls {
+        gap: 0.25rem !important;
     }
 }
 
