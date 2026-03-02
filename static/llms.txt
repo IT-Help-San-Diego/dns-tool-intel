@@ -66,7 +66,7 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 
 ## Intelligence Sources & Transparency
 DNS Tool uses only open-source Unix commands and public protocols. Every conclusion can be independently verified. Sources include:
-- **Multi-Probe Infrastructure**: Probe-01 (Boston, SMTP/DNS) + Probe-02 (Kali, Go v2.1.0, SMTP/testssl/DANE/Nmap) — geographically distributed verification from independent ASNs
+- **Multi-Probe Infrastructure**: Geographically distributed verification nodes from independent ASNs — SMTP/TLS, DANE, DNSSEC validation, and DNS security probing
 - **5 DNS Resolvers**: Cloudflare, Google, Quad9, OpenDNS, DNS4EU — queried in parallel with majority-agreement consensus
 - **Reverse DNS (PTR)**: Identifies hosting providers from IP addresses without any third-party API
 - **Team Cymru**: Community DNS service for IP-to-ASN attribution (no API key, no rate limits)

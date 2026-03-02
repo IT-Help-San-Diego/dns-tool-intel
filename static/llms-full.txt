@@ -384,7 +384,7 @@ DNS Tool detects when a domain uses a hosted email provider and adjusts DANE ana
 - DNS Client: Custom multi-resolver consensus engine with DoH fallback (miekg/dns library)
 - Database: PostgreSQL (pgx v5, sqlc for type-safe queries)
 - RDAP: Direct IANA bootstrap queries
-- Multi-Probe Infrastructure: Probe-01 (Boston, SMTP/DNS) + Probe-02 (Kali, Go v2.1.0, SMTP/testssl/DANE/Nmap) — geographically distributed verification from independent ASNs with hostname allowlist validation and 64KB buffer limits
+- Multi-Probe Infrastructure: Geographically distributed verification nodes from independent ASNs — SMTP/TLS, DANE, DNSSEC validation, DNS security probing with hostname allowlist validation and 64KB buffer limits
 - Response Time: Typically 2-5 seconds per analysis
 - Data: Always fresh, never cached
 - External services: Only ip-api.com (visitor geolocation flag in footer, 45 req/min) uses a rate-limited API — core analysis relies entirely on unlimited DNS protocol queries

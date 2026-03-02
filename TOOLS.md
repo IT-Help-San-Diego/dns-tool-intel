@@ -56,7 +56,7 @@ installed system tool. No source disclosure obligation applies.
 | **CT Logs** (crt.sh) | No formal limit | Public API | Rate-limited by crt.sh; cached 1 hour |
 | **RDAP** (IANA) | No formal limit | Public API | Cached 24 hours |
 | **Google OAuth 2.0** | No hard limit | Google Cloud project | Subject to Google Cloud quotas; standard OAuth 2.0 flow |
-| **probe-us-01** (SMTP) | Shared-secret auth | Our API endpoint | Rate-limited server-side; 10s timeout per probe |
+| **SMTP Probe** | Shared-secret auth | Probe API endpoint | Rate-limited server-side; 10s timeout per probe |
 | **Public DNS resolvers** | No formal limit | Standard DNS queries | 5 resolvers queried per scan; standard UDP/TCP 53 |
 | **ASN lookups** | No formal limit | Public whois/RDAP | Cached per scan |
 

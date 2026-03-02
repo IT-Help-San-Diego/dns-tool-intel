@@ -38,7 +38,7 @@ graph TB
     end
 
     subgraph "Remote Infrastructure"
-        ProbeServer["probe-us-01<br/>SMTP Probe API v2<br/>Ports 25 · 465 · 587"]
+        ProbeServer["SMTP Probe API v2<br/>Ports 25 · 465 · 587"]
     end
 
     subgraph "Storage"
@@ -511,7 +511,7 @@ dedicated probe nodes to a volunteer network of browser-based DNS probes.
 
 ### Design Principles
 
-- **Accuracy first**: Volunteer probes augment but never override trusted anchor nodes (Node 1, Kali Node 2)
+- **Accuracy first**: Volunteer probes augment but never override trusted anchor nodes
 - **Untrusted by default**: All volunteer data treated as untrusted; consensus is mathematically enforced
 - **Privacy-preserving**: Blinded work queues, batched queries, ephemeral session IDs, no PII
 
@@ -520,8 +520,8 @@ dedicated probe nodes to a volunteer network of browser-based DNS probes.
 ```mermaid
 graph TB
     subgraph "Trusted Anchors"
-        N1["probe-us-01<br/>Node 1"]
-        N2["probe-kali-01<br/>Node 2 (Kali)"]
+        N1["Anchor Node 1"]
+        N2["Anchor Node 2"]
     end
 
     subgraph "Volunteer Probe Mesh"
