@@ -179,7 +179,8 @@
 
         var STORAGE = [
             { id: 'postgres',  label: 'PostgreSQL',     sub: 'Scan Results · History\nDrift · Analytics',      color: COLORS.storage, zone: 'storage' },
-            { id: 'vault',     label: 'Intel Vault',     sub: 'Golden Fixtures\nConfidence Bridge',             color: COLORS.storage, zone: 'storage' }
+            { id: 'vault',     label: 'Intel Vault',     sub: 'RFC Baselines\nConfidence Bridge',               color: COLORS.storage, zone: 'storage' },
+            { id: 'fixtures',  label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds',    color: '#ffcc80',       zone: 'storage' }
         ];
 
         var OUTPUTS = [
@@ -229,7 +230,8 @@
 
         STORAGE.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = 40; s._initialized = false;
+            s.radius = (s.id === 'fixtures') ? 34 : 40;
+            s._initialized = false;
             s.shape = 'cylinder';
             allNodes[s.id] = s;
         });
@@ -260,7 +262,8 @@
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'postgres', type: 'flow', label: 'persist' });
-        FLOW_EDGES.push({ from: 'postgres', to: 'vault', type: 'flow', label: 'golden fixtures' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'fixtures', type: 'flow', label: 'seeds' });
+        FLOW_EDGES.push({ from: 'fixtures', to: 'vault', type: 'flow', label: 'baselines' });
         FLOW_EDGES.push({ from: 'vault', to: 'icae', type: 'flow', label: 'validates' });
         PROTOCOLS.forEach(function(p) {
             FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
@@ -272,10 +275,10 @@
 
         function layoutAll() {
             var cx = W * 0.22;
-            var cy = H * 0.26;
+            var cy = H * 0.28;
 
             var srcX = W * 0.08;
-            var srcStartY = H * 0.08;
+            var srcStartY = H * 0.14;
             var srcEndY = H * 0.68;
             var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
@@ -296,10 +299,12 @@
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            STORAGE[0].targetX = cx + 80;
+            STORAGE[0].targetX = cx + 100;
             STORAGE[0].targetY = H * 0.78;
-            STORAGE[1].targetX = cx - 50;
+            STORAGE[1].targetX = cx - 60;
             STORAGE[1].targetY = H * 0.78;
+            STORAGE[2].targetX = cx + 20;
+            STORAGE[2].targetY = H * 0.69;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
