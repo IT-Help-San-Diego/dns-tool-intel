@@ -1,8 +1,10 @@
-package analyzer
+package analyzer_test
 
 import (
         "strings"
         "testing"
+
+        "dnstool/go-server/internal/analyzer"
 )
 
 func TestExportClassifyAllQualifier(t *testing.T) {
@@ -21,24 +23,24 @@ func TestExportClassifyAllQualifier(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportClassifyAllQualifier(tt.spf)
+                        got := analyzer.ExportClassifyAllQualifier(tt.spf)
                         if tt.wantNil && got != nil {
-                                t.Errorf("ExportClassifyAllQualifier(%q) = %v, want nil", tt.spf, *got)
+                                t.Errorf("analyzer.ExportClassifyAllQualifier(%q) = %v, want nil", tt.spf, *got)
                         }
                         if !tt.wantNil {
                                 if got == nil {
-                                        t.Fatalf("ExportClassifyAllQualifier(%q) = nil, want non-nil", tt.spf)
+                                        t.Fatalf("analyzer.ExportClassifyAllQualifier(%q) = nil, want non-nil", tt.spf)
                                 }
                                 if *got == "" {
-                                        t.Errorf("ExportClassifyAllQualifier(%q) returned empty string", tt.spf)
+                                        t.Errorf("analyzer.ExportClassifyAllQualifier(%q) returned empty string", tt.spf)
                                 }
                         }
                 })
         }
 
-        hardFail := ExportClassifyAllQualifier("v=spf1 -all")
-        softFail := ExportClassifyAllQualifier("v=spf1 ~all")
-        passAll := ExportClassifyAllQualifier("v=spf1 +all")
+        hardFail := analyzer.ExportClassifyAllQualifier("v=spf1 -all")
+        softFail := analyzer.ExportClassifyAllQualifier("v=spf1 ~all")
+        passAll := analyzer.ExportClassifyAllQualifier("v=spf1 +all")
         if hardFail != nil && softFail != nil && *hardFail == *softFail {
                 t.Error("hard fail and soft fail should produce different classifications")
         }
@@ -60,9 +62,9 @@ func TestExportCountSPFLookups(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportCountSPFLookups(tt.spf)
+                        got := analyzer.ExportCountSPFLookups(tt.spf)
                         if got < tt.wantMin {
-                                t.Errorf("ExportCountSPFLookups(%q) = %d, want >= %d", tt.spf, got, tt.wantMin)
+                                t.Errorf("analyzer.ExportCountSPFLookups(%q) = %d, want >= %d", tt.spf, got, tt.wantMin)
                         }
                 })
         }
@@ -89,7 +91,7 @@ func TestExportBuildSPFVerdict(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        verdict, detail := ExportBuildSPFVerdict(tt.lookupCount, tt.permissiveness, tt.noMailIntent, tt.validSPF, tt.spfLike)
+                        verdict, detail := analyzer.ExportBuildSPFVerdict(tt.lookupCount, tt.permissiveness, tt.noMailIntent, tt.validSPF, tt.spfLike)
                         if verdict == "" {
                                 t.Error("verdict should not be empty")
                         }
@@ -111,7 +113,7 @@ func TestExportParseSPFMechanisms(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        lookupCount, lookupMechs, includes, permissiveness, allMech, issues, noMail := ExportParseSPFMechanisms(tt.spf)
+                        lookupCount, lookupMechs, includes, permissiveness, allMech, issues, noMail := analyzer.ExportParseSPFMechanisms(tt.spf)
                         _ = lookupCount
                         _ = lookupMechs
                         _ = includes
@@ -138,7 +140,7 @@ func TestExportClassifySPFRecords(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        valid, like := ExportClassifySPFRecords(tt.records)
+                        valid, like := analyzer.ExportClassifySPFRecords(tt.records)
                         if len(valid) != tt.wantValid {
                                 t.Errorf("valid count = %d, want %d", len(valid), tt.wantValid)
                         }
@@ -169,7 +171,7 @@ func TestExportBuildEmailAnswer(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportBuildEmailAnswer(tt.isNoMailDomain, tt.dmarcPolicy, tt.dmarcPct, tt.nullMX, tt.hasSPF, tt.hasDMARC)
+                        got := analyzer.ExportBuildEmailAnswer(tt.isNoMailDomain, tt.dmarcPolicy, tt.dmarcPct, tt.nullMX, tt.hasSPF, tt.hasDMARC)
                         if tt.wantNonEmpty && got == "" {
                                 t.Error("expected non-empty answer")
                         }
@@ -196,7 +198,7 @@ func TestExportBuildEmailAnswerStructured(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportBuildEmailAnswerStructured(tt.isNoMailDomain, tt.dmarcPolicy, tt.dmarcPct, tt.nullMX, tt.hasSPF, tt.hasDMARC)
+                        got := analyzer.ExportBuildEmailAnswerStructured(tt.isNoMailDomain, tt.dmarcPolicy, tt.dmarcPct, tt.nullMX, tt.hasSPF, tt.hasDMARC)
                         if got == nil {
                                 t.Error("expected non-nil map")
                         }
@@ -219,7 +221,7 @@ func TestExportClassifyEnterpriseDNS(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportClassifyEnterpriseDNS(tt.domain, tt.nameservers)
+                        got := analyzer.ExportClassifyEnterpriseDNS(tt.domain, tt.nameservers)
                         _ = got
                 })
         }
@@ -237,7 +239,7 @@ func TestExportBuildDNSVerdict(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportBuildDNSVerdict(tt.dnssecOK, tt.dnssecBroken)
+                        got := analyzer.ExportBuildDNSVerdict(tt.dnssecOK, tt.dnssecBroken)
                         if got == nil {
                                 t.Error("expected non-nil map")
                         }
@@ -257,9 +259,9 @@ func TestExportClassifyNSProvider(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.ns, func(t *testing.T) {
-                        got := ExportClassifyNSProvider(tt.ns)
+                        got := analyzer.ExportClassifyNSProvider(tt.ns)
                         if tt.want != "" && got != tt.want {
-                                t.Errorf("ExportClassifyNSProvider(%q) = %q, want %q", tt.ns, got, tt.want)
+                                t.Errorf("analyzer.ExportClassifyNSProvider(%q) = %q, want %q", tt.ns, got, tt.want)
                         }
                 })
         }
@@ -276,9 +278,9 @@ func TestExportRegistrableDomain(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.input, func(t *testing.T) {
-                        got := ExportRegistrableDomain(tt.input)
+                        got := analyzer.ExportRegistrableDomain(tt.input)
                         if got != tt.want {
-                                t.Errorf("ExportRegistrableDomain(%q) = %q, want %q", tt.input, got, tt.want)
+                                t.Errorf("analyzer.ExportRegistrableDomain(%q) = %q, want %q", tt.input, got, tt.want)
                         }
                 })
         }
@@ -296,7 +298,7 @@ func TestExportAnalyzeDKIMKey(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportAnalyzeDKIMKey(tt.record)
+                        got := analyzer.ExportAnalyzeDKIMKey(tt.record)
                         if got == nil {
                                 t.Fatal("expected non-nil map")
                         }
@@ -319,7 +321,7 @@ func TestExportClassifySelectorProvider(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.selector, func(t *testing.T) {
-                        got := ExportClassifySelectorProvider(tt.selector, tt.primary)
+                        got := analyzer.ExportClassifySelectorProvider(tt.selector, tt.primary)
                         if got == "" {
                                 t.Error("expected non-empty provider")
                         }
@@ -341,9 +343,9 @@ func TestExportIdentifyCAIssuer(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.want, func(t *testing.T) {
-                        got := ExportIdentifyCAIssuer(tt.record)
+                        got := analyzer.ExportIdentifyCAIssuer(tt.record)
                         if got != tt.want {
-                                t.Errorf("ExportIdentifyCAIssuer(%q) = %q, want %q", tt.record, got, tt.want)
+                                t.Errorf("analyzer.ExportIdentifyCAIssuer(%q) = %q, want %q", tt.record, got, tt.want)
                         }
                 })
         }
@@ -355,7 +357,7 @@ func TestExportParseCAARecords(t *testing.T) {
                 "0 issuewild \"digicert.com\"",
                 "0 iodef \"mailto:admin@example.com\"",
         }
-        issuers, wildcardIssuers, hasWildcard, hasIodef := ExportParseCAARecords(records)
+        issuers, wildcardIssuers, hasWildcard, hasIodef := analyzer.ExportParseCAARecords(records)
         if len(issuers) != 1 {
                 t.Errorf("issuers len = %d, want 1", len(issuers))
         }
@@ -385,7 +387,7 @@ func TestExportBuildCAAMessage(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportBuildCAAMessage(tt.issuers, tt.wildcardIssuers, tt.hasWildcard)
+                        got := analyzer.ExportBuildCAAMessage(tt.issuers, tt.wildcardIssuers, tt.hasWildcard)
                         if tt.wantNonEmpty && got == "" {
                                 t.Error("expected non-empty message")
                         }
@@ -406,9 +408,9 @@ func TestExportFilterSTSRecords(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportFilterSTSRecords(tt.records)
+                        got := analyzer.ExportFilterSTSRecords(tt.records)
                         if len(got) != tt.wantLen {
-                                t.Errorf("ExportFilterSTSRecords() len = %d, want %d", len(got), tt.wantLen)
+                                t.Errorf("analyzer.ExportFilterSTSRecords() len = %d, want %d", len(got), tt.wantLen)
                         }
                 })
         }
@@ -426,7 +428,7 @@ func TestExportExtractSTSID(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportExtractSTSID(tt.record)
+                        got := analyzer.ExportExtractSTSID(tt.record)
                         if tt.wantNil && got != nil {
                                 t.Errorf("expected nil, got %v", *got)
                         }
@@ -449,7 +451,7 @@ func TestExportDetermineMTASTSModeStatus(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        status, detail := ExportDetermineMTASTSModeStatus(tt.mode, tt.policyData)
+                        status, detail := analyzer.ExportDetermineMTASTSModeStatus(tt.mode, tt.policyData)
                         if status == "" {
                                 t.Error("expected non-empty status")
                         }
@@ -471,7 +473,7 @@ func TestExportParseMTASTSPolicyLines(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        mode, maxAge, mx, hasVersion := ExportParseMTASTSPolicyLines(tt.policyText)
+                        mode, maxAge, mx, hasVersion := analyzer.ExportParseMTASTSPolicyLines(tt.policyText)
                         if mode != tt.wantMode {
                                 t.Errorf("mode = %q, want %q", mode, tt.wantMode)
                         }
@@ -496,7 +498,7 @@ func TestExportFilterBIMIRecords(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportFilterBIMIRecords(tt.records)
+                        got := analyzer.ExportFilterBIMIRecords(tt.records)
                         if len(got) != tt.wantLen {
                                 t.Errorf("len = %d, want %d", len(got), tt.wantLen)
                         }
@@ -517,7 +519,7 @@ func TestExportExtractBIMIURLs(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        logo, vmc := ExportExtractBIMIURLs(tt.record)
+                        logo, vmc := analyzer.ExportExtractBIMIURLs(tt.record)
                         if tt.wantLogo && logo == nil {
                                 t.Error("expected non-nil logo URL")
                         }
@@ -547,7 +549,7 @@ func TestExportParseTLSAEntry(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        result, ok := ExportParseTLSAEntry(tt.entry, tt.mxHost, tt.tlsaName)
+                        result, ok := analyzer.ExportParseTLSAEntry(tt.entry, tt.mxHost, tt.tlsaName)
                         if ok != tt.wantOK {
                                 t.Errorf("ok = %v, want %v", ok, tt.wantOK)
                         }
@@ -570,7 +572,7 @@ func TestExportExtractMXHosts(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportExtractMXHosts(tt.mxRecords)
+                        got := analyzer.ExportExtractMXHosts(tt.mxRecords)
                         if len(got) != tt.wantLen {
                                 t.Errorf("len = %d, want %d", len(got), tt.wantLen)
                         }
@@ -592,7 +594,7 @@ func TestExportBuildDANEVerdict(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        verdict, detail, issues := ExportBuildDANEVerdict(tt.allTLSA, tt.hostsWithDANE, tt.mxHosts, tt.mxCapability)
+                        verdict, detail, issues := analyzer.ExportBuildDANEVerdict(tt.allTLSA, tt.hostsWithDANE, tt.mxHosts, tt.mxCapability)
                         _ = verdict
                         _ = detail
                         _ = issues
@@ -611,7 +613,7 @@ func TestExportIsHostedEmailProvider(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.domain, func(t *testing.T) {
-                        _ = ExportIsHostedEmailProvider(tt.domain)
+                        _ = analyzer.ExportIsHostedEmailProvider(tt.domain)
                 })
         }
 }
@@ -626,7 +628,7 @@ func TestExportIsBIMICapableProvider(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.domain, func(t *testing.T) {
-                        _ = ExportIsBIMICapableProvider(tt.domain)
+                        _ = analyzer.ExportIsBIMICapableProvider(tt.domain)
                 })
         }
 }
@@ -644,7 +646,7 @@ func TestExportClassifyDMARCRecords(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        valid, invalid := ExportClassifyDMARCRecords(tt.records)
+                        valid, invalid := analyzer.ExportClassifyDMARCRecords(tt.records)
                         if len(valid) != tt.wantValid {
                                 t.Errorf("valid count = %d, want %d", len(valid), tt.wantValid)
                         }
@@ -668,7 +670,7 @@ func TestExportParseDMARCPolicy(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        policy, pct, hasRUA := ExportParseDMARCPolicy(tt.record)
+                        policy, pct, hasRUA := analyzer.ExportParseDMARCPolicy(tt.record)
                         if policy != tt.wantPolicy {
                                 t.Errorf("policy = %q, want %q", policy, tt.wantPolicy)
                         }
@@ -694,7 +696,7 @@ func TestExportExtractTLSRPTURIs(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportExtractTLSRPTURIs(tt.record)
+                        got := analyzer.ExportExtractTLSRPTURIs(tt.record)
                         if len(got) != tt.wantLen {
                                 t.Errorf("len = %d, want %d", len(got), tt.wantLen)
                         }
@@ -724,7 +726,7 @@ func TestExportBuildBrandVerdict(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := ExportBuildBrandVerdict(tt.dmarcMissing, tt.dmarcPolicy, tt.bimiOK, tt.caaOK)
+                        got := analyzer.ExportBuildBrandVerdict(tt.dmarcMissing, tt.dmarcPolicy, tt.bimiOK, tt.caaOK)
                         if got == nil {
                                 t.Error("expected non-nil map")
                         }
@@ -744,7 +746,7 @@ func TestExportClassifyNSProvider_Comprehensive(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.ns, func(t *testing.T) {
-                        got := ExportClassifyNSProvider(tt.ns)
+                        got := analyzer.ExportClassifyNSProvider(tt.ns)
                         if got != tt.want {
                                 t.Errorf("classifyNSProvider(%q) = %q, want %q", tt.ns, got, tt.want)
                         }
@@ -754,14 +756,14 @@ func TestExportClassifyNSProvider_Comprehensive(t *testing.T) {
 
 func TestExportBuildEmailAnswer_EdgeCases(t *testing.T) {
         t.Run("reject 100pct with SPF and DMARC", func(t *testing.T) {
-                got := ExportBuildEmailAnswer(false, "reject", 100, false, true, true)
+                got := analyzer.ExportBuildEmailAnswer(false, "reject", 100, false, true, true)
                 if got == "" {
                         t.Error("expected non-empty")
                 }
         })
 
         t.Run("quarantine partial pct", func(t *testing.T) {
-                got := ExportBuildEmailAnswer(false, "quarantine", 50, false, true, true)
+                got := analyzer.ExportBuildEmailAnswer(false, "quarantine", 50, false, true, true)
                 if got == "" {
                         t.Error("expected non-empty")
                 }
@@ -770,7 +772,7 @@ func TestExportBuildEmailAnswer_EdgeCases(t *testing.T) {
 
 func TestExportBuildEmailAnswerStructured_EdgeCases(t *testing.T) {
         t.Run("all protections", func(t *testing.T) {
-                got := ExportBuildEmailAnswerStructured(false, "reject", 100, false, true, true)
+                got := analyzer.ExportBuildEmailAnswerStructured(false, "reject", 100, false, true, true)
                 if got == nil {
                         t.Fatal("expected non-nil")
                 }
@@ -779,7 +781,7 @@ func TestExportBuildEmailAnswerStructured_EdgeCases(t *testing.T) {
 
 func TestExportParseSPFMechanisms_Details(t *testing.T) {
         t.Run("with mx and a", func(t *testing.T) {
-                count, mechs, _, _, _, _, _ := ExportParseSPFMechanisms("v=spf1 mx a include:_spf.google.com -all")
+                count, mechs, _, _, _, _, _ := analyzer.ExportParseSPFMechanisms("v=spf1 mx a include:_spf.google.com -all")
                 if count < 2 {
                         t.Errorf("lookup count = %d, want >= 2", count)
                 }
@@ -790,7 +792,7 @@ func TestExportParseSPFMechanisms_Details(t *testing.T) {
 }
 
 func TestExportExtractMXHosts_Trailing(t *testing.T) {
-        hosts := ExportExtractMXHosts([]string{"10 mail.example.com.", "20 backup.example.com."})
+        hosts := analyzer.ExportExtractMXHosts([]string{"10 mail.example.com.", "20 backup.example.com."})
         for _, h := range hosts {
                 if strings.HasSuffix(h, ".") {
                         continue
