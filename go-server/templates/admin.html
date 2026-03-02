@@ -159,14 +159,14 @@
                                             <form method="POST" action="/ops/user/{{.ID}}/reset-sessions" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-outline-warning btn-sm me-1" title="Clear all sessions for this user">
-                                                    <i class="fas fa-sign-out-alt"></i>
+                                                    <i class="fas fa-arrow-right"></i>
                                                 </button>
                                             </form>
                                             {{if ne .Role "admin"}}
                                             <form method="POST" action="/ops/user/{{.ID}}/delete" class="d-inline" data-confirm-delete="{{.Name}}">
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete user and all associated data">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-xmark"></i>
                                                 </button>
                                             </form>
                                             {{end}}

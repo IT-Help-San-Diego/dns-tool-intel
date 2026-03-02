@@ -156,7 +156,7 @@
                     {{if or .LastRegressionAt .FirstPassAt .LastEvaluatedAt}}
                     <div class="icae-cal-meta">
                         {{if .LastRegressionAt}}<span class="icae-cal-regression"><i class="fas fa-exclamation-triangle me-1"></i>Last regression: {{.LastRegressionAt}}</span>{{end}}
-                        {{if .FirstPassAt}}<span class="icae-cal-meta-item"><i class="fas fa-play-circle me-1"></i>First pass: {{.FirstPassAt}}</span>{{end}}
+                        {{if .FirstPassAt}}<span class="icae-cal-meta-item"><i class="fas fa-bolt me-1"></i>First pass: {{.FirstPassAt}}</span>{{end}}
                         {{if .LastEvaluatedAt}}<span class="icae-cal-meta-item"><i class="fas fa-clock me-1"></i>Last evaluated: {{.LastEvaluatedAt}}</span>{{end}}
                     </div>
                     {{end}}
