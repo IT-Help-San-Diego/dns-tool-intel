@@ -80,6 +80,11 @@ The symbiotic interface between human intelligence and machine intelligence will
 
 DNS Tool is one builder's attempt to demonstrate that this can be done. That you can apply intelligence-grade analytic discipline to a technical domain. That you can build systems that question their own confidence. That imperfection, acknowledged and compensated for, produces more trustworthy output than false certainty ever will.
 
+## Architecture Visualization Decisions
+
+### Topology Edge Labels: Hover-Only
+The system architecture topology diagram uses hover-only edge labels — protocol and data flow labels on graph edges are hidden by default and revealed on mouseover. This decision prioritizes visual clarity: with dozens of edges connecting system components, persistent labels create visual noise that obscures the structural relationships the diagram exists to communicate. The hover interaction preserves full detail on demand while keeping the default view clean and scannable. This pattern was implemented in v26.28.41 alongside explicit protocol angle mapping for consistent edge routing.
+
 ## The DNS Proving Grounds
 
 We chose to build on the core of the internet — DNS — for a reason.

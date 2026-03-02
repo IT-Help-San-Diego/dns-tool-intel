@@ -143,7 +143,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb28,
                         Category:    catTransparency,
                         Title:       "IC Framing Defense — Addressing the Criticism",
-                        Description: "Expanded the Addressing the Criticism section on /approach with a dedicated IC framing defense. Directly addresses the 'cosplay' critique: ICD 203 applies because the problem matches (high-stakes decisions on incomplete data, $2.9B/year BEC). ICAE/ICuAE naming enforces subsystem separation between correctness and currency with IC-precise terminology. Hacker culture aesthetic defended via DEF CON argument — CVE authors and Easter egg finders are the same community. Scotopic vision science citations added (doi:10.1016/j.visres.2004.07.040, MIL-STD-3009). Anchor #addressing-the-criticism added. llms.txt and llms-full.txt updated with IC framing subsection. Marketing voice directive applied: removed comparative 'most tools' language.",
+                        Description: "Expanded the Addressing the Criticism section on /approach with a dedicated IC framing defense. ICD 203 applies because the problem matches (high-stakes decisions on incomplete data). ICAE/ICuAE naming enforces subsystem separation between correctness and currency with IC-precise terminology. Scotopic vision science citations added. Marketing voice directive applied: removed comparative language.",
                         Icon:        "fas fa-crosshairs",
                 },
                 {
@@ -159,7 +159,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb28,
                         Category:    catIntelligence,
                         Title:       "Intelligence Pipeline Topology Visualization",
-                        Description: "Expanded the unlisted /topology page to show the full system architecture: source nodes (DNS resolvers, Root/TLD, RDAP/WHOIS, IETF metadata, CISA/Threat, Probe Fleet), pulsing ICIE engine center, ICAE/ICuAE confidence auditor diamonds, 9 protocol analysis circles with RFC-based dependency edges, PostgreSQL/Intel Vault storage cylinders, and output hexagons (Reports, JSON API, Schema.org, SVG Badges). Particles flow through the intelligence pipeline showing data movement from sources through engine to outputs.",
+                        Description: "System architecture visualization showing the full intelligence pipeline: source nodes, engine processing, confidence auditors, protocol analysis modules with RFC-based dependency edges, storage layers, and output formats. Animated data flow illustrates movement from sources through engine to outputs.",
                         Icon:        "fas fa-network-wired",
                 },
                 {
@@ -247,7 +247,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb26,
                         Category:    catCore,
                         Title:       "SonarCloud Quality Gate Fixes",
-                        Description: "Fixed unchecked error returns across multiple files: http.NewRequestWithContext in proxy.go, io.ReadAll in notifier.go, database query errors in stats.go, and json.Marshal in export.go and compare.go. All ignored errors now have proper handling with logging and graceful degradation.",
+                        Description: "Fixed unchecked error returns across multiple source files. All ignored errors now have proper handling with logging and graceful degradation.",
                         Icon:        "fas fa-code",
                 },
                 {
@@ -303,7 +303,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb21,
                         Category:    catBrand,
                         Title:       "Origin Story Page",
-                        Description: "New /about page documenting the authentic origin story: Memphis 1980 Radio Shack build, Nashville IT career, Raspberry Pi breakthrough, PhreakNIC Hackintosh demo, Hak5 offensive security era, 2015-2024 defensive security pivot with Objective-See and CISA Remote Penetration Test (Jan 2022), Python CLI field tool with Snap Store publication (Nov 2023), and the February 2025 Go platform launch. Includes acknowledgments section crediting early collaborators and linked verifiable references (Nmap 7.94 changelog, Hak5 Payload Award, Raspberry Pi forum post).",
+                        Description: "New /about page documenting the project's origin story, from early CLI development through defensive security work and the evolution to the current Go-based intelligence platform. Includes acknowledgments section crediting early collaborators and linked verifiable references.",
                         Icon:        "fas fa-book-open",
                 },
                 {
@@ -319,7 +319,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    catSecurity,
                         Title:       "Authenticated Multi-Port SMTP Probe API",
-                        Description: "Remote probe infrastructure upgraded to API v2 with shared-secret authentication, rate limiting (30 requests per 60 seconds per IP), and multi-port mail transport probing across ports 25 (SMTP), 465 (SMTPS), and 587 (submission). Banner capture provides additional server intelligence fingerprinting. Graceful fallback on 401 or 429 responses.",
+                        Description: "Remote probe infrastructure upgraded to API v2 with shared-secret authentication, rate limiting, and multi-port mail transport probing across ports 25 (SMTP), 465 (SMTPS), and 587 (submission). Banner capture provides additional server intelligence fingerprinting. Graceful fallback on authentication or rate limit responses.",
                         Icon:        "fas fa-satellite-dish",
                 },
                 {
@@ -327,7 +327,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    "Analytics",
                         Title:       "Privacy-Preserving Analytics Middleware",
-                        Description: "Cookie-free, GDPR-friendly analytics pipeline collecting pageviews, unique visitors, analyses run, and unique domains analyzed. Daily-rotating random salt hashes visitor IPs into pseudonymous IDs — no cookies, no fingerprinting, no PII stored. Referrer origin and top page tracking with automatic self-referral filtering. In-memory aggregation flushed to PostgreSQL every 60 seconds via UPSERT. Static assets, health checks, and bot paths excluded.",
+                        Description: "Cookie-free, GDPR-friendly analytics pipeline collecting pageviews, unique visitors, analyses run, and unique domains analyzed. Daily-rotating random salt hashes visitor IPs into pseudonymous IDs — no cookies, no fingerprinting, no PII stored. Referrer origin and top page tracking with automatic self-referral filtering. In-memory aggregation flushed to database periodically. Static assets, health checks, and bot paths excluded.",
                         Icon:        "fas fa-chart-line",
                 },
                 {
@@ -335,7 +335,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    "Admin",
                         Title:       "Admin Analytics Dashboard",
-                        Description: "New /admin/analytics route (admin-only) with 30-day daily analytics view showing pageviews, unique visitors, analyses run, and unique domains. Summary cards with totals, averages, top referrers (top 10), and most-visited pages (top 10). Built on the privacy-preserving analytics middleware — no third-party tracking scripts.",
+                        Description: "Administrative monitoring dashboard with 30-day daily analytics view showing pageviews, unique visitors, analyses run, and unique domains. Summary cards with totals, averages, top referrers, and most-visited pages. Built on the privacy-preserving analytics middleware — no third-party tracking scripts.",
                         Icon:        "fas fa-chart-bar",
                 },
                 {
@@ -343,15 +343,15 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    "Admin",
                         Title:       "Admin Dashboard & JSON Export",
-                        Description: "New /admin route (admin-only) with stats cards for total users, analyses, unique domains, private analyses, sessions, and active sessions. Users table with role badges, recent analyses table with domain links and status, ICAE test runs table. JSON export at /export/json streams NDJSON with paginated 100-record batches and proper Content-Disposition header.",
+                        Description: "Administrative monitoring dashboard with stats cards for total users, analyses, unique domains, and session metrics. Users table with role badges, recent analyses table with domain links and status. JSON export streams NDJSON with paginated batches and proper Content-Disposition header.",
                         Icon:        "fas fa-tachometer-alt",
                 },
                 {
                         Version:     "26.20.85",
                         Date:        dateFeb19,
                         Category:    catSecurity,
-                        Title:       "Admin Bootstrap Fix (PromoteUserToAdmin)",
-                        Description: "Fixed admin bootstrap for existing users. When INITIAL_ADMIN_EMAIL matches an already-registered user and zero admins exist, the system now calls PromoteUserToAdmin to upgrade their role. Previously, UpsertUser preserved the existing role, silently skipping the bootstrap. Audit-logged with reason and email.",
+                        Title:       "Admin Bootstrap Fix",
+                        Description: "Fixed admin bootstrap for existing users. When initial admin email matches an already-registered user and zero admins exist, the system now correctly upgrades their role. Previously, the existing role was preserved, silently skipping the bootstrap. Audit-logged with reason and email.",
                         Icon:        "fas fa-user-shield",
                 },
                 {
@@ -367,7 +367,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    catIntelligence,
                         Title:       "Remote SMTP Probe Infrastructure",
-                        Description: "Deployed dedicated probe server (probe-us-01.dns-observe.com) for live SMTP transport verification. Cloud platforms block outbound port 25 — the probe server has unrestricted access for direct STARTTLS handshakes, certificate chain validation, and cipher suite inspection. Falls back gracefully when probe is unavailable.",
+                        Description: "Deployed external probe infrastructure for live SMTP transport verification. Cloud platforms block outbound port 25 — the probe infrastructure provides direct STARTTLS handshakes, certificate chain validation, and cipher suite inspection. Falls back gracefully when probe is unavailable.",
                         Icon:        "fas fa-server",
                 },
                 {
@@ -375,7 +375,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    "Architecture",
                         Title:       "Interactive System Architecture Diagrams",
-                        Description: "New /architecture page with interactive Mermaid diagrams visualizing the full system: high-level overview (Client Layer → Process Management → Go/Gin → Engines → Storage), ICIE pipeline (Collection → Classification → Privacy Gate → Output), ICAE confidence engine, and Privacy Gate decision tree. Color-coded nodes (blue/green/purple/cyan/gold/red) with CSP-compliant post-render JavaScript applying SVG presentation attributes. Dark background with thin blue connector lines.",
+                        Description: "New /architecture page with interactive Mermaid diagrams visualizing the full system: high-level overview of the intelligence pipeline, ICIE pipeline, ICAE confidence engine, and Privacy Gate decision tree. Color-coded nodes with CSP-compliant rendering. Dark background with thin blue connector lines.",
                         Icon:        "fas fa-sitemap",
                 },
                 {
@@ -383,7 +383,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb19,
                         Category:    catCore,
                         Title:       "DNS Library v2 Migration (miekg/dns)",
-                        Description: "Migrated from github.com/miekg/dns v1.1.72 to codeberg.org/miekg/dns v0.6.52 (v2). The v1 library is archived on GitHub; v2 is actively maintained on Codeberg with improved performance and modern API. Four source files updated with new Exchange, RR data access, and EDNS0 patterns. Aligns with Codeberg-canonical hosting strategy.",
+                        Description: "Migrated from miekg/dns v1 to v2. The v1 library is archived; v2 is actively maintained with improved performance and modern API. Updated with new Exchange, RR data access, and EDNS0 patterns.",
                         Icon:        "fas fa-bolt",
                 },
                 {
@@ -423,7 +423,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb18,
                         Category:    catSecurity,
                         Title:       "Google OAuth 2.0 + PKCE Authentication",
-                        Description: "Pure stdlib Google OAuth 2.0 implementation with PKCE (Proof Key for Code Exchange) — no external OAuth libraries. Advanced Protection compatible. Email verification enforced, ID token claims validated, rate-limited auth endpoints, no tokens stored server-side. One-time admin bootstrap via INITIAL_ADMIN_EMAIL. Route protection for sensitive endpoints (/export/json requires admin). All analysis remains no-login-required.",
+                        Description: "Pure stdlib Google OAuth 2.0 implementation with PKCE (Proof Key for Code Exchange) — no external OAuth libraries. Advanced Protection compatible. Email verification enforced, ID token claims validated, rate-limited auth endpoints, no tokens stored server-side. Route protection for sensitive endpoints. All analysis remains no-login-required.",
                         Icon:        "fas fa-user-shield",
                 },
                 {
@@ -431,7 +431,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb18,
                         Category:    catSecurity,
                         Title:       "Security Redaction & Mission Statement",
-                        Description: "Comprehensive security audit: removed server version exposure from HTTP headers, redacted internal paths from error responses, hardened SSRF prevention for internal IP ranges. Added mission statement to the Security Policy page defining scope, principles, and responsible disclosure process.",
+                        Description: "Comprehensive security audit: removed server version exposure from HTTP headers, redacted internal paths from error responses, hardened SSRF prevention. Added mission statement to the Security Policy page defining scope, principles, and responsible disclosure process.",
                         Icon:        "fas fa-lock",
                 },
                 {
@@ -439,7 +439,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb17,
                         Category:    "Quality",
                         Title:       "Boundary Integrity Test Suite",
-                        Description: "Comprehensive test suite protecting the two-repo architecture: 11 boundary files verified across 11 categories (file presence, build tags, stub function signatures, no intelligence leaks, package consistency, and more). Catches stub contract violations, duplicate symbols, and architecture drift before they reach production.",
+                        Description: "Comprehensive test suite protecting the architecture boundary: boundary files verified across multiple categories including file presence, build tags, function signatures, and package consistency. Catches contract violations and architecture drift before they reach production.",
                         Icon:        "fas fa-cogs",
                 },
                 {
@@ -455,7 +455,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb15,
                         Category:    catSecurity,
                         Title:       "CSP Compliance & XSS Hardening",
-                        Description: "Eliminated all inline style attributes from Engineer and Executive report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes (u-print-hash, u-ls-tight, u-fs-072rem-lh15, u-fs-078rem-break, u-hash-label, etc.). DNS history table rendering refactored from innerHTML string concatenation to safe DOM methods (createElement + textContent + appendChild), eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
+                        Description: "Eliminated all inline style attributes from report templates to resolve Content Security Policy violations flagged by Lighthouse/PageSpeed Insights. All styles moved to CSS utility classes. DNS history table rendering refactored to safe DOM methods, eliminating XSS anti-pattern. Fixed protocol navigation links: MTA-STS and TLS-RPT now correctly scroll to Email Security section, CAA scrolls to Brand Security section.",
                         Icon:        iconShieldAlt,
                 },
                 {
@@ -463,7 +463,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb15,
                         Category:    catSecurity,
                         Title:       "Expanded Exposure Checks (Opt-In)",
-                        Description: "New opt-in OSINT exposure scanner checks 8 well-known misconfiguration paths (/.env, /.git/config, /.git/HEAD, /.DS_Store, /server-status, /server-info, /wp-config.php.bak, /phpinfo.php) on target domains. Content validation reduces false positives — each path is checked for characteristic content, not just HTTP 200 status. Sequential requests with 200ms delays and proper User-Agent identification. Results include severity badges, risk descriptions, and specific remediation guidance. Explicit PCI DSS disclaimer: these are OSINT collection, not ASV compliance scans.",
+                        Description: "New opt-in OSINT exposure scanner checks well-known misconfiguration paths on target domains. Content validation reduces false positives — each path is checked for characteristic content, not just HTTP 200 status. Sequential requests with proper rate limiting and User-Agent identification. Results include severity badges, risk descriptions, and specific remediation guidance. Explicit PCI DSS disclaimer: these are OSINT collection, not ASV compliance scans.",
                         Icon:        "fas fa-search",
                 },
                 {

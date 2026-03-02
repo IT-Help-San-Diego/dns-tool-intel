@@ -1,6 +1,6 @@
 # DNS Tool — Roadmap
 
-> Last updated: March 1, 2026
+> Last updated: March 2, 2026
 
 ---
 
@@ -11,7 +11,7 @@
 | Optional Authentication Model (Google OAuth 2.0 with PKCE) | v26.20.56–57 | Feb 2026 |
 | Drift Engine Phase 1 (Posture Hashing) | v26.19.40 | Feb 2026 |
 | Drift Engine Phase 2 (Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
-| Probe Network First Node (probe-us-01.dns-observe.com) | v26.20.0+ | Feb 2026 |
+| Probe Network First Node | v26.20.0+ | Feb 2026 |
 | LLM Documentation Strategy (Implementation Verification Sections) | v26.25.26 | Feb 2026 |
 | XSS Security Fix (Tooltip Safe DOM Rendering) | v26.25.26 | Feb 2026 |
 | Architecture Page with Mermaid Diagrams | v26.20.77–83 | Feb 2026 |
@@ -47,6 +47,11 @@
 | DMARCbis Forward-Looking Notes (Standards Track, pct→t, np=) | v26.28.36 | Mar 2026 |
 | DANE Context Deadline Fix (Fresh Context for Post-Parallel Tasks) | v26.28.34 | Feb 2026 |
 | DNS Intelligence Upgrade (EDNS0 + DO Bit, AD Flag Tracking) | v26.28.35 | Feb 2026 |
+| Topology Text & Container Sizing | v26.28.37 | Mar 2026 |
+| Golden Fixtures Node Promoted to Cylinder | v26.28.38 | Mar 2026 |
+| Action Pill Nodes (Persist, Seeds, Baselines, Validates) | v26.28.39 | Mar 2026 |
+| Fully Responsive Zone-Based Layout with Collision Enforcement | v26.28.40 | Mar 2026 |
+| Edge Labels Hover-Only, Explicit Protocol Angle Mapping, Persist Pill Repositioned | v26.28.41 | Mar 2026 |
 
 ---
 
@@ -93,7 +98,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.27.02 as of February 26, 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.28.41 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
@@ -126,7 +131,7 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: March 1, 2026  
+**Last Updated**: March 2, 2026  
 **Next Review**: Post-v26.29.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
