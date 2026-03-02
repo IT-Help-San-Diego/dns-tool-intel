@@ -291,76 +291,111 @@
         });
         FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
 
-        function midpoint(a, b) { return { x: (a.targetX + b.targetX) / 2, y: (a.targetY + b.targetY) / 2 }; }
+        function effRadius(n) {
+            var hw = (n._drawW || n.radius * 2.2) / 2;
+            var hh = (n._drawH || n.radius * 1.4) / 2;
+            return Math.max(hw, hh, n.radius) + 6;
+        }
+
+        function separateNodes(nodes, minPad) {
+            for (var iter = 0; iter < 4; iter++) {
+                for (var i = 0; i < nodes.length; i++) {
+                    for (var j = i + 1; j < nodes.length; j++) {
+                        var a = nodes[i], b = nodes[j];
+                        var dx = b.targetX - a.targetX;
+                        var dy = b.targetY - a.targetY;
+                        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        var minDist = effRadius(a) + effRadius(b) + minPad;
+                        if (dist < minDist) {
+                            var push = (minDist - dist) / 2;
+                            var nx = dx / dist, ny = dy / dist;
+                            a.targetX -= nx * push;
+                            a.targetY -= ny * push;
+                            b.targetX += nx * push;
+                            b.targetY += ny * push;
+                        }
+                    }
+                }
+            }
+        }
 
         function layoutAll() {
-            var u = Math.min(W, H);
+            var padX = W * 0.04;
+            var padY = H * 0.06;
 
-            var cx = W * 0.22;
-            var cy = H * 0.26;
+            var srcZone = { x0: padX, x1: W * 0.15, y0: padY, y1: H * 0.70 };
+            var engZone = { x0: W * 0.16, x1: W * 0.38, y0: padY, y1: H * 0.90 };
+            var protoZone = { x0: W * 0.39, x1: W * 0.76, y0: padY, y1: H * 0.85 };
+            var outZone = { x0: W * 0.82, x1: W - padX, y0: padY, y1: H * 0.72 };
 
-            var srcX = W * 0.08;
-            var srcStartY = H * 0.13;
-            var srcEndY = H * 0.65;
-            var srcSpacing = (srcEndY - srcStartY) / (SOURCES.length - 1);
+            var srcCx = (srcZone.x0 + srcZone.x1) / 2;
+            var srcSpacing = (srcZone.y1 - srcZone.y0) / (SOURCES.length - 1);
             SOURCES.forEach(function(s, i) {
-                s.targetX = srcX;
-                s.targetY = srcStartY + i * srcSpacing;
+                s.targetX = srcCx;
+                s.targetY = srcZone.y0 + i * srcSpacing;
                 if (!s._initialized) { s.x = s.targetX - 30; s.y = s.targetY; s._initialized = true; }
             });
 
-            ENGINE.targetX = cx;
-            ENGINE.targetY = cy;
-            if (!ENGINE._initialized) { ENGINE.x = cx; ENGINE.y = cy; ENGINE._initialized = true; }
+            var engCx = (engZone.x0 + engZone.x1) / 2;
+            ENGINE.targetX = engCx;
+            ENGINE.targetY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.18;
+            if (!ENGINE._initialized) { ENGINE.x = ENGINE.targetX; ENGINE.y = ENGINE.targetY; ENGINE._initialized = true; }
 
-            var confSpread = W * 0.08;
-            CONFIDENCE[0].targetX = cx - confSpread;
-            CONFIDENCE[0].targetY = H * 0.52;
-            CONFIDENCE[1].targetX = cx + confSpread + W * 0.04;
-            CONFIDENCE[1].targetY = H * 0.52;
+            var confY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.48;
+            var confSpread = (engZone.x1 - engZone.x0) * 0.35;
+            CONFIDENCE[0].targetX = engCx - confSpread;
+            CONFIDENCE[0].targetY = confY;
+            CONFIDENCE[1].targetX = engCx + confSpread;
+            CONFIDENCE[1].targetY = confY;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            var storeSpread = W * 0.10;
-            STORAGE[2].targetX = cx + W * 0.02;
-            STORAGE[2].targetY = H * 0.66;
-            STORAGE[0].targetX = cx + storeSpread + W * 0.02;
-            STORAGE[0].targetY = H * 0.82;
-            STORAGE[1].targetX = cx - storeSpread + W * 0.02;
-            STORAGE[1].targetY = H * 0.82;
+            var fixY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.62;
+            STORAGE[2].targetX = engCx;
+            STORAGE[2].targetY = fixY;
+
+            var storeY = engZone.y0 + (engZone.y1 - engZone.y0) * 0.82;
+            var storeSpread = (engZone.x1 - engZone.x0) * 0.35;
+            STORAGE[0].targetX = engCx + storeSpread;
+            STORAGE[0].targetY = storeY;
+            STORAGE[1].targetX = engCx - storeSpread;
+            STORAGE[1].targetY = storeY;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
 
+            separateNodes(CONFIDENCE.concat(STORAGE), 12);
+
+            function edgeMid(idA, idB, offX, offY) {
+                var a = allNodes[idA], b = allNodes[idB];
+                return { x: (a.targetX + b.targetX) / 2 + (offX || 0), y: (a.targetY + b.targetY) / 2 + (offY || 0) };
+            }
             var mp;
-            var act_persist = allNodes['act_persist'];
-            mp = midpoint(ENGINE, allNodes['postgres']);
-            act_persist.targetX = mp.x;
-            act_persist.targetY = mp.y;
-            if (!act_persist._initialized) { act_persist.x = mp.x; act_persist.y = mp.y; act_persist._initialized = true; }
 
-            var act_seeds = allNodes['act_seeds'];
-            mp = midpoint(allNodes['postgres'], allNodes['fixtures']);
-            act_seeds.targetX = mp.x + W * 0.02;
-            act_seeds.targetY = mp.y;
-            if (!act_seeds._initialized) { act_seeds.x = act_seeds.targetX; act_seeds.y = act_seeds.targetY; act_seeds._initialized = true; }
+            mp = edgeMid('engine', 'postgres', 10, 0);
+            allNodes['act_persist'].targetX = mp.x;
+            allNodes['act_persist'].targetY = mp.y;
+            if (!allNodes['act_persist']._initialized) { allNodes['act_persist'].x = mp.x; allNodes['act_persist'].y = mp.y; allNodes['act_persist']._initialized = true; }
 
-            var act_baselines = allNodes['act_baselines'];
-            mp = midpoint(allNodes['fixtures'], allNodes['vault']);
-            act_baselines.targetX = mp.x - W * 0.02;
-            act_baselines.targetY = mp.y;
-            if (!act_baselines._initialized) { act_baselines.x = act_baselines.targetX; act_baselines.y = act_baselines.targetY; act_baselines._initialized = true; }
+            mp = edgeMid('postgres', 'fixtures', 12, 0);
+            allNodes['act_seeds'].targetX = mp.x;
+            allNodes['act_seeds'].targetY = mp.y;
+            if (!allNodes['act_seeds']._initialized) { allNodes['act_seeds'].x = mp.x; allNodes['act_seeds'].y = mp.y; allNodes['act_seeds']._initialized = true; }
 
-            var act_validates = allNodes['act_validates'];
-            mp = midpoint(allNodes['vault'], allNodes['icae']);
-            act_validates.targetX = mp.x - W * 0.03;
-            act_validates.targetY = mp.y;
-            if (!act_validates._initialized) { act_validates.x = act_validates.targetX; act_validates.y = act_validates.targetY; act_validates._initialized = true; }
+            mp = edgeMid('fixtures', 'vault', -12, 0);
+            allNodes['act_baselines'].targetX = mp.x;
+            allNodes['act_baselines'].targetY = mp.y;
+            if (!allNodes['act_baselines']._initialized) { allNodes['act_baselines'].x = mp.x; allNodes['act_baselines'].y = mp.y; allNodes['act_baselines']._initialized = true; }
 
-            var protoCx = W * 0.56;
-            var protoCy = H * 0.38;
-            var protoR = Math.min(W * 0.24, H * 0.30);
+            mp = edgeMid('vault', 'icae', -12, 0);
+            allNodes['act_validates'].targetX = mp.x;
+            allNodes['act_validates'].targetY = mp.y;
+            if (!allNodes['act_validates']._initialized) { allNodes['act_validates'].x = mp.x; allNodes['act_validates'].y = mp.y; allNodes['act_validates']._initialized = true; }
+
+            var protoCx = (protoZone.x0 + protoZone.x1) / 2;
+            var protoCy = (protoZone.y0 + protoZone.y1) / 2 - H * 0.02;
+            var protoR = Math.min((protoZone.x1 - protoZone.x0) * 0.42, (protoZone.y1 - protoZone.y0) * 0.42);
             var startAngle = -110;
             PROTOCOLS.forEach(function(p, i) {
                 var a = (startAngle + i * 40) * Math.PI / 180;
@@ -369,12 +404,11 @@
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
 
-            var outX = W * 0.91;
-            var outStartY = H * 0.08;
-            var outSpacing = (H * 0.58) / (OUTPUTS.length - 1);
+            var outCx = (outZone.x0 + outZone.x1) / 2;
+            var outSpacing = (outZone.y1 - outZone.y0) / (OUTPUTS.length - 1);
             OUTPUTS.forEach(function(o, i) {
-                o.targetX = outX;
-                o.targetY = outStartY + i * outSpacing;
+                o.targetX = outCx;
+                o.targetY = outZone.y0 + i * outSpacing;
                 if (!o._initialized) { o.x = o.targetX + 20; o.y = o.targetY; o._initialized = true; }
             });
         }
