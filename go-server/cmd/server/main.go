@@ -268,6 +268,9 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
+        videoHandler := handlers.NewVideoHandler(cfg)
+        router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
+
         roeHandler := handlers.NewROEHandler(cfg)
         router.GET("/roe", roeHandler.ROE)
 

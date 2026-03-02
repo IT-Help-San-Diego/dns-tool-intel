@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>Forgotten Domain — DNS Tool</title>
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="A domain registered for ten years with no published mail policy is not dormant — it is exposed. Three DNS records separate protection from impersonation.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/video/forgotten-domain">
+    <meta property="og:type" content="video.other">
+    <meta property="og:title" content="Forgotten Domain — DNS Tool">
+    <meta property="og:description" content="A domain registered for ten years with no published mail policy is not dormant — it is exposed. Three DNS records separate protection from impersonation.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-forgotten-domain.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:video" content="https://dnstool.it-help.tech/static/video/forgotten-domain.mp4">
+    <meta property="og:video:type" content="video/mp4">
+    <meta property="og:video:width" content="1920">
+    <meta property="og:video:height" content="1080">
+    <meta name="twitter:card" content="player">
+    <meta property="twitter:domain" content="dnstool.it-help.tech">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/video/forgotten-domain">
+    <meta name="twitter:title" content="Forgotten Domain — DNS Tool">
+    <meta name="twitter:description" content="Three DNS records separate protection from impersonation.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-forgotten-domain.png">
+    <meta name="twitter:player" content="https://dnstool.it-help.tech/video/forgotten-domain">
+    <meta name="twitter:player:width" content="1920">
+    <meta name="twitter:player:height" content="1080">
+    <link rel="canonical" href="https://dnstool.it-help.tech/video/forgotten-domain">
+    <style nonce="{{.CspNonce}}">
+        .video-page-wrap {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .video-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(88,166,255,0.15);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            background: #000;
+        }
+        .video-container video {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .video-meta {
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background: rgba(13,17,23,0.6);
+            border: 1px solid rgba(88,166,255,0.1);
+            border-radius: 8px;
+        }
+        .video-meta h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .video-meta p {
+            color: #8b949e;
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+        .video-cta {
+            margin-top: 1.25rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .video-cta a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.1rem;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .cta-primary {
+            background: #238636;
+            color: #fff;
+            border: 1px solid #2ea043;
+        }
+        .cta-primary:hover {
+            background: #2ea043;
+        }
+        .cta-secondary {
+            background: transparent;
+            color: #58a6ff;
+            border: 1px solid rgba(88,166,255,0.3);
+        }
+        .cta-secondary:hover {
+            border-color: #58a6ff;
+            background: rgba(88,166,255,0.08);
+        }
+        .dns-records {
+            margin-top: 1.25rem;
+            padding: 1rem 1.25rem;
+            background: rgba(0,0,0,0.35);
+            border-radius: 6px;
+            border: 1px solid rgba(88,166,255,0.08);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.82rem;
+            color: #7ee787;
+            line-height: 1.8;
+        }
+        .dns-records .rec-label {
+            color: #8b949e;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+
+    <main id="main-content" class="container mt-4 mb-5">
+        <div class="video-page-wrap">
+            <div class="video-container">
+                <video controls preload="metadata" playsinline aria-label="Forgotten Domain — why dormant domains need published DNS policy">
+                    <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div class="video-meta">
+                <h1><i class="fas fa-shield-alt me-2 text-warning"></i>Forgotten Domain</h1>
+                <p>A domain registered for ten years with no published mail policy is not dormant &mdash; it is exposed. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
+
+                <div class="dns-records">
+                    <span class="rec-label">SPF:</span> v=spf1 -all<br>
+                    <span class="rec-label">DMARC:</span> v=DMARC1; p=reject;<br>
+                    <span class="rec-label">MX:</span> 0 .
+                </div>
+
+                <p class="mt-3">If a domain sends no mail, publish SPF <code>-all</code>, DMARC <code>reject</code>, and Null MX. Silence is not protection.</p>
+
+                <div class="video-cta">
+                    <a href="/" class="cta-primary"><i class="fas fa-search"></i> Scan Your Domain</a>
+                    <a href="/approach" class="cta-secondary"><i class="fas fa-flask"></i> Our Methodology</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {{template "footer" .}}
+    {{template "scripts" .}}
+</body>
+</html>
