@@ -518,7 +518,7 @@ small, .small { font-size: 0.875em; }
 .navbar > .container,
 .navbar > .container-fluid {
     display: flex;
-    flex-wrap: inherit;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
 }
