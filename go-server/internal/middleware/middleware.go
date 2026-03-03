@@ -87,7 +87,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
 
                 frameAncestors := "frame-ancestors 'none'; "
                 if devMode {
-                        frameAncestors = "frame-ancestors https://*.replit.dev https://*.replit.app; "
+                        frameAncestors = "frame-ancestors https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
                 }
 
                 csp := fmt.Sprintf(
