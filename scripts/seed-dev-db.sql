@@ -149,27 +149,30 @@ WHERE NOT EXISTS (SELECT 1 FROM ice_results WHERE run_id = 1 AND case_id = v.cas
 
 -- ============================================================
 -- ice_maturity — protocol maturity levels
+-- Starts at development with zero runs. Real maturity data
+-- accumulates organically as the ICAE test suite runs during
+-- domain analyses. Do NOT seed fake maturity progression.
 -- ============================================================
-INSERT INTO ice_maturity (protocol, layer, maturity, total_runs, consecutive_passes, first_pass_at, last_evaluated_at, updated_at)
+INSERT INTO ice_maturity (protocol, layer, maturity, total_runs, consecutive_passes, last_evaluated_at, updated_at)
 VALUES
-    ('SPF',     'collection', 'gold',        48, 48, NOW() - INTERVAL '30 days', NOW(), NOW()),
-    ('SPF',     'analysis',   'gold',        48, 48, NOW() - INTERVAL '30 days', NOW(), NOW()),
-    ('DMARC',   'collection', 'gold',        48, 48, NOW() - INTERVAL '30 days', NOW(), NOW()),
-    ('DMARC',   'analysis',   'gold',        48, 45, NOW() - INTERVAL '28 days', NOW(), NOW()),
-    ('DKIM',    'collection', 'consistent',  48, 30, NOW() - INTERVAL '20 days', NOW(), NOW()),
-    ('DKIM',    'analysis',   'consistent',  48, 30, NOW() - INTERVAL '20 days', NOW(), NOW()),
-    ('DNSSEC',  'collection', 'verified',    48, 15, NOW() - INTERVAL '10 days', NOW(), NOW()),
-    ('DNSSEC',  'analysis',   'verified',    48, 15, NOW() - INTERVAL '10 days', NOW(), NOW()),
-    ('DANE',    'collection', 'verified',    48, 12, NOW() - INTERVAL '8 days',  NOW(), NOW()),
-    ('DANE',    'analysis',   'development', 48, 5,  NOW() - INTERVAL '3 days',  NOW(), NOW()),
-    ('MTA-STS', 'collection', 'consistent',  48, 25, NOW() - INTERVAL '18 days', NOW(), NOW()),
-    ('MTA-STS', 'analysis',   'consistent',  48, 25, NOW() - INTERVAL '18 days', NOW(), NOW()),
-    ('BIMI',    'collection', 'development', 48, 3,  NOW() - INTERVAL '2 days',  NOW(), NOW()),
-    ('BIMI',    'analysis',   'development', 48, 3,  NOW() - INTERVAL '2 days',  NOW(), NOW()),
-    ('CAA',     'collection', 'gold',        48, 48, NOW() - INTERVAL '30 days', NOW(), NOW()),
-    ('CAA',     'analysis',   'gold',        48, 48, NOW() - INTERVAL '30 days', NOW(), NOW()),
-    ('TLS-RPT', 'collection', 'verified',    48, 10, NOW() - INTERVAL '7 days',  NOW(), NOW()),
-    ('TLS-RPT', 'analysis',   'verified',    48, 10, NOW() - INTERVAL '7 days',  NOW(), NOW())
+    ('SPF',     'collection', 'development', 0, 0, NOW(), NOW()),
+    ('SPF',     'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('DMARC',   'collection', 'development', 0, 0, NOW(), NOW()),
+    ('DMARC',   'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('DKIM',    'collection', 'development', 0, 0, NOW(), NOW()),
+    ('DKIM',    'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('DNSSEC',  'collection', 'development', 0, 0, NOW(), NOW()),
+    ('DNSSEC',  'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('DANE',    'collection', 'development', 0, 0, NOW(), NOW()),
+    ('DANE',    'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('MTA-STS', 'collection', 'development', 0, 0, NOW(), NOW()),
+    ('MTA-STS', 'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('BIMI',    'collection', 'development', 0, 0, NOW(), NOW()),
+    ('BIMI',    'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('CAA',     'collection', 'development', 0, 0, NOW(), NOW()),
+    ('CAA',     'analysis',   'development', 0, 0, NOW(), NOW()),
+    ('TLS-RPT', 'collection', 'development', 0, 0, NOW(), NOW()),
+    ('TLS-RPT', 'analysis',   'development', 0, 0, NOW(), NOW())
 ON CONFLICT (protocol, layer) DO NOTHING;
 
 COMMIT;

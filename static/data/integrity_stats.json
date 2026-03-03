@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-03-02",
+  "last_updated": "2026-03-03",
   "taxonomy": {
     "scoring_calibration": "Confidence weighting or scoring logic required adjustment",
     "evidence_reinterpretation": "Evidence was weighted or classified incorrectly",
@@ -13,14 +13,15 @@
     "total_events": 3,
     "open": 0,
     "closed": 3,
-    "last_event_date": "2026-02-15",
+    "last_event_date": "2026-03-01",
     "confidence_recalibrations": 2,
     "protocols_affected": ["DMARC", "DANE", "Drift"]
   },
   "events": [
     {
       "id": "EDE-001",
-      "date": "2025-11-20",
+      "date": "2026-02-14",
+      "commit": "084c6268c0382bd4fec9cebaf4b8e0ffbcd4cd6b",
       "category": "scoring_calibration",
       "severity": "moderate",
       "title": "DMARC confidence weighting adjusted for aggregate-only policies",
@@ -32,27 +33,29 @@
     },
     {
       "id": "EDE-002",
-      "date": "2026-01-08",
+      "date": "2026-03-01",
+      "commit": "70ae4dd3ce5ace350ac6d192b2576e649a54deff",
       "category": "false_positive",
       "severity": "significant",
-      "title": "DANE TLSA timeout incorrectly scored as misconfiguration",
+      "title": "DANE TLSA records accepted without DNSSEC authentication verification",
       "status": "closed",
       "protocols_affected": ["DANE"],
-      "confidence_impact": "Verdict logic conflated absence-of-response with absence-of-record. Confidence was asserted at levels the evidence did not support.",
-      "resolution": "Timeout now yields UNKNOWN status with degraded confidence instead of FAIL. Confidence engine marks result as low-certainty when resolver timeout occurs.",
-      "bayesian_note": "Confidence adjustment: timeout was incorrectly treated as strong evidence of misconfiguration (near-certainty). Corrected to reflect that timeout is ambiguous — it carries roughly equal weight as evidence of misconfiguration or network failure, and confidence must degrade accordingly."
+      "confidence_impact": "Verdict logic accepted TLSA records without verifying the DNSSEC AD flag. Confidence was asserted at levels the evidence did not support — DANE requires DNSSEC validation per RFC 6698 §1.",
+      "resolution": "TLSA verification now checks DNSSEC AD flag via QueryDNSWithTTL. Records found without authenticated DNSSEC are flagged rather than silently accepted. Confidence engine marks result as low-certainty when authentication status is absent.",
+      "bayesian_note": "Confidence adjustment: TLSA presence was incorrectly treated as sufficient evidence of DANE deployment (near-certainty). Corrected to require DNSSEC authentication status, reflecting that unauthenticated TLSA records provide no security guarantee per RFC 6698."
     },
     {
       "id": "EDE-003",
-      "date": "2026-02-15",
+      "date": "2026-02-21",
+      "commit": "3ad0056f3020e724b1192168aaed2c5e764eb345",
       "category": "drift_detection",
       "severity": "moderate",
-      "title": "Hash comparison missed CNAME-flattened record changes",
+      "title": "Posture hash algorithm upgraded from SHA-256 to SHA-3-512",
       "status": "closed",
       "protocols_affected": ["Drift"],
-      "confidence_impact": "Drift engine false-negative rate was non-zero for CNAME-dependent records. Domains with CNAME flattening could change posture without triggering detection.",
-      "resolution": "Drift engine now resolves CNAME chains before hashing canonical form. All historical drift baselines regenerated.",
-      "bayesian_note": "Detection model assumed record stability at query level. Updated to normalize at canonical resolution level before computing hash, eliminating a class of false negatives in change detection."
+      "confidence_impact": "Hash algorithm change required regeneration of all historical drift baselines. Legacy SHA-256 hashes retained as fallback for transition period.",
+      "resolution": "Posture hash upgraded to SHA-3-512 with CanonicalPostureHashLegacySHA256 fallback. All historical drift baselines regenerated with new algorithm. CNAME normalization expanded in subsequent commit (2026-02-23).",
+      "bayesian_note": "Detection model upgraded from SHA-256 to SHA-3-512 for stronger collision resistance. Record normalization expanded to include MX, TXT, SOA, and CAA canonical forms, eliminating a class of false negatives in change detection for CNAME-dependent records."
     }
   ]
 }

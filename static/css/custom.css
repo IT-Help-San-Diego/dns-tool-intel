@@ -144,6 +144,24 @@ code {
     color: var(--code-color);
 }
 
+p a.text-info,
+.u-privacy-details a.text-info,
+.faq-answer a.text-info,
+.card-body p a.text-info,
+footer a.text-info {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    text-decoration-color: rgba(13, 202, 240, 0.45);
+}
+p a.text-info:hover,
+.u-privacy-details a.text-info:hover,
+.faq-answer a.text-info:hover,
+.card-body p a.text-info:hover,
+footer a.text-info:hover {
+    text-decoration-color: rgba(13, 202, 240, 0.85);
+}
+
 /* ============================================
    HERO SECTION
    ============================================ */
@@ -3631,6 +3649,20 @@ body.covert-mode .u-max-w-900 .text-info {
 }
 body.covert-mode .u-max-w-900 a.text-info {
     color: rgba(204, 40, 40, 0.7) !important;
+    text-decoration-color: rgba(204, 40, 40, 0.35) !important;
+}
+body.covert-mode .u-max-w-900 a.text-info:hover {
+    text-decoration-color: rgba(204, 40, 40, 0.7) !important;
+}
+body.covert-mode p a.text-info,
+body.covert-mode .u-privacy-details a.text-info,
+body.covert-mode footer a.text-info {
+    text-decoration-color: rgba(204, 40, 40, 0.35);
+}
+body.covert-mode p a.text-info:hover,
+body.covert-mode .u-privacy-details a.text-info:hover,
+body.covert-mode footer a.text-info:hover {
+    text-decoration-color: rgba(204, 40, 40, 0.7);
 }
 body.covert-mode .u-max-w-900 .card {
     border-color: rgba(140, 40, 40, 0.15) !important;
