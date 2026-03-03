@@ -159,7 +159,8 @@ func resolveBaseURL() (string, bool) {
         if baseURL == "" {
                 baseURL = "https://dnstool.it-help.tech"
         }
-        isDevEnv := baseURLRaw == "" || baseURL != "https://dnstool.it-help.tech"
+        replitDevDomain := os.Getenv("REPLIT_DEV_DOMAIN")
+        isDevEnv := replitDevDomain != ""
         return baseURL, isDevEnv
 }
 
