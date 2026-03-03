@@ -520,8 +520,8 @@ func TestClassifyBIMILogoFormat_CB9(t *testing.T) {
         t.Run("image/png", func(t *testing.T) {
                 result := map[string]any{}
                 classifyBIMILogoFormat("image/png", []byte{}, result)
-                if result["valid"] != true {
-                        t.Errorf("valid = %v, want true", result["valid"])
+                if result["valid"] != false {
+                        t.Errorf("valid = %v, want false (BIMI requires SVG)", result["valid"])
                 }
                 if result["format"] != "PNG" {
                         t.Errorf("format = %v, want PNG", result["format"])
