@@ -1070,6 +1070,9 @@ func (h *AnalysisHandler) ExportSubdomainsCSV(c *gin.Context) {
 }
 
 func csvEscape(s string) string {
+        if len(s) > 0 && (s[0] == '=' || s[0] == '+' || s[0] == '-' || s[0] == '@' || s[0] == '\t' || s[0] == '\r') {
+                s = "'" + s
+        }
         if strings.ContainsAny(s, ",\"\n\r") {
                 return "\"" + strings.ReplaceAll(s, "\"", "\"\"") + "\""
         }
@@ -1079,11 +1082,15 @@ func csvEscape(s string) string {
 func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.DomainAnalysis) ([]byte, string) {
         var fullResults interface{}
         if len(analysis.FullResults) > 0 {
-                json.Unmarshal(analysis.FullResults, &fullResults)
+                if err := json.Unmarshal(analysis.FullResults, &fullResults); err != nil {
+                        slog.Warn("buildAnalysisJSON: failed to unmarshal full results", "domain", analysis.Domain, mapKeyError, err)
+                }
         }
         var ctSubdomains interface{}
         if len(analysis.CtSubdomains) > 0 {
-                json.Unmarshal(analysis.CtSubdomains, &ctSubdomains)
+                if err := json.Unmarshal(analysis.CtSubdomains, &ctSubdomains); err != nil {
+                        slog.Warn("buildAnalysisJSON: failed to unmarshal ct subdomains", "domain", analysis.Domain, mapKeyError, err)
+                }
         }
 
         var currencyReport interface{}

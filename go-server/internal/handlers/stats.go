@@ -8,6 +8,8 @@ import (
         "net/http"
         "os"
         "strings"
+        "sync"
+        "time"
 
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
@@ -44,24 +46,41 @@ type IntegrityData struct {
         Taxonomy map[string]string `json:"taxonomy"`
 }
 
-type integrityStatsFile struct {
-        Summary  IntegritySummary  `json:"summary"`
-        Events   []IntegrityEvent  `json:"events"`
-        Taxonomy map[string]string `json:"taxonomy"`
-}
+var (
+        integrityCache     IntegrityData
+        integrityCacheMu   sync.RWMutex
+        integrityCacheTime time.Time
+)
 
 func loadIntegrityData() IntegrityData {
+        integrityCacheMu.RLock()
+        if !integrityCacheTime.IsZero() && time.Since(integrityCacheTime) < 5*time.Minute {
+                cached := integrityCache
+                integrityCacheMu.RUnlock()
+                return cached
+        }
+        integrityCacheMu.RUnlock()
+
+        integrityCacheMu.Lock()
+        defer integrityCacheMu.Unlock()
+
+        if !integrityCacheTime.IsZero() && time.Since(integrityCacheTime) < 5*time.Minute {
+                return integrityCache
+        }
+
         data, err := os.ReadFile("static/data/integrity_stats.json")
         if err != nil {
                 slog.Warn("Stats: failed to read integrity_stats.json", mapKeyError, err)
                 return IntegrityData{}
         }
-        var f integrityStatsFile
+        var f IntegrityData
         if err := json.Unmarshal(data, &f); err != nil {
                 slog.Warn("Stats: failed to parse integrity_stats.json", mapKeyError, err)
                 return IntegrityData{}
         }
-        return IntegrityData{Summary: f.Summary, Events: f.Events, Taxonomy: f.Taxonomy}
+        integrityCache = f
+        integrityCacheTime = time.Now()
+        return f
 }
 
 type StatsHandler struct {

@@ -5,6 +5,7 @@ package handlers
 import (
         "encoding/json"
         "fmt"
+        "log/slog"
         "net/http"
         "time"
 
@@ -46,7 +47,9 @@ func (h *ExportHandler) ExportJSON(c *gin.Context) {
                 for _, a := range analyses {
                         var fullResults interface{}
                         if len(a.FullResults) > 0 {
-                                json.Unmarshal(a.FullResults, &fullResults)
+                                if err := json.Unmarshal(a.FullResults, &fullResults); err != nil {
+                                        slog.Warn("Export: failed to unmarshal full results", "domain", a.Domain, mapKeyError, err)
+                                }
                         }
 
                         record := map[string]interface{}{

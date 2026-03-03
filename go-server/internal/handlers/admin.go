@@ -324,9 +324,21 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
         }
         defer tx.Rollback(ctx)
 
-        tx.Exec(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID)
-        tx.Exec(ctx, `DELETE FROM user_analyses WHERE user_id = $1`, userID)
-        tx.Exec(ctx, `DELETE FROM zone_imports WHERE user_id = $1`, userID)
+        if _, err = tx.Exec(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID); err != nil {
+                slog.Error("Admin: failed to delete sessions", mapKeyError, err, mapKeyUserId, userID)
+                c.String(http.StatusInternalServerError, "Failed to delete user data")
+                return
+        }
+        if _, err = tx.Exec(ctx, `DELETE FROM user_analyses WHERE user_id = $1`, userID); err != nil {
+                slog.Error("Admin: failed to delete user analyses", mapKeyError, err, mapKeyUserId, userID)
+                c.String(http.StatusInternalServerError, "Failed to delete user data")
+                return
+        }
+        if _, err = tx.Exec(ctx, `DELETE FROM zone_imports WHERE user_id = $1`, userID); err != nil {
+                slog.Error("Admin: failed to delete zone imports", mapKeyError, err, mapKeyUserId, userID)
+                c.String(http.StatusInternalServerError, "Failed to delete user data")
+                return
+        }
         _, err = tx.Exec(ctx, `DELETE FROM users WHERE id = $1`, userID)
         if err != nil {
                 slog.Error("Admin: failed to delete user", mapKeyError, err, mapKeyUserId, userID)
