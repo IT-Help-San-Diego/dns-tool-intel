@@ -1417,10 +1417,34 @@ type countryEntry struct {
         fetched    time.Time
 }
 
+var countryCacheEvictOnce sync.Once
+
+func startCountryCacheEviction() {
+        countryCacheEvictOnce.Do(func() {
+                go func() {
+                        ticker := time.NewTicker(1 * time.Hour)
+                        defer ticker.Stop()
+                        for range ticker.C {
+                                now := time.Now()
+                                countryCache.Range(func(key, value any) bool {
+                                        if entry, ok := value.(countryEntry); ok {
+                                                if now.Sub(entry.fetched) > 24*time.Hour {
+                                                        countryCache.Delete(key)
+                                                }
+                                        }
+                                        return true
+                                })
+                        }
+                }()
+        })
+}
+
 func lookupCountry(ip string) (string, string) {
         if ip == "" || ip == "127.0.0.1" || ip == "::1" {
                 return "", ""
         }
+
+        startCountryCacheEviction()
 
         if cached, ok := countryCache.Load(ip); ok {
                 entry := cached.(countryEntry)

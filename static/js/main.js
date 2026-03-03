@@ -16,6 +16,9 @@
     }
 })();
 
+(function() {
+'use strict';
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
 }
@@ -799,3 +802,10 @@ function loadDNSHistory(domain) {
             btn.closest('.dns-history-load-wrapper').classList.add('d-none');
         });
 }
+
+globalThis.showOverlay = showOverlay;
+globalThis.startStatusCycle = startStatusCycle;
+globalThis.escapeHtml = escapeHtml;
+globalThis.loadDNSHistory = loadDNSHistory;
+
+})();
