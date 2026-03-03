@@ -62,6 +62,12 @@ func main() {
         router.RemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-Ip"}
         slog.Info("Trusted proxies configured — reading client IP from X-Forwarded-For via local proxy")
 
+        if cfg.IsDevEnvironment {
+                slog.Info("Security headers: dev mode — iframe embedding allowed for Replit preview")
+        } else {
+                slog.Info("Security headers: production mode — strict frame-ancestors, X-Frame-Options DENY")
+        }
+
         router.Use(middleware.Recovery(cfg.AppVersion))
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
