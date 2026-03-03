@@ -141,6 +141,13 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 slog.Warn("Stats: failed to count remediated domains", mapKeyError, err)
         }
 
+        var uniqueVisitors int64
+        err = h.DB.Pool.QueryRow(ctx,
+                `SELECT COALESCE(SUM(unique_visitors), 0) FROM site_analytics`).Scan(&uniqueVisitors)
+        if err != nil {
+                slog.Warn("Stats: failed to sum unique visitors", mapKeyError, err)
+        }
+
         integrityData := loadIntegrityData()
 
         data := gin.H{
@@ -154,6 +161,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 "SuccessfulAnalyses": successfulAnalyses,
                 "FailedAnalyses":     failedAnalyses,
                 "UniqueDomains":      uniqueDomains,
+                "UniqueVisitors":     uniqueVisitors,
                 "CountryStats":       countryItems,
                 "PopularDomains":     popItems,
                 "RecentStats":        statItems,

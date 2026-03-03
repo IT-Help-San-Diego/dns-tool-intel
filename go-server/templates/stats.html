@@ -219,6 +219,7 @@
         .stats-kpi.kpi-success::before { background: linear-gradient(90deg, transparent, #3fb950, transparent); }
         .stats-kpi.kpi-failed::before { background: linear-gradient(90deg, transparent, #f85149, transparent); }
         .stats-kpi.kpi-unique::before { background: linear-gradient(90deg, transparent, #79c0ff, transparent); }
+        .stats-kpi.kpi-visitors::before { background: linear-gradient(90deg, transparent, #f0883e, transparent); }
         .stats-kpi.kpi-rate::before { background: linear-gradient(90deg, transparent, #d2a8ff, transparent); }
         .stats-kpi-icon {
             width: 2.75rem;
@@ -234,6 +235,7 @@
         .kpi-success .stats-kpi-icon { background: rgba(63,185,80,0.1); color: #3fb950; border: 1px solid rgba(63,185,80,0.2); }
         .kpi-failed .stats-kpi-icon { background: rgba(248,81,73,0.1); color: #f85149; border: 1px solid rgba(248,81,73,0.2); }
         .kpi-unique .stats-kpi-icon { background: rgba(121,192,255,0.1); color: #79c0ff; border: 1px solid rgba(121,192,255,0.2); }
+        .kpi-visitors .stats-kpi-icon { background: rgba(240,136,62,0.1); color: #f0883e; border: 1px solid rgba(240,136,62,0.2); }
         .kpi-rate .stats-kpi-icon { background: rgba(210,168,255,0.1); color: #d2a8ff; border: 1px solid rgba(210,168,255,0.2); }
         .stats-kpi-value {
             font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
@@ -512,6 +514,11 @@
                     <div class="stats-kpi-icon"><i class="fas fa-fingerprint"></i></div>
                     <div class="stats-kpi-value">{{.UniqueDomains}}</div>
                     <div class="stats-kpi-label">Unique Domains</div>
+                </div>
+                <div class="stats-kpi kpi-visitors">
+                    <div class="stats-kpi-icon"><i class="fas fa-users"></i></div>
+                    <div class="stats-kpi-value">{{.UniqueVisitors}}</div>
+                    <div class="stats-kpi-label">Unique Visitors</div>
                 </div>
                 <div class="stats-kpi kpi-rate">
                     <div class="stats-kpi-icon"><i class="fas fa-gauge-high"></i></div>
