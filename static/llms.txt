@@ -192,5 +192,6 @@ Domain security audit, SPF checker, DKIM validator, DMARC lookup, DNSSEC validat
 
 ## Contact
 IT Help San Diego Inc.
+Founder: Carey James Balboa (ORCID: https://orcid.org/0009-0000-5237-9065)
 Phone: 619-853-5008
 Website: https://www.it-help.tech
