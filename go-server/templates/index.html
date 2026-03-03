@@ -1057,8 +1057,12 @@
     <script nonce="{{.CspNonce}}">
     (function() {
         document.addEventListener('DOMContentLoaded', function() {
-            const ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
+            function initTooltips() {
+                var ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
+            }
+            if (typeof bootstrap !== 'undefined') { initTooltips(); }
+            else { globalThis.addEventListener('load', initTooltips); }
             if (new URLSearchParams(globalThis.location.search).has('dkim')) {
                 const sel1 = document.querySelector('input[name="dkim_selector1"]');
                 if (sel1) { sel1.focus(); }

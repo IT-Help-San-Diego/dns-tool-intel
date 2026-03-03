@@ -1592,10 +1592,14 @@
             }
 
             const tooltipInstances = [];
-            const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            for (const el of tooltipTriggerList) {
-                tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+            function initCovertTooltips() {
+                var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                for (const el of tooltipTriggerList) {
+                    tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+                }
             }
+            if (typeof bootstrap !== 'undefined') { initCovertTooltips(); }
+            else { globalThis.addEventListener('load', initCovertTooltips); }
             let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;

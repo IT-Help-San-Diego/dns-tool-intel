@@ -6468,9 +6468,13 @@
                 });
             }
             const tooltipInstances = [];
-            for (const el of document.querySelectorAll('[data-bs-toggle="tooltip"]')) {
-                tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+            function initResultTooltips() {
+                for (const el of document.querySelectorAll('[data-bs-toggle="tooltip"]')) {
+                    tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+                }
             }
+            if (typeof bootstrap !== 'undefined') { initResultTooltips(); }
+            else { globalThis.addEventListener('load', initResultTooltips); }
             let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;
