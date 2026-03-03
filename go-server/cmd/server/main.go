@@ -68,7 +68,7 @@ func main() {
         }
         router.Use(gzip.Gzip(gzip.DefaultCompression))
         router.Use(middleware.RequestContext())
-        router.Use(middleware.SecurityHeaders())
+        router.Use(middleware.SecurityHeaders(cfg.IsDevEnvironment))
 
         csrf := middleware.NewCSRFMiddleware(cfg.SessionSecret)
         router.Use(csrf.Handler())
