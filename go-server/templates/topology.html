@@ -161,8 +161,16 @@
             return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
         }
 
+        var RESOLVER_TAGS = [
+            { name: 'Cloudflare', abbr: 'CF', color: '#f6821f' },
+            { name: 'Google',     abbr: 'G',  color: '#4285f4' },
+            { name: 'Quad9',      abbr: 'Q9', color: '#0078d4' },
+            { name: 'OpenDNS',    abbr: 'OD', color: '#ff6a00' },
+            { name: 'DNS4EU',     abbr: 'EU', color: '#003399' }
+        ];
+
         var SOURCES = [
-            { id: 'resolvers', label: 'DNS Resolvers',   sub: 'Cloudflare · Google · Quad9\nOpenDNS · DNS4EU', color: COLORS.source, zone: 'source' },
+            { id: 'resolvers', label: 'DNS Resolvers',   sub: 'Cloudflare · Google · Quad9\nOpenDNS · DNS4EU', color: COLORS.source, zone: 'source', resolverTags: RESOLVER_TAGS },
             { id: 'root',      label: 'Root / TLD',      sub: 'IANA Root Zone\nTLD Registries',                  color: COLORS.source, zone: 'source' },
             { id: 'rdap',      label: 'RDAP / WHOIS',    sub: 'Registration Data\nAccess Protocol',              color: COLORS.intel,  zone: 'source' },
             { id: 'ietf',      label: 'IETF Metadata',   sub: 'RFC Status · Errata\nDraft Tracker',              color: COLORS.intel,  zone: 'source' },
@@ -229,7 +237,8 @@
 
         CONFIDENCE.forEach(function(c) {
             c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
-            c.radius = 48; c._initialized = false;
+            c.radius = (c.id === 'ede') ? 54 : 48;
+            c._initialized = false;
             c.shape = 'diamond';
             allNodes[c.id] = c;
         });
@@ -355,12 +364,8 @@
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
 
-            var fixY = engZone.y0 + engH * 0.58;
-            STORAGE[2].targetX = engCx;
-            STORAGE[2].targetY = fixY;
-
-            var storeY = engZone.y0 + engH * 0.80;
-            var storeSpread = engW * 0.28;
+            var storeY = engZone.y0 + engH * 0.75;
+            var storeSpread = engW * 0.22;
             STORAGE[0].targetX = engCx + storeSpread;
             STORAGE[0].targetY = storeY;
             STORAGE[1].targetX = engCx - storeSpread;
@@ -657,7 +662,26 @@
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
             ctx.fillText(n.label, n.x, n.y - (isHover ? 6 : 0));
 
-            if (isHover && n.sub) {
+            if (n.resolverTags && !dimmed) {
+                var tags = n.resolverTags;
+                var tagW = w - 12;
+                var startX = n.x - tagW / 2;
+                var tagY = n.y + 6;
+                var dotR = 3.5;
+                var spacing = tagW / tags.length;
+                ctx.font = '8px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textBaseline = 'middle';
+                tags.forEach(function(tag, i) {
+                    var tx = startX + spacing * i + spacing / 2;
+                    ctx.beginPath();
+                    ctx.arc(tx - 8, tagY, dotR, 0, Math.PI * 2);
+                    ctx.fillStyle = hexToRgba(tag.color, isHover ? 0.9 : 0.6);
+                    ctx.fill();
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = isHover ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)';
+                    ctx.fillText(tag.abbr, tx - 3, tagY);
+                });
+            } else if (isHover && n.sub) {
                 var lines = n.sub.split('\n');
                 ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -764,11 +788,17 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
-            ctx.fillText(n.label, n.x, n.y - 8);
 
-            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            var subLines = n.sub ? n.sub.split('\n') : [];
+            var totalLines = subLines.length;
+            var labelY = n.y - (totalLines > 1 ? 10 : 6);
+            ctx.fillText(n.label, n.x, labelY);
+
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.45)');
-            ctx.fillText(n.sub, n.x, n.y + 10);
+            subLines.forEach(function(line, i) {
+                ctx.fillText(line, n.x, labelY + 14 + i * 12);
+            });
         }
 
         function drawProtocolNode(p) {
