@@ -4,9 +4,7 @@ var PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
 var MAX_CACHED_PAGES = 20;
 
 var IMMUTABLE_ASSETS = [
-  '/static/css/bootstrap-dark-theme.min.css',
   '/static/css/fontawesome-subset.min.css',
-  '/static/js/bootstrap.bundle.min.js',
   '/static/webfonts/fa-solid-900.woff2',
   '/static/favicon.svg'
 ];
@@ -72,7 +70,9 @@ function trimPageCache() {
 globalThis.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(IMMUTABLE_ASSETS);
+      return Promise.all(IMMUTABLE_ASSETS.map(function(asset) {
+        return cache.add(asset).catch(function() { /* asset unavailable — skip */ });
+      }));
     })
   );
   globalThis.skipWaiting();
@@ -122,7 +122,9 @@ globalThis.addEventListener('fetch', function(event) {
     } else {
       event.respondWith(
         fetch(event.request).catch(function() {
-          return caches.match(event.request);
+          return caches.match(event.request).then(function(cached) {
+            return cached || new Response('', {status: 408, statusText: 'Offline'});
+          });
         })
       );
     }
@@ -157,6 +159,8 @@ globalThis.addEventListener('fetch', function(event) {
             });
           }
           return response;
+        }).catch(function() {
+          return new Response('', {status: 408, statusText: 'Offline'});
         });
       })
     );

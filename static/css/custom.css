@@ -144,20 +144,20 @@ code {
     color: var(--code-color);
 }
 
-p a.text-info,
-.u-privacy-details a.text-info,
-.faq-answer a.text-info,
-.card-body p a.text-info,
+p a:not(.btn):not(.nav-link):not(.icae-badge):not(.icuae-badge):not(.icae-hero-statement):not(.icae-confidence-label):not(.icae-hero-maturity-badge),
+.u-privacy-details a,
+.faq-answer a,
+.card-body a:not(.btn):not(.icae-badge):not(.icuae-badge),
 footer a.text-info {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.15em;
     text-decoration-color: rgba(13, 202, 240, 0.45);
 }
-p a.text-info:hover,
-.u-privacy-details a.text-info:hover,
-.faq-answer a.text-info:hover,
-.card-body p a.text-info:hover,
+p a:not(.btn):not(.nav-link):not(.icae-badge):not(.icuae-badge):not(.icae-hero-statement):not(.icae-confidence-label):not(.icae-hero-maturity-badge):hover,
+.u-privacy-details a:hover,
+.faq-answer a:hover,
+.card-body a:not(.btn):not(.icae-badge):not(.icuae-badge):hover,
 footer a.text-info:hover {
     text-decoration-color: rgba(13, 202, 240, 0.85);
 }
@@ -2765,11 +2765,14 @@ body.covert-mode .rfc-label {
 }
 .u-covert-disclosure a {
     color: rgba(200, 80, 80, 0.70);
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    text-decoration-color: rgba(200, 80, 80, 0.35);
 }
 .u-covert-disclosure a:hover {
     color: rgba(220, 90, 90, 0.85);
-    text-decoration: underline;
+    text-decoration-color: rgba(220, 90, 90, 0.7);
 }
 .u-covert-banner {
     background: rgba(196, 60, 60, 0.12);
