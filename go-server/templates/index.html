@@ -4,7 +4,7 @@
 <head>
     {{template "head" .}}
     <title>DNS Tool — Domain Security Intelligence | OSINT Reports</title>
-    <meta name="description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer &amp; Executive intelligence reports. Open-standard protocols.">
+    <meta name="description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer &amp; Executive reports.">
     <meta name="keywords" content="domain security audit, SPF DKIM DMARC analyzer, DNS intelligence report, email authentication checker, OSINT domain security, DNS security posture, DANE TLSA checker, AI crawler governance audit, DNSSEC validation, BIMI checker, MTA-STS checker, CAA record check, email header analyzer, IP intelligence, cybersecurity posture report">
     <meta name="robots" content="index, follow">
     
@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://dnstool.it-help.tech/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="DNS Tool — Domain Security Intelligence | OSINT Reports">
-    <meta property="og:description" content="OSINT-based domain security audit producing Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. Analyzes SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA from multiple intelligence sources. Email Header Analyzer, IP Intelligence, AI Surface Scanner. TLP classification. All analysis uses open-standard protocols.">
+    <meta property="og:description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer and Executive intelligence reports.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     
     <!-- Twitter -->
@@ -20,7 +20,7 @@
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/">
     <meta name="twitter:title" content="DNS Tool — Domain Security Intelligence | OSINT Reports">
-    <meta name="twitter:description" content="OSINT-based domain security audit producing Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. Analyzes SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA from multiple intelligence sources. Email Header Analyzer, IP Intelligence, AI Surface Scanner. TLP classification. All analysis uses open-standard protocols.">
+    <meta name="twitter:description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer and Executive intelligence reports.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     
     <!-- JSON-LD Schema -->
@@ -117,8 +117,15 @@
         },
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://dnstool.it-help.tech/analyze?domain={domain}",
-            "query-input": "required name=domain"
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://dnstool.it-help.tech/analyze?domain={domain}"
+            },
+            "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "domain"
+            }
         },
         "additionalProperty": [
             {
