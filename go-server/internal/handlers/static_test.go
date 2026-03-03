@@ -3,6 +3,7 @@ package handlers
 import (
         "net/http"
         "net/http/httptest"
+        "os"
         "strings"
         "testing"
 
@@ -95,6 +96,49 @@ func TestSitemapXMLContent(t *testing.T) {
         urlCount := strings.Count(body, "<url>")
         if urlCount < 10 {
                 t.Errorf("expected at least 10 URLs in sitemap, got %d", urlCount)
+        }
+}
+
+func TestBIMILogoSVG(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        tmpDir := t.TempDir()
+
+        svgContent := `<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><title>Test</title></svg>`
+        if err := os.WriteFile(tmpDir+"/bimi-logo.svg", []byte(svgContent), 0644); err != nil {
+                t.Fatal(err)
+        }
+
+        h := NewStaticHandler(tmpDir, "1.0.0", "https://example.com")
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
+        c.Request = httptest.NewRequest(http.MethodGet, "/bimi-logo.svg", nil)
+
+        h.BIMILogoSVG(c)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("status = %d, want 200", w.Code)
+        }
+        if ct := w.Header().Get("Content-Type"); ct != "image/svg+xml" {
+                t.Errorf("Content-Type = %q, want image/svg+xml", ct)
+        }
+        if cc := w.Header().Get("Cache-Control"); cc != cachePublicDay {
+                t.Errorf("Cache-Control = %q, want %q", cc, cachePublicDay)
+        }
+}
+
+func TestBIMILogoSVGNotFound(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        tmpDir := t.TempDir()
+        h := NewStaticHandler(tmpDir, "1.0.0", "https://example.com")
+
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
+        c.Request = httptest.NewRequest(http.MethodGet, "/bimi-logo.svg", nil)
+
+        h.BIMILogoSVG(c)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("status = %d, want 404 when file missing", w.Code)
         }
 }
 
