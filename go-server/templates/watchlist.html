@@ -3,7 +3,17 @@
 <head>
     {{template "head" .}}
     <title>Drift Watchlist - DNS Tool</title>
+    <meta name="description" content="Monitor domains for DNS security posture changes. Get notified when SPF, DKIM, DMARC, or DNSSEC configurations drift.">
     <meta name="robots" content="noindex, nofollow">
+    <meta property="og:url" content="https://dnstool.it-help.tech/watchlist">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Drift Watchlist - DNS Tool">
+    <meta property="og:description" content="Monitor domains for DNS security posture changes.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Drift Watchlist - DNS Tool">
+    <meta name="twitter:description" content="Monitor domains for DNS security posture changes.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
         .text-center{text-align:center}

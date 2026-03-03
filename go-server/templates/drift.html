@@ -5,6 +5,15 @@
     <title>Drift Timeline — {{.Domain}} - DNS Tool</title>
     <meta name="description" content="DNS security posture drift timeline showing configuration changes over time. Track SPF, DKIM, DMARC, and DNSSEC evolution.">
     <meta name="robots" content="noindex, nofollow">
+    <meta property="og:url" content="https://dnstool.it-help.tech/drift?domain={{.Domain}}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Drift Timeline — {{.Domain}} - DNS Tool">
+    <meta property="og:description" content="DNS security posture drift timeline showing configuration changes over time.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Drift Timeline — {{.Domain}} - DNS Tool">
+    <meta name="twitter:description" content="DNS security posture drift timeline showing configuration changes over time.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
         .text-center{text-align:center}

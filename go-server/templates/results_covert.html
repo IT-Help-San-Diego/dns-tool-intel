@@ -7,6 +7,15 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="x-report-mode" content="{{.ReportMode}}">
     <meta name="x-public-suffix" content="{{if .IsPublicSuffix}}1{{else}}0{{end}}">
+    <meta property="og:url" content="https://dnstool.it-help.tech/analyze?domain={{.Domain}}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Recon Report — {{.Domain}} - DNS Tool">
+    <meta property="og:description" content="Red team recon report — attack surface analysis for {{.Domain}}.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Recon Report — {{.Domain}} - DNS Tool">
+    <meta name="twitter:description" content="Red team recon report — attack surface analysis for {{.Domain}}.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     {{template "head_css" .}}
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
