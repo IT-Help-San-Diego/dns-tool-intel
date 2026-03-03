@@ -8,29 +8,67 @@
 
 | Feature | Version | Completion Date |
 |---------|---------|-----------------|
-| Optional Authentication Model (Google OAuth 2.0 with PKCE) | v26.20.56–57 | Feb 2026 |
-| Drift Engine Phase 1 (Posture Hashing) | v26.19.40 | Feb 2026 |
-| Drift Engine Phase 2 (Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
-| Probe Network First Node | v26.20.0+ | Feb 2026 |
-| LLM Documentation Strategy (Implementation Verification Sections) | v26.25.26 | Feb 2026 |
-| XSS Security Fix (Tooltip Safe DOM Rendering) | v26.25.26 | Feb 2026 |
+| Intelligence Confidence Audit Engine (ICAE) | 129 Test Cases | Feb 2026 |
+| Intelligence Currency Assurance Engine (ICuAE) | 29 Test Cases | Feb 2026 |
+| Email Header Analyzer (Multi-Format, Spoofing Detection, Scam Analysis) | v26.20.0+ | Feb 2026 |
+| Drift Engine Phases 1–2 (Posture Hashing, Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
 | Architecture Page with Mermaid Diagrams | v26.20.77–83 | Feb 2026 |
 | DKIM Selector Expansion (39→81+ Selectors) | v26.20.69–70 | Feb 2026 |
 | Brand Verdict Matrix Overhaul | v26.20.71 | Feb 2026 |
-| Email Header Analyzer (Multi-Format, Spoofing Detection, Scam Analysis) | v26.20.0+ | Feb 2026 |
-| Intelligence Confidence Audit Engine (ICAE) | 129 Test Cases | Feb 2026 |
-| Intelligence Currency Assurance Engine (ICuAE) | 29 Test Cases | Feb 2026 |
+| Optional Authentication Model (Google OAuth 2.0 with PKCE) | v26.20.56–57 | Feb 2026 |
+| Probe Network First Node | v26.20.0+ | Feb 2026 |
+| LLM Documentation Strategy (Implementation Verification Sections) | v26.25.26 | Feb 2026 |
+| XSS Security Fix (Tooltip Safe DOM Rendering) | v26.25.26 | Feb 2026 |
 | Color Science Page (CIE Scotopic Validation, WCAG Contrast) | v26.20.0+ | Feb 2026 |
 | Badge System (SVG Badges, Shields.io Integration) | v26.20.0+ | Feb 2026 |
 | Domain Snapshot | v26.20.0+ | Feb 2026 |
-| Owl of Athena Logo (AI-Generated Original) | v26.20.0+ | Feb 2026 |
 | Certificate Transparency Resilience (Certspotter Fallback) | v26.20.76 | Feb 2026 |
 | Nmap DNS Security Probing | v26.20.0+ | Feb 2026 |
-| One-Liner Verification Commands | v26.20.0+ (commands.go GenerateVerificationCommands) | Feb 2026 |
-| Zone File Upload for Analysis | v26.20.0+ (Authenticated-only, /zone endpoint) | Feb 2026 |
+| One-Liner Verification Commands | v26.20.0+ | Feb 2026 |
+| Zone File Upload for Analysis | v26.20.0+ | Feb 2026 |
 | Hash Integrity Audit Engine | v26.21.45 | Feb 2026 |
 | Download Verification (SHA-3-512 Checksums, Kali-Style Sidecar) | v26.21.49–50 | Feb 2026 |
 | Accountability Log (/confidence/audit-log) | v26.21.46 | Feb 2026 |
+| Glass Badge System (ICAE, Protocol, Section) | v26.25.38–43 | Feb 2026 |
+| Covert Recon Mode | v26.20.0+ | Feb 2026 |
+| Web/DNS/Email Hosting Detection | v26.25.43 | Feb 2026 |
+| Question Branding System (dt-question) | v26.25.70 | Feb 2026 |
+| Approach & Methodology Page | v26.25.83 | Feb 2026 |
+| TTL Alignment & Big Picture Questions | v26.25.93 | Feb 2026 |
+| Unified Confidence Aggregation (ICD 203) | v26.25.94 | Feb 2026 |
+| Homepage Simplification & TTL Deep Linking | v26.25.95 | Feb 2026 |
+| DMARC External Auth Remediation | v26.25.95 | Feb 2026 |
+| Symbiotic Security — Five Archetypes Section | v26.25.96 | Feb 2026 |
+| Methodology Page Rename & Cross-Links | v26.25.96 | Feb 2026 |
+| Delegation Consistency Analyzer | v26.25.94 | Feb 2026 |
+| Nameserver Fleet Matrix | v26.25.94 | Feb 2026 |
+| DNSSEC Operations Deep Dive | v26.25.94 | Feb 2026 |
+| Live SonarCloud Badge & Evidence Qualification | v26.25.97 | Feb 2026 |
+| Probe Network Second Node (Kali) | v26.26.02 | Feb 2026 |
+| Multi-Probe Consensus Engine | v26.26.02 | Feb 2026 |
+| Public Roadmap Page | v26.26.02 | Feb 2026 |
+| SonarCloud Quality Gate Fix | v26.26.03 | Feb 2026 |
+| Nmap Subdomain Enrichment | v26.26.02 | Feb 2026 |
+| Admin Probe Management Panel | v26.26.02 | Feb 2026 |
+| LLMs.txt & JSON-LD Consistency Audit | v26.26.04 | Feb 2026 |
+| Stats Page Visual Redesign | v26.26.05 | Feb 2026 |
+| Notion Bidirectional Sync | v26.26.05 | Feb 2026 |
+| Covert Mode Color Leak Audit | v26.26.05 | Feb 2026 |
+| Stats Confidence Engine Preview Card | v26.26.05 | Feb 2026 |
+| Failed Analysis Transparency Page | v26.26.05 | Feb 2026 |
+| Documentation Reality Check (LLMs + JSON-LD + Roadmap) | v26.26.06 | Feb 2026 |
+| Covert Mode Tactical Red Filter (MIL-STD-3009) | v26.26.08 | Feb 2026 |
+| Covert Mode Environment Presets (Submarine/Tactical/Operator) | v26.26.10 | Feb 2026 |
+| Operator Mode Color Science (mix-blend-mode: color) | v26.26.11 | Feb 2026 |
+| Covert Environment Icons & Accent Gray Hierarchy | v26.26.12 | Feb 2026 |
+| SonarCloud Deep Sweep — String Constants & Regex Hardening | v26.26.12 | Feb 2026 |
+| SonarCloud Hotspot & Vulnerability Review — Full Audit Trail | v26.26.15 | Feb 2026 |
+| Zone Health — Context-Aware Policy & Security Signals | v26.27.07 | Feb 2026 |
+| Zone Health Golden Rules (9 Tests, 15 Sub-Tests) | v26.27.07 | Feb 2026 |
+| Zone File Upload — Auth-Aware Size Limits (1 MB/2 MB) | v26.27.08 | Feb 2026 |
+| Golden Rules Export (JSON + Markdown for External Audit) | v26.27.08 | Feb 2026 |
+| PWA Hardening (Offline Page, Page Cache, Splash Screens) | v26.27.07 | Feb 2026 |
+| Owl of Athena Logo (AI-Generated Original) | v26.20.0+ | Feb 2026 |
 | TTL Tuner (Beta) | v26.25.86–88 | Feb 2026 |
 | Six-Agent Security & Performance Audit | v26.25.88 | Feb 2026 |
 | TLD NS Count Bug Fix + Executive TLD Gating | v26.25.90 | Feb 2026 |
@@ -60,34 +98,52 @@
 
 ---
 
-## In Progress / Queued
+## In Progress
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Personal Analysis History | Queued | Medium | Currently shared global feed. Requires per-user session tracking and database schema expansion. |
-| Drift Engine Alerts | Queued | Medium | Notifications when domain security posture changes. Requires webhook/email notification subsystem. |
-| Saved Reports | Queued | Medium | Bookmark and revisit past analyses. Requires report snapshot storage and user library. |
-| API Access (Programmatic Analysis) | Queued | High | Programmatic analysis for automation workflows. Requires rate limiting, authentication, versioning. |
-| CLI App (Homebrew/Binary) | Queued | High | Terminal application for macOS/Linux. Requires cross-platform distribution and binary packaging. Works without login for basic analysis; authenticated mode unlocks history sync, drift alerts, and API quota. |
-| Drift Engine Phases 3–4 | Queued | Medium | Phase 3: Timeline visualization of posture changes. Phase 4: Scheduled monitoring and baselines. Full roadmap in dns-tool-intel (private). |
-| Probe Network Expansion | Queued | High | Additional OSINT verification nodes: SMTP/TLS verification, DANE/DNSSEC validation, testssl.sh analysis. Multi-probe consensus, geo-variance detection, regional blocking detection. |
-| Multi-Probe Consensus Engine | Queued | High | Cross-probe agreement analysis: TLS config consensus, DANE validation from independent resolvers, certificate fingerprint comparison, latency differentials. |
-| Probe Security.txt + Landing Pages | Queued | Medium | Transparency artifacts for probe VPS nodes: /.well-known/security.txt + minimal landing page declaring measurement purpose and abuse contact. |
-| Globalping.io Integration | Queued | Low | Distributed DNS resolution probes from 100+ global locations. Complements (not replaces) existing SMTP port 25 probe. Adds "resolving consistently worldwide?" capability. |
-| Homebrew Distribution | Queued | Medium | macOS/Linux package distribution. Coordinates with CLI app delivery. |
-| Zone File Import as Drift Baseline | Queued | Low | "Baseline Snapshot" comparison. Upload zone file to establish posture baseline for future drift detection. Zone parsing library selected; UX copy/disclaimer to be drafted. |
-| Raw Intelligence API Access | Queued | Low | Direct access to collected intelligence without processing layers. Requires access control and audit logging. |
-| ISC Recommendation Path Integration | Queued | Low | Integration with ISC (Internet Systems Consortium) remediation/hardening recommendations. Requires partnership or integration with ISC tooling. |
-| CVE Database Matching | Queued | Medium | Automated CVE cross-referencing for protocol findings. Map discovered configurations to known vulnerabilities (NVD/MITRE). Currently manual CVE citations; future automated matching against live CVE feeds. |
-| DMARCbis Standards Track Tracking | Queued | Medium | Monitor draft-ietf-dmarc-dmarcbis progression through IETF. Auto-update compliance guidance when RFC is published. Track pct→t migration, np= tag adoption, DNS tree walk mandate. |
-| TLD Zone Health: Parent/Child Delegation Consistency | Queued | High | Compare NS set in parent (root zone) vs child (TLD zone), DS/DNSKEY alignment, glue completeness (esp. in-bailiwick NS for ccTLDs), TTLs at parent vs child. This is "delegation security" as registries understand it. |
-| TLD Zone Health: Nameserver Fleet Matrix | Queued | High | Per-nameserver characterization: IPv4+IPv6 addresses, ASN/operator diversity scoring, UDP+TCP reachability (v4/v6), EDNS0 buffer sizing, truncation/TCP fallback, AA flag + lame delegation check, SOA serial per NS (detect sync issues). Currently we show NS hostnames but don't characterize the fleet. |
-| TLD Zone Health: DNSSEC Operations Deep Dive | Queued | High | Beyond current "Signed, algorithm, AD flag, DS record" — add: DNSKEY RRset (KSK vs ZSK key tags, key sizes), RRSIG inception/expiration windows (how close to expiry?), NSEC vs NSEC3 with parameter sanity, rollover readiness signals (multiple DNSKEYs present? DS aligned?). Heart of "zone health" for operators. |
-| TLD Zone Health: Multi-Vantage Availability | Queued | Medium | Global latency distribution, timeout/SERVFAIL rates, regional anomalies, regressions over time. Complements multi-resolver consensus. Requires probe network expansion. Similar to RIPE DNSMON concept but with change detection. |
-| TLD Zone Health: Pre-Delegation Simulation Mode | Queued | Medium | Let TLD operators paste candidate NS set (hostnames + IPs) and/or candidate DS/DNSKEY, then run full delegation + DNSSEC verification as if live. Maps to Zonemaster "delegation quality" testing and ICANN PDT readiness. |
-| TLD Zone Health: Change Detection & Alerting | Queued | Medium | Registry-specific drift: "What changed since last run?" (NS/DS/DNSKEY/SOA timers). Alerts on DS mismatch, DNSKEY changes, SOA serial divergence, NS unreachable, DNSSEC validation failures. Timeline keyed to "incident start." Builds on existing drift engine. |
-| TLD Zone Health: Machine-Consumable Outputs | Queued | Low | Stable versioned JSON API for current TLD status, webhook events for state transitions, export formats for NOC tooling. Leverages existing integrity hashes. |
-| TLD Zone Health: Registry Identification & IANA Metadata | Queued | Low | Show registry operator + IANA metadata instead of "Registrar unknown / DNS hosting unknown." Current domain-owner fields don't map to registry reality. |
+| Non-Authenticated Zone Upload (One-Time View) | In Progress | High | Open zone upload to non-auth users with 1 MB limit, IP rate limiting, no persistence — funnel to signup |
+| SonarCloud Coverage Push (80%+ Target) | In Progress | High | Systematic coverage improvement across handlers, analyzer, dnsclient, and middleware packages |
+| Visual Cohesion — Top-to-Bottom Consistency | In Progress | Medium | Glass treatment, question branding, and token system across all report modes |
+| Morse Code Easter Egg | In Progress | Low | Web Audio API Morse code on Covert Mode toggle |
+
+---
+
+## Next Up
+
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| Paid Storage Tier (TLD Operators) | High | Account storage quotas for serious operators — free users get persistence, paid tier expands storage for large zone files and history retention |
+| Drift UI — Divergence Caveats | High | Label drift results as divergence with caveats for known false-positive edges (CNAME flattening, DNSSEC records, resolver TTL caching) |
+| DoH/DoT Detection | High | Test whether domains support DNS-over-HTTPS (RFC 8484) and DNS-over-TLS (RFC 7858) — encrypted transport posture analysis |
+| Distributed Probe Mesh (Good Net Citizens) | High | Volunteer browser-based DNS probes via DoH relay — multi-vantage consensus with Byzantine-resilient thresholds, reputation scoring, and privacy-preserving blinded work queues |
+| API Access (Programmatic Analysis) | High | Programmatic analysis for automation workflows. Requires rate limiting, authentication, versioning |
+| CLI App (Homebrew/Binary) | High | Terminal application for macOS/Linux. Works without login for basic analysis; authenticated mode unlocks history sync, drift alerts, and API quota |
+
+---
+
+## Backlog
+
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| Personal Analysis History | Medium | Per-user session tracking and analysis library |
+| Drift Engine Alerts | Medium | Webhook/email notifications when domain security posture changes |
+| Saved Reports | Medium | Bookmark and revisit past analyses with snapshot storage |
+| Drift Engine Phases 3–4 | Medium | Timeline visualization and scheduled monitoring with baselines. Full roadmap in dns-tool-intel (private) |
+| Probe Security.txt + Landing Pages | Medium | Transparency artifacts for probe VPS nodes |
+| Homebrew Distribution | Medium | macOS/Linux package distribution for CLI app |
+| Probe Network Expansion (Additional Nodes) | High | Additional OSINT verification nodes beyond current two-node deployment |
+| CVE Database Matching | Medium | Automated CVE cross-referencing for protocol findings against NVD/MITRE |
+| DMARCbis Standards Track Tracking | Medium | Monitor draft-ietf-dmarc-dmarcbis progression through IETF |
+| TLD Zone Health: Multi-Vantage Availability | Medium | Global latency distribution, timeout/SERVFAIL rates, regional anomalies |
+| TLD Zone Health: Pre-Delegation Simulation Mode | Medium | Zonemaster-style delegation quality testing and ICANN PDT readiness |
+| TLD Zone Health: Change Detection & Alerting | Medium | Registry-specific drift with alerts on DS mismatch, DNSKEY changes, SOA serial divergence |
+| Globalping.io Integration | Low | Distributed DNS resolution from 100+ global locations |
+| Zone File Import as Drift Baseline | Low | Upload zone files to establish posture baseline for drift detection |
+| Raw Intelligence API Access | Low | Direct access to collected intelligence without processing layers |
+| ISC Recommendation Path Integration | Low | Integration with ISC remediation/hardening recommendations |
+| TLD Zone Health: Machine-Consumable Outputs | Low | Stable versioned JSON API for current TLD status, webhook events for state transitions |
+| TLD Zone Health: Registry Identification & IANA Metadata | Low | Show registry operator + IANA metadata |
 
 ---
 
@@ -113,9 +169,9 @@ All items in the "Completed" section have working implementations in the codebas
 
 ### Queued Items
 
-Items in "In Progress / Queued" are documented, architected, but not yet implemented. Priority reflects relative importance:
+Items in "Next Up" and "Backlog" are documented and architected but not yet implemented. Priority reflects relative importance:
 
-- **High**: API access, CLI app, and TLD Zone Health features (delegation consistency, fleet matrix, DNSSEC deep dive) unlock programmatic workflows, terminal-first users, and the registry operator market. Strategic for market expansion.
+- **High**: API access, CLI app, paid storage tier, and probe network expansion unlock programmatic workflows, terminal-first users, and enterprise markets. Strategic for growth.
 - **Medium**: Personal history, drift alerts, saved reports, Homebrew distribution, Phases 3–4, TLD pre-delegation simulation, TLD change detection require moderate engineering and provide strong user value.
 - **Low**: Raw intelligence API, ISC integration, zone file import, TLD machine-consumable outputs, TLD registry metadata are specialized features with narrower user bases.
 

@@ -12,6 +12,7 @@ import (
 
 const (
         roadmapDateFeb2026    = "Feb 2026"
+        roadmapDateMar2026    = "Mar 2026"
         roadmapVersionV2620   = "v26.20.0+"
         roadmapTypeFeature    = "Feature"
 
@@ -105,6 +106,33 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Zone File Upload — Auth-Aware Size Limits (1 MB/2 MB)", Version: "v26.27.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Golden Rules Export (JSON + Markdown for External Audit)", Version: "v26.27.08", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "PWA Hardening (Offline Page, Page Cache, Splash Screens)", Version: "v26.27.07", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Owl of Athena Logo (AI-Generated Original)", Version: roadmapVersionV2620, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "TTL Tuner (Beta)", Version: "v26.25.86–88", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Six-Agent Security & Performance Audit", Version: "v26.25.88", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "TLD NS Count Bug Fix + Executive TLD Gating", Version: "v26.25.90", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "CSRF Form Fix (TTL Tuner & Watchlist)", Version: "v26.26.41", Date: roadmapDateFeb2026, Type: "Security"},
+                {Title: "TTL Tuner UX Overhaul (Loading, Auto-Scroll, Profile Selection)", Version: "v26.26.42–43", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "DNS Provider Detection Expansion (5→15 Providers)", Version: "v26.26.44", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "NS Provider-Locked Display + Rate Limit Redirect Fix", Version: "v26.26.44", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "HTTP Observatory A+ Infrastructure (Secure Cookies, Full Header Suite)", Version: "v26.27.01", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Mobile Homepage Scroll Fix + Navbar Dropdown Refinement", Version: "v26.27.01", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "TTL Tuner Mobile Responsive Table", Version: "v26.27.02", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "SonarCloud Quality Gate Fixes (Unchecked Error Returns)", Version: "v26.27.02", Date: roadmapDateFeb2026, Type: strQuality},
+                {Title: "RFC Compliance vs Operational Security Pattern (SPF/DKIM/DMARC)", Version: "v26.28.36", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "CVE Context in Email Security Panels (CVE-2024-7208/7209/49040)", Version: "v26.28.36", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "DMARCbis Forward-Looking Notes (Standards Track, pct→t, np=)", Version: "v26.28.36", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "DANE Context Deadline Fix", Version: "v26.28.34", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "DNS Intelligence Upgrade (EDNS0 + DO Bit, AD Flag Tracking)", Version: "v26.28.35", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Topology Text & Container Sizing", Version: "v26.28.37", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Golden Fixtures Node Promoted to Cylinder", Version: "v26.28.38", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Action Pill Nodes (Persist, Seeds, Baselines, Validates)", Version: "v26.28.39", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Fully Responsive Zone-Based Layout with Collision Enforcement", Version: "v26.28.40", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Edge Labels Hover-Only, Explicit Protocol Angle Mapping", Version: "v26.28.41", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Unified OG Image System (6 images, ImageMagick generator)", Version: "v26.28.44", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Forgotten Domain Video (approach page + /video/forgotten-domain)", Version: "v26.28.44", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Performance Optimization (gzip, CSS/font preload hints)", Version: "v26.28.45", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Video Styling Fix (approach page — constrained width, poster)", Version: "v26.28.46", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Test Coverage Expansion (exports_ice, coverage_boost14, main)", Version: "v26.28.46", Date: roadmapDateMar2026, Type: strQuality},
         }
 
         inProgress := []RoadmapItem{

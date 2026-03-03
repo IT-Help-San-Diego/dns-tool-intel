@@ -145,7 +145,7 @@ code is executed; no services are disrupted.
 | DANE | RFC 6698 | DNS-Based Authentication of Named Entities |
 | MTA-STS | RFC 8461 | SMTP MTA Strict Transport Security |
 | TLS-RPT | RFC 8460 | SMTP TLS Reporting |
-| BIMI | draft-brand-indicators | Brand Indicators for Message Identification |
+| BIMI | RFC 9495 (Experimental) | Brand Indicators for Message Identification |
 | CAA | RFC 8659 | DNS Certification Authority Authorization |
 
 ---

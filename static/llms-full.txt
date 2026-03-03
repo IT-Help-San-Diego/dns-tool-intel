@@ -311,7 +311,7 @@ Public accountability page showing every failed analysis with sanitized error ca
 
 ### Public Roadmap
 URL: `https://dnstool.it-help.tech/roadmap`
-Transparent kanban-style project roadmap showing all development progress. Four columns: Done (60+ shipped features), In Progress (current work), Next Up (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
+Transparent kanban-style project roadmap showing all development progress. Four columns: Done (85+ shipped features), In Progress (current work), Next Up (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and Backlog (personal history, drift alerts, saved reports, Globalping integration). Each item includes type, priority, version, and notes. Static page — no login required.
 
 ---
 
@@ -505,7 +505,7 @@ The question "does the record exist?" is dangerous to stop at:
 ICD 203 (Intelligence Community Directive on Analytic Standards) was designed for one problem: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment. That is exactly what DNS security analysis is. SPF misconfiguration is the attack surface exploited in Business Email Compromise — the single most financially damaging cybercrime category ($2.9 billion in 2023, FBI IC3 Annual Report). When an operator evaluates an SPF finding, they need to know: was it observed directly or inferred? Was it confirmed across multiple resolvers or seen by only one? Is the evidence degraded by caching artifacts? ICD 203 provides that structure. The alternative — presenting every finding as equally certain — causes the alert fatigue that makes security tools useless.
 
 ### Practice What We Preach
-DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audits: SPF with `-all`, DKIM with 2048-bit keys, DMARC at `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS in enforce mode, TLS-RPT, and BIMI. The platform passes Google Lighthouse (98–100), Mozilla Observatory (score 140, A+), and SonarCloud (A rating). Every quality gate runs on every build — not as a final check, but as a build requirement. If the tool cannot secure its own delivery, it has no standing to audit anyone else's.
+DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audits: SPF with `-all`, DKIM with 2048-bit keys, DMARC at `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS in enforce mode, TLS-RPT, and BIMI. The platform passes Google Lighthouse (98–100), Mozilla Observatory (score 140, A+), and SonarCloud (A rating) as of Feb 2026. Every quality gate runs on every build — not as a final check, but as a build requirement. If the tool cannot secure its own delivery, it has no standing to audit anyone else's.
 
 ### The Heuristic Trap
 When 99% of DNS checkers are simple scripts wrapped in marketing, anything deeper looks like it is trying too hard. That is the heuristic trap — pattern-matching against a low bar and treating the outlier as suspicious rather than serious. The criticism reveals the actual problem: DNS security has historically been under-engineered relative to what it actually requires. DNS Tool can be used as a simple checker — and it will give accurate results. The depth is there for when a simple check is not enough.
