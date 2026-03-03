@@ -44,6 +44,7 @@ SONAR_ORG = "careyjames"
 SONAR_PROJECT = "careyjames_DnsToolWeb"
 SMTP_PROBE_MODE = "remote"
 MAINTENANCE_NOTE = "Developing"
+ANALYTICS_EXCLUDE_IPS = "76.218.253.212"
 
 [userenv.development]
 

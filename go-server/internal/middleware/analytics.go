@@ -10,6 +10,7 @@ import (
         "encoding/json"
         "log/slog"
         "net/url"
+        "os"
         "strings"
         "sync"
         "time"
@@ -19,13 +20,14 @@ import (
 )
 
 const (
-	mapKeyDirect = "direct"
-	mapKeyError = "error"
+        mapKeyDirect = "direct"
+        mapKeyError = "error"
 )
 
 type AnalyticsCollector struct {
-        pool     *pgxpool.Pool
-        baseHost string
+        pool       *pgxpool.Pool
+        baseHost   string
+        excludeIPs map[string]bool
 
         mu              sync.Mutex
         dailySalt       string
@@ -43,17 +45,37 @@ func NewAnalyticsCollector(pool *pgxpool.Pool, baseURL string) *AnalyticsCollect
         if u, err := url.Parse(baseURL); err == nil {
                 host = u.Hostname()
         }
+        excluded := parseExcludeIPs()
         ac := &AnalyticsCollector{
                 pool:            pool,
                 baseHost:        host,
+                excludeIPs:      excluded,
                 visitors:        make(map[string]bool),
                 pageCounts:      make(map[string]int),
                 refCounts:       make(map[string]int),
                 analysisDomains: make(map[string]bool),
         }
+        if len(excluded) > 0 {
+                slog.Info("Analytics: excluding owner IPs from visitor counts", "count", len(excluded))
+        }
         ac.rotateSalt()
         go ac.flushLoop()
         return ac
+}
+
+func parseExcludeIPs() map[string]bool {
+        raw := os.Getenv("ANALYTICS_EXCLUDE_IPS")
+        if raw == "" {
+                return nil
+        }
+        m := make(map[string]bool)
+        for _, ip := range strings.Split(raw, ",") {
+                ip = strings.TrimSpace(ip)
+                if ip != "" {
+                        m[ip] = true
+                }
+        }
+        return m
 }
 
 func (ac *AnalyticsCollector) rotateSalt() {
@@ -105,6 +127,14 @@ func (ac *AnalyticsCollector) Middleware() gin.HandlerFunc {
                 }
 
                 ip := c.ClientIP()
+
+                if ac.excludeIPs[ip] {
+                        return
+                }
+                if role, exists := c.Get(mapKeyUserRole); exists && role == "admin" {
+                        return
+                }
+
                 ua := c.Request.UserAgent()
                 referer := extractRefOrigin(c.Request.Referer(), ac.baseHost)
                 pagePath := normalizePath(path)
