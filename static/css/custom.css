@@ -5647,8 +5647,8 @@ footer .u-rounded-circle {
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15);
 }
 .u-valign-n3 { vertical-align: -3px; }
-.u-fs-xs { font-size: 0.7rem; }
-.u-fs-xxs { font-size: 0.75rem; }
+.u-fs-xs { font-size: 0.75rem; }
+.u-fs-xxs { font-size: 0.7rem; }
 
 /* --------------------------------------------
    DISPLAY / LAYOUT
@@ -7259,7 +7259,7 @@ body.covert-mode .math-copy-btn--copied {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1050;
+    z-index: 1055;
     background: rgba(0, 0, 0, 0.6);
     padding: 0;
     display: flex;

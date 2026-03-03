@@ -128,7 +128,7 @@ func parseSPFMechanisms(spfRecord string) spfParseResult {
 
         hasSenders := len(r.includes) > 0 || len(spfAMechRe.FindAllString(spfLower, -1)) > 0 || len(spfMXMechRe.FindAllString(spfLower, -1)) > 0
         if permissiveness != nil && *permissiveness == strStrict && hasSenders {
-                issues = append(issues, "RFC 7489 §10.1: -all may cause rejection before DMARC evaluation, preventing DKIM from being checked")
+                issues = append(issues, "RFC 7489: -all may cause rejection before DMARC evaluation, preventing DKIM from being checked")
         }
 
         noMailIntent := false

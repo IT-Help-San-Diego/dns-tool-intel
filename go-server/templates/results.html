@@ -1608,7 +1608,7 @@
                                     <div class="mt-2 p-2 bg-info bg-opacity-10 border border-info border-opacity-25 rounded small">
                                         <i class="fas fa-info-circle text-info me-1"></i>
                                         <strong class="text-info">~all is the industry standard.</strong>
-                                        <span class="text-muted">Google, Apple, and most providers default to soft fail. CISA (BOD 18-01) and RFC 7489 §10.1 confirm that DMARC policy — not SPF alone — is the primary enforcement control. Using ~all allows DKIM to be evaluated before a DMARC decision is made.
+                                        <span class="text-muted">Google, Apple, and most providers default to soft fail. CISA (BOD 18-01) and RFC 7489 confirm that DMARC policy — not SPF alone — is the primary enforcement control. Using ~all allows DKIM to be evaluated before a DMARC decision is made.
                                         {{if eq $dmarcPolicy "reject"}}
                                             <strong class="text-success">This domain uses ~all + DMARC reject: the strongest compatible security stance, aligned with CISA and RFC guidance.</strong>
                                         {{else if eq $dmarcPolicy "quarantine"}}
@@ -1623,7 +1623,7 @@
                                     <div class="mt-2 p-2 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded small">
                                         <i class="fas fa-exclamation-triangle text-warning me-1"></i>
                                         <strong class="text-warning">SPF hard fail (-all): compliance-strong, but can short-circuit DMARC.</strong>
-                                        <span class="text-muted">RFC 7489 §10.1 notes that -all can cause some receivers to reject mail during the SMTP transaction — before DKIM is checked and before DMARC can evaluate the result. A message that would pass DMARC via DKIM alignment may be rejected prematurely. For most domains, ~all + DMARC p=reject is the strongest compatible posture — it allows every authentication method (SPF, DKIM, DMARC) to be fully evaluated before a decision is made.
+                                        <span class="text-muted">RFC 7489 notes that -all can cause some receivers to reject mail during the SMTP transaction — before DKIM is checked and before DMARC can evaluate the result. A message that would pass DMARC via DKIM alignment may be rejected prematurely. For most domains, ~all + DMARC p=reject is the strongest compatible posture — it allows every authentication method (SPF, DKIM, DMARC) to be fully evaluated before a decision is made.
                                         {{if and .Domain (hasSuffix ".gov" .Domain)}}
                                             <br><strong class="text-info"><i class="fas fa-landmark me-1"></i>Federal compliance context:</strong> <span class="text-info">CISA BOD 18-01 requires valid SPF records for federal civilian agency domains. The directive doesn't explicitly specify -all vs ~all, but -all is widespread federal practice as defense-in-depth. This domain's use of -all follows that convention.</span>
                                         {{end}}

@@ -624,7 +624,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb13,
                         Category:    "Analysis",
                         Title:       "Enhanced Remediation Engine",
-                        Description: "RFC-cited remediation guidance now distinguishes SPF softfail vs hardfail context per RFC 7489 §10.1, with nuanced recommendations based on whether DKIM is present.",
+                        Description: "RFC-cited remediation guidance now distinguishes SPF softfail vs hardfail context per RFC 7489, with nuanced recommendations based on whether DKIM is present.",
                         Icon:        "fas fa-cogs",
                 },
                 {

@@ -152,16 +152,24 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
         }
 
         backlog := []RoadmapItem{
+                {Title: "Probe Network Expansion (Additional Nodes)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Additional OSINT verification nodes beyond current two-node deployment"},
                 {Title: "Personal Analysis History", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Per-user session tracking and analysis library"},
                 {Title: "Drift Engine Alerts", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Webhook/email notifications when domain security posture changes"},
                 {Title: "Saved Reports", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Bookmark and revisit past analyses with snapshot storage"},
                 {Title: "Drift Engine Phases 3–4", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Timeline visualization and scheduled monitoring with baselines"},
                 {Title: "Probe Security.txt + Landing Pages", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Transparency artifacts for probe VPS nodes"},
                 {Title: "Homebrew Distribution", Type: roadmapTypeFeature, Priority: strMedium, Notes: "macOS/Linux package distribution for CLI app"},
+                {Title: "CVE Database Matching", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Automated CVE cross-referencing for protocol findings against NVD/MITRE"},
+                {Title: "DMARCbis Standards Track Tracking", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Monitor draft-ietf-dmarc-dmarcbis progression through IETF"},
+                {Title: "TLD Zone Health: Multi-Vantage Availability", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Global latency distribution, timeout/SERVFAIL rates, regional anomalies"},
+                {Title: "TLD Zone Health: Pre-Delegation Simulation", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Zonemaster-style delegation quality testing and ICANN PDT readiness"},
+                {Title: "TLD Zone Health: Change Detection & Alerting", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Registry-specific drift with alerts on DS mismatch, DNSKEY changes, SOA serial divergence"},
                 {Title: "Globalping.io Integration", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Distributed DNS resolution from 100+ global locations"},
                 {Title: "Zone File Import as Drift Baseline", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Upload zone files to establish posture baseline for drift detection"},
                 {Title: "Raw Intelligence API Access", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Direct access to collected intelligence without processing layers"},
                 {Title: "ISC Recommendation Path Integration", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Integration with ISC remediation/hardening recommendations"},
+                {Title: "TLD Zone Health: Machine-Consumable Outputs", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Stable versioned JSON API for current TLD status, webhook events for state transitions"},
+                {Title: "TLD Zone Health: Registry Identification", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Show registry operator + IANA metadata"},
         }
 
         data := gin.H{

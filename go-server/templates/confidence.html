@@ -964,7 +964,7 @@
                         $$ \text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, L=3.0)</code></p>
+                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
                 </div>
 
                 <div class="mb-4">
