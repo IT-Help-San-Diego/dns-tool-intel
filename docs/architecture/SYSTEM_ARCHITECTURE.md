@@ -589,5 +589,5 @@ posture assessment.
 
 ---
 
-*Generated for DNS Tool v26.25.98 — February 25, 2026*
+*Generated for DNS Tool v26.33.64 — March 3, 2026*
 *Diagrams render natively on GitHub, GitLab, Codeberg, and VS Code with Mermaid plugins.*

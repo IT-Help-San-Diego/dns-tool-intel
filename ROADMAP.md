@@ -95,6 +95,16 @@
 | Performance Optimization (gzip DefaultCompression, CSS/font preload hints) | v26.28.45 | Mar 2026 |
 | Video Styling Fix (approach page — constrained width, poster, label, caption) | v26.28.46 | Mar 2026 |
 | Test Coverage Expansion (exports_ice_test.go, coverage_boost14_test.go, main_test.go) | v26.28.46 | Mar 2026 |
+| SonarCloud Quality Gate (5 Rule Exclusion Fixes, Version Sync) | v26.33.62 | Mar 2026 |
+| Service Worker Hardening (Stale Precache Removal, Per-Asset Catch, 408 Offline Fallback) | v26.33.62 | Mar 2026 |
+| Accessibility Fix — Link Underlines (Body Text, Footer, Covert Mode) | v26.33.62 | Mar 2026 |
+| Production Hardening — tx.Exec Error Checking, CSV Injection Prevention, JSON Unmarshal Logging | v26.33.63 | Mar 2026 |
+| BIMI Proxy Redirect Body Leak Fix (defer-in-loop, Early Close on Error Paths) | v26.33.63 | Mar 2026 |
+| Integrity Stats Caching (5-Minute RWMutex TTL, Double-Checked Locking) | v26.33.63 | Mar 2026 |
+| JavaScript IIFE Wrapping (26 Global Functions → 4 Exports) | v26.33.64 | Mar 2026 |
+| Country Cache Eviction (Hourly sync.Once Ticker, 24h TTL Sweep) | v26.33.64 | Mar 2026 |
+| Orphaned Asset Cleanup (3 Files Removed, ~560KB Recovered) | v26.33.64 | Mar 2026 |
+| Legacy Flask Templates Removed (6 Stale Files) | v26.33.64 | Mar 2026 |
 
 ---
 
@@ -159,7 +169,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.28.46 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.33.64 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
@@ -192,8 +202,8 @@ This item should not advance to queued until core architects and the security re
 
 ## Version & Maintenance
 
-**Last Updated**: March 2, 2026  
-**Next Review**: Post-v26.29.0 release or every two weeks  
+**Last Updated**: March 3, 2026  
+**Next Review**: Post-v26.34.0 release or every two weeks  
 **Owner**: DNS Tool Architecture Team
 
 When marking items as complete:
