@@ -22,13 +22,13 @@ import (
 )
 
 const (
-	mapKeyAction = "action"
-	mapKeyAudit = "audit"
-	mapKeyHealth = "health"
-	mapKeyRestart = "restart"
-	mapKeyUpdate = "update"
-	strProbe01 = "probe-01"
-	strProbe02 = "probe-02"
+        mapKeyAction = "action"
+        mapKeyAudit = "audit"
+        mapKeyHealth = "health"
+        mapKeyRestart = "restart"
+        mapKeyUpdate = "update"
+        strProbe01 = "probe-01"
+        strProbe02 = "probe-02"
 )
 
 type ProbeAdminHandler struct {
@@ -280,13 +280,13 @@ func writeKeyFile(b64Key, label string) (string, error) {
                 if strings.HasPrefix(raw, "-----BEGIN") {
                         decoded = []byte(raw)
                 } else {
-                        return "", fmt.Errorf("failed to decode SSH key for %s: %v", label, err)
+                        return "", fmt.Errorf("failed to decode SSH key for %s: %w", label, err)
                 }
         }
 
         tmpFile, err := os.CreateTemp("", "probe-ssh-*.key")
         if err != nil {
-                return "", fmt.Errorf("failed to create temp key file: %v", err)
+                return "", fmt.Errorf("failed to create temp key file: %w", err)
         }
         if _, err := tmpFile.Write(decoded); err != nil {
                 tmpFile.Close()
@@ -296,7 +296,7 @@ func writeKeyFile(b64Key, label string) (string, error) {
         tmpFile.Close()
         if err := os.Chmod(tmpFile.Name(), 0600); err != nil {
                 os.Remove(tmpFile.Name())
-                return "", fmt.Errorf("failed to set key file permissions: %v", err)
+                return "", fmt.Errorf("failed to set key file permissions: %w", err)
         }
         return tmpFile.Name(), nil
 }

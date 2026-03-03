@@ -1447,8 +1447,8 @@ func lookupCountry(ip string) (string, string) {
         startCountryCacheEviction()
 
         if cached, ok := countryCache.Load(ip); ok {
-                entry := cached.(countryEntry)
-                if time.Since(entry.fetched) < 24*time.Hour {
+                entry, valid := cached.(countryEntry)
+                if valid && time.Since(entry.fetched) < 24*time.Hour {
                         return entry.code, entry.name
                 }
         }

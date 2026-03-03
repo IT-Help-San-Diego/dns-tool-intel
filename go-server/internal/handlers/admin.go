@@ -177,6 +177,9 @@ func (h *AdminHandler) fetchUsers(ctx context.Context) []AdminUser {
                 u.LastLoginAt = lastLoginAt.Format(timeFormatAdmin)
                 users = append(users, u)
         }
+        if err := rows.Err(); err != nil {
+                slog.Error("Admin: rows iteration error (users)", mapKeyError, err)
+        }
         return users
 }
 
@@ -214,6 +217,9 @@ func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis 
                 }
                 a.CreatedAt = createdAt.Format(timeFormatAdmin)
                 analyses = append(analyses, a)
+        }
+        if err := rows.Err(); err != nil {
+                slog.Error("Admin: rows iteration error (analyses)", mapKeyError, err)
         }
         return analyses
 }
@@ -262,6 +268,9 @@ func (h *AdminHandler) fetchICAERuns(ctx context.Context) []AdminICAERun {
                 r.CreatedAt = createdAt.Format(timeFormatAdmin)
                 runs = append(runs, r)
         }
+        if err := rows.Err(); err != nil {
+                slog.Error("Admin: rows iteration error (ICAE runs)", mapKeyError, err)
+        }
         return runs
 }
 
@@ -292,6 +301,9 @@ func (h *AdminHandler) fetchScannerAlerts(ctx context.Context) []AdminScannerAle
                 }
                 a.CreatedAt = createdAt.Format(timeFormatAdmin)
                 alerts = append(alerts, a)
+        }
+        if err := rows.Err(); err != nil {
+                slog.Error("Admin: rows iteration error (scanner alerts)", mapKeyError, err)
         }
         return alerts
 }

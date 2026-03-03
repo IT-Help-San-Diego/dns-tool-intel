@@ -112,6 +112,9 @@ func (h *AnalyticsHandler) fetchDailyAnalytics(ctx context.Context, limit int) [
                 }
                 days = append(days, d)
         }
+        if err := rows.Err(); err != nil {
+                slog.Error("Analytics: rows iteration error", mapKeyError, err)
+        }
         return days
 }
 

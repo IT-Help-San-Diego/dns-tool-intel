@@ -88,6 +88,7 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
         if err != nil {
                 return
         }
+        defer resp.Body.Close()
 
         body, safeCT, err := validateBIMIResponse(resp)
         if err != nil {
