@@ -76,8 +76,13 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                 c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
                 c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
                 c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
-                c.Header("Cross-Origin-Opener-Policy", "same-origin")
-                c.Header("Cross-Origin-Resource-Policy", "same-origin")
+                if devMode {
+                        c.Header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+                        c.Header("Cross-Origin-Resource-Policy", "cross-origin")
+                } else {
+                        c.Header("Cross-Origin-Opener-Policy", "same-origin")
+                        c.Header("Cross-Origin-Resource-Policy", "same-origin")
+                }
                 c.Header("X-Permitted-Cross-Domain-Policies", "none")
 
                 upgradeDirective := ""
