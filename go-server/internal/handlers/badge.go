@@ -24,10 +24,10 @@ const (
         labelDNSTool   = "DNS Tool"
 
 
-	mapKeyColor = "color"
-	mapKeyLabel = "label"
-	mapKeyLightgrey = "lightgrey"
-	strSchemaversion = "schemaVersion"
+        mapKeyColor = "color"
+        mapKeyLabel = "label"
+        mapKeyLightgrey = "lightgrey"
+        strSchemaversion = "schemaVersion"
 )
 
 type BadgeHandler struct {
@@ -89,10 +89,12 @@ func (h *BadgeHandler) BadgeEmbed(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
         c.HTML(http.StatusOK, "badge_embed.html", gin.H{
-                "CspNonce":   nonce,
-                "CsrfToken":  csrfToken,
-                "AppVersion": h.Config.AppVersion,
-                "BaseURL":    h.Config.BaseURL,
+                "CspNonce":        nonce,
+                "CsrfToken":       csrfToken,
+                "AppVersion":      h.Config.AppVersion,
+                "BaseURL":         h.Config.BaseURL,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
         })
 }
 
