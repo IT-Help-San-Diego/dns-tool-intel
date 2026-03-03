@@ -16,77 +16,83 @@ INSERT INTO domain_analyses (
     full_results, posture_hash, private, has_user_selectors, scan_flag, scan_source
 )
 VALUES
+-- NOTE: All posture_hash values are identical because the seed full_results JSON
+-- uses simplified keys (spf, dmarc, dkim) rather than the analysis-section keys
+-- (spf_analysis, dmarc_analysis, dkim_analysis) that CanonicalPostureHash extracts.
+-- The hash is the real SHA-3-512 of empty canonical fields — honest, not fake.
+-- Real scans produce full_results with proper analysis sections and unique hashes.
+
 -- 1. Strong posture — all pass
 (1, 'cloudflare.com', 'cloudflare.com', 'pass', 'pass', 'reject', 'pass',
  true, 42.3, NOW() - INTERVAL '6 hours', NOW() - INTERVAL '6 hours',
  '{"_tool_version":"26.28.50","domain":"cloudflare.com","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com include:spf1.mcsv.net include:spf.mandrillapp.com ~all","lookup_count":4},"dmarc":{"status":"pass","policy":"reject","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["google","mandrill"]},"dnssec":{"signed":true,"valid":true},"mta_sts":{"mode":"enforce"},"caa":{"present":true}}'::json,
- 'a1b2c3d4e5f6', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 2. Weak posture — SPF fail, no DMARC
 (2, 'evilhacker.com', 'evilhacker.com', 'fail', 'fail', 'none', 'pass',
  true, 60.0, NOW() - INTERVAL '5 hours', NOW() - INTERVAL '5 hours',
  '{"_tool_version":"26.28.50","domain":"evilhacker.com","spf":{"status":"fail","record":"","lookup_count":0},"dmarc":{"status":"fail","policy":"none","pct":0,"has_rua":false},"dkim":{"status":"pass","selectors_found":["default"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":false}}'::json,
- 'b2c3d4e5f6a7', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 3. Mixed posture — SPF pass, DMARC quarantine
 (3, 'github.com', 'github.com', 'pass', 'pass', 'quarantine', 'pass',
  true, 38.7, NOW() - INTERVAL '4 hours', NOW() - INTERVAL '4 hours',
  '{"_tool_version":"26.28.50","domain":"github.com","spf":{"status":"pass","record":"v=spf1 ip4:192.30.252.0/22 include:_netblocks.google.com include:servers.mcsv.net ~all","lookup_count":5},"dmarc":{"status":"pass","policy":"quarantine","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["google","pf2014"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"enforce"},"caa":{"present":true}}'::json,
- 'c3d4e5f6a7b8', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 4. International domain (IDN)
 (4, 'kisa.org.cy', 'kisa.org.cy', 'pass', 'fail', 'none', 'pass',
  true, 54.3, NOW() - INTERVAL '3 hours 30 minutes', NOW() - INTERVAL '3 hours 30 minutes',
  '{"_tool_version":"26.28.50","domain":"kisa.org.cy","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com ~all","lookup_count":2},"dmarc":{"status":"fail","policy":"none","pct":0,"has_rua":false},"dkim":{"status":"pass","selectors_found":["google"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":false}}'::json,
- 'd4e5f6a7b8c9', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 5. Strong enterprise
 (5, 'google.com', 'google.com', 'pass', 'pass', 'reject', 'pass',
  true, 31.2, NOW() - INTERVAL '3 hours', NOW() - INTERVAL '3 hours',
  '{"_tool_version":"26.28.50","domain":"google.com","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com ~all","lookup_count":3},"dmarc":{"status":"pass","policy":"reject","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["20230601"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"enforce"},"caa":{"present":true}}'::json,
- 'e5f6a7b8c9d0', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 6. No-mail domain
 (6, 'parked-domain.example', 'parked-domain.example', 'pass', 'pass', 'reject', 'none',
  true, 12.8, NOW() - INTERVAL '2 hours 30 minutes', NOW() - INTERVAL '2 hours 30 minutes',
  '{"_tool_version":"26.28.50","domain":"parked-domain.example","spf":{"status":"pass","record":"v=spf1 -all","lookup_count":0},"dmarc":{"status":"pass","policy":"reject","pct":100,"has_rua":false},"dkim":{"status":"none","selectors_found":[]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":false},"null_mx":true}'::json,
- 'f6a7b8c9d0e1', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 7. SPF too many lookups
 (7, 'markphd.me', 'markphd.me', 'fail', 'fail', 'none', 'pass',
  true, 60.0, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours',
  '{"_tool_version":"26.28.50","domain":"markphd.me","spf":{"status":"fail","record":"v=spf1 include:_spf.google.com include:spf.protection.outlook.com include:sendgrid.net include:mail.zendesk.com include:spf.freshdesk.com include:servers.mcsv.net ~all","lookup_count":12},"dmarc":{"status":"fail","policy":"none","pct":0,"has_rua":false},"dkim":{"status":"pass","selectors_found":["google"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":false}}'::json,
- 'a7b8c9d0e1f2', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 8. Government domain — strong
 (8, 'cisa.gov', 'cisa.gov', 'pass', 'pass', 'reject', 'pass',
  true, 44.1, NOW() - INTERVAL '1 hour 30 minutes', NOW() - INTERVAL '1 hour 30 minutes',
  '{"_tool_version":"26.28.50","domain":"cisa.gov","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com include:amazonses.com ~all","lookup_count":4},"dmarc":{"status":"pass","policy":"reject","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["google","selector1"]},"dnssec":{"signed":true,"valid":true},"mta_sts":{"mode":"enforce"},"caa":{"present":true}}'::json,
- 'b8c9d0e1f2a3', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 9. Weak — all fail
 (9, 'purpleflock.com', 'purpleflock.com', 'fail', 'fail', 'none', 'fail',
  true, 58.5, NOW() - INTERVAL '1 hour', NOW() - INTERVAL '1 hour',
  '{"_tool_version":"26.28.50","domain":"purpleflock.com","spf":{"status":"fail","record":"","lookup_count":0},"dmarc":{"status":"fail","policy":"none","pct":0,"has_rua":false},"dkim":{"status":"fail","selectors_found":[]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":false}}'::json,
- 'c9d0e1f2a3b4', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 10. Microsoft-hosted
 (10, 'microsoft.com', 'microsoft.com', 'pass', 'pass', 'reject', 'pass',
  true, 35.9, NOW() - INTERVAL '45 minutes', NOW() - INTERVAL '45 minutes',
  '{"_tool_version":"26.28.50","domain":"microsoft.com","spf":{"status":"pass","record":"v=spf1 include:_spf-a.microsoft.com include:_spf-b.microsoft.com include:_spf-c.microsoft.com ~all","lookup_count":6},"dmarc":{"status":"pass","policy":"reject","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["selector1","selector2"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"enforce"},"caa":{"present":true}}'::json,
- 'd0e1f2a3b4c5', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 11. Long domain name (layout stress test)
 (11, 'subdomain.really-long-organization-name.co.uk', 'subdomain.really-long-organization-name.co.uk', 'pass', 'pass', 'quarantine', 'none',
  true, 47.2, NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '30 minutes',
  '{"_tool_version":"26.28.50","domain":"subdomain.really-long-organization-name.co.uk","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com ~all","lookup_count":2},"dmarc":{"status":"pass","policy":"quarantine","pct":50,"has_rua":true},"dkim":{"status":"none","selectors_found":[]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"testing"},"caa":{"present":false}}'::json,
- 'e1f2a3b4c5d6', false, false, false, 'web'),
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web'),
 
 -- 12. Recent scan — DMARC p=none with pct
 (12, 'stanford.edu', 'stanford.edu', 'pass', 'pass', 'none', 'pass',
  true, 39.4, NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '10 minutes',
  '{"_tool_version":"26.28.50","domain":"stanford.edu","spf":{"status":"pass","record":"v=spf1 include:_spf.google.com include:spf.protection.outlook.com ~all","lookup_count":5},"dmarc":{"status":"pass","policy":"none","pct":100,"has_rua":true},"dkim":{"status":"pass","selectors_found":["google"]},"dnssec":{"signed":false,"valid":false},"mta_sts":{"mode":"none"},"caa":{"present":true}}'::json,
- 'f2a3b4c5d6e7', false, false, false, 'web')
+ '21e860988de57da068fee0a690bad2c613250b738cca5c3230d93a9dd882d20d5663765d26c2becc21d251fc7ed0a77db491a9b1bd03fe59dcc5dfff88fb5910', false, false, false, 'web')
 
 ON CONFLICT (id) DO NOTHING;
 
