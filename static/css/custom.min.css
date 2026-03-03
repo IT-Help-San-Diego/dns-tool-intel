@@ -1554,6 +1554,26 @@ main.container {
     }
 }
 
+@media (max-width: 375px) {
+    .navbar-brand {
+        font-size: 0.85rem;
+    }
+
+    .navbar-brand .nav-version-badge {
+        font-size: 0.45rem;
+        padding: 0.06rem 0.25rem;
+    }
+
+    .u-maintenance-tag {
+        font-size: 0.4rem;
+        padding: 0.08em 0.3em;
+    }
+
+    .u-nav-controls {
+        gap: 0.2rem !important;
+    }
+}
+
 .alert {
     border: none;
     border-radius: 0.5rem;
@@ -7195,7 +7215,7 @@ body.covert-mode .math-copy-btn--copied {
 }
 .tld-recon-toast {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    z-index: 99999; max-width: 480px; width: 90%; padding: 1.5rem 2rem;
+    z-index: 100000; max-width: 480px; width: 90%; padding: 1.5rem 2rem;
     border-radius: 0.5rem; border: 1px solid rgba(196,60,60,0.35);
     background: rgba(14,8,8,0.95);
     box-shadow: 0 0 40px rgba(140,40,40,0.3), 0 0 80px rgba(0,0,0,0.5);
