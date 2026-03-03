@@ -151,15 +151,15 @@ p a:not(.btn):not(.nav-link):not(.icae-badge):not(.icuae-badge):not(.icae-hero-s
 footer a.text-info {
     text-decoration: underline;
     text-decoration-thickness: 1px;
-    text-underline-offset: 0.15em;
-    text-decoration-color: rgba(13, 202, 240, 0.45);
+    text-underline-offset: 0.18em;
+    text-decoration-color: rgba(13, 202, 240, 0.6);
 }
 p a:not(.btn):not(.nav-link):not(.icae-badge):not(.icuae-badge):not(.icae-hero-statement):not(.icae-confidence-label):not(.icae-hero-maturity-badge):hover,
 .u-privacy-details a:hover,
 .faq-answer a:hover,
 .card-body a:not(.btn):not(.icae-badge):not(.icuae-badge):hover,
 footer a.text-info:hover {
-    text-decoration-color: rgba(13, 202, 240, 0.85);
+    text-decoration-color: rgba(13, 202, 240, 0.9);
 }
 
 /* ============================================
@@ -3660,12 +3660,12 @@ body.covert-mode .u-max-w-900 a.text-info:hover {
 body.covert-mode p a.text-info,
 body.covert-mode .u-privacy-details a.text-info,
 body.covert-mode footer a.text-info {
-    text-decoration-color: rgba(204, 40, 40, 0.35);
+    text-decoration-color: rgba(204, 40, 40, 0.55);
 }
 body.covert-mode p a.text-info:hover,
 body.covert-mode .u-privacy-details a.text-info:hover,
 body.covert-mode footer a.text-info:hover {
-    text-decoration-color: rgba(204, 40, 40, 0.7);
+    text-decoration-color: rgba(204, 40, 40, 0.85);
 }
 body.covert-mode .u-max-w-900 .card {
     border-color: rgba(140, 40, 40, 0.15) !important;

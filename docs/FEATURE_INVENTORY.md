@@ -1,6 +1,6 @@
 # DNS Tool — Feature Overview
 
-**Last Updated:** March 3, 2026 (v26.33.64)
+**Last Updated:** March 3, 2026 (v26.33.65)
 **Implementation:** Go/Gin
 
 ---

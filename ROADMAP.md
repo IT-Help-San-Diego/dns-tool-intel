@@ -101,10 +101,10 @@
 | Production Hardening — tx.Exec Error Checking, CSV Injection Prevention, JSON Unmarshal Logging | v26.33.63 | Mar 2026 |
 | BIMI Proxy Redirect Body Leak Fix (defer-in-loop, Early Close on Error Paths) | v26.33.63 | Mar 2026 |
 | Integrity Stats Caching (5-Minute RWMutex TTL, Double-Checked Locking) | v26.33.63 | Mar 2026 |
-| JavaScript IIFE Wrapping (26 Global Functions → 4 Exports) | v26.33.64 | Mar 2026 |
-| Country Cache Eviction (Hourly sync.Once Ticker, 24h TTL Sweep) | v26.33.64 | Mar 2026 |
-| Orphaned Asset Cleanup (3 Files Removed, ~560KB Recovered) | v26.33.64 | Mar 2026 |
-| Legacy Flask Templates Removed (6 Stale Files) | v26.33.64 | Mar 2026 |
+| JavaScript IIFE Wrapping (26 Global Functions → 4 Exports) | v26.33.65 | Mar 2026 |
+| Country Cache Eviction (Hourly sync.Once Ticker, 24h TTL Sweep) | v26.33.65 | Mar 2026 |
+| Orphaned Asset Cleanup (3 Files Removed, ~560KB Recovered) | v26.33.65 | Mar 2026 |
+| Legacy Flask Templates Removed (6 Stale Files) | v26.33.65 | Mar 2026 |
 
 ---
 
@@ -169,7 +169,7 @@
 
 ### Completed Items
 
-All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.33.64 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
+All items in the "Completed" section have working implementations in the codebase (v26.20.0–v26.33.65 as of March 2026). Every item has either been verified by test suites, deployed to production, or demonstrated in public releases.
 
 **Key completions**:
 - **Authentication (v26.20.56–57)**: Zero-friction paste-and-go remains; login is optional, premium features require authentication.
