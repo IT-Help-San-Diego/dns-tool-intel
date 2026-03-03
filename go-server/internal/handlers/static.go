@@ -78,6 +78,12 @@ func (h *StaticHandler) ServiceWorker(c *gin.Context) {
         c.Data(http.StatusOK, "application/javascript", []byte(body))
 }
 
+func (h *StaticHandler) BIMILogoSVG(c *gin.Context) {
+        c.Header(headerContentType, "image/svg+xml")
+        c.Header(headerCacheControl, cachePublicDay)
+        c.File(filepath.Join(h.StaticDir, "bimi-logo.svg"))
+}
+
 func (h *StaticHandler) SitemapXML(c *gin.Context) {
         today := time.Now().Format("2006-01-02")
 

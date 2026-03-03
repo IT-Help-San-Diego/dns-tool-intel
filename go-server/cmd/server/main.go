@@ -154,6 +154,7 @@ func main() {
         router.GET("/security.txt", staticHandler.SecurityTxt)
         router.GET("/robots.txt", staticHandler.RobotsTxt)
         router.GET("/sitemap.xml", staticHandler.SitemapXML)
+        router.GET("/bimi-logo.svg", staticHandler.BIMILogoSVG)
         router.GET("/llms.txt", staticHandler.LLMsTxt)
         router.GET("/llms-full.txt", staticHandler.LLMsFullTxt)
         router.GET("/.well-known/llms.txt", staticHandler.LLMsTxt)
