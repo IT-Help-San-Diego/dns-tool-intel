@@ -1,0 +1,1 @@
+id,domain,ascii_domain,basic_records,authoritative_records,spf_status,spf_records,dmarc_status,dmarc_policy,dmarc_records,dkim_status,dkim_selectors,registrar_name,registrar_source,analysis_success,error_message,analysis_duration,created_at,updated_at,country_code,country_name,ct_subdomains,full_results,posture_hash,private,has_user_selectors,scan_flag,scan_source,scan_ip
