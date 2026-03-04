@@ -103,7 +103,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                 csp := fmt.Sprintf(
                         "default-src 'none'; "+
                                 "script-src 'self' 'nonce-%s'; "+
-                                "style-src 'self' 'unsafe-inline'; "+
+                                "style-src 'self' 'nonce-%s'; "+
                                 "font-src 'self'; "+
                                 "img-src 'self' data: https:; "+
                                 "%s"+
@@ -116,7 +116,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                                 "media-src 'self'; "+
                                 "worker-src 'self'; "+
                                 "%s",
-                        nonceStr, connectSrc, frameAncestors, upgradeDirective,
+                        nonceStr, nonceStr, connectSrc, frameAncestors, upgradeDirective,
                 )
                 c.Header("Content-Security-Policy", csp)
 
