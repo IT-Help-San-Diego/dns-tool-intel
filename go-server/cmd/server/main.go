@@ -342,6 +342,7 @@ func main() {
         router.GET("/approach", approachHandler.Approach)
 
         router.GET("/methodology", staticHandler.MethodologyPDF)
+        router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
