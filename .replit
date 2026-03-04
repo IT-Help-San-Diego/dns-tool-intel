@@ -28,6 +28,7 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "./dns-tool-server"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
