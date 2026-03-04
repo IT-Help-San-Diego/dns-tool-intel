@@ -68,7 +68,10 @@ func main() {
                 slog.Info("Security headers: production mode — strict frame-ancestors, X-Frame-Options DENY")
         }
 
-        router.Use(middleware.Recovery(cfg.AppVersion))
+        router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
+                "MaintenanceNote": cfg.MaintenanceNote,
+                "BetaPages":       cfg.BetaPages,
+        }))
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
         }
@@ -328,10 +331,12 @@ func main() {
                 nonce, _ := c.Get("csp_nonce")
                 csrfToken, _ := c.Get("csrf_token")
                 data := gin.H{
-                        "AppVersion": cfg.AppVersion,
-                        "CspNonce":   nonce,
-                        "CsrfToken":  csrfToken,
-                        "ActivePage": "home",
+                        "AppVersion":      cfg.AppVersion,
+                        "MaintenanceNote": cfg.MaintenanceNote,
+                        "BetaPages":       cfg.BetaPages,
+                        "CspNonce":        nonce,
+                        "CsrfToken":       csrfToken,
+                        "ActivePage":      "home",
                 }
                 for k, v := range middleware.GetAuthTemplateData(c) {
                         data[k] = v

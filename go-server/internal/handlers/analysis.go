@@ -897,12 +897,14 @@ func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, dri
 
 func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, category, message string) gin.H {
         data := gin.H{
-                strAppversion:    h.Config.AppVersion,
-                "BaseURL":        h.Config.BaseURL,
-                strCspnonce:      nonce,
-                strCsrftoken:     csrfToken,
-                strActivepage:    "home",
-                "FlashMessages": []FlashMessage{{Category: category, Message: message}},
+                strAppversion:      h.Config.AppVersion,
+                "BaseURL":          h.Config.BaseURL,
+                strCspnonce:        nonce,
+                strCsrftoken:       csrfToken,
+                strActivepage:      "home",
+                "MaintenanceNote":  h.Config.MaintenanceNote,
+                "BetaPages":        h.Config.BetaPages,
+                "FlashMessages":   []FlashMessage{{Category: category, Message: message}},
         }
         mergeAuthData(c, h.Config, data)
         return data

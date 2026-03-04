@@ -9,6 +9,9 @@ import (
         "strconv"
         "strings"
         "time"
+
+        "golang.org/x/text/cases"
+        "golang.org/x/text/language"
 )
 
 const (
@@ -239,7 +242,7 @@ func stringFuncs() template.FuncMap {
         return template.FuncMap{
                 "upper":        strings.ToUpper,
                 "lower":        strings.ToLower,
-                "title":        strings.Title,
+                "title":        cases.Title(language.English).String,
                 "contains":     strings.Contains,
                 "hasPrefix":    strings.HasPrefix,
                 "hasSuffix":    strings.HasSuffix,
