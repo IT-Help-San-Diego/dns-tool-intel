@@ -34,12 +34,14 @@
 {{end}}
 
 {{define "head_css"}}
-<link rel="preload" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" as="style">
+<link rel="preload" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" as="style" {{staticSRI "css/custom.min.css"}}>
 <link rel="preload" href="/static/webfonts/fa-solid-900.woff2?v=4" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{{staticVersionURL "css/foundation.min.css" .AppVersion}}">
-<link rel="stylesheet" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}">
-<link rel="stylesheet" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}">
-<link rel="stylesheet" href="{{staticVersionURL "css/print.min.css" .AppVersion}}" media="print">
+<link rel="preload" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}" as="style" {{staticSRI "css/fontawesome-subset.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/foundation.min.css" .AppVersion}}" {{staticSRI "css/foundation.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" {{staticSRI "css/custom.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}" media="print" {{staticSRI "css/fontawesome-subset.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/print.min.css" .AppVersion}}" media="print" {{staticSRI "css/print.min.css"}}>
+<script nonce="{{.CspNonce}}">document.querySelector('link[href*="fontawesome-subset"][media="print"]').media='all';</script>
 {{end}}
 
 {{define "head_katex"}}
