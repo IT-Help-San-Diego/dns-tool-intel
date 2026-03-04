@@ -41,13 +41,11 @@ func main() {
                 Level: slog.LevelDebug,
         })))
 
-        cfg, err := config.Load()
-        if err != nil {
-                slog.Error("Failed to load config", mapKeyError, err)
-                os.Exit(1)
+        earlyPort := os.Getenv("PORT")
+        if earlyPort == "" {
+                earlyPort = "5000"
         }
-
-        addr := fmt.Sprintf("0.0.0.0:%s", cfg.Port)
+        earlyAddr := fmt.Sprintf("0.0.0.0:%s", earlyPort)
 
         var handler atomic.Value
         handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +61,7 @@ func main() {
         }))
 
         srv := &http.Server{
-                Addr: addr,
+                Addr: earlyAddr,
                 Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                         handler.Load().(http.Handler).ServeHTTP(w, r)
                 }),
@@ -85,7 +83,13 @@ func main() {
                 os.Exit(1)
         case <-time.After(100 * time.Millisecond):
         }
-        slog.Info("Early listener started — accepting healthchecks", "address", addr)
+        slog.Info("Early listener started — accepting healthchecks", "address", earlyAddr)
+
+        cfg, err := config.Load()
+        if err != nil {
+                slog.Error("Failed to load config", mapKeyError, err)
+                os.Exit(1)
+        }
 
         dnsclient.SetUserAgentVersion(cfg.AppVersion)
 
@@ -390,7 +394,7 @@ func main() {
 
         handler.Store(http.HandlerFunc(router.Handler().ServeHTTP))
         slog.Info("Full router ready — handler swapped",
-                "address", addr,
+                "address", earlyAddr,
                 "version", cfg.AppVersion,
                 "commit", config.GitCommit,
                 "built", config.BuildTime,
