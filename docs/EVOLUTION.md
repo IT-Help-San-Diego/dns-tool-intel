@@ -3073,3 +3073,46 @@ SonarCloud grades and PageSpeed Best Practices 100 were the targets. Multiple se
 - `replit.md` updated with Quality Trinity targets, research infrastructure, brand palette, build chain, dev/prod detection
 - `SKILL.md` updated with Research & Citation, Brand Palette, Dev vs Production sections
 - `EVOLUTION.md` synced to Intel repo
+
+
+---
+
+### v26.33.83 — 2026-03-04
+
+#### Print Report Branding Overhaul (All Three Report Templates)
+Unified visual identity across all printable reports to match the new methodology PDF quality standard.
+
+**Logo upgrade**: Replaced `owl-of-athena.png` (24pt square) with `owl-emblem-circle.png` (36pt circular) in print headers. The circular version crops away the black square corners — the Greek key border sits right at the edge, reads as a classical seal/emblem. Created via Python PIL circular masking with 18px inset crop.
+
+**Brand name**: Increased from 8.5pt to 11pt in print headers. More presence alongside the larger emblem.
+
+**Report title**: Bumped from 15pt to 16pt, added 4pt top margin for breathing room.
+
+**Gold-infused gradient bars**: Header and footer accent bars updated from `Navy→Teal→Amber` to `Navy→Teal→Emblem Gold (#C8A878)→Amber`. Consistent with the brand palette formalized in v26.33.82.
+
+**Covert/Recon report (`results_covert.html`)**: Added full print header and footer — previously had NONE. Now includes:
+- Print header: accent bar, owl emblem, report title, metadata, TLP badge
+- Domain banner: navy background, monospace domain name
+- Print footer: three-column layout, tagline, TLP disclaimer
+
+**Files changed**:
+- `static/css/custom.css` + `custom.min.css` — `.print-brand-logo` 24pt→36pt, `.print-brand-name` 8.5pt→11pt, `.print-report-title` 15pt→16pt, gradient bars updated
+- `go-server/templates/results.html` — logo path → `owl-emblem-circle.png`
+- `go-server/templates/results_executive.html` — logo path + inline print CSS synced (same size/gradient updates)
+- `go-server/templates/results_covert.html` — NEW print header/footer HTML, screen header gets `screen-only` class
+- `static/images/owl-emblem-circle.png` — NEW reusable asset (476×476px, transparent background, circular crop)
+
+#### Methodology PDF Styling
+- Styled HTML template with WeasyPrint → PDF pipeline
+- Owl of Athena emblem (110px) centered at top
+- Gold (#C8A878) accent borders on headings and abstract panel
+- Serif typography (Times New Roman/Georgia) — academic standard
+- Full metadata block: ORCID, DOI, project URL, source repo, version, license
+- BibTeX citation block
+- Served at `/docs/dns-tool-methodology.pdf`
+
+#### Reusable Brand Assets Created
+- `static/images/owl-emblem-circle.png` — circular-cropped owl emblem for letterheads, PDFs, slides, etc.
+
+#### Version Bump
+- `config.go`, `sonar-project.properties`, `CITATION.cff`, `docs/dns-tool-methodology.md/.html` all bumped to 26.33.83
