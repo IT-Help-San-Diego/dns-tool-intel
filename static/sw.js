@@ -96,6 +96,8 @@ globalThis.addEventListener('fetch', function(event) {
 
   if (event.request.method !== 'GET') return;
 
+  if (url.pathname === '/' || url.pathname === '') return;
+
   if (!url.pathname.startsWith('/static/')) {
     if (event.request.mode === 'navigate') {
       event.respondWith(
