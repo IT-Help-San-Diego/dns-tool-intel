@@ -6144,7 +6144,7 @@
                 var parts = bodyText.split(section.highlight);
                 if (parts.length > 1) {
                     bodyEl.innerHTML = escapeHtml(parts[0])
-                        + '<mark style="background:#ffd700;color:#1a1a2e;padding:2px 4px;border-radius:3px">'
+                        + '<mark class="u-search-highlight">'
                         + escapeHtml(section.highlight)
                         + '</mark>'
                         + escapeHtml(parts.slice(1).join(section.highlight));
@@ -6672,7 +6672,7 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-2" id="rfcPopupBody" style="max-height:60vh;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:#c9d1d9"></div>
+                <div class="modal-body py-2 rfc-popup-body" id="rfcPopupBody"></div>
                 <div class="modal-footer border-secondary py-1">
                     <a id="rfcPopupFullLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info"><i class="fas fa-external-link-alt me-1"></i>Full RFC</a>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
