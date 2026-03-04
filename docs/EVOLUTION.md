@@ -3039,3 +3039,37 @@ SonarCloud grades and PageSpeed Best Practices 100 were the targets. Multiple se
 - Zero `.style.` / `.cssText` / `setProperty` in foundation.js and main.js
 - All Go tests pass (19 packages)
 - Build clean, server running v26.26.28
+
+
+---
+
+### v26.33.82 — 2026-03-04
+
+#### Production Security Headers Fix (Observatory 130 → 140 restoration)
+**Root cause**: `IsDevEnvironment` detection used `REPLIT_DEV_DOMAIN != ""` which is set in BOTH dev and production VMs, causing production to serve dev-mode security headers (`frame-ancestors *.replit.dev`, no `X-Frame-Options`).
+
+**Fix**: Changed detection to `BASE_URL != "https://dnstool.it-help.tech"`. Production has no `BASE_URL` set (defaults to prod URL, `isDevEnv=false`). Development has `BASE_URL` set as a development-scoped env var.
+
+**Lesson**: Never trust `REPLIT_DEV_DOMAIN` for production detection — Replit sets it in all VM environments. Use explicit URL comparison instead.
+
+**Files**: `go-server/internal/config/config.go`, `go-server/internal/config/config_test.go`
+
+#### Research & Citation Infrastructure
+- **CITATION.cff** created at repo root (GitHub auto-detects)
+- **Zenodo DOI minted**: Concept DOI `10.5281/zenodo.18854899`, Version DOI `10.5281/zenodo.18854900`
+- **Methodology technical note**: `docs/dns-tool-methodology.md` + PDF at `docs/dns-tool-methodology.pdf`
+- **PDF serving route**: `/docs/dns-tool-methodology.pdf` added to main.go router
+- **ORCID linked**: `0009-0000-5237-9065`
+- **Pipeline**: GitHub release → Zenodo → DataCite DOI → Software Heritage → OpenAlex
+
+#### Brand Palette Formalized
+- **Emblem Gold**: #C8A878 / rgb(200,168,120)
+- **Accent Red (Plus sign)**: Changed from #FF1744 (neon) to #C42A2A (classical red) — matches Owl of Athena heritage aesthetic
+- **Neutral System**: #333333, #666666, #A0A0A0, #E4E4E4, #F9F9F9
+- **Visual hierarchy**: Gold (primary) → Deep red (accent) → Neutral grays (structure)
+- **SAN DIEGO letter-spacing**: 1.4px (email signature only, not in repo)
+
+#### Documentation Updates
+- `replit.md` updated with Quality Trinity targets, research infrastructure, brand palette, build chain, dev/prod detection
+- `SKILL.md` updated with Research & Citation, Brand Palette, Dev vs Production sections
+- `EVOLUTION.md` synced to Intel repo
