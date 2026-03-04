@@ -92,7 +92,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
 
                 frameAncestors := "frame-ancestors 'none'; "
                 if devMode {
-                        frameAncestors = "frame-ancestors https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
+                        frameAncestors = "frame-ancestors https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
                 }
 
                 connectSrc := "connect-src 'self'; "
