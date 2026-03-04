@@ -626,12 +626,16 @@ func TestCanonicalHostRedirect_ReplitAppRedirects(t *testing.T) {
         req.Host = "dns-tool.replit.app"
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusMovedPermanently {
-                t.Fatalf("expected 301, got %d", w.Code)
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302, got %d", w.Code)
         }
         loc := w.Header().Get("Location")
         if loc != "https://dnstool.it-help.tech/" {
                 t.Errorf("expected redirect to canonical host, got %s", loc)
+        }
+        cc := w.Header().Get("Cache-Control")
+        if cc != "no-cache, no-store, must-revalidate" {
+                t.Errorf("expected no-cache header on redirect, got %s", cc)
         }
 }
 
@@ -664,8 +668,8 @@ func TestCanonicalHostRedirect_PreservesPath(t *testing.T) {
         req.Host = "dns-tool.replit.app"
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusMovedPermanently {
-                t.Fatalf("expected 301, got %d", w.Code)
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302, got %d", w.Code)
         }
         loc := w.Header().Get("Location")
         if loc != "https://dnstool.it-help.tech/analyze?domain=example.com" {
@@ -685,8 +689,8 @@ func TestCanonicalHostRedirect_ReplitDevRedirects(t *testing.T) {
         req.Host = "something.replit.dev"
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusMovedPermanently {
-                t.Fatalf("expected 301 for .replit.dev, got %d", w.Code)
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302 for .replit.dev, got %d", w.Code)
         }
 }
 

@@ -770,8 +770,8 @@ func TestCanonicalHostRedirectNoSchemeDefaultsHTTPS(t *testing.T) {
         req.Host = "test.replit.app"
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusMovedPermanently {
-                t.Fatalf("expected 301, got %d", w.Code)
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302, got %d", w.Code)
         }
         loc := w.Header().Get("Location")
         if !strings.HasPrefix(loc, "https://") {
