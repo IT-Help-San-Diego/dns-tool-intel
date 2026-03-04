@@ -77,14 +77,15 @@ function showOverlay(overlay) {
     overlay.classList.add('is-active');
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
-            for (const el of overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span')) {
-                const anim = getComputedStyle(el).animationName;
-                if (anim && anim !== 'none') {
-                    el.classList.add('anim-restart');
-                    void el.offsetWidth; // NOSONAR — Safari reflow
-                    el.classList.remove('anim-restart');
-                }
+            var els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
+            var animated = [];
+            for (var i = 0; i < els.length; i++) {
+                var anim = getComputedStyle(els[i]).animationName;
+                if (anim && anim !== 'none') animated.push(els[i]);
             }
+            for (var j = 0; j < animated.length; j++) animated[j].classList.add('anim-restart');
+            if (animated.length) void animated[0].offsetWidth; // NOSONAR — single reflow to restart all animations (Safari)
+            for (var k = 0; k < animated.length; k++) animated[k].classList.remove('anim-restart');
         });
     });
 }
@@ -128,8 +129,7 @@ function startStatusCycle(overlayEl) {
             const icon = phase.querySelector('.scan-icon');
             if (icon) {
                 icon.classList.remove('fa-circle-notch', 'fa-spin', 'scan-pending');
-                void icon.offsetWidth; // NOSONAR — Safari reflow trigger for ::before content swap
-                icon.classList.add('fa-check-circle');
+                requestAnimationFrame(function() { icon.classList.add('fa-check-circle'); });
             }
             completed++;
         }, doneDelay);

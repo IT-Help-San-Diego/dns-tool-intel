@@ -148,6 +148,7 @@ func main() {
 
         staticDir := findStaticDir()
         slog.Info("Static directory resolved", "path", staticDir)
+        tmplFuncs.InitSRI(staticDir)
         staticFS := http.Dir(staticDir)
         fileServer := http.StripPrefix("/static", http.FileServer(staticFS))
         serveStatic := func(c *gin.Context) {
