@@ -86,7 +86,7 @@
 
     /* DNS Tool Question Branding System (R004/R006) */
     --dt-question-color: rgba(13, 202, 240, 0.92);
-    --dt-question-color-covert: rgba(220, 80, 80, 0.95);
+    --dt-question-color-covert: rgba(195, 60, 60, 0.85);
     --dt-question-size-section: 1.0em;
     --dt-question-size-protocol: 0.85em;
     --dt-question-weight: 600;
@@ -7519,3 +7519,53 @@ body.covert-mode .u-privacy-accept-btn:hover {
     .verify-formula-cell, .verify-formula-cell:last-child, .verify-formula-cell:nth-child(2) { text-align: center; }
     .verify-panel-title { font-size: 1.05rem; }
 }
+
+.u-progress-h8 { height: 8px; }
+.u-progress-h5 { height: 5px; }
+.u-fs-065em { font-size: 0.65rem; }
+.u-fs-06em { font-size: 0.6rem; }
+.u-fs-07em { font-size: 0.7rem; }
+.u-fs-082em { font-size: 0.82rem; }
+.u-fs-085em { font-size: 0.85rem; }
+.u-fs-11em { font-size: 1.1rem; }
+.u-fs-15em { font-size: 1.5rem; }
+.u-fw-500 { font-weight: 500; }
+.u-fw-600 { font-weight: 600; }
+.u-fw-700 { font-weight: 700; }
+.u-valign-mid { vertical-align: middle; }
+.u-ws-normal { white-space: normal; word-break: break-word; }
+.u-ls-wide { letter-spacing: 0.08em; }
+
+.u-ede-box { background: rgba(255,255,255,0.03); border-radius: 8px; }
+.u-ede-entry { background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid; }
+.u-ede-entry--closed { border-left-color: #3fb950; }
+.u-ede-entry--open { border-left-color: #f0ad4e; }
+.u-color-info-dim { color: #7ec8e3; }
+.u-color-warn { color: #f0ad4e; }
+.u-color-success { color: #3fb950; }
+.u-color-gold-dim { color: #c4a84a; }
+.u-color-muted-dim { color: #8b949e; }
+.u-color-muted-xdim { color: #6e7681; }
+.u-color-body { color: #e6edf3; }
+.u-color-light { color: #e0e0e0; }
+.u-color-mid { color: #888; }
+.u-ede-cat-badge { font-size: 0.65rem; padding: 0.1rem 0.5rem; border-radius: 3px; background: rgba(126,200,227,0.12); color: #7ec8e3; }
+.u-ede-sev-badge { font-size: 0.6rem; padding: 0.1rem 0.4rem; border-radius: 3px; }
+.u-ede-sev-badge--significant { background: rgba(248,81,73,0.15); color: #f85149; }
+.u-ede-sev-badge--default { background: rgba(240,173,78,0.15); color: #f0ad4e; }
+
+.topo-legend-dns { background: #5c6bc0; }
+.topo-legend-ext { background: #78909c; }
+.topo-legend-email { background: #4fc3f7; }
+.topo-legend-transport { background: #81c784; }
+.topo-legend-policy { background: #ffb74d; }
+.topo-legend-brand { background: #ce93d8; }
+.topo-legend-arrow-query { color: rgba(255,255,255,0.3); }
+.topo-legend-arrow-dep { color: rgba(255,255,255,0.2); }
+
+.rfc-popup-body { max-height: 60vh; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; color: #c9d1d9; }
+.u-search-highlight { background: #ffd700; color: #1a1a2e; padding: 2px 4px; border-radius: 3px; }
+
+.ttl-scan-spinner { margin-bottom: 1rem; }
+.ttl-scan-title { color: #e0e0e0; font-size: 1.1rem; font-weight: 500; }
+.ttl-scan-subtitle { color: #888; font-size: 0.85rem; margin-top: 0.5rem; }

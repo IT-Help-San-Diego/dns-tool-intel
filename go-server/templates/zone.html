@@ -188,11 +188,11 @@
                                 <span class="small text-muted">Structural Score</span>
                                 <span class="small fw-bold">{{$zh.StructuralScore}}%</span>
                             </div>
-                            <div class="progress" style="height:8px">
-                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else}}<div class="progress-bar bg-danger" style="width:{{$zh.StructuralScore}}%"></div>
+                            <div class="progress u-progress-h8">
+                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else}}<div class="progress-bar bg-danger" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
                                 {{end}}
                             </div>
                         </div>
@@ -240,8 +240,8 @@
                                 <span class="small"><span class="badge bg-info text-dark me-1">{{.Type}}</span></span>
                                 <span class="small text-muted">{{.Count}} ({{printf "%.1f" .Percent}}%)</span>
                             </div>
-                            <div class="progress" style="height:5px">
-                                <div class="progress-bar bg-info" style="width:{{printf "%.1f" .Percent}}%"></div>
+                            <div class="progress u-progress-h5">
+                                <div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{printf "%.1f" .Percent}}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                         {{end}}
@@ -269,8 +269,8 @@
                             {{end}}
                             <div>
                                 <span class="small fw-bold{{if eq .Status "detected"}} text-success{{else if eq .Status "missing"}} text-warning{{end}}">{{.Label}}
-                                    {{if eq .Status "detected"}}<span class="badge bg-success bg-opacity-25 text-success ms-1" style="font-size:0.65rem">detected</span>
-                                    {{else if eq .Status "missing"}}<span class="badge bg-warning bg-opacity-25 text-warning ms-1" style="font-size:0.65rem">expected</span>
+                                    {{if eq .Status "detected"}}<span class="badge bg-success bg-opacity-25 text-success ms-1 u-fs-065em">detected</span>
+                                    {{else if eq .Status "missing"}}<span class="badge bg-warning bg-opacity-25 text-warning ms-1 u-fs-065em">expected</span>
                                     {{end}}
                                 </span>
                                 <div class="small text-muted">{{.Detail}}</div>
@@ -715,5 +715,8 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.querySelectorAll('.progress-bar[aria-valuenow]').forEach(function(bar){bar.style.width=bar.getAttribute('aria-valuenow')+'%';});
+    </script>
 </body>
 </html>
