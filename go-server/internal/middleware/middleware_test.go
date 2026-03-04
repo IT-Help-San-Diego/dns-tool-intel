@@ -711,6 +711,81 @@ func TestCanonicalHostRedirect_InvalidURLDisablesMiddleware(t *testing.T) {
         }
 }
 
+func TestRecovery_NoPanic(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequestContext())
+        router.Use(middleware.Recovery("1.0.0"))
+        router.GET("/ok", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/ok", nil)
+        router.ServeHTTP(w, req)
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
+        }
+}
+
+func TestRecovery_WithExtraData(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequestContext())
+        extra := map[string]any{"MaintenanceNote": "test note", "BetaPages": map[string]bool{}}
+        router.Use(middleware.Recovery("1.0.0", extra))
+        router.GET("/ok", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/ok", nil)
+        router.ServeHTTP(w, req)
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
+        }
+}
+
+func TestSecurityHeaders_DevMode_ConnectSrc(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequestContext())
+        router.Use(middleware.SecurityHeaders(true))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/", nil)
+        router.ServeHTTP(w, req)
+
+        csp := w.Header().Get("Content-Security-Policy")
+        if !strings.Contains(csp, "connect-src 'self' https://replit.com") {
+                t.Errorf("dev mode CSP should include Replit connect-src, got: %s", csp)
+        }
+        if !strings.Contains(csp, "frame-ancestors https://replit.com") {
+                t.Errorf("dev mode CSP should include Replit frame-ancestors, got: %s", csp)
+        }
+}
+
+func TestSecurityHeaders_ProdMode_ConnectSrc(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequestContext())
+        router.Use(middleware.SecurityHeaders(false))
+        router.GET("/", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/", nil)
+        router.ServeHTTP(w, req)
+
+        csp := w.Header().Get("Content-Security-Policy")
+        if !strings.Contains(csp, "connect-src 'self'") {
+                t.Errorf("prod mode CSP should have connect-src 'self', got: %s", csp)
+        }
+        if !strings.Contains(csp, "frame-ancestors 'none'") {
+                t.Errorf("prod mode CSP should have frame-ancestors 'none', got: %s", csp)
+        }
+}
+
 func TestCSRFPostWithEmptyBody(t *testing.T) {
         router, _ := setupCSRFRouter()
         router.POST(pathSubmit, func(c *gin.Context) {

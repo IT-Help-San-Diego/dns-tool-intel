@@ -295,7 +295,7 @@
 
     <main id="main-content">
     <!-- Hero Section -->
-    <div class="hero-section" role="banner">
+    <div class="hero-section">
         <div class="container">
             <div class="text-center hero-content">
                 <div class="hero-badge mb-3">
@@ -1048,7 +1048,7 @@
     (function() {
         document.addEventListener('DOMContentLoaded', function() {
             function initTooltips() {
-                var ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                const ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
             }
             if (typeof bootstrap !== 'undefined') { initTooltips(); }
