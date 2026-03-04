@@ -363,7 +363,7 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
     }
-    var toggle = document.getElementById('covertToggle');
+    const toggle = document.getElementById('covertToggle');
     if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
@@ -406,12 +406,12 @@ function handleAnalyzeLinkClick(e) {
 }
 
 function initPrivacyBanner() {
-    var banner = document.getElementById('privacyBanner');
+    const banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
-    var dismissed = false;
+    let dismissed = false;
     try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
     if (dismissed) { banner.remove(); return; }
-    var acceptBtn = document.getElementById('privacyAccept');
+    const acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
         acceptBtn.addEventListener('click', function() {
             try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
@@ -448,12 +448,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
             if (document.body.classList.contains('covert-mode')) {
-                var idEl = document.querySelector('[data-analysis-id]');
+                const idEl = document.querySelector('[data-analysis-id]');
                 if (idEl && idEl.dataset.analysisId) {
-                    var aid = idEl.dataset.analysisId;
+                    const aid = idEl.dataset.analysisId;
                     setCovertMode(false);
-                    var psMeta = document.querySelector('meta[name="x-public-suffix"]');
-                    var exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    const psMeta = document.querySelector('meta[name="x-public-suffix"]');
+                    const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
-        var initToggle = document.getElementById('covertToggle');
+        const initToggle = document.getElementById('covertToggle');
         if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
     }
 
