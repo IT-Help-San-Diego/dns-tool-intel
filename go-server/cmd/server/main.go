@@ -88,12 +88,18 @@ func main() {
         slog.Info("Rate limiter initialized", "backend", "in-memory", "max_requests", middleware.RateLimitMaxRequests, "window_seconds", middleware.RateLimitWindow)
 
         templatesDir := findTemplatesDir()
-        tmpl := template.Must(
-                template.New("").Funcs(tmplFuncs.FuncMap()).ParseGlob(filepath.Join(templatesDir, "*.html")),
-        )
+        slog.Info("Templates directory resolved", "path", templatesDir)
+        globPattern := filepath.Join(templatesDir, "*.html")
+        tmpl, err := template.New("").Funcs(tmplFuncs.FuncMap()).ParseGlob(globPattern)
+        if err != nil {
+                cwd, _ := os.Getwd()
+                slog.Error("Failed to parse templates", "error", err, "glob", globPattern, "cwd", cwd)
+                os.Exit(1)
+        }
         router.SetHTMLTemplate(tmpl)
 
         staticDir := findStaticDir()
+        slog.Info("Static directory resolved", "path", staticDir)
         staticFS := http.Dir(staticDir)
         fileServer := http.StripPrefix("/static", http.FileServer(staticFS))
         serveStatic := func(c *gin.Context) {
@@ -278,6 +284,8 @@ func main() {
 
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
+
+        router.GET("/methodology", staticHandler.MethodologyPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)

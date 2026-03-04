@@ -2,7 +2,7 @@ modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "postgresql-16"
 
 [nix]
 channel = "stable-24_05"
-packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "sqlc", "subfinder", "tcl", "testssl", "tk", "unzip", "whois", "zlib", "rsync"]
+packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "sqlc", "subfinder", "tcl", "testssl", "tk", "unzip", "whois", "zlib"]
 
 [deployment]
 deploymentTarget = "vm"
@@ -10,7 +10,7 @@ run = ["sh", "-c", "./dns-tool-server"]
 build = ["bash", "build.sh"]
 
 [workflows]
-runButton = "Project"
+runButton = "DNS Tool Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -19,10 +19,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "DNS Tool Server"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "DNS Tool Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]

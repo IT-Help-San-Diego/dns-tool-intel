@@ -53,3 +53,14 @@ exports/
 
 # Private repo staging — never push to public
 dnstool-intel-staging/
+
+# Git backups (created by recovery scripts)
+.git.backup*/
+
+# Test binaries
+*.test
+analyzer.test
+
+# Go build artifacts in subfolders
+go-server/dns-tool-server
+go-server/dns-tool

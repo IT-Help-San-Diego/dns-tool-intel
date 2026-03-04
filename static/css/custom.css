@@ -86,7 +86,7 @@
 
     /* DNS Tool Question Branding System (R004/R006) */
     --dt-question-color: rgba(13, 202, 240, 0.92);
-    --dt-question-color-covert: rgba(196, 60, 60, 0.85);
+    --dt-question-color-covert: rgba(220, 80, 80, 0.95);
     --dt-question-size-section: 1.0em;
     --dt-question-size-protocol: 0.85em;
     --dt-question-weight: 600;
@@ -413,6 +413,7 @@ body.covert-mode .hero-text-standard {
     align-items: center;
     gap: 0.4rem;
     padding: 0.35rem 0.75rem;
+    min-height: 44px;
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 600;
@@ -2320,6 +2321,11 @@ main.container {
     vertical-align: middle;
     transition: color 0.3s, text-shadow 0.3s;
     cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 @media (hover: hover) {
     .u-covert-toggle:hover {
@@ -4313,6 +4319,10 @@ body.covert-mode .proto-dkim.bg-info {
         height: 24pt;
         border-radius: 50%;
         margin-right: 7pt;
+        background: #0d1117;
+        padding: 1pt;
+        border: 1pt solid #C8A878;
+        box-shadow: 0 1pt 4pt rgba(0,0,0,0.3);
     }
 
     .print-brand-name {
@@ -5525,6 +5535,7 @@ body.covert-mode .u-btn-accent-steel:focus {
 .u-color-blue-soft { color: #8ab4f8; }
 /* Bootstrap has .text-muted but uses opacity; this sets an explicit color */
 .u-color-muted { color: #8b949e; }
+.u-a11y-muted { color: #9ea7b3; }
 .u-color-green-soft { color: #8fd19e; }
 .u-color-purple { color: #a78bfa; }
 .u-color-text { color: #c9d1d9; }

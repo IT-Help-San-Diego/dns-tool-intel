@@ -363,6 +363,8 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
     }
+    var toggle = document.getElementById('covertToggle');
+    if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
@@ -478,6 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
+        var initToggle = document.getElementById('covertToggle');
+        if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
     }
 
     initPrivacyBanner();

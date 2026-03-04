@@ -95,13 +95,18 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                         frameAncestors = "frame-ancestors https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
                 }
 
+                connectSrc := "connect-src 'self'; "
+                if devMode {
+                        connectSrc = "connect-src 'self' https://replit.com https://*.replit.com https://*.replit.dev; "
+                }
+
                 csp := fmt.Sprintf(
                         "default-src 'none'; "+
                                 "script-src 'self' 'nonce-%s'; "+
                                 "style-src 'self' 'nonce-%s'; "+
                                 "font-src 'self'; "+
                                 "img-src 'self' data: https:; "+
-                                "connect-src 'self'; "+
+                                "%s"+
                                 "%s"+
                                 "base-uri 'none'; "+
                                 "form-action 'self'; "+
@@ -111,7 +116,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                                 "media-src 'self'; "+
                                 "worker-src 'self'; "+
                                 "%s",
-                        nonceStr, nonceStr, frameAncestors, upgradeDirective,
+                        nonceStr, nonceStr, connectSrc, frameAncestors, upgradeDirective,
                 )
                 c.Header("Content-Security-Policy", csp)
 
@@ -174,7 +179,8 @@ func CanonicalHostRedirect(canonicalURL string) gin.HandlerFunc {
 
                 if strings.HasSuffix(host, ".replit.app") || strings.HasSuffix(host, ".replit.dev") {
                         target := canonicalScheme + "://" + canonicalHost + c.Request.URL.RequestURI()
-                        c.Redirect(http.StatusMovedPermanently, target)
+                        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        c.Redirect(http.StatusFound, target)
                         c.Abort()
                         return
                 }
