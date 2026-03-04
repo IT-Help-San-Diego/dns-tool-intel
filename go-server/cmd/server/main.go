@@ -13,6 +13,7 @@ import (
         "os/signal"
         "path/filepath"
         "strings"
+        "sync/atomic"
         "syscall"
         "time"
 
@@ -45,6 +46,46 @@ func main() {
                 slog.Error("Failed to load config", mapKeyError, err)
                 os.Exit(1)
         }
+
+        addr := fmt.Sprintf("0.0.0.0:%s", cfg.Port)
+
+        var handler atomic.Value
+        handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                if r.URL.Path == "/" || r.URL.Path == "/healthz" {
+                        w.Header().Set("Content-Type", "application/json")
+                        w.WriteHeader(http.StatusOK)
+                        w.Write([]byte(`{"status":"starting"}`))
+                        return
+                }
+                w.Header().Set("Content-Type", "application/json")
+                w.WriteHeader(http.StatusServiceUnavailable)
+                w.Write([]byte(`{"status":"starting"}`))
+        }))
+
+        srv := &http.Server{
+                Addr: addr,
+                Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                        handler.Load().(http.Handler).ServeHTTP(w, r)
+                }),
+                ReadHeaderTimeout: 10 * time.Second,
+                IdleTimeout:       120 * time.Second,
+                MaxHeaderBytes:    1 << 20,
+        }
+
+        listenErr := make(chan error, 1)
+        go func() {
+                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+                        listenErr <- err
+                }
+        }()
+
+        select {
+        case err := <-listenErr:
+                slog.Error("Server failed to bind", mapKeyError, err)
+                os.Exit(1)
+        case <-time.After(100 * time.Millisecond):
+        }
+        slog.Info("Early listener started — accepting healthchecks", "address", addr)
 
         dnsclient.SetUserAgentVersion(cfg.AppVersion)
 
@@ -347,21 +388,13 @@ func main() {
                 c.HTML(http.StatusNotFound, "index.html", data)
         })
 
-        addr := fmt.Sprintf("0.0.0.0:%s", cfg.Port)
-        slog.Info("Starting Go DNS Tool server",
+        handler.Store(http.HandlerFunc(router.Handler().ServeHTTP))
+        slog.Info("Full router ready — handler swapped",
                 "address", addr,
                 "version", cfg.AppVersion,
                 "commit", config.GitCommit,
                 "built", config.BuildTime,
         )
-
-        srv := &http.Server{
-                Addr:              addr,
-                Handler:           router.Handler(),
-                ReadHeaderTimeout: 10 * time.Second,
-                IdleTimeout:       120 * time.Second,
-                MaxHeaderBytes:    1 << 20,
-        }
 
         syncCtx, syncCancel := context.WithCancel(context.Background())
         defer syncCancel()
@@ -369,13 +402,6 @@ func main() {
 
         quit := make(chan os.Signal, 1)
         signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-        go func() {
-                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-                        slog.Error("Server failed to start", mapKeyError, err)
-                        os.Exit(1)
-                }
-        }()
 
         <-quit
         slog.Info("Shutdown signal received, draining connections…")
