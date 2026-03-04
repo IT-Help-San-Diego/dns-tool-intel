@@ -380,7 +380,7 @@ func ComputeSectionDiff(secA, secB map[string]interface{}, key, label, icon stri
                 jsonB, _ := json.Marshal(valB)
                 if string(jsonA) != string(jsonB) {
                         fieldName := strings.ReplaceAll(k, "_", " ")
-                        fieldName = strings.Title(fieldName)
+                        fieldName = cases.Title(language.English).String(fieldName)
                         detailChanges = append(detailChanges, DetailChange{
                                 Field: fieldName,
                                 Old:   valA,
