@@ -414,7 +414,7 @@ func main() {
         analyticsCollector.Flush()
         slog.Info("Analytics flushed on shutdown")
 
-        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
+        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
         defer shutdownCancel()
 
         if err := srv.Shutdown(shutdownCtx); err != nil {
