@@ -425,6 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
+        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.removeAttribute('inert'); });
+        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('inert', ''); });
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {

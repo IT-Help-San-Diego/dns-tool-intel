@@ -6158,7 +6158,10 @@
             bodyEl.textContent = '(Full RFC text — click "Full RFC" below to read on the IETF website.)';
         }
 
-        var modal = new bootstrap.Modal(document.getElementById('rfcPopupModal'));
+        var rfcEl = document.getElementById('rfcPopupModal');
+        rfcEl.removeAttribute('inert');
+        var modal = new bootstrap.Modal(rfcEl);
+        rfcEl.addEventListener('hidden.bs.modal', function() { rfcEl.setAttribute('inert', ''); }, { once: true });
         modal.show();
         return true;
     }
@@ -6659,7 +6662,7 @@
             });
     }
     </script>
-    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" aria-hidden="true">
+    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" inert>
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content bg-dark border border-secondary">
                 <div class="modal-header border-secondary py-2">
