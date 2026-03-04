@@ -124,7 +124,11 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         }
 }
 
-func Recovery(appVersion string) gin.HandlerFunc {
+func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {
+        var extraData map[string]any
+        if len(opts) > 0 {
+                extraData = opts[0]
+        }
         return func(c *gin.Context) {
                 defer func() {
                         if err := recover(); err != nil {
@@ -140,13 +144,17 @@ func Recovery(appVersion string) gin.HandlerFunc {
                                         Category string
                                         Message  string
                                 }
-                                c.HTML(http.StatusInternalServerError, "index.html", gin.H{
+                                data := gin.H{
                                         "AppVersion":    appVersion,
                                         "CspNonce":      nonce,
                                         "CsrfToken":     csrfToken,
                                         "ActivePage":    "home",
                                         "FlashMessages": []flashMsg{{Category: "danger", Message: "An internal error occurred. Please try again."}},
-                                })
+                                }
+                                for k, v := range extraData {
+                                        data[k] = v
+                                }
+                                c.HTML(http.StatusInternalServerError, "index.html", data)
                                 c.Abort()
                         }
                 }()

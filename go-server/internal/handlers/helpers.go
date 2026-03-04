@@ -11,6 +11,8 @@ import (
         "strings"
 
         "golang.org/x/net/publicsuffix"
+        "golang.org/x/text/cases"
+        "golang.org/x/text/language"
 )
 
 const (
