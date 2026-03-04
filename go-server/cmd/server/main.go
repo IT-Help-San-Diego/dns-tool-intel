@@ -121,6 +121,14 @@ func main() {
         }
         router.GET("/favicon.ico", faviconHandler)
         router.HEAD("/favicon.ico", faviconHandler)
+        appleTouchHandler := func(c *gin.Context) {
+                c.Header(headerCacheControl, "public, max-age=86400")
+                c.File(filepath.Join(staticDir, "icons", "apple-touch-icon-180x180.png"))
+        }
+        router.GET("/apple-touch-icon.png", appleTouchHandler)
+        router.HEAD("/apple-touch-icon.png", appleTouchHandler)
+        router.GET("/apple-touch-icon-precomposed.png", appleTouchHandler)
+        router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
 
         dnsAnalyzer := analyzer.New()
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
