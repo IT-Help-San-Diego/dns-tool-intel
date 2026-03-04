@@ -384,13 +384,16 @@ func TestRenderRestrictedAccess_CB8(t *testing.T) {
 
 func TestIndexFlashData_CB8(t *testing.T) {
         gin.SetMode(gin.TestMode)
-        h := &AnalysisHandler{Config: &config.Config{}}
+        h := &AnalysisHandler{Config: &config.Config{BaseURL: "https://example.com"}}
         c, _ := gin.CreateTestContext(httptest.NewRecorder())
         c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 
         data := h.indexFlashData(c, "nonce", "csrf", "danger", "Something went wrong")
         if data["CspNonce"] != "nonce" {
                 t.Fatalf("expected nonce, got %v", data["CspNonce"])
+        }
+        if data["BaseURL"] != "https://example.com" {
+                t.Fatalf("expected BaseURL=https://example.com, got %v", data["BaseURL"])
         }
         msgs, ok := data["FlashMessages"].([]FlashMessage)
         if !ok || len(msgs) == 0 {
