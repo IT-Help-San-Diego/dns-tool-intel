@@ -3116,3 +3116,40 @@ Unified visual identity across all printable reports to match the new methodolog
 
 #### Version Bump
 - `config.go`, `sonar-project.properties`, `CITATION.cff`, `docs/dns-tool-methodology.md/.html` all bumped to 26.33.83
+
+
+---
+
+## Session: March 4, 2026 (v26.33.83 — Research Software Documentation Stack)
+
+### Research Infrastructure Completeness Audit
+
+#### codemeta.json Added
+- Created `codemeta.json` (CodeMeta 2.0 schema) at repo root
+- Complements `CITATION.cff` (GitHub/Zenodo) with broader scholarly ecosystem coverage
+- Consumed by: Software Heritage, DataCite, FAIR registries, Google Scholar
+- Schema.org `SoftwareSourceCode` type with full author ORCID, DOI, keywords, runtime, publisher
+- Includes reference to methodology PDF as `referencePublication`
+
+#### SKILL.md Research Documentation Expanded
+- Full research stack table documenting all 8 layers: Citation, CodeMeta, Methodology, DOI, ORCID, License, Archive, Discovery
+- Pipeline diagram: GitHub release → Zenodo → DataCite → Software Heritage → OpenAlex
+- Version bump checklist formalized (7 files to update on every version bump)
+- PDF regeneration command documented
+- `codemeta.json` added to version bump checklist
+
+#### replit.md Updated
+- Added `codemeta.json` reference
+- Added pipeline summary line
+- Version references updated to 26.33.83
+
+#### Documentation Stack Summary
+The complete research software documentation stack is now:
+1. **CITATION.cff** — GitHub "Cite this repository", CFF tools
+2. **codemeta.json** — Software Heritage, DataCite, FAIR, schema.org
+3. **Methodology PDF** — Peer review, credibility, academic reference
+4. **Zenodo DOI** — Persistent identifier (concept DOI stable across versions)
+5. **ORCID** — Author identity in scholarly graph
+6. **LICENSE** — BSL-1.1 legal terms
+7. **Software Heritage** — Long-term preservation with SWHID
+8. **OpenAlex / DataCite** — Scholarly search and discovery
