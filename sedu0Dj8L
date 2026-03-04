@@ -10,6 +10,28 @@ run = ["sh", "-c", "./dns-tool-server"]
 build = ["bash", "build.sh"]
 
 [workflows]
+runButton = "Start application"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./dns-tool-server"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
