@@ -4,7 +4,7 @@
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 
 Version 26.34.25
-DOI: [10.5281/zenodo.18871596](https://doi.org/10.5281/zenodo.18871596)
+DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
 
 *Independent research artifact accompanying the DNS Tool software platform.*
 
@@ -264,7 +264,7 @@ If DNS Tool contributes to research or analysis, please cite:
   title        = {{DNS Tool}: Domain Security Audit Platform},
   year         = {2026},
   version      = {26.34.25},
-  doi          = {10.5281/zenodo.18871596},
+  doi          = {10.5281/zenodo.18854899},
   url          = {https://dnstool.it-help.tech},
   license      = {BUSL-1.1}
 }
@@ -273,4 +273,4 @@ If DNS Tool contributes to research or analysis, please cite:
 ---
 
 DNS Tool v26.34.25 · IT Help San Diego Inc. · Licensed under BUSL-1.1
-DOI: [10.5281/zenodo.18871596](https://doi.org/10.5281/zenodo.18871596) · [dnstool.it-help.tech](https://dnstool.it-help.tech)
+DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899) · [dnstool.it-help.tech](https://dnstool.it-help.tech)
