@@ -4,8 +4,12 @@ var PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
 var MAX_CACHED_PAGES = 20;
 
 var IMMUTABLE_ASSETS = [
+  '/static/css/foundation.min.css',
+  '/static/css/custom.min.css',
   '/static/css/fontawesome-subset.min.css',
   '/static/webfonts/fa-solid-900.woff2?v=4',
+  '/static/js/foundation.min.js',
+  '/static/js/main.min.js',
   '/static/favicon.svg'
 ];
 

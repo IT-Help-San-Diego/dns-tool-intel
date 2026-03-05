@@ -45,7 +45,9 @@
 {{end}}
 
 {{define "head_katex"}}
-<link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css" id="katex-css" media="print">
+<script nonce="{{.CspNonce}}">var kl=document.getElementById('katex-css');if(kl){kl.addEventListener('load',function(){kl.media='all'});}</script>
+<noscript><link rel="stylesheet" href="/static/vendor/katex/katex.min.css"></noscript>
 <script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/katex.min.js"></script>
 <script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/auto-render.min.js"></script>
 <script nonce="{{.CspNonce}}">
@@ -86,6 +88,11 @@ img{vertical-align:middle;max-width:100%;height:auto}
 .text-center{text-align:center}
 .text-muted{color:#8b949e!important}
 .text-info{color:#39c5cf!important}
+.u-privacy-banner{position:fixed;bottom:0;left:0;right:0;z-index:1055;background:rgba(0,0,0,.6);padding:0;display:flex;align-items:flex-end;justify-content:center}
+.u-privacy-card{background:#131720;border-top:1px solid rgba(63,185,80,.25);border-radius:0;padding:1rem;box-shadow:0 -4px 20px rgba(0,0,0,.5);max-height:60vh;overflow-y:auto}
+.u-privacy-banner p,.u-privacy-banner li{color:rgba(200,210,220,.85)}
+.u-privacy-accept-btn{white-space:nowrap;flex-shrink:0}
+@media(max-width:767px){.u-privacy-banner{align-items:center;top:0;padding:1rem}.u-privacy-card{border:1px solid rgba(63,185,80,.25);border-radius:.75rem;max-height:85vh;overflow-y:auto}.u-privacy-accept-btn{min-height:44px;padding:.5rem 1rem;font-size:.9rem}}
 .d-none{display:none}
 .d-flex{display:flex}
 .d-block{display:block}
