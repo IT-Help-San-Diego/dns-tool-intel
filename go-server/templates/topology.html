@@ -32,41 +32,41 @@
         .u-privacy-banner { display: none !important; }
         .topo-legend {
             position: absolute;
-            bottom: 6px;
+            bottom: 4px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(7, 10, 15, 0.92);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 5px;
-            padding: 6px 18px;
-            font-size: 0.72rem;
+            padding: 4px 14px;
+            font-size: 0.68rem;
             color: #8b9aad;
             backdrop-filter: blur(8px);
             display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            max-width: 96%;
+            gap: 16px;
+            align-items: center;
+            max-width: 98%;
+            white-space: nowrap;
         }
-        .topo-legend-section { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .topo-legend-section:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .topo-legend-section { display: flex; align-items: center; gap: 4px; }
         .topo-legend-label {
-            font-size: 0.62rem;
+            font-size: 0.58rem;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: #5a6878;
-            margin-bottom: 2px;
+            margin-right: 4px;
         }
         .topo-legend-item {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 1px;
-            line-height: 1.2;
+            gap: 3px;
+            margin-right: 6px;
+            line-height: 1;
         }
-        .topo-legend-item:last-child { margin-bottom: 0; }
+        .topo-legend-item:last-child { margin-right: 0; }
         .topo-legend-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -118,25 +118,25 @@
                 </div>
                 <div class="topo-legend">
                     <div class="topo-legend-section">
-                        <div class="topo-legend-label">Resolver Networks</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-cf"></span> Cloudflare (1.1.1.1)</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-g"></span> Google (8.8.8.8)</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-q9"></span> Quad9 (9.9.9.9)</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-od"></span> OpenDNS (208.67.x)</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-eu"></span> DNS4EU</div>
+                        <span class="topo-legend-label">Resolvers</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-cf"></span>CF</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-g"></span>Google</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-q9"></span>Quad9</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-od"></span>OpenDNS</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-eu"></span>DNS4EU</span>
                     </div>
                     <div class="topo-legend-section">
-                        <div class="topo-legend-label">Protocol Analysis</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-email"></span> Email Authentication</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-transport"></span> Transport Security</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-policy"></span> Policy &amp; Trust</div>
-                        <div class="topo-legend-item"><span class="topo-legend-dot topo-c-brand"></span> Brand Verification</div>
+                        <span class="topo-legend-label">Protocols</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-email"></span>Email</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-transport"></span>Transport</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-policy"></span>Policy</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-brand"></span>Brand</span>
                     </div>
                     <div class="topo-legend-section">
-                        <div class="topo-legend-label">Data Flow</div>
-                        <div class="topo-legend-item"><span class="topo-flow-signal">&#10230;</span> Signal ingestion</div>
-                        <div class="topo-legend-item"><span class="topo-flow-query">&#9472;&#9472;&#9654;</span> Query / response</div>
-                        <div class="topo-legend-item"><span class="topo-flow-dep">&#9476;&#9476;&#9655;</span> Dependency</div>
+                        <span class="topo-legend-label">Flow</span>
+                        <span class="topo-legend-item"><span class="topo-flow-signal">&#8594;</span> Signal</span>
+                        <span class="topo-legend-item"><span class="topo-flow-query">&#9472;&#9654;</span> Query</span>
+                        <span class="topo-legend-item"><span class="topo-flow-dep">&#9476;&#9655;</span> Dep</span>
                     </div>
                 </div>
             </div>
@@ -938,117 +938,126 @@
         function layoutAll() {
             computeScaling();
 
-            var titleSafe = Math.max(H * 0.08, 50);
-            var legendSafe = H * 0.88;
+            var titleSafe = Math.max(H * 0.07, 42);
+            var legendSafe = H * 0.95;
             var usableH = legendSafe - titleSafe;
 
-            var globeR = Math.min(W * 0.15 * SCL, H * 0.28 * SCL, 200);
+            var globeR = Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
             globe.R = globeR;
-            globe.cx = W * 0.05 + globeR;
-            globe.cy = titleSafe + usableH * 0.45;
+            globe.cx = W * 0.04 + globeR;
+            globe.cy = titleSafe + usableH * 0.42;
 
-            var pipelineBoundary = globe.cx + globeR + W * 0.04;
+            var pipeStart = globe.cx + globeR + W * 0.02;
+            var pipeEnd = W * 0.99;
+            var pipeTotal = pipeEnd - pipeStart;
+            var colGap = Math.max(4, pipeTotal * 0.01);
+            var c1w = pipeTotal * 0.14;
+            var c2w = pipeTotal * 0.16;
+            var c3w = pipeTotal * 0.46;
+            var c4w = pipeTotal * 0.16;
+            var col1L = pipeStart;
+            var col1R = col1L + c1w;
+            var col2L = col1R + colGap;
+            var col2R = col2L + c2w;
+            var col3L = col2R + colGap;
+            var col3R = col3L + c3w;
+            var col4L = col3R + colGap;
+            var col4R = pipeEnd;
 
-            convergePt.x = pipelineBoundary;
+            convergePt.x = col1L;
             convergePt.y = globe.cy;
 
-            var pipeCenter = pipelineBoundary + (W * 0.96 - pipelineBoundary) * 0.22;
-            var pipeW = W * 0.96 - pipelineBoundary;
-
-            var srcX = pipelineBoundary + pipeW * 0.04;
+            var srcCx = (col1L + col1R) / 2;
             var srcSpacing = usableH / (SOURCES.length + 1);
             SOURCES.forEach(function(s, i) {
-                s.targetX = srcX;
+                s.targetX = srcCx;
                 s.targetY = titleSafe + (i + 1) * srcSpacing;
             });
 
-            HUB.targetX = pipelineBoundary + 35 * SCL;
+            HUB.targetX = srcCx;
             HUB.targetY = globe.cy;
 
-            ENGINE.targetX = pipeCenter;
-            ENGINE.targetY = titleSafe + usableH * 0.18;
+            var procCx = (col2L + col2R) / 2;
+            ENGINE.targetX = procCx;
+            ENGINE.targetY = titleSafe + usableH * 0.15;
 
-            var confCx = pipeCenter;
-            var confSpread = Math.max(55, pipeW * 0.10) * SCL;
-            var confY = titleSafe + usableH * 0.50;
-            CONFIDENCE[0].targetX = confCx - confSpread;
+            var confSpread = Math.max(30, (col2R - col2L) * 0.25);
+            var confY = titleSafe + usableH * 0.45;
+            CONFIDENCE[0].targetX = procCx - confSpread * 0.5;
             CONFIDENCE[0].targetY = confY;
-            CONFIDENCE[1].targetX = confCx + confSpread;
-            CONFIDENCE[1].targetY = confY;
-            CONFIDENCE[2].targetX = confCx;
-            CONFIDENCE[2].targetY = confY + usableH * 0.14;
+            CONFIDENCE[1].targetX = procCx + confSpread * 0.5;
+            CONFIDENCE[1].targetY = confY + usableH * 0.08;
+            CONFIDENCE[2].targetX = procCx;
+            CONFIDENCE[2].targetY = confY + usableH * 0.18;
 
-            var storeY = titleSafe + usableH * 0.86;
-            var storeSpread = confSpread * 1.3;
-            STORAGE[0].targetX = confCx + storeSpread * 0.5;
+            var storeY = titleSafe + usableH * 0.85;
+            STORAGE[0].targetX = procCx + confSpread * 0.3;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = confCx - storeSpread * 0.5;
-            STORAGE[1].targetY = storeY;
+            STORAGE[1].targetX = procCx - confSpread * 0.3;
+            STORAGE[1].targetY = storeY - usableH * 0.04;
 
-            var protoZoneL = pipeCenter + pipeW * 0.18;
-            var protoZoneR = W * 0.96 - W * 0.10;
-            var protoCx = (protoZoneL + protoZoneR) / 2;
-            var protoCy = titleSafe + usableH * 0.46;
-            var protoR = Math.min((protoZoneR - protoZoneL) * 0.40, usableH * 0.30);
-            var angleMap = [-130, -90, -50, 30, 70, 150, 190, -10, 110];
+            var protoCx = (col3L + col3R) / 2;
+            var protoCy = titleSafe + usableH * 0.45;
+            var protoRx = (col3R - col3L) * 0.38;
+            var protoRy = usableH * 0.34;
+            var angleMap = [-120, -80, -40, 0, 40, 80, 120, 160, -160];
             PROTOCOLS.forEach(function(p, i) {
                 var a = angleMap[i] * DEG;
-                p.targetX = protoCx + protoR * Math.cos(a);
-                p.targetY = protoCy + protoR * Math.sin(a);
+                p.targetX = protoCx + protoRx * Math.cos(a);
+                p.targetY = protoCy + protoRy * Math.sin(a);
             });
 
-            var outX = W * 0.96 - W * 0.03;
+            var outCx = (col4L + col4R) / 2;
             var outSpacing = usableH / (OUTPUTS.length + 1);
             OUTPUTS.forEach(function(o, i) {
-                o.targetX = outX;
+                o.targetX = outCx;
                 o.targetY = titleSafe + (i + 1) * outSpacing;
             });
 
-            var zoneGap = MIN_SPACING * 2.5;
-            var globalBounds = { x1: pipelineBoundary, x2: W * 0.98, y1: titleSafe, y2: legendSafe };
+            var globalBounds = { x1: col1L, x2: col4R, y1: titleSafe, y2: legendSafe };
 
             var zones = {
                 'source': {
-                    gx: srcX, gy: titleSafe + usableH * 0.5,
-                    gravity: 0.25,
-                    bounds: { x1: pipelineBoundary, x2: pipelineBoundary + pipeW * 0.13, y1: titleSafe, y2: legendSafe }
+                    gx: srcCx, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.35,
+                    bounds: { x1: col1L, x2: col1R, y1: titleSafe, y2: legendSafe }
                 },
                 'hub': {
-                    gx: HUB.targetX, gy: HUB.targetY,
-                    gravity: 0.5,
-                    bounds: { x1: pipelineBoundary, x2: pipelineBoundary + pipeW * 0.15, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.65 }
+                    gx: srcCx, gy: globe.cy,
+                    gravity: 0.6,
+                    bounds: { x1: col1L, x2: col1R, y1: titleSafe + usableH * 0.20, y2: titleSafe + usableH * 0.70 }
                 },
                 'engine': {
-                    gx: ENGINE.targetX, gy: ENGINE.targetY,
-                    gravity: 0.5,
-                    bounds: { x1: pipeCenter - pipeW * 0.12, x2: pipeCenter + pipeW * 0.12, y1: titleSafe, y2: titleSafe + usableH * 0.35 }
+                    gx: procCx, gy: titleSafe + usableH * 0.15,
+                    gravity: 0.6,
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe, y2: titleSafe + usableH * 0.30 }
                 },
                 'confidence': {
-                    gx: confCx, gy: confY + usableH * 0.04,
-                    gravity: 0.20,
-                    bounds: { x1: pipelineBoundary + pipeW * 0.03, x2: pipeCenter + pipeW * 0.18, y1: titleSafe + usableH * 0.36, y2: titleSafe + usableH * 0.72 }
+                    gx: procCx, gy: confY + usableH * 0.06,
+                    gravity: 0.30,
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.30, y2: titleSafe + usableH * 0.72 }
                 },
                 'storage': {
-                    gx: confCx, gy: storeY,
-                    gravity: 0.30,
-                    bounds: { x1: pipelineBoundary, x2: pipeCenter + pipeW * 0.20, y1: titleSafe + usableH * 0.74, y2: legendSafe }
+                    gx: procCx, gy: storeY,
+                    gravity: 0.35,
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.72, y2: legendSafe }
                 },
                 'protocol': {
                     gx: protoCx, gy: protoCy,
-                    gravity: 0.12,
-                    bounds: { x1: protoZoneL - zoneGap, x2: protoZoneR + zoneGap, y1: titleSafe, y2: legendSafe }
+                    gravity: 0.15,
+                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: legendSafe }
                 },
                 'output': {
-                    gx: outX, gy: titleSafe + usableH * 0.5,
-                    gravity: 0.30,
-                    bounds: { x1: W * 0.85, x2: W * 0.99, y1: titleSafe, y2: legendSafe }
+                    gx: outCx, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.35,
+                    bounds: { x1: col4L, x2: col4R, y1: titleSafe, y2: legendSafe }
                 }
             };
 
             var allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
             var allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
-            forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 100);
+            forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
 
             allLayoutNodes.forEach(function(nd) {
                 if (!nd._initialized) {
@@ -1174,12 +1183,32 @@
             if (e.label && (isHL || e.type !== 'flow')) {
                 var t = e.labelT || 0.5;
                 var lx = from.x + (to.x - from.x) * t;
-                var ly = from.y + (to.y - from.y) * t;
-                ctx.font = (FONT_SUB - 1) + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                var ly = from.y + (to.y - from.y) * t - 8 * SCL;
+                ly = Math.max(20, Math.min(H - 20, ly));
+                lx = Math.max(30, Math.min(W - 30, lx));
+                var edgeFontSize = Math.max(8, FONT_SUB - 1);
+                ctx.font = edgeFontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.85 : 0.35) + ')';
-                ctx.fillText(e.label, lx, ly - 7 * SCL);
+                var tw = ctx.measureText(e.label).width;
+                var pw = tw + 8 * SCL;
+                var ph = edgeFontSize + 6 * SCL;
+                var pillAlpha = isHL ? 0.85 : 0.55;
+                ctx.fillStyle = 'rgba(10, 14, 20, ' + pillAlpha + ')';
+                ctx.beginPath();
+                var pr = ph / 2;
+                ctx.moveTo(lx - pw / 2 + pr, ly - ph / 2);
+                ctx.lineTo(lx + pw / 2 - pr, ly - ph / 2);
+                ctx.arc(lx + pw / 2 - pr, ly, pr, -Math.PI / 2, Math.PI / 2);
+                ctx.lineTo(lx - pw / 2 + pr, ly + ph / 2);
+                ctx.arc(lx - pw / 2 + pr, ly, pr, Math.PI / 2, -Math.PI / 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,' + (isHL ? 0.25 : 0.08) + ')';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.9 : 0.45) + ')';
+                ctx.fillText(e.label, lx, ly);
             }
         }
 
