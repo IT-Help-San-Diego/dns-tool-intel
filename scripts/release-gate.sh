@@ -72,7 +72,9 @@ if [ -f codemeta.json ]; then
 fi
 
 info "Gate 5: Version bump — config.go"
-sed -i "s/AppVersion = \"[^\"]*\"/AppVersion = \"${VERSION}\"/" go-server/internal/config/config.go
+sed -i -E "s/(Version\s*=\s*)\"[^\"]*\"/\1\"${VERSION}\"/" go-server/internal/config/config.go
+grep -q "\"${VERSION}\"" go-server/internal/config/config.go \
+  || fail "config.go version was not updated (sed did not match)"
 pass "config.go version → ${VERSION}"
 
 info "Gate 6: Version bump — sonar-project.properties"
@@ -91,9 +93,9 @@ else
 fi
 
 info "Gate 9: Quality gates (R009/R010/R011)"
-R009=$(node scripts/audit-css-cohesion.js 2>&1 | tail -1)
-R010=$(node scripts/validate-scientific-colors.js 2>&1 | tail -1)
-R011=$(node scripts/feature-inventory.js 2>&1 | tail -1)
+R009=$(node scripts/audit-css-cohesion.js 2>&1 | grep -i "Result:")
+R010=$(node scripts/validate-scientific-colors.js 2>&1 | grep -i "Result:")
+R011=$(node scripts/feature-inventory.js 2>&1 | grep -i "Result:")
 echo "$R009" | grep -qi "pass" || fail "R009 (CSS cohesion) failed"
 echo "$R010" | grep -qi "pass" || fail "R010 (scientific colors) failed"
 echo "$R011" | grep -qi "pass" || fail "R011 (feature inventory) failed"
