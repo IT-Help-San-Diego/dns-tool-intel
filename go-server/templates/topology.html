@@ -154,6 +154,11 @@
         var ctx = canvas.getContext('2d');
         var dpr = window.devicePixelRatio || 1;
         var W, H;
+        var SCL = 1;
+        var FONT_LABEL = 13;
+        var FONT_SUB = 10;
+        var FONT_TAG = 13;
+        var MIN_SPACING = 8;
 
         var COLORS = {
             email: '#4fc3f7',
@@ -405,8 +410,15 @@
 
             visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
 
-            var placedTags = [];
+            var placedBoxes = [];
             popHitAreas = [];
+
+            var labelGap = 12 * SCL;
+            var labelBand = 80 * SCL;
+            var maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
+            var maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
+            var maxLabelTop = globe.cy - globe.R - labelBand;
+            var maxLabelBottom = globe.cy + globe.R + labelBand;
 
             for (var vi = 0; vi < visiblePops.length; vi++) {
                 var vp = visiblePops[vi];
@@ -426,30 +438,78 @@
                 ctx.fill();
 
                 var label = pop2.tag + ' \u00b7 ' + pop2.city;
-                ctx.font = (isHovered ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 var tw = ctx.measureText(label).width;
-                var tagW = tw + 18;
-                var tagH = 22;
+                var tagW = tw + 18 * SCL;
+                var tagH = Math.round(20 * SCL + 2);
 
-                var tagSide = (p2.x > globe.cx) ? 1 : -1;
-                var rawTagX = p2.x + tagSide * 14;
-                var rawTagY = p2.y - tagH / 2;
+                var baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
+                var bestX = null, bestY = null, bestScore = Infinity;
+                var candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90];
 
-                if (tagSide < 0) rawTagX = p2.x - 14 - tagW;
+                for (var ci = 0; ci < candidateAngles.length; ci++) {
+                    var ca = baseAngle + candidateAngles[ci] * DEG;
+                    var dist = globe.R * 0.15 + labelGap;
+                    var cx = p2.x + Math.cos(ca) * dist;
+                    var cy = p2.y + Math.sin(ca) * dist;
 
-                for (var ck = 0; ck < placedTags.length; ck++) {
-                    var pt = placedTags[ck];
-                    if (Math.abs(rawTagY - pt.y) < tagH + 3 && Math.abs(rawTagX - pt.x) < Math.max(tagW, pt.w)) {
-                        rawTagY = pt.y + tagH + 4;
+                    if (Math.cos(ca) < 0) cx -= tagW;
+
+                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
+                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
+
+                    var hasCollision = false;
+                    for (var pi = 0; pi < placedBoxes.length; pi++) {
+                        var pb = placedBoxes[pi];
+                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
+                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
+                            hasCollision = true;
+                            break;
+                        }
+                    }
+
+                    var distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
+                    var score = (hasCollision ? 10000 : 0) + distFromDot;
+
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestX = cx;
+                        bestY = cy;
+                        if (!hasCollision) break;
                     }
                 }
 
-                placedTags.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                if (bestScore >= 10000) {
+                    for (var ri = 0; ri < 8; ri++) {
+                        var shifted = false;
+                        for (var pi2 = 0; pi2 < placedBoxes.length; pi2++) {
+                            var pb2 = placedBoxes[pi2];
+                            var ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
+                            var ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
+                            if (ovX > 0 && ovY > 0) {
+                                if (ovY < ovX) {
+                                    bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
+                                } else {
+                                    bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
+                                }
+                                shifted = true;
+                            }
+                        }
+                        if (!shifted) break;
+                    }
+                    bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
+                    bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
+                }
+
+                var rawTagX = bestX;
+                var rawTagY = bestY;
+                placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
+                var lineEndX = (rawTagX + tagW / 2 > p2.x) ? rawTagX : rawTagX + tagW;
                 ctx.beginPath();
                 ctx.moveTo(p2.x, p2.y);
-                ctx.lineTo(rawTagX + (tagSide > 0 ? 0 : tagW), rawTagY + tagH / 2);
+                ctx.lineTo(lineEndX, rawTagY + tagH / 2);
                 ctx.strokeStyle = hexToRgba(pop2.color, (isHovered ? 0.5 : 0.3) * alpha);
                 ctx.lineWidth = isHovered ? 1 : 0.7;
                 ctx.stroke();
@@ -464,7 +524,7 @@
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHovered ? 0.95 : 0.8 * alpha) + ')';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(label, rawTagX + 9, rawTagY + tagH / 2);
+                ctx.fillText(label, rawTagX + 9 * SCL, rawTagY + tagH / 2);
             }
         }
 
@@ -544,14 +604,14 @@
             drawSignalArcs(time);
             drawResolverMarkers();
 
-            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.fillStyle = 'rgba(255,255,255,0.2)';
-            ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8);
+            ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
             var degLabel = ((globe.rotLon % 360) + 360) % 360;
             if (degLabel > 180) degLabel -= 360;
-            ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20);
+            ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
         }
 
         var SOURCES = [
@@ -669,79 +729,191 @@
             return Math.max(hw, hh, n.radius) + 6;
         }
 
-        function layoutAll() {
-            var globeLeft = W * 0.03;
-            var globeR = Math.min(W * 0.16, H * 0.32, 220);
-            globe.R = globeR;
-            globe.cx = globeLeft + globeR + W * 0.02;
-            globe.cy = H * 0.44;
+        function computeScaling() {
+            SCL = Math.max(0.65, Math.min(1.15, W / 1400));
+            FONT_LABEL = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
+            FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
+        }
 
-            convergePt.x = globe.cx + globeR + W * 0.03;
+        function measureNodeBox(n) {
+            ctx.font = FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            var tw = ctx.measureText(n.label).width;
+            var subW = 0;
+            if (n.sub) {
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                var lines = n.sub.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var sw = ctx.measureText(lines[i]).width;
+                    if (sw > subW) subW = sw;
+                }
+            }
+            var contentW = Math.max(tw, subW) + 24 * SCL;
+            var baseW, baseH;
+            if (n.shape === 'circle') {
+                baseW = Math.max(n.radius * 2, contentW);
+                baseH = n.radius * 2;
+            } else if (n.shape === 'diamond') {
+                baseW = n.radius * 1.7;
+                baseH = n.radius * 1.7;
+            } else if (n.shape === 'hexagon') {
+                baseW = Math.max(n.radius * 2, contentW);
+                baseH = n.radius * 2;
+            } else if (n.shape === 'cylinder') {
+                baseW = Math.max(n.radius * 2.4, contentW);
+                baseH = n.radius * 1.5 + 16;
+            } else {
+                baseW = Math.max(n.radius * 2.4, contentW);
+                baseH = n.radius * 1.3;
+            }
+            n._boxW = baseW;
+            n._boxH = baseH;
+            return { w: baseW, h: baseH };
+        }
+
+        function aabbOverlap(a, b) {
+            var ax1 = a.x - a.hw, ax2 = a.x + a.hw;
+            var ay1 = a.y - a.hh, ay2 = a.y + a.hh;
+            var bx1 = b.x - b.hw, bx2 = b.x + b.hw;
+            var by1 = b.y - b.hh, by2 = b.y + b.hh;
+            var ox = Math.min(ax2, bx2) - Math.max(ax1, bx1);
+            var oy = Math.min(ay2, by2) - Math.max(ay1, by1);
+            if (ox > 0 && oy > 0) return { ox: ox, oy: oy };
+            return null;
+        }
+
+        function resolveOverlaps(nodes, bounds, iterations) {
+            var maxIter = iterations || 8;
+            for (var it = 0; it < maxIter; it++) {
+                var maxOverlapArea = 0;
+                for (var i = 0; i < nodes.length; i++) {
+                    var ni = nodes[i];
+                    var box = measureNodeBox(ni);
+                    var ai = { x: ni.targetX, y: ni.targetY, hw: box.w / 2 + MIN_SPACING, hh: box.h / 2 + MIN_SPACING };
+
+                    for (var j = i + 1; j < nodes.length; j++) {
+                        var nj = nodes[j];
+                        var boxj = measureNodeBox(nj);
+                        var aj = { x: nj.targetX, y: nj.targetY, hw: boxj.w / 2 + MIN_SPACING, hh: boxj.h / 2 + MIN_SPACING };
+                        var ov = aabbOverlap(ai, aj);
+                        if (ov) {
+                            var area = ov.ox * ov.oy;
+                            if (area > maxOverlapArea) maxOverlapArea = area;
+                            var strength = 0.55 + it * 0.05;
+                            if (ov.ox < ov.oy) {
+                                var pushX = (ov.ox * strength + 2);
+                                if (ni.targetX <= nj.targetX) { ni.targetX -= pushX; nj.targetX += pushX; }
+                                else { ni.targetX += pushX; nj.targetX -= pushX; }
+                            } else {
+                                var pushY = (ov.oy * strength + 2);
+                                if (ni.targetY <= nj.targetY) { ni.targetY -= pushY; nj.targetY += pushY; }
+                                else { ni.targetY += pushY; nj.targetY -= pushY; }
+                            }
+                            ai.x = ni.targetX;
+                            ai.y = ni.targetY;
+                        }
+                    }
+
+                    if (bounds) {
+                        var hw2 = box.w / 2 + 2;
+                        var hh2 = box.h / 2 + 2;
+                        ni.targetX = Math.max(bounds.x1 + hw2, Math.min(bounds.x2 - hw2, ni.targetX));
+                        ni.targetY = Math.max(bounds.y1 + hh2, Math.min(bounds.y2 - hh2, ni.targetY));
+                    }
+                }
+                if (maxOverlapArea < 1) break;
+            }
+        }
+
+        function layoutAll() {
+            computeScaling();
+
+            var titleSafe = Math.max(H * 0.08, 50);
+            var legendSafe = H * 0.88;
+            var usableH = legendSafe - titleSafe;
+
+            var globeR = Math.min(W * 0.15 * SCL, H * 0.28 * SCL, 200);
+            globe.R = globeR;
+            globe.cx = W * 0.05 + globeR;
+            globe.cy = titleSafe + usableH * 0.45;
+
+            var pipelineBoundary = globe.cx + globeR + W * 0.04;
+
+            convergePt.x = pipelineBoundary;
             convergePt.y = globe.cy;
 
-            HUB.targetX = convergePt.x + 30;
-            HUB.targetY = convergePt.y;
+            HUB.targetX = pipelineBoundary + 35 * SCL;
+            HUB.targetY = globe.cy;
             if (!HUB._initialized) { HUB.x = HUB.targetX; HUB.y = HUB.targetY; HUB._initialized = true; }
 
-            var pipeLeft = W * 0.40;
-            var pipeRight = W * 0.97;
-            var titleSafe = Math.max(H * 0.10, 60);
-            var legendSafe = H * 0.86;
-
-            var srcX = pipeLeft - W * 0.02;
-            var srcSpacing = (legendSafe - titleSafe) / (SOURCES.length + 1);
+            var srcX = pipelineBoundary + W * 0.03;
+            var srcSpacing = usableH / (SOURCES.length + 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
                 s.targetY = titleSafe + (i + 1) * srcSpacing;
-                if (!s._initialized) { s.x = s.targetX - 20; s.y = s.targetY; s._initialized = true; }
+                if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
+            var zoneGap = MIN_SPACING * 2;
+            var srcBounds = { x1: pipelineBoundary, x2: pipelineBoundary + W * 0.12, y1: titleSafe, y2: legendSafe };
+            resolveOverlaps(SOURCES, srcBounds, 4);
 
-            var engX = pipeLeft + (pipeRight - pipeLeft) * 0.15;
-            ENGINE.targetX = engX;
-            ENGINE.targetY = H * 0.26;
+            var pipeCenter = pipelineBoundary + (W * 0.96 - pipelineBoundary) * 0.22;
+            ENGINE.targetX = pipeCenter;
+            ENGINE.targetY = titleSafe + usableH * 0.20;
             if (!ENGINE._initialized) { ENGINE.x = ENGINE.targetX; ENGINE.y = ENGINE.targetY; ENGINE._initialized = true; }
 
-            var confY = H * 0.50;
-            var confSpread = (pipeRight - pipeLeft) * 0.08;
-            CONFIDENCE[0].targetX = engX - confSpread;
+            var confCx = pipeCenter;
+            var confSpread = Math.max(50, (W * 0.96 - pipelineBoundary) * 0.08) * SCL;
+            var confY = titleSafe + usableH * 0.50;
+            CONFIDENCE[0].targetX = confCx - confSpread;
             CONFIDENCE[0].targetY = confY;
-            CONFIDENCE[1].targetX = engX + confSpread;
+            CONFIDENCE[1].targetX = confCx + confSpread;
             CONFIDENCE[1].targetY = confY;
-            CONFIDENCE[2].targetX = engX;
-            CONFIDENCE[2].targetY = confY + H * 0.10;
+            CONFIDENCE[2].targetX = confCx;
+            CONFIDENCE[2].targetY = confY + usableH * 0.12;
             CONFIDENCE.forEach(function(c) {
                 if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
             });
+            var confBounds = { x1: pipelineBoundary + W * 0.05, x2: pipelineBoundary + W * 0.30, y1: titleSafe + usableH * 0.35, y2: legendSafe - zoneGap };
+            resolveOverlaps(CONFIDENCE, confBounds, 4);
 
-            var storeY = H * 0.78;
-            STORAGE[0].targetX = engX + confSpread * 0.5;
+            var storeY = titleSafe + usableH * 0.85;
+            var storeSpread = confSpread * 1.2;
+            STORAGE[0].targetX = confCx + storeSpread * 0.4;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = engX - confSpread * 1.2;
+            STORAGE[1].targetX = confCx - storeSpread * 0.6;
             STORAGE[1].targetY = storeY;
             STORAGE.forEach(function(s) {
                 if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
+            var storeBounds = { x1: pipelineBoundary, x2: W * 0.75, y1: titleSafe + usableH * 0.72, y2: legendSafe };
+            resolveOverlaps(STORAGE, storeBounds, 4);
 
-            var protoCx = pipeLeft + (pipeRight - pipeLeft) * 0.52;
-            var protoCy = H * 0.48;
-            var protoR = Math.min((pipeRight - pipeLeft) * 0.28, H * 0.30);
+            var protoZoneL = pipeCenter + (W * 0.96 - pipeCenter) * 0.15;
+            var protoZoneR = W * 0.96 - W * 0.07;
+            var protoCx = (protoZoneL + protoZoneR) / 2;
+            var protoCy = titleSafe + usableH * 0.46;
+            var protoR = Math.min((protoZoneR - protoZoneL) * 0.44, usableH * 0.32);
             var angleMap = [-130, -90, -50, 30, 70, 150, 190, -10, 110];
             PROTOCOLS.forEach(function(p, i) {
                 var a = angleMap[i] * DEG;
                 p.targetX = protoCx + protoR * Math.cos(a);
                 p.targetY = protoCy + protoR * Math.sin(a);
-                p.targetY = Math.max(p.targetY, titleSafe + p.radius);
-                p.targetY = Math.min(p.targetY, legendSafe - p.radius);
                 if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
+            var protoBounds = { x1: protoZoneL + zoneGap, x2: protoZoneR - zoneGap, y1: titleSafe, y2: legendSafe };
+            resolveOverlaps(PROTOCOLS, protoBounds, 6);
 
-            var outX = pipeRight - W * 0.04;
-            var outSpacing = (legendSafe - titleSafe) / (OUTPUTS.length + 1);
+            var outX = W * 0.96 - W * 0.02;
+            var outSpacing = usableH / (OUTPUTS.length + 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = titleSafe + (i + 1) * outSpacing;
-                if (!o._initialized) { o.x = o.targetX + 15; o.y = o.targetY; o._initialized = true; }
+                if (!o._initialized) { o.x = o.targetX; o.y = o.targetY; o._initialized = true; }
             });
+            var outBounds = { x1: W * 0.82 + zoneGap, x2: W * 0.98, y1: titleSafe, y2: legendSafe };
+            resolveOverlaps(OUTPUTS, outBounds, 4);
         }
 
         var hoverNode = null;
@@ -860,19 +1032,20 @@
                 var t = e.labelT || 0.5;
                 var lx = from.x + (to.x - from.x) * t;
                 var ly = from.y + (to.y - from.y) * t;
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = (FONT_SUB - 1) + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.85 : 0.35) + ')';
-                ctx.fillText(e.label, lx, ly - 7);
+                ctx.fillText(e.label, lx, ly - 7 * SCL);
             }
         }
 
         function drawNodeTag(n, isHover, dimmed) {
-            ctx.font = (isHover ? 'bold ' : '') + '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            var fs = FONT_LABEL;
+            ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             var tw = ctx.measureText(n.label).width;
-            var w = Math.max(n.radius * 2.4, tw + 22);
-            var h = n.radius * 1.3;
+            var w = Math.max(n.radius * 2.4, tw + 22 * SCL);
+            var h = Math.max(n.radius * 1.3, 40 * SCL);
             n._drawW = w;
             n._drawH = h;
             var r = 5;
@@ -887,14 +1060,14 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
-            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 6 : 0));
+            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 7 * SCL : 0));
 
             if (!dimmed && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHover ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.3)';
                 for (var i = 0; i < lines.length; i++) {
-                    ctx.fillText(lines[i], n.x, n.y + 6 + i * 10);
+                    ctx.fillText(lines[i], n.x, n.y + 6 * SCL + i * (FONT_SUB + 2));
                 }
             }
         }
@@ -923,15 +1096,15 @@
             ctx.lineWidth = isHover ? 2 : 1.2;
             ctx.stroke();
 
-            ctx.font = (isHover ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
-            ctx.fillText(n.label, n.x, n.y - 7);
+            ctx.fillText(n.label, n.x, n.y - 7 * SCL);
 
-            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)';
-            ctx.fillText(n.sub, n.x, n.y + 8);
+            ctx.fillText(n.sub, n.x, n.y + 8 * SCL);
         }
 
         function drawEngineNode(n) {
@@ -962,15 +1135,16 @@
             ctx.lineWidth = 0.5;
             ctx.stroke();
 
-            ctx.font = 'bold 17px -apple-system, BlinkMacSystemFont, sans-serif';
+            var engFont = Math.round(17 * SCL);
+            ctx.font = 'bold ' + engFont + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
-            ctx.fillText(n.label, n.x, n.y - 8);
+            ctx.fillText(n.label, n.x, n.y - 8 * SCL);
 
-            ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (FONT_SUB + 1) + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)';
-            ctx.fillText(n.sub, n.x, n.y + 12);
+            ctx.fillText(n.sub, n.x, n.y + 12 * SCL);
         }
 
         function drawConfidenceNode(n) {
@@ -992,17 +1166,17 @@
             ctx.stroke();
             ctx.restore();
 
-            ctx.font = (isHover ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = (isHover ? 'bold ' : '') + FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
             var subLines = n.sub ? n.sub.split('\n') : [];
-            ctx.fillText(n.label, n.x, n.y - (subLines.length > 1 ? 8 : 5));
+            ctx.fillText(n.label, n.x, n.y - (subLines.length > 1 ? 8 : 5) * SCL);
 
-            ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.35)');
             for (var i = 0; i < subLines.length; i++) {
-                ctx.fillText(subLines[i], n.x, n.y + 6 + i * 11);
+                ctx.fillText(subLines[i], n.x, n.y + 6 * SCL + i * (FONT_SUB + 2));
             }
         }
 
@@ -1029,16 +1203,16 @@
             ctx.lineWidth = isHover ? 2 : 1;
             ctx.stroke();
 
-            var fontSize = p.label.length > 6 ? 12 : (p.label.length > 4 ? 13 : 15);
+            var fontSize = Math.round((p.label.length > 6 ? 12 : (p.label.length > 4 ? 13 : 15)) * SCL);
             ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
-            ctx.fillText(p.label, p.x, p.y - 6);
+            ctx.fillText(p.label, p.x, p.y - 6 * SCL);
 
-            ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.08)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)');
-            ctx.fillText('RFC ' + (p.rfc === 'draft' ? 'Draft' : p.rfc), p.x, p.y + 10);
+            ctx.fillText('RFC ' + (p.rfc === 'draft' ? 'Draft' : p.rfc), p.x, p.y + 10 * SCL);
         }
 
         function drawStorageNode(n) {
@@ -1068,7 +1242,7 @@
             ctx.lineWidth = 0.6;
             ctx.stroke();
 
-            var fs = n.label.length > 10 ? 11 : 12;
+            var fs = Math.round((n.label.length > 10 ? 11 : 12) * SCL);
             ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1077,10 +1251,10 @@
 
             if (!dimmed && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
                 for (var i = 0; i < lines.length; i++) {
-                    ctx.fillText(lines[i], n.x, n.y + h / 2 + 12 + i * 10);
+                    ctx.fillText(lines[i], n.x, n.y + h / 2 + 12 * SCL + i * (FONT_SUB + 2));
                 }
             }
         }
@@ -1106,19 +1280,19 @@
             ctx.lineWidth = isHover ? 1.5 : 0.8;
             ctx.stroke();
 
-            var fs2 = n.label.length > 10 ? 10 : (n.label.length > 7 ? 11 : 13);
+            var fs2 = Math.round((n.label.length > 10 ? 10 : (n.label.length > 7 ? 11 : 13)) * SCL);
             ctx.font = (isHover ? 'bold ' : '') + fs2 + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
-            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 5 : 0));
+            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 5 * SCL : 0));
 
             if (!dimmed && n.sub) {
                 var lines = n.sub.split('\n');
-                ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
                 for (var i = 0; i < lines.length; i++) {
-                    ctx.fillText(lines[i], n.x, n.y + 8 + i * 10);
+                    ctx.fillText(lines[i], n.x, n.y + 8 * SCL + i * (FONT_SUB + 2));
                 }
             }
         }
