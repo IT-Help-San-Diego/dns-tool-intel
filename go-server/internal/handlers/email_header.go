@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	strShowform = "ShowForm"
+        strShowform = "ShowForm"
 )
 
 const emailHeaderTemplate = "email_header.html"
@@ -70,7 +70,7 @@ func (h *EmailHeaderHandler) AnalyzeEmailHeader(c *gin.Context) {
 
         file, fileHeader, err := c.Request.FormFile("header_file")
         if err == nil && fileHeader != nil && fileHeader.Size > 0 {
-                defer file.Close()
+                defer safeClose(file, "email header file")
                 if fileHeader.Size > maxHeaderSize {
                         renderErr("File too large. Maximum size is 256 KB.")
                         return

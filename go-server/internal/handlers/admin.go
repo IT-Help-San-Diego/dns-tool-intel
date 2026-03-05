@@ -162,7 +162,7 @@ func (h *AdminHandler) fetchUsers(ctx context.Context) []AdminUser {
                 slog.Error("Admin: failed to fetch users", mapKeyError, err)
                 return nil
         }
-        defer rows.Close()
+        defer func() { rows.Close() }()
 
         var users []AdminUser
         for rows.Next() {
@@ -194,7 +194,7 @@ func (h *AdminHandler) fetchRecentAnalyses(ctx context.Context) []AdminAnalysis 
                 slog.Error("Admin: failed to fetch analyses", mapKeyError, err)
                 return nil
         }
-        defer rows.Close()
+        defer func() { rows.Close() }()
 
         var analyses []AdminAnalysis
         for rows.Next() {
@@ -254,7 +254,7 @@ func (h *AdminHandler) fetchICAERuns(ctx context.Context) []AdminICAERun {
                 slog.Error("Admin: failed to fetch ICAE runs", mapKeyError, err)
                 return nil
         }
-        defer rows.Close()
+        defer func() { rows.Close() }()
 
         var runs []AdminICAERun
         for rows.Next() {
@@ -285,7 +285,7 @@ func (h *AdminHandler) fetchScannerAlerts(ctx context.Context) []AdminScannerAle
                 slog.Error("Admin: failed to fetch scanner alerts", mapKeyError, err)
                 return nil
         }
-        defer rows.Close()
+        defer func() { rows.Close() }()
 
         var alerts []AdminScannerAlert
         for rows.Next() {

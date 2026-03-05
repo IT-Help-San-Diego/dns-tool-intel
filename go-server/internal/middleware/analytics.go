@@ -84,8 +84,9 @@ func (ac *AnalyticsCollector) rotateSalt() {
                 return
         }
         b := make([]byte, 32)
-        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
-        _, _ = rand.Read(b)
+        if _, err := rand.Read(b); err != nil {
+                slog.Error("rand.Read failed", "error", err)
+        }
         ac.dailySalt = hex.EncodeToString(b)
         ac.saltDate = today
         ac.visitors = make(map[string]bool)

@@ -31,8 +31,9 @@ const (
 
 func generateNonce() string {
         b := make([]byte, 16)
-        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
-        _, _ = rand.Read(b)
+        if _, err := rand.Read(b); err != nil {
+                slog.Error("rand.Read failed", "error", err)
+        }
         return base64.URLEncoding.EncodeToString(b)
 }
 
@@ -66,8 +67,13 @@ func RequestContext() gin.HandlerFunc {
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
-                nonce, _ := c.Get(ginKeyCSPNonce)
-                nonceStr, _ := nonce.(string)
+                nonce, exists := c.Get(ginKeyCSPNonce)
+                var nonceStr string
+                if exists {
+                        if s, ok := nonce.(string); ok {
+                                nonceStr = s
+                        }
+                }
 
                 c.Header("X-Content-Type-Options", "nosniff")
                 if !devMode {
@@ -132,14 +138,14 @@ func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {
         return func(c *gin.Context) {
                 defer func() {
                         if err := recover(); err != nil {
-                                traceID, _ := c.Get(ginKeyTraceID)
+                                traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
                                 slog.Error("Panic recovered",
                                         ginKeyTraceID, traceID,
                                         "error", fmt.Sprintf("%v", err),
                                         "path", c.Request.URL.Path,
                                 )
-                                nonce, _ := c.Get(ginKeyCSPNonce)
-                                csrfToken, _ := c.Get(ginKeyCSRFToken)
+                                nonce, _ := c.Get(ginKeyCSPNonce) //nolint:errcheck // value used for template rendering
+                                csrfToken, _ := c.Get(ginKeyCSRFToken) //nolint:errcheck // value used for template rendering
                                 type flashMsg struct {
                                         Category string
                                         Message  string
