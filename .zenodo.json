@@ -9,7 +9,7 @@
       "orcid": "0009-0000-5237-9065"
     }
   ],
-  "description": "<p><img src=\"https://dnstool.it-help.tech/static/images/owl-of-athena.png\" alt=\"Owl of Athena\" width=\"120\" /></p><p><strong>DNS Tool</strong> is a research platform for analyzing domain security infrastructure using confidence-scored DNS intelligence.</p><p><strong>Live:</strong> https://dnstool.it-help.tech<br><strong>Methodology:</strong> https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf</p>",
+  "description": "![Owl of Athena](https://dnstool.it-help.tech/static/images/owl-of-athena.png)\n\n# DNS Tool — Domain Security Audit Platform\n\n**DNS Tool** is a research platform for analyzing the security posture of domain infrastructure using a confidence-scored methodology.\n\n## Protocols / signals evaluated\n- SPF\n- DKIM\n- DMARC\n- BIMI\n- DNSSEC\n- DANE\n- MTA-STS\n- TLS-RPT\n- CAA\n\n## Outputs\n- Engineer-level DNS Intelligence Reports\n- Executive-level DNS Intelligence Briefs\n- Confidence-scored security posture assessments\n\n## Research artifact\n- Live system: https://dnstool.it-help.tech\n- Methodology: https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\n- Source: https://github.com/careyjames/dns-tool-web\n",
   "keywords": [
     "DNS security",
     "SPF",
