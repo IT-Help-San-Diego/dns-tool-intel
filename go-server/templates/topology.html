@@ -191,24 +191,24 @@
         var DEG = Math.PI / 180;
 
         var RESOLVER_POPS = [
-            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco' },
-            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London' },
-            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo' },
-            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore' },
-            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo' },
-            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs' },
-            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin' },
-            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney' },
-            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei' },
-            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich' },
-            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt' },
-            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore' },
-            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose' },
-            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London' },
-            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong' },
-            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels' },
-            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris' },
-            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco', country: 'US', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'Primary US West PoP' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London', country: 'GB', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EMEA hub' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo', country: 'JP', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC hub' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore', country: 'SG', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'SEA PoP' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo', country: 'BR', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'LATAM hub' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs', country: 'US', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'US Central DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin', country: 'IE', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'EU DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney', country: 'AU', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Oceania DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei', country: 'TW', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC cache' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich', country: 'CH', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Swiss HQ, threat-blocking' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt', country: 'DE', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'DE-CIX peered' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore', country: 'SG', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'SEA PoP' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose', country: 'US', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Cisco Umbrella HQ' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London', country: 'GB', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EMEA PoP' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong', country: 'HK', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC PoP' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels', country: 'BE', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EU HQ, sovereign DNS' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris', country: 'FR', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'France PoP' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin', country: 'DE', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'Germany PoP' }
         ];
 
         var LAND = [
@@ -390,6 +390,9 @@
             }
         }
 
+        var hoveredPop = null;
+        var popHitAreas = [];
+
         function drawResolverMarkers() {
             var visiblePops = [];
             for (var i = 0; i < RESOLVER_POPS.length; i++) {
@@ -403,62 +406,134 @@
             visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
 
             var placedTags = [];
+            popHitAreas = [];
 
             for (var vi = 0; vi < visiblePops.length; vi++) {
                 var vp = visiblePops[vi];
                 var pop2 = vp.pop;
                 var p2 = vp.p;
                 var alpha = 0.4 + p2.depth * 0.6;
+                var isHovered = hoveredPop === vp.idx;
 
                 ctx.beginPath();
-                ctx.arc(p2.x, p2.y, 6, 0, Math.PI * 2);
-                ctx.fillStyle = hexToRgba(pop2.color, 0.15 * alpha);
+                ctx.arc(p2.x, p2.y, isHovered ? 9 : 7, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 0.3 : 0.15) * alpha);
                 ctx.fill();
 
                 ctx.beginPath();
-                ctx.arc(p2.x, p2.y, 3.5, 0, Math.PI * 2);
-                ctx.fillStyle = hexToRgba(pop2.color, 0.8 * alpha);
+                ctx.arc(p2.x, p2.y, isHovered ? 5 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 1 : 0.85) * alpha);
                 ctx.fill();
 
                 var label = pop2.tag + ' \u00b7 ' + pop2.city;
-                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.font = (isHovered ? 'bold ' : '') + '13px -apple-system, BlinkMacSystemFont, sans-serif';
                 var tw = ctx.measureText(label).width;
-                var tagW = tw + 14;
-                var tagH = 16;
+                var tagW = tw + 18;
+                var tagH = 22;
 
                 var tagSide = (p2.x > globe.cx) ? 1 : -1;
-                var rawTagX = p2.x + tagSide * 10;
+                var rawTagX = p2.x + tagSide * 14;
                 var rawTagY = p2.y - tagH / 2;
 
-                if (tagSide < 0) rawTagX = p2.x - 10 - tagW;
+                if (tagSide < 0) rawTagX = p2.x - 14 - tagW;
 
                 for (var ck = 0; ck < placedTags.length; ck++) {
                     var pt = placedTags[ck];
-                    if (Math.abs(rawTagY - pt.y) < tagH + 2 && Math.abs(rawTagX - pt.x) < Math.max(tagW, pt.w)) {
-                        rawTagY = pt.y + tagH + 3;
+                    if (Math.abs(rawTagY - pt.y) < tagH + 3 && Math.abs(rawTagX - pt.x) < Math.max(tagW, pt.w)) {
+                        rawTagY = pt.y + tagH + 4;
                     }
                 }
 
                 placedTags.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
                 ctx.beginPath();
                 ctx.moveTo(p2.x, p2.y);
                 ctx.lineTo(rawTagX + (tagSide > 0 ? 0 : tagW), rawTagY + tagH / 2);
-                ctx.strokeStyle = hexToRgba(pop2.color, 0.25 * alpha);
-                ctx.lineWidth = 0.6;
+                ctx.strokeStyle = hexToRgba(pop2.color, (isHovered ? 0.5 : 0.3) * alpha);
+                ctx.lineWidth = isHovered ? 1 : 0.7;
                 ctx.stroke();
 
-                roundRect(rawTagX, rawTagY, tagW, tagH, 3);
-                ctx.fillStyle = hexToRgba(pop2.color, 0.12 * alpha);
+                roundRect(rawTagX, rawTagY, tagW, tagH, 4);
+                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 0.25 : 0.12 * alpha);
                 ctx.fill();
-                ctx.strokeStyle = hexToRgba(pop2.color, 0.35 * alpha);
-                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.8 : 0.4 * alpha);
+                ctx.lineWidth = isHovered ? 1.2 : 0.6;
                 ctx.stroke();
 
-                ctx.fillStyle = 'rgba(255,255,255,' + (0.7 * alpha) + ')';
+                ctx.fillStyle = 'rgba(255,255,255,' + (isHovered ? 0.95 : 0.8 * alpha) + ')';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(label, rawTagX + 7, rawTagY + tagH / 2);
+                ctx.fillText(label, rawTagX + 9, rawTagY + tagH / 2);
+            }
+        }
+
+        function drawPopTooltip() {
+            if (hoveredPop === null) return;
+            var pop = RESOLVER_POPS[hoveredPop];
+            if (!pop) return;
+            var p = projectPt(pop.lat, pop.lon);
+            if (!p.vis) { hoveredPop = null; return; }
+
+            var lines = [
+                pop.resolver + ' \u2014 ' + pop.city + ', ' + pop.country,
+                'IP: ' + pop.ip + (pop.ipAlt !== 'n/a' ? ' / ' + pop.ipAlt : ''),
+                'AS' + (pop.asn > 0 ? pop.asn : 'N/A') + ' (' + pop.asOrg + ')',
+                'Protocol: ' + pop.protocol + ' (' + pop.transport + ')',
+                'Type: ' + pop.hopType.replace('-', ' '),
+                pop.note
+            ];
+
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            var maxW = 0;
+            for (var i = 0; i < lines.length; i++) {
+                var lw = ctx.measureText(lines[i]).width;
+                if (lw > maxW) maxW = lw;
+            }
+
+            var tipW = maxW + 24;
+            var lineH = 18;
+            var tipH = lines.length * lineH + 16;
+            var tipX = p.x + 18;
+            var tipY = p.y - tipH / 2;
+
+            if (tipX + tipW > globe.cx + globe.R + 60) {
+                tipX = p.x - tipW - 18;
+            }
+            if (tipY < 10) tipY = 10;
+            if (tipY + tipH > H - 10) tipY = H - tipH - 10;
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.6)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.fillStyle = 'rgba(12, 16, 28, 0.95)';
+            ctx.fill();
+            ctx.restore();
+
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.strokeStyle = hexToRgba(pop.color, 0.5);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            var headerH = lineH + 4;
+            roundRect(tipX, tipY, tipW, headerH, 6);
+            ctx.fillStyle = hexToRgba(pop.color, 0.15);
+            ctx.fill();
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = hexToRgba(pop.color, 0.95);
+            ctx.fillText(lines[0], tipX + 12, tipY + headerH / 2);
+
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, monospace';
+            for (var j = 1; j < lines.length; j++) {
+                ctx.fillStyle = j === lines.length - 1 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.7)';
+                if (j === lines.length - 1) ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText(lines[j], tipX + 12, tipY + headerH + (j - 1) * lineH + lineH / 2 + 4);
             }
         }
 
@@ -684,16 +759,28 @@
             return null;
         }
 
+        function hitTestPop(mx, my) {
+            for (var i = popHitAreas.length - 1; i >= 0; i--) {
+                var ha = popHitAreas[i];
+                if (mx >= ha.x && mx <= ha.x + ha.w && my >= ha.y && my <= ha.y + ha.h) return ha.idx;
+                var ddx = mx - ha.dotX;
+                var ddy = my - ha.dotY;
+                if (ddx * ddx + ddy * ddy < 144) return ha.idx;
+            }
+            return null;
+        }
+
         canvas.addEventListener('mousemove', function(ev) {
             var rect = canvas.getBoundingClientRect();
             mouseX = ev.clientX - rect.left;
             mouseY = ev.clientY - rect.top;
             hoverNode = hitTest(mouseX, mouseY);
-            canvas.style.cursor = hoverNode ? 'pointer' : 'default';
+            hoveredPop = hitTestPop(mouseX, mouseY);
+            canvas.style.cursor = (hoverNode || hoveredPop !== null) ? 'pointer' : 'default';
         });
 
         canvas.addEventListener('mouseleave', function() {
-            mouseX = -1; mouseY = -1; hoverNode = null;
+            mouseX = -1; mouseY = -1; hoverNode = null; hoveredPop = null;
             canvas.style.cursor = 'default';
         });
 
@@ -1201,6 +1288,8 @@
             STORAGE.forEach(function(s) { drawStorageNode(s); });
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
             OUTPUTS.forEach(function(o) { drawOutputNode(o); });
+
+            drawPopTooltip();
         }
 
         var paused = false;
