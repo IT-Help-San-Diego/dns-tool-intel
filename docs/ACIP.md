@@ -80,6 +80,10 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 
 **Rule**: CITATION.cff and codemeta.json are ORCID-linked research artifacts. They are NOT dev tracking files. Never bump them during routine development.
 
+**Two-Track Version Bump Law**:
+- **Dev bump** (routine): Edit ONLY `go-server/internal/config/config.go` → rebuild → publish. No other versioned file is touched. The concept DOI (`10.5281/zenodo.18854899`) NEVER changes.
+- **Release bump** (tag time only): `scripts/release-gate.sh X.Y.Z` bumps ALL versioned artifacts (config.go, CITATION.cff, codemeta.json, sonar-project.properties, methodology docs). Only run when a git tag is being created. The concept DOI still does not change — only `version:` fields update.
+
 ---
 
 ## Change Classification

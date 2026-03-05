@@ -2,6 +2,11 @@
 # Release gate — validates everything before a tag is created.
 # Usage: bash scripts/release-gate.sh X.Y.Z
 #
+# *** THIS IS THE RELEASE BUMP PATH — TAG TIME ONLY ***
+# For routine dev version bumps, edit ONLY config.go and rebuild.
+# Do NOT run this script for dev bumps. See docs/ACIP.md "Two-Track
+# Version Bump Law" and replit.md "CITATION.cff — HANDS OFF".
+#
 # Runs:
 #   1. Version bump in all versioned artifacts
 #   2. Methodology PDF regeneration
@@ -11,6 +16,9 @@
 #   6. Git status check (must be clean after all updates)
 #
 # Fails loudly on any error. Do NOT tag until this passes.
+#
+# NOTE: The concept DOI (10.5281/zenodo.18854899) in CITATION.cff
+# is PERMANENT and must NEVER be changed by this or any script.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
