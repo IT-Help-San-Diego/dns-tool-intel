@@ -48,7 +48,7 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 |------|--------|---------------------|----------------|
 | **SonarCloud** | A rating, all categories, 100% | SonarCloud dashboard | Yes |
 | **Lighthouse** | 100, all categories | `lighthouse` or Chrome DevTools | Yes |
-| **Mozilla Observatory** | 140+ score | observatory.mozilla.org | Yes |
+| **Mozilla Observatory** | 145+ score | observatory.mozilla.org | Yes |
 | **SRI** | All CSS/JS assets have SHA-384 integrity + crossorigin | `curl` + grep for `integrity=` | Yes |
 | **Go Tests** | All pass, zero failures | `go test ./go-server/... -count=1` | Yes |
 | **R009 CSS Cohesion** | PASS | `node scripts/audit-css-cohesion.js` | Yes |
