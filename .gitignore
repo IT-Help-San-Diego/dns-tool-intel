@@ -54,6 +54,13 @@ exports/
 # Private repo staging — never push to public
 dnstool-intel-staging/
 
+# Disposable venvs (cffconvert validation, etc.)
+.venv-cff/
+.venv*/
+
+# Codex agent files (local tooling, not versioned)
+.codex/
+
 # Git backups (created by recovery scripts)
 .git.backup*/
 
