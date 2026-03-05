@@ -707,7 +707,7 @@
         var FLOW_EDGES = [];
         FLOW_EDGES.push({ from: 'hub', to: 'engine', type: 'flow', label: '' });
         SOURCES.forEach(function(s) {
-            FLOW_EDGES.push({ from: s.id, to: 'engine', type: 'flow', label: '' });
+            FLOW_EDGES.push({ from: s.id, to: 'hub', type: 'flow', label: '' });
         });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
@@ -990,17 +990,17 @@
             CONFIDENCE[2].targetX = procCx;
             CONFIDENCE[2].targetY = confY + usableH * 0.18;
 
-            var storeY = titleSafe + usableH * 0.85;
-            STORAGE[0].targetX = procCx + confSpread * 0.3;
+            var storeY = titleSafe + usableH * 0.82;
+            STORAGE[0].targetX = procCx + confSpread * 0.4;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = procCx - confSpread * 0.3;
-            STORAGE[1].targetY = storeY - usableH * 0.04;
+            STORAGE[1].targetX = procCx - confSpread * 0.4;
+            STORAGE[1].targetY = storeY + usableH * 0.06;
 
             var protoCx = (col3L + col3R) / 2;
-            var protoCy = titleSafe + usableH * 0.45;
+            var protoCy = titleSafe + usableH * 0.42;
             var protoRx = (col3R - col3L) * 0.38;
-            var protoRy = usableH * 0.34;
-            var angleMap = [-120, -80, -40, 0, 40, 80, 120, 160, -160];
+            var protoRy = usableH * 0.28;
+            var angleMap = [-130, -90, -50, -10, 30, 70, 110, 150, 190];
             PROTOCOLS.forEach(function(p, i) {
                 var a = angleMap[i] * DEG;
                 p.targetX = protoCx + protoRx * Math.cos(a);
@@ -1044,8 +1044,8 @@
                 },
                 'protocol': {
                     gx: protoCx, gy: protoCy,
-                    gravity: 0.15,
-                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: legendSafe }
+                    gravity: 0.18,
+                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: titleSafe + usableH * 0.88 }
                 },
                 'output': {
                     gx: outCx, gy: titleSafe + usableH * 0.5,
