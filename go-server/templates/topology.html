@@ -783,46 +783,155 @@
             return null;
         }
 
-        function resolveOverlaps(nodes, bounds, iterations) {
-            var maxIter = iterations || 8;
-            for (var it = 0; it < maxIter; it++) {
-                var maxOverlapArea = 0;
-                for (var i = 0; i < nodes.length; i++) {
+        function forceDirectedLayout(nodes, edges, zones, globalBounds, maxIter) {
+            var n = nodes.length;
+            if (n === 0) return;
+            var area = (globalBounds.x2 - globalBounds.x1) * (globalBounds.y2 - globalBounds.y1);
+            var k = Math.sqrt(area / n) * 0.8;
+            var kSq = k * k;
+
+            var dispX = new Float64Array(n);
+            var dispY = new Float64Array(n);
+
+            var idxMap = {};
+            for (var i = 0; i < n; i++) idxMap[nodes[i].id] = i;
+
+            var boxes = [];
+            for (var i = 0; i < n; i++) boxes[i] = measureNodeBox(nodes[i]);
+
+            var T0 = Math.max(globalBounds.x2 - globalBounds.x1, globalBounds.y2 - globalBounds.y1) * 0.1;
+            var iter = maxIter || 80;
+
+            for (var it = 0; it < iter; it++) {
+                var temp = T0 * (1 - it / iter);
+                if (temp < 0.1) break;
+
+                for (var i = 0; i < n; i++) { dispX[i] = 0; dispY[i] = 0; }
+
+                for (var i = 0; i < n; i++) {
                     var ni = nodes[i];
-                    var box = measureNodeBox(ni);
-                    var ai = { x: ni.targetX, y: ni.targetY, hw: box.w / 2 + MIN_SPACING, hh: box.h / 2 + MIN_SPACING };
-
-                    for (var j = i + 1; j < nodes.length; j++) {
+                    var bwi = (boxes[i].w / 2 + MIN_SPACING);
+                    var bhi = (boxes[i].h / 2 + MIN_SPACING);
+                    for (var j = i + 1; j < n; j++) {
                         var nj = nodes[j];
-                        var boxj = measureNodeBox(nj);
-                        var aj = { x: nj.targetX, y: nj.targetY, hw: boxj.w / 2 + MIN_SPACING, hh: boxj.h / 2 + MIN_SPACING };
-                        var ov = aabbOverlap(ai, aj);
-                        if (ov) {
-                            var area = ov.ox * ov.oy;
-                            if (area > maxOverlapArea) maxOverlapArea = area;
-                            var strength = 0.55 + it * 0.05;
-                            if (ov.ox < ov.oy) {
-                                var pushX = (ov.ox * strength + 2);
-                                if (ni.targetX <= nj.targetX) { ni.targetX -= pushX; nj.targetX += pushX; }
-                                else { ni.targetX += pushX; nj.targetX -= pushX; }
-                            } else {
-                                var pushY = (ov.oy * strength + 2);
-                                if (ni.targetY <= nj.targetY) { ni.targetY -= pushY; nj.targetY += pushY; }
-                                else { ni.targetY += pushY; nj.targetY -= pushY; }
-                            }
-                            ai.x = ni.targetX;
-                            ai.y = ni.targetY;
-                        }
-                    }
+                        var dx = ni.targetX - nj.targetX;
+                        var dy = ni.targetY - nj.targetY;
 
-                    if (bounds) {
-                        var hw2 = box.w / 2 + 2;
-                        var hh2 = box.h / 2 + 2;
-                        ni.targetX = Math.max(bounds.x1 + hw2, Math.min(bounds.x2 - hw2, ni.targetX));
-                        ni.targetY = Math.max(bounds.y1 + hh2, Math.min(bounds.y2 - hh2, ni.targetY));
+                        var bwj = (boxes[j].w / 2 + MIN_SPACING);
+                        var bhj = (boxes[j].h / 2 + MIN_SPACING);
+                        var minSepX = bwi + bwj;
+                        var minSepY = bhi + bhj;
+
+                        var normDx = minSepX > 0 ? dx / minSepX : dx;
+                        var normDy = minSepY > 0 ? dy / minSepY : dy;
+                        var normDist = Math.sqrt(normDx * normDx + normDy * normDy);
+                        if (normDist < 0.01) {
+                            normDx = (Math.random() - 0.5) * 0.1;
+                            normDy = (Math.random() - 0.5) * 0.1;
+                            normDist = Math.sqrt(normDx * normDx + normDy * normDy);
+                        }
+
+                        var repulse = kSq / (normDist * normDist + 0.01);
+                        if (normDist < 1.5) repulse *= 3.0;
+                        var fx = (normDx / normDist) * repulse;
+                        var fy = (normDy / normDist) * repulse;
+                        dispX[i] += fx; dispY[i] += fy;
+                        dispX[j] -= fx; dispY[j] -= fy;
                     }
                 }
-                if (maxOverlapArea < 1) break;
+
+                for (var ei = 0; ei < edges.length; ei++) {
+                    var e = edges[ei];
+                    var si = idxMap[e.from];
+                    var ti = idxMap[e.to];
+                    if (si === undefined || ti === undefined) continue;
+                    var dx = nodes[si].targetX - nodes[ti].targetX;
+                    var dy = nodes[si].targetY - nodes[ti].targetY;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 0.01) continue;
+                    var idealLen = k * 1.8;
+                    var attract = (dist - idealLen) / dist * 0.3;
+                    var fx = dx * attract;
+                    var fy = dy * attract;
+                    dispX[si] -= fx; dispY[si] -= fy;
+                    dispX[ti] += fx; dispY[ti] += fy;
+                }
+
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.gx !== undefined) {
+                        var gdx = z.gx - ni.targetX;
+                        var gdy = z.gy - ni.targetY;
+                        var gStr = z.gravity || 0.15;
+                        dispX[i] += gdx * gStr;
+                        dispY[i] += gdy * gStr;
+                    }
+                }
+
+                var maxDisp = 0;
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var dLen = Math.sqrt(dispX[i] * dispX[i] + dispY[i] * dispY[i]);
+                    if (dLen > 0) {
+                        var capped = Math.min(dLen, temp);
+                        ni.targetX += (dispX[i] / dLen) * capped;
+                        ni.targetY += (dispY[i] / dLen) * capped;
+                        if (capped > maxDisp) maxDisp = capped;
+                    }
+
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.bounds) {
+                        var hw = boxes[i].w / 2 + 4;
+                        var hh = boxes[i].h / 2 + 4;
+                        ni.targetX = Math.max(z.bounds.x1 + hw, Math.min(z.bounds.x2 - hw, ni.targetX));
+                        ni.targetY = Math.max(z.bounds.y1 + hh, Math.min(z.bounds.y2 - hh, ni.targetY));
+                    }
+                }
+
+                if (maxDisp < 0.5 && it > 10) break;
+            }
+
+            for (var pass = 0; pass < 12; pass++) {
+                var hasOverlap = false;
+                for (var i = 0; i < n; i++) {
+                    boxes[i] = measureNodeBox(nodes[i]);
+                }
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var bwi = boxes[i].w / 2 + MIN_SPACING;
+                    var bhi = boxes[i].h / 2 + MIN_SPACING;
+                    for (var j = i + 1; j < n; j++) {
+                        var nj = nodes[j];
+                        var bwj = boxes[j].w / 2 + MIN_SPACING;
+                        var bhj = boxes[j].h / 2 + MIN_SPACING;
+                        var ov = aabbOverlap(
+                            { x: ni.targetX, y: ni.targetY, hw: bwi, hh: bhi },
+                            { x: nj.targetX, y: nj.targetY, hw: bwj, hh: bhj }
+                        );
+                        if (ov) {
+                            hasOverlap = true;
+                            var pushStr = 0.55 + pass * 0.08;
+                            if (ov.ox < ov.oy) {
+                                var px = ov.ox * pushStr + 3;
+                                if (ni.targetX <= nj.targetX) { ni.targetX -= px; nj.targetX += px; }
+                                else { ni.targetX += px; nj.targetX -= px; }
+                            } else {
+                                var py = ov.oy * pushStr + 3;
+                                if (ni.targetY <= nj.targetY) { ni.targetY -= py; nj.targetY += py; }
+                                else { ni.targetY += py; nj.targetY -= py; }
+                            }
+                        }
+                    }
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.bounds) {
+                        var hw = boxes[i].w / 2 + 4;
+                        var hh = boxes[i].h / 2 + 4;
+                        ni.targetX = Math.max(z.bounds.x1 + hw, Math.min(z.bounds.x2 - hw, ni.targetX));
+                        ni.targetY = Math.max(z.bounds.y1 + hh, Math.min(z.bounds.y2 - hh, ni.targetY));
+                    }
+                }
+                if (!hasOverlap) break;
             }
         }
 
@@ -843,77 +952,111 @@
             convergePt.x = pipelineBoundary;
             convergePt.y = globe.cy;
 
-            HUB.targetX = pipelineBoundary + 35 * SCL;
-            HUB.targetY = globe.cy;
-            if (!HUB._initialized) { HUB.x = HUB.targetX; HUB.y = HUB.targetY; HUB._initialized = true; }
+            var pipeCenter = pipelineBoundary + (W * 0.96 - pipelineBoundary) * 0.22;
+            var pipeW = W * 0.96 - pipelineBoundary;
 
-            var srcX = pipelineBoundary + W * 0.03;
+            var srcX = pipelineBoundary + pipeW * 0.04;
             var srcSpacing = usableH / (SOURCES.length + 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcX;
                 s.targetY = titleSafe + (i + 1) * srcSpacing;
-                if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
             });
-            var zoneGap = MIN_SPACING * 2;
-            var srcBounds = { x1: pipelineBoundary, x2: pipelineBoundary + W * 0.12, y1: titleSafe, y2: legendSafe };
-            resolveOverlaps(SOURCES, srcBounds, 4);
 
-            var pipeCenter = pipelineBoundary + (W * 0.96 - pipelineBoundary) * 0.22;
+            HUB.targetX = pipelineBoundary + 35 * SCL;
+            HUB.targetY = globe.cy;
+
             ENGINE.targetX = pipeCenter;
-            ENGINE.targetY = titleSafe + usableH * 0.20;
-            if (!ENGINE._initialized) { ENGINE.x = ENGINE.targetX; ENGINE.y = ENGINE.targetY; ENGINE._initialized = true; }
+            ENGINE.targetY = titleSafe + usableH * 0.18;
 
             var confCx = pipeCenter;
-            var confSpread = Math.max(50, (W * 0.96 - pipelineBoundary) * 0.08) * SCL;
+            var confSpread = Math.max(55, pipeW * 0.10) * SCL;
             var confY = titleSafe + usableH * 0.50;
             CONFIDENCE[0].targetX = confCx - confSpread;
             CONFIDENCE[0].targetY = confY;
             CONFIDENCE[1].targetX = confCx + confSpread;
             CONFIDENCE[1].targetY = confY;
             CONFIDENCE[2].targetX = confCx;
-            CONFIDENCE[2].targetY = confY + usableH * 0.12;
-            CONFIDENCE.forEach(function(c) {
-                if (!c._initialized) { c.x = c.targetX; c.y = c.targetY; c._initialized = true; }
-            });
-            var confBounds = { x1: pipelineBoundary + W * 0.05, x2: pipelineBoundary + W * 0.30, y1: titleSafe + usableH * 0.35, y2: legendSafe - zoneGap };
-            resolveOverlaps(CONFIDENCE, confBounds, 4);
+            CONFIDENCE[2].targetY = confY + usableH * 0.14;
 
-            var storeY = titleSafe + usableH * 0.85;
-            var storeSpread = confSpread * 1.2;
-            STORAGE[0].targetX = confCx + storeSpread * 0.4;
+            var storeY = titleSafe + usableH * 0.86;
+            var storeSpread = confSpread * 1.3;
+            STORAGE[0].targetX = confCx + storeSpread * 0.5;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = confCx - storeSpread * 0.6;
+            STORAGE[1].targetX = confCx - storeSpread * 0.5;
             STORAGE[1].targetY = storeY;
-            STORAGE.forEach(function(s) {
-                if (!s._initialized) { s.x = s.targetX; s.y = s.targetY; s._initialized = true; }
-            });
-            var storeBounds = { x1: pipelineBoundary, x2: W * 0.75, y1: titleSafe + usableH * 0.72, y2: legendSafe };
-            resolveOverlaps(STORAGE, storeBounds, 4);
 
-            var protoZoneL = pipeCenter + (W * 0.96 - pipeCenter) * 0.15;
-            var protoZoneR = W * 0.96 - W * 0.07;
+            var protoZoneL = pipeCenter + pipeW * 0.18;
+            var protoZoneR = W * 0.96 - W * 0.10;
             var protoCx = (protoZoneL + protoZoneR) / 2;
             var protoCy = titleSafe + usableH * 0.46;
-            var protoR = Math.min((protoZoneR - protoZoneL) * 0.44, usableH * 0.32);
+            var protoR = Math.min((protoZoneR - protoZoneL) * 0.40, usableH * 0.30);
             var angleMap = [-130, -90, -50, 30, 70, 150, 190, -10, 110];
             PROTOCOLS.forEach(function(p, i) {
                 var a = angleMap[i] * DEG;
                 p.targetX = protoCx + protoR * Math.cos(a);
                 p.targetY = protoCy + protoR * Math.sin(a);
-                if (!p._initialized) { p.x = p.targetX; p.y = p.targetY; p._initialized = true; }
             });
-            var protoBounds = { x1: protoZoneL + zoneGap, x2: protoZoneR - zoneGap, y1: titleSafe, y2: legendSafe };
-            resolveOverlaps(PROTOCOLS, protoBounds, 6);
 
-            var outX = W * 0.96 - W * 0.02;
+            var outX = W * 0.96 - W * 0.03;
             var outSpacing = usableH / (OUTPUTS.length + 1);
             OUTPUTS.forEach(function(o, i) {
                 o.targetX = outX;
                 o.targetY = titleSafe + (i + 1) * outSpacing;
-                if (!o._initialized) { o.x = o.targetX; o.y = o.targetY; o._initialized = true; }
             });
-            var outBounds = { x1: W * 0.82 + zoneGap, x2: W * 0.98, y1: titleSafe, y2: legendSafe };
-            resolveOverlaps(OUTPUTS, outBounds, 4);
+
+            var zoneGap = MIN_SPACING * 2.5;
+            var globalBounds = { x1: pipelineBoundary, x2: W * 0.98, y1: titleSafe, y2: legendSafe };
+
+            var zones = {
+                'source': {
+                    gx: srcX, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.25,
+                    bounds: { x1: pipelineBoundary, x2: pipelineBoundary + pipeW * 0.13, y1: titleSafe, y2: legendSafe }
+                },
+                'hub': {
+                    gx: HUB.targetX, gy: HUB.targetY,
+                    gravity: 0.5,
+                    bounds: { x1: pipelineBoundary, x2: pipelineBoundary + pipeW * 0.15, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.65 }
+                },
+                'engine': {
+                    gx: ENGINE.targetX, gy: ENGINE.targetY,
+                    gravity: 0.5,
+                    bounds: { x1: pipeCenter - pipeW * 0.12, x2: pipeCenter + pipeW * 0.12, y1: titleSafe, y2: titleSafe + usableH * 0.35 }
+                },
+                'confidence': {
+                    gx: confCx, gy: confY + usableH * 0.04,
+                    gravity: 0.20,
+                    bounds: { x1: pipelineBoundary + pipeW * 0.03, x2: pipeCenter + pipeW * 0.18, y1: titleSafe + usableH * 0.36, y2: titleSafe + usableH * 0.72 }
+                },
+                'storage': {
+                    gx: confCx, gy: storeY,
+                    gravity: 0.30,
+                    bounds: { x1: pipelineBoundary, x2: pipeCenter + pipeW * 0.20, y1: titleSafe + usableH * 0.74, y2: legendSafe }
+                },
+                'protocol': {
+                    gx: protoCx, gy: protoCy,
+                    gravity: 0.12,
+                    bounds: { x1: protoZoneL - zoneGap, x2: protoZoneR + zoneGap, y1: titleSafe, y2: legendSafe }
+                },
+                'output': {
+                    gx: outX, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.30,
+                    bounds: { x1: W * 0.85, x2: W * 0.99, y1: titleSafe, y2: legendSafe }
+                }
+            };
+
+            var allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
+            var allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
+
+            forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 100);
+
+            allLayoutNodes.forEach(function(nd) {
+                if (!nd._initialized) {
+                    nd.x = nd.targetX;
+                    nd.y = nd.targetY;
+                    nd._initialized = true;
+                }
+            });
         }
 
         var hoverNode = null;

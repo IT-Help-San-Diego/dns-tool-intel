@@ -716,33 +716,6 @@
             </div>
         </section>
 
-        {{if .Changelog}}
-        <section class="mt-5 mb-4" id="whats-new">
-            <h2 class="section-heading text-center mb-2"><i class="fas fa-bolt me-2" aria-hidden="true"></i>Changelog</h2>
-            <p class="text-center text-muted mb-4">Recent improvements to analysis accuracy, transparency, and intelligence depth</p>
-            <div class="row g-3">
-                {{range .Changelog}}
-                <div class="col-md-6 col-lg-4">
-                    <div class="card bg-dark border-secondary h-100 {{if .IsIncident}}changelog-card-incident{{end}}">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="{{.Icon}} {{if .IsIncident}}text-warning{{else}}text-info{{end}} me-2"></i>
-                                <span class="badge changelog-badge changelog-badge-{{.Category | lower}} me-2 u-fs-065rem">{{.Category}}</span>
-                                <span class="text-muted small ms-auto">{{.Date}}</span>
-                            </div>
-                            <p class="card-title mb-1 fw-semibold">{{.Title}}</p>
-                            <p class="card-text text-muted small mb-0">{{.Description}}</p>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
-            </div>
-            <div class="text-center mt-3">
-                <a href="/changelog" class="btn btn-outline-info btn-sm"><i class="fas fa-history me-1" aria-hidden="true"></i>View All Updates</a>
-            </div>
-        </section>
-        {{end}}
-
         <!-- FAQ Section -->
         <div class="row mt-4 mb-5">
             <div class="col-lg-8 mx-auto">
