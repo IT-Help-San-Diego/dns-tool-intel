@@ -679,7 +679,7 @@ func (c *Client) dohQueryWithTTL(ctx context.Context, domain, recordType string)
                 slog.Debug("DoH query failed", mapKeyDomain, domain, "type", recordType, mapKeyError, err)
                 return RecordWithTTL{}
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "doh-response")
 
         if resp.StatusCode != http.StatusOK {
                 return RecordWithTTL{}

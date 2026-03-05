@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	mapKeyToolkit = "toolkit"
+        mapKeyToolkit = "toolkit"
 )
 
 const tplToolkit = "toolkit.html"
@@ -147,7 +147,7 @@ func (h *ToolkitHandler) executeProbeRequest(probe probeConfig, targetHost, targ
         if err != nil {
                 return nil, "Could not connect to the probe service. It may be temporarily unavailable."
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "probe-response")
 
         body, err := io.ReadAll(resp.Body)
         if err != nil {

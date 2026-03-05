@@ -66,6 +66,12 @@ var (
         rateCount = make(map[string]int)
 )
 
+func safeClose(c io.Closer, label string) {
+        if err := c.Close(); err != nil {
+                slog.Debug("close error", "label", label, mapKeyError, err)
+        }
+}
+
 func main() {
         probeKey = os.Getenv("PROBE_KEY")
         if probeKey == "" {
@@ -273,7 +279,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
                 result[mapKeyError] = classifyError(err)
                 return result
         }
-        defer conn.Close()
+        defer safeClose(conn, "probeSMTPServer conn")
         result[mapKeyReachable] = true
 
         banner, err := readSMTPResponse(conn, smtpReadTimeout)
@@ -304,14 +310,14 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
 
         tlsCfg := &tls.Config{
                 ServerName:         host,
-                InsecureSkipVerify: true,
+                InsecureSkipVerify: true, //NOSONAR
         }
         tlsConn := tls.Client(conn, tlsCfg)
         if err := tlsConn.HandshakeContext(probeCtx); err != nil {
                 result[mapKeyError] = fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 80))
                 return result
         }
-        defer tlsConn.Close()
+        defer safeClose(tlsConn, "probeSMTPServer tlsConn")
 
         state := tlsConn.ConnectionState()
         result[mapKeyTlsVersion] = tlsVersionString(state.Version)
@@ -332,7 +338,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         if err != nil {
                 return
         }
-        defer conn.Close()
+        defer safeClose(conn, "verifySMTPCert conn")
 
         banner, bannerErr := readSMTPResponse(conn, 1*time.Second)
         if bannerErr != nil {
@@ -357,7 +363,7 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
 
         verifyCfg := &tls.Config{ServerName: host}
         verifyTLS := tls.Client(conn, verifyCfg)
-        defer verifyTLS.Close()
+        defer safeClose(verifyTLS, "verifySMTPCert verifyTLS")
 
         if err := verifyTLS.HandshakeContext(verifyCtx); err != nil {
                 result[mapKeyCertValid] = false
@@ -395,13 +401,13 @@ func probePort(ctx context.Context, host string, port int) map[string]any {
                 result[mapKeyError] = classifyError(err)
                 return result
         }
-        defer conn.Close()
+        defer safeClose(conn, "probePort conn")
         result[mapKeyReachable] = true
 
         if port == 465 {
                 tlsCfg := &tls.Config{
                         ServerName:         host,
-                        InsecureSkipVerify: true,
+                        InsecureSkipVerify: true, //NOSONAR
                 }
                 tlsConn := tls.Client(conn, tlsCfg)
                 if err := tlsConn.HandshakeContext(ctx); err == nil {
@@ -409,7 +415,9 @@ func probePort(ctx context.Context, host string, port int) map[string]any {
                         state := tlsConn.ConnectionState()
                         result[mapKeyTlsVersion] = tlsVersionString(state.Version)
                 }
-                tlsConn.Close()
+                if err := tlsConn.Close(); err != nil {
+                        slog.Debug("close error", "label", "probePort tlsConn", mapKeyError, err)
+                }
         }
 
         return result
@@ -580,7 +588,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
                 result[mapKeyError] = classifyError(err)
                 return result
         }
-        defer conn.Close()
+        defer safeClose(conn, "getCertViaSMTP conn")
 
         banner, bannerErr := readSMTPResponse(conn, smtpReadTimeout)
         if bannerErr != nil {
@@ -623,7 +631,7 @@ func getCertViaTLS(ctx context.Context, host string, port int) map[string]any {
                 result[mapKeyError] = classifyError(err)
                 return result
         }
-        defer conn.Close()
+        defer safeClose(conn, "getCertViaTLS conn")
 
         return extractCertInfo(conn, host)
 }
@@ -633,10 +641,10 @@ func extractCertInfo(conn net.Conn, host string) map[string]any {
 
         tlsCfg := &tls.Config{
                 ServerName:         host,
-                InsecureSkipVerify: true,
+                InsecureSkipVerify: true, //NOSONAR
         }
         tlsConn := tls.Client(conn, tlsCfg)
-        defer tlsConn.Close()
+        defer safeClose(tlsConn, "extractCertInfo tlsConn")
 
         if err := tlsConn.Handshake(); err != nil {
                 result[mapKeyError] = fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 100))

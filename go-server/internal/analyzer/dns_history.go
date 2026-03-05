@@ -281,7 +281,7 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
                 slog.Warn("SecurityTrails history: request failed", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err)
                 return historyFetchResult{errored: true}
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "securitytrails-history")
 
         if resp.StatusCode == http.StatusTooManyRequests {
                 slog.Warn("SecurityTrails history: rate limited", mapKeyDomain, domain, mapKeyType, rtype)
