@@ -18,7 +18,7 @@
 cd /home/runner/workspace
 
 REPO="careyjames/dns-tool-web"
-BRANCH="main"
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 PAT_URL="https://${CAREY_PAT_ALL3_REPOS}@github.com/${REPO}.git"
 
 export GIT_TERMINAL_PROMPT=0
