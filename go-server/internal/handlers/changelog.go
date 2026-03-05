@@ -36,7 +36,7 @@
 //                  Admin Dashboard + JSON Export, Admin Bootstrap Fix,
 //                  UNLIKELY Badge Color Unification
 //      dateFeb18 — Google OAuth 2.0 + PKCE, Security Redaction & Mission Statement
-//      dateFeb17 — BSL 1.1 License Migration, Boundary Integrity Test Suite
+//      dateFeb17 — BUSL-1.1 License Migration, Boundary Integrity Test Suite
 //      dateFeb15 — Dual Intelligence Products (Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief), OpenPhish Threat
 //                  Intelligence Attribution, Email Header Analyzer Homepage Promotion
 //      dateFeb14 — High-Speed Subdomain Discovery
@@ -446,8 +446,8 @@ func GetChangelog() []ChangelogEntry {
                         Version:     "26.19.0",
                         Date:        dateFeb17,
                         Category:    "Licensing",
-                        Title:       "BSL 1.1 License Migration",
-                        Description: "Migrated from AGPL-3.0 to Business Source License 1.1 with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BSL 1.1.",
+                        Title:       "BUSL-1.1 License Migration",
+                        Description: "Migrated from AGPL-3.0 to Business Source License 1.1 (SPDX: BUSL-1.1) with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BUSL-1.1.",
                         Icon:        "fas fa-balance-scale",
                 },
                 {
