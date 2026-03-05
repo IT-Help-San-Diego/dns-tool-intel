@@ -5,7 +5,7 @@ var MAX_CACHED_PAGES = 20;
 
 var IMMUTABLE_ASSETS = [
   '/static/css/fontawesome-subset.min.css',
-  '/static/webfonts/fa-solid-900.woff2',
+  '/static/webfonts/fa-solid-900.woff2?v=4',
   '/static/favicon.svg'
 ];
 
@@ -95,6 +95,8 @@ globalThis.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
 
   if (event.request.method !== 'GET') return;
+
+  if (url.pathname === '/' || url.pathname === '') return;
 
   if (!url.pathname.startsWith('/static/')) {
     if (event.request.mode === 'navigate') {

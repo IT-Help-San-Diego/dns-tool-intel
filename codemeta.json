@@ -1,0 +1,71 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "DNS Tool",
+  "description": "Open-source OSINT platform for RFC-compliant domain security analysis. Evaluates SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA configurations using confidence-scored interpretation to produce structured security intelligence outputs.",
+  "identifier": "https://doi.org/10.5281/zenodo.18854899",
+  "version": "26.34.19",
+  "softwareVersion": "26.34.19",
+  "dateCreated": "2024-01-01",
+  "dateModified": "2026-03-04",
+  "datePublished": "2026-03-04",
+  "license": "https://spdx.org/licenses/BUSL-1.1.html",
+  "codeRepository": "https://github.com/careyjames/dns-tool-web",
+  "url": "https://dnstool.it-help.tech",
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Carey James",
+      "familyName": "Balboa",
+      "@id": "https://orcid.org/0009-0000-5237-9065"
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Person",
+      "givenName": "Carey James",
+      "familyName": "Balboa",
+      "@id": "https://orcid.org/0009-0000-5237-9065"
+    }
+  ],
+  "copyrightHolder": [
+    {
+      "@type": "Organization",
+      "name": "IT Help San Diego Inc."
+    }
+  ],
+  "funder": [],
+  "keywords": [
+    "DNS",
+    "OSINT",
+    "domain security",
+    "SPF",
+    "DKIM",
+    "DMARC",
+    "DNSSEC",
+    "DANE",
+    "MTA-STS",
+    "BIMI",
+    "CAA",
+    "TLS-RPT",
+    "email authentication",
+    "security audit",
+    "confidence scoring"
+  ],
+  "programmingLanguage": [
+    "Go",
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
+  "operatingSystem": "Linux",
+  "runtimePlatform": "Go 1.25",
+  "developmentStatus": "active",
+  "continuousIntegration": "https://github.com/careyjames/dns-tool-web/actions",
+  "issueTracker": "https://github.com/careyjames/dns-tool-web/issues",
+  "readme": "https://github.com/careyjames/dns-tool-web/blob/main/README.md",
+  "relatedLink": [
+    "https://dnstool.it-help.tech/methodology",
+    "https://dnstool.it-help.tech/confidence"
+  ]
+}

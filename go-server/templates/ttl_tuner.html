@@ -194,7 +194,7 @@
                                 </td>
                             </tr>
                             <tr class="collapse" id="fix-{{.RecordType}}">
-                                <td colspan="6" class="border-0 pt-0" style="white-space:normal;word-break:break-word">
+                                <td colspan="6" class="border-0 pt-0 u-ws-normal">
                                     <div class="u-bg-info-soft rounded p-3 mt-1 mb-2">
                                         <p class="mb-2 small">{{.Recommendation}}</p>
                                         {{if .PropagationNote}}
@@ -428,7 +428,7 @@
                 overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
                 var box = document.createElement('div');
                 box.style.cssText = 'background:rgba(28,35,51,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:2rem 3rem;text-align:center;box-shadow:0 1rem 3rem rgba(0,0,0,0.5);';
-                box.innerHTML = '<div style="margin-bottom:1rem"><i class="fas fa-spinner fa-spin fa-2x text-info"></i></div><div style="color:#e0e0e0;font-size:1.1rem;font-weight:500">Scanning DNS records\u2026</div><div style="color:#888;font-size:0.85rem;margin-top:0.5rem">This typically takes 5\u201310 seconds</div>';
+                box.innerHTML = '<div class="ttl-scan-spinner"><i class="fas fa-spinner fa-spin fa-2x text-info"></i></div><div class="ttl-scan-title">Scanning DNS records\u2026</div><div class="ttl-scan-subtitle">This typically takes 5\u201310 seconds</div>';
                 overlay.appendChild(box);
                 document.body.appendChild(overlay);
             });

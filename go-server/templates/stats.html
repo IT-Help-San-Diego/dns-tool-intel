@@ -689,49 +689,49 @@
                     <p class="text-muted small mb-3">Epistemic Disclosure Events (EDEs) document instances where the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine&rsquo;s</a> scoring model, evidence weighting, or detection logic required structural correction. This is not an error log &mdash; it is a formalized record of model self-correction, inspired by scientific corrigenda culture and high-reliability engineering practice (NASA anomaly reporting, medical adverse event systems). Each EDE informs a confidence recalibration review across affected protocols.</p>
                     <div class="row g-3 mb-3">
                         <div class="col-6 col-md-3">
-                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
-                                <div style="font-size:1.5rem; font-weight:700; color:#7ec8e3;">{{.IntegrityData.Summary.TotalEvents}}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">Total EDEs</div>
+                            <div class="text-center p-2 u-ede-box">
+                                <div class="u-fs-15em u-fw-700 u-color-info-dim">{{.IntegrityData.Summary.TotalEvents}}</div>
+                                <div class="text-muted u-fs-075em">Total EDEs</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
-                                <div style="font-size:1.5rem; font-weight:700; color:#f0ad4e;">{{.IntegrityData.Summary.Open}}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">Open</div>
+                            <div class="text-center p-2 u-ede-box">
+                                <div class="u-fs-15em u-fw-700 u-color-warn">{{.IntegrityData.Summary.Open}}</div>
+                                <div class="text-muted u-fs-075em">Open</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
-                                <div style="font-size:1.5rem; font-weight:700; color:#3fb950;">{{.IntegrityData.Summary.Closed}}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">Resolved</div>
+                            <div class="text-center p-2 u-ede-box">
+                                <div class="u-fs-15em u-fw-700 u-color-success">{{.IntegrityData.Summary.Closed}}</div>
+                                <div class="text-muted u-fs-075em">Resolved</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="text-center p-2" style="background:rgba(255,255,255,0.03); border-radius:8px;">
-                                <div style="font-size:1.5rem; font-weight:700; color:#c4a84a;">{{.IntegrityData.Summary.ConfidenceRecalibrations}}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">Confidence Recalibrations</div>
+                            <div class="text-center p-2 u-ede-box">
+                                <div class="u-fs-15em u-fw-700 u-color-gold-dim">{{.IntegrityData.Summary.ConfidenceRecalibrations}}</div>
+                                <div class="text-muted u-fs-075em">Confidence Recalibrations</div>
                             </div>
                         </div>
                     </div>
 
                     {{range .IntegrityData.Events}}
-                    <div class="mb-2 p-3" style="background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid {{if eq .Status "closed"}}#3fb950{{else}}#f0ad4e{{end}};">
+                    <div class="mb-2 p-3 u-ede-entry {{if eq .Status "closed"}}u-ede-entry--closed{{else}}u-ede-entry--open{{end}}">
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div>
-                                <span style="font-size:0.7rem; font-weight:600; color:#8b949e; letter-spacing:0.08em;">{{.ID}}</span>
-                                <span class="ms-2" style="font-size:0.65rem; padding:0.1rem 0.5rem; border-radius:3px; background:rgba(126,200,227,0.12); color:#7ec8e3;">{{.Category}}</span>
-                                <span class="ms-1" style="font-size:0.6rem; padding:0.1rem 0.4rem; border-radius:3px; background:{{if eq .Severity "significant"}}rgba(248,81,73,0.15){{else}}rgba(240,173,78,0.15){{end}}; color:{{if eq .Severity "significant"}}#f85149{{else}}#f0ad4e{{end}};">{{.Severity}}</span>
+                                <span class="u-fs-07em u-fw-600 u-color-muted-dim u-ls-wide">{{.ID}}</span>
+                                <span class="ms-2 u-ede-cat-badge">{{.Category}}</span>
+                                <span class="ms-1 u-ede-sev-badge {{if eq .Severity "significant"}}u-ede-sev-badge--significant{{else}}u-ede-sev-badge--default{{end}}">{{.Severity}}</span>
                             </div>
-                            <span style="font-size:0.7rem; color:#8b949e;">{{.Date}}</span>
+                            <span class="u-fs-07em u-color-muted-dim">{{.Date}}</span>
                         </div>
-                        <div style="font-size:0.85rem; font-weight:600; color:#e6edf3; margin-bottom:0.3rem;">{{.Title}}</div>
-                        <div style="font-size:0.75rem; color:#8b949e; margin-bottom:0.3rem;"><strong style="color:#c4a84a;">Confidence Impact:</strong> {{.ConfidenceImpact}}</div>
-                        <div style="font-size:0.75rem; color:#8b949e; margin-bottom:0.3rem;"><strong style="color:#3fb950;">Resolution:</strong> {{.Resolution}}</div>
-                        <div style="font-size:0.7rem; color:#6e7681; font-style:italic;"><i class="fas fa-flask me-1" style="font-size:0.6rem;"></i>{{.BayesianNote}}</div>
+                        <div class="u-fs-085em u-fw-600 u-color-body mb-1">{{.Title}}</div>
+                        <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-gold-dim">Confidence Impact:</strong> {{.ConfidenceImpact}}</div>
+                        <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-success">Resolution:</strong> {{.Resolution}}</div>
+                        <div class="u-fs-07em u-color-muted-xdim fst-italic"><i class="fas fa-flask me-1 u-fs-06em"></i>{{.BayesianNote}}</div>
                     </div>
                     {{end}}
 
-                    <p class="text-muted mt-3 mb-0" style="font-size:0.75rem;"><i class="fas fa-lock me-1"></i>EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
+                    <p class="text-muted mt-3 mb-0 u-fs-075em"><i class="fas fa-lock me-1"></i>EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
                 </div>
             </div>
 

@@ -34,11 +34,14 @@
 {{end}}
 
 {{define "head_css"}}
-<link rel="preload" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" as="style">
-<link rel="preload" href="/static/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{{staticVersionURL "css/foundation.min.css" .AppVersion}}">
-<link href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" rel="stylesheet">
-<link rel="stylesheet" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}">
+<link rel="preload" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" as="style" {{staticSRI "css/custom.min.css"}}>
+<link rel="preload" href="/static/webfonts/fa-solid-900.woff2?v=4" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}" as="style" {{staticSRI "css/fontawesome-subset.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/foundation.min.css" .AppVersion}}" {{staticSRI "css/foundation.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" {{staticSRI "css/custom.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}" media="print" {{staticSRI "css/fontawesome-subset.min.css"}}>
+<link rel="stylesheet" href="{{staticVersionURL "css/print.min.css" .AppVersion}}" media="print" {{staticSRI "css/print.min.css"}}>
+<script nonce="{{.CspNonce}}">document.querySelector('link[href*="fontawesome-subset"][media="print"]').media='all';</script>
 {{end}}
 
 {{define "head_katex"}}
@@ -55,16 +58,54 @@ document.addEventListener("DOMContentLoaded",function(){if(typeof renderMathInEl
 *,::after,::before{box-sizing:border-box}
 html.covert-mode,html.covert-mode body{background-color:#0a0c10!important}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background-color:#0d1117;color:rgba(230,237,243,0.9);line-height:1.5;-webkit-font-smoothing:antialiased}
-.navbar{display:flex;flex-wrap:wrap;padding:.5rem 1rem;background-color:#0d1117}
+a{color:#58a6ff;text-decoration:none}
+h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}
+p{margin-top:0;margin-bottom:1rem}
+img{vertical-align:middle;max-width:100%;height:auto}
+.navbar{display:flex;flex-wrap:wrap;padding:.5rem 1rem;background-color:#0d1117;border-bottom:1px solid #21262d}
 .navbar>.container{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between}
 .navbar-brand{color:#fff;text-decoration:none;font-size:1.25rem;padding:.3125rem 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.navbar-nav{display:flex;list-style:none;margin:0;padding:0}
+.nav-link{color:rgba(255,255,255,.55);text-decoration:none;padding:.5rem 1rem;display:block}
 .container{width:100%;max-width:1140px;margin:0 auto;padding:0 .75rem}
 .u-nav-controls{flex-shrink:0}
+.row{display:flex;flex-wrap:wrap;margin:0 -.75rem}
+[class*="col-"]{padding:0 .75rem;width:100%}
+@media(min-width:992px){.col-lg-7{flex:0 0 58.333333%;max-width:58.333333%}.col-lg-8{flex:0 0 66.666667%;max-width:66.666667%}.col-lg-10{flex:0 0 83.333333%;max-width:83.333333%}}
+@media(min-width:1200px){.col-xl-6{flex:0 0 50%;max-width:50%}}
 .card{background-color:#21262d;border:1px solid #30363d;border-radius:.375rem}
 .card-body{padding:1rem}
+.card-title{margin-bottom:.5rem}
 .badge{display:inline-block;padding:.35em .65em;font-size:.75em;font-weight:700;border-radius:.25rem}
-.fas,.fab,.far,.fa{display:inline-block;font-style:normal;font-variant:normal;text-rendering:auto;-webkit-font-smoothing:antialiased;font-family:"Font Awesome 6 Free",sans-serif;font-weight:900;line-height:1}
+.btn{display:inline-block;padding:.375rem .75rem;font-size:1rem;border-radius:.375rem;text-decoration:none;cursor:pointer;text-align:center;vertical-align:middle;border:1px solid transparent}
+.btn-primary{background-color:#0d6efd;border-color:#0d6efd;color:#fff}
+.form-control{display:block;width:100%;padding:.375rem .75rem;font-size:1rem;background-color:#2b3035;border:1px solid #495057;border-radius:.375rem;color:#dee2e6}
+.input-group{display:flex;flex-wrap:wrap}
+.input-group>.form-control{flex:1 1 auto;width:1%}
+.alert{padding:1rem;border-radius:.375rem;margin-bottom:1rem}
+.text-center{text-align:center}
+.text-muted{color:#8b949e!important}
+.text-info{color:#39c5cf!important}
 .d-none{display:none}
+.d-flex{display:flex}
+.d-block{display:block}
+.align-items-center{align-items:center}
+.justify-content-center{justify-content:center}
+.justify-content-between{justify-content:space-between}
+.flex-wrap{flex-wrap:wrap}
+.mb-0{margin-bottom:0}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:1rem}.mb-4{margin-bottom:1.5rem}.mb-5{margin-bottom:3rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:1rem}.mt-4{margin-top:1.5rem}
+.me-1{margin-right:.25rem}.me-2{margin-right:.5rem}
+.ms-1{margin-left:.25rem}
+.mx-auto{margin-left:auto;margin-right:auto}
+.my-5{margin-top:3rem;margin-bottom:3rem}
+.p-3{padding:1rem}
+.small{font-size:.875em}
+.fw-bold{font-weight:700}
+.lead{font-size:1.25rem;font-weight:300}
+.border-0{border:0!important}
 .collapse:not(.show){display:none}
+.fas,.fab,.far,.fa{display:inline-block;font-style:normal;font-variant:normal;text-rendering:auto;-webkit-font-smoothing:antialiased;font-family:"Font Awesome 6 Free",sans-serif;font-weight:900;line-height:1}
+.footer{margin-top:3rem;padding:2rem 0;border-top:1px solid #21262d;color:#8b949e}
 </style>
 {{end}}

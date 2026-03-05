@@ -142,6 +142,41 @@ func TestBIMILogoSVGNotFound(t *testing.T) {
         }
 }
 
+func TestMethodologyPDF(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        tmpDir := t.TempDir()
+        docsDir := tmpDir + "/docs"
+        if err := os.MkdirAll(docsDir, 0o755); err != nil {
+                t.Fatal(err)
+        }
+        if err := os.WriteFile(docsDir+"/dns-tool-methodology.pdf", []byte("%PDF-1.4 test"), 0o644); err != nil {
+                t.Fatal(err)
+        }
+        h := NewStaticHandler(tmpDir, "2.0.0", "https://example.com")
+
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
+        c.Request = httptest.NewRequest(http.MethodGet, "/methodology", nil)
+
+        h.MethodologyPDF(c)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("status = %d, want 200", w.Code)
+        }
+        ct := w.Header().Get("Content-Type")
+        if ct != "application/pdf" {
+                t.Errorf("Content-Type = %q, want application/pdf", ct)
+        }
+        cc := w.Header().Get("Cache-Control")
+        if cc != "public, max-age=86400" {
+                t.Errorf("Cache-Control = %q, want public, max-age=86400", cc)
+        }
+        cd := w.Header().Get("Content-Disposition")
+        if !strings.Contains(cd, "dns-tool-methodology.pdf") {
+                t.Errorf("Content-Disposition = %q, should contain filename", cd)
+        }
+}
+
 func TestServiceWorkerNotFoundStatic(t *testing.T) {
         gin.SetMode(gin.TestMode)
         tmpDir := t.TempDir()

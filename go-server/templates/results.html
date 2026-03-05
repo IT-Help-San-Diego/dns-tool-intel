@@ -245,6 +245,9 @@
                     <a href="/analysis/{{.AnalysisID}}/view/B" id="executiveNavBtn" class="btn btn-outline-executive" title="View Executive's DNS Intelligence Brief">
                         <i class="fas fa-file-alt me-1"></i>Executive
                     </a>
+                    <a href="/methodology" target="_blank" rel="noopener" class="btn btn-outline-secondary" title="View Analysis Methodology (PDF)">
+                        <i class="fas fa-flask me-1"></i>Methodology
+                    </a>
                 </div>
                 <div class="dropdown me-2">
                     <button class="btn dropdown-toggle btn-tlp-amber" id="tlpSelectorBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Traffic Light Protocol — controls report distribution scope">
@@ -6141,7 +6144,7 @@
                 var parts = bodyText.split(section.highlight);
                 if (parts.length > 1) {
                     bodyEl.innerHTML = escapeHtml(parts[0])
-                        + '<mark style="background:#ffd700;color:#1a1a2e;padding:2px 4px;border-radius:3px">'
+                        + '<mark class="u-search-highlight">'
                         + escapeHtml(section.highlight)
                         + '</mark>'
                         + escapeHtml(parts.slice(1).join(section.highlight));
@@ -6155,7 +6158,10 @@
             bodyEl.textContent = '(Full RFC text — click "Full RFC" below to read on the IETF website.)';
         }
 
-        var modal = new bootstrap.Modal(document.getElementById('rfcPopupModal'));
+        var rfcEl = document.getElementById('rfcPopupModal');
+        rfcEl.removeAttribute('inert');
+        var modal = new bootstrap.Modal(rfcEl);
+        rfcEl.addEventListener('hidden.bs.modal', function() { rfcEl.setAttribute('inert', ''); }, { once: true });
         modal.show();
         return true;
     }
@@ -6656,7 +6662,7 @@
             });
     }
     </script>
-    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" aria-hidden="true">
+    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" inert>
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content bg-dark border border-secondary">
                 <div class="modal-header border-secondary py-2">
@@ -6666,7 +6672,7 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-2" id="rfcPopupBody" style="max-height:60vh;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:#c9d1d9"></div>
+                <div class="modal-body py-2 rfc-popup-body" id="rfcPopupBody"></div>
                 <div class="modal-footer border-secondary py-1">
                     <a id="rfcPopupFullLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info"><i class="fas fa-external-link-alt me-1"></i>Full RFC</a>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>

@@ -8,9 +8,8 @@ graph TB
         Browser["Browser<br/>Bootstrap Dark Theme"]
     end
 
-    subgraph "Process Management"
-        Gunicorn["Gunicorn (Python)<br/>Process Trampoline"]
-        GoBinary["dns-tool-server<br/>Go Binary"]
+    subgraph "Application Server"
+        GoBinary["dns-tool-server<br/>Go Binary · Port 5000"]
     end
 
     subgraph "Application Layer — Go/Gin"
@@ -22,8 +21,9 @@ graph TB
     end
 
     subgraph "Intelligence Engines"
-        ICIE["ICIE<br/>Intelligence Classification<br/>& Interpretation Engine"]
+        ICIE["ICIE<br/>Integrated Confidence in<br/>Ingested Evidence"]
         ICAE["ICAE<br/>Intelligence Confidence<br/>Audit Engine"]
+        ICuAE["ICuAE<br/>Intelligence Currency<br/>Assurance Engine"]
     end
 
     subgraph "Data Collection"
@@ -50,8 +50,7 @@ graph TB
         IntelRepo["dns-tool-intel<br/>Private GitHub Repo"]
     end
 
-    Browser -->|"HTTPS"| Gunicorn
-    Gunicorn -->|"subprocess"| GoBinary
+    Browser -->|"HTTPS"| GoBinary
     GoBinary --> Router
     Router --> Auth
     Router --> Analytics
@@ -66,6 +65,7 @@ graph TB
     ICIE --> HTTP
     ICIE --> MisplacedDMARC
     ICIE --> ICAE
+    ICIE --> ICuAE
     Handlers --> PG
     Analytics -->|"flush aggregates"| PG
     ICAE --> PG
@@ -79,14 +79,14 @@ graph TB
     classDef client fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff,font-weight:bold
     classDef app fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff
     classDef warn fill:#ca8a04,stroke:#facc15,stroke-width:2px,color:#fff,font-weight:bold
-    class ICIE,ICAE engine
+    class ICIE,ICAE,ICuAE engine
     class PG storage
     class SecurityTrails,IntelRepo external
     class Browser client
     class Router,Auth,Analytics,Handlers,Templates app
     class DNSClient,SMTP,CT,HTTP engine
     class ProbeServer external
-    class Gunicorn,GoBinary app
+    class GoBinary app
     class MisplacedDMARC warn
 ```
 
@@ -406,17 +406,16 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant B as Browser
-    participant G as Gunicorn
     participant R as Gin Router
     participant MW as Middleware
     participant AN as Analytics
     participant H as Handler
     participant ICIE as ICIE Engine
+    participant ICuAE as ICuAE Engine
     participant DNS as DNS Client
     participant DB as PostgreSQL
 
-    B->>G: GET /analyze?domain=example.com
-    G->>R: Proxy to Go binary
+    B->>R: POST /analyze (domain=example.com)
     R->>MW: CSP · Rate Limit · Session
     MW->>AN: Record pageview (salted hash)
     AN->>H: analysisHandler()
@@ -442,6 +441,9 @@ sequenceDiagram
     ICIE->>ICIE: Mail Posture Classification
     
     ICIE-->>H: AnalysisResult{}
+    
+    H->>ICuAE: Assess currency (staleness, TTL, freshness)
+    ICuAE-->>H: CurrencyAudit{}
     
     H->>H: Privacy Gate (AllSelectorsKnown?)
     
@@ -477,6 +479,7 @@ graph TB
         Analyzer["analyzer<br/>ICIE engine core<br/>posture · dkim · spf · dmarc<br/>remediation · brand · misplaced"]
         AISurface["analyzer/ai_surface<br/>robots.txt · llms.txt<br/>HTTP · poisoning · scanner"]
         ICAE2["icae<br/>ICAE engine · 114 cases<br/>runner · evaluator · report"]
+        ICuAE2["icuae<br/>Currency assurance<br/>5 audit dimensions"]
         DNSClient2["dnsclient<br/>Multi-resolver queries"]
         DB2["db<br/>PostgreSQL via pgx"]
         DBQ["dbq<br/>Prepared query cache"]
@@ -487,9 +490,10 @@ graph TB
     end
 
     Server --> Config & Middleware & Handlers
-    Handlers --> Analyzer & ICAE2 & DB2 & Models & Templates3
+    Handlers --> Analyzer & ICAE2 & ICuAE2 & DB2 & Models & Templates3
     Analyzer --> DNSClient2 & Providers & AISurface
     ICAE2 --> DB2 & Models
+    ICuAE2 --> DB2 & Models
     Handlers --> Telemetry
     DB2 --> DBQ
     Middleware --> Config & Telemetry & DB2
@@ -498,7 +502,7 @@ graph TB
     classDef core fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff,font-weight:bold
     classDef engine fill:#0891b2,stroke:#22d3ee,stroke-width:2px,color:#fff,font-weight:bold
     classDef infra fill:#9333ea,stroke:#c084fc,stroke-width:2px,color:#fff,font-weight:bold
-    class Analyzer,AISurface,ICAE2 engine
+    class Analyzer,AISurface,ICAE2,ICuAE2 engine
     class Server,Handlers,Middleware core
     class DB2,DBQ,DNSClient2,Telemetry infra
     class Config,Models,Providers,Templates3 default
@@ -589,5 +593,5 @@ posture assessment.
 
 ---
 
-*Generated for DNS Tool v26.33.65 — March 3, 2026*
+*Generated for DNS Tool v26.34.19 — March 5, 2026*
 *Diagrams render natively on GitHub, GitLab, Codeberg, and VS Code with Mermaid plugins.*

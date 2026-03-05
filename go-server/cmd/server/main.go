@@ -13,6 +13,7 @@ import (
         "os/signal"
         "path/filepath"
         "strings"
+        "sync/atomic"
         "syscall"
         "time"
 
@@ -39,6 +40,50 @@ func main() {
         slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
                 Level: slog.LevelDebug,
         })))
+
+        earlyPort := os.Getenv("PORT")
+        if earlyPort == "" {
+                earlyPort = "5000"
+        }
+        earlyAddr := fmt.Sprintf("0.0.0.0:%s", earlyPort)
+
+        var handler atomic.Value
+        handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                if r.URL.Path == "/" || r.URL.Path == "/healthz" {
+                        w.Header().Set("Content-Type", "application/json")
+                        w.WriteHeader(http.StatusOK)
+                        w.Write([]byte(`{"status":"starting"}`))
+                        return
+                }
+                w.Header().Set("Content-Type", "application/json")
+                w.WriteHeader(http.StatusServiceUnavailable)
+                w.Write([]byte(`{"status":"starting"}`))
+        }))
+
+        srv := &http.Server{
+                Addr: earlyAddr,
+                Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                        handler.Load().(http.Handler).ServeHTTP(w, r)
+                }),
+                ReadHeaderTimeout: 10 * time.Second,
+                IdleTimeout:       120 * time.Second,
+                MaxHeaderBytes:    1 << 20,
+        }
+
+        listenErr := make(chan error, 1)
+        go func() {
+                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+                        listenErr <- err
+                }
+        }()
+
+        select {
+        case err := <-listenErr:
+                slog.Error("Server failed to bind", mapKeyError, err)
+                os.Exit(1)
+        case <-time.After(100 * time.Millisecond):
+        }
+        slog.Info("Early listener started — accepting healthchecks", "address", earlyAddr)
 
         cfg, err := config.Load()
         if err != nil {
@@ -68,7 +113,10 @@ func main() {
                 slog.Info("Security headers: production mode — strict frame-ancestors, X-Frame-Options DENY")
         }
 
-        router.Use(middleware.Recovery(cfg.AppVersion))
+        router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
+                "MaintenanceNote": cfg.MaintenanceNote,
+                "BetaPages":       cfg.BetaPages,
+        }))
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
         }
@@ -88,12 +136,19 @@ func main() {
         slog.Info("Rate limiter initialized", "backend", "in-memory", "max_requests", middleware.RateLimitMaxRequests, "window_seconds", middleware.RateLimitWindow)
 
         templatesDir := findTemplatesDir()
-        tmpl := template.Must(
-                template.New("").Funcs(tmplFuncs.FuncMap()).ParseGlob(filepath.Join(templatesDir, "*.html")),
-        )
+        slog.Info("Templates directory resolved", "path", templatesDir)
+        globPattern := filepath.Join(templatesDir, "*.html")
+        tmpl, err := template.New("").Funcs(tmplFuncs.FuncMap()).ParseGlob(globPattern)
+        if err != nil {
+                cwd, _ := os.Getwd()
+                slog.Error("Failed to parse templates", "error", err, "glob", globPattern, "cwd", cwd)
+                os.Exit(1)
+        }
         router.SetHTMLTemplate(tmpl)
 
         staticDir := findStaticDir()
+        slog.Info("Static directory resolved", "path", staticDir)
+        tmplFuncs.InitSRI(staticDir)
         staticFS := http.Dir(staticDir)
         fileServer := http.StripPrefix("/static", http.FileServer(staticFS))
         serveStatic := func(c *gin.Context) {
@@ -115,6 +170,14 @@ func main() {
         }
         router.GET("/favicon.ico", faviconHandler)
         router.HEAD("/favicon.ico", faviconHandler)
+        appleTouchHandler := func(c *gin.Context) {
+                c.Header(headerCacheControl, "public, max-age=86400")
+                c.File(filepath.Join(staticDir, "icons", "apple-touch-icon-180x180.png"))
+        }
+        router.GET("/apple-touch-icon.png", appleTouchHandler)
+        router.HEAD("/apple-touch-icon.png", appleTouchHandler)
+        router.GET("/apple-touch-icon-precomposed.png", appleTouchHandler)
+        router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
 
         dnsAnalyzer := analyzer.New()
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
@@ -279,6 +342,9 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
+        router.GET("/methodology", staticHandler.MethodologyPDF)
+        router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
+
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
 
@@ -312,10 +378,12 @@ func main() {
                 nonce, _ := c.Get("csp_nonce")
                 csrfToken, _ := c.Get("csrf_token")
                 data := gin.H{
-                        "AppVersion": cfg.AppVersion,
-                        "CspNonce":   nonce,
-                        "CsrfToken":  csrfToken,
-                        "ActivePage": "home",
+                        "AppVersion":      cfg.AppVersion,
+                        "MaintenanceNote": cfg.MaintenanceNote,
+                        "BetaPages":       cfg.BetaPages,
+                        "CspNonce":        nonce,
+                        "CsrfToken":       csrfToken,
+                        "ActivePage":      "home",
                 }
                 for k, v := range middleware.GetAuthTemplateData(c) {
                         data[k] = v
@@ -326,21 +394,13 @@ func main() {
                 c.HTML(http.StatusNotFound, "index.html", data)
         })
 
-        addr := fmt.Sprintf("0.0.0.0:%s", cfg.Port)
-        slog.Info("Starting Go DNS Tool server",
-                "address", addr,
+        handler.Store(http.HandlerFunc(router.Handler().ServeHTTP))
+        slog.Info("Full router ready — handler swapped",
+                "address", earlyAddr,
                 "version", cfg.AppVersion,
                 "commit", config.GitCommit,
                 "built", config.BuildTime,
         )
-
-        srv := &http.Server{
-                Addr:              addr,
-                Handler:           router.Handler(),
-                ReadHeaderTimeout: 10 * time.Second,
-                IdleTimeout:       120 * time.Second,
-                MaxHeaderBytes:    1 << 20,
-        }
 
         syncCtx, syncCancel := context.WithCancel(context.Background())
         defer syncCancel()
@@ -349,13 +409,6 @@ func main() {
         quit := make(chan os.Signal, 1)
         signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-        go func() {
-                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-                        slog.Error("Server failed to start", mapKeyError, err)
-                        os.Exit(1)
-                }
-        }()
-
         <-quit
         slog.Info("Shutdown signal received, draining connections…")
 
@@ -363,7 +416,7 @@ func main() {
         analyticsCollector.Flush()
         slog.Info("Analytics flushed on shutdown")
 
-        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
+        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
         defer shutdownCancel()
 
         if err := srv.Shutdown(shutdownCtx); err != nil {

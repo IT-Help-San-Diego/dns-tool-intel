@@ -1,15 +1,56 @@
 package templates
 
 import (
+        "crypto/sha512"
+        "encoding/base64"
         "encoding/json"
         "fmt"
         "html/template"
+        "log/slog"
         "math"
         "net/url"
+        "os"
+        "path/filepath"
         "strconv"
         "strings"
+        "sync"
         "time"
+
+        "golang.org/x/text/cases"
+        "golang.org/x/text/language"
 )
+
+var sriCache sync.Map
+
+func InitSRI(staticDir string) {
+        assets := []string{
+                "css/foundation.min.css",
+                "css/custom.min.css",
+                "css/fontawesome-subset.min.css",
+                "css/print.min.css",
+                "js/main.min.js",
+                "js/foundation.min.js",
+        }
+        for _, asset := range assets {
+                fp := filepath.Join(staticDir, asset)
+                data, err := os.ReadFile(fp)
+                if err != nil {
+                        slog.Warn("SRI: cannot read asset", "path", fp, "error", err)
+                        continue
+                }
+                h := sha512.Sum384(data)
+                sri := "sha384-" + base64.StdEncoding.EncodeToString(h[:])
+                sriCache.Store(asset, sri)
+        }
+        slog.Info("SRI hashes computed", "assets", len(assets))
+}
+
+func staticSRI(path string) template.HTMLAttr {
+        if v, ok := sriCache.Load(path); ok {
+                return template.HTMLAttr(`integrity="` + v.(string) + `" crossorigin="anonymous"`)
+        }
+        return ""
+}
 
 const (
         mapKeyDanger = "danger"
@@ -239,7 +280,7 @@ func stringFuncs() template.FuncMap {
         return template.FuncMap{
                 "upper":        strings.ToUpper,
                 "lower":        strings.ToLower,
-                "title":        strings.Title,
+                "title":        cases.Title(language.English).String,
                 "contains":     strings.Contains,
                 "hasPrefix":    strings.HasPrefix,
                 "hasSuffix":    strings.HasSuffix,
@@ -715,6 +756,7 @@ func displayFuncs() template.FuncMap {
                 "countryFlag":       countryFlag,
                 "staticURL":         staticURL,
                 "staticVersionURL":  staticVersionURL,
+                "staticSRI":         staticSRI,
                 "toJSON":            toJSON,
                 "toStr":             toStr,
                 "pluralize":         pluralize,
