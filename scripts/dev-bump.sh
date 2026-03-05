@@ -2,7 +2,7 @@
 # Dev version bump — routine development only.
 # Usage: bash scripts/dev-bump.sh X.Y.Z
 #
-# Bumps config.go + sonar-project.properties, rebuilds binary.
+# Bumps config.go + sonar-project.properties, rebuilds binary, commits.
 # Does NOT touch CITATION.cff, codemeta.json, or methodology docs.
 # For full release bumps (tag time), use: bash scripts/release-gate.sh X.Y.Z
 #
@@ -40,10 +40,17 @@ echo "  sonar-project.properties ✓"
 echo ""
 echo "Building..."
 bash build.sh
+
+echo ""
+echo "Committing..."
+git add go-server/internal/config/config.go sonar-project.properties
+git commit -m "dev-bump: v${VERSION}" --quiet
+echo "  Committed: dev-bump: v${VERSION} ✓"
+
 echo ""
 echo "Protected (untouched):"
 echo "  CITATION.cff ✓ (concept DOI safe)"
 echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
 echo ""
-echo "Ready to publish. Restart the app to see v${VERSION}."
+echo "Ready. Run: bash scripts/git-sync.sh"
