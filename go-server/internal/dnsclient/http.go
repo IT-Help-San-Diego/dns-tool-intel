@@ -6,6 +6,7 @@ import (
         "context"
         "fmt"
         "io"
+        "log/slog"
         "net"
         "net/http"
         "net/url"
@@ -154,8 +155,14 @@ func (s *SafeHTTPClient) GetWithHeaders(ctx context.Context, rawURL string, head
         return s.client.Do(req)
 }
 
+func safeClose(c io.Closer, label string) {
+        if err := c.Close(); err != nil {
+                slog.Debug("close error", "resource", label, "error", err)
+        }
+}
+
 func (s *SafeHTTPClient) ReadBody(resp *http.Response, maxBytes int64) ([]byte, error) {
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "http-read-body")
         return io.ReadAll(io.LimitReader(resp.Body, maxBytes))
 }
 

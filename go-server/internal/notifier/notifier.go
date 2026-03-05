@@ -190,7 +190,7 @@ func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotific
         if err != nil {
                 return 0, fmt.Errorf("sending Discord webhook: %w", err)
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "discord-webhook-response")
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
                 respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
@@ -233,7 +233,7 @@ func (n *Notifier) sendGenericWebhook(ctx context.Context, notif dbq.ListPending
         if err != nil {
                 return 0, fmt.Errorf("sending webhook: %w", err)
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "generic-webhook-response")
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
                 respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
@@ -278,7 +278,7 @@ func (n *Notifier) SendTestDiscord(ctx context.Context, webhookURL string) error
         if err != nil {
                 return fmt.Errorf("sending test webhook: %w", err)
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "test-discord-response")
 
         if resp.StatusCode < 200 || resp.StatusCode >= 300 {
                 respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))
@@ -288,6 +288,12 @@ func (n *Notifier) SendTestDiscord(ctx context.Context, webhookURL string) error
                 return fmt.Errorf("Discord returned %d: %s", resp.StatusCode, string(respBody))
         }
         return nil
+}
+
+func safeClose(c io.Closer, label string) {
+        if err := c.Close(); err != nil {
+                slog.Debug("close error", "resource", label, "error", err)
+        }
 }
 
 var missionCriticalDomains = []string{

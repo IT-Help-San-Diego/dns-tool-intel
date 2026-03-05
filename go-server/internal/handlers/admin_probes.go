@@ -165,7 +165,7 @@ func checkProbeHealth(p probeInfo) probeActionResult {
                         Elapsed: elapsed,
                 }
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "probe-health-response")
 
         body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 
