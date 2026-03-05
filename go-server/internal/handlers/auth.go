@@ -121,7 +121,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Callback(c *gin.Context) {
-        stateCookie, codeVerifier, nonceCookie, code, ok := extractOAuthCallbackParams(c)
+        _, codeVerifier, nonceCookie, code, ok := extractOAuthCallbackParams(c)
         if !ok {
                 c.Redirect(http.StatusFound, "/")
                 return
@@ -133,9 +133,6 @@ func (h *AuthHandler) Callback(c *gin.Context) {
                 c.Redirect(http.StatusFound, "/")
                 return
         }
-        // stateCookie already validated in extractOAuthCallbackParams; kept for audit trail clarity
-        _ = stateCookie
-
         if err := h.validateIDTokenClaims(tokenData, nonceCookie); err != nil {
                 slog.Error("OAuth callback: ID token validation failed", mapKeyError, err)
                 c.Redirect(http.StatusFound, "/")
@@ -266,10 +263,22 @@ func extractOAuthCallbackParams(c *gin.Context) (string, string, string, string,
 }
 
 func extractUserClaims(userInfo map[string]any) (string, string, string, bool) {
-        sub, _ := userInfo["sub"].(string)
-        email, _ := userInfo[mapKeyEmail].(string)
-        name, _ := userInfo["name"].(string)
-        emailVerified, _ := userInfo["email_verified"].(bool)
+        sub, ok := userInfo["sub"].(string)
+        if !ok {
+                sub = ""
+        }
+        email, ok := userInfo[mapKeyEmail].(string)
+        if !ok {
+                email = ""
+        }
+        name, ok := userInfo["name"].(string)
+        if !ok {
+                name = ""
+        }
+        emailVerified, ok := userInfo["email_verified"].(bool)
+        if !ok {
+                emailVerified = false
+        }
         return sub, email, name, emailVerified
 }
 
@@ -375,11 +384,17 @@ func parseIDTokenPayload(idTokenStr string) (map[string]any, error) {
 }
 
 func validateIDTokenIssuerAndAudience(claims map[string]any, expectedClientID string) error {
-        iss, _ := claims["iss"].(string)
+        iss, ok := claims["iss"].(string)
+        if !ok {
+                iss = ""
+        }
         if iss != "https://accounts.google.com" && iss != "accounts.google.com" {
                 return fmt.Errorf("invalid issuer: %s", iss)
         }
-        aud, _ := claims["aud"].(string)
+        aud, ok := claims["aud"].(string)
+        if !ok {
+                aud = ""
+        }
         if aud != expectedClientID {
                 return fmt.Errorf("invalid audience: %s", aud)
         }
@@ -388,7 +403,10 @@ func validateIDTokenIssuerAndAudience(claims map[string]any, expectedClientID st
 
 func validateIDTokenTiming(claims map[string]any) error {
         now := time.Now()
-        exp, _ := claims["exp"].(float64)
+        exp, ok := claims["exp"].(float64)
+        if !ok {
+                exp = 0
+        }
         if exp > 0 && now.Unix() > int64(exp) {
                 return fmt.Errorf("id_token expired at %v", time.Unix(int64(exp), 0))
         }
@@ -405,7 +423,10 @@ func validateIDTokenNonce(claims map[string]any, expectedNonce string) error {
         if expectedNonce == "" {
                 return nil
         }
-        tokenNonce, _ := claims["nonce"].(string)
+        tokenNonce, ok := claims["nonce"].(string)
+        if !ok {
+                tokenNonce = ""
+        }
         if tokenNonce == "" {
                 return fmt.Errorf("id_token missing nonce claim")
         }
@@ -433,7 +454,7 @@ func (h *AuthHandler) exchangeCode(code, codeVerifier string) (map[string]any, e
         if err != nil {
                 return nil, fmt.Errorf("token request failed: %w", err)
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "token response body")
 
         body, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
         if err != nil {
@@ -463,7 +484,7 @@ func (h *AuthHandler) fetchUserInfo(accessToken string) (map[string]any, error) 
         if err != nil {
                 return nil, fmt.Errorf("userinfo request failed: %w", err)
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "userinfo response body")
 
         body, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
         if err != nil {

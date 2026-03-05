@@ -231,11 +231,26 @@ func assessProvider(mxHosts []string, policy map[string]any, signals []string) [
 }
 
 func computePolicyVerdict(policy map[string]any, signals []string) string {
-        mtaStsMeta, _ := policy[mapKeyMtaSts].(map[string]any)
-        mtaStsPresent, _ := mtaStsMeta[mapKeyPresent].(bool)
-        mtaStsMode, _ := mtaStsMeta["mode"].(string)
-        daneMeta, _ := policy[mapKeyDane].(map[string]any)
-        danePresent, _ := daneMeta[mapKeyPresent].(bool)
+        mtaStsMeta, ok := policy[mapKeyMtaSts].(map[string]any)
+        if !ok {
+                mtaStsMeta = nil
+        }
+        mtaStsPresent, ok := mtaStsMeta[mapKeyPresent].(bool)
+        if !ok {
+                mtaStsPresent = false
+        }
+        mtaStsMode, ok := mtaStsMeta["mode"].(string)
+        if !ok {
+                mtaStsMode = ""
+        }
+        daneMeta, ok := policy[mapKeyDane].(map[string]any)
+        if !ok {
+                daneMeta = nil
+        }
+        danePresent, ok := daneMeta[mapKeyPresent].(bool)
+        if !ok {
+                danePresent = false
+        }
 
         if mtaStsPresent && mtaStsMode == "enforce" {
                 return mapKeyEnforced
@@ -393,7 +408,7 @@ func executeRemoteProbeHTTP(req *http.Request) (*remoteProbeAPIResp, string) {
                 slog.Warn("Remote probe: request failed", mapKeyError, err)
                 return nil, "connection failed — probe may be offline"
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "remote probe response body")
 
         if failMsg := classifyRemoteProbeStatus(resp.StatusCode); failMsg != "" {
                 return nil, failMsg
@@ -694,11 +709,11 @@ func runLiveProbe(ctx context.Context, mxHosts []string, probe map[string]any) m
 }
 
 func derivePrimaryStatus(policy, probe map[string]any) string {
-        verdict, _ := policy[mapKeyVerdict].(string)
-        probeStatus, _ := probe[mapKeyStatus].(string)
+        verdict := mapGetStrSafe(policy, mapKeyVerdict)
+        probeStatus := mapGetStrSafe(probe, mapKeyStatus)
 
         if probeStatus == mapKeyObserved {
-                probeVerdict, _ := probe[mapKeyProbeVerdict].(string)
+                probeVerdict := mapGetStrSafe(probe, mapKeyProbeVerdict)
                 if probeVerdict == mapKeyAllTls && (verdict == mapKeyEnforced || verdict == mapKeyMonitored) {
                         return mapKeySuccess
                 }
@@ -724,16 +739,20 @@ func derivePrimaryStatus(policy, probe map[string]any) string {
 }
 
 func derivePrimaryMessage(policy, probe map[string]any, mxHosts []string) string {
-        verdict, _ := policy[mapKeyVerdict].(string)
-        probeStatus, _ := probe[mapKeyStatus].(string)
-        signals, _ := policy[mapKeySignals].([]string)
+        verdict := mapGetStrSafe(policy, mapKeyVerdict)
+        probeStatus := mapGetStrSafe(probe, mapKeyStatus)
+        signals, ok := policy[mapKeySignals].([]string)
+        if !ok {
+                signals = nil
+        }
 
         if len(mxHosts) == 0 {
                 return "No MX records found"
         }
 
         if probeStatus == mapKeyObserved {
-                probeSummary, _ := probe[mapKeySummary].(map[string]any)
+                probeSummary, ok := probe[mapKeySummary].(map[string]any)
+                _ = ok
                 if probeSummary != nil {
                         reachable := int(toFloat64Val(probeSummary[mapKeyReachable]))
                         starttls := int(toFloat64Val(probeSummary[mapKeyStarttlsSupported]))
@@ -757,7 +776,7 @@ func derivePrimaryMessage(policy, probe map[string]any, mxHosts []string) string
 }
 
 func buildInferenceNote(probe map[string]any) string {
-        probeStatus, _ := probe[mapKeyStatus].(string)
+        probeStatus := mapGetStrSafe(probe, mapKeyStatus)
         if probeStatus == mapKeyObserved {
                 return ""
         }
@@ -765,7 +784,10 @@ func buildInferenceNote(probe map[string]any) string {
 }
 
 func buildInferenceSignals(policy, telemetrySection map[string]any) []string {
-        signals, _ := policy[mapKeySignals].([]string)
+        signals, ok := policy[mapKeySignals].([]string)
+        if !ok {
+                signals = nil
+        }
         result := make([]string, len(signals))
         copy(result, signals)
 
@@ -786,10 +808,13 @@ func buildInferenceSignals(policy, telemetrySection map[string]any) []string {
 }
 
 func backfillLegacyFields(result map[string]any, policy, probe map[string]any) {
-        probeStatus, _ := probe[mapKeyStatus].(string)
+        probeStatus := mapGetStrSafe(probe, mapKeyStatus)
 
         if probeStatus == mapKeyObserved {
-                observations, _ := probe[mapKeyObservations].([]map[string]any)
+                observations, ok := probe[mapKeyObservations].([]map[string]any)
+                if !ok {
+                        observations = nil
+                }
                 result[mapKeyServers] = observations
                 if probeSummary, ok := probe[mapKeySummary].(map[string]any); ok {
                         result[mapKeySummary] = probeSummary
@@ -911,7 +936,7 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
                 result[mapKeyError] = classifySMTPError(err)
                 return result
         }
-        defer conn.Close()
+        defer safeClose(conn, "smtp connection")
 
         result[mapKeyReachable] = true
 
@@ -963,7 +988,7 @@ func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[st
                 InsecureSkipVerify: true, //NOSONAR — S4830/S5527: deliberate diagnostic probe; verifyCert() validates independently
         }
         tlsConn := tls.Client(conn, tlsCfg)
-        defer tlsConn.Close()
+        defer safeClose(tlsConn, "tls connection")
 
         if err := tlsConn.Handshake(); err != nil {
                 result[mapKeyError] = fmt.Sprintf("TLS handshake failed: %s", truncate(err.Error(), 80))
@@ -987,7 +1012,7 @@ func verifyCert(ctx context.Context, host string, result map[string]any) {
         if err != nil {
                 return
         }
-        defer verifyConn.Close()
+        defer safeClose(verifyConn, "verify connection")
 
         banner, _ := readSMTPResponse(verifyConn, 1*time.Second)
         if !strings.HasPrefix(banner, smtpBannerPrefix) {
@@ -1003,7 +1028,7 @@ func verifyCert(ctx context.Context, host string, result map[string]any) {
 
         verifyCfg := &tls.Config{ServerName: host}
         verifyTLS := tls.Client(verifyConn, verifyCfg)
-        defer verifyTLS.Close()
+        defer safeClose(verifyTLS, "verify tls connection")
 
         if err := verifyTLS.Handshake(); err != nil {
                 result[mapKeyCertValid] = false

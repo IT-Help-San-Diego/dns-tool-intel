@@ -56,7 +56,10 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
         csrfToken, _ := c.Get("csrf_token")
 
         uid, _ := c.Get("user_id")
-        userID, _ := uid.(int32)
+        userID, ok := uid.(int32)
+        if !ok {
+                userID = 0
+        }
 
         maxSize := int64(maxZoneFileSizeUnauth)
         sizeLabel := "1 MB"
@@ -72,7 +75,7 @@ func (h *ZoneHandler) ProcessUpload(c *gin.Context) {
                 h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, "Please select a zone file to upload.")
                 return
         }
-        defer file.Close()
+        defer safeClose(file, "zone file")
 
         if header.Size > maxSize {
                 h.renderZoneFlash(c, nonce, csrfToken, mapKeyDanger, fmt.Sprintf("Zone file exceeds the %s size limit.", sizeLabel))
