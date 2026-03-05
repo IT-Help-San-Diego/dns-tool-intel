@@ -1,4 +1,4 @@
-name: Release with SHA-256 Checksums
+name: Release with Verification and SHA-256 Checksums
 
 on:
   push:
@@ -9,43 +9,101 @@ permissions:
   contents: write
 
 jobs:
-  checksums:
-    name: Generate SHA-256 checksums
+  verify-build-release:
+    name: Verify, build, and release
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get tag name
-        id: tag
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+      - name: Extract version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Verify CITATION.cff license
+        run: |
+          grep -q 'license: "BUSL-1.1"' CITATION.cff \
+            || { echo "FAIL: CITATION.cff license is not BUSL-1.1"; exit 1; }
+          echo "PASS: CITATION.cff license is BUSL-1.1"
+
+      - name: Verify versions match tag
+        run: |
+          VER="${{ steps.ver.outputs.ver }}"
+
+          CFF_VER=$(grep '^version:' CITATION.cff | sed 's/version: "\(.*\)"/\1/')
+          echo "CITATION.cff version: $CFF_VER"
+          [[ "$CFF_VER" == "$VER" ]] || { echo "FAIL: CITATION.cff version ($CFF_VER) != tag ($VER)"; exit 1; }
+
+          if [ -f codemeta.json ]; then
+            CM_VER=$(python3 -c "import json; print(json.load(open('codemeta.json'))['version'])")
+            echo "codemeta.json version: $CM_VER"
+            [[ "$CM_VER" == "$VER" ]] || { echo "FAIL: codemeta.json version ($CM_VER) != tag ($VER)"; exit 1; }
+          fi
+
+          CONFIG_VER=$(sed -n 's/.*Version\s*=\s*"\([^"]*\)".*/\1/p' go-server/internal/config/config.go)
+          echo "config.go version: $CONFIG_VER"
+          [[ "$CONFIG_VER" == "$VER" ]] || { echo "FAIL: config.go version ($CONFIG_VER) != tag ($VER)"; exit 1; }
+
+          SONAR_VER=$(grep '^sonar.projectVersion=' sonar-project.properties | cut -d= -f2)
+          echo "sonar-project.properties version: $SONAR_VER"
+          [[ "$SONAR_VER" == "$VER" ]] || { echo "FAIL: sonar version ($SONAR_VER) != tag ($VER)"; exit 1; }
+
+          echo "PASS: All versions match tag $VER"
+
+      - name: Verify no stale BSL-1.1
+        run: |
+          if grep -rq '"BSL-1.1"' CITATION.cff codemeta.json 2>/dev/null; then
+            echo "FAIL: Found invalid SPDX identifier BSL-1.1 (must be BUSL-1.1)"
+            exit 1
+          fi
+          echo "PASS: No invalid SPDX identifiers"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test ./go-server/... -count=1 -short -timeout 120s
+
+      - name: Build server
+        run: go build -o dns-tool-server ./go-server/cmd/server
 
       - name: Download source archives
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="${GITHUB_REF_NAME}"
           REPO="${GITHUB_REPOSITORY}"
+          VER="${{ steps.ver.outputs.ver }}"
           curl -sL "https://github.com/${REPO}/archive/refs/tags/${TAG}.zip" \
-            -o "dns-tool-web-${{ steps.tag.outputs.version }}.zip"
+            -o "dns-tool-web-${VER}.zip"
           curl -sL "https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz" \
-            -o "dns-tool-web-${{ steps.tag.outputs.version }}.tar.gz"
+            -o "dns-tool-web-${VER}.tar.gz"
 
       - name: Generate SHA-256 checksums
         run: |
-          sha256sum dns-tool-web-${{ steps.tag.outputs.version }}.zip \
-                    dns-tool-web-${{ steps.tag.outputs.version }}.tar.gz \
+          VER="${{ steps.ver.outputs.ver }}"
+          sha256sum "dns-tool-web-${VER}.zip" \
+                    "dns-tool-web-${VER}.tar.gz" \
             > SHA256SUMS
+          echo "" >> SHA256SUMS
+          echo "# Generated from tag ${GITHUB_REF_NAME} at commit ${GITHUB_SHA}" >> SHA256SUMS
+          echo "# Verify: sha256sum -c SHA256SUMS" >> SHA256SUMS
           echo "=== SHA256SUMS ==="
           cat SHA256SUMS
 
-      - name: Sign checksums with commit hash
-        run: |
-          echo "" >> SHA256SUMS
-          echo "# Generated from tag ${GITHUB_REF#refs/tags/} at commit ${GITHUB_SHA}" >> SHA256SUMS
-          echo "# Verify: sha256sum -c SHA256SUMS" >> SHA256SUMS
-
-      - name: Attach checksums to release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: DNS Tool ${{ steps.ver.outputs.tag }}
+          generate_release_notes: true
           files: SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

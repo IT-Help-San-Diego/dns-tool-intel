@@ -1,0 +1,39 @@
+{
+  "title": "DNS Tool: Domain Security Audit Platform",
+  "upload_type": "software",
+  "license": "BUSL-1.1",
+  "creators": [
+    {
+      "name": "Balboa, Carey James",
+      "affiliation": "IT Help San Diego Inc.",
+      "orcid": "0009-0000-5237-9065"
+    }
+  ],
+  "keywords": [
+    "DNS security",
+    "SPF",
+    "DKIM",
+    "DMARC",
+    "DNSSEC",
+    "DANE",
+    "BIMI",
+    "MTA-STS",
+    "TLS-RPT",
+    "CAA",
+    "OSINT",
+    "email authentication"
+  ],
+  "description": "DNS Tool is an open-source research platform for confidence-scored analysis of domain security infrastructure.\n\nLive system: https://dnstool.it-help.tech\nMethodology (PDF): https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\nSource code: https://github.com/careyjames/dns-tool-web",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/careyjames/dns-tool-web",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    }
+  ]
+}
