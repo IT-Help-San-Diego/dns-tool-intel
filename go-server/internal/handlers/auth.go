@@ -331,6 +331,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
                 }
         }
 
+        c.SetSameSite(http.SameSiteLaxMode)
         c.SetCookie(sessionCookieName, "", -1, "/", "", true, true)
         c.Redirect(http.StatusFound, "/")
 }

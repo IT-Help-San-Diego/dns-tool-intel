@@ -221,7 +221,7 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                                 })
                                 redirectTo := "/"
                                 if ref := c.Request.Referer(); ref != "" {
-                                        if u, err := url.Parse(ref); err == nil && u.Path != "" {
+                                        if u, err := url.Parse(ref); err == nil && u.Path != "" && strings.HasPrefix(u.Path, "/") && !strings.Contains(u.Path, "//") {
                                                 redirectTo = u.Path
                                         }
                                 }
