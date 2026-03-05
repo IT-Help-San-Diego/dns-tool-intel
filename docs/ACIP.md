@@ -74,7 +74,7 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 **Citation version** (`CITATION.cff`, `codemeta.json`):
 - Tracks the last DOI-backed Zenodo release
 - Changes ONLY when a new GitHub Release triggers Zenodo archival
-- Must match the version the DOI (`10.5281/zenodo.18854899`) resolves to
+- Must match the version the DOI (`10.5281/zenodo.18871596`) resolves to
 - Changing this without a Zenodo release creates a falsified citation state
 - This breaks ORCID linking, OpenAlex ingestion, and scholarly reproducibility
 

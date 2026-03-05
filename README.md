@@ -1,5 +1,5 @@
 # DNS Tool — Domain Security Intelligence Platform
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18854899.svg)](https://doi.org/10.5281/zenodo.18854899)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18871596.svg)](https://doi.org/10.5281/zenodo.18871596)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-web&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-web)
 
