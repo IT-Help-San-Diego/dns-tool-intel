@@ -400,7 +400,7 @@ A static, zero-JavaScript public overview of the system architecture, classified
 1. **Intelligence Pipeline**: DNS query flow from multi-resolver parallel collection through analysis engines to intelligence product generation
 2. **Dual-Engine Confidence Framework**: ICAE (correctness, 129 tests across 9 protocols) and ICuAE (currency, 29 tests across 5 dimensions) running independently with ICD 203 methodology
 3. **Protocol Coverage**: Nine DNS security protocols analyzed — SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA — each linked to authoritative RFCs
-4. **Open-Core Architecture**: BSL 1.1 license model with public web layer and private intelligence module, build-tag gated compilation
+4. **Open-Core Architecture**: BUSL-1.1 license model with public web layer and private intelligence module, build-tag gated compilation
 5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
 6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, FIPS 202 (SHA-3)
 7. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
