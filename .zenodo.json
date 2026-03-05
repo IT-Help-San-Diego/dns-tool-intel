@@ -18,6 +18,11 @@
     "DNSSEC",
     "DANE",
     "BIMI",
+    "MTA-STS",
+    "TLS-RPT",
+    "CAA",
+    "OSINT",
+    "email authentication",
     "email security",
     "cybersecurity research"
   ],

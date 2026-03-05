@@ -13,6 +13,21 @@
 //  2. Use (or create) a named date constant below.
 //  3. Reference the constant — never inline a date string.
 //
+// HISTORICAL EDIT AUDIT
+// =====================
+// 2026-03-05 (commit 751fe32f): Corrected SPDX license identifier in the
+//   dateFeb17 changelog entry from "BSL 1.1" (not a valid SPDX identifier;
+//   could be confused with Boost Software License) to "BUSL-1.1" (the
+//   correct SPDX identifier for Business Source License 1.1). This was an
+//   intentional, targeted correction — NOT a mass version rewrite. Only 3
+//   lines changed: the date-mapping comment, the entry Title, and the entry
+//   Description. No version strings were altered. The same commit also
+//   corrected the identifier across 14 other project files (README, CITATION,
+//   architecture docs, methodology PDF, etc.) as part of a project-wide
+//   SPDX compliance sweep. Investigated and confirmed clean on 2026-03-05
+//   by cross-referencing git diff, version string diversity (26 distinct
+//   versions intact), and release script analysis.
+//
 // Canonical date mapping (verified Feb 28, 2026):
 //
 //      dateFeb28 — Schema.org Intelligence Pipeline Mapping,
