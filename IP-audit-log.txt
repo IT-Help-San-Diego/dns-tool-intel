@@ -1,8 +1,0 @@
-Create a Cross‑Referencing -Intellectual Property Signals Audit Log
-Cross‑Referencing Carey James Balboa’s Facebook Posts with DNS Tool Documentation
-
-Purpose
-
-The user provided a Facebook data export and asked for an intellectual‑property audit: identify posts where they discussed scientific or metacognitive ideas that eventually led to the DNS Tool (dnstool.it‑help.tech).  The goal is to show, through timestamped posts, that the user was publicly thinking through the principles and algorithms that underpin the DNS Tool well before it existed, and to match those posts against statements in the tool’s official documentation.
-
-This could help to address, immediately and upfront, if done correctly, the fact that no, I did not just speak a sentence into Replit that said, "Hey bro, make me a cool DNS app," and then magically this appeared because I'm just a vibe-coding script kiddy fucking idiot. We're gonna bitch slap that shit right in the face.
