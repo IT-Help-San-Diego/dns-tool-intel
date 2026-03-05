@@ -124,7 +124,7 @@ func (s *SecretScanner) fetchMainPage(ctx context.Context, domain string) (strin
                 if err != nil {
                         continue
                 }
-                defer resp.Body.Close()
+                defer safeClose(resp.Body, "secret-scanner-mainpage")
                 if resp.StatusCode != http.StatusOK {
                         continue
                 }
@@ -149,7 +149,7 @@ func (s *SecretScanner) fetchResource(ctx context.Context, url string) string {
         if err != nil {
                 return ""
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "secret-scanner-resource")
         if resp.StatusCode != http.StatusOK {
                 return ""
         }

@@ -9,8 +9,13 @@ import (
         "net/http"
         "regexp"
         "strings"
-
 )
+
+func safeClose(c io.Closer, label string) {
+        if err := c.Close(); err != nil {
+                slog.Debug("close error", "resource", label, "error", err)
+        }
+}
 
 type HTTPClient interface {
         Get(ctx context.Context, rawURL string) (*http.Response, error)
@@ -123,7 +128,7 @@ func (s *Scanner) tryFetchLLMSTxt(ctx context.Context, u string) (string, bool) 
         if err != nil {
                 return "", false
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "tryFetchLLMSTxt")
 
         if resp.StatusCode != http.StatusOK {
                 return "", false
@@ -173,7 +178,7 @@ func (s *Scanner) tryFetchLLMSFullTxt(ctx context.Context, u string) bool {
         if err != nil {
                 return false
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "tryFetchLLMSFullTxt")
 
         if resp.StatusCode != http.StatusOK {
                 return false
@@ -253,7 +258,7 @@ func (s *Scanner) fetchRobotsTxtContent(ctx context.Context, domain string) (con
                 if err != nil {
                         continue
                 }
-                defer resp.Body.Close()
+                defer safeClose(resp.Body, "fetchRobotsTxtContent")
 
                 if resp.StatusCode != http.StatusOK {
                         continue
@@ -528,7 +533,7 @@ func (s *Scanner) fetchHomepageBody(ctx context.Context, domain string) (body, u
                 if err != nil {
                         continue
                 }
-                defer resp.Body.Close()
+                defer safeClose(resp.Body, "fetchHomepageBody")
 
                 if resp.StatusCode != http.StatusOK {
                         continue
@@ -641,7 +646,7 @@ func (s *Scanner) fetchHomepageBodyRaw(ctx context.Context, domain string) (body
                 if err != nil {
                         continue
                 }
-                defer resp.Body.Close()
+                defer safeClose(resp.Body, "fetchHomepageBodyRaw")
 
                 if resp.StatusCode != http.StatusOK {
                         continue

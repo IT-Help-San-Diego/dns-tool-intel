@@ -237,7 +237,7 @@ func callNmapProbe(ctx context.Context, probe *ProbeEndpoint, host string) *nmap
                 slog.Debug("Nmap probe call failed", "host", host, "error", err)
                 return nil
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "nmap-probe")
 
         body, err := io.ReadAll(io.LimitReader(resp.Body, 256*1024))
         if err != nil {
