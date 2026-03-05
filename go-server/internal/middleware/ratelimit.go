@@ -177,7 +177,7 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                 result := limiter.CheckAndRecord(clientIP, domain)
 
                 if !result.Allowed {
-                        traceID, _ := c.Get(ginKeyTraceID)
+                        traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
                         slog.Info("Rate limit triggered",
                                 ginKeyTraceID, traceID,
                                 "ip", clientIP,

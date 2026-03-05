@@ -19,7 +19,7 @@ const (
         templateHistory = "history.html"
 
 
-	mapKeyHistory = "history"
+        mapKeyHistory = "history"
 )
 
 type HistoryHandler struct {
@@ -90,9 +90,12 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
 }
 
 func (h *HistoryHandler) History(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+        nonce, _ := c.Get("csp_nonce")     //nolint:errcheck // zero-value fallback for template rendering
+        csrfToken, _ := c.Get("csrf_token") //nolint:errcheck // zero-value fallback for template rendering
+        page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+        if err != nil {
+                page = 1
+        }
         if page < 1 {
                 page = 1
         }
@@ -106,7 +109,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
                 errData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:        h.Config.BetaPages,
+                strBetapages:        h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyHistory,
@@ -124,7 +127,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
                 errData := gin.H{
                         strAppversion:      h.Config.AppVersion,
                         strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:        h.Config.BetaPages,
+                strBetapages:        h.Config.BetaPages,
                         strCspnonce:        nonce,
                         strCsrftoken:       csrfToken,
                         strActivepage:      mapKeyHistory,
@@ -140,7 +143,7 @@ func (h *HistoryHandler) History(c *gin.Context) {
         data := gin.H{
                 strAppversion:      h.Config.AppVersion,
                 strMaintenancenote: h.Config.MaintenanceNote,
-		strBetapages:        h.Config.BetaPages,
+                strBetapages:        h.Config.BetaPages,
                 strCspnonce:     nonce,
                 strCsrftoken:   csrfToken,
                 strActivepage:   mapKeyHistory,

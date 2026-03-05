@@ -145,8 +145,14 @@ func (h *AnalysisHandler) ViewAnalysisExecutive(c *gin.Context) {
 }
 
 func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, ok := c.Get("csp_nonce")
+        if !ok {
+                nonce = ""
+        }
+        csrfToken, ok := c.Get("csrf_token")
+        if !ok {
+                csrfToken = ""
+        }
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
@@ -185,7 +191,10 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                 }
         }
 
-        waitSeconds, _ := strconv.Atoi(c.Query("wait_seconds"))
+        waitSeconds, err2 := strconv.Atoi(c.Query("wait_seconds"))
+        if err2 != nil {
+                waitSeconds = 0
+        }
         waitReason := c.Query("wait_reason")
 
         timestamp := analysisTimestamp(analysis)
@@ -243,8 +252,14 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 }
 
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
+        nonce, ok := c.Get("csp_nonce")
+        if !ok {
+                nonce = ""
+        }
+        csrfToken, ok := c.Get("csrf_token")
+        if !ok {
+                csrfToken = ""
+        }
 
         domain := strings.TrimSpace(c.PostForm(mapKeyDomain))
         if domain == "" {
@@ -325,7 +340,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 devNull:           devNull,
         })
 
-        analysisSuccess, _ := extractAnalysisError(results)
+        analysisSuccess, _ := extractAnalysisError(results) //nolint:errcheck // error message not needed here
         h.handlePostAnalysisSideEffects(ctx, c, sideEffectsParams{
                 asciiDomain:      asciiDomain,
                 analysisID:       analysisID,
@@ -419,8 +434,8 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
                 }
         }
 
-        calibrated, _ := results["calibrated_confidence"].(map[string]float64)
-        if calibrated != nil && maturityLevel != "" {
+        calibrated, cOk := results["calibrated_confidence"].(map[string]float64)
+        if cOk && calibrated != nil && maturityLevel != "" {
                 uc := unified.ComputeUnifiedConfidence(unified.Input{
                         CalibratedConfidence: calibrated,
                         CurrencyScore:        currencyScore,
@@ -438,7 +453,7 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
 
 func (h *AnalysisHandler) enrichFromSnapshot(ctx context.Context, data gin.H, results map[string]any, snap map[string]any, domain string, analysisID int32) {
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
-                snappedMaturity, _ := snap["overall_maturity"].(string)
+                snappedMaturity, _ := snap["overall_maturity"].(string) //nolint:errcheck // zero-value fallback is intentional
                 if snappedMaturity != "" {
                         icaeMetrics.OverallMaturity = snappedMaturity
                         icaeMetrics.OverallMaturityDisplay = snappedMaturity
@@ -511,9 +526,9 @@ func (h *AnalysisHandler) snapshotICAEMetrics(ctx context.Context, results map[s
                 }
         }
 
-        calibrated, _ := results["calibrated_confidence"].(map[string]float64)
-        maturityLevel, _ := snapshot["overall_maturity"].(string)
-        if calibrated != nil && maturityLevel != "" {
+        calibrated, calOk := results["calibrated_confidence"].(map[string]float64)
+        maturityLevel, matOk := snapshot["overall_maturity"].(string)
+        if calOk && calibrated != nil && matOk && maturityLevel != "" {
                 uc := unified.ComputeUnifiedConfidence(unified.Input{
                         CalibratedConfidence: calibrated,
                         CurrencyScore:        currencyScore,
@@ -600,7 +615,9 @@ func extractAuthInfo(c *gin.Context) (bool, int32) {
         if auth, exists := c.Get(mapKeyAuthenticated); exists && auth == true {
                 isAuthenticated = true
                 if uid, ok := c.Get(mapKeyUserId); ok {
-                        userID, _ = uid.(int32)
+                        if id, idOk := uid.(int32); idOk {
+                                userID = id
+                        }
                 }
         }
         return isAuthenticated, userID
@@ -640,7 +657,7 @@ type persistParams struct {
 }
 
 func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistParams) (int32, string) {
-        isSuccess, _ := extractAnalysisError(p.results)
+        isSuccess, _ := extractAnalysisError(p.results) //nolint:errcheck // error message not needed here
         if p.ephemeral || p.devNull || (!p.domainExists && isSuccess) {
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
                 return 0, time.Now().UTC().Format(strUtc)
@@ -911,8 +928,8 @@ func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, c
 }
 
 func (h *AnalysisHandler) renderRestrictedAccess(c *gin.Context, nonce, csrfToken any) {
-        auth, _ := c.Get(mapKeyAuthenticated)
-        if auth != true {
+        auth, authExists := c.Get(mapKeyAuthenticated)
+        if !authExists || auth != true {
                 h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, mapKeyDanger, strAnalysisNotFound)
                 return
         }
@@ -969,14 +986,14 @@ func (h *AnalysisHandler) APIDNSHistory(c *gin.Context) {
 
         result := analyzer.FetchDNSHistoryWithKey(c.Request.Context(), asciiDomain, userAPIKey, h.DNSHistoryCache)
 
-        status, _ := result[mapKeyStatus].(string)
-        if status == "rate_limited" || status == mapKeyError || status == "timeout" {
+        status, sOk := result[mapKeyStatus].(string)
+        if !sOk || status == "rate_limited" || status == mapKeyError || status == "timeout" {
                 c.JSON(http.StatusOK, gin.H{mapKeyStatus: "unavailable"})
                 return
         }
 
-        available, _ := result["available"].(bool)
-        if !available {
+        available, aOk := result["available"].(bool)
+        if !aOk || !available {
                 c.JSON(http.StatusOK, gin.H{mapKeyStatus: "unavailable"})
                 return
         }
@@ -1044,16 +1061,16 @@ func (h *AnalysisHandler) ExportSubdomainsCSV(c *gin.Context) {
         w.WriteString("Subdomain,Status,Source,CNAME Target,Provider,Certificates,First Seen,Issuers\n")
 
         for _, sd := range cached {
-                name, _ := sd["name"].(string)
-                status := "Expired"
+                name, _ := sd["name"].(string)             //nolint:errcheck // type assertion with zero-value fallback
+                sdStatus := "Expired"
                 if isCur, ok := sd["is_current"].(bool); ok && isCur {
-                        status = "Current"
+                        sdStatus = "Current"
                 }
-                source, _ := sd["source"].(string)
-                cnameTarget, _ := sd["cname_target"].(string)
-                provider, _ := sd["provider"].(string)
-                certCount, _ := sd["cert_count"].(string)
-                firstSeen, _ := sd["first_seen"].(string)
+                source, _ := sd["source"].(string)          //nolint:errcheck // type assertion with zero-value fallback
+                cnameTarget, _ := sd["cname_target"].(string) //nolint:errcheck // type assertion with zero-value fallback
+                provider, _ := sd["provider"].(string)       //nolint:errcheck // type assertion with zero-value fallback
+                certCount, _ := sd["cert_count"].(string)    //nolint:errcheck // type assertion with zero-value fallback
+                firstSeen, _ := sd["first_seen"].(string)    //nolint:errcheck // type assertion with zero-value fallback
 
                 var issuerStr string
                 if issuers, ok := sd["issuers"].([]string); ok && len(issuers) > 0 {
@@ -1061,7 +1078,7 @@ func (h *AnalysisHandler) ExportSubdomainsCSV(c *gin.Context) {
                 }
 
                 w.WriteString(csvEscape(name) + "," +
-                        csvEscape(status) + "," +
+                        csvEscape(sdStatus) + "," +
                         csvEscape(source) + "," +
                         csvEscape(cnameTarget) + "," +
                         csvEscape(provider) + "," +
@@ -1179,8 +1196,16 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
                 if i > 0 {
                         buf = append(buf, ',')
                 }
-                keyBytes, _ := json.Marshal(kv.Key)
-                valBytes, _ := json.Marshal(kv.Value)
+                keyBytes, kErr := json.Marshal(kv.Key)
+                if kErr != nil {
+                        slog.Debug("marshal key error", "key", kv.Key, "error", kErr)
+                        continue
+                }
+                valBytes, vErr := json.Marshal(kv.Value)
+                if vErr != nil {
+                        slog.Debug("marshal value error", "key", kv.Key, "error", vErr)
+                        continue
+                }
                 buf = append(buf, keyBytes...)
                 buf = append(buf, ':')
                 buf = append(buf, valBytes...)
@@ -1208,8 +1233,8 @@ func (h *AnalysisHandler) loadAnalysisForAPI(c *gin.Context) (dbq.DomainAnalysis
         }
 
         if !h.checkPrivateAccess(c, analysis.ID, analysis.Private) {
-                auth, _ := c.Get(mapKeyAuthenticated)
-                if auth == true {
+                auth, authOk := c.Get(mapKeyAuthenticated)
+                if authOk && auth == true {
                         c.JSON(http.StatusForbidden, gin.H{
                                 mapKeyError:   "restricted",
                                 mapKeyMessage: "This report includes user-provided intelligence and is restricted to its owner. Custom selectors can reveal internal mail infrastructure and vendor relationships.",
@@ -1319,7 +1344,11 @@ type saveAnalysisInput struct {
 
 func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput) (int32, string) {
         p.results["_tool_version"] = h.Config.AppVersion
-        fullResultsJSON, _ := json.Marshal(p.results)
+        fullResultsJSON, marshalErr := json.Marshal(p.results)
+        if marshalErr != nil {
+                slog.Error("Failed to marshal results", mapKeyDomain, p.domain, mapKeyError, marshalErr)
+                return 0, time.Now().UTC().Format(strUtc)
+        }
 
         basicRecordsJSON := getJSONFromResults(p.results, "basic_records", "")
         authRecordsJSON := getJSONFromResults(p.results, "authoritative_records", "")
@@ -1461,7 +1490,7 @@ func lookupCountry(ip string) (string, string) {
         if err != nil {
                 return "", ""
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "openphish response body")
 
         if resp.StatusCode != 200 {
                 return "", ""
@@ -1624,7 +1653,7 @@ func protocolRawConfidence(results map[string]any, resultKey string) float64 {
         if !ok {
                 return 0.0
         }
-        status, _ := section[mapKeyStatus].(string)
+        status, _ := section[mapKeyStatus].(string) //nolint:errcheck // zero-value fallback is intentional
         switch status {
         case "secure", "pass", "valid", "good":
                 return 1.0
@@ -1655,8 +1684,8 @@ func aggregateResolverAgreement(results map[string]any) (int, int) {
                 if !ok {
                         continue
                 }
-                rc, _ := rd["resolver_count"].(int)
-                isConsensus, _ := rd["consensus"].(bool)
+                rc, _ := rd["resolver_count"].(int)   //nolint:errcheck // zero-value fallback is intentional
+                isConsensus, _ := rd["consensus"].(bool) //nolint:errcheck // zero-value fallback is intentional
                 agreeCount := rc
                 if !isConsensus {
                         agreeCount = rc - 1

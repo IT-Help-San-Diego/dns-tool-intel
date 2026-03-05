@@ -89,7 +89,7 @@ func (h *AnalyticsHandler) fetchDailyAnalytics(ctx context.Context, limit int) [
                 slog.Error("Analytics: failed to fetch daily data", mapKeyError, err)
                 return nil
         }
-        defer rows.Close()
+        defer func() { rows.Close() }()
 
         var days []AnalyticsDay
         for rows.Next() {
