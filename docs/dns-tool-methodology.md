@@ -266,11 +266,11 @@ If DNS Tool contributes to research or analysis, please cite:
   version      = {26.34.20},
   doi          = {10.5281/zenodo.18854899},
   url          = {https://dnstool.it-help.tech},
-  license      = {BSL-1.1}
+  license      = {BUSL-1.1}
 }
 ```
 
 ---
 
-DNS Tool v26.34.20 · IT Help San Diego Inc. · Licensed under BSL-1.1
+DNS Tool v26.34.20 · IT Help San Diego Inc. · Licensed under BUSL-1.1
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899) · [dnstool.it-help.tech](https://dnstool.it-help.tech)

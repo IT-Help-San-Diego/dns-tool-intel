@@ -138,7 +138,7 @@ The agent will launch parallel architect calls, one per persona, and compile res
 7. Are there export control implications (EAR/ITAR) for the security analysis capabilities?
 8. Could running this tool against a domain without the owner's consent create legal liability for the user?
 9. Does the BIMI logo proxy fetch create unauthorized access to third-party servers?
-10. Is the open-source license (BSL 1.1) defensible, or could it be used against the project?
+10. Is the open-source license (BUSL-1.1) defensible, or could it be used against the project?
 11. Are disclaimers sufficient? Does the tool clearly state it only uses publicly available data?
 12. Could the "intelligence report" naming be misconstrued as actual government intelligence?
 13. Where exactly does the tool document that ALL data sources are public/OSINT? Is this prominent enough?
