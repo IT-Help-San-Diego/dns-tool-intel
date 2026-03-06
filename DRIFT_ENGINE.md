@@ -25,6 +25,13 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 - **Database schema**: `domain_watchlist`, `notification_endpoints`, `drift_notifications` tables with proper indexes and foreign key constraints.
 - **Routes**: 7 watchlist endpoints — GET `/watchlist`, POST `/watchlist/add`, POST `/watchlist/:id/delete`, POST `/watchlist/:id/toggle`, POST `/watchlist/endpoint/add`, POST `/watchlist/endpoint/:id/delete`, POST `/watchlist/endpoint/:id/toggle`.
 
+### Implemented (Phase 5): Third-Party Evidence Archival
+
+- **Wayback Machine integration** (`internal/wayback/client.go`): Every successful, non-private, non-scan-flagged analysis is automatically submitted to the Internet Archive via `web.archive.org/save/` in a background goroutine. Snapshot URL stored in `domain_analyses.wayback_url`.
+- **Three-layer evidence chain**: SHA-3-512 integrity hash (report-level) + posture hash (drift detection) + Wayback Machine archive (independent third-party verification). Legally defensible, independently verifiable, tamper-proof.
+- **Privacy guards**: Private analyses and scanner-flagged analyses are never archived.
+- **Results display**: Green "Archived" badge in header + "Internet Archive — Permanent Record" card on Engineer's and Executive's reports with View/Copy buttons.
+
 ### Architecture Principles
 
 1. **Live results are sacred.** The analysis path is never altered by drift detection. Snapshots are a side effect.
@@ -33,6 +40,7 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 4. **No false alarms.** Presentation changes (record ordering) don't register as drift.
 5. **Severity is policy-aware.** DMARC policy regression (reject→none) is danger. Status loss (pass→fail) is danger. Record changes are warning. Unknown changes are info.
 6. **Watchlist is user-scoped.** Each authenticated user manages their own monitored domains and notification preferences.
+7. **Third-party evidence is privacy-gated.** Only non-private, non-scan-flagged analyses are submitted to external archives. The Wayback Machine URL is validated before storage.
 
 ### Build Tag Boundary
 

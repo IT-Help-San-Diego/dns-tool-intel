@@ -147,6 +147,7 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 - **ICuAE Engine**: 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18). Statistical drift detection for per-dimension trend analysis.
 - **Confidence Tagging**: ICD 203-aligned observed/inferred/third-party classification applied to all attributions.
 - **Hash Integrity**: SHA-3-512 (FIPS 202) cryptographic hashing for report integrity and posture drift fingerprinting.
+- **Wayback Machine Archival**: Automatic submission of every successful, non-private analysis to the Internet Archive (web.archive.org/save/). Snapshot URL stored and displayed as "Archived" badge with direct link. Third layer of the evidence chain alongside SHA-3-512 integrity hash and posture hash.
 - **Threat Feed**: OpenPhish community phishing URL feed with 12-hour cache TTL.
 
 ### Analytical Methods
@@ -154,6 +155,7 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 - **Confidence Calibration**: Per-protocol priors encode historical detection reliability. Measurement quality (resolver agreement ratio) weights observations against priors. Framework aligned with ICD 203 confidence methodology.
 - **Resolver Consensus**: Multi-resolver quorum tracking agreement across Cloudflare, Google, Quad9, OpenDNS, and DNS4EU. Disagreement classified as measurement noise, not misconfiguration.
 - **Cryptographic Integrity**: SHA-3-512 (FIPS 202) for analysis result sealing and posture drift fingerprinting.
+- **Third-Party Evidence Archival**: Internet Archive Wayback Machine integration for independently verifiable, tamper-proof analysis snapshots. Three-layer evidence chain: integrity hash + posture hash + Wayback archive.
 
 ### Disclosure Boundary (What Is Intentionally Withheld)
 DNS Tool follows the same open-core disclosure model used by HashiCorp, GitLab, Elastic, and Grafana Labs. The public repository reveals architecture shape, protocol coverage, and engine existence — not proprietary mechanics. Specifically withheld:

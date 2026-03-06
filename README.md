@@ -88,6 +88,7 @@ The Recon Report includes live CIE scotopic/photopic luminosity validation and W
 - **Observation-Based Language** — Intelligence expressed as observations, not definitive claims. Every attribution carries its source and confidence tier.
 - **RFC-Backed Analysis** — All security conclusions grounded in published standards (RFC 7208, RFC 7489, RFC 6376, etc.). Results independently reproducible with standard tools (dig, openssl, curl).
 - **Cryptographic Provenance** — Report integrity binding via SHA-3-512 fingerprinting (domain, analysis ID, timestamp, tool version, results) with detailed provenance metadata.
+- **Third-Party Evidence Archival** — Automatic submission of every non-private analysis to the Internet Archive Wayback Machine for independently verifiable, tamper-proof snapshots. Three-layer evidence chain: integrity hash + posture drift hash + Wayback archive.
 - **TLP Classification** — All reports carry FIRST Traffic Light Protocol v2.0 designation with configurable user selection.
 - **Defense in Depth** — CSRF-protected endpoints, per-IP rate limiting, SSRF hardening, multi-resolver DNS client with DoH fallback.
 - **No Paid Dependencies by Default** — Core analysis requires no API keys. Paid enrichment (SecurityTrails, etc.) available when users supply their own keys.

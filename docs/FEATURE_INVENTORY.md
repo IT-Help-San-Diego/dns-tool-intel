@@ -91,6 +91,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - Hash Integrity Audit Engine — automated recomputation and verification of stored posture hashes
 - Brand colors page (/brand-colors) — brand palette reference with live CIE validation
 - Origin story page (/about) with verified timeline: Memphis 1980, Nashville IT, Raspberry Pi, PhreakNIC ~2006, Hak5 offensive security, 2015-2024 defensive security (Objective-See, CISA RPT Jan 2022, Hak5 Payload Award Sept 2023), Python CLI (Snap Store Nov 2023), Go platform Feb 2025
+- Wayback Machine automatic archival — every successful, non-private, non-scan-flagged analysis is submitted to the Internet Archive via web.archive.org/save/ in a background goroutine; snapshot URL stored in domain_analyses.wayback_url; green "Archived" badge in results header; "Internet Archive — Permanent Record" card on Engineer's and Executive's reports with View/Copy buttons; three-layer evidence chain (SHA-3-512 integrity hash + posture hash + third-party Wayback archive)
 
 ## Security and Infrastructure
 
