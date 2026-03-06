@@ -4,8 +4,7 @@
     function fallbackCopy(text) {
         const ta = document.createElement('textarea');
         ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
+        ta.className = 'u-offscreen-copy';
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');

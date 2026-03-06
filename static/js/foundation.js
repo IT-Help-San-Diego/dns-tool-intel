@@ -315,7 +315,7 @@
         bd.classList.add('show');
         this._backdrop = bd;
         document.body.classList.add('modal-open');
-        el.style.display = 'block';
+        el.classList.add('d-block');
         el.removeAttribute('aria-hidden');
         el.setAttribute('aria-modal', 'true');
         el.setAttribute('role', 'dialog');
@@ -335,7 +335,7 @@
         el.removeEventListener('click', this._onBackdropClick);
         el.removeEventListener('click', this._onDismissClick);
         setTimeout(function() {
-            el.style.display = 'none';
+            el.classList.remove('d-block');
             el.setAttribute('aria-hidden', 'true');
             el.removeAttribute('aria-modal');
             el.removeAttribute('role');

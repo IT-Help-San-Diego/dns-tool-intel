@@ -716,7 +716,7 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    document.querySelectorAll('.progress-bar[aria-valuenow]').forEach(function(bar){bar.style.width=bar.getAttribute('aria-valuenow')+'%';});
+    document.querySelectorAll('.progress-bar[aria-valuenow]').forEach(function(bar){bar.style.setProperty('width',bar.getAttribute('aria-valuenow')+'%');});
     </script>
 </body>
 </html>
