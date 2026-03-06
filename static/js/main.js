@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { roeHandled = false; }, 400);
         if (e) { e.preventDefault(); }
         if (roeModal) { roeModal.hide(); }
-        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        window.location.href = 'https://youtu.be/ZzUsKizhb8o?si=4mPVuQ7SNTttqraP';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
