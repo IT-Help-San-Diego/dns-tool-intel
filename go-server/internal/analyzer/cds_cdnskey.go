@@ -12,20 +12,20 @@ import (
 )
 
 const (
-	mapKeyAutomation = "automation"
+	mapKeyAutomation     = "automation"
 	mapKeyDeleteSignaled = "delete_signaled"
-	mapKeyHasCdnskey = "has_cdnskey"
-	mapKeyHasCds = "has_cds"
+	mapKeyHasCdnskey     = "has_cdnskey"
+	mapKeyHasCds         = "has_cds"
 )
 
 func (a *Analyzer) AnalyzeCDSCDNSKEY(ctx context.Context, domain string) map[string]any {
 	result := map[string]any{
 		"status":          "success",
-		mapKeyHasCds:         false,
-		mapKeyHasCdnskey:     false,
+		mapKeyHasCds:      false,
+		mapKeyHasCdnskey:  false,
 		"cds_records":     []map[string]any{},
 		"cdnskey_records": []map[string]any{},
-		mapKeyAutomation:      "none",
+		mapKeyAutomation:  "none",
 		"issues":          []string{},
 	}
 
@@ -94,10 +94,10 @@ func parseCDSRecords(records []*dns.CDS) []map[string]any {
 	var parsed []map[string]any
 	for _, r := range records {
 		entry := map[string]any{
-			"key_tag":    r.KeyTag,
-			"algorithm":  dns.AlgorithmToString[r.Algorithm],
+			"key_tag":     r.KeyTag,
+			"algorithm":   dns.AlgorithmToString[r.Algorithm],
 			"digest_type": r.DigestType,
-			"raw":        r.String(),
+			"raw":         r.String(),
 		}
 		if r.KeyTag == 0 && r.Algorithm == 0 && r.DigestType == 0 {
 			entry["delete_signal"] = true

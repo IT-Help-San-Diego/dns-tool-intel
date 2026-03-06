@@ -3,128 +3,127 @@
 package handlers
 
 import (
-        "fmt"
-        "net/http"
-        "os"
-        "path/filepath"
-        "strings"
-        "time"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
-        "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 const (
-        headerContentType  = "Content-Type"
-        headerCacheControl = "Cache-Control"
-        cachePublicDay     = "public, max-age=86400"
+	headerContentType  = "Content-Type"
+	headerCacheControl = "Cache-Control"
+	cachePublicDay     = "public, max-age=86400"
 
+	mapKeyMonthly = "monthly"
+	mapKeyWeekly  = "weekly"
 
-        mapKeyMonthly = "monthly"
-        mapKeyWeekly  = "weekly"
-
-        sitemapPriorityHigh   = "0.7"
-        sitemapPriorityMedium = "0.6"
-        sitemapPriorityLow    = "0.5"
+	sitemapPriorityHigh   = "0.7"
+	sitemapPriorityMedium = "0.6"
+	sitemapPriorityLow    = "0.5"
 )
 
 type StaticHandler struct {
-        StaticDir  string
-        AppVersion string
-        BaseURL    string
+	StaticDir  string
+	AppVersion string
+	BaseURL    string
 }
 
 func NewStaticHandler(staticDir, appVersion, baseURL string) *StaticHandler {
-        return &StaticHandler{StaticDir: staticDir, AppVersion: appVersion, BaseURL: baseURL}
+	return &StaticHandler{StaticDir: staticDir, AppVersion: appVersion, BaseURL: baseURL}
 }
 
 func (h *StaticHandler) SecurityTxt(c *gin.Context) {
-        c.Header(headerContentType, "text/plain; charset=utf-8")
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, ".well-known", "security.txt"))
+	c.Header(headerContentType, "text/plain; charset=utf-8")
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, ".well-known", "security.txt"))
 }
 
 func (h *StaticHandler) RobotsTxt(c *gin.Context) {
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, "robots.txt"))
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, "robots.txt"))
 }
 
 func (h *StaticHandler) LLMsTxt(c *gin.Context) {
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, "llms.txt"))
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, "llms.txt"))
 }
 
 func (h *StaticHandler) LLMsFullTxt(c *gin.Context) {
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, "llms-full.txt"))
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, "llms-full.txt"))
 }
 
 func (h *StaticHandler) ManifestJSON(c *gin.Context) {
-        c.Header(headerContentType, "application/manifest+json")
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, "manifest.json"))
+	c.Header(headerContentType, "application/manifest+json")
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, "manifest.json"))
 }
 
 func (h *StaticHandler) ServiceWorker(c *gin.Context) {
-        swPath := filepath.Join(h.StaticDir, "sw.js")
-        data, err := os.ReadFile(swPath)
-        if err != nil {
-                c.Status(http.StatusNotFound)
-                return
-        }
-        body := strings.Replace(string(data), "SW_VERSION_PLACEHOLDER", h.AppVersion, 1)
-        c.Header(headerContentType, "application/javascript")
-        c.Header(headerCacheControl, "no-cache, no-store, must-revalidate")
-        c.Header("Service-Worker-Allowed", "/")
-        c.Data(http.StatusOK, "application/javascript", []byte(body))
+	swPath := filepath.Join(h.StaticDir, "sw.js")
+	data, err := os.ReadFile(swPath)
+	if err != nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	body := strings.Replace(string(data), "SW_VERSION_PLACEHOLDER", h.AppVersion, 1)
+	c.Header(headerContentType, "application/javascript")
+	c.Header(headerCacheControl, "no-cache, no-store, must-revalidate")
+	c.Header("Service-Worker-Allowed", "/")
+	c.Data(http.StatusOK, "application/javascript", []byte(body))
 }
 
 func (h *StaticHandler) BIMILogoSVG(c *gin.Context) {
-        c.Header(headerContentType, "image/svg+xml")
-        c.Header(headerCacheControl, cachePublicDay)
-        c.File(filepath.Join(h.StaticDir, "bimi-logo.svg"))
+	c.Header(headerContentType, "image/svg+xml")
+	c.Header(headerCacheControl, cachePublicDay)
+	c.File(filepath.Join(h.StaticDir, "bimi-logo.svg"))
 }
 
 func (h *StaticHandler) MethodologyPDF(c *gin.Context) {
-        c.Header(headerContentType, "application/pdf")
-        c.Header(headerCacheControl, cachePublicDay)
-        c.Header("Content-Disposition", "inline; filename=\"dns-tool-methodology.pdf\"")
-        c.File(filepath.Join(h.StaticDir, "docs", "dns-tool-methodology.pdf"))
+	c.Header(headerContentType, "application/pdf")
+	c.Header(headerCacheControl, cachePublicDay)
+	c.Header("Content-Disposition", "inline; filename=\"dns-tool-methodology.pdf\"")
+	c.File(filepath.Join(h.StaticDir, "docs", "dns-tool-methodology.pdf"))
 }
 
 func (h *StaticHandler) SitemapXML(c *gin.Context) {
-        today := time.Now().Format("2006-01-02")
+	today := time.Now().Format("2006-01-02")
 
-        pages := []struct {
-                Loc        string
-                Changefreq string
-                Priority   string
-        }{
-                {h.BaseURL + "/", mapKeyWeekly, "1.0"},
-                {h.BaseURL + "/investigate", mapKeyWeekly, sitemapPriorityHigh},
-                {h.BaseURL + "/email-header", mapKeyWeekly, sitemapPriorityHigh},
-                {h.BaseURL + "/toolkit", mapKeyWeekly, sitemapPriorityHigh},
-                {h.BaseURL + "/sources", mapKeyMonthly, sitemapPriorityMedium},
-                {h.BaseURL + "/history", "daily", sitemapPriorityMedium},
-                {h.BaseURL + "/stats", "daily", sitemapPriorityLow},
-                {h.BaseURL + "/approach", mapKeyMonthly, sitemapPriorityMedium},
-                {h.BaseURL + "/roadmap", mapKeyWeekly, sitemapPriorityLow},
-                {h.BaseURL + "/architecture", mapKeyMonthly, sitemapPriorityLow},
-                {h.BaseURL + "/security-policy", mapKeyMonthly, "0.4"},
-                {h.BaseURL + "/changelog", mapKeyMonthly, "0.3"},
-        }
+	pages := []struct {
+		Loc        string
+		Changefreq string
+		Priority   string
+	}{
+		{h.BaseURL + "/", mapKeyWeekly, "1.0"},
+		{h.BaseURL + "/investigate", mapKeyWeekly, sitemapPriorityHigh},
+		{h.BaseURL + "/email-header", mapKeyWeekly, sitemapPriorityHigh},
+		{h.BaseURL + "/toolkit", mapKeyWeekly, sitemapPriorityHigh},
+		{h.BaseURL + "/sources", mapKeyMonthly, sitemapPriorityMedium},
+		{h.BaseURL + "/history", "daily", sitemapPriorityMedium},
+		{h.BaseURL + "/stats", "daily", sitemapPriorityLow},
+		{h.BaseURL + "/approach", mapKeyMonthly, sitemapPriorityMedium},
+		{h.BaseURL + "/roadmap", mapKeyWeekly, sitemapPriorityLow},
+		{h.BaseURL + "/architecture", mapKeyMonthly, sitemapPriorityLow},
+		{h.BaseURL + "/security-policy", mapKeyMonthly, "0.4"},
+		{h.BaseURL + "/changelog", mapKeyMonthly, "0.3"},
+	}
 
-        xml := `<?xml version="1.0" encoding="UTF-8"?>` + "\n"
-        xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n"
-        for _, page := range pages {
-                xml += "  <url>\n"
-                xml += fmt.Sprintf("    <loc>%s</loc>\n", page.Loc)
-                xml += fmt.Sprintf("    <lastmod>%s</lastmod>\n", today)
-                xml += fmt.Sprintf("    <changefreq>%s</changefreq>\n", page.Changefreq)
-                xml += fmt.Sprintf("    <priority>%s</priority>\n", page.Priority)
-                xml += "  </url>\n"
-        }
-        xml += "</urlset>\n"
+	xml := `<?xml version="1.0" encoding="UTF-8"?>` + "\n"
+	xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n"
+	for _, page := range pages {
+		xml += "  <url>\n"
+		xml += fmt.Sprintf("    <loc>%s</loc>\n", page.Loc)
+		xml += fmt.Sprintf("    <lastmod>%s</lastmod>\n", today)
+		xml += fmt.Sprintf("    <changefreq>%s</changefreq>\n", page.Changefreq)
+		xml += fmt.Sprintf("    <priority>%s</priority>\n", page.Priority)
+		xml += "  </url>\n"
+	}
+	xml += "</urlset>\n"
 
-        c.Header(headerCacheControl, "public, max-age=3600")
-        c.Data(http.StatusOK, "application/xml", []byte(xml))
+	c.Header(headerCacheControl, "public, max-age=3600")
+	c.Data(http.StatusOK, "application/xml", []byte(xml))
 }

@@ -14,16 +14,16 @@ import (
 
 func TestRestoreUnifiedConfidence_CB13(t *testing.T) {
 	m := map[string]any{
-		"level":             "High",
-		"score":             0.85,
-		"accuracy_factor":   0.9,
-		"currency_factor":   0.8,
-		"maturity_ceiling":  0.95,
-		"maturity_level":    "Operational",
-		"weakest_link":      "DKIM",
-		"weakest_detail":    "No DKIM record found",
-		"explanation":       "Overall confidence is high",
-		"protocol_count":    float64(9),
+		"level":            "High",
+		"score":            0.85,
+		"accuracy_factor":  0.9,
+		"currency_factor":  0.8,
+		"maturity_ceiling": 0.95,
+		"maturity_level":   "Operational",
+		"weakest_link":     "DKIM",
+		"weakest_detail":   "No DKIM record found",
+		"explanation":      "Overall confidence is high",
+		"protocol_count":   float64(9),
 	}
 	uc := restoreUnifiedConfidence(m)
 	if uc.Level != "High" {
@@ -411,7 +411,7 @@ func TestNormalizeAIVerdicts_CB13(t *testing.T) {
 					"full_found": true,
 				},
 				"robots_txt": map[string]interface{}{
-					"found":             true,
+					"found":              true,
 					"blocks_ai_crawlers": true,
 				},
 				"poisoning": map[string]interface{}{
@@ -537,16 +537,16 @@ func TestExtractAuthInfo_CB13(t *testing.T) {
 
 func TestUnifiedConfidenceRoundTrip_CB13(t *testing.T) {
 	original := unified.UnifiedConfidence{
-		Level:          "High",
-		Score:          0.85,
-		AccuracyFactor: 0.9,
-		CurrencyFactor: 0.8,
+		Level:           "High",
+		Score:           0.85,
+		AccuracyFactor:  0.9,
+		CurrencyFactor:  0.8,
 		MaturityCeiling: 0.95,
-		MaturityLevel:  "Operational",
-		WeakestLink:    "DKIM",
-		WeakestDetail:  "Detail",
-		Explanation:    "Explanation text",
-		ProtocolCount:  9,
+		MaturityLevel:   "Operational",
+		WeakestLink:     "DKIM",
+		WeakestDetail:   "Detail",
+		Explanation:     "Explanation text",
+		ProtocolCount:   9,
 	}
 
 	serialized := map[string]any{

@@ -112,10 +112,10 @@ func TestDetermineMTASTSStatusNotFetchedWithError(t *testing.T) {
 func TestDetermineMTASTSStatusMissingVersion(t *testing.T) {
 	enforce := "enforce"
 	data := map[string]any{
-		mapKeyFetched:  true,
-		mapKeyMtaMode:  "enforce",
-		"has_version":  false,
-		"mx":           []string{"mx.example.com"},
+		mapKeyFetched: true,
+		mapKeyMtaMode: "enforce",
+		"has_version": false,
+		"mx":          []string{"mx.example.com"},
 	}
 	status, msg, issues := determineMTASTSStatus(data, &enforce)
 	if status != mapKeyWarning {

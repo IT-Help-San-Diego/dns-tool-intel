@@ -3,32 +3,32 @@
 package handlers
 
 import (
-        "net/http"
+	"net/http"
 
-        "dnstool/go-server/internal/config"
+	"dnstool/go-server/internal/config"
 
-        "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 type ChangelogHandler struct {
-        Config *config.Config
+	Config *config.Config
 }
 
 func NewChangelogHandler(cfg *config.Config) *ChangelogHandler {
-        return &ChangelogHandler{Config: cfg}
+	return &ChangelogHandler{Config: cfg}
 }
 
 func (h *ChangelogHandler) Changelog(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":        h.Config.BetaPages,
-                "CspNonce":       nonce,
-                "ActivePage":     "changelog",
-                "Changelog":      GetChangelog(),
-                "LegacyChangelog": GetLegacyChangelog(),
-        }
-        mergeAuthData(c, h.Config, data)
-        c.HTML(http.StatusOK, "changelog.html", data)
+	nonce, _ := c.Get("csp_nonce")
+	data := gin.H{
+		"AppVersion":      h.Config.AppVersion,
+		"MaintenanceNote": h.Config.MaintenanceNote,
+		"BetaPages":       h.Config.BetaPages,
+		"CspNonce":        nonce,
+		"ActivePage":      "changelog",
+		"Changelog":       GetChangelog(),
+		"LegacyChangelog": GetLegacyChangelog(),
+	}
+	mergeAuthData(c, h.Config, data)
+	c.HTML(http.StatusOK, "changelog.html", data)
 }

@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	prefilledPromptRe  = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
-	promptInjectionRe  = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
+	prefilledPromptRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
+	promptInjectionRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
 	hiddenTextSelectors = []string{}
 )
 

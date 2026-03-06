@@ -6,9 +6,9 @@
 package dbq
 
 import (
-        "context"
+	"context"
 
-        "github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countRemediatedDomains = `-- name: CountRemediatedDomains :one
@@ -18,10 +18,10 @@ WHERE diff_summary @> '[{"Severity": "success"}]'::jsonb
 `
 
 func (q *Queries) CountRemediatedDomains(ctx context.Context) (int64, error) {
-        row := q.db.QueryRow(ctx, countRemediatedDomains)
-        var count int64
-        err := row.Scan(&count)
-        return count, err
+	row := q.db.QueryRow(ctx, countRemediatedDomains)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const countUniqueDomainsByDate = `-- name: CountUniqueDomainsByDate :one
@@ -30,10 +30,10 @@ WHERE created_at::date = $1
 `
 
 func (q *Queries) CountUniqueDomainsByDate(ctx context.Context, createdAt pgtype.Timestamp) (int64, error) {
-        row := q.db.QueryRow(ctx, countUniqueDomainsByDate, createdAt)
-        var count int64
-        err := row.Scan(&count)
-        return count, err
+	row := q.db.QueryRow(ctx, countUniqueDomainsByDate, createdAt)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getStatsByDate = `-- name: GetStatsByDate :one
@@ -41,20 +41,20 @@ SELECT id, date, total_analyses, successful_analyses, failed_analyses, unique_do
 `
 
 func (q *Queries) GetStatsByDate(ctx context.Context, date pgtype.Date) (AnalysisStat, error) {
-        row := q.db.QueryRow(ctx, getStatsByDate, date)
-        var i AnalysisStat
-        err := row.Scan(
-                &i.ID,
-                &i.Date,
-                &i.TotalAnalyses,
-                &i.SuccessfulAnalyses,
-                &i.FailedAnalyses,
-                &i.UniqueDomains,
-                &i.AvgAnalysisTime,
-                &i.CreatedAt,
-                &i.UpdatedAt,
-        )
-        return i, err
+	row := q.db.QueryRow(ctx, getStatsByDate, date)
+	var i AnalysisStat
+	err := row.Scan(
+		&i.ID,
+		&i.Date,
+		&i.TotalAnalyses,
+		&i.SuccessfulAnalyses,
+		&i.FailedAnalyses,
+		&i.UniqueDomains,
+		&i.AvgAnalysisTime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const incrementDailyStats = `-- name: IncrementDailyStats :exec
@@ -71,14 +71,14 @@ WHERE date = $1
 `
 
 type IncrementDailyStatsParams struct {
-        Date    pgtype.Date `db:"date" json:"date"`
-        Column2 bool        `db:"column_2" json:"column_2"`
-        Column3 float64     `db:"column_3" json:"column_3"`
+	Date    pgtype.Date `db:"date" json:"date"`
+	Column2 bool        `db:"column_2" json:"column_2"`
+	Column3 float64     `db:"column_3" json:"column_3"`
 }
 
 func (q *Queries) IncrementDailyStats(ctx context.Context, arg IncrementDailyStatsParams) error {
-        _, err := q.db.Exec(ctx, incrementDailyStats, arg.Date, arg.Column2, arg.Column3)
-        return err
+	_, err := q.db.Exec(ctx, incrementDailyStats, arg.Date, arg.Column2, arg.Column3)
+	return err
 }
 
 const insertDailyStats = `-- name: InsertDailyStats :exec
@@ -87,14 +87,14 @@ VALUES ($1, 1, CASE WHEN $2::boolean THEN 1 ELSE 0 END, CASE WHEN NOT $2::boolea
 `
 
 type InsertDailyStatsParams struct {
-        Date            pgtype.Date `db:"date" json:"date"`
-        Column2         bool        `db:"column_2" json:"column_2"`
-        AvgAnalysisTime *float64    `db:"avg_analysis_time" json:"avg_analysis_time"`
+	Date            pgtype.Date `db:"date" json:"date"`
+	Column2         bool        `db:"column_2" json:"column_2"`
+	AvgAnalysisTime *float64    `db:"avg_analysis_time" json:"avg_analysis_time"`
 }
 
 func (q *Queries) InsertDailyStats(ctx context.Context, arg InsertDailyStatsParams) error {
-        _, err := q.db.Exec(ctx, insertDailyStats, arg.Date, arg.Column2, arg.AvgAnalysisTime)
-        return err
+	_, err := q.db.Exec(ctx, insertDailyStats, arg.Date, arg.Column2, arg.AvgAnalysisTime)
+	return err
 }
 
 const listRecentStats = `-- name: ListRecentStats :many
@@ -104,33 +104,33 @@ LIMIT $1
 `
 
 func (q *Queries) ListRecentStats(ctx context.Context, limit int32) ([]AnalysisStat, error) {
-        rows, err := q.db.Query(ctx, listRecentStats, limit)
-        if err != nil {
-                return nil, err
-        }
-        defer rows.Close()
-        items := []AnalysisStat{}
-        for rows.Next() {
-                var i AnalysisStat
-                if err := rows.Scan(
-                        &i.ID,
-                        &i.Date,
-                        &i.TotalAnalyses,
-                        &i.SuccessfulAnalyses,
-                        &i.FailedAnalyses,
-                        &i.UniqueDomains,
-                        &i.AvgAnalysisTime,
-                        &i.CreatedAt,
-                        &i.UpdatedAt,
-                ); err != nil {
-                        return nil, err
-                }
-                items = append(items, i)
-        }
-        if err := rows.Err(); err != nil {
-                return nil, err
-        }
-        return items, nil
+	rows, err := q.db.Query(ctx, listRecentStats, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AnalysisStat{}
+	for rows.Next() {
+		var i AnalysisStat
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.TotalAnalyses,
+			&i.SuccessfulAnalyses,
+			&i.FailedAnalyses,
+			&i.UniqueDomains,
+			&i.AvgAnalysisTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const sumAnalysisStats = `-- name: SumAnalysisStats :one
@@ -142,16 +142,16 @@ FROM analysis_stats
 `
 
 type SumAnalysisStatsRow struct {
-        Total      int64 `db:"total" json:"total"`
-        Successful int64 `db:"successful" json:"successful"`
-        Failed     int64 `db:"failed" json:"failed"`
+	Total      int64 `db:"total" json:"total"`
+	Successful int64 `db:"successful" json:"successful"`
+	Failed     int64 `db:"failed" json:"failed"`
 }
 
 func (q *Queries) SumAnalysisStats(ctx context.Context) (SumAnalysisStatsRow, error) {
-        row := q.db.QueryRow(ctx, sumAnalysisStats)
-        var i SumAnalysisStatsRow
-        err := row.Scan(&i.Total, &i.Successful, &i.Failed)
-        return i, err
+	row := q.db.QueryRow(ctx, sumAnalysisStats)
+	var i SumAnalysisStatsRow
+	err := row.Scan(&i.Total, &i.Successful, &i.Failed)
+	return i, err
 }
 
 const updateUniqueDomainCount = `-- name: UpdateUniqueDomainCount :exec
@@ -159,13 +159,13 @@ UPDATE analysis_stats SET unique_domains = $2, updated_at = NOW() WHERE date = $
 `
 
 type UpdateUniqueDomainCountParams struct {
-        Date          pgtype.Date `db:"date" json:"date"`
-        UniqueDomains *int32      `db:"unique_domains" json:"unique_domains"`
+	Date          pgtype.Date `db:"date" json:"date"`
+	UniqueDomains *int32      `db:"unique_domains" json:"unique_domains"`
 }
 
 func (q *Queries) UpdateUniqueDomainCount(ctx context.Context, arg UpdateUniqueDomainCountParams) error {
-        _, err := q.db.Exec(ctx, updateUniqueDomainCount, arg.Date, arg.UniqueDomains)
-        return err
+	_, err := q.db.Exec(ctx, updateUniqueDomainCount, arg.Date, arg.UniqueDomains)
+	return err
 }
 
 const upsertDailyStats = `-- name: UpsertDailyStats :exec
@@ -181,22 +181,22 @@ ON CONFLICT (date) DO UPDATE SET
 `
 
 type UpsertDailyStatsParams struct {
-        Date               pgtype.Date `db:"date" json:"date"`
-        TotalAnalyses      *int32      `db:"total_analyses" json:"total_analyses"`
-        SuccessfulAnalyses *int32      `db:"successful_analyses" json:"successful_analyses"`
-        FailedAnalyses     *int32      `db:"failed_analyses" json:"failed_analyses"`
-        UniqueDomains      *int32      `db:"unique_domains" json:"unique_domains"`
-        AvgAnalysisTime    *float64    `db:"avg_analysis_time" json:"avg_analysis_time"`
+	Date               pgtype.Date `db:"date" json:"date"`
+	TotalAnalyses      *int32      `db:"total_analyses" json:"total_analyses"`
+	SuccessfulAnalyses *int32      `db:"successful_analyses" json:"successful_analyses"`
+	FailedAnalyses     *int32      `db:"failed_analyses" json:"failed_analyses"`
+	UniqueDomains      *int32      `db:"unique_domains" json:"unique_domains"`
+	AvgAnalysisTime    *float64    `db:"avg_analysis_time" json:"avg_analysis_time"`
 }
 
 func (q *Queries) UpsertDailyStats(ctx context.Context, arg UpsertDailyStatsParams) error {
-        _, err := q.db.Exec(ctx, upsertDailyStats,
-                arg.Date,
-                arg.TotalAnalyses,
-                arg.SuccessfulAnalyses,
-                arg.FailedAnalyses,
-                arg.UniqueDomains,
-                arg.AvgAnalysisTime,
-        )
-        return err
+	_, err := q.db.Exec(ctx, upsertDailyStats,
+		arg.Date,
+		arg.TotalAnalyses,
+		arg.SuccessfulAnalyses,
+		arg.FailedAnalyses,
+		arg.UniqueDomains,
+		arg.AvgAnalysisTime,
+	)
+	return err
 }
