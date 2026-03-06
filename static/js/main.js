@@ -425,18 +425,26 @@ function handleAnalyzeLinkClick(e) {
 }
 
 function initPrivacyBanner() {
-    const banner = document.getElementById('privacyBanner');
+    var banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
-    let dismissed = false;
+    var dismissed = false;
     try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
     if (dismissed) { banner.remove(); return; }
-    const acceptBtn = document.getElementById('privacyAccept');
-    if (acceptBtn) {
-        acceptBtn.addEventListener('click', function() {
-            try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
-            banner.remove();
-        });
+    function dismissBanner(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
+        if (banner && banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
+    var acceptBtn = document.getElementById('privacyAccept');
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', dismissBanner);
+        acceptBtn.addEventListener('touchend', dismissBanner);
+    }
+    banner.addEventListener('click', function(e) {
+        if (e.target === acceptBtn || (acceptBtn && acceptBtn.contains(e.target))) {
+            dismissBanner(e);
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
