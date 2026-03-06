@@ -2355,7 +2355,7 @@ body.covert-mode::after {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: #dd0000;
+    background: #880000;
     mix-blend-mode: multiply;
     pointer-events: none;
 }
@@ -2366,11 +2366,93 @@ body.covert-tactical {
     background-color: #0a0808 !important;
 }
 body.covert-tactical .covert-filter-overlay {
-    background: #cc1010;
+    background: #991010;
     mix-blend-mode: multiply;
 }
 body.covert-submarine .covert-filter-overlay {
-    background: #880000;
+    background: #440000;
+}
+body.covert-submarine .navbar.bg-dark {
+    background-color: #060608 !important;
+    border-bottom-color: rgba(68, 0, 0, 0.25);
+}
+body.covert-submarine .navbar-brand {
+    color: #661414 !important;
+}
+body.covert-submarine .navbar-brand .nav-version-badge {
+    background: rgba(68, 0, 0, 0.2);
+    color: #661414;
+    border-color: rgba(68, 0, 0, 0.3);
+    text-shadow: none;
+}
+body.covert-submarine .navbar-brand svg path {
+    fill: #4a1010;
+}
+body.covert-submarine .navbar-brand svg rect[rx="1"] {
+    fill: #661414;
+}
+body.covert-submarine .nav-link {
+    color: rgba(120, 130, 140, 0.3) !important;
+}
+body.covert-submarine .nav-link:hover {
+    color: #661414 !important;
+    text-shadow: none;
+}
+body.covert-submarine .nav-link.active {
+    color: #661414 !important;
+    text-shadow: none;
+}
+body.covert-submarine .hero-badge {
+    background: rgba(68, 0, 0, 0.12) !important;
+    border-color: rgba(68, 0, 0, 0.2) !important;
+    color: #661414 !important;
+}
+body.covert-submarine .hero-title {
+    color: #4a0e0e;
+    -webkit-text-stroke-color: rgba(100, 20, 20, 0.4);
+    text-shadow: 0 0 2px rgba(68, 0, 0, 0.06);
+}
+body.covert-submarine .u-covert-toggle {
+    color: #661414;
+    text-shadow: 0 0 6px rgba(68, 0, 0, 0.4);
+}
+body.covert-submarine .u-covert-banner {
+    background: rgba(10, 4, 4, 0.9) !important;
+    border-color: rgba(68, 0, 0, 0.2) !important;
+}
+body.covert-submarine .covert-env-btn.active {
+    background: rgba(68, 0, 0, 0.25);
+    border-color: #661414;
+    color: #882020;
+    box-shadow: 0 0 4px rgba(68, 0, 0, 0.2);
+}
+body.covert-submarine .btn-outline-info {
+    color: #661414 !important;
+    border-color: rgba(68, 0, 0, 0.4) !important;
+}
+body.covert-submarine .btn-outline-info:hover {
+    background-color: rgba(68, 0, 0, 0.12) !important;
+    border-color: #661414 !important;
+    color: #882020 !important;
+    box-shadow: 0 0 4px rgba(68, 0, 0, 0.15) !important;
+}
+body.covert-submarine .card,
+body.covert-submarine .u-card-dark {
+    border-color: rgba(68, 0, 0, 0.25) !important;
+}
+body.covert-submarine .card:hover,
+body.covert-submarine .u-card-dark:hover {
+    border-color: rgba(68, 0, 0, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+body.covert-submarine a:not(.btn):not(.nav-link):not(.navbar-brand):not(.icae-hero-statement):not(.icae-badge) {
+    color: #661414;
+}
+body.covert-submarine .navbar-toggler {
+    border-color: rgba(68, 0, 0, 0.3) !important;
+}
+body.covert-submarine .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(100, 20, 20, 0.5)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 body.covert-basement {
     background-color: #060303 !important;
