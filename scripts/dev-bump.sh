@@ -54,8 +54,21 @@ echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
 echo ""
 echo "Restarting app..."
-pkill -f dns-tool-server 2>/dev/null || true
+PID=$(pgrep -f 'dns-tool-server$' 2>/dev/null || true)
+if [ -n "$PID" ]; then
+  kill "$PID" 2>/dev/null || true
+  for i in 1 2 3 4 5; do
+    if ! kill -0 "$PID" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  kill -9 "$PID" 2>/dev/null || true
+fi
 sleep 2
-echo "  Workflow will auto-restart on v${VERSION} ✓"
+if pgrep -f 'dns-tool-server$' > /dev/null 2>&1; then
+  echo "  App restarted on v${VERSION} ✓"
+else
+  echo "  Old process stopped. Workflow will auto-restart on v${VERSION}."
+  echo "  If preview doesn't update, click the ▶ restart button in the Console tab."
+fi
 echo ""
 echo "Ready. Run: bash scripts/git-sync.sh"
