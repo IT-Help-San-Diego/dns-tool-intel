@@ -1120,6 +1120,36 @@
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
 
+            var protoMinDist = 112;
+            for (var sp = 0; sp < 12; sp++) {
+                var moved = false;
+                for (var pi = 0; pi < PROTOCOLS.length; pi++) {
+                    for (var pj = pi + 1; pj < PROTOCOLS.length; pj++) {
+                        var pa = PROTOCOLS[pi], pb = PROTOCOLS[pj];
+                        var pdx = pb.targetX - pa.targetX;
+                        var pdy = pb.targetY - pa.targetY;
+                        var pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                        if (pdist < protoMinDist && pdist > 0.1) {
+                            var push = (protoMinDist - pdist) / 2 + 2;
+                            var pnx = pdx / pdist, pny = pdy / pdist;
+                            pa.targetX -= pnx * push;
+                            pa.targetY -= pny * push;
+                            pb.targetX += pnx * push;
+                            pb.targetY += pny * push;
+                            moved = true;
+                        }
+                    }
+                }
+                if (!moved) break;
+                var pz = zones['protocol'];
+                if (pz && pz.bounds) {
+                    PROTOCOLS.forEach(function(pp) {
+                        pp.targetX = Math.max(pz.bounds.x1 + 40, Math.min(pz.bounds.x2 - 40, pp.targetX));
+                        pp.targetY = Math.max(pz.bounds.y1 + 40, Math.min(pz.bounds.y2 - 40, pp.targetY));
+                    });
+                }
+            }
+
             allLayoutNodes.forEach(function(nd) {
                 if (!nd._initialized) {
                     nd.x = nd.targetX;
@@ -1218,22 +1248,65 @@
             return { x: node.x + nx * (node.radius + pad), y: node.y + ny * (node.radius + pad) };
         }
 
+        var PROTO_IDS = {};
+        PROTOCOLS.forEach(function(p) { PROTO_IDS[p.id] = true; });
+
+        function findEdgeCurveOffset(from, to, edgeType) {
+            if (edgeType === 'flow') return null;
+            if (!PROTO_IDS[from.id] || !PROTO_IDS[to.id]) return null;
+            var mx = (from.x + to.x) / 2;
+            var my = (from.y + to.y) / 2;
+            var edx = to.x - from.x;
+            var edy = to.y - from.y;
+            var elen = Math.sqrt(edx * edx + edy * edy) || 1;
+            var perpX = -edy / elen;
+            var perpY = edx / elen;
+            var bestOffset = 0;
+            var closestDist = Infinity;
+            for (var pi = 0; pi < PROTOCOLS.length; pi++) {
+                var pn = PROTOCOLS[pi];
+                if (pn.id === from.id || pn.id === to.id) continue;
+                var dx2 = pn.x - mx;
+                var dy2 = pn.y - my;
+                var distToMid = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                if (distToMid < pn.radius + 50 && distToMid < closestDist) {
+                    closestDist = distToMid;
+                    var side = dx2 * perpX + dy2 * perpY;
+                    bestOffset = (side > 0 ? -1 : 1) * Math.max(40, pn.radius + 20);
+                }
+            }
+            if (bestOffset === 0) return null;
+            return { cx: mx + perpX * bestOffset, cy: my + perpY * bestOffset };
+        }
+
         function drawFlowEdge(e) {
             var from = allNodes[e.from];
             var to = allNodes[e.to];
             if (!from || !to) return;
-
-            var startPt = getNodeBoundary(from, to.x, to.y);
-            var endPt = getNodeBoundary(to, from.x, from.y);
 
             var isHL = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
             var alpha;
             if (e.type === 'flow') alpha = isHL ? 0.3 : 0.08;
             else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.35 : 0.2);
 
+            var curve = findEdgeCurveOffset(from, to, e.type);
+
+            var startPt, endPt;
+            if (curve) {
+                startPt = getNodeBoundary(from, curve.cx, curve.cy);
+                endPt = getNodeBoundary(to, curve.cx, curve.cy);
+            } else {
+                startPt = getNodeBoundary(from, to.x, to.y);
+                endPt = getNodeBoundary(to, from.x, from.y);
+            }
+
             ctx.beginPath();
             ctx.moveTo(startPt.x, startPt.y);
-            ctx.lineTo(endPt.x, endPt.y);
+            if (curve) {
+                ctx.quadraticCurveTo(curve.cx, curve.cy, endPt.x, endPt.y);
+            } else {
+                ctx.lineTo(endPt.x, endPt.y);
+            }
             ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
             if (e.type === 'soft') { ctx.setLineDash([4, 6]); ctx.lineWidth = 1; }
             else if (e.type === 'flow') { ctx.setLineDash([3, 5]); ctx.lineWidth = 0.8; }
@@ -1243,8 +1316,28 @@
 
             if (e.label && (isHL || e.type !== 'flow')) {
                 var t = e.labelT || 0.5;
-                var lx = from.x + (to.x - from.x) * t;
-                var ly = from.y + (to.y - from.y) * t - 8 * SCL;
+                var lx, ly;
+                if (curve) {
+                    lx = (1 - t) * (1 - t) * from.x + 2 * (1 - t) * t * curve.cx + t * t * to.x;
+                    ly = (1 - t) * (1 - t) * from.y + 2 * (1 - t) * t * curve.cy + t * t * to.y;
+                } else {
+                    lx = from.x + (to.x - from.x) * t;
+                    ly = from.y + (to.y - from.y) * t;
+                }
+                ly -= 8 * SCL;
+
+                for (var lri = 0; lri < PROTOCOLS.length; lri++) {
+                    var lpn = PROTOCOLS[lri];
+                    var ldx = lx - lpn.x;
+                    var ldy = ly - lpn.y;
+                    var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
+                    if (ldist < lpn.radius + 20 && ldist > 0.1) {
+                        var lnorm = (lpn.radius + 25) / ldist;
+                        lx = lpn.x + ldx * lnorm;
+                        ly = lpn.y + ldy * lnorm;
+                    }
+                }
+
                 ly = Math.max(20, Math.min(H - 20, ly));
                 lx = Math.max(30, Math.min(W - 30, lx));
                 var edgeFontSize = Math.max(8, FONT_SUB - 1);
@@ -1436,11 +1529,12 @@
 
             var r = p.radius;
 
-            var glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, r * 2);
+            var glowR = r * 1.5;
+            var glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, glowR);
             glow.addColorStop(0, hexToRgba(p.color, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
             glow.addColorStop(1, hexToRgba(p.color, 0));
             ctx.beginPath();
-            ctx.arc(p.x, p.y, r * 2, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
             ctx.fillStyle = glow;
             ctx.fill();
 
@@ -1653,10 +1747,24 @@
                 var from = allNodes[fp.edge.from];
                 var to = allNodes[fp.edge.to];
                 if (!from || !to) continue;
-                var startPt = getNodeBoundary(from, to.x, to.y);
-                var endPt = getNodeBoundary(to, from.x, from.y);
-                var x = startPt.x + (endPt.x - startPt.x) * fp.t;
-                var y = startPt.y + (endPt.y - startPt.y) * fp.t;
+                var curve = findEdgeCurveOffset(from, to, fp.edge.type);
+                var startPt, endPt;
+                if (curve) {
+                    startPt = getNodeBoundary(from, curve.cx, curve.cy);
+                    endPt = getNodeBoundary(to, curve.cx, curve.cy);
+                } else {
+                    startPt = getNodeBoundary(from, to.x, to.y);
+                    endPt = getNodeBoundary(to, from.x, from.y);
+                }
+                var x, y;
+                if (curve) {
+                    var ft = fp.t;
+                    x = (1 - ft) * (1 - ft) * startPt.x + 2 * (1 - ft) * ft * curve.cx + ft * ft * endPt.x;
+                    y = (1 - ft) * (1 - ft) * startPt.y + 2 * (1 - ft) * ft * curve.cy + ft * ft * endPt.y;
+                } else {
+                    x = startPt.x + (endPt.x - startPt.x) * fp.t;
+                    y = startPt.y + (endPt.y - startPt.y) * fp.t;
+                }
                 var isHL = hoverNode && (hoverNode.id === fp.edge.from || hoverNode.id === fp.edge.to);
                 var alpha = isHL ? fp.alpha * 1.8 : fp.alpha * 0.5;
                 var color = from.color || COLORS.engine;
