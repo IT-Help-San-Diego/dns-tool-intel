@@ -53,4 +53,10 @@ echo "  CITATION.cff ✓ (concept DOI safe)"
 echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
 echo ""
+echo "Restarting app..."
+pkill -f dns-tool-server 2>/dev/null || true
+sleep 1
+nohup ./dns-tool-server > /dev/null 2>&1 &
+echo "  App restarted on v${VERSION} ✓"
+echo ""
 echo "Ready. Run: bash scripts/git-sync.sh"
