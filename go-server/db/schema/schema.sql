@@ -27,7 +27,8 @@ CREATE TABLE domain_analyses (
     has_user_selectors BOOLEAN NOT NULL DEFAULT FALSE,
     scan_flag BOOLEAN NOT NULL DEFAULT FALSE,
     scan_source VARCHAR(100),
-    scan_ip VARCHAR(45)
+    scan_ip VARCHAR(45),
+    wayback_url TEXT
 );
 
 CREATE INDEX ix_domain_analyses_domain ON domain_analyses (domain);
