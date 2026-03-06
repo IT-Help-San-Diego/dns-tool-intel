@@ -424,24 +424,31 @@ function handleAnalyzeLinkClick(e) {
     });
 }
 
+function privacyWasDismissed() {
+    try { if (localStorage.getItem('privacyAck') === '1') return true; } catch(_e) {}
+    try { if (document.cookie.indexOf('privacyAck=1') !== -1) return true; } catch(_e) {}
+    return false;
+}
+function persistPrivacyDismiss() {
+    try { localStorage.setItem('privacyAck', '1'); } catch(_e) {}
+    try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
+}
 function initPrivacyBanner() {
     var banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
-    var dismissed = false;
-    try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
-    if (dismissed) { banner.remove(); return; }
+    if (privacyWasDismissed()) { banner.remove(); return; }
     function dismissBanner(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
-        if (banner && banner.parentNode) { banner.parentNode.removeChild(banner); }
+        persistPrivacyDismiss();
+        banner.style.display = 'none';
+        if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
     var acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
-        acceptBtn.addEventListener('click', dismissBanner);
-        acceptBtn.addEventListener('touchend', dismissBanner);
+        acceptBtn.onclick = dismissBanner;
     }
     banner.addEventListener('click', function(e) {
-        if (e.target === acceptBtn || (acceptBtn && acceptBtn.contains(e.target))) {
+        if (e.target.closest && e.target.closest('#privacyAccept')) {
             dismissBanner(e);
         }
     });
