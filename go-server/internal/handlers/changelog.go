@@ -86,6 +86,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263440 = "26.34.40"
         ver263439 = "26.34.39"
         ver263438 = "26.34.38"
         ver262823 = "26.28.23"
@@ -132,6 +133,14 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver263440,
+                        Date:        dateMar06,
+                        Category:    catIntelligence,
+                        Title:       "Hybrid Topology Layout Engine",
+                        Description: "Replaced the Fruchterman-Reingold force-directed layout with a hybrid constrained layered-stress topology solver. The solver pipeline uses longest-path rank assignment with barycenter crossing reduction, zone-aware constraint compilation, constrained stress refinement with anchor terms, and a deterministic seeded PRNG (mulberry32). Pre-computed layouts for desktop, tablet, and mobile viewports are embedded at server startup. Falls back to the original FR engine if solver output is missing or malformed. Zero node overlaps and zero flow x-monotonicity violations on desktop.",
+                        Icon:        "fas fa-project-diagram",
+                },
                 {
                         Version:     ver263439,
                         Date:        dateMar06,
