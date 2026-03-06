@@ -44,14 +44,19 @@
                                 <button type="button" class="covert-env-btn" data-env="basement" title="Operator's Den — Enhanced readability with tactical red tinting. For extended analysis sessions."><i class="fas fa-terminal me-1"></i>Operator</button>
                             </span>
                         </div>
-                        <div class="mt-1 u-covert-disclosure"><i class="fas fa-info-circle me-1"></i>Red spectrum preserves <a href="https://doi.org/10.1016/j.visres.2004.07.040" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=36903" target="_blank" rel="noopener">MIL-STD-3009 tactical lighting discipline</a>. All findings are identical to the standard report.</div>
+                        <div class="mt-1 u-covert-disclosure"><i class="fas fa-info-circle me-1"></i>Red spectrum preserves <a href="https://doi.org/10.1016/j.visres.2004.07.040" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=36903" target="_blank" rel="noopener">MIL-STD-3009 tactical lighting discipline</a>. All findings are identical to the standard report. For full immersion, use Focus Mode or <a href="https://support.google.com/chrome/answer/9658361" target="_blank" rel="noopener">install as app</a>.</div>
                     </div>
                 </div>
-                {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-sm text-nowrap u-covert-exit-btn">
-                    <i class="fas fa-arrow-right me-1"></i>Exit Covert Mode
-                </a>
-                {{end}}
+                <div class="d-flex gap-2 align-items-center flex-nowrap">
+                    <button class="btn btn-sm text-nowrap u-covert-focus-btn covert-fullscreen-btn" type="button" title="Focus Mode — hide browser chrome for full scotopic immersion">
+                        <i class="fas fa-expand me-1"></i>Focus
+                    </button>
+                    {{if .AnalysisID}}
+                    <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-sm text-nowrap u-covert-exit-btn">
+                        <i class="fas fa-arrow-right me-1"></i>Exit Covert Mode
+                    </a>
+                    {{end}}
+                </div>
             </div>
         </div>
 
