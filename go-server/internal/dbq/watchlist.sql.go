@@ -6,9 +6,9 @@
 package dbq
 
 import (
-	"context"
+        "context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+        "github.com/jackc/pgx/v5/pgtype"
 )
 
 const countWatchlistByUser = `-- name: CountWatchlistByUser :one
@@ -16,10 +16,10 @@ SELECT COUNT(*) FROM domain_watchlist WHERE user_id = $1
 `
 
 func (q *Queries) CountWatchlistByUser(ctx context.Context, userID int32) (int64, error) {
-	row := q.db.QueryRow(ctx, countWatchlistByUser, userID)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+        row := q.db.QueryRow(ctx, countWatchlistByUser, userID)
+        var count int64
+        err := row.Scan(&count)
+        return count, err
 }
 
 const deleteNotificationEndpoint = `-- name: DeleteNotificationEndpoint :exec
@@ -27,13 +27,13 @@ DELETE FROM notification_endpoints WHERE id = $1 AND user_id = $2
 `
 
 type DeleteNotificationEndpointParams struct {
-	ID     int32 `db:"id" json:"id"`
-	UserID int32 `db:"user_id" json:"user_id"`
+        ID     int32 `db:"id" json:"id"`
+        UserID int32 `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteNotificationEndpoint(ctx context.Context, arg DeleteNotificationEndpointParams) error {
-	_, err := q.db.Exec(ctx, deleteNotificationEndpoint, arg.ID, arg.UserID)
-	return err
+        _, err := q.db.Exec(ctx, deleteNotificationEndpoint, arg.ID, arg.UserID)
+        return err
 }
 
 const deleteWatchlistEntry = `-- name: DeleteWatchlistEntry :exec
@@ -41,13 +41,13 @@ DELETE FROM domain_watchlist WHERE id = $1 AND user_id = $2
 `
 
 type DeleteWatchlistEntryParams struct {
-	ID     int32 `db:"id" json:"id"`
-	UserID int32 `db:"user_id" json:"user_id"`
+        ID     int32 `db:"id" json:"id"`
+        UserID int32 `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteWatchlistEntry(ctx context.Context, arg DeleteWatchlistEntryParams) error {
-	_, err := q.db.Exec(ctx, deleteWatchlistEntry, arg.ID, arg.UserID)
-	return err
+        _, err := q.db.Exec(ctx, deleteWatchlistEntry, arg.ID, arg.UserID)
+        return err
 }
 
 const getWatchlistEntry = `-- name: GetWatchlistEntry :one
@@ -55,24 +55,24 @@ SELECT id, user_id, domain, cadence, enabled, last_run_at, next_run_at, created_
 `
 
 type GetWatchlistEntryParams struct {
-	ID     int32 `db:"id" json:"id"`
-	UserID int32 `db:"user_id" json:"user_id"`
+        ID     int32 `db:"id" json:"id"`
+        UserID int32 `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) GetWatchlistEntry(ctx context.Context, arg GetWatchlistEntryParams) (DomainWatchlist, error) {
-	row := q.db.QueryRow(ctx, getWatchlistEntry, arg.ID, arg.UserID)
-	var i DomainWatchlist
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Domain,
-		&i.Cadence,
-		&i.Enabled,
-		&i.LastRunAt,
-		&i.NextRunAt,
-		&i.CreatedAt,
-	)
-	return i, err
+        row := q.db.QueryRow(ctx, getWatchlistEntry, arg.ID, arg.UserID)
+        var i DomainWatchlist
+        err := row.Scan(
+                &i.ID,
+                &i.UserID,
+                &i.Domain,
+                &i.Cadence,
+                &i.Enabled,
+                &i.LastRunAt,
+                &i.NextRunAt,
+                &i.CreatedAt,
+        )
+        return i, err
 }
 
 const insertDriftNotification = `-- name: InsertDriftNotification :one
@@ -82,16 +82,16 @@ RETURNING id
 `
 
 type InsertDriftNotificationParams struct {
-	DriftEventID int32  `db:"drift_event_id" json:"drift_event_id"`
-	EndpointID   int32  `db:"endpoint_id" json:"endpoint_id"`
-	Status       string `db:"status" json:"status"`
+        DriftEventID int32  `db:"drift_event_id" json:"drift_event_id"`
+        EndpointID   int32  `db:"endpoint_id" json:"endpoint_id"`
+        Status       string `db:"status" json:"status"`
 }
 
 func (q *Queries) InsertDriftNotification(ctx context.Context, arg InsertDriftNotificationParams) (int32, error) {
-	row := q.db.QueryRow(ctx, insertDriftNotification, arg.DriftEventID, arg.EndpointID, arg.Status)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+        row := q.db.QueryRow(ctx, insertDriftNotification, arg.DriftEventID, arg.EndpointID, arg.Status)
+        var id int32
+        err := row.Scan(&id)
+        return id, err
 }
 
 const insertNotificationEndpoint = `-- name: InsertNotificationEndpoint :one
@@ -101,27 +101,27 @@ RETURNING id, created_at
 `
 
 type InsertNotificationEndpointParams struct {
-	UserID       int32   `db:"user_id" json:"user_id"`
-	EndpointType string  `db:"endpoint_type" json:"endpoint_type"`
-	Url          string  `db:"url" json:"url"`
-	Secret       *string `db:"secret" json:"secret"`
+        UserID       int32   `db:"user_id" json:"user_id"`
+        EndpointType string  `db:"endpoint_type" json:"endpoint_type"`
+        Url          string  `db:"url" json:"url"`
+        Secret       *string `db:"secret" json:"secret"`
 }
 
 type InsertNotificationEndpointRow struct {
-	ID        int32            `db:"id" json:"id"`
-	CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
+        ID        int32            `db:"id" json:"id"`
+        CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) InsertNotificationEndpoint(ctx context.Context, arg InsertNotificationEndpointParams) (InsertNotificationEndpointRow, error) {
-	row := q.db.QueryRow(ctx, insertNotificationEndpoint,
-		arg.UserID,
-		arg.EndpointType,
-		arg.Url,
-		arg.Secret,
-	)
-	var i InsertNotificationEndpointRow
-	err := row.Scan(&i.ID, &i.CreatedAt)
-	return i, err
+        row := q.db.QueryRow(ctx, insertNotificationEndpoint,
+                arg.UserID,
+                arg.EndpointType,
+                arg.Url,
+                arg.Secret,
+        )
+        var i InsertNotificationEndpointRow
+        err := row.Scan(&i.ID, &i.CreatedAt)
+        return i, err
 }
 
 const insertWatchlistEntry = `-- name: InsertWatchlistEntry :one
@@ -131,27 +131,27 @@ RETURNING id, created_at
 `
 
 type InsertWatchlistEntryParams struct {
-	UserID    int32            `db:"user_id" json:"user_id"`
-	Domain    string           `db:"domain" json:"domain"`
-	Cadence   string           `db:"cadence" json:"cadence"`
-	NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
+        UserID    int32            `db:"user_id" json:"user_id"`
+        Domain    string           `db:"domain" json:"domain"`
+        Cadence   string           `db:"cadence" json:"cadence"`
+        NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
 }
 
 type InsertWatchlistEntryRow struct {
-	ID        int32            `db:"id" json:"id"`
-	CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
+        ID        int32            `db:"id" json:"id"`
+        CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) InsertWatchlistEntry(ctx context.Context, arg InsertWatchlistEntryParams) (InsertWatchlistEntryRow, error) {
-	row := q.db.QueryRow(ctx, insertWatchlistEntry,
-		arg.UserID,
-		arg.Domain,
-		arg.Cadence,
-		arg.NextRunAt,
-	)
-	var i InsertWatchlistEntryRow
-	err := row.Scan(&i.ID, &i.CreatedAt)
-	return i, err
+        row := q.db.QueryRow(ctx, insertWatchlistEntry,
+                arg.UserID,
+                arg.Domain,
+                arg.Cadence,
+                arg.NextRunAt,
+        )
+        var i InsertWatchlistEntryRow
+        err := row.Scan(&i.ID, &i.CreatedAt)
+        return i, err
 }
 
 const listDueWatchlistEntries = `-- name: ListDueWatchlistEntries :many
@@ -164,39 +164,78 @@ LIMIT $1
 `
 
 type ListDueWatchlistEntriesRow struct {
-	ID        int32            `db:"id" json:"id"`
-	UserID    int32            `db:"user_id" json:"user_id"`
-	Domain    string           `db:"domain" json:"domain"`
-	Cadence   string           `db:"cadence" json:"cadence"`
-	LastRunAt pgtype.Timestamp `db:"last_run_at" json:"last_run_at"`
-	NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
+        ID        int32            `db:"id" json:"id"`
+        UserID    int32            `db:"user_id" json:"user_id"`
+        Domain    string           `db:"domain" json:"domain"`
+        Cadence   string           `db:"cadence" json:"cadence"`
+        LastRunAt pgtype.Timestamp `db:"last_run_at" json:"last_run_at"`
+        NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
 }
 
 func (q *Queries) ListDueWatchlistEntries(ctx context.Context, limit int32) ([]ListDueWatchlistEntriesRow, error) {
-	rows, err := q.db.Query(ctx, listDueWatchlistEntries, limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListDueWatchlistEntriesRow{}
-	for rows.Next() {
-		var i ListDueWatchlistEntriesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Domain,
-			&i.Cadence,
-			&i.LastRunAt,
-			&i.NextRunAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+        rows, err := q.db.Query(ctx, listDueWatchlistEntries, limit)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []ListDueWatchlistEntriesRow{}
+        for rows.Next() {
+                var i ListDueWatchlistEntriesRow
+                if err := rows.Scan(
+                        &i.ID,
+                        &i.UserID,
+                        &i.Domain,
+                        &i.Cadence,
+                        &i.LastRunAt,
+                        &i.NextRunAt,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
+}
+
+const listEndpointsForWatchedDomain = `-- name: ListEndpointsForWatchedDomain :many
+SELECT e.id AS endpoint_id, e.endpoint_type, e.url, e.secret
+FROM domain_watchlist w
+JOIN notification_endpoints e ON e.user_id = w.user_id AND e.enabled = TRUE
+WHERE w.domain = $1 AND w.enabled = TRUE
+`
+
+type ListEndpointsForWatchedDomainRow struct {
+        EndpointID   int32   `db:"endpoint_id" json:"endpoint_id"`
+        EndpointType string  `db:"endpoint_type" json:"endpoint_type"`
+        Url          string  `db:"url" json:"url"`
+        Secret       *string `db:"secret" json:"secret"`
+}
+
+func (q *Queries) ListEndpointsForWatchedDomain(ctx context.Context, domain string) ([]ListEndpointsForWatchedDomainRow, error) {
+        rows, err := q.db.Query(ctx, listEndpointsForWatchedDomain, domain)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []ListEndpointsForWatchedDomainRow{}
+        for rows.Next() {
+                var i ListEndpointsForWatchedDomainRow
+                if err := rows.Scan(
+                        &i.EndpointID,
+                        &i.EndpointType,
+                        &i.Url,
+                        &i.Secret,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
 }
 
 const listEnabledEndpointsByUser = `-- name: ListEnabledEndpointsByUser :many
@@ -205,31 +244,31 @@ WHERE user_id = $1 AND enabled = TRUE
 `
 
 func (q *Queries) ListEnabledEndpointsByUser(ctx context.Context, userID int32) ([]NotificationEndpoint, error) {
-	rows, err := q.db.Query(ctx, listEnabledEndpointsByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []NotificationEndpoint{}
-	for rows.Next() {
-		var i NotificationEndpoint
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.EndpointType,
-			&i.Url,
-			&i.Secret,
-			&i.Enabled,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+        rows, err := q.db.Query(ctx, listEnabledEndpointsByUser, userID)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []NotificationEndpoint{}
+        for rows.Next() {
+                var i NotificationEndpoint
+                if err := rows.Scan(
+                        &i.ID,
+                        &i.UserID,
+                        &i.EndpointType,
+                        &i.Url,
+                        &i.Secret,
+                        &i.Enabled,
+                        &i.CreatedAt,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
 }
 
 const listNotificationEndpointsByUser = `-- name: ListNotificationEndpointsByUser :many
@@ -239,31 +278,31 @@ ORDER BY created_at DESC
 `
 
 func (q *Queries) ListNotificationEndpointsByUser(ctx context.Context, userID int32) ([]NotificationEndpoint, error) {
-	rows, err := q.db.Query(ctx, listNotificationEndpointsByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []NotificationEndpoint{}
-	for rows.Next() {
-		var i NotificationEndpoint
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.EndpointType,
-			&i.Url,
-			&i.Secret,
-			&i.Enabled,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+        rows, err := q.db.Query(ctx, listNotificationEndpointsByUser, userID)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []NotificationEndpoint{}
+        for rows.Next() {
+                var i NotificationEndpoint
+                if err := rows.Scan(
+                        &i.ID,
+                        &i.UserID,
+                        &i.EndpointType,
+                        &i.Url,
+                        &i.Secret,
+                        &i.Enabled,
+                        &i.CreatedAt,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
 }
 
 const listPendingNotifications = `-- name: ListPendingNotifications :many
@@ -271,7 +310,7 @@ SELECT n.id, n.drift_event_id, n.endpoint_id, n.status,
        e.url, e.secret, e.endpoint_type,
        d.domain, d.diff_summary, d.severity
 FROM drift_notifications n
-JOIN notification_endpoints e ON n.endpoint_id = e.id
+JOIN notification_endpoints e ON n.endpoint_id = e.id AND e.enabled = TRUE
 JOIN drift_events d ON n.drift_event_id = d.id
 WHERE n.status = 'pending'
 ORDER BY n.created_at ASC
@@ -279,47 +318,47 @@ LIMIT $1
 `
 
 type ListPendingNotificationsRow struct {
-	ID           int32   `db:"id" json:"id"`
-	DriftEventID int32   `db:"drift_event_id" json:"drift_event_id"`
-	EndpointID   int32   `db:"endpoint_id" json:"endpoint_id"`
-	Status       string  `db:"status" json:"status"`
-	Url          string  `db:"url" json:"url"`
-	Secret       *string `db:"secret" json:"secret"`
-	EndpointType string  `db:"endpoint_type" json:"endpoint_type"`
-	Domain       string  `db:"domain" json:"domain"`
-	DiffSummary  []byte  `db:"diff_summary" json:"diff_summary"`
-	Severity     string  `db:"severity" json:"severity"`
+        ID           int32   `db:"id" json:"id"`
+        DriftEventID int32   `db:"drift_event_id" json:"drift_event_id"`
+        EndpointID   int32   `db:"endpoint_id" json:"endpoint_id"`
+        Status       string  `db:"status" json:"status"`
+        Url          string  `db:"url" json:"url"`
+        Secret       *string `db:"secret" json:"secret"`
+        EndpointType string  `db:"endpoint_type" json:"endpoint_type"`
+        Domain       string  `db:"domain" json:"domain"`
+        DiffSummary  []byte  `db:"diff_summary" json:"diff_summary"`
+        Severity     string  `db:"severity" json:"severity"`
 }
 
 func (q *Queries) ListPendingNotifications(ctx context.Context, limit int32) ([]ListPendingNotificationsRow, error) {
-	rows, err := q.db.Query(ctx, listPendingNotifications, limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListPendingNotificationsRow{}
-	for rows.Next() {
-		var i ListPendingNotificationsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.DriftEventID,
-			&i.EndpointID,
-			&i.Status,
-			&i.Url,
-			&i.Secret,
-			&i.EndpointType,
-			&i.Domain,
-			&i.DiffSummary,
-			&i.Severity,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+        rows, err := q.db.Query(ctx, listPendingNotifications, limit)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []ListPendingNotificationsRow{}
+        for rows.Next() {
+                var i ListPendingNotificationsRow
+                if err := rows.Scan(
+                        &i.ID,
+                        &i.DriftEventID,
+                        &i.EndpointID,
+                        &i.Status,
+                        &i.Url,
+                        &i.Secret,
+                        &i.EndpointType,
+                        &i.Domain,
+                        &i.DiffSummary,
+                        &i.Severity,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
 }
 
 const listWatchlistByUser = `-- name: ListWatchlistByUser :many
@@ -329,32 +368,32 @@ ORDER BY created_at DESC
 `
 
 func (q *Queries) ListWatchlistByUser(ctx context.Context, userID int32) ([]DomainWatchlist, error) {
-	rows, err := q.db.Query(ctx, listWatchlistByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []DomainWatchlist{}
-	for rows.Next() {
-		var i DomainWatchlist
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Domain,
-			&i.Cadence,
-			&i.Enabled,
-			&i.LastRunAt,
-			&i.NextRunAt,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+        rows, err := q.db.Query(ctx, listWatchlistByUser, userID)
+        if err != nil {
+                return nil, err
+        }
+        defer rows.Close()
+        items := []DomainWatchlist{}
+        for rows.Next() {
+                var i DomainWatchlist
+                if err := rows.Scan(
+                        &i.ID,
+                        &i.UserID,
+                        &i.Domain,
+                        &i.Cadence,
+                        &i.Enabled,
+                        &i.LastRunAt,
+                        &i.NextRunAt,
+                        &i.CreatedAt,
+                ); err != nil {
+                        return nil, err
+                }
+                items = append(items, i)
+        }
+        if err := rows.Err(); err != nil {
+                return nil, err
+        }
+        return items, nil
 }
 
 const markWatchlistRun = `-- name: MarkWatchlistRun :exec
@@ -363,13 +402,13 @@ WHERE id = $1
 `
 
 type MarkWatchlistRunParams struct {
-	ID        int32            `db:"id" json:"id"`
-	NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
+        ID        int32            `db:"id" json:"id"`
+        NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
 }
 
 func (q *Queries) MarkWatchlistRun(ctx context.Context, arg MarkWatchlistRunParams) error {
-	_, err := q.db.Exec(ctx, markWatchlistRun, arg.ID, arg.NextRunAt)
-	return err
+        _, err := q.db.Exec(ctx, markWatchlistRun, arg.ID, arg.NextRunAt)
+        return err
 }
 
 const toggleNotificationEndpoint = `-- name: ToggleNotificationEndpoint :exec
@@ -378,14 +417,14 @@ WHERE id = $1 AND user_id = $2
 `
 
 type ToggleNotificationEndpointParams struct {
-	ID      int32 `db:"id" json:"id"`
-	UserID  int32 `db:"user_id" json:"user_id"`
-	Enabled bool  `db:"enabled" json:"enabled"`
+        ID      int32 `db:"id" json:"id"`
+        UserID  int32 `db:"user_id" json:"user_id"`
+        Enabled bool  `db:"enabled" json:"enabled"`
 }
 
 func (q *Queries) ToggleNotificationEndpoint(ctx context.Context, arg ToggleNotificationEndpointParams) error {
-	_, err := q.db.Exec(ctx, toggleNotificationEndpoint, arg.ID, arg.UserID, arg.Enabled)
-	return err
+        _, err := q.db.Exec(ctx, toggleNotificationEndpoint, arg.ID, arg.UserID, arg.Enabled)
+        return err
 }
 
 const toggleWatchlistEntry = `-- name: ToggleWatchlistEntry :exec
@@ -394,14 +433,14 @@ WHERE id = $1 AND user_id = $2
 `
 
 type ToggleWatchlistEntryParams struct {
-	ID      int32 `db:"id" json:"id"`
-	UserID  int32 `db:"user_id" json:"user_id"`
-	Enabled bool  `db:"enabled" json:"enabled"`
+        ID      int32 `db:"id" json:"id"`
+        UserID  int32 `db:"user_id" json:"user_id"`
+        Enabled bool  `db:"enabled" json:"enabled"`
 }
 
 func (q *Queries) ToggleWatchlistEntry(ctx context.Context, arg ToggleWatchlistEntryParams) error {
-	_, err := q.db.Exec(ctx, toggleWatchlistEntry, arg.ID, arg.UserID, arg.Enabled)
-	return err
+        _, err := q.db.Exec(ctx, toggleWatchlistEntry, arg.ID, arg.UserID, arg.Enabled)
+        return err
 }
 
 const updateDriftNotificationStatus = `-- name: UpdateDriftNotificationStatus :exec
@@ -410,20 +449,20 @@ WHERE id = $1
 `
 
 type UpdateDriftNotificationStatusParams struct {
-	ID           int32   `db:"id" json:"id"`
-	Status       string  `db:"status" json:"status"`
-	ResponseCode *int32  `db:"response_code" json:"response_code"`
-	ResponseBody *string `db:"response_body" json:"response_body"`
+        ID           int32   `db:"id" json:"id"`
+        Status       string  `db:"status" json:"status"`
+        ResponseCode *int32  `db:"response_code" json:"response_code"`
+        ResponseBody *string `db:"response_body" json:"response_body"`
 }
 
 func (q *Queries) UpdateDriftNotificationStatus(ctx context.Context, arg UpdateDriftNotificationStatusParams) error {
-	_, err := q.db.Exec(ctx, updateDriftNotificationStatus,
-		arg.ID,
-		arg.Status,
-		arg.ResponseCode,
-		arg.ResponseBody,
-	)
-	return err
+        _, err := q.db.Exec(ctx, updateDriftNotificationStatus,
+                arg.ID,
+                arg.Status,
+                arg.ResponseCode,
+                arg.ResponseBody,
+        )
+        return err
 }
 
 const updateWatchlistCadence = `-- name: UpdateWatchlistCadence :exec
@@ -432,18 +471,18 @@ WHERE id = $1 AND user_id = $2
 `
 
 type UpdateWatchlistCadenceParams struct {
-	ID        int32            `db:"id" json:"id"`
-	UserID    int32            `db:"user_id" json:"user_id"`
-	Cadence   string           `db:"cadence" json:"cadence"`
-	NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
+        ID        int32            `db:"id" json:"id"`
+        UserID    int32            `db:"user_id" json:"user_id"`
+        Cadence   string           `db:"cadence" json:"cadence"`
+        NextRunAt pgtype.Timestamp `db:"next_run_at" json:"next_run_at"`
 }
 
 func (q *Queries) UpdateWatchlistCadence(ctx context.Context, arg UpdateWatchlistCadenceParams) error {
-	_, err := q.db.Exec(ctx, updateWatchlistCadence,
-		arg.ID,
-		arg.UserID,
-		arg.Cadence,
-		arg.NextRunAt,
-	)
-	return err
+        _, err := q.db.Exec(ctx, updateWatchlistCadence,
+                arg.ID,
+                arg.UserID,
+                arg.Cadence,
+                arg.NextRunAt,
+        )
+        return err
 }

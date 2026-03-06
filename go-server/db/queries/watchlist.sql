@@ -67,12 +67,18 @@ RETURNING id;
 UPDATE drift_notifications SET status = $2, response_code = $3, response_body = $4, delivered_at = NOW()
 WHERE id = $1;
 
+-- name: ListEndpointsForWatchedDomain :many
+SELECT e.id AS endpoint_id, e.endpoint_type, e.url, e.secret
+FROM domain_watchlist w
+JOIN notification_endpoints e ON e.user_id = w.user_id AND e.enabled = TRUE
+WHERE w.domain = $1 AND w.enabled = TRUE;
+
 -- name: ListPendingNotifications :many
 SELECT n.id, n.drift_event_id, n.endpoint_id, n.status,
        e.url, e.secret, e.endpoint_type,
        d.domain, d.diff_summary, d.severity
 FROM drift_notifications n
-JOIN notification_endpoints e ON n.endpoint_id = e.id
+JOIN notification_endpoints e ON n.endpoint_id = e.id AND e.enabled = TRUE
 JOIN drift_events d ON n.drift_event_id = d.id
 WHERE n.status = 'pending'
 ORDER BY n.created_at ASC
