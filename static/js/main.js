@@ -343,6 +343,23 @@ function updateEnvButtons(env) {
     });
 }
 
+var covertThemeColors = { submarine: '#0a0404', tactical: '#1a0808', basement: '#140606' };
+var defaultThemeColors = [];
+
+function updateThemeColor(env) {
+    var metas = document.querySelectorAll('meta[name="theme-color"]');
+    if (!defaultThemeColors.length && metas.length) {
+        metas.forEach(function(m) { defaultThemeColors.push(m.getAttribute('content') || '#0d1117'); });
+    }
+    var color = covertThemeColors[env] || covertThemeColors.tactical;
+    metas.forEach(function(m) { m.setAttribute('content', color); });
+}
+
+function restoreThemeColor() {
+    var metas = document.querySelectorAll('meta[name="theme-color"]');
+    metas.forEach(function(m, i) { m.setAttribute('content', defaultThemeColors[i] || '#0d1117'); });
+}
+
 function setCovertEnv(env) {
     clearCovertEnv();
     if (env && covertEnvClasses.includes('covert-' + env)) {
@@ -353,6 +370,7 @@ function setCovertEnv(env) {
     }
     try { localStorage.setItem('covertEnv', env); } catch(_e) { /* storage unavailable */ } // NOSONAR
     updateEnvButtons(env);
+    if (document.body.classList.contains('covert-mode')) { updateThemeColor(env); }
 }
 
 function setCovertMode(active) {
@@ -362,8 +380,10 @@ function setCovertMode(active) {
     } else {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
+        restoreThemeColor();
+        if (document.fullscreenElement) { try { document.exitFullscreen(); } catch(_e) { /* intentional */ } }
     }
-    const toggle = document.getElementById('covertToggle');
+    var toggle = document.getElementById('covertToggle');
     if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
@@ -488,14 +508,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.covert-env-btn');
-        if (btn?.dataset?.env) {
+        var btn = e.target.closest('.covert-env-btn');
+        if (btn && btn.dataset && btn.dataset.env) {
             setCovertEnv(btn.dataset.env);
         }
+        var fsBtn = e.target.closest('.covert-fullscreen-btn');
+        if (fsBtn) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+            }
+        }
+    });
+    document.addEventListener('fullscreenchange', function() {
+        var fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
+        fsBtns.forEach(function(b) {
+            var icon = b.querySelector('i');
+            if (document.fullscreenElement) {
+                if (icon) { icon.className = 'fas fa-compress me-1'; }
+                b.setAttribute('title', 'Exit Focus Mode (Esc)');
+            } else {
+                if (icon) { icon.className = 'fas fa-expand me-1'; }
+                b.setAttribute('title', 'Focus Mode — hide browser chrome for full scotopic immersion');
+            }
+        });
     });
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
-        const initToggle = document.getElementById('covertToggle');
+        var initToggle = document.getElementById('covertToggle');
         if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
     }
 

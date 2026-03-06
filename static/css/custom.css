@@ -3082,6 +3082,39 @@ body.covert-mode .rfc-label {
 .u-covert-active-label {
     color: #cc2020;
 }
+.u-covert-focus-btn {
+    color: rgba(170, 178, 188, 0.5) !important;
+    border-color: rgba(140, 40, 40, 0.35) !important;
+    background: rgba(140, 40, 40, 0.08) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0.75rem !important;
+    transition: all 0.2s ease;
+}
+.u-covert-focus-btn:hover,
+.u-covert-focus-btn:focus {
+    color: #cc2020 !important;
+    border-color: rgba(196, 60, 60, 0.5) !important;
+    background: rgba(140, 40, 40, 0.15) !important;
+    box-shadow: 0 0 8px rgba(140, 40, 40, 0.15);
+}
+body.covert-mode.covert-submarine .u-covert-focus-btn {
+    color: rgba(120, 100, 100, 0.4) !important;
+    border-color: rgba(68, 0, 0, 0.3) !important;
+    background: rgba(68, 0, 0, 0.08) !important;
+}
+body.covert-mode.covert-submarine .u-covert-focus-btn:hover {
+    color: #661414 !important;
+    border-color: rgba(68, 0, 0, 0.5) !important;
+}
+:fullscreen {
+    background-color: #0a0c10;
+}
+:fullscreen .navbar {
+    padding-top: env(safe-area-inset-top, 0);
+}
 .u-covert-exit-btn {
     color: #cc3030 !important;
     border-color: rgba(204, 48, 48, 0.6) !important;
