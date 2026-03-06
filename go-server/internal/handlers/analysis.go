@@ -24,6 +24,7 @@ import (
         "dnstool/go-server/internal/icuae"
         "dnstool/go-server/internal/scanner"
         "dnstool/go-server/internal/unified"
+        "dnstool/go-server/internal/wayback"
 
         "github.com/gin-gonic/gin"
         "golang.org/x/crypto/sha3"
@@ -243,6 +244,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
                 "IsTLD":                dnsclient.IsTLDInput(analysis.AsciiDomain),
                 "SubdomainEmailScope":  emailScope,
                 "ReportMode":           mode,
+                "WaybackURL":           derefString(analysis.WaybackUrl),
         }
         h.enrichViewDataMetrics(ctx, viewData, results, analysis.Domain, analysis.ID)
         viewData["CovertMode"] = isCovertMode(mode)
@@ -352,6 +354,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 postureHash:      postureHash,
                 analysisSuccess:  analysisSuccess,
                 analysisDuration: analysisDuration,
+                isPrivate:        isPrivate,
+                isScanFlagged:    scanClass.IsScan,
         })
 
         h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
@@ -696,6 +700,8 @@ type sideEffectsParams struct {
         postureHash      string
         analysisSuccess  bool
         analysisDuration float64
+        isPrivate        bool
+        isScanFlagged    bool
 }
 
 func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, p sideEffectsParams) {
@@ -703,6 +709,9 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
                 h.recordUserAnalysisAsync(p)
                 if p.drift.Detected {
                         go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
+                }
+                if p.analysisSuccess && !p.ephemeral && !p.isPrivate && !p.isScanFlagged {
+                        go h.archiveToWayback(p.analysisID, p.asciiDomain)
                 }
         }
 
@@ -712,6 +721,22 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
         }
 
         go h.recordDailyStats(p.analysisSuccess, p.analysisDuration)
+}
+
+func (h *AnalysisHandler) archiveToWayback(analysisID int32, domain string) {
+        analysisURL := fmt.Sprintf("%s/analysis/%d/view/E", h.Config.BaseURL, analysisID)
+        result := wayback.Archive(context.Background(), analysisURL)
+        if result.Err != nil {
+                slog.Warn("Wayback Machine archival failed", "analysis_id", analysisID, "domain", domain, mapKeyError, result.Err)
+                return
+        }
+        err := h.DB.Queries.UpdateWaybackURL(context.Background(), dbq.UpdateWaybackURLParams{
+                ID:         analysisID,
+                WaybackUrl: &result.URL,
+        })
+        if err != nil {
+                slog.Error("Failed to store Wayback URL", "analysis_id", analysisID, "wayback_url", result.URL, mapKeyError, err)
+        }
 }
 
 func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
@@ -829,6 +854,7 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
                 "IsPublicSuffix":       isPublicSuffixDomain(v.asciiDomain),
                 "IsTLD":                dnsclient.IsTLDInput(v.asciiDomain),
                 "SubdomainEmailScope":  emailScope,
+                "WaybackURL":           "",
         }
         if icaeMetrics := icae.LoadReportMetrics(ctx, h.DB.Queries); icaeMetrics != nil {
                 analyzeData["ICAEMetrics"] = icaeMetrics

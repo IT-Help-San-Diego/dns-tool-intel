@@ -220,3 +220,6 @@ WHERE posture_hash IS NOT NULL
   AND analysis_success = TRUE
   AND private = FALSE
   AND scan_flag = FALSE;
+
+-- name: UpdateWaybackURL :exec
+UPDATE domain_analyses SET wayback_url = $2 WHERE id = $1;
