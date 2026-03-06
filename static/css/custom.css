@@ -3112,7 +3112,13 @@ body.covert-mode.covert-submarine .u-covert-focus-btn:hover {
 :fullscreen {
     background-color: #0a0c10;
 }
+:-webkit-full-screen {
+    background-color: #0a0c10;
+}
 :fullscreen .navbar {
+    padding-top: env(safe-area-inset-top, 0);
+}
+:-webkit-full-screen .navbar {
     padding-top: env(safe-area-inset-top, 0);
 }
 .u-covert-exit-btn {
