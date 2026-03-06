@@ -44,7 +44,7 @@ jobs:
               missing.push('RFC reference with specific section and normative text');
             }
 
-            const expected = sections['Expected Behavior'] || '';
+            const expected = sections['Expected Behavior (per RFC)'] || sections['Expected Behavior'] || '';
             if (!expected || expected.startsWith('Per RFC XXXX') || expected.length < 20) {
               missing.push('Expected behavior with substantive description (not just placeholder)');
             }
@@ -78,6 +78,15 @@ jobs:
                   '> \u2014 DNS Tool Issue Triage'
                 ].join('\n')
               });
+
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['triage/needs-information']
+                });
+              } catch (e) { console.log('Label add failed (may not exist yet):', e.message); }
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -95,6 +104,21 @@ jobs:
                   '> \u2014 DNS Tool Issue Triage'
                 ].join('\n')
               });
+
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: 'needs-triage'
+                });
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['triage/accepted']
+                });
+              } catch (e) { console.log('Label transition failed:', e.message); }
             }
 
       - name: Cosmetic UX/UI — acknowledge
@@ -130,6 +154,21 @@ jobs:
                 '> \u2014 DNS Tool Issue Triage'
               ].join('\n')
             });
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'needs-triage'
+              });
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['triage/accepted']
+              });
+            } catch (e) { console.log('Label transition failed:', e.message); }
 
       - name: Security keyword scanner — catch misrouted vulnerability reports
         if: "!contains(github.event.issue.labels.*.name, 'triage:security-redirect')"

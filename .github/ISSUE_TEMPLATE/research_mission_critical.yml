@@ -3,7 +3,7 @@ description: >
   Scientifically validated issue — incorrect RFC citation, flawed methodology,
   broken detection vector, or confidence logic error. These are existential.
 title: "[Research] "
-labels: ["triage:research", "priority:P0"]
+labels: ["triage:research", "priority:P0", "needs-triage"]
 body:
   - type: markdown
     attributes:
@@ -16,6 +16,15 @@ body:
 
         **Before filing:** Verify your finding against the RFC text. Include section
         numbers. Reproduce the issue. This category triggers immediate investigation.
+
+  - type: checkboxes
+    id: duplicate_search
+    attributes:
+      label: Duplicate Check
+      description: Please search existing issues before filing a new one.
+      options:
+        - label: I have searched the existing issues and this has not been reported
+          required: true
 
   - type: dropdown
     id: protocol
@@ -33,8 +42,20 @@ body:
         - TLS-RPT (RFC 8460)
         - CAA (RFC 8659)
         - ICAE/Confidence Engine
+        - Drift Engine / Posture Hashing
         - Cross-Protocol / Multiple
         - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: DNS Tool Version
+      description: >
+        Which version of DNS Tool exhibited this behavior?
+        Check the footer of any page or the /health endpoint.
+      placeholder: "e.g., 26.34.54"
     validations:
       required: true
 
@@ -45,16 +66,21 @@ body:
       description: >
         Cite the specific RFC section that supports your finding.
         Include the RFC number and section (e.g., "RFC 7489 §6.3").
-      placeholder: "RFC XXXX §X.X — [quote the relevant normative text]"
+        Quote the relevant normative text (MUST/SHOULD/MAY language).
+      placeholder: |
+        RFC XXXX §X.X states:
+        "[quote the relevant normative text here]"
     validations:
       required: true
 
   - type: textarea
     id: expected_behavior
     attributes:
-      label: Expected Behavior
-      description: What should DNS Tool do according to the RFC?
-      placeholder: "Per RFC XXXX §X.X, the tool should..."
+      label: Expected Behavior (per RFC)
+      description: What should DNS Tool do according to the RFC? Be specific.
+      placeholder: |
+        Per RFC XXXX §X.X, when a domain has [specific configuration],
+        the tool should report [specific verdict/finding] because [reasoning].
     validations:
       required: true
 
@@ -62,8 +88,14 @@ body:
     id: observed_behavior
     attributes:
       label: Observed Behavior
-      description: What does DNS Tool actually do? Include scan results, screenshots, or API output.
-      placeholder: "When scanning domain X, the tool reports..."
+      description: >
+        What does DNS Tool actually do? Include scan results, screenshots,
+        or API output. Paste the actual output you see.
+      placeholder: |
+        When scanning [domain], the tool reports:
+        - Finding: [exact text from the report]
+        - Severity: [what was shown]
+        - This contradicts RFC XXXX because [explanation]
     validations:
       required: true
 
@@ -74,7 +106,10 @@ body:
       description: >
         How does this affect the reliability of DNS Tool's analysis?
         Does it produce false positives, false negatives, or incorrect severity ratings?
-      placeholder: "This causes false [positives/negatives] for domains that..."
+      placeholder: |
+        This causes [false positives / false negatives / incorrect severity]
+        for domains that [describe the class of affected domains].
+        Estimated scope: [how many domains could be affected].
     validations:
       required: true
 
@@ -85,9 +120,9 @@ body:
       description: Step-by-step instructions to reproduce the issue.
       placeholder: |
         1. Navigate to dnstool.it-help.tech
-        2. Scan domain: [example.com]
-        3. Observe the [SPF/DMARC/etc.] section
-        4. Compare with RFC XXXX §X.X
+        2. Scan domain: [specific domain]
+        3. Observe the [SPF/DMARC/etc.] section of the report
+        4. Compare finding X with RFC XXXX §X.X
     validations:
       required: true
 
@@ -97,8 +132,16 @@ body:
       label: Evidence & Artifacts
       description: >
         Attach screenshots, dig output, scan results, or any supporting evidence.
-        You can drag and drop files here.
-      placeholder: "Paste or attach evidence here..."
+        You can drag and drop files here. Include dig/nslookup output for the
+        domain in question to provide ground truth.
+      placeholder: |
+        dig output:
+        ```
+        $ dig TXT _dmarc.example.com
+        [paste output]
+        ```
+
+        DNS Tool report screenshot: [drag and drop]
     validations:
       required: false
 
@@ -121,7 +164,9 @@ body:
       description: >
         If you have a suggested correction, describe it here.
         Reference specific RFC language or methodology changes.
-      placeholder: "The correct interpretation per RFC XXXX is..."
+      placeholder: |
+        The correct interpretation per RFC XXXX is:
+        [proposed correction with RFC citation]
     validations:
       required: false
 
