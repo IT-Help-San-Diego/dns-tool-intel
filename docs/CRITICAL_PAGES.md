@@ -25,7 +25,7 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `results.html` |
-| Sensitive Areas | Recon Mode button (toggles to covert red theme + Morse code beep), Wayback archive badge/card, integrity hash header preview, posture drift alert banner, TLP classification header, copy-to-clipboard buttons, collapsible RFC & Security Context panels, print stylesheet |
+| Sensitive Areas | Recon Mode button (toggles to covert red theme + Morse code beep with audio permissions graceful fallback), Wayback archive badge/card, integrity hash header preview, posture drift alert banner, TLP classification header, copy-to-clipboard buttons, collapsible RFC & Security Context panels, print stylesheet |
 | Known Issues | Recon Mode button: toggles red theme and plays Morse code beep but beep stops after ~1 minute (Mar 2026) |
 | Resolved | — |
 
@@ -41,7 +41,7 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `results_covert.html` |
-| Sensitive Areas | Scotopic red-spectrum palette (#cc2020), exit covert mode button, dark background consistency, all text must pass WCAG contrast against dark bg, no light-theme color leaks |
+| Sensitive Areas | Scotopic red-spectrum palette (#cc2020), exit covert mode button, Focus Mode button (Fullscreen API + webkit fallback, `fa-expand`/`fa-compress` icon swap), dynamic `meta[name="theme-color"]` per covert environment, dark background consistency, all text must pass WCAG contrast against dark bg, no light-theme color leaks, iPhone graceful degradation (Focus button hidden when Fullscreen API unavailable) |
 | Known Issues | None |
 | Resolved | — |
 
@@ -195,7 +195,7 @@ Changes to these files affect multiple pages simultaneously. Extra caution requi
 | `_head.html` | All pages | CSS loading, Font Awesome, CSP nonce, SRI hashes |
 | `_footer.html` | All pages | Footer links, copyright |
 | `static/css/custom.min.css` | All pages | Global styling, color tokens, glass effects |
-| `static/js/main.js` | Pages with scan overlay | Safari fetch pattern, overlay animation |
+| `static/js/main.js` | Pages with scan overlay, covert mode pages | Safari fetch pattern, overlay animation, Focus Mode (Fullscreen API), dynamic theme-color, Morse audio easter egg |
 | `static/js/foundation.js` | All pages | Lightweight Bootstrap supplement |
 | `static/sw.js` | All pages (PWA) | Service worker caching, offline fallback |
 | `middleware/analytics.go` | All pages | Request counting, exclusion logic |

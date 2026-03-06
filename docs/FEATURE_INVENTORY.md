@@ -1,6 +1,6 @@
 # DNS Tool — Feature Overview
 
-**Last Updated:** March 3, 2026 (v26.33.65)
+**Last Updated:** March 4, 2026 (v26.34.48)
 **Implementation:** Go/Gin
 
 ---
@@ -75,7 +75,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - IP Intelligence (reverse lookups, ASN attribution, geolocation)
 - Five intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail), Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard), Recon Report (adversarial perspective), Domain Dossier, and Domain Comparison
 - Configurable TLP classification (default: TLP:AMBER, with TLP:RED, TLP:AMBER+STRICT, TLP:GREEN and TLP:CLEAR options) aligned with CISA Cyber Hygiene practice and FIRST TLP v2.0
-- Covert Recon Mode — adversarial dark theme with scotopic vision-optimized red-spectrum (#cc2020) palette, producing the Recon Report intelligence product
+- Covert Recon Mode — adversarial dark theme with scotopic vision-optimized red-spectrum (#cc2020) palette, producing the Recon Report intelligence product; Focus Mode button (Fullscreen API with `webkit` fallback) hides browser chrome for full scotopic immersion (`fa-expand`/`fa-compress` icon swap on `fullscreenchange`/`webkitfullscreenchange`); dynamic `meta[name="theme-color"]` updates per covert environment (submarine `#0a0404`, tactical `#1a0808`, basement `#140606`); iPhone graceful degradation (Focus button hidden via `d-none` when `fullscreenEnabled` is `false`); audio permissions fix (Morse easter egg `.play().catch()` prevents `NotAllowedError` on autoplay-restricted browsers); DTIC/MIL-STD citations upgraded to three authoritative sources: [AD0639176](https://apps.dtic.mil/sti/citations/tr/AD0639176), [MIL-STD-3009 (ADA148883)](https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf), [MIL-STD-1472G](https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf)
 - Color Science page (/color-science) — live CIE scotopic/photopic luminosity validation and WCAG 2.2 contrast calculations for Covert Recon Mode palette, with MIL-STD-1472H compliance badges
 - Report integrity hash (SHA-3-512 fingerprint binding domain, analysis ID, timestamp, tool version, and results data) with copy-to-clipboard and header preview
 - Architecture page (/architecture) — interactive Mermaid diagrams of system architecture

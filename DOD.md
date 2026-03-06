@@ -118,6 +118,16 @@ The anti-pattern is: build fast, get an idea working, then clean up. The correct
 - [ ] No new dependencies without justification
 - [ ] If something is an assumption, it is labeled as such
 
+### DTIC / MIL-STD Citations — Covert Mode Scotopic Lighting
+
+The Covert Recon Mode UI references three authoritative military/defense sources for its scotopic (red-spectrum) lighting discipline. All three are cited in the covert mode disclosure banner (`go-server/templates/results_covert.html`).
+
+| Identifier | Title | URL | Our Use |
+|------------|-------|-----|---------|
+| AD0639176 | Scotopic Adaptation Research (DTIC Technical Report) | https://apps.dtic.mil/sti/citations/tr/AD0639176 | Authoritative citation for red-spectrum preservation of dark-adapted (scotopic) vision |
+| ADA148883 | MIL-STD-3009 — Lighting, Aircraft, Night Vision Imaging System Compatible | https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf | Military standard for NVG-compatible tactical lighting; Class B minimum luminance reference for submarine environment preset |
+| MIL-STD-1472G | Human Engineering (Dept. of Defense Design Criteria Standard) | https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf | DoD human factors standard governing display lighting, color usage, and operator interface design for tactical environments |
+
 ## Public Repo Safety
 
 - [ ] No analyzer logic details in public docs
