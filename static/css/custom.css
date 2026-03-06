@@ -6177,13 +6177,12 @@ body.covert-mode .math-copy-btn--copied {
 .u-opacity-85 { opacity: 0.85; }
 .u-roe-warning-box { background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.2); }
 .u-roe-footer-box { background: rgba(255,255,255,0.03); }
-#roeModal .modal-dialog { max-height: calc(100dvh - 2rem); }
 @media (max-width: 575.98px) {
-    #roeModal .modal-dialog { margin: 0.5rem; max-height: calc(100dvh - 1rem); }
     #roeModal .modal-body { font-size: 0.85rem; padding: 0.75rem; }
     #roeModal .modal-header { padding: 0.6rem 0.75rem; }
-    #roeModal .modal-footer { padding: 0.5rem 0.75rem; }
+    #roeModal .modal-footer { padding: 0.5rem 0.75rem; position: sticky; bottom: 0; background: var(--bs-dark); }
     #roeModal .modal-title { font-size: 1rem; }
+    #roeModal .modal-content { border: none; border-radius: 0; }
 }
 .archetype-icon-intel { background:rgba(88,166,255,0.12); color:#58a6ff; border:1px solid rgba(88,166,255,0.2); }
 .archetype-tag-intel { background:rgba(88,166,255,0.1); color:rgba(88,166,255,0.8); border:1px solid rgba(88,166,255,0.18); }
