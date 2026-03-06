@@ -619,7 +619,6 @@
         var SOURCES = [
             { id: 'root',  label: 'Root / TLD',      sub: 'IANA Root Zone\nTLD Registries',       color: COLORS.source, zone: 'source' },
             { id: 'rdap',  label: 'RDAP / WHOIS',    sub: 'Registration Data\nAccess Protocol',   color: COLORS.intel,  zone: 'source' },
-            { id: 'ietf',  label: 'IETF Metadata',   sub: 'RFC Status \u00b7 Errata\nDraft Tracker',  color: COLORS.intel,  zone: 'source' },
             { id: 'ct',    label: 'CT / Subdomains',  sub: 'crt.sh \u00b7 Certspotter\nTransparency Logs', color: COLORS.intel,  zone: 'source' },
             { id: 'cisa',  label: 'CISA / Threat',    sub: 'BOD 19-02\nIP Scanner Detection',     color: COLORS.intel,  zone: 'source' },
             { id: 'probes', label: 'Probe Fleet',     sub: 'SMTP \u00b7 DANE \u00b7 TLS\nNmap \u00b7 testssl.sh', color: COLORS.source, zone: 'source' }
@@ -630,6 +629,7 @@
         var ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
 
         var CONFIDENCE = [
+            { id: 'ietf',  label: 'IETF Metadata',   sub: 'RFC Status \u00b7 Errata\nDraft Tracker',  color: COLORS.intel,  zone: 'confidence' },
             { id: 'icae',  label: 'ICAE',  sub: 'Accuracy Audit',   color: '#ef9a9a', zone: 'confidence' },
             { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit',   color: '#a5d6a7', zone: 'confidence' },
             { id: 'ede',   label: 'EDE',   sub: 'Epistemic\nDisclosure', color: '#ffab91', zone: 'confidence' }
@@ -682,8 +682,8 @@
 
         CONFIDENCE.forEach(function(c) {
             c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
-            c.radius = (c.id === 'ede') ? 48 : 42;
-            c._initialized = false; c.shape = 'diamond';
+            c.radius = (c.id === 'ede') ? 48 : (c.id === 'ietf') ? 36 : 42;
+            c._initialized = false; c.shape = (c.id === 'ietf') ? 'rect' : 'diamond';
             allNodes[c.id] = c;
         });
 
@@ -712,6 +712,9 @@
         SOURCES.forEach(function(s) {
             FLOW_EDGES.push({ from: s.id, to: 'hub', type: 'flow', label: '' });
         });
+        FLOW_EDGES.push({ from: 'ietf', to: 'engine', type: 'flow', label: 'informs' });
+        FLOW_EDGES.push({ from: 'ietf', to: 'icae', type: 'flow', label: 'informs' });
+        FLOW_EDGES.push({ from: 'ietf', to: 'icuae', type: 'flow', label: 'informs' });
         FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
         FLOW_EDGES.push({ from: 'icae', to: 'ede', type: 'flow', label: 'discloses' });
@@ -987,12 +990,14 @@
 
             var confSpread = Math.max(30, (col2R - col2L) * 0.25);
             var confY = titleSafe + usableH * 0.45;
-            CONFIDENCE[0].targetX = procCx - confSpread * 0.5;
-            CONFIDENCE[0].targetY = confY;
-            CONFIDENCE[1].targetX = procCx + confSpread * 0.5;
+            CONFIDENCE[0].targetX = procCx - confSpread * 0.8;
+            CONFIDENCE[0].targetY = confY - usableH * 0.04;
+            CONFIDENCE[1].targetX = procCx - confSpread * 0.4;
             CONFIDENCE[1].targetY = confY + usableH * 0.08;
-            CONFIDENCE[2].targetX = procCx;
-            CONFIDENCE[2].targetY = confY + usableH * 0.18;
+            CONFIDENCE[2].targetX = procCx + confSpread * 0.4;
+            CONFIDENCE[2].targetY = confY + usableH * 0.08;
+            CONFIDENCE[3].targetX = procCx;
+            CONFIDENCE[3].targetY = confY + usableH * 0.20;
 
             var storeY = titleSafe + usableH * 0.78;
             var storeSpread = Math.max(confSpread * 0.8, 60);
