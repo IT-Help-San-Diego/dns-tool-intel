@@ -381,7 +381,8 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
         restoreThemeColor();
-        if (document.fullscreenElement) { try { document.exitFullscreen(); } catch(_e) { /* intentional */ } }
+        var activeFs = document.fullscreenElement || document.webkitFullscreenElement;
+        if (activeFs) { try { if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } } catch(_e) { /* intentional */ } }
     }
     var toggle = document.getElementById('covertToggle');
     if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
@@ -465,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { roeHandled = false; }, 400);
         if (e) { e.preventDefault(); }
         if (roeModal) { roeModal.hide(); }
-        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        window.location.href = 'https://youtu.be/ZzUsKizhb8o?si=4mPVuQ7SNTttqraP';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
@@ -514,18 +515,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         var fsBtn = e.target.closest('.covert-fullscreen-btn');
         if (fsBtn) {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+            var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+            if (fsEl) {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            } else {
+                var de = document.documentElement;
+                if (de.requestFullscreen) { de.requestFullscreen({ navigationUI: 'hide' }); }
+                else if (de.webkitRequestFullscreen) { de.webkitRequestFullscreen(); }
             }
         }
     });
-    document.addEventListener('fullscreenchange', function() {
+    function handleFullscreenChange() {
+        var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         var fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
             var icon = b.querySelector('i');
-            if (document.fullscreenElement) {
+            if (fsEl) {
                 if (icon) { icon.className = 'fas fa-compress me-1'; }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
             } else {
@@ -533,7 +539,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 b.setAttribute('title', 'Focus Mode — hide browser chrome for full scotopic immersion');
             }
         });
-    });
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    var fsSupported = document.fullscreenEnabled || document.webkitFullscreenEnabled || false;
+    if (!fsSupported) {
+        document.querySelectorAll('.covert-fullscreen-btn').forEach(function(b) {
+            b.classList.add('d-none');
+        });
+    }
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
         var initToggle = document.getElementById('covertToggle');
