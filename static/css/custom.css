@@ -6637,6 +6637,50 @@ body.covert-mode .math-copy-btn--copied {
 .u-opacity-85 { opacity: 0.85; }
 .u-roe-warning-box { background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.2); }
 .u-roe-footer-box { background: rgba(255,255,255,0.03); }
+
+#roeDecline {
+    background: rgba(139, 148, 158, 0.1);
+    color: rgba(200, 210, 220, 0.75);
+    border: 1px solid rgba(139, 148, 158, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+#roeDecline:hover {
+    background: rgba(139, 148, 158, 0.18);
+    color: rgba(220, 228, 236, 0.9);
+    border-color: rgba(139, 148, 158, 0.4);
+}
+
+#roeAccept {
+    background: rgba(220, 53, 69, 0.15);
+    color: #f85149;
+    border: 1px solid rgba(248, 81, 73, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#roeAccept:hover {
+    background: rgba(220, 53, 69, 0.25);
+    color: #ff6b63;
+    border-color: rgba(248, 81, 73, 0.5);
+    box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+}
+
+.u-privacy-accept-btn {
+    background: rgba(63, 185, 80, 0.12) !important;
+    color: #3fb950 !important;
+    border: 1px solid rgba(63, 185, 80, 0.3) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.u-privacy-accept-btn:hover {
+    background: rgba(63, 185, 80, 0.22) !important;
+    color: #56d364 !important;
+    border-color: rgba(63, 185, 80, 0.45) !important;
+    box-shadow: 0 0 12px rgba(63, 185, 80, 0.12);
+}
 @media (max-width: 575.98px) {
     #roeModal .modal-body { font-size: 0.85rem; padding: 0.75rem; }
     #roeModal .modal-header { padding: 0.6rem 0.75rem; }
@@ -6723,11 +6767,15 @@ body.covert-mode .u-privacy-banner code {
     color: #cc5030;
 }
 body.covert-mode .u-privacy-accept-btn {
+    background: rgba(196, 60, 60, 0.1) !important;
     color: #cc3030 !important;
-    border-color: rgba(204, 48, 48, 0.5) !important;
+    border-color: rgba(204, 48, 48, 0.35) !important;
 }
 body.covert-mode .u-privacy-accept-btn:hover {
-    background: rgba(140, 30, 30, 0.15) !important;
+    background: rgba(196, 60, 60, 0.2) !important;
+    color: #e04040 !important;
+    border-color: rgba(204, 48, 48, 0.5) !important;
+    box-shadow: 0 0 12px rgba(196, 60, 60, 0.12);
 }
 .u-text-green-bright { color:#3fb950; }
 .u-text-muted-dim { color:#8b949e; }
