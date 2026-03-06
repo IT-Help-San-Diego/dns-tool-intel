@@ -227,7 +227,7 @@
             [[31,130],[34,132],[36,137],[40,140],[43,146],[42,143],[38,138],[34,134],[31,130]]
         ];
 
-        var globe = { cx: 0, cy: 0, R: 0, rotLon: -30 };
+        var globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
 
         function projectPt(lat, lon) {
             var phi = lat * DEG;
@@ -635,7 +635,8 @@
 
         var STORAGE = [
             { id: 'postgres', label: 'PostgreSQL', sub: 'Scan Results \u00b7 History\nDrift \u00b7 Analytics', color: COLORS.storage, zone: 'storage' },
-            { id: 'fixtures', label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds', color: '#ffcc80', zone: 'storage' }
+            { id: 'fixtures', label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds', color: '#ffcc80', zone: 'storage' },
+            { id: 'wayback', label: 'Internet Archive', sub: 'Wayback Machine\nPermanent Record', color: '#81c784', zone: 'storage' }
         ];
 
         var PROTOCOLS = [
@@ -686,7 +687,7 @@
 
         STORAGE.forEach(function(s) {
             s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
-            s.radius = (s.id === 'fixtures') ? 34 : 36;
+            s.radius = (s.id === 'postgres') ? 36 : (s.id === 'wayback') ? 32 : 34;
             s._initialized = false; s.shape = 'cylinder';
             allNodes[s.id] = s;
         });
@@ -715,6 +716,7 @@
         FLOW_EDGES.push({ from: 'icuae', to: 'ede', type: 'flow', label: 'discloses' });
         FLOW_EDGES.push({ from: 'engine', to: 'postgres', type: 'flow', label: 'persist' });
         FLOW_EDGES.push({ from: 'postgres', to: 'fixtures', type: 'flow', label: 'seeds' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'wayback', type: 'flow', label: 'archives' });
         PROTOCOLS.forEach(function(p) {
             FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
         });
@@ -964,10 +966,10 @@
             var col4L = col3R + colGap;
             var col4R = pipeEnd;
 
-            convergePt.x = col1L;
+            var srcCx = (col1L + col1R) / 2;
+            convergePt.x = srcCx;
             convergePt.y = globe.cy;
 
-            var srcCx = (col1L + col1R) / 2;
             var srcSpacing = usableH / (SOURCES.length + 1);
             SOURCES.forEach(function(s, i) {
                 s.targetX = srcCx;
@@ -990,11 +992,13 @@
             CONFIDENCE[2].targetX = procCx;
             CONFIDENCE[2].targetY = confY + usableH * 0.18;
 
-            var storeY = titleSafe + usableH * 0.82;
-            STORAGE[0].targetX = procCx + confSpread * 0.4;
+            var storeY = titleSafe + usableH * 0.80;
+            STORAGE[0].targetX = procCx;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = procCx - confSpread * 0.4;
-            STORAGE[1].targetY = storeY + usableH * 0.06;
+            STORAGE[1].targetX = procCx - confSpread * 0.6;
+            STORAGE[1].targetY = storeY + usableH * 0.08;
+            STORAGE[2].targetX = procCx + confSpread * 0.6;
+            STORAGE[2].targetY = storeY + usableH * 0.08;
 
             var protoCx = (col3L + col3R) / 2;
             var protoCy = titleSafe + usableH * 0.42;
