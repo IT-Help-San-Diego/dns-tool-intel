@@ -4,9 +4,9 @@
 package dbq
 
 import (
-        "context"
+	"context"
 
-        "github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const icuaeInsertScanScore = `-- name: ICuAEInsertScanScore :one
@@ -16,31 +16,31 @@ RETURNING id, created_at
 `
 
 type ICuAEInsertScanScoreParams struct {
-        Domain        *string `db:"domain" json:"domain"`
-        OverallScore  float32 `db:"overall_score" json:"overall_score"`
-        OverallGrade  string  `db:"overall_grade" json:"overall_grade"`
-        ResolverCount int32   `db:"resolver_count" json:"resolver_count"`
-        RecordCount   int32   `db:"record_count" json:"record_count"`
-        AppVersion    *string `db:"app_version" json:"app_version"`
+	Domain        *string `db:"domain" json:"domain"`
+	OverallScore  float32 `db:"overall_score" json:"overall_score"`
+	OverallGrade  string  `db:"overall_grade" json:"overall_grade"`
+	ResolverCount int32   `db:"resolver_count" json:"resolver_count"`
+	RecordCount   int32   `db:"record_count" json:"record_count"`
+	AppVersion    *string `db:"app_version" json:"app_version"`
 }
 
 type ICuAEInsertScanScoreRow struct {
-        ID        int32            `db:"id" json:"id"`
-        CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
+	ID        int32            `db:"id" json:"id"`
+	CreatedAt pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) ICuAEInsertScanScore(ctx context.Context, arg ICuAEInsertScanScoreParams) (ICuAEInsertScanScoreRow, error) {
-        row := q.db.QueryRow(ctx, icuaeInsertScanScore,
-                arg.Domain,
-                arg.OverallScore,
-                arg.OverallGrade,
-                arg.ResolverCount,
-                arg.RecordCount,
-                arg.AppVersion,
-        )
-        var i ICuAEInsertScanScoreRow
-        err := row.Scan(&i.ID, &i.CreatedAt)
-        return i, err
+	row := q.db.QueryRow(ctx, icuaeInsertScanScore,
+		arg.Domain,
+		arg.OverallScore,
+		arg.OverallGrade,
+		arg.ResolverCount,
+		arg.RecordCount,
+		arg.AppVersion,
+	)
+	var i ICuAEInsertScanScoreRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
 }
 
 const icuaeInsertDimensionScore = `-- name: ICuAEInsertDimensionScore :exec
@@ -49,22 +49,22 @@ VALUES ($1, $2, $3, $4, $5)
 `
 
 type ICuAEInsertDimensionScoreParams struct {
-        ScanID               int32   `db:"scan_id" json:"scan_id"`
-        Dimension            string  `db:"dimension" json:"dimension"`
-        Score                float32 `db:"score" json:"score"`
-        Grade                string  `db:"grade" json:"grade"`
-        RecordTypesEvaluated int32   `db:"record_types_evaluated" json:"record_types_evaluated"`
+	ScanID               int32   `db:"scan_id" json:"scan_id"`
+	Dimension            string  `db:"dimension" json:"dimension"`
+	Score                float32 `db:"score" json:"score"`
+	Grade                string  `db:"grade" json:"grade"`
+	RecordTypesEvaluated int32   `db:"record_types_evaluated" json:"record_types_evaluated"`
 }
 
 func (q *Queries) ICuAEInsertDimensionScore(ctx context.Context, arg ICuAEInsertDimensionScoreParams) error {
-        _, err := q.db.Exec(ctx, icuaeInsertDimensionScore,
-                arg.ScanID,
-                arg.Dimension,
-                arg.Score,
-                arg.Grade,
-                arg.RecordTypesEvaluated,
-        )
-        return err
+	_, err := q.db.Exec(ctx, icuaeInsertDimensionScore,
+		arg.ScanID,
+		arg.Dimension,
+		arg.Score,
+		arg.Grade,
+		arg.RecordTypesEvaluated,
+	)
+	return err
 }
 
 const icuaeGetAggregateStats = `-- name: ICuAEGetAggregateStats :one
@@ -77,22 +77,22 @@ FROM icuae_scan_scores
 `
 
 type ICuAEGetAggregateStatsRow struct {
-        TotalScans      int32            `db:"total_scans" json:"total_scans"`
-        AvgScore        float32          `db:"avg_score" json:"avg_score"`
-        StddevScore     float32          `db:"stddev_score" json:"stddev_score"`
-        LastEvaluatedAt pgtype.Timestamp `db:"last_evaluated_at" json:"last_evaluated_at"`
+	TotalScans      int32            `db:"total_scans" json:"total_scans"`
+	AvgScore        float32          `db:"avg_score" json:"avg_score"`
+	StddevScore     float32          `db:"stddev_score" json:"stddev_score"`
+	LastEvaluatedAt pgtype.Timestamp `db:"last_evaluated_at" json:"last_evaluated_at"`
 }
 
 func (q *Queries) ICuAEGetAggregateStats(ctx context.Context) (ICuAEGetAggregateStatsRow, error) {
-        row := q.db.QueryRow(ctx, icuaeGetAggregateStats)
-        var i ICuAEGetAggregateStatsRow
-        err := row.Scan(
-                &i.TotalScans,
-                &i.AvgScore,
-                &i.StddevScore,
-                &i.LastEvaluatedAt,
-        )
-        return i, err
+	row := q.db.QueryRow(ctx, icuaeGetAggregateStats)
+	var i ICuAEGetAggregateStatsRow
+	err := row.Scan(
+		&i.TotalScans,
+		&i.AvgScore,
+		&i.StddevScore,
+		&i.LastEvaluatedAt,
+	)
+	return i, err
 }
 
 const icuaeGetGradeDistribution = `-- name: ICuAEGetGradeDistribution :many
@@ -105,28 +105,28 @@ ORDER BY overall_grade ASC
 `
 
 type ICuAEGetGradeDistributionRow struct {
-        Grade string `db:"grade" json:"grade"`
-        Count int32  `db:"count" json:"count"`
+	Grade string `db:"grade" json:"grade"`
+	Count int32  `db:"count" json:"count"`
 }
 
 func (q *Queries) ICuAEGetGradeDistribution(ctx context.Context) ([]ICuAEGetGradeDistributionRow, error) {
-        rows, err := q.db.Query(ctx, icuaeGetGradeDistribution)
-        if err != nil {
-                return nil, err
-        }
-        defer rows.Close()
-        items := []ICuAEGetGradeDistributionRow{}
-        for rows.Next() {
-                var i ICuAEGetGradeDistributionRow
-                if err := rows.Scan(&i.Grade, &i.Count); err != nil {
-                        return nil, err
-                }
-                items = append(items, i)
-        }
-        if err := rows.Err(); err != nil {
-                return nil, err
-        }
-        return items, nil
+	rows, err := q.db.Query(ctx, icuaeGetGradeDistribution)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ICuAEGetGradeDistributionRow{}
+	for rows.Next() {
+		var i ICuAEGetGradeDistributionRow
+		if err := rows.Scan(&i.Grade, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const icuaeGetDimensionAverages = `-- name: ICuAEGetDimensionAverages :many
@@ -141,30 +141,30 @@ ORDER BY dimension ASC
 `
 
 type ICuAEGetDimensionAveragesRow struct {
-        Dimension   string  `db:"dimension" json:"dimension"`
-        AvgScore    float32 `db:"avg_score" json:"avg_score"`
-        StddevScore float32 `db:"stddev_score" json:"stddev_score"`
-        SampleCount int32   `db:"sample_count" json:"sample_count"`
+	Dimension   string  `db:"dimension" json:"dimension"`
+	AvgScore    float32 `db:"avg_score" json:"avg_score"`
+	StddevScore float32 `db:"stddev_score" json:"stddev_score"`
+	SampleCount int32   `db:"sample_count" json:"sample_count"`
 }
 
 func (q *Queries) ICuAEGetDimensionAverages(ctx context.Context) ([]ICuAEGetDimensionAveragesRow, error) {
-        rows, err := q.db.Query(ctx, icuaeGetDimensionAverages)
-        if err != nil {
-                return nil, err
-        }
-        defer rows.Close()
-        items := []ICuAEGetDimensionAveragesRow{}
-        for rows.Next() {
-                var i ICuAEGetDimensionAveragesRow
-                if err := rows.Scan(&i.Dimension, &i.AvgScore, &i.StddevScore, &i.SampleCount); err != nil {
-                        return nil, err
-                }
-                items = append(items, i)
-        }
-        if err := rows.Err(); err != nil {
-                return nil, err
-        }
-        return items, nil
+	rows, err := q.db.Query(ctx, icuaeGetDimensionAverages)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ICuAEGetDimensionAveragesRow{}
+	for rows.Next() {
+		var i ICuAEGetDimensionAveragesRow
+		if err := rows.Scan(&i.Dimension, &i.AvgScore, &i.StddevScore, &i.SampleCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const icuaeGetRecentTrend = `-- name: ICuAEGetRecentTrend :many
@@ -177,26 +177,26 @@ LIMIT $1
 `
 
 type ICuAEGetRecentTrendRow struct {
-        OverallScore float32          `db:"overall_score" json:"overall_score"`
-        CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+	OverallScore float32          `db:"overall_score" json:"overall_score"`
+	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) ICuAEGetRecentTrend(ctx context.Context, limit int32) ([]ICuAEGetRecentTrendRow, error) {
-        rows, err := q.db.Query(ctx, icuaeGetRecentTrend, limit)
-        if err != nil {
-                return nil, err
-        }
-        defer rows.Close()
-        items := []ICuAEGetRecentTrendRow{}
-        for rows.Next() {
-                var i ICuAEGetRecentTrendRow
-                if err := rows.Scan(&i.OverallScore, &i.CreatedAt); err != nil {
-                        return nil, err
-                }
-                items = append(items, i)
-        }
-        if err := rows.Err(); err != nil {
-                return nil, err
-        }
-        return items, nil
+	rows, err := q.db.Query(ctx, icuaeGetRecentTrend, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ICuAEGetRecentTrendRow{}
+	for rows.Next() {
+		var i ICuAEGetRecentTrendRow
+		if err := rows.Scan(&i.OverallScore, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

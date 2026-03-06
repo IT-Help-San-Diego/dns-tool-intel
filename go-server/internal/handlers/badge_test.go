@@ -7,10 +7,10 @@ import (
 
 func TestExtractPostureRisk(t *testing.T) {
 	tests := []struct {
-		name       string
-		results    map[string]any
-		wantLabel  string
-		wantColor  string
+		name      string
+		results   map[string]any
+		wantLabel string
+		wantColor string
 	}{
 		{"nil results", nil, "Unknown", ""},
 		{"empty results", map[string]any{}, "Unknown", ""},
