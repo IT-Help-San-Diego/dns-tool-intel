@@ -2,7 +2,7 @@
 # Dev version bump — routine development only.
 # Usage: bash scripts/dev-bump.sh X.Y.Z
 #
-# Bumps config.go + sonar-project.properties, rebuilds binary.
+# Bumps config.go + sonar-project.properties, rebuilds binary, commits.
 # Does NOT touch CITATION.cff, codemeta.json, or methodology docs.
 # For full release bumps (tag time), use: bash scripts/release-gate.sh X.Y.Z
 #
@@ -40,10 +40,35 @@ echo "  sonar-project.properties ✓"
 echo ""
 echo "Building..."
 bash build.sh
+
+echo ""
+echo "Committing..."
+git add go-server/internal/config/config.go sonar-project.properties
+git commit -m "dev-bump: v${VERSION}" --quiet
+echo "  Committed: dev-bump: v${VERSION} ✓"
+
 echo ""
 echo "Protected (untouched):"
 echo "  CITATION.cff ✓ (concept DOI safe)"
 echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
 echo ""
-echo "Ready to publish. Restart the app to see v${VERSION}."
+echo "Restarting app..."
+PID=$(pgrep -f 'dns-tool-server$' 2>/dev/null || true)
+if [ -n "$PID" ]; then
+  kill "$PID" 2>/dev/null || true
+  for i in 1 2 3 4 5; do
+    if ! kill -0 "$PID" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  kill -9 "$PID" 2>/dev/null || true
+fi
+sleep 2
+if pgrep -f 'dns-tool-server$' > /dev/null 2>&1; then
+  echo "  App restarted on v${VERSION} ✓"
+else
+  echo "  Old process stopped. Workflow will auto-restart on v${VERSION}."
+  echo "  If preview doesn't update, click the ▶ restart button in the Console tab."
+fi
+echo ""
+echo "Ready. Run: bash scripts/git-sync.sh"
