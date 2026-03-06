@@ -3091,7 +3091,7 @@ body.covert-mode .rfc-label {
     text-transform: uppercase;
     font-size: 0.72rem !important;
     padding: 0.35rem 0.75rem !important;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .u-covert-focus-btn:hover,
 .u-covert-focus-btn:focus {
@@ -3132,7 +3132,7 @@ body.covert-mode.covert-submarine .u-covert-focus-btn:hover {
     padding: 0.35rem 0.75rem !important;
     text-shadow: 0 0 6px rgba(204, 48, 48, 0.3);
     box-shadow: 0 0 8px rgba(140, 30, 30, 0.2), inset 0 0 4px rgba(140, 30, 30, 0.1);
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, text-shadow 0.2s ease;
 }
 .u-covert-exit-btn:hover,
 .u-covert-exit-btn:focus {
