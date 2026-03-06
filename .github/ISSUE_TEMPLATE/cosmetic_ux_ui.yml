@@ -2,7 +2,7 @@ name: "\U0001F3A8 Cosmetic / UX / UI"
 description: >
   Visual bug, layout issue, accessibility problem, or user experience improvement.
 title: "[UX] "
-labels: ["triage:ux"]
+labels: ["triage:ux", "needs-triage"]
 body:
   - type: markdown
     attributes:
@@ -12,6 +12,15 @@ body:
         This template is for visual bugs, layout problems, accessibility issues,
         and user experience improvements. These are important and will be addressed
         on a normal development cadence.
+
+  - type: checkboxes
+    id: duplicate_search
+    attributes:
+      label: Duplicate Check
+      description: Please search existing issues before filing a new one.
+      options:
+        - label: I have searched the existing issues and this has not been reported
+          required: true
 
   - type: dropdown
     id: page
@@ -40,6 +49,17 @@ body:
       required: true
 
   - type: input
+    id: version
+    attributes:
+      label: DNS Tool Version
+      description: >
+        Which version of DNS Tool showed this issue?
+        Check the footer of any page or the /health endpoint.
+      placeholder: "e.g., 26.34.54"
+    validations:
+      required: true
+
+  - type: input
     id: device
     attributes:
       label: Device & Browser
@@ -52,7 +72,9 @@ body:
     id: viewport
     attributes:
       label: Viewport Width (if known)
-      description: If you know the viewport width, include it. Mobile issues are common.
+      description: >
+        If you know the viewport width, include it. Mobile issues at 375px
+        are the most common class of UI bugs.
       placeholder: "e.g., 375px, 768px, 1440px"
     validations:
       required: false
