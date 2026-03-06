@@ -148,6 +148,9 @@
     (function() {
         'use strict';
 
+        var SOLVER_LAYOUTS = {{.SolverLayouts}};
+        var SOLVER_ACTIVE = false;
+
         var canvas = document.getElementById('topoCanvas');
         var wrap = document.getElementById('topoWrap');
         if (!canvas || !wrap) return;
@@ -1069,7 +1072,29 @@
             var allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
             var allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
-            forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
+            var solverProfile = W > 1000 ? 'desktop' : (W > 600 ? 'tablet' : 'mobile');
+            var solverData = null;
+            try {
+                if (SOLVER_LAYOUTS && SOLVER_LAYOUTS[solverProfile] && SOLVER_LAYOUTS[solverProfile].nodeCenters) {
+                    solverData = SOLVER_LAYOUTS[solverProfile].nodeCenters;
+                }
+            } catch (e) { solverData = null; }
+
+            if (solverData) {
+                SOLVER_ACTIVE = true;
+                console.log('Topology: using hybrid solver (' + solverProfile + ')');
+                allLayoutNodes.forEach(function(nd) {
+                    var pos = solverData[nd.id];
+                    if (pos) {
+                        nd.targetX = pos.x;
+                        nd.targetY = pos.y;
+                    }
+                });
+            } else {
+                SOLVER_ACTIVE = false;
+                console.log('Topology: using FR fallback');
+                forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
+            }
 
             allLayoutNodes.forEach(function(nd) {
                 if (!nd._initialized) {

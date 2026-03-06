@@ -65,9 +65,9 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `topology.html` |
-| Sensitive Areas | Canvas 2D rendering, force-directed layout, orthographic globe projection, signal arc convergence, node overlap in storage zone, PoP label crowding, legend accuracy |
-| Known Issues | None |
-| Resolved | Signal arcs now target HUB live position (v26.34.40, Mar 2026); Internet Archive node added (v26.34.40); PoP labels show city-only with resolver tag on hover (v26.34.40); globe initial rotation shifted to -58° (v26.34.39) |
+| Sensitive Areas | Canvas 2D rendering, hybrid solver layout integration, FR fallback path, orthographic globe projection, signal arc convergence, PoP label crowding, legend accuracy |
+| Known Issues | Tablet/mobile viewports have residual overlaps (5/4 respectively) due to tight zone bounds — desktop is zero-overlap (Mar 2026) |
+| Resolved | Hybrid constrained layered-stress solver replaces FR as primary layout (v26.34.40, Mar 2026); Signal arcs now target HUB live position (v26.34.40, Mar 2026); Internet Archive node added (v26.34.40); PoP labels show city-only with resolver tag on hover (v26.34.40); globe initial rotation shifted to -58° (v26.34.39) |
 
 ### Domain Dossier (`/dossier/:domain`)
 | Attribute | Value |
