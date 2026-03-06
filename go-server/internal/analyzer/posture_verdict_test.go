@@ -112,12 +112,12 @@ func TestBuildBrandQuarantineVerdict(t *testing.T) {
 
 func TestBuildBrandWeakVerdict(t *testing.T) {
 	tests := []struct {
-		name       string
-		ps         protocolState
-		wantLabel  string
-		wantColor  string
-		wantAns    string
-		reasonSub  string
+		name      string
+		ps        protocolState
+		wantLabel string
+		wantColor string
+		wantAns   string
+		reasonSub string
 	}{
 		{
 			name:      "policy none => monitor-only message",
@@ -171,11 +171,11 @@ func findSubstring(s, sub string) bool {
 
 func TestBuildLlmsTxtVerdict(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    map[string]any
-		wantKey  bool
-		wantAns  string
-		wantClr  string
+		name    string
+		input   map[string]any
+		wantKey bool
+		wantAns string
+		wantClr string
 	}{
 		{
 			name:    "nil input => no verdict",
@@ -672,7 +672,7 @@ func TestBuildAISurfaceVerdicts(t *testing.T) {
 				"full_found": false,
 			},
 			"robots_txt": map[string]any{
-				"found":             true,
+				"found":              true,
 				"blocks_ai_crawlers": true,
 			},
 			"poisoning": map[string]any{

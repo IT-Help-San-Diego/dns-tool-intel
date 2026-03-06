@@ -11,21 +11,21 @@ import (
 )
 
 const (
-	mapKeyExpired = "expired"
-	mapKeyExpires = "expires"
+	mapKeyExpired    = "expired"
+	mapKeyExpires    = "expires"
 	mapKeyFetchError = "fetch_error"
-	mapKeyLanguages = "languages"
+	mapKeyLanguages  = "languages"
 )
 
 var (
-	secTxtContactRe  = regexp.MustCompile(`(?i)^Contact:\s*(.+)$`)
-	secTxtExpiresRe  = regexp.MustCompile(`(?i)^Expires:\s*(.+)$`)
-	secTxtEncryptRe  = regexp.MustCompile(`(?i)^Encryption:\s*(.+)$`)
-	secTxtPolicyRe   = regexp.MustCompile(`(?i)^Policy:\s*(.+)$`)
-	secTxtAckRe      = regexp.MustCompile(`(?i)^Acknowledgments:\s*(.+)$`)
-	secTxtHiringRe   = regexp.MustCompile(`(?i)^Hiring:\s*(.+)$`)
-	secTxtCanonRe    = regexp.MustCompile(`(?i)^Canonical:\s*(.+)$`)
-	secTxtLangRe     = regexp.MustCompile(`(?i)^Preferred-Languages:\s*(.+)$`)
+	secTxtContactRe = regexp.MustCompile(`(?i)^Contact:\s*(.+)$`)
+	secTxtExpiresRe = regexp.MustCompile(`(?i)^Expires:\s*(.+)$`)
+	secTxtEncryptRe = regexp.MustCompile(`(?i)^Encryption:\s*(.+)$`)
+	secTxtPolicyRe  = regexp.MustCompile(`(?i)^Policy:\s*(.+)$`)
+	secTxtAckRe     = regexp.MustCompile(`(?i)^Acknowledgments:\s*(.+)$`)
+	secTxtHiringRe  = regexp.MustCompile(`(?i)^Hiring:\s*(.+)$`)
+	secTxtCanonRe   = regexp.MustCompile(`(?i)^Canonical:\s*(.+)$`)
+	secTxtLangRe    = regexp.MustCompile(`(?i)^Preferred-Languages:\s*(.+)$`)
 )
 
 type securityTxtFields struct {
@@ -122,21 +122,21 @@ func determineSecurityTxtStatus(fields securityTxtFields) (string, string, []str
 
 func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[string]any {
 	baseResult := map[string]any{
-		"status":      "info",
-		mapKeyMessage:     "No security.txt found",
-		"found":       false,
-		"url":         nil,
-		"contacts":    []string{},
-		mapKeyExpires:     nil,
-		mapKeyExpired:     false,
-		"encryption":  []string{},
-		"policy":      []string{},
-		"ack":         []string{},
-		"hiring":      []string{},
-		"canonical":   []string{},
-		mapKeyLanguages:   nil,
-		"signed":      false,
-		"issues":      []string{},
+		"status":         "info",
+		mapKeyMessage:    "No security.txt found",
+		"found":          false,
+		"url":            nil,
+		"contacts":       []string{},
+		mapKeyExpires:    nil,
+		mapKeyExpired:    false,
+		"encryption":     []string{},
+		"policy":         []string{},
+		"ack":            []string{},
+		"hiring":         []string{},
+		"canonical":      []string{},
+		mapKeyLanguages:  nil,
+		"signed":         false,
+		"issues":         []string{},
 		mapKeyFetchError: nil,
 	}
 
@@ -159,18 +159,18 @@ func (a *Analyzer) AnalyzeSecurityTxt(ctx context.Context, domain string) map[st
 	expired, expiryDate := evaluateSecurityTxtExpiry(fields.expires)
 
 	result := map[string]any{
-		"status":      status,
-		mapKeyMessage:     message,
-		"found":       true,
-		"url":         fetchURL,
-		"contacts":    fields.contacts,
-		"encryption":  fields.encrypt,
-		"policy":      fields.policy,
-		"ack":         fields.ack,
-		"hiring":      fields.hiring,
-		"canonical":   fields.canonical,
-		"signed":      fields.signed,
-		"issues":      issues,
+		"status":         status,
+		mapKeyMessage:    message,
+		"found":          true,
+		"url":            fetchURL,
+		"contacts":       fields.contacts,
+		"encryption":     fields.encrypt,
+		"policy":         fields.policy,
+		"ack":            fields.ack,
+		"hiring":         fields.hiring,
+		"canonical":      fields.canonical,
+		"signed":         fields.signed,
+		"issues":         issues,
 		mapKeyFetchError: nil,
 	}
 

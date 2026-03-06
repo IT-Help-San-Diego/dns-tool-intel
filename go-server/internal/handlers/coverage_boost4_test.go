@@ -38,9 +38,9 @@ func TestTimeAgo_CB4(t *testing.T) {
 
 func TestMatchErrorCategory_CB4(t *testing.T) {
 	tests := []struct {
-		msg      string
-		wantOK   bool
-		wantLbl  string
+		msg     string
+		wantOK  bool
+		wantLbl string
 	}{
 		{"connection timed out", true, "DNS Resolution Timeout"},
 		{"deadline exceeded", true, "DNS Resolution Timeout"},

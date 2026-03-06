@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 IT Help San Diego Inc.
+// Licensed under BUSL-1.1 — See LICENSE for terms.
+
 package wayback
 
 import (
@@ -10,10 +13,10 @@ import (
 )
 
 const (
-	saveEndpoint   = "https://web.archive.org/save/"
-	archivePrefix  = "https://web.archive.org/"
-	userAgent      = "DNS-Tool-OSINT/1.0 (+https://dnstool.it-help.tech)"
-	httpTimeout    = 30 * time.Second
+	saveEndpoint  = "https://web.archive.org/save/"
+	archivePrefix = "https://web.archive.org/"
+	userAgent     = "DNS-Tool-OSINT/1.0 (+https://dnstool.it-help.tech)"
+	httpTimeout   = 30 * time.Second
 )
 
 type ArchiveResult struct {
