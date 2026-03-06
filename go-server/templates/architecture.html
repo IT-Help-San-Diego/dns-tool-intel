@@ -7,25 +7,25 @@
     {{template "head_katex" .}}
     <title>System Architecture — DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:GREEN — approved for public release.">
+    <meta name="description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:CLEAR — no restrictions on distribution.">
     <meta property="og:url" content="https://dnstool.it-help.tech/architecture">
     <meta property="og:type" content="website">
     <meta property="og:title" content="System Architecture — DNS Tool">
-    <meta property="og:description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:GREEN — approved for public release.">
+    <meta property="og:description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:CLEAR — no restrictions on distribution.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/architecture">
     <meta name="twitter:title" content="System Architecture — DNS Tool">
-    <meta name="twitter:description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:GREEN — approved for public release.">
+    <meta name="twitter:description" content="Public architecture overview of DNS Tool's intelligence engines, confidence framework, and open-core design. TLP:CLEAR — no restrictions on distribution.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/architecture">
     <style nonce="{{.CspNonce}}">
         .arch-page { max-width: 1100px; }
 
         .arch-tlp-banner {
-            background: linear-gradient(135deg, rgba(51,170,51,0.08) 0%, rgba(51,170,51,0.03) 100%);
-            border: 1px solid rgba(51,170,51,0.35);
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             padding: 1rem 1.5rem;
         }
@@ -33,22 +33,22 @@
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: rgba(51,170,51,0.15);
-            border: 1px solid rgba(51,170,51,0.5);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
             border-radius: 4px;
             padding: 0.2rem 0.65rem;
             font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.06em;
-            color: #33aa33;
+            color: #e0e0e0;
             white-space: nowrap;
         }
         .arch-tlp-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #33aa33;
+            background: #e0e0e0;
             flex-shrink: 0;
         }
         .arch-classification {
@@ -494,7 +494,7 @@
                 <h1 class="h4 mb-0 fw-bold text-light"><i class="fas fa-sitemap me-2 arch-section-icon"></i>System Architecture</h1>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-secondary arch-export-btn text-nowrap" id="archExportPdf"><i class="fas fa-file-pdf me-1"></i>Export PDF</button>
-                    <span class="arch-tlp-badge"><span class="arch-tlp-dot"></span>TLP:GREEN</span>
+                    <span class="arch-tlp-badge"><span class="arch-tlp-dot"></span>TLP:CLEAR</span>
                 </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-3">
@@ -502,7 +502,7 @@
                 <span class="arch-classification"><i class="fas fa-file-contract me-1"></i>FIRST TLP v2.0</span>
                 <span class="arch-classification"><i class="fas fa-clock me-1"></i>{{.AppVersion}}</span>
             </div>
-            <p class="mb-0 mt-2 arch-tlp-desc">This document has been reviewed and approved for public release under TLP:GREEN. Proprietary methodology, internal scoring algorithms, and classified infrastructure details have been redacted. Recipients may share within their community.</p>
+            <p class="mb-0 mt-2 arch-tlp-desc">This document is published under TLP:CLEAR per FIRST TLP v2.0. No restrictions on distribution. Proprietary methodology, internal scoring algorithms, and infrastructure details have been withheld.</p>
         </div>
 
         <div class="arch-section mb-4">
@@ -544,7 +544,7 @@
                 </div>
                 <div class="arch-redacted-bar">
                     <i class="fas fa-lock arch-redacted-icon"></i>
-                    <span>Internal pipeline sequencing, enrichment stages, and classification algorithms redacted per TLP:GREEN policy</span>
+                    <span>Internal pipeline sequencing, enrichment stages, and classification algorithms withheld</span>
                 </div>
             </div>
         </div>
@@ -616,7 +616,7 @@
                 </div>
                 <div class="arch-redacted-bar">
                     <i class="fas fa-lock arch-redacted-icon"></i>
-                    <span>Test case inventories, scoring formulas, maturity thresholds, and tuning parameters redacted per TLP:GREEN policy</span>
+                    <span>Test case inventories, scoring formulas, maturity thresholds, and tuning parameters withheld</span>
                 </div>
             </div>
         </div>
@@ -728,7 +728,7 @@
                 </div>
                 <div class="arch-redacted-bar">
                     <i class="fas fa-lock arch-redacted-icon"></i>
-                    <span>Repository names, build-tag identifiers, sync mechanisms, and module interfaces redacted per TLP:GREEN policy</span>
+                    <span>Repository names, build-tag identifiers, sync mechanisms, and module interfaces withheld</span>
                 </div>
             </div>
         </div>
@@ -771,6 +771,100 @@
 
         <div class="arch-section mb-4">
             <div class="arch-section-header">
+                <h2 class="arch-section-title mb-0"><i class="fas fa-satellite-dish me-2 arch-section-icon"></i>Drift Engine &amp; Notification Pipeline</h2>
+            </div>
+            <div class="arch-section-body">
+                <p class="mb-3 arch-section-desc">Continuous posture monitoring detects DNS configuration changes between analyses. When drift is detected, the notification pipeline routes alerts to the right people through the right channels.</p>
+                <div class="arch-flow-container mb-4">
+                    <div class="arch-flow-node n-blue">
+                        <div class="arch-flow-node-icon"><i class="fas fa-magnifying-glass"></i></div>
+                        <div class="arch-flow-node-label">Domain Scan</div>
+                        <div class="arch-flow-node-sub">ICIE analysis</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-blue">
+                        <div class="arch-flow-node-icon"><i class="fas fa-fingerprint"></i></div>
+                        <div class="arch-flow-node-label">Posture Hash</div>
+                        <div class="arch-flow-node-sub">SHA-256 canonical</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-cyan">
+                        <div class="arch-flow-node-icon"><i class="fas fa-code-compare"></i></div>
+                        <div class="arch-flow-node-label">Posture Diff</div>
+                        <div class="arch-flow-node-sub">Field-by-field<br>comparison</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-amber">
+                        <div class="arch-flow-node-icon"><i class="fas fa-gauge-high"></i></div>
+                        <div class="arch-flow-node-label">Severity Engine</div>
+                        <div class="arch-flow-node-sub">danger &middot; warning<br>success &middot; info</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-green">
+                        <div class="arch-flow-node-icon"><i class="fas fa-database"></i></div>
+                        <div class="arch-flow-node-label">Drift Event</div>
+                        <div class="arch-flow-node-sub">PostgreSQL record</div>
+                    </div>
+                </div>
+                <div class="arch-flow-container mb-3">
+                    <div class="arch-flow-node n-purple">
+                        <div class="arch-flow-node-icon"><i class="fas fa-eye"></i></div>
+                        <div class="arch-flow-node-label">Watchlist Lookup</div>
+                        <div class="arch-flow-node-sub">domain_watchlist</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-purple">
+                        <div class="arch-flow-node-icon"><i class="fas fa-route"></i></div>
+                        <div class="arch-flow-node-label">Queue Notifications</div>
+                        <div class="arch-flow-node-sub">Per-endpoint routing</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-purple">
+                        <div class="arch-flow-node-icon"><i class="fas fa-paper-plane"></i></div>
+                        <div class="arch-flow-node-label">Delivery Loop</div>
+                        <div class="arch-flow-node-sub">30s poll &middot; 50/batch<br>SSRF-protected</div>
+                    </div>
+                    <div class="arch-flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="arch-flow-node n-blue">
+                        <div class="arch-flow-node-icon"><i class="fab fa-discord"></i></div>
+                        <div class="arch-flow-node-label">Discord</div>
+                        <div class="arch-flow-node-sub">Webhook embed</div>
+                    </div>
+                </div>
+                <div class="arch-redacted-bar">
+                    <i class="fas fa-lock me-2"></i>Internal detection thresholds and flickering domain analysis methodology withheld.
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-section mb-4">
+            <div class="arch-section-header">
+                <h2 class="arch-section-title mb-0"><i class="fas fa-code-branch me-2 arch-section-icon"></i>GitHub Issues Triage</h2>
+            </div>
+            <div class="arch-section-body">
+                <p class="mb-3 arch-section-desc">Three-tier issue routing with automated validation. Research-critical issues require RFC-backed evidence. Security reports are auto-redirected to private channels. All issues follow a label-based state machine.</p>
+                <div class="arch-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="arch-grid-node" style="border-color: #ef4444;">
+                        <div class="arch-flow-node-icon"><i class="fas fa-flask" style="color: #ef4444;"></i></div>
+                        <div class="arch-flow-node-label">Research Mission Critical</div>
+                        <div class="arch-flow-node-sub">RFC citation required<br>P0 &mdash; immediate investigation</div>
+                    </div>
+                    <div class="arch-grid-node n-amber">
+                        <div class="arch-flow-node-icon"><i class="fas fa-palette"></i></div>
+                        <div class="arch-flow-node-label">Cosmetic / UX / UI</div>
+                        <div class="arch-flow-node-sub">Screenshot required<br>Normal cadence</div>
+                    </div>
+                    <div class="arch-grid-node n-purple">
+                        <div class="arch-flow-node-icon"><i class="fas fa-shield-halved"></i></div>
+                        <div class="arch-flow-node-label">Security Vulnerability</div>
+                        <div class="arch-flow-node-sub">Auto-close &amp; lock<br>Private channel only</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-section mb-4">
+            <div class="arch-section-header">
                 <h2 class="arch-section-title mb-0"><i class="fas fa-diagram-project me-2 arch-section-icon"></i>Engineering Diagrams</h2>
             </div>
             <div class="arch-section-body">
@@ -792,6 +886,14 @@
                     <a class="arch-diagram-card" href="/static/images/diagrams/protocol-coverage.svg" target="_blank" rel="noopener" title="Open full Protocol Coverage diagram">
                         <div class="arch-diagram-label"><i class="fas fa-network-wired"></i> Protocol Coverage <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
                         <img src="{{staticVersionURL "images/diagrams/protocol-coverage.svg" .AppVersion}}" alt="Protocol coverage diagram showing nine RFC-defined security protocols organized into email authentication, transport security, and policy groups feeding into the ICIE engine" loading="lazy" width="554" height="610">
+                    </a>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/drift-notification-pipeline.svg" target="_blank" rel="noopener" title="Open full Drift Notification Pipeline diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-satellite-dish"></i> Drift Notification Pipeline <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
+                        <img src="{{staticVersionURL "images/diagrams/drift-notification-pipeline.svg" .AppVersion}}" alt="Drift notification pipeline diagram showing detection flow from domain scan through posture hashing, diff computation, severity classification, watchlist routing, to multi-channel delivery" loading="lazy" width="1200" height="400">
+                    </a>
+                    <a class="arch-diagram-card" href="/static/images/diagrams/github-issues-triage.svg" target="_blank" rel="noopener" title="Open full GitHub Issues Triage diagram">
+                        <div class="arch-diagram-label"><i class="fas fa-code-branch"></i> GitHub Issues Triage <i class="fas fa-external-link-alt ms-1 arch-diagram-link-icon"></i></div>
+                        <img src="{{staticVersionURL "images/diagrams/github-issues-triage.svg" .AppVersion}}" alt="GitHub issues triage diagram showing three-tier routing for research mission critical, cosmetic UX, and security vulnerability issues with automated validation and label state machine" loading="lazy" width="800" height="600">
                     </a>
                 </div>
             </div>
@@ -845,7 +947,7 @@
         </div>
 
         <div class="text-center mt-3 mb-1 arch-footer-meta">
-            <span><i class="fas fa-shield-halved me-1"></i>TLP:GREEN — Approved for public release</span>
+            <span><i class="fas fa-shield-halved me-1"></i>TLP:CLEAR — No restrictions on distribution</span>
             <span class="mx-2">&middot;</span>
             <span>Sensitive methods and infrastructure details withheld</span>
             <span class="mx-2">&middot;</span>

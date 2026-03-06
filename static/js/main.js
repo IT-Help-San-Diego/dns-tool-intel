@@ -424,19 +424,34 @@ function handleAnalyzeLinkClick(e) {
     });
 }
 
+function privacyWasDismissed() {
+    try { if (localStorage.getItem('privacyAck') === '1') return true; } catch(_e) {}
+    try { if (document.cookie.indexOf('privacyAck=1') !== -1) return true; } catch(_e) {}
+    return false;
+}
+function persistPrivacyDismiss() {
+    try { localStorage.setItem('privacyAck', '1'); } catch(_e) {}
+    try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
+}
 function initPrivacyBanner() {
-    const banner = document.getElementById('privacyBanner');
+    var banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
-    let dismissed = false;
-    try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
-    if (dismissed) { banner.remove(); return; }
-    const acceptBtn = document.getElementById('privacyAccept');
-    if (acceptBtn) {
-        acceptBtn.addEventListener('click', function() {
-            try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
-            banner.remove();
-        });
+    if (privacyWasDismissed()) { banner.remove(); return; }
+    function dismissBanner(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        persistPrivacyDismiss();
+        banner.style.display = 'none';
+        if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
+    var acceptBtn = document.getElementById('privacyAccept');
+    if (acceptBtn) {
+        acceptBtn.onclick = dismissBanner;
+    }
+    banner.addEventListener('click', function(e) {
+        if (e.target.closest && e.target.closest('#privacyAccept')) {
+            dismissBanner(e);
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -464,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { roeHandled = false; }, 400);
         if (e) { e.preventDefault(); }
         if (roeModal) { roeModal.hide(); }
-        globalThis.location.href = 'https://youtu.be/ZzUsKizhb8o?si=4mPVuQ7SNTttqraP';
+        globalThis.location.href = 'https://youtu.be/7zUJ-dx2xXw?si=PBI0AoTgfPAellVW';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {

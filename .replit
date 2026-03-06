@@ -1,4 +1,4 @@
-modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "postgresql-16", "python3"]
+modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "python3", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
@@ -43,7 +43,7 @@ externalPort = 80
 SONAR_ORG = "careyjames"
 SONAR_PROJECT = "careyjames_DnsToolWeb"
 SMTP_PROBE_MODE = "remote"
-MAINTENANCE_NOTE = "Developing"
+MAINTENANCE_NOTE = "Developing!"
 ANALYTICS_EXCLUDE_IPS = "76.218.253.212"
 
 [userenv.development]
