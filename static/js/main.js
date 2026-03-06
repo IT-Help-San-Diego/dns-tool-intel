@@ -425,24 +425,37 @@ document.addEventListener('DOMContentLoaded', function() {
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
-        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.removeAttribute('inert'); });
-        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('inert', ''); });
+        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'false'); });
+        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'true'); });
+    }
+    var roeHandled = false;
+    function handleRoeAccept(e) {
+        if (roeHandled) return;
+        roeHandled = true;
+        setTimeout(function() { roeHandled = false; }, 400);
+        if (e) { e.preventDefault(); }
+        markROEAccepted();
+        playMorseEasterEgg();
+        if (roeModal) { roeModal.hide(); }
+        activateCovertOrSwitch();
+    }
+    function handleRoeDecline(e) {
+        if (roeHandled) return;
+        roeHandled = true;
+        setTimeout(function() { roeHandled = false; }, 400);
+        if (e) { e.preventDefault(); }
+        if (roeModal) { roeModal.hide(); }
+        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
-        roeAcceptBtn.addEventListener('click', function() {
-            markROEAccepted();
-            playMorseEasterEgg();
-            if (roeModal) { roeModal.hide(); }
-            activateCovertOrSwitch();
-        });
+        roeAcceptBtn.addEventListener('click', handleRoeAccept);
+        roeAcceptBtn.addEventListener('touchend', handleRoeAccept);
     }
     const roeDeclineBtn = document.getElementById('roeDecline');
     if (roeDeclineBtn) {
-        roeDeclineBtn.addEventListener('click', function() {
-            if (roeModal) { roeModal.hide(); }
-            window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        });
+        roeDeclineBtn.addEventListener('click', handleRoeDecline);
+        roeDeclineBtn.addEventListener('touchend', handleRoeDecline);
     }
     const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
