@@ -153,6 +153,14 @@ Every analysis generates a SHA-3-512 integrity hash binding domain, analysis ID,
 ### Internet Archive — Permanent Record
 Every successful, non-private, non-scan-flagged analysis is automatically submitted to the Internet Archive via `web.archive.org/save/` in a background goroutine. The snapshot URL is stored in `domain_analyses.wayback_url` and displayed as a green "Archived" badge in the results header plus a dedicated "Internet Archive — Permanent Record" card on Engineer's and Executive's reports. Privacy guards ensure private and scanner-flagged analyses are never archived. This completes a three-layer evidence chain: SHA-3-512 integrity hash + posture hash for drift detection + third-party Wayback Machine archive.
 
+## Critical Pages Registry
+
+`docs/CRITICAL_PAGES.md` is a per-page issue tracking system that:
+- Lists every critical page with its template file, sensitive areas, known issues, and resolved history
+- Tracks cross-page regressions (when fixing page A breaks page B)
+- Documents sensitive shared resources (`_nav.html`, `custom.min.css`, `main.js`, etc.) that affect multiple pages simultaneously
+- Must be consulted before any CSS, JS, or template change, and updated when bugs are found or fixed
+
 ## Rate Limiting & Abuse Prevention
 
 | Protection | Window | Purpose |
