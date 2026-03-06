@@ -35,8 +35,8 @@ Issuer: commonName=WE1`,
 			expected: []string{"cloudflare.com", "ns.cloudflare.com", "*.ns.cloudflare.com", "secondary.cloudflare.com"},
 		},
 		{
-			name: "IP address SANs ignored",
-			input: `Subject Alternative Name: DNS:example.com, IP Address:192.168.1.1`,
+			name:     "IP address SANs ignored",
+			input:    `Subject Alternative Name: DNS:example.com, IP Address:192.168.1.1`,
 			expected: []string{"example.com"},
 		},
 	}
@@ -59,10 +59,10 @@ Issuer: commonName=WE1`,
 
 func TestExtractNmapIntel(t *testing.T) {
 	tests := []struct {
-		name            string
-		input           *nmapProbeResponse
-		expectServices  int
-		expectSANs      int
+		name           string
+		input          *nmapProbeResponse
+		expectServices int
+		expectSANs     int
 	}{
 		{
 			name:           "nil parsed",

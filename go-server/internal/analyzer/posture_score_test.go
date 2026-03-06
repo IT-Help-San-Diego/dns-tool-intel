@@ -253,9 +253,9 @@ func TestClassifyMailPartial(t *testing.T) {
 
 func TestClassifyNoMailGrade_AllBranches(t *testing.T) {
 	tests := []struct {
-		name  string
-		gi    gradeInput
-		want  string
+		name string
+		gi   gradeInput
+		want string
 	}{
 		{"strict", gradeInput{hasSPF: true, hasDMARC: true, dmarcStrict: true, dmarcFullEnforcing: true}, riskLow},
 		{"full enforcing not strict", gradeInput{hasSPF: true, hasDMARC: true, dmarcFullEnforcing: true}, riskLow},
@@ -383,9 +383,9 @@ func TestClassifyDMARCSuccess_DefaultPolicy(t *testing.T) {
 
 func TestClassifyDMARCWarning(t *testing.T) {
 	tests := []struct {
-		name        string
-		ps          protocolState
-		wantRec     bool
+		name         string
+		ps           protocolState
+		wantRec      bool
 		wantRecCount int
 	}{
 		{"warning none no rua", protocolState{dmarcWarning: true, dmarcOK: true, dmarcPolicy: "none", dmarcHasRua: false}, true, 2},

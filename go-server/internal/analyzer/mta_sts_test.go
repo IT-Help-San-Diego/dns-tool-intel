@@ -109,8 +109,8 @@ func TestDetermineMTASTSFallbackStatus(t *testing.T) {
 func TestDetermineMTASTSStatus(t *testing.T) {
 	enforce := "enforce"
 	policyData := map[string]any{
-		mapKeyFetched:  true,
-		mapKeyMtaMode:  "enforce",
+		mapKeyFetched: true,
+		mapKeyMtaMode: "enforce",
 		"has_version": true,
 		"mx":          []string{"mx1.example.com"},
 	}
@@ -126,8 +126,8 @@ func TestDetermineMTASTSStatus(t *testing.T) {
 	}
 
 	policyDataNoVersion := map[string]any{
-		mapKeyFetched:  true,
-		mapKeyMtaMode:  "enforce",
+		mapKeyFetched: true,
+		mapKeyMtaMode: "enforce",
 		"has_version": false,
 		"mx":          []string{"mx1.example.com"},
 	}

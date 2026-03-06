@@ -77,15 +77,15 @@ function showOverlay(overlay) {
     overlay.classList.add('is-active');
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
-            var els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
-            var animated = [];
-            for (var i = 0; i < els.length; i++) {
-                var anim = getComputedStyle(els[i]).animationName;
+            const els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
+            const animated = [];
+            for (let i = 0; i < els.length; i++) {
+                const anim = getComputedStyle(els[i]).animationName;
                 if (anim && anim !== 'none') animated.push(els[i]);
             }
-            for (var j = 0; j < animated.length; j++) animated[j].classList.add('anim-restart');
+            for (let j = 0; j < animated.length; j++) animated[j].classList.add('anim-restart');
             if (animated.length) void animated[0].offsetWidth; // NOSONAR — single reflow to restart all animations (Safari)
-            for (var k = 0; k < animated.length; k++) animated[k].classList.remove('anim-restart');
+            for (let k = 0; k < animated.length; k++) animated[k].classList.remove('anim-restart');
         });
     });
 }

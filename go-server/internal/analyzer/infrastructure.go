@@ -20,7 +20,6 @@ const (
 	tierEnterprise = "enterprise"
 	tierManaged    = "managed"
 
-
 	strUnknown = "Unknown"
 )
 
