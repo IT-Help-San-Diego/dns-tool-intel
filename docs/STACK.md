@@ -42,6 +42,7 @@
 | SecurityTrails | Subdomain discovery, reverse IP | `internal/analyzer/securitytrails.go` |
 | OpenPhish | Phishing URL detection | `internal/analyzer/openphish.go` |
 | CISA | Known exploited vulnerabilities feed | `internal/scanner/cisa.go` |
+| Internet Archive | Wayback Machine automatic archival | `internal/wayback/client.go` |
 | Discord | Webhook notifications | Config: `DISCORD_WEBHOOK_URL` |
 | Notion | Roadmap synchronization | `scripts/notion-roadmap-sync.mjs` |
 | GitHub/Codeberg | Intel sync, CI | `scripts/github-intel-sync.mjs` |

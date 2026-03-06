@@ -65,6 +65,7 @@
 package handlers
 
 const (
+        dateMar06 = "Mar 6, 2026"
         dateFeb28 = "Feb 28, 2026"
         dateFeb26 = "Feb 26, 2026"
         dateFeb23 = "Feb 23, 2026"
@@ -85,6 +86,8 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263439 = "26.34.39"
+        ver263438 = "26.34.38"
         ver262823 = "26.28.23"
         ver262822 = "26.28.22"
         ver262821 = "26.28.21"
@@ -129,6 +132,30 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver263439,
+                        Date:        dateMar06,
+                        Category:    catIntelligence,
+                        Title:       "Wayback Machine Automatic Archival",
+                        Description: "Every successful, non-private, non-scan-flagged analysis is now automatically submitted to the Internet Archive via web.archive.org/save/ in a background goroutine. The returned snapshot URL is stored in domain_analyses.wayback_url and displayed as a green \"Archived\" badge in the results header, plus an \"Internet Archive — Permanent Record\" card on Engineer's and Executive's reports with View Archived Snapshot and Copy URL buttons. Privacy guards ensure private analyses and scanner-flagged analyses are never archived. Completes a three-layer evidence chain: SHA-3-512 integrity hash + posture hash for drift detection + third-party Wayback Machine archive for independent verification.",
+                        Icon:        "fas fa-landmark",
+                },
+                {
+                        Version:     ver263438,
+                        Date:        dateMar06,
+                        Category:    catUX,
+                        Title:       "Font Awesome CSS Direct Loading Fix",
+                        Description: "Fixed Font Awesome CSS loading to use direct <link rel=\"stylesheet\"> instead of the media=\"print\" progressive loading trick, which caused icon flicker on initial page load across all templates.",
+                        Icon:        "fas fa-paint-brush",
+                },
+                {
+                        Version:     ver263438,
+                        Date:        dateMar06,
+                        Category:    catUX,
+                        Title:       "ROE Modal iOS Compatibility Fix",
+                        Description: "Fixed the Rules of Engagement modal on iOS devices by adding touchend event listeners alongside click, setting aria-hidden=\"true\" for accessibility, implementing roeHandled debounce flag to prevent double-fire, and using modal-fullscreen-sm-down modal-dialog-scrollable classes for proper mobile display.",
+                        Icon:        "fas fa-mobile-alt",
+                },
                 {
                         Version:     ver262823,
                         Date:        dateFeb28,

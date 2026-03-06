@@ -105,6 +105,9 @@
 | Country Cache Eviction (Hourly sync.Once Ticker, 24h TTL Sweep) | v26.33.65 | Mar 2026 |
 | Orphaned Asset Cleanup (3 Files Removed, ~560KB Recovered) | v26.33.65 | Mar 2026 |
 | Legacy Flask Templates Removed (6 Stale Files) | v26.33.65 | Mar 2026 |
+| Font Awesome CSS Direct Loading Fix | v26.34.38 | Mar 2026 |
+| ROE Modal iOS Fix (touchend, aria-hidden, debounce) | v26.34.38 | Mar 2026 |
+| Wayback Machine Automatic Archival (Internet Archive Integration) | v26.34.39 | Mar 2026 |
 
 ---
 
