@@ -441,6 +441,75 @@
             border-color: rgba(140,40,40,0.12);
             background: rgba(140,40,40,0.04);
         }
+        .approach-validation-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 1rem 0 0;
+        }
+        .approach-validation-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.82rem;
+            min-width: 640px;
+        }
+        .approach-validation-table thead th {
+            background: rgba(88,166,255,0.06);
+            color: rgba(88,166,255,0.9);
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 0.6rem 0.85rem;
+            border-bottom: 1px solid rgba(125,142,168,0.15);
+            white-space: nowrap;
+        }
+        .approach-validation-table tbody td {
+            padding: 0.6rem 0.85rem;
+            color: rgba(170,178,188,0.8);
+            border-bottom: 1px solid rgba(125,142,168,0.07);
+            vertical-align: middle;
+        }
+        .approach-validation-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .approach-validation-table tbody tr:hover td {
+            background: rgba(125,142,168,0.04);
+        }
+        .approach-validation-table .validation-component {
+            color: #e6edf3;
+            font-weight: 500;
+        }
+        .validation-status-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.15rem 0.55rem;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .validation-status-deployed {
+            background: rgba(63,185,80,0.12);
+            color: #3fb950;
+            border: 1px solid rgba(63,185,80,0.2);
+        }
+        .validation-status-beta {
+            background: rgba(210,153,34,0.12);
+            color: #d2992a;
+            border: 1px solid rgba(210,153,34,0.2);
+        }
+        body.covert-mode .approach-validation-table thead th {
+            background: rgba(196,60,60,0.06);
+            color: rgba(196,100,100,0.9);
+        }
+        body.covert-mode .approach-validation-table tbody tr:hover td {
+            background: rgba(140,40,40,0.04);
+        }
+        body.covert-mode .validation-status-deployed {
+            background: rgba(196,60,60,0.12);
+            color: #c43c3c;
+            border-color: rgba(196,60,60,0.2);
+        }
     </style>
 </head>
 <body>
@@ -774,6 +843,82 @@
                         <p>There&rsquo;s a difference between observing what&rsquo;s publicly visible and probing for weaknesses. We chose the boundary, documented it, and made it public. Read the full rationale in our <a href="/roe" class="text-info text-decoration-none fw-semibold">Rules of Engagement</a>.</p>
                     </div>
 
+                    <div class="approach-section" id="validation-status">
+                        <h2><i class="fas fa-clipboard-check"></i>Validation Status Matrix</h2>
+                        <p>Honest assessment of where each component stands. Science requires transparency about what&rsquo;s proven, what&rsquo;s in progress, and what&rsquo;s next.</p>
+                        <div class="approach-validation-table-wrap">
+                            <table class="approach-validation-table">
+                                <thead>
+                                    <tr>
+                                        <th>Component</th>
+                                        <th>Status</th>
+                                        <th>Standards</th>
+                                        <th>Validated</th>
+                                        <th>Next Step</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="validation-component">ICAE Confidence Engine</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>ICD 203</td>
+                                        <td>129 test cases</td>
+                                        <td>External audit</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">ICuAE Currency Engine</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>ICD 203, ISO/IEC 25012, RFC 8767, NIST SP 800-53</td>
+                                        <td>29 test cases</td>
+                                        <td>Longitudinal evaluation</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">RFC Protocol Analysis</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>RFC 7208, 6376, 7489, etc.</td>
+                                        <td>Golden fixtures</td>
+                                        <td>Continuous expansion</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">Drift Engine</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>Novel</td>
+                                        <td>Operational (3 EDEs)</td>
+                                        <td>Timeline visualization</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">Covert Recon Mode</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>MIL-STD-1472H, 3009, CIE 1951</td>
+                                        <td>Standards-informed</td>
+                                        <td>Spectroradiometric study</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">Topology Solver</td>
+                                        <td><span class="validation-status-badge validation-status-beta">Beta</span></td>
+                                        <td>Graph drawing metrics</td>
+                                        <td>Benchmark in progress</td>
+                                        <td>ELK baseline + significance</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">EDE System</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>Corrigenda practice</td>
+                                        <td>3 events tracked</td>
+                                        <td>Continued governance</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="validation-component">Notification Pipeline</td>
+                                        <td><span class="validation-status-badge validation-status-deployed">Deployed</span></td>
+                                        <td>&mdash;</td>
+                                        <td>Operational</td>
+                                        <td>Email + HTTPS enforcement</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="approach-founder">
                         <h3><i class="fas fa-user-shield me-2 text-info"></i>A Note from the Builder</h3>
                         <p>I don't have a computer science degree. I'm self-taught. Twenty-seven years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
@@ -781,7 +926,9 @@
                         <p>Over those years, I've mentored a lot of young IT professionals just starting out &mdash; helping them understand how to do things correctly from the foundation up. DNS Tool carries that same philosophy. It's built to teach the <em>why</em>, not just report the <em>what</em>. If you want to understand how the connected internet actually works &mdash; how domains are authenticated, how email is secured, how trust is established &mdash; DNS is where you start. We're here to help.</p>
                         <p>Here's something I've learned: whenever someone reaches out about a security product or partnership, the first thing I do is scan their domain. If they haven't secured their own email authentication, their own DNSSEC, their own TLS &mdash; I have a hard time believing they have the philosophy or discipline to protect mine. DNS doesn't lie. It's the most honest audit you can run on anyone.</p>
                         <p>This project exists because security intelligence should be transparent, reproducible, and grounded in evidence. Not because it's trendy. Because after 27 years of watching tools optimize for comfortable output instead of honest, neutral truth, I decided to build one that reports the findings as they are &mdash; not as you'd prefer them to be. We still care deeply about craft and design, because intrinsic motivation matters and learning should be engaging. But the visuals never soften the data.</p>
-                        <p>Yes, this platform uses AI-assisted development. Most serious software does now. But AI tools optimize for <em>done</em> unless you redirect them toward <em>correct</em>. Left to defaults, they produce generic layouts, placeholder copy, and features described in documentation but never implemented. The difference is the specification. Every RFC citation, every quality gate, every confidence taxonomy, every scientific color validation &mdash; those existed as requirements before a single line was generated. The AI was the tool. The 27 years of field engineering &mdash; knowing what plump, firm, large, fresh blueberries look like in this domain &mdash; that was the specification. You can't tell your assistant "go get me some blueberries" and expect excellence. You have to define what excellence looks like. We did.</p>
+                        <p>I wanted to be a scientist my whole life. My father gave me access in the late 70s and early 80s &mdash; to databases, to tools, to the spark. Tandy TRS-80s, early modems, the thrill of watching data move across a wire. After that window closed, I never had access to the expensive databases and research tools I needed. But the spark was already lit. The intrinsic motivation was hard-coded into the firmware.</p>
+                        <p>Twenty-seven years later, modern tools collapsed the barriers that used to require entire teams. Open-source infrastructure, cloud computing, AI-assisted development &mdash; one person can now build what previously required a frontend developer, a backend developer, a sysadmin, a release engineer, and a security analyst. DNS Tool is the expression of that drive &mdash; a scientific instrument built by someone who couldn&rsquo;t afford to wait for permission.</p>
+                        <p>Yes, this platform uses AI-assisted development. Most serious software does now. But AI tools optimize for <em>done</em> unless you redirect them toward <em>correct</em>. Left to defaults, they produce generic layouts, placeholder copy, and features described in documentation but never implemented. The difference is the specification. Every RFC citation, every quality gate, every confidence taxonomy, every scientific color validation &mdash; those existed as requirements before a single line was generated. The AI was the tool. The 27 years of field engineering &mdash; knowing exactly what correct output looks like in this domain &mdash; that was the specification. You can&rsquo;t hand a tool an ambiguous request and expect precision. You have to define what excellence looks like before a single line is written. We did.</p>
                         <p>We're not perfect &mdash; we're human too. But we promise we're here to learn, to improve, and to help. If you find something we got wrong, tell us. That's how this gets better.</p>
                     </div>
 

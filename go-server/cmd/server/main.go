@@ -355,6 +355,9 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
+        edeHandler := handlers.NewEDEHandler(cfg)
+        router.GET("/ede", edeHandler.EDE)
+
         router.GET("/methodology", staticHandler.MethodologyPDF)
         router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
 
