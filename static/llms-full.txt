@@ -404,9 +404,9 @@ DNS Tool detects when a domain uses a hosted email provider and adjusts DANE ana
 
 ---
 
-## System Architecture (`/architecture`) — TLP:GREEN
+## System Architecture (`/architecture`) — TLP:CLEAR
 
-A static, zero-JavaScript public overview of the system architecture, classified TLP:GREEN (public-safe). Designed for technical audiences, investors, and security researchers who want to understand the platform's scientific foundation.
+A static, zero-JavaScript public overview of the system architecture, classified TLP:CLEAR (no restrictions on distribution). Designed for technical audiences, investors, and security researchers who want to understand the platform's scientific foundation.
 
 ### Sections
 1. **Intelligence Pipeline**: DNS query flow from multi-resolver parallel collection through analysis engines to intelligence product generation
