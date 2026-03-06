@@ -593,5 +593,93 @@ posture assessment.
 
 ---
 
-*Generated for DNS Tool v26.34.19 — March 5, 2026*
+## 11. Drift Engine — Posture Change Detection
+
+The drift engine detects DNS posture changes between analyses, enabling continuous security monitoring.
+
+```mermaid
+graph LR
+    SCAN["Domain Scan<br/>ICIE analysis"]:::blue --> HASH["Posture Hash<br/>SHA-256 canonical"]:::blue
+    HASH -->|"hash changed"| DIFF["Posture Diff<br/>Field-by-field<br/>comparison"]:::cyan
+    DIFF --> SEV["Severity Engine<br/>danger · warning<br/>success · info"]:::amber
+    SEV --> EVENT["Drift Event<br/>PostgreSQL record"]:::green
+    EVENT --> WATCH["Watchlist Lookup<br/>domain_watchlist"]:::purple
+    WATCH --> QUEUE["Queue Notifications<br/>Per-endpoint routing"]:::purple
+    QUEUE --> DELIVER["Delivery Loop<br/>30s poll · 50/batch<br/>SSRF-protected"]:::purple
+    DELIVER --> DISCORD["Discord<br/>Webhook embed"]:::blue
+    DELIVER --> WEBHOOK["Generic Webhook<br/>JSON POST"]:::blue
+    DELIVER -.-> EMAIL["Email<br/>SES/SMTP (planned)"]:::gray
+
+    classDef blue fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff
+    classDef cyan fill:#0a3a4a,stroke:#22d3ee,stroke-width:2px,color:#e6edf3
+    classDef amber fill:#ca8a04,stroke:#facc15,stroke-width:2px,color:#fff
+    classDef green fill:#16a34a,stroke:#4ade80,stroke-width:2px,color:#fff
+    classDef purple fill:#9333ea,stroke:#c084fc,stroke-width:2px,color:#fff
+    classDef gray fill:#1a1a2a,stroke:#6b7280,stroke-width:2px,color:#9ca3af,stroke-dasharray:5
+```
+
+### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Posture Hash | `posture_hash.go` | Canonical SHA-256 hash of analysis results |
+| Posture Diff | `posture_diff.go` | Structured field-by-field comparison |
+| Severity Classification | `posture_diff_oss.go` | Maps changes to Bootstrap severity classes |
+| Drift Persistence | `analysis.go` | `persistDriftEvent()` creates drift events |
+| Notification Queuing | `analysis.go` | `queueDriftNotifications()` routes to watchlist watchers |
+| Delivery Loop | `main.go` | `startNotificationDelivery()` — 30s poll, 50/batch |
+| SSRF Protection | `notifier.go` | `isSSRFSafe()` blocks private/loopback IPs |
+
+### Drift Severity Rules (OSS Defaults)
+
+- DMARC policy downgrade (reject → none): `danger`
+- DMARC policy upgrade (none → reject): `success`
+- Security status degradation (pass → fail): `danger`
+- Security status improvement (fail → pass): `success`
+- MX/NS record changes: `warning`
+- Other changes: `info`
+
+## 12. GitHub Issues Triage — Three-Tier Intelligence Routing
+
+```mermaid
+graph TD
+    NEW["New Issue<br/>Template required"]:::blue
+    NEW --> T1["Research Mission Critical<br/>RFC citation required<br/>P0 priority"]:::danger
+    NEW --> T2["Cosmetic / UX / UI<br/>Screenshot required"]:::amber
+    NEW --> T3["Security Vulnerability<br/>Auto-close + lock"]:::purple
+
+    T1 --> VALIDATE["Content Validation<br/>RFC ref · Expected/Observed"]:::cyan
+    VALIDATE -->|"Substantive"| ACCEPTED["triage/accepted"]:::green
+    VALIDATE -->|"Incomplete"| NEEDSINFO["triage/needs-information"]:::amber
+
+    T2 --> ACCEPTED
+    T3 --> REDIRECT["Private Channel<br/>Security Advisory<br/>security@it-help.tech"]:::purple
+
+    classDef blue fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff
+    classDef cyan fill:#0a3a4a,stroke:#22d3ee,stroke-width:2px,color:#e6edf3
+    classDef amber fill:#ca8a04,stroke:#facc15,stroke-width:2px,color:#fff
+    classDef green fill:#16a34a,stroke:#4ade80,stroke-width:2px,color:#fff
+    classDef purple fill:#9333ea,stroke:#c084fc,stroke-width:2px,color:#fff
+    classDef danger fill:#dc2626,stroke:#ef4444,stroke-width:2px,color:#fff
+```
+
+### Triage Categories
+
+| Category | Priority | Automation | Examples |
+|----------|----------|------------|---------|
+| Research Mission Critical | P0 — Immediate | Validates RFC references, checks substantive content | Wrong RFC citation, flawed confidence logic, broken detection vector |
+| Cosmetic / UX / UI | Normal cadence | Auto-acknowledge, version/device tracking | Layout bugs, accessibility issues, visual polish |
+| Security Vulnerability | Private only | Auto-close, lock, redirect to advisory | Vulnerabilities, exploits, security flaws |
+
+### Automated Safeguards
+
+- **Blank issues disabled** — all reporters must choose a template
+- **Duplicate check** — required checkbox: "I have searched existing issues"
+- **Security keyword scanner** — detects vulnerability-related terms in non-security issues, flags for review
+- **Idempotent comments** — bot markers prevent duplicate acknowledgments on edits
+- **Label state machine** — `needs-triage` → `triage/accepted` or `triage/needs-information`
+
+---
+
+*Generated for DNS Tool v26.34.54 — March 6, 2026*
 *Diagrams render natively on GitHub, GitLab, Codeberg, and VS Code with Mermaid plugins.*

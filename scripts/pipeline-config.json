@@ -27,6 +27,18 @@
         "svg_output": "static/images/diagrams/protocol-coverage.svg",
         "miro_widget_id": "3458764660935886175",
         "miro_title": "Protocol Coverage — 9 Protocols with RFC References"
+      },
+      "drift-notification-pipeline": {
+        "mermaid_source": "docs/diagrams/drift-notification-pipeline.mmd",
+        "svg_output": "static/images/diagrams/drift-notification-pipeline.svg",
+        "miro_widget_id": "3458764662600549628",
+        "miro_title": "Drift Notification Pipeline — Detection to Delivery"
+      },
+      "github-issues-triage": {
+        "mermaid_source": "docs/diagrams/github-issues-triage.mmd",
+        "svg_output": "static/images/diagrams/github-issues-triage.svg",
+        "miro_widget_id": "3458764662600549865",
+        "miro_title": "GitHub Issues Triage — Three-Tier Intelligence Routing"
       }
     },
     "additional_diagrams": {
@@ -63,7 +75,9 @@
     "token_env": "FIGMA_PAT",
     "file_key": null,
     "page_name": "Architecture Diagrams",
-    "note": "Set file_key after creating the Figma project file"
+    "note": "No Figma project exists yet. FIGMA_PAT secret is configured but no file has been created. Set file_key after creating the Figma project file.",
+    "status": "pending_setup",
+    "last_checked": "2026-03-06"
   },
   "export": {
     "bundle_dir": "exports/figma-bundle",
