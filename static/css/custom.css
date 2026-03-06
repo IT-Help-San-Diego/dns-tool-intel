@@ -1364,7 +1364,7 @@ main.container {
         touch-action: manipulation;
     }
     
-    a {
+    a, button {
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     }
     
@@ -6463,3 +6463,8 @@ body.covert-mode .u-privacy-accept-btn:hover {
 .ttl-scan-spinner { margin-bottom: 1rem; }
 .ttl-scan-title { color: #e0e0e0; font-size: 1.1rem; font-weight: 500; }
 .ttl-scan-subtitle { color: #888; font-size: 0.85rem; margin-top: 0.5rem; }
+.u-offscreen-copy { position: fixed; opacity: 0; pointer-events: none; }
+.ttl-card-active { box-shadow: 0 0 20px rgba(13,202,240,0.25); opacity: 1; transform: scale(1.02); }
+.ttl-card-inactive { box-shadow: none; opacity: 0.45; transform: scale(1); }
+.ttl-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.ttl-loading-box { background: rgba(28,35,51,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 2rem 3rem; text-align: center; box-shadow: 0 1rem 3rem rgba(0,0,0,0.5); }

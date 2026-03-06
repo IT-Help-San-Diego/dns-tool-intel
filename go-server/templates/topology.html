@@ -28,6 +28,10 @@
             display: block;
             width: 100%;
             height: 100%;
+            cursor: default;
+        }
+        .topo-canvas-wrap canvas.topo-cursor-pointer {
+            cursor: pointer;
         }
         .u-privacy-banner { display: none !important; }
         .topo-legend {
@@ -1191,12 +1195,12 @@
             mouseY = ev.clientY - rect.top;
             hoverNode = hitTest(mouseX, mouseY);
             hoveredPop = hitTestPop(mouseX, mouseY);
-            canvas.style.cursor = (hoverNode || hoveredPop !== null) ? 'pointer' : 'default';
+            canvas.classList.toggle('topo-cursor-pointer', !!(hoverNode || hoveredPop !== null));
         });
 
         canvas.addEventListener('mouseleave', function() {
             mouseX = -1; mouseY = -1; hoverNode = null; hoveredPop = null;
-            canvas.style.cursor = 'default';
+            canvas.classList.remove('topo-cursor-pointer');
         });
 
         function getConnectedIds(nodeId) {

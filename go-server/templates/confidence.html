@@ -1033,9 +1033,9 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    document.querySelectorAll('.icae-cal-fill[data-pct]').forEach(function(el){el.style.width=el.dataset.pct+'%';});
-    document.querySelectorAll('.icae-cal-needle[data-pct]').forEach(function(el){el.style.left=el.dataset.pct+'%';});
-    document.querySelectorAll('.icae-tier-meter-fill[data-pct]').forEach(function(el){el.style.width=el.dataset.pct+'%';});
+    document.querySelectorAll('.icae-cal-fill[data-pct]').forEach(function(el){el.style.setProperty('width',el.dataset.pct+'%');});
+    document.querySelectorAll('.icae-cal-needle[data-pct]').forEach(function(el){el.style.setProperty('left',el.dataset.pct+'%');});
+    document.querySelectorAll('.icae-tier-meter-fill[data-pct]').forEach(function(el){el.style.setProperty('width',el.dataset.pct+'%');});
     </script>
     {{template "math_copy_script" .}}
 </body>

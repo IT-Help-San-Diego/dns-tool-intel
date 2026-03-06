@@ -392,17 +392,13 @@
                 var input = c.previousElementSibling;
                 var check = c.querySelector('.ttl-profile-check');
                 if(input && input.checked){
-                    c.classList.add('border-2');
-                    c.style.boxShadow = '0 0 20px rgba(13,202,240,0.25)';
-                    c.style.opacity = '1';
-                    c.style.transform = 'scale(1.02)';
-                    if(check) check.style.display = 'block';
+                    c.classList.add('border-2', 'ttl-card-active');
+                    c.classList.remove('ttl-card-inactive');
+                    if(check) check.classList.add('d-block');
                 } else {
-                    c.classList.remove('border-2');
-                    c.style.boxShadow = 'none';
-                    c.style.opacity = '0.45';
-                    c.style.transform = 'scale(1)';
-                    if(check) check.style.display = 'none';
+                    c.classList.remove('border-2', 'ttl-card-active');
+                    c.classList.add('ttl-card-inactive');
+                    if(check) check.classList.remove('d-block');
                 }
             });
         }
@@ -425,9 +421,9 @@
                 }
                 var overlay = document.createElement('div');
                 overlay.id = 'ttl-loading';
-                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+                overlay.className = 'ttl-loading-overlay';
                 var box = document.createElement('div');
-                box.style.cssText = 'background:rgba(28,35,51,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:2rem 3rem;text-align:center;box-shadow:0 1rem 3rem rgba(0,0,0,0.5);';
+                box.className = 'ttl-loading-box';
                 box.innerHTML = '<div class="ttl-scan-spinner"><i class="fas fa-spinner fa-spin fa-2x text-info"></i></div><div class="ttl-scan-title">Scanning DNS records\u2026</div><div class="ttl-scan-subtitle">This typically takes 5\u201310 seconds</div>';
                 overlay.appendChild(box);
                 document.body.appendChild(overlay);
