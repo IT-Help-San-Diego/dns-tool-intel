@@ -63,7 +63,7 @@
 
                                 <div class="mb-3">
                                     <label for="domain_override" class="form-label">
-                                        <i class="fas fa-globe me-1"></i> Domain Override <span class="text-muted small">(optional)</span>
+                                        <i class="fas fa-globe me-1"></i> Domain Override <span class="u-a11y-muted small">(optional)</span>
                                     </label>
                                     <input type="text" class="form-control bg-dark text-light border-secondary" 
                                            id="domain_override" name="domain_override" 
@@ -108,7 +108,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>File Summary</h5>
+                <h3 class="mb-0 h5"><i class="fas fa-info-circle me-2"></i>File Summary</h3>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -174,13 +174,13 @@
             <div class="col-lg-6 mb-4">
                 <div class="card bg-dark border-secondary h-100">
                     <div class="card-header border-secondary">
-                        <h5 class="mb-0"><i class="fas fa-gavel me-2"></i>Zone Structural Validity
+                        <h3 class="mb-0 h5"><i class="fas fa-gavel me-2"></i>Zone Structural Validity
                             {{if ge $zh.StructuralScore 90}}<span class="badge bg-success ms-2">{{$zh.StructuralVerdict}}</span>
                             {{else if ge $zh.StructuralScore 70}}<span class="badge bg-info ms-2">{{$zh.StructuralVerdict}}</span>
                             {{else if ge $zh.StructuralScore 50}}<span class="badge bg-warning text-dark ms-2">{{$zh.StructuralVerdict}}</span>
                             {{else}}<span class="badge bg-danger ms-2">{{$zh.StructuralVerdict}}</span>
                             {{end}}
-                        </h5>
+                        </h3>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -188,11 +188,11 @@
                                 <span class="small text-muted">Structural Score</span>
                                 <span class="small fw-bold">{{$zh.StructuralScore}}%</span>
                             </div>
-                            <div class="progress" style="height:8px">
-                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" style="width:{{$zh.StructuralScore}}%"></div>
-                                {{else}}<div class="progress-bar bg-danger" style="width:{{$zh.StructuralScore}}%"></div>
+                            <div class="progress u-progress-h8">
+                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{else}}<div class="progress-bar bg-danger" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
                                 {{end}}
                             </div>
                         </div>
@@ -217,7 +217,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card bg-dark border-secondary h-100">
                     <div class="card-header border-secondary">
-                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Record Type Distribution</h5>
+                        <h3 class="mb-0 h5"><i class="fas fa-chart-bar me-2"></i>Record Type Distribution</h3>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3 text-center">
@@ -240,8 +240,8 @@
                                 <span class="small"><span class="badge bg-info text-dark me-1">{{.Type}}</span></span>
                                 <span class="small text-muted">{{.Count}} ({{printf "%.1f" .Percent}}%)</span>
                             </div>
-                            <div class="progress" style="height:5px">
-                                <div class="progress-bar bg-info" style="width:{{printf "%.1f" .Percent}}%"></div>
+                            <div class="progress u-progress-h5">
+                                <div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{printf "%.1f" .Percent}}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                         {{end}}
@@ -253,9 +253,9 @@
         {{if gt (len $zh.PolicySignals) 0}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-flag me-2"></i>Policy &amp; Security Signals
+                <h3 class="mb-0 h5"><i class="fas fa-flag me-2"></i>Policy &amp; Security Signals
                     <span class="badge bg-secondary ms-2">Does not affect structural score</span>
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <p class="small text-muted mb-3">Security posture analysis for this <span class="text-info">{{$zh.ZoneProfile}}</span> zone. SPF and DMARC are always evaluated &mdash; a domain without them is spoofable regardless of whether it sends email (RFC 7208, RFC 7489). These signals do not affect the structural score.</p>
@@ -269,8 +269,8 @@
                             {{end}}
                             <div>
                                 <span class="small fw-bold{{if eq .Status "detected"}} text-success{{else if eq .Status "missing"}} text-warning{{end}}">{{.Label}}
-                                    {{if eq .Status "detected"}}<span class="badge bg-success bg-opacity-25 text-success ms-1" style="font-size:0.65rem">detected</span>
-                                    {{else if eq .Status "missing"}}<span class="badge bg-warning bg-opacity-25 text-warning ms-1" style="font-size:0.65rem">expected</span>
+                                    {{if eq .Status "detected"}}<span class="badge bg-success bg-opacity-25 text-success ms-1 u-fs-065em">detected</span>
+                                    {{else if eq .Status "missing"}}<span class="badge bg-warning bg-opacity-25 text-warning ms-1 u-fs-065em">expected</span>
                                     {{end}}
                                 </span>
                                 <div class="small text-muted">{{.Detail}}</div>
@@ -286,9 +286,9 @@
         {{if gt $zh.NSCount 0}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>Delegation Intelligence
+                <h3 class="mb-0 h5"><i class="fas fa-network-wired me-2"></i>Delegation Intelligence
                     <span class="badge bg-secondary ms-2">{{$zh.NSCount}} nameserver{{if gt $zh.NSCount 1}}s{{end}}</span>
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
@@ -333,11 +333,11 @@
         {{if $zh.SOATimers}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>SOA Timer Analysis
+                <h3 class="mb-0 h5"><i class="fas fa-cog me-2"></i>SOA Timer Analysis
                     {{if eq (len $zh.SOATimers.Findings) 0}}<span class="badge bg-success ms-2">RFC-Compliant</span>
                     {{else}}<span class="badge bg-warning text-dark ms-2">{{len $zh.SOATimers.Findings}} finding{{if gt (len $zh.SOATimers.Findings) 1}}s{{end}}</span>
                     {{end}}
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <div class="row mb-3 text-center">
@@ -390,9 +390,9 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>TTL Analysis
+                <h3 class="mb-0 h5"><i class="fas fa-clock me-2"></i>TTL Analysis
                     {{if $zh.TTLSpreadHigh}}<span class="badge bg-warning text-dark ms-2">High Spread</span>{{end}}
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <div class="row mb-3 text-center">
@@ -441,7 +441,7 @@
         {{if $zh.HasDNSSEC}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>DNSSEC Coverage in Zone File</h5>
+                <h3 class="mb-0 h5"><i class="fas fa-shield-alt me-2"></i>DNSSEC Coverage in Zone File</h3>
             </div>
             <div class="card-body">
                 <div class="row text-center">
@@ -477,9 +477,9 @@
         {{if gt (len $zh.Duplicates) 0}}
         <div class="card bg-dark border-warning mb-4">
             <div class="card-header border-warning">
-                <h5 class="mb-0"><i class="fas fa-clone text-warning me-2"></i>Duplicate Records
+                <h3 class="mb-0 h5"><i class="fas fa-clone text-warning me-2"></i>Duplicate Records
                     <span class="badge bg-warning text-dark ms-2">{{len $zh.Duplicates}} duplicate{{if gt (len $zh.Duplicates) 1}}s{{end}}</span>
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <p class="small text-muted mb-3">Exact duplicate RRsets (same name, type, and rdata) per RFC 2181 &sect;5.2. These may indicate copy-paste errors in the zone file.</p>
@@ -506,7 +506,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-th-list me-2"></i>Records by Type</h5>
+                <h3 class="mb-0 h5"><i class="fas fa-th-list me-2"></i>Records by Type</h3>
                 <span class="badge bg-secondary">{{.ParseResult.RecordCount}} total</span>
             </div>
             <div class="card-body p-0">
@@ -581,14 +581,14 @@
         {{if .DriftReport}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h5 class="mb-0">
+                <h3 class="mb-0 h5">
                     <i class="fas fa-exchange-alt me-2"></i>Drift Report
                     {{if gt .DriftReport.TotalDrifts 0}}
                     <span class="badge bg-warning text-dark ms-2">{{.DriftReport.TotalDrifts}} difference{{if gt .DriftReport.TotalDrifts 1}}s{{end}}</span>
                     {{else}}
                     <span class="badge bg-success ms-2">No Drift Detected</span>
                     {{end}}
-                </h5>
+                </h3>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
@@ -715,5 +715,8 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.querySelectorAll('.progress-bar[aria-valuenow]').forEach(function(bar){bar.style.width=bar.getAttribute('aria-valuenow')+'%';});
+    </script>
 </body>
 </html>

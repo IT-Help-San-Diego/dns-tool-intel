@@ -20,4 +20,5 @@ jobs:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         run: |
           git remote add codeberg "https://careybalboa:${CODEBERG_TOKEN}@codeberg.org/careybalboa/dns-tool-web.git"
-          git push --mirror codeberg
+          git push --force --all codeberg
+          git push --force --tags codeberg

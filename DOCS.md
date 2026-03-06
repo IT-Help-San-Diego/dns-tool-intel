@@ -150,6 +150,9 @@ Dual intelligence products: Engineer's DNS Intelligence Report (comprehensive te
 ### Report Integrity
 Every analysis generates a SHA-3-512 integrity hash binding domain, analysis ID, timestamp, tool version, and canonicalized results data. Header preview format: `SHA-3: c82f✱✱✱✱ Report Integrity ↓` (4 hex chars + 4 star masks + anchor link to full hash section). Copy-to-clipboard support. Distinct from posture hash (drift detection).
 
+### Internet Archive — Permanent Record
+Every successful, non-private, non-scan-flagged analysis is automatically submitted to the Internet Archive via `web.archive.org/save/` in a background goroutine. The snapshot URL is stored in `domain_analyses.wayback_url` and displayed as a green "Archived" badge in the results header plus a dedicated "Internet Archive — Permanent Record" card on Engineer's and Executive's reports. Privacy guards ensure private and scanner-flagged analyses are never archived. This completes a three-layer evidence chain: SHA-3-512 integrity hash + posture hash for drift detection + third-party Wayback Machine archive.
+
 ## Rate Limiting & Abuse Prevention
 
 | Protection | Window | Purpose |

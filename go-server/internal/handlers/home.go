@@ -64,6 +64,7 @@ func (h *HomeHandler) Index(c *gin.Context) {
                 "AppVersion":      h.Config.AppVersion,
                 "MaintenanceNote": h.Config.MaintenanceNote,
                 "BetaPages":        h.Config.BetaPages,
+                "BaseURL":     h.Config.BaseURL,
                 "CspNonce":    nonce,
                 "ActivePage":  "home",
                 "CsrfToken":   csrfToken,

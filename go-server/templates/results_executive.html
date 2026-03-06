@@ -543,7 +543,7 @@
             <div class="print-header-toprow">
                 <div class="print-header-left">
                     <div class="print-report-brand">
-                        <img src="/static/images/owl-of-athena.png" alt="DNS Tool" class="print-brand-logo">
+                        <picture><source srcset="/static/images/owl-of-athena-160.webp" type="image/webp"><img src="/static/images/owl-of-athena-160.png" alt="DNS Tool" class="print-brand-logo" width="32" height="32"></picture>
                         <span class="print-brand-name">DNS Tool</span>
                     </div>
                     <div class="print-report-title">Executive's DNS Intelligence Brief</div>
@@ -578,6 +578,9 @@
                         {{if gt .AnalysisDuration 0}}<i class="fas fa-stopwatch me-1"></i>{{formatFloat 1 .AnalysisDuration}}s{{end}}
                         {{if .IntegrityHash}}
                             <span class="mx-1">&middot;</span><span class="u-integrity-preview"><i class="fas fa-lock"></i> <span class="font-monospace">SHA-3-512: {{substr 0 4 .IntegrityHash}}<span class="u-ls-tight">&#x2731;&#x2731;&#x2731;&#x2731;</span></span> <a href="#report-integrity" class="u-integrity-link u-integrity-link-warning" title="Click to view full SHA-3-512 integrity hash">Verify</a></span>
+                        {{end}}
+                        {{if .WaybackURL}}
+                            <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot"><i class="fas fa-landmark me-1"></i>Archived</a>
                         {{end}}
                     </div>
                     {{end}}
@@ -1613,6 +1616,25 @@
                     <i class="fas fa-shield-alt me-1"></i>
                     {{.RFCCount}} RFCs evaluated &middot; DNS state at {{.AnalysisTimestamp}}
                 </div>
+            </div>
+        </div>
+        {{end}}
+
+        {{if .WaybackURL}}
+        <div class="card border-success border-opacity-25 mt-3 u-bg-secondary" id="wayback-archive">
+            <div class="card-header">
+                <h5 class="mb-0 d-flex align-items-center u-color-heading-light">
+                    <i class="fas fa-landmark me-2 text-success"></i>Internet Archive &mdash; Permanent Record
+                    <span class="badge ms-2 u-badge-success-outline">Wayback Machine</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2 u-color-gray-400">
+                    This analysis is permanently archived by the Internet Archive, providing independent third-party verification of DNS security posture at analysis time.
+                </p>
+                <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-external-link-alt me-1"></i>View Archived Snapshot
+                </a>
             </div>
         </div>
         {{end}}

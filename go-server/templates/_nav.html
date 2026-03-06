@@ -3,12 +3,12 @@
 <nav class="navbar navbar-dark bg-dark" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand" href="/">
-            <picture><source srcset="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "icons/icon-48x48.png" .AppVersion}}" width="24" height="24" alt="" class="me-2 u-valign-n3 rounded-circle" aria-hidden="true"></picture>DNS Tool <span class="nav-version-badge ms-1">v{{.AppVersion}}</span>
+            <img src="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" width="24" height="24" alt="" class="me-2 u-valign-n3 rounded-circle" aria-hidden="true" loading="eager" decoding="sync" fetchpriority="high">DNS Tool <span class="nav-version-badge ms-1">v{{.AppVersion}}</span>
         </a>
         <div class="u-nav-controls d-flex align-items-center ms-auto gap-2">
             {{if .MaintenanceNote}}<span class="u-maintenance-tag"><i class="fas fa-wrench me-1" aria-hidden="true"></i>{{.MaintenanceNote}}</span>{{end}}
             <span class="u-covert-beta-tag">Beta</span>
-            <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-label="Toggle Covert Recon Mode">
+            <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-label="Toggle Covert Recon Mode" aria-pressed="false">
                 <i class="fas fa-biohazard" aria-hidden="true"></i>
             </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation menu">
@@ -87,8 +87,8 @@
         </div>
     </div>
 </nav>
-<div class="modal fade" id="roeModal" tabindex="-1" aria-labelledby="roeModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="roeModal" tabindex="-1" aria-labelledby="roeModalLabel" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down modal-lg">
         <div class="modal-content bg-dark border border-danger border-opacity-50">
             <div class="modal-header border-bottom border-danger border-opacity-25">
                 <h5 class="modal-title" id="roeModalLabel"><i class="fas fa-shield-alt text-danger me-2" aria-hidden="true"></i>Rules of Engagement</h5>
@@ -125,8 +125,8 @@
                 </div>
             </div>
             <div class="modal-footer border-top border-danger border-opacity-25">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="roeDecline">Decline</button>
-                <button type="button" class="btn btn-danger btn-sm" id="roeAccept"><i class="fas fa-shield-alt me-1" aria-hidden="true"></i>Accept &amp; Enter Covert Mode</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="roeDecline" style="-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation">Decline</button>
+                <button type="button" class="btn btn-danger btn-sm" id="roeAccept" style="-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation"><i class="fas fa-shield-alt me-1" aria-hidden="true"></i>Accept &amp; Enter Covert Mode</button>
             </div>
         </div>
     </div>

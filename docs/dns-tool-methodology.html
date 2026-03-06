@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure</title>
+<style>
+  @page {
+    size: letter;
+    margin: 1in 1.1in;
+  }
+  body {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 11.5pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .cover-header {
+    text-align: center;
+    margin-bottom: 28pt;
+    padding-bottom: 18pt;
+    border-bottom: 1.5pt solid #C8A878;
+  }
+  .cover-header img {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 14pt;
+    background: #0d1117;
+    border-radius: 50%;
+    padding: 2px;
+    border: 2.5px solid #C8A878;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 8px rgba(0,0,0,0.3);
+  }
+  .cover-header h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 6pt 0 4pt 0;
+    letter-spacing: 0.03em;
+  }
+  .cover-header .subtitle {
+    font-size: 12pt;
+    color: #555;
+    font-style: italic;
+    margin: 0 0 14pt 0;
+  }
+  .metadata-block {
+    text-align: center;
+    font-size: 9.5pt;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 6pt;
+  }
+  .metadata-block .author-name {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4pt 0;
+  }
+  .metadata-block a {
+    color: #2a5d9f;
+    text-decoration: none;
+  }
+  .meta-label {
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    border-bottom: 0.75pt solid #C8A878;
+    padding-bottom: 4pt;
+    margin: 22pt 0 10pt 0;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #333;
+    margin: 14pt 0 6pt 0;
+  }
+  p {
+    margin: 0 0 8pt 0;
+    text-align: justify;
+  }
+  ul {
+    margin: 4pt 0 10pt 0;
+    padding-left: 18pt;
+  }
+  li {
+    margin-bottom: 3pt;
+  }
+  ol {
+    margin: 4pt 0 10pt 0;
+    padding-left: 22pt;
+  }
+  strong {
+    font-weight: 600;
+  }
+  .section-abstract {
+    font-size: 10.5pt;
+    color: #333;
+    background: #fafaf8;
+    border-left: 3pt solid #C8A878;
+    padding: 10pt 14pt;
+    margin: 12pt 0 18pt 0;
+  }
+  code, pre {
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    background: #f5f5f2;
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+  }
+  pre {
+    padding: 10pt 14pt;
+    overflow-x: auto;
+    border: 0.5pt solid #ddd;
+    margin: 8pt 0 12pt 0;
+  }
+  .citation-block {
+    background: #f5f5f2;
+    border: 0.5pt solid #ddd;
+    padding: 10pt 14pt;
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    margin: 8pt 0;
+    line-height: 1.5;
+  }
+  hr {
+    border: none;
+    border-top: 0.5pt solid #ccc;
+    margin: 20pt 0;
+  }
+  .footer {
+    text-align: center;
+    font-size: 8.5pt;
+    color: #888;
+    margin-top: 28pt;
+    padding-top: 10pt;
+    border-top: 0.75pt solid #C8A878;
+    line-height: 1.6;
+  }
+  .footer a {
+    color: #2a5d9f;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-header">
+  <img src="../static/images/owl-of-athena.png" alt="Owl of Athena">
+  <h1>DNS Tool</h1>
+  <p class="subtitle">Confidence-Scored Analysis of Domain Security Infrastructure</p>
+
+  <div class="metadata-block">
+    <p class="author-name">Carey James Balboa</p>
+    <p>
+      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a><br>
+      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a><br>
+      <span class="meta-label">Source</span>&ensp;<a href="https://github.com/careyjames/dns-tool-web">github.com/careyjames/dns-tool-web</a><br>
+      <span class="meta-label">Version</span>&ensp;26.34.25&emsp;·&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+    </p>
+    <p style="font-style: italic; font-size: 10pt; color: #555; margin-top: 10pt;">Independent research artifact accompanying the DNS Tool software platform.</p>
+  </div>
+</div>
+
+<h2>Abstract</h2>
+<div class="section-abstract">
+DNS Tool is an open-source OSINT platform designed to analyze domain security posture using RFC-compliant signals from DNS and email authentication infrastructure. The system collects DNS records, evaluates configuration compliance with relevant RFC standards, and applies a confidence-scored interpretation model to produce structured security intelligence outputs. Unlike traditional scanners that report raw DNS results, DNS Tool emphasizes confidence scoring and reproducibility, enabling analysts to distinguish between verified security signals, ambiguous observations, and unsupported conclusions.
+<br><br>
+The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC), transport security (MTA-STS, DANE), DNS integrity (DNSSEC), brand protection indicators (BIMI), and domain configuration analysis (CAA, TLS-RPT). This document describes the methodology used by DNS Tool to transform raw DNS observations into structured intelligence outputs.
+</div>
+
+<h2>1. Problem Statement</h2>
+<p>Modern domain security analysis is fragmented across multiple DNS-based mechanisms defined by different RFC specifications: SPF (RFC 7208), DKIM (RFC 6376), DMARC (RFC 7489), DNSSEC (RFC 4033&ndash;4035), MTA-STS (RFC 8461), DANE for SMTP (RFC 7672), BIMI (RFC 9495), TLS-RPT (RFC 8460), and CAA (RFC 8659).</p>
+<p>Most existing tools present raw DNS data without distinguishing between valid security signals, partial configurations, ambiguous results, and misconfigurations. This creates a common problem for analysts: interpretation uncertainty.</p>
+<p>DNS Tool was developed to address this problem by introducing a structured evaluation process that: (1) collects DNS evidence, (2) verifies RFC compliance, and (3) applies a confidence model to interpretation.</p>
+
+<h2>2. Data Collection</h2>
+<h3>2.1 DNS Query Process</h3>
+<p>DNS Tool collects records by querying multiple upstream resolvers (including Google Public DNS, Cloudflare, and Quad9) and comparing responses for consistency. The multi-resolver approach improves confidence by detecting resolver-specific anomalies such as caching artifacts, SERVFAIL responses, or DNSSEC validation failures.</p>
+<p>All queries use standard DNS protocols over UDP/53 and TCP/53. DNS-over-HTTPS (DoH) is used as a secondary validation channel when available.</p>
+
+<h3>2.2 Record Types Collected</h3>
+<p>For each domain analyzed, DNS Tool collects and evaluates:</p>
+<ul>
+<li><strong>A / AAAA</strong>: Host address records</li>
+<li><strong>MX</strong>: Mail exchanger records</li>
+<li><strong>TXT</strong>: SPF, DMARC, DKIM, BIMI, MTA-STS, TLS-RPT policies</li>
+<li><strong>TLSA</strong>: DANE/TLSA certificate association records</li>
+<li><strong>CNAME</strong>: Canonical name records (indirect hosting detection)</li>
+<li><strong>NS</strong>: Nameserver delegation records</li>
+<li><strong>SOA</strong>: Start of Authority records</li>
+<li><strong>CAA</strong>: Certificate Authority Authorization records</li>
+<li><strong>DNSKEY / DS / RRSIG</strong>: DNSSEC validation chain records</li>
+</ul>
+
+<h3>2.3 Evidence Preservation</h3>
+<p>All collected DNS responses are preserved with timestamps, resolver identification, TTL values, and response codes. This evidence chain enables reproducibility and audit trail verification.</p>
+
+<h2>3. Analysis Methodology</h2>
+<h3>3.1 Protocol-Specific Evaluation</h3>
+<p>Each protocol is evaluated against its defining RFC specification. The evaluation produces three outputs:</p>
+<ol>
+<li><strong>Finding</strong>: A factual observation about what was found</li>
+<li><strong>Compliance Status</strong>: Pass, Fail, Warn, or Info relative to the RFC</li>
+<li><strong>Confidence Score</strong>: How certain the tool is about the interpretation</li>
+</ol>
+
+<h3>3.2 SPF Analysis (RFC 7208)</h3>
+<p>SPF evaluation checks: presence of a valid SPF TXT record, syntax validation against RFC 7208, mechanism count (10-lookup limit enforcement), include chain resolution and depth analysis, qualifier analysis (pass, fail, softfail, neutral), and duplicate record detection.</p>
+
+<h3>3.3 DKIM Analysis (RFC 6376)</h3>
+<p>DKIM evaluation checks: public key record presence for known selectors, key type and size validation (RSA minimum 1024-bit, recommended 2048-bit), selector discovery using common selector patterns, and key rotation indicators.</p>
+
+<h3>3.4 DMARC Analysis (RFC 7489)</h3>
+<p>DMARC evaluation checks: policy record presence and syntax, policy strength (none, quarantine, reject), alignment modes (strict vs. relaxed) for SPF and DKIM, reporting URI validation (rua, ruf), subdomain policy (sp) analysis, and percentage (pct) field evaluation.</p>
+
+<h3>3.5 DNSSEC Validation (RFC 4033&ndash;4035)</h3>
+<p>DNSSEC evaluation checks: presence of DNSKEY, DS, and RRSIG records, signature validity and expiration, algorithm identification, chain of trust from root to domain, and NSEC/NSEC3 presence for authenticated denial of existence.</p>
+
+<h3>3.6 MTA-STS Analysis (RFC 8461)</h3>
+<p>MTA-STS evaluation checks: DNS TXT record presence (_mta-sts.domain), policy file retrieval via HTTPS, policy mode (enforce, testing, none), MX host matching against policy, and policy max_age validation.</p>
+
+<h3>3.7 DANE/TLSA Analysis (RFC 7672)</h3>
+<p>DANE evaluation checks: TLSA record presence for MX hosts, certificate usage field validation, selector and matching type verification, DNSSEC requirement verification (DANE requires DNSSEC), and cross-reference with actual TLS certificates.</p>
+
+<h3>3.8 BIMI Analysis (RFC 9495)</h3>
+<p>BIMI evaluation checks: BIMI TXT record presence, SVG logo URL validation, VMC (Verified Mark Certificate) presence, and DMARC policy requirement verification (BIMI requires DMARC enforcement).</p>
+
+<h3>3.9 CAA Analysis (RFC 8659)</h3>
+<p>CAA evaluation checks: CAA record presence, authorized certificate authority listing, wildcard policy analysis, and iodef (incident reporting) configuration.</p>
+
+<h3>3.10 TLS-RPT Analysis (RFC 8460)</h3>
+<p>TLS-RPT evaluation checks: TLS-RPT TXT record presence, reporting URI syntax validation, and version field verification.</p>
+
+<h2>4. Confidence Scoring Model</h2>
+<h3>4.1 Intelligence Confidence Audit Engine (ICAE)</h3>
+<p>DNS Tool applies a confidence scoring model inspired by intelligence community analytic standards (ODNI ICD 203). Each protocol finding receives a confidence level:</p>
+<ul>
+<li><strong>Verified</strong>: Strong evidence from multiple sources, RFC-compliant configuration confirmed</li>
+<li><strong>Assessed</strong>: Evidence supports the finding, but with some uncertainty</li>
+<li><strong>Adequate</strong>: Minimum evidence threshold met, but gaps exist</li>
+<li><strong>Development</strong>: Insufficient evidence to form a reliable assessment</li>
+</ul>
+
+<h3>4.2 Confidence Factors</h3>
+<p>Confidence is calculated based on: (1) evidence completeness &mdash; were all expected records found? (2) cross-resolver consistency &mdash; do multiple resolvers agree? (3) RFC compliance &mdash; does the configuration meet specification requirements? (4) temporal stability &mdash; has the configuration been consistent across observation windows? (5) dependency satisfaction &mdash; are prerequisite protocols properly configured?</p>
+
+<h3>4.3 Overall Posture Score</h3>
+<p>The individual protocol confidence scores are aggregated into an overall domain security posture score, weighted by protocol importance and interdependency relationships.</p>
+
+<h2>5. Output Products</h2>
+<h3>5.1 Engineer&rsquo;s DNS Intelligence Report</h3>
+<p>A detailed technical report containing: per-protocol findings with evidence, RFC compliance status for each configuration, confidence scores with supporting rationale, remediation recommendations, and Big Picture Questions for strategic consideration.</p>
+
+<h3>5.2 Executive&rsquo;s DNS Intelligence Brief</h3>
+<p>A summarized report designed for non-technical stakeholders: overall security posture assessment, risk-prioritized findings, business impact analysis, and strategic recommendations.</p>
+
+<h2>6. Implementation Architecture</h2>
+<p>The DNS Tool system consists of three major components:</p>
+<p><strong>Web interface</strong>: Provides interactive domain analysis and visualization.</p>
+<p><strong>Analysis engine</strong>: Processes DNS records and performs RFC validation.</p>
+<p><strong>Supporting intelligence modules</strong>: Generate structured intelligence outputs from analysis results.</p>
+<p>The implementation is written primarily in Go for the analysis engine with a web-based interface for user interaction. The system is designed to allow independent verification of DNS observations.</p>
+<p>Core research logic and internal analysis pipelines are maintained in private repositories for security and intellectual property protection.</p>
+
+<h2>7. Reproducibility and Limitations</h2>
+<p>DNS Tool is designed for reproducible analysis. All DNS queries are logged with timestamps and resolver identification. Analysis logic is deterministic for a given set of DNS responses. The software is version-controlled with semantic versioning. This methodology document is versioned alongside the software. The software artifact is archived with a persistent DOI.</p>
+<p>DNS Tool operates exclusively on publicly available DNS information. As a result, it cannot evaluate internal email infrastructure, private key security, or server-side enforcement mechanisms. The tool focuses on observable infrastructure posture rather than complete operational security evaluation. DNS observations may change over time, meaning results represent the configuration state at the time of analysis.</p>
+<ul>
+<li>DKIM analysis is limited to known selectors unless additional selectors are provided</li>
+<li>DNSSEC validation depends on resolver support and may vary across network environments</li>
+<li>Results represent a point-in-time snapshot; DNS configurations change frequently</li>
+<li>The confidence model is heuristic-based and may not capture all edge cases</li>
+</ul>
+
+<h2>8. References</h2>
+<ul>
+<li>RFC 7208 &mdash; Sender Policy Framework (SPF)</li>
+<li>RFC 6376 &mdash; DomainKeys Identified Mail (DKIM) Signatures</li>
+<li>RFC 7489 &mdash; Domain-based Message Authentication, Reporting, and Conformance (DMARC)</li>
+<li>RFC 4033, 4034, 4035 &mdash; DNS Security Extensions (DNSSEC)</li>
+<li>RFC 8461 &mdash; SMTP MTA Strict Transport Security (MTA-STS)</li>
+<li>RFC 7672 &mdash; SMTP Security via Opportunistic DNS-Based Authentication of Named Entities (DANE)</li>
+<li>RFC 9495 &mdash; Brand Indicators for Message Identification (BIMI)</li>
+<li>RFC 8659 &mdash; DNS Certification Authority Authorization (CAA)</li>
+<li>RFC 8460 &mdash; SMTP TLS Reporting (TLS-RPT)</li>
+<li>ODNI ICD 203 &mdash; Analytic Standards (Intelligence Community Directive)</li>
+</ul>
+
+<hr>
+
+<h2>Citation</h2>
+<p>If DNS Tool contributes to research or analysis, please cite:</p>
+<div class="citation-block">
+@software{balboa2026dnstool,<br>
+&nbsp;&nbsp;author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Balboa, Carey James},<br>
+&nbsp;&nbsp;title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {{DNS Tool}: Domain Security Audit Platform},<br>
+&nbsp;&nbsp;year&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {2026},<br>
+&nbsp;&nbsp;version&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {26.34.25},<br>
+&nbsp;&nbsp;doi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {10.5281/zenodo.18854899},<br>
+&nbsp;&nbsp;url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {https://dnstool.it-help.tech},<br>
+&nbsp;&nbsp;license&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {BUSL-1.1}<br>
+}
+</div>
+
+<div class="footer">
+  <p>DNS Tool v26.34.25 &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a> &middot; DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a></p>
+  <p>&copy; 2024&ndash;2026 IT Help San Diego Inc. &middot; Licensed under BUSL-1.1</p>
+</div>
+
+</body>
+</html>

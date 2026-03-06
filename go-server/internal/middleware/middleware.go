@@ -31,8 +31,9 @@ const (
 
 func generateNonce() string {
         b := make([]byte, 16)
-        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
-        _, _ = rand.Read(b)
+        if _, err := rand.Read(b); err != nil {
+                slog.Error("rand.Read failed", "error", err)
+        }
         return base64.URLEncoding.EncodeToString(b)
 }
 
@@ -66,8 +67,13 @@ func RequestContext() gin.HandlerFunc {
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
-                nonce, _ := c.Get(ginKeyCSPNonce)
-                nonceStr, _ := nonce.(string)
+                nonce, exists := c.Get(ginKeyCSPNonce)
+                var nonceStr string
+                if exists {
+                        if s, ok := nonce.(string); ok {
+                                nonceStr = s
+                        }
+                }
 
                 c.Header("X-Content-Type-Options", "nosniff")
                 if !devMode {
@@ -92,7 +98,12 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
 
                 frameAncestors := "frame-ancestors 'none'; "
                 if devMode {
-                        frameAncestors = "frame-ancestors https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
+                        frameAncestors = "frame-ancestors https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
+                }
+
+                connectSrc := "connect-src 'self'; "
+                if devMode {
+                        connectSrc = "connect-src 'self' https://replit.com https://*.replit.com https://*.replit.dev; "
                 }
 
                 csp := fmt.Sprintf(
@@ -101,7 +112,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                                 "style-src 'self' 'nonce-%s'; "+
                                 "font-src 'self'; "+
                                 "img-src 'self' data: https:; "+
-                                "connect-src 'self'; "+
+                                "%s"+
                                 "%s"+
                                 "base-uri 'none'; "+
                                 "form-action 'self'; "+
@@ -111,7 +122,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                                 "media-src 'self'; "+
                                 "worker-src 'self'; "+
                                 "%s",
-                        nonceStr, nonceStr, frameAncestors, upgradeDirective,
+                        nonceStr, nonceStr, connectSrc, frameAncestors, upgradeDirective,
                 )
                 c.Header("Content-Security-Policy", csp)
 
@@ -119,29 +130,37 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         }
 }
 
-func Recovery(appVersion string) gin.HandlerFunc {
+func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {
+        var extraData map[string]any
+        if len(opts) > 0 {
+                extraData = opts[0]
+        }
         return func(c *gin.Context) {
                 defer func() {
                         if err := recover(); err != nil {
-                                traceID, _ := c.Get(ginKeyTraceID)
+                                traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
                                 slog.Error("Panic recovered",
                                         ginKeyTraceID, traceID,
                                         "error", fmt.Sprintf("%v", err),
                                         "path", c.Request.URL.Path,
                                 )
-                                nonce, _ := c.Get(ginKeyCSPNonce)
-                                csrfToken, _ := c.Get(ginKeyCSRFToken)
+                                nonce, _ := c.Get(ginKeyCSPNonce) //nolint:errcheck // value used for template rendering
+                                csrfToken, _ := c.Get(ginKeyCSRFToken) //nolint:errcheck // value used for template rendering
                                 type flashMsg struct {
                                         Category string
                                         Message  string
                                 }
-                                c.HTML(http.StatusInternalServerError, "index.html", gin.H{
+                                data := gin.H{
                                         "AppVersion":    appVersion,
                                         "CspNonce":      nonce,
                                         "CsrfToken":     csrfToken,
                                         "ActivePage":    "home",
                                         "FlashMessages": []flashMsg{{Category: "danger", Message: "An internal error occurred. Please try again."}},
-                                })
+                                }
+                                for k, v := range extraData {
+                                        data[k] = v
+                                }
+                                c.HTML(http.StatusInternalServerError, "index.html", data)
                                 c.Abort()
                         }
                 }()
@@ -174,7 +193,8 @@ func CanonicalHostRedirect(canonicalURL string) gin.HandlerFunc {
 
                 if strings.HasSuffix(host, ".replit.app") || strings.HasSuffix(host, ".replit.dev") {
                         target := canonicalScheme + "://" + canonicalHost + c.Request.URL.RequestURI()
-                        c.Redirect(http.StatusMovedPermanently, target)
+                        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        c.Redirect(http.StatusFound, target)
                         c.Abort()
                         return
                 }

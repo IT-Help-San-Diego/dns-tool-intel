@@ -9,19 +9,19 @@
     <meta name="robots" content="index, follow">
     
     <!-- Facebook / Open Graph -->
-    <meta property="og:url" content="https://dnstool.it-help.tech/">
+    <meta property="og:url" content="{{.BaseURL}}/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="DNS Tool — Domain Security Intelligence | OSINT Reports">
     <meta property="og:description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer and Executive intelligence reports.">
-    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image" content="{{.BaseURL}}/static/images/og-image.png">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="dnstool.it-help.tech">
-    <meta property="twitter:url" content="https://dnstool.it-help.tech/">
+    <meta property="twitter:domain" content="{{replace "https://" "" (replace "http://" "" .BaseURL)}}">
+    <meta property="twitter:url" content="{{.BaseURL}}/">
     <meta name="twitter:title" content="DNS Tool — Domain Security Intelligence | OSINT Reports">
     <meta name="twitter:description" content="OSINT domain security audit — no login required. Analyzes SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, CAA. Engineer and Executive intelligence reports.">
-    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta name="twitter:image" content="{{.BaseURL}}/static/images/og-image.png">
     
     <!-- JSON-LD Schema -->
     <script type="application/ld+json" nonce="{{.CspNonce}}">
@@ -32,8 +32,10 @@
         "alternateName": ["DNS Security Intelligence", "Domain Security Audit", "DNS OSINT Tool", "SPF Checker", "DMARC Lookup", "DKIM Validator", "DNSSEC Checker", "DANE Checker", "TLSA Lookup", "Email Security Audit Tool", "Email Security Management Detector", "MTA-STS Checker", "TLS-RPT Checker", "CAA Checker", "BIMI Checker", "IP Intelligence Tool", "Email Header Analyzer", "Subdomain Discovery Tool", "Field Tech Toolkit", "Network Troubleshooting Tool", "Intelligence Confidence Audit Engine", "Intelligence Currency Assurance Engine", "ICAE", "ICuAE", "Domain Dossier", "DMARCbis Checker", "Analysis Transparency Log"],
         "description": "OSINT-based domain security audit producing Engineer's DNS Intelligence Reports and Executive's DNS Intelligence Briefs. All analysis uses open-source intelligence — publicly available DNS records, certificate transparency logs, RDAP registry data, and web resources. Analyzes SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA from multiple intelligence sources (Cloudflare, Google, Quad9, OpenDNS, DNS4EU). Email Header Analyzer for spoofing detection with OpenPhish integration. IP Intelligence with ASN attribution and geolocation. AI Surface Scanner for llms.txt and crawler governance. Configurable TLP classification (AMBER/GREEN/CLEAR). Multi-layer subdomain discovery via Certificate Transparency and DNS intelligence. Posture drift detection via canonical hashing. All analysis uses open-standard protocols.",
         "url": "https://dnstool.it-help.tech",
+        "image": "https://dnstool.it-help.tech/static/images/og-image.png",
+        "screenshot": "https://dnstool.it-help.tech/static/images/og-image.png",
         "applicationCategory": "SecurityApplication",
-        "operatingSystem": "Web Browser",
+        "operatingSystem": "Web",
         "softwareVersion": "{{.AppVersion}}",
         "audience": {
             "@type": "Audience",
@@ -71,7 +73,9 @@
                 "name": "ICIE — Integrated Confidence in Ingested Evidence",
                 "description": "Central analysis engine that processes intelligence from 5 DNS resolvers, RDAP/WHOIS registries, IETF metadata, CISA threat feeds, and active probe fleet (SMTP, DANE, TLS) into RFC-cited security findings with confidence indicators.",
                 "applicationCategory": "SecurityApplication",
-                "url": "https://dnstool.it-help.tech/approach"
+                "operatingSystem": "Web",
+                "url": "https://dnstool.it-help.tech/approach",
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
             },
             {
                 "@type": "SoftwareApplication",
@@ -79,7 +83,9 @@
                 "name": "ICAE — Intelligence Confidence Audit Engine",
                 "description": "Accuracy validation subsystem that audits ICIE analysis output against golden fixture reference data and known-good baselines to ensure finding correctness.",
                 "applicationCategory": "SecurityApplication",
-                "url": "https://dnstool.it-help.tech/confidence"
+                "operatingSystem": "Web",
+                "url": "https://dnstool.it-help.tech/confidence",
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
             },
             {
                 "@type": "SoftwareApplication",
@@ -87,7 +93,9 @@
                 "name": "ICuAE — Intelligence Currency Assurance Engine",
                 "description": "Temporal freshness verification subsystem that validates analysis currency, ensuring findings reflect the current DNS state rather than stale cached data.",
                 "applicationCategory": "SecurityApplication",
-                "url": "https://dnstool.it-help.tech/confidence"
+                "operatingSystem": "Web",
+                "url": "https://dnstool.it-help.tech/confidence",
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
             }
         ],
         "isBasedOn": [
@@ -276,27 +284,16 @@
     }
     </script>
     
-    <link rel="canonical" href="https://dnstool.it-help.tech/">
+    <link rel="canonical" href="{{.BaseURL}}/">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
-        .text-center{text-align:center}
-        .my-5{margin-top:3rem;margin-bottom:3rem}
         #main-content{min-height:50vh}
-        .mb-3,.mb-4,.mb-5{margin-bottom:1rem}
         .display-4{font-size:2.5rem;font-weight:300;line-height:1.2}
-        .lead{font-size:1.25rem;font-weight:300}
-        .text-muted{color:#adb5bd!important}
-        .form-control{display:block;width:100%;padding:.375rem .75rem;font-size:1rem;background-color:#2b3035;border:1px solid #495057;border-radius:.375rem;color:#dee2e6}
-        .btn{display:inline-block;padding:.375rem .75rem;font-size:1rem;border-radius:.375rem;text-decoration:none;cursor:pointer}
-        .btn-primary{background-color:var(--bs-primary);border:1px solid var(--bs-primary);color:#fff}
-        .input-group{display:flex;flex-wrap:wrap}
-        .input-group>.form-control{flex:1 1 auto;width:1%}
-        .row{display:flex;flex-wrap:wrap;margin:0 -.75rem}
-        .col-lg-8{padding:0 .75rem}
-        @media(min-width:992px){.col-lg-8{flex:0 0 66.666667%;max-width:66.666667%}}
-        .justify-content-center{justify-content:center}
-        .navbar-nav{display:flex;list-style:none;margin:0;padding:0}
-        .nav-link{color:rgba(255,255,255,.55);text-decoration:none;padding:.5rem 1rem}
+        .hero-section{padding:3rem 0 2rem;text-align:center}
+        .hero-title{font-size:2.5rem;font-weight:700;color:#e6edf3}
+        .hero-tagline{font-size:1.5rem;color:#8b949e}
+        .hero-subtitle{font-size:1.1rem;color:#8b949e}
+        .hero-badge{display:inline-block;padding:.5rem 1rem;border-radius:2rem;background:rgba(56,139,253,.15);color:#58a6ff;font-size:.85rem;font-weight:600}
     </style>
     {{template "head_css" .}}
 </head>
@@ -305,7 +302,7 @@
 
     <main id="main-content">
     <!-- Hero Section -->
-    <section class="hero-section">
+    <div class="hero-section">
         <div class="container">
             <div class="text-center hero-content">
                 <div class="hero-badge mb-3">
@@ -350,7 +347,7 @@
                                                 <button type="button" class="covert-env-btn" data-env="basement" title="Operator's Den — Enhanced readability with tactical red tinting. For extended analysis sessions."><i class="fas fa-terminal me-1"></i>Operator</button>
                                             </span>
                                         </div>
-                                        <div class="mt-1 u-covert-disclosure"><i class="fas fa-info-circle me-1"></i>Red spectrum preserves <a href="https://doi.org/10.1016/j.visres.2004.07.040" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://www.militarynewsnetwork.com/post/red-light-night-vision" target="_blank" rel="noopener">tactical red-light discipline</a>. All findings are identical to the standard report.</div>
+                                        <div class="mt-1 u-covert-disclosure"><i class="fas fa-info-circle me-1"></i>Red spectrum preserves <a href="https://doi.org/10.1016/j.visres.2004.07.040" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=36903" target="_blank" rel="noopener">MIL-STD-3009 tactical lighting discipline</a>. All findings are identical to the standard report.</div>
                                     </div>
                                 </div>
                                 <button class="btn btn-sm text-nowrap u-covert-exit-btn" type="button" id="covertExitHome">
@@ -423,8 +420,8 @@
                                 <span class="u-fs-075em text-muted" id="statusText">All Systems Operational</span>
                             </div>
                             <div class="mt-2">
-                                <button type="button" class="btn btn-link small text-muted text-decoration-none p-0 border-0" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="advancedOptions">
-                                    <i class="fas fa-sliders-h me-1 u-color-blue-soft" aria-hidden="true"></i>Advanced Options <span class="text-muted small">(optional)</span> <i class="fas fa-chevron-down ms-1 small" aria-hidden="true"></i>
+                                <button type="button" class="btn btn-link small text-decoration-none p-0 border-0 u-a11y-muted" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="advancedOptions">
+                                    <i class="fas fa-sliders-h me-1 u-color-blue-soft" aria-hidden="true"></i>Advanced Options <span class="u-a11y-muted small">(optional)</span> <i class="fas fa-chevron-down ms-1 small" aria-hidden="true"></i>
                                 </button>
                                 <div class="collapse{{if .DKIMExpand}} show{{end}} mt-2" id="advancedOptions">
                                     <div class="row g-3">
@@ -542,7 +539,7 @@
                 <span><i class="fas fa-gavel me-1" aria-hidden="true"></i> RFC-Aligned OSINT Intelligence Analysis</span>
             </div>
         </div>
-    </section>
+    </div>
 
     <div class="container">
         <section class="mt-4 mb-2">
@@ -720,33 +717,6 @@
                 </div>
             </div>
         </section>
-
-        {{if .Changelog}}
-        <section class="mt-5 mb-4" id="whats-new">
-            <h2 class="section-heading text-center mb-2"><i class="fas fa-bolt me-2" aria-hidden="true"></i>Changelog</h2>
-            <p class="text-center text-muted mb-4">Recent improvements to analysis accuracy, transparency, and intelligence depth</p>
-            <div class="row g-3">
-                {{range .Changelog}}
-                <div class="col-md-6 col-lg-4">
-                    <div class="card bg-dark border-secondary h-100 {{if .IsIncident}}changelog-card-incident{{end}}">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="{{.Icon}} {{if .IsIncident}}text-warning{{else}}text-info{{end}} me-2"></i>
-                                <span class="badge changelog-badge changelog-badge-{{.Category | lower}} me-2 u-fs-065rem">{{.Category}}</span>
-                                <span class="text-muted small ms-auto">{{.Date}}</span>
-                            </div>
-                            <p class="card-title mb-1 fw-semibold">{{.Title}}</p>
-                            <p class="card-text text-muted small mb-0">{{.Description}}</p>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
-            </div>
-            <div class="text-center mt-3">
-                <a href="/changelog" class="btn btn-outline-info btn-sm"><i class="fas fa-history me-1" aria-hidden="true"></i>View All Updates</a>
-            </div>
-        </section>
-        {{end}}
 
         <!-- FAQ Section -->
         <div class="row mt-4 mb-5">
@@ -1058,7 +1028,7 @@
     (function() {
         document.addEventListener('DOMContentLoaded', function() {
             function initTooltips() {
-                var ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                const ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
             }
             if (typeof bootstrap !== 'undefined') { initTooltips(); }

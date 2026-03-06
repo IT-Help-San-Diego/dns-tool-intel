@@ -262,6 +262,21 @@ func TestLoad_EnvPassthrough(t *testing.T) {
         }
 }
 
+func TestLoad_ReplitDeployment_ForcesNotDev(t *testing.T) {
+        setEnv(t, "DATABASE_URL", "postgres://test")
+        setEnv(t, "SESSION_SECRET", "test-secret")
+        setEnv(t, "REPLIT_DEPLOYMENT", "1")
+        setEnv(t, "REPLIT_DEV_DOMAIN", "some-domain.replit.dev")
+
+        cfg, err := Load()
+        if err != nil {
+                t.Fatalf("unexpected error: %v", err)
+        }
+        if cfg.IsDevEnvironment {
+                t.Error("expected IsDevEnvironment=false when REPLIT_DEPLOYMENT is set, even with REPLIT_DEV_DOMAIN present")
+        }
+}
+
 func TestLoad_IsDevEnvironment_EmptyBaseURL(t *testing.T) {
         setEnv(t, "DATABASE_URL", "postgres://test")
         setEnv(t, "SESSION_SECRET", "test-secret")

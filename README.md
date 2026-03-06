@@ -1,6 +1,6 @@
 # DNS Tool — Domain Security Intelligence Platform
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18854899.svg)](https://doi.org/10.5281/zenodo.18854899)
-[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](LICENSE)
+[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-web&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-web)
 
 > **Decision-ready intelligence, not just DNS data.**
@@ -88,6 +88,7 @@ The Recon Report includes live CIE scotopic/photopic luminosity validation and W
 - **Observation-Based Language** — Intelligence expressed as observations, not definitive claims. Every attribution carries its source and confidence tier.
 - **RFC-Backed Analysis** — All security conclusions grounded in published standards (RFC 7208, RFC 7489, RFC 6376, etc.). Results independently reproducible with standard tools (dig, openssl, curl).
 - **Cryptographic Provenance** — Report integrity binding via SHA-3-512 fingerprinting (domain, analysis ID, timestamp, tool version, results) with detailed provenance metadata.
+- **Third-Party Evidence Archival** — Automatic submission of every non-private analysis to the Internet Archive Wayback Machine for independently verifiable, tamper-proof snapshots. Three-layer evidence chain: integrity hash + posture drift hash + Wayback archive.
 - **TLP Classification** — All reports carry FIRST Traffic Light Protocol v2.0 designation with configurable user selection.
 - **Defense in Depth** — CSRF-protected endpoints, per-IP rate limiting, SSRF hardening, multi-resolver DNS client with DoH fallback.
 - **No Paid Dependencies by Default** — Core analysis requires no API keys. Paid enrichment (SecurityTrails, etc.) available when users supply their own keys.

@@ -98,7 +98,7 @@ func fetchSingleRFC(number string) *RFCMetadata {
                 slog.Debug("IETF metadata: fetch failed", mapKeyRfcNum, number, "error", err)
                 return nil
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "ietf-metadata")
 
         if resp.StatusCode != http.StatusOK {
                 slog.Debug("IETF metadata: unexpected status", mapKeyRfcNum, number, mapKeyStatus, resp.StatusCode)

@@ -1,0 +1,9 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "cffconvert>=2.0.0",
+    "weasyprint>=68.1",
+]

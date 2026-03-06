@@ -191,7 +191,7 @@
             <div class="print-header-toprow">
                 <div class="print-header-left">
                     <div class="print-report-brand">
-                        <img src="/static/images/owl-of-athena.png" alt="DNS Tool" class="print-brand-logo">
+                        <picture><source srcset="/static/images/owl-of-athena-160.webp" type="image/webp"><img src="/static/images/owl-of-athena-160.png" alt="DNS Tool" class="print-brand-logo" width="32" height="32"></picture>
                         <span class="print-brand-name">DNS Tool</span>
                     </div>
                     <div class="print-report-title">{{if .IsPublicSuffix}}Registry Zone Health Report{{else}}Engineer's DNS Intelligence Report{{end}}</div>
@@ -234,6 +234,9 @@
                     {{if .IntegrityHash}}
                         <span class="mx-1">&middot;</span><span class="u-integrity-preview"><i class="fas fa-lock"></i> <span class="font-monospace">SHA-3-512: {{substr 0 4 .IntegrityHash}}<span class="u-ls-tight">&#x2731;&#x2731;&#x2731;&#x2731;</span></span> <a href="#report-integrity" class="u-integrity-link u-integrity-link-info" title="Click to view full SHA-3-512 integrity hash">Verify</a></span>
                     {{end}}
+                    {{if .WaybackURL}}
+                        <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot"><i class="fas fa-landmark me-1"></i>Archived</a>
+                    {{end}}
                 </div>
                 {{end}}
             </div>
@@ -244,6 +247,9 @@
                     </button>
                     <a href="/analysis/{{.AnalysisID}}/view/B" id="executiveNavBtn" class="btn btn-outline-executive" title="View Executive's DNS Intelligence Brief">
                         <i class="fas fa-file-alt me-1"></i>Executive
+                    </a>
+                    <a href="/methodology" target="_blank" rel="noopener" class="btn btn-outline-secondary" title="View Analysis Methodology (PDF)">
+                        <i class="fas fa-flask me-1"></i>Methodology
                     </a>
                 </div>
                 <div class="dropdown me-2">
@@ -2615,6 +2621,7 @@
                                         <div class="me-3 p-2 rounded u-icon-box-56 bimi-logo-box">
                                             <img src="{{bimiProxyURL $logoUrl}}" 
                                                  alt="BIMI Logo" 
+                                                 width="48" height="48"
                                                  loading="lazy" decoding="async"
                                                  class="bimi-logo-img u-icon-48">
                                             <i class="fas fa-image fa-2x text-muted bimi-logo-fallback d-none"></i>
@@ -5704,6 +5711,41 @@
         </div>
         {{end}}
 
+        {{if .WaybackURL}}
+        <div class="row section-wayback-archive mt-2">
+            <div class="col-12 mb-4">
+        <div class="card border-success border-opacity-50 u-bg-secondary" id="wayback-archive">
+            <div class="card-header">
+                <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                    <span><i class="fas fa-landmark me-2 text-success"></i>Internet Archive &mdash; Permanent Record
+                    <span class="badge ms-2 u-badge-success-outline">Wayback Machine</span></span>
+                    <span class="section-question dt-question dt-question--section">Can this analysis be independently verified?
+                        <span class="badge bg-success ms-2">Archived</span>
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small mb-3 u-color-text">
+                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-proof, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it cannot be altered, deleted, or disputed. Combined with the SHA-3-512 integrity hash, this creates a legally defensible chain of evidence for domain security state.
+                </p>
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-external-link-alt me-1"></i>View Archived Snapshot
+                    </a>
+                    <button class="btn btn-sm btn-outline-success border-0" id="copyWaybackUrl" title="Copy archive URL" data-url="{{.WaybackURL}}">
+                        <i class="fas fa-copy me-1"></i>Copy URL
+                    </button>
+                </div>
+                <div class="small u-color-text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Snapshot preserved at <code class="user-select-all">{{.WaybackURL}}</code>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+        {{end}}
+
         {{if .AnalysisID}}
         <div class="row section-download-verify mt-2">
             <div class="col-12 mb-4">
@@ -6141,7 +6183,7 @@
                 var parts = bodyText.split(section.highlight);
                 if (parts.length > 1) {
                     bodyEl.innerHTML = escapeHtml(parts[0])
-                        + '<mark style="background:#ffd700;color:#1a1a2e;padding:2px 4px;border-radius:3px">'
+                        + '<mark class="u-search-highlight">'
                         + escapeHtml(section.highlight)
                         + '</mark>'
                         + escapeHtml(parts.slice(1).join(section.highlight));
@@ -6155,7 +6197,10 @@
             bodyEl.textContent = '(Full RFC text — click "Full RFC" below to read on the IETF website.)';
         }
 
-        var modal = new bootstrap.Modal(document.getElementById('rfcPopupModal'));
+        var rfcEl = document.getElementById('rfcPopupModal');
+        rfcEl.removeAttribute('inert');
+        var modal = new bootstrap.Modal(rfcEl);
+        rfcEl.addEventListener('hidden.bs.modal', function() { rfcEl.setAttribute('inert', ''); }, { once: true });
         modal.show();
         return true;
     }
@@ -6230,6 +6275,20 @@
                 const hash = this.dataset.hash;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
+                        onCopySuccess(btn);
+                    }).catch(function() { /* clipboard write failed — ignored */ });
+                }
+            });
+        }
+    }
+
+    function setupWaybackCopy() {
+        const btn = document.getElementById('copyWaybackUrl');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const url = this.dataset.url;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(function() {
                         onCopySuccess(btn);
                     }).catch(function() { /* clipboard write failed — ignored */ });
                 }
@@ -6502,6 +6561,7 @@
 
             setupCopyCommandButtons();
             setupIntegrityHashCopy();
+            setupWaybackCopy();
             setupHashPreviewLink();
             setupCollapseKeyboardHandlers();
             setupRfcPopups();
@@ -6656,7 +6716,7 @@
             });
     }
     </script>
-    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" aria-hidden="true">
+    <div class="modal fade" id="rfcPopupModal" tabindex="-1" aria-labelledby="rfcPopupTitle" inert>
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content bg-dark border border-secondary">
                 <div class="modal-header border-secondary py-2">
@@ -6666,7 +6726,7 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-2" id="rfcPopupBody" style="max-height:60vh;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:#c9d1d9"></div>
+                <div class="modal-body py-2 rfc-popup-body" id="rfcPopupBody"></div>
                 <div class="modal-footer border-secondary py-1">
                     <a id="rfcPopupFullLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info"><i class="fas fa-external-link-alt me-1"></i>Full RFC</a>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>

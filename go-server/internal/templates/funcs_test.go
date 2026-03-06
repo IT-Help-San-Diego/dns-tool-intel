@@ -1061,6 +1061,32 @@ func TestFuncMapHasExpectedKeys(t *testing.T) {
         }
 }
 
+func TestTitleFunc(t *testing.T) {
+        fm := stringFuncs()
+        titleFn, ok := fm["title"]
+        if !ok {
+                t.Fatal("missing title function in stringFuncs")
+        }
+        fn := titleFn.(func(string) string)
+
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"hello", "Hello"},
+                {"hello world", "Hello World"},
+                {"dns tool", "Dns Tool"},
+                {"", ""},
+                {"ALREADY UPPER", "Already Upper"},
+        }
+        for _, tt := range tests {
+                got := fn(tt.input)
+                if got != tt.want {
+                        t.Errorf("title(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
 func TestSafeFuncs(t *testing.T) {
         fm := safeFuncs()
         if _, ok := fm["safeHTML"]; !ok {

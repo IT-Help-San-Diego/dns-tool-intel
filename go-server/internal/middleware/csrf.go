@@ -36,8 +36,9 @@ func NewCSRFMiddleware(secret string) *CSRFMiddleware {
 
 func (m *CSRFMiddleware) generateToken() string {
         b := make([]byte, csrfTokenLen)
-        // crypto/rand.Read always succeeds on supported platforms (Go doc guarantee)
-        _, _ = rand.Read(b)
+        if _, err := rand.Read(b); err != nil {
+                slog.Error("rand.Read failed", "error", err)
+        }
         return base64.URLEncoding.EncodeToString(b)
 }
 
@@ -141,7 +142,7 @@ func (m *CSRFMiddleware) ensureToken(c *gin.Context) string {
 }
 
 func (m *CSRFMiddleware) rejectCSRF(c *gin.Context, reason string) {
-        traceID, _ := c.Get(ginKeyTraceID)
+        traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
         slog.Warn("CSRF validation failed",
                 ginKeyTraceID, traceID,
                 "reason", reason,

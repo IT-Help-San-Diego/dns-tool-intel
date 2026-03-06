@@ -77,14 +77,15 @@ function showOverlay(overlay) {
     overlay.classList.add('is-active');
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
-            for (const el of overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span')) {
-                const anim = getComputedStyle(el).animationName;
-                if (anim && anim !== 'none') {
-                    el.classList.add('anim-restart');
-                    void el.offsetWidth; // NOSONAR — Safari reflow
-                    el.classList.remove('anim-restart');
-                }
+            var els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
+            var animated = [];
+            for (var i = 0; i < els.length; i++) {
+                var anim = getComputedStyle(els[i]).animationName;
+                if (anim && anim !== 'none') animated.push(els[i]);
             }
+            for (var j = 0; j < animated.length; j++) animated[j].classList.add('anim-restart');
+            if (animated.length) void animated[0].offsetWidth; // NOSONAR — single reflow to restart all animations (Safari)
+            for (var k = 0; k < animated.length; k++) animated[k].classList.remove('anim-restart');
         });
     });
 }
@@ -128,8 +129,7 @@ function startStatusCycle(overlayEl) {
             const icon = phase.querySelector('.scan-icon');
             if (icon) {
                 icon.classList.remove('fa-circle-notch', 'fa-spin', 'scan-pending');
-                void icon.offsetWidth; // NOSONAR — Safari reflow trigger for ::before content swap
-                icon.classList.add('fa-check-circle');
+                requestAnimationFrame(function() { icon.classList.add('fa-check-circle'); });
             }
             completed++;
         }, doneDelay);
@@ -363,6 +363,8 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
     }
+    const toggle = document.getElementById('covertToggle');
+    if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
@@ -404,12 +406,12 @@ function handleAnalyzeLinkClick(e) {
 }
 
 function initPrivacyBanner() {
-    var banner = document.getElementById('privacyBanner');
+    const banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
-    var dismissed = false;
+    let dismissed = false;
     try { dismissed = localStorage.getItem('privacyAck') === '1'; } catch(_e) { dismissed = false; }
     if (dismissed) { banner.remove(); return; }
-    var acceptBtn = document.getElementById('privacyAccept');
+    const acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
         acceptBtn.addEventListener('click', function() {
             try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ }
@@ -423,33 +425,48 @@ document.addEventListener('DOMContentLoaded', function() {
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
+        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'false'); });
+        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'true'); });
+    }
+    var roeHandled = false;
+    function handleRoeAccept(e) {
+        if (roeHandled) return;
+        roeHandled = true;
+        setTimeout(function() { roeHandled = false; }, 400);
+        if (e) { e.preventDefault(); }
+        markROEAccepted();
+        playMorseEasterEgg();
+        if (roeModal) { roeModal.hide(); }
+        activateCovertOrSwitch();
+    }
+    function handleRoeDecline(e) {
+        if (roeHandled) return;
+        roeHandled = true;
+        setTimeout(function() { roeHandled = false; }, 400);
+        if (e) { e.preventDefault(); }
+        if (roeModal) { roeModal.hide(); }
+        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
-        roeAcceptBtn.addEventListener('click', function() {
-            markROEAccepted();
-            playMorseEasterEgg();
-            if (roeModal) { roeModal.hide(); }
-            activateCovertOrSwitch();
-        });
+        roeAcceptBtn.addEventListener('click', handleRoeAccept);
+        roeAcceptBtn.addEventListener('touchend', handleRoeAccept);
     }
     const roeDeclineBtn = document.getElementById('roeDecline');
     if (roeDeclineBtn) {
-        roeDeclineBtn.addEventListener('click', function() {
-            if (roeModal) { roeModal.hide(); }
-            window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        });
+        roeDeclineBtn.addEventListener('click', handleRoeDecline);
+        roeDeclineBtn.addEventListener('touchend', handleRoeDecline);
     }
     const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
             if (document.body.classList.contains('covert-mode')) {
-                var idEl = document.querySelector('[data-analysis-id]');
+                const idEl = document.querySelector('[data-analysis-id]');
                 if (idEl && idEl.dataset.analysisId) {
-                    var aid = idEl.dataset.analysisId;
+                    const aid = idEl.dataset.analysisId;
                     setCovertMode(false);
-                    var psMeta = document.querySelector('meta[name="x-public-suffix"]');
-                    var exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    const psMeta = document.querySelector('meta[name="x-public-suffix"]');
+                    const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }
@@ -478,6 +495,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
+        const initToggle = document.getElementById('covertToggle');
+        if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
     }
 
     initPrivacyBanner();

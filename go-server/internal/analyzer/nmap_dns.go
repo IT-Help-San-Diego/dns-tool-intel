@@ -6,10 +6,24 @@ import (
         "context"
         "fmt"
         "log/slog"
+        "net"
         "os/exec"
+        "regexp"
         "strings"
         "time"
 )
+
+var validHostnameRe = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$`)
+
+func isValidNmapTarget(target string) bool {
+        if net.ParseIP(target) != nil {
+                return true
+        }
+        if len(target) > 253 {
+                return false
+        }
+        return validHostnameRe.MatchString(target)
+}
 
 const (
         msgNotTested        = "Not tested"
@@ -50,7 +64,7 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
         nameservers := make([]string, 0, len(nsRecords))
         for _, ns := range nsRecords {
                 ns = strings.TrimSuffix(strings.TrimSpace(ns), ".")
-                if ns != "" {
+                if ns != "" && isValidNmapTarget(ns) {
                         nameservers = append(nameservers, ns)
                 }
         }
@@ -111,6 +125,10 @@ func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[
                 "record_count": 0,
         }
 
+        if !isValidNmapTarget(domain) {
+                result[mapKeyMessage] = msgTestInconclusive
+                return result
+        }
         output, err := runNmapScript(ctx, ns, "dns-zone-transfer", fmt.Sprintf("dns-zone-transfer.domain=%s", domain), 15*time.Second)
         if err != nil {
                 result[mapKeyMessage] = msgTestInconclusive
@@ -227,6 +245,10 @@ func (a *Analyzer) nmapCacheSnoop(ctx context.Context, ns string) map[string]any
 }
 
 func runNmapScript(ctx context.Context, target, script, args string, timeout time.Duration) (string, error) {
+        if !isValidNmapTarget(target) {
+                return "", fmt.Errorf("nmap target %q failed hostname/IP validation", target)
+        }
+
         cmdCtx, cancel := context.WithTimeout(ctx, timeout)
         defer cancel()
 

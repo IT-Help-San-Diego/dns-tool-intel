@@ -1,8 +1,8 @@
-modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "postgresql-16"]
+modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "postgresql-16", "python3"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cacert", "chromium", "dnsutils", "freetype", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "openjpeg", "openssl", "postgresql", "potrace", "python312Packages.nmapthon2", "sqlc", "tcl", "tk", "unzip", "whois", "zlib", "subfinder", "amass", "dnsx", "testssl", "httpx", "nuclei"]
+packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "rsync", "sqlc", "subfinder", "tcl", "testssl", "tk", "unzip", "whois", "zlib"]
 
 [deployment]
 deploymentTarget = "vm"
@@ -47,6 +47,7 @@ MAINTENANCE_NOTE = "Developing"
 ANALYTICS_EXCLUDE_IPS = "76.218.253.212"
 
 [userenv.development]
+BASE_URL = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev"
 
 [agent]
 integrations = ["github:1.0.0", "notion:1.0.0"]

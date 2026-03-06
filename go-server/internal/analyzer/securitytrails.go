@@ -25,10 +25,10 @@ const (
         stRateLimitCooldown = 6 * time.Hour
 
 
-	mapKeyCount = "count"
-	mapKeyMonth = "month"
-	strAccept = "Accept"
-	strApikey = "APIKEY"
+        mapKeyCount = "count"
+        mapKeyMonth = "month"
+        strAccept = "Accept"
+        strApikey = "APIKEY"
 )
 
 var (
@@ -218,7 +218,7 @@ func FetchSubdomains(ctx context.Context, domain string) ([]string, *STFetchStat
                 slog.Warn("SecurityTrails: request failed", mapKeyDomain, domain, mapKeyError, err)
                 return []string{}, &STFetchStatus{Errored: true}, nil
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "securitytrails-subdomains")
 
         if resp.StatusCode == http.StatusTooManyRequests {
                 slog.Warn("SecurityTrails: rate limited (429)", mapKeyDomain, domain)
@@ -296,7 +296,7 @@ func fetchDomainsByIPInternal(ctx context.Context, ip, apiKey string) ([]string,
                 slog.Warn("SecurityTrails: search request failed", "ip", ip, mapKeyError, err)
                 return nil, fmt.Errorf("connection_error")
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "securitytrails-search")
 
         if resp.StatusCode == http.StatusTooManyRequests {
                 slog.Warn("SecurityTrails: rate limited (429)", "ip", ip)
@@ -348,7 +348,7 @@ func FetchSubdomainsWithKey(ctx context.Context, domain, userAPIKey string) ([]s
         if err != nil {
                 return nil, err
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "securitytrails-subdomains-userkey")
 
         if resp.StatusCode != http.StatusOK {
                 return []string{}, nil

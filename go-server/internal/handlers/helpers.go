@@ -6,11 +6,14 @@ import (
         "context"
         "encoding/json"
         "fmt"
+        "log/slog"
         "math"
         "sort"
         "strings"
 
         "golang.org/x/net/publicsuffix"
+        "golang.org/x/text/cases"
+        "golang.org/x/text/language"
 )
 
 const (
@@ -210,7 +213,10 @@ func normalizeVerdictEntry(verdicts map[string]interface{}, key string, labelToA
         if _, hasAnswer := v[mapKeyAnswer]; hasAnswer {
                 return
         }
-        label, _ := v["label"].(string)
+        label, ok := v["label"].(string)
+        if !ok {
+                label = ""
+        }
         if ans, found := labelToAnswer[label]; found {
                 v[mapKeyAnswer] = ans
         }
@@ -226,8 +232,14 @@ func normalizeVerdictEntry(verdicts map[string]interface{}, key string, labelToA
 }
 
 func normalizeLLMsTxtVerdict(llmsTxt map[string]interface{}) map[string]interface{} {
-        found, _ := llmsTxt["found"].(bool)
-        fullFound, _ := llmsTxt["full_found"].(bool)
+        found, ok := llmsTxt["found"].(bool)
+        if !ok {
+                found = false
+        }
+        fullFound, ok := llmsTxt["full_found"].(bool)
+        if !ok {
+                fullFound = false
+        }
         if found && fullFound {
                 return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: mapKeySuccess, mapKeyReason: "llms.txt and llms-full.txt published — AI models receive structured context about this domain"}
         }
@@ -238,8 +250,14 @@ func normalizeLLMsTxtVerdict(llmsTxt map[string]interface{}) map[string]interfac
 }
 
 func normalizeRobotsTxtVerdict(robotsTxt map[string]interface{}) map[string]interface{} {
-        found, _ := robotsTxt["found"].(bool)
-        blocksAI, _ := robotsTxt["blocks_ai_crawlers"].(bool)
+        found, ok := robotsTxt["found"].(bool)
+        if !ok {
+                found = false
+        }
+        blocksAI, ok := robotsTxt["blocks_ai_crawlers"].(bool)
+        if !ok {
+                blocksAI = false
+        }
         if found && blocksAI {
                 return map[string]interface{}{mapKeyAnswer: answerYes, mapKeyColor: mapKeySuccess, mapKeyReason: "robots.txt actively blocks AI crawlers from scraping site content"}
         }
@@ -374,11 +392,15 @@ func ComputeSectionDiff(secA, secB map[string]interface{}, key, label, icon stri
         for _, k := range sortedKeys {
                 valA := normalizeForCompare(secA[k])
                 valB := normalizeForCompare(secB[k])
-                jsonA, _ := json.Marshal(valA)
-                jsonB, _ := json.Marshal(valB)
+                jsonA, errA := json.Marshal(valA)
+                jsonB, errB := json.Marshal(valB)
+                if errA != nil || errB != nil {
+                        slog.Debug("json.Marshal failed in section diff", "field", k, "errA", errA, "errB", errB)
+                        continue
+                }
                 if string(jsonA) != string(jsonB) {
                         fieldName := strings.ReplaceAll(k, "_", " ")
-                        fieldName = strings.Title(fieldName)
+                        fieldName = cases.Title(language.English).String(fieldName)
                         detailChanges = append(detailChanges, DetailChange{
                                 Field: fieldName,
                                 Old:   valA,
@@ -409,7 +431,12 @@ func normalizeForCompare(v interface{}) interface{} {
                 case string:
                         strs[i] = e
                 default:
-                        b, _ := json.Marshal(e)
+                        b, err := json.Marshal(e)
+                        if err != nil {
+                                slog.Debug("json.Marshal failed in normalizeForCompare", "error", err)
+                                strs[i] = fmt.Sprintf("%v", e)
+                                continue
+                        }
                         strs[i] = string(b)
                 }
         }
@@ -481,7 +508,8 @@ func isTwoPartSuffix(domain string) bool {
         if !strings.EqualFold(domain, joined) {
                 return false
         }
-        suffixCheck, _ := publicsuffix.PublicSuffix(domain)
+        suffixCheck, icann := publicsuffix.PublicSuffix(domain)
+        _ = icann
         return strings.EqualFold(suffixCheck, domain)
 }
 
@@ -543,11 +571,23 @@ func computeSubdomainEmailScope(ctx context.Context, dns dnsQuerier, domain, roo
                 ParentDomain: rootDomain,
         }
 
-        spf, _ := results[mapKeySpfAnalysis].(map[string]any)
-        dmarc, _ := results[mapKeyDmarcAnalysis].(map[string]any)
+        spf, ok := results[mapKeySpfAnalysis].(map[string]any)
+        if !ok {
+                spf = map[string]any{}
+        }
+        dmarc, ok := results[mapKeyDmarcAnalysis].(map[string]any)
+        if !ok {
+                dmarc = map[string]any{}
+        }
 
-        spfStatus, _ := spf[mapKeyStatus].(string)
-        dmarcStatus, _ := dmarc[mapKeyStatus].(string)
+        spfStatus, ok := spf[mapKeyStatus].(string)
+        if !ok {
+                spfStatus = ""
+        }
+        dmarcStatus, ok := dmarc[mapKeyStatus].(string)
+        if !ok {
+                dmarcStatus = ""
+        }
 
         scope.SPFScope, scope.SPFNote = determineSPFScope(isActiveStatus(spfStatus))
 
@@ -568,8 +608,8 @@ func determineSPFScope(subHasSPF bool) (string, string) {
 }
 
 func hasLocalMXRecords(results map[string]any) bool {
-        basic, _ := results["basic_records"].(map[string]any)
-        if basic == nil {
+        basic, ok := results["basic_records"].(map[string]any)
+        if !ok || basic == nil {
                 return false
         }
         switch mx := basic["MX"].(type) {

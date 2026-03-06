@@ -13,6 +13,21 @@
 //  2. Use (or create) a named date constant below.
 //  3. Reference the constant — never inline a date string.
 //
+// HISTORICAL EDIT AUDIT
+// =====================
+// 2026-03-05 (commit 751fe32f): Corrected SPDX license identifier in the
+//   dateFeb17 changelog entry from "BSL 1.1" (not a valid SPDX identifier;
+//   could be confused with Boost Software License) to "BUSL-1.1" (the
+//   correct SPDX identifier for Business Source License 1.1). This was an
+//   intentional, targeted correction — NOT a mass version rewrite. Only 3
+//   lines changed: the date-mapping comment, the entry Title, and the entry
+//   Description. No version strings were altered. The same commit also
+//   corrected the identifier across 14 other project files (README, CITATION,
+//   architecture docs, methodology PDF, etc.) as part of a project-wide
+//   SPDX compliance sweep. Investigated and confirmed clean on 2026-03-05
+//   by cross-referencing git diff, version string diversity (26 distinct
+//   versions intact), and release script analysis.
+//
 // Canonical date mapping (verified Feb 28, 2026):
 //
 //      dateFeb28 — Schema.org Intelligence Pipeline Mapping,
@@ -36,7 +51,7 @@
 //                  Admin Dashboard + JSON Export, Admin Bootstrap Fix,
 //                  UNLIKELY Badge Color Unification
 //      dateFeb18 — Google OAuth 2.0 + PKCE, Security Redaction & Mission Statement
-//      dateFeb17 — BSL 1.1 License Migration, Boundary Integrity Test Suite
+//      dateFeb17 — BUSL-1.1 License Migration, Boundary Integrity Test Suite
 //      dateFeb15 — Dual Intelligence Products (Engineer's DNS Intelligence Report & Executive's DNS Intelligence Brief), OpenPhish Threat
 //                  Intelligence Attribution, Email Header Analyzer Homepage Promotion
 //      dateFeb14 — High-Speed Subdomain Discovery
@@ -50,6 +65,7 @@
 package handlers
 
 const (
+        dateMar06 = "Mar 6, 2026"
         dateFeb28 = "Feb 28, 2026"
         dateFeb26 = "Feb 26, 2026"
         dateFeb23 = "Feb 23, 2026"
@@ -70,6 +86,8 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263439 = "26.34.39"
+        ver263438 = "26.34.38"
         ver262823 = "26.28.23"
         ver262822 = "26.28.22"
         ver262821 = "26.28.21"
@@ -114,6 +132,30 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver263439,
+                        Date:        dateMar06,
+                        Category:    catIntelligence,
+                        Title:       "Wayback Machine Automatic Archival",
+                        Description: "Every successful, non-private, non-scan-flagged analysis is now automatically submitted to the Internet Archive via web.archive.org/save/ in a background goroutine. The returned snapshot URL is stored in domain_analyses.wayback_url and displayed as a green \"Archived\" badge in the results header, plus an \"Internet Archive — Permanent Record\" card on Engineer's and Executive's reports with View Archived Snapshot and Copy URL buttons. Privacy guards ensure private analyses and scanner-flagged analyses are never archived. Completes a three-layer evidence chain: SHA-3-512 integrity hash + posture hash for drift detection + third-party Wayback Machine archive for independent verification.",
+                        Icon:        "fas fa-landmark",
+                },
+                {
+                        Version:     ver263438,
+                        Date:        dateMar06,
+                        Category:    catUX,
+                        Title:       "Font Awesome CSS Direct Loading Fix",
+                        Description: "Fixed Font Awesome CSS loading to use direct <link rel=\"stylesheet\"> instead of the media=\"print\" progressive loading trick, which caused icon flicker on initial page load across all templates.",
+                        Icon:        "fas fa-paint-brush",
+                },
+                {
+                        Version:     ver263438,
+                        Date:        dateMar06,
+                        Category:    catUX,
+                        Title:       "ROE Modal iOS Compatibility Fix",
+                        Description: "Fixed the Rules of Engagement modal on iOS devices by adding touchend event listeners alongside click, setting aria-hidden=\"true\" for accessibility, implementing roeHandled debounce flag to prevent double-fire, and using modal-fullscreen-sm-down modal-dialog-scrollable classes for proper mobile display.",
+                        Icon:        "fas fa-mobile-alt",
+                },
                 {
                         Version:     ver262823,
                         Date:        dateFeb28,
@@ -446,8 +488,8 @@ func GetChangelog() []ChangelogEntry {
                         Version:     "26.19.0",
                         Date:        dateFeb17,
                         Category:    "Licensing",
-                        Title:       "BSL 1.1 License Migration",
-                        Description: "Migrated from AGPL-3.0 to Business Source License 1.1 with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BSL 1.1.",
+                        Title:       "BUSL-1.1 License Migration",
+                        Description: "Migrated from AGPL-3.0 to Business Source License 1.1 (SPDX: BUSL-1.1) with a 3-year rolling Change Date converting to Apache-2.0. Explicit MSP/consultant carve-out permits security professionals to use the tool for client audits. All 111 Go source files updated. Both public and private repositories under BUSL-1.1.",
                         Icon:        "fas fa-balance-scale",
                 },
                 {

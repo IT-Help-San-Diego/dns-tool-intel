@@ -177,7 +177,7 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                 result := limiter.CheckAndRecord(clientIP, domain)
 
                 if !result.Allowed {
-                        traceID, _ := c.Get(ginKeyTraceID)
+                        traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
                         slog.Info("Rate limit triggered",
                                 ginKeyTraceID, traceID,
                                 "ip", clientIP,
@@ -221,7 +221,7 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
                                 })
                                 redirectTo := "/"
                                 if ref := c.Request.Referer(); ref != "" {
-                                        if u, err := url.Parse(ref); err == nil && u.Path != "" {
+                                        if u, err := url.Parse(ref); err == nil && u.Path != "" && strings.HasPrefix(u.Path, "/") && !strings.Contains(u.Path, "//") {
                                                 redirectTo = u.Path
                                         }
                                 }

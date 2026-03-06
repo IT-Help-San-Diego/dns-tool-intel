@@ -53,3 +53,21 @@ exports/
 
 # Private repo staging — never push to public
 dnstool-intel-staging/
+
+# Disposable venvs (cffconvert validation, etc.)
+.venv-cff/
+.venv*/
+
+# Codex agent files (local tooling, not versioned)
+.codex/
+
+# Git backups (created by recovery scripts)
+.git.backup*/
+
+# Test binaries
+*.test
+analyzer.test
+
+# Go build artifacts in subfolders
+go-server/dns-tool-server
+go-server/dns-tool

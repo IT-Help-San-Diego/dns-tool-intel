@@ -1,7 +1,7 @@
 # DNS Tool — AI Change Interrogation Protocol (ACIP)
 
 **Status:** Active
-**Version:** 1.0
+**Version:** 2.0
 **Applies to:** All AI-assisted code changes in `dns-tool-web` and `dns-tool-intel`
 
 ---
@@ -40,6 +40,52 @@ Every AI-generated change must answer three questions before merge:
 
 ---
 
+## Protected Invariants — Non-Negotiable Quality Gates
+
+These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll fix it later."
+
+| Gate | Target | Verification Command | Failure = STOP |
+|------|--------|---------------------|----------------|
+| **SonarCloud** | A rating, all categories, 100% | SonarCloud dashboard | Yes |
+| **Lighthouse** | 100, all categories | `lighthouse` or Chrome DevTools | Yes |
+| **Mozilla Observatory** | 145+ score | observatory.mozilla.org | Yes |
+| **SRI** | All CSS/JS assets have SHA-384 integrity + crossorigin | `curl` + grep for `integrity=` | Yes |
+| **Go Tests** | All pass, zero failures | `go test ./go-server/... -count=1` | Yes |
+| **R009 CSS Cohesion** | PASS | `node scripts/audit-css-cohesion.js` | Yes |
+| **R010 Scientific Colors** | PASS | `node scripts/validate-scientific-colors.js` | Yes |
+| **R011 Feature Inventory** | PASS, 0 failures | `node scripts/feature-inventory.js` | Yes |
+| **Preview** | User can see and interact with the site | Replit Preview pane | Yes |
+| **Git** | Clean, synced, merged, healthy, pushed to correct repos | `git status` + branch checks | Yes |
+| **Build** | Both `go build` (OSS) and `go build -tags intel` succeed | `bash build.sh` | Yes |
+
+### Git Discipline
+
+- Branches must be synced before any push
+- NEVER expose proprietary logic, hacker Easter eggs, or IP in public commit messages
+- ALWAYS verify which repo/branch a push targets (public vs intel)
+- Privacy and intellectual property awareness is mandatory, not optional
+
+### Version Separation — Development vs Citation
+
+**Development version** (`config.go`, `sonar-project.properties`, UI badge):
+- Tracks the current development state
+- Changes with every meaningful code change
+
+**Citation version** (`CITATION.cff`, `codemeta.json`):
+- Tracks the last DOI-backed Zenodo release
+- Changes ONLY when a new GitHub Release triggers Zenodo archival
+- Must match the version the DOI (`10.5281/zenodo.18854899`) resolves to
+- Changing this without a Zenodo release creates a falsified citation state
+- This breaks ORCID linking, OpenAlex ingestion, and scholarly reproducibility
+
+**Rule**: CITATION.cff and codemeta.json are ORCID-linked research artifacts. They are NOT dev tracking files. Never bump them during routine development.
+
+**Two-Track Version Bump Law**:
+- **Dev bump** (routine): Edit ONLY `go-server/internal/config/config.go` → rebuild → publish. No other versioned file is touched. The concept DOI (`10.5281/zenodo.18854899`) NEVER changes.
+- **Release bump** (tag time only): `scripts/release-gate.sh X.Y.Z` bumps ALL versioned artifacts (config.go, CITATION.cff, codemeta.json, sonar-project.properties, methodology docs). Only run when a git tag is being created. The concept DOI still does not change — only `version:` fields update.
+
+---
+
 ## Change Classification
 
 | Category | Risk | Required Verification |
@@ -50,6 +96,8 @@ Every AI-generated change must answer three questions before merge:
 | **Stub/boundary files** | Critical | Boundary integrity tests, dual-tag build |
 | **Database schema** | Critical | Migration review, rollback plan |
 | **DNS client** | Critical | Multi-resolver tests, live integration test |
+| **Citation metadata** | Critical | Must match last Zenodo release; ORCID/DOI verification |
+| **Version bump** | Medium | Dev files only; never CITATION.cff/codemeta.json without release |
 
 ---
 
@@ -76,6 +124,9 @@ These are patterns where AI assistants commonly introduce errors in this codebas
 | **Dependency injection** | `go.mod` diff review | No new dependencies without explicit approval |
 | **Hard-coded test data** | Code review | Test data must come from golden fixtures or deterministic generators |
 | **Confidence inflation** | ICAE score regression | ICAE audit scores must not decrease after a change |
+| **Citation metadata drift** | CITATION.cff version ≠ Zenodo release | Never bump CITATION.cff/codemeta.json during dev; only on Zenodo release |
+| **Quality gate regression** | Lighthouse/Observatory/Sonar score drops | Run ALL quality gates before and after every change |
+| **IP leak in commit messages** | Public git log review | Never reference proprietary logic, Easter eggs, or intel details in public commits |
 
 ---
 

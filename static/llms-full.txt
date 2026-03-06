@@ -202,6 +202,18 @@ Every analysis generates a SHA-3-512 (FIPS 202) integrity fingerprint that binds
 
 A short hash preview appears in the report header metadata (next to timestamp/version) — 4 hex characters plus 4 star masks, as a clickable link that scrolls to the full hash section at the bottom of the report. The full hash can be copied to clipboard. This is distinct from the posture hash (used for drift detection) — the integrity hash uniquely identifies each specific report instance.
 
+### 13. Internet Archive — Permanent Record
+Every successful, non-private, non-scan-flagged analysis is automatically submitted to the Internet Archive via `web.archive.org/save/` in a background goroutine. The returned Wayback Machine snapshot URL is stored in the database and displayed on the results page in two places:
+- **Header badge**: Green "Archived" badge with landmark icon, linking directly to the Wayback snapshot
+- **Dedicated card**: "Internet Archive — Permanent Record" section with green border, View Archived Snapshot button, and Copy URL button
+
+Privacy guards: Private analyses and scanner-flagged analyses are never sent to the Wayback Machine.
+
+This completes a three-layer evidence chain:
+1. **SHA-3-512 integrity hash** — cryptographic fingerprint binding domain, analysis ID, timestamp, version, and results
+2. **Posture hash** — canonical SHA-3-512 for longitudinal drift detection
+3. **Wayback Machine archive** — independent third-party snapshot for tamper-proof verification
+
 ---
 
 ## Re-Analyzing a Domain
@@ -400,11 +412,12 @@ A static, zero-JavaScript public overview of the system architecture, classified
 1. **Intelligence Pipeline**: DNS query flow from multi-resolver parallel collection through analysis engines to intelligence product generation
 2. **Dual-Engine Confidence Framework**: ICAE (correctness, 129 tests across 9 protocols) and ICuAE (currency, 29 tests across 5 dimensions) running independently with ICD 203 methodology
 3. **Protocol Coverage**: Nine DNS security protocols analyzed — SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA — each linked to authoritative RFCs
-4. **Open-Core Architecture**: BSL 1.1 license model with public web layer and private intelligence module, build-tag gated compilation
+4. **Open-Core Architecture**: BUSL-1.1 license model with public web layer and private intelligence module, build-tag gated compilation
 5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
 6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, FIPS 202 (SHA-3)
-7. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
-8. **Encrypted DNS Transport Detection (Future)**: DoH (RFC 8484), DoT (RFC 7858), and DDR (RFC 9462) posture analysis for domain resolver infrastructure
+7. **Evidence Chain**: Three-layer tamper-proof evidence — SHA-3-512 integrity hash, posture drift hash, and Internet Archive Wayback Machine snapshot for independent third-party verification
+8. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
+9. **Encrypted DNS Transport Detection (Future)**: DoH (RFC 8484), DoT (RFC 7858), and DDR (RFC 9462) posture analysis for domain resolver infrastructure
 
 ### Design Decisions
 - Pure HTML/CSS diagrams — no JavaScript dependency, sub-second rendering
@@ -505,7 +518,7 @@ The question "does the record exist?" is dangerous to stop at:
 ICD 203 (Intelligence Community Directive on Analytic Standards) was designed for one problem: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment. That is exactly what DNS security analysis is. SPF misconfiguration is the attack surface exploited in Business Email Compromise — the single most financially damaging cybercrime category ($2.9 billion in 2023, FBI IC3 Annual Report). When an operator evaluates an SPF finding, they need to know: was it observed directly or inferred? Was it confirmed across multiple resolvers or seen by only one? Is the evidence degraded by caching artifacts? ICD 203 provides that structure. The alternative — presenting every finding as equally certain — causes the alert fatigue that makes security tools useless.
 
 ### Practice What We Preach
-DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audits: SPF with `-all`, DKIM with 2048-bit keys, DMARC at `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS in enforce mode, TLS-RPT, and BIMI. The platform passes Google Lighthouse (98–100), Mozilla Observatory (score 140, A+), and SonarCloud (A rating) as of Mar 2026. Every quality gate runs on every build — not as a final check, but as a build requirement. If the tool cannot secure its own delivery, it has no standing to audit anyone else's.
+DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audits: SPF with `-all`, DKIM with 2048-bit keys, DMARC at `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS in enforce mode, TLS-RPT, and BIMI. The platform passes Google Lighthouse (100 across all categories), Mozilla Observatory (score 145, A+), and SonarCloud (A rating) as of Mar 2026. Every quality gate runs on every build — not as a final check, but as a build requirement. If the tool cannot secure its own delivery, it has no standing to audit anyone else's.
 
 ### The Heuristic Trap
 When 99% of DNS checkers are simple scripts wrapped in marketing, anything deeper looks like it is trying too hard. That is the heuristic trap — pattern-matching against a low bar and treating the outlier as suspicious rather than serious. The criticism reveals the actual problem: DNS security has historically been under-engineered relative to what it actually requires. DNS Tool can be used as a simple checker — and it will give accurate results. The depth is there for when a simple check is not enough.

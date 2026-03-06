@@ -55,7 +55,7 @@ This repository contains the public web application:
 
 ## What is in the private repo
 
-The private repository (`dns-tool-intel`) contains the proprietary intelligence that powers active features in the running product. Every item below is a feature users see today — the public repo provides the framework and safe defaults, while the private repo supplies the databases, patterns, and algorithms that produce real intelligence. Also licensed under **BSL 1.1** with the same terms and Change Date.
+The private repository (`dns-tool-intel`) contains the proprietary intelligence that powers active features in the running product. Every item below is a feature users see today — the public repo provides the framework and safe defaults, while the private repo supplies the databases, patterns, and algorithms that produce real intelligence. Also licensed under **BUSL-1.1** with the same terms and Change Date.
 
 ### Provider Intelligence (providers.go)
 - DMARC monitoring provider detection databases (vendor identification from rua/ruf domains)
@@ -97,15 +97,15 @@ The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPa
 
 ## How they work together
 
-The public repo runs standalone with full core functionality. Every section renders in the UI — stub interfaces return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the public build; the private repo's implementations produce the full intelligence output. In internal builds, the stub files are replaced with proprietary implementations at compile time. The two codebases share a Go package boundary and are both licensed under BSL 1.1.
+The public repo runs standalone with full core functionality. Every section renders in the UI — stub interfaces return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the public build; the private repo's implementations produce the full intelligence output. In internal builds, the stub files are replaced with proprietary implementations at compile time. The two codebases share a Go package boundary and are both licensed under BUSL-1.1.
 
 ## Contributing
 
-By contributing code to this repository, you agree that your contributions may be used under the terms of the BSL 1.1 (and the Apache-2.0 license after the Change Date). A Contributor License Agreement (CLA) may be required for substantial contributions.
+By contributing code to this repository, you agree that your contributions may be used under the terms of the BUSL-1.1 (and the Apache-2.0 license after the Change Date). A Contributor License Agreement (CLA) may be required for substantial contributions.
 
 ## Commercial Licensing
 
-For organizations that need capabilities beyond the BSL-permitted uses, commercial licenses are available by arrangement. Contact us to discuss your specific requirements.
+For organizations that need capabilities beyond the BUSL-1.1-permitted uses, commercial licenses are available by arrangement. Contact us to discuss your specific requirements.
 
 ### What a commercial license can include
 - All public repo capabilities plus the complete private intelligence databases

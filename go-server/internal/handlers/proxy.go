@@ -82,13 +82,13 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
                 c.String(http.StatusBadGateway, "Failed to fetch logo")
                 return
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "BIMI response body")
 
         resp, err = h.followRedirects(c, client, resp)
         if err != nil {
                 return
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "BIMI redirect response body")
 
         body, safeCT, err := validateBIMIResponse(resp)
         if err != nil {

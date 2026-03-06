@@ -38,7 +38,7 @@ func fetchCISAList() {
                 slog.Warn("CISA IP list fetch failed", "error", err)
                 return
         }
-        defer resp.Body.Close()
+        defer safeClose(resp.Body, "cisa-response")
 
         if resp.StatusCode != http.StatusOK {
                 slog.Warn("CISA IP list non-200 response", "status", resp.StatusCode)
@@ -79,6 +79,12 @@ func parseCISABody(r io.Reader) []*net.IPNet {
                 nets = append(nets, cidr)
         }
         return nets
+}
+
+func safeClose(c io.Closer, label string) {
+        if err := c.Close(); err != nil {
+                slog.Debug("close error", "resource", label, "error", err)
+        }
 }
 
 func CISAListSize() int {

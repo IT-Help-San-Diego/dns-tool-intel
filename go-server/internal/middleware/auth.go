@@ -2,6 +2,7 @@ package middleware
 
 import (
         "context"
+        "log/slog"
         "net/http"
         "time"
 
@@ -43,7 +44,9 @@ func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
                 go func(token string) {
                         ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
                         defer cancel()
-                        _ = queries.UpdateSessionLastSeen(ctx, token)
+                        if err := queries.UpdateSessionLastSeen(ctx, token); err != nil {
+                                slog.Debug("update session last seen", "error", err)
+                        }
                 }(cookie)
 
                 c.Next()
@@ -53,7 +56,10 @@ func SessionLoader(pool *pgxpool.Pool) gin.HandlerFunc {
 func RequireAuth() gin.HandlerFunc {
         return func(c *gin.Context) {
                 auth, exists := c.Get(mapKeyAuthenticated)
-                authed, _ := auth.(bool)
+                authed, ok := auth.(bool)
+                if !ok {
+                        authed = false
+                }
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
                                 mapKeyError: "Authentication required",
@@ -68,7 +74,10 @@ func RequireAuth() gin.HandlerFunc {
 func RequireAdmin() gin.HandlerFunc {
         return func(c *gin.Context) {
                 auth, exists := c.Get(mapKeyAuthenticated)
-                authed, _ := auth.(bool)
+                authed, ok := auth.(bool)
+                if !ok {
+                        authed = false
+                }
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
                                 mapKeyError: "Authentication required",
@@ -76,8 +85,8 @@ func RequireAdmin() gin.HandlerFunc {
                         c.Abort()
                         return
                 }
-                role, _ := c.Get(mapKeyUserRole)
-                if role != "admin" {
+                role, exists := c.Get(mapKeyUserRole)
+                if !exists || role != "admin" {
                         c.JSON(http.StatusForbidden, gin.H{
                                 mapKeyError: "Administrator access required",
                         })
@@ -91,13 +100,13 @@ func RequireAdmin() gin.HandlerFunc {
 func GetAuthTemplateData(c *gin.Context) map[string]any {
         data := map[string]any{}
         if auth, exists := c.Get(mapKeyAuthenticated); exists {
-                authed, _ := auth.(bool)
-                if !authed {
+                authed, ok := auth.(bool)
+                if !ok || !authed {
                         return data
                 }
-                email, _ := c.Get("user_email")
-                name, _ := c.Get("user_name")
-                role, _ := c.Get(mapKeyUserRole)
+                email, _ := c.Get("user_email")   //nolint:errcheck // value used for template data
+                name, _ := c.Get("user_name")      //nolint:errcheck // value used for template data
+                role, _ := c.Get(mapKeyUserRole)   //nolint:errcheck // value used for template data
                 data["Authenticated"] = true
                 data["UserEmail"] = email
                 data["UserName"] = name

@@ -538,7 +538,7 @@ func (a *Analyzer) whoisLookup(ctx context.Context, domain string) (string, bool
         if err != nil {
                 return "", false, ""
         }
-        defer conn.Close()
+        defer safeClose(conn, "whois connection")
         conn.SetDeadline(time.Now().Add(5 * time.Second))
 
         _, err = conn.Write([]byte(domain + "\r\n"))
