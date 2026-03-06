@@ -359,17 +359,19 @@
         }
 
         function drawSignalArcs(time) {
+            var tgtX = HUB.x - (HUB._drawW || 88) / 2;
+            var tgtY = HUB.y;
             for (var i = 0; i < RESOLVER_POPS.length; i++) {
                 var pop = RESOLVER_POPS[i];
                 var p = projectPt(pop.lat, pop.lon);
                 if (!p.vis) continue;
 
-                var cpx = p.x + (convergePt.x - p.x) * 0.5 + (p.y - convergePt.y) * 0.12;
-                var cpy = p.y + (convergePt.y - p.y) * 0.5;
+                var cpx = p.x + (tgtX - p.x) * 0.5 + (p.y - tgtY) * 0.12;
+                var cpy = p.y + (tgtY - p.y) * 0.5;
 
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y);
-                ctx.quadraticCurveTo(cpx, cpy, convergePt.x, convergePt.y);
+                ctx.quadraticCurveTo(cpx, cpy, tgtX, tgtY);
                 ctx.strokeStyle = hexToRgba(pop.color, 0.12 + p.depth * 0.06);
                 ctx.lineWidth = 0.8;
                 ctx.stroke();
@@ -382,11 +384,11 @@
                 if (!p2.vis) continue;
 
                 var t = sp.t;
-                var cpx2 = p2.x + (convergePt.x - p2.x) * 0.5 + (p2.y - convergePt.y) * 0.12;
-                var cpy2 = p2.y + (convergePt.y - p2.y) * 0.5;
+                var cpx2 = p2.x + (tgtX - p2.x) * 0.5 + (p2.y - tgtY) * 0.12;
+                var cpy2 = p2.y + (tgtY - p2.y) * 0.5;
                 var mt = 1 - t;
-                var px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * convergePt.x;
-                var py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * convergePt.y;
+                var px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * tgtX;
+                var py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * tgtY;
 
                 ctx.beginPath();
                 ctx.arc(px, py, sp.size, 0, Math.PI * 2);
@@ -437,7 +439,7 @@
                 ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 1 : 0.85) * alpha);
                 ctx.fill();
 
-                var label = pop2.tag + ' \u00b7 ' + pop2.city;
+                var label = isHovered ? (pop2.tag + ' \u00b7 ' + pop2.city) : pop2.city;
                 ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 var tw = ctx.measureText(label).width;
                 var tagW = tw + 18 * SCL;
@@ -992,13 +994,14 @@
             CONFIDENCE[2].targetX = procCx;
             CONFIDENCE[2].targetY = confY + usableH * 0.18;
 
-            var storeY = titleSafe + usableH * 0.80;
+            var storeY = titleSafe + usableH * 0.78;
+            var storeSpread = Math.max(confSpread * 0.8, 60);
             STORAGE[0].targetX = procCx;
             STORAGE[0].targetY = storeY;
-            STORAGE[1].targetX = procCx - confSpread * 0.6;
-            STORAGE[1].targetY = storeY + usableH * 0.08;
-            STORAGE[2].targetX = procCx + confSpread * 0.6;
-            STORAGE[2].targetY = storeY + usableH * 0.08;
+            STORAGE[1].targetX = procCx - storeSpread;
+            STORAGE[1].targetY = storeY + usableH * 0.10;
+            STORAGE[2].targetX = procCx + storeSpread;
+            STORAGE[2].targetY = storeY + usableH * 0.10;
 
             var protoCx = (col3L + col3R) / 2;
             var protoCy = titleSafe + usableH * 0.42;
@@ -1044,7 +1047,7 @@
                 'storage': {
                     gx: procCx, gy: storeY,
                     gravity: 0.35,
-                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.72, y2: legendSafe }
+                    bounds: { x1: col2L - c2w * 0.3, x2: col2R + c2w * 0.3, y1: titleSafe + usableH * 0.68, y2: legendSafe }
                 },
                 'protocol': {
                     gx: protoCx, gy: protoCy,
@@ -1594,32 +1597,11 @@
             }
         }
 
-        function drawConvergeLink() {
-            ctx.beginPath();
-            ctx.moveTo(convergePt.x, convergePt.y);
-            ctx.lineTo(HUB.x - HUB._drawW / 2 - 5, HUB.y);
-            ctx.strokeStyle = hexToRgba(COLORS.source, 0.25);
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            var arrowX = HUB.x - (HUB._drawW || 100) / 2 - 5;
-            ctx.beginPath();
-            ctx.moveTo(arrowX, HUB.y);
-            ctx.lineTo(arrowX - 6, HUB.y - 4);
-            ctx.lineTo(arrowX - 6, HUB.y + 4);
-            ctx.closePath();
-            ctx.fillStyle = hexToRgba(COLORS.source, 0.35);
-            ctx.fill();
-        }
-
         function draw() {
             ctx.clearRect(0, 0, W, H);
 
             drawAmbient();
             drawGlobe(time);
-            drawConvergeLink();
 
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
