@@ -178,6 +178,17 @@ func main() {
         router.HEAD("/apple-touch-icon.png", appleTouchHandler)
         router.GET("/apple-touch-icon-precomposed.png", appleTouchHandler)
         router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
+        imagesHandler := func(c *gin.Context) {
+                fp := c.Param("filepath")
+                if fp == "" || strings.Contains(fp, "..") {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
+                c.Header(headerCacheControl, "public, max-age=86400")
+                c.File(filepath.Join(staticDir, "images", fp))
+        }
+        router.GET("/images/*filepath", imagesHandler)
+        router.HEAD("/images/*filepath", imagesHandler)
 
         dnsAnalyzer := analyzer.New()
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
