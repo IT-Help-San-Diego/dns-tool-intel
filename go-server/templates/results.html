@@ -6226,7 +6226,7 @@
                     e.preventDefault();
                     showRfcPopup(rfcId, sectionId);
                 });
-                link.style.cursor = 'pointer';
+                link.classList.add('u-cursor-pointer');
                 link.removeAttribute('target');
             })(links[i]);
         }
@@ -6334,22 +6334,22 @@
     function expandSubdomains(tbody, expandRow, collapseRow) {
         const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
         for (const hiddenRow of hiddenRows) {
-            hiddenRow.style.display = '';
+            hiddenRow.classList.remove('d-none');
         }
-        expandRow.style.display = 'none';
+        expandRow.classList.add('d-none');
         if (!collapseRow.parentNode) {
             tbody.appendChild(collapseRow);
         }
-        collapseRow.style.display = '';
+        collapseRow.classList.remove('d-none');
     }
 
     function collapseSubdomains(tbody, expandRow, collapseRow) {
         const hiddenRows = tbody.querySelectorAll('.subdomain-collapsed-row');
         for (const hiddenRow of hiddenRows) {
-            hiddenRow.style.display = 'none';
+            hiddenRow.classList.add('d-none');
         }
-        collapseRow.style.display = 'none';
-        expandRow.style.display = '';
+        collapseRow.classList.add('d-none');
+        expandRow.classList.remove('d-none');
         const table = document.getElementById('subdomainTable');
         if (table) table.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -6363,8 +6363,7 @@
         if (total <= VISIBLE) return;
         const hidden = total - VISIBLE;
         for (const row of Array.from(rows).slice(VISIBLE)) {
-            row.style.display = 'none';
-            row.classList.add('subdomain-collapsed-row');
+            row.classList.add('d-none', 'subdomain-collapsed-row');
         }
         const expandRow = document.createElement('tr');
         expandRow.id = 'subdomainExpandRow';
@@ -6377,7 +6376,7 @@
         btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Show All ' + total + ' Subdomains <span class="text-muted ms-1">(' + hidden + ' more)</span>';
         const collapseRow = document.createElement('tr');
         collapseRow.id = 'subdomainCollapseRow';
-        collapseRow.style.display = 'none';
+        collapseRow.classList.add('d-none');
         btn.addEventListener('click', function() {
             expandSubdomains(tbody, expandRow, collapseRow);
         });

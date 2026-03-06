@@ -230,7 +230,7 @@
 
             const swatch = el('div', 'cs-swatch');
             swatch.ariaLabel = 'Color swatch for ' + color.hex;
-            swatch.style.cssText = 'background-color:' + color.hex;
+            swatch.style.setProperty('background-color', color.hex);
             row.appendChild(swatch);
 
             const info = el('div', 'flex-grow-1');
@@ -310,7 +310,7 @@
             const tr = el('tr');
             const label = el('td', 'cs-matrix-cell fw-bold');
             label.textContent = fg.hex;
-            label.style.cssText = 'color:' + fg.hex;
+            label.style.setProperty('color', fg.hex);
             tr.appendChild(label);
 
             for (const bg of colors) {
