@@ -53,6 +53,9 @@ echo "  CITATION.cff ✓ (concept DOI safe)"
 echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
 echo ""
-echo "Done! v${VERSION} built and committed."
-echo "  → Restart the app workflow to see it live"
-echo "  → Then run: bash scripts/git-sync.sh"
+echo "Restarting app..."
+pkill -f dns-tool-server 2>/dev/null || true
+sleep 2
+echo "  Workflow will auto-restart on v${VERSION} ✓"
+echo ""
+echo "Ready. Run: bash scripts/git-sync.sh"
