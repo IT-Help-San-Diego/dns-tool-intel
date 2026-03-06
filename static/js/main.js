@@ -112,7 +112,6 @@ function startStatusCycle(overlayEl) {
     const phases = overlayEl.querySelectorAll('.scan-phase');
     if (phases.length === 0) return;
 
-    let completed = 0;
     phases.forEach(function(phase, idx) {
         const delay = Number.parseInt(phase.dataset.delay, 10) || 0;
         setTimeout(function() {
@@ -131,7 +130,6 @@ function startStatusCycle(overlayEl) {
                 icon.classList.remove('fa-circle-notch', 'fa-spin', 'scan-pending');
                 requestAnimationFrame(function() { icon.classList.add('fa-check-circle'); });
             }
-            completed++;
         }, doneDelay);
     });
 }
@@ -343,20 +341,20 @@ function updateEnvButtons(env) {
     });
 }
 
-var covertThemeColors = { submarine: '#0a0404', tactical: '#1a0808', basement: '#140606' };
-var defaultThemeColors = [];
+const covertThemeColors = { submarine: '#0a0404', tactical: '#1a0808', basement: '#140606' };
+const defaultThemeColors = [];
 
 function updateThemeColor(env) {
-    var metas = document.querySelectorAll('meta[name="theme-color"]');
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
     if (!defaultThemeColors.length && metas.length) {
         metas.forEach(function(m) { defaultThemeColors.push(m.getAttribute('content') || '#0d1117'); });
     }
-    var color = covertThemeColors[env] || covertThemeColors.tactical;
+    const color = covertThemeColors[env] || covertThemeColors.tactical;
     metas.forEach(function(m) { m.setAttribute('content', color); });
 }
 
 function restoreThemeColor() {
-    var metas = document.querySelectorAll('meta[name="theme-color"]');
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
     metas.forEach(function(m, i) { m.setAttribute('content', defaultThemeColors[i] || '#0d1117'); });
 }
 
@@ -381,10 +379,10 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
         restoreThemeColor();
-        var activeFs = document.fullscreenElement || document.webkitFullscreenElement;
-        if (activeFs) { try { if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } } catch(_e) { /* intentional */ } }
+        const activeFs = document.fullscreenElement || document.webkitFullscreenElement;
+        if (activeFs) { try { if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } } catch(_e) { /* intentional */ } } // NOSONAR
     }
-    var toggle = document.getElementById('covertToggle');
+    const toggle = document.getElementById('covertToggle');
     if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
@@ -449,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'false'); });
         roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'true'); });
     }
-    var roeHandled = false;
+    let roeHandled = false;
     function handleRoeAccept(e) {
         if (roeHandled) return;
         roeHandled = true;
@@ -466,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { roeHandled = false; }, 400);
         if (e) { e.preventDefault(); }
         if (roeModal) { roeModal.hide(); }
-        window.location.href = 'https://youtu.be/ZzUsKizhb8o?si=4mPVuQ7SNTttqraP';
+        globalThis.location.href = 'https://youtu.be/ZzUsKizhb8o?si=4mPVuQ7SNTttqraP';
     }
     const roeAcceptBtn = document.getElementById('roeAccept');
     if (roeAcceptBtn) {
@@ -509,28 +507,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     document.addEventListener('click', function(e) {
-        var btn = e.target.closest('.covert-env-btn');
-        if (btn && btn.dataset && btn.dataset.env) {
-            setCovertEnv(btn.dataset.env);
+        const envBtn = e.target.closest('.covert-env-btn');
+        if (envBtn && envBtn.dataset && envBtn.dataset.env) {
+            setCovertEnv(envBtn.dataset.env);
         }
-        var fsBtn = e.target.closest('.covert-fullscreen-btn');
+        const fsBtn = e.target.closest('.covert-fullscreen-btn');
         if (fsBtn) {
-            var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
             if (fsEl) {
                 if (document.exitFullscreen) { document.exitFullscreen(); }
                 else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
             } else {
-                var de = document.documentElement;
+                const de = document.documentElement;
                 if (de.requestFullscreen) { de.requestFullscreen({ navigationUI: 'hide' }); }
                 else if (de.webkitRequestFullscreen) { de.webkitRequestFullscreen(); }
             }
         }
     });
     function handleFullscreenChange() {
-        var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-        var fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
+        const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+        const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
-            var icon = b.querySelector('i');
+            const icon = b.querySelector('i');
             if (fsEl) {
                 if (icon) { icon.className = 'fas fa-compress me-1'; }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
@@ -542,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    var fsSupported = document.fullscreenEnabled || document.webkitFullscreenEnabled || false;
+    const fsSupported = document.fullscreenEnabled || document.webkitFullscreenEnabled || false;
     if (!fsSupported) {
         document.querySelectorAll('.covert-fullscreen-btn').forEach(function(b) {
             b.classList.add('d-none');
@@ -550,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (document.body.classList.contains('covert-mode')) {
         setCovertEnv(getCovertEnv());
-        var initToggle = document.getElementById('covertToggle');
+        const initToggle = document.getElementById('covertToggle');
         if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
     }
 
