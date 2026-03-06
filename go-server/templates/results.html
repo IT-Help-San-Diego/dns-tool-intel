@@ -234,6 +234,9 @@
                     {{if .IntegrityHash}}
                         <span class="mx-1">&middot;</span><span class="u-integrity-preview"><i class="fas fa-lock"></i> <span class="font-monospace">SHA-3-512: {{substr 0 4 .IntegrityHash}}<span class="u-ls-tight">&#x2731;&#x2731;&#x2731;&#x2731;</span></span> <a href="#report-integrity" class="u-integrity-link u-integrity-link-info" title="Click to view full SHA-3-512 integrity hash">Verify</a></span>
                     {{end}}
+                    {{if .WaybackURL}}
+                        <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot"><i class="fas fa-landmark me-1"></i>Archived</a>
+                    {{end}}
                 </div>
                 {{end}}
             </div>
@@ -5708,6 +5711,41 @@
         </div>
         {{end}}
 
+        {{if .WaybackURL}}
+        <div class="row section-wayback-archive mt-2">
+            <div class="col-12 mb-4">
+        <div class="card border-success border-opacity-50 u-bg-secondary" id="wayback-archive">
+            <div class="card-header">
+                <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                    <span><i class="fas fa-landmark me-2 text-success"></i>Internet Archive &mdash; Permanent Record
+                    <span class="badge ms-2 u-badge-success-outline">Wayback Machine</span></span>
+                    <span class="section-question dt-question dt-question--section">Can this analysis be independently verified?
+                        <span class="badge bg-success ms-2">Archived</span>
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small mb-3 u-color-text">
+                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-proof, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it cannot be altered, deleted, or disputed. Combined with the SHA-3-512 integrity hash, this creates a legally defensible chain of evidence for domain security state.
+                </p>
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-external-link-alt me-1"></i>View Archived Snapshot
+                    </a>
+                    <button class="btn btn-sm btn-outline-success border-0" id="copyWaybackUrl" title="Copy archive URL" data-url="{{.WaybackURL}}">
+                        <i class="fas fa-copy me-1"></i>Copy URL
+                    </button>
+                </div>
+                <div class="small u-color-text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Snapshot preserved at <code class="user-select-all">{{.WaybackURL}}</code>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+        {{end}}
+
         {{if .AnalysisID}}
         <div class="row section-download-verify mt-2">
             <div class="col-12 mb-4">
@@ -6244,6 +6282,20 @@
         }
     }
 
+    function setupWaybackCopy() {
+        const btn = document.getElementById('copyWaybackUrl');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const url = this.dataset.url;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(function() {
+                        onCopySuccess(btn);
+                    }).catch(function() { /* clipboard write failed — ignored */ });
+                }
+            });
+        }
+    }
+
     function triggerDelayedPrint() {
         requestAnimationFrame(function() {
             setTimeout(function() { globalThis.print(); }, 600);
@@ -6509,6 +6561,7 @@
 
             setupCopyCommandButtons();
             setupIntegrityHashCopy();
+            setupWaybackCopy();
             setupHashPreviewLink();
             setupCollapseKeyboardHandlers();
             setupRfcPopups();
