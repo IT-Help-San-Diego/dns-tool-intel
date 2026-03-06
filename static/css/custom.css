@@ -2346,6 +2346,11 @@ body.covert-mode .u-covert-toggle {
 body.covert-mode {
     background-color: #0a0c10 !important;
     color: #b0b8c0;
+    font-size: 1.02rem;
+    letter-spacing: 0.01em;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 body.covert-mode::after {
     content: none;
@@ -2372,87 +2377,295 @@ body.covert-tactical .covert-filter-overlay {
 body.covert-submarine .covert-filter-overlay {
     background: #440000;
 }
-body.covert-submarine .navbar.bg-dark {
+body.covert-mode.covert-submarine {
+    font-size: 1.05rem;
+    letter-spacing: 0.015em;
+    line-height: 1.78;
+}
+body.covert-mode.covert-submarine .navbar.bg-dark {
     background-color: #060608 !important;
     border-bottom-color: rgba(68, 0, 0, 0.25);
 }
-body.covert-submarine .navbar-brand {
+body.covert-mode.covert-submarine .navbar-brand {
     color: #661414 !important;
 }
-body.covert-submarine .navbar-brand .nav-version-badge {
+body.covert-mode.covert-submarine .navbar-brand .nav-version-badge {
     background: rgba(68, 0, 0, 0.2);
     color: #661414;
     border-color: rgba(68, 0, 0, 0.3);
     text-shadow: none;
 }
-body.covert-submarine .navbar-brand svg path {
+body.covert-mode.covert-submarine .navbar-brand svg path {
     fill: #4a1010;
 }
-body.covert-submarine .navbar-brand svg rect[rx="1"] {
+body.covert-mode.covert-submarine .navbar-brand svg rect[rx="1"] {
     fill: #661414;
 }
-body.covert-submarine .nav-link {
+body.covert-mode.covert-submarine .nav-link {
     color: rgba(120, 130, 140, 0.3) !important;
 }
-body.covert-submarine .nav-link:hover {
+body.covert-mode.covert-submarine .nav-link:hover {
     color: #661414 !important;
     text-shadow: none;
 }
-body.covert-submarine .nav-link.active {
+body.covert-mode.covert-submarine .nav-link.active {
     color: #661414 !important;
     text-shadow: none;
 }
-body.covert-submarine .hero-badge {
+body.covert-mode.covert-submarine .hero-badge {
     background: rgba(68, 0, 0, 0.12) !important;
     border-color: rgba(68, 0, 0, 0.2) !important;
     color: #661414 !important;
 }
-body.covert-submarine .hero-title {
+body.covert-mode.covert-submarine .hero-title {
     color: #4a0e0e;
     -webkit-text-stroke-color: rgba(100, 20, 20, 0.4);
     text-shadow: 0 0 2px rgba(68, 0, 0, 0.06);
 }
-body.covert-submarine .u-covert-toggle {
+body.covert-mode.covert-submarine .u-covert-toggle {
     color: #661414;
     text-shadow: 0 0 6px rgba(68, 0, 0, 0.4);
 }
-body.covert-submarine .u-covert-banner {
+body.covert-mode.covert-submarine .u-covert-banner {
     background: rgba(10, 4, 4, 0.9) !important;
     border-color: rgba(68, 0, 0, 0.2) !important;
+    border-left-color: rgba(68, 0, 0, 0.35);
 }
-body.covert-submarine .covert-env-btn.active {
+body.covert-mode.covert-submarine .covert-env-btn {
+    color: rgba(100, 30, 30, 0.5);
+    border-color: rgba(68, 0, 0, 0.25);
+    background: rgba(68, 0, 0, 0.1);
+}
+body.covert-mode.covert-submarine .covert-env-btn.active {
     background: rgba(68, 0, 0, 0.25);
     border-color: #661414;
     color: #882020;
     box-shadow: 0 0 4px rgba(68, 0, 0, 0.2);
 }
-body.covert-submarine .btn-outline-info {
+body.covert-mode.covert-submarine .covert-env-label {
+    color: rgba(120, 110, 110, 0.3);
+}
+body.covert-mode.covert-submarine .btn-outline-info {
     color: #661414 !important;
     border-color: rgba(68, 0, 0, 0.4) !important;
 }
-body.covert-submarine .btn-outline-info:hover {
+body.covert-mode.covert-submarine .btn-outline-info:hover {
     background-color: rgba(68, 0, 0, 0.12) !important;
     border-color: #661414 !important;
     color: #882020 !important;
     box-shadow: 0 0 4px rgba(68, 0, 0, 0.15) !important;
 }
-body.covert-submarine .card,
-body.covert-submarine .u-card-dark {
+body.covert-mode.covert-submarine .card,
+body.covert-mode.covert-submarine .u-card-dark {
+    background-color: #0a0a0e !important;
     border-color: rgba(68, 0, 0, 0.25) !important;
 }
-body.covert-submarine .card:hover,
-body.covert-submarine .u-card-dark:hover {
+body.covert-mode.covert-submarine .card:hover,
+body.covert-mode.covert-submarine .u-card-dark:hover {
     border-color: rgba(68, 0, 0, 0.35) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
-body.covert-submarine a:not(.btn):not(.nav-link):not(.navbar-brand):not(.icae-hero-statement):not(.icae-badge) {
+body.covert-mode.covert-submarine .card-header {
+    background-color: rgba(8, 4, 4, 0.6) !important;
+    border-bottom-color: rgba(68, 0, 0, 0.1) !important;
+}
+body.covert-mode.covert-submarine .card-header h5,
+body.covert-mode.covert-submarine .card-header h6,
+body.covert-mode.covert-submarine .card-header .h5,
+body.covert-mode.covert-submarine .card-header .h6 {
+    color: rgba(120, 40, 40, 0.5) !important;
+}
+body.covert-mode.covert-submarine a:not(.btn):not(.nav-link):not(.navbar-brand):not(.icae-hero-statement):not(.icae-badge) {
     color: #661414;
 }
-body.covert-submarine .navbar-toggler {
+body.covert-mode.covert-submarine .navbar-toggler {
     border-color: rgba(68, 0, 0, 0.3) !important;
 }
-body.covert-submarine .navbar-toggler-icon {
+body.covert-mode.covert-submarine .navbar-toggler-icon {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(100, 20, 20, 0.5)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+body.covert-mode.covert-submarine h1,
+body.covert-mode.covert-submarine h2,
+body.covert-mode.covert-submarine h3,
+body.covert-mode.covert-submarine h4,
+body.covert-mode.covert-submarine h5,
+body.covert-mode.covert-submarine h6 {
+    color: rgba(120, 100, 100, 0.45) !important;
+    letter-spacing: 0.02em;
+    font-weight: 400;
+}
+body.covert-mode.covert-submarine .container {
+    color: rgba(140, 120, 120, 0.5);
+}
+body.covert-mode.covert-submarine .text-info {
+    color: #661414 !important;
+}
+body.covert-mode.covert-submarine .text-success,
+body.covert-mode.covert-submarine .text-danger,
+body.covert-mode.covert-submarine .text-warning {
+    color: rgba(100, 40, 40, 0.4) !important;
+}
+body.covert-mode.covert-submarine .text-muted {
+    color: rgba(120, 110, 110, 0.35) !important;
+}
+body.covert-mode.covert-submarine .text-light {
+    color: rgba(140, 120, 120, 0.4) !important;
+}
+body.covert-mode.covert-submarine .form-control,
+body.covert-mode.covert-submarine .form-select {
+    background-color: #060608 !important;
+    border-color: rgba(68, 0, 0, 0.25) !important;
+    color: rgba(120, 40, 40, 0.55) !important;
+}
+body.covert-mode.covert-submarine .form-control:focus,
+body.covert-mode.covert-submarine .form-select:focus {
+    border-color: rgba(100, 30, 30, 0.4) !important;
+    box-shadow: 0 0 0 0.2rem rgba(68, 0, 0, 0.12) !important;
+}
+body.covert-mode.covert-submarine .table {
+    color: rgba(140, 120, 120, 0.4);
+    border-color: rgba(68, 0, 0, 0.1);
+}
+body.covert-mode.covert-submarine .progress-bar {
+    background-color: rgba(68, 0, 0, 0.35) !important;
+}
+body.covert-mode.covert-submarine .badge.bg-light,
+body.covert-mode.covert-submarine .badge.bg-secondary {
+    background: rgba(68, 0, 0, 0.1) !important;
+    color: rgba(120, 100, 100, 0.4) !important;
+    border-color: rgba(68, 0, 0, 0.2);
+}
+body.covert-mode.covert-submarine .badge.bg-success,
+body.covert-mode.covert-submarine .badge.bg-info,
+body.covert-mode.covert-submarine .badge.bg-warning,
+body.covert-mode.covert-submarine .badge.bg-danger {
+    background-color: rgba(68, 0, 0, 0.12) !important;
+    color: rgba(100, 40, 40, 0.45) !important;
+}
+body.covert-mode.covert-submarine .alert-info,
+body.covert-mode.covert-submarine .alert-success,
+body.covert-mode.covert-submarine .alert-warning,
+body.covert-mode.covert-submarine .alert-danger {
+    background-color: rgba(68, 0, 0, 0.06) !important;
+    border-color: rgba(68, 0, 0, 0.12) !important;
+    color: rgba(120, 100, 100, 0.45) !important;
+}
+body.covert-mode.covert-submarine .btn-primary,
+body.covert-mode.covert-submarine .btn-info {
+    background-color: rgba(68, 0, 0, 0.2) !important;
+    border-color: rgba(100, 20, 20, 0.35) !important;
+    color: rgba(140, 60, 60, 0.6) !important;
+}
+body.covert-mode.covert-submarine .btn-primary:hover,
+body.covert-mode.covert-submarine .btn-info:hover {
+    background-color: rgba(100, 20, 20, 0.25) !important;
+    border-color: #661414 !important;
+    color: rgba(160, 70, 70, 0.65) !important;
+}
+body.covert-mode.covert-submarine .btn-outline-primary,
+body.covert-mode.covert-submarine .btn-outline-success,
+body.covert-mode.covert-submarine .btn-outline-warning,
+body.covert-mode.covert-submarine .btn-outline-secondary {
+    border-color: rgba(68, 0, 0, 0.25) !important;
+    color: rgba(100, 40, 40, 0.4) !important;
+}
+body.covert-mode.covert-submarine .btn-outline-primary:hover,
+body.covert-mode.covert-submarine .btn-outline-success:hover,
+body.covert-mode.covert-submarine .btn-outline-warning:hover,
+body.covert-mode.covert-submarine .btn-outline-secondary:hover {
+    background-color: rgba(68, 0, 0, 0.08) !important;
+    color: #661414 !important;
+}
+body.covert-mode.covert-submarine code {
+    color: #661414;
+}
+body.covert-mode.covert-submarine .code-block {
+    background-color: rgba(6, 4, 4, 0.6) !important;
+    border-color: rgba(68, 0, 0, 0.1) !important;
+    color: rgba(100, 30, 30, 0.5) !important;
+}
+body.covert-mode.covert-submarine .accordion-button {
+    background-color: #0a0a0e !important;
+    color: rgba(120, 100, 100, 0.4) !important;
+}
+body.covert-mode.covert-submarine .accordion-button:not(.collapsed) {
+    background-color: rgba(68, 0, 0, 0.08) !important;
+    color: rgba(120, 40, 40, 0.55) !important;
+}
+body.covert-mode.covert-submarine .accordion-body {
+    background-color: #080810 !important;
+    color: rgba(120, 100, 100, 0.4) !important;
+}
+body.covert-mode.covert-submarine .accordion-item {
+    background-color: #080810 !important;
+    border-color: rgba(68, 0, 0, 0.1) !important;
+}
+body.covert-mode.covert-submarine .list-group-item {
+    background-color: #0a0a0e !important;
+    border-color: rgba(68, 0, 0, 0.1) !important;
+    color: rgba(120, 100, 100, 0.4) !important;
+}
+body.covert-mode.covert-submarine .list-group-item.active {
+    background-color: rgba(68, 0, 0, 0.1) !important;
+    color: rgba(100, 40, 40, 0.5) !important;
+}
+body.covert-mode.covert-submarine .nav-tabs .nav-link.active {
+    background-color: rgba(68, 0, 0, 0.06) !important;
+    color: rgba(100, 40, 40, 0.5) !important;
+}
+body.covert-mode.covert-submarine .nav-pills .nav-link.active {
+    background-color: rgba(68, 0, 0, 0.1) !important;
+    color: rgba(100, 40, 40, 0.5) !important;
+}
+body.covert-mode.covert-submarine .breadcrumb-item a {
+    color: rgba(100, 30, 30, 0.35) !important;
+}
+body.covert-mode.covert-submarine .modal-content {
+    background-color: #0a0a0e !important;
+    border-color: rgba(68, 0, 0, 0.2) !important;
+}
+body.covert-mode.covert-submarine .toast {
+    background-color: #0a0a0e !important;
+    border-color: rgba(68, 0, 0, 0.15) !important;
+}
+body.covert-mode.covert-submarine .popover {
+    background-color: #0a0a0e !important;
+    border-color: rgba(68, 0, 0, 0.2) !important;
+}
+body.covert-mode.covert-submarine .btn-close {
+    filter: brightness(0.2) sepia(1) hue-rotate(-30deg) saturate(3);
+    opacity: 0.3;
+}
+body.covert-mode.covert-submarine footer {
+    background-color: #060608 !important;
+}
+body.covert-mode.covert-submarine footer a {
+    color: rgba(100, 30, 30, 0.35) !important;
+}
+body.covert-mode.covert-submarine .hero-section {
+    background: linear-gradient(170deg, #060308 0%, #060608 35%, #080606 70%, #060608 100%) !important;
+}
+body.covert-mode.covert-submarine .search-label {
+    color: rgba(100, 30, 30, 0.45);
+}
+body.covert-mode.covert-submarine .u-covert-disclosure {
+    color: rgba(120, 80, 80, 0.35);
+}
+body.covert-mode.covert-submarine .u-covert-exit-btn {
+    color: rgba(100, 30, 30, 0.5) !important;
+    border-color: rgba(68, 0, 0, 0.4) !important;
+    background: rgba(68, 0, 0, 0.1) !important;
+    text-shadow: none;
+    box-shadow: none;
+}
+body.covert-mode.covert-submarine .bg-dark {
+    background-color: #060608 !important;
+}
+body.covert-mode.covert-submarine img:not(.u-preserve-img) {
+    filter: grayscale(1) brightness(0.35) sepia(0.3) hue-rotate(-30deg);
+}
+body.covert-mode.covert-submarine svg:not(.navbar-brand svg) {
+    filter: grayscale(0.9) brightness(0.5);
 }
 body.covert-basement {
     background-color: #060303 !important;
@@ -3230,6 +3443,96 @@ body.covert-mode .h4,
 body.covert-mode .h5,
 body.covert-mode .h6 {
     color: rgba(170, 178, 188, 0.55) !important;
+    letter-spacing: 0.015em;
+    font-weight: 500;
+}
+body.covert-mode p,
+body.covert-mode li,
+body.covert-mode td,
+body.covert-mode th,
+body.covert-mode dd,
+body.covert-mode dt,
+body.covert-mode label,
+body.covert-mode .form-text,
+body.covert-mode .small,
+body.covert-mode small {
+    letter-spacing: 0.012em;
+    line-height: 1.72;
+}
+body.covert-mode .progress {
+    background-color: rgba(14, 8, 8, 0.6) !important;
+    border: 1px solid rgba(140, 40, 40, 0.12);
+}
+body.covert-mode .progress-bar {
+    background-color: rgba(140, 40, 40, 0.45) !important;
+}
+body.covert-mode .list-group-item {
+    background-color: #111318 !important;
+    border-color: rgba(140, 40, 40, 0.12) !important;
+    color: rgba(170, 178, 188, 0.55) !important;
+}
+body.covert-mode .list-group-item.active {
+    background-color: rgba(140, 40, 40, 0.15) !important;
+    border-color: rgba(140, 40, 40, 0.3) !important;
+    color: rgba(196, 60, 60, 0.7) !important;
+}
+body.covert-mode .nav-tabs .nav-link {
+    color: rgba(170, 178, 188, 0.45) !important;
+    border-color: transparent !important;
+}
+body.covert-mode .nav-tabs .nav-link.active {
+    background-color: rgba(140, 40, 40, 0.1) !important;
+    border-color: rgba(140, 40, 40, 0.2) rgba(140, 40, 40, 0.2) transparent !important;
+    color: rgba(196, 60, 60, 0.7) !important;
+}
+body.covert-mode .nav-pills .nav-link {
+    color: rgba(170, 178, 188, 0.45) !important;
+}
+body.covert-mode .nav-pills .nav-link.active {
+    background-color: rgba(140, 40, 40, 0.15) !important;
+    color: rgba(196, 60, 60, 0.7) !important;
+}
+body.covert-mode .breadcrumb-item a {
+    color: rgba(196, 60, 60, 0.45) !important;
+}
+body.covert-mode .breadcrumb-item.active {
+    color: rgba(170, 178, 188, 0.4) !important;
+}
+body.covert-mode .breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(140, 40, 40, 0.3) !important;
+}
+body.covert-mode .modal-content {
+    background-color: #111318 !important;
+    border-color: rgba(140, 40, 40, 0.25) !important;
+    color: rgba(170, 178, 188, 0.55) !important;
+}
+body.covert-mode .modal-header {
+    border-bottom-color: rgba(140, 40, 40, 0.15) !important;
+}
+body.covert-mode .modal-footer {
+    border-top-color: rgba(140, 40, 40, 0.15) !important;
+}
+body.covert-mode .btn-close {
+    filter: brightness(0.3) sepia(1) hue-rotate(-30deg) saturate(3);
+    opacity: 0.45;
+}
+body.covert-mode .toast {
+    background-color: #111318 !important;
+    border-color: rgba(140, 40, 40, 0.2) !important;
+    color: rgba(170, 178, 188, 0.55) !important;
+}
+body.covert-mode .popover {
+    background-color: #111318 !important;
+    border-color: rgba(140, 40, 40, 0.25) !important;
+}
+body.covert-mode .popover-body {
+    color: rgba(170, 178, 188, 0.55) !important;
+}
+body.covert-mode img:not(.u-preserve-img) {
+    filter: grayscale(1) brightness(0.6) sepia(0.3) hue-rotate(-30deg);
+}
+body.covert-mode svg:not(.navbar-brand svg) {
+    filter: grayscale(0.8) brightness(0.7);
 }
 body.covert-mode .card-title {
     color: rgba(170, 178, 188, 0.50) !important;
