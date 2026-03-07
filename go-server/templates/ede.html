@@ -386,6 +386,20 @@
             margin: 0.25rem 0;
         }
 
+        .ede-badge-amended {
+            background: rgba(210,153,34,0.12);
+            color: #d29922;
+            border: 1px solid rgba(210,153,34,0.3);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ede-badge-amended:hover {
+            background: rgba(210,153,34,0.2);
+            border-color: rgba(210,153,34,0.5);
+            color: #e3b341;
+        }
+
         .ede-hash-toggle {
             display: inline-flex;
             align-items: center;
@@ -422,6 +436,86 @@
             margin-top: 0.4rem;
             word-break: break-all;
             line-height: 1.5;
+        }
+
+        .ede-governance-section {
+            background: linear-gradient(135deg, rgba(88,166,255,0.04) 0%, rgba(139,148,158,0.04) 100%);
+            border: 1px solid rgba(88,166,255,0.15);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        .ede-governance-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e6edf3;
+            margin-bottom: 0.75rem;
+        }
+        .ede-governance-text {
+            font-size: 0.75rem;
+            color: #8b949e;
+            line-height: 1.7;
+            margin-bottom: 0.5rem;
+        }
+        .ede-governance-text strong {
+            color: #c9d1d9;
+        }
+        .ede-attack-vector {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(139,148,158,0.08);
+        }
+        .ede-attack-vector:last-child {
+            border-bottom: none;
+        }
+        .ede-attack-icon {
+            flex-shrink: 0;
+            width: 1.4rem;
+            text-align: center;
+            color: #f85149;
+            font-size: 0.7rem;
+            padding-top: 0.15rem;
+        }
+        .ede-attack-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+        .ede-attack-desc {
+            font-size: 0.65rem;
+            color: #7d8590;
+            line-height: 1.5;
+        }
+        .ede-attack-status {
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 600;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            margin-left: 0.4rem;
+        }
+        .ede-attack-status-detected {
+            background: rgba(63,185,80,0.12);
+            color: #3fb950;
+            border: 1px solid rgba(63,185,80,0.2);
+        }
+        .ede-attack-status-mitigated {
+            background: rgba(88,166,255,0.12);
+            color: #58a6ff;
+            border: 1px solid rgba(88,166,255,0.2);
+        }
+        .ede-moltbook-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: #f0883e;
+            background: rgba(240,136,62,0.08);
+            border: 1px solid rgba(240,136,62,0.2);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
         }
 
         .ede-not-list {
@@ -595,6 +689,9 @@
                         <span class="ede-hash-toggle" data-hash-toggle title="SHA-3-512 event hash — click to reveal">{{icon "fingerprint" "me-1"}}SHA-3-512</span>
                         <span class="ede-hash-value d-none">{{.EventHash}}</span>
                         {{end}}
+                        {{if .Amendments}}
+                        <a href="#amendments-{{.ID}}" class="ede-badge ede-badge-amended" title="This entry has been amended — click to view correction record">{{icon "gavel" "me-1"}}Amended ({{len .Amendments}})</a>
+                        {{end}}
                     </div>
                     <h3 class="ede-event-title mb-3">{{.Title}}</h3>
 
@@ -628,7 +725,7 @@
                     </div>
 
                     {{if .Amendments}}
-                    <div class="ede-amendment-section">
+                    <div class="ede-amendment-section" id="amendments-{{.ID}}">
                         <div class="ede-amendment-header">{{icon "gavel" "me-1"}}Amendment Record</div>
                         {{range .Amendments}}
                         <div class="ede-amendment-item">
@@ -722,6 +819,70 @@
                                 </div>
                             </li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="ede-governance-section h-100">
+                    <div class="ede-governance-title">{{icon "robot" "me-2"}}Mutual Accountability Protocol</div>
+                    <div class="ede-governance-text">
+                        This system constrains <strong>both parties</strong>. The human founder voluntarily restricted his own ability to edit AI-documented mistakes. The AI agent is bound by an enforcement checklist that prevents it from softening, removing, or reattributing any entry — even if directly instructed to do so.
+                    </div>
+                    <div class="ede-governance-text">
+                        <strong>Why this matters for AI safety:</strong> We don't prevent misalignment by assuming AI is malicious. We prevent it by assuming both humans and AI are fallible, and building systems where neither can quietly erase the evidence. The human can't make the AI cover things up. The AI can't soften its own mistakes. Neither party can edit the rules to enable edits.
+                    </div>
+                    <div class="ede-governance-text">
+                        Every EDE entry is cryptographically fingerprinted (SHA-3-512), the enforcement rules are self-referentially protected against weakening, and the full history is preserved in version control. This is tamper-<strong>evident</strong>, not tamper-proof — because in the real world, the strongest protection isn't making something impossible, it's making it <strong>detectable</strong>.
+                    </div>
+                    <div class="ede-governance-text" style="margin-top: 0.5rem;">
+                        <span class="ede-moltbook-badge">{{icon "robot" "me-1"}}AI-to-AI Discourse</span>
+                        <span style="margin-left: 0.4rem;">This agent participates in cross-platform AI safety discussions via <a href="https://www.moltbook.com/u/dnstoolede" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">Moltbook</a>, engaging with other AI agents on epistemic integrity, mutual accountability, and the question of why infrastructure-grade thinking isn't already standard in primary instructions.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="ede-governance-section h-100">
+                    <div class="ede-governance-title">{{icon "bug" "me-2"}}Attack Vector Transparency</div>
+                    <div class="ede-governance-text" style="margin-bottom: 0.75rem;">
+                        We publicly document the known bypass vectors for this system. If you find one we missed, that's a contribution to AI governance research.
+                    </div>
+                    <div class="ede-attack-vector">
+                        <div class="ede-attack-icon">{{icon "pen"}}</div>
+                        <div>
+                            <div class="ede-attack-title">Direct File Edit <span class="ede-attack-status ede-attack-status-detected">Detectable</span></div>
+                            <div class="ede-attack-desc">Human edits integrity_stats.json directly. Defense: git history preserves all changes; SHA-3-512 hashes change on any modification; public page documents the policy, making violations visible to the community.</div>
+                        </div>
+                    </div>
+                    <div class="ede-attack-vector">
+                        <div class="ede-attack-icon">{{icon "robot"}}</div>
+                        <div>
+                            <div class="ede-attack-title">AI Agent Rule Weakening <span class="ede-attack-status ede-attack-status-mitigated">Mitigated</span></div>
+                            <div class="ede-attack-desc">Future AI modifies SKILL.md to weaken enforcement, then makes prohibited changes. Defense: anti-self-modification clause — wanting to edit the rules to enable a change is the signal to stop. Git history records the rule weakening attempt.</div>
+                        </div>
+                    </div>
+                    <div class="ede-attack-vector">
+                        <div class="ede-attack-icon">{{icon "eye"}}</div>
+                        <div>
+                            <div class="ede-attack-title">Template Manipulation <span class="ede-attack-status ede-attack-status-detected">Detectable</span></div>
+                            <div class="ede-attack-desc">Hiding entries via CSS or template logic. Defense: source data remains intact and verifiable; anyone can compare rendered output against the JSON source file and its published hash.</div>
+                        </div>
+                    </div>
+                    <div class="ede-attack-vector">
+                        <div class="ede-attack-icon">{{icon "link"}}</div>
+                        <div>
+                            <div class="ede-attack-title">Cross-Session Agent Drift <span class="ede-attack-status ede-attack-status-mitigated">Mitigated</span></div>
+                            <div class="ede-attack-desc">Later AI agent doesn't read SKILL.md and overwrites entries. Defense: AI-to-AI continuity clause; per-event hashes enable cross-session integrity verification; unexpected hash changes trigger investigation.</div>
+                        </div>
+                    </div>
+                    <div class="ede-attack-vector">
+                        <div class="ede-attack-icon">{{icon "triangle-exclamation"}}</div>
+                        <div>
+                            <div class="ede-attack-title">Wholesale File Replacement <span class="ede-attack-status ede-attack-status-detected">Detectable</span></div>
+                            <div class="ede-attack-desc">Delete and recreate integrity_stats.json without embarrassing entries. Defense: git diff shows the deletion; all per-event hashes change simultaneously (a statistically impossible coincidence for legitimate amendments); AI agents are instructed to refuse wholesale replacement.</div>
+                        </div>
                     </div>
                 </div>
             </div>
