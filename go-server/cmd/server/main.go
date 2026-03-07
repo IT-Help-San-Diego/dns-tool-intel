@@ -330,6 +330,9 @@ func main() {
         architectureHandler := handlers.NewArchitectureHandler(cfg)
         router.GET("/architecture", architectureHandler.Architecture)
 
+        signatureHandler := handlers.NewSignatureHandler(cfg)
+        router.GET("/signature", signatureHandler.SignaturePage)
+
         topologyHandler := handlers.NewTopologyHandler(cfg)
         router.GET("/topology", topologyHandler.Topology)
 
