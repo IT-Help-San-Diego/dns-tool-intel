@@ -460,8 +460,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
-        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'false'); });
-        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'true'); });
+        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.removeAttribute('inert'); roeModalEl.removeAttribute('aria-hidden'); });
+        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('inert', ''); roeModalEl.setAttribute('aria-hidden', 'true'); });
     }
     let roeHandled = false;
     function handleRoeAccept(e) {

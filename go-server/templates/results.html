@@ -2566,7 +2566,7 @@
                                 {{$bimiStatus := mapGetStr "status" $bimi}}
                                 <p class="d-flex align-items-center">
                                     {{icon "image" "me-2"}}BIMI
-                                    <a href="https://bimigroup.org/implementation-guide/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Brand Indicators for Message Identification</strong><br>Displays your brand logo next to emails in recipients' inboxes." aria-label="Learn about BIMI - BIMI Group Specification">{{icon "info-circle"}}<span class="rfc-label">BIMI Spec</span></a>
+                                    <a href="https://bimigroup.org/implementation-guide/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Brand Indicators for Message Identification</strong><br>Displays your brand logo next to emails in recipients' inboxes." aria-label="BIMI Spec - Brand Indicators for Message Identification">{{icon "info-circle"}}<span class="rfc-label">BIMI Spec</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "bimi"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                     <span class="badge bg-{{if eq $bimiStatus "success"}}success{{else if eq $bimiStatus "error"}}danger{{else}}warning{{end}} ms-2">
                                         {{title $bimiStatus}}
@@ -6720,7 +6720,7 @@
             <div class="modal-content bg-dark border border-secondary">
                 <div class="modal-header border-secondary py-2">
                     <div>
-                        <h6 class="modal-title mb-0" id="rfcPopupTitle"></h6>
+                        <h6 class="modal-title mb-0" id="rfcPopupTitle">RFC Reference</h6>
                         <small class="text-muted" id="rfcPopupSubtitle"></small>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>

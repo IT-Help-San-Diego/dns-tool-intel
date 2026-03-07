@@ -3,7 +3,7 @@
 <nav class="navbar navbar-dark bg-dark" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand" href="/">
-            <img src="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" width="32" height="32" alt="" class="navbar-brand-owl rounded-circle" aria-hidden="true" loading="eager" decoding="sync" fetchpriority="high">
+            <img src="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" width="32" height="32" alt="DNS Tool" class="navbar-brand-owl rounded-circle" loading="eager" decoding="sync" fetchpriority="high">
             <span class="navbar-brand-text">
                 <span class="navbar-brand-name">DNS Tool</span>
                 <span class="nav-version-badge">v{{.AppVersion}}</span>
@@ -96,7 +96,7 @@
         </div>
     </div>
 </nav>
-<div class="modal fade" id="roeModal" tabindex="-1" aria-labelledby="roeModalLabel" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+<div class="modal fade" id="roeModal" tabindex="-1" aria-labelledby="roeModalLabel" data-bs-backdrop="static" data-bs-keyboard="false" inert>
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down modal-lg">
         <div class="modal-content bg-dark border border-danger border-opacity-50">
             <div class="modal-header border-bottom border-danger border-opacity-25">
