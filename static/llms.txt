@@ -62,6 +62,8 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/color-science` — Color Science: CIE scotopic luminance calculations, WCAG contrast analysis, and the science behind the platform's dark-mode color system
 - `/brand-colors` — Brand Colors: platform color palette with accessibility rationale
 - `/badge` — Badge System: embeddable security posture badges (SVG, Shields.io format) for domain security status
+- `/ede` — Epistemic Disclosure Events: public correction log documenting every structural correction to the confidence scoring model — per-event SHA-3-512 integrity hashing, tamper resistance policy with two amendment grounds (FACTUAL_ERROR, DIGNITY_OF_EXPRESSION), full attribution model (Human Error / AI Error / Both / Process Gap), and methodology PDF
+- `/docs/dns-tool-methodology.pdf` — Methodology PDF: peer-review-ready methodology document covering data collection, protocol-specific evaluation, confidence scoring model (ICAE/ICuAE), epistemic correction disclosure, and output products
 - `/faq/subdomains` — Subdomain Discovery FAQ: methodology explanation for Certificate Transparency and DNS-based subdomain enumeration
 
 ## Intelligence Sources & Transparency
@@ -190,6 +192,8 @@ Domain security audit, SPF checker, DKIM validator, DMARC lookup, DNSSEC validat
 ## Documentation
 - Full agent guide with result interpretation: /llms-full.txt
 - Intelligence sources inventory: /sources
+- Methodology PDF (peer-review-ready): /docs/dns-tool-methodology.pdf
+- Epistemic Disclosure Events (correction log): /ede
 - Blog guide: https://www.it-help.tech/blog/dns-security-best-practices/
 
 ## Contact

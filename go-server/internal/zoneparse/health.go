@@ -171,20 +171,7 @@ func AnalyzeHealth(records []ParsedRecord) *ZoneHealth {
         sort.Strings(h.NSTargets)
         h.NSCount = len(h.NSTargets)
 
-        for _, r := range records {
-                if r.Type == "AAAA" {
-                        name := strings.TrimSuffix(strings.ToLower(r.Name), ".")
-                        for ns := range nsTargets {
-                                if name == ns {
-                                        h.HasIPv6Glue = true
-                                        break
-                                }
-                        }
-                        if h.HasIPv6Glue {
-                                break
-                        }
-                }
-        }
+        h.HasIPv6Glue = hasIPv6Glue(records, nsTargets)
 
         for rtype, count := range typeCounts {
                 pct := float64(count) / float64(h.TotalRecords) * 100
@@ -198,6 +185,19 @@ func AnalyzeHealth(records []ParsedRecord) *ZoneHealth {
                 return h.TypeDistribution[i].Count > h.TypeDistribution[j].Count
         })
 
+        computeTTLStats(h, allTTLs, typeTTLs)
+
+        h.SOATimers = analyzeSOA(records)
+        h.Duplicates = findDuplicates(records)
+        h.ZoneProfile, h.ZoneProfileDesc = classifyZoneProfile(h)
+        h.PolicySignals = buildPolicySignals(h)
+        h.StructuralChecks = runStructuralChecks(h)
+        h.StructuralScore, h.StructuralVerdict = computeStructuralScore(h.StructuralChecks)
+
+        return h
+}
+
+func computeTTLStats(h *ZoneHealth, allTTLs []uint32, typeTTLs map[string][]uint32) {
         sort.Slice(allTTLs, func(i, j int) bool { return allTTLs[i] < allTTLs[j] })
         h.MinTTL = allTTLs[0]
         h.MaxTTL = allTTLs[len(allTTLs)-1]
@@ -227,15 +227,19 @@ func AnalyzeHealth(records []ParsedRecord) *ZoneHealth {
                         Uniform: uniform,
                 })
         }
+}
 
-        h.SOATimers = analyzeSOA(records)
-        h.Duplicates = findDuplicates(records)
-        h.ZoneProfile, h.ZoneProfileDesc = classifyZoneProfile(h)
-        h.PolicySignals = buildPolicySignals(h)
-        h.StructuralChecks = runStructuralChecks(h)
-        h.StructuralScore, h.StructuralVerdict = computeStructuralScore(h.StructuralChecks)
-
-        return h
+func hasIPv6Glue(records []ParsedRecord, nsTargets map[string]struct{}) bool {
+        for _, r := range records {
+                if r.Type != "AAAA" {
+                        continue
+                }
+                name := strings.TrimSuffix(strings.ToLower(r.Name), ".")
+                if _, ok := nsTargets[name]; ok {
+                        return true
+                }
+        }
+        return false
 }
 
 func (h *ZoneHealth) classifyRecord(r ParsedRecord, apex string, nsTargets map[string]struct{}) {
@@ -557,65 +561,66 @@ func analyzeSOA(records []ParsedRecord) *SOATimerAnalysis {
                         Minimum: uint32(minimum),
                 }
 
-                if soa.Refresh < 1200 {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    "refresh",
-                                Severity: sevWarning,
-                                Message:  fmt.Sprintf("Refresh %ds is below RFC 1912 recommendation of 1200\u201343200s", soa.Refresh),
-                        })
-                }
-
-                if soa.Retry < 120 {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    fieldRetry,
-                                Severity: sevWarning,
-                                Message:  fmt.Sprintf("Retry %ds is below RFC 1912 recommendation of 120\u201310800s", soa.Retry),
-                        })
-                }
-
-                if soa.Retry >= soa.Refresh {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    fieldRetry,
-                                Severity: sevWarning,
-                                Message:  "Retry should be less than Refresh (RFC 1912 \u00a72.2)",
-                        })
-                }
-
-                if soa.Expire < 1209600 {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    fieldExpire,
-                                Severity: sevInfo,
-                                Message:  fmt.Sprintf("Expire %ds is below RFC 1912 recommendation of 2\u20134 weeks (%d\u2013%d)", soa.Expire, 1209600, 2419200),
-                        })
-                }
-
-                if soa.Minimum > 86400 {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    "minimum",
-                                Severity: sevInfo,
-                                Message:  fmt.Sprintf("Negative cache TTL %ds exceeds 1 day; RFC 2308 \u00a75 recommends 1\u20133 hours for most zones", soa.Minimum),
-                        })
-                }
-
-                if soa.Expire <= soa.Refresh {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    fieldExpire,
-                                Severity: sevWarning,
-                                Message:  "Expire must be greater than Refresh (RFC 1912 \u00a72.2)",
-                        })
-                }
-
-                if soa.Serial == 0 {
-                        soa.Findings = append(soa.Findings, SOAFinding{
-                                Field:    "serial",
-                                Severity: sevInfo,
-                                Message:  "Serial is 0 \u2014 consider using YYYYMMDDNN format for meaningful versioning",
-                        })
-                }
+                soa.Findings = collectSOAFindings(soa)
 
                 return soa
         }
         return nil
+}
+
+func collectSOAFindings(soa *SOATimerAnalysis) []SOAFinding {
+        var findings []SOAFinding
+
+        if soa.Refresh < 1200 {
+                findings = append(findings, SOAFinding{
+                        Field:    "refresh",
+                        Severity: sevWarning,
+                        Message:  fmt.Sprintf("Refresh %ds is below RFC 1912 recommendation of 1200–43200s", soa.Refresh),
+                })
+        }
+        if soa.Retry < 120 {
+                findings = append(findings, SOAFinding{
+                        Field:    fieldRetry,
+                        Severity: sevWarning,
+                        Message:  fmt.Sprintf("Retry %ds is below RFC 1912 recommendation of 120–10800s", soa.Retry),
+                })
+        }
+        if soa.Retry >= soa.Refresh {
+                findings = append(findings, SOAFinding{
+                        Field:    fieldRetry,
+                        Severity: sevWarning,
+                        Message:  "Retry should be less than Refresh (RFC 1912 §2.2)",
+                })
+        }
+        if soa.Expire < 1209600 {
+                findings = append(findings, SOAFinding{
+                        Field:    fieldExpire,
+                        Severity: sevInfo,
+                        Message:  fmt.Sprintf("Expire %ds is below RFC 1912 recommendation of 2–4 weeks (%d–%d)", soa.Expire, 1209600, 2419200),
+                })
+        }
+        if soa.Minimum > 86400 {
+                findings = append(findings, SOAFinding{
+                        Field:    "minimum",
+                        Severity: sevInfo,
+                        Message:  fmt.Sprintf("Negative cache TTL %ds exceeds 1 day; RFC 2308 §5 recommends 1–3 hours for most zones", soa.Minimum),
+                })
+        }
+        if soa.Expire <= soa.Refresh {
+                findings = append(findings, SOAFinding{
+                        Field:    fieldExpire,
+                        Severity: sevWarning,
+                        Message:  "Expire must be greater than Refresh (RFC 1912 §2.2)",
+                })
+        }
+        if soa.Serial == 0 {
+                findings = append(findings, SOAFinding{
+                        Field:    "serial",
+                        Severity: sevInfo,
+                        Message:  "Serial is 0 — consider using YYYYMMDDNN format for meaningful versioning",
+                })
+        }
+        return findings
 }
 
 func findDuplicates(records []ParsedRecord) []DuplicateRRset {
