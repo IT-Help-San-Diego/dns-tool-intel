@@ -7,37 +7,37 @@
       "intelligence-pipeline": {
         "mermaid_source": "docs/diagrams/intelligence-pipeline.mmd",
         "svg_output": "static/images/diagrams/intelligence-pipeline.svg",
-        "miro_widget_id": "3458764660935752739",
+        "miro_widget_id": "3458764662688993623",
         "miro_title": "Intelligence Pipeline — Domain Input to Products"
       },
       "confidence-framework": {
         "mermaid_source": "docs/diagrams/confidence-framework.mmd",
         "svg_output": "static/images/diagrams/confidence-framework.svg",
-        "miro_widget_id": "3458764660935752909",
+        "miro_widget_id": "3458764662688993638",
         "miro_title": "Dual-Engine Confidence Framework — ICAE + ICuAE"
       },
       "open-core-architecture": {
         "mermaid_source": "docs/diagrams/open-core-architecture.mmd",
         "svg_output": "static/images/diagrams/open-core-architecture.svg",
-        "miro_widget_id": "3458764660935886040",
+        "miro_widget_id": "3458764662688993652",
         "miro_title": "Open-Core Build Tag Architecture — Public/Private Boundary"
       },
       "protocol-coverage": {
         "mermaid_source": "docs/diagrams/protocol-coverage.mmd",
         "svg_output": "static/images/diagrams/protocol-coverage.svg",
-        "miro_widget_id": "3458764660935886175",
+        "miro_widget_id": "3458764662688993661",
         "miro_title": "Protocol Coverage — 9 Protocols with RFC References"
       },
       "drift-notification-pipeline": {
         "mermaid_source": "docs/diagrams/drift-notification-pipeline.mmd",
         "svg_output": "static/images/diagrams/drift-notification-pipeline.svg",
-        "miro_widget_id": "3458764662600549628",
+        "miro_widget_id": "3458764662688993680",
         "miro_title": "Drift Notification Pipeline — Detection to Delivery"
       },
       "github-issues-triage": {
         "mermaid_source": "docs/diagrams/github-issues-triage.mmd",
         "svg_output": "static/images/diagrams/github-issues-triage.svg",
-        "miro_widget_id": "3458764662600549865",
+        "miro_widget_id": "3458764662688993710",
         "miro_title": "GitHub Issues Triage — Three-Tier Intelligence Routing"
       }
     },
@@ -63,12 +63,12 @@
       "field-tech-toolkit": "3458764660786241262"
     },
     "tables": {
-      "table_1": "3458764660749040444",
-      "table_2": "3458764660750097336",
-      "table_3": "3458764660750097466",
-      "table_4": "3458764660769890449",
-      "table_5": "3458764660770665217",
-      "table_6": "3458764660770826479"
+      "build-tag-boundary-matrix": "3458764660749040444",
+      "intelligence-products-catalog": "3458764660750097336",
+      "covert-recon-capabilities": "3458764660750097466",
+      "protocol-coverage-matrix": "3458764660769890449",
+      "documentation-cross-references": "3458764660770665217",
+      "research-methodology-index": "3458764660770826479"
     }
   },
   "figma": {
@@ -76,7 +76,7 @@
     "file_key": null,
     "page_name": "Architecture Diagrams",
     "note": "No Figma project exists yet. FIGMA_PAT secret is configured but no file has been created. Set file_key after creating the Figma project file.",
-    "status": "pending_setup",
+    "status": "dormant",
     "last_checked": "2026-03-06"
   },
   "export": {

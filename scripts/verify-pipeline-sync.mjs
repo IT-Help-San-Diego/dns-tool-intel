@@ -74,7 +74,7 @@ function verifySvgLayer(config) {
       const srcMtime = fileMtime(src);
       const svgMtime = fileMtime(svg);
       if (srcMtime > svgMtime) {
-        warn(`${key}: Mermaid source newer than SVG (drift detected — re-render needed)`);
+        fail(`${key}: Mermaid source newer than SVG (drift detected — re-render needed)`);
         info(`  Source: ${srcMtime.toISOString()}`);
         info(`  SVG:    ${svgMtime.toISOString()}`);
       } else {
