@@ -1,10 +1,10 @@
 [project]
-domains = []
+domains = [dnstool.it-help.tech]
 name = "dnstool"
 
 [crawler]
 max_pages = 100
-coverage = "surface"
+coverage = "full"
 delay_ms = 100
 timeout_ms = 30000
 user_agent = ""
@@ -31,6 +31,6 @@ timeout_ms = 10000
 concurrency = 5
 
 [output]
-format = "console"
+format = "llm"
 
 [rule_options]
