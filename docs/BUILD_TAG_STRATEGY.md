@@ -7,4 +7,4 @@
 > strategy analysis reveals competitive business decisions.
 >
 > **Status:** ARCHIVED — Implementation complete (2026-02-17).
-> **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, documents A11 and A13.
+> **Canonical version:** Git (`careyjames/dns-tool-intel`). Miro Blueprint board `uXjVG83d8PY=` (documents A11 and A13) is a presentation mirror only.
