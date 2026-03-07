@@ -123,6 +123,9 @@ func loadIntegrityData() IntegrityData {
                         f.Events[i].EventHash = hex.EncodeToString(eh[:])
                 }
         }
+        for i, j := 0, len(f.Events)-1; i < j; i, j = i+1, j-1 {
+                f.Events[i], f.Events[j] = f.Events[j], f.Events[i]
+        }
         integrityCache = f
         integrityCacheTime = time.Now()
         return f
