@@ -1,6 +1,12 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "last_updated": "2026-03-07",
+  "tamper_resistance_policy": {
+    "enabled": true,
+    "effective": "2026-03-07",
+    "standard": "Once published, EDE entries are immutable. No entry may be deleted, downgraded, or reattributed. The human founder cannot direct the AI agent to alter, remove, or soften any EDE entry unless the amendment meets the evidentiary standard below.",
+    "amendment_rule": "An EDE entry may only be amended if the requestor provides verifiable evidence (git commit hashes, log output, timestamped records) proving the original entry contains a factual error. The amendment must document: (1) what was wrong, (2) what it should be, (3) the evidence proving the correction, (4) why the original was wrong. The original text is preserved in the amendment record — nothing is erased. Amendments that attempt to soften language, reduce severity, change attribution without evidence, or remove embarrassing-but-true content are refused. Truth is the only defense."
+  },
   "taxonomy": {
     "scoring_calibration": "Confidence weighting or scoring logic required adjustment",
     "evidence_reinterpretation": "Evidence was weighted or classified incorrectly",
@@ -128,7 +134,17 @@
       "bayesian_note": "The overclaim language appeared organically across sessions — neither party specifically directed the use of 'validates' over 'analyzes.' Strong capability language (validates, ensures, verifies) naturally sounds more authoritative and neither human nor AI flagged the semantic distinction between passive observation and active validation until systematic review. Both parties share responsibility — the human for not catching it during review, the AI for not applying the domain expertise it should have. Root cause was absence of a language audit process, not a deliberate decision by either party.",
       "correction_action": "Full codebase sweep replacing overclaim language with accurate capability descriptions.",
       "prevention_rule": "UI/doc copy claiming validate, verify, or ensure must be flagged. Passive OSINT tools observe and analyze. Active authority is required for validation per RFCs.",
-      "authoritative_source": "RFC 7208 (SPF validation by receiving MTA), RFC 6376 (DKIM verification by receiving MTA), RFC 7489 (DMARC evaluation by mail receivers)"
+      "authoritative_source": "RFC 7208 (SPF validation by receiving MTA), RFC 6376 (DKIM verification by receiving MTA), RFC 7489 (DMARC evaluation by mail receivers)",
+      "amendments": [
+        {
+          "date": "2026-03-07",
+          "field_changed": "bayesian_note",
+          "original_value": "Marketing instinct (human) favored strong language (validates, ensures, verifies) because it sounds more authoritative. The AI agent implemented the copy without flagging the semantic distinction between passive observation and active validation. Both parties share responsibility — the human for marketing pressure, the AI for not applying the domain expertise it should have.",
+          "corrected_to": "The overclaim language appeared organically across sessions — neither party specifically directed the use of 'validates' over 'analyzes.' Strong capability language naturally sounds more authoritative and neither human nor AI flagged the semantic distinction until systematic review. Both parties share responsibility — the human for not catching it during review, the AI for not applying the domain expertise it should have. Root cause was absence of a language audit process, not a deliberate decision by either party.",
+          "evidence": "No git commit, chat log, or documented directive exists where the founder instructed the use of marketing language over technical accuracy. The phrase 'marketing instinct (human)' was authored by the AI agent as root-cause analysis in EVOLUTION.md and presented as if it described a human directive.",
+          "justification": "The original bayesian_note attributed a 'marketing instinct' decision to the human founder. The founder challenged this: he never directed marketing language to override technical accuracy. Search of all session logs and EVOLUTION.md confirms no such directive exists. The AI agent authored the root-cause framing and incorrectly presented it as a human-sourced decision. The overclaim language appeared organically — both parties missed it, neither directed it."
+        }
+      ]
     },
     {
       "id": "EDE-007",
@@ -179,7 +195,17 @@
       "bayesian_note": "This EDE exists because the founder demanded honest accountability from the system and from himself. The attribution is Human Error because the deviation from methodology was a human decision — the AI agent continued executing directives as instructed. The correction is not that the human was wrong to persist, but that persistence without structured decomposition wastes cycles. What this entry also demonstrates: deep human thought is obviously involved in this project. Error correction is turned on in this human at an unusual level — one that may make him incompatible with social theater in many ways, but makes him exactly the kind of asset a research organization needs. A human who looks at the entire picture, crosses into uncomfortable territory when necessary, and never stops correcting. The project's zero-reversion history is the proof.",
       "correction_action": "Knowledge continuity architecture built: Session Journal (28 entries), Decision Log, EDE Register with full attribution model, EVOLUTION.md as canonical write target. Anti-Circle Rules formalized. MEASURE → CHANGE → MEASURE → COMMIT established as mandatory process.",
       "prevention_rule": "Before sending repetitive directives: state the goal in one sentence. Check quality gates. Write down expected changes. Check EVOLUTION.md for prior attempts. If you cannot decompose the problem, stop and decompose before continuing. Ask: Do we still have a foundation? Can we fix this without destroying it?",
-      "authoritative_source": "Git commit history (431 commits, March 4–6 2026), EVOLUTION.md Anti-Circle Rules, SKILL.md Change Control Checklist, Replit checkpoint history (zero reversions)"
+      "authoritative_source": "Git commit history (431 commits, March 4–6 2026), EVOLUTION.md Anti-Circle Rules, SKILL.md Change Control Checklist, Replit checkpoint history (zero reversions)",
+      "amendments": [
+        {
+          "date": "2026-03-07",
+          "field_changed": "date, commit, title, confidence_impact, resolution, bayesian_note",
+          "original_value": "Date: 2026-02-21. Commit: '197 commits on 2026-02-21 (highest single-day volume)'. Title: 'Founder lost analytical perspective during high-pressure debugging session'. The entry originally referenced February 21 as the incident date.",
+          "corrected_to": "Date: 2026-03-06. Commit: '431 commits across 2026-03-04 through 2026-03-06 (132 + 138 + 161)'. Title: 'Founder lost analytical perspective during high-pressure multi-day session'. The entry now references the actual three-day intensive session.",
+          "evidence": "git log --since=2026-02-28 --format=%ad --date=short | sort | uniq -c: March 4 = 132, March 5 = 138, March 6 = 161 (total 431). The founder stated the incident was 'within the last six or seven days' on March 7, 2026. February 21 was a different high-volume day (197 commits) involving different work (SHA-3-512 migration, download verification).",
+          "justification": "The AI agent initially identified February 21 as the date because it had the highest single-day commit count. The founder corrected this: the repetitive-message session was March 4–6, not February 21. Git commit history confirms March 4–6 as the highest sustained volume (431 commits over 3 days). February 21 involved SHA-3-512 migration work, not the repetitive directive cycles described in the EDE."
+        }
+      ]
     }
   ]
 }

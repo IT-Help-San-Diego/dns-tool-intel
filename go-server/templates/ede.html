@@ -282,6 +282,99 @@
             line-height: 1.6;
         }
 
+        .ede-tamper-policy {
+            background: rgba(240,136,62,0.06);
+            border: 1px solid rgba(240,136,62,0.2);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+        }
+        .ede-tamper-policy-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f0883e;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .ede-tamper-policy-text {
+            font-size: 0.78rem;
+            color: #c9d1d9;
+            line-height: 1.6;
+            margin-bottom: 0.35rem;
+        }
+        .ede-tamper-policy-effective {
+            font-size: 0.68rem;
+            color: #8b949e;
+            font-style: italic;
+        }
+        .ede-amendment-section {
+            background: rgba(240,136,62,0.04);
+            border: 1px solid rgba(240,136,62,0.12);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            margin-top: 0.75rem;
+        }
+        .ede-amendment-header {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #f0883e;
+            margin-bottom: 0.5rem;
+        }
+        .ede-amendment-item {
+            border-left: 3px solid rgba(240,136,62,0.4);
+            padding-left: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .ede-amendment-item:last-child { margin-bottom: 0; }
+        .ede-amendment-date {
+            font-size: 0.68rem;
+            color: #f0883e;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+        .ede-amendment-field {
+            font-size: 0.68rem;
+            color: #8b949e;
+            margin-bottom: 0.25rem;
+        }
+        .ede-amendment-detail {
+            font-size: 0.75rem;
+            color: #c9d1d9;
+            line-height: 1.5;
+            margin-bottom: 0.15rem;
+        }
+        .ede-amendment-detail-label {
+            font-weight: 600;
+            color: #8b949e;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .ede-amendment-original {
+            background: rgba(248,81,73,0.06);
+            border: 1px solid rgba(248,81,73,0.12);
+            border-radius: 4px;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.72rem;
+            color: #c9a0a0;
+            line-height: 1.5;
+            margin: 0.25rem 0;
+            text-decoration: line-through;
+            text-decoration-color: rgba(248,81,73,0.3);
+        }
+        .ede-amendment-corrected {
+            background: rgba(63,185,80,0.06);
+            border: 1px solid rgba(63,185,80,0.12);
+            border-radius: 4px;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.72rem;
+            color: #afd5b4;
+            line-height: 1.5;
+            margin: 0.25rem 0;
+        }
+
         .ede-not-list {
             list-style: none;
             padding: 0;
@@ -391,6 +484,15 @@
             <p class="ede-intro">Epistemic Disclosure Events (EDEs) are model-correction disclosures, not breach notices. They record when the Confidence Engine's scoring model, evidence weighting, or detection logic required structural correction — and how confidence was recalibrated. Inspired by scientific corrigenda culture and high-reliability engineering practice.</p>
         </div>
 
+        {{if .IntegrityData.TamperResistancePolicy.Enabled}}
+        <div class="ede-tamper-policy mb-4">
+            <div class="ede-tamper-policy-title">{{icon "lock" "me-1"}}Tamper Resistance Policy</div>
+            <div class="ede-tamper-policy-text">{{.IntegrityData.TamperResistancePolicy.Standard}}</div>
+            <div class="ede-tamper-policy-text">{{.IntegrityData.TamperResistancePolicy.AmendmentRule}}</div>
+            <div class="ede-tamper-policy-effective">Effective: {{.IntegrityData.TamperResistancePolicy.Effective}}</div>
+        </div>
+        {{end}}
+
         <div class="ede-summary-grid mb-4">
             <div class="ede-summary-card ede-summary-total">
                 <div class="ede-summary-icon">{{icon "file-medical"}}</div>
@@ -471,6 +573,26 @@
                         <div class="ede-event-bayesian-label">{{icon "brain" "me-1"}}Bayesian Note</div>
                         <div class="ede-event-bayesian-text">{{.BayesianNote}}</div>
                     </div>
+
+                    {{if .Amendments}}
+                    <div class="ede-amendment-section">
+                        <div class="ede-amendment-header">{{icon "gavel" "me-1"}}Amendment Record</div>
+                        {{range .Amendments}}
+                        <div class="ede-amendment-item">
+                            <div class="ede-amendment-date">{{.Date}}</div>
+                            <div class="ede-amendment-field">Field: {{.FieldChanged}}</div>
+                            <div class="ede-amendment-detail-label">Original (struck)</div>
+                            <div class="ede-amendment-original">{{.OriginalValue}}</div>
+                            <div class="ede-amendment-detail-label">Corrected to</div>
+                            <div class="ede-amendment-corrected">{{.CorrectedTo}}</div>
+                            <div class="ede-amendment-detail-label">Evidence</div>
+                            <div class="ede-amendment-detail">{{.Evidence}}</div>
+                            <div class="ede-amendment-detail-label">Justification</div>
+                            <div class="ede-amendment-detail">{{.Justification}}</div>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{end}}
                 </div>
                 {{end}}
             </div>

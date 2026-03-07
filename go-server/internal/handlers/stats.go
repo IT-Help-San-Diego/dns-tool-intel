@@ -18,22 +18,32 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+type EDEAmendment struct {
+        Date          string `json:"date"`
+        FieldChanged  string `json:"field_changed"`
+        OriginalValue string `json:"original_value"`
+        CorrectedTo   string `json:"corrected_to"`
+        Evidence      string `json:"evidence"`
+        Justification string `json:"justification"`
+}
+
 type IntegrityEvent struct {
-        ID                  string   `json:"id"`
-        Date                string   `json:"date"`
-        Commit              string   `json:"commit"`
-        Category            string   `json:"category"`
-        Severity            string   `json:"severity"`
-        Title               string   `json:"title"`
-        Status              string   `json:"status"`
-        Attribution         string   `json:"attribution"`
-        ProtocolsAffected   []string `json:"protocols_affected"`
-        ConfidenceImpact    string   `json:"confidence_impact"`
-        Resolution          string   `json:"resolution"`
-        BayesianNote        string   `json:"bayesian_note"`
-        CorrectionAction    string   `json:"correction_action"`
-        PreventionRule      string   `json:"prevention_rule"`
-        AuthoritativeSource string   `json:"authoritative_source"`
+        ID                  string         `json:"id"`
+        Date                string         `json:"date"`
+        Commit              string         `json:"commit"`
+        Category            string         `json:"category"`
+        Severity            string         `json:"severity"`
+        Title               string         `json:"title"`
+        Status              string         `json:"status"`
+        Attribution         string         `json:"attribution"`
+        ProtocolsAffected   []string       `json:"protocols_affected"`
+        ConfidenceImpact    string         `json:"confidence_impact"`
+        Resolution          string         `json:"resolution"`
+        BayesianNote        string         `json:"bayesian_note"`
+        CorrectionAction    string         `json:"correction_action"`
+        PreventionRule      string         `json:"prevention_rule"`
+        AuthoritativeSource string         `json:"authoritative_source"`
+        Amendments          []EDEAmendment `json:"amendments,omitempty"`
 }
 
 type IntegritySummary struct {
@@ -45,10 +55,18 @@ type IntegritySummary struct {
         ProtocolsAffected        []string `json:"protocols_affected"`
 }
 
+type TamperResistancePolicy struct {
+        Enabled       bool   `json:"enabled"`
+        Effective     string `json:"effective"`
+        Standard      string `json:"standard"`
+        AmendmentRule string `json:"amendment_rule"`
+}
+
 type IntegrityData struct {
-        Summary  IntegritySummary  `json:"summary"`
-        Events   []IntegrityEvent  `json:"events"`
-        Taxonomy map[string]string `json:"taxonomy"`
+        Summary               IntegritySummary       `json:"summary"`
+        Events                []IntegrityEvent       `json:"events"`
+        Taxonomy              map[string]string      `json:"taxonomy"`
+        TamperResistancePolicy TamperResistancePolicy `json:"tamper_resistance_policy"`
 }
 
 var (
