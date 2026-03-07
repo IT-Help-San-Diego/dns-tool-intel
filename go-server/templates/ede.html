@@ -287,6 +287,9 @@
             border: 1px solid rgba(240,136,62,0.2);
             border-radius: 10px;
             padding: 1.25rem 1.5rem;
+            overflow: hidden;
+            box-sizing: border-box;
+            max-width: 100%;
         }
         .ede-tamper-policy-title {
             font-size: 0.85rem;
@@ -436,6 +439,71 @@
             margin-top: 0.4rem;
             word-break: break-all;
             line-height: 1.5;
+        }
+
+        .ede-show-all-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            margin: 0.5rem auto 0;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #58a6ff;
+            background: rgba(88,166,255,0.06);
+            border: 1px solid rgba(88,166,255,0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        .ede-show-all-toggle:hover {
+            background: rgba(88,166,255,0.12);
+            border-color: rgba(88,166,255,0.3);
+        }
+        .ede-show-all-toggle:focus-visible {
+            outline: 2px solid #58a6ff;
+            outline-offset: 2px;
+        }
+        .ede-events-hidden {
+            display: none;
+        }
+
+        .ede-integrity-box {
+            font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+        }
+        .ede-integrity-label {
+            font-size: 0.68rem;
+            color: #8b949e;
+            font-weight: 700;
+            line-height: 1.8;
+        }
+        .ede-integrity-hash {
+            font-size: 0.58rem;
+            color: #7d8590;
+            letter-spacing: 0.02em;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            line-height: 1.6;
+            padding: 0.3rem 0;
+            max-width: 100%;
+        }
+        .ede-integrity-verify {
+            font-size: 0.6rem;
+            color: #484f58;
+            letter-spacing: 0.03em;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+        .ede-integrity-note {
+            font-size: 0.65rem;
+            color: #7d8590;
+            margin-top: 0.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            word-wrap: break-word;
         }
 
         .ede-ground-container {
@@ -706,7 +774,7 @@
             <div class="ede-section-header">
                 <h2 class="ede-section-title mb-0">{{icon "scroll" "me-2 ede-section-icon"}}Disclosure Log</h2>
             </div>
-            <div class="ede-section-body">
+            <div class="ede-section-body" id="edeEventList">
                 {{range .IntegrityData.Events}}
                 <div class="ede-event-card mb-3">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -798,6 +866,9 @@
                 </div>
                 {{end}}
             </div>
+            <button type="button" id="edeShowAllToggle" class="ede-show-all-toggle" style="display:none;" aria-expanded="false" aria-controls="edeEventList">
+                {{icon "chevron-down" "me-1"}}<span id="edeToggleLabel">Show all entries</span>
+            </button>
         </div>
 
         <div class="row g-4 mb-4">
@@ -932,14 +1003,12 @@
         </div>
 
         {{if .IntegrityData.SHA3Hash}}
-        <div class="ede-tamper-policy mb-3" style="font-family: monospace; overflow: hidden;">
+        <div class="ede-tamper-policy ede-integrity-box mb-3">
             <div class="ede-tamper-policy-title">{{icon "fingerprint" "me-1"}}Integrity Verification (SHA-3-512)</div>
-            <div style="font-size: 0.68rem; color: #8b949e; line-height: 1.8;">
-                <strong>File hash:</strong>
-            </div>
-            <div style="font-size: 0.62rem; color: #7d8590; letter-spacing: 0.02em; word-break: break-all; overflow-wrap: anywhere; line-height: 1.6; padding: 0.3rem 0;">{{.IntegrityData.SHA3Hash}}</div>
-            <div class="ede-tamper-policy-effective" style="word-break: break-all; overflow-wrap: anywhere;">Computed at server startup from integrity_stats.json. Verify:<br><span style="font-size: 0.6rem;">openssl dgst -sha3-512 static/data/integrity_stats.json</span></div>
-            <div style="font-size: 0.65rem; color: #7d8590; margin-top: 0.5rem;">Each event also carries its own SHA-3-512 hash ({{icon "fingerprint" ""}} badge on each card). Per-event hashes are computed from the JSON representation of each entry at startup. If any single event is altered, its hash changes independently of the file hash.</div>
+            <div class="ede-integrity-label">File hash:</div>
+            <div class="ede-integrity-hash">{{.IntegrityData.SHA3Hash}}</div>
+            <div class="ede-integrity-verify">Computed at server startup from integrity_stats.json. Verify:<br>openssl dgst -sha3-512 static/data/integrity_stats.json</div>
+            <div class="ede-integrity-note">Each event also carries its own SHA-3-512 hash ({{icon "fingerprint" ""}} badge on each card). Per-event hashes are computed from the JSON representation of each entry at startup. If any single event is altered, its hash changes independently of the file hash.</div>
         </div>
         {{end}}
 
@@ -960,6 +1029,36 @@
             }
         });
     });
+
+    (function() {
+        var VISIBLE_COUNT = 3;
+        var cards = document.querySelectorAll('.ede-event-card');
+        var toggle = document.getElementById('edeShowAllToggle');
+        var label = document.getElementById('edeToggleLabel');
+        if (cards.length > VISIBLE_COUNT && toggle) {
+            var expanded = false;
+            var hiddenCount = cards.length - VISIBLE_COUNT;
+            for (var i = VISIBLE_COUNT; i < cards.length; i++) {
+                cards[i].classList.add('ede-events-hidden');
+            }
+            label.textContent = 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
+            toggle.style.display = 'flex';
+            toggle.addEventListener('click', function() {
+                expanded = !expanded;
+                for (var i = VISIBLE_COUNT; i < cards.length; i++) {
+                    if (expanded) {
+                        cards[i].classList.remove('ede-events-hidden');
+                    } else {
+                        cards[i].classList.add('ede-events-hidden');
+                    }
+                }
+                toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                label.textContent = expanded ? 'Show fewer entries' : 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
+                var icon = toggle.querySelector('svg, i');
+                if (icon) icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+            });
+        }
+    })();
     </script>
 </body>
 </html>
