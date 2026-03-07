@@ -214,10 +214,40 @@
             border: 1px solid rgba(63,185,80,0.3);
             color: #3fb950;
         }
+        .ede-badge-severity-critical {
+            background: rgba(248,81,73,0.15);
+            border: 1px solid rgba(248,81,73,0.4);
+            color: #f85149;
+            font-weight: 700;
+        }
         .ede-badge-status-open {
             background: rgba(240,136,62,0.12);
             border: 1px solid rgba(240,136,62,0.3);
             color: #f0883e;
+        }
+        .ede-badge-attribution {
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+        .ede-badge-attr-ai {
+            background: rgba(248,81,73,0.12);
+            border: 1px solid rgba(248,81,73,0.3);
+            color: #f85149;
+        }
+        .ede-badge-attr-human {
+            background: rgba(240,136,62,0.12);
+            border: 1px solid rgba(240,136,62,0.3);
+            color: #f0883e;
+        }
+        .ede-badge-attr-both {
+            background: rgba(210,168,255,0.12);
+            border: 1px solid rgba(210,168,255,0.3);
+            color: #d2a8ff;
+        }
+        .ede-badge-attr-process {
+            background: rgba(88,166,255,0.12);
+            border: 1px solid rgba(88,166,255,0.3);
+            color: #58a6ff;
         }
         .ede-event-label {
             font-size: 0.68rem;
@@ -396,6 +426,15 @@
                         <span class="ede-event-date">{{icon "calendar-day" "me-1"}}{{.Date}}</span>
                         <span class="ede-badge ede-badge-category">{{.Category}}</span>
                         <span class="ede-badge ede-badge-severity-{{.Severity}}">{{.Severity}}</span>
+                        {{if eq .Attribution "AI Error"}}
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-ai">{{icon "user-tag" "me-1"}}AI Error</span>
+                        {{else if eq .Attribution "Human Error"}}
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-human">{{icon "user-tag" "me-1"}}Human Error</span>
+                        {{else if eq .Attribution "Both"}}
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-both">{{icon "user-tag" "me-1"}}Both</span>
+                        {{else if eq .Attribution "Process Gap"}}
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-process">{{icon "user-tag" "me-1"}}Process Gap</span>
+                        {{end}}
                         {{if eq .Status "closed"}}
                         <span class="ede-badge ede-badge-status-closed">{{icon "check" "me-1"}}Resolved</span>
                         {{else}}
@@ -413,6 +452,20 @@
                         <div class="ede-event-label">Resolution</div>
                         <div class="ede-event-text">{{.Resolution}}</div>
                     </div>
+
+                    {{if .PreventionRule}}
+                    <div class="mb-3">
+                        <div class="ede-event-label">{{icon "shield-halved" "me-1"}}Prevention Rule</div>
+                        <div class="ede-event-text">{{.PreventionRule}}</div>
+                    </div>
+                    {{end}}
+
+                    {{if .AuthoritativeSource}}
+                    <div class="mb-3">
+                        <div class="ede-event-label">{{icon "book" "me-1"}}Authoritative Source</div>
+                        <div class="ede-event-text">{{.AuthoritativeSource}}</div>
+                    </div>
+                    {{end}}
 
                     <div class="ede-event-bayesian">
                         <div class="ede-event-bayesian-label">{{icon "brain" "me-1"}}Bayesian Note</div>
