@@ -14,13 +14,20 @@ This file is the project's permanent breadcrumb trail — every session's decisi
 ## Session: March 7, 2026 (EDE-009 — Human Error Attribution, Accountability Architecture)
 
 ### EDE-009: Founder Lost Analytical Perspective During High-Pressure Debugging Session
-- **Date**: February 21, 2026 (documented March 7, 2026)
+- **Date**: March 4–6, 2026 (documented March 7, 2026)
 - **Attribution**: Human Error
 - **Category**: governance_correction
 - **Severity**: significant
-- **What happened**: During the highest-volume session in project history (197 commits on Feb 21), the founder departed from the research-first, design-first methodology. Repetitive directive cycles replaced structured problem decomposition. The scientific discipline that underpins the project's credibility was temporarily suspended by the scientist who established it.
+- **What happened**: During the highest-volume session in project history (431 commits across March 4–6 (132 + 138 + 161)), the founder departed from the research-first, design-first methodology. Repetitive directive cycles replaced structured problem decomposition. The scientific discipline that underpins the project's credibility was temporarily suspended by the scientist who established it.
 - **Resolution**: All blocking issues resolved without checkpoint reversion — the project has zero Replit checkpoint reversions across its entire history. Anti-Circle Rules formalized. MEASURE → CHANGE → MEASURE → COMMIT established as mandatory process.
 - **Why this EDE exists**: The founder demanded honest accountability from the system and from himself. The attribution is Human Error because the deviation from methodology was a human decision. Forward-only error correction through the problem, not around it.
+### EDE-009 Date Correction (Same Session, March 7)
+- **Corrected from**: February 21, 2026 (197 commits) — this was a different high-volume day
+- **Corrected to**: March 4–6, 2026 (431 commits: 132 + 138 + 161) — the actual multi-day session where the founder sent repetitive messages and departed from structured methodology
+- **Why corrected**: The founder identified the wrong date. The actual incident was within the last few days, not five weeks ago. Git commit history confirms March 4–6 as the highest sustained volume in project history (431 commits over 3 days vs 197 in a single day on Feb 21).
+- **This correction is itself an integrity signal**: When the data was wrong, it was corrected immediately, with full audit trail.
+
+
 - **Prevention Rule**: Before sending repetitive directives: state the goal in one sentence. Check quality gates. Write down expected changes. Check EVOLUTION.md for prior attempts. If you cannot decompose the problem, stop and decompose.
 
 ### EDE-006 Bayesian Note Correction
@@ -3182,4 +3189,5 @@ The complete research software documentation stack is now:
 6. **LICENSE** — BSL-1.1 legal terms
 7. **Software Heritage** — Long-term preservation with SWHID
 8. **OpenAlex / DataCite** — Scholarly search and discovery
+
 
