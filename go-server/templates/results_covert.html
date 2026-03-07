@@ -1413,7 +1413,7 @@
 
     </main>
 
-    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running recon scan">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
             <div class="loading-spinner">
                 {{icon "crosshairs" "icon-spin covert-show"}}
@@ -1482,7 +1482,7 @@
         if (navigator.clipboard) {
             navigator.clipboard.writeText(cmd).then(function() {
                 onCopySuccess(btn);
-            }).catch(function() { /* clipboard write failed — ignored */ });
+            }).catch(function() { /* clipboard write failed — ignored */ }); // NOSONAR
         }
     }
 
@@ -1516,7 +1516,7 @@
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(hash).then(function() {
                         onCopySuccess(btn);
-                    }).catch(function() { /* clipboard write failed — ignored */ });
+                    }).catch(function() { /* clipboard write failed — ignored */ }); // NOSONAR
                 }
             });
         }
@@ -1569,7 +1569,7 @@
             redirect: 'follow'
         }).then(function(resp) {
             return handleCovertReanalyzeResponse(resp);
-        }).catch(function() {
+        }).catch(function() { // NOSONAR — fallback to full navigation on fetch failure
             globalThis.location.href = url;
         });
     }
@@ -1603,8 +1603,8 @@
                     tooltipInstances.push(new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
                 }
             }
-            if (typeof bootstrap !== 'undefined') { initCovertTooltips(); }
-            else { globalThis.addEventListener('load', initCovertTooltips); }
+            if (typeof bootstrap === 'undefined') { globalThis.addEventListener('load', initCovertTooltips); }
+            else { initCovertTooltips(); }
             let scrollTimer;
             globalThis.addEventListener('scroll', function() {
                 if (scrollTimer) return;

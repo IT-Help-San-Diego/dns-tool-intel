@@ -67,83 +67,91 @@ func RequestContext() gin.HandlerFunc {
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
-                path := c.Request.URL.Path
-                if strings.HasPrefix(path, "/static/") {
+                if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
                         c.Next()
                         return
                 }
 
-                nonce, exists := c.Get(ginKeyCSPNonce)
-                var nonceStr string
-                if exists {
-                        if s, ok := nonce.(string); ok {
-                                nonceStr = s
-                        }
-                }
-
-                c.Header("X-Content-Type-Options", "nosniff")
-                if !devMode {
-                        if c.Request.URL.Path == "/signature" {
-                                c.Header("X-Frame-Options", "SAMEORIGIN")
-                        } else {
-                                c.Header("X-Frame-Options", "DENY")
-                        }
-                }
-                c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
-                c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-                c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
-                if devMode {
-                        c.Header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
-                        c.Header("Cross-Origin-Resource-Policy", "cross-origin")
-                } else {
-                        c.Header("Cross-Origin-Opener-Policy", "same-origin")
-                        c.Header("Cross-Origin-Resource-Policy", "same-origin")
-                }
-                c.Header("X-Permitted-Cross-Domain-Policies", "none")
-
-                upgradeDirective := ""
-                if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
-                        upgradeDirective = "upgrade-insecure-requests;"
-                }
-
-                frameAncestors := "frame-ancestors 'none'; "
-                if devMode {
-                        frameAncestors = "frame-ancestors https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
-                }
-
-                connectSrc := "connect-src 'self'; "
-                if devMode {
-                        connectSrc = "connect-src 'self' https://replit.com https://*.replit.com https://*.replit.dev; "
-                }
-
-                frameSrc := "frame-src 'none'; "
-                if c.Request.URL.Path == "/signature" {
-                        frameSrc = "frame-src 'self'; "
-                }
-
-                csp := fmt.Sprintf(
-                        "default-src 'none'; "+
-                                "script-src 'self' 'nonce-%s'; "+
-                                "style-src 'self' 'nonce-%s'; "+
-                                "font-src 'self'; "+
-                                "img-src 'self' data: https:; "+
-                                "%s"+
-                                "%s"+
-                                "base-uri 'none'; "+
-                                "form-action 'self'; "+
-                                "manifest-src 'self'; "+
-                                "object-src 'none'; "+
-                                "%s"+
-                                "media-src 'self'; "+
-                                "worker-src 'self'; "+
-                                "%s",
-                        nonceStr, nonceStr, connectSrc, frameAncestors, frameSrc, upgradeDirective,
-                )
-                c.Header("Content-Security-Policy", csp)
-
+                nonceStr := extractNonceStr(c)
+                setCommonSecurityHeaders(c, devMode)
+                c.Header("Content-Security-Policy", buildCSP(c, nonceStr, devMode))
                 c.Next()
         }
+}
+
+func extractNonceStr(c *gin.Context) string {
+        nonce, exists := c.Get(ginKeyCSPNonce)
+        if !exists {
+                return ""
+        }
+        if s, ok := nonce.(string); ok {
+                return s
+        }
+        return ""
+}
+
+func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
+        c.Header("X-Content-Type-Options", "nosniff")
+        if !devMode {
+                if c.Request.URL.Path == "/signature" {
+                        c.Header("X-Frame-Options", "SAMEORIGIN")
+                } else {
+                        c.Header("X-Frame-Options", "DENY")
+                }
+        }
+        c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+        c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+        c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
+        if devMode {
+                c.Header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+                c.Header("Cross-Origin-Resource-Policy", "cross-origin")
+        } else {
+                c.Header("Cross-Origin-Opener-Policy", "same-origin")
+                c.Header("Cross-Origin-Resource-Policy", "same-origin")
+        }
+        c.Header("X-Permitted-Cross-Domain-Policies", "none")
+}
+
+func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
+        connectSrc := "connect-src 'self'; "
+        if devMode {
+                connectSrc = "connect-src 'self' https://replit.com https://*.replit.com https://*.replit.dev; "
+        }
+
+        frameAncestors := "frame-ancestors 'none'; "
+        if devMode {
+                frameAncestors = "frame-ancestors https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
+        }
+
+        frameSrc := "frame-src 'none'; "
+        if c.Request.URL.Path == "/signature" {
+                frameSrc = "frame-src 'self'; "
+        }
+
+        upgradeDirective := ""
+        if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+                upgradeDirective = "upgrade-insecure-requests;"
+        }
+
+        return fmt.Sprintf(
+                "default-src 'none'; "+
+                        "script-src 'self' 'nonce-%s'; "+
+                        "style-src 'self' 'nonce-%s'; "+
+                        "font-src 'self'; "+
+                        "img-src 'self' data: https:; "+
+                        "%s"+
+                        "%s"+
+                        "base-uri 'none'; "+
+                        "form-action 'self'; "+
+                        "manifest-src 'self'; "+
+                        "object-src 'none'; "+
+                        "%s"+
+                        "media-src 'self'; "+
+                        "worker-src 'self'; "+
+                        "%s",
+                nonceStr, nonceStr, connectSrc, frameAncestors, frameSrc, upgradeDirective,
+        )
 }
 
 func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {

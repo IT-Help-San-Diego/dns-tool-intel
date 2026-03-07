@@ -1,3 +1,4 @@
+export const NODE_SHAPES = new Set(['rect', 'roundRect', 'circle', 'diamond', 'cylinder', 'hexagon', 'label'] as const);
 export type NodeShape =
   | 'rect'
   | 'roundRect'
@@ -7,6 +8,7 @@ export type NodeShape =
   | 'hexagon'
   | 'label';
 
+export const EDGE_CLASSES = new Set(['flow', 'hard_dependency', 'soft_dependency'] as const);
 export type EdgeClass = 'flow' | 'hard_dependency' | 'soft_dependency';
 
 export type Axis = 'x' | 'y';

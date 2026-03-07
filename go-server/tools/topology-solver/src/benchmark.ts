@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { solveLayout } from './layoutSolver.js';
 import { applyPerturbation, getViewportSequence } from './perturbations.js';
 import { generateCsvSummary, generateMarkdownReport } from './report.js';
@@ -148,6 +148,18 @@ function runFRBaseline(
   return runs;
 }
 
+function runSolverForViewport(
+  solver: ManifestSolver,
+  spec: LayoutSpec,
+  viewportId: string,
+  perturbation: PerturbationDef,
+): BenchmarkRun[] {
+  if (solver.deterministic || !solver.seeds) {
+    return runHybridSolver(solver, spec, viewportId, perturbation);
+  }
+  return runFRBaseline(solver, spec, viewportId, perturbation);
+}
+
 function main() {
   const manifestPath = process.argv[2] ?? 'benchmark.manifest.json';
   const manifest: Manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
@@ -177,11 +189,7 @@ function main() {
 
       for (const viewportId of activeViewports) {
         try {
-          if (!solver.deterministic && solver.seeds) {
-            allRuns.push(...runFRBaseline(solver, spec, viewportId, perturbation));
-          } else {
-            allRuns.push(...runHybridSolver(solver, spec, viewportId, perturbation));
-          }
+          allRuns.push(...runSolverForViewport(solver, spec, viewportId, perturbation));
         } catch (err) {
           console.error(`ERROR: solver=${solver.id} viewport=${viewportId} perturbation=${perturbation.id}: ${err}`);
         }

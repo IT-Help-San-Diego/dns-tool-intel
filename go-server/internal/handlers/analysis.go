@@ -252,6 +252,26 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         c.HTML(http.StatusOK, reportModeTemplate(mode), viewData)
 }
 
+func extractDomainInput(c *gin.Context) string {
+        domain := strings.TrimSpace(c.PostForm(mapKeyDomain))
+        if domain == "" {
+                domain = strings.TrimSpace(c.Query(mapKeyDomain))
+        }
+        return domain
+}
+
+func isAnalysisFailure(results map[string]any) (bool, string) {
+        success, ok := results["analysis_success"].(bool)
+        if !ok || success {
+                return false, ""
+        }
+        errMsg, ok := results[mapKeyError].(string)
+        if !ok {
+                return false, ""
+        }
+        return true, errMsg
+}
+
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
         nonce, ok := c.Get("csp_nonce")
         if !ok {
@@ -262,11 +282,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 csrfToken = ""
         }
 
-        domain := strings.TrimSpace(c.PostForm(mapKeyDomain))
-        if domain == "" {
-                domain = strings.TrimSpace(c.Query(mapKeyDomain))
-        }
-
+        domain := extractDomainInput(c)
         if domain == "" {
                 h.renderIndexFlash(c, nonce, csrfToken, mapKeyDanger, "Please enter a domain name.")
                 return
@@ -288,39 +304,31 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         devNull := c.PostForm("devnull") == "1"
 
         isAuthenticated, userID := extractAuthInfo(c)
-
         ephemeral := devNull || (hasNovelSelectors && !isAuthenticated)
 
         startTime := time.Now()
         ctx := c.Request.Context()
 
-        opts := analyzer.AnalysisOptions{
+        results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
                 ExposureChecks: exposureChecks,
-        }
-        results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, opts)
+        })
         analysisDuration := time.Since(startTime).Seconds()
 
         h.applyConfidenceEngines(results)
 
-        if success, ok := results["analysis_success"].(bool); ok && !success {
-                if errMsg, ok := results[mapKeyError].(string); ok {
-                        go h.recordDailyStats(false, analysisDuration)
-                        h.renderIndexFlash(c, nonce, csrfToken, mapKeyWarning, errMsg)
-                        return
-                }
+        if failed, errMsg := isAnalysisFailure(results); failed {
+                go h.recordDailyStats(false, analysisDuration)
+                h.renderIndexFlash(c, nonce, csrfToken, mapKeyWarning, errMsg)
+                return
         }
 
         h.enrichResultsNoHistory(c, asciiDomain, results)
 
         domainExists := resultsDomainExists(results)
-
         clientIP := c.ClientIP()
         countryCode, countryName := lookupCountry(clientIP)
-
         scanClass := scanner.Classify(asciiDomain, clientIP)
-
         postureHash := analyzer.CanonicalPostureHash(results)
-
         drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
 
         h.snapshotICAEMetrics(ctx, results)
@@ -1159,26 +1167,33 @@ func csvEscape(s string) string {
         return s
 }
 
-func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.DomainAnalysis) ([]byte, string) {
-        var fullResults interface{}
-        if len(analysis.FullResults) > 0 {
-                if err := json.Unmarshal(analysis.FullResults, &fullResults); err != nil {
-                        slog.Warn("buildAnalysisJSON: failed to unmarshal full results", "domain", analysis.Domain, mapKeyError, err)
-                }
+func unmarshalRawJSON(raw json.RawMessage, domain, label string) interface{} {
+        if len(raw) == 0 {
+                return nil
         }
-        var ctSubdomains interface{}
-        if len(analysis.CtSubdomains) > 0 {
-                if err := json.Unmarshal(analysis.CtSubdomains, &ctSubdomains); err != nil {
-                        slog.Warn("buildAnalysisJSON: failed to unmarshal ct subdomains", "domain", analysis.Domain, mapKeyError, err)
-                }
+        var result interface{}
+        if err := json.Unmarshal(raw, &result); err != nil {
+                slog.Warn("buildAnalysisJSON: failed to unmarshal "+label, "domain", domain, mapKeyError, err)
         }
+        return result
+}
 
-        var currencyReport interface{}
-        if frMap, ok := fullResults.(map[string]interface{}); ok {
-                if cr, exists := frMap[mapKeyCurrencyReport]; exists {
-                        currencyReport = cr
-                }
+func extractCurrencyFromResults(fullResults interface{}) interface{} {
+        frMap, ok := fullResults.(map[string]interface{})
+        if !ok {
+                return nil
         }
+        cr, exists := frMap[mapKeyCurrencyReport]
+        if !exists {
+                return nil
+        }
+        return cr
+}
+
+func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.DomainAnalysis) ([]byte, string) {
+        fullResults := unmarshalRawJSON(analysis.FullResults, analysis.Domain, "full results")
+        ctSubdomains := unmarshalRawJSON(analysis.CtSubdomains, analysis.Domain, "ct subdomains")
+        currencyReport := extractCurrencyFromResults(fullResults)
 
         provenance := map[string]interface{}{
                 "tool_version":       h.Config.AppVersion,
@@ -1242,17 +1257,26 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
         }
         sort.Strings(keys)
 
-        orderedPayload := make([]struct {
-                Key   string
-                Value interface{}
-        }, len(keys))
+        orderedPayload := make([]orderedKV, len(keys))
         for i, k := range keys {
-                orderedPayload[i].Key = k
-                orderedPayload[i].Value = payload[k]
+                orderedPayload[i] = orderedKV{Key: k, Value: payload[k]}
         }
 
+        buf := marshalOrderedJSON(orderedPayload)
+        buf = append(buf, '\n')
+
+        hash := sha3.Sum512(buf)
+        return buf, hex.EncodeToString(hash[:])
+}
+
+type orderedKV struct {
+        Key   string
+        Value interface{}
+}
+
+func marshalOrderedJSON(entries []orderedKV) []byte {
         buf := []byte("{")
-        for i, kv := range orderedPayload {
+        for i, kv := range entries {
                 if i > 0 {
                         buf = append(buf, ',')
                 }
@@ -1271,10 +1295,7 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
                 buf = append(buf, valBytes...)
         }
         buf = append(buf, '}')
-        buf = append(buf, '\n')
-
-        hash := sha3.Sum512(buf)
-        return buf, hex.EncodeToString(hash[:])
+        return buf
 }
 
 func (h *AnalysisHandler) loadAnalysisForAPI(c *gin.Context) (dbq.DomainAnalysis, bool) {

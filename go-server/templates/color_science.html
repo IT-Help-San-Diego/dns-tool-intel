@@ -213,9 +213,7 @@
             return 'Fail';
         }
 
-        const container = document.getElementById('palette-cards');
-
-        for (const color of colors) {
+        function buildPaletteCard(color) {
             const rgb = parseHex(color.hex);
             const lum = relativeLuminance(rgb.r, rgb.g, rgb.b);
             const wl = color.wavelength || estimateDominantWavelength(rgb.r, rgb.g, rgb.b);
@@ -250,46 +248,68 @@
             lumLine.textContent = 'Relative Luminance: ' + lum.toFixed(4);
             info.appendChild(lumLine);
 
+            appendWavelengthInfo(info, wl, scotopic, photopic, spRatio, milPass);
+
+            row.appendChild(info);
+            card.appendChild(row);
+            col.appendChild(card);
+            return col;
+        }
+
+        function appendWavelengthInfo(info, wl, scotopic, photopic, spRatio, milPass) {
             if (wl) {
-                const wlLine = el('div', 'small text-muted');
-                wlLine.textContent = 'Dominant \u03BB \u2248 ' + wl + ' nm';
-                info.appendChild(wlLine);
-
-                const scotLine = el('div', 'small text-muted');
-                scotLine.textContent = "V'(\u03BB) scotopic: " + scotopic.toExponential(3);
-                info.appendChild(scotLine);
-
-                const photLine = el('div', 'small text-muted');
-                photLine.textContent = 'V(\u03BB) photopic: ' + photopic.toFixed(4);
-                info.appendChild(photLine);
-
+                info.appendChild(el('div', 'small text-muted')).textContent = 'Dominant \u03BB \u2248 ' + wl + ' nm';
+                info.appendChild(el('div', 'small text-muted')).textContent = "V'(\u03BB) scotopic: " + scotopic.toExponential(3);
+                info.appendChild(el('div', 'small text-muted')).textContent = 'V(\u03BB) photopic: ' + photopic.toFixed(4);
                 if (spRatio !== null) {
-                    const spLine = el('div', 'small text-muted');
-                    spLine.textContent = 'S/P Ratio: ' + spRatio.toExponential(3);
-                    info.appendChild(spLine);
+                    info.appendChild(el('div', 'small text-muted')).textContent = 'S/P Ratio: ' + spRatio.toExponential(3);
                 }
-
                 const badgeDiv = el('div', 'mt-1');
                 const badge = el('span', 'badge ' + (milPass ? 'bg-success' : 'bg-danger'));
                 badge.textContent = (milPass ? 'PASS' : 'FAIL') + ' MIL-STD-1472H (620\u2013700 nm)';
                 badgeDiv.appendChild(badge);
                 info.appendChild(badgeDiv);
             } else {
-                const naLine = el('div', 'small text-muted');
-                naLine.textContent = 'Non-chromatic / broadband \u2014 no dominant \u03BB';
-                info.appendChild(naLine);
-
+                info.appendChild(el('div', 'small text-muted')).textContent = 'Non-chromatic / broadband \u2014 no dominant \u03BB';
                 const naBadge = el('div', 'mt-1');
                 const nb = el('span', 'badge bg-secondary');
                 nb.textContent = 'N/A \u2014 Not a tactical red';
                 naBadge.appendChild(nb);
                 info.appendChild(naBadge);
             }
+        }
 
-            row.appendChild(info);
-            card.appendChild(row);
-            col.appendChild(card);
-            container.appendChild(col);
+        function buildMatrixCell(fg, bg, fgLum) {
+            const bgRgb = parseHex(bg.hex);
+            const bgLum = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
+            const cr = contrastRatio(fgLum, bgLum);
+            const td = el('td', 'cs-matrix-cell');
+
+            const ratioText = el('div', 'fw-bold');
+            ratioText.textContent = cr.toFixed(2) + ':1';
+            td.appendChild(ratioText);
+
+            if (fg.hex === bg.hex) {
+                td.appendChild(el('div', 'small text-muted', '\u2014'));
+            } else {
+                const aaDiv = el('div', 'small');
+                const aaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 4.5, 3));
+                aaBadge.textContent = wcagBadgeLabel(cr, 4.5, 3, 'AA', 'AA-lg');
+                aaDiv.appendChild(aaBadge);
+                td.appendChild(aaDiv);
+
+                const aaaDiv = el('div', 'small');
+                const aaaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 7, 4.5));
+                aaaBadge.textContent = wcagBadgeLabel(cr, 7, 4.5, 'AAA', 'AAA-lg');
+                aaaDiv.appendChild(aaaBadge);
+                td.appendChild(aaaDiv);
+            }
+            return td;
+        }
+
+        const container = document.getElementById('palette-cards');
+        for (const color of colors) {
+            container.appendChild(buildPaletteCard(color));
         }
 
         const matrixHead = document.getElementById('matrix-head');
@@ -314,32 +334,7 @@
             tr.appendChild(label);
 
             for (const bg of colors) {
-                const bgRgb = parseHex(bg.hex);
-                const bgLum = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
-                const cr = contrastRatio(fgLum, bgLum);
-                const td = el('td', 'cs-matrix-cell');
-
-                const ratioText = el('div', 'fw-bold');
-                ratioText.textContent = cr.toFixed(2) + ':1';
-                td.appendChild(ratioText);
-
-                if (fg.hex === bg.hex) {
-                    td.appendChild(el('div', 'small text-muted', '\u2014'));
-                } else {
-                    const aaDiv = el('div', 'small');
-                    const aaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 4.5, 3));
-                    aaBadge.textContent = wcagBadgeLabel(cr, 4.5, 3, 'AA', 'AA-lg');
-                    aaDiv.appendChild(aaBadge);
-                    td.appendChild(aaDiv);
-
-                    const aaaDiv = el('div', 'small');
-                    const aaaBadge = el('span', 'badge ' + wcagBadgeClass(cr, 7, 4.5));
-                    aaaBadge.textContent = wcagBadgeLabel(cr, 7, 4.5, 'AAA', 'AAA-lg');
-                    aaaDiv.appendChild(aaaBadge);
-                    td.appendChild(aaaDiv);
-                }
-
-                tr.appendChild(td);
+                tr.appendChild(buildMatrixCell(fg, bg, fgLum));
             }
 
             matrixBody.appendChild(tr);

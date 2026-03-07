@@ -154,8 +154,8 @@
 
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    window._iconSquare = '{{icon "square"}}';
-    window._iconCheckSquare = '{{icon "check-square"}}';
+    globalThis._iconSquare = '{{icon "square"}}';
+    globalThis._iconCheckSquare = '{{icon "check-square"}}';
     document.addEventListener('DOMContentLoaded', function() {
         let selected = [];
         const rows = document.querySelectorAll('.compare-row');
@@ -171,7 +171,7 @@
                 if (idx > -1) {
                     selected.splice(idx, 1);
                     row.classList.remove('selected-row');
-                    row.querySelector('.compare-check').innerHTML = window._iconSquare;
+                    row.querySelector('.compare-check').innerHTML = globalThis._iconSquare;
                     row.querySelector('.compare-check').classList.remove('text-primary');
                 } else {
                     if (selected.length >= 2) {
@@ -179,13 +179,13 @@
                         const oldRow = document.querySelector('[data-id="' + oldId + '"]');
                         if (oldRow) {
                             oldRow.classList.remove('selected-row');
-                            oldRow.querySelector('.compare-check').innerHTML = window._iconSquare;
+                            oldRow.querySelector('.compare-check').innerHTML = globalThis._iconSquare;
                             oldRow.querySelector('.compare-check').classList.remove('text-primary');
                         }
                     }
                     selected.push(id);
                     row.classList.add('selected-row');
-                    row.querySelector('.compare-check').innerHTML = window._iconCheckSquare;
+                    row.querySelector('.compare-check').innerHTML = globalThis._iconCheckSquare;
                     row.querySelector('.compare-check').classList.add('text-primary');
                 }
 

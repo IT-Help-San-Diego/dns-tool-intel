@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { solveLayout } from './layoutSolver.js';
 import type { LayoutSpec } from './types.js';
 
@@ -27,7 +27,11 @@ function main() {
     }
   }
 
-  if (!specPath) {
+  if (specPath) {
+    const raw = readFileSync(specPath, 'utf-8');
+    const spec: LayoutSpec = JSON.parse(raw);
+    run(spec, profileId, pretty);
+  } else {
     try {
       const stdin = readFileSync(0, 'utf-8');
       const spec: LayoutSpec = JSON.parse(stdin);
@@ -35,12 +39,7 @@ function main() {
     } catch {
       usage();
     }
-    return;
   }
-
-  const raw = readFileSync(specPath, 'utf-8');
-  const spec: LayoutSpec = JSON.parse(raw);
-  run(spec, profileId, pretty);
 }
 
 function run(spec: LayoutSpec, profileId: string, pretty: boolean) {
