@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	iconWarning     = "fas fa-exclamation-triangle text-warning"
-	iconInfo        = "fas fa-info-circle text-info"
-	iconSuccess     = "fas fa-lightbulb text-success"
-	iconTrendMinus  = "fas fa-minus"
-	iconTrendEquals = "fas fa-equals"
-	iconTrendUp     = "fas fa-arrow-trend-up"
-	iconTrendDown   = "fas fa-arrow-trend-down"
+	iconWarning     = "exclamation-triangle text-warning"
+	iconInfo        = "info-circle text-info"
+	iconSuccess     = "lightbulb text-success"
+	iconTrendMinus  = "minus"
+	iconTrendEquals = "equals"
+	iconTrendUp     = "arrow-trend-up"
+	iconTrendDown   = "arrow-trend-down"
 
 	mapKeyError = "error"
 )

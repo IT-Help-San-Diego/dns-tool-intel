@@ -14,12 +14,12 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-chart-bar me-2"></i>Site Analytics
+                    {{icon "chart-bar" "me-2"}}Site Analytics
                 </h1>
                 <p class="text-muted mb-0">Privacy-respecting usage metrics — no cookies, no PII, daily-rotating salted hashes</p>
             </div>
             <a href="/ops" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Admin Dashboard
+                {{icon "arrow-left" "me-2"}}Admin Dashboard
             </a>
         </div>
 
@@ -91,7 +91,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-external-link-alt me-2"></i>Top Referrer Sources</h5>
+                        <h5 class="mb-0">{{icon "external-link-alt" "me-2"}}Top Referrer Sources</h5>
                     </div>
                     <div class="card-body">
                         {{if .Summary.TopReferrers}}
@@ -121,7 +121,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Top Pages</h5>
+                        <h5 class="mb-0">{{icon "file-alt" "me-2"}}Top Pages</h5>
                     </div>
                     <div class="card-body">
                         {{if .Summary.TopPages}}
@@ -151,7 +151,7 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Daily Breakdown (Last 30 Days)</h5>
+                <h5 class="mb-0">{{icon "calendar-alt" "me-2"}}Daily Breakdown (Last 30 Days)</h5>
             </div>
             <div class="card-body">
                 {{if .Days}}
@@ -187,7 +187,7 @@
 
         <div class="card border-success mb-4">
             <div class="card-body">
-                <h6 class="text-success mb-2"><i class="fas fa-user-shield me-2"></i>Privacy Design</h6>
+                <h6 class="text-success mb-2">{{icon "user-shield" "me-2"}}Privacy Design</h6>
                 <ul class="mb-0 small">
                     <li>No cookies or tracking pixels — server-side only</li>
                     <li>IP addresses are salted and hashed with a daily-rotating key — never stored or persisted</li>

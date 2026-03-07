@@ -465,7 +465,7 @@
                 color: #ffffff !important;
                 font-size: 11.5pt !important;
             }
-            .card-header .fas, .card-header .fa {
+            .card-header .icon {
                 color: #b8e6f5 !important;
             }
 
@@ -569,18 +569,18 @@
         <div class="screen-only mb-4">
             <div class="exec-banner d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
-                    <h1 class="h4 mb-1"><i class="fas fa-file-alt text-warning me-2"></i>Executive's DNS Intelligence Brief</h1>
+                    <h1 class="h4 mb-1">{{icon "file-alt" "text-warning me-2"}}Executive's DNS Intelligence Brief</h1>
                     <p class="text-muted mb-0 small">Board-level domain security assessment &mdash; <strong>{{.Domain}}</strong></p>
                     {{if or .AnalysisTimestamp (gt .AnalysisDuration 0)}}
                     <div class="small text-muted mt-1">
-                        {{if .AnalysisTimestamp}}<i class="fas fa-clock me-1"></i>{{.AnalysisTimestamp}}{{end}}
+                        {{if .AnalysisTimestamp}}{{icon "clock" "me-1"}}{{.AnalysisTimestamp}}{{end}}
                         {{if and .AnalysisTimestamp (gt .AnalysisDuration 0)}}<span class="mx-1">&middot;</span>{{end}}
-                        {{if gt .AnalysisDuration 0}}<i class="fas fa-stopwatch me-1"></i>{{formatFloat 1 .AnalysisDuration}}s{{end}}
+                        {{if gt .AnalysisDuration 0}}{{icon "stopwatch" "me-1"}}{{formatFloat 1 .AnalysisDuration}}s{{end}}
                         {{if .IntegrityHash}}
-                            <span class="mx-1">&middot;</span><span class="u-integrity-preview"><i class="fas fa-lock"></i> <span class="font-monospace">SHA-3-512: {{substr 0 4 .IntegrityHash}}<span class="u-ls-tight">&#x2731;&#x2731;&#x2731;&#x2731;</span></span> <a href="#report-integrity" class="u-integrity-link u-integrity-link-warning" title="Click to view full SHA-3-512 integrity hash">Verify</a></span>
+                            <span class="mx-1">&middot;</span><span class="u-integrity-preview">{{icon "lock"}} <span class="font-monospace">SHA-3-512: {{substr 0 4 .IntegrityHash}}<span class="u-ls-tight">&#x2731;&#x2731;&#x2731;&#x2731;</span></span> <a href="#report-integrity" class="u-integrity-link u-integrity-link-warning" title="Click to view full SHA-3-512 integrity hash">Verify</a></span>
                         {{end}}
                         {{if .WaybackURL}}
-                            <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot"><i class="fas fa-landmark me-1"></i>Archived</a>
+                            <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot">{{icon "landmark" "me-1"}}Archived</a>
                         {{end}}
                     </div>
                     {{end}}
@@ -588,7 +588,7 @@
                 <div class="d-flex gap-2 flex-wrap">
                     <div class="dropdown">
                         <button class="btn btn-sm dropdown-toggle btn-tlp-amber" id="tlpSelectorBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Traffic Light Protocol — controls report distribution scope">
-                            <i class="fas fa-shield-alt me-1"></i><span id="tlpSelectorLabel">TLP:AMBER</span>
+                            {{icon "shield-alt" "me-1"}}<span id="tlpSelectorLabel">TLP:AMBER</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
                             <li><h6 class="dropdown-header">Intelligence Dissemination</h6></li>
@@ -603,10 +603,10 @@
                     </div>
                     <div class="btn-group">
                         <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}" class="btn btn-outline-info" title="{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}">
-                            <i class="fas fa-file-lines me-1"></i>{{if .IsTLD}}Zone Health{{else}}Engineer{{end}}
+                            {{icon "file-lines" "me-1"}}{{if .IsTLD}}Zone Health{{else}}Engineer{{end}}
                         </a>
                         <button type="button" id="execPrintBtn" class="btn btn-warning active" title="Print this Executive's DNS Intelligence Brief">
-                            <i class="fas fa-print me-1"></i>Print
+                            {{icon "print" "me-1"}}Print
                         </button>
                     </div>
                 </div>
@@ -616,10 +616,10 @@
         {{if not .DomainExists}}
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
-                <i class="fas fa-question-circle fa-3x text-info opacity-75 mb-3"></i>
+                {{icon "question-circle" "icon-3x text-info opacity-75 mb-3"}}
                 <h2 class="h4 mb-3">Non-existent or Undelegated Domain</h2>
                 <p class="text-muted">This domain does not exist in DNS. Security posture cannot be evaluated.</p>
-                <a href="/" class="btn btn-primary"><i class="fas fa-search me-2"></i>Try Another Domain</a>
+                <a href="/" class="btn btn-primary">{{icon "search" "me-2"}}Try Another Domain</a>
             </div>
         </div>
         {{else}}
@@ -642,7 +642,7 @@
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between flex-wrap">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-{{$postureIcon}} fa-2x text-{{$postureColor}} me-3"></i>
+                                {{icon $postureIcon "icon-2x" (printf "text-%s me-3" $postureColor)}}
                                 <div>
                                     <span class="fw-semibold">DNS Security &amp; Trust Posture</span>
                                     <div class="d-flex align-items-center mt-1">
@@ -655,10 +655,10 @@
                             {{if or $postureCritical $postureRecs}}
                             <div class="mt-2 mt-md-0">
                                 {{if $postureCritical}}
-                                <span class="text-danger d-block small"><i class="fas fa-times-circle me-1"></i>{{len $postureCritical}} action{{if gt (len $postureCritical) 1}}s{{end}} required</span>
+                                <span class="text-danger d-block small">{{icon "times-circle" "me-1"}}{{len $postureCritical}} action{{if gt (len $postureCritical) 1}}s{{end}} required</span>
                                 {{end}}
                                 {{if $postureRecs}}
-                                <span class="text-warning d-block small"><i class="fas fa-lightbulb me-1"></i>{{len $postureRecs}} recommendation{{if gt (len $postureRecs) 1}}s{{end}}</span>
+                                <span class="text-warning d-block small">{{icon "lightbulb" "me-1"}}{{len $postureRecs}} recommendation{{if gt (len $postureRecs) 1}}s{{end}}</span>
                                 {{end}}
                             </div>
                             {{end}}
@@ -675,7 +675,7 @@
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between flex-wrap">
                             <div class="d-flex align-items-center">
-                                <i class="fas {{.UnifiedConfidence.Icon}} fa-2x text-{{.UnifiedConfidence.BootstrapClass}} me-3"></i>
+                                {{icon .UnifiedConfidence.Icon "icon-2x" (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
                                 <div>
                                     <span class="fw-semibold">Analysis Confidence</span>
                                     <div class="d-flex align-items-center mt-1">
@@ -754,7 +754,7 @@
         <!-- What Requires Attention -->
         <div class="row mb-3">
             <div class="col-12">
-                <h5 class="exec-section-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>What Requires Attention</h5>
+                <h5 class="exec-section-title">{{icon "exclamation-triangle" "text-warning me-2"}}What Requires Attention</h5>
                 {{if or $postureCritical $postureRecs}}
                 <div class="mb-3">
                     {{range $postureCritical}}
@@ -772,7 +772,7 @@
                 </div>
                 {{else}}
                 <div class="alert alert-success py-2">
-                    <i class="fas fa-check-circle me-2"></i>No urgent actions detected. Domain security posture is well-maintained.
+                    {{icon "check-circle" "me-2"}}No urgent actions detected. Domain security posture is well-maintained.
                 </div>
                 {{end}}
             </div>
@@ -784,7 +784,7 @@
         {{$verdicts := mapGetMap "verdicts" $posture}}
         <div class="row mb-4">
             <div class="col-12">
-                <h5 class="exec-section-title"><i class="fas fa-question-circle text-warning me-2"></i>The BIG Questions</h5>
+                <h5 class="exec-section-title">{{icon "question-circle" "text-warning me-2"}}The BIG Questions</h5>
                 <div class="card border-0 bg-dark bg-opacity-25 exec-big-questions">
                     <div class="card-body py-3">
                         {{if not $.IsTLD}}
@@ -900,7 +900,7 @@
         <!-- Domain Summary (condensed) -->
         <div class="row mb-4">
             <div class="col-12">
-                <h5 class="exec-section-title"><i class="fas fa-globe text-info me-2"></i>Domain Overview</h5>
+                <h5 class="exec-section-title">{{icon "globe" "text-info me-2"}}Domain Overview</h5>
                 <div class="card border-0 bg-dark bg-opacity-50">
                     <div class="card-body py-3">
                         <div class="row g-3">
@@ -931,13 +931,13 @@
              SECTION 2: TECHNICAL FINDINGS
              ============================================================ -->
         <div class="section-technical-findings">
-            <h4 class="mb-3"><i class="fas fa-search-plus text-info me-2"></i>Technical Findings</h4>
+            <h4 class="mb-3">{{icon "search-plus" "text-info me-2"}}Technical Findings</h4>
 
             <!-- Email Authentication -->
             {{if not .IsTLD}}
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Email Authentication</h5>
+                    <h5 class="mb-0">{{icon "shield-alt" "me-2"}}Email Authentication</h5>
                 </div>
                 <div class="card-body">
                     {{if $posture}}
@@ -1025,7 +1025,7 @@
             <!-- Transport Security -->
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Mail Transport Security</h5>
+                    <h5 class="mb-0">{{icon "lock" "me-2"}}Mail Transport Security</h5>
                 </div>
                 <div class="card-body">
                     {{if $posture}}
@@ -1125,7 +1125,7 @@
             <!-- DNS Security -->
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-network-wired me-2"></i>DNS Security</h5>
+                    <h5 class="mb-0">{{icon "network-wired" "me-2"}}DNS Security</h5>
                 </div>
                 <div class="card-body">
                     {{if $posture}}
@@ -1230,7 +1230,7 @@
             {{if not .IsTLD}}
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-certificate me-2"></i>Brand &amp; Certificate Controls</h5>
+                    <h5 class="mb-0">{{icon "certificate" "me-2"}}Brand &amp; Certificate Controls</h5>
                 </div>
                 <div class="card-body">
                     {{if $posture}}
@@ -1294,7 +1294,7 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                        <span><i class="fas fa-robot me-2"></i>AI Surface Scanner</span>
+                        <span>{{icon "robot" "me-2"}}AI Surface Scanner</span>
                         {{$aiStatus := mapGetStr "status" $ai_surface}}
                         <span class="badge bg-{{if eq $aiStatus "success"}}success{{else if eq $aiStatus "warning"}}warning{{else if eq $aiStatus "error"}}danger{{else}}info{{end}}">
                             {{if eq $aiStatus "success"}}Governance Active{{else if eq $aiStatus "warning"}}Risks Detected{{else}}Scanned{{end}}
@@ -1437,13 +1437,13 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                        <span><i class="fas fa-key me-2 text-danger"></i>Public Exposure Checks</span>
+                        <span>{{icon "key" "me-2 text-danger"}}Public Exposure Checks</span>
                         <span class="badge bg-danger">{{formatFloat 0 $secretCount}} Secret{{if ne $secretCount 1}}s{{end}} Exposed</span>
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-danger py-2 mb-3 small">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        {{icon "exclamation-triangle" "me-1"}}
                         <strong>Immediate action required.</strong> Credentials were found in publicly accessible source code. These should be rotated and removed from public-facing code.
                     </div>
                     {{$findings := mapGetSlice "findings" $secret_exposure}}
@@ -1465,7 +1465,7 @@
             </div>
             {{else}}
             <div class="exec-finding-row mb-3">
-                <span class="exec-finding-label"><i class="fas fa-key me-1"></i>Public Exposure</span>
+                <span class="exec-finding-label">{{icon "key" "me-1"}}Public Exposure</span>
                 <span class="exec-finding-value">
                     <span class="badge bg-success">Clear</span>
                     <span class="text-muted ms-2 small">No secrets detected in publicly accessible source</span>
@@ -1482,13 +1482,13 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                        <span><i class="fas fa-search me-2 text-warning"></i>Expanded Exposure Checks</span>
+                        <span>{{icon "search" "me-2 text-warning"}}Expanded Exposure Checks</span>
                         <span class="badge bg-{{if eq $webExpStatus "critical"}}danger{{else}}warning text-dark{{end}}">{{formatFloat 0 $webExpCount}} Exposure{{if ne $webExpCount 1}}s{{end}}</span>
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-{{if eq $webExpStatus "critical"}}danger{{else}}warning{{end}} py-2 mb-3 small">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        {{icon "exclamation-triangle" "me-1"}}
                         <strong>Action required.</strong> Sensitive files or server configuration pages were found at well-known paths, potentially exposing credentials or internal details.
                     </div>
                     {{$webFindings := mapGetSlice "findings" $web_exposure}}
@@ -1510,7 +1510,7 @@
             </div>
             {{else if ne $webExpStatus "unreachable"}}
             <div class="exec-finding-row mb-3">
-                <span class="exec-finding-label"><i class="fas fa-search me-1"></i>Expanded Exposure</span>
+                <span class="exec-finding-label">{{icon "search" "me-1"}}Expanded Exposure</span>
                 <span class="exec-finding-value">
                     <span class="badge bg-success">Clear</span>
                     <span class="text-muted ms-2 small">No exposed configuration files or server information pages detected</span>
@@ -1527,7 +1527,7 @@
             <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                        <span><i class="fas fa-wrench me-2 text-warning"></i>Priority Actions</span>
+                        <span>{{icon "wrench" "me-2 text-warning"}}Priority Actions</span>
                         <span>
                             <span class="badge bg-secondary">{{formatFloat 0 (mapGetFloat "fix_count" $remediation)}} total</span>
                             {{$postureAchievable := mapGetStr "posture_achievable" $remediation}}
@@ -1585,12 +1585,12 @@
         <div class="section-appendix">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-book me-2"></i>Appendix &mdash; Additional Resources</h5>
+                    <h5 class="mb-0">{{icon "book" "me-2"}}Appendix &mdash; Additional Resources</h5>
                 </div>
                 <div class="card-body">
                     <p class="mb-2">Full technical details including raw DNS records, DKIM public keys, IP/ASN mappings, resolver consensus evidence, and verification commands are available in the Engineer's DNS Intelligence Report.</p>
                     <p class="mb-0">
-                        <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}"><i class="fas fa-external-link-alt me-1"></i>{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}</a>
+                        <a href="/analysis/{{.AnalysisID}}/view/{{if .IsTLD}}Z{{else}}E{{end}}">{{icon "external-link-alt" "me-1"}}{{if .IsTLD}}View Zone Health Report{{else}}View Engineer's DNS Intelligence Report{{end}}</a>
                     </p>
                 </div>
             </div>
@@ -1600,7 +1600,7 @@
         <div class="card border-warning border-opacity-25 mt-4 u-bg-secondary" id="report-integrity">
             <div class="card-header">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap u-color-heading-light">
-                    <span><i class="fas fa-fingerprint me-2 text-warning"></i>Verify Report Integrity
+                    <span>{{icon "fingerprint" "me-2 text-warning"}}Verify Report Integrity
                     <span class="badge ms-2 u-hash-label">SHA-3-512</span></span>
                     <span class="section-question dt-question dt-question--section">Has this report been tampered with?
                         <span class="badge bg-success ms-2">Verify below</span>
@@ -1613,7 +1613,7 @@
                 </p>
                 <code class="text-warning user-select-all u-fs-075rem-break">{{.IntegrityHash}}</code>
                 <div class="small mt-2 u-color-gray-500">
-                    <i class="fas fa-shield-alt me-1"></i>
+                    {{icon "shield-alt" "me-1"}}
                     {{.RFCCount}} RFCs evaluated &middot; DNS state at {{.AnalysisTimestamp}}
                 </div>
             </div>
@@ -1624,7 +1624,7 @@
         <div class="card border-success border-opacity-25 mt-3 u-bg-secondary" id="wayback-archive">
             <div class="card-header">
                 <h5 class="mb-0 d-flex align-items-center u-color-heading-light">
-                    <i class="fas fa-landmark me-2 text-success"></i>Internet Archive &mdash; Permanent Record
+                    {{icon "landmark" "me-2 text-success"}}Internet Archive &mdash; Permanent Record
                     <span class="badge ms-2 u-badge-success-outline">Wayback Machine</span>
                 </h5>
             </div>
@@ -1633,7 +1633,7 @@
                     This analysis is permanently archived by the Internet Archive, providing independent third-party verification of DNS security posture at analysis time.
                 </p>
                 <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
-                    <i class="fas fa-external-link-alt me-1"></i>View Archived Snapshot
+                    {{icon "external-link-alt" "me-1"}}View Archived Snapshot
                 </a>
             </div>
         </div>

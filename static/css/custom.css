@@ -334,7 +334,7 @@ body.covert-mode .hero-text-standard {
     color: rgba(230, 237, 243, 0.7);
     text-decoration: none;
 }
-.icae-hero-statement .fas {
+.icae-hero-statement .icon {
     font-size: 0.6rem;
     opacity: 0.45;
 }
@@ -657,7 +657,7 @@ body.covert-mode .hero-text-standard {
     transition: color 0.2s;
 }
 .icae-confidence-label:hover { color: rgba(230, 237, 243, 0.75); text-decoration: none; }
-.icae-confidence-label .fas { font-size: 0.6rem; opacity: 0.4; }
+.icae-confidence-label .icon { font-size: 0.6rem; opacity: 0.4; }
 .icae-hero-divider { display: none; }
 .icae-hero-label { text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
 .icae-hero-maturity-badge {
@@ -914,21 +914,29 @@ main.container {
     min-height: 50vh;
 }
 
-/* Prevent layout shift from icon fonts loading */
-.fas, .fab, .far, .fa, .fa-solid, .fa-regular, .fa-brands {
+/* Inline SVG icon system */
+.icon {
     display: inline-block;
     width: 1em;
     height: 1em;
     min-width: 1em;
     vertical-align: -0.125em;
-    font-style: normal;
+    fill: currentColor;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-/* Reserve specific icon sizes used in the app */
-.fa-search, .fa-globe, .fa-home, .fa-history, .fa-chart-bar {
-    width: 1em;
-    height: 1em;
+.icon-lg { width: 1.33em; height: 1.33em; }
+.icon-2x { width: 2em; height: 2em; }
+.icon-3x { width: 3em; height: 3em; }
+.icon-4x { width: 4em; height: 4em; }
+.icon-fw { width: 1.25em; text-align: center; }
+
+@keyframes icon-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
+.icon-spin { animation: icon-spin 1s linear infinite; }
 
 /* Stable button to prevent CLS during interaction */
 .btn {
@@ -1360,7 +1368,7 @@ main.container {
         line-height: 1.4;
     }
 
-    .u-maintenance-tag .fas {
+    .u-maintenance-tag .icon {
         display: none;
     }
 
@@ -3083,7 +3091,7 @@ body.covert-mode code {
     overflow-wrap: break-word;
     word-break: break-all;
 }
-body.covert-mode .fa-info-circle {
+body.covert-mode .icon-circle-info {
     color: rgba(180, 50, 50, 0.65) !important;
 }
 body.covert-mode .rfc-link {
@@ -3328,8 +3336,8 @@ body.covert-mode .icae-hero-protocols .text-info {
 body.covert-mode .icae-hero-protocols .text-muted {
     color: rgba(170, 178, 188, 0.25) !important;
 }
-body.covert-mode .icae-hero-protocols .fa-clock,
-body.covert-mode .icae-hero-protocols .fa-fingerprint {
+body.covert-mode .icae-hero-protocols .icon-clock,
+body.covert-mode .icae-hero-protocols .icon-fingerprint {
     color: rgba(140, 50, 50, 0.35) !important;
 }
 body.covert-mode .u-hero-protocols-divider {
@@ -3713,7 +3721,7 @@ body.covert-mode .card.bg-dark .fw-semibold {
 body.covert-mode .card.bg-dark .text-muted {
     color: rgba(140, 40, 40, 0.35) !important;
 }
-body.covert-mode .card.bg-dark .fa-2x.text-info {
+body.covert-mode .card.bg-dark .icon-2x.text-info {
     color: rgba(196, 60, 60, 0.4) !important;
 }
 body.covert-mode strong.text-light {
@@ -3766,10 +3774,10 @@ body.covert-mode .hero-trust i {
 body.covert-mode .trust-divider {
     background: rgba(140, 40, 40, 0.4);
 }
-body.covert-mode .fa-route.text-info {
+body.covert-mode .icon-route.text-info {
     color: #cc2020 !important;
 }
-body.covert-mode .fa-envelope.text-warning {
+body.covert-mode .icon-envelope.text-warning {
     color: #cc2020 !important;
 }
 body.covert-mode .btn-outline-warning {
@@ -3992,7 +4000,7 @@ body.covert-mode .dri-footer {
 body.covert-mode .dri-examples {
     border-top-color: rgba(140, 40, 40, 0.1);
 }
-body.covert-mode .fa-compass.text-info {
+body.covert-mode .icon-compass.text-info {
     color: #cc2020 !important;
 }
 body.covert-mode .navbar-toggler {
@@ -4421,9 +4429,9 @@ body.covert-mode .u-max-w-900 .text-warning {
 body.covert-mode .u-max-w-900 .text-danger {
     color: rgba(220, 53, 69, 0.6) !important;
 }
-body.covert-mode .fa-layer-group.text-info,
-body.covert-mode .fa-check-double.text-info,
-body.covert-mode .fa-shield-halved.text-info {
+body.covert-mode .icon-layer-group.text-info,
+body.covert-mode .icon-check-double.text-info,
+body.covert-mode .icon-shield-halved.text-info {
     color: #cc2020 !important;
 }
 body.covert-mode .changelog-badge {
@@ -5387,7 +5395,7 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
     overflow: visible;
     flex-shrink: 0;
 }
-.u-maintenance-tag .fas {
+.u-maintenance-tag .icon {
     color: #e8c547;
 }
 .u-beta-tag {
@@ -6503,7 +6511,7 @@ body.covert-mode .tk-triage-card:hover {
     .tk-step-title { font-size: 1rem; }
     .tk-step-nav a { font-size: 0.65rem; padding: 0.15rem 0.35rem; }
     .tk-triage-card .card-body { padding: 0.75rem; }
-    .tk-triage-card .fa-2x { font-size: 1.4em; }
+    .tk-triage-card .icon-2x { font-size: 1.4em; }
 }
 @media print {
     .tk-chain-track,
@@ -6855,7 +6863,7 @@ body.covert-mode .u-privacy-accept-btn:hover {
     justify-content: center;
     position: relative;
 }
-.verify-gear-circle .fa-cogs {
+.verify-gear-circle .icon-gears {
     font-size: 1.2rem;
     color: rgba(126, 200, 227, 0.35);
     position: absolute;
@@ -6919,7 +6927,7 @@ body.covert-mode .u-privacy-accept-btn:hover {
     .verify-panel { text-align: center !important; padding: 1.25rem 1rem; }
     .verify-center-gear { padding: 0.75rem 0; flex-direction: row; gap: 0.75rem; }
     .verify-gear-circle { width: 70px; height: 70px; }
-    .verify-gear-circle .fa-cogs { font-size: 1rem; top: 6px; }
+    .verify-gear-circle .icon-gears { font-size: 1rem; top: 6px; }
     .verify-gear-text { font-size: 0.8rem; }
     .verify-formula-row { flex-direction: column; gap: 0.75rem; text-align: center; padding: 1rem; }
     .verify-formula-cell, .verify-formula-cell:last-child, .verify-formula-cell:nth-child(2) { text-align: center; }

@@ -69,15 +69,15 @@ type errorCategory struct {
 }
 
 var errorCategories = []errorCategory{
-	{[]string{"timeout", "timed out", "deadline"}, "DNS Resolution Timeout", "fas fa-clock"},
-	{[]string{"no such host", "nxdomain", "not found"}, "Domain Not Found (NXDOMAIN)", "fas fa-unlink"},
-	{[]string{"connection refused", "connection reset"}, "Connection Refused", "fas fa-ban"},
-	{[]string{"servfail", "server failure"}, "DNS Server Failure (SERVFAIL)", "fas fa-server"},
-	{[]string{"network", "unreachable"}, "Network Unreachable", "fas fa-wifi"},
-	{[]string{"tls", "certificate", "x509"}, "TLS/Certificate Error", "fas fa-lock"},
-	{[]string{"refused"}, "Query Refused", "fas fa-hand-paper"},
-	{[]string{"rate limit", "throttl"}, "Rate Limited", "fas fa-tachometer-alt"},
-	{[]string{"invalid", "malformed"}, "Invalid Input", "fas fa-exclamation-triangle"},
+	{[]string{"timeout", "timed out", "deadline"}, "DNS Resolution Timeout", "clock"},
+	{[]string{"no such host", "nxdomain", "not found"}, "Domain Not Found (NXDOMAIN)", "unlink"},
+	{[]string{"connection refused", "connection reset"}, "Connection Refused", "ban"},
+	{[]string{"servfail", "server failure"}, "DNS Server Failure (SERVFAIL)", "server"},
+	{[]string{"network", "unreachable"}, "Network Unreachable", "wifi"},
+	{[]string{"tls", "certificate", "x509"}, "TLS/Certificate Error", "lock"},
+	{[]string{"refused"}, "Query Refused", "hand-paper"},
+	{[]string{"rate limit", "throttl"}, "Rate Limited", "tachometer-alt"},
+	{[]string{"invalid", "malformed"}, "Invalid Input", "exclamation-triangle"},
 }
 
 func matchErrorCategory(msg string) (string, string, bool) {
@@ -93,7 +93,7 @@ func matchErrorCategory(msg string) (string, string, bool) {
 
 func sanitizeErrorMessage(raw *string) (string, string) {
 	if raw == nil || *raw == "" {
-		return "Unknown Error", "fas fa-question-circle"
+		return "Unknown Error", "question-circle"
 	}
 	msg := strings.ToLower(*raw)
 
@@ -106,7 +106,7 @@ func sanitizeErrorMessage(raw *string) (string, string) {
 	if len(cleaned) > 80 {
 		cleaned = cleaned[:77] + "..."
 	}
-	return "Analysis Error: " + cleaned, "fas fa-exclamation-circle"
+	return "Analysis Error: " + cleaned, "exclamation-circle"
 }
 
 func (h *FailuresHandler) Failures(c *gin.Context) {

@@ -79,16 +79,16 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-terminal me-2"></i>Operations
+                    {{icon "terminal" "me-2"}}Operations
                 </h1>
                 <p class="text-muted mb-0">Quality gates, pipeline scripts, and asset management</p>
             </div>
             <div>
                 <a href="/ops" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-arrow-left me-1"></i>Dashboard
+                    {{icon "arrow-left" "me-1"}}Dashboard
                 </a>
                 <a href="/architecture" class="btn btn-outline-info">
-                    <i class="fas fa-sitemap me-1"></i>Architecture
+                    {{icon "sitemap" "me-1"}}Architecture
                 </a>
             </div>
         </div>
@@ -97,9 +97,9 @@
         <div class="ops-result mb-4">
             <div class="ops-result-header">
                 {{if .OpResult.Success}}
-                <span class="text-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                <span class="text-success">{{icon "check-circle" "me-1"}}Completed</span>
                 {{else}}
-                <span class="text-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>
+                <span class="text-danger">{{icon "times-circle" "me-1"}}Failed</span>
                 {{end}}
                 <span class="fw-bold">{{.OpResult.Task.Label}}</span>
             </div>
@@ -107,41 +107,41 @@
         </div>
         {{end}}
 
-        <h2 class="h5 mb-3"><i class="fas fa-shield-check me-2 text-info"></i>Quality Gates</h2>
+        <h2 class="h5 mb-3">{{icon "shield-check" "me-2 text-info"}}Quality Gates</h2>
         <div class="ops-grid mb-4">
             {{range .OpsTasks}}
             <div class="ops-card">
                 <div class="ops-card-header">
-                    <i class="fas {{.Icon}} ops-card-icon"></i>
+                    {{icon .Icon "ops-card-icon"}}
                     <span class="ops-card-label">{{.Label}}</span>
                 </div>
                 <div class="ops-card-cmd">{{.Command}} {{index .Args 0}}</div>
                 <form method="POST" action="/ops/run/{{.ID}}">
                     <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                     <button type="submit" class="btn btn-outline-info btn-sm text-nowrap">
-                        <i class="fas fa-play me-1"></i>Run
+                        {{icon "play" "me-1"}}Run
                     </button>
                 </form>
             </div>
             {{end}}
         </div>
 
-        <h2 class="h5 mb-3"><i class="fas fa-file-pdf me-2 text-info"></i>Exports</h2>
+        <h2 class="h5 mb-3">{{icon "file-pdf" "me-2 text-info"}}Exports</h2>
         <div class="ops-grid mb-4">
             <div class="ops-card">
                 <div class="ops-card-header">
-                    <i class="fas fa-file-pdf ops-card-icon"></i>
+                    {{icon "file-pdf" "ops-card-icon"}}
                     <span class="ops-card-label">Architecture PDF</span>
                 </div>
                 <div class="ops-card-cmd">Browser print → /architecture</div>
                 <a href="/architecture" target="_blank" rel="noopener" class="btn btn-outline-info btn-sm text-nowrap">
-                    <i class="fas fa-external-link-alt me-1"></i>Open Architecture Page
+                    {{icon "external-link-alt" "me-1"}}Open Architecture Page
                 </a>
             </div>
         </div>
 
         <div class="text-muted small mt-4">
-            <i class="fas fa-info-circle me-1"></i>All operations run server-side with a 30-second timeout. Scripts are whitelisted — only approved commands can execute.
+            {{icon "info-circle" "me-1"}}All operations run server-side with a 30-second timeout. Scripts are whitelisted — only approved commands can execute.
         </div>
 
     </main>

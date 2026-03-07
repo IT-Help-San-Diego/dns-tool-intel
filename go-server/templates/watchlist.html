@@ -107,7 +107,7 @@
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h1 class="mb-1 wl-heading"><i class="fas fa-crosshairs me-2 text-info"></i>Drift Watchlist</h1>
+                <h1 class="mb-1 wl-heading">{{icon "crosshairs" "me-2 text-info"}}Drift Watchlist</h1>
                 <p class="text-muted mb-0 small">Monitor domains for security posture changes. Get notified when drift is detected.</p>
             </div>
         </div>
@@ -116,7 +116,7 @@
             <div class="col-12 col-md-6 mb-4">
                 <div class="card border-info">
                     <div class="card-header d-flex align-items-center justify-content-between">
-                        <span class="fw-semibold"><i class="fas fa-satellite-dish me-1 text-info"></i>Watched Domains</span>
+                        <span class="fw-semibold">{{icon "satellite-dish" "me-1 text-info"}}Watched Domains</span>
                         <span class="badge bg-info">{{.WatchlistCount}} / {{.MaxWatchlist}}</span>
                     </div>
                     <div class="card-body">
@@ -135,7 +135,7 @@
                                 </div>
                                 <div class="wl-form-action">
                                     <button type="submit" class="btn btn-sm btn-outline-success text-nowrap">
-                                        <i class="fas fa-plus-circle me-1"></i>Watch
+                                        {{icon "plus-circle" "me-1"}}Watch
                                     </button>
                                 </div>
                             </div>
@@ -167,7 +167,7 @@
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="false">
                                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Pause monitoring">
-                                                    <i class="fas fa-eye-slash"></i>
+                                                    {{icon "eye-slash"}}
                                                 </button>
                                             </form>
                                             {{else}}
@@ -175,14 +175,14 @@
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="true">
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Resume monitoring">
-                                                    <i class="fas fa-eye-slash"></i>
+                                                    {{icon "eye-slash"}}
                                                 </button>
                                             </form>
                                             {{end}}
                                             <form method="POST" action="/watchlist/{{.ID}}/delete" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from watchlist">
-                                                    <i class="fas fa-unlink"></i>
+                                                    {{icon "unlink"}}
                                                 </button>
                                             </form>
                                         </div>
@@ -193,7 +193,7 @@
                         </table>
                         {{else}}
                         <div class="text-center py-4 text-muted">
-                            <i class="fas fa-satellite-dish fa-2x mb-2 wl-empty-icon"></i>
+                            {{icon "satellite-dish" "icon-2x mb-2 wl-empty-icon"}}
                             <p class="mb-0">No domains watched yet. Add a domain above to start monitoring.</p>
                         </div>
                         {{end}}
@@ -204,7 +204,7 @@
             <div class="col-12 col-md-6 mb-4">
                 <div class="card border-warning">
                     <div class="card-header d-flex align-items-center justify-content-between">
-                        <span class="fw-semibold"><i class="fas fa-bullhorn me-1 text-warning"></i>Webhook Endpoints</span>
+                        <span class="fw-semibold">{{icon "bullhorn" "me-1 text-warning"}}Webhook Endpoints</span>
                         <span class="badge bg-warning text-dark">{{len .Endpoints}}</span>
                     </div>
                     <div class="card-body">
@@ -219,7 +219,7 @@
                                 </div>
                                 <div class="wl-form-action">
                                     <button type="submit" class="btn btn-sm btn-outline-success text-nowrap">
-                                        <i class="fas fa-plus-circle me-1"></i>Add
+                                        {{icon "plus-circle" "me-1"}}Add
                                     </button>
                                 </div>
                             </div>
@@ -249,7 +249,7 @@
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="false">
                                                 <button type="submit" class="btn btn-sm btn-outline-warning" title="Disable">
-                                                    <i class="fas fa-eye-slash"></i>
+                                                    {{icon "eye-slash"}}
                                                 </button>
                                             </form>
                                             {{else}}
@@ -257,14 +257,14 @@
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <input type="hidden" name="enabled" value="true">
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Enable">
-                                                    <i class="fas fa-eye-slash"></i>
+                                                    {{icon "eye-slash"}}
                                                 </button>
                                             </form>
                                             {{end}}
                                             <form method="POST" action="/watchlist/endpoint/{{.ID}}/delete" class="wl-inline-form">
                                                 <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove endpoint">
-                                                    <i class="fas fa-unlink"></i>
+                                                    {{icon "unlink"}}
                                                 </button>
                                             </form>
                                         </div>
@@ -275,14 +275,14 @@
                         </table>
                         {{else}}
                         <div class="text-center py-4 text-muted">
-                            <i class="fas fa-bullhorn fa-2x mb-2 wl-empty-icon"></i>
+                            {{icon "bullhorn" "icon-2x mb-2 wl-empty-icon"}}
                             <p class="mb-1">No webhook endpoints configured.</p>
                             <p class="mb-0 small">Add a URL above to receive drift notifications via HTTP POST.</p>
                         </div>
                         {{end}}
 
                         <div class="mt-3 small text-muted">
-                            <i class="fas fa-info-circle me-1"></i>Webhooks receive a JSON payload with drift details when posture changes are detected on your watched domains. Optionally provide an HMAC-SHA-256 secret for payload verification.
+                            {{icon "info-circle" "me-1"}}Webhooks receive a JSON payload with drift details when posture changes are detected on your watched domains. Optionally provide an HMAC-SHA-256 secret for payload verification.
                         </div>
                     </div>
                 </div>
