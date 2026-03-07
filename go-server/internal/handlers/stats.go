@@ -3,6 +3,7 @@
 package handlers
 
 import (
+        "encoding/hex"
         "encoding/json"
         "log/slog"
         "net/http"
@@ -16,6 +17,7 @@ import (
         "dnstool/go-server/internal/dbq"
 
         "github.com/gin-gonic/gin"
+        "golang.org/x/crypto/sha3"
 )
 
 type EDEAmendment struct {
@@ -68,6 +70,7 @@ type IntegrityData struct {
         Events                []IntegrityEvent       `json:"events"`
         Taxonomy              map[string]string      `json:"taxonomy"`
         TamperResistancePolicy TamperResistancePolicy `json:"tamper_resistance_policy"`
+        SHA3Hash              string                 `json:"-"`
 }
 
 var (
@@ -97,11 +100,15 @@ func loadIntegrityData() IntegrityData {
                 slog.Warn("Stats: failed to read integrity_stats.json", mapKeyError, err)
                 return IntegrityData{}
         }
+        hash := sha3.Sum512(data)
+        hashHex := hex.EncodeToString(hash[:])
+
         var f IntegrityData
         if err := json.Unmarshal(data, &f); err != nil {
                 slog.Warn("Stats: failed to parse integrity_stats.json", mapKeyError, err)
                 return IntegrityData{}
         }
+        f.SHA3Hash = hashHex
         integrityCache = f
         integrityCacheTime = time.Now()
         return f

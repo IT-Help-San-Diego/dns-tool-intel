@@ -665,6 +665,14 @@
             </div>
         </div>
 
+        {{if .IntegrityData.SHA3Hash}}
+        <div class="ede-tamper-policy mb-3" style="font-family: monospace;">
+            <div class="ede-tamper-policy-title">{{icon "fingerprint" "me-1"}}Integrity Verification (SHA-3-512)</div>
+            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; line-height: 1.8;">{{.IntegrityData.SHA3Hash}}</div>
+            <div class="ede-tamper-policy-effective">Computed at server startup from integrity_stats.json. Verify: openssl dgst -sha3-512 static/data/integrity_stats.json</div>
+        </div>
+        {{end}}
+
         <div class="text-center ede-footer-meta py-3">
             <span>DNS Tool EDE System &middot; {{.AppVersion}} &middot; Epistemic integrity through transparent correction</span>
         </div>
