@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 """Generate OG social card images for DNS Tool.
 
-Layout: 1200x630, centered composition.
-- Owl emblem (~180px) centered horizontally, positioned in upper region
-- Title large and centered
-- Subtitle centered below
-- Protocol tags in accent green, centered
-- Highlight in accent purple, centered
-- Detail line centered
-- Company + URL at bottom with gold accent line
+Layout: 1200x630, vertically balanced composition.
+The content block (owl + text + footer) is measured first,
+then vertically centered in the canvas so nothing clusters
+at the top or leaves dead space at the bottom.
 """
 
 import os
@@ -30,6 +26,23 @@ ACCENT_GOLD = (200, 168, 120)
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
+OWL_SIZE = 160
+TITLE_SIZE = 52
+SUBTITLE_SIZE = 22
+TAGS_SIZE = 16
+HIGHLIGHT_SIZE = 18
+DETAIL_SIZE = 15
+FOOTER_SIZE = 13
+
+GAP_OWL_TITLE = 20
+GAP_TITLE_SUBTITLE = 12
+GAP_SUBTITLE_TAGS = 16
+GAP_TAGS_HIGHLIGHT = 12
+GAP_HIGHLIGHT_DETAIL = 12
+GAP_DETAIL_FOOTER = 28
+GAP_LINE_COMPANY = 12
+GAP_COMPANY_URL = 4
+
 
 def load_font(path, size):
     try:
@@ -38,64 +51,92 @@ def load_font(path, size):
         return ImageFont.load_default()
 
 
-def text_center_x(draw, text, font):
+def text_width(draw, text, font):
     bbox = draw.textbbox((0, 0), text, font=font)
-    tw = bbox[2] - bbox[0]
-    return (W - tw) // 2
+    return bbox[2] - bbox[0]
+
+
+def text_height(draw, text, font):
+    bbox = draw.textbbox((0, 0), text, font=font)
+    return bbox[3] - bbox[1]
+
+
+def center_x(draw, text, font):
+    return (W - text_width(draw, text, font)) // 2
 
 
 def generate(filename, title, subtitle, tags, highlight, detail):
     img = Image.new("RGBA", (W, H), BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    owl = Image.open(OWL_PATH).convert("RGBA")
-    owl_size = 180
-    owl = owl.resize((owl_size, owl_size), Image.LANCZOS)
-    owl_x = (W - owl_size) // 2
-    owl_y = 36
-    img.paste(owl, (owl_x, owl_y), owl)
-
-    content_top = owl_y + owl_size + 24
-
-    font_title = load_font(FONT_BOLD, 48)
-    font_subtitle = load_font(FONT_REGULAR, 21)
-    font_tags = load_font(FONT_REGULAR, 15)
-    font_highlight = load_font(FONT_BOLD, 17)
-    font_detail = load_font(FONT_REGULAR, 14)
-    font_footer = load_font(FONT_REGULAR, 12)
-
-    y = content_top
-    x = text_center_x(draw, title, font_title)
-    draw.text((x, y), title, fill=TEXT_PRIMARY, font=font_title)
-    y += 58
-
-    x = text_center_x(draw, subtitle, font_subtitle)
-    draw.text((x, y), subtitle, fill=TEXT_SECONDARY, font=font_subtitle)
-    y += 38
-
-    x = text_center_x(draw, tags, font_tags)
-    draw.text((x, y), tags, fill=ACCENT_GREEN, font=font_tags)
-    y += 30
-
-    x = text_center_x(draw, highlight, font_highlight)
-    draw.text((x, y), highlight, fill=ACCENT_PURPLE, font=font_highlight)
-    y += 30
-
-    x = text_center_x(draw, detail, font_detail)
-    draw.text((x, y), detail, fill=TEXT_MUTED, font=font_detail)
-
-    line_w = 160
-    line_y = H - 78
-    line_x1 = (W - line_w) // 2
-    line_x2 = line_x1 + line_w
-    draw.line([(line_x1, line_y), (line_x2, line_y)], fill=ACCENT_GOLD + (120,), width=2)
+    font_title = load_font(FONT_BOLD, TITLE_SIZE)
+    font_subtitle = load_font(FONT_REGULAR, SUBTITLE_SIZE)
+    font_tags = load_font(FONT_REGULAR, TAGS_SIZE)
+    font_highlight = load_font(FONT_BOLD, HIGHLIGHT_SIZE)
+    font_detail = load_font(FONT_REGULAR, DETAIL_SIZE)
+    font_footer = load_font(FONT_REGULAR, FOOTER_SIZE)
 
     company = "IT Help San Diego Inc."
     url = "dnstool.it-help.tech"
-    x = text_center_x(draw, company, font_footer)
-    draw.text((x, H - 66), company, fill=TEXT_DIM, font=font_footer)
-    x = text_center_x(draw, url, font_footer)
-    draw.text((x, H - 46), url, fill=TEXT_DIM, font=font_footer)
+
+    h_owl = OWL_SIZE
+    h_title = text_height(draw, title, font_title)
+    h_subtitle = text_height(draw, subtitle, font_subtitle)
+    h_tags = text_height(draw, tags, font_tags)
+    h_highlight = text_height(draw, highlight, font_highlight)
+    h_detail = text_height(draw, detail, font_detail)
+    h_company = text_height(draw, company, font_footer)
+    h_url = text_height(draw, url, font_footer)
+    line_h = 2
+
+    total = (h_owl + GAP_OWL_TITLE +
+             h_title + GAP_TITLE_SUBTITLE +
+             h_subtitle + GAP_SUBTITLE_TAGS +
+             h_tags + GAP_TAGS_HIGHLIGHT +
+             h_highlight + GAP_HIGHLIGHT_DETAIL +
+             h_detail + GAP_DETAIL_FOOTER +
+             line_h + GAP_LINE_COMPANY +
+             h_company + GAP_COMPANY_URL +
+             h_url)
+
+    y = (H - total) // 2
+
+    owl = Image.open(OWL_PATH).convert("RGBA")
+    owl = owl.resize((OWL_SIZE, OWL_SIZE), Image.LANCZOS)
+    img.paste(owl, ((W - OWL_SIZE) // 2, y), owl)
+    y += h_owl + GAP_OWL_TITLE
+
+    draw.text((center_x(draw, title, font_title), y), title,
+              fill=TEXT_PRIMARY, font=font_title)
+    y += h_title + GAP_TITLE_SUBTITLE
+
+    draw.text((center_x(draw, subtitle, font_subtitle), y), subtitle,
+              fill=TEXT_SECONDARY, font=font_subtitle)
+    y += h_subtitle + GAP_SUBTITLE_TAGS
+
+    draw.text((center_x(draw, tags, font_tags), y), tags,
+              fill=ACCENT_GREEN, font=font_tags)
+    y += h_tags + GAP_TAGS_HIGHLIGHT
+
+    draw.text((center_x(draw, highlight, font_highlight), y), highlight,
+              fill=ACCENT_PURPLE, font=font_highlight)
+    y += h_highlight + GAP_HIGHLIGHT_DETAIL
+
+    draw.text((center_x(draw, detail, font_detail), y), detail,
+              fill=TEXT_MUTED, font=font_detail)
+    y += h_detail + GAP_DETAIL_FOOTER
+
+    line_w = 140
+    draw.line([((W - line_w) // 2, y), ((W + line_w) // 2, y)],
+              fill=ACCENT_GOLD + (120,), width=2)
+    y += line_h + GAP_LINE_COMPANY
+
+    draw.text((center_x(draw, company, font_footer), y), company,
+              fill=TEXT_DIM, font=font_footer)
+    y += h_company + GAP_COMPANY_URL
+
+    draw.text((center_x(draw, url, font_footer), y), url,
+              fill=TEXT_DIM, font=font_footer)
 
     out_path = os.path.join(STATIC_DIR, filename)
     img_rgb = Image.new("RGB", (W, H), BG_COLOR)
@@ -110,7 +151,7 @@ cards = [
      "DNS Tool",
      "Domain Security Intelligence",
      "SPF \u00b7 DKIM \u00b7 DMARC \u00b7 DANE \u00b7 DNSSEC \u00b7 BIMI \u00b7 MTA-STS \u00b7 TLS-RPT \u00b7 CAA",
-     "9 Protocols Evaluated \u00b7 RFC-Verified",
+     "9 Protocols \u00b7 RFC-Verified \u00b7 Open-Core",
      "Intelligence Confidence Audit Engine (ICAE)"),
     ("og-toolkit.png",
      "Field Tech Toolkit",
@@ -120,13 +161,13 @@ cards = [
      "Wizard-Style Flow with RFC Citations"),
     ("og-investigate.png",
      "IP Intelligence",
-     "Investigate IP-to-Domain Relationships",
+     "Is This IP Part of Your Infrastructure?",
      "ASN \u00b7 Geolocation \u00b7 Reverse DNS \u00b7 RDAP \u00b7 SPF Authorization",
      "Evidence-Based Attribution \u00b7 Multi-Source",
      "Certificate Transparency \u00b7 Subdomain Discovery"),
     ("og-email-header.png",
-     "Email Intelligence",
-     "Email Header Analyzer \u00b7 Spoofing Detection",
+     "Email Header Analyzer",
+     "Did This Email Actually Come from Who It Claims?",
      "SPF \u00b7 DKIM \u00b7 DMARC \u00b7 Delivery Routing \u00b7 Spam Vendor Detection",
      "Authentication Verification \u00b7 RFC-Compliant",
      "OpenPhish Integration \u00b7 Brand Mismatch Detection"),
