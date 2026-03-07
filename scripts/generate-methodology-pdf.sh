@@ -6,7 +6,7 @@
 # generating the PDF. If omitted, generates from current content.
 #
 # Prerequisites: weasyprint (listed in pyproject.toml)
-# Logo asset: static/images/owl-of-athena.png (Owl of Athena)
+# Logo asset: static/images/owl-signature.png (Owl of Athena — dark background, premium version)
 #
 # This MUST be run after every version bump that touches
 # docs/dns-tool-methodology.html or docs/dns-tool-methodology.md

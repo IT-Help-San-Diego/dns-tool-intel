@@ -2,7 +2,7 @@
 set -euo pipefail
 
 STATIC_DIR="$(cd "$(dirname "$0")/.." && pwd)/static/images"
-OWL="$STATIC_DIR/owl-of-athena.png"
+OWL="$STATIC_DIR/owl-signature.png"
 BG_COLOR="#0d1117"
 W=1200
 H=630
