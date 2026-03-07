@@ -427,13 +427,13 @@
                         <span class="ede-badge ede-badge-category">{{.Category}}</span>
                         <span class="ede-badge ede-badge-severity-{{.Severity}}">{{.Severity}}</span>
                         {{if eq .Attribution "AI Error"}}
-                        <span class="ede-badge ede-badge-attribution ede-badge-attr-ai">{{icon "user-tag" "me-1"}}AI Error</span>
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-ai">{{icon "user-secret" "me-1"}}AI Error</span>
                         {{else if eq .Attribution "Human Error"}}
-                        <span class="ede-badge ede-badge-attribution ede-badge-attr-human">{{icon "user-tag" "me-1"}}Human Error</span>
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-human">{{icon "user" "me-1"}}Human Error</span>
                         {{else if eq .Attribution "Both"}}
-                        <span class="ede-badge ede-badge-attribution ede-badge-attr-both">{{icon "user-tag" "me-1"}}Both</span>
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-both">{{icon "users" "me-1"}}Both</span>
                         {{else if eq .Attribution "Process Gap"}}
-                        <span class="ede-badge ede-badge-attribution ede-badge-attr-process">{{icon "user-tag" "me-1"}}Process Gap</span>
+                        <span class="ede-badge ede-badge-attribution ede-badge-attr-process">{{icon "user-shield" "me-1"}}Process Gap</span>
                         {{end}}
                         {{if eq .Status "closed"}}
                         <span class="ede-badge ede-badge-status-closed">{{icon "check" "me-1"}}Resolved</span>
