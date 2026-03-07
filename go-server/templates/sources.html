@@ -33,36 +33,36 @@
             <div class="col-lg-10">
 
                 <div class="text-center mb-4">
-                    <h1 class="h2">{{icon "diagram-project" "me-2 text-info"}}Intelligence Sources</h1>
+                    <h1 class="h2">{{icon "diagram-project" "me-2 icon-premium-gold"}}Intelligence Sources</h1>
                     <p class="text-muted lead">Every data source, methodology, and limitation &mdash; fully transparent.</p>
                     <p class="text-muted small">Built on a native Go DNS engine with Unix-heritage verification tools and public protocols. Every conclusion can be independently verified.</p>
                 </div>
 
                 <div class="card bg-dark border-info mb-4">
                     <div class="card-body">
-                        <h5 class="card-title">{{icon "gavel" "me-2 text-info"}}Our Principles</h5>
+                        <h5 class="card-title">{{icon "gavel" "me-2 text-brand-gold"}}Our Principles</h5>
                         <div class="row">
                             <div class="col-md-3 mb-2">
-                                <strong class="text-info">Verifiable</strong><br>
+                                <strong class="text-brand-gold">Verifiable</strong><br>
                                 <small class="text-muted">Every analysis step maps to a standard command you can run yourself.</small>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <strong class="text-info">Honest</strong><br>
+                                <strong class="text-brand-gold">Honest</strong><br>
                                 <small class="text-muted">When a source is unavailable or rate-limited, we say so &mdash; never fabricating results.</small>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <strong class="text-info">Redundant</strong><br>
+                                <strong class="text-brand-gold">Redundant</strong><br>
                                 <small class="text-muted">Multiple independent methods reach the same conclusion. No single point of failure.</small>
                             </div>
                             <div class="col-md-3 mb-2">
-                                <strong class="text-info">Unix Lineage</strong><br>
+                                <strong class="text-brand-gold">Unix Lineage</strong><br>
                                 <small class="text-muted">Grounded in decades of Unix tradition and open standards. No proprietary magic.</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <h3 class="h5 mt-4 mb-3">{{icon "network-wired" "me-2 text-primary"}}DNS Resolution &amp; Record Queries</h3>
+                <h3 class="h5 mt-4 mb-3">{{icon "network-wired" "me-2 text-brand-cobalt"}}DNS Resolution &amp; Record Queries</h3>
                 <p class="text-muted small mb-3">The foundation of every analysis. Five independent resolvers queried in parallel via native DNS over UDP/TCP with majority-agreement consensus. The <code>dig</code> commands shown are the equivalent terminal commands for manual verification.</p>
                 {{range .DNSSources}}
                 {{template "source_card" .}}
@@ -86,7 +86,7 @@
                 {{template "source_card" .}}
                 {{end}}
 
-                <h3 class="h5 mt-4 mb-3">{{icon "building" "me-2 text-info"}}Registry &amp; Reference</h3>
+                <h3 class="h5 mt-4 mb-3">{{icon "building" "me-2 text-brand-cobalt"}}Registry &amp; Reference</h3>
                 <p class="text-muted small mb-3">Domain registration data and RFC standards metadata.</p>
                 {{range .MetaSources}}
                 {{template "source_card" .}}
@@ -159,20 +159,20 @@
 
                 <div class="card bg-dark border-info mt-4">
                     <div class="card-body">
-                        <h5 class="card-title">{{icon "microchip" "me-2 text-info"}}The Intelligence Engine</h5>
+                        <h5 class="card-title">{{icon "microchip" "me-2 text-brand-violet icon-premium-violet"}}The Intelligence Engine</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3 mb-md-0">
-                                <h6 class="text-info">Analysis Engine &mdash; Decision-Ready Intelligence</h6>
+                                <h6 class="text-brand-cobalt">Analysis Engine &mdash; Decision-Ready Intelligence</h6>
                                 <p class="text-muted small mb-2">DNS Tool&rsquo;s core engine is built in Go using the <a href="https://codeberg.org/miekg/dns" class="text-info" target="_blank" rel="noopener">miekg/dns v2</a> library &mdash; constructing raw DNS packets in memory and sending them directly over the wire. No shelling out. No subprocess calls. No external binaries.</p>
                                 <p class="text-muted small mb-2">The engine controls EDNS0, the DO bit for DNSSEC validation, recursion flags, timeout and retry logic, and parallel resolution across five independent resolvers with majority-agreement consensus. This is native DNS at the packet level.</p>
                                 <p class="text-muted small mb-2">Each scan launches <strong>20+ concurrent tasks</strong> &mdash; DNS records, SPF/DMARC/DKIM analysis, DNSSEC chain walking, Certificate Transparency log queries, RDAP registrar lookups, live SMTP/STARTTLS verification, MTA-STS/TLS-RPT/BIMI/CAA checks, DANE/TLSA validation, HTTPS/SVCB records, AI surface scanning, and infrastructure fingerprinting &mdash; all in parallel. Every task is individually timed and logged.</p>
                                 <p class="text-muted small mb-0">The <strong class="text-info">Intelligence Classification &amp; Interpretation Engine (ICIE)</strong> transforms raw data into actionable intelligence: posture scoring with CVSS-aligned risk levels, per-section remediation with RFC-cited fixes, and confidence indicators that distinguish observed facts from inferred conclusions.</p>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-info">Verification Commands</h6>
+                                <h6 class="text-brand-cobalt">Verification Commands</h6>
                                 <p class="text-muted small mb-2">The <code>dig</code>, <code>openssl</code>, and <code>curl</code> commands in each report are not how we analyze &mdash; they&rsquo;re how <em>you</em> verify. Every finding maps to a standard command you can run in your own terminal to independently confirm our results.</p>
                                 <p class="text-muted small mb-2">The transport layer is not the product. The interpretation layer is &mdash; SPF policy reasoning, DKIM state analysis, DMARC alignment logic, MX transport security, provider fingerprinting, and cross-record correlation. That&rsquo;s what 27 years of field experience looks like in code.</p>
-                                <h6 class="text-info mt-3">No Cache, No Shortcuts</h6>
+                                <h6 class="text-brand-cobalt mt-3">No Cache, No Shortcuts</h6>
                                 <p class="text-muted small mb-0">DNS query cache is disabled (TTL=0) &mdash; every scan performs live queries. When you change a record and rescan, you see the new state immediately. The only caches retained are defensible: RDAP (24h, rate-limit protection), CT subdomains (1h, append-only historical data), and RFC metadata (24h, reference data).</p>
                             </div>
                         </div>
@@ -181,11 +181,11 @@
 
                 <div class="card bg-dark border-info mt-4">
                     <div class="card-body">
-                        <h5 class="card-title"><a href="/confidence" class="text-decoration-none text-white">{{icon "clipboard-check" "me-2 text-info"}}The Audit Engine {{icon "arrow-right" "ms-1 u-fs-070em text-info"}}</a></h5>
+                        <h5 class="card-title"><a href="/confidence" class="text-decoration-none text-white">{{icon "clipboard-check" "me-2 text-brand-violet icon-premium-violet"}}The Audit Engine {{icon "arrow-right" "ms-1 u-fs-070em text-brand-violet"}}</a></h5>
                         <p class="text-muted small mb-3">The <a href="/confidence" class="text-info fw-semibold text-decoration-none">Intelligence Confidence Audit Engine (ICAE)</a> continuously validates that the Intelligence Engine delivers accurate, RFC-compliant intelligence. Every release runs against a deterministic test suite anchored to specific RFC sections &mdash; if analysis accuracy regresses, we know before you do.</p>
                         <div class="row">
                             <div class="col-md-6 mb-3 mb-md-0">
-                                <h6 class="text-info">RFC-Grounded Test Coverage</h6>
+                                <h6 class="text-brand-cobalt">RFC-Grounded Test Coverage</h6>
                                 <p class="text-muted small mb-2"><strong>129 deterministic test cases</strong> across nine protocol families validate analysis accuracy against RFC-specified expected outcomes:</p>
                                 <table class="table table-sm table-borderless mb-0 sources-audit-table">
                                     <tbody>
@@ -196,7 +196,7 @@
                                 </table>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-info">Maturity Progression</h6>
+                                <h6 class="text-brand-cobalt">Maturity Progression</h6>
                                 <p class="text-muted small mb-2">Each protocol earns a maturity grade based on consecutive passes and sustained accuracy over time:</p>
                                 <table class="table table-sm table-borderless mb-2">
                                     <tbody>
@@ -215,11 +215,11 @@
 
                 <div class="card bg-dark border-secondary mt-4">
                     <div class="card-body">
-                        <h5 class="card-title text-center">{{icon "flask" "me-2 text-info"}}Cryptographic Algorithm Transparency</h5>
+                        <h5 class="card-title text-center">{{icon "flask" "me-2 text-brand-violet icon-premium-violet"}}Cryptographic Algorithm Transparency</h5>
                         <p class="text-muted small text-center mb-3">Every algorithm classification cites the governing RFC. No proprietary risk scores &mdash; only standards-body guidance.</p>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-info">DNSSEC Algorithms <span class="text-muted small">(RFC 8624 / RFC 9157)</span></h6>
+                                <h6 class="text-brand-cobalt">DNSSEC Algorithms <span class="text-muted small">(RFC 8624 / RFC 9157)</span></h6>
                                 <table class="table table-sm table-borderless mb-2">
                                     <tbody>
                                         <tr><th scope="row" class="small py-1"><span class="badge bg-danger">Deprecated</span></th><td class="text-muted small py-1">RSAMD5, DSA, ECC-GOST &mdash; MUST NOT use</td></tr>
@@ -230,7 +230,7 @@
                                 </table>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-info">DKIM Key Strength <span class="text-muted small">(RFC 8301)</span></h6>
+                                <h6 class="text-brand-cobalt">DKIM Key Strength <span class="text-muted small">(RFC 8301)</span></h6>
                                 <table class="table table-sm table-borderless mb-2">
                                     <tbody>
                                         <tr><th scope="row" class="small py-1"><span class="badge bg-danger">Deprecated</span></th><td class="text-muted small py-1">RSA &lt; 1024-bit &mdash; MUST NOT use</td></tr>
@@ -249,7 +249,7 @@
 
                 <div class="card bg-dark border-secondary mt-4">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{icon "laptop-code" "me-2 text-info"}}Every Command, Open Source</h5>
+                        <h5 class="card-title">{{icon "laptop-code" "me-2 text-brand-cobalt icon-premium-cobalt"}}Every Command, Open Source</h5>
                         <p class="text-muted mb-2">Every report includes a &ldquo;Verify It Yourself&rdquo; appendix with <code>dig</code>, <code>openssl</code>, and <code>curl</code> commands to independently reproduce every finding &mdash; open-source tools available on macOS and Linux, and installable on Windows via <a href="https://learn.microsoft.com/en-us/windows/wsl/install" class="text-info" target="_blank" rel="noopener">WSL</a> or individual packages.</p>
                         <p class="text-muted small mb-0">No proprietary scanners. No black boxes. DNS &mdash; open standard since 1983.</p>
                     </div>
@@ -257,7 +257,7 @@
 
                 <div class="card bg-dark border-secondary mt-4">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{icon "project-diagram" "me-2 text-info"}}System Architecture</h5>
+                        <h5 class="card-title">{{icon "project-diagram" "me-2 text-brand-cobalt icon-premium-cobalt"}}System Architecture</h5>
                         <p class="text-muted mb-2">Interactive diagrams of the request lifecycle, engine internals, email security verdict chain, and package dependencies.</p>
                         <a href="/architecture" class="btn btn-outline-info btn-sm">
                             {{icon "project-diagram" "me-1"}}View Architecture Diagrams
@@ -278,7 +278,7 @@
     <div class="card-body">
         <div class="d-flex align-items-start">
             <div class="me-3 mt-1">
-                {{icon .Icon "icon-lg text-info"}}
+                {{icon .Icon "icon-lg text-brand-cobalt icon-premium"}}
             </div>
             <div class="flex-grow-1">
                 <div class="d-flex align-items-center flex-wrap mb-1">
