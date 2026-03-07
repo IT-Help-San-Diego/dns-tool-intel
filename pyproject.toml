@@ -7,5 +7,7 @@ dependencies = [
     "brotli>=1.2.0",
     "cffconvert>=2.0.0",
     "fonttools>=4.61.1",
+    "pykwalify>=1.8.0",
+    "ruamel-yaml>=0.19.1",
     "weasyprint>=68.1",
 ]

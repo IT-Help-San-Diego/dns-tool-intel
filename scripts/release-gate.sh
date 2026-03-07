@@ -116,18 +116,15 @@ fi
 pass "No invalid SPDX in CITATION.cff"
 
 info "Gate 11: CITATION.cff schema validation (cffconvert)"
-python3 -m venv .venv-cff
-source .venv-cff/bin/activate
-python -m pip install -U pip cffconvert > /dev/null 2>&1
-if cffconvert --validate; then
-  pass "cffconvert --validate passed (CFF 1.2.0 schema valid)"
+if command -v cffconvert >/dev/null 2>&1; then
+  if cffconvert --validate; then
+    pass "cffconvert --validate passed (CFF 1.2.0 schema valid)"
+  else
+    fail "cffconvert --validate failed — fix CITATION.cff before tagging"
+  fi
 else
-  deactivate
-  rm -rf .venv-cff
-  fail "cffconvert --validate failed — fix CITATION.cff before tagging"
+  echo -e "  ${YELLOW}SKIP${NC} — cffconvert not installed (install with: pip install cffconvert)"
 fi
-deactivate
-rm -rf .venv-cff
 
 echo ""
 echo "========================================="

@@ -150,6 +150,7 @@ console.log('\n── Key Routes ───────────────�
 const routesFiles = [
   'go-server/internal/handlers/routes.go',
   'go-server/internal/handlers/handlers.go',
+  'go-server/cmd/server/main.go',
 ];
 let routesContent = '';
 for (const f of routesFiles) {
