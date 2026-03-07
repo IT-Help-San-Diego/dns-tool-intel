@@ -57,34 +57,38 @@ async function uploadSvgToBoard(boardId, svgPath, title, position) {
   const url = `https://api.miro.com/v2/boards/${boardId}/images`;
 
   const svgContent = readFileSync(svgPath);
-  const base64 = svgContent.toString('base64');
-  const dataUrl = `data:image/svg+xml;base64,${base64}`;
+  const boundary = '----MiroUpload' + Date.now();
+  const metadata = JSON.stringify({
+    title: title,
+    position: { x: position.x, y: position.y, origin: 'center' },
+  });
 
-  const payload = {
-    data: {
-      title: title,
-      url: dataUrl,
-    },
-    position: {
-      x: position.x,
-      y: position.y,
-      origin: 'center',
-    },
-  };
+  const parts = [];
+  parts.push(`--${boundary}\r\n`);
+  parts.push(`Content-Disposition: form-data; name="resource"; filename="${title.replace(/[^a-zA-Z0-9._-]/g, '_')}.svg"\r\n`);
+  parts.push(`Content-Type: image/svg+xml\r\n\r\n`);
+  parts.push(svgContent);
+  parts.push(`\r\n--${boundary}\r\n`);
+  parts.push(`Content-Disposition: form-data; name="data"\r\n`);
+  parts.push(`Content-Type: application/json\r\n\r\n`);
+  parts.push(metadata);
+  parts.push(`\r\n--${boundary}--\r\n`);
+
+  const body = Buffer.concat(parts.map(p => typeof p === 'string' ? Buffer.from(p) : p));
 
   const resp = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
       'Accept': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: body,
   });
 
   if (!resp.ok) {
-    const body = await resp.text().catch(() => '');
-    throw new Error(`Miro image upload ${resp.status}: ${resp.statusText} — ${body}`);
+    const respBody = await resp.text().catch(() => '');
+    throw new Error(`Miro image upload ${resp.status}: ${resp.statusText} — ${respBody}`);
   }
 
   return resp.json();
