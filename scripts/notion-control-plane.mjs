@@ -31,10 +31,14 @@ async function getNotionClient() {
 
 async function findParentPage(notion) {
   const search = await notion.search({ query: "DNS Tool", filter: { property: "object", value: "page" } });
-  if (search.results.length > 0) {
-    return search.results[0].id;
+  const workspacePage = search.results.find(r => {
+    const title = r.properties?.title?.title?.[0]?.plain_text;
+    return title === "DNS Tool" && r.parent?.type === "workspace";
+  });
+  if (workspacePage) {
+    return workspacePage.id;
   }
-  throw new Error('No parent page found. Run notion-roadmap-sync.mjs first.');
+  throw new Error('No workspace-level "DNS Tool" page found. Run notion-roadmap-sync.mjs first.');
 }
 
 async function findOrCreateDatabase(notion, parentId, title, properties) {
