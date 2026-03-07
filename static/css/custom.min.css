@@ -938,6 +938,37 @@ main.container {
 }
 .icon-spin { animation: icon-spin 1s linear infinite; }
 
+/* ══════════════════════════════════════════════════════════════
+   BRAND ICON PALETTE — Intelligence Institution Colors
+   ══════════════════════════════════════════════════════════════
+   Replace generic Bootstrap text-info/text-primary on decorative
+   and navigational icons. Scientific status colors (success,
+   danger, warning) are NEVER overridden here.
+   ══════════════════════════════════════════════════════════════ */
+.text-brand-cobalt  { color: var(--accent-cobalt) !important; }
+.text-brand-gold    { color: var(--accent-gold) !important; }
+.text-brand-violet  { color: var(--accent-violet) !important; }
+.text-brand-steel   { color: var(--accent-steel) !important; }
+.text-brand-amber   { color: var(--accent-amber) !important; }
+.text-brand-deep    { color: var(--accent-deep) !important; }
+
+.icon-premium {
+    filter: drop-shadow(0 0 2px currentColor);
+    opacity: 0.92;
+}
+.icon-premium-gold {
+    color: var(--accent-gold);
+    filter: drop-shadow(0 0 3px rgba(212, 168, 83, 0.35));
+}
+.icon-premium-cobalt {
+    color: var(--accent-cobalt);
+    filter: drop-shadow(0 0 3px rgba(74, 143, 231, 0.3));
+}
+.icon-premium-violet {
+    color: var(--accent-violet);
+    filter: drop-shadow(0 0 3px rgba(108, 92, 231, 0.3));
+}
+
 /* Stable button to prevent CLS during interaction */
 .btn {
     border-radius: 0.375rem;
@@ -4002,6 +4033,19 @@ body.covert-mode .dri-examples {
 }
 body.covert-mode .icon-compass.text-info {
     color: #cc2020 !important;
+}
+body.covert-mode .text-brand-cobalt,
+body.covert-mode .text-brand-violet,
+body.covert-mode .text-brand-gold,
+body.covert-mode .text-brand-amber,
+body.covert-mode .text-brand-steel {
+    color: rgba(196, 60, 60, 0.55) !important;
+}
+body.covert-mode .icon-premium,
+body.covert-mode .icon-premium-gold,
+body.covert-mode .icon-premium-cobalt,
+body.covert-mode .icon-premium-violet {
+    filter: none;
 }
 body.covert-mode .navbar-toggler {
     border-color: rgba(196, 60, 60, 0.4) !important;
