@@ -6848,7 +6848,7 @@ body.covert-mode .u-privacy-accept-btn:hover {
 }
 .verify-infographic {
     display: grid;
-    grid-template-columns: 1fr 160px 1fr;
+    grid-template-columns: 1fr 180px 1fr;
     min-height: 200px;
 }
 .verify-panel {
@@ -6893,6 +6893,8 @@ body.covert-mode .u-privacy-accept-btn:hover {
     justify-content: center;
     background: linear-gradient(180deg, #0d1b2a 0%, #101820 100%);
     padding: 1rem 0;
+    overflow: hidden;
+    min-width: 0;
 }
 .verify-gear-circle {
     width: 90px;
@@ -6930,6 +6932,9 @@ body.covert-mode .u-privacy-accept-btn:hover {
     padding: 0.15rem 0.6rem;
     border-radius: 3px;
     white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
+    text-align: center;
 }
 .verify-formula-row {
     display: flex;
