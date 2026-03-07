@@ -932,13 +932,13 @@
         </div>
 
         {{if .IntegrityData.SHA3Hash}}
-        <div class="ede-tamper-policy mb-3" style="font-family: monospace;">
+        <div class="ede-tamper-policy mb-3" style="font-family: monospace; overflow: hidden;">
             <div class="ede-tamper-policy-title">{{icon "fingerprint" "me-1"}}Integrity Verification (SHA-3-512)</div>
-            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; overflow-wrap: anywhere; line-height: 1.8; max-width: 100%;">
-                <strong>File hash:</strong><br>
-                <code style="font-size: 0.62rem; color: #7d8590; letter-spacing: 0.02em;">{{.IntegrityData.SHA3Hash}}</code>
+            <div style="font-size: 0.68rem; color: #8b949e; line-height: 1.8;">
+                <strong>File hash:</strong>
             </div>
-            <div class="ede-tamper-policy-effective" style="word-break: break-all; overflow-wrap: anywhere;">Computed at server startup from integrity_stats.json. Verify: <code style="font-size: 0.6rem;">openssl dgst -sha3-512 static/data/integrity_stats.json</code></div>
+            <div style="font-size: 0.62rem; color: #7d8590; letter-spacing: 0.02em; word-break: break-all; overflow-wrap: anywhere; line-height: 1.6; padding: 0.3rem 0;">{{.IntegrityData.SHA3Hash}}</div>
+            <div class="ede-tamper-policy-effective" style="word-break: break-all; overflow-wrap: anywhere;">Computed at server startup from integrity_stats.json. Verify:<br><span style="font-size: 0.6rem;">openssl dgst -sha3-512 static/data/integrity_stats.json</span></div>
             <div style="font-size: 0.65rem; color: #7d8590; margin-top: 0.5rem;">Each event also carries its own SHA-3-512 hash ({{icon "fingerprint" ""}} badge on each card). Per-event hashes are computed from the JSON representation of each entry at startup. If any single event is altered, its hash changes independently of the file hash.</div>
         </div>
         {{end}}
