@@ -199,7 +199,7 @@ func spfAnalysisCases() []TestCase {
                         CaseName:   "SPF -all with senders triggers RFC 7489 warning",
                         Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
-                        RFCSection: "RFC 7489",
+                        RFCSection: rfcDMARC,
                         Expected:   "contains RFC 7489 warning",
                         RunFn: func() (string, bool) {
                                 _, _, _, _, _, issues, _ := analyzer.ExportParseSPFMechanisms("v=spf1 include:_spf.google.com -all")
@@ -216,7 +216,7 @@ func spfAnalysisCases() []TestCase {
                         CaseName:   "SPF ~all does NOT trigger RFC 7489 premature rejection warning",
                         Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
-                        RFCSection: "RFC 7489",
+                        RFCSection: rfcDMARC,
                         Expected:   "no RFC 7489 warning",
                         RunFn: func() (string, bool) {
                                 _, _, _, _, _, issues, _ := analyzer.ExportParseSPFMechanisms("v=spf1 include:_spf.google.com ~all")

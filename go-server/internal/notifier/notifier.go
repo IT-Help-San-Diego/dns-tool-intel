@@ -164,6 +164,26 @@ func logDeliveryResult(notif dbq.ListPendingNotificationsRow, httpCode int, send
         )
 }
 
+func parseDiffFields(raw []byte) []discordField {
+        var diffFields []struct {
+                Field string `json:"field"`
+                Old   string `json:"old"`
+                New   string `json:"new"`
+        }
+        if len(raw) == 0 || json.Unmarshal(raw, &diffFields) != nil {
+                return nil
+        }
+        fields := make([]discordField, 0, len(diffFields))
+        for _, df := range diffFields {
+                fields = append(fields, discordField{
+                        Name:   df.Field,
+                        Value:  fmt.Sprintf("`%s` → `%s`", df.Old, df.New),
+                        Inline: true,
+                })
+        }
+        return fields
+}
+
 func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotificationsRow) (int, error) {
         if !n.AllowLocal {
                 if err := isSSRFSafe(notif.Url); err != nil {
@@ -171,24 +191,7 @@ func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotific
                 }
         }
 
-        var fields []discordField
-
-        var diffFields []struct {
-                Field string `json:"field"`
-                Old   string `json:"old"`
-                New   string `json:"new"`
-        }
-        if len(notif.DiffSummary) > 0 {
-                if json.Unmarshal(notif.DiffSummary, &diffFields) == nil {
-                        for _, df := range diffFields {
-                                fields = append(fields, discordField{
-                                        Name:   df.Field,
-                                        Value:  fmt.Sprintf("`%s` → `%s`", df.Old, df.New),
-                                        Inline: true,
-                                })
-                        }
-                }
-        }
+        fields := parseDiffFields(notif.DiffSummary)
 
         payload := discordPayload{
                 Username: "DNS Tool Drift Engine",

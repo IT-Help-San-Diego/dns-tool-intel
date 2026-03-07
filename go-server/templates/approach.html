@@ -638,7 +638,7 @@
                             </div>
                         </div>
 
-                        <p class="text-muted small mt-3 mb-0">{{icon "flask" "me-1"}}DNS Tool uses evidence-weighted confidence scoring inspired by Bayesian reasoning. When a dogmatic prior is assumed &mdash; P(H)&nbsp;=&nbsp;1 or P(H)&nbsp;=&nbsp;0 &mdash; no amount of evidence can update the posterior. Our scoring avoids dogmatic priors: confidence degrades visibly when evidence is ambiguous, and no finding is asserted without disclosing its certainty level. See the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine</a> for the full framework.</p>
+                        <p class="text-muted small mt-3 mb-0">{{icon "flask" "me-1"}}Here&rsquo;s what the math means in plain language: if you walk in already certain &mdash; &ldquo;this domain is fine&rdquo; or &ldquo;this domain is compromised&rdquo; &mdash; then no amount of evidence will change your mind. That&rsquo;s a dogmatic prior, and it&rsquo;s the silent default when DNS analysis skips confidence disclosure. &ldquo;Configured = safe&rdquo; or &ldquo;unusual = dangerous&rdquo; &mdash; never questioned. We don&rsquo;t work that way. Our scoring starts in the middle and moves with the evidence. When evidence is ambiguous, confidence drops &mdash; visibly. No finding is ever asserted without telling you how certain we actually are. See the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine</a> for the full framework.</p>
                     </div>
 
                     <div class="approach-section">
