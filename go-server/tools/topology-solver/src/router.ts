@@ -103,13 +103,13 @@ function makeLabelBox(points: PolylinePoint[], label: string): LayoutLabelBox {
     const dx = points[i].x - points[i - 1].x;
     const dy = points[i].y - points[i - 1].y;
     segLens.push(Math.hypot(dx, dy));
-    totalLen += segLens[segLens.length - 1];
+    totalLen += segLens.at(-1)!;
   }
 
   const targetDist = totalLen * 0.5;
   let accum = 0;
-  let midX = (points[0].x + points[points.length - 1].x) / 2;
-  let midY = (points[0].y + points[points.length - 1].y) / 2;
+  let midX = (points[0].x + points.at(-1)!.x) / 2;
+  let midY = (points[0].y + points.at(-1)!.y) / 2;
 
   for (let i = 0; i < segLens.length; i++) {
     if (accum + segLens[i] >= targetDist) {

@@ -189,10 +189,10 @@
                                 <span class="small fw-bold">{{$zh.StructuralScore}}%</span>
                             </div>
                             <div class="progress u-progress-h8">
-                                {{if ge $zh.StructuralScore 90}}<div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {{else if ge $zh.StructuralScore 70}}<div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {{else if ge $zh.StructuralScore 50}}<div class="progress-bar bg-warning" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {{else}}<div class="progress-bar bg-danger" role="progressbar" aria-valuenow="{{$zh.StructuralScore}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {{if ge $zh.StructuralScore 90}}<progress value="{{$zh.StructuralScore}}" max="100" class="w-100 bg-success"></progress>
+                                {{else if ge $zh.StructuralScore 70}}<progress value="{{$zh.StructuralScore}}" max="100" class="w-100 bg-info"></progress>
+                                {{else if ge $zh.StructuralScore 50}}<progress value="{{$zh.StructuralScore}}" max="100" class="w-100 bg-warning"></progress>
+                                {{else}}<progress value="{{$zh.StructuralScore}}" max="100" class="w-100 bg-danger"></progress>
                                 {{end}}
                             </div>
                         </div>
@@ -241,7 +241,7 @@
                                 <span class="small text-muted">{{.Count}} ({{printf "%.1f" .Percent}}%)</span>
                             </div>
                             <div class="progress u-progress-h5">
-                                <div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{printf "%.1f" .Percent}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                <progress value="{{printf "%.1f" .Percent}}" max="100" class="w-100 bg-info"></progress>
                             </div>
                         </div>
                         {{end}}

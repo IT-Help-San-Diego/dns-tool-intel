@@ -1,6 +1,5 @@
 import {
   CompiledProblem,
-  LayoutResult,
   LayoutSpec,
   LayoutState,
   MetricsReport,
@@ -36,7 +35,7 @@ function countNodeOverlaps(
   compiled: CompiledProblem,
   state: LayoutState,
 ): number {
-  const ids = spec.nodes.map((n) => n.id).sort();
+  const ids = spec.nodes.map((n) => n.id).sort((a, b) => a.localeCompare(b));
   let overlaps = 0;
 
   for (let i = 0; i < ids.length; i += 1) {

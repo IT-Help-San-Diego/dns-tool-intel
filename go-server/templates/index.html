@@ -405,9 +405,8 @@
                                        autocomplete="off"
                                        autocapitalize="none"
                                        spellcheck="false"
-                                       aria-label="Domain to analyze"
                                        value="{{if .PrefillDomain}}{{.PrefillDomain}}{{else}}{{.WaitDomain}}{{end}}">
-                                <button class="btn btn-analyze search-btn" type="submit" id="analyzeBtn" aria-label="Analyze domain"
+                                <button class="btn btn-analyze search-btn" type="submit" id="analyzeBtn"
                                     {{if .WaitSeconds}}
                                     data-wait-seconds="{{.WaitSeconds}}"
                                     data-wait-domain="{{.WaitDomain}}"
@@ -441,7 +440,6 @@
                                                            class="form-control form-control-sm bg-dark text-light border-secondary"
                                                            name="dkim_selector1"
                                                            id="dkim_selector1"
-                                                           aria-label="DKIM selector 1"
                                                            placeholder="e.g. selector1"
                                                            autocomplete="off">
                                                 </div>
@@ -967,7 +965,7 @@
     </div>
     </main>
 
-    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
             <div class="loading-spinner" aria-hidden="true">
                 {{icon "globe" "icon-spin covert-hide"}}
@@ -1039,8 +1037,8 @@
                 const ttList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 ttList.forEach(function(el) { el._bsTooltip = new bootstrap.Tooltip(el); });
             }
-            if (typeof bootstrap !== 'undefined') { initTooltips(); }
-            else { globalThis.addEventListener('load', initTooltips); }
+            if (typeof bootstrap === 'undefined') { globalThis.addEventListener('load', initTooltips); }
+            else { initTooltips(); }
             if (new URLSearchParams(globalThis.location.search).has('dkim')) {
                 const sel1 = document.querySelector('input[name="dkim_selector1"]');
                 if (sel1) { sel1.focus(); }
@@ -1054,7 +1052,7 @@
             }
             const analyzeBtn = document.getElementById('analyzeBtn');
             if (analyzeBtn && analyzeBtn.dataset.waitSeconds) {
-                const waitSeconds = Number.parseInt(analyzeBtn.dataset.waitSeconds, 10);
+                let waitSeconds = Number.parseInt(analyzeBtn.dataset.waitSeconds, 10);
                 const originalHTML = analyzeBtn.innerHTML;
                 
                 if (waitSeconds > 0) {

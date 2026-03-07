@@ -94,57 +94,74 @@ func (n *Notifier) DeliverPending(ctx context.Context, batchSize int32) (int, er
 
         delivered := 0
         for _, notif := range pending {
-                var sendErr error
-                var httpCode int
-                switch notif.EndpointType {
-                case "discord":
-                        httpCode, sendErr = n.sendDiscord(ctx, notif)
-                default:
-                        httpCode, sendErr = n.sendGenericWebhook(ctx, notif)
-                }
-
-                status := "delivered"
-                var respCode *int32
-                var respBody *string
-                if httpCode > 0 {
-                        code := int32(httpCode)
-                        respCode = &code
-                }
-                if sendErr != nil {
-                        status = "failed"
-                        errMsg := sendErr.Error()
-                        respBody = &errMsg
-                        slog.Error("Notification delivery failed",
-                                mapKeyNotificationId, notif.ID,
-                                "endpoint_type", notif.EndpointType,
-                                mapKeyDomain, notif.Domain,
-                                "http_code", httpCode,
-                                "error", sendErr,
-                        )
-                } else {
+                if n.deliverSingle(ctx, notif) {
                         delivered++
-                        slog.Info("Notification delivered",
-                                mapKeyNotificationId, notif.ID,
-                                "endpoint_type", notif.EndpointType,
-                                mapKeyDomain, notif.Domain,
-                                "http_code", httpCode,
-                        )
-                }
-
-                updateErr := n.Queries.UpdateDriftNotificationStatus(ctx, dbq.UpdateDriftNotificationStatusParams{
-                        ID:           notif.ID,
-                        Status:       status,
-                        ResponseCode: respCode,
-                        ResponseBody: respBody,
-                })
-                if updateErr != nil {
-                        slog.Error("Failed to update notification status",
-                                mapKeyNotificationId, notif.ID,
-                                "error", updateErr,
-                        )
                 }
         }
         return delivered, nil
+}
+
+func (n *Notifier) sendByType(ctx context.Context, notif dbq.ListPendingNotificationsRow) (int, error) {
+        if notif.EndpointType == "discord" {
+                return n.sendDiscord(ctx, notif)
+        }
+        return n.sendGenericWebhook(ctx, notif)
+}
+
+func (n *Notifier) deliverSingle(ctx context.Context, notif dbq.ListPendingNotificationsRow) bool {
+        httpCode, sendErr := n.sendByType(ctx, notif)
+
+        status, respCode, respBody := classifyDeliveryResult(httpCode, sendErr)
+        logDeliveryResult(notif, httpCode, sendErr)
+
+        updateErr := n.Queries.UpdateDriftNotificationStatus(ctx, dbq.UpdateDriftNotificationStatusParams{
+                ID:           notif.ID,
+                Status:       status,
+                ResponseCode: respCode,
+                ResponseBody: respBody,
+        })
+        if updateErr != nil {
+                slog.Error("Failed to update notification status",
+                        mapKeyNotificationId, notif.ID,
+                        "error", updateErr,
+                )
+        }
+        return sendErr == nil
+}
+
+func classifyDeliveryResult(httpCode int, sendErr error) (string, *int32, *string) {
+        status := "delivered"
+        var respCode *int32
+        var respBody *string
+        if httpCode > 0 {
+                code := int32(httpCode)
+                respCode = &code
+        }
+        if sendErr != nil {
+                status = "failed"
+                errMsg := sendErr.Error()
+                respBody = &errMsg
+        }
+        return status, respCode, respBody
+}
+
+func logDeliveryResult(notif dbq.ListPendingNotificationsRow, httpCode int, sendErr error) {
+        if sendErr != nil {
+                slog.Error("Notification delivery failed",
+                        mapKeyNotificationId, notif.ID,
+                        "endpoint_type", notif.EndpointType,
+                        mapKeyDomain, notif.Domain,
+                        "http_code", httpCode,
+                        "error", sendErr,
+                )
+                return
+        }
+        slog.Info("Notification delivered",
+                mapKeyNotificationId, notif.ID,
+                "endpoint_type", notif.EndpointType,
+                mapKeyDomain, notif.Domain,
+                "http_code", httpCode,
+        )
 }
 
 func (n *Notifier) sendDiscord(ctx context.Context, notif dbq.ListPendingNotificationsRow) (int, error) {

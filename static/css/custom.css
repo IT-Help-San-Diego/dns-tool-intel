@@ -3414,6 +3414,7 @@ body.covert-mode .u-covert-exit-home .u-covert-exit-btn {
     font-size: 0.72rem;
 }
 body.covert-mode .u-covert-exit-home .u-covert-exit-btn:hover {
+    opacity: 0.85;
 }
 .u-covert-beta-tag {
     display: none;
@@ -6726,6 +6727,8 @@ body.covert-mode .math-copy-btn--copied {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .u-privacy-accept-btn:hover {
     background: rgba(63, 185, 80, 0.22) !important;
@@ -6782,10 +6785,6 @@ body.covert-mode .math-copy-btn--copied {
 .u-privacy-banner p,
 .u-privacy-banner li {
     color: rgba(200, 210, 220, 0.85);
-}
-.u-privacy-accept-btn {
-    white-space: nowrap;
-    flex-shrink: 0;
 }
 @media (max-width: 767px) {
     .u-privacy-banner {
@@ -6980,6 +6979,60 @@ body.covert-mode .u-privacy-accept-btn:hover {
 
 .u-progress-h8 { height: 8px; }
 .u-progress-h5 { height: 5px; }
+
+progress {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+}
+
+progress::-webkit-progress-bar {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+}
+
+progress::-webkit-progress-value {
+  background-color: #0d6efd;
+  border-radius: 0;
+}
+
+progress::-moz-progress-bar {
+  background-color: #0d6efd;
+  border-radius: 0;
+}
+
+progress.bg-success::-webkit-progress-value {
+  background-color: #198754;
+}
+
+progress.bg-success::-moz-progress-bar {
+  background-color: #198754;
+}
+
+progress.bg-info::-webkit-progress-value {
+  background-color: #0dcaf0;
+}
+
+progress.bg-info::-moz-progress-bar {
+  background-color: #0dcaf0;
+}
+
+progress.bg-warning::-webkit-progress-value {
+  background-color: #ffc107;
+}
+
+progress.bg-warning::-moz-progress-bar {
+  background-color: #ffc107;
+}
+
+progress.bg-danger::-webkit-progress-value {
+  background-color: #dc3545;
+}
+
+progress.bg-danger::-moz-progress-bar {
+  background-color: #dc3545;
+}
 .u-fs-06em { font-size: 0.6rem; }
 .u-fs-07em { font-size: 0.7rem; }
 .u-fs-11em { font-size: 1.1rem; }

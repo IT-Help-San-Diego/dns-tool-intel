@@ -181,8 +181,7 @@ func TestScoreToLevel(t *testing.T) {
 }
 
 func TestMaturityCeiling_UnknownLevel(t *testing.T) {
-        got := maturityCeiling("unknown_tier")
-        if got != 60 {
+        if got := maturityCeiling("unknown_tier"); got != 60 {
                 t.Errorf("unknown maturity should default to 60, got %.0f", got)
         }
 }
@@ -332,8 +331,7 @@ func TestIconLowLevel(t *testing.T) {
 }
 
 func TestBuildExplanation_ModerateAccuracy(t *testing.T) {
-        got := buildExplanation(LevelModerate, 60, 80, "verified", mapKeyAccuracy)
-        if got == "" {
+        if got := buildExplanation(LevelModerate, 60, 80, "verified", mapKeyAccuracy); got == "" {
                 t.Error("expected non-empty explanation for moderate accuracy")
         }
 }
