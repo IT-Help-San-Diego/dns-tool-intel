@@ -30,6 +30,7 @@ func (h *SignatureHandler) SignaturePage(c *gin.Context) {
                 "CspNonce":        nonce,
                 "ActivePage":      "signature",
                 "RawMode":         mode == "raw",
+                "BaseURL":         h.Config.BaseURL,
         }
         mergeAuthData(c, h.Config, data)
 
