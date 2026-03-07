@@ -7,6 +7,6 @@
 > reveal unreleased feature roadmap.
 >
 > **Status:** Core ICIE architecture is implemented and live.
-> **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, document A10.
+> **Canonical version:** Git (`careyjames/dns-tool-intel`). Miro Blueprint board `uXjVG83d8PY=` (document A10) is a presentation mirror only.
 >
 > For the public feature description, see [docs/FEATURE_INVENTORY.md](docs/FEATURE_INVENTORY.md).
