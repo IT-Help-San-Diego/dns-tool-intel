@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { solveLayout } from '../src/layoutSolver.js';
-import type { LayoutSpec, LayoutResult, MetricsReport } from '../src/types.js';
+import type { LayoutSpec, MetricsReport } from '../src/types.js';
 
 const FIXTURE_PATH = 'fixtures/dns-topology-production.json';
 
@@ -37,16 +37,16 @@ test('solver produces valid output for production fixture', () => {
   assert(result.routedEdges !== undefined, 'routedEdges must exist');
   assert(result.metrics !== undefined, 'metrics must exist');
 
-  const nodeIds = spec.nodes.map((n) => n.id).sort();
-  const resultIds = Object.keys(result.nodeCenters).sort();
+  const nodeIds = spec.nodes.map((n) => n.id).sort((a, b) => a.localeCompare(b));
+  const resultIds = Object.keys(result.nodeCenters).sort((a, b) => a.localeCompare(b));
   assertEqual(resultIds.length, nodeIds.length, 'all nodes must have positions');
 
   for (const id of nodeIds) {
     assert(result.nodeCenters[id] !== undefined, `missing position for node ${id}`);
     assert(typeof result.nodeCenters[id].x === 'number', `x must be number for ${id}`);
     assert(typeof result.nodeCenters[id].y === 'number', `y must be number for ${id}`);
-    assert(!isNaN(result.nodeCenters[id].x), `x must not be NaN for ${id}`);
-    assert(!isNaN(result.nodeCenters[id].y), `y must not be NaN for ${id}`);
+    assert(!Number.isNaN(result.nodeCenters[id].x), `x must not be NaN for ${id}`);
+    assert(!Number.isNaN(result.nodeCenters[id].y), `y must not be NaN for ${id}`);
   }
 
   assertEqual(result.routedEdges.length, spec.edges.length, 'all edges must be routed');
@@ -57,7 +57,7 @@ test('output is deterministic (run twice, compare)', () => {
   const result1 = solveLayout(spec, { profileId: 'desktop' });
   const result2 = solveLayout(spec, { profileId: 'desktop' });
 
-  const ids = Object.keys(result1.nodeCenters).sort();
+  const ids = Object.keys(result1.nodeCenters).sort((a, b) => a.localeCompare(b));
   for (const id of ids) {
     assertEqual(result1.nodeCenters[id].x, result2.nodeCenters[id].x, `x mismatch for ${id}`);
     assertEqual(result1.nodeCenters[id].y, result2.nodeCenters[id].y, `y mismatch for ${id}`);
@@ -174,4 +174,4 @@ async function runTests() {
   if (failed > 0) process.exit(1);
 }
 
-runTests();
+await runTests();

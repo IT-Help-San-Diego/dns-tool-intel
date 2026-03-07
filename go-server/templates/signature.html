@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
-    #sigFrame { width: 100%; border: 0; min-height: 240px; background: #111827; border-radius: 8px; }
+    #sigFrame { width: 100%; border: 0; min-height: 320px; background: #111827; border-radius: 8px; }
     #sigPreviewWrap { background-color: #111827; border-radius: 0 0 6px 6px; }
     </style>
 </head>
@@ -66,9 +66,10 @@
                 var doc = iframe.contentDocument || iframe.contentWindow.document;
                 var h = doc.body.scrollHeight + 20;
                 iframe.style.height = h + 'px';
-            } catch(e) {}
+            } catch(e) { /* cross-origin iframe — height auto-sizing unavailable */ } // NOSONAR
         });
-        document.getElementById('btnCopy').addEventListener('click', function() {
+        var copyBtn = document.getElementById('btnCopy');
+        copyBtn.addEventListener('click', function() {
             try {
                 var doc = iframe.contentDocument || iframe.contentWindow.document;
                 var tbl = doc.querySelector('table');
@@ -80,11 +81,10 @@
                 sel.addRange(range);
                 iframe.contentDocument.execCommand('copy');
                 sel.removeAllRanges();
-                this.textContent = 'Copied!';
-                var btn = this;
-                setTimeout(function() { btn.innerHTML = '\u2398 Copy Signature'; }, 2000);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(function() { copyBtn.innerHTML = '\u2398 Copy Signature'; }, 2000);
             } catch (e) {
-                window.open('/signature?mode=raw', '_blank');
+                globalThis.open('/signature?mode=raw', '_blank');
             }
         });
     })();

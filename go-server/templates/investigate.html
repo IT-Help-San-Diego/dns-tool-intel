@@ -62,7 +62,6 @@
                                        autocomplete="off"
                                        autocapitalize="none"
                                        spellcheck="false"
-                                       aria-label="Domain to investigate against"
                                        value="{{.FormDomain}}">
                             </div>
                             <label for="ip_address" class="form-label search-label">
@@ -78,9 +77,8 @@
                                        autocomplete="off"
                                        autocapitalize="none"
                                        spellcheck="false"
-                                       aria-label="IP address to investigate"
                                        value="{{.FormIP}}">
-                                <button class="btn btn-primary search-btn" type="submit" id="investigateBtn" aria-label="Analyze IP">
+                                <button class="btn btn-primary search-btn" type="submit" id="investigateBtn">
                                     {{icon "route" "me-2"}}Analyze
                                 </button>
                             </div>
@@ -102,7 +100,7 @@
                                                placeholder="SecurityTrails API Key"
                                                autocomplete="off"
                                                spellcheck="false"
-                                               aria-label="SecurityTrails API Key for IP neighborhood discovery">
+                                               >
                                     </div>
                                     <div class="mb-3 text-muted u-fs-072em">
                                         <strong>What it adds:</strong> IP Neighborhood &mdash; shows other domains hosted on the same IP. Helps you see who else shares this server (co-tenants on shared hosting, or related properties on dedicated servers). <a href="https://securitytrails.com/app/signup" target="_blank" rel="noopener" class="text-info">Get an API key &rarr;</a>
@@ -117,7 +115,7 @@
                                                placeholder="IPinfo.io Access Token"
                                                autocomplete="off"
                                                spellcheck="false"
-                                               aria-label="IPinfo.io Access Token for geolocation and org data">
+                                               >
                                     </div>
                                     <div class="mb-1 text-muted u-fs-072em">
                                         <strong>What it adds:</strong> Physical Location &mdash; city, region, postal code, coordinates, timezone, and the organization operating this IP. Useful for verifying that a server is where you expect it to be. <a href="https://ipinfo.io/signup" target="_blank" rel="noopener" class="text-info">Get a token &rarr;</a>
@@ -707,7 +705,7 @@
 
     </main>
 
-    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running IP investigation">
+    <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
             <div class="loading-spinner">
                 {{icon "route" "icon-spin"}}

@@ -18,7 +18,7 @@ export function applyPerturbation(spec: LayoutSpec, perturbation: PerturbationDe
     case 'identity':
       return structuredClone(spec);
     case 'label_scale':
-      return applyLabelScale(spec, perturbation.factor ?? 1.0);
+      return applyLabelScale(spec, perturbation.factor ?? 1);
     case 'add_edge':
       return applyAddEdge(spec, perturbation);
     case 'remove_node':
@@ -85,15 +85,15 @@ function applyCloneNode(spec: LayoutSpec, p: PerturbationDef): LayoutSpec {
   };
   copy.nodes.push(newNode);
 
-  const sourceEdges = copy.edges.filter((e: EdgeSpec) => e.target === p.from && e.kind === 'flow');
-  for (const e of sourceEdges) {
-    copy.edges.push({
+  const clonedEdges = copy.edges
+    .filter((e: EdgeSpec) => e.target === p.from && e.kind === 'flow')
+    .map((e: EdgeSpec) => ({
       id: `clone_${p.newId}_${e.id}`,
       source: e.source,
-      target: p.newId,
-      kind: 'flow',
-    });
-  }
+      target: p.newId!,
+      kind: 'flow' as const,
+    }));
+  copy.edges.push(...clonedEdges);
 
   return copy;
 }
