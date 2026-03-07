@@ -258,6 +258,9 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <h3>4.3 Overall Posture Score</h3>
 <p>The individual protocol confidence scores are aggregated into an overall domain security posture score, weighted by protocol importance and interdependency relationships.</p>
 
+<h3>4.4 Epistemic Correction Disclosure</h3>
+<p>When structural corrections to the confidence model are identified &mdash; such as recalibrated scoring weights, reinterpreted evidence thresholds, or corrected RFC compliance mappings &mdash; the system records these as Epistemic Disclosure Events (EDEs). Each EDE documents the original assessment, the correction applied, the confidence impact, and the verifiable commit reference. This practice is modeled on scientific corrigenda culture: corrections strengthen rather than undermine analytical credibility, provided they are transparent, traceable, and independently verifiable.</p>
+
 <h2>5. Output Products</h2>
 <h3>5.1 Engineer&rsquo;s DNS Intelligence Report</h3>
 <p>A detailed technical report containing: per-protocol findings with evidence, RFC compliance status for each configuration, confidence scores with supporting rationale, remediation recommendations, and Big Picture Questions for strategic consideration.</p>
@@ -275,6 +278,17 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 
 <h2>7. Reproducibility and Limitations</h2>
 <p>DNS Tool is designed for reproducible analysis. All DNS queries are logged with timestamps and resolver identification. Analysis logic is deterministic for a given set of DNS responses. The software is version-controlled with semantic versioning. This methodology document is versioned alongside the software. The software artifact is archived with a persistent DOI.</p>
+
+<h3>7.1 Epistemic Correction and Integrity Verification</h3>
+<p>DNS Tool maintains a public Epistemic Disclosure Event (EDE) register that documents all structural corrections to the confidence scoring model. Each EDE entry records the category of correction (e.g., scoring calibration, evidence reinterpretation, standards misattribution), the severity, the specific confidence impact, and a verifiable git commit hash linking to the exact code change.</p>
+<p>To ensure the integrity of this correction record, DNS Tool computes SHA-3-512 cryptographic hashes at two levels:</p>
+<ol>
+<li><strong>File-level hash</strong>: A SHA-3-512 hash of the complete EDE register file (<code>integrity_stats.json</code>), independently verifiable via: <code>openssl dgst -sha3-512 static/data/integrity_stats.json</code></li>
+<li><strong>Per-event hash</strong>: Each individual EDE entry receives its own SHA-3-512 hash computed from its JSON representation, enabling detection of single-entry tampering independently of other entries.</li>
+</ol>
+<p>Published EDE entries are governed by a tamper resistance policy that permits amendments only on two explicitly declared grounds: factual error (with verifiable evidence) or dignity of expression (phrasing-only, with all factual fields locked). This framework is tamper-evident rather than tamper-proof &mdash; it is designed to make unauthorized modification detectable, not physically impossible. Full policy details, amendment records, and attack vector analysis are published as supplementary documentation on the project&rsquo;s EDE page.</p>
+
+<h3>7.2 Limitations</h3>
 <p>DNS Tool operates exclusively on publicly available DNS information. As a result, it cannot evaluate internal email infrastructure, private key security, or server-side enforcement mechanisms. The tool focuses on observable infrastructure posture rather than complete operational security evaluation. DNS observations may change over time, meaning results represent the configuration state at the time of analysis.</p>
 <ul>
 <li>DKIM analysis is limited to known selectors unless additional selectors are provided</li>
