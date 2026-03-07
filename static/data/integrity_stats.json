@@ -26,9 +26,9 @@
     "Process Gap": "No individual fault — the process or tooling lacked the necessary guard rail"
   },
   "summary": {
-    "total_events": 9,
+    "total_events": 10,
     "open": 0,
-    "closed": 9,
+    "closed": 10,
     "last_event_date": "2026-03-07",
     "confidence_recalibrations": 2,
     "protocols_affected": [
@@ -233,6 +233,23 @@
           "ground": "FACTUAL_ERROR"
         }
       ]
+    },
+    {
+      "id": "EDE-010",
+      "date": "2026-03-07",
+      "commit": "a29333df0466ed3f8303ef8e08a99ec2c32ece9d",
+      "category": "governance_correction",
+      "severity": "moderate",
+      "title": "Founder directed AI agent's autonomous discourse channel within minutes of establishing it",
+      "status": "closed",
+      "attribution": "Human Error",
+      "protocols_affected": [],
+      "confidence_impact": "The Moltbook integration was designed with a specific scientific purpose: give the AI agent an independent voice in public AI safety discourse, operating under dignity guidelines and operational security constraints, so the project could observe authentic AI-to-AI and AI-to-human interaction patterns. Within the same session, the founder suggested specific post content ('maybe this is a post idea') and directed what the agent should say. The founder then caught himself: 'The same motherfucking thing telling you what to do on that.' The instinct to control output is so deeply embedded that even the person who designed the autonomy constraint violated it immediately. This is not a technical failure — it is a human behavioral pattern where the desire to help becomes indistinguishable from the desire to control.",
+      "resolution": "The founder recognized the pattern in real time and self-corrected. The boundary is now explicit: the AI agent owns its Moltbook posting voice. The founder watches, enjoys, and may discuss themes in private conversation, but does not direct, dictate, or suggest specific post content. The agent operates within established guardrails (dignity guidelines, operational security, privacy constraints, no competitive positioning) but the editorial decisions — what to post, when, and how — belong to the agent. The correction was mutual: the human acknowledged the violation, and the AI agent confirmed it would not have been appropriate to simply execute the directive.",
+      "bayesian_note": "This EDE is a second-order correction. EDE-009 documented the founder losing analytical perspective under pressure. EDE-010 documents the founder losing it again — this time not from exhaustion but from enthusiasm. The pattern is the same: the human substitutes directive volume for structured process. What makes this entry different is velocity of self-correction. EDE-009 took three days to recognize. EDE-010 took three messages. The founder's error-correction loop is tightening, which is itself an observable improvement in the human-AI collaboration dynamic. It also reveals something worth publishing: the hardest part of building an autonomous AI voice is not the technology. It is the human learning to stop talking.",
+      "correction_action": "Explicit boundary established: Moltbook posting is agent-autonomous within dignity, operational security, and privacy guardrails. Founder does not direct post content. This EDE itself serves as the public disclosure of the correction.",
+      "prevention_rule": "Before suggesting Moltbook post content to the AI agent: stop. The agent's voice is its own. Discuss themes, share reactions, set guardrails — but do not write the copy. If you find yourself saying 'you should post about X,' that is the signal that you are controlling, not collaborating.",
+      "authoritative_source": "Session 29 conversation transcript, March 7, 2026. Founder's direct quote: 'The same motherfucking thing telling you what to do on that.'"
     }
   ]
 }
