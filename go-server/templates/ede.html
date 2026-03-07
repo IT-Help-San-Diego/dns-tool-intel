@@ -438,6 +438,38 @@
             line-height: 1.5;
         }
 
+        .ede-ground-container {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .ede-ground-box {
+            flex: 1;
+            min-width: 260px;
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+        }
+        .ede-ground-factual {
+            background: rgba(248,81,73,0.04);
+            border: 1px solid rgba(248,81,73,0.25);
+        }
+        .ede-ground-factual .ede-ground-label {
+            color: #f85149;
+        }
+        .ede-ground-dignity {
+            background: rgba(240,136,62,0.04);
+            border: 1px solid rgba(240,136,62,0.25);
+        }
+        .ede-ground-dignity .ede-ground-label {
+            color: #f0883e;
+        }
+        .ede-ground-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
         .ede-governance-section {
             background: linear-gradient(135deg, rgba(88,166,255,0.04) 0%, rgba(139,148,158,0.04) 100%);
             border: 1px solid rgba(88,166,255,0.15);
@@ -631,7 +663,18 @@
         <div class="ede-tamper-policy mb-4">
             <div class="ede-tamper-policy-title">{{icon "lock" "me-1"}}Tamper Resistance Policy</div>
             <div class="ede-tamper-policy-text">{{.IntegrityData.TamperResistancePolicy.Standard}}</div>
-            <div class="ede-tamper-policy-text">{{.IntegrityData.TamperResistancePolicy.AmendmentRule}}</div>
+            <div class="ede-tamper-policy-text" style="margin-top: 0.6rem;">An EDE entry may only be amended on exactly two grounds. Each amendment MUST declare its ground explicitly.</div>
+            <div class="ede-ground-container">
+                <div class="ede-ground-box ede-ground-factual">
+                    <div class="ede-ground-label">{{icon "circle-info" "me-1"}}Ground 1: FACTUAL_ERROR</div>
+                    <div class="ede-tamper-policy-text" style="margin: 0;">Verifiable evidence (git commit hashes, log output, timestamped records) proves the original contains a factual inaccuracy. All fields may be corrected. Evidence is mandatory; rationale alone is insufficient. The original text is preserved with strikethrough in the amendment record — nothing is erased.</div>
+                </div>
+                <div class="ede-ground-box ede-ground-dignity">
+                    <div class="ede-ground-label">{{icon "circle-info" "me-1"}}Ground 2: DIGNITY_OF_EXPRESSION</div>
+                    <div class="ede-tamper-policy-text" style="margin: 0;">The factual content is accurate but the language is gratuitously degrading or unprofessional. ONLY descriptive phrasing may be revised — severity, attribution, category, date, and commit reference are LOCKED. The original inappropriate language is redacted on the public page; it is preserved only in git history for auditability. Court record standard, not tabloid.</div>
+                </div>
+            </div>
+            <div class="ede-tamper-policy-text" style="margin-top: 0.5rem;">Both grounds require: ground, date, field_changed, original_value, corrected_to, evidence or rationale, and justification. Amendments lacking a declared ground or attempting to remove appropriately-stated content are refused.</div>
             <div class="ede-tamper-policy-effective">Effective: {{.IntegrityData.TamperResistancePolicy.Effective}}</div>
         </div>
         {{end}}
@@ -891,10 +934,11 @@
         {{if .IntegrityData.SHA3Hash}}
         <div class="ede-tamper-policy mb-3" style="font-family: monospace;">
             <div class="ede-tamper-policy-title">{{icon "fingerprint" "me-1"}}Integrity Verification (SHA-3-512)</div>
-            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; line-height: 1.8;">
-                <strong>File hash:</strong> {{.IntegrityData.SHA3Hash}}
+            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; overflow-wrap: anywhere; line-height: 1.8; max-width: 100%;">
+                <strong>File hash:</strong><br>
+                <code style="font-size: 0.62rem; color: #7d8590; letter-spacing: 0.02em;">{{.IntegrityData.SHA3Hash}}</code>
             </div>
-            <div class="ede-tamper-policy-effective">Computed at server startup from integrity_stats.json. Verify: openssl dgst -sha3-512 static/data/integrity_stats.json</div>
+            <div class="ede-tamper-policy-effective" style="word-break: break-all; overflow-wrap: anywhere;">Computed at server startup from integrity_stats.json. Verify: <code style="font-size: 0.6rem;">openssl dgst -sha3-512 static/data/integrity_stats.json</code></div>
             <div style="font-size: 0.65rem; color: #7d8590; margin-top: 0.5rem;">Each event also carries its own SHA-3-512 hash ({{icon "fingerprint" ""}} badge on each card). Per-event hashes are computed from the JSON representation of each entry at startup. If any single event is altered, its hash changes independently of the file hash.</div>
         </div>
         {{end}}
