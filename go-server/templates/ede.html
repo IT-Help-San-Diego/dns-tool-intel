@@ -364,6 +364,17 @@
             text-decoration: line-through;
             text-decoration-color: rgba(248,81,73,0.3);
         }
+        .ede-amendment-redacted {
+            background: rgba(240,136,62,0.08);
+            border: 1px solid rgba(240,136,62,0.2);
+            border-radius: 4px;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.72rem;
+            color: #f0883e;
+            font-style: italic;
+            line-height: 1.5;
+            margin: 0.25rem 0;
+        }
         .ede-amendment-corrected {
             background: rgba(63,185,80,0.06);
             border: 1px solid rgba(63,185,80,0.12);
@@ -373,6 +384,44 @@
             color: #afd5b4;
             line-height: 1.5;
             margin: 0.25rem 0;
+        }
+
+        .ede-hash-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: #58a6ff;
+            background: rgba(88,166,255,0.08);
+            border: 1px solid rgba(88,166,255,0.2);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+        .ede-hash-toggle:hover {
+            background: rgba(88,166,255,0.15);
+            border-color: rgba(88,166,255,0.4);
+        }
+        .ede-hash-toggle-active {
+            background: rgba(88,166,255,0.15);
+            border-color: #58a6ff;
+        }
+        .ede-hash-value {
+            display: block;
+            width: 100%;
+            font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+            font-size: 0.58rem;
+            color: #7d8590;
+            background: rgba(88,166,255,0.04);
+            border: 1px solid rgba(88,166,255,0.1);
+            border-radius: 4px;
+            padding: 0.35rem 0.6rem;
+            margin-top: 0.4rem;
+            word-break: break-all;
+            line-height: 1.5;
         }
 
         .ede-not-list {
@@ -542,6 +591,10 @@
                         {{else}}
                         <span class="ede-badge ede-badge-status-open">{{icon "clock" "me-1"}}Open</span>
                         {{end}}
+                        {{if .EventHash}}
+                        <span class="ede-hash-toggle" data-hash-toggle title="SHA-3-512 event hash — click to reveal">{{icon "fingerprint" "me-1"}}SHA-3-512</span>
+                        <span class="ede-hash-value d-none">{{.EventHash}}</span>
+                        {{end}}
                     </div>
                     <h3 class="ede-event-title mb-3">{{.Title}}</h3>
 
@@ -581,11 +634,20 @@
                         <div class="ede-amendment-item">
                             <div class="ede-amendment-date">{{.Date}} {{if .Ground}}&middot; Ground: {{.Ground}}{{end}}</div>
                             <div class="ede-amendment-field">Field: {{.FieldChanged}}</div>
+                            {{if eq .Ground "DIGNITY_OF_EXPRESSION"}}
+                            <div class="ede-amendment-detail-label">Original (redacted)</div>
+                            <div class="ede-amendment-redacted">{{.OriginalValue}}</div>
+                            {{else}}
                             <div class="ede-amendment-detail-label">Original (struck)</div>
                             <div class="ede-amendment-original">{{.OriginalValue}}</div>
+                            {{end}}
                             <div class="ede-amendment-detail-label">Corrected to</div>
                             <div class="ede-amendment-corrected">{{.CorrectedTo}}</div>
+                            {{if eq .Ground "DIGNITY_OF_EXPRESSION"}}
+                            <div class="ede-amendment-detail-label">Rationale</div>
+                            {{else}}
                             <div class="ede-amendment-detail-label">Evidence</div>
+                            {{end}}
                             <div class="ede-amendment-detail">{{.Evidence}}</div>
                             <div class="ede-amendment-detail-label">Justification</div>
                             <div class="ede-amendment-detail">{{.Justification}}</div>
@@ -668,8 +730,11 @@
         {{if .IntegrityData.SHA3Hash}}
         <div class="ede-tamper-policy mb-3" style="font-family: monospace;">
             <div class="ede-tamper-policy-title">{{icon "fingerprint" "me-1"}}Integrity Verification (SHA-3-512)</div>
-            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; line-height: 1.8;">{{.IntegrityData.SHA3Hash}}</div>
+            <div style="font-size: 0.68rem; color: #8b949e; word-break: break-all; line-height: 1.8;">
+                <strong>File hash:</strong> {{.IntegrityData.SHA3Hash}}
+            </div>
             <div class="ede-tamper-policy-effective">Computed at server startup from integrity_stats.json. Verify: openssl dgst -sha3-512 static/data/integrity_stats.json</div>
+            <div style="font-size: 0.65rem; color: #7d8590; margin-top: 0.5rem;">Each event also carries its own SHA-3-512 hash ({{icon "fingerprint" ""}} badge on each card). Per-event hashes are computed from the JSON representation of each entry at startup. If any single event is altered, its hash changes independently of the file hash.</div>
         </div>
         {{end}}
 
@@ -680,5 +745,16 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.querySelectorAll('[data-hash-toggle]').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var hashVal = this.nextElementSibling;
+            if (hashVal) {
+                hashVal.classList.toggle('d-none');
+                this.classList.toggle('ede-hash-toggle-active');
+            }
+        });
+    });
+    </script>
 </body>
 </html>

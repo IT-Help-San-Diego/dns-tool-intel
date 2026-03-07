@@ -47,6 +47,7 @@ type IntegrityEvent struct {
         PreventionRule      string         `json:"prevention_rule"`
         AuthoritativeSource string         `json:"authoritative_source"`
         Amendments          []EDEAmendment `json:"amendments,omitempty"`
+        EventHash           string         `json:"-"`
 }
 
 type IntegritySummary struct {
@@ -109,6 +110,19 @@ func loadIntegrityData() IntegrityData {
                 return IntegrityData{}
         }
         f.SHA3Hash = hashHex
+        for i := range f.Events {
+                eventJSON, err := json.Marshal(f.Events[i])
+                if err == nil {
+                        eh := sha3.Sum512(eventJSON)
+                        f.Events[i].EventHash = hex.EncodeToString(eh[:])
+                }
+                for j := range f.Events[i].Amendments {
+                        if f.Events[i].Amendments[j].Ground == "DIGNITY_OF_EXPRESSION" &&
+                                f.Events[i].Amendments[j].OriginalValue != "[REDACTED — DIGNITY_OF_EXPRESSION]" {
+                                f.Events[i].Amendments[j].OriginalValue = "[REDACTED — DIGNITY_OF_EXPRESSION]"
+                        }
+                }
+        }
         integrityCache = f
         integrityCacheTime = time.Now()
         return f
