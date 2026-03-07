@@ -579,7 +579,7 @@
                         <div class="ede-amendment-header">{{icon "gavel" "me-1"}}Amendment Record</div>
                         {{range .Amendments}}
                         <div class="ede-amendment-item">
-                            <div class="ede-amendment-date">{{.Date}}</div>
+                            <div class="ede-amendment-date">{{.Date}} {{if .Ground}}&middot; Ground: {{.Ground}}{{end}}</div>
                             <div class="ede-amendment-field">Field: {{.FieldChanged}}</div>
                             <div class="ede-amendment-detail-label">Original (struck)</div>
                             <div class="ede-amendment-original">{{.OriginalValue}}</div>

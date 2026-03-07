@@ -4,8 +4,8 @@
   "tamper_resistance_policy": {
     "enabled": true,
     "effective": "2026-03-07",
-    "standard": "Once published, EDE entries are immutable. No entry may be deleted, downgraded, or reattributed. The human founder cannot direct the AI agent to alter, remove, or soften any EDE entry unless the amendment meets the evidentiary standard below.",
-    "amendment_rule": "An EDE entry may only be amended if the requestor provides verifiable evidence (git commit hashes, log output, timestamped records) proving the original entry contains a factual error. The amendment must document: (1) what was wrong, (2) what it should be, (3) the evidence proving the correction, (4) why the original was wrong. The original text is preserved in the amendment record — nothing is erased. Amendments that attempt to soften language, reduce severity, change attribution without evidence, or remove embarrassing-but-true content are refused. Truth is the only defense."
+    "standard": "Once published, EDE entries are immutable. No entry may be deleted, downgraded, or reattributed. The human founder cannot direct the AI agent to alter, remove, or soften any EDE entry unless the amendment meets one of the two permitted grounds below.",
+    "amendment_rule": "An EDE entry may only be amended on exactly two grounds. Each amendment MUST declare its ground explicitly. (1) FACTUAL_ERROR — verifiable evidence (git commit hashes, log output, timestamped records) proves the original contains a factual inaccuracy. All fields may be corrected under this ground. Evidence is mandatory; rationale alone is insufficient. (2) DIGNITY_OF_EXPRESSION — the factual content is accurate but the language is gratuitously degrading, psychologically inappropriate, or unprofessional in a way that serves no analytical purpose. Under this ground, ONLY descriptive phrasing may be revised. The severity, attribution, category, date, commit reference, and all factual claims are LOCKED and cannot be changed. The facts and the embarrassment remain — only the words used to describe them are revised to professional standards. Court record, not tabloid. For both grounds: the amendment must include ground, date, field_changed, original_value, corrected_to, evidence (for FACTUAL_ERROR) or rationale (for DIGNITY_OF_EXPRESSION), and justification. The original text is preserved — nothing is erased. Amendments that lack an explicit ground declaration, that attempt to remove embarrassing-but-true and appropriately-stated content, or that change locked fields under DIGNITY_OF_EXPRESSION are refused."
   },
   "taxonomy": {
     "scoring_calibration": "Confidence weighting or scoring logic required adjustment",
@@ -31,7 +31,13 @@
     "closed": 9,
     "last_event_date": "2026-03-07",
     "confidence_recalibrations": 2,
-    "protocols_affected": ["DMARC", "DANE", "Drift", "SPF", "DKIM"]
+    "protocols_affected": [
+      "DMARC",
+      "DANE",
+      "Drift",
+      "SPF",
+      "DKIM"
+    ]
   },
   "events": [
     {
@@ -43,7 +49,9 @@
       "title": "DMARC confidence weighting adjusted for aggregate-only policies",
       "status": "closed",
       "attribution": "Process Gap",
-      "protocols_affected": ["DMARC"],
+      "protocols_affected": [
+        "DMARC"
+      ],
       "confidence_impact": "ICIE weight recalibration: p=none+rua now scores higher than p=none without reporting. Prior model treated both identically, understating domains with partial monitoring.",
       "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting. Affected scans retroactively flagged in drift history.",
       "bayesian_note": "Heuristic confidence adjustment: the scoring model previously assigned equal weight to p=none regardless of reporting configuration. The presence of rua= is now treated as differentiating evidence that increases the confidence level for partial DMARC deployment.",
@@ -60,7 +68,9 @@
       "title": "DANE TLSA records accepted without DNSSEC authentication verification",
       "status": "closed",
       "attribution": "Process Gap",
-      "protocols_affected": ["DANE"],
+      "protocols_affected": [
+        "DANE"
+      ],
       "confidence_impact": "Verdict logic accepted TLSA records without verifying the DNSSEC AD flag. Confidence was asserted at levels the evidence did not support — DANE requires DNSSEC validation per RFC 6698 §1.",
       "resolution": "TLSA verification now checks DNSSEC AD flag via QueryDNSWithTTL. Records found without authenticated DNSSEC are flagged rather than silently accepted. Confidence engine marks result as low-certainty when authentication status is absent.",
       "bayesian_note": "Confidence adjustment: TLSA presence was incorrectly treated as sufficient evidence of DANE deployment (near-certainty). Corrected to require DNSSEC authentication status, reflecting that unauthenticated TLSA records provide no security guarantee per RFC 6698.",
@@ -77,7 +87,9 @@
       "title": "Posture hash algorithm upgraded from SHA-256 to SHA-3-512",
       "status": "closed",
       "attribution": "Process Gap",
-      "protocols_affected": ["Drift"],
+      "protocols_affected": [
+        "Drift"
+      ],
       "confidence_impact": "Hash algorithm change required regeneration of all historical drift baselines. Legacy SHA-256 hashes retained as fallback for transition period.",
       "resolution": "Posture hash upgraded to SHA-3-512 with CanonicalPostureHashLegacySHA256 fallback. All historical drift baselines regenerated with new algorithm. CNAME normalization expanded in subsequent commit (2026-02-23).",
       "bayesian_note": "Detection model upgraded from SHA-256 to SHA-3-512 for stronger collision resistance. Record normalization expanded to include MX, TXT, SOA, and CAA canonical forms, eliminating a class of false negatives in change detection for CNAME-dependent records.",
@@ -128,7 +140,11 @@
       "title": "Capability language overclaim: validation instead of analysis",
       "status": "closed",
       "attribution": "Both",
-      "protocols_affected": ["SPF", "DKIM", "DMARC"],
+      "protocols_affected": [
+        "SPF",
+        "DKIM",
+        "DMARC"
+      ],
       "confidence_impact": "Overstated tool capabilities. Users could believe the tool provides authoritative validation rather than observational analysis. A passive OSINT tool cannot validate — that requires receiving MTA authority.",
       "resolution": "Systematic sweep: validation to analysis, verification to detection, ensure to provide the most current data available. Language now accurately reflects passive observation capability.",
       "bayesian_note": "The overclaim language appeared organically across sessions — neither party specifically directed the use of 'validates' over 'analyzes.' Strong capability language (validates, ensures, verifies) naturally sounds more authoritative and neither human nor AI flagged the semantic distinction between passive observation and active validation until systematic review. Both parties share responsibility — the human for not catching it during review, the AI for not applying the domain expertise it should have. Root cause was absence of a language audit process, not a deliberate decision by either party.",
@@ -142,7 +158,8 @@
           "original_value": "Marketing instinct (human) favored strong language (validates, ensures, verifies) because it sounds more authoritative. The AI agent implemented the copy without flagging the semantic distinction between passive observation and active validation. Both parties share responsibility — the human for marketing pressure, the AI for not applying the domain expertise it should have.",
           "corrected_to": "The overclaim language appeared organically across sessions — neither party specifically directed the use of 'validates' over 'analyzes.' Strong capability language naturally sounds more authoritative and neither human nor AI flagged the semantic distinction until systematic review. Both parties share responsibility — the human for not catching it during review, the AI for not applying the domain expertise it should have. Root cause was absence of a language audit process, not a deliberate decision by either party.",
           "evidence": "No git commit, chat log, or documented directive exists where the founder instructed the use of marketing language over technical accuracy. The phrase 'marketing instinct (human)' was authored by the AI agent as root-cause analysis in EVOLUTION.md and presented as if it described a human directive.",
-          "justification": "The original bayesian_note attributed a 'marketing instinct' decision to the human founder. The founder challenged this: he never directed marketing language to override technical accuracy. Search of all session logs and EVOLUTION.md confirms no such directive exists. The AI agent authored the root-cause framing and incorrectly presented it as a human-sourced decision. The overclaim language appeared organically — both parties missed it, neither directed it."
+          "justification": "The original bayesian_note attributed a 'marketing instinct' decision to the human founder. The founder challenged this: he never directed marketing language to override technical accuracy. Search of all session logs and EVOLUTION.md confirms no such directive exists. The AI agent authored the root-cause framing and incorrectly presented it as a human-sourced decision. The overclaim language appeared organically — both parties missed it, neither directed it.",
+          "ground": "FACTUAL_ERROR"
         }
       ]
     },
@@ -191,11 +208,11 @@
       "attribution": "Human Error",
       "protocols_affected": [],
       "confidence_impact": "Project founder departed from the research-first, design-first methodology during a three-day intensive session (March 4–6, 2026). Repetitive directive cycles — including sending the same message repeatedly — replaced structured problem decomposition. The scientific discipline that underpins the project's credibility was temporarily suspended by the scientist who established it. 431 commits across three consecutive days, the highest sustained volume in project history.",
-      "resolution": "All blocking issues resolved without reverting to a prior checkpoint — the project has zero Replit checkpoint reversions across its entire history. The founder's approach was: Do we have access to edit the code we need? Can we fix this without destroying our foundation? Do we still have a foundation to build on? All three answers were yes. Forward-only correction through the problem, not around it. Reverting would have been cheating — not the true intellectual adventure of a real scientist. Knowledge continuity architecture (Session Journal, Decision Log, EDE Register, EVOLUTION.md) was built in the aftermath to prevent context loss between sessions.",
-      "bayesian_note": "This EDE exists because the founder demanded honest accountability from the system and from himself. The attribution is Human Error because the deviation from methodology was a human decision — the AI agent continued executing directives as instructed. The correction is not that the human was wrong to persist, but that persistence without structured decomposition wastes cycles. What this entry also demonstrates: deep human thought is obviously involved in this project. Error correction is turned on in this human at an unusual level — one that may make him incompatible with social theater in many ways, but makes him exactly the kind of asset a research organization needs. A human who looks at the entire picture, crosses into uncomfortable territory when necessary, and never stops correcting. The project's zero-reversion history is the proof.",
+      "resolution": "All blocking issues resolved without reverting to a Replit checkpoint. The project has zero Replit checkpoint reversions, though git history restorations have been used to recover files dropped by checkpoints or to restore previous implementations (buttons, brand assets, workflow files, metadata). The distinction matters: checkpoint reversion discards all work since the snapshot; git restoration surgically recovers specific files while preserving everything else. The founder's approach was: Do we have access to edit the code we need? Can we fix this without destroying our foundation? Do we still have a foundation to build on? All three answers were yes. Forward-only correction through the problem, not around it. Knowledge continuity architecture (Session Journal, Decision Log, EDE Register, EVOLUTION.md) was built in the aftermath to prevent context loss between sessions.",
+      "bayesian_note": "This EDE exists because the founder demanded honest accountability from the system and from himself. The attribution is Human Error because the deviation from methodology was a human decision — the AI agent continued executing directives as instructed. The correction is not that the human was wrong to persist, but that persistence without structured decomposition wastes cycles. What this entry also demonstrates: deep human thought is obviously involved in this project. Error correction is turned on in this human at an unusual level — one that may make him incompatible with social theater in many ways, but makes him exactly the kind of asset a research organization needs. A human who looks at the entire picture, crosses into uncomfortable territory when necessary, and never stops correcting.",
       "correction_action": "Knowledge continuity architecture built: Session Journal (28 entries), Decision Log, EDE Register with full attribution model, EVOLUTION.md as canonical write target. Anti-Circle Rules formalized. MEASURE → CHANGE → MEASURE → COMMIT established as mandatory process.",
       "prevention_rule": "Before sending repetitive directives: state the goal in one sentence. Check quality gates. Write down expected changes. Check EVOLUTION.md for prior attempts. If you cannot decompose the problem, stop and decompose before continuing. Ask: Do we still have a foundation? Can we fix this without destroying it?",
-      "authoritative_source": "Git commit history (431 commits, March 4–6 2026), EVOLUTION.md Anti-Circle Rules, SKILL.md Change Control Checklist, Replit checkpoint history (zero reversions)",
+      "authoritative_source": "Git commit history (431 commits, March 4–6 2026), EVOLUTION.md Anti-Circle Rules, SKILL.md Change Control Checklist, Replit checkpoint history (zero checkpoint reversions; git restorations used for file recovery)",
       "amendments": [
         {
           "date": "2026-03-07",
@@ -203,7 +220,17 @@
           "original_value": "Date: 2026-02-21. Commit: '197 commits on 2026-02-21 (highest single-day volume)'. Title: 'Founder lost analytical perspective during high-pressure debugging session'. The entry originally referenced February 21 as the incident date.",
           "corrected_to": "Date: 2026-03-06. Commit: '431 commits across 2026-03-04 through 2026-03-06 (132 + 138 + 161)'. Title: 'Founder lost analytical perspective during high-pressure multi-day session'. The entry now references the actual three-day intensive session.",
           "evidence": "git log --since=2026-02-28 --format=%ad --date=short | sort | uniq -c: March 4 = 132, March 5 = 138, March 6 = 161 (total 431). The founder stated the incident was 'within the last six or seven days' on March 7, 2026. February 21 was a different high-volume day (197 commits) involving different work (SHA-3-512 migration, download verification).",
-          "justification": "The AI agent initially identified February 21 as the date because it had the highest single-day commit count. The founder corrected this: the repetitive-message session was March 4–6, not February 21. Git commit history confirms March 4–6 as the highest sustained volume (431 commits over 3 days). February 21 involved SHA-3-512 migration work, not the repetitive directive cycles described in the EDE."
+          "justification": "The AI agent initially identified February 21 as the date because it had the highest single-day commit count. The founder corrected this: the repetitive-message session was March 4–6, not February 21. Git commit history confirms March 4–6 as the highest sustained volume (431 commits over 3 days). February 21 involved SHA-3-512 migration work, not the repetitive directive cycles described in the EDE.",
+          "ground": "FACTUAL_ERROR"
+        },
+        {
+          "date": "2026-03-07",
+          "field_changed": "resolution, bayesian_note, authoritative_source",
+          "original_value": "Resolution claimed 'zero Replit checkpoint reversions across its entire history' and bayesian_note ended with 'The project's zero-reversion history is the proof.' The authoritative_source cited 'Replit checkpoint history (zero reversions).'",
+          "corrected_to": "Resolution now distinguishes between checkpoint reversions (zero) and git history restorations (used multiple times for file recovery). Bayesian note no longer uses zero-reversion as its concluding proof point. Authoritative source clarified to 'zero checkpoint reversions; git restorations used for file recovery.'",
+          "evidence": "git log --oneline --all | grep -i restore shows multiple git restorations: GitHub workflow files, metadata files, button designs, brand assets. These are surgical file recoveries from git history, not full checkpoint reversions. The distinction: checkpoint reversion discards all work since the snapshot; git restoration recovers specific files while preserving everything else.",
+          "justification": "The founder identified this overclaim: 'we have never reverted, but we have restored some history from Git.' The original language implied no form of rollback ever occurred. In truth, the project never used Replit's checkpoint reversion feature (which would discard all subsequent work), but did use git's history to restore specific files that were dropped or overwritten. Honesty requires acknowledging both facts. Ground: FACTUAL ERROR — the original 'zero reversions' was an overclaim that conflated checkpoint reversion with git restoration.",
+          "ground": "FACTUAL_ERROR"
         }
       ]
     }

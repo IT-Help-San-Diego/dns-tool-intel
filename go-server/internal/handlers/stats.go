@@ -19,6 +19,7 @@ import (
 )
 
 type EDEAmendment struct {
+        Ground        string `json:"ground"`
         Date          string `json:"date"`
         FieldChanged  string `json:"field_changed"`
         OriginalValue string `json:"original_value"`
