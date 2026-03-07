@@ -16,6 +16,7 @@ replit.md
 docs/legacy/src/
 docs/legacy/tests/
 docs/legacy/migrations/
+docs/EVOLUTION_APPEND_*.md
 
 # Build artifacts
 coverage.out
