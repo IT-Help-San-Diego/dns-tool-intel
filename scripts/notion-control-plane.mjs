@@ -49,6 +49,16 @@ async function findOrCreateDatabase(notion, parentId, title, properties) {
   });
   if (existing) {
     console.log(`  Found existing: "${title}" → ${existing.id}`);
+    const existingProps = Object.keys(existing.properties || {});
+    const desiredProps = Object.keys(properties);
+    const missing = desiredProps.filter(p => !existingProps.includes(p));
+    if (missing.length > 0) {
+      console.log(`  Migrating schema: adding ${missing.join(', ')}`);
+      const patch = {};
+      for (const p of missing) patch[p] = properties[p];
+      await notion.databases.update({ database_id: existing.id, properties: patch });
+      console.log(`  Schema migration complete`);
+    }
     return existing.id;
   }
 
@@ -102,15 +112,27 @@ async function createSessionJournal(notion, parentId) {
     "Changes Made": { rich_text: {} },
     "Files Modified": { rich_text: {} },
     "Version": { rich_text: {} },
+    "Lesson ID": { rich_text: {} },
+    "Root Cause": { rich_text: {} },
+    "Prevention Rule": { rich_text: {} },
+    "Follow-up Items": { rich_text: {} },
+    "Resolved In": { rich_text: {} },
+    "Unresolved": { checkbox: {} },
     "Session Type": {
       select: {
         options: [
           { name: "Feature", color: "blue" },
           { name: "Fix", color: "orange" },
+          { name: "Bug Fix", color: "orange" },
           { name: "Refactor", color: "purple" },
           { name: "Pipeline", color: "green" },
           { name: "Documentation", color: "yellow" },
           { name: "Research", color: "red" },
+          { name: "Security", color: "red" },
+          { name: "Quality", color: "green" },
+          { name: "Governance", color: "purple" },
+          { name: "Testing", color: "blue" },
+          { name: "Infrastructure", color: "gray" },
         ]
       }
     },
@@ -131,6 +153,10 @@ async function createEDERegister(notion, parentId) {
           { name: "resolver_trust", color: "orange" },
           { name: "false_positive", color: "red" },
           { name: "confidence_decay", color: "yellow" },
+          { name: "governance_correction", color: "pink" },
+          { name: "citation_error", color: "brown" },
+          { name: "overclaim", color: "gray" },
+          { name: "standards_misattribution", color: "default" },
         ]
       }
     },
@@ -141,6 +167,19 @@ async function createEDERegister(notion, parentId) {
           { name: "significant", color: "orange" },
           { name: "moderate", color: "yellow" },
           { name: "minor", color: "green" },
+          { name: "High", color: "orange" },
+          { name: "Medium", color: "yellow" },
+          { name: "Low", color: "green" },
+        ]
+      }
+    },
+    "Attribution": {
+      select: {
+        options: [
+          { name: "Human Error", color: "orange" },
+          { name: "AI Error", color: "red" },
+          { name: "Both", color: "purple" },
+          { name: "Process Gap", color: "yellow" },
         ]
       }
     },
@@ -170,6 +209,9 @@ async function createEDERegister(notion, parentId) {
     }},
     "Resolution": { rich_text: {} },
     "Confidence Impact": { rich_text: {} },
+    "Correction Action": { rich_text: {} },
+    "Prevention Rule": { rich_text: {} },
+    "Authoritative Source": { rich_text: {} },
   });
 }
 
