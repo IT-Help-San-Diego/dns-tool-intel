@@ -1,4 +1,15 @@
-{{template "head" .}}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>Email Signature — DNS Tool</title>
+    {{template "critical_css" .}}
+    <style nonce="{{.CspNonce}}">
+    #sigFrame { width: 100%; border: 0; min-height: 240px; background: #111827; border-radius: 8px; }
+    #sigPreviewWrap { background-color: #111827; border-radius: 0 0 6px 6px; }
+    </style>
+</head>
 <body class="bg-dark text-light" data-version="{{.AppVersion}}">
     {{template "nav" .}}
     <main class="container py-4" style="max-width:740px;">
@@ -10,72 +21,8 @@
                 <span class="small text-muted">{{icon "envelope" "me-2 text-brand-gold"}}Preview</span>
                 <button type="button" class="btn btn-sm btn-outline-warning" id="btnCopy">{{icon "copy" "me-1"}}Copy Signature</button>
             </div>
-            <div class="card-body p-3" style="background-color:#1a1f2e;">
-                <div id="sigPreview">
-                    <table cellpadding="0" cellspacing="0" border="0" align="left" width="560" style="border-collapse:separate; border-spacing:0; background-color:#111827; border-radius:10px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; width:560px; table-layout:fixed; overflow:hidden;" bgcolor="#111827">
-                        <tbody>
-                            <tr>
-                                <td colspan="3" height="3" style="height:3px; background:linear-gradient(90deg,#c8a878,#d4af37,#c8a878); font-size:0; line-height:0;" bgcolor="#c8a878">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px 14px 12px 14px; vertical-align:middle; background-color:#111827;" bgcolor="#111827">
-                                    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse; width:100%; table-layout:fixed;">
-                                        <tbody>
-                                            <tr>
-                                                <td width="156" style="width:156px; padding:0; vertical-align:middle; background-color:#111827;" bgcolor="#111827">
-                                                    <table cellpadding="0" cellspacing="0" border="0" width="156" style="width:156px; border-collapse:collapse;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td align="center" valign="middle" style="padding:4px 14px 4px 0; background-color:#111827;" bgcolor="#111827">
-                                                                    <a href="https://dnstool.it-help.tech" style="text-decoration:none; display:block;">
-                                                                        <img src="https://dnstool.it-help.tech/images/owl-of-athena.png" width="140" height="140" alt="Owl of Athena" style="display:block; border:0; outline:none; text-decoration:none; border-radius:50%; border:2px solid rgba(200,168,120,0.35); box-shadow:0 0 0 1px rgba(200,168,120,0.12);" />
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                                <td width="1" style="width:1px; background-color:rgba(200,168,120,0.25); font-size:0; line-height:0;" bgcolor="#3d3526">&nbsp;</td>
-                                                <td style="vertical-align:middle; padding-left:14px;" bgcolor="#111827">
-                                                    <div style="font-size:18px; font-weight:800; letter-spacing:-0.5px; margin:0 0 3px 0; line-height:1.1;">
-                                                        <span style="color:#c8a878;">IT</span><span style="color:#c42a2a;">+</span><span style="color:#c8a878;">HELP</span>&nbsp;<span style="color:#6b7280; font-size:11px; letter-spacing:1.8px; font-weight:500;">SAN DIEGO</span>
-                                                    </div>
-
-                                                    <div style="font-size:10px; color:#6b7280; margin:0 0 8px 0; font-style:italic; line-height:1.3; letter-spacing:0.3px;">
-                                                        We solve tech problems. No monthly retainers.
-                                                    </div>
-
-                                                    <div style="font-size:12px; color:#d1d5db; line-height:1.5; margin:0;">
-                                                        <strong style="color:#e5e7eb;">Carey Balboa</strong>&nbsp;<span style="color:#6b7280;">|</span>&nbsp;<span style="color:#9ca3af;">Director of Technology</span><br>
-                                                        <span style="color:#6b7280;">ORCID:&nbsp;<a href="https://orcid.org/0009-0000-5237-9065" style="color:#c8a878; text-decoration:none;">0009-0000-5237-9065</a></span><br>
-                                                        <span style="color:#6b7280;">Independent DNS Security Researcher</span><br>
-                                                        <span style="color:#6b7280;">Research artifact:&nbsp;<a href="https://doi.org/10.5281/zenodo.18854899" style="color:#c8a878; text-decoration:none;">DNS Tool (DOI: 10.5281/zenodo.18854899)</a></span><br>
-                                                        <span style="color:#6b7280;">Methodology:&nbsp;<a href="https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf" style="color:#c8a878; text-decoration:none;">dns-tool-methodology.pdf</a></span><br>
-                                                        <span style="color:#6b7280;"><a href="tel:+16198535008" style="color:#c8a878; text-decoration:none;">+1 (619) 853-5008</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="mailto:carey.balboa@it-help.tech" style="color:#c8a878; text-decoration:none;">carey.balboa@it-help.tech</a></span>
-                                                    </div>
-
-                                                    <div style="height:8px; font-size:0; line-height:0;">&nbsp;</div>
-
-                                                    <div style="border-top:1px solid rgba(200,168,120,0.18); padding-top:8px; font-size:11px; color:#6b7280; line-height:1.4; margin:0;">
-                                                        <strong style="color:#9ca3af; font-weight:600;">IT Help San Diego Inc.</strong><br>
-                                                        888 Prospect Street, Suite 200<br>
-                                                        La Jolla, CA 92037<br>
-                                                        <a href="https://www.it-help.tech" style="color:#c8a878; text-decoration:none;">www.it-help.tech</a>
-                                                        <span style="color:#374151;">&nbsp;|&nbsp;</span>
-                                                        <a href="https://dnstool.it-help.tech" style="color:#c8a878; text-decoration:none;">DNS Security Tool</a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" height="1" style="height:1px; background-color:rgba(200,168,120,0.18); font-size:0; line-height:0;" bgcolor="#2a2418">&nbsp;</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card-body p-3" id="sigPreviewWrap">
+                <iframe id="sigFrame" src="/signature?mode=raw" frameborder="0" scrolling="no" title="Email signature preview" aria-label="Email signature preview"></iframe>
             </div>
         </div>
 
@@ -111,21 +58,35 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    document.getElementById('btnCopy').addEventListener('click', function() {
-        var el = document.getElementById('sigPreview');
-        var range = document.createRange();
-        range.selectNodeContents(el);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        try {
-            document.execCommand('copy');
-            this.textContent = 'Copied!';
-            var btn = this;
-            setTimeout(function() { btn.innerHTML = '<svg class="icon me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M208 0H332.1c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9V336c0 26.5-21.5 48-48 48H208c-26.5 0-48-21.5-48-48V48c0-26.5 21.5-48 48-48zM48 128h80v64H64v256h192v-32h64v48c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V176c0-26.5 21.5-48 48-48z"/></svg>Copy Signature'; }, 2000);
-        } catch (e) {}
-        sel.removeAllRanges();
-    });
+    (function() {
+        var iframe = document.getElementById('sigFrame');
+        iframe.addEventListener('load', function() {
+            try {
+                var doc = iframe.contentDocument || iframe.contentWindow.document;
+                var h = doc.body.scrollHeight + 20;
+                iframe.style.height = h + 'px';
+            } catch(e) {}
+        });
+        document.getElementById('btnCopy').addEventListener('click', function() {
+            try {
+                var doc = iframe.contentDocument || iframe.contentWindow.document;
+                var tbl = doc.querySelector('table');
+                if (!tbl) return;
+                var range = doc.createRange();
+                range.selectNodeContents(tbl);
+                var sel = iframe.contentWindow.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                iframe.contentDocument.execCommand('copy');
+                sel.removeAllRanges();
+                this.textContent = 'Copied!';
+                var btn = this;
+                setTimeout(function() { btn.innerHTML = '\u2398 Copy Signature'; }, 2000);
+            } catch (e) {
+                window.open('/signature?mode=raw', '_blank');
+            }
+        });
+    })();
     </script>
 </body>
 </html>
