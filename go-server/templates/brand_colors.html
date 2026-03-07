@@ -201,14 +201,14 @@
             <div class="col-lg-10">
 
                 <div class="brand-header text-center">
-                    <h1 class="h2 mb-2"><i class="fas fa-palette me-2 text-info"></i>Brand Colors</h1>
+                    <h1 class="h2 mb-2">{{icon "palette" "me-2 text-info"}}Brand Colors</h1>
                     <p class="text-muted mb-1">DNS Tool by IT Help San Diego Inc.</p>
                     <p class="text-muted small mb-0">Canonical palette and standards-aligned color reference for design, engineering, and vendor handoff.</p>
                 </div>
 
                 <div class="d-flex align-items-start gap-3 mb-4 p-3 rounded bc-info-box">
                     <div class="section-icon section-icon-info">
-                        <i class="fas fa-info-circle"></i>
+                        {{icon "info-circle"}}
                     </div>
                     <div>
                         <strong class="d-block mb-1 bc-standards-title">Standards Alignment</strong>
@@ -219,7 +219,7 @@
                 <!-- ===================== BRAND PALETTE ===================== -->
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <div class="section-icon section-icon-info">
-                        <i class="fas fa-droplet"></i>
+                        {{icon "droplet"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Brand Palette</h2>
@@ -245,7 +245,7 @@
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <div class="section-icon section-icon-success">
-                        <i class="fas fa-circle-check"></i>
+                        {{icon "circle-check"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Status &amp; Severity Colors</h2>
@@ -270,7 +270,7 @@
                 <!-- ===================== STATUS SURFACES ===================== -->
                 <div class="d-flex align-items-center gap-2 mb-3 mt-4">
                     <div class="section-icon section-icon-neutral">
-                        <i class="fas fa-layer-group"></i>
+                        {{icon "layer-group"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Surface Tints</h2>
@@ -296,7 +296,7 @@
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <div class="section-icon section-icon-amber">
-                        <i class="fas fa-traffic-light"></i>
+                        {{icon "traffic-light"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Traffic Light Protocol (TLP) v2.0</h2>
@@ -322,7 +322,7 @@
                             <div class="color-token">{{$c.Token}}</div>
                             <div class="color-value" data-copy="{{$c.Value}}">{{$c.Value}}</div>
                             {{if $c.Notes}}<div class="color-notes">{{$c.Notes}}</div>{{end}}
-                            {{if $c.Source}}<div class="color-source"><a href="{{$c.SourceURL}}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> {{$c.Source}}</a></div>{{end}}
+                            {{if $c.Source}}<div class="color-source"><a href="{{$c.SourceURL}}" target="_blank" rel="noopener">{{icon "external-link-alt"}} {{$c.Source}}</a></div>{{end}}
                         </div>
                     </div>
                     {{end}}
@@ -332,7 +332,7 @@
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <div class="section-icon section-icon-danger">
-                        <i class="fas fa-gauge-high"></i>
+                        {{icon "gauge-high"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">CVSS v3.1 Severity Scale</h2>
@@ -354,7 +354,7 @@
                             <div class="color-token">{{$c.Token}}</div>
                             <div class="color-value" data-copy="{{$c.Value}}">{{$c.Value}}</div>
                             {{if $c.Notes}}<div class="color-notes">{{$c.Notes}}</div>{{end}}
-                            {{if $c.Source}}<div class="color-source"><a href="{{$c.SourceURL}}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> {{$c.Source}}</a></div>{{end}}
+                            {{if $c.Source}}<div class="color-source"><a href="{{$c.SourceURL}}" target="_blank" rel="noopener">{{icon "external-link-alt"}} {{$c.Source}}</a></div>{{end}}
                         </div>
                     </div>
                     {{end}}
@@ -364,7 +364,7 @@
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <div class="section-icon section-icon-info">
-                        <i class="fas fa-file-lines"></i>
+                        {{icon "file-lines"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Documentation &amp; Citation Standard</h2>
@@ -401,7 +401,7 @@
 
                 <div class="d-flex align-items-start gap-3 mb-3 p-3 rounded bc-info-box">
                     <div class="section-icon section-icon-neutral">
-                        <i class="fas fa-circle-info"></i>
+                        {{icon "circle-info"}}
                     </div>
                     <div>
                         <p class="text-muted small mb-0"><strong>Why NIST over APA/Chicago?</strong> APA and Chicago are academic and publishing standards — they read as humanities or social science, not security operations. NIST SP 800-series is the native language of the cybersecurity community this tool serves: NIST, CISA, RFC authors, and enterprise security teams. IEEE citation format is adopted only for numbered protocol references within the NIST document structure.</p>
@@ -412,7 +412,7 @@
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <div class="section-icon section-icon-neutral">
-                        <i class="fas fa-book"></i>
+                        {{icon "book"}}
                     </div>
                     <div>
                         <h2 class="h5 mb-0">Usage Rules</h2>

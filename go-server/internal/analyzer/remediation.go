@@ -897,7 +897,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 				classification: "no_mail_verified",
 				label:          "No-Mail Domain — Fully Hardened",
 				color:          "success",
-				icon:           "fas fa-shield-alt",
+				icon:           "shield-alt",
 				summary:        "This domain declares it does not send or receive email and has all three RFC-recommended controls in place: Null MX (RFC 7505), SPF -all (RFC 7208), and DMARC reject (RFC 7489).",
 				isNoMail:       true,
 			}
@@ -906,7 +906,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 			classification: "no_mail_partial",
 			label:          "No-Mail Domain — Incomplete Hardening",
 			color:          colorHigh,
-			icon:           "fas fa-exclamation-triangle",
+			icon:           "exclamation-triangle",
 			summary:        "This domain publishes a Null MX record (RFC 7505) declaring it does not accept email, but is missing additional hardening controls needed to fully prevent spoofing.",
 			isNoMail:       true,
 		}
@@ -916,7 +916,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 			classification: "no_mail_intent",
 			label:          "Probable No-Mail Domain — Needs Formal Declaration",
 			color:          "info",
-			icon:           "fas fa-info-circle",
+			icon:           "info-circle",
 			summary:        "This domain has no MX records and an SPF -all policy, which suggests it is intended to be a no-mail domain. However, it is missing the formal Null MX record (RFC 7505) that explicitly declares this intent. Adding the standard no-mail DNS records would make this intention unambiguous to all mail servers.",
 			isNoMail:       true,
 		}
@@ -926,7 +926,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 			classification: "protected",
 			label:          "Strongly Protected",
 			color:          "success",
-			icon:           "fas fa-shield-alt",
+			icon:           "shield-alt",
 			summary:        "SPF, DKIM, and DMARC reject policy observed — strong anti-spoofing controls detected.",
 		}
 	}
@@ -935,7 +935,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 			classification: "partial",
 			label:          "Moderately Protected",
 			color:          colorHigh,
-			icon:           "fas fa-exclamation-triangle",
+			icon:           "exclamation-triangle",
 			summary:        "Core email authentication controls observed but DMARC enforcement could be strengthened.",
 		}
 	}
@@ -944,7 +944,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 			classification: "minimal",
 			label:          "Limited Protection",
 			color:          colorHigh,
-			icon:           "fas fa-exclamation-circle",
+			icon:           "exclamation-circle",
 			summary:        "Some email authentication controls observed but critical components are missing.",
 		}
 	}
@@ -952,7 +952,7 @@ func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps proto
 		classification: "unprotected",
 		label:          "Unprotected",
 		color:          "danger",
-		icon:           "fas fa-times-circle",
+		icon:           "times-circle",
 		summary:        "No email authentication controls observed — this domain appears vulnerable to spoofing.",
 	}
 }

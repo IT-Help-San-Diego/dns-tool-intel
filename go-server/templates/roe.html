@@ -129,19 +129,19 @@
                 <div class="col-lg-9 col-xl-8">
 
                     <div class="text-center mb-4">
-                        <h1 class="fw-bold mb-2"><i class="fas fa-shield-alt me-2 text-info"></i>Rules of Engagement</h1>
+                        <h1 class="fw-bold mb-2">{{icon "shield-alt" "me-2 text-info"}}Rules of Engagement</h1>
                         <p class="text-muted lead">What we scan, what we don&rsquo;t, and where we draw the line.</p>
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-crosshairs"></i>Purpose &amp; Mission</h2>
+                        <h2>{{icon "crosshairs"}}Purpose &amp; Mission</h2>
                         <p>DNS Tool is a passive OSINT platform. We observe. We don&rsquo;t exploit. Period.</p>
                         <p>Every query we make is something any DNS resolver, mail server, or web browser already does millions of times a day. We read what&rsquo;s publicly available, analyze it with RFC-grounded intelligence, and present findings you can independently verify. That&rsquo;s the entire scope.</p>
                         <p class="mb-0">There is no grey area here. We built this platform to help defenders understand their own infrastructure &mdash; not to give attackers a head start.</p>
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-check-circle"></i>What We Do</h2>
+                        <h2>{{icon "check-circle"}}What We Do</h2>
                         <ul class="mb-0">
                             <li><strong>Read public DNS records</strong> &mdash; A, AAAA, MX, TXT, NS, SOA, CAA, CNAME, DNSKEY, DS, NSEC, SVCB/HTTPS, TLSA. Standard queries via five independent resolvers.</li>
                             <li><strong>Check publicly accessible URLs</strong> &mdash; MTA-STS policy files, BIMI records, well-known paths. The same GET requests your browser makes.</li>
@@ -153,7 +153,7 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-ban"></i>What We Don&rsquo;t Do</h2>
+                        <h2>{{icon "ban"}}What We Don&rsquo;t Do</h2>
                         <ul>
                             <li>No vulnerability scanning</li>
                             <li>No exploitation of any kind</li>
@@ -167,7 +167,7 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-terminal"></i>The Nmap Decision</h2>
+                        <h2>{{icon "terminal"}}The Nmap Decision</h2>
                         <p>Our probe infrastructure uses Nmap &mdash; yes, that Nmap. But with a very deliberate constraint. We allow <strong>exactly six</strong> NSE scripts:</p>
                         <div class="mb-3">
                             <span class="roe-script-tag">ssl-cert</span>
@@ -186,7 +186,7 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-search"></i>Expanded Exposure Checks</h2>
+                        <h2>{{icon "search"}}Expanded Exposure Checks</h2>
                         <p>These are opt-in, sequential, and rate-limited. They check for common misconfigurations that are visible to anyone with a browser:</p>
                         <ul>
                             <li>Exposed <code>.git</code> directories</li>
@@ -198,14 +198,14 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-eye"></i>The Sidewalk Observer</h2>
+                        <h2>{{icon "eye"}}The Sidewalk Observer</h2>
                         <p>Think of it this way: a penetration tester tries to break into your house. They test the locks, check the windows, try the back door.</p>
                         <p>We observe that your front door is locked from the sidewalk. That&rsquo;s it.</p>
                         <p class="mb-0">That&rsquo;s the line, and we stay on this side of it.</p>
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-biohazard"></i>Covert Recon Mode</h2>
+                        <h2>{{icon "biohazard"}}Covert Recon Mode</h2>
                         <p>Same intelligence data. Different cognitive lens.</p>
                         <p>The adversarial interface exists for education &mdash; to help defenders think like attackers. When you see your domain through red-tinted glass, you ask different questions. You notice things the blue-team view normalizes. That&rsquo;s the point.</p>
                         <p><strong>No additional scanning or probing is performed.</strong> Covert Recon Mode doesn&rsquo;t unlock secret capabilities or hidden scanners. It reframes the same publicly available data through an offensive-awareness perspective.</p>
@@ -215,7 +215,7 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-database"></i>Data Handling</h2>
+                        <h2>{{icon "database"}}Data Handling</h2>
                         <ul>
                             <li><strong>DNS queries</strong> &mdash; Live, every time. Cache disabled (TTL=0). When you change a record and rescan, you see the new state immediately.</li>
                             <li><strong>RDAP data</strong> &mdash; Cached 24 hours. This is rate-limit protection &mdash; registrar RDAP services throttle aggressively, and hammering them helps nobody.</li>
@@ -227,23 +227,23 @@
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-user-shield"></i>Your Responsibilities</h2>
+                        <h2>{{icon "user-shield"}}Your Responsibilities</h2>
                         <p>This platform produces intelligence. What you do with it is your decision and your responsibility.</p>
                         <p>If you use intelligence from this platform to attack, disrupt, or exploit any system &mdash; that&rsquo;s on you. Not on us. Not on the tool.</p>
                         <p class="mb-0">DNS Tool exists for defense, education, and awareness. Use it that way.</p>
                     </div>
 
                     <div class="roe-section">
-                        <h2><i class="fas fa-envelope"></i>Contact &amp; Updates</h2>
+                        <h2>{{icon "envelope"}}Contact &amp; Updates</h2>
                         <p>Found a vulnerability in DNS Tool itself? We have a <a href="/security-policy" class="text-info text-decoration-none">Security Policy &amp; Safe Harbor</a> that protects good-faith security researchers. Report it responsibly and we&rsquo;ll work with you.</p>
                         <p class="mb-0">These Rules of Engagement may be updated as the platform evolves. New capabilities will be documented here with the same transparency. The ethical boundary doesn&rsquo;t move &mdash; but the specifics of what we scan and how we scan it will grow over time, and you deserve to know exactly what that looks like.</p>
                     </div>
 
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-4 mb-2">
-                        <a href="/approach" class="roe-nav-btn"><i class="fas fa-flask me-1"></i>Our Methodology</a>
-                        <a href="/sources" class="roe-nav-btn"><i class="fas fa-diagram-project me-1"></i>Intelligence Sources</a>
-                        <a href="/security-policy" class="roe-nav-btn"><i class="fas fa-lock me-1"></i>Security Policy</a>
-                        <a href="/about" class="roe-nav-btn"><i class="fas fa-book-open me-1"></i>Origin Story</a>
+                        <a href="/approach" class="roe-nav-btn">{{icon "flask" "me-1"}}Our Methodology</a>
+                        <a href="/sources" class="roe-nav-btn">{{icon "diagram-project" "me-1"}}Intelligence Sources</a>
+                        <a href="/security-policy" class="roe-nav-btn">{{icon "lock" "me-1"}}Security Policy</a>
+                        <a href="/about" class="roe-nav-btn">{{icon "book-open" "me-1"}}Origin Story</a>
                     </div>
 
                 </div>

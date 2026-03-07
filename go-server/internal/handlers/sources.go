@@ -62,7 +62,7 @@ func getDNSSources() []IntelSource {
 	return []IntelSource{
 		{
 			Name:       "Multi-Resolver DNS Consensus",
-			Icon:       "fas fa-network-wired",
+			Icon:       "network-wired",
 			Category:   strPrimary,
 			Purpose:    "All DNS record queries (A, AAAA, MX, NS, TXT, CNAME, DNSKEY, DS, TLSA, CAA, HTTPS, SVCB, CDS, CDNSKEY, SMIMEA, OPENPGPKEY). Five resolvers queried in parallel with majority-agreement consensus to detect censorship, poisoning, or propagation delays.",
 			Method:     "UDP/TCP DNS queries with DoH (DNS-over-HTTPS) fallback",
@@ -73,7 +73,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "Cloudflare DNS (1.1.1.1)",
-			Icon:       "fas fa-shield-alt",
+			Icon:       "shield-alt",
 			Category:   strResolver,
 			Purpose:    "Primary consensus resolver. Privacy-focused, DNSSEC-validating resolver operated by Cloudflare.",
 			Method:     "UDP/TCP with DoH fallback via https://cloudflare-dns.com/dns-query",
@@ -84,7 +84,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "Google Public DNS (8.8.8.8)",
-			Icon:       "fas fa-globe",
+			Icon:       "globe",
 			Category:   strResolver,
 			Purpose:    "Primary consensus resolver. Globally distributed, DNSSEC-validating resolver operated by Google.",
 			Method:     "UDP/TCP with DoH fallback via https://dns.google/resolve",
@@ -95,7 +95,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "Quad9 (9.9.9.9)",
-			Icon:       "fas fa-shield-alt",
+			Icon:       "shield-alt",
 			Category:   strResolver,
 			Purpose:    "Consensus resolver with threat-intelligence filtering. Swiss-based nonprofit, DNSSEC-validating.",
 			Method:     "UDP/TCP with DoH fallback via https://dns.quad9.net/dns-query",
@@ -106,7 +106,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "OpenDNS / Cisco Umbrella (208.67.222.222)",
-			Icon:       "fas fa-globe-americas",
+			Icon:       "globe-americas",
 			Category:   strResolver,
 			Purpose:    "Consensus resolver. Enterprise-grade resolver operated by Cisco.",
 			Method:     "UDP/TCP",
@@ -117,7 +117,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "DNS4EU (86.54.11.100)",
-			Icon:       "fas fa-flag",
+			Icon:       "flag",
 			Category:   strResolver,
 			Purpose:    "EU-sovereign consensus resolver. Operated by a European Commission-funded consortium across 10 EU member states. Unfiltered variant, DNSSEC-validating, GDPR-compliant. Infrastructure exclusively within EU borders.",
 			Method:     "UDP/TCP with DoH fallback via https://unfiltered.joindns4.eu/dns-query",
@@ -128,7 +128,7 @@ func getDNSSources() []IntelSource {
 		},
 		{
 			Name:       "Authoritative NS Direct Query",
-			Icon:       "fas fa-server",
+			Icon:       "server",
 			Category:   strPrimary,
 			Purpose:    "Direct queries to the domain's own authoritative nameservers for DKIM selector probing, delegation checks, and DNSSEC chain validation. Bypasses resolver caching for ground-truth data.",
 			Method:     "UDP/TCP DNS queries to authoritative NS IPs",
@@ -143,7 +143,7 @@ func getInfraSources() []IntelSource {
 	return []IntelSource{
 		{
 			Name:       "Reverse DNS (PTR Records)",
-			Icon:       "fas fa-arrows-rotate",
+			Icon:       "arrows-rotate",
 			Category:   strPrimary,
 			Purpose:    "Identifies hosting providers by resolving IP addresses back to hostnames. A PTR record for a CloudFront IP returns server-xxx.cloudfront.net, directly revealing the hosting provider without any third-party API.",
 			Method:     "Standard DNS PTR query (dig -x)",
@@ -153,7 +153,7 @@ func getInfraSources() []IntelSource {
 		},
 		{
 			Name:       "Team Cymru IP-to-ASN Mapping",
-			Icon:       "fas fa-diagram-project",
+			Icon:       "diagram-project",
 			Category:   "Community",
 			Purpose:    "Maps IP addresses to their owning Autonomous System Number (ASN) and organization. Identifies whether an IP belongs to AWS (AS16509), Cloudflare (AS13335), Google (AS15169), etc. Used for CDN/edge detection and infrastructure attribution.",
 			Method:     "DNS TXT queries to origin.asn.cymru.com (IPv4) and origin6.asn.cymru.com (IPv6)",
@@ -164,7 +164,7 @@ func getInfraSources() []IntelSource {
 		},
 		{
 			Name:       "SMTP Transport Probing",
-			Icon:       "fas fa-envelope",
+			Icon:       "envelope",
 			Category:   strPrimary,
 			Purpose:    "Live STARTTLS verification of mail servers. Tests TLS version support, cipher suites, certificate validity, and DANE/TLSA matching. Falls back to DNS-inferred analysis when direct connection is unavailable.",
 			Method:     "TCP connection to port 25 with STARTTLS negotiation",
@@ -179,7 +179,7 @@ func getThreatSources() []IntelSource {
 	return []IntelSource{
 		{
 			Name:       "OpenPhish Community Feed",
-			Icon:       "fas fa-fish",
+			Icon:       "fish",
 			Category:   "Community",
 			Purpose:    "Community-maintained phishing URL feed used by the Email Header Analyzer to cross-reference URLs found in email bodies and headers against confirmed phishing campaigns. Cached locally with a 12-hour TTL.",
 			Method:     "HTTPS fetch of plain-text URL list from GitHub-hosted public feed",
@@ -195,7 +195,7 @@ func getHistorySources() []IntelSource {
 	return []IntelSource{
 		{
 			Name:       "Certificate Transparency (crt.sh)",
-			Icon:       "fas fa-certificate",
+			Icon:       "certificate",
 			Category:   "Public Log",
 			Purpose:    "Discovers subdomains by searching Certificate Transparency logs for all SSL/TLS certificates ever issued for a domain. Reveals infrastructure that may not be publicly linked.",
 			Method:     "HTTPS query to crt.sh PostgreSQL interface",
@@ -211,7 +211,7 @@ func getMetaSources() []IntelSource {
 	return []IntelSource{
 		{
 			Name:       "IANA RDAP",
-			Icon:       "fas fa-building",
+			Icon:       "building",
 			Category:   "Registry",
 			Purpose:    "Registration Data Access Protocol — the modern successor to WHOIS. Retrieves domain registrar, registration dates, status codes, and nameserver delegation from the authoritative registry.",
 			Method:     methodHTTPSREST,
@@ -222,7 +222,7 @@ func getMetaSources() []IntelSource {
 		},
 		{
 			Name:       "IETF Datatracker",
-			Icon:       "fas fa-briefcase",
+			Icon:       "briefcase",
 			Category:   "Reference",
 			Purpose:    "Fetches RFC metadata (titles, status, obsoleted-by) for all cited RFCs. Ensures RFC references in remediation guidance are current and accurate.",
 			Method:     methodHTTPSREST,
@@ -233,7 +233,7 @@ func getMetaSources() []IntelSource {
 		},
 		{
 			Name:       "ip-api.com",
-			Icon:       "fas fa-earth-americas",
+			Icon:       "earth-americas",
 			Category:   "Supplemental",
 			Purpose:    "Visitor IP geolocation only (your location flag in the footer). Not used for any analysis data. Degrades gracefully on failure.",
 			Method:     methodHTTPSREST,

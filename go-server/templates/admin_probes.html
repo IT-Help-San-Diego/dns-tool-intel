@@ -82,16 +82,16 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-satellite-dish me-2"></i>Probe Management
+                    {{icon "satellite-dish" "me-2"}}Probe Management
                 </h1>
                 <p class="text-muted mb-0">Monitor, update, and audit distributed probe infrastructure</p>
             </div>
             <div>
                 <a href="/ops" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-arrow-left me-1"></i>Dashboard
+                    {{icon "arrow-left" "me-1"}}Dashboard
                 </a>
                 <a href="/ops/operations" class="btn btn-outline-info">
-                    <i class="fas fa-terminal me-1"></i>Operations
+                    {{icon "terminal" "me-1"}}Operations
                 </a>
             </div>
         </div>
@@ -100,9 +100,9 @@
         <div class="probe-result mb-4">
             <div class="d-flex align-items-center gap-2 mb-2">
                 {{if .ActionResult.Success}}
-                <span class="text-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                <span class="text-success">{{icon "check-circle" "me-1"}}Completed</span>
                 {{else}}
-                <span class="text-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>
+                <span class="text-danger">{{icon "times-circle" "me-1"}}Failed</span>
                 {{end}}
                 <span class="fw-bold">{{.ActionResult.Probe.Label}}</span>
                 <span class="badge bg-secondary">{{.ActionResult.Action}}</span>
@@ -112,7 +112,7 @@
         </div>
         {{end}}
 
-        <h2 class="h5 mb-3"><i class="fas fa-server me-2 text-info"></i>Probe Nodes</h2>
+        <h2 class="h5 mb-3">{{icon "server" "me-2 text-info"}}Probe Nodes</h2>
 
         {{if .Probes}}
         <div class="probe-grid mb-4">
@@ -120,7 +120,7 @@
             <div class="probe-card">
                 <div class="probe-card-header">
                     <div>
-                        <span class="fw-semibold"><i class="fas fa-satellite-dish me-1 text-info"></i>{{$probe.Label}}</span>
+                        <span class="fw-semibold">{{icon "satellite-dish" "me-1 text-info"}}{{$probe.Label}}</span>
                         <div class="small text-muted mt-1">{{$probe.ID}}</div>
                     </div>
                     {{$health := index $.HealthResults $i}}
@@ -144,25 +144,25 @@
                     <form method="POST" action="/ops/probes/{{$probe.ID}}/health" class="m-0">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-success btn-sm text-nowrap">
-                            <i class="fas fa-heartbeat me-1"></i>Health
+                            {{icon "heartbeat" "me-1"}}Health
                         </button>
                     </form>
                     <form method="POST" action="/ops/probes/{{$probe.ID}}/audit" class="m-0">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-info btn-sm text-nowrap">
-                            <i class="fas fa-shield-alt me-1"></i>Audit
+                            {{icon "shield-alt" "me-1"}}Audit
                         </button>
                     </form>
                     <form method="POST" action="/ops/probes/{{$probe.ID}}/update" class="m-0 probe-confirm-form" data-confirm="Run full system update on {{$probe.Label}}?">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-warning btn-sm text-nowrap">
-                            <i class="fas fa-arrow-circle-up me-1"></i>Update
+                            {{icon "arrow-circle-up" "me-1"}}Update
                         </button>
                     </form>
                     <form method="POST" action="/ops/probes/{{$probe.ID}}/restart" class="m-0 probe-confirm-form" data-confirm="Restart probe service on {{$probe.Label}}?">
                         <input type="hidden" name="csrf_token" value="{{$.CsrfToken}}">
                         <button type="submit" class="btn btn-outline-danger btn-sm text-nowrap">
-                            <i class="fas fa-sync me-1"></i>Restart
+                            {{icon "sync" "me-1"}}Restart
                         </button>
                     </form>
                 </div>
@@ -171,12 +171,12 @@
         </div>
         {{else}}
         <div class="alert alert-secondary">
-            <i class="fas fa-info-circle me-1"></i>No probes configured. Set PROBE_API_URL and/or PROBE_API_URL_2 environment variables.
+            {{icon "info-circle" "me-1"}}No probes configured. Set PROBE_API_URL and/or PROBE_API_URL_2 environment variables.
         </div>
         {{end}}
 
         <div class="text-muted small mt-4">
-            <i class="fas fa-info-circle me-1"></i>Health checks use HTTPS API calls. Update, restart, and audit use SSH with ed25519 keys. Update has a 120-second timeout.
+            {{icon "info-circle" "me-1"}}Health checks use HTTPS API calls. Update, restart, and audit use SSH with ed25519 keys. Update has a 120-second timeout.
         </div>
 
     </main>

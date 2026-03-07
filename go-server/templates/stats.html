@@ -466,13 +466,13 @@
                             <span class="stats-hero-dot"></span>
                             Live Telemetry
                         </div>
-                        <h1><i class="fas fa-chart-bar me-2 u-text-blue-bright"></i>Analysis Statistics</h1>
+                        <h1>{{icon "chart-bar" "me-2 u-text-blue-bright"}}Analysis Statistics</h1>
                         <p class="stats-hero-sub">Platform telemetry &mdash; DNS intelligence operations, query distribution, and global reach</p>
                     </div>
                 </div>
                 <a href="/confidence" class="stats-confidence-preview text-decoration-none">
                     <div class="stats-confidence-preview-icon">
-                        <i class="fas fa-flask"></i>
+                        {{icon "flask"}}
                     </div>
                     <div class="stats-confidence-preview-body">
                         <div class="stats-confidence-preview-title">Intelligence Confidence Audit Engine</div>
@@ -489,46 +489,46 @@
                         </div>
                     </div>
                     <div class="stats-confidence-preview-link">
-                        <span class="btn"><i class="fas fa-arrow-right me-1"></i>Open Engine</span>
+                        <span class="btn">{{icon "arrow-right" "me-1"}}Open Engine</span>
                     </div>
                 </a>
             </div>
 
             <div class="stats-kpi-grid">
                 <div class="stats-kpi kpi-total">
-                    <div class="stats-kpi-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="stats-kpi-icon">{{icon "satellite-dish"}}</div>
                     <div class="stats-kpi-value">{{.TotalAnalyses}}</div>
                     <div class="stats-kpi-label">Total Analyses</div>
                 </div>
                 <div class="stats-kpi kpi-success">
-                    <div class="stats-kpi-icon"><i class="fas fa-check-double"></i></div>
+                    <div class="stats-kpi-icon">{{icon "check-double"}}</div>
                     <div class="stats-kpi-value">{{.SuccessfulAnalyses}}</div>
                     <div class="stats-kpi-label">Successful</div>
                 </div>
                 <div class="stats-kpi kpi-failed">
-                    <div class="stats-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stats-kpi-icon">{{icon "exclamation-triangle"}}</div>
                     <div class="stats-kpi-value">{{.FailedAnalyses}}</div>
                     <div class="stats-kpi-label">Failed</div>
                 </div>
                 <div class="stats-kpi kpi-unique">
-                    <div class="stats-kpi-icon"><i class="fas fa-fingerprint"></i></div>
+                    <div class="stats-kpi-icon">{{icon "fingerprint"}}</div>
                     <div class="stats-kpi-value">{{.UniqueDomains}}</div>
                     <div class="stats-kpi-label">Unique Domains</div>
                 </div>
                 <div class="stats-kpi kpi-visitors">
-                    <div class="stats-kpi-icon"><i class="fas fa-users"></i></div>
+                    <div class="stats-kpi-icon">{{icon "users"}}</div>
                     <div class="stats-kpi-value">{{.UniqueVisitors}}</div>
                     <div class="stats-kpi-label">Unique Visitors</div>
                 </div>
                 <div class="stats-kpi kpi-rate">
-                    <div class="stats-kpi-icon"><i class="fas fa-gauge-high"></i></div>
+                    <div class="stats-kpi-icon">{{icon "gauge-high"}}</div>
                     <div class="stats-kpi-value">
                         {{if gt .TotalAnalyses 0}}{{successRate .SuccessfulAnalyses .TotalAnalyses}}%{{else}}0%{{end}}
                     </div>
                     <div class="stats-kpi-label">Success Rate</div>
                 </div>
                 <div class="stats-kpi kpi-success">
-                    <div class="stats-kpi-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stats-kpi-icon">{{icon "check-circle"}}</div>
                     <div class="stats-kpi-value">{{.RemediatedDomains}}</div>
                     <div class="stats-kpi-label">Domains Remediated</div>
                 </div>
@@ -536,7 +536,7 @@
 
             <div class="stats-section">
                 <div class="stats-section-header">
-                    <i class="fas fa-globe-americas stats-section-icon"></i>
+                    {{icon "globe-americas" "stats-section-icon"}}
                     <h2 class="stats-section-title">Global Reach</h2>
                 </div>
                 <div class="stats-section-body">
@@ -554,7 +554,7 @@
                     </div>
                     {{else}}
                     <div class="stats-empty">
-                        <i class="fas fa-globe"></i>
+                        {{icon "globe"}}
                         <p>Country data will appear here as visitors analyze domains</p>
                     </div>
                     {{end}}
@@ -564,7 +564,7 @@
             <div class="stats-data-grid">
                 <div class="stats-section">
                     <div class="stats-section-header">
-                        <i class="fas fa-trophy stats-section-icon"></i>
+                        {{icon "trophy" "stats-section-icon"}}
                         <h2 class="stats-section-title">Most Analyzed Domains</h2>
                     </div>
                     <div class="stats-section-body u-pad-half-0">
@@ -580,7 +580,7 @@
                         </ul>
                         {{else}}
                         <div class="stats-empty">
-                            <i class="fas fa-chart-bar"></i>
+                            {{icon "chart-bar"}}
                             <p>No analysis data available yet</p>
                         </div>
                         {{end}}
@@ -589,7 +589,7 @@
 
                 <div class="stats-section">
                     <div class="stats-section-header">
-                        <i class="fas fa-wave-square stats-section-icon"></i>
+                        {{icon "wave-square" "stats-section-icon"}}
                         <h2 class="stats-section-title">Recent Daily Activity</h2>
                     </div>
                     <div class="stats-section-body u-pad-half-075">
@@ -624,7 +624,7 @@
                         </div>
                         {{else}}
                         <div class="stats-empty">
-                            <i class="fas fa-calendar"></i>
+                            {{icon "calendar"}}
                             <p>No daily statistics available yet</p>
                         </div>
                         {{end}}
@@ -635,13 +635,13 @@
             {{if gt .TotalAnalyses 0}}
             <div class="stats-section">
                 <div class="stats-section-header">
-                    <i class="fas fa-microscope stats-section-icon"></i>
+                    {{icon "microscope" "stats-section-icon"}}
                     <h2 class="stats-section-title">Operational Insights</h2>
                 </div>
                 <div class="stats-section-body">
                     <div class="stats-insights-grid">
                         <div class="stats-insight stats-insight-perf">
-                            <div class="stats-insight-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <div class="stats-insight-icon">{{icon "tachometer-alt"}}</div>
                             <div>
                                 <div class="stats-insight-label">Performance</div>
                                 <div class="stats-insight-value">
@@ -654,7 +654,7 @@
                             </div>
                         </div>
                         <div class="stats-insight stats-insight-rel">
-                            <div class="stats-insight-icon"><i class="fas fa-shield-alt"></i></div>
+                            <div class="stats-insight-icon">{{icon "shield-alt"}}</div>
                             <div>
                                 <div class="stats-insight-label">Reliability</div>
                                 <div class="stats-insight-value">
@@ -667,7 +667,7 @@
                             </div>
                         </div>
                         <div class="stats-insight stats-insight-use">
-                            <div class="stats-insight-icon"><i class="fas fa-project-diagram"></i></div>
+                            <div class="stats-insight-icon">{{icon "project-diagram"}}</div>
                             <div>
                                 <div class="stats-insight-label">Coverage</div>
                                 <div class="stats-insight-value">
@@ -682,7 +682,7 @@
 
             <div class="stats-section">
                 <div class="stats-section-header">
-                    <i class="fas fa-flask stats-section-icon"></i>
+                    {{icon "flask" "stats-section-icon"}}
                     <h2 class="stats-section-title">Epistemic Disclosure Events</h2>
                 </div>
                 <div class="stats-section-body">
@@ -727,11 +727,11 @@
                         <div class="u-fs-085em u-fw-600 u-color-body mb-1">{{.Title}}</div>
                         <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-gold-dim">Confidence Impact:</strong> {{.ConfidenceImpact}}</div>
                         <div class="u-fs-075em u-color-muted-dim mb-1"><strong class="u-color-success">Resolution:</strong> {{.Resolution}}</div>
-                        <div class="u-fs-07em u-color-muted-xdim fst-italic"><i class="fas fa-flask me-1 u-fs-06em"></i>{{.BayesianNote}}</div>
+                        <div class="u-fs-07em u-color-muted-xdim fst-italic">{{icon "flask" "me-1 u-fs-06em"}}{{.BayesianNote}}</div>
                     </div>
                     {{end}}
 
-                    <p class="text-muted mt-3 mb-0 u-fs-075em"><i class="fas fa-lock me-1"></i>EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
+                    <p class="text-muted mt-3 mb-0 u-fs-075em">{{icon "lock" "me-1"}}EDEs are maintained as a permanent, append-only record &mdash; entries are never deleted or silently revised. All analysis outputs are SHA-3-512 hashed at export, providing tamper-evident snapshots of the scoring state at each point in time. Protocols affected by an EDE undergo recalibration through the <a href="/confidence" class="text-info text-decoration-none">ICIE/ICAE pipeline</a> before updated scores are published.</p>
                 </div>
             </div>
 

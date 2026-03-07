@@ -103,13 +103,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-shield-alt me-2"></i>Drift Timeline
+                    {{icon "shield-alt" "me-2"}}Drift Timeline
                 </h1>
                 <p class="text-muted mb-0">Posture changes for <strong class="text-info">{{.Domain}}</strong></p>
             </div>
             <div>
                 <a href="/dossier?domain={{.Domain}}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-arrow-left me-1"></i>Back to Dossier
+                    {{icon "arrow-left" "me-1"}}Back to Dossier
                 </a>
             </div>
         </div>
@@ -117,7 +117,7 @@
         {{if .HasDrift}}
         <div class="card mb-4">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="fas fa-exchange-alt text-warning"></i>
+                {{icon "exchange-alt" "text-warning"}}
                 <span class="fw-medium">Drift Events</span>
                 <span class="badge bg-secondary ms-1">{{len .DriftEvents}}</span>
             </div>
@@ -140,10 +140,10 @@
                                     </div>
                                     <div class="d-flex gap-2">
                                         <a href="/analysis/{{$ev.PrevAnalysisID}}/view" class="btn btn-outline-secondary btn-sm" title="View previous analysis">
-                                            <i class="fas fa-arrow-left me-1"></i>Previous
+                                            {{icon "arrow-left" "me-1"}}Previous
                                         </a>
                                         <a href="/analysis/{{$ev.AnalysisID}}/view" class="btn btn-outline-primary btn-sm" title="View current analysis">
-                                            Current<i class="fas fa-arrow-right ms-1"></i>
+                                            Current{{icon "arrow-right" "ms-1"}}
                                         </a>
                                     </div>
                                 </div>
@@ -155,7 +155,7 @@
                                         <div class="fw-medium small mb-1">{{$f.Label}}</div>
                                         <div class="small">
                                             <span class="text-danger">{{$f.Previous}}</span>
-                                            <i class="fas fa-long-arrow-alt-right text-muted mx-1"></i>
+                                            {{icon "long-arrow-alt-right" "text-muted mx-1"}}
                                             <span class="text-success">{{$f.Current}}</span>
                                         </div>
                                     </div>
@@ -165,7 +165,7 @@
 
                                 <div class="small text-muted mt-2">
                                     Hash: <span class="font-monospace">{{$ev.PrevHashShort}}</span>
-                                    <i class="fas fa-long-arrow-alt-right mx-1"></i>
+                                    {{icon "long-arrow-alt-right" "mx-1"}}
                                     <span class="font-monospace">{{$ev.CurrentHashShort}}</span>
                                 </div>
                             </div>
@@ -178,7 +178,7 @@
         {{else}}
         <div class="card mb-4">
             <div class="card-body text-center py-5">
-                <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                {{icon "shield-alt" "icon-3x text-muted mb-3"}}
                 <h4 class="text-muted">No Drift Events</h4>
                 <p class="text-muted mb-0">No posture changes have been detected for <strong>{{.Domain}}</strong>. Drift events are recorded when the security posture hash changes between analyses.</p>
             </div>
@@ -188,7 +188,7 @@
         {{if .HashHistory}}
         <div class="card mb-4">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="fas fa-fingerprint text-info"></i>
+                {{icon "fingerprint" "text-info"}}
                 <span class="fw-medium">Posture Hash History</span>
                 <span class="badge bg-secondary ms-1">{{len .HashHistory}}</span>
             </div>
@@ -208,7 +208,7 @@
                                 <td class="small text-muted">
                                     {{$h.CreatedAt}}
                                     {{if $h.HashChanged}}
-                                        <i class="fas fa-exchange-alt text-warning ms-1" title="Hash changed from previous analysis"></i>
+                                        {{icon "exchange-alt" "text-warning ms-1"}}
                                     {{end}}
                                 </td>
                                 <td>
@@ -220,7 +220,7 @@
                                 </td>
                                 <td>
                                     <a href="/analysis/{{$h.ID}}/view" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye me-1"></i>View
+                                        {{icon "eye" "me-1"}}View
                                     </a>
                                 </td>
                             </tr>

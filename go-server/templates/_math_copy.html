@@ -11,10 +11,10 @@
         ta.remove();
     }
     function showCopied(btn) {
-        btn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+        btn.innerHTML = '{{icon "check"}}';
         btn.classList.add('math-copy-btn--copied');
         setTimeout(function() {
-            btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+            btn.innerHTML = '{{icon "copy"}}';
             btn.classList.remove('math-copy-btn--copied');
         }, 1500);
     }
@@ -25,7 +25,7 @@
         btn.className = 'math-copy-btn';
         btn.title = 'Copy LaTeX';
         btn.ariaLabel = 'Copy LaTeX formula';
-        btn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+        btn.innerHTML = '{{icon "copy"}}';
         block.appendChild(btn);
         btn.addEventListener('click', function() {
             const latex = block.dataset.latex;

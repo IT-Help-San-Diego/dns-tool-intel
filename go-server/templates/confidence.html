@@ -29,7 +29,7 @@
         <div class="text-center mb-5">
             <h1 class="fw-bold mb-3">Intelligence Confidence Levels</h1>
             <p class="text-muted mb-0">
-                <i class="fas fa-flask me-1"></i> Intelligence Confidence Audit Engine (ICAE)
+                {{icon "flask" "me-1"}} Intelligence Confidence Audit Engine (ICAE)
             </p>
             <p class="text-muted mt-2 mx-auto u-max-w-640">
                 Operational confidence posture for every DNS intelligence protocol.
@@ -77,7 +77,7 @@
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body pb-2">
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-                    <h2 class="h5 fw-bold mb-0"><i class="fas fa-th me-2 text-info"></i>Intelligence Confidence Matrix</h2>
+                    <h2 class="h5 fw-bold mb-0">{{icon "th" "me-2 text-info"}}Intelligence Confidence Matrix</h2>
                     <span class="icae-overall-badge icae-overall-badge-{{.ICAEMetrics.OverallMaturity}}">
                         <span class="icae-dot icae-dot-inline icae-dot-color-{{.ICAEMetrics.OverallMaturity}}"></span>
                         {{.ICAEMetrics.OverallMaturityDisplay}}
@@ -155,24 +155,24 @@
                     </div>
                     {{if or .LastRegressionAt .FirstPassAt .LastEvaluatedAt}}
                     <div class="icae-cal-meta">
-                        {{if .LastRegressionAt}}<span class="icae-cal-regression"><i class="fas fa-exclamation-triangle me-1"></i>Last regression: {{.LastRegressionAt}}</span>{{end}}
-                        {{if .FirstPassAt}}<span class="icae-cal-meta-item"><i class="fas fa-bolt me-1"></i>First pass: {{.FirstPassAt}}</span>{{end}}
-                        {{if .LastEvaluatedAt}}<span class="icae-cal-meta-item"><i class="fas fa-clock me-1"></i>Last evaluated: {{.LastEvaluatedAt}}</span>{{end}}
+                        {{if .LastRegressionAt}}<span class="icae-cal-regression">{{icon "exclamation-triangle" "me-1"}}Last regression: {{.LastRegressionAt}}</span>{{end}}
+                        {{if .FirstPassAt}}<span class="icae-cal-meta-item">{{icon "bolt" "me-1"}}First pass: {{.FirstPassAt}}</span>{{end}}
+                        {{if .LastEvaluatedAt}}<span class="icae-cal-meta-item">{{icon "clock" "me-1"}}Last evaluated: {{.LastEvaluatedAt}}</span>{{end}}
                     </div>
                     {{end}}
                     {{if and .HasAnalysis (not .AtMaxTier)}}
                     <div class="icae-cal-progress">
-                        <span class="icae-cal-progress-label"><i class="fas fa-arrow-up me-1"></i><span class="icae-cal-progress-label-analysis">Analysis</span> → <span class="icae-stat-{{.NextTierKey}}">{{.NextTierName}}</span></span>
-                        <span class="icae-cal-progress-item {{if .PassesMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .PassesMet}}<i class="fas fa-check-circle me-1"></i>{{else}}<i class="fas fa-clock me-1"></i>{{end}}{{.AnalysisPasses}}/{{.NextTierPasses}} passes</span>
-                        {{if gt .NextTierDays 0}}<span class="icae-cal-progress-item {{if .DaysMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .DaysMet}}<i class="fas fa-check-circle me-1"></i>{{else}}<i class="fas fa-clock me-1"></i>{{end}}{{.DaysElapsed}}/{{.NextTierDays}} days</span>{{end}}
+                        <span class="icae-cal-progress-label">{{icon "arrow-up" "me-1"}}<span class="icae-cal-progress-label-analysis">Analysis</span> → <span class="icae-stat-{{.NextTierKey}}">{{.NextTierName}}</span></span>
+                        <span class="icae-cal-progress-item {{if .PassesMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .PassesMet}}{{icon "check-circle" "me-1"}}{{else}}{{icon "clock" "me-1"}}{{end}}{{.AnalysisPasses}}/{{.NextTierPasses}} passes</span>
+                        {{if gt .NextTierDays 0}}<span class="icae-cal-progress-item {{if .DaysMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .DaysMet}}{{icon "check-circle" "me-1"}}{{else}}{{icon "clock" "me-1"}}{{end}}{{.DaysElapsed}}/{{.NextTierDays}} days</span>{{end}}
                         <span class="icae-tier-meter"><span class="icae-tier-meter-fill" data-pct="{{.NextTierPct}}"></span><span class="icae-tier-meter-label">{{.NextTierPct}}%</span></span>
                     </div>
                     {{end}}
                     {{if and .HasCollection (not .ColAtMaxTier)}}
                     <div class="icae-cal-progress">
-                        <span class="icae-cal-progress-label"><i class="fas fa-arrow-up me-1"></i><span class="icae-cal-progress-label-collection">Collection</span> → <span class="icae-stat-{{.ColNextTierKey}}">{{.ColNextTierName}}</span></span>
-                        <span class="icae-cal-progress-item {{if .ColPassesMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .ColPassesMet}}<i class="fas fa-check-circle me-1"></i>{{else}}<i class="fas fa-clock me-1"></i>{{end}}{{.CollectionPasses}}/{{.ColNextTierPasses}} passes</span>
-                        {{if gt .ColNextTierDays 0}}<span class="icae-cal-progress-item {{if .ColDaysMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .ColDaysMet}}<i class="fas fa-check-circle me-1"></i>{{else}}<i class="fas fa-clock me-1"></i>{{end}}{{.ColDaysElapsed}}/{{.ColNextTierDays}} days</span>{{end}}
+                        <span class="icae-cal-progress-label">{{icon "arrow-up" "me-1"}}<span class="icae-cal-progress-label-collection">Collection</span> → <span class="icae-stat-{{.ColNextTierKey}}">{{.ColNextTierName}}</span></span>
+                        <span class="icae-cal-progress-item {{if .ColPassesMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .ColPassesMet}}{{icon "check-circle" "me-1"}}{{else}}{{icon "clock" "me-1"}}{{end}}{{.CollectionPasses}}/{{.ColNextTierPasses}} passes</span>
+                        {{if gt .ColNextTierDays 0}}<span class="icae-cal-progress-item {{if .ColDaysMet}}icae-cal-met{{else}}icae-cal-unmet{{end}}">{{if .ColDaysMet}}{{icon "check-circle" "me-1"}}{{else}}{{icon "clock" "me-1"}}{{end}}{{.ColDaysElapsed}}/{{.ColNextTierDays}} days</span>{{end}}
                         <span class="icae-tier-meter"><span class="icae-tier-meter-fill" data-pct="{{.ColNextTierPct}}"></span><span class="icae-tier-meter-label">{{.ColNextTierPct}}%</span></span>
                     </div>
                     {{end}}
@@ -188,7 +188,7 @@
                     <span class="icae-cal-legend-item"><span class="icae-cal-leg-swatch icae-cal-leg-gm"></span>Gold Master 5K+ &amp; 180d</span>
                 </div>
                 <div class="text-muted small mt-2 pt-2 border-top border-secondary">
-                    <i class="fas fa-info-circle me-1"></i><strong>Effective Maturity</strong> = min(Analysis, Collection).
+                    {{icon "info-circle" "me-1"}}<strong>Effective Maturity</strong> = min(Analysis, Collection).
                     A protocol&rsquo;s assessed level reflects the lower of its two layers &mdash; both collection and analysis
                     must independently reach each threshold. No layer is exempted.
                 </div>
@@ -198,10 +198,10 @@
         {{if .ICAEMetrics.HashAudit}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-fingerprint me-2 text-info"></i>Hash Integrity Audit</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "fingerprint" "me-2 text-info"}}Hash Integrity Audit</h2>
                 <p class="text-muted small mb-3">Every analysis result is SHA-3-512 (Keccak, NIST FIPS 202) hashed at creation using a canonical, deterministic serialization of all protocol findings. This audit recomputes hashes from stored results and compares against the retained posture hash to verify no data has been altered post-analysis.</p>
                 {{if gt .ICAEMetrics.HashAudit.TotalHashedInDB 0}}
-                <p class="text-muted small mb-3"><i class="fas fa-database me-1"></i>Audit window: <strong>{{.ICAEMetrics.HashAudit.TotalAudited}}</strong> of <strong>{{.ICAEMetrics.HashAudit.TotalHashedInDB}}</strong> hashed analyses (most recent 100, ordered by creation date)</p>
+                <p class="text-muted small mb-3">{{icon "database" "me-1"}}Audit window: <strong>{{.ICAEMetrics.HashAudit.TotalAudited}}</strong> of <strong>{{.ICAEMetrics.HashAudit.TotalHashedInDB}}</strong> hashed analyses (most recent 100, ordered by creation date)</p>
                 {{end}}
                 <div class="d-flex flex-wrap gap-3 mb-2">
                     <div class="icae-hash-stat">
@@ -226,12 +226,12 @@
                     </div>
                 </div>
                 {{if and (eq .ICAEMetrics.HashAudit.TotalFailed 0) (gt .ICAEMetrics.HashAudit.TotalVerified 0)}}
-                <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i>All {{.ICAEMetrics.HashAudit.TotalVerified}} of {{.ICAEMetrics.HashAudit.TotalAudited}} audited results verified &mdash; no posture hash mismatches detected. Tamper-evident audit trail intact.</p>
+                <p class="text-success small mb-0">{{icon "check-circle" "me-1"}}All {{.ICAEMetrics.HashAudit.TotalVerified}} of {{.ICAEMetrics.HashAudit.TotalAudited}} audited results verified &mdash; no posture hash mismatches detected. Tamper-evident audit trail intact.</p>
                 {{else if gt .ICAEMetrics.HashAudit.TotalFailed 0}}
-                <p class="text-danger small mb-0"><i class="fas fa-exclamation-triangle me-1"></i>{{.ICAEMetrics.HashAudit.TotalFailed}} hash mismatch(es) detected. Investigate immediately.</p>
+                <p class="text-danger small mb-0">{{icon "exclamation-triangle" "me-1"}}{{.ICAEMetrics.HashAudit.TotalFailed}} hash mismatch(es) detected. Investigate immediately.</p>
                 {{end}}
                 <div class="mt-3 pt-2 border-top border-secondary">
-                    <a href="/confidence/audit-log" class="text-info text-decoration-none small"><i class="fas fa-clipboard-list me-1"></i>Open Accountability Log &mdash; full hash ledger with timestamps</a>
+                    <a href="/confidence/audit-log" class="text-info text-decoration-none small">{{icon "clipboard-list" "me-1"}}Open Accountability Log &mdash; full hash ledger with timestamps</a>
                 </div>
             </div>
         </div>
@@ -240,7 +240,7 @@
         {{if .ICAEMetrics.Regressions}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confidence Degradation Log</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "exclamation-triangle" "me-2 text-warning"}}Confidence Degradation Log</h2>
                 <p class="text-muted small mb-3">Degradation events occur when a previously passing test case fails, resetting the consecutive pass counter. Each event is recorded with the protocol affected and recovery progress.</p>
                 <div class="table-responsive">
                     <table class="table table-dark table-sm mb-0">
@@ -258,7 +258,7 @@
                                 <td><span class="fw-semibold text-info">{{.DisplayName}}</span></td>
                                 <td>{{.OccurredAt}}</td>
                                 <td>{{.RunsSince}}</td>
-                                <td>{{if ge .RunsSince 100}}<span class="text-success"><i class="fas fa-check-circle me-1"></i>Recovered</span>{{else}}<span class="text-warning"><i class="fas fa-sync-alt me-1"></i>Rebuilding</span>{{end}}</td>
+                                <td>{{if ge .RunsSince 100}}<span class="text-success">{{icon "check-circle" "me-1"}}Recovered</span>{{else}}<span class="text-warning">{{icon "sync-alt" "me-1"}}Rebuilding</span>{{end}}</td>
                             </tr>
                             {{end}}
                         </tbody>
@@ -269,15 +269,15 @@
         {{else}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body py-3">
-                <h2 class="h5 fw-bold mb-2"><i class="fas fa-shield-alt me-2 text-success"></i>Confidence Degradation Log</h2>
-                <p class="text-muted small mb-0"><i class="fas fa-check-circle me-1 text-success"></i>No degradation events recorded. All protocols have maintained continuous passing status since first evaluation.</p>
+                <h2 class="h5 fw-bold mb-2">{{icon "shield-alt" "me-2 text-success"}}Confidence Degradation Log</h2>
+                <p class="text-muted small mb-0">{{icon "check-circle" "me-1 text-success"}}No degradation events recorded. All protocols have maintained continuous passing status since first evaluation.</p>
             </div>
         </div>
         {{end}}
 
         <div class="card bg-dark border-secondary mb-5">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icae-test-dossier"><i class="fas fa-flask me-2 text-info"></i>Protocol Test Dossier</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-test-dossier">{{icon "flask" "me-2 text-info"}}Protocol Test Dossier</h2>
                 <p class="text-muted small mb-3">Each protocol is audited against deterministic test cases grounded in specific RFC sections. Below is what ICAE tests for each protocol &mdash; the signals, the standards, and the methodology.</p>
 
                 <div class="row g-3">
@@ -368,14 +368,14 @@
 
         {{else}}
         <div class="alert alert-secondary text-center">
-            <i class="fas fa-info-circle me-1"></i>
+            {{icon "info-circle" "me-1"}}
             Intelligence confidence data is not yet available. Audit runs begin automatically after the first analysis.
         </div>
         {{end}}
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icae-maturity"><i class="fas fa-layer-group me-2 text-info"></i>Maturity Levels</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-maturity">{{icon "layer-group" "me-2 text-info"}}Maturity Levels</h2>
                 <p class="text-muted small mb-3">Modeled after the <strong>Capability Maturity Model (CMM)</strong> developed at Carnegie Mellon&rsquo;s Software Engineering Institute. Five tiers of sustained correctness&nbsp;&mdash; earned through deterministic test runs, never self-assigned.</p>
                 <p class="text-muted small mb-3">The dual-threshold system (consecutive passes AND elapsed time) prevents maturity inflation. A burst of 5,000 runs in one day cannot achieve Gold Master &mdash; the 180-day time requirement ensures tests have run across multiple code versions, infrastructure changes, and resolver conditions. This mirrors how real-world confidence is earned: through sustained performance, not a single marathon session.</p>
                 <div class="row g-3">
@@ -424,13 +424,13 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icae-two-layer"><i class="fas fa-microscope me-2 text-info"></i>Two-Layer Auditing</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-two-layer">{{icon "microscope" "me-2 text-info"}}Two-Layer Auditing</h2>
                 <p class="text-muted mb-3">Each protocol is audited at two independent layers:</p>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body">
-                                <h3 class="h6 fw-bold"><i class="fas fa-database me-1 text-info"></i> Collection Layer</h3>
+                                <h3 class="h6 fw-bold">{{icon "database" "me-1 text-info"}} Collection Layer</h3>
                                 <p class="text-muted small mb-0">Validates that DNS records are queried, retrieved, parsed, and filtered correctly. Tests cover multi-resolver consensus algorithms (5-resolver agreement checks), record type extraction (MX hosts, CAA issuers), record filtering (identifying valid BIMI, MTA-STS, SPF records from TXT noise), TLSA parsing, NS provider classification, and DKIM key parsing. Currently {{if .ICAEMetrics}}{{.ICAEMetrics.TotalCollectionCases}}{{else}}0{{end}} test cases.</p>
                             </div>
                         </div>
@@ -438,7 +438,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body">
-                                <h3 class="h6 fw-bold"><i class="fas fa-search-plus me-1 text-info"></i> Analysis Layer</h3>
+                                <h3 class="h6 fw-bold">{{icon "search-plus" "me-1 text-info"}} Analysis Layer</h3>
                                 <p class="text-muted small mb-0">Validates that collected data is interpreted correctly against RFC standards. Tests cover SPF qualifier classification, DMARC policy enforcement logic, DKIM key strength assessment, DNSSEC chain-of-trust verdicts, brand impersonation verdicts, CAA issuer identification, DANE coverage assessment, and regression guards from every past correctness bug. Currently {{if .ICAEMetrics}}{{.ICAEMetrics.TotalAnalysisCases}}{{else}}0{{end}} test cases.</p>
                             </div>
                         </div>
@@ -449,13 +449,13 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-clock me-2 text-info"></i>Timeout &amp; Efficiency Strategy</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "clock" "me-2 text-info"}}Timeout &amp; Efficiency Strategy</h2>
                 <p class="text-muted small mb-3">DNS Tool manages timeout budgets across multiple concurrent lookups to maximize intelligence coverage while respecting external service constraints.</p>
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-bolt me-1 text-warning"></i> Parallel Execution</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "bolt" "me-1 text-warning"}} Parallel Execution</h3>
                                 <p class="text-muted small mb-0">DNS, SPF, DMARC, DKIM, DNSSEC, CT logs, MTA-STS, TLS-RPT, BIMI, CAA, infrastructure, and security.txt are dispatched concurrently. DANE and SMTP run sequentially after MX resolution. Total analysis targets 10&ndash;30 seconds for most domains.</p>
                             </div>
                         </div>
@@ -463,7 +463,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-stopwatch me-1 text-info"></i> Per-Section Budgets</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "stopwatch" "me-1 text-info"}} Per-Section Budgets</h3>
                                 <p class="text-muted small mb-0">Each section has independent timeout budgets: DNS lookups (5s per resolver), CT log queries (15s with cooldown), SMTP transport probes (10s per host per port), and HTTP fetches for MTA-STS/BIMI/security.txt (3&ndash;5s each). No single section can block the entire analysis.</p>
                             </div>
                         </div>
@@ -471,7 +471,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-shield-alt me-1 text-success"></i> Graceful Degradation</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "shield-alt" "me-1 text-success"}} Graceful Degradation</h3>
                                 <p class="text-muted small mb-0">When a section times out or errors, the analysis continues with remaining sections. Timed-out sections are flagged with a partial-failure banner so you know exactly which data may be incomplete. Re-analysis retries failed sections.</p>
                             </div>
                         </div>
@@ -481,7 +481,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-satellite-dish me-1 text-info"></i> Remote Probe Failover</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "satellite-dish" "me-1 text-info"}} Remote Probe Failover</h3>
                                 <p class="text-muted small mb-0">SMTP probing uses dedicated remote infrastructure (US region) for reliable port 25/465/587 access. If the remote probe is unavailable (network, auth, rate limit), the system falls back to local direct probing. Rate limiting: 30 requests per 60 seconds per client.</p>
                             </div>
                         </div>
@@ -489,7 +489,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-chart-line me-1 text-warning"></i> Efficiency Tracking</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "chart-line" "me-1 text-warning"}} Efficiency Tracking</h3>
                                 <p class="text-muted small mb-0">The ICAE Collection layer audits timeout handling as part of protocol correctness. Proper timeout behavior (returning informational status vs. crashing, logging appropriately, enabling re-analysis) is tested alongside data correctness. Timeout patterns feed into maturity progression.</p>
                             </div>
                         </div>
@@ -500,13 +500,13 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-handshake me-2 text-info"></i>Scanning Philosophy</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "handshake" "me-2 text-info"}}Scanning Philosophy</h2>
                 <p class="text-muted small mb-3">DNS Tool is designed to be a responsible participant in every system it touches. Our approach: gather the intelligence we need while leaving the smallest possible footprint.</p>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-compress-arrows-alt me-1 text-info"></i> Minimal Footprint</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "compress-arrows-alt" "me-1 text-info"}} Minimal Footprint</h3>
                                 <p class="text-muted small mb-0">Analysis uses standard DNS protocol queries and lightweight HTTP HEAD/GET requests with per-section timeout budgets. No brute-force enumeration, no credential stuffing, no port scanning beyond mail transport (25/465/587). Exposure checks use 200ms inter-request delays to avoid overwhelming target infrastructure.</p>
                             </div>
                         </div>
@@ -514,7 +514,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-tachometer-alt me-1 text-success"></i> Adaptive Rate Awareness</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "tachometer-alt" "me-1 text-success"}} Adaptive Rate Awareness</h3>
                                 <p class="text-muted small mb-0">Third-party services (certificate transparency logs, RDAP registries) are monitored with telemetry-based exponential backoff &mdash; automatic cooldown from 5 seconds to 5 minutes when services signal degradation. When a source is unavailable or rate-limited, DNS Tool says so honestly rather than hiding the gap.</p>
                             </div>
                         </div>
@@ -522,7 +522,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-balance-scale me-1 text-warning"></i> Symbiotic Interfacing</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "balance-scale" "me-1 text-warning"}} Symbiotic Interfacing</h3>
                                 <p class="text-muted small mb-0">Every external data source is documented on the <a href="/sources" class="text-info">Sources</a> page with its rate limits, methodology, and verification commands. SecurityTrails is user-key-only and never called automatically. Community services like Team Cymru are queried via standard DNS protocol with no API keys required.</p>
                             </div>
                         </div>
@@ -530,7 +530,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-bullhorn me-1 text-info"></i> Honest Reporting</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "bullhorn" "me-1 text-info"}} Honest Reporting</h3>
                                 <p class="text-muted small mb-0">When a section times out, gets rate-limited, or encounters an error, the report says exactly that &mdash; never &ldquo;no issues found&rdquo; when the data simply could not be checked. Four clear states: success, rate-limited, error, and partial. Transparency is non-negotiable.</p>
                             </div>
                         </div>
@@ -541,7 +541,7 @@
 
         <div class="card bg-dark border-secondary">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-info"></i>Why This Matters</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "shield-alt" "me-2 text-info"}}Why This Matters</h2>
                 <p class="text-muted mb-2">
                     A security grade without a disclosed confidence level is an assertion, not an analysis.
                     The ICAE provides full transparency into analytical correctness &mdash; because the score means nothing if you can&rsquo;t see how certain we are of our own results.
@@ -557,7 +557,7 @@
         <div class="text-center mt-5 mb-4">
             <h2 class="fw-bold mb-3">Intelligence Currency Levels</h2>
             <p class="text-muted mb-0">
-                <i class="fas fa-clock me-1"></i> Intelligence Currency Audit Engine (ICuAE)
+                {{icon "clock" "me-1"}} Intelligence Currency Audit Engine (ICuAE)
             </p>
             <p class="text-muted mt-2 mx-auto u-max-w-640">
                 Companion to ICAE. While ICAE measures <em>correctness</em> (did we interpret the data right?),
@@ -596,7 +596,7 @@
         {{if .ICuAERuntimeMetrics.HasData}}
         <div class="card bg-dark mb-4 border-accent-gold-muted">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-chart-line me-2 text-accent-gold" aria-hidden="true"></i>Runtime Performance</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "chart-line" "me-2 text-accent-gold"}}Runtime Performance</h2>
                 <p class="text-muted small mb-3">ICuAE measures how close each scan&rsquo;s data comes to the <strong>theoretical ideal</strong> &mdash; a perfectly tuned, machine-locked collector that requests every DNS record at exactly the right cadence, receives responses within authoritative TTL windows, achieves complete multi-resolver consensus, and returns a full record set. A score of 100 means the collected data is indistinguishable from ground truth. Because real-world DNS inherently fluctuates (caches age, resolvers disagree, optional records vary by domain), we track <strong>statistical stability</strong> across scans rather than pass/fail maturity.</p>
                 <div class="icuae-summary-bar icuae-runtime-perf mb-3">
                     <div class="icuae-summary-item">
@@ -608,7 +608,7 @@
                         <span class="icuae-summary-label"><span class="badge bg-{{.ICuAERuntimeMetrics.AvgGradeClass}}">{{.ICuAERuntimeMetrics.AvgGradeDisplay}}</span></span>
                     </div>
                     <div class="icuae-summary-item">
-                        <span class="icuae-summary-value"><i class="{{.ICuAERuntimeMetrics.TrendArrow}} me-1"></i></span>
+                        <span class="icuae-summary-value">{{icon .ICuAERuntimeMetrics.TrendArrow "me-1"}}</span>
                         <span class="icuae-summary-label">Trend</span>
                     </div>
                     <div class="icuae-summary-item">
@@ -658,7 +658,7 @@
                             </tr>
                             {{if .TuningHint}}
                             <tr>
-                                <td colspan="5" class="small border-0 pt-0 pb-2 bg-accent-cobalt-subtle"><i class="{{.TuningIcon}} me-1"></i> <strong>Tuning Advisory:</strong> {{.TuningHint}}</td>
+                                <td colspan="5" class="small border-0 pt-0 pb-2 bg-accent-cobalt-subtle">{{icon .TuningIcon "me-1"}} <strong>Tuning Advisory:</strong> {{.TuningHint}}</td>
                             </tr>
                             {{end}}
                             {{end}}
@@ -668,25 +668,25 @@
                 {{end}}
 
                 <div class="mt-3 small text-muted">
-                    <i class="fas fa-info-circle me-1"></i> Last evaluated: {{.ICuAERuntimeMetrics.LastEvaluatedAt}}
+                    {{icon "info-circle" "me-1"}} Last evaluated: {{.ICuAERuntimeMetrics.LastEvaluatedAt}}
                 </div>
             </div>
         </div>
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-graduation-cap me-2 text-accent-gold" aria-hidden="true"></i>Why Track Currency Separately?</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "graduation-cap" "me-2 text-accent-gold"}}Why Track Currency Separately?</h2>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-check-circle me-1 text-accent-cobalt"></i> ICAE &mdash; Correctness</h3>
+                        <h3 class="h6 fw-bold mb-1">{{icon "check-circle" "me-1 text-accent-cobalt"}} ICAE &mdash; Correctness</h3>
                         <p class="text-muted small mb-0">&ldquo;Did we read the data right?&rdquo; ICAE runs deterministic test vectors against our analysis engine. If SPF says <code>~all</code>, does the tool correctly identify it as a softfail? This is pass/fail, so we track consecutive passes and maturity tiers.</p>
                     </div>
                     <div class="col-md-6">
-                        <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1 text-accent-gold" aria-hidden="true"></i> ICuAE &mdash; Currency</h3>
+                        <h3 class="h6 fw-bold mb-1">{{icon "clock" "me-1 text-accent-gold"}} ICuAE &mdash; Currency</h3>
                         <p class="text-muted small mb-0">&ldquo;How close is the collected data to ground truth?&rdquo; ICuAE scores each scan against a theoretical ideal &mdash; a machine-locked collector with perfect TTL compliance, complete records, and full resolver consensus. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0"><i class="fas fa-balance-scale me-1"></i> Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
+                <p class="text-muted small mt-3 mb-0">{{icon "balance-scale" "me-1"}} Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
             </div>
         </div>
         {{end}}
@@ -694,7 +694,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-crosshairs me-2 text-info"></i>Excellence Benchmarks</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "crosshairs" "me-2 text-info"}}Excellence Benchmarks</h2>
                 <p class="text-muted small mb-3">What does &ldquo;near-ideal&rdquo; DNS collection look like in the real world? These targets are derived from large-scale passive DNS observation networks and authoritative resolver operations that approach the theoretical ideal.</p>
                 <div class="table-responsive mb-3">
                     <table class="table table-dark table-sm table-bordered mb-0">
@@ -734,19 +734,19 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="text-muted small mb-0"><i class="fas fa-satellite-dish me-1"></i> <strong>Where these numbers come from:</strong> Farsight Security&rsquo;s DNSDB processes billions of DNS observations daily from sensor networks worldwide. OpenINTEL (University of Twente) performs daily active measurements across all .com, .net, and .org zones. These systems represent the closest real-world approximation to the theoretical machine-locked ideal. Our scoring model uses their operational characteristics as the upper boundary of what is achievable.</p>
+                <p class="text-muted small mb-0">{{icon "satellite-dish" "me-1"}} <strong>Where these numbers come from:</strong> Farsight Security&rsquo;s DNSDB processes billions of DNS observations daily from sensor networks worldwide. OpenINTEL (University of Twente) performs daily active measurements across all .com, .net, and .org zones. These systems represent the closest real-world approximation to the theoretical machine-locked ideal. Our scoring model uses their operational characteristics as the upper boundary of what is achievable.</p>
             </div>
         </div>
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-cogs me-2 text-warning"></i>Self-Tuning Intelligence Pipeline</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "cogs" "me-2 text-warning"}}Self-Tuning Intelligence Pipeline</h2>
                 <p class="text-muted small mb-3">ICuAE is not just a measurement engine &mdash; it is the diagnostic instrument for the collection pipeline itself. By tracking per-dimension statistics across scans, ICuAE identifies exactly which stage of the analysis chain needs attention.</p>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-microscope me-1 text-info"></i> Phase 1: Advisory</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "microscope" "me-1 text-info"}} Phase 1: Advisory</h3>
                                 <p class="text-muted small mb-0">Dimension-level tuning hints surfaced in the Per-Dimension Averages table. When a dimension scores below 90, ICuAE explains what&rsquo;s happening and suggests specific improvements. <span class="badge bg-success">Live</span></p>
                             </div>
                         </div>
@@ -754,7 +754,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-sliders-h me-1 text-warning"></i> Phase 2: Suggested Config</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "sliders-h" "me-1 text-warning"}} Phase 2: Suggested Config</h3>
                                 <p class="text-muted small mb-0">Generate recommended scanner profiles from rolling statistics &mdash; resolver set, retry thresholds, record type priorities &mdash; requiring explicit approval before applying. <span class="badge bg-info">Generation Live</span> <span class="badge bg-secondary">Approval On the Roadmap</span></p>
                             </div>
                         </div>
@@ -762,19 +762,19 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-robot me-1 text-success"></i> Phase 3: Adaptive Tuning</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "robot" "me-1 text-success"}} Phase 3: Adaptive Tuning</h3>
                                 <p class="text-muted small mb-0">Fully automatic, non-destructive adjustments (timing jitter, retries, resolver weighting) with rollback if stability decreases. Gated by minimum sample count and confidence thresholds. <span class="badge bg-secondary">On the Roadmap</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0"><i class="fas fa-flask me-1"></i> <strong>The vision:</strong> With enough scans and enough science, the confidence engine tunes TTLs, resolver weighting, query cadence, and retry logic until the system achieves the highest possible fidelity against the theoretical ideal &mdash; automatically, measurably, and with full provenance.</p>
+                <p class="text-muted small mt-3 mb-0">{{icon "flask" "me-1"}} <strong>The vision:</strong> With enough scans and enough science, the confidence engine tunes TTLs, resolver weighting, query cadence, and retry logic until the system achieves the highest possible fidelity against the theoretical ideal &mdash; automatically, measurably, and with full provenance.</p>
             </div>
         </div>
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-book me-2 text-info"></i>Standards Foundation</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "book" "me-2 text-info"}}Standards Foundation</h2>
                 <p class="text-muted small mb-3">ICuAE is grounded in five authoritative standards from the intelligence community, information quality, and journalism ethics.</p>
                 <div class="row g-3">
                     <div class="col-md-6 col-lg-4">
@@ -823,7 +823,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icuae-dimensions"><i class="fas fa-ruler-combined me-2 text-info"></i>Five Measurement Dimensions</h2>
+                <h2 class="h5 fw-bold mb-3" id="icuae-dimensions">{{icon "ruler-combined" "me-2 text-info"}}Five Measurement Dimensions</h2>
                 <div class="table-responsive">
                     <table class="table table-sm table-dark mb-0">
                         <thead>
@@ -868,7 +868,7 @@
         {{if .ICuAEInventory}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icuae-test-matrix"><i class="fas fa-vial me-2 text-info"></i>Deterministic Test Matrix</h2>
+                <h2 class="h5 fw-bold mb-3" id="icuae-test-matrix">{{icon "vial" "me-2 text-info"}}Deterministic Test Matrix</h2>
                 <p class="text-muted small mb-3">{{.ICuAEInventory.TotalCases}} test cases verify ICuAE scoring logic across all five dimensions. Every grade boundary, edge case, and nil-input path is tested deterministically — no randomness, no approximation.</p>
                 <div class="row g-2">
                     {{range .ICuAEInventory.Categories}}
@@ -876,7 +876,7 @@
                         <div class="card bg-dark border-secondary h-100 icuae-test-card">
                             <div class="card-body py-2 px-3">
                                 <div class="d-flex align-items-center mb-1">
-                                    <i class="{{.Icon}} me-2 text-info"></i>
+                                    {{icon .Icon "me-2 text-info"}}
                                     <span class="fw-bold small">{{.Name}}</span>
                                     <span class="badge bg-info text-dark ms-auto">{{.Cases}}</span>
                                 </div>
@@ -892,7 +892,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-star-half-alt me-2 text-info"></i>Currency Grading Scale</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "star-half-alt" "me-2 text-info"}}Currency Grading Scale</h2>
                 <p class="text-muted small mb-3">
                     The 0&ndash;100 score measures proximity to a <strong>theoretical ideal</strong>: a perfectly tuned collection system that requests every record type at exactly the right cadence, receives responses within authoritative TTL windows, achieves complete multi-resolver consensus, and returns a full record set with zero gaps. A score of 100 means the data is indistinguishable from what an ideally configured, machine-locked collector would produce. Each dimension is scored independently; the overall grade is their average.
                 </p>
@@ -942,7 +942,7 @@
                     </table>
                 </div>
 
-                <p class="text-muted small mb-0"><i class="fas fa-flask me-1"></i> <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-18 (Information Validity) similarly treats data freshness as a measurable property requiring periodic validation. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
+                <p class="text-muted small mb-0">{{icon "flask" "me-1"}} <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-18 (Information Validity) similarly treats data freshness as a measurable property requiring periodic validation. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
             </div>
         </div>
 
@@ -950,11 +950,11 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3" id="icae-math"><i class="fas fa-square-root-alt me-2 text-accent-cobalt" aria-hidden="true"></i>Mathematical Foundations</h2>
+                <h2 class="h5 fw-bold mb-3" id="icae-math">{{icon "square-root-alt" "me-2 text-accent-cobalt"}}Mathematical Foundations</h2>
                 <p class="text-muted small mb-3">Every confidence score is derived from deterministic, standards-grounded mathematics &mdash; not heuristics or machine learning. The formulas below are the actual computations running in the engine.</p>
 
                 <div class="mb-4">
-                    <h3 class="h6 fw-bold mb-2"><i class="fas fa-chart-line me-1 text-accent-gold" aria-hidden="true"></i> EWMA Drift Detection</h3>
+                    <h3 class="h6 fw-bold mb-2">{{icon "chart-line" "me-1 text-accent-gold"}} EWMA Drift Detection</h3>
                     <p class="text-muted small mb-2">The Exponentially Weighted Moving Average tracks currency score stability over time. Each new scan updates the statistic, giving recent observations more weight than historical ones.</p>
                     <div class="math-display" data-latex="Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1}">
                         $$ Z_t = \lambda \cdot X_t + (1 - \lambda) \cdot Z_{t-1} $$
@@ -964,44 +964,44 @@
                         $$ \text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="h6 fw-bold mb-2"><i class="fas fa-flask me-1 text-accent-cobalt" aria-hidden="true"></i> Bayesian Confidence Calibration</h3>
+                    <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Bayesian Confidence Calibration</h3>
                     <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) weights the observation against the prior:</p>
                     <div class="math-display" data-latex="C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
                         $$ C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\text{Beta}(\alpha, \beta)\) is the conjugate prior for the protocol category. The prior mean \(\frac{\alpha}{\alpha+\beta}\) anchors the estimate when measurement quality is low; as resolver agreement increases, the raw observation dominates. Prior parameters evolve via Beta-Bernoulli conjugate updating: each passing test increments \(\alpha\), each failure increments \(\beta\).</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.CalibratedConfidence()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.CalibratedConfidence()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="h6 fw-bold mb-2"><i class="fas fa-clock me-1 text-accent-gold" aria-hidden="true"></i> Currency Score Normalization</h3>
+                    <h3 class="h6 fw-bold mb-2">{{icon "clock" "me-1 text-accent-gold"}} Currency Score Normalization</h3>
                     <p class="text-muted small mb-2">Each ICuAE dimension is scored on a continuous 0&ndash;100 scale. The overall currency score is the weighted mean across all dimensions:</p>
                     <div class="math-display" data-latex="S_{\text{currency}} = \sum_{i=1}^{n} w_i \cdot s_i \quad \text{where} \quad \sum_{i=1}^{n} w_i = 1">
                         $$ S_{\text{currency}} = \sum_{i=1}^{n} w_i \cdot s_i \quad \text{where} \quad \sum_{i=1}^{n} w_i = 1 $$
                     </div>
                     <p class="text-muted small mb-2">Dimension weights are equal by default (each \(w_i = \frac{1}{n}\)). Per ISO/IEC 25012, timeliness is a quantitative data quality dimension &mdash; the continuous score enables statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>icuae/icuae.go</code> &rarr; <code>BuildCurrencyReport()</code> &middot; Five dimensions scored independently via <code>score*</code> functions, averaged into composite grade</p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icuae/icuae.go</code> &rarr; <code>BuildCurrencyReport()</code> &middot; Five dimensions scored independently via <code>score*</code> functions, averaged into composite grade</p>
                 </div>
 
                 <div>
-                    <h3 class="h6 fw-bold mb-2"><i class="fas fa-fingerprint me-1 text-info"></i> Cryptographic Integrity</h3>
+                    <h3 class="h6 fw-bold mb-2">{{icon "fingerprint" "me-1 text-info"}} Cryptographic Integrity</h3>
                     <p class="text-muted small mb-2">Every analysis result is sealed with a SHA-3-512 digest over the canonical JSON representation. The hash function is the NIST FIPS 202 standard (Keccak sponge construction):</p>
                     <div class="math-display" data-latex="H = \text{SHA-3-512}\left(\text{Canonical}(R)\right)">
                         $$ H = \text{SHA-3-512}\left(\text{Canonical}(R)\right) $$
                     </div>
                     <p class="text-muted small mb-2">Where \(R\) is the complete analysis result including metadata, timestamps, and engine versions. The digest is independently verifiable &mdash; anyone with the JSON export can recompute and confirm integrity.</p>
-                    <p class="text-muted small mb-0 opacity-75"><i class="fas fa-code me-1"></i><strong>Implementation:</strong> <code>analyzer/posture_hash.go</code> &rarr; <code>CanonicalPostureHash()</code> &middot; Canonical JSON serialization with deterministic key ordering, verified by <code>icae/hash_audit.go</code></p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>analyzer/posture_hash.go</code> &rarr; <code>CanonicalPostureHash()</code> &middot; Canonical JSON serialization with deterministic key ordering, verified by <code>icae/hash_audit.go</code></p>
                 </div>
             </div>
         </div>
 
         <div class="card bg-dark border-secondary">
             <div class="card-body">
-                <h2 class="h5 fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-info"></i>Dual Engine Architecture</h2>
+                <h2 class="h5 fw-bold mb-3">{{icon "shield-alt" "me-2 text-info"}}Dual Engine Architecture</h2>
                 <p class="text-muted mb-2">
                     DNS Tool employs two companion engines that measure scientifically distinct properties of intelligence quality.
                     ICAE (correctness) and ICuAE (currency) are never conflated &mdash; accuracy and timeliness are independent dimensions
@@ -1011,7 +1011,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark h-100 border-accent-cobalt-subtle">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-flask me-1 text-accent-cobalt" aria-hidden="true"></i> ICAE &mdash; Correctness</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "flask" "me-1 text-accent-cobalt"}} ICAE &mdash; Correctness</h3>
                                 <p class="text-muted small mb-0">&ldquo;Did we interpret the DNS data correctly?&rdquo; Deterministic golden-rule tests with per-protocol maturity tracking and cryptographic hash integrity.</p>
                             </div>
                         </div>
@@ -1019,7 +1019,7 @@
                     <div class="col-md-6">
                         <div class="card bg-dark h-100 border-accent-gold-subtle">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><i class="fas fa-clock me-1 text-accent-gold" aria-hidden="true"></i> ICuAE &mdash; Currency</h3>
+                                <h3 class="h6 fw-bold mb-1">{{icon "clock" "me-1 text-accent-gold"}} ICuAE &mdash; Currency</h3>
                                 <p class="text-muted small mb-0">&ldquo;Is the DNS data still valid/current?&rdquo; Five standards-grounded dimensions evaluated per-scan with TTL-aware validity windows and multi-resolver credibility.</p>
                             </div>
                         </div>

@@ -325,16 +325,16 @@ type CompareSectionDef struct {
 }
 
 var CompareSections = []CompareSectionDef{
-	{mapKeySpfAnalysis, "SPF", "fa-envelope-open-text"},
-	{mapKeyDmarcAnalysis, "DMARC", "fa-shield-alt"},
-	{"dkim_analysis", "DKIM", "fa-key"},
-	{"dnssec_analysis", "DNSSEC", "fa-lock"},
-	{"dane_analysis", "DANE / TLSA", "fa-certificate"},
-	{"mta_sts_analysis", "MTA-STS", "fa-paper-plane"},
-	{"tlsrpt_analysis", "TLS-RPT", "fa-file-alt"},
-	{"bimi_analysis", "BIMI", "fa-image"},
-	{"caa_analysis", "CAA", "fa-certificate"},
-	{mapKeyPosture, "Mail Posture", "fa-mail-bulk"},
+	{mapKeySpfAnalysis, "SPF", "envelope-open-text"},
+	{mapKeyDmarcAnalysis, "DMARC", "shield-alt"},
+	{"dkim_analysis", "DKIM", "key"},
+	{"dnssec_analysis", "DNSSEC", "lock"},
+	{"dane_analysis", "DANE / TLSA", "certificate"},
+	{"mta_sts_analysis", "MTA-STS", "paper-plane"},
+	{"tlsrpt_analysis", "TLS-RPT", "file-alt"},
+	{"bimi_analysis", "BIMI", "image"},
+	{"caa_analysis", "CAA", "certificate"},
+	{mapKeyPosture, "Mail Posture", "mail-bulk"},
 }
 
 var compareSkipKeys = map[string]bool{

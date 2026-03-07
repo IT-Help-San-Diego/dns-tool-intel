@@ -101,12 +101,12 @@
 
         {{if .RequiresAuth}}
         <div class="text-center py-5">
-            <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+            {{icon "briefcase" "icon-3x text-muted mb-3"}}
             <h1 class="h3 mb-2">Intelligence Reports</h1>
             <p class="text-muted mb-4">Sign in to access your intelligence reports and track your domain security assessments.</p>
             {{if .GoogleAuthEnabled}}
             <a href="/auth/login" class="btn btn-primary">
-                <i class="fas fa-key me-2"></i>Sign In to Access Reports
+                {{icon "key" "me-2"}}Sign In to Access Reports
             </a>
             {{end}}
         </div>
@@ -115,13 +115,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-briefcase me-2"></i>Intelligence Reports
+                    {{icon "briefcase" "me-2"}}Intelligence Reports
                 </h1>
                 <p class="text-muted mb-0">Your intelligence reports &mdash; domain assessments initiated by <strong class="text-info">{{.UserName}}</strong></p>
             </div>
             <div class="d-flex gap-2">
                 <a href="/" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i><span class="d-none d-sm-inline">New Assessment</span>
+                    {{icon "plus" "me-1"}}<span class="d-none d-sm-inline">New Assessment</span>
                 </a>
             </div>
         </div>
@@ -130,7 +130,7 @@
         <div class="card mb-3">
             <div class="card-body py-2">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-info"><i class="fas fa-file-alt me-1"></i>{{.TotalReports}} {{if eq .TotalReports 1}}Report{{else}}Reports{{end}}</span>
+                    <span class="badge bg-info">{{icon "file-alt" "me-1"}}{{.TotalReports}} {{if eq .TotalReports 1}}Report{{else}}Reports{{end}}</span>
                     <span class="text-muted small">Analyses correlated to your authenticated session</span>
                 </div>
             </div>
@@ -142,7 +142,7 @@
                 <search><form action="/dossier" method="GET" class="d-flex align-items-center gap-2">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-secondary">
-                            <i class="fas fa-search text-muted"></i>
+                            {{icon "search" "text-muted"}}
                         </span>
                         <input type="text" name="domain" class="form-control border-secondary" 
                                placeholder="Search your assessed domains..." 
@@ -153,7 +153,7 @@
                     <button type="submit" class="btn btn-outline-primary flex-shrink-0">Search</button>
                     {{if .SearchDomain}}
                         <a href="/dossier" class="btn btn-outline-secondary flex-shrink-0" title="Clear search">
-                            <i class="fas fa-times"></i>
+                            {{icon "times"}}
                         </a>
                     {{end}}
                 </form></search>
@@ -193,7 +193,7 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <i class="fas fa-globe text-primary me-2"></i>
+                                            {{icon "globe" "text-primary me-2"}}
                                             <div>
                                                 <div class="fw-medium">{{$a.Domain}}</div>
                                                 {{if ne $a.AsciiDomain $a.Domain}}
@@ -207,12 +207,12 @@
                                             {{if eq $a.SpfStatus "success"}}
                                                 <span class="badge bg-success" title="SPF configured">SPF</span>
                                             {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
-                                                <span class="badge bg-danger" title="SPF missing or misconfigured"><i class="fas fa-times me-1"></i>SPF</span>
+                                                <span class="badge bg-danger" title="SPF missing or misconfigured">{{icon "times" "me-1"}}SPF</span>
                                             {{end}}
                                             {{if eq $a.DmarcStatus "success"}}
                                                 <span class="badge bg-success" title="DMARC configured">DMARC</span>
                                             {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
-                                                <span class="badge bg-danger" title="DMARC missing or misconfigured"><i class="fas fa-times me-1"></i>DMARC</span>
+                                                <span class="badge bg-danger" title="DMARC missing or misconfigured">{{icon "times" "me-1"}}DMARC</span>
                                             {{end}}
                                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
                                                 <span class="badge bg-success" title="DKIM found">DKIM</span>
@@ -241,19 +241,19 @@
                                         <div class="btn-group">
                                             <a href="/analysis/{{$a.ID}}/view" 
                                                class="btn btn-sm btn-outline-primary dossier-view-btn" title="View intelligence report">
-                                                <i class="fas fa-eye"></i>
+                                                {{icon "eye"}}
                                             </a>
                                             <a href="/analyze?domain={{$a.Domain}}" 
                                                class="btn btn-sm btn-outline-success dossier-reanalyze-btn" title="Re-assess now">
-                                                <i class="fas fa-sync-alt"></i>
+                                                {{icon "sync-alt"}}
                                             </a>
                                             <a href="/compare?domain={{$a.Domain}}" 
                                                class="btn btn-sm btn-outline-warning" title="Compare assessments">
-                                                <i class="fas fa-code-compare"></i>
+                                                {{icon "code-compare"}}
                                             </a>
                                             <a href="/drift?domain={{$a.Domain}}" 
                                                class="btn btn-sm btn-outline-info" title="Drift timeline">
-                                                <i class="fas fa-chart-line"></i>
+                                                {{icon "chart-line"}}
                                             </a>
                                         </div>
                                     </td>
@@ -271,7 +271,7 @@
                     <div class="card-body py-2 px-3">
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div class="d-flex align-items-center min-width-0">
-                                <i class="fas fa-globe text-primary me-2 flex-shrink-0"></i>
+                                {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
                                     <div class="fw-medium text-truncate">{{$a.Domain}}</div>
                                 </div>
@@ -279,11 +279,11 @@
                             <div class="btn-group flex-shrink-0 ms-2">
                                 <a href="/analysis/{{$a.ID}}/view" 
                                    class="btn btn-sm btn-outline-primary dossier-view-btn" title="View">
-                                    <i class="fas fa-eye"></i>
+                                    {{icon "eye"}}
                                 </a>
                                 <a href="/analyze?domain={{$a.Domain}}" 
                                    class="btn btn-sm btn-outline-success dossier-reanalyze-btn" title="Re-assess">
-                                    <i class="fas fa-sync-alt"></i>
+                                    {{icon "sync-alt"}}
                                 </a>
                             </div>
                         </div>
@@ -291,12 +291,12 @@
                             {{if eq $a.SpfStatus "success"}}
                                 <span class="badge bg-success u-fs-065rem">SPF</span>
                             {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
-                                <span class="badge bg-danger u-fs-065rem"><i class="fas fa-times me-1"></i>SPF</span>
+                                <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}SPF</span>
                             {{end}}
                             {{if eq $a.DmarcStatus "success"}}
                                 <span class="badge bg-success u-fs-065rem">DMARC</span>
                             {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
-                                <span class="badge bg-danger u-fs-065rem"><i class="fas fa-times me-1"></i>DMARC</span>
+                                <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}DMARC</span>
                             {{end}}
                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
                                 <span class="badge bg-success u-fs-065rem">DKIM</span>
@@ -319,7 +319,7 @@
                         {{if .Pagination.HasPrev}}
                             <li class="page-item">
                                 <a class="page-link" href="/dossier?page={{.Pagination.PrevPage}}{{if .SearchDomain}}&domain={{.SearchDomain}}{{end}}">
-                                    <i class="fas fa-chevron-left"></i> Previous
+                                    {{icon "chevron-left"}} Previous
                                 </a>
                             </li>
                         {{end}}
@@ -345,7 +345,7 @@
                         {{if .Pagination.HasNext}}
                             <li class="page-item">
                                 <a class="page-link" href="/dossier?page={{.Pagination.NextPage}}{{if .SearchDomain}}&domain={{.SearchDomain}}{{end}}">
-                                    Next <i class="fas fa-chevron-right"></i>
+                                    Next {{icon "chevron-right"}}
                                 </a>
                             </li>
                         {{end}}
@@ -355,21 +355,21 @@
         {{else}}
             <div class="text-center py-5">
                 {{if .SearchDomain}}
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    {{icon "search" "icon-3x text-muted mb-3"}}
                     <h4 class="text-muted">No Matching Collections</h4>
                     <p class="text-muted mb-4">No intelligence reports found for "<strong>{{.SearchDomain}}</strong>" in your reports.</p>
                     <a href="/dossier" class="btn btn-outline-secondary me-2">
-                        <i class="fas fa-times me-2"></i>Clear Search
+                        {{icon "times" "me-2"}}Clear Search
                     </a>
                     <a href="/analyze?domain={{.SearchDomain}}" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Assess {{.SearchDomain}}
+                        {{icon "search" "me-2"}}Assess {{.SearchDomain}}
                     </a>
                 {{else}}
-                    <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                    {{icon "briefcase" "icon-3x text-muted mb-3"}}
                     <h4 class="text-muted">No Tasked Collections Yet</h4>
                     <p class="text-muted mb-4">Your intelligence reports are empty. Run a domain security assessment while signed in to begin building your collection.</p>
                     <a href="/" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Start First Assessment
+                        {{icon "search" "me-2"}}Start First Assessment
                     </a>
                 {{end}}
             </div>
@@ -389,7 +389,7 @@
     <output id="dossierAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain assessment">
         <div class="loading-content">
             <div class="loading-spinner">
-                <i class="fas fa-globe fa-spin"></i>
+                {{icon "globe" "icon-spin"}}
             </div>
             <output class="mt-4 mb-2 h4">Running Multi-Source Intelligence Audit</output>
             <p class="text-muted mb-0" id="dossierAnalyzeDomain"></p>

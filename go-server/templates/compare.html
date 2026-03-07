@@ -33,16 +33,16 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1">
-                    <i class="fas fa-code-compare me-2"></i>Comparison: {{.Domain}}
+                    {{icon "code-compare" "me-2"}}Comparison: {{.Domain}}
                 </h1>
                 <p class="text-muted mb-0">Changes between two analyses</p>
             </div>
             <div class="d-flex gap-2">
                 <a href="/compare?domain={{.Domain}}" class="btn btn-outline-secondary">
-                    <i class="fas fa-exchange-alt me-1"></i>Pick Different
+                    {{icon "exchange-alt" "me-1"}}Pick Different
                 </a>
                 <a href="/history?domain={{.Domain}}" class="btn btn-outline-primary">
-                    <i class="fas fa-history me-1"></i>History
+                    {{icon "history" "me-1"}}History
                 </a>
             </div>
         </div>
@@ -81,7 +81,7 @@
         {{if eq .ChangesFound 0}}
             <div class="card mb-4">
                 <div class="card-body text-center py-4">
-                    <i class="fas fa-equals fa-2x text-success mb-3"></i>
+                    {{icon "equals" "icon-2x text-success mb-3"}}
                     <h4 class="text-success">No Changes Detected</h4>
                     <p class="text-muted mb-0">Both analyses produced identical security assessments for all sections.</p>
                 </div>
@@ -97,17 +97,17 @@
             <div class="card-body py-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <i class="fas {{$diff.Icon}} me-2 {{if $diff.Changed}}text-warning{{else}}text-muted{{end}}"></i>
+                        {{if $diff.Changed}}{{icon $diff.Icon "me-2 text-warning"}}{{else}}{{icon $diff.Icon "me-2 text-muted"}}{{end}}
                         <strong>{{$diff.Label}}</strong>
                     </div>
                     <div class="d-flex align-items-center">
                         {{if $diff.Changed}}
                             <span class="badge {{statusBadgeClass $diff.StatusA}}">{{$diff.StatusA}}</span>
-                            <i class="fas fa-arrow-right status-arrow text-warning"></i>
+                            {{icon "arrow-right" "status-arrow text-warning"}}
                             <span class="badge {{statusBadgeClass $diff.StatusB}}">{{$diff.StatusB}}</span>
                         {{else}}
                             <span class="badge {{statusBadgeClass $diff.StatusA}}">{{$diff.StatusA}}</span>
-                            <i class="fas fa-check ms-2 text-success" title="No change"></i>
+                            {{icon "check" "ms-2 text-success"}}
                         {{end}}
                     </div>
                 </div>
@@ -119,7 +119,7 @@
                         <span class="text-muted">{{$ch.Field}}:</span>
                         {{if notNil $ch.Old}}
                             <div class="diff-removed mt-1 small">
-                                <i class="fas fa-minus me-1"></i>
+                                {{icon "minus" "me-1"}}
                                 {{if $ch.IsMap}}
                                     <code>{{truncate 200 $ch.OldStr}}</code>
                                 {{else}}
@@ -129,7 +129,7 @@
                         {{end}}
                         {{if notNil $ch.New}}
                             <div class="diff-added mt-1 small">
-                                <i class="fas fa-plus me-1"></i>
+                                {{icon "plus" "me-1"}}
                                 {{if $ch.IsMap}}
                                     <code>{{truncate 200 $ch.NewStr}}</code>
                                 {{else}}
