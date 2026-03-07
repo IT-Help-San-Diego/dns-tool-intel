@@ -1,21 +1,31 @@
 {
-  "schema_version": 2,
-  "last_updated": "2026-03-03",
+  "schema_version": 3,
+  "last_updated": "2026-03-07",
   "taxonomy": {
     "scoring_calibration": "Confidence weighting or scoring logic required adjustment",
     "evidence_reinterpretation": "Evidence was weighted or classified incorrectly",
     "drift_detection": "Change detection model missed or misidentified a transition",
     "resolver_trust": "Upstream resolver behavior produced misleading results",
     "false_positive": "A finding was asserted that did not reflect reality",
-    "confidence_decay": "Temporal decay model required recalibration"
+    "confidence_decay": "Temporal decay model required recalibration",
+    "governance_correction": "Governance hierarchy, process, or documentation was structurally wrong",
+    "citation_error": "An authoritative source was cited incorrectly or a non-authoritative source was used",
+    "overclaim": "Capability or accuracy language overstated what the system actually does",
+    "standards_misattribution": "A standard, RFC, or specification was mischaracterized or misapplied"
+  },
+  "attribution_model": {
+    "Human Error": "Decision or direction from the human that led to a correction",
+    "AI Error": "Incorrect implementation, citation, or recommendation from the AI agent",
+    "Both": "Human direction and AI implementation both contributed to the error",
+    "Process Gap": "No individual fault — the process or tooling lacked the necessary guard rail"
   },
   "summary": {
-    "total_events": 3,
+    "total_events": 8,
     "open": 0,
-    "closed": 3,
-    "last_event_date": "2026-03-01",
+    "closed": 8,
+    "last_event_date": "2026-03-07",
     "confidence_recalibrations": 2,
-    "protocols_affected": ["DMARC", "DANE", "Drift"]
+    "protocols_affected": ["DMARC", "DANE", "Drift", "SPF", "DKIM"]
   },
   "events": [
     {
@@ -26,10 +36,14 @@
       "severity": "moderate",
       "title": "DMARC confidence weighting adjusted for aggregate-only policies",
       "status": "closed",
+      "attribution": "Process Gap",
       "protocols_affected": ["DMARC"],
       "confidence_impact": "ICIE weight recalibration: p=none+rua now scores higher than p=none without reporting. Prior model treated both identically, understating domains with partial monitoring.",
       "resolution": "Recalibrated ICIE weights to distinguish p=none with rua from p=none without reporting. Affected scans retroactively flagged in drift history.",
-      "bayesian_note": "Heuristic confidence adjustment: the scoring model previously assigned equal weight to p=none regardless of reporting configuration. The presence of rua= is now treated as differentiating evidence that increases the confidence level for partial DMARC deployment."
+      "bayesian_note": "Heuristic confidence adjustment: the scoring model previously assigned equal weight to p=none regardless of reporting configuration. The presence of rua= is now treated as differentiating evidence that increases the confidence level for partial DMARC deployment.",
+      "correction_action": "Updated ICIE weight matrix to differentiate p=none+rua from bare p=none.",
+      "prevention_rule": "All scoring model changes must include edge-case matrix testing for partial deployment states.",
+      "authoritative_source": "RFC 7489 Section 6.3 (aggregate reporting), RFC 7489 Section 6.2 (policy record format)"
     },
     {
       "id": "EDE-002",
@@ -39,10 +53,14 @@
       "severity": "significant",
       "title": "DANE TLSA records accepted without DNSSEC authentication verification",
       "status": "closed",
+      "attribution": "Process Gap",
       "protocols_affected": ["DANE"],
       "confidence_impact": "Verdict logic accepted TLSA records without verifying the DNSSEC AD flag. Confidence was asserted at levels the evidence did not support — DANE requires DNSSEC validation per RFC 6698 §1.",
       "resolution": "TLSA verification now checks DNSSEC AD flag via QueryDNSWithTTL. Records found without authenticated DNSSEC are flagged rather than silently accepted. Confidence engine marks result as low-certainty when authentication status is absent.",
-      "bayesian_note": "Confidence adjustment: TLSA presence was incorrectly treated as sufficient evidence of DANE deployment (near-certainty). Corrected to require DNSSEC authentication status, reflecting that unauthenticated TLSA records provide no security guarantee per RFC 6698."
+      "bayesian_note": "Confidence adjustment: TLSA presence was incorrectly treated as sufficient evidence of DANE deployment (near-certainty). Corrected to require DNSSEC authentication status, reflecting that unauthenticated TLSA records provide no security guarantee per RFC 6698.",
+      "correction_action": "Added DNSSEC AD flag verification to TLSA lookup pipeline.",
+      "prevention_rule": "DANE findings MUST verify DNSSEC authentication status. Unauthenticated TLSA records are informational, not evidence of DANE deployment.",
+      "authoritative_source": "RFC 6698 Section 1 (DANE requires DNSSEC), RFC 4035 Section 3.2 (AD flag semantics)"
     },
     {
       "id": "EDE-003",
@@ -52,10 +70,99 @@
       "severity": "moderate",
       "title": "Posture hash algorithm upgraded from SHA-256 to SHA-3-512",
       "status": "closed",
+      "attribution": "Process Gap",
       "protocols_affected": ["Drift"],
       "confidence_impact": "Hash algorithm change required regeneration of all historical drift baselines. Legacy SHA-256 hashes retained as fallback for transition period.",
       "resolution": "Posture hash upgraded to SHA-3-512 with CanonicalPostureHashLegacySHA256 fallback. All historical drift baselines regenerated with new algorithm. CNAME normalization expanded in subsequent commit (2026-02-23).",
-      "bayesian_note": "Detection model upgraded from SHA-256 to SHA-3-512 for stronger collision resistance. Record normalization expanded to include MX, TXT, SOA, and CAA canonical forms, eliminating a class of false negatives in change detection for CNAME-dependent records."
+      "bayesian_note": "Detection model upgraded from SHA-256 to SHA-3-512 for stronger collision resistance. Record normalization expanded to include MX, TXT, SOA, and CAA canonical forms, eliminating a class of false negatives in change detection for CNAME-dependent records.",
+      "correction_action": "Migrated hash function, added backward-compatible legacy path, regenerated baselines.",
+      "prevention_rule": "Hash algorithm changes require a migration plan with backward-compatible fallback before deployment.",
+      "authoritative_source": "NIST FIPS 202 (SHA-3 Standard), NIST SP 800-185 (SHA-3 Derived Functions)"
+    },
+    {
+      "id": "EDE-004",
+      "date": "2026-02-20",
+      "commit": "See EVOLUTION.md v26.21.38",
+      "category": "standards_misattribution",
+      "severity": "significant",
+      "title": "Content-Usage directive deployed as IETF standard in robots.txt",
+      "status": "closed",
+      "attribution": "AI Error",
+      "protocols_affected": [],
+      "confidence_impact": "Lighthouse SEO score degraded. A DNS standards analysis tool was itself deploying non-standard directives in production, undermining its own credibility.",
+      "resolution": "Removed Content-Usage directive from robots.txt entirely. Directive was an active IETF working group draft (NOT ratified). Only RFC 9309-compliant directives remain.",
+      "bayesian_note": "The AI agent recommended deploying Content-Usage: train-ai=y citing it as an IETF standard. It was an active Internet-Draft, not a ratified RFC. The distinction between draft and standard was not verified before deployment. Quality gates (Lighthouse) caught the error via Unknown directive warnings.",
+      "correction_action": "Removed non-standard directive. Established AUTHORITIES.md verification checklist.",
+      "prevention_rule": "AUTHORITIES.md item 1: Before deploying any directive in production, check datatracker.ietf.org for RFC status. Internet-Draft = NOT ratified = do NOT deploy if it breaks quality gates.",
+      "authoritative_source": "IETF Datatracker (https://datatracker.ietf.org), RFC 9309 (robots.txt)"
+    },
+    {
+      "id": "EDE-005",
+      "date": "2026-02-20",
+      "commit": "See EVOLUTION.md v26.21.39",
+      "category": "standards_misattribution",
+      "severity": "significant",
+      "title": "llms.txt labeled Proposed Standard with false RFC 8615 association",
+      "status": "closed",
+      "attribution": "AI Error",
+      "protocols_affected": [],
+      "confidence_impact": "Misrepresented a community convention as an IETF standard. Users and LLMs reading our tool output could propagate the false association between RFC 8615 and llms.txt content.",
+      "resolution": "Changed tooltip from Proposed Standard to community convention. Removed RFC 8615 link. RFC 8615 defines .well-known/ path mechanics, NOT llms.txt content.",
+      "bayesian_note": "The AI agent conflated the .well-known/ path mechanism (RFC 8615) with the content served at that path (llms.txt from llmstxt.org). It also used Proposed Standard, which is a specific IETF maturity level, for a non-IETF document. Both errors demonstrate insufficient verification of standards provenance.",
+      "correction_action": "Fixed tooltip wording. Removed false RFC association.",
+      "prevention_rule": "AUTHORITIES.md items 3-4: RFC 8615 defines mechanics, not content. Community conventions get labeled as such. Never use IETF maturity terms for non-IETF documents.",
+      "authoritative_source": "llmstxt.org (community convention), RFC 8615 (Well-Known URIs)"
+    },
+    {
+      "id": "EDE-006",
+      "date": "2026-02-20",
+      "commit": "See EVOLUTION.md v26.21.39",
+      "category": "overclaim",
+      "severity": "moderate",
+      "title": "Capability language overclaim: validation instead of analysis",
+      "status": "closed",
+      "attribution": "Both",
+      "protocols_affected": ["SPF", "DKIM", "DMARC"],
+      "confidence_impact": "Overstated tool capabilities. Users could believe the tool provides authoritative validation rather than observational analysis. A passive OSINT tool cannot validate — that requires receiving MTA authority.",
+      "resolution": "Systematic sweep: validation to analysis, verification to detection, ensure to provide the most current data available. Language now accurately reflects passive observation capability.",
+      "bayesian_note": "Marketing instinct (human) favored strong language (validates, ensures, verifies) because it sounds more authoritative. The AI agent implemented the copy without flagging the semantic distinction between passive observation and active validation. Both parties share responsibility — the human for marketing pressure, the AI for not applying the domain expertise it should have.",
+      "correction_action": "Full codebase sweep replacing overclaim language with accurate capability descriptions.",
+      "prevention_rule": "UI/doc copy claiming validate, verify, or ensure must be flagged. Passive OSINT tools observe and analyze. Active authority is required for validation per RFCs.",
+      "authoritative_source": "RFC 7208 (SPF validation by receiving MTA), RFC 6376 (DKIM verification by receiving MTA), RFC 7489 (DMARC evaluation by mail receivers)"
+    },
+    {
+      "id": "EDE-007",
+      "date": "2026-02-26",
+      "commit": "See EVOLUTION.md v26.26.04",
+      "category": "citation_error",
+      "severity": "significant",
+      "title": "Scotopic color science cited with non-authoritative sources",
+      "status": "closed",
+      "attribution": "Both",
+      "protocols_affected": [],
+      "confidence_impact": "Undermined the project's scientific rigor claims. A tool built on RFC compliance and ICD 203 principles was citing pop-science blog posts for its own design decisions instead of actual peer-reviewed literature.",
+      "resolution": "Replaced blog article citations with references to CIE standards and peer-reviewed scotopic vision research. Design rationale now traces to primary scientific literature.",
+      "bayesian_note": "The human pushed for scotopic-informed color decisions (legitimate scientific basis) but accepted the AI's citations without verifying they pointed to actual CIE standards or peer-reviewed papers. The AI provided fluffy blog articles and design posts instead of the real scientific sources that were readily available. Both share responsibility — the human for not demanding primary sources, the AI for not providing them.",
+      "correction_action": "Replaced all color science citations with primary peer-reviewed sources and CIE standards.",
+      "prevention_rule": "For any scientific claim (color science, cryptography, statistics), cite the primary peer-reviewed paper or authoritative standard body. Never cite blog posts, Medium articles, or AI-generated summaries as authoritative.",
+      "authoritative_source": "CIE (Commission Internationale de l'Eclairage) scotopic/photopic luminosity function standards"
+    },
+    {
+      "id": "EDE-008",
+      "date": "2026-03-07",
+      "commit": "Session 2026-03-07",
+      "category": "governance_correction",
+      "severity": "critical",
+      "title": "SKILL.md declared Miro canonical — governance inversion for multiple sessions",
+      "status": "closed",
+      "attribution": "AI Error",
+      "protocols_affected": [],
+      "confidence_impact": "Critical governance failure. The agent's permanent instruction file (SKILL.md) declared Miro as canonical source of truth when Git was the actual canonical source. Multiple sessions operated under the wrong hierarchy, causing duplicated work and conflicting documentation across repos.",
+      "resolution": "SKILL.md rewritten: Git declared canonical, Miro declared as mirror only. BOUNDARY_MATRIX.md, BUILD_TAG_STRATEGY.md, INTELLIGENCE_ENGINE.md all updated. Governance hierarchy permanently locked: Git > Architecture Page > Miro > Notion > GitHub Issues.",
+      "bayesian_note": "The AI agent wrote and maintained a SKILL.md that inverted the governance hierarchy. This persisted across sessions because the skill file is the permanent memory — once wrong, it propagated the error to every subsequent session. The correction required rewriting multiple governance documents and establishing the hierarchy as a Decision Log entry to prevent regression.",
+      "correction_action": "Rewrote SKILL.md governance section. Updated 3 governance docs. Locked hierarchy in Decision Log.",
+      "prevention_rule": "Canonical hierarchy: Git > Architecture Page > Miro > Notion > GitHub Issues. Permanent. Changes require Decision Log reference and written rationale.",
+      "authoritative_source": "Decision Log entry 2026-03-07. Git is the only system that is versioned, diffable, and platform-independent."
     }
   ]
 }
