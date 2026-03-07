@@ -67,6 +67,13 @@ func RequestContext() gin.HandlerFunc {
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
+                path := c.Request.URL.Path
+                if strings.HasPrefix(path, "/static/") {
+                        c.Header("X-Content-Type-Options", "nosniff")
+                        c.Next()
+                        return
+                }
+
                 nonce, exists := c.Get(ginKeyCSPNonce)
                 var nonceStr string
                 if exists {
