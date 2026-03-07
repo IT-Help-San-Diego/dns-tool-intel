@@ -597,6 +597,15 @@ DNS Tool embeds rich JSON-LD structured data on indexed pages, mapping the full 
 - **Approach page (Article)**: Maps methodology components (ICAE, ICuAE, multi-resolver consensus, posture drift detection) with `isBasedOn` RFC references, full Google Article eligibility (headline, datePublished, dateModified, image, publisher with logo), and `about` entities linking to confidence engine pages.
 - **Design decisions**: RFCs use `CreativeWork` type (not `TechArticle`) because Schema.org defines TechArticle as instructional content — RFCs are specifications. `hasPart` entities include `@id` fragment identifiers for Google entity connection. Live `softwareVersion` injection via Go template variables.
 
+### Open Graph Social Cards (Platform Compliance)
+All 33 public pages include full Open Graph and Twitter Card metadata for rich social sharing previews:
+- **Image dimensions**: 1200x630px PNG (optimal for Facebook, LinkedIn, Twitter/X, Discord, Slack)
+- **Required tags on every page**: `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:image:width`, `og:image:height`, `og:image:type`, `og:image:alt`, `og:site_name`
+- **Twitter Cards**: `summary_large_image` with `twitter:title`, `twitter:description`, `twitter:image` (video page uses `player` card type)
+- **Six unique OG images**: Main (DNS Tool), Field Tech Toolkit, IP Intelligence, Email Intelligence, TTL Tuner, Forgotten Domain — each with centered Owl of Athena emblem (~180px), protocol-specific content hierarchy, and brand footer
+- **Image generation**: Python/Pillow script (`scripts/generate-og-images.py`) with mathematically centered layout, deterministic output. Wrapper shell script at `scripts/generate-og-images.sh`.
+- **Validation**: All cards pass Facebook Sharing Debugger, Twitter Card Validator, and LinkedIn Post Inspector
+
 ### Architecture Diagrams (Public, Version-Controlled)
 Four Mermaid-sourced engineering diagrams are maintained in `docs/diagrams/*.mmd` (Git-diffable canonical source) with pre-rendered SVGs on the `/architecture` page:
 - `intelligence-pipeline.mmd` — Domain Input → Collection → Analysis → Privacy Gate → 5 Products
