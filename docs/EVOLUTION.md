@@ -10,6 +10,35 @@ This file is the project's permanent breadcrumb trail — every session's decisi
 
 ---
 
+
+## Session: March 7, 2026 (EDE-009 — Human Error Attribution, Accountability Architecture)
+
+### EDE-009: Founder Lost Analytical Perspective During High-Pressure Debugging Session
+- **Date**: February 21, 2026 (documented March 7, 2026)
+- **Attribution**: Human Error
+- **Category**: governance_correction
+- **Severity**: significant
+- **What happened**: During the highest-volume session in project history (197 commits on Feb 21), the founder departed from the research-first, design-first methodology. Repetitive directive cycles replaced structured problem decomposition. The scientific discipline that underpins the project's credibility was temporarily suspended by the scientist who established it.
+- **Resolution**: All blocking issues resolved without checkpoint reversion — the project has zero Replit checkpoint reversions across its entire history. Anti-Circle Rules formalized. MEASURE → CHANGE → MEASURE → COMMIT established as mandatory process.
+- **Why this EDE exists**: The founder demanded honest accountability from the system and from himself. The attribution is Human Error because the deviation from methodology was a human decision. Forward-only error correction through the problem, not around it.
+- **Prevention Rule**: Before sending repetitive directives: state the goal in one sentence. Check quality gates. Write down expected changes. Check EVOLUTION.md for prior attempts. If you cannot decompose the problem, stop and decompose.
+
+### EDE-006 Bayesian Note Correction
+- **Changed**: Removed "marketing instinct (human) favored strong language" — the overclaim language appeared organically across sessions. Neither party specifically directed the use of "validates" over "analyzes." Root cause was absence of a language audit process, not a deliberate marketing decision by either party.
+- **Why corrected**: The original language was cited as a direct quote from the founder, which was inaccurate. The founder never directed marketing language to override technical accuracy. The AI agent authored that root-cause analysis in EVOLUTION.md and it was presented as if it were a human directive.
+
+### Attribution Model Status
+EDE Register now has all four attribution types represented:
+- **AI Error** (red): EDE-004, 005, 008 — the AI got these wrong
+- **Human Error** (orange): EDE-009 — the founder got this wrong
+- **Both** (purple): EDE-006, 007 — both contributed
+- **Process Gap** (blue): EDE-001, 002, 003 — no individual fault, tooling gaps
+
+### Lesson Learned
+Public accountability is not weakness. Zero reversions across the project's entire history is a data point. The /ede page with full attribution badges is a credibility asset, not a liability. A scientist who records his own errors and shows exactly how he corrected them demonstrates the rarest kind of intellectual honesty.
+
+---
+
 ## Session: February 20–21, 2026 (v26.21.43–v26.21.55 — SHA-3-512 Migration, Download Verification, ICAE Visual Overhaul, Audit Log)
 
 ### v26.21.43–v26.21.44 — Cryptographic Hash Migration: SHA-256 → SHA-3-512
@@ -3153,3 +3182,4 @@ The complete research software documentation stack is now:
 6. **LICENSE** — BSL-1.1 legal terms
 7. **Software Heritage** — Long-term preservation with SWHID
 8. **OpenAlex / DataCite** — Scholarly search and discovery
+
