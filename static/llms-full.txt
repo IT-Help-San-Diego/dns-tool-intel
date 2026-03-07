@@ -317,6 +317,26 @@ Project background, team information, and mission statement.
 URL: `https://dnstool.it-help.tech/faq/subdomains`
 Methodology explanation for Certificate Transparency and DNS-based subdomain enumeration techniques used by DNS Tool.
 
+### Epistemic Disclosure Events (EDE)
+URL: `https://dnstool.it-help.tech/ede`
+Public correction log documenting every structural correction to the confidence scoring model. Modeled on scientific corrigenda culture — corrections strengthen analytical credibility when they are transparent, traceable, and independently verifiable. Each EDE entry records:
+- **Category**: scoring_calibration, evidence_reinterpretation, drift_detection, resolver_trust, false_positive, confidence_decay, governance_correction, citation_error, overclaim, standards_misattribution
+- **Severity**: critical, significant, moderate
+- **Attribution**: Human Error, AI Error, Both, or Process Gap — honest accountability for who caused the error
+- **Confidence impact**: How the correction changed the confidence model's behavior
+- **Resolution**: What was fixed and how
+- **Commit reference**: Verifiable git commit hash linking to the exact code change
+- **Prevention rule**: What guard rail was added to prevent recurrence
+- **Authoritative source**: RFC or standard that governs the correction
+
+**Integrity verification**: Each individual EDE entry receives its own SHA-3-512 (FIPS 202) cryptographic hash computed from its JSON representation, enabling detection of single-entry tampering. The complete EDE register file (`integrity_stats.json`) also has a file-level SHA-3-512 hash, independently verifiable via: `openssl dgst -sha3-512 static/data/integrity_stats.json`
+
+**Tamper resistance policy**: Published EDE entries are immutable. No entry may be deleted, downgraded, or reattributed. Amendments are permitted on exactly two grounds: (1) FACTUAL_ERROR — with verifiable evidence proving factual inaccuracy, original preserved with strikethrough; (2) DIGNITY_OF_EXPRESSION — phrasing-only revision when language is gratuitously degrading, with all factual fields locked and original redacted.
+
+**Attack vector transparency**: The EDE page documents known attack vectors against the integrity system (hash collision, git history rewrite, insider modification, selective omission) and explains why the system is tamper-evident rather than tamper-proof — designed to make unauthorized modification detectable, not physically impossible.
+
+**Methodology PDF**: Available at `/docs/dns-tool-methodology.pdf` — a peer-review-ready methodology document covering data collection, protocol-specific evaluation (9 protocols with RFC citations), the ICAE/ICuAE confidence scoring model, epistemic correction disclosure, and output products. Archived with DOI for citation.
+
 ### Analysis Transparency Log
 URL: `https://dnstool.it-help.tech/failures`
 Public accountability page showing every failed analysis with sanitized error categories. Error messages are classified into categories (DNS Resolution Timeout, Domain Not Found/NXDOMAIN, Connection Refused, DNS Server Failure/SERVFAIL, Network Unreachable, TLS/Certificate Error, Rate Limited, Invalid Input) with IP addresses and file paths redacted. KPI cards show total failures, total analyses, and failure rate. Philosophy statement explains why failures are published publicly. Most recent 50 failures displayed with domain, category icon, and relative timestamp.

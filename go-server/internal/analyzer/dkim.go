@@ -12,7 +12,11 @@ import (
         "sync"
 )
 
-const domainkeySuffix = "._domainkey"
+const (
+        domainkeySuffix              = "._domainkey"
+        ancillaryServicesLikelyFmt   = "The %s SPF include likely supports ancillary services "
+        ancillaryServicesDescription = "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting."
+)
 
 const (
         providerMicrosoft365    = "Microsoft 365"
@@ -483,8 +487,8 @@ func reconcileSPFWithMX(mxProvider string, spfProviders []string) (string, strin
                 if len(ancillaryProviders) > 0 {
                         note = fmt.Sprintf(
                                 "SPF authorizes %s alongside primary mail provider %s. "+
-                                        "The %s SPF include likely supports ancillary services "+
-                                        "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
+                                        ancillaryServicesLikelyFmt+
+                                        ancillaryServicesDescription,
                                 strings.Join(ancillaryProviders, ", "), mxProvider, strings.Join(ancillaryProviders, ", "))
                 }
                 return mxProvider, note
@@ -496,8 +500,8 @@ func reconcileSPFWithMX(mxProvider string, spfProviders []string) (string, strin
 
         note := fmt.Sprintf(
                 "SPF authorizes %s servers, but MX records point to %s. "+
-                        "The %s SPF include likely supports ancillary services "+
-                        "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
+                        ancillaryServicesLikelyFmt+
+                        ancillaryServicesDescription,
                 spfProviders[0], mxProvider, spfProviders[0])
         return "", note
 }
@@ -508,8 +512,8 @@ func handleSelfHostedMX(spfMailbox, mxProvider string, mxRecords []string, spfRe
         }
         ancillaryNote = fmt.Sprintf(
                 "SPF authorizes %s servers, but MX records point to self-hosted infrastructure. "+
-                        "The %s SPF include likely supports ancillary services "+
-                        "(e.g., calendar invitations, shared documents) rather than primary mailbox hosting.",
+                        ancillaryServicesLikelyFmt+
+                        ancillaryServicesDescription,
                 spfMailbox, spfMailbox)
         if detectSPFAncillaryProvider(spfRecord) == "" {
                 mxProvider = "Self-hosted"
