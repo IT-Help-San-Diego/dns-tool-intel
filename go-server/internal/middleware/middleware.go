@@ -77,7 +77,11 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
 
                 c.Header("X-Content-Type-Options", "nosniff")
                 if !devMode {
-                        c.Header("X-Frame-Options", "DENY")
+                        if c.Request.URL.Path == "/signature" {
+                                c.Header("X-Frame-Options", "SAMEORIGIN")
+                        } else {
+                                c.Header("X-Frame-Options", "DENY")
+                        }
                 }
                 c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
                 c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
