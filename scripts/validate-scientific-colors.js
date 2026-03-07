@@ -31,7 +31,7 @@ const STATUS_TOKENS = {
 const ACCENT_TOKENS = {
   'accent-steel':  { hex: '#7d8ea8' },
   'accent-deep':   { hex: '#1e3a5f' },
-  'accent-violet': { hex: '#6c5ce7' },
+  'accent-violet': { hex: '#a78bfa' },
   'accent-cyan':   { hex: '#0dcaf0' },
   'accent-cobalt': { hex: '#4a8fe7' },
   'accent-gold':   { hex: '#d4a853' },
