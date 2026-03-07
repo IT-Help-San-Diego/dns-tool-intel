@@ -4,6 +4,7 @@
     {{template "head" .}}
     {{template "head_css" .}}
     <title>Protocol Topology — DNS Tool</title>
+    <meta name="description" content="Interactive topology map of DNS Tool protocol analysis pipeline. Visualize resolver paths, dependency graphs, and security protocol coverage.">
     <meta name="robots" content="noindex, nofollow">
     <meta property="og:url" content="https://dnstool.it-help.tech/topology">
     <meta property="og:type" content="website">
@@ -94,11 +95,13 @@
             letter-spacing: 0.15em;
             pointer-events: none;
         }
-        .topo-title-overlay strong {
+        .topo-title-h1 {
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.95rem;
+            font-weight: 700;
             display: block;
             letter-spacing: 0.05em;
+            margin: 0;
         }
         .topo-beta-badge {
             display: inline-block;
@@ -154,7 +157,7 @@
             <div class="topo-canvas-wrap" id="topoWrap">
                 <canvas id="topoCanvas"></canvas>
                 <div class="topo-title-overlay">
-                    <strong>Intelligence Topology <span class="topo-beta-badge">Beta</span></strong>
+                    <h1 class="topo-title-h1">Intelligence Topology <span class="topo-beta-badge">Beta</span></h1>
                     DNS Security Pipeline &amp; Dependency Graph
                 </div>
                 <div class="topo-legend">

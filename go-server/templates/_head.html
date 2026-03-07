@@ -1,6 +1,6 @@
 {{define "head"}}
-<script nonce="{{.CspNonce}}">try{if(localStorage.getItem('covertMode')==='1')document.documentElement.classList.add('covert-mode')}catch{/* intentional */}</script>
 <meta charset="UTF-8">
+<script nonce="{{.CspNonce}}">try{if(localStorage.getItem('covertMode')==='1')document.documentElement.classList.add('covert-mode')}catch{/* intentional */}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#212529">
@@ -34,9 +34,7 @@
 {{end}}
 
 {{define "head_css"}}
-<link rel="preload" href="/static/webfonts/fa-solid-900.woff2?v=5" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{staticVersionURL "css/foundation.min.css" .AppVersion}}" {{staticSRI "css/foundation.min.css"}}>
-<link rel="stylesheet" href="{{staticVersionURL "css/fontawesome-subset.min.css" .AppVersion}}" {{staticSRI "css/fontawesome-subset.min.css"}}>
 <link rel="stylesheet" href="{{staticVersionURL "css/custom.min.css" .AppVersion}}" {{staticSRI "css/custom.min.css"}}>
 <link rel="stylesheet" href="{{staticVersionURL "css/print.min.css" .AppVersion}}" media="print" {{staticSRI "css/print.min.css"}}>
 {{end}}
@@ -109,7 +107,7 @@ img{vertical-align:middle;max-width:100%;height:auto}
 .lead{font-size:1.25rem;font-weight:300}
 .border-0{border:0!important}
 .collapse:not(.show){display:none}
-.fas,.fab,.far,.fa{display:inline-block;font-style:normal;font-variant:normal;text-rendering:auto;-webkit-font-smoothing:antialiased;font-family:"Font Awesome 6 Free",sans-serif;font-weight:900;line-height:1}
+
 .footer{margin-top:3rem;padding:2rem 0;border-top:1px solid #21262d;color:#8b949e}
 </style>
 {{end}}

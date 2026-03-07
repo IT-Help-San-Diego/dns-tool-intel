@@ -4,7 +4,7 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
-    <title>Roadmap - DNS Tool</title>
+    <title>Product Roadmap & Upcoming Features - DNS Tool</title>
     <meta name="robots" content="index, follow">
     <meta name="description" content="DNS Tool public roadmap — completed features, in-progress work, and planned capabilities for domain security intelligence.">
     <meta property="og:url" content="https://dnstool.it-help.tech/roadmap">
@@ -217,7 +217,7 @@
     <section class="py-4">
         <div class="container">
             <div class="text-center mb-4">
-                <h1 class="fw-bold mb-2"><i class="fas fa-map me-2 text-info"></i>Roadmap</h1>
+                <h1 class="fw-bold mb-2">{{icon "map" "me-2 text-info"}}Roadmap</h1>
                 <div class="roadmap-intro">
                     <p>Everything we've shipped, everything we're building, and everything we're planning. No vaporware, no aspirational marketing. If it's listed as done, the code exists and the tests pass.</p>
                 </div>
@@ -226,7 +226,7 @@
             <div class="roadmap-board">
                 <div class="roadmap-column roadmap-col-done">
                     <div class="roadmap-column-header">
-                        <span><i class="fas fa-check-circle me-1"></i> Done</span>
+                        <span>{{icon "check-circle" "me-1"}} Done</span>
                         <span class="roadmap-count">{{.DoneCount}}</span>
                     </div>
                     <div class="roadmap-card-list">
@@ -244,7 +244,7 @@
 
                 <div class="roadmap-column roadmap-col-progress">
                     <div class="roadmap-column-header">
-                        <span><i class="fas fa-spinner me-1"></i> In Progress</span>
+                        <span>{{icon "spinner" "me-1"}} In Progress</span>
                         <span class="roadmap-count">{{.InProgressCount}}</span>
                     </div>
                     <div class="roadmap-card-list">
@@ -253,7 +253,7 @@
                             <div class="roadmap-card-title">{{.Title}}</div>
                             <div class="roadmap-card-meta">
                                 <span class="roadmap-tag roadmap-tag-feature">Feature</span>
-                                {{if .Priority}}<span class="roadmap-priority"><i class="fas fa-flag me-1"></i>{{.Priority}}</span>{{end}}
+                                {{if .Priority}}<span class="roadmap-priority">{{icon "flag" "me-1"}}{{.Priority}}</span>{{end}}
                             </div>
                             {{if .Notes}}<div class="roadmap-notes">{{.Notes}}</div>{{end}}
                         </div>
@@ -263,7 +263,7 @@
 
                 <div class="roadmap-column roadmap-col-next">
                     <div class="roadmap-column-header">
-                        <span><i class="fas fa-arrow-right me-1"></i> Next Up</span>
+                        <span>{{icon "arrow-right" "me-1"}} Next Up</span>
                         <span class="roadmap-count">{{.NextUpCount}}</span>
                     </div>
                     <div class="roadmap-card-list">
@@ -272,7 +272,7 @@
                             <div class="roadmap-card-title">{{.Title}}</div>
                             <div class="roadmap-card-meta">
                                 <span class="roadmap-tag roadmap-tag-feature">Feature</span>
-                                {{if .Priority}}<span class="roadmap-priority"><i class="fas fa-flag me-1"></i>{{.Priority}}</span>{{end}}
+                                {{if .Priority}}<span class="roadmap-priority">{{icon "flag" "me-1"}}{{.Priority}}</span>{{end}}
                             </div>
                             {{if .Notes}}<div class="roadmap-notes">{{.Notes}}</div>{{end}}
                         </div>
@@ -282,7 +282,7 @@
 
                 <div class="roadmap-column roadmap-col-backlog">
                     <div class="roadmap-column-header">
-                        <span><i class="fas fa-inbox me-1"></i> Backlog</span>
+                        <span>{{icon "inbox" "me-1"}} Backlog</span>
                         <span class="roadmap-count">{{.BacklogCount}}</span>
                     </div>
                     <div class="roadmap-card-list">
@@ -291,7 +291,7 @@
                             <div class="roadmap-card-title">{{.Title}}</div>
                             <div class="roadmap-card-meta">
                                 <span class="roadmap-tag roadmap-tag-feature">Feature</span>
-                                {{if .Priority}}<span class="roadmap-priority"><i class="fas fa-flag me-1"></i>{{.Priority}}</span>{{end}}
+                                {{if .Priority}}<span class="roadmap-priority">{{icon "flag" "me-1"}}{{.Priority}}</span>{{end}}
                             </div>
                             {{if .Notes}}<div class="roadmap-notes">{{.Notes}}</div>{{end}}
                         </div>
@@ -301,9 +301,9 @@
             </div>
 
             <div class="text-center mt-4 mb-2">
-                <a href="/approach" class="btn btn-outline-info btn-sm me-2"><i class="fas fa-flask me-1"></i>Our Methodology</a>
-                <a href="/about" class="btn btn-outline-info btn-sm me-2"><i class="fas fa-book-open me-1"></i>Origin Story</a>
-                <a href="/architecture" class="btn btn-outline-info btn-sm"><i class="fas fa-microchip me-1"></i>Architecture</a>
+                <a href="/approach" class="btn btn-outline-info btn-sm me-2">{{icon "flask" "me-1"}}Our Methodology</a>
+                <a href="/about" class="btn btn-outline-info btn-sm me-2">{{icon "book-open" "me-1"}}Origin Story</a>
+                <a href="/architecture" class="btn btn-outline-info btn-sm">{{icon "microchip" "me-1"}}Architecture</a>
             </div>
         </div>
     </section>

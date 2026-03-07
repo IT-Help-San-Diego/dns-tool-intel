@@ -5,9 +5,9 @@
     {{template "head" .}}
     {{template "head_css" .}}
     {{template "head_katex" .}}
-    <title>Our Methodology - DNS Tool</title>
+    <title>Five-Perspective Analysis Methodology - DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Five perspectives, one algorithm. DNS Tool fuses intelligence officer, engineer, hacker, executive, and field tech into one symbiotic, RFC-cited security engine.">
+    <meta name="description" content="Five perspectives, one algorithm. DNS Tool fuses intelligence, engineering, adversarial, executive, and field tech lenses into one RFC-cited engine.">
     <meta property="og:url" content="https://dnstool.it-help.tech/approach">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Our Methodology - DNS Tool">
@@ -522,17 +522,17 @@
                 <div class="col-lg-9 col-xl-8">
 
                     <div class="text-center mb-4">
-                        <h1 class="fw-bold mb-2"><i class="fas fa-flask me-2 text-info"></i>Our Methodology</h1>
+                        <h1 class="fw-bold mb-2">{{icon "flask" "me-2 text-info"}}Our Methodology</h1>
                         <div class="approach-intro">
                             <p>A score without a citation is an opinion. We give you a cited finding, tell you where it came from, and show you the terminal command to verify it yourself &mdash; because we&rsquo;ve seen what happens when an engineer trusts a tool that was optimizing for clean-looking output instead of accurate output.</p>
                         </div>
                     </div>
 
                     <div class="approach-section" id="dormant-domains">
-                        <h2><i class="fas fa-shield-alt"></i>Why This Rigor Exists</h2>
+                        <h2>{{icon "shield-alt"}}Why This Rigor Exists</h2>
                         <p>A domain registered for ten years with no published mail policy is not dormant — it is exposed. Without SPF, DMARC, and a Null MX record, any domain becomes a free spoofing vector. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
                         <div class="approach-video-wrapper">
-                            <div class="approach-video-label"><i class="fas fa-bolt"></i> Case Study</div>
+                            <div class="approach-video-label">{{icon "bolt"}} Case Study</div>
                             <video controls preload="metadata" poster="/static/images/og-forgotten-domain.png" class="approach-video" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
                                 <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
                                 Your browser does not support the video tag.
@@ -542,14 +542,14 @@
                     </div>
 
                     <div class="approach-section" id="symbiotic-security">
-                        <h2><i class="fas fa-sitemap"></i>Five Perspectives, One Algorithm</h2>
+                        <h2>{{icon "sitemap"}}Five Perspectives, One Algorithm</h2>
                         <p>A single viewpoint misses things. An intelligence officer quantifies confidence but won't catch a misconfigured TTL. A DNS engineer reads RFC chapter and verse but won't frame findings for a board meeting. A hacker spots the attack surface but won't write the remediation steps. An executive needs a clear verdict but shouldn't have to parse RRSIG expiration dates. A field technician needs to know what to paste into Cloudflare, not why ICD 203 matters.</p>
                         <p>DNS Tool encodes all five as a precision algorithm. Each perspective watches for the blind spots the others miss. We call this <strong>Symbiotic Security</strong> &mdash; not a philosophy, but an architecture with a human face.</p>
 
                         <div class="archetype-grid">
                             <div class="archetype-card">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon archetype-icon-intel"><i class="fas fa-satellite-dish"></i></span>
+                                    <span class="archetype-icon archetype-icon-intel">{{icon "satellite-dish"}}</span>
                                     <span class="archetype-title">The Intelligence Officer</span>
                                 </div>
                                 <p>Quantifies what you can trust. Runs dual confidence engines &mdash; ICAE measures <em>accuracy</em> (are the findings correct?), ICuAE measures <em>currency</em> (are they fresh?). Merges both into an ICD 203 confidence level so every finding carries its own epistemic weight. If a score is HIGH, you know why. If it's LOW, you know which factor is limiting.</p>
@@ -558,7 +558,7 @@
 
                             <div class="archetype-card">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon archetype-icon-eng"><i class="fas fa-gavel"></i></span>
+                                    <span class="archetype-icon archetype-icon-eng">{{icon "gavel"}}</span>
                                     <span class="archetype-title">The DNS Engineer</span>
                                 </div>
                                 <p>Reads the RFCs so you don't have to guess. Every finding maps to a specific RFC paragraph &mdash; not a vendor interpretation, not a best-practice blog post. SPF follows RFC 7208. DMARC follows RFC 7489. DNSSEC follows RFC 4033&ndash;4035. Delegation consistency, nameserver fleet health, SOA compliance &mdash; all grounded in the standards that define how DNS actually works.</p>
@@ -567,7 +567,7 @@
 
                             <div class="archetype-card">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon archetype-icon-hacker"><i class="fas fa-biohazard"></i></span>
+                                    <span class="archetype-icon archetype-icon-hacker">{{icon "biohazard"}}</span>
                                     <span class="archetype-title">The Hacker</span>
                                 </div>
                                 <p>Sees what the attacker sees. Covert Recon Mode reframes the same data through an adversarial lens &mdash; scotopic-optimized red interface grounded in published vision science research. Zone transfer exposure, open recursion, lame delegation, NSEC zone walking, SPF ranges that authorize entire netblocks. Multi-layer subdomain discovery from certificate transparency and DNS intelligence surfaces exposed assets &mdash; with full download. The configuration data doesn't change. The questions do.</p>
@@ -576,7 +576,7 @@
 
                             <div class="archetype-card">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon archetype-icon-exec"><i class="fas fa-briefcase"></i></span>
+                                    <span class="archetype-icon archetype-icon-exec">{{icon "briefcase"}}</span>
                                     <span class="archetype-title">The Executive</span>
                                 </div>
                                 <p>Gets the verdict without the noise. The Executive Brief distills every finding into a clear posture summary &mdash; what's secure, what's at risk, what needs attention. No RRSIG expiration dates, no TTL arithmetic, no RFC section numbers. Just the strategic picture with enough context to make a decision or ask the right follow-up question.</p>
@@ -585,7 +585,7 @@
 
                             <div class="archetype-card archetype-card-full">
                                 <div class="archetype-header">
-                                    <span class="archetype-icon archetype-icon-itpro"><i class="fas fa-wrench"></i></span>
+                                    <span class="archetype-icon archetype-icon-itpro">{{icon "wrench"}}</span>
                                     <span class="archetype-title">The IT Pro</span>
                                     <span class="archetype-subtitle">the one who actually has to fix it</span>
                                 </div>
@@ -598,7 +598,7 @@
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-balance-scale me-2"></i>The Verification Principle</h2>
+                        <h2>{{icon "balance-scale" "me-2"}}The Verification Principle</h2>
                         <p class="mb-3">DNS security analysis demands a position on this spectrum. The pressure to simplify pulls toward one extreme or the other &mdash; and the pull is rarely acknowledged. We chose the middle, and built the math to defend it.</p>
 
                         <div class="verify-wrapper">
@@ -610,7 +610,7 @@
                                 </div>
                                 <div class="verify-center-gear">
                                     <div class="verify-gear-circle">
-                                        <i class="fas fa-cogs"></i>
+                                        {{icon "cogs"}}
                                         <span class="verify-gear-text">Verify</span>
                                     </div>
                                     <div class="verify-ribbon">The Balancing Algorithm</div>
@@ -638,57 +638,57 @@
                             </div>
                         </div>
 
-                        <p class="text-muted small mt-3 mb-0"><i class="fas fa-flask me-1"></i>DNS Tool uses evidence-weighted confidence scoring inspired by Bayesian reasoning. When a dogmatic prior is assumed &mdash; P(H)&nbsp;=&nbsp;1 or P(H)&nbsp;=&nbsp;0 &mdash; no amount of evidence can update the posterior. Our scoring avoids dogmatic priors: confidence degrades visibly when evidence is ambiguous, and no finding is asserted without disclosing its certainty level. See the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine</a> for the full framework.</p>
+                        <p class="text-muted small mt-3 mb-0">{{icon "flask" "me-1"}}DNS Tool uses evidence-weighted confidence scoring inspired by Bayesian reasoning. When a dogmatic prior is assumed &mdash; P(H)&nbsp;=&nbsp;1 or P(H)&nbsp;=&nbsp;0 &mdash; no amount of evidence can update the posterior. Our scoring avoids dogmatic priors: confidence degrades visibly when evidence is ambiguous, and no finding is asserted without disclosing its certainty level. See the <a href="/confidence" class="text-info text-decoration-none">Confidence Engine</a> for the full framework.</p>
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-exclamation-triangle"></i>Four Reasons &ldquo;Record Present&rdquo; Isn&rsquo;t Enough</h2>
+                        <h2>{{icon "exclamation-triangle"}}Four Reasons &ldquo;Record Present&rdquo; Isn&rsquo;t Enough</h2>
                         <p class="mb-2">A record existing is not the same as a record working. DNS security requires looking past the presence check &mdash; here&rsquo;s why:</p>
                         <div class="row g-2 mb-2">
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
-                                    <div class="approach-example-title"><i class="fas fa-file-alt me-1"></i>Syntactically Valid, Semantically Dangerous</div>
+                                    <div class="approach-example-title">{{icon "file-alt" "me-1"}}Syntactically Valid, Semantically Dangerous</div>
                                     <p><code>v=spf1 ip4:10.0.0.0/8 ~all</code> passes every simple checker &mdash; and authorizes 16.7 million IPs to send your email.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
-                                    <div class="approach-example-title"><i class="fas fa-landmark me-1"></i>The CISA Softfail Tension</div>
+                                    <div class="approach-example-title">{{icon "landmark" "me-1"}}The CISA Softfail Tension</div>
                                     <p>CISA guidance leans toward <code>-all</code>. RFC 7208 permits <code>~all</code>. We make that tension explicit and cite the basis for both.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
-                                    <div class="approach-example-title"><i class="fas fa-wave-square me-1"></i>Snapshot vs. Stability</div>
+                                    <div class="approach-example-title">{{icon "wave-square" "me-1"}}Snapshot vs. Stability</div>
                                     <p>A record existed when you checked &mdash; but has it been stable? Fast-flux DNS rotates records every few minutes. Our drift engine detects it statistically.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="approach-example mb-0">
-                                    <div class="approach-example-title"><i class="fas fa-clock me-1"></i>TTL Is a Decision, Not a Default</div>
+                                    <div class="approach-example-title">{{icon "clock" "me-1"}}TTL Is a Decision, Not a Default</div>
                                     <p>A 300s TTL on a stable zone means thousands of unnecessary queries per hour. We tell you the right TTL for your context, with RFC backing.</p>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted small mb-0"><a href="#where-simplicity-fails" class="text-info text-decoration-none"><i class="fas fa-arrow-down me-1"></i>Full examples with RFC citations below</a></p>
+                        <p class="text-muted small mb-0"><a href="#where-simplicity-fails" class="text-info text-decoration-none">{{icon "arrow-down" "me-1"}}Full examples with RFC citations below</a></p>
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-network-wired"></i>Why DNS?</h2>
+                        <h2>{{icon "network-wired"}}Why DNS?</h2>
                         <p>If you want to understand how the connected internet works &mdash; how email is secured, how domains are authenticated, how trust is established between systems &mdash; DNS is where you start. If you don't understand DNS, you don't have a chance to understand the internet. And if you don't understand the internet, you can't understand cyber security. DNS, it's the foundation of both.</p>
                         <p>But DNS is not a static database. It's a distributed, <a href="https://dl.acm.org/doi/10.1145/1466443.1466448" target="_blank" rel="noopener" title="Werner Vogels, 'Eventually Consistent,' ACM Queue, 2008">eventually consistent</a>, human-operated system. Records propagate across thousands of resolvers with different caching behaviors. Configurations are set by people &mdash; TLD engineers, hosting providers, federal agencies issuing directives &mdash; and every one of those humans can introduce errors that standard tools miss because they only take a single snapshot of a single moment from a single vantage point.</p>
                         <p>DNS Tool was built to handle that complexity honestly, not to hide it behind a simple letter grade.</p>
                     </div>
 
                     <div class="approach-section">
-                        <h2 id="addressing-the-criticism"><i class="fas fa-shield-alt"></i>Addressing the Criticism</h2>
+                        <h2 id="addressing-the-criticism">{{icon "shield-alt"}}Addressing the Criticism</h2>
                         <p>We've received feedback that this level of rigor is "too much" for a DNS checker. That applying time-series drift detection, evidence-weighted confidence scoring, and multi-probe verification to DNS records is excessive. That we're over-engineering.</p>
                         <p>We understand the reaction. When most DNS checkers are simple scripts with minimal depth, anything that goes deeper looks like it's trying too hard. That's the <strong>heuristic trap</strong> &mdash; pattern-matching against a low bar and treating the outlier as suspicious rather than serious.</p>
                         <p>But the criticism reveals the actual problem: <strong>DNS security has historically been under-engineered relative to what it actually requires.</strong> Email security misconfiguration causes real, costly harm. A record can exist, pass a syntax check, and still be operationally dangerous. The problem was never too small for rigor. The industry just decided not to apply it.</p>
                         <p>Yes, you can use DNS Tool as a DNS checker &mdash; and it will give you accurate results. But we built it to go further: cited findings, epistemic provenance, and time-series verification for when a simple check isn't enough. It's a forensic audit engine for the protocol that underpins every email, every certificate, and every domain on the internet. If all you need today is a quick check, start there. The depth is here when you're ready for it.</p>
                         <p>And yes, there are Easter eggs. Hacker poems in the console. An adversarial red theme built on scotopic vision science (<a href="https://apps.dtic.mil/sti/citations/tr/AD0639176" target="_blank" rel="noopener" class="text-info">DTIC AD0639176</a>, <a href="https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf" target="_blank" rel="noopener" class="text-info">MIL-STD-3009</a>, <a href="https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf" target="_blank" rel="noopener" class="text-info">MIL-STD-1472G</a>). RFC 1392 nods in the source. These aren't decoration &mdash; they're signals to a specific subculture of security professionals who recognize the difference between aesthetic choices and engineering choices. Underneath the aesthetic: EWMA control charts with 3&sigma; control limits, evidence-weighted confidence scoring inspired by Bayesian reasoning, SHA-3-512 tamper-evident audit trails, structured JSON export, PWA offline support, and a drift engine that statistically detects whether a record is stable or flickering. The surface is a toolkit. The core is a high-assurance engine.</p>
 
-                        <h3 class="h5 mt-4 mb-3"><i class="fas fa-crosshairs me-2"></i>On the Intelligence Community Framing</h3>
+                        <h3 class="h5 mt-4 mb-3">{{icon "crosshairs" "me-2"}}On the Intelligence Community Framing</h3>
                         <p>We've also heard the narrower critique: that applying Intelligence Community methodology (ICD 203 confidence taxonomy, ICAE/ICuAE engine naming, TLP classification) to a DNS tool is theatrical. That the science is real but the packaging is cosplay.</p>
                         <p>We'll address that directly.</p>
                         <p><a href="https://www.dni.gov/files/documents/ICD/ICD%20203%20Analytic%20Standards.pdf" target="_blank" rel="noopener" class="text-info">ICD 203</a> was designed for one problem: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment. That is exactly what DNS security analysis is. SPF misconfiguration is the attack surface exploited in Business Email Compromise &mdash; the single most financially damaging cybercrime category (<a href="https://www.ic3.gov/AnnualReport/Reports/2023_IC3Report.pdf" target="_blank" rel="noopener" class="text-info">$2.9 billion in 2023, FBI IC3</a>). When an engineer evaluates an SPF finding, they need to know: was it observed directly or inferred? Was it confirmed across multiple resolvers or seen by only one? Is the evidence degraded by caching artifacts? ICD 203 provides that structure. The alternative &mdash; presenting every finding as equally certain &mdash; is what causes the alert fatigue that makes security tools useless.</p>
@@ -698,28 +698,28 @@
                     </div>
 
                     <div class="approach-section" id="where-simplicity-fails">
-                        <h2><i class="fas fa-exclamation-triangle"></i>Where Simplicity Fails</h2>
+                        <h2>{{icon "exclamation-triangle"}}Where Simplicity Fails</h2>
                         <p>Here are four real examples of why "does the record exist?" is a dangerous question to stop at:</p>
                         <div class="approach-example">
-                            <div class="approach-example-title"><i class="fas fa-file-alt me-1"></i>Syntactically Valid, Semantically Dangerous</div>
+                            <div class="approach-example-title">{{icon "file-alt" "me-1"}}Syntactically Valid, Semantically Dangerous</div>
                             <p>An SPF record like <code>v=spf1 a mx ip4:10.0.0.0/8 ~all</code> is syntactically perfect. It passes every simple checker. But it authorizes 16.7 million IP addresses to send email on your behalf. A tool that reports "SPF: Present" just told you everything is fine. It isn't.</p>
                         </div>
                         <div class="approach-example">
-                            <div class="approach-example-title"><i class="fas fa-landmark me-1"></i>The CISA Softfail Tension</div>
+                            <div class="approach-example-title">{{icon "landmark" "me-1"}}The CISA Softfail Tension</div>
                             <p>CISA's BOD 18-01 requires valid SPF and uses <code>v=spf1 -all</code> for non-sending domains. RFC 7208 permits <code>~all</code> as softfail and leaves disposition to local policy. Stricter enforcement requires confidence that legitimate senders are fully accounted for. We surface that tension, cite both sources, and let the engineer decide with full context.</p>
                         </div>
                         <div class="approach-example">
-                            <div class="approach-example-title"><i class="fas fa-wave-square me-1"></i>Snapshot vs. Stability</div>
+                            <div class="approach-example-title">{{icon "wave-square" "me-1"}}Snapshot vs. Stability</div>
                             <p>A DNS record that existed when you checked doesn't mean it's been stable. Fast-flux DNS &mdash; a technique used by malware &mdash; rotates records every few minutes. A snapshot scanner says "record present." Our drift engine uses Exponentially Weighted Moving Average (EWMA) control charts to statistically determine whether a record is stable or flickering. That's not overkill &mdash; it's the only way to detect that class of threat.</p>
                         </div>
                         <div class="approach-example">
-                            <div class="approach-example-title"><i class="fas fa-clock me-1"></i>TTL Is an Operational Decision, Not a Default</div>
+                            <div class="approach-example-title">{{icon "clock" "me-1"}}TTL Is an Operational Decision, Not a Default</div>
                             <p>TTL is rarely examined in DNS audits. But a record set to <code>300</code> seconds (5 minutes) when the zone is stable means thousands of unnecessary upstream queries per hour &mdash; increased cost, increased attack surface, increased latency. A TTL of <code>3600</code> for a stable record reduces resolver load and improves cache efficiency (RFC 1035 &sect;3.2.1). Conversely, during a migration or incident response, a low TTL is essential for rapid propagation. The right TTL depends on context, and we surface that context with specific recommendations.</p>
                         </div>
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-book"></i>Chain of Custody, Not Opinions</h2>
+                        <h2>{{icon "book"}}Chain of Custody, Not Opinions</h2>
                         <p>In a high-reliability organization, if a DNS configuration is flagged, the first question from the sysadmin is: <em>"According to whom?"</em></p>
                         <p>Our analysis engine doesn't invent interpretations. Every test case maps to a specific RFC paragraph. SPF evaluation follows RFC 7208. DMARC alignment follows RFC 7489. DANE/TLSA follows RFC 6698. DNSSEC validation follows RFC 4033&ndash;4035. By mapping findings to standards, we remove the opinion from the audit. We aren't the judge &mdash; the IETF standards are.</p>
                         <p>We use ICD 203's confidence language not as a credential, but because it was designed to locate the weakest link in an intelligence chain &mdash; and in DNS, that weakest link is usually human. Whether it's a TLD engineer, a misconfigured TTL, or a federal directive that outpaced industry readiness, our confidence engine is built to locate the failure wherever it occurs.</p>
@@ -740,7 +740,7 @@
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-microscope"></i>The Death of the Black Box</h2>
+                        <h2>{{icon "microscope"}}The Death of the Black Box</h2>
                         <p>Every analysis includes "Verify It Yourself" terminal commands &mdash; <code>dig</code>, <code>openssl</code>, <code>curl</code> &mdash; so any analyst can independently reproduce our findings. This isn't decoration. It's how scientific papers are structured: conclusion, methodology, raw data. We provide all three.</p>
                         <p>Our confidence engine explicitly distinguishes between what we've directly observed, what we've inferred from patterns, and what came from third-party enrichment:</p>
                         <ul>
@@ -755,56 +755,56 @@
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-balance-scale"></i>Rigor Is Dogfooding</h2>
+                        <h2>{{icon "balance-scale"}}Rigor Is Dogfooding</h2>
                         <p>There is a credibility problem in security tooling: flagging vulnerabilities on other domains while your own security headers are incomplete, your own Content Security Policy is missing, and your own performance is an afterthought. If we can&rsquo;t secure our own web delivery, why should anyone trust our DNS analysis?</p>
                         <p>We hold ourselves to the same standards that Google, Mozilla, and the security community created for exactly this purpose. Not as vanity metrics &mdash; as proof that we practice what we measure.</p>
                         <p>This philosophy extends to how our scanners and probes interact with the systems they analyze. Every DNS query, every SMTP probe, every certificate check is designed to be a best-practices good internet citizen &mdash; optimized query patterns, respectful rate limiting, symbiotic interaction with the infrastructure we depend on. We don't just measure good behavior. We practice it. If we're going to tell you your TTL is too aggressive, ours had better be right too.</p>
                         <p>This isn't theoretical. Over the years, multiple professional development agencies &mdash; real enterprise shops &mdash; were hired to build and maintain this platform. Every one promised Lighthouse, Observatory, and security compliance up front. Every one failed to deliver it. The authoritative tools to verify quality existed the entire time. They just weren't used. That experience is why every quality gate now runs on every build, not as a final check, but as a build requirement. The tools are right there. The only question is whether you use them.</p>
                         <div class="mt-3">
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">Lighthouse Performance: 100 <span class="text-muted u-fs-065rem">(verified Mar 2026)</span></div>
                                     <div class="approach-gate-detail">Google's audit for web performance, accessibility, best practices, and SEO &mdash; proving our own delivery is secure &mdash; <a href="https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fdnstool.it-help.tech" target="_blank" rel="noopener noreferrer">run the scan on us</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">Mozilla Observatory: 145 <span class="text-muted u-fs-065rem">(verified Mar 2026)</span></div>
                                     <div class="approach-gate-detail">Mozilla's security header scanner &mdash; our CSP, HSTS, and headers pass the test we apply to others &mdash; <a href="https://observatory.mozilla.org/analyze/dnstool.it-help.tech" target="_blank" rel="noopener noreferrer">run the scan on us</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-warn"><i class="fas fa-wrench"></i></div>
+                                <div class="approach-gate-icon gate-warn">{{icon "wrench"}}</div>
                                 <div>
                                     <div class="approach-gate-label">SonarCloud: <a href="https://sonarcloud.io/summary/overall?id=careyjames_dns-tool-web" target="_blank" rel="noopener noreferrer">Quality Gate Status</a> <span class="badge bg-warning text-dark ms-1 u-fs-065em u-valign-mid">In Development</span></div>
                                     <div class="approach-gate-detail">Static code analysis for reliability, security, and maintainability of our own codebase &mdash; quality gate actively improving &mdash; <a href="https://sonarcloud.io/summary/overall?id=careyjames_dns-tool-web" target="_blank" rel="noopener noreferrer">verify it yourself</a></div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">ICAE: 129 Test Cases</div>
                                     <div class="approach-gate-detail">Intelligence Confidence Audit Engine &mdash; validates every scoring decision against RFC-defined behavior</div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">ICuAE: 29 Test Cases</div>
                                     <div class="approach-gate-detail">Intelligence Currency Assurance Engine &mdash; validates data freshness and temporal stability</div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">WCAG Contrast Compliance</div>
                                     <div class="approach-gate-detail">Every color in every theme meets accessibility standards</div>
                                 </div>
                             </div>
                             <div class="approach-gate">
-                                <div class="approach-gate-icon gate-pass"><i class="fas fa-check"></i></div>
+                                <div class="approach-gate-icon gate-pass">{{icon "check"}}</div>
                                 <div>
                                     <div class="approach-gate-label">CIE Scotopic Vision Validation</div>
                                     <div class="approach-gate-detail">Dark theme colors grounded in published CIE scotopic research &mdash; not aesthetics</div>
@@ -818,13 +818,13 @@
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-code-compare"></i>Built for the Next Engineer</h2>
+                        <h2>{{icon "code-compare"}}Built for the Next Engineer</h2>
                         <p>Technical debt is a security risk. A system that can't be understood can't be trusted, and a system that can't be maintained will eventually be replaced by something less rigorous. We build modular, documented, and traceable infrastructure &mdash; not because it's faster to build, but because it's safer to inherit.</p>
                         <p>Every report is cryptographically sealed with SHA-3-512 hashing per NIST FIPS 202. Every architecture decision is documented. Every quality gate runs on every build. We are building for 2036, not just 2026. The line between an over-engineered project and a high-reliability system is traceability &mdash; and ours traces from finding to RFC to terminal command to test case.</p>
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-lightbulb"></i>Big Picture Questions</h2>
+                        <h2>{{icon "lightbulb"}}Big Picture Questions</h2>
                         <p>DNS security isn't one personality type's problem. The cybersecurity world includes hackers and pentesters, red teamers and blue teamers, compliance officers and field engineers, self-taught builders and formally trained analysts. They think differently, prioritize differently, and need different entry points into the same data.</p>
                         <p>That's why DNS Tool includes a dedicated Covert Recon Mode &mdash; a scientifically designed adversarial interface built on scotopic vision research. But the red interface isn't the point. The point is perspective. Covert Recon Mode gives you the adversarial viewpoint &mdash; the same configuration data, reframed through the lens of an attacker looking for weaknesses rather than an administrator confirming compliance. That cognitive shift is what separates security awareness from security theater. The interface is intentionally segregated so that executives reviewing an Engineer's Report never encounter a hacker aesthetic they didn't choose &mdash; but for the operators who need it, the adversarial lens is always available.</p>
                         <p>It also gives you the loot. Subdomain discovery from certificate transparency, passive DNS intelligence, and recursive enumeration surfaces assets that the domain owner may not realize are exposed &mdash; downloadable as a complete inventory. When sysadmins call asking how to hide their subdomains, it means the recon is working.</p>
@@ -837,14 +837,14 @@
                     </div>
 
                     <div class="approach-section">
-                        <h2><i class="fas fa-shield-alt"></i>The Ethical Line</h2>
+                        <h2>{{icon "shield-alt"}}The Ethical Line</h2>
                         <p>Our multi-probe infrastructure uses Nmap &mdash; one of the most powerful reconnaissance tools ever built. We allow exactly six NSE scripts: <code>ssl-cert</code>, <code>http-title</code>, <code>http-headers</code>, <code>dns-zone-transfer</code>, <code>banner</code>, and <code>smtp-commands</code>. That&rsquo;s it.</p>
                         <p>We deliberately excluded every vulnerability scanning, exploitation, and brute-force script category. Would running <code>vuln</code> scripts produce richer intelligence? Absolutely &mdash; we&rsquo;d see actual CVEs on nameservers, exploitable TLS weaknesses, misconfigured SMTP relays. The data would be better. The ethics wouldn&rsquo;t be.</p>
                         <p>There&rsquo;s a difference between observing what&rsquo;s publicly visible and probing for weaknesses. We chose the boundary, documented it, and made it public. Read the full rationale in our <a href="/roe" class="text-info text-decoration-none fw-semibold">Rules of Engagement</a>.</p>
                     </div>
 
                     <div class="approach-section" id="validation-status">
-                        <h2><i class="fas fa-clipboard-check"></i>Validation Status Matrix</h2>
+                        <h2>{{icon "clipboard-check"}}Validation Status Matrix</h2>
                         <p>Honest assessment of where each component stands. Science requires transparency about what&rsquo;s proven, what&rsquo;s in progress, and what&rsquo;s next.</p>
                         <div class="approach-validation-table-wrap">
                             <table class="approach-validation-table">
@@ -920,7 +920,7 @@
                     </div>
 
                     <div class="approach-founder">
-                        <h3><i class="fas fa-user-shield me-2 text-info"></i>A Note from the Builder</h3>
+                        <h3>{{icon "user-shield" "me-2 text-info"}}A Note from the Builder</h3>
                         <p>I don't have a computer science degree. I'm self-taught. Twenty-seven years of field engineering &mdash; standing in front of clients who needed a trustworthy answer, not a confident-looking one. Everything in this platform was learned from reading the standards, studying the science, and applying it with the discipline of someone who couldn't afford to get it wrong.</p>
                         <p>The people who built this didn't learn it casually. They were in a lab &mdash; studying RFCs at midnight, reverse-engineering protocol behavior, testing edge cases that no customer would ever report. They chose that work over easier paths because the problem was interesting enough to deserve the effort. That's what intrinsic motivation looks like when it meets infrastructure.</p>
                         <p>Over those years, I've mentored a lot of young IT professionals just starting out &mdash; helping them understand how to do things correctly from the foundation up. DNS Tool carries that same philosophy. It's built to teach the <em>why</em>, not just report the <em>what</em>. If you want to understand how the connected internet actually works &mdash; how domains are authenticated, how email is secured, how trust is established &mdash; DNS is where you start. We're here to help.</p>
@@ -933,12 +933,12 @@
                     </div>
 
                     <div class="approach-nav-row mt-4 mb-2">
-                        <a href="/roe" class="approach-nav-btn"><i class="fas fa-shield-alt me-1"></i>Rules of Engagement</a>
-                        <a href="/roadmap" class="approach-nav-btn"><i class="fas fa-map me-1"></i>Roadmap</a>
-                        <a href="/about" class="approach-nav-btn"><i class="fas fa-book-open me-1"></i>Origin Story</a>
-                        <a href="/confidence" class="approach-nav-btn"><i class="fas fa-bullseye me-1"></i>Confidence</a>
-                        <a href="/architecture" class="approach-nav-btn"><i class="fas fa-microchip me-1"></i>Architecture</a>
-                        <a href="/sources" class="approach-nav-btn"><i class="fas fa-diagram-project me-1"></i>Intelligence Sources</a>
+                        <a href="/roe" class="approach-nav-btn">{{icon "shield-alt" "me-1"}}Rules of Engagement</a>
+                        <a href="/roadmap" class="approach-nav-btn">{{icon "map" "me-1"}}Roadmap</a>
+                        <a href="/about" class="approach-nav-btn">{{icon "book-open" "me-1"}}Origin Story</a>
+                        <a href="/confidence" class="approach-nav-btn">{{icon "bullseye" "me-1"}}Confidence</a>
+                        <a href="/architecture" class="approach-nav-btn">{{icon "microchip" "me-1"}}Architecture</a>
+                        <a href="/sources" class="approach-nav-btn">{{icon "diagram-project" "me-1"}}Intelligence Sources</a>
                     </div>
 
                 </div>

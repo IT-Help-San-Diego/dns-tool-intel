@@ -1059,18 +1059,18 @@
     .border-opacity-50 { border-color: #d1d5db !important; }
 
     /* ================================================
-       FONTAWESOME ICONS — Semantic Colors
+       SVG ICONS — Semantic Colors
        ================================================ */
-    .fas.text-success { color: #166534 !important; }
-    .fas.text-warning { color: #d97706 !important; }
-    .fas.text-danger { color: #991b1b !important; }
-    .fas.text-info { color: #0e7490 !important; }
-    .fas.text-primary { color: #1e3a5f !important; }
-    .fas.text-secondary { color: #6b7280 !important; }
-    .fas.text-muted { color: #9ca3af !important; }
+    .icon.text-success { color: #166534 !important; }
+    .icon.text-warning { color: #d97706 !important; }
+    .icon.text-danger { color: #991b1b !important; }
+    .icon.text-info { color: #0e7490 !important; }
+    .icon.text-primary { color: #1e3a5f !important; }
+    .icon.text-secondary { color: #6b7280 !important; }
+    .icon.text-muted { color: #9ca3af !important; }
 
-    .fa-2x { font-size: 14pt !important; }
-    .fa-4x { font-size: 20pt !important; }
+    .icon-2x { font-size: 14pt !important; }
+    .icon-4x { font-size: 20pt !important; }
 
     /* === DANE Transport Security Explainer === */
     .card-body dl dt {
@@ -1097,6 +1097,14 @@
     .card-body .alert:first-child {
         margin-top: 0 !important;
     }
+
+    /* Brand icon palette — print overrides */
+    .text-brand-cobalt { color: #1e3a5f !important; }
+    .text-brand-gold   { color: #8b6914 !important; }
+    .text-brand-violet { color: #4a3c99 !important; }
+    .text-brand-steel  { color: #5a6878 !important; }
+    .text-brand-amber  { color: #8b6914 !important; }
+    .icon-premium, .icon-premium-gold, .icon-premium-cobalt, .icon-premium-violet { filter: none; }
 
     /* Record type badges inside cards */
     .card-body > h6 .badge.bg-primary,

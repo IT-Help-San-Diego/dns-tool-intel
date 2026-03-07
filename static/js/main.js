@@ -35,11 +35,11 @@ globalThis.addEventListener('pageshow', function(e) {
         document.body.classList.remove('loading');
         const reanalyzeBtn = document.getElementById('reanalyzeBtn');
         if (reanalyzeBtn && !reanalyzeBtn.classList.contains('disabled')) {
-            reanalyzeBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Re-analyze';
+            reanalyzeBtn.innerHTML = (window._icons ? window._icons.sync : '') + ' Re-analyze';
         }
         const analyzeBtn = document.getElementById('analyzeBtn');
         if (analyzeBtn) {
-            analyzeBtn.innerHTML = '<i class="fas fa-search me-1"></i> Analyze';
+            analyzeBtn.innerHTML = (window._icons ? window._icons.search : '') + ' Analyze';
             analyzeBtn.disabled = false;
         }
         document.querySelectorAll('.history-view-btn,.history-reanalyze-btn').forEach(function(b) {
@@ -127,8 +127,8 @@ function startStatusCycle(overlayEl) {
             phase.classList.add('done');
             const icon = phase.querySelector('.scan-icon');
             if (icon) {
-                icon.classList.remove('fa-circle-notch', 'fa-spin', 'scan-pending');
-                requestAnimationFrame(function() { icon.classList.add('fa-check-circle'); });
+                icon.classList.remove('icon-spin', 'scan-pending');
+                if (window._icons) { icon.outerHTML = window._icons.checkCircle; }
             }
         }, doneDelay);
     });
@@ -144,7 +144,7 @@ function hideOverlayAndReset(overlay, btn) {
     }
     document.body.classList.remove('loading');
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-search me-1"></i> Analyze';
+        btn.innerHTML = (window._icons ? window._icons.search : '') + ' Analyze';
         btn.disabled = false;
     }
 }
@@ -178,13 +178,14 @@ function swapToTLDScanPhases(overlay) {
         const div = document.createElement('div');
         div.className = 'scan-phase';
         div.dataset.delay = p.delay;
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-circle-notch fa-spin scan-icon scan-pending';
-        icon.setAttribute('aria-hidden', 'true');
+        const iconWrap = document.createElement('span');
+        iconWrap.className = 'scan-icon scan-pending';
+        iconWrap.innerHTML = window._icons ? window._icons.spinner : '';
+        iconWrap.setAttribute('aria-hidden', 'true');
         const span = document.createElement('span');
         span.className = isCovert ? 'covert-show' : 'covert-hide';
         span.textContent = isCovert ? p.covert : p.normal;
-        div.appendChild(icon);
+        div.appendChild(iconWrap);
         div.appendChild(span);
         checklist.appendChild(div);
     });
@@ -200,14 +201,14 @@ function showCovertTLDToast(domain, callback) {
     toast.ariaLive = 'assertive';
     toast.className = 'tld-recon-toast';
     toast.innerHTML = '<div class="tld-recon-toast-title">'
-        + '<i class="fas fa-globe-americas"></i>'
+        + window._icons.globe
         + 'Planning to hack the planet, Zero Cool?</div>'
         + '<div class="tld-recon-toast-body">'
         + 'Bare\u2011TLD recon maps registry infrastructure only \u2014 '
         + 'DNSSEC, NS delegation, CAA, registrar, Nmap, SVCB. '
         + 'No SPF/DKIM/DMARC at zone scope.</div>'
         + '<div class="tld-recon-toast-footer">'
-        + '<i class="fas fa-satellite-dish"></i>'
+        + window._icons.satellite
         + '</div>';
     const toastFooter = toast.querySelector('.tld-recon-toast-footer');
     toastFooter.appendChild(document.createTextNode('Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only'));
@@ -279,12 +280,12 @@ function applyFetchedPage(html, respUrl, overlay, btn) {
 }
 
 function resetCopyBtn(btn) {
-    btn.innerHTML = '<i class="fas fa-copy"></i>';
+    btn.innerHTML = window._icons.copy;
     btn.classList.remove('copied');
 }
 
 function handleCopyResult(btn, success) {
-    btn.innerHTML = success ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+    btn.innerHTML = success ? window._icons.check : window._icons.times;
     if (success) btn.classList.add('copied');
     setTimeout(function() { resetCopyBtn(btn); }, 1500);
 }
@@ -459,8 +460,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         roeModal = new bootstrap.Modal(roeModalEl);
-        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'false'); });
-        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('aria-hidden', 'true'); });
+        roeModalEl.addEventListener('show.bs.modal', function() { roeModalEl.removeAttribute('inert'); roeModalEl.removeAttribute('aria-hidden'); });
+        roeModalEl.addEventListener('hidden.bs.modal', function() { roeModalEl.setAttribute('inert', ''); roeModalEl.setAttribute('aria-hidden', 'true'); });
     }
     let roeHandled = false;
     function handleRoeAccept(e) {
@@ -543,12 +544,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
-            const icon = b.querySelector('i');
+            var ic = b.querySelector('.icon');
             if (fsEl) {
-                if (icon) { icon.className = 'fas fa-compress me-1'; }
+                if (ic && window._icons) { ic.outerHTML = window._icons.compress; }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
             } else {
-                if (icon) { icon.className = 'fas fa-expand me-1'; }
+                if (ic && window._icons) { ic.outerHTML = window._icons.expand; }
                 b.setAttribute('title', 'Focus Mode — hide browser chrome for full scotopic immersion');
             }
         });
@@ -634,11 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showOverlay(overlay);
                 startStatusCycle(overlay);
             }
-            analyzeBtn.textContent = '';
-            const spinner = document.createElement('i');
-            spinner.className = 'fas fa-spinner fa-spin me-2';
-            analyzeBtn.appendChild(spinner);
-            analyzeBtn.appendChild(document.createTextNode('Analyzing...'));
+            analyzeBtn.innerHTML = (window._icons ? window._icons.spinner : '') + ' Analyzing...';
             analyzeBtn.disabled = true;
             document.body.classList.add('loading');
             analysisSubmitted = true;
@@ -720,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.type = 'button';
         btn.className = 'copy-btn';
         btn.ariaLabel = 'Copy to clipboard';
-        btn.innerHTML = '<i class="fas fa-copy"></i>';
+        btn.innerHTML = window._icons.copy;
         codeBlock.appendChild(btn);
 
         const doCopy = createCopyHandler(codeBlock, btn);
@@ -737,11 +734,7 @@ if (allFixesCollapse) {
             return node.cloneNode(true);
         });
         allFixesCollapse.addEventListener('shown.bs.collapse', function() {
-            toggleBtn.textContent = '';
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-chevron-up me-1';
-            toggleBtn.appendChild(icon);
-            toggleBtn.appendChild(document.createTextNode('Show fewer'));
+            toggleBtn.innerHTML = (window._icons ? window._icons.chevronUp : '') + ' Show fewer';
         });
         allFixesCollapse.addEventListener('hidden.bs.collapse', function() {
             toggleBtn.textContent = '';
@@ -786,14 +779,10 @@ function createHistoryRow(ch) {
     const actionIcon = document.createElement('i');
     if (ch.action === 'added') {
         actionSpan.className = 'text-success';
-        actionIcon.className = 'fas fa-plus-circle me-1';
-        actionSpan.appendChild(actionIcon);
-        actionSpan.appendChild(document.createTextNode('Added'));
+        actionSpan.innerHTML = (window._icons ? window._icons.plusCircle : '') + ' Added';
     } else {
         actionSpan.className = 'text-danger';
-        actionIcon.className = 'fas fa-minus-circle me-1';
-        actionSpan.appendChild(actionIcon);
-        actionSpan.appendChild(document.createTextNode('Removed'));
+        actionSpan.innerHTML = (window._icons ? window._icons.minusCircle : '') + ' Removed';
     }
     tdAction.appendChild(actionSpan);
 
@@ -828,7 +817,7 @@ function loadDNSHistory(domain) {
     const btn = document.getElementById('dns-history-btn');
     if (!btn) return;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading history\u2026';
+    btn.innerHTML = (window._icons ? window._icons.spinner : '') + ' Loading history\u2026';
 
     fetch('/api/dns-history?domain=' + encodeURIComponent(domain))
         .then(function(r) { return r.json(); })
@@ -849,10 +838,7 @@ function loadDNSHistory(domain) {
             if (changes.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'text-muted mb-0';
-                const ico = document.createElement('i');
-                ico.className = 'fas fa-check-circle text-success me-1';
-                p.appendChild(ico);
-                p.appendChild(document.createTextNode('No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.'));
+                p.innerHTML = (window._icons ? window._icons.checkCircle : '') + ' No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.';
                 body.appendChild(p);
             } else {
                 const wrap = document.createElement('div');

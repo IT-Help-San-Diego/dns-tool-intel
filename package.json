@@ -13,6 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@netlify/plugin-lighthouse": "^6.0.4",
     "@notionhq/client": "^2.2.15",
     "@octokit/rest": "^22.0.1",

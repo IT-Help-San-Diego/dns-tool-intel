@@ -2,7 +2,7 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     {{template "head" .}}
-    <title>IP Intelligence - DNS Tool</title>
+    <title>IP Intelligence & Reverse DNS Lookup - DNS Tool</title>
     <meta name="description" content="Investigate IP-to-domain relationships. Correlates reverse DNS, ASN ownership, SPF records, and CT subdomain data for evidence-based attribution.">
     <meta property="og:url" content="https://dnstool.it-help.tech/investigate">
     <meta property="og:type" content="website">
@@ -28,7 +28,7 @@
         <div class="container">
             <div class="text-center hero-content">
                 <div class="hero-badge mb-3">
-                    <i class="fas fa-route me-1"></i> IP Intelligence
+                    {{icon "route" "me-1"}} IP Intelligence
                     <span class="badge bg-warning text-dark ms-2 u-fs-065em-vmid">BETA</span>
                 </div>
                 <h1 class="hero-title mb-3">
@@ -50,7 +50,7 @@
                         <form method="POST" action="/investigate" id="investigateForm">
                             <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
                             <label for="domain" class="form-label search-label">
-                                <i class="fas fa-globe me-2"></i>Your Domain
+                                {{icon "globe" "me-2"}}Your Domain
                             </label>
                             <div class="input-group input-group-lg search-input-group mb-3">
                                 <input type="text"
@@ -66,7 +66,7 @@
                                        value="{{.FormDomain}}">
                             </div>
                             <label for="ip_address" class="form-label search-label">
-                                <i class="fas fa-network-wired me-2"></i>IP Address to Investigate
+                                {{icon "network-wired" "me-2"}}IP Address to Investigate
                             </label>
                             <div class="input-group input-group-lg search-input-group mb-3">
                                 <input type="text"
@@ -81,19 +81,19 @@
                                        aria-label="IP address to investigate"
                                        value="{{.FormIP}}">
                                 <button class="btn btn-primary search-btn" type="submit" id="investigateBtn" aria-label="Analyze IP">
-                                    <i class="fas fa-route me-2" aria-hidden="true"></i>Analyze
+                                    {{icon "route" "me-2"}}Analyze
                                 </button>
                             </div>
                             <details class="mb-3">
                                 <summary class="text-muted small u-pointer">
-                                    <i class="fas fa-key me-1"></i>API Keys <span class="text-muted">(optional &mdash; enrich your results)</span>
+                                    {{icon "key" "me-1"}}API Keys <span class="text-muted">(optional &mdash; enrich your results)</span>
                                 </summary>
                                 <div class="mt-2">
                                     <div class="api-keys-info py-2 px-3 mb-3 rounded">
-                                        <i class="fas fa-check-circle me-1 api-keys-icon"></i><strong>Without these keys</strong>, you still get a full investigation: reverse DNS, ASN ownership (via <a href="https://www.team-cymru.com/ip-asn-mapping" target="_blank" rel="noopener" class="text-info">Team Cymru</a>), SPF authorization, CDN detection, and certificate transparency matching &mdash; all included, no key required. These optional keys add extra layers of intelligence.
+                                        {{icon "check-circle" "me-1 api-keys-icon"}}<strong>Without these keys</strong>, you still get a full investigation: reverse DNS, ASN ownership (via <a href="https://www.team-cymru.com/ip-asn-mapping" target="_blank" rel="noopener" class="text-info">Team Cymru</a>), SPF authorization, CDN detection, and certificate transparency matching &mdash; all included, no key required. These optional keys add extra layers of intelligence.
                                     </div>
 
-                                    <label for="securitytrails_api_key" class="text-muted small d-block mb-1"><i class="fas fa-building me-1"></i>SecurityTrails <span class="badge bg-dark border border-secondary u-fs-070em">50 requests/month</span></label>
+                                    <label for="securitytrails_api_key" class="text-muted small d-block mb-1">{{icon "building" "me-1"}}SecurityTrails <span class="badge bg-dark border border-secondary u-fs-070em">50 requests/month</span></label>
                                     <div class="input-group input-group-sm mb-1">
                                         <input type="password"
                                                class="form-control bg-dark text-light border-secondary u-fs-085em"
@@ -108,7 +108,7 @@
                                         <strong>What it adds:</strong> IP Neighborhood &mdash; shows other domains hosted on the same IP. Helps you see who else shares this server (co-tenants on shared hosting, or related properties on dedicated servers). <a href="https://securitytrails.com/app/signup" target="_blank" rel="noopener" class="text-info">Get an API key &rarr;</a>
                                     </div>
 
-                                    <label for="ipinfo_access_token" class="text-muted small d-block mb-1"><i class="fas fa-map-marker-alt me-1"></i>IPinfo.io <span class="badge bg-dark border border-secondary u-fs-070em">50,000 requests/month</span></label>
+                                    <label for="ipinfo_access_token" class="text-muted small d-block mb-1">{{icon "map-marker-alt" "me-1"}}IPinfo.io <span class="badge bg-dark border border-secondary u-fs-070em">50,000 requests/month</span></label>
                                     <div class="input-group input-group-sm mb-1">
                                         <input type="password"
                                                class="form-control bg-dark text-light border-secondary u-fs-085em"
@@ -124,12 +124,12 @@
                                     </div>
 
                                     <div class="mt-2 text-muted u-fs-072em">
-                                        <i class="fas fa-shield-alt me-1"></i>Your keys are sent directly to each service and are never stored on our servers.
+                                        {{icon "shield-alt" "me-1"}}Your keys are sent directly to each service and are never stored on our servers.
                                     </div>
                                 </div>
                             </details>
                             <div class="form-text search-hint mt-2">
-                                <i class="fas fa-info-circle me-1"></i>
+                                {{icon "info-circle" "me-1"}}
                                 Enter a domain and an IP address from a report, log, or email header. We&rsquo;ll correlate reverse DNS, ASN ownership, SPF authorization, and infrastructure mapping &mdash; evidence-based attribution, not just a lookup.
                                 All queries use publicly available DNS records, RDAP data, and Certificate Transparency logs via open-standard protocols.
                             </div>
@@ -139,13 +139,13 @@
             </div>
 
             <div class="text-center mt-4 hero-trust">
-                <span><i class="fas fa-globe me-1"></i> Reverse DNS + FCrDNS</span>
+                <span>{{icon "globe" "me-1"}} Reverse DNS + FCrDNS</span>
                 <span class="trust-divider"></span>
-                <span><i class="fas fa-network-wired me-1"></i> ASN Attribution</span>
+                <span>{{icon "network-wired" "me-1"}} ASN Attribution</span>
                 <span class="trust-divider"></span>
-                <span><i class="fas fa-envelope me-1"></i> SPF Authorization Check</span>
+                <span>{{icon "envelope" "me-1"}} SPF Authorization Check</span>
                 <span class="trust-divider"></span>
-                <span><i class="fas fa-server me-1"></i> Infrastructure Mapping</span>
+                <span>{{icon "server" "me-1"}} Infrastructure Mapping</span>
             </div>
         </div>
     </section>
@@ -158,7 +158,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-card-icon feature-card-icon--primary">
-                            <i class="fas fa-server"></i>
+                            {{icon "server"}}
                         </div>
                         <h3 class="feature-card-title">DNS Records</h3>
                         <p class="feature-card-text">Compare against your domain's A, AAAA, MX, and NS records to identify direct hosting and service providers</p>
@@ -167,7 +167,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-card-icon feature-card-icon--success">
-                            <i class="fas fa-envelope"></i>
+                            {{icon "envelope"}}
                         </div>
                         <h3 class="feature-card-title">SPF Authorization</h3>
                         <p class="feature-card-text">Check if the IP is authorized to send email on your behalf via SPF ip4/ip6 mechanisms and include chains</p>
@@ -176,7 +176,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-card-icon feature-card-icon--info">
-                            <i class="fas fa-building"></i>
+                            {{icon "building"}}
                         </div>
                         <h3 class="feature-card-title">ASN &amp; Provider</h3>
                         <p class="feature-card-text">Identify the network operator, autonomous system, and whether the IP belongs to a CDN or cloud provider</p>
@@ -185,7 +185,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-card-icon feature-card-icon--warning">
-                            <i class="fas fa-certificate"></i>
+                            {{icon "certificate"}}
                         </div>
                         <h3 class="feature-card-title">CT Subdomains</h3>
                         <p class="feature-card-text">Cross-reference against Certificate Transparency discovered subdomains to find hidden infrastructure matches</p>
@@ -202,14 +202,14 @@
     <div class="container mt-4">
         <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
             <h1 class="h3 mb-0">
-                <i class="fas fa-route me-2 text-info"></i>IP Intelligence Report
+                {{icon "route" "me-2 text-info"}}IP Intelligence Report
                 <span class="badge bg-warning text-dark ms-2 u-fs-050em-vmid">BETA</span>
             </h1>
             <a href="/investigate" class="btn btn-outline-secondary btn-sm ms-auto">
-                <i class="fas fa-search me-1"></i>New Investigation
+                {{icon "search" "me-1"}}New Investigation
             </a>
             <a href="/analyze?domain={{.AsciiDomain}}" class="btn btn-outline-info btn-sm">
-                <i class="fas fa-shield-alt me-1"></i>Full Domain Audit
+                {{icon "shield-alt" "me-1"}}Full Domain Audit
             </a>
         </div>
 
@@ -231,40 +231,40 @@
                         <div class="d-flex align-items-start">
                             <div class="me-3 mt-1">
                                 {{if eq $verdictSev "success"}}
-                                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    {{icon "check-circle" "icon-2x text-success"}}
                                 {{else if eq $verdictSev "info"}}
-                                    <i class="fas fa-circle-info fa-2x text-info"></i>
+                                    {{icon "circle-info" "icon-2x text-info"}}
                                 {{else if eq $verdictSev "warning"}}
-                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                    {{icon "exclamation-triangle" "icon-2x text-warning"}}
                                 {{else if eq $verdictSev "primary"}}
-                                    <i class="fas fa-globe fa-2x text-primary"></i>
+                                    {{icon "globe" "icon-2x text-primary"}}
                                 {{else}}
-                                    <i class="fas fa-circle-question fa-2x text-secondary"></i>
+                                    {{icon "circle-question" "icon-2x text-secondary"}}
                                 {{end}}
                             </div>
                             <div>
                                 <h5 class="mb-1">
                                     <code class="text-light">{{.IPAddress}}</code>
-                                    <i class="fas fa-long-arrow-alt-right mx-2 text-muted small"></i>
+                                    {{icon "long-arrow-alt-right" "mx-2 text-muted small"}}
                                     <code class="text-light">{{.Domain}}</code>
                                 </h5>
                                 <div class="mt-2">
                                     {{if eq $classification "Unrelated"}}
                                         <span class="badge bg-secondary fs-6">No Relationship Found</span>
                                     {{else if or (eq $classification "Direct Asset (A Record)") (eq $classification "Direct Asset (AAAA Record)") (eq $classification "Direct Asset (Reverse DNS)")}}
-                                        <span class="badge bg-success fs-6"><i class="fas fa-check-circle me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-success fs-6">{{icon "check-circle" "me-1"}}{{$classification}}</span>
                                     {{else if eq $classification "Email Provider (MX)"}}
-                                        <span class="badge bg-info fs-6"><i class="fas fa-envelope me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-info fs-6">{{icon "envelope" "me-1"}}{{$classification}}</span>
                                     {{else if eq $classification "DNS Provider (NS)"}}
-                                        <span class="badge bg-primary fs-6"><i class="fas fa-server me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-primary fs-6">{{icon "server" "me-1"}}{{$classification}}</span>
                                     {{else if or (eq $classification "SPF-Authorized Sender") (eq $classification "SPF-Authorized Sender (via include)")}}
-                                        <span class="badge bg-warning text-dark fs-6"><i class="fas fa-paper-plane me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-warning text-dark fs-6">{{icon "paper-plane" "me-1"}}{{$classification}}</span>
                                     {{else if eq $classification "CT Subdomain Match"}}
-                                        <span class="badge bg-info fs-6"><i class="fas fa-certificate me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-info fs-6">{{icon "certificate" "me-1"}}{{$classification}}</span>
                                     {{else if eq $classification "CDN/Edge Network"}}
-                                        <span class="badge bg-primary fs-6"><i class="fas fa-globe me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-primary fs-6">{{icon "globe" "me-1"}}{{$classification}}</span>
                                     {{else if eq $classification "Cloud Hosting"}}
-                                        <span class="badge bg-info fs-6"><i class="fas fa-cloud me-1"></i>{{$classification}}</span>
+                                        <span class="badge bg-info fs-6">{{icon "cloud" "me-1"}}{{$classification}}</span>
                                     {{else}}
                                         <span class="badge bg-secondary fs-6">{{$classification}}</span>
                                     {{end}}
@@ -284,7 +284,7 @@
                                 <div class="small">
                                     <div class="text-muted"><strong>AS{{$asn}}</strong></div>
                                     {{if ne $asName ""}}<div class="text-muted">{{$asName}}</div>{{end}}
-                                    {{if ne $country ""}}<div class="text-muted"><i class="fas fa-globe me-1"></i>{{$country}}</div>{{end}}
+                                    {{if ne $country ""}}<div class="text-muted">{{icon "globe" "me-1"}}{{$country}}</div>{{end}}
                                 </div>
                             {{end}}
                         {{end}}
@@ -304,7 +304,7 @@
         <div class="card mb-4">
             <div class="card-header u-header-primary">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                    <span><i class="fas fa-id-card me-2 u-color-info"></i>Network Identity</span>
+                    <span>{{icon "id-card" "me-2 u-color-info"}}Network Identity</span>
                     <small class="text-muted">Who owns this IP, and do they claim it publicly?
                         {{if and $ptrSlice (gt (len $ptrSlice) 0)}}
                             {{if $fcrdns}}
@@ -319,11 +319,11 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>Reverse DNS (PTR) is set by the IP owner; Forward-Confirmed (FCrDNS) proves the PTR name actually points back to this IP.</p>
+                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Reverse DNS (PTR) is set by the IP owner; Forward-Confirmed (FCrDNS) proves the PTR name actually points back to this IP.</p>
 
                 <div class="row">
                     <div class="col-lg-6 mb-3 mb-lg-0">
-                        <p class="text-muted mb-2 fw-semibold"><i class="fas fa-globe me-1"></i>Reverse DNS (PTR)</p>
+                        <p class="text-muted mb-2 fw-semibold">{{icon "globe" "me-1"}}Reverse DNS (PTR)</p>
                         {{if and $ptrSlice (gt (len $ptrSlice) 0)}}
                             <table class="table table-dark table-sm mb-2">
                                 <thead><tr><th scope="col">PTR Record</th><th scope="col">FCrDNS</th></tr></thead>
@@ -333,9 +333,9 @@
                                         <td><code>{{.}}</code></td>
                                         <td>
                                             {{if $fcrdns}}
-                                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Confirmed</span>
+                                                <span class="badge bg-success">{{icon "check" "me-1"}}Confirmed</span>
                                             {{else}}
-                                                <span class="badge bg-secondary"><i class="fas fa-minus me-1"></i>No match</span>
+                                                <span class="badge bg-secondary">{{icon "minus" "me-1"}}No match</span>
                                             {{end}}
                                         </td>
                                     </tr>
@@ -343,11 +343,11 @@
                                 </tbody>
                             </table>
                         {{else}}
-                            <p class="text-muted small mb-0"><i class="fas fa-minus-circle me-1"></i>No PTR records found. The hosting provider may not have configured reverse DNS.</p>
+                            <p class="text-muted small mb-0">{{icon "minus-circle" "me-1"}}No PTR records found. The hosting provider may not have configured reverse DNS.</p>
                         {{end}}
                     </div>
                     <div class="col-lg-6">
-                        <p class="text-muted mb-2 fw-semibold"><i class="fas fa-building me-1"></i>Network Operator</p>
+                        <p class="text-muted mb-2 fw-semibold">{{icon "building" "me-1"}}Network Operator</p>
                         {{if $asnInfoCard}}
                             <table class="table table-dark table-sm mb-2">
                                 <tbody>
@@ -371,18 +371,18 @@
                             </table>
                             {{if $isCdn}}
                                 <div class="alert alert-info py-2 mb-0 small">
-                                    <i class="fas fa-globe me-2"></i><strong>CDN/Edge Network:</strong> This IP belongs to <strong>{{$cdnProv}}</strong>'s global edge network. Traffic is proxied through shared infrastructure — this IP is not dedicated to any single customer.
+                                    {{icon "globe" "me-2"}}<strong>CDN/Edge Network:</strong> This IP belongs to <strong>{{$cdnProv}}</strong>'s global edge network. Traffic is proxied through shared infrastructure — this IP is not dedicated to any single customer.
                                 </div>
                             {{else}}
                                 {{$cloudProv := mapGetStr "cloud_provider" $results}}
                                 {{if ne $cloudProv ""}}
                                 <div class="alert alert-secondary py-2 mb-0 small">
-                                    <i class="fas fa-cloud me-2"></i><strong>Cloud Hosting:</strong> This IP is hosted on <strong>{{$cloudProv}}</strong> cloud infrastructure. This is a standard cloud-hosted server, not a CDN edge node.
+                                    {{icon "cloud" "me-2"}}<strong>Cloud Hosting:</strong> This IP is hosted on <strong>{{$cloudProv}}</strong> cloud infrastructure. This is a standard cloud-hosted server, not a CDN edge node.
                                 </div>
                                 {{end}}
                             {{end}}
                             <div class="mt-2 text-muted u-fs-072em">
-                                <i class="fas fa-heart me-1 u-color-danger"></i>ASN data provided by <a href="https://www.team-cymru.com/ip-asn-mapping" target="_blank" rel="noopener" class="text-info">Team Cymru</a> &mdash; a community service processing 1.5+ billion daily queries for the internet community.
+                                {{icon "heart" "me-1 u-color-danger"}}ASN data provided by <a href="https://www.team-cymru.com/ip-asn-mapping" target="_blank" rel="noopener" class="text-info">Team Cymru</a> &mdash; a community service processing 1.5+ billion daily queries for the internet community.
                             </div>
                         {{else}}
                             <p class="text-muted small mb-0">ASN information unavailable.</p>
@@ -396,7 +396,7 @@
         <!-- API Error Alerts -->
         {{if .IPInfoError}}
         <div class="alert alert-warning py-2 mb-4 small">
-            <i class="fas fa-exclamation-triangle me-2"></i>{{.IPInfoError}}
+            {{icon "exclamation-triangle" "me-2"}}{{.IPInfoError}}
         </div>
         {{end}}
 
@@ -408,14 +408,14 @@
         <div class="card mb-4">
             <div class="card-header u-header-warning">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                    <span><i class="fas fa-map-marker-alt me-2 u-color-warning"></i>IP Geolocation &amp; Organization</span>
+                    <span>{{icon "map-marker-alt" "me-2 u-color-warning"}}IP Geolocation &amp; Organization</span>
                     <small class="text-muted">Where is this IP physically located?
                         <span class="badge bg-dark border border-secondary ms-1">IPinfo.io</span>
                     </small>
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>Geolocation and organization data from <a href="https://ipinfo.io/{{.IPAddress}}" target="_blank" rel="noopener" class="text-info">IPinfo.io</a>. Verify: <code>curl ipinfo.io/{{.IPAddress}}</code></p>
+                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Geolocation and organization data from <a href="https://ipinfo.io/{{.IPAddress}}" target="_blank" rel="noopener" class="text-info">IPinfo.io</a>. Verify: <code>curl ipinfo.io/{{.IPAddress}}</code></p>
 
                 {{$ipCity := index $ipinfo "city"}}
                 {{$ipRegion := index $ipinfo "region"}}
@@ -429,7 +429,7 @@
 
                 <div class="row">
                     <div class="col-lg-6 mb-3 mb-lg-0">
-                        <p class="text-muted mb-2 fw-semibold"><i class="fas fa-map-pin me-1"></i>Location</p>
+                        <p class="text-muted mb-2 fw-semibold">{{icon "map-pin" "me-1"}}Location</p>
                         <table class="table table-dark table-sm mb-2">
                             <tbody>
                                 {{if and $ipCity (ne (printf "%v" $ipCity) "")}}
@@ -454,7 +454,7 @@
                         </table>
                     </div>
                     <div class="col-lg-6">
-                        <p class="text-muted mb-2 fw-semibold"><i class="fas fa-building me-1"></i>Organization</p>
+                        <p class="text-muted mb-2 fw-semibold">{{icon "building" "me-1"}}Organization</p>
                         <table class="table table-dark table-sm mb-2">
                             <tbody>
                                 {{if and $ipOrg (ne (printf "%v" $ipOrg) "")}}
@@ -467,7 +467,7 @@
                         </table>
                         {{if $ipAnycast}}
                         <div class="alert alert-info py-2 mb-0 small">
-                            <i class="fas fa-globe me-2"></i><strong>Anycast IP:</strong> This IP address is announced from multiple locations globally. The physical location shown may not reflect all deployment points.
+                            {{icon "globe" "me-2"}}<strong>Anycast IP:</strong> This IP address is announced from multiple locations globally. The physical location shown may not reflect all deployment points.
                         </div>
                         {{end}}
                     </div>
@@ -485,7 +485,7 @@
         <div class="card mb-4">
             <div class="card-header u-header-success">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                    <span><i class="fas fa-project-diagram me-2 u-color-success"></i>Domain Relationship</span>
+                    <span>{{icon "project-diagram" "me-2 u-color-success"}}Domain Relationship</span>
                     <small class="text-muted">Does this IP serve or send for your domain?
                         {{if gt $directCount 0}}
                             <span class="badge bg-success ms-1">{{$directCount}} match{{if gt $directCount 1}}es{{end}}</span>
@@ -496,7 +496,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>Checks A/AAAA (web hosting), MX (email), NS (DNS) records and SPF authorization to send email on your behalf.</p>
+                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Checks A/AAAA (web hosting), MX (email), NS (DNS) records and SPF authorization to send email on your behalf.</p>
 
                 {{if and $directRels (gt (len $directRels) 0)}}
                     <table class="table table-dark table-sm table-hover mb-0">
@@ -537,7 +537,7 @@
                     </table>
                 {{else}}
                     <div class="text-center py-3">
-                        <i class="fas fa-minus-circle text-muted mb-2 d-block u-fs-150rem"></i>
+                        {{icon "minus-circle" "text-muted mb-2 d-block u-fs-150rem"}}
                         <p class="text-muted mb-1">This IP does not appear in <code>{{$.Domain}}</code>'s A, AAAA, MX, or NS records.</p>
                         <p class="text-muted small mb-0">It is also not authorized in the domain's SPF policy to send email.</p>
                     </div>
@@ -555,7 +555,7 @@
         <div class="card mb-4">
             <div class="card-header u-header-info">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                    <span><i class="fas fa-server me-2 u-color-info-light"></i>Infrastructure Context</span>
+                    <span>{{icon "server" "me-2 u-color-info-light"}}Infrastructure Context</span>
                     <small class="text-muted">Is this IP part of your broader infrastructure?
                         {{$infraCount := len $infraRels}}
                         {{if gt $infraCount 0}}
@@ -567,7 +567,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>CDN edge network membership and Certificate Transparency subdomain matches — infrastructure links beyond direct DNS records.</p>
+                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}CDN edge network membership and Certificate Transparency subdomain matches — infrastructure links beyond direct DNS records.</p>
 
                 <table class="table table-dark table-sm table-hover mb-0">
                     <thead>
@@ -586,7 +586,7 @@
                                 {{if eq $class "CDN/Edge Network"}}
                                     <span class="badge bg-primary">{{$class}}</span>
                                 {{else if eq $class "Cloud Hosting"}}
-                                    <span class="badge bg-info"><i class="fas fa-cloud me-1"></i>{{$class}}</span>
+                                    <span class="badge bg-info">{{icon "cloud" "me-1"}}{{$class}}</span>
                                 {{else if eq $class "CT Subdomain Match"}}
                                     <span class="badge bg-info">{{$class}}</span>
                                 {{else}}
@@ -613,7 +613,7 @@
              ═══════════════════════════════════════════ -->
         {{if .STError}}
         <div class="alert alert-warning py-2 mb-4 small">
-            <i class="fas fa-exclamation-triangle me-2"></i>{{.STError}}
+            {{icon "exclamation-triangle" "me-2"}}{{.STError}}
         </div>
         {{end}}
 
@@ -625,7 +625,7 @@
         <div class="card mb-4">
             <div class="card-header u-header-neutral">
                 <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
-                    <span><i class="fas fa-building me-2 u-color-muted"></i>IP Neighborhood</span>
+                    <span>{{icon "building" "me-2 u-color-muted"}}IP Neighborhood</span>
                     <small class="text-muted">Who else lives at this address?
                         <span class="badge bg-dark border border-secondary ms-1">{{$neighborTotal}} domain{{if gt $neighborTotal 1}}s{{end}}</span>
                     </small>
@@ -634,11 +634,11 @@
             <div class="card-body">
                 {{if ne $neighborCtx ""}}
                 <div class="alert py-2 mb-3 small {{if $isCdn}}alert-warning{{else}}alert-secondary{{end}}">
-                    <i class="fas fa-{{if $isCdn}}exclamation-triangle{{else}}info-circle{{end}} me-2"></i>{{$neighborCtx}}
+                    {{if $isCdn}}{{icon "exclamation-triangle" "me-2"}}{{else}}{{icon "info-circle" "me-2"}}{{end}}{{$neighborCtx}}
                 </div>
                 {{end}}
 
-                <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>{{if $isCdn}}On CDN networks, thousands of unrelated websites share edge IPs — co-tenants, not affiliates.{{else}}On shared hosting, co-tenants may be worth reviewing for reputation. On dedicated hosting, these could indicate properties owned by the same organization.{{end}}</p>
+                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}{{if $isCdn}}On CDN networks, thousands of unrelated websites share edge IPs — co-tenants, not affiliates.{{else}}On shared hosting, co-tenants may be worth reviewing for reputation. On dedicated hosting, these could indicate properties owned by the same organization.{{end}}</p>
 
                 {{if and $neighborRels (gt (len $neighborRels) 0)}}
                     <table class="table table-dark table-sm mb-0">
@@ -658,7 +658,7 @@
                         </tbody>
                     </table>
                     {{if gt $neighborTotal 10}}
-                    <p class="text-muted small mt-2 mb-0"><i class="fas fa-info-circle me-1"></i>Showing 10 of {{$neighborTotal}} domains. {{if $isCdn}}The remaining domains are additional {{$cdnProv}} customers sharing this edge node.{{else}}Additional domains omitted for brevity.{{end}}</p>
+                    <p class="text-muted small mt-2 mb-0">{{icon "info-circle" "me-1"}}Showing 10 of {{$neighborTotal}} domains. {{if $isCdn}}The remaining domains are additional {{$cdnProv}} customers sharing this edge node.{{else}}Additional domains omitted for brevity.{{end}}</p>
                     {{end}}
                 {{end}}
             </div>
@@ -667,11 +667,11 @@
         <div class="card mb-4 bg-dark bg-opacity-25 u-border-soft">
             <div class="card-body py-3">
                 <div class="d-flex align-items-center flex-wrap gap-2">
-                    <span class="text-muted small"><i class="fas fa-building me-1"></i>IP Neighborhood</span>
+                    <span class="text-muted small">{{icon "building" "me-1"}}IP Neighborhood</span>
                     <span class="text-muted small">&mdash; Discover other domains hosted on this IP.</span>
                 </div>
                 <div class="mt-2 text-muted u-fs-080em">
-                    <i class="fas fa-key me-1"></i>Add a <a href="https://securitytrails.com/app/signup" target="_blank" rel="noopener" class="text-info">SecurityTrails API key</a> when investigating to see which domains share this IP address.
+                    {{icon "key" "me-1"}}Add a <a href="https://securitytrails.com/app/signup" target="_blank" rel="noopener" class="text-info">SecurityTrails API key</a> when investigating to see which domains share this IP address.
                 </div>
             </div>
         </div>
@@ -681,11 +681,11 @@
         <div class="card mb-4 bg-dark bg-opacity-25 u-border-soft">
             <div class="card-body py-3">
                 <div class="d-flex align-items-center flex-wrap gap-2">
-                    <span class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>IP Geolocation</span>
+                    <span class="text-muted small">{{icon "map-marker-alt" "me-1"}}IP Geolocation</span>
                     <span class="text-muted small">&mdash; City-level location and organization details.</span>
                 </div>
                 <div class="mt-2 text-muted u-fs-080em">
-                    <i class="fas fa-key me-1"></i>Add a <a href="https://ipinfo.io/signup" target="_blank" rel="noopener" class="text-info">IPinfo.io token</a> when investigating to see geolocation and organization data for this IP.
+                    {{icon "key" "me-1"}}Add a <a href="https://ipinfo.io/signup" target="_blank" rel="noopener" class="text-info">IPinfo.io token</a> when investigating to see geolocation and organization data for this IP.
                 </div>
             </div>
         </div>
@@ -694,10 +694,10 @@
 
         <div class="text-center mb-5">
             <a href="/investigate" class="btn btn-outline-info me-2">
-                <i class="fas fa-route me-1"></i>Investigate Another IP
+                {{icon "route" "me-1"}}Investigate Another IP
             </a>
             <a href="/analyze?domain={{.AsciiDomain}}" class="btn btn-outline-primary">
-                <i class="fas fa-shield-alt me-1"></i>Run Full Domain Audit on {{.Domain}}
+                {{icon "shield-alt" "me-1"}}Run Full Domain Audit on {{.Domain}}
             </a>
         </div>
 
@@ -710,7 +710,7 @@
     <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running IP investigation">
         <div class="loading-content">
             <div class="loading-spinner">
-                <i class="fas fa-route fa-spin"></i>
+                {{icon "route" "icon-spin"}}
             </div>
             <h4 class="mt-4 mb-2">Investigating IP Relationship</h4>
             <p class="text-muted mb-0" id="loadingIP"></p>
@@ -782,7 +782,7 @@
             const btn = document.getElementById('investigateBtn');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-route fa-spin me-2"></i>Investigating\u2026';
+                btn.innerHTML = '{{icon "route" "icon-spin me-2"}}Investigating\u2026';
             }
         });
     })();

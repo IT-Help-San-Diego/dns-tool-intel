@@ -4,7 +4,7 @@
     {{template "head" .}}
     <title>What's New - DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Complete changelog of DNS Tool improvements, new features, transparency disclosures, and intelligence capabilities.">
+    <meta name="description" content="Complete changelog of DNS Tool improvements, new protocol coverage, transparency disclosures, intelligence capabilities, and version history.">
     <meta property="og:url" content="https://dnstool.it-help.tech/changelog">
     <meta property="og:type" content="website">
     <meta property="og:title" content="What's New - DNS Tool">
@@ -27,7 +27,7 @@
             <div class="col-lg-10">
 
                 <div class="text-center mb-4">
-                    <h1 class="h2"><i class="fas fa-bolt me-2 text-info"></i>What's New</h1>
+                    <h1 class="h2">{{icon "bolt" "me-2 text-info"}}What's New</h1>
                     <p class="text-muted lead">All improvements to analysis accuracy, transparency, and intelligence depth</p>
                 </div>
 
@@ -37,7 +37,7 @@
                         <div class="card bg-dark border-secondary h-100 {{if .IsIncident}}changelog-card-incident{{end}}">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-2">
-                                    <i class="{{.Icon}} {{if .IsIncident}}text-warning{{else}}text-info{{end}} me-2"></i>
+                                    {{if .IsIncident}}{{icon .Icon "text-warning me-2"}}{{else}}{{icon .Icon "text-info me-2"}}{{end}}
                                     <span class="badge changelog-badge changelog-badge-{{.Category | lower}} me-2 u-fs-065rem">{{.Category}}</span>
                                     <span class="text-muted small ms-auto">{{.Date}}</span>
                                 </div>
@@ -52,7 +52,7 @@
                 {{if .LegacyChangelog}}
                 <hr class="my-5 border-secondary">
                 <div class="text-center mb-4">
-                    <h2 class="h3"><i class="fas fa-archive me-2 u-color-purple"></i>Origins</h2>
+                    <h2 class="h3">{{icon "archive" "me-2 u-color-purple"}}Origins</h2>
                     <p class="text-muted">How DNS Tool evolved — from a Python CLI script to a full web intelligence platform</p>
                 </div>
 
@@ -62,7 +62,7 @@
                         <div class="card bg-dark h-100 u-border-purple">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-2">
-                                    <i class="{{.Icon}} me-2 u-color-purple"></i>
+                                    {{icon .Icon "me-2 u-color-purple"}}
                                     <span class="badge me-2 u-fs-065rem u-color-purple u-bg-purple-light">{{.Category}}</span>
                                     <span class="text-muted small ms-auto">{{.Date}}</span>
                                 </div>
