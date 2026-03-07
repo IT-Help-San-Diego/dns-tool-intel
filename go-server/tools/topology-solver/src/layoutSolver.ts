@@ -1,8 +1,6 @@
 import {
-  AnchorConstraint,
   CompiledProblem,
   EdgeSpec,
-  HighLevelConstraint,
   LayoutResult,
   LayoutSpec,
   LayoutState,
@@ -20,9 +18,9 @@ export interface SolveOptions {
 }
 
 function mulberry32(seed: number): () => number {
-  let s = seed | 0;
+  let s = Math.trunc(seed);
   return () => {
-    s = (s + 0x6d2b79f5) | 0;
+    s = Math.trunc(s + 0x6d2b79f5);
     let t = Math.imul(s ^ (s >>> 15), 1 | s);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -72,45 +70,41 @@ function extractAnchors(spec: LayoutSpec): Map<string, AnchorTarget> {
   const anchors = new Map<string, AnchorTarget>();
   for (const c of spec.highLevelConstraints) {
     if (c.type === 'anchor') {
-      const ac = c as AnchorConstraint;
-      const ids = ac.selector.ids ?? [];
+      const ids = c.selector.ids ?? [];
       for (const id of ids) {
-        anchors.set(id, { x: ac.x, y: ac.y, weight: ac.weight });
+        anchors.set(id, { x: c.x, y: c.y, weight: c.weight });
       }
     }
   }
   return anchors;
 }
 
-export function assignRanks(spec: LayoutSpec): RankAssignment {
-  const flowEdges = spec.edges.filter((e) => e.kind === 'flow');
+function topoSort(spec: LayoutSpec, flowEdges: EdgeSpec[], outgoing: Map<string, string[]>): string[] {
   const incoming = new Map<string, string[]>();
-  const outgoing = new Map<string, string[]>();
-
   for (const n of spec.nodes) {
     incoming.set(n.id, []);
-    outgoing.set(n.id, []);
   }
-
   for (const e of flowEdges) {
-    outgoing.get(e.source)?.push(e.target);
     incoming.get(e.target)?.push(e.source);
   }
 
   const indegree = new Map<string, number>();
   for (const n of spec.nodes) indegree.set(n.id, incoming.get(n.id)?.length ?? 0);
 
-  const queue = [...spec.nodes.map((n) => n.id).filter((id) => (indegree.get(id) ?? 0) === 0)].sort();
+  const queue = spec.nodes
+    .map((n) => n.id)
+    .filter((id) => (indegree.get(id) ?? 0) === 0)
+    .sort((a, b) => a.localeCompare(b));
   const topo: string[] = [];
 
   while (queue.length) {
     const id = queue.shift()!;
     topo.push(id);
-    for (const v of (outgoing.get(id) ?? []).sort()) {
+    for (const v of (outgoing.get(id) ?? []).sort((a, b) => a.localeCompare(b))) {
       indegree.set(v, (indegree.get(v) ?? 0) - 1);
       if ((indegree.get(v) ?? 0) === 0) {
         queue.push(v);
-        queue.sort();
+        queue.sort((a, b) => a.localeCompare(b));
       }
     }
   }
@@ -118,6 +112,21 @@ export function assignRanks(spec: LayoutSpec): RankAssignment {
   if (topo.length !== spec.nodes.length) {
     throw new Error('Flow graph contains a cycle; implement SCC condensation before ranking.');
   }
+  return topo;
+}
+
+export function assignRanks(spec: LayoutSpec): RankAssignment {
+  const flowEdges = spec.edges.filter((e) => e.kind === 'flow');
+  const outgoing = new Map<string, string[]>();
+
+  for (const n of spec.nodes) {
+    outgoing.set(n.id, []);
+  }
+  for (const e of flowEdges) {
+    outgoing.get(e.source)?.push(e.target);
+  }
+
+  const topo = topoSort(spec, flowEdges, outgoing);
 
   const nodeToRank: Record<string, number> = {};
   for (const id of topo) nodeToRank[id] = 0;
@@ -128,7 +137,7 @@ export function assignRanks(spec: LayoutSpec): RankAssignment {
   }
 
   const rankToNodes: Record<number, string[]> = {};
-  for (const id of Object.keys(nodeToRank).sort()) {
+  for (const id of Object.keys(nodeToRank).sort((a, b) => a.localeCompare(b))) {
     const r = nodeToRank[id];
     if (!rankToNodes[r]) rankToNodes[r] = [];
     rankToNodes[r].push(id);
@@ -156,39 +165,50 @@ function barycentreOrderingPass(
   const ranks = Object.keys(rankToNodes).map(Number).sort((a, b) => a - b);
 
   for (let sweep = 0; sweep < 4; sweep++) {
-    for (let ri = 1; ri < ranks.length; ri++) {
-      const r = ranks[ri];
-      const prevRank = ranks[ri - 1];
-      const prevOrder = new Map(rankToNodes[prevRank].map((id, i) => [id, i]));
+    sweepForward(ranks, rankToNodes, adjUp);
+    sweepBackward(ranks, rankToNodes, adjDown);
+  }
+}
 
-      const nodes = rankToNodes[r];
-      const scores = nodes.map((id) => {
-        const ups = adjUp.get(id) ?? [];
-        const positions = ups.filter((u) => prevOrder.has(u)).map((u) => prevOrder.get(u)!);
-        return positions.length > 0 ? positions.reduce((a, b) => a + b, 0) / positions.length : Infinity;
-      });
+function sweepForward(
+  ranks: number[],
+  rankToNodes: Record<number, string[]>,
+  adjUp: Map<string, string[]>,
+): void {
+  for (let ri = 1; ri < ranks.length; ri++) {
+    const r = ranks[ri];
+    const prevRank = ranks[ri - 1];
+    const prevOrder = new Map(rankToNodes[prevRank].map((id, i) => [id, i]));
+    const nodes = rankToNodes[r];
+    const indexed = nodes.map((id) => {
+      const ups = adjUp.get(id) ?? [];
+      const positions = ups.filter((u) => prevOrder.has(u)).map((u) => prevOrder.get(u)!);
+      const score = positions.length > 0 ? positions.reduce((a, b) => a + b, 0) / positions.length : Infinity;
+      return { id, score };
+    });
+    indexed.sort((a, b) => a.score - b.score || a.id.localeCompare(b.id));
+    rankToNodes[r] = indexed.map((x) => x.id);
+  }
+}
 
-      const indexed = nodes.map((id, i) => ({ id, score: scores[i] }));
-      indexed.sort((a, b) => a.score - b.score || a.id.localeCompare(b.id));
-      rankToNodes[r] = indexed.map((x) => x.id);
-    }
-
-    for (let ri = ranks.length - 2; ri >= 0; ri--) {
-      const r = ranks[ri];
-      const nextRank = ranks[ri + 1];
-      const nextOrder = new Map(rankToNodes[nextRank].map((id, i) => [id, i]));
-
-      const nodes = rankToNodes[r];
-      const scores = nodes.map((id) => {
-        const downs = adjDown.get(id) ?? [];
-        const positions = downs.filter((d) => nextOrder.has(d)).map((d) => nextOrder.get(d)!);
-        return positions.length > 0 ? positions.reduce((a, b) => a + b, 0) / positions.length : Infinity;
-      });
-
-      const indexed = nodes.map((id, i) => ({ id, score: scores[i] }));
-      indexed.sort((a, b) => a.score - b.score || a.id.localeCompare(b.id));
-      rankToNodes[r] = indexed.map((x) => x.id);
-    }
+function sweepBackward(
+  ranks: number[],
+  rankToNodes: Record<number, string[]>,
+  adjDown: Map<string, string[]>,
+): void {
+  for (let ri = ranks.length - 2; ri >= 0; ri--) {
+    const r = ranks[ri];
+    const nextRank = ranks[ri + 1];
+    const nextOrder = new Map(rankToNodes[nextRank].map((id, i) => [id, i]));
+    const nodes = rankToNodes[r];
+    const indexed = nodes.map((id) => {
+      const downs = adjDown.get(id) ?? [];
+      const positions = downs.filter((d) => nextOrder.has(d)).map((d) => nextOrder.get(d)!);
+      const score = positions.length > 0 ? positions.reduce((a, b) => a + b, 0) / positions.length : Infinity;
+      return { id, score };
+    });
+    indexed.sort((a, b) => a.score - b.score || a.id.localeCompare(b.id));
+    rankToNodes[r] = indexed.map((x) => x.id);
   }
 }
 
@@ -208,8 +228,6 @@ function makeDraftState(
 ): LayoutState {
   const x: Record<string, number> = {};
   const y: Record<string, number> = {};
-
-  const nodeById = new Map(spec.nodes.map((n) => [n.id, n]));
 
   for (const node of spec.nodes) {
     const zone = compiled.zones[node.zoneId];
@@ -235,8 +253,6 @@ function makeDraftState(
     const zone = compiled.zones[zoneId];
     if (!zone || nodeIds.length <= 1) continue;
 
-    const zoneW = zone.x2 - zone.x1 - 2 * zone.padding;
-    const zoneH = zone.y2 - zone.y1 - 2 * zone.padding;
     const zoneCx = (zone.x1 + zone.x2) / 2;
     const zoneCy = (zone.y1 + zone.y2) / 2;
 
@@ -353,14 +369,10 @@ function solveAxisImproved(
     coord[id] += (target - current) * anchorWeight * anchor.weight * 0.3;
   }
 
-  if (axis === 'x' && state.prevX) {
+  const prevCoord = axis === 'x' ? state.prevX : state.prevY;
+  if (prevCoord) {
     for (const n of spec.nodes) {
-      coord[n.id] += (state.prevX[n.id] - coord[n.id]) * spec.solverPolicy.weights.stability * 0.05;
-    }
-  }
-  if (axis === 'y' && state.prevY) {
-    for (const n of spec.nodes) {
-      coord[n.id] += (state.prevY[n.id] - coord[n.id]) * spec.solverPolicy.weights.stability * 0.05;
+      coord[n.id] += (prevCoord[n.id] - coord[n.id]) * spec.solverPolicy.weights.stability * 0.05;
     }
   }
 
@@ -379,8 +391,7 @@ function applyPrimitiveConstraints(
   for (const c of sorted) {
     switch (c.type) {
       case 'bound':
-        if (c.op === '>=') coord[c.nodeId] = Math.max(coord[c.nodeId], c.value);
-        else coord[c.nodeId] = Math.min(coord[c.nodeId], c.value);
+        coord[c.nodeId] = c.op === '>=' ? Math.max(coord[c.nodeId], c.value) : Math.min(coord[c.nodeId], c.value);
         break;
       case 'fixed':
         coord[c.nodeId] = c.value;
@@ -405,6 +416,25 @@ function applyPrimitiveConstraints(
   }
 }
 
+function detectOverlap(
+  state: LayoutState,
+  compiled: CompiledProblem,
+  a: string,
+  b: string,
+  pad: number,
+): { overlapX: number; overlapY: number } | null {
+  const boxA = compiled.nodeBoxes[a];
+  const boxB = compiled.nodeBoxes[b];
+  const dx = Math.abs(state.x[a] - state.x[b]);
+  const dy = Math.abs(state.y[a] - state.y[b]);
+  const overlapX = boxA.halfW + boxB.halfW + pad - dx;
+  const overlapY = boxA.halfH + boxB.halfH + pad - dy;
+  if (overlapX > 0 && overlapY > 0) {
+    return { overlapX, overlapY };
+  }
+  return null;
+}
+
 function generateActiveConstraints(
   spec: LayoutSpec,
   compiled: CompiledProblem,
@@ -413,106 +443,86 @@ function generateActiveConstraints(
 ): PrimitiveConstraint[] {
   const out: PrimitiveConstraint[] = compiled.primitives.filter((c) => c.axis === axis);
 
-  const ids = spec.nodes.map((n) => n.id).sort();
+  const ids = spec.nodes.map((n) => n.id).sort((a, b) => a.localeCompare(b));
+  const pad = 16;
   for (let i = 0; i < ids.length; i++) {
     for (let j = i + 1; j < ids.length; j++) {
       const a = ids[i];
       const b = ids[j];
-      const boxA = compiled.nodeBoxes[a];
-      const boxB = compiled.nodeBoxes[b];
-      const pad = 16;
+      const overlap = detectOverlap(state, compiled, a, b, pad);
+      if (!overlap) continue;
 
-      const dx = Math.abs(state.x[a] - state.x[b]);
-      const dy = Math.abs(state.y[a] - state.y[b]);
-      const overlapX = boxA.halfW + boxB.halfW + pad - dx;
-      const overlapY = boxA.halfH + boxB.halfH + pad - dy;
-
-      if (overlapX > 0 && overlapY > 0) {
-        if (axis === 'x') {
-          const left = state.x[a] <= state.x[b] ? a : b;
-          const right = left === a ? b : a;
-          out.push({
-            type: 'separation',
-            axis: 'x',
-            left,
-            right,
-            gap: compiled.nodeBoxes[left].halfW + compiled.nodeBoxes[right].halfW + pad,
-            hard: true,
-            priority: 950,
-            sourceTag: 'dynamic-non-overlap',
-          });
-        }
-        if (axis === 'y') {
-          const left = state.y[a] <= state.y[b] ? a : b;
-          const right = left === a ? b : a;
-          out.push({
-            type: 'separation',
-            axis: 'y',
-            left,
-            right,
-            gap: compiled.nodeBoxes[left].halfH + compiled.nodeBoxes[right].halfH + pad,
-            hard: true,
-            priority: 950,
-            sourceTag: 'dynamic-non-overlap',
-          });
-        }
-      }
+      const coord = axis === 'x' ? state.x : state.y;
+      const halfKey = axis === 'x' ? 'halfW' : 'halfH';
+      const left = coord[a] <= coord[b] ? a : b;
+      const right = left === a ? b : a;
+      out.push({
+        type: 'separation',
+        axis,
+        left,
+        right,
+        gap: compiled.nodeBoxes[left][halfKey] + compiled.nodeBoxes[right][halfKey] + pad,
+        hard: true,
+        priority: 950,
+        sourceTag: 'dynamic-non-overlap',
+      });
     }
   }
 
   return out;
 }
 
+function resolveNodeOverlap(state: LayoutState, a: string, b: string, compiled: CompiledProblem, pad: number): boolean {
+  const overlap = detectOverlap(state, compiled, a, b, pad);
+  if (!overlap) return false;
+
+  if (overlap.overlapX <= overlap.overlapY) {
+    const shift = overlap.overlapX / 2 + 1;
+    if (state.x[a] <= state.x[b]) {
+      state.x[a] -= shift;
+      state.x[b] += shift;
+    } else {
+      state.x[a] += shift;
+      state.x[b] -= shift;
+    }
+  } else {
+    const shift = overlap.overlapY / 2 + 1;
+    if (state.y[a] <= state.y[b]) {
+      state.y[a] -= shift;
+      state.y[b] += shift;
+    } else {
+      state.y[a] += shift;
+      state.y[b] -= shift;
+    }
+  }
+  return true;
+}
+
+function clampNodesToZones(spec: LayoutSpec, compiled: CompiledProblem, state: LayoutState): void {
+  for (const node of spec.nodes) {
+    const zone = compiled.zones[node.zoneId];
+    if (!zone) continue;
+    const box = compiled.nodeBoxes[node.id];
+    state.x[node.id] = Math.max(zone.x1 + zone.padding + box.halfW, Math.min(zone.x2 - zone.padding - box.halfW, state.x[node.id]));
+    state.y[node.id] = Math.max(zone.y1 + zone.padding + box.halfH, Math.min(zone.y2 - zone.padding - box.halfH, state.y[node.id]));
+  }
+}
+
 function eliminateOverlaps(spec: LayoutSpec, compiled: CompiledProblem, state: LayoutState): void {
   const pad = 16;
-  const ids = spec.nodes.map((n) => n.id).sort();
+  const ids = spec.nodes.map((n) => n.id).sort((a, b) => a.localeCompare(b));
 
   for (let pass = 0; pass < 30; pass++) {
     let changed = false;
     for (let i = 0; i < ids.length; i++) {
       for (let j = i + 1; j < ids.length; j++) {
-        const a = ids[i];
-        const b = ids[j];
-        const boxA = compiled.nodeBoxes[a];
-        const boxB = compiled.nodeBoxes[b];
-        const dx = Math.abs(state.x[a] - state.x[b]);
-        const dy = Math.abs(state.y[a] - state.y[b]);
-        const overlapX = boxA.halfW + boxB.halfW + pad - dx;
-        const overlapY = boxA.halfH + boxB.halfH + pad - dy;
-
-        if (overlapX > 0 && overlapY > 0) {
+        if (resolveNodeOverlap(state, ids[i], ids[j], compiled, pad)) {
           changed = true;
-          if (overlapX <= overlapY) {
-            const shift = overlapX / 2 + 1;
-            if (state.x[a] <= state.x[b]) {
-              state.x[a] -= shift;
-              state.x[b] += shift;
-            } else {
-              state.x[a] += shift;
-              state.x[b] -= shift;
-            }
-          } else {
-            const shift = overlapY / 2 + 1;
-            if (state.y[a] <= state.y[b]) {
-              state.y[a] -= shift;
-              state.y[b] += shift;
-            } else {
-              state.y[a] += shift;
-              state.y[b] -= shift;
-            }
-          }
         }
       }
     }
 
-    for (const node of spec.nodes) {
-      const zone = compiled.zones[node.zoneId];
-      if (!zone) continue;
-      const box = compiled.nodeBoxes[node.id];
-      state.x[node.id] = Math.max(zone.x1 + zone.padding + box.halfW, Math.min(zone.x2 - zone.padding - box.halfW, state.x[node.id]));
-      state.y[node.id] = Math.max(zone.y1 + zone.padding + box.halfH, Math.min(zone.y2 - zone.padding - box.halfH, state.y[node.id]));
-    }
-
+    clampNodesToZones(spec, compiled, state);
     if (!changed) break;
   }
 }
@@ -551,7 +561,7 @@ function edgeWeight(spec: LayoutSpec, e: EdgeSpec): number {
 
 function hasConverged(history: number[], epsilon: number, window: number): boolean {
   if (history.length < window + 1) return false;
-  const current = history[history.length - 1];
+  const current = history.at(-1)!;
   const previous = history[history.length - 1 - window];
   const rel = Math.abs(previous - current) / Math.max(1, Math.abs(previous));
   return rel < epsilon;
