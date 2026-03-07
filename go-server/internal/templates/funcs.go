@@ -723,7 +723,14 @@ func staticURL(path string) string {
 }
 
 func staticVersionURL(path, version string) string {
-        return "/static/" + path + "?v=" + version
+        u := "/static/" + path + "?v=" + version
+        if v, ok := sriCache.Load(path); ok {
+                sri := v.(string)
+                if len(sri) > 12 {
+                        u += "&h=" + sri[len(sri)-8:]
+                }
+        }
+        return u
 }
 
 func toJSON(v interface{}) string {
