@@ -1,0 +1,131 @@
+# Mathematical Rigor Audit — Confidence Engine
+
+**Date:** 2026-03-08
+**Trigger:** External mathematical review of DNS Tool's Bayesian confidence claims
+**Reviewed by:** Architect + founder analysis
+**Status:** Assessment complete — implementation plan defined
+
+---
+
+## Executive Summary
+
+An external mathematical review identified 8 claims in our confidence engine and documentation. The architect independently confirmed the findings against the actual codebase. **3 claims are sound and need no change. 5 claims need adjustment (4 substantive, 1 prose clarification). 1 gap requires new work.**
+
+The core Bayesian logic is fundamentally sound. The issues are labeling precision, standards citation accuracy, and RFC-honest language — exactly the kind of rigor this project demands.
+
+---
+
+## Claim-by-Claim Assessment
+
+### Claim 1: Bayesian Odds Core / Verification Principle
+**Verdict: SOUND — No change needed**
+- The odds-form Bayes theorem and Cromwell's Rule proof in `approach.html` are textbook-correct
+- Posterior odds = Bayes factor × Prior odds
+- Dogmatic priors (P=0 or P=1) are provably immovable under standard Bayesian conditioning
+- This IS the intellectual foundation — it holds
+
+### Claim 2: "Start in the Middle" — Policy vs. Theorem
+**Verdict: Prose-model mismatch — Reframe needed**
+- `approach.html` line 646: "Our scoring starts in the middle and moves with the evidence"
+- **But**: `priors.go` lines 25-38 shows actual priors are NOT 0.5:
+  - SPF: α=95, β=5 (prior mean 0.95)
+  - DKIM: α=90, β=10 (prior mean 0.90)
+  - DMARC: α=85, β=15 (prior mean 0.85)
+- "Middle" is defensible as anti-dogmatism stance (not 0, not 1)
+- It is NOT defensible as a claim about what the prior should numerically be
+- **Fix**: Reword to "starts from protocol-specific empirical priors and updates with evidence" — keep "middle" only for anti-dogmatism (avoiding P=0 or P=1), not as a numeric claim
+- **Files**: `go-server/templates/approach.html`
+
+### Claim 3: EWMA Formulas — Legitimate but Conditional
+**Verdict: Mixed — Framing clarification needed**
+- EWMA formulas in `ewma.go` match NIST/SEMATECH exactly
+- Control limit formula is correct: σ_EWMA = L·σ·√(λ/(2-λ)·[1-(1-λ)^{2t}])
+- **But**: `NewDimensionCharts()` hardcodes μ₀=50, σ=10, λ=0.2, L=3.0
+- These are heuristic/bootstrap parameters, not fitted from historical in-control DNS data
+- System is an "operational heuristic monitor" — legitimate and useful, but not a formal SPC chart
+- **Fix**: Label defaults as heuristic/bootstrap parameters in code comments and docs
+- **Files**: `go-server/internal/icuae/ewma.go`, `go-server/templates/confidence.html`
+
+### Claim 4: "Bayesian Confidence Calibration" Formula — MISLABELED
+**Verdict: Critic correct — This is the most important fix**
+- `priors.go` line 69: `calibrated := w*rawConfidence + (1-w)*priorMean`
+- `confidence.html` lines 976-983: Displayed publicly as "Bayesian Confidence Calibration"
+- **This is a convex shrinkage estimator**, not the true Beta-Bernoulli posterior
+- True posterior: E[θ|D] = (α+s)/(α+β+n)
+- In our formula, `w` = measurementQuality (resolver agreement ratio)
+- In true Bayesian formula, `w` = n/(α+β+n) — derived from observation count, not set freely
+- **Decision**: RENAME first, REWRITE later
+  - Immediate: "Reliability-Weighted Shrinkage Calibration" (or "Bayesian-Inspired Shrinkage Calibration")
+  - Future: Implement true posterior with n_eff = actual evidence count (per-record/per-resolver confirmations)
+- **Risks of immediate rewrite**: Priors have effective sample size ~100 while per-scan evidence is small — true posterior would over-anchor to prior and could destabilize scores without held-out calibration first
+- **Files**: `go-server/internal/icae/priors.go`, `go-server/internal/icae/priors_test.go`, `go-server/templates/confidence.html`, `docs/dns-tool-methodology.md`, `static/llms.txt`
+
+### Claim 5: NIST SP 800-53 SI-18 Reference — WRONG CITATION
+**Verdict: Critic correct — Misattribution**
+- SI-18 title: "Personally Identifiable Information Quality Operations"
+- SI-18 is specifically and exclusively about PII data quality
+- DNS TTLs, MX records, SPF syntax are NOT PII
+- **Fix**: Replace SI-18 with SI-7 (Software, Firmware, and Information Integrity) or broader SI family framing for DNS data integrity
+- **Files**: `go-server/internal/icuae/icuae.go`, `inventory.go`, `scanner_profile.go`, `go-server/templates/results.html`, `index.html`, `confidence.html`, `AUTHORITIES.md`, `DOCS.md`, `docs/FEATURE_INVENTORY.md`
+
+### Claim 6: RFC 8767 "Caching Violations" — Language Too Strong
+**Verdict: Critic correct — RFC explicitly permits this behavior**
+- `icuae.go` line 435: "resolver TTL exceeds its authoritative value — possible caching violation"
+- RFC 8767 ALLOWS serve-stale: resolvers MAY return data past TTL expiry when authoritative servers are unreachable
+- Calling standards-compliant behavior a "violation" is factually incorrect
+- **Fix**: Present three hypotheses:
+  1. RFC 8767 permitted serve-stale behavior (standards-compliant)
+  2. Propagation/authority timing skew
+  3. Resolver/cache misconfiguration
+- **Files**: `go-server/internal/icuae/icuae.go`, `go-server/internal/icuae/persist.go`, `go-server/internal/icuae/icuae_test.go`
+
+### Claim 7: ICD 203 Use
+**Verdict: SOUND — No change needed**
+- ICD 203 requires analysts to describe source quality and explain uncertainty
+- Using it as a disclosure and reporting discipline for DNS findings is a coherent design decision
+
+### Claim 8: No Held-Out Calibration Results
+**Verdict: Scientific maturity gap — New work needed**
+- No Brier scores, no ECE (Expected Calibration Error), no reliability diagrams
+- A calibrated system: 80% confidence claims should be right ~80% of the time
+- This is what separates a CLAIMED confidence system from a VALIDATED one
+- **Path**: Build calibration evaluation artifact from golden fixtures + production data
+- **Files to create/update**: New calibration artifact, `go-server/templates/confidence.html`, `docs/dns-tool-methodology.md`
+
+---
+
+## Implementation Priority
+
+### Phase 1: Truth-in-Labeling (immediate — no scoring impact)
+1. Rename "Bayesian Confidence Calibration" → "Reliability-Weighted Shrinkage Calibration" (claim 4)
+2. Fix SI-18 → SI-7 across all files (claim 5)
+3. Fix RFC 8767 "violation" → three-hypothesis language (claim 6)
+4. Reframe "start in the middle" prose (claim 2)
+5. Label EWMA baselines as heuristic/bootstrap parameters (claim 3)
+
+### Phase 2: Mathematical Upgrade (requires research + drift analysis)
+1. Define n_eff from actual evidence counts
+2. Implement true Beta-Bernoulli posterior update
+3. Run drift-impact analysis comparing old vs new scoring on golden fixtures
+4. Only deploy after held-out calibration validates the new formula
+
+### Phase 3: Calibration Validation (new capability)
+1. Build Brier score + ECE computation from golden fixture results
+2. Generate reliability diagrams (quoted probability vs observed frequency)
+3. Publish calibration report linked from confidence page and methodology docs
+
+---
+
+## Founder's Note
+
+> "It's not hocus-pocus. If our math is working, we should be able to prove it. If our math is accurate, we should be able to prove it. If it's doing for us what we say it is, we should be able to prove it. And we should also be able to attempt to disprove it and fail."
+
+This audit is the discipline in action. The core Bayesian logic holds — the anti-dogmatism proof is mathematically airtight. The fixes are about precision of language, accuracy of citations, and building the validation infrastructure to prove the system works empirically.
+
+---
+
+## Risk Assessment
+
+- **Phase 1 changes are zero-risk**: Rename labels, fix citations, adjust prose. No scoring logic changes.
+- **Phase 2 carries moderate risk**: Changing the calibration formula will shift confidence scores. Must be validated against golden fixtures before deployment.
+- **Phase 3 is additive**: New capability, no regression risk.
