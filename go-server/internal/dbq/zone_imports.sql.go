@@ -3,6 +3,7 @@
 //   sqlc v1.26.0
 // source: zone_imports.sql
 
+// dns-tool:scrutiny plumbing
 package dbq
 
 import (

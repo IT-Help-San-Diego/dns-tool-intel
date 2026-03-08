@@ -63,6 +63,7 @@
 //                  IP-to-ASN Attribution, DANE/TLSA, Go Rewrite, IP Investigation,
 //                  Email Header Analyzer, Enterprise DNS Detection
 //      dateFeb11 — Incident Disclosure, Honest Data Reporting
+// dns-tool:scrutiny design
 package handlers
 
 const (

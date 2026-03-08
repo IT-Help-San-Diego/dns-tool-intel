@@ -1,7 +1,8 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
-  // Licensed under BUSL-1.1 — See LICENSE for terms.
-  // AUTO-GENERATED from Font Awesome Free 6.x (CC BY 4.0 icons, MIT code).
-  // Do not edit manually — regenerate with scripts/gen-icons.js.
+// Licensed under BUSL-1.1 — See LICENSE for terms.
+// AUTO-GENERATED from Font Awesome Free 6.x (CC BY 4.0 icons, MIT code).
+// Do not edit manually — regenerate with scripts/gen-icons.js.
+// dns-tool:scrutiny plumbing
 
   package icons
 

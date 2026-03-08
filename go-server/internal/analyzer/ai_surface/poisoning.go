@@ -3,6 +3,7 @@
 
 // poisoning.go — Framework only (types, utilities). Always compiled.
 // Detection stubs live in poisoning_oss.go / poisoning_intel.go.
+// dns-tool:scrutiny science
 package ai_surface
 
 func truncate(s string, maxLen int) string {

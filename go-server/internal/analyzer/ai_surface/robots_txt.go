@@ -3,6 +3,7 @@
 
 // robots_txt.go — Framework only (types, constants). Always compiled.
 // Detection and parsing stubs live in robots_txt_oss.go / robots_txt_intel.go.
+// dns-tool:scrutiny science
 package ai_surface
 
 type robotsDirective struct {
