@@ -42,9 +42,9 @@ type TestSSLResult struct {
 }
 
 func ParseTestSSLJSON(data []byte) (*TestSSLResult, error) {
-	var raw []TestSSLFinding
+	raw := []TestSSLFinding(nil)
 	if err := json.Unmarshal(data, &raw); err != nil {
-		var single TestSSLFinding
+		single := TestSSLFinding{}
 		if err2 := json.Unmarshal(data, &single); err2 != nil {
 			return nil, err
 		}
