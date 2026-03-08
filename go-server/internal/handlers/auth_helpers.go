@@ -6,19 +6,14 @@ package handlers
 
 import (
 	"dnstool/go-server/internal/config"
+	"dnstool/go-server/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func mergeAuthData(c *gin.Context, cfg *config.Config, data gin.H) gin.H {
-	if auth, exists := c.Get("authenticated"); exists && auth == true {
-		email, _ := c.Get("user_email")
-		name, _ := c.Get("user_name")
-		role, _ := c.Get("user_role")
-		data["Authenticated"] = true
-		data["UserEmail"] = email
-		data["UserName"] = name
-		data["UserRole"] = role
+	for k, v := range middleware.GetAuthTemplateData(c) {
+		data[k] = v
 	}
 	if cfg.GoogleClientID != "" {
 		data["GoogleAuthEnabled"] = true
