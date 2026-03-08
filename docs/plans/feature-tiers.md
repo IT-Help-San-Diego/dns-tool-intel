@@ -33,6 +33,7 @@ No login required. Hacker-friendly. The core product.
 | Toolkit (MyIP, PortCheck) | `GET /toolkit`, `POST /toolkit/*` |
 | Subdomain CSV export (per-scan) | `GET /api/subdomains/*` |
 | Snapshot view | `GET /snapshot/:id` |
+| Public results history | `GET /history` |
 | Stats | `GET /stats` |
 | All docs pages | `/about`, `/approach`, `/faq`, etc. |
 | Changelog, Roadmap | `GET /changelog`, `GET /roadmap` |
@@ -43,7 +44,7 @@ Everything in Tier 1, plus personal state features:
 
 | Feature | Route(s) |
 |---------|----------|
-| Personal scan history ("My History") | `GET /history` |
+| Personal scan history ("My History") | future (not yet built) |
 | Watchlist (CRUD + endpoints) | `GET/POST /watchlist/*` |
 | Personal dossier | `GET /dossier` |
 | Zone file upload/analysis | `GET /zone`, `POST /zone/upload` |
