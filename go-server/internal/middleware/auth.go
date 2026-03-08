@@ -152,7 +152,7 @@ func GetAuthTemplateData(c *gin.Context) map[string]any {
         data := map[string]any{}
         plan := resolveCurrentPlan(c)
         data["UserPlan"] = string(plan)
-        data["HasFeatureHistory"] = entitlements.HasAccess(plan, entitlements.FeatureHistory)
+        data["HasFeaturePersonalHistory"] = entitlements.HasAccess(plan, entitlements.FeaturePersonalHistory)
         data["HasFeatureWatchlist"] = entitlements.HasAccess(plan, entitlements.FeatureWatchlist)
         data["HasFeatureDossier"] = entitlements.HasAccess(plan, entitlements.FeatureDossier)
         data["HasFeatureZoneUpload"] = entitlements.HasAccess(plan, entitlements.FeatureZoneUpload)

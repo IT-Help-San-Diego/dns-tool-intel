@@ -249,7 +249,7 @@ func main() {
         router.GET("/analyze", analysisHandler.Analyze)
         router.POST("/analyze", middleware.AnalyzeRateLimit(rateLimiter), analysisHandler.Analyze)
 
-        router.GET("/history", middleware.RequireFeature(entitlements.FeatureHistory), historyHandler.History)
+        router.GET("/history", historyHandler.History)
 
         dossierHandler := handlers.NewDossierHandler(database, cfg)
         router.GET("/dossier", middleware.RequireFeature(entitlements.FeatureDossier), dossierHandler.Dossier)

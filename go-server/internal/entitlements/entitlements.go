@@ -23,29 +23,31 @@ var planHierarchy = map[Plan]int{
 type Feature string
 
 const (
-	FeatureHistory       Feature = "history"
-	FeatureWatchlist     Feature = "watchlist"
-	FeatureDossier       Feature = "dossier"
-	FeatureZoneUpload    Feature = "zone_upload"
-	FeatureBulkScan      Feature = "bulk_scan"
-	FeatureAPIKeys       Feature = "api_keys"
-	FeatureBulkExport    Feature = "bulk_export"
-	FeaturePriorityQueue Feature = "priority_queue"
-	FeatureWebhookScale  Feature = "webhook_scale"
+	// FeaturePersonalHistory gates the future "My History" feature (scans saved to account).
+	// The public history page (/history) showing all domain analyses is Tier 1 (open).
+	FeaturePersonalHistory Feature = "personal_history"
+	FeatureWatchlist       Feature = "watchlist"
+	FeatureDossier         Feature = "dossier"
+	FeatureZoneUpload      Feature = "zone_upload"
+	FeatureBulkScan        Feature = "bulk_scan"
+	FeatureAPIKeys         Feature = "api_keys"
+	FeatureBulkExport      Feature = "bulk_export"
+	FeaturePriorityQueue   Feature = "priority_queue"
+	FeatureWebhookScale    Feature = "webhook_scale"
 )
 
 // Registry maps each gated feature to its minimum required plan.
 // Features not listed here are open (Tier 1) and require no gating.
 var Registry = map[Feature]Plan{
-	FeatureHistory:       PlanRegistered,
-	FeatureWatchlist:     PlanRegistered,
-	FeatureDossier:       PlanRegistered,
-	FeatureZoneUpload:    PlanRegistered,
-	FeatureBulkScan:      PlanPremium,
-	FeatureAPIKeys:       PlanPremium,
-	FeatureBulkExport:    PlanPremium,
-	FeaturePriorityQueue: PlanPremium,
-	FeatureWebhookScale:  PlanPremium,
+	FeaturePersonalHistory: PlanRegistered,
+	FeatureWatchlist:       PlanRegistered,
+	FeatureDossier:         PlanRegistered,
+	FeatureZoneUpload:      PlanRegistered,
+	FeatureBulkScan:        PlanPremium,
+	FeatureAPIKeys:         PlanPremium,
+	FeatureBulkExport:      PlanPremium,
+	FeaturePriorityQueue:   PlanPremium,
+	FeatureWebhookScale:    PlanPremium,
 }
 
 // ResolvePlan determines a user's plan from session state.
