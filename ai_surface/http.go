@@ -1,8 +1,6 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc. All rights reserved.
 // PROPRIETARY AND CONFIDENTIAL — See LICENSE for terms.
 // This file is part of the DNS Tool Intelligence Module.
-// Copyright (c) 2024-2026 IT Help San Diego Inc.
-// Licensed under AGPL-3.0 — See LICENSE for terms.
 package ai_surface
 
 import (
@@ -32,3 +30,4 @@ func (s *Scanner) fetchTextFile(ctx context.Context, url string) (string, error)
 
 	return string(body), nil
 }
+
