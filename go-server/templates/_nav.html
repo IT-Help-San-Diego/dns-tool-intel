@@ -26,13 +26,11 @@
                         {{icon "search" "me-1"}}Analyze
                     </a>
                 </li>
-                {{if .HasFeatureHistory}}
                 <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "history"}} active{{end}}" href="/history">
                         {{icon "history" "me-1"}}History
                     </a>
                 </li>
-                {{end}}
                 <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
                         {{icon "sliders-h" "me-1"}}TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}

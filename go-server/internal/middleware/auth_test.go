@@ -33,8 +33,8 @@ func TestGetAuthTemplateDataUnauthenticated(t *testing.T) {
         if data["UserPlan"] != "anonymous" {
                 t.Errorf("expected UserPlan=anonymous for unauthenticated request, got %v", data["UserPlan"])
         }
-        if data["HasFeatureHistory"] != false {
-                t.Error("anonymous user should not have history feature")
+        if data["HasFeaturePersonalHistory"] != false {
+                t.Error("anonymous user should not have personal history feature")
         }
         if data["HasFeatureWatchlist"] != false {
                 t.Error("anonymous user should not have watchlist feature")
