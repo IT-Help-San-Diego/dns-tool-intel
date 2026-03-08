@@ -3,4 +3,5 @@
 
 // llms_txt.go — Framework only (types, constants). Always compiled.
 // Detection and parsing stubs live in llms_txt_oss.go / llms_txt_intel.go.
+// dns-tool:scrutiny science
 package ai_surface

@@ -11,6 +11,7 @@
 // Unlike unit-level analysis tests (which test individual functions),
 // fixture tests combine multiple functions to verify integrated behavior.
 // This catches bugs that only appear when functions interact.
+// dns-tool:scrutiny science
 package icae
 
 import (

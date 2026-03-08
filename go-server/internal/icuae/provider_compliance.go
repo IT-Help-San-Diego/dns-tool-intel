@@ -8,6 +8,7 @@
 // those deviations factually and cites the relevant RFCs so customers
 // understand what their provider is doing differently and why it matters.
 
+// dns-tool:scrutiny science
 package icuae
 
 import (

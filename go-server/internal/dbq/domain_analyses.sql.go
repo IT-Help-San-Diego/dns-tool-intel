@@ -3,6 +3,7 @@
 //   sqlc v1.26.0
 // source: domain_analyses.sql
 
+// dns-tool:scrutiny plumbing
 package dbq
 
 import (

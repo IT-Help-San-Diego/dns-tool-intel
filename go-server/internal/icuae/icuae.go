@@ -13,6 +13,7 @@
 //   - ISO/IEC 25012: Currentness — data of the right age for its context
 //   - RFC 8767: TTL-based cache expiration and serve-stale behavior
 //   - SPJ Code of Ethics: Multiple independent sources for verification
+// dns-tool:scrutiny science
 package icuae
 
 import (
