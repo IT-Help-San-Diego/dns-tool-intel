@@ -42,7 +42,7 @@ type providerInfo struct {
 }
 
 var enterpriseProviders = map[string]providerInfo{
-        infraCloudflare:       {Name: nameCloudflare, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-DNSSEC available"}},
+        "cloudflare":       {Name: nameCloudflare, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-DNSSEC available"}},
         "awsdns":           {Name: nameAmazonRoute53, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Health checks"}},
         "route53":          {Name: nameAmazonRoute53, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Health checks"}},
         "ultradns":         {Name: "Vercara UltraDNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "DNSSEC support"}},
@@ -50,7 +50,7 @@ var enterpriseProviders = map[string]providerInfo{
         "dynect":           {Name: "Oracle Dyn", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Traffic management"}},
         "nsone":            {Name: "NS1 (IBM)", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Intelligent DNS"}},
         "azure-dns":        {Name: "Azure DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Azure integration"}},
-        infraGoogle:           {Name: "Google Cloud DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-scaling"}},
+        "google":           {Name: "Google Cloud DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-scaling"}},
         "verisign":         {Name: "Verisign DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Critical infrastructure"}},
         "csc.com":          {Name: nameCSCGlobalDNS, Tier: tierEnterprise, Features: []string{featEnterpriseManagement, featBrandProtection, featGlobalInfra}},
         "cscdns":           {Name: nameCSCGlobalDNS, Tier: tierEnterprise, Features: []string{featEnterpriseManagement, featBrandProtection, featGlobalInfra}},
@@ -74,9 +74,9 @@ var governmentDomains = map[string]providerInfo{
 }
 
 var managedProviders = map[string]providerInfo{
-        infraDigitalocean:      {Name: nameDigitalOcean, Tier: tierManaged},
-        infraLinode:            {Name: nameLinode, Tier: tierManaged},
-        infraVultr:             {Name: "Vultr", Tier: tierManaged},
+        "digitalocean":      {Name: nameDigitalOcean, Tier: tierManaged},
+        "linode":            {Name: nameLinode, Tier: tierManaged},
+        "vultr":             {Name: "Vultr", Tier: tierManaged},
         "porkbun":           {Name: "Porkbun", Tier: tierManaged},
         "namecheap":         {Name: nameNamecheap, Tier: tierManaged},
         "registrar-servers": {Name: nameNamecheap, Tier: tierManaged},
@@ -92,19 +92,19 @@ type infraMatch struct {
 const (
 	infraStatus       = "status"
 	infraSuccess      = "success"
-	infraUnknown      = infraUnknown
+	infraUnknown      = "Unknown"
 	infraDetectedFrom = "detected_from"
 	infraSources      = "sources"
 	infraCapabilities = "capabilities"
 	infraConfidence   = "confidence"
 	infraHosting      = "hosting"
-	infraGoogle       = infraGoogle
-	infraCloudflare   = infraCloudflare
-	infraDigitalocean = infraDigitalocean
-	infraVultr        = infraVultr
-	infraLinode       = infraLinode
-	infraHetzner      = infraHetzner
-	nsLabel           = nsLabel
+	infraGoogle       = "google"
+	infraCloudflare   = "cloudflare"
+	infraDigitalocean = "digitalocean"
+	infraVultr        = "vultr"
+	infraLinode       = "linode"
+	infraHetzner      = "hetzner"
+	nsLabel           = "NS"
 )
 
 
