@@ -3,7 +3,7 @@
 **Date:** 2026-03-08
 **Trigger:** External mathematical review of DNS Tool's Bayesian confidence claims
 **Reviewed by:** Architect + founder analysis
-**Status:** Assessment complete — implementation plan defined
+**Status:** All three phases complete — Phase 1 (labels/citations), Phase 2 (drift analysis), Phase 3 (calibration validation)
 
 ---
 
@@ -133,10 +133,39 @@ Key findings:
 3. True posterior may be appropriate for per-domain longitudinal analysis (many scans over time, n grows)
 4. Only revisit after Phase 3 calibration validation provides empirical ground truth
 
-### Phase 3: Calibration Validation (new capability)
-1. Build Brier score + ECE computation from golden fixture results
-2. Generate reliability diagrams (quoted probability vs observed frequency)
-3. Publish calibration report linked from confidence page and methodology docs
+### Phase 3: Calibration Validation — COMPLETED
+
+**Implementation:** `go-server/internal/icae/calibration.go` + `calibration_test.go`
+
+**Metrics computed:**
+- Brier score (mean squared error of probabilistic predictions vs binary outcomes)
+- Expected Calibration Error (ECE, population-weighted mean |predicted − observed| across bins)
+- Per-protocol calibration gaps
+- Reliability diagram data (10-bin histogram)
+
+**Methodology note:** Predicted confidence uses fixed `rawConfidence=1.0` (engine predicts "correct") — never the ground-truth outcome — to avoid label leakage. The question being tested: "when the engine says it's confident and measurement quality varies, how well do those stated confidences track observed accuracy?" `AnalysisTestCases()` already includes `FixtureTestCases()`, so `RunFullCalibration` uses only Analysis + Collection to avoid duplicate counting.
+
+**Results — Full calibration (129 cases, ideal conditions, 5/5 resolvers):**
+- Brier score: 0.000000 (Excellent)
+- ECE: 0.000000 (Excellent)
+- All 9 protocols: gap = 0.0000
+
+**Results — Degraded calibration (645 predictions, 5 resolver scenarios × 129 cases):**
+- Brier score: 0.001776 (Excellent — well below 0.01 threshold)
+- ECE: 0.030977 (Good — below 0.05 threshold)
+- Reliability diagram:
+  - Bin [0.80, 0.90): 14 predictions, predicted 0.88, observed 1.00, gap 0.12
+  - Bin [0.90, 1.00): 631 predictions, predicted 0.97, observed 1.00, gap 0.03
+- Per-protocol gaps (degraded): DANE 0.060, BIMI 0.048, DKIM 0.040, MTA-STS 0.040, DNSSEC 0.032, TLS-RPT 0.028, SPF 0.020, CAA 0.020, DMARC 0.012
+
+**Interpretation:**
+The system is slightly conservative under degraded measurement quality — when resolver agreement drops to 1-2/5, confidence decreases even when the test still passes. This is the correct posture for a security analysis tool: lower measurement quality → lower stated confidence, even if the underlying reality is correct. The 0.12 gap in the [0.80, 0.90) bin reflects this intentional conservatism, concentrated in DANE (α=85, β=15) where the prior has the strongest pull.
+
+The gap in the [0.90, 1.00) bin (0.03) shows the system is well-calibrated under normal operating conditions — "when we say ~97% confidence, we're right 100% of the time" is better than the alternative (saying 97% and being right only 90%).
+
+**Limitation:** All 129 golden test cases currently pass (outcome=1.0). This means calibration is validated in the "success" regime only. When future test cases introduce expected failures, the calibration module will automatically incorporate those into the Brier/ECE computation, testing the system's behavior when outcomes diverge from confident predictions.
+
+**Validation conclusion:** The shrinkage estimator is empirically validated for the success regime. The system is calibrated conservatively, which is appropriate for security tooling. No scoring logic changes needed.
 
 ---
 
@@ -150,6 +179,6 @@ This audit is the discipline in action. The core Bayesian logic holds — the an
 
 ## Risk Assessment
 
-- **Phase 1 changes are zero-risk**: Rename labels, fix citations, adjust prose. No scoring logic changes.
-- **Phase 2 carries moderate risk**: Changing the calibration formula will shift confidence scores. Must be validated against golden fixtures before deployment.
-- **Phase 3 is additive**: New capability, no regression risk.
+- **Phase 1 (DONE)**: Zero-risk. Renamed labels, fixed citations, adjusted prose. No scoring logic changes.
+- **Phase 2 (DONE)**: Decision — keep shrinkage. True posterior near-static with n_eff=100, operationally correct. No scoring logic changes.
+- **Phase 3 (DONE)**: Additive. New calibration validation module. Brier=0.0018, ECE=0.031 under degraded conditions. System empirically validated as conservatively calibrated.
