@@ -18,20 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-        with:
-          go-version: '1.23'
-
-      - name: Run tests with coverage
-        run: |
-          cd go-server 2>/dev/null || true
-          go test ./... -coverprofile=../coverage.out -covermode=atomic -json > ../test-report.json 2>&1 || true
-          if [ -f ../coverage.out ]; then
-            mv ../coverage.out ./coverage.out 2>/dev/null || true
-            mv ../test-report.json ./test-report.json 2>/dev/null || true
-          fi
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
         env:
