@@ -42,7 +42,7 @@ type providerInfo struct {
 }
 
 var enterpriseProviders = map[string]providerInfo{
-        "cloudflare":       {Name: nameCloudflare, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-DNSSEC available"}},
+        infraCloudflare:       {Name: nameCloudflare, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-DNSSEC available"}},
         "awsdns":           {Name: nameAmazonRoute53, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Health checks"}},
         "route53":          {Name: nameAmazonRoute53, Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Health checks"}},
         "ultradns":         {Name: "Vercara UltraDNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "DNSSEC support"}},
@@ -50,7 +50,7 @@ var enterpriseProviders = map[string]providerInfo{
         "dynect":           {Name: "Oracle Dyn", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Traffic management"}},
         "nsone":            {Name: "NS1 (IBM)", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Intelligent DNS"}},
         "azure-dns":        {Name: "Azure DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Azure integration"}},
-        "google":           {Name: "Google Cloud DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-scaling"}},
+        infraGoogle:           {Name: "Google Cloud DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Auto-scaling"}},
         "verisign":         {Name: "Verisign DNS", Tier: tierEnterprise, Features: []string{featDDoSProtection, featAnycast, "Critical infrastructure"}},
         "csc.com":          {Name: nameCSCGlobalDNS, Tier: tierEnterprise, Features: []string{featEnterpriseManagement, featBrandProtection, featGlobalInfra}},
         "cscdns":           {Name: nameCSCGlobalDNS, Tier: tierEnterprise, Features: []string{featEnterpriseManagement, featBrandProtection, featGlobalInfra}},
@@ -74,9 +74,9 @@ var governmentDomains = map[string]providerInfo{
 }
 
 var managedProviders = map[string]providerInfo{
-        "digitalocean":      {Name: nameDigitalOcean, Tier: tierManaged},
-        "linode":            {Name: nameLinode, Tier: tierManaged},
-        "vultr":             {Name: "Vultr", Tier: tierManaged},
+        infraDigitalocean:      {Name: nameDigitalOcean, Tier: tierManaged},
+        infraLinode:            {Name: nameLinode, Tier: tierManaged},
+        infraVultr:             {Name: "Vultr", Tier: tierManaged},
         "porkbun":           {Name: "Porkbun", Tier: tierManaged},
         "namecheap":         {Name: nameNamecheap, Tier: tierManaged},
         "registrar-servers": {Name: nameNamecheap, Tier: tierManaged},
@@ -88,6 +88,25 @@ type infraMatch struct {
         provider *providerInfo
         tier     string
 }
+
+const (
+	infraStatus       = "status"
+	infraSuccess      = "success"
+	infraUnknown      = infraUnknown
+	infraDetectedFrom = "detected_from"
+	infraSources      = "sources"
+	infraCapabilities = "capabilities"
+	infraConfidence   = "confidence"
+	infraHosting      = "hosting"
+	infraGoogle       = infraGoogle
+	infraCloudflare   = infraCloudflare
+	infraDigitalocean = infraDigitalocean
+	infraVultr        = infraVultr
+	infraLinode       = infraLinode
+	infraHetzner      = infraHetzner
+	nsLabel           = nsLabel
+)
+
 
 func matchEnterpriseProvider(nsList []string) *infraMatch {
         bestKey := ""
@@ -143,10 +162,10 @@ func collectAltSecurityItems(results map[string]any) []string {
         caaAnalysis, _ := results["caa_analysis"].(map[string]any)
         dnssecAnalysis, _ := results["dnssec_analysis"].(map[string]any)
 
-        if caaAnalysis != nil && caaAnalysis["status"] == "success" {
+        if caaAnalysis != nil && caaAnalysis[infraStatus] == infraSuccess {
                 items = append(items, "CAA records configured")
         }
-        if dnssecAnalysis != nil && dnssecAnalysis["status"] == "success" {
+        if dnssecAnalysis != nil && dnssecAnalysis[infraStatus] == infraSuccess {
                 items = append(items, "DNSSEC validated")
         }
         return items
@@ -165,7 +184,7 @@ func assessTier(tier string) string {
 
 func (a *Analyzer) AnalyzeDNSInfrastructure(domain string, results map[string]any) map[string]any {
         basicRecords, _ := results["basic_records"].(map[string]any)
-        nsRecords, _ := basicRecords["NS"].([]string)
+        nsRecords, _ := basicRecords[nsLabel].([]string)
 
         nsRecords, nsFromParent := a.resolveNSRecords(domain, nsRecords)
 
@@ -196,7 +215,7 @@ func (a *Analyzer) resolveNSRecords(domain string, nsRecords []string) ([]string
                 return nsRecords, false
         }
         ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-        parentNS := a.DNS.QueryDNS(ctx, "NS", parent)
+        parentNS := a.DNS.QueryDNS(ctx, nsLabel, parent)
         cancel()
         if len(parentNS) > 0 {
                 return parentNS, true
@@ -234,9 +253,9 @@ func buildInfraResult(im *infraMatch, isGovernment, nsFromParent bool, results m
         if im != nil {
                 result["provider_name"] = im.provider.Name
                 if nsFromParent {
-                        result["confidence"] = ConfidenceInferredMap("Parent zone NS records")
+                        result[infraConfidence] = ConfidenceInferredMap("Parent zone NS records")
                 } else {
-                        result["confidence"] = ConfidenceObservedMap(MethodNSPattern)
+                        result[infraConfidence] = ConfidenceObservedMap(MethodNSPattern)
                 }
         }
         if isGovernment {
@@ -257,7 +276,7 @@ func parentZone(domain string) string {
 func (a *Analyzer) GetHostingInfo(ctx context.Context, domain string, results map[string]any) map[string]any {
         basicRecords, _ := results["basic_records"].(map[string]any)
         aRecords, _ := basicRecords["A"].([]string)
-        nsRecords, _ := basicRecords["NS"].([]string)
+        nsRecords, _ := basicRecords[nsLabel].([]string)
         mxRecords, _ := basicRecords["MX"].([]string)
 
         hosting := detectProvider(aRecords, hostingProviders)
@@ -316,7 +335,7 @@ func (a *Analyzer) resolveDNSHosting(domain string, nsRecords []string) (string,
                 return "", false
         }
         ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-        parentNS := a.DNS.QueryDNS(ctx, "NS", parent)
+        parentNS := a.DNS.QueryDNS(ctx, nsLabel, parent)
         cancel()
         if len(parentNS) > 0 {
                 dnsHosting = detectProvider(parentNS, dnsHostingProviders)
@@ -342,21 +361,21 @@ func resolveEmailHosting(results map[string]any, mxRecords []string) (string, bo
 
 func applyHostingDefaults(hosting, dnsHosting, emailHosting string, isNoMail bool) (string, string, string) {
         if hosting == "" {
-                hosting = "Unknown"
+                hosting = infraUnknown
         }
         if dnsHosting == "" {
-                dnsHosting = "Unknown"
+                dnsHosting = infraUnknown
         }
         if isNoMail && emailHosting == "" {
                 emailHosting = "No Mail Domain"
         } else if emailHosting == "" {
-                emailHosting = "Unknown"
+                emailHosting = infraUnknown
         }
         return hosting, dnsHosting, emailHosting
 }
 
 func hostingConfidence(hosting string, fromPTR bool) map[string]any {
-        if hosting == "Unknown" {
+        if hosting == infraUnknown {
                 return map[string]any{}
         }
         if fromPTR {
@@ -387,8 +406,8 @@ func enrichHostingFromEdgeCDN(results map[string]any) {
         if hostingSummary == nil {
                 return
         }
-        hosting, _ := hostingSummary["hosting"].(string)
-        if hosting != "Unknown" {
+        hosting, _ := hostingSummary[infraHosting].(string)
+        if hosting != infraUnknown {
                 return
         }
         edgeCDN, _ := results["edge_cdn"].(map[string]any)
@@ -400,7 +419,7 @@ func enrichHostingFromEdgeCDN(results map[string]any) {
         if !isBehindCDN || cdnProvider == "" {
                 return
         }
-        hostingSummary["hosting"] = cdnProvider + " (CDN)"
+        hostingSummary[infraHosting] = cdnProvider + " (CDN)"
         hostingSummary["hosting_confidence"] = ConfidenceInferredMap(MethodASNMatch)
 }
 
@@ -418,9 +437,9 @@ func detectEmailProviderFromSPF(results map[string]any) string {
 }
 
 var hostingProviders = map[string]string{
-        "cloudflare": nameCloudflare, "amazon": "AWS", "azure": "Azure",
-        "google": "Google Cloud", "digitalocean": nameDigitalOcean,
-        "linode": nameLinode, "vultr": "Vultr", "hetzner": "Hetzner",
+        infraCloudflare: nameCloudflare, "amazon": "AWS", "azure": "Azure",
+        infraGoogle: "Google Cloud", infraDigitalocean: nameDigitalOcean,
+        infraLinode: nameLinode, infraVultr: "Vultr", infraHetzner: "Hetzner",
         "ovh": "OVH", "netlify": "Netlify", "vercel": "Vercel",
         "heroku": "Heroku", "github": "GitHub Pages",
         "squarespace": "Squarespace", "wix": "Wix", "shopify": "Shopify",
@@ -430,13 +449,13 @@ var hostingPTRProviders = map[string]string{
         "cloudfront.net":           "AWS CloudFront",
         "amazonaws.com":            "AWS",
         "awsglobalaccelerator.com": "AWS Global Accelerator",
-        "cloudflare":               nameCloudflare,
+        infraCloudflare:               nameCloudflare,
         "azure":                    "Azure",
-        "google":                   "Google Cloud",
-        "digitalocean":             nameDigitalOcean,
-        "linode":                   nameLinode,
-        "vultr":                    "Vultr",
-        "hetzner":                  "Hetzner",
+        infraGoogle:                   "Google Cloud",
+        infraDigitalocean:             nameDigitalOcean,
+        infraLinode:                   nameLinode,
+        infraVultr:                    "Vultr",
+        infraHetzner:                  "Hetzner",
         "ovh":                      "OVH",
         "netlify":                  "Netlify",
         "vercel":                   "Vercel",
@@ -451,20 +470,20 @@ var hostingPTRProviders = map[string]string{
 }
 
 var dnsHostingProviders = map[string]string{
-        "cloudflare": nameCloudflare, "awsdns": nameAmazonRoute53,
-        "azure-dns": "Azure DNS", "google": "Google Cloud DNS",
+        infraCloudflare: nameCloudflare, "awsdns": nameAmazonRoute53,
+        "azure-dns": "Azure DNS", infraGoogle: "Google Cloud DNS",
         "ultradns": "Vercara UltraDNS", "nsone": "NS1",
-        "digitalocean": nameDigitalOcean, "linode": nameLinode,
+        infraDigitalocean: nameDigitalOcean, infraLinode: nameLinode,
         "domaincontrol": nameGoDaddy, "registrar-servers": nameNamecheap,
         "cscdns": nameCSCGlobalDNS, "csc.com": nameCSCGlobalDNS,
         "netnames": nameCSCGlobalDNS,
         "akam": "Akamai Edge DNS", "dynect": "Oracle Dyn",
         "verisign": "Verisign DNS", "markmonitor": "MarkMonitor DNS",
-        "porkbun": "Porkbun", "vultr": "Vultr",
+        "porkbun": "Porkbun", infraVultr: "Vultr",
 }
 
 var emailHostingProviders = map[string]string{
-        "google": "Google Workspace", "outlook": "Microsoft 365",
+        infraGoogle: "Google Workspace", "outlook": "Microsoft 365",
         "protection.outlook": "Microsoft 365", "zoho": "Zoho Mail",
         "protonmail": "ProtonMail", "fastmail": "Fastmail",
         "mx.cloudflare": "Cloudflare Email",
@@ -542,19 +561,19 @@ func matchMonitoringProvider(domain string) *managementProviderInfo {
 func addOrMergeProvider(providers map[string]map[string]any, info *managementProviderInfo, detectedFrom, source string) {
         name := info.Name
         if existing, ok := providers[name]; ok {
-                df := existing["detected_from"].([]string)
+                df := existing[infraDetectedFrom].([]string)
                 if !containsStr(df, detectedFrom) {
-                        existing["detected_from"] = append(df, detectedFrom)
+                        existing[infraDetectedFrom] = append(df, detectedFrom)
                 }
-                sources := existing["sources"].([]string)
-                existing["sources"] = append(sources, source)
-                caps := existing["capabilities"].([]string)
+                sources := existing[infraSources].([]string)
+                existing[infraSources] = append(sources, source)
+                caps := existing[infraCapabilities].([]string)
                 for _, c := range info.Capabilities {
                         if !containsStr(caps, c) {
                                 caps = append(caps, c)
                         }
                 }
-                existing["capabilities"] = caps
+                existing[infraCapabilities] = caps
         } else {
                 providers[name] = map[string]any{
                         "name":          info.Name,
@@ -674,13 +693,13 @@ func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[stri
         hostingCNAME := getStr(mtasts, "hosting_cname")
 
         for name, prov := range providers {
-                caps, _ := prov["capabilities"].([]string)
+                caps, _ := prov[infraCapabilities].([]string)
                 if containsStr(caps, detMTASTS+" hosting") {
-                        df, _ := prov["detected_from"].([]string)
+                        df, _ := prov[infraDetectedFrom].([]string)
                         if !containsStr(df, detMTASTS) {
-                                providers[name]["detected_from"] = append(df, detMTASTS)
-                                sources, _ := prov["sources"].([]string)
-                                providers[name]["sources"] = append(sources, detMTASTS+" policy hosting")
+                                providers[name][infraDetectedFrom] = append(df, detMTASTS)
+                                sources, _ := prov[infraSources].([]string)
+                                providers[name][infraSources] = append(sources, detMTASTS+" policy hosting")
                         }
                         return
                 }
@@ -778,7 +797,7 @@ func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInf
 func (a *Analyzer) scanDynamicServiceZones(ctx context.Context, zones map[string]string) map[string]*dsDetection {
         detections := make(map[string]*dsDetection)
         for zoneKey, zoneFQDN := range zones {
-                nsRecords := a.DNS.QueryDNS(ctx, "NS", zoneFQDN)
+                nsRecords := a.DNS.QueryDNS(ctx, nsLabel, zoneFQDN)
                 for _, ns := range nsRecords {
                         nsLower := strings.ToLower(strings.TrimRight(ns, "."))
                         if dsInfo, found := matchDynamicServiceNS(nsLower); found {
@@ -816,3 +835,4 @@ func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, do
                 addOrMergeProvider(providers, mpi, "Dynamic services", fmt.Sprintf("Dynamic services (%s)", capLabels))
         }
 }
+
