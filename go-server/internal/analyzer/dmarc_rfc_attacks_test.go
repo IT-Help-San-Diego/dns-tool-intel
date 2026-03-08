@@ -34,7 +34,12 @@ func TestDMARCRFCAttack_EmptyTagValues(t *testing.T) {
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
                         tags := parseDMARCTags(tt.record)
-                        _ = tags
+                        if tags.policy == nil && tt.name != "empty p value" {
+                                t.Error("expected non-nil policy for records with p=reject")
+                        }
+                        if tt.name == "empty p value" && tags.policy != nil && *tags.policy != "" {
+                                t.Error("expected empty or nil policy for empty p= value")
+                        }
                 })
         }
 }
