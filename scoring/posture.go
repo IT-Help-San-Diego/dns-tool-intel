@@ -19,6 +19,28 @@ const (
 
         protocolMTASTS = "MTA-STS"
         protocolTLSRPT = "TLS-RPT"
+
+        postureStatus    = "status"
+        postureSuccess   = "success"
+        postureWarning   = "warning"
+        policyReject     = "reject"
+        policyQuarantine = "quarantine"
+        policyNone       = "none"
+        answerYes        = answerYes
+        answerNo         = answerNo
+        answerPartially  = answerPartially
+        answerMostlyNo   = answerMostlyNo
+        verdictEmail       = "email"
+        verdictEmailSecure = "email_secure"
+        verdictEmailAnswer = "email_answer"
+        verdictBrand       = "brand"
+        verdictBrandSecure = "brand_secure"
+        verdictBrandAnswer = "brand_answer"
+        verdictDNS         = "dns"
+        verdictDNSSecure   = "dns_secure"
+        verdictDomainAns   = "domain_answer"
+        protDNSSEC = protDNSSEC
+        protDMARC  = protDMARC
 )
 
 
@@ -85,31 +107,31 @@ func evaluateProtocolStates(results map[string]any) protocolState {
         isNoMailDomain := spfNoMailIntent || (allMech == "-all" && getBool(results, "has_null_mx"))
 
         return protocolState{
-                spfOK:              spf["status"] == "success",
-                spfWarning:         spf["status"] == "warning",
+                spfOK:              spf[postureStatus] == postureSuccess,
+                spfWarning:         spf[postureStatus] == postureWarning,
                 spfMissing:         isMissingRecord(spf),
                 spfHardFail:        allMech == "-all",
                 spfDangerous:       spfPerm == "DANGEROUS",
                 spfNeutral:         spfPerm == "NEUTRAL",
                 spfLookupExceeded:  spfLookupCount > 10,
                 spfLookupCount:     spfLookupCount,
-                dmarcOK:            dmarc["status"] == "success",
-                dmarcWarning:       dmarc["status"] == "warning",
+                dmarcOK:            dmarc[postureStatus] == postureSuccess,
+                dmarcWarning:       dmarc[postureStatus] == postureWarning,
                 dmarcMissing:       isMissingRecord(dmarc),
                 dmarcPolicy:        dmarcPolicy,
                 dmarcPct:           extractIntFieldDefault(dmarc, "pct", 100),
                 dmarcHasRua:        hasNonEmptyString(dmarc, "rua"),
-                dkimOK:             dkim["status"] == "success",
-                dkimProvider:       dkim["status"] == "info" && isKnownDKIMProvider(primaryProvider),
-                dkimPartial:        (dkim["status"] == "info" && !isKnownDKIMProvider(primaryProvider)) || dkim["status"] == "partial",
+                dkimOK:             dkim[postureStatus] == postureSuccess,
+                dkimProvider:       dkim[postureStatus] == "info" && isKnownDKIMProvider(primaryProvider),
+                dkimPartial:        (dkim[postureStatus] == "info" && !isKnownDKIMProvider(primaryProvider)) || dkim[postureStatus] == "partial",
                 dkimWeakKeys:       dkimWeakKeys,
-                dkimThirdPartyOnly: dkimThirdPartyOnly || dkim["status"] == "partial",
-                caaOK:              caa["status"] == "success",
-                mtaStsOK:           mtaSts["status"] == "success",
-                tlsrptOK:           tlsrpt["status"] == "success",
-                bimiOK:             bimi["status"] == "success",
+                dkimThirdPartyOnly: dkimThirdPartyOnly || dkim[postureStatus] == "partial",
+                caaOK:              caa[postureStatus] == postureSuccess,
+                mtaStsOK:           mtaSts[postureStatus] == postureSuccess,
+                tlsrptOK:           tlsrpt[postureStatus] == postureSuccess,
+                bimiOK:             bimi[postureStatus] == postureSuccess,
                 daneOK:             dane["has_dane"] == true,
-                dnssecOK:           dnssec["status"] == "success",
+                dnssecOK:           dnssec[postureStatus] == postureSuccess,
                 dnssecBroken:       dnssecChain == "broken",
                 primaryProvider:    primaryProvider,
                 isNoMailDomain:     isNoMailDomain,
@@ -117,7 +139,7 @@ func evaluateProtocolStates(results map[string]any) protocolState {
 }
 
 func isMissingRecord(m map[string]any) bool {
-        if m["status"] != "warning" {
+        if m[postureStatus] != postureWarning {
                 return false
         }
         records, _ := m["valid_records"].([]string)
@@ -204,23 +226,23 @@ func classifyDMARC(ps protocolState, acc *postureAccumulator) {
                 classifyDMARCWarning(ps, acc)
                 return
         }
-        acc.absent = append(acc.absent, "DMARC")
+        acc.absent = append(acc.absent, protDMARC)
         acc.issues = append(acc.issues, "No DMARC record")
 }
 
 func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
         switch ps.dmarcPolicy {
-        case "reject":
+        case policyReject:
                 acc.configured = append(acc.configured, "DMARC (reject)")
-        case "quarantine":
+        case policyQuarantine:
                 acc.configured = append(acc.configured, "DMARC (quarantine)")
         default:
-                acc.configured = append(acc.configured, "DMARC")
+                acc.configured = append(acc.configured, protDMARC)
         }
 }
 
 func classifyDMARCWarning(ps protocolState, acc *postureAccumulator) {
-        if ps.dmarcPolicy == "none" {
+        if ps.dmarcPolicy == policyNone {
                 acc.monitoring = append(acc.monitoring, "DMARC in monitoring mode (p=none)")
                 return
         }
@@ -282,9 +304,9 @@ func classifySimpleProtocols(ps protocolState, acc *postureAccumulator) {
         }
 
         if ps.dnssecOK {
-                acc.configured = append(acc.configured, "DNSSEC")
+                acc.configured = append(acc.configured, protDNSSEC)
         } else {
-                acc.absent = append(acc.absent, "DNSSEC")
+                acc.absent = append(acc.absent, protDNSSEC)
         }
 }
 
@@ -412,9 +434,9 @@ type gradeInput struct {
 func determineGrade(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM bool, monitoring, configured, absent []string) (state, icon, color, message string) {
         gi := gradeInput{
                 corePresent:           hasSPF && hasDMARC && hasDKIM,
-                dmarcFullEnforcing:    (ps.dmarcPolicy == "reject" || ps.dmarcPolicy == "quarantine") && ps.dmarcPct == 100,
-                dmarcPartialEnforcing: (ps.dmarcPolicy == "reject" || ps.dmarcPolicy == "quarantine") && ps.dmarcPct < 100,
-                dmarcStrict:           ps.dmarcPolicy == "reject" && ps.dmarcPct == 100,
+                dmarcFullEnforcing:    (ps.dmarcPolicy == policyReject || ps.dmarcPolicy == policyQuarantine) && ps.dmarcPct == 100,
+                dmarcPartialEnforcing: (ps.dmarcPolicy == policyReject || ps.dmarcPolicy == policyQuarantine) && ps.dmarcPct < 100,
+                dmarcStrict:           ps.dmarcPolicy == policyReject && ps.dmarcPct == 100,
                 hasCAA:                ps.caaOK,
                 hasSPF:                hasSPF,
                 hasDMARC:              hasDMARC,
@@ -444,60 +466,60 @@ func classifyMailGrade(ps protocolState, gi gradeInput, monitoring, configured, 
 
 func classifyMailCorePresent(ps protocolState, gi gradeInput, monitoring, configured, absent []string) (string, string, string, string) {
         if gi.dmarcStrict && gi.hasCAA && ps.dnssecOK {
-                return "Secure", iconShieldAlt, "success", buildDescriptiveMessage(ps, configured, absent, monitoring)
+                return "Secure", iconShieldAlt, postureSuccess, buildDescriptiveMessage(ps, configured, absent, monitoring)
         }
         if (gi.dmarcStrict && gi.hasCAA) || gi.dmarcFullEnforcing {
-                return riskLow, iconShieldAlt, "success", buildDescriptiveMessage(ps, configured, absent, monitoring)
+                return riskLow, iconShieldAlt, postureSuccess, buildDescriptiveMessage(ps, configured, absent, monitoring)
         }
         if gi.dmarcPartialEnforcing {
-                return riskMedium, iconExclamationTriangle, "warning",
+                return riskMedium, iconExclamationTriangle, postureWarning,
                         fmt.Sprintf("Email authentication configured but DMARC enforcement is partial (pct=%d%%). Only %d%% of failing mail is subject to policy.", ps.dmarcPct, ps.dmarcPct)
         }
-        if ps.dmarcPolicy == "none" {
-                return riskMedium, iconExclamationTriangle, "warning",
+        if ps.dmarcPolicy == policyNone {
+                return riskMedium, iconExclamationTriangle, postureWarning,
                         "Email authentication configured but DMARC is in monitoring mode (p=none). Enforcement recommended after reviewing reports."
         }
-        return riskLow, iconShieldAlt, "success", buildDescriptiveMessage(ps, configured, absent, monitoring)
+        return riskLow, iconShieldAlt, postureSuccess, buildDescriptiveMessage(ps, configured, absent, monitoring)
 }
 
 func classifyMailPartial(gi gradeInput) (string, string, string, string) {
         if gi.hasSPF && gi.hasDMARC && !gi.hasDKIM {
                 if gi.dkimInconclusive {
-                        return riskLow + " Monitoring", iconExclamationTriangle, "warning",
+                        return riskLow + " Monitoring", iconExclamationTriangle, postureWarning,
                                 "SPF and DMARC present. DKIM not discoverable via common selectors but may be configured with custom or rotating selectors."
                 }
-                return riskMedium, iconExclamationTriangle, "warning",
+                return riskMedium, iconExclamationTriangle, postureWarning,
                         "SPF and DMARC present but DKIM not verified. DKIM signing is required for full DMARC alignment."
         }
         if gi.hasSPF && !gi.hasDMARC {
-                return riskHigh, iconExclamationTriangle, "warning",
+                return riskHigh, iconExclamationTriangle, postureWarning,
                         "SPF configured but no DMARC policy. Without DMARC, SPF alone cannot prevent email spoofing."
         }
         if !gi.hasSPF && !gi.hasDMARC && !gi.hasDKIM {
                 return riskCritical, "times-circle", "danger",
                         "No email authentication configured. This domain is fully vulnerable to email spoofing."
         }
-        return riskHigh, iconExclamationTriangle, "warning",
+        return riskHigh, iconExclamationTriangle, postureWarning,
                 "Partial email authentication. Critical security controls are missing."
 }
 
 func classifyNoMailGrade(ps protocolState, gi gradeInput, configured, absent []string) (string, string, string, string) {
-        hasReject := ps.dmarcPolicy == "reject"
+        hasReject := ps.dmarcPolicy == policyReject
         hasSPFDeny := ps.spfHardFail
 
         if hasSPFDeny && hasReject {
-                return "Secure", iconShieldAlt, "success",
+                return "Secure", iconShieldAlt, postureSuccess,
                         "No-mail domain properly secured. SPF -all rejects all senders, DMARC p=reject discards unauthenticated mail."
         }
         if hasSPFDeny || hasReject {
-                return riskLow, iconShieldAlt, "success",
+                return riskLow, iconShieldAlt, postureSuccess,
                         "No-mail domain with partial protection. SPF and/or DMARC enforcement configured but not both are at full enforcement."
         }
         if gi.hasSPF {
-                return riskMedium, iconExclamationTriangle, "warning",
+                return riskMedium, iconExclamationTriangle, postureWarning,
                         "Domain appears to not send mail but SPF does not use -all (hardfail). Spoofing is still possible."
         }
-        return riskHigh, iconExclamationTriangle, "warning",
+        return riskHigh, iconExclamationTriangle, postureWarning,
                 "Domain appears to not send mail but lacks proper no-mail protections (SPF -all, DMARC p=reject)."
 }
 
@@ -513,20 +535,20 @@ func applyMonitoringSuffix(state string, monitoring []string) string {
 func buildDescriptiveMessage(ps protocolState, configured, absent, monitoring []string) string {
         var parts []string
 
-        if ps.dmarcPolicy == "reject" {
+        if ps.dmarcPolicy == policyReject {
                 if ps.dkimThirdPartyOnly {
                         parts = append(parts, "Email authentication with full DMARC enforcement. DKIM verified for third-party senders; primary provider DKIM recommended")
                 } else {
                         parts = append(parts, "Email authentication with full DMARC enforcement")
                 }
-        } else if ps.dmarcPolicy == "quarantine" {
+        } else if ps.dmarcPolicy == policyQuarantine {
                 parts = append(parts, "Email authentication configured with DMARC quarantine policy")
         }
 
         var notConfigured []string
         for _, item := range absent {
                 switch item {
-                case protocolMTASTS, protocolTLSRPT, "DNSSEC", "BIMI":
+                case protocolMTASTS, protocolTLSRPT, protDNSSEC, "BIMI":
                         notConfigured = append(notConfigured, item)
                 }
         }
@@ -537,7 +559,7 @@ func buildDescriptiveMessage(ps protocolState, configured, absent, monitoring []
 
         if len(monitoring) > 0 {
                 for _, m := range monitoring {
-                        if strings.Contains(m, "DMARC") {
+                        if strings.Contains(m, protDMARC) {
                                 parts = append(parts, "DMARC in monitoring mode")
                         }
                 }
@@ -559,37 +581,37 @@ func buildVerdicts(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM boo
 }
 
 func buildEmailVerdict(ps protocolState, ds DKIMState, hasSPF, hasDMARC, hasDKIM bool, verdicts map[string]any) {
-        enforcing := ps.dmarcPolicy == "reject" || ps.dmarcPolicy == "quarantine"
+        enforcing := ps.dmarcPolicy == policyReject || ps.dmarcPolicy == policyQuarantine
 
         if hasSPF && hasDMARC && enforcing && hasDKIM {
                 buildEnforcingEmailVerdict(ps, ds, verdicts)
                 return
         }
-        if hasSPF && hasDMARC && ps.dmarcPolicy == "none" {
-                verdicts["email"] = "Partial email authentication configured — some spoofed messages may be delivered. DMARC is in monitoring mode (p=none)."
-                verdicts["email_secure"] = false
-                verdicts["email_answer"] = "Partially"
+        if hasSPF && hasDMARC && ps.dmarcPolicy == policyNone {
+                verdicts[verdictEmail] = "Partial email authentication configured — some spoofed messages may be delivered. DMARC is in monitoring mode (p=none)."
+                verdicts[verdictEmailSecure] = false
+                verdicts[verdictEmailAnswer] = answerPartially
                 return
         }
         if hasSPF && !hasDMARC {
-                verdicts["email"] = "SPF is configured but without DMARC, receiving servers may still accept spoofed messages."
-                verdicts["email_secure"] = false
-                verdicts["email_answer"] = "Yes"
+                verdicts[verdictEmail] = "SPF is configured but without DMARC, receiving servers may still accept spoofed messages."
+                verdicts[verdictEmailSecure] = false
+                verdicts[verdictEmailAnswer] = answerYes
                 return
         }
         if !hasSPF && !hasDMARC {
-                verdicts["email"] = "No email authentication — this domain can be impersonated by anyone."
-                verdicts["email_secure"] = false
-                verdicts["email_answer"] = "Yes"
+                verdicts[verdictEmail] = "No email authentication — this domain can be impersonated by anyone."
+                verdicts[verdictEmailSecure] = false
+                verdicts[verdictEmailAnswer] = answerYes
                 return
         }
-        verdicts["email"] = "Partial email authentication configured — some spoofed messages may be delivered."
-        verdicts["email_secure"] = false
-        verdicts["email_answer"] = "Partially"
+        verdicts[verdictEmail] = "Partial email authentication configured — some spoofed messages may be delivered."
+        verdicts[verdictEmailSecure] = false
+        verdicts[verdictEmailAnswer] = answerPartially
 }
 
 func buildEnforcingEmailVerdict(ps protocolState, ds DKIMState, verdicts map[string]any) {
-        action := map[string]string{"reject": "blocked", "quarantine": "flagged as spam"}[ps.dmarcPolicy]
+        action := map[string]string{policyReject: "blocked", policyQuarantine: "flagged as spam"}[ps.dmarcPolicy]
         msg := "DMARC policy is " + ps.dmarcPolicy + " — spoofed messages will be " + action + " by receiving servers."
 
         switch ds {
@@ -601,45 +623,45 @@ func buildEnforcingEmailVerdict(ps protocolState, ds DKIMState, verdicts map[str
                 msg += " DKIM keys verified with strong cryptography."
         }
 
-        verdicts["email"] = msg
-        verdicts["email_secure"] = ps.dmarcPolicy == "reject"
-        if ps.dmarcPolicy == "reject" {
-                verdicts["email_answer"] = "No"
+        verdicts[verdictEmail] = msg
+        verdicts[verdictEmailSecure] = ps.dmarcPolicy == policyReject
+        if ps.dmarcPolicy == policyReject {
+                verdicts[verdictEmailAnswer] = answerNo
         } else {
-                verdicts["email_answer"] = "Mostly No"
+                verdicts[verdictEmailAnswer] = answerMostlyNo
         }
 }
 
 func buildBrandVerdict(ps protocolState, verdicts map[string]any) {
         switch {
         case ps.bimiOK && ps.caaOK:
-                verdicts["brand"] = "Attackers cannot easily spoof your logo or obtain fraudulent TLS certificates."
-                verdicts["brand_secure"] = true
-                verdicts["brand_answer"] = "No"
+                verdicts[verdictBrand] = "Attackers cannot easily spoof your logo or obtain fraudulent TLS certificates."
+                verdicts[verdictBrandSecure] = true
+                verdicts[verdictBrandAnswer] = answerNo
         case ps.caaOK:
-                verdicts["brand"] = "Certificate issuance restricted via CAA. BIMI not configured for brand logo protection."
-                verdicts["brand_secure"] = false
-                verdicts["brand_answer"] = "Partially"
+                verdicts[verdictBrand] = "Certificate issuance restricted via CAA. BIMI not configured for brand logo protection."
+                verdicts[verdictBrandSecure] = false
+                verdicts[verdictBrandAnswer] = answerPartially
         case ps.bimiOK:
-                verdicts["brand"] = "BIMI brand logo configured. CAA not configured — any CA can issue certificates."
-                verdicts["brand_secure"] = false
-                verdicts["brand_answer"] = "Partially"
+                verdicts[verdictBrand] = "BIMI brand logo configured. CAA not configured — any CA can issue certificates."
+                verdicts[verdictBrandSecure] = false
+                verdicts[verdictBrandAnswer] = answerPartially
         default:
-                verdicts["brand"] = "No brand protection configured. Any CA can issue certificates and no brand logo verification in place."
-                verdicts["brand_secure"] = false
-                verdicts["brand_answer"] = "Yes"
+                verdicts[verdictBrand] = "No brand protection configured. Any CA can issue certificates and no brand logo verification in place."
+                verdicts[verdictBrandSecure] = false
+                verdicts[verdictBrandAnswer] = answerYes
         }
 }
 
 func buildDNSVerdict(ps protocolState, verdicts map[string]any) {
         if ps.dnssecOK {
-                verdicts["dns"] = "DNS responses are cryptographically signed and verified via DNSSEC."
-                verdicts["dns_secure"] = true
-                verdicts["domain_answer"] = "No"
+                verdicts[verdictDNS] = "DNS responses are cryptographically signed and verified via DNSSEC."
+                verdicts[verdictDNSSecure] = true
+                verdicts[verdictDomainAns] = answerNo
         } else {
-                verdicts["dns"] = "DNS responses are unsigned and could be spoofed. DNSSEC provides cryptographic verification."
-                verdicts["dns_secure"] = false
-                verdicts["domain_answer"] = "Yes"
+                verdicts[verdictDNS] = "DNS responses are unsigned and could be spoofed. DNSSEC provides cryptographic verification."
+                verdicts[verdictDNSSecure] = false
+                verdicts[verdictDomainAns] = answerYes
         }
 }
 
@@ -679,9 +701,9 @@ func computeDMARCScore(ps protocolState) int {
         }
         base := 25
         switch ps.dmarcPolicy {
-        case "reject":
+        case policyReject:
                 return base + 5
-        case "quarantine":
+        case policyQuarantine:
                 return base + 3
         }
         return base
@@ -726,4 +748,5 @@ func computeAuxScore(ps protocolState) int {
         }
         return score
 }
+
 
