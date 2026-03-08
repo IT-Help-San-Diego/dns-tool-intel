@@ -10,7 +10,7 @@
 //   - Timeout tuning
 //
 // All suggestions require explicit user approval before applying.
-// Grounded in NIST SP 800-53 SI-18 (accuracy/relevance) and RFC 8767 (TTL behavior).
+// Grounded in NIST SP 800-53 SI-7 (information integrity) and RFC 8767 (TTL behavior).
 // dns-tool:scrutiny science
 package icuae
 
@@ -203,7 +203,7 @@ func suggestResolverChanges(stats RollingStats, current ScannerProfile) []Profil
                                 "Low agreement indicates potential DNS propagation issues or resolver-specific caching behavior. "+
                                 "Adding diverse resolvers improves measurement confidence.",
                                 stats.AvgResolverAgreement),
-                        Standard: StandardNIST80053SI18,
+                        Standard: StandardNIST80053SI7,
                         Severity: resolverSeverity(stats.AvgResolverAgreement),
                         Category: "resolver",
                 })
@@ -232,7 +232,7 @@ func suggestRetryChanges(stats RollingStats, current ScannerProfile) []ProfileSu
                                 Rationale: fmt.Sprintf("Record lookup error rate is %.1f%% across %d scans. "+
                                         "Increasing retries from %d to %d reduces transient failures and improves data completeness.",
                                         errorRate, stats.ScanCount, current.RetryCount, suggestedRetries),
-                                Standard: StandardNIST80053SI18,
+                                Standard: StandardNIST80053SI7,
                                 Severity: mapKeyMedium,
                                 Category: "retry",
                         })
@@ -294,7 +294,7 @@ func suggestRecordPriority(stats RollingStats, current ScannerProfile) []Profile
                                 "Deprioritizing these types allows critical records (A, MX, SPF) to be resolved first, "+
                                 "improving overall scan efficiency.",
                                 errorRecords, stats.ScanCount),
-                        Standard: StandardNIST80053SI18,
+                        Standard: StandardNIST80053SI7,
                         Severity: severityLow,
                         Category: "priority",
                 })

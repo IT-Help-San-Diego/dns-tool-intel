@@ -625,7 +625,7 @@
                                         </ul>
                                         <a href="/ttl-tuner?domain={{.Domain}}" class="btn btn-sm btn-outline-info">{{icon "sliders-h" "me-1"}}Tune TTL for {{.Domain}}</a>
                                     </div>
-                                    <small class="text-muted d-block mt-2">{{icon "book" "me-1"}}Reference: NIST SP 800-53 SI-18 (Information Accuracy, Relevance, Timeliness) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
+                                    <small class="text-muted d-block mt-2">{{icon "book" "me-1"}}Reference: NIST SP 800-53 SI-7 (Information Integrity) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
                                     {{if .CurrencyReport.ProviderName}}
                                     <small class="text-muted d-block mt-1">{{icon "building" "me-1"}}DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
                                     {{else if not .IsPublicSuffix}}
