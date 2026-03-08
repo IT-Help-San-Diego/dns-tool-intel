@@ -26,10 +26,10 @@ const (
         policyReject     = "reject"
         policyQuarantine = "quarantine"
         policyNone       = "none"
-        answerYes        = answerYes
-        answerNo         = answerNo
-        answerPartially  = answerPartially
-        answerMostlyNo   = answerMostlyNo
+        answerYes        = "Yes"
+        answerNo         = "No"
+        answerPartially  = "Partially"
+        answerMostlyNo   = "Mostly No"
         verdictEmail       = "email"
         verdictEmailSecure = "email_secure"
         verdictEmailAnswer = "email_answer"
@@ -39,8 +39,8 @@ const (
         verdictDNS         = "dns"
         verdictDNSSecure   = "dns_secure"
         verdictDomainAns   = "domain_answer"
-        protDNSSEC = protDNSSEC
-        protDMARC  = protDMARC
+        protDNSSEC = "DNSSEC"
+        protDMARC  = "DMARC"
 )
 
 
