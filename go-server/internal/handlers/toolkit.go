@@ -159,7 +159,7 @@ func (h *ToolkitHandler) executeProbeRequest(probe probeConfig, targetHost, targ
 		return nil, fmt.Sprintf("Probe service returned an error (status %d).", resp.StatusCode)
 	}
 
-	var probeResult map[string]any
+	probeResult := map[string]any{}
 	if err := json.Unmarshal(body, &probeResult); err != nil {
 		return nil, "Failed to parse response from probe service."
 	}

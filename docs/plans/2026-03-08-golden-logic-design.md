@@ -135,9 +135,12 @@ The chain traces from Aristotle's formal logic (the syllogism as the first logic
 
 | Type | Meaning | Tracking Requirement |
 |------|---------|---------------------|
-| `rfc_derived` | Logic directly from an RFC section | MUST cite RFC, section, normative level |
-| `invented` | DNS Tool's own logic, not from any RFC | MUST document reasoning and justification |
-| `hybrid` | RFC foundation + our extension | MUST cite RFC AND document our additions |
+| `rfc_derived` | Logic directly from an RFC section. With the exception that we are looking for even logic errors in these kind of places too.| MUST cite RFC, section, normative level |
+| `invented-discovered` | DNS Tool's logic is based on input from the HUMAN, not from any RFC. Therefore, is the Builder's Logic the most honest after being verified? If so, then the input is considered valid. With the exception that we are looking for even logic errors in these kind of places too. | validate human discovery. MUST document reasoning and justification |
+| `hybrid` | RFC foundation + our extension  With the exception that we are looking for even logic errors in these kind of places too.| MUST cite RFC AND document our additions |
+| `ai_generated` | rules, coms With the exception that we are looking for even logic errors in these kind of places too.| MUST etc.|
+| `honored` |  Time-tested, rock-solid human theories that form a solid line back to the beginning of thinkers in the Greek era all the way forward and have a strong, strong match of congruence and relatedness. And how one field, spookily, when things begin to be done right, looks like another field, congruence.  People who would be shocked to read and understand that, yeah, a Greek philosopher had just as strong a logic as what could go in computer code today.  Why did we stop thinking logically? With the exception that we are looking for even logic errors in these kind of places too. |  Proof with citations and modern-day experiments and science and proof in science. |
+| `proven-peer-reviewed` |  Already long-established and proven research and scientific theories that became proven and thus are depended on today. With the exception that we are looking for even logic errors in those kind of places too. | Citations, evidence, citations, evidence. |
 
 ### Rule Status Lifecycle
 

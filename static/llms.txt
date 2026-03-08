@@ -146,7 +146,7 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 
 ### Engine Implementations (Public Repository)
 - **ICAE Engine**: 129 executable deterministic test cases across 9 protocols. Database-backed maturity tracking with statistical confidence calibration.
-- **ICuAE Engine**: 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18). Statistical drift detection for per-dimension trend analysis.
+- **ICuAE Engine**: 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-7). Statistical drift detection for per-dimension trend analysis.
 - **Confidence Tagging**: ICD 203-aligned observed/inferred/third-party classification applied to all attributions.
 - **Hash Integrity**: SHA-3-512 (FIPS 202) cryptographic hashing for report integrity and posture drift fingerprinting.
 - **Wayback Machine Archival**: Automatic submission of every successful, non-private analysis to the Internet Archive (web.archive.org/save/). Snapshot URL stored and displayed as "Archived" badge with direct link. Third layer of the evidence chain alongside SHA-3-512 integrity hash and posture hash.

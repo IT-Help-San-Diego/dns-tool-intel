@@ -46,7 +46,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - CVSS-aligned security posture assessment
 - Mail posture classification
 - RFC-aligned remediation engine with priority fixes
-- ICuAE — Intelligence Currency Audit Engine: 29 deterministic test cases across 5 dimensions (Currentness, TTL Compliance, Completeness, Source Credibility, TTL Relevance), five-tier grading system aligned with ICD 203, NIST SP 800-53 SI-18, and ISO/IEC 25012
+- ICuAE — Intelligence Currency Audit Engine: 29 deterministic test cases across 5 dimensions (Currentness, TTL Compliance, Completeness, Source Credibility, TTL Relevance), five-tier grading system aligned with ICD 203, NIST SP 800-53 SI-7, and ISO/IEC 25012
 
 ## Detection and Intelligence
 

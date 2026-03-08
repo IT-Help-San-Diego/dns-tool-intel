@@ -584,7 +584,7 @@
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">5</span>
-                <span class="icuae-summary-label"><a href="#icuae-dimensions" title="ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18, OWASP, IETF BCP 219">Standards</a></span>
+                <span class="icuae-summary-label"><a href="#icuae-dimensions" title="ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-7, OWASP, IETF BCP 219">Standards</a></span>
             </div>
             <div class="icuae-summary-item">
                 <span class="icuae-summary-value">5</span>
@@ -734,7 +734,7 @@
                             <tr>
                                 <td><strong>TTL Relevance</strong></td>
                                 <td class="text-center"><span class="badge bg-success">Within Range</span></td>
-                                <td class="small text-muted">NIST SP 800-53 SI-18 treats validity as a measurable property. TTLs within the typical range for their record type (3600s for TXT, 86400s for NS) indicate well-configured authoritative zones.</td>
+                                <td class="small text-muted">NIST SP 800-53 SI-7 treats information integrity as a measurable property. TTLs within the typical range for their record type (3600s for TXT, 86400s for NS) indicate well-configured authoritative zones.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -793,8 +793,8 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 fw-bold mb-1"><span class="badge bg-success me-1">NIST</span> SP 800-53 SI-18</h3>
-                                <p class="text-muted small mb-0">NIST defines four data quality dimensions: Accuracy, Relevance, Timeliness, and Completeness. ICuAE operationalizes Timeliness and Completeness.</p>
+                                <h3 class="h6 fw-bold mb-1"><span class="badge bg-success me-1">NIST</span> SP 800-53 SI-7</h3>
+                                <p class="text-muted small mb-0">NIST SI-7 addresses information integrity &mdash; ensuring data has not been improperly modified and remains complete. ICuAE operationalizes completeness and TTL relevance as integrity dimensions for DNS data.</p>
                             </div>
                         </div>
                     </div>
@@ -810,7 +810,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1"><span class="badge bg-secondary me-1">RFC</span> 8767 TTL</h3>
-                                <p class="text-muted small mb-0">RFC 8767 defines TTL-based cache expiration and serve-stale behavior. ICuAE detects when resolver TTLs exceed authoritative values &mdash; a sign of caching violations.</p>
+                                <p class="text-muted small mb-0">RFC 8767 defines TTL-based cache expiration and serve-stale behavior. ICuAE detects when resolver TTLs exceed authoritative values &mdash; which may indicate serve-stale behavior, timing skew, or cache misconfiguration.</p>
                             </div>
                         </div>
                     </div>
@@ -847,11 +847,11 @@
                             <tr>
                                 <td><strong>TTL Compliance</strong></td>
                                 <td><span class="badge bg-secondary">RFC 8767</span></td>
-                                <td class="text-muted">Whether resolver TTLs respect authoritative limits. Violations may indicate caching misconfigurations or stale data.</td>
+                                <td class="text-muted">Whether resolver TTLs respect authoritative limits. Exceedances may indicate RFC 8767 serve-stale behavior, timing skew, or cache misconfiguration.</td>
                             </tr>
                             <tr>
                                 <td><strong>Completeness</strong></td>
-                                <td><span class="badge bg-success">NIST SI-18</span></td>
+                                <td><span class="badge bg-success">NIST SI-7</span></td>
                                 <td class="text-muted">Percentage of expected record types with authoritative TTL data. Gaps reduce overall intelligence quality.</td>
                             </tr>
                             <tr>
@@ -861,7 +861,7 @@
                             </tr>
                             <tr>
                                 <td><strong>TTL Relevance</strong></td>
-                                <td><span class="badge bg-success">NIST SI-18</span></td>
+                                <td><span class="badge bg-success">NIST SI-7</span></td>
                                 <td class="text-muted">Observed TTL versus typical range for each record type. Extreme deviations may indicate misconfiguration.</td>
                             </tr>
                         </tbody>
@@ -947,7 +947,7 @@
                     </table>
                 </div>
 
-                <p class="text-muted small mb-0">{{icon "flask" "me-1"}} <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-18 (Information Validity) similarly treats data freshness as a measurable property requiring periodic validation. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
+                <p class="text-muted small mb-0">{{icon "flask" "me-1"}} <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-7 (Information Integrity) similarly treats data completeness and validity as measurable properties requiring periodic verification. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
             </div>
         </div>
 
@@ -969,16 +969,17 @@
                         $$ \text{UCL/LCL} = \mu_0 \pm L \cdot \sigma \sqrt{\frac{\lambda}{2 - \lambda}\left[1 - (1-\lambda)^{2t}\right]} $$
                     </div>
                     <p class="text-muted small mb-2">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
-                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
+                    <p class="text-muted small mb-2 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "info-circle" "me-1"}}<strong>Bootstrap note:</strong> The initial parameters (&mu;<sub>0</sub>=50, &sigma;=10, L=3.0) are heuristic defaults that allow monitoring to begin immediately without a Phase I calibration dataset. &sigma; is refined adaptively from observed data after 10+ observations (see <code>Add()</code> method). These are operational starting points per NIST/SEMATECH &sect;6.3.2.4, not values fitted from historical in-control DNS data.</p>
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Bayesian Confidence Calibration</h3>
-                    <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) weights the observation against the prior:</p>
+                    <h3 class="h6 fw-bold mb-2">{{icon "flask" "me-1 text-accent-cobalt"}} Reliability-Weighted Shrinkage Calibration</h3>
+                    <p class="text-muted small mb-2">Each protocol carries an empirical prior &mdash; a Beta distribution encoding historical detection reliability. Measurement quality (resolver agreement) determines how much the raw observation is trusted versus the prior anchor &mdash; a Bayesian-inspired shrinkage estimator:</p>
                     <div class="math-display" data-latex="C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta}">
                         $$ C_{\text{calibrated}} = w \cdot C_{\text{raw}} + (1 - w) \cdot \frac{\alpha}{\alpha + \beta} $$
                     </div>
-                    <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\text{Beta}(\alpha, \beta)\) is the conjugate prior for the protocol category. The prior mean \(\frac{\alpha}{\alpha+\beta}\) anchors the estimate when measurement quality is low; as resolver agreement increases, the raw observation dominates. Prior parameters evolve via Beta-Bernoulli conjugate updating: each passing test increments \(\alpha\), each failure increments \(\beta\).</p>
+                    <p class="text-muted small mb-2">Where \(w = \frac{\text{agreeing resolvers}}{\text{total resolvers}}\) is measurement quality, and \(\frac{\alpha}{\alpha+\beta}\) is the prior mean from a \(\text{Beta}(\alpha, \beta)\) distribution for the protocol category. When resolver agreement is low, the prior mean anchors the estimate; as agreement increases, the raw observation dominates. This is a convex shrinkage estimator &mdash; structurally similar to, but distinct from, the true Beta-Bernoulli posterior mean \(E[\theta|D] = \frac{\alpha+s}{\alpha+\beta+n}\), where the weight on data is derived from observation count rather than set independently. Prior parameters evolve via conjugate updating: each passing ICAE test increments \(\alpha\), each failure increments \(\beta\).</p>
                     <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icae/priors.go</code> &rarr; <code>CalibrationEngine.CalibratedConfidence()</code> &middot; Per-protocol Beta priors defined in <code>CalibrationEngine.priors</code> map</p>
                 </div>
 

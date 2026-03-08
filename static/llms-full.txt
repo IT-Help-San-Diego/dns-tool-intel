@@ -434,7 +434,7 @@ A static, zero-JavaScript public overview of the system architecture, classified
 3. **Protocol Coverage**: Nine DNS security protocols analyzed — SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA — each linked to authoritative RFCs
 4. **Open-Core Architecture**: BUSL-1.1 license model with public web layer and private intelligence module, build-tag gated compilation
 5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
-6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, FIPS 202 (SHA-3)
+6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-7, ISO/IEC 25012, FIPS 202 (SHA-3)
 7. **Evidence Chain**: Three-layer tamper-proof evidence — SHA-3-512 integrity hash, posture drift hash, and Internet Archive Wayback Machine snapshot for independent third-party verification
 8. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
 9. **Encrypted DNS Transport Detection (Future)**: DoH (RFC 8484), DoT (RFC 7858), and DDR (RFC 9462) posture analysis for domain resolver infrastructure
@@ -504,7 +504,7 @@ Measures analysis correctness via 129 deterministic test cases across 9 protocol
 ICAE results are displayed on the `/confidence` page and in the homepage hero card as "Confidence Level: [tier]" with per-protocol badges.
 
 ### ICuAE (Intelligence Currency Audit Engine)
-Measures data timeliness via 29 deterministic test cases across five dimensions, grounded in NIST SP 800-53 SI-18 (information quality) and ISO/IEC 25012 (data quality model):
+Measures data timeliness via 29 deterministic test cases across five dimensions, grounded in NIST SP 800-53 SI-7 (information integrity) and ISO/IEC 25012 (data quality model):
 
 | Dimension | Target | What It Measures |
 |-----------|--------|-----------------|
@@ -619,7 +619,7 @@ Methodology descriptions on the `/architecture` page are redacted to protect pro
 
 ### Standards Foundation (Cited in Code, Not Just Documentation)
 - **ICD 203** (Analytic Standards): Confidence taxonomy structure
-- **NIST SP 800-53 SI-18** (Information Quality): Completeness and TTL Relevance dimensions in ICuAE
+- **NIST SP 800-53 SI-7** (Information Integrity): Completeness and TTL Relevance dimensions in ICuAE
 - **ISO/IEC 25012** (Data Quality Model): Currentness and Source Credibility dimensions in ICuAE
 - **FIPS 202** (SHA-3): Cryptographic hashing for posture and report integrity
 - **RFC 8767**: TTL Compliance dimension in ICuAE
