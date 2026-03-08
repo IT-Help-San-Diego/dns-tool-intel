@@ -167,6 +167,49 @@ The hash does NOT include `code_refs` or `test_refs` (those change with refactor
 | **Orphan test** | Test exists but no rule claims it | Warning — test may be testing phantom logic |
 | **Foundation drift** | RFC has been updated/superseded (e.g., DMARCbis) | Advisory — review needed |
 | **Reasoning drift** | `disagreements` section changed without rule review | Critical — position may have shifted |
+| **Semantic drift** | Code language (naming, structure, control flow) diverges from rule intent | Critical — invisible to tests |
+
+### Semantic Drift — Code Language Problems
+
+This is the deepest layer Golden Logic can reach, and possibly the most important.
+
+Traditional drift detection watches the *data*. Golden Logic watches the *logic*. But semantic drift watches something even more fundamental: **the gap between what the developer meant and what the code actually does**, as revealed by the code's own language.
+
+This happens because the human writes reasoning in natural language, then translates it to code in a formal language. That translation is where errors hide — and they hide *precisely because* the developer's tests encode the same misunderstanding.
+
+#### What Semantic Drift Looks Like
+
+| Pattern | Example | Why It's Invisible |
+|---------|---------|-------------------|
+| **Misleading names** | `isValid` that means "was parseable," not "passed validation" | Tests check `isValid == true` for parseable input and pass |
+| **Silent swallowing** | `classifySPFEnforcement()` catches an error and returns a default instead of propagating | Tests never send input that triggers the error path |
+| **Off-by-one semantics** | Code uses `>=` where RFC says "greater than" (not "greater than or equal") | Tests use values far from the boundary |
+| **Default case drift** | Switch statement where `default:` does something meaningful instead of being an explicit catch-all | Tests cover all known cases, never exercise default |
+| **Negation inversion** | `if !hasRecord` used where the RFC logic requires `if hasRecord` — the surrounding code compensates, masking the inversion | Integration tests pass because the compensation works |
+| **Type coercion gaps** | String comparison where numeric comparison is required by the RFC (e.g., SPF lookup count) | Tests use single-digit values where string and numeric sort identically |
+| **Comment-code divergence** | Comment says "reject unauthorized" but function returns a warning-level finding | Reviewer reads the comment, trusts it, never checks the return value |
+
+#### Why Tests Don't Catch This
+
+Tests are written by the same human who wrote the code, encoding the same mental model. If the developer misunderstands "valid" to mean "parseable," they write code that checks parseability and tests that assert parseability. Everything passes. The logic *appears* correct. But the rule says "valid" means something stronger — and nobody notices because nobody compared the test to the rule.
+
+Golden Logic forces this comparison by requiring each rule's `code_refs` to be reviewed against the rule's `statement`. The question isn't "does the test pass?" — it's "does this code, at this exact location, faithfully implement this specific rule?"
+
+#### How Golden Logic Detects It
+
+1. **Rule-to-symbol alignment**: Each `code_refs` entry names a specific symbol (function, method, variable). Golden Logic can flag when the symbol name doesn't semantically align with the rule statement. A rule about "rejection" pointing to a function called `warnAbout...` is a semantic drift signal.
+
+2. **Assertion-type classification**: Test refs declare their `assertion_type` (behavioral, boundary, regression, golden). If a rule about boundary conditions (e.g., "10-lookup limit") has no `boundary` type test, that's a gap — the tests may be checking the happy path but missing the edge where semantic drift lives.
+
+3. **Code review integration**: When `golden-logic alignment` runs in CI, it can extract the function signature and return type at each `code_refs` location and compare them against the rule. A rule about "fail" that points to a function returning `(string, error)` where the error is never checked by the test — that's detectable.
+
+4. **Cross-rule consistency**: Multiple rules pointing to the same code symbol should have compatible semantics. If `LR-SPF-HARDFAIL-v1` and `LR-SPF-SOFTFAIL-v1` both point to `classifySPFEnforcement` but the function handles them in the same branch — that's a semantic collapse that Golden Logic can flag.
+
+#### The Deeper Implication
+
+This means Golden Logic isn't just a drift detection system — it's a **semantic alignment verifier** between human reasoning and machine execution. It can surface the class of bugs that no other tool catches: the ones where the code does exactly what the developer told it to do, but the developer's instructions don't match the developer's intent, and the developer's intent doesn't match the standard.
+
+This is the literal moment where things go wrong between humans and computers. Not malice. Not incompetence. Just the inevitable gap between natural language reasoning and formal language execution. Golden Logic makes that gap visible, traceable, and — for the first time — scientifically verifiable.
 
 ### CI Enforcement
 
