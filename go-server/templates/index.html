@@ -523,7 +523,7 @@
                 <div class="icae-hero-protocols mt-1 u-hero-protocols-divider">
                     <div class="d-flex flex-wrap justify-content-center gap-2 align-items-center">
                         <span class="text-muted small opacity-75">{{icon "clock" "me-1"}}Currency Level:</span>
-                        <a href="/confidence#icuae" class="icuae-badge icuae-badge-{{if .ICuAEMetrics}}{{.ICuAEMetrics.AvgGrade}}{{else}}adequate{{end}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Intelligence Currency Audit Engine — measures data timeliness per ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012">{{if .ICuAEMetrics}}{{.ICuAEMetrics.AvgGradeDisplay}} {{.ICuAEMetrics.AvgScoreDisplay}}{{else}}Currency Engine{{end}} <span class="icuae-dot"></span></a>
+                        <a href="/confidence#icuae" class="icuae-badge icuae-badge-{{if .ICuAEMetrics}}{{.ICuAEMetrics.AvgGrade}}{{else}}adequate{{end}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Intelligence Currency Audit Engine — measures data timeliness per ICD 203, NIST SP 800-53 SI-7, ISO/IEC 25012">{{if .ICuAEMetrics}}{{.ICuAEMetrics.AvgGradeDisplay}} {{.ICuAEMetrics.AvgScoreDisplay}}{{else}}Currency Engine{{end}} <span class="icuae-dot"></span></a>
                         <span class="text-muted small opacity-50">|</span>
                         <a href="/confidence" class="text-muted text-decoration-none small" data-bs-toggle="tooltip" data-bs-placement="bottom" title="SHA-3-512 (NIST FIPS 202) integrity hashing on all exports">
                             {{icon "fingerprint" "me-1"}}SHA-3-512 Provenance

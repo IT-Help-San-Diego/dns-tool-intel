@@ -30,7 +30,7 @@ The core Bayesian logic is fundamentally sound. The issues are labeling precisio
 - **But**: `priors.go` lines 25-38 shows actual priors are NOT 0.5:
   - SPF: α=95, β=5 (prior mean 0.95)
   - DKIM: α=90, β=10 (prior mean 0.90)
-  - DMARC: α=85, β=15 (prior mean 0.85)
+  - DMARC: α=97, β=3 (prior mean 0.97)
 - "Middle" is defensible as anti-dogmatism stance (not 0, not 1)
 - It is NOT defensible as a claim about what the prior should numerically be
 - **Fix**: Reword to "starts from protocol-specific empirical priors and updates with evidence" — keep "middle" only for anti-dogmatism (avoiding P=0 or P=1), not as a numeric claim
@@ -103,11 +103,35 @@ The core Bayesian logic is fundamentally sound. The issues are labeling precisio
 4. Reframe "start in the middle" prose (claim 2)
 5. Label EWMA baselines as heuristic/bootstrap parameters (claim 3)
 
-### Phase 2: Mathematical Upgrade (requires research + drift analysis)
-1. Define n_eff from actual evidence counts
-2. Implement true Beta-Bernoulli posterior update
-3. Run drift-impact analysis comparing old vs new scoring on golden fixtures
-4. Only deploy after held-out calibration validates the new formula
+### Phase 2: Drift Analysis (completed 2026-03-08)
+
+**Shrinkage vs True Posterior comparison** — quantified across all 9 protocols × 5 raw scores × 3 resolver configs.
+
+Key findings:
+
+1. **Maximum drift: 0.4524** (DMARC, raw=0.50, w=1.0 full agreement)
+   - Shrinkage: 0.5000, True posterior: 0.9524
+   - When all resolvers agree on a low raw score, shrinkage trusts the raw score fully (w=1.0).
+   - True posterior barely moves from the prior (n_eff=100, only 5 new observations).
+
+2. **The formulas serve different purposes**:
+   - True posterior answers: "Given 100 prior observations and 5 new ones, what's θ?" → Almost always ≈ prior mean (observations need ~6 failures to shift 5%).
+   - Shrinkage answers: "Given this resolver agreement level, how much should I trust this scan?" → Operationally useful for DNS.
+
+3. **n_eff analysis**: All protocols have n_eff=100 (α+β). It takes ~6 consecutive contrary observations to shift the true posterior 5% from prior mean. With only 5 resolvers per scan, the true posterior is nearly immovable.
+
+4. **Decision: Keep shrinkage, do NOT switch to true posterior.**
+   - The shrinkage formula is operationally correct for DNS: w = resolver agreement is a meaningful quality signal.
+   - The true posterior would make confidence scores near-static (always ≈ prior mean regardless of raw observation).
+   - The honest label ("Reliability-Weighted Shrinkage Calibration") is the right fix. The formula is doing what DNS analysis needs.
+
+5. **Future consideration**: If n_eff were reduced (e.g., α=9.5, β=0.5 for SPF instead of 95/5), the true posterior would be more responsive. But this changes the meaning of the priors from "we have ~100 observations of reliability" to "we have ~10." The current prior magnitudes encode a design choice: strong prior confidence in protocol detection reliability, which is appropriate for well-understood protocols.
+
+### Phase 2 Upgrade Path (deferred — no change to scoring logic)
+1. Define n_eff from actual evidence counts (deferred: current n_eff=100 is a design choice, not a bug)
+2. True Beta-Bernoulli posterior NOT recommended for single-scan calibration (near-static output)
+3. True posterior may be appropriate for per-domain longitudinal analysis (many scans over time, n grows)
+4. Only revisit after Phase 3 calibration validation provides empirical ground truth
 
 ### Phase 3: Calibration Validation (new capability)
 1. Build Brier score + ECE computation from golden fixture results

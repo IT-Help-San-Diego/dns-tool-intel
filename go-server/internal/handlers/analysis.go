@@ -1211,7 +1211,7 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
                         "icuae": map[string]string{
                                 "name":         "Intelligence Currency Audit Engine",
                                 "purpose":      "Data timeliness and validity measurement",
-                                mapKeyStandard: "ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012, RFC 8767",
+                                mapKeyStandard: "ICD 203, NIST SP 800-53 SI-7, ISO/IEC 25012, RFC 8767",
                         },
                 },
         }
@@ -1383,7 +1383,7 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
                 sb.WriteString(fmt.Sprintf("#   Tool Version:  %s\n", h.Config.AppVersion))
                 sb.WriteString(fmt.Sprintf("#   Export Time:    %s\n", time.Now().UTC().Format(time.RFC3339)))
                 sb.WriteString("#   Engines:        ICAE (Confidence) + ICuAE (Currency)\n")
-                sb.WriteString("#   Standards:       ICD 203, NIST SP 800-53 SI-18, ISO/IEC 25012\n")
+                sb.WriteString("#   Standards:       ICD 203, NIST SP 800-53 SI-7, ISO/IEC 25012\n")
                 sb.WriteString("#\n")
                 sb.WriteString(fmt.Sprintf("%s  %s\n", fileHash, filename))
                 c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(sb.String()))
@@ -1401,7 +1401,7 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
                         "tool_version":     h.Config.AppVersion,
                         "export_timestamp": time.Now().UTC().Format(time.RFC3339),
                         "engines":          []string{"ICAE (Confidence)", "ICuAE (Currency)"},
-                        "standards":        []string{"ICD 203", "NIST SP 800-53 SI-18", "ISO/IEC 25012", "RFC 8767"},
+                        "standards":        []string{"ICD 203", "NIST SP 800-53 SI-7", "ISO/IEC 25012", "RFC 8767"},
                 },
                 "verify_commands": map[string]string{
                         "openssl": fmt.Sprintf("openssl dgst -sha3-512 %s", filename),

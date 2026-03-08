@@ -20,7 +20,7 @@
 - **URL**: https://csrc.nist.gov
 - **We track**:
   - SP 800-177 Rev 1 — Trustworthy Email (SPF/DKIM/DMARC/DANE guidance)
-  - SP 800-53 Rev 5, SI-18 — System and Information Integrity: PII Quality Management (data currency requirements)
+  - SP 800-53 Rev 5, SI-7 — System and Information Integrity: Software, Firmware, and Information Integrity (data integrity and completeness requirements)
   - Cryptographic key strength recommendations (RSA 2048-bit minimum)
   - CVSS severity color conventions (via NVD)
 - **Used for**: Documentation citation style, cryptographic strength classification, remediation priority language, ICuAE data currency dimension grounding

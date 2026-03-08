@@ -136,7 +136,7 @@ The chain traces from Aristotle's formal logic (the syllogism as the first logic
 | Type | Meaning | Tracking Requirement |
 |------|---------|---------------------|
 | `rfc_derived` | Logic directly from an RFC section | MUST cite RFC, section, normative level |
-| `invented` | DNS Tool's own logic, not from any RFC | MUST document reasoning and justification |
+| `invented/discovered` |  | MUST document reasoning and justification |
 | `hybrid` | RFC foundation + our extension | MUST cite RFC AND document our additions |
 
 ### Rule Status Lifecycle

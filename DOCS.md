@@ -142,7 +142,7 @@ Grading scale: Excellent (≥90) → Good (≥75) → Adequate (≥50) → Degra
 
 **Phase 1 Advisory (Live)**: Per-dimension tuning hints with three threshold tiers (≤49 warning, ≤74 info, ≤89 lightbulb) surfaced inline in the Per-Dimension Averages table on the confidence page. Phase 2 (Suggested Config Profiles) and Phase 3 (Adaptive Auto-Tuning with rollback) are on the roadmap.
 
-Standards: ICD 203 (Intelligence Community confidence framework), NIST SP 800-53 SI-18 (information quality/currency), ISO/IEC 25012 (data quality model).
+Standards: ICD 203 (Intelligence Community confidence framework), NIST SP 800-53 SI-7 (information integrity), ISO/IEC 25012 (data quality model).
 
 ### Reporting
 Dual intelligence products: Engineer's DNS Intelligence Report (comprehensive technical detail) and Executive's DNS Intelligence Brief (concise board-ready summary with security scorecard, risk posture, and priority actions). Both use the same live analysis data — different formats for different audiences. Naming follows IC conventions: "Report" = comprehensive, "Brief" = concise decision-maker version. Configurable TLP classification (default: TLP:AMBER, aligned with CISA Cyber Hygiene practice) with TLP:GREEN and TLP:CLEAR options. JSON export for programmatic consumption.
