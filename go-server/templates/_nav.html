@@ -79,8 +79,12 @@
                             <li><a class="dropdown-item" href="/ops">{{icon "tachometer-alt" "me-1"}}Admin Dashboard</a></li>
                             <li><hr class="dropdown-divider"></li>
                             {{end}}
+                            {{if .HasFeatureDossier}}
                             <li><a class="dropdown-item" href="/dossier">{{icon "briefcase" "me-1"}}Intelligence Reports</a></li>
+                            {{end}}
+                            {{if .HasFeatureZoneUpload}}
                             <li><a class="dropdown-item" href="/zone">{{icon "upload" "me-1"}}Zone File Import</a></li>
+                            {{end}}
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="/auth/logout" class="m-0"><input type="hidden" name="csrf_token" value="{{.CsrfToken}}"><button type="submit" class="dropdown-item">{{icon "arrow-right" "me-1"}}Sign Out</button></form></li>
                         </ul>
