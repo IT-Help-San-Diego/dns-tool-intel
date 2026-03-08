@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "DNS Tool: Domain Security Audit Platform"
 type: software
-version: "26.35.14"
+version: "26.35.15"
 date-released: 2026-03-07
 doi: 10.5281/zenodo.18854899
 
