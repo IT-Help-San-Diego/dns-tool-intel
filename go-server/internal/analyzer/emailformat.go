@@ -88,11 +88,11 @@ func tryExtractFromJSON(raw string) *DetectedFormat {
 }
 
 func unmarshalJSONObject(raw string) map[string]interface{} {
-        var obj map[string]interface{}
+        obj := make(map[string]interface{})
         if err := json.Unmarshal([]byte(raw), &obj); err == nil {
                 return obj
         }
-        var arr []interface{}
+        arr := make([]interface{}, 0)
         if err := json.Unmarshal([]byte(raw), &arr); err != nil {
                 return nil
         }
