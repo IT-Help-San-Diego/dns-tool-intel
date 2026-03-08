@@ -20,6 +20,7 @@ import (
 
         "dnstool/go-server/internal/analyzer"
         "dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/entitlements"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
@@ -248,22 +249,22 @@ func main() {
         router.GET("/analyze", analysisHandler.Analyze)
         router.POST("/analyze", middleware.AnalyzeRateLimit(rateLimiter), analysisHandler.Analyze)
 
-        router.GET("/history", historyHandler.History)
+        router.GET("/history", middleware.RequireFeature(entitlements.FeatureHistory), historyHandler.History)
 
         dossierHandler := handlers.NewDossierHandler(database, cfg)
-        router.GET("/dossier", dossierHandler.Dossier)
+        router.GET("/dossier", middleware.RequireFeature(entitlements.FeatureDossier), dossierHandler.Dossier)
 
         driftHandler := handlers.NewDriftHandler(database, cfg)
         router.GET("/drift", driftHandler.Timeline)
 
         watchlistHandler := handlers.NewWatchlistHandler(database, cfg)
-        router.GET("/watchlist", watchlistHandler.Watchlist)
-        router.POST("/watchlist/add", middleware.RequireAuth(), watchlistHandler.AddDomain)
-        router.POST("/watchlist/:id/delete", middleware.RequireAuth(), watchlistHandler.RemoveDomain)
-        router.POST("/watchlist/:id/toggle", middleware.RequireAuth(), watchlistHandler.ToggleDomain)
-        router.POST("/watchlist/endpoint/add", middleware.RequireAuth(), watchlistHandler.AddEndpoint)
-        router.POST("/watchlist/endpoint/:id/delete", middleware.RequireAuth(), watchlistHandler.RemoveEndpoint)
-        router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireAuth(), watchlistHandler.ToggleEndpoint)
+        router.GET("/watchlist", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.Watchlist)
+        router.POST("/watchlist/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddDomain)
+        router.POST("/watchlist/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveDomain)
+        router.POST("/watchlist/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleDomain)
+        router.POST("/watchlist/endpoint/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddEndpoint)
+        router.POST("/watchlist/endpoint/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveEndpoint)
+        router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleEndpoint)
         router.POST("/watchlist/webhook/test", middleware.RequireAdmin(), watchlistHandler.TestWebhook)
 
         router.GET("/analysis/:id", analysisHandler.ViewAnalysis)
@@ -383,8 +384,8 @@ func main() {
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
 
         zoneHandler := handlers.NewZoneHandler(database, cfg)
-        router.GET("/zone", middleware.RequireAuth(), zoneHandler.UploadForm)
-        router.POST("/zone/upload", middleware.RequireAuth(), zoneHandler.ProcessUpload)
+        router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
+        router.POST("/zone/upload", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.ProcessUpload)
 
         authHandler := handlers.NewAuthHandler(cfg, database.Pool)
         if cfg.GoogleClientID != "" {
