@@ -238,8 +238,8 @@ var webHostingPatterns = map[string]string{
 	"linode":             "Linode",
 	"hetzner":            "Hetzner",
 	"ovh":                "OVH",
-	"googleusercontent":  "Google Cloud",
-	"1e100.net":          "Google Cloud",
+	"googleusercontent":  provGoogleCloud,
+	"1e100.net":          provGoogleCloud,
 }
 
 var ptrHostingPatterns = map[string]string{
@@ -248,9 +248,9 @@ var ptrHostingPatterns = map[string]string{
 	"ec2":                  "AWS",
 	"cloudfront.net":       "AWS CloudFront",
 	"azure":                "Azure",
-	"googleusercontent":    "Google Cloud",
-	"1e100.net":            "Google Cloud",
-	"bc.googleusercontent": "Google Cloud",
+	"googleusercontent":    provGoogleCloud,
+	"1e100.net":            provGoogleCloud,
+	"bc.googleusercontent": provGoogleCloud,
 	"digitalocean.com":     "DigitalOcean",
 	"linode.com":           "Linode",
 	"vultr.com":            "Vultr",
