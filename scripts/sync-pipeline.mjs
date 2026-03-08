@@ -1,6 +1,11 @@
 #!/usr/bin/env node
-import { execFileSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { readFileSync } from 'fs';
+
+function hasMmdc() {
+  try { execSync('command -v mmdc', { stdio: 'pipe' }); return true; }
+  catch { return false; }
+}
 
 const VERSION_RE = /Version\s*=\s*"([^"]+)"/;
 
@@ -40,7 +45,7 @@ function main() {
   console.log(`${'='.repeat(55)}`);
 
   const steps = [
-    { label: 'Render Mermaid Diagrams', cmd: 'bash', args: ['scripts/render-diagrams.sh'] },
+    { label: 'Render Mermaid Diagrams', cmd: 'bash', args: [hasMmdc() ? 'scripts/render-diagrams.sh' : 'scripts/render-diagrams-remote.sh'] },
     { label: 'CSS Minification', cmd: 'npx', args: ['csso', 'static/css/custom.css', '-o', 'static/css/custom.min.css'] },
     { label: 'Figma Asset Bundle', cmd: 'node', args: ['scripts/figma-asset-bundle.mjs'] },
     { label: 'Figma Verification', cmd: 'node', args: ['scripts/figma-verify.mjs'] },
