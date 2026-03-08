@@ -1,6 +1,7 @@
 // Hand-written following sqlc conventions.
 // source: icuae.sql
 
+// dns-tool:scrutiny plumbing
 package dbq
 
 import (

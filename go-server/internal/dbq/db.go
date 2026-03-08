@@ -2,6 +2,7 @@
 // versions:
 //   sqlc v1.26.0
 
+// dns-tool:scrutiny plumbing
 package dbq
 
 import (

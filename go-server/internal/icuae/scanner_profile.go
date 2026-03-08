@@ -11,6 +11,7 @@
 //
 // All suggestions require explicit user approval before applying.
 // Grounded in NIST SP 800-53 SI-18 (accuracy/relevance) and RFC 8767 (TTL behavior).
+// dns-tool:scrutiny science
 package icuae
 
 import (

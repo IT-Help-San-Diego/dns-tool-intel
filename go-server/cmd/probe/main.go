@@ -1,3 +1,4 @@
+// dns-tool:scrutiny plumbing
 package main
 
 import (

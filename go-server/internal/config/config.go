@@ -1,5 +1,6 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
+// dns-tool:scrutiny plumbing
 package config
 
 import (
@@ -9,7 +10,7 @@ import (
 )
 
 var (
-        Version   = "26.35.17"
+        Version   = "26.35.18"
         GitCommit = "dev"
         BuildTime = "unknown"
 )

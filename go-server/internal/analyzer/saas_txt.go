@@ -3,6 +3,7 @@
 
 // saas_txt.go — Framework: types, constants, commodity patterns. Always compiled.
 // The intel build (_intel.go) adds proprietary/rare patterns on top of these.
+// dns-tool:scrutiny science
 package analyzer
 
 import (

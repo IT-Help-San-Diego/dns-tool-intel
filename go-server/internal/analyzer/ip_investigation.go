@@ -3,6 +3,7 @@
 
 // ip_investigation.go — Framework only (types, constants, utilities). Always compiled.
 // Intelligence functions live in ip_investigation_oss.go / ip_investigation_intel.go.
+// dns-tool:scrutiny science
 package analyzer
 
 import (
