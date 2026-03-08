@@ -245,7 +245,7 @@ func callNmapProbe(ctx context.Context, probe *ProbeEndpoint, host string) *nmap
 		return nil
 	}
 
-	var result nmapProbeResponse
+	result := nmapProbeResponse{}
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil
 	}

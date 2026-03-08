@@ -20,6 +20,7 @@ import (
 const (
         mapKeyAuthenticated = "authenticated"
         mapKeyUserRole      = "user_role"
+        msgAuthRequired     = "Authentication required"
 )
 
 const sessionCookieName = "_dns_session"
@@ -67,7 +68,7 @@ func RequireAuth() gin.HandlerFunc {
                 }
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
-                                mapKeyError: "Authentication required",
+                                mapKeyError: msgAuthRequired,
                         })
                         c.Abort()
                         return
@@ -85,7 +86,7 @@ func RequireAdmin() gin.HandlerFunc {
                 }
                 if !exists || !authed {
                         c.JSON(http.StatusUnauthorized, gin.H{
-                                mapKeyError: "Authentication required",
+                                mapKeyError: msgAuthRequired,
                         })
                         c.Abort()
                         return
@@ -108,7 +109,7 @@ func RequireFeature(feature entitlements.Feature) gin.HandlerFunc {
                 if !entitlements.HasAccess(plan, feature) {
                         if plan == entitlements.PlanAnonymous {
                                 c.JSON(http.StatusUnauthorized, gin.H{
-                                        mapKeyError: "Authentication required",
+                                        mapKeyError: msgAuthRequired,
                                 })
                         } else {
                                 c.JSON(http.StatusForbidden, gin.H{

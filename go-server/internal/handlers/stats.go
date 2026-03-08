@@ -112,17 +112,8 @@ func loadIntegrityData() IntegrityData {
         }
         f.SHA3Hash = hashHex
         for i := range f.Events {
-                for j := range f.Events[i].Amendments {
-                        if f.Events[i].Amendments[j].Ground == "DIGNITY_OF_EXPRESSION" &&
-                                f.Events[i].Amendments[j].OriginalValue != "[REDACTED — DIGNITY_OF_EXPRESSION]" {
-                                f.Events[i].Amendments[j].OriginalValue = "[REDACTED — DIGNITY_OF_EXPRESSION]"
-                        }
-                }
-                eventJSON, err := json.Marshal(f.Events[i])
-                if err == nil {
-                        eh := sha3.Sum512(eventJSON)
-                        f.Events[i].EventHash = hex.EncodeToString(eh[:])
-                }
+                redactDignityAmendments(&f.Events[i])
+                hashEvent(&f.Events[i])
         }
         for i, j := 0, len(f.Events)-1; i < j; i, j = i+1, j-1 {
                 f.Events[i], f.Events[j] = f.Events[j], f.Events[i]
@@ -130,6 +121,23 @@ func loadIntegrityData() IntegrityData {
         integrityCache = f
         integrityCacheTime = time.Now()
         return f
+}
+
+func redactDignityAmendments(event *IntegrityEvent) {
+        for j := range event.Amendments {
+                if event.Amendments[j].Ground == "DIGNITY_OF_EXPRESSION" &&
+                        event.Amendments[j].OriginalValue != "[REDACTED — DIGNITY_OF_EXPRESSION]" {
+                        event.Amendments[j].OriginalValue = "[REDACTED — DIGNITY_OF_EXPRESSION]"
+                }
+        }
+}
+
+func hashEvent(event *IntegrityEvent) {
+        eventJSON, err := json.Marshal(event)
+        if err == nil {
+                eh := sha3.Sum512(eventJSON)
+                event.EventHash = hex.EncodeToString(eh[:])
+        }
 }
 
 type StatsHandler struct {
