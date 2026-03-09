@@ -403,11 +403,10 @@ func probePort(ctx context.Context, host string, port int) map[string]any {
         result[mapKeyReachable] = true
 
         if port == 465 {
-                tlsCfg := &tls.Config{
+                tlsConn := tls.Client(conn, &tls.Config{
                         ServerName:         host,
                         InsecureSkipVerify: true, //NOSONAR
-                }
-                tlsConn := tls.Client(conn, tlsCfg)
+                })
                 if err := tlsConn.HandshakeContext(ctx); err == nil {
                         result["tls"] = true
                         state := tlsConn.ConnectionState()

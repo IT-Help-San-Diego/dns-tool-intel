@@ -793,8 +793,8 @@
                                 <div class="small text-muted text-uppercase mb-1 font-monospace">SHA-3-512 Integrity Hash</div>
                                 <div class="d-flex align-items-center gap-2">
                                     <code class="small font-monospace u-break-all">{{.IntegrityHash}}</code>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="copyIntegrityHash" data-hash="{{.IntegrityHash}}" title="Copy hash" aria-label="Copy integrity hash">
-                                        {{icon "copy"}}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="copyIntegrityHash" data-hash="{{.IntegrityHash}}" title="Copy hash">
+                                        <span class="visually-hidden">Copy</span>{{icon "copy"}}
                                     </button>
                                 </div>
                             </div>
@@ -825,8 +825,8 @@
                                 <div class="mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="small fw-semibold">{{.Label}}</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.Command}}" title="Copy command" aria-label="Copy verification command">
-                                            {{icon "copy"}}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.Command}}" title="Copy command">
+                                            <span class="visually-hidden">Copy</span>{{icon "copy"}}
                                         </button>
                                     </div>
                                     <div class="code-block font-monospace small">{{.Command}}</div>
@@ -864,7 +864,7 @@
                                 {{range $aRecords}}
                                 <div class="code-block font-monospace small mb-1 d-flex align-items-center justify-content-between">
                                     <span>{{.}}</span>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.}}" title="Copy IP" aria-label="Copy IP address">{{icon "copy"}}</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.}}" title="Copy IP" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                 </div>
                                 {{end}}
                             </div>
@@ -875,7 +875,7 @@
                                 {{range $aaaaRecords}}
                                 <div class="code-block font-monospace small mb-1 d-flex align-items-center justify-content-between">
                                     <span>{{.}}</span>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.}}" title="Copy IP" aria-label="Copy IPv6 address">{{icon "copy"}}</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="{{.}}" title="Copy IP" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                 </div>
                                 {{end}}
                             </div>
@@ -1165,14 +1165,14 @@
                                     <span class="small fw-semibold font-monospace">Full DNS dump</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>dig any {{.Domain}} +noall +answer</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig any {{.Domain}} +noall +answer" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig any {{.Domain}} +noall +answer" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">NS delegation</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>dig +noall +answer {{.Domain}} NS</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig +noall +answer {{.Domain}} NS" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig +noall +answer {{.Domain}} NS" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 {{if not .IsTLD}}
@@ -1181,7 +1181,7 @@
                                     {{if $basic}}{{$aList := mapGetSlice "a_records" $basic}}{{if $aList}}
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>dig -x {{index $aList 0}} +short</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig -x {{index $aList 0}} +short" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="dig -x {{index $aList 0}} +short" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                     {{end}}{{end}}
                                 </div>
@@ -1189,14 +1189,14 @@
                                     <span class="small fw-semibold font-monospace">Nmap service scan</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>nmap -sV -T4 {{.Domain}}</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="nmap -sV -T4 {{.Domain}}" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="nmap -sV -T4 {{.Domain}}" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Certificate chain</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>openssl s_client -connect {{.Domain}}:443 -servername {{.Domain}} 2>/dev/null | openssl x509 -noout -subject -issuer -dates</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="openssl s_client -connect {{.Domain}}:443 -servername {{.Domain}} 2>/dev/null | openssl x509 -noout -subject -issuer -dates" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="openssl s_client -connect {{.Domain}}:443 -servername {{.Domain}} 2>/dev/null | openssl x509 -noout -subject -issuer -dates" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 {{end}}
@@ -1204,7 +1204,7 @@
                                     <span class="small fw-semibold font-monospace">WHOIS lookup</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>whois {{.Domain}}</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="whois {{.Domain}}" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="whois {{.Domain}}" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 {{if not .IsTLD}}
@@ -1212,7 +1212,7 @@
                                     <span class="small fw-semibold font-monospace">HTTP headers</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -sI https://{{.Domain}} | head -20</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sI https://{{.Domain}} | head -20" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sI https://{{.Domain}} | head -20" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 {{end}}
@@ -1255,49 +1255,49 @@
                                     <span class="small fw-semibold font-monospace">Download JSON</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -sO 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}?download=1'</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sO 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}?download=1'" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sO 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}?download=1'" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Verify integrity (SHA-3-512)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -sI 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | grep X-SHA3-512</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sI 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | grep X-SHA3-512" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -sI 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | grep X-SHA3-512" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Extract all IPs (jq)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records | (.A // [])[], (.AAAA // [])[]'</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records | (.A // [])[], (.AAAA // [])[]'" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records | (.A // [])[], (.AAAA // [])[]'" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Extract MX hosts (jq)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.MX[]'</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.MX[]'" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.MX[]'" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Extract nameservers (jq)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.NS[]'</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.NS[]'" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.basic_records.NS[]'" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Subdomains from CT logs (jq)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.subdomains.discovered[]?' 2>/dev/null | sort -u</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.subdomains.discovered[]?' 2>/dev/null | sort -u" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq -r '.full_results.subdomains.discovered[]?' 2>/dev/null | sort -u" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="small fw-semibold font-monospace">Pipe to file (full report)</span>
                                     <div class="code-block font-monospace small d-flex align-items-center justify-content-between">
                                         <span>curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq . > {{.AsciiDomain}}-intel.json</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq . > {{.AsciiDomain}}-intel.json" title="Copy" aria-label="Copy command">{{icon "copy"}}</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary copy-cmd-btn" data-cmd="curl -s 'https://dnstool.it-help.tech/api/analysis/{{.AnalysisID}}' | jq . > {{.AsciiDomain}}-intel.json" title="Copy" ><span class="visually-hidden">Copy</span>{{icon "copy"}}</button>
                                     </div>
                                 </div>
                             </div>
