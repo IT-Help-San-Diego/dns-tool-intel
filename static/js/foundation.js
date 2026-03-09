@@ -308,6 +308,8 @@
         if (this._isShown) return;
         this._isShown = true;
         var el = this._el;
+        el.dispatchEvent(new Event('show.bs.modal', {bubbles: true}));
+        el.removeAttribute('inert');
         var bd = document.createElement('div');
         bd.className = 'modal-backdrop fade';
         document.body.appendChild(bd);
@@ -324,12 +326,14 @@
         document.addEventListener('keydown', this._onKeydown);
         el.addEventListener('click', this._onBackdropClick);
         el.addEventListener('click', this._onDismissClick);
+        setTimeout(function() { el.dispatchEvent(new Event('shown.bs.modal', {bubbles: true})); }, 150);
     };
     ModalAPI.prototype.hide = function() {
         if (!this._isShown) return;
         this._isShown = false;
         var el = this._el;
         var bd = this._backdrop;
+        el.dispatchEvent(new Event('hide.bs.modal', {bubbles: true}));
         el.classList.remove('show');
         document.removeEventListener('keydown', this._onKeydown);
         el.removeEventListener('click', this._onBackdropClick);
@@ -337,6 +341,7 @@
         setTimeout(function() {
             el.classList.remove('d-block');
             el.setAttribute('aria-hidden', 'true');
+            el.setAttribute('inert', '');
             el.removeAttribute('aria-modal');
             el.removeAttribute('role');
             document.body.classList.remove('modal-open');
@@ -344,6 +349,7 @@
                 bd.classList.remove('show');
                 setTimeout(function() { if (bd.parentNode) bd.parentNode.removeChild(bd); }, 150);
             }
+            el.dispatchEvent(new Event('hidden.bs.modal', {bubbles: true}));
         }, 150);
         this._backdrop = null;
     };
