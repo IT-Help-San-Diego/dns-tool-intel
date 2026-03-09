@@ -1,5 +1,8 @@
 # DNS Tool — Intelligence Engine
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-intel&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-intel)
+[![AI Code Assurance](https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool-intel)](https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-intel)
+
 > **Private intelligence modules for DNS Tool.**
 
 This repository contains proprietary analysis modules for [DNS Tool](https://github.com/careyjames/DnsToolWeb):
