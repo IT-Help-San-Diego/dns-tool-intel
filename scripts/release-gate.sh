@@ -139,9 +139,13 @@ fi
 pass "No invalid SPDX in CITATION.cff"
 
 info "Gate 11: CITATION.cff schema validation (cffconvert)"
-if ! command -v cffconvert >/dev/null 2>&1; then
+CFF_BIN=$(command -v cffconvert 2>/dev/null || true)
+if [ -z "$CFF_BIN" ]; then
   echo -e "  ${YELLOW}SKIP${NC} — cffconvert not installed (install with: pip install cffconvert)"
 else
+  if head -1 "$CFF_BIN" | grep -q "nix/store" && ! head -1 "$CFF_BIN" | grep -q "env python"; then
+    sed -i '1s|.*|#!/usr/bin/env python3|' "$CFF_BIN"
+  fi
   set +e
   CFF_OUTPUT=$(cffconvert --validate 2>&1)
   CFF_EXIT=$?
