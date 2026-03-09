@@ -139,9 +139,14 @@ fi
 pass "No invalid SPDX in CITATION.cff"
 
 info "Gate 11: CITATION.cff schema validation (cffconvert)"
-if command -v cffconvert >/dev/null 2>&1; then
-  CFF_OUTPUT=$(cffconvert --validate 2>&1) && CFF_OK=true || CFF_OK=false
-  if [ "$CFF_OK" = "true" ]; then
+if ! command -v cffconvert >/dev/null 2>&1; then
+  echo -e "  ${YELLOW}SKIP${NC} — cffconvert not installed (install with: pip install cffconvert)"
+else
+  set +e
+  CFF_OUTPUT=$(cffconvert --validate 2>&1)
+  CFF_EXIT=$?
+  set -e
+  if [ "$CFF_EXIT" -eq 0 ]; then
     pass "cffconvert --validate passed (CFF 1.2.0 schema valid)"
   elif echo "$CFF_OUTPUT" | grep -qi "ModuleNotFoundError\|No module named\|ImportError"; then
     echo -e "  ${YELLOW}SKIP${NC} — cffconvert binary exists but Python module is broken (reinstall with: pip install cffconvert)"
@@ -149,8 +154,6 @@ if command -v cffconvert >/dev/null 2>&1; then
     echo "$CFF_OUTPUT"
     fail "cffconvert --validate failed — fix CITATION.cff before tagging"
   fi
-else
-  echo -e "  ${YELLOW}SKIP${NC} — cffconvert not installed (install with: pip install cffconvert)"
 fi
 
 echo ""
