@@ -32,6 +32,28 @@
 - Use `fetch()` + `document.write()` + `history.replaceState()` pattern
 - `showOverlay()` with double-rAF animation restart
 
+### Bootstrap Shim Contract (`foundation.js`)
+DNS Tool uses a lightweight custom Bootstrap shim (`static/js/foundation.js`) instead of
+the full Bootstrap JS bundle. Any code in `main.js` or templates that uses Bootstrap
+APIs must only use methods/events that `foundation.js` actually implements.
+
+**Supported Components & API:**
+
+| Component | Constructor | Methods | Lifecycle Events |
+|-----------|------------|---------|-----------------|
+| Modal | `new bootstrap.Modal(el)` | `show()`, `hide()` | `show/shown/hide/hidden.bs.modal` |
+| Collapse | (delegated click) | `toggleCollapse(el)` | `show/shown/hide/hidden.bs.collapse` |
+| Dropdown | `new bootstrap.Dropdown(el)` | `show()`, `hide()`, `toggle()` | None |
+| Tooltip | `new bootstrap.Tooltip(el)` | `show()`, `hide()`, `dispose()` | None |
+| Alert | `Alert.getOrCreateInstance(el)` | `close()` | None |
+
+**Rules:**
+1. If `main.js` or a template listens for a Bootstrap event, that event MUST be dispatched by `foundation.js`
+2. If a template calls a method on a Bootstrap instance (e.g., `tooltip.hide()`), that method MUST exist on the shim's prototype
+3. The `inert` HTML attribute on modals is managed by `foundation.js` Modal lifecycle — do NOT rely on external event listeners to remove it
+4. When adding new Bootstrap-dependent behavior, update `foundation.js` FIRST, then `main.js`
+5. After any change to `foundation.js`, re-minify: `npx terser static/js/foundation.js -o static/js/foundation.min.js --compress --mangle`
+
 ## Testing Conventions
 - **Go tests**: Standard `testing` package, no third-party assertion libraries
 - **Golden fixtures**: `tests/golden_fixtures/*.json` — real domain analysis snapshots

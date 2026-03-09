@@ -11,18 +11,22 @@
         if (!target) return;
         var isShown = target.classList.contains('show');
         if (isShown) {
+            target.dispatchEvent(new Event('hide.bs.collapse', {bubbles: true}));
             target.classList.add('collapsing');
             target.classList.remove('collapse', 'show');
             setTimeout(function() {
                 target.classList.remove('collapsing');
                 target.classList.add('collapse');
+                target.dispatchEvent(new Event('hidden.bs.collapse', {bubbles: true}));
             }, 350);
         } else {
+            target.dispatchEvent(new Event('show.bs.collapse', {bubbles: true}));
             target.classList.remove('collapse');
             target.classList.add('collapsing', 'collapsing-open');
             setTimeout(function() {
                 target.classList.remove('collapsing', 'collapsing-open');
                 target.classList.add('collapse', 'show');
+                target.dispatchEvent(new Event('shown.bs.collapse', {bubbles: true}));
             }, 350);
         }
         var triggers = document.querySelectorAll('[data-bs-target="#' + target.id + '"]');
@@ -213,11 +217,15 @@
 
     var TooltipAPI = function(el) {
         if (!el) return;
+        this._el = el;
         el.addEventListener('mouseenter', function() { showTooltip(el); });
         el.addEventListener('mouseleave', function() { hideTooltip(el); });
         el.addEventListener('focus', function() { showTooltip(el); });
         el.addEventListener('blur', function() { hideTooltip(el); });
     };
+    TooltipAPI.prototype.hide = function() { if (this._el) hideTooltip(this._el); };
+    TooltipAPI.prototype.dispose = function() { if (this._el) hideTooltip(this._el); };
+    TooltipAPI.prototype.show = function() { if (this._el) showTooltip(this._el); };
 
     /* ── Alert dismiss ── */
     document.addEventListener('click', function(e) {
