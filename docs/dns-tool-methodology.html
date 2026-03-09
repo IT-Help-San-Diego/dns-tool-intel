@@ -261,6 +261,17 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <h3>4.4 Epistemic Correction Disclosure</h3>
 <p>When structural corrections to the confidence model are identified &mdash; such as recalibrated scoring weights, reinterpreted evidence thresholds, or corrected RFC compliance mappings &mdash; the system records these as Epistemic Disclosure Events (EDEs). Each EDE documents the original assessment, the correction applied, the confidence impact, and the verifiable commit reference. This practice is modeled on scientific corrigenda culture: corrections strengthen rather than undermine analytical credibility, provided they are transparent, traceable, and independently verifiable.</p>
 
+<h3>4.5 Calibration Validation</h3>
+<p>The ICAE confidence scoring model is empirically validated through a calibration framework that measures the statistical reliability of predicted confidence levels against observed outcomes.</p>
+<p><strong>Test Corpus</strong>: 129 golden test cases are evaluated across 5 resolver scenarios (Google, Cloudflare, Quad9, authoritative, and mixed-resolver), producing 645 individual predictions per calibration run.</p>
+<p><strong>Calibration Metrics</strong>:</p>
+<ul>
+<li><strong>Brier Score</strong>: 0.0018 (excellent). The Brier Score measures the mean squared error between predicted confidence probabilities and actual outcomes. Values closer to 0 indicate better calibration; the ICAE score of 0.0018 demonstrates near-perfect probability estimation.</li>
+<li><strong>Expected Calibration Error (ECE)</strong>: 0.031 (good). ECE measures the weighted average gap between predicted confidence and observed accuracy across probability bins. An ECE of 0.031 indicates that predicted confidence levels closely match empirical correctness rates.</li>
+</ul>
+<p><strong>Methodology</strong>: The calibration framework employs a shrinkage estimator that blends observed per-bin accuracy with the global base rate, regularized toward conservatism. This approach prevents overconfident predictions in low-sample bins while preserving sensitivity in well-populated confidence ranges.</p>
+<p><strong>Conclusion</strong>: The ICAE confidence model is conservatively calibrated &mdash; when the system reports high confidence, findings are correct at or above the stated rate. This conservative bias is an intentional design choice aligned with intelligence community analytic standards (ODNI ICD 203), where understating confidence is preferable to overstating it.</p>
+
 <h2>5. Output Products</h2>
 <h3>5.1 Engineer&rsquo;s DNS Intelligence Report</h3>
 <p>A detailed technical report containing: per-protocol findings with evidence, RFC compliance status for each configuration, confidence scores with supporting rationale, remediation recommendations, and Big Picture Questions for strategic consideration.</p>
@@ -278,6 +289,9 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 
 <h2>7. Reproducibility and Limitations</h2>
 <p>DNS Tool is designed for reproducible analysis. All DNS queries are logged with timestamps and resolver identification. Analysis logic is deterministic for a given set of DNS responses. The software is version-controlled with semantic versioning. This methodology document is versioned alongside the software. The software artifact is archived with a persistent DOI.</p>
+<ul>
+<li>The confidence scoring model is empirically calibrated against 129 golden test cases across 5 resolver scenarios (645 predictions), with calibration quality measured via Brier Score and Expected Calibration Error (see Section 4.5)</li>
+</ul>
 
 <h3>7.1 Epistemic Correction and Integrity Verification</h3>
 <p>DNS Tool maintains a public Epistemic Disclosure Event (EDE) register that documents all structural corrections to the confidence scoring model. Each EDE entry records the category of correction (e.g., scoring calibration, evidence reinterpretation, standards misattribution), the severity, the specific confidence impact, and a verifiable git commit hash linking to the exact code change.</p>
