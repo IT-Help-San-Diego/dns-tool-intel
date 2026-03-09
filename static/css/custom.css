@@ -973,6 +973,7 @@ main.container {
 .btn {
     border-radius: 0.375rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 /* Reserve space for badges to prevent CLS */
@@ -6841,7 +6842,6 @@ body.covert-mode .u-privacy-accept-btn:hover {
 .u-pad-half-0 { padding:0.5rem 0; }
 .u-pad-half-075 { padding:0.5rem 0.75rem; }
 .u-cursor-pointer { cursor:pointer; }
-.btn { white-space: nowrap; }
 
 .verify-wrapper {
     border-radius: 12px;

@@ -141,13 +141,23 @@ func computeBrierScore(predictions []PredictionOutcome) float64 {
 
 func computeCalibrationBins(predictions []PredictionOutcome, numBins int) []CalibrationBin {
         binWidth := 1.0 / float64(numBins)
-        bins := make([]CalibrationBin, numBins)
+        bins := initBinBoundaries(numBins, binWidth)
+        accumulatePredictions(bins, predictions, binWidth, numBins)
+        maxCount := finalizeBinDisplays(bins)
+        applyBarWidths(bins, maxCount)
+        return bins
+}
 
+func initBinBoundaries(numBins int, binWidth float64) []CalibrationBin {
+        bins := make([]CalibrationBin, numBins)
         for i := range bins {
                 bins[i].BinStart = float64(i) * binWidth
                 bins[i].BinEnd = float64(i+1) * binWidth
         }
+        return bins
+}
 
+func accumulatePredictions(bins []CalibrationBin, predictions []PredictionOutcome, binWidth float64, numBins int) {
         for _, p := range predictions {
                 idx := int(p.Confidence / binWidth)
                 if idx >= numBins {
@@ -160,7 +170,11 @@ func computeCalibrationBins(predictions []PredictionOutcome, numBins int) []Cali
                 bins[idx].MeanPredicted += p.Confidence
                 bins[idx].MeanObserved += p.Outcome
         }
+}
 
+const pctDisplayFmt = "%.1f%%"
+
+func finalizeBinDisplays(bins []CalibrationBin) int {
         maxCount := 0
         for i := range bins {
                 if bins[i].Count > 0 {
@@ -168,22 +182,23 @@ func computeCalibrationBins(predictions []PredictionOutcome, numBins int) []Cali
                         bins[i].MeanObserved /= float64(bins[i].Count)
                         bins[i].Gap = math.Abs(bins[i].MeanPredicted - bins[i].MeanObserved)
                         bins[i].GapDisplay = fmt.Sprintf("%.4f", bins[i].Gap)
-                        bins[i].PredictedDisplay = fmt.Sprintf("%.1f%%", bins[i].MeanPredicted*100)
-                        bins[i].ObservedDisplay = fmt.Sprintf("%.1f%%", bins[i].MeanObserved*100)
+                        bins[i].PredictedDisplay = fmt.Sprintf(pctDisplayFmt, bins[i].MeanPredicted*100)
+                        bins[i].ObservedDisplay = fmt.Sprintf(pctDisplayFmt, bins[i].MeanObserved*100)
                         if bins[i].Count > maxCount {
                                 maxCount = bins[i].Count
                         }
                 }
                 bins[i].BinLabel = fmt.Sprintf("%.0f–%.0f%%", bins[i].BinStart*100, bins[i].BinEnd*100)
         }
+        return maxCount
+}
 
+func applyBarWidths(bins []CalibrationBin, maxCount int) {
         for i := range bins {
                 if maxCount > 0 && bins[i].Count > 0 {
                         bins[i].BarWidthPct = (bins[i].Count * 100) / maxCount
                 }
         }
-
-        return bins
 }
 
 func computeECE(bins []CalibrationBin, totalPredictions int) float64 {
@@ -237,7 +252,7 @@ func computePerProtocolCalibration(predictions []PredictionOutcome) map[string]P
                         PassRate:       meanOutcome,
                         PassRatePct:    fmt.Sprintf("%.0f%%", meanOutcome*100),
                         MeanConfidence: meanConf,
-                        MeanConfPct:    fmt.Sprintf("%.1f%%", meanConf*100),
+                        MeanConfPct:    fmt.Sprintf(pctDisplayFmt, meanConf*100),
                         CalibrationGap: gap,
                         GapDisplay:     fmt.Sprintf("%.4f", gap),
                         GapRating:      ratingFromGap(gap),
