@@ -21,36 +21,56 @@
 package icae
 
 import (
+        "fmt"
         "math"
         "sort"
 )
 
 type CalibrationResult struct {
-        BrierScore         float64              `json:"brier_score"`
-        BrierInterpretation string              `json:"brier_interpretation"`
-        ECE                float64              `json:"ece"`
-        ECEInterpretation  string              `json:"ece_interpretation"`
-        TotalPredictions   int                  `json:"total_predictions"`
-        Bins               []CalibrationBin     `json:"bins"`
-        PerProtocol        map[string]ProtocolCalibration `json:"per_protocol"`
+        BrierScore          float64                       `json:"brier_score"`
+        BrierDisplay        string                        `json:"brier_display"`
+        BrierInterpretation string                        `json:"brier_interpretation"`
+        BrierRating         string                        `json:"brier_rating"`
+        ECE                 float64                       `json:"ece"`
+        ECEDisplay          string                        `json:"ece_display"`
+        ECEInterpretation   string                        `json:"ece_interpretation"`
+        ECERating           string                        `json:"ece_rating"`
+        TotalPredictions    int                           `json:"total_predictions"`
+        TotalCases          int                           `json:"total_cases"`
+        ResolverScenarios   int                           `json:"resolver_scenarios"`
+        Bins                []CalibrationBin              `json:"bins"`
+        PopulatedBins       []CalibrationBin              `json:"populated_bins"`
+        PerProtocol         map[string]ProtocolCalibration `json:"per_protocol"`
+        SortedProtocols     []ProtocolCalibration         `json:"sorted_protocols"`
 }
 
 type CalibrationBin struct {
         BinStart          float64 `json:"bin_start"`
         BinEnd            float64 `json:"bin_end"`
+        BinLabel          string  `json:"bin_label"`
         Count             int     `json:"count"`
         MeanPredicted     float64 `json:"mean_predicted"`
         MeanObserved      float64 `json:"mean_observed"`
         Gap               float64 `json:"gap"`
+        GapDisplay        string  `json:"gap_display"`
+        PredictedDisplay  string  `json:"predicted_display"`
+        ObservedDisplay   string  `json:"observed_display"`
+        BarWidthPct       int     `json:"bar_width_pct"`
 }
 
 type ProtocolCalibration struct {
         Protocol       string  `json:"protocol"`
+        DisplayName    string  `json:"display_name"`
         BrierScore     float64 `json:"brier_score"`
+        BrierDisplay   string  `json:"brier_display"`
         TotalCases     int     `json:"total_cases"`
         PassRate       float64 `json:"pass_rate"`
+        PassRatePct    string  `json:"pass_rate_pct"`
         MeanConfidence float64 `json:"mean_confidence"`
+        MeanConfPct    string  `json:"mean_conf_pct"`
         CalibrationGap float64 `json:"calibration_gap"`
+        GapDisplay     string  `json:"gap_display"`
+        GapRating      string  `json:"gap_rating"`
 }
 
 type PredictionOutcome struct {
@@ -78,14 +98,35 @@ func ComputeCalibration(predictions []PredictionOutcome, numBins int) Calibratio
         ece := computeECE(bins, len(predictions))
         perProto := computePerProtocolCalibration(predictions)
 
+        var populatedBins []CalibrationBin
+        for _, bin := range bins {
+                if bin.Count > 0 {
+                        populatedBins = append(populatedBins, bin)
+                }
+        }
+
+        var sortedProtos []ProtocolCalibration
+        for _, pc := range perProto {
+                sortedProtos = append(sortedProtos, pc)
+        }
+        sort.Slice(sortedProtos, func(i, j int) bool {
+                return sortedProtos[i].CalibrationGap < sortedProtos[j].CalibrationGap
+        })
+
         return CalibrationResult{
                 BrierScore:          brier,
+                BrierDisplay:        fmt.Sprintf("%.4f", brier),
                 BrierInterpretation: interpretBrier(brier),
+                BrierRating:         ratingFromBrier(brier),
                 ECE:                 ece,
+                ECEDisplay:          fmt.Sprintf("%.4f", ece),
                 ECEInterpretation:   interpretECE(ece),
+                ECERating:           ratingFromECE(ece),
                 TotalPredictions:    len(predictions),
                 Bins:                bins,
+                PopulatedBins:       populatedBins,
                 PerProtocol:         perProto,
+                SortedProtocols:     sortedProtos,
         }
 }
 
@@ -120,11 +161,25 @@ func computeCalibrationBins(predictions []PredictionOutcome, numBins int) []Cali
                 bins[idx].MeanObserved += p.Outcome
         }
 
+        maxCount := 0
         for i := range bins {
                 if bins[i].Count > 0 {
                         bins[i].MeanPredicted /= float64(bins[i].Count)
                         bins[i].MeanObserved /= float64(bins[i].Count)
                         bins[i].Gap = math.Abs(bins[i].MeanPredicted - bins[i].MeanObserved)
+                        bins[i].GapDisplay = fmt.Sprintf("%.4f", bins[i].Gap)
+                        bins[i].PredictedDisplay = fmt.Sprintf("%.1f%%", bins[i].MeanPredicted*100)
+                        bins[i].ObservedDisplay = fmt.Sprintf("%.1f%%", bins[i].MeanObserved*100)
+                        if bins[i].Count > maxCount {
+                                maxCount = bins[i].Count
+                        }
+                }
+                bins[i].BinLabel = fmt.Sprintf("%.0f–%.0f%%", bins[i].BinStart*100, bins[i].BinEnd*100)
+        }
+
+        for i := range bins {
+                if maxCount > 0 && bins[i].Count > 0 {
+                        bins[i].BarWidthPct = (bins[i].Count * 100) / maxCount
                 }
         }
 
@@ -165,14 +220,27 @@ func computePerProtocolCalibration(predictions []PredictionOutcome) map[string]P
                 n := float64(len(preds))
                 meanConf := sumConf / n
                 meanOutcome := sumOutcome / n
+                gap := math.Abs(meanConf - meanOutcome)
+                bs := sumSqErr / n
+
+                displayName := proto
+                if dn, ok := ProtocolDisplayNames[proto]; ok {
+                        displayName = dn
+                }
 
                 result[proto] = ProtocolCalibration{
                         Protocol:       proto,
-                        BrierScore:     sumSqErr / n,
+                        DisplayName:    displayName,
+                        BrierScore:     bs,
+                        BrierDisplay:   fmt.Sprintf("%.4f", bs),
                         TotalCases:     len(preds),
                         PassRate:       meanOutcome,
+                        PassRatePct:    fmt.Sprintf("%.0f%%", meanOutcome*100),
                         MeanConfidence: meanConf,
-                        CalibrationGap: math.Abs(meanConf - meanOutcome),
+                        MeanConfPct:    fmt.Sprintf("%.1f%%", meanConf*100),
+                        CalibrationGap: gap,
+                        GapDisplay:     fmt.Sprintf("%.4f", gap),
+                        GapRating:      ratingFromGap(gap),
                 }
         }
         return result
@@ -190,6 +258,49 @@ func interpretBrier(score float64) string {
                 return "Weak — systematic over- or under-confidence detected"
         default:
                 return "Poor — worse than random baseline (0.25)"
+        }
+}
+
+func ratingFromBrier(score float64) string {
+        switch {
+        case score < 0.01:
+                return "excellent"
+        case score < 0.05:
+                return "good"
+        case score < 0.10:
+                return "adequate"
+        case score < 0.25:
+                return "weak"
+        default:
+                return "poor"
+        }
+}
+
+func ratingFromECE(ece float64) string {
+        switch {
+        case ece < 0.02:
+                return "excellent"
+        case ece < 0.05:
+                return "good"
+        case ece < 0.10:
+                return "adequate"
+        case ece < 0.20:
+                return "weak"
+        default:
+                return "poor"
+        }
+}
+
+func ratingFromGap(gap float64) string {
+        switch {
+        case gap < 0.02:
+                return "excellent"
+        case gap < 0.05:
+                return "good"
+        case gap < 0.10:
+                return "adequate"
+        default:
+                return "weak"
         }
 }
 
@@ -306,7 +417,10 @@ func RunDegradedCalibration(ce *CalibrationEngine) CalibrationResult {
                 return predictions[i].Confidence < predictions[j].Confidence
         })
 
-        return ComputeCalibration(predictions, 10)
+        result := ComputeCalibration(predictions, 10)
+        result.TotalCases = len(allCases)
+        result.ResolverScenarios = len(resolverScenarios)
+        return result
 }
 
 func mapProtocolToCalibrationKey(protocol string) string {

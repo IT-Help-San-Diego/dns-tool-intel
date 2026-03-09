@@ -242,6 +242,122 @@
         </div>
         {{end}}
 
+        {{if .ICAEMetrics.Calibration}}
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">{{icon "flask" "me-2 text-accent-cobalt"}}Calibration Validation</h2>
+                <p class="text-muted small mb-3">Empirical accuracy of the confidence scoring system, measured by running {{.ICAEMetrics.Calibration.TotalCases}} golden test cases across {{.ICAEMetrics.Calibration.ResolverScenarios}} resolver agreement scenarios ({{.ICAEMetrics.Calibration.TotalPredictions}} total predictions). This answers: &ldquo;when we state a confidence level, how often are we actually correct?&rdquo;</p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: rgba(79, 210, 255, 0.05); border: 1px solid rgba(79, 210, 255, 0.15);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-muted small fw-semibold">Brier Score</span>
+                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.BrierRating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.BrierRating "good"}}info{{else if eq .ICAEMetrics.Calibration.BrierRating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.65rem;">{{.ICAEMetrics.Calibration.BrierRating}}</span>
+                            </div>
+                            <div class="h3 fw-bold mb-1 text-info">{{.ICAEMetrics.Calibration.BrierDisplay}}</div>
+                            <div class="text-muted small">{{.ICAEMetrics.Calibration.BrierInterpretation}}</div>
+                            <div class="text-muted small mt-1 opacity-75">Scale: 0.0 (perfect) &mdash; 0.25 (no skill) &mdash; 1.0 (worst). Reference: Brier (1950)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: rgba(79, 210, 255, 0.05); border: 1px solid rgba(79, 210, 255, 0.15);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-muted small fw-semibold">Expected Calibration Error</span>
+                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.ECERating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.ECERating "good"}}info{{else if eq .ICAEMetrics.Calibration.ECERating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.65rem;">{{.ICAEMetrics.Calibration.ECERating}}</span>
+                            </div>
+                            <div class="h3 fw-bold mb-1 text-info">{{.ICAEMetrics.Calibration.ECEDisplay}}</div>
+                            <div class="text-muted small">{{.ICAEMetrics.Calibration.ECEInterpretation}}</div>
+                            <div class="text-muted small mt-1 opacity-75">Mean |predicted &minus; observed| across bins, weighted by population. Reference: Naeini et al. (2015)</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{if .ICAEMetrics.Calibration.PopulatedBins}}
+                <div class="mb-3">
+                    <h3 class="h6 fw-bold mb-2">{{icon "chart-bar" "me-1 text-accent-gold"}}Reliability Diagram</h3>
+                    <p class="text-muted small mb-2">Each bin shows how well stated confidence matches observed accuracy. A perfectly calibrated system would have predicted = observed in every bin.</p>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Confidence Bin</th>
+                                    <th scope="col" class="text-end">Predictions</th>
+                                    <th scope="col" class="text-end">Predicted</th>
+                                    <th scope="col" class="text-end">Observed</th>
+                                    <th scope="col" class="text-end">Gap</th>
+                                    <th scope="col" style="width: 30%;">Distribution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .ICAEMetrics.Calibration.PopulatedBins}}
+                                <tr>
+                                    <td><code>{{.BinLabel}}</code></td>
+                                    <td class="text-end">{{.Count}}</td>
+                                    <td class="text-end">{{.PredictedDisplay}}</td>
+                                    <td class="text-end">{{.ObservedDisplay}}</td>
+                                    <td class="text-end">
+                                        {{if lt .Gap 0.05}}<span class="text-success">{{.GapDisplay}}</span>
+                                        {{else if lt .Gap 0.10}}<span class="text-warning">{{.GapDisplay}}</span>
+                                        {{else}}<span class="text-danger">{{.GapDisplay}}</span>{{end}}
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
+                                            <div class="progress-bar bg-info" style="width: {{.BarWidthPct}}%;"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{end}}
+
+                {{if .ICAEMetrics.Calibration.SortedProtocols}}
+                <div>
+                    <h3 class="h6 fw-bold mb-2">{{icon "crosshairs" "me-1 text-accent-cobalt"}}Per-Protocol Calibration</h3>
+                    <p class="text-muted small mb-2">Calibration gap by protocol &mdash; how far each protocol&rsquo;s stated confidence deviates from observed accuracy. Sorted from best to worst calibrated.</p>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Protocol</th>
+                                    <th scope="col" class="text-end">Cases</th>
+                                    <th scope="col" class="text-end">Mean Confidence</th>
+                                    <th scope="col" class="text-end">Pass Rate</th>
+                                    <th scope="col" class="text-end">Brier</th>
+                                    <th scope="col" class="text-end">Gap</th>
+                                    <th scope="col" class="text-center">Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .ICAEMetrics.Calibration.SortedProtocols}}
+                                <tr>
+                                    <td><span class="fw-semibold text-info">{{.DisplayName}}</span></td>
+                                    <td class="text-end">{{.TotalCases}}</td>
+                                    <td class="text-end">{{.MeanConfPct}}</td>
+                                    <td class="text-end">{{.PassRatePct}}</td>
+                                    <td class="text-end"><code>{{.BrierDisplay}}</code></td>
+                                    <td class="text-end"><code>{{.GapDisplay}}</code></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{{if eq .GapRating "excellent"}}success{{else if eq .GapRating "good"}}info{{else if eq .GapRating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.6rem;">{{.GapRating}}</span>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{end}}
+
+                <div class="text-muted small mt-3 pt-2 border-top border-secondary">
+                    {{icon "info-circle" "me-1"}}<strong>Methodology:</strong> Predictions use fixed <code>rawConfidence=1.0</code> (engine predicts &ldquo;correct&rdquo;) with 5 resolver agreement levels (5/5 through 1/5) per test case. No label leakage &mdash; ground-truth outcomes are never used as prediction inputs. The shrinkage estimator <code>w&middot;C<sub>raw</sub> + (1-w)&middot;&alpha;/(&alpha;+&beta;)</code> is what produces the varying confidence levels as measurement quality degrades.
+                </div>
+            </div>
+        </div>
+        {{end}}
+
         {{if .ICAEMetrics.Regressions}}
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-body">
