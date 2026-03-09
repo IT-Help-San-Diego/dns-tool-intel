@@ -12,11 +12,11 @@
         <div class="u-nav-controls d-flex align-items-center ms-auto gap-2">
             {{if .MaintenanceNote}}<span class="u-maintenance-tag">{{icon "wrench" "me-1"}}{{.MaintenanceNote}}</span>{{end}}
             <span class="u-covert-beta-tag">Beta</span>
-            <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-label="Toggle Covert Recon Mode" aria-pressed="false">
-                {{icon "biohazard"}}
+            <button class="btn btn-link u-covert-toggle p-0" type="button" id="covertToggle" title="Covert Recon Mode — adversarial lens for offensive awareness" aria-pressed="false">
+                <span class="visually-hidden">Covert Recon Mode</span>{{icon "biohazard"}}
             </button>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation menu">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false">
+                <span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span>
             </button>
         </div>
         <div class="collapse navbar-collapse" id="navbarNav">

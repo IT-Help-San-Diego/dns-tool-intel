@@ -272,8 +272,8 @@
                         <li><span class="dropdown-item-text small text-muted pe-3" data-bs-toggle="tooltip" title="FIRST TLP v2.0 standard">TLP (Traffic Light Protocol) governs dissemination of this intelligence product. Default: AMBER per FIRST/CISA standards for security posture reports. Full hierarchy: RED (recipient only) → AMBER+STRICT (organisation only) → AMBER (organisation and clients) → GREEN (community) → CLEAR (public). Per FIRST TLP v2.0.</span></li>
                     </ul>
                 </div>
-                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}CZ{{else}}C{{end}}" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective" aria-label="Switch to Recon Mode">
-                    {{icon "crosshairs" "me-1"}}<span class="d-none d-lg-inline">Recon Mode</span>
+                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}CZ{{else}}C{{end}}" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective">
+                    {{icon "crosshairs" "me-1"}}<span class="d-none d-lg-inline">Recon Mode</span><span class="visually-hidden d-lg-none">Recon Mode</span>
                 </a>
                 <a href="/snapshot/{{.AsciiDomain}}" class="btn btn-outline-info me-2" title="Download Observed Records Snapshot">
                     {{icon "file-lines" "me-1"}}Snapshot
