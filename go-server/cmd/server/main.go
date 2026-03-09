@@ -341,6 +341,7 @@ func main() {
         router.GET("/api/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
         router.GET("/proxy/bimi-logo", proxyHandler.BIMILogo)
+        router.GET("/proxy/sonar-badge/:key", proxyHandler.SonarBadge)
 
         toolkitHandler := handlers.NewToolkitHandler(cfg)
         router.GET("/toolkit", toolkitHandler.ToolkitPage)
