@@ -1,5 +1,5 @@
 {{define "footer"}}
-<div id="privacyBanner" class="u-privacy-banner" role="region" aria-label="Privacy notice">
+<section id="privacyBanner" class="u-privacy-banner" aria-label="Privacy notice">
     <div class="container">
         <div class="u-privacy-card">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -20,7 +20,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 <script nonce="{{.CspNonce}}">(function(){var b=document.getElementById('privacyBanner');if(!b)return;function ack(){try{localStorage.setItem('privacyAck','1')}catch(e){}try{document.cookie='privacyAck=1;path=/;max-age=31536000;SameSite=Lax'}catch(e){}}function wasDismissed(){try{if(localStorage.getItem('privacyAck')==='1')return true}catch(e){}try{if(document.cookie.indexOf('privacyAck=1')!==-1)return true}catch(e){}return false}if(wasDismissed()){b.style.display='none';b.remove();return}document.getElementById('privacyAccept').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();ack();b.style.display='none';b.remove()});b.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#privacyAccept')){e.preventDefault();e.stopPropagation();ack();b.style.display='none';b.remove()}})})()</script>
 <footer class="text-center mt-5 mb-4 text-muted small">
     <a href="https://www.it-help.tech" target="_blank" rel="noopener" aria-label="IT Help San Diego">
