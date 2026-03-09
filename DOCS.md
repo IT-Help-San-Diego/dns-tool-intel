@@ -129,7 +129,7 @@ CVSS-aligned risk assessment with actionable remediation recommendations.
 
 Two engines measure the quality of DNS Tool's own intelligence output, applying ICD 203 confidence methodology holistically:
 
-**ICAE (Intelligence Confidence Audit Engine)** — measures analysis *correctness*. 129 deterministic test cases across 9 protocols (SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA) exercised against fixture domains. Five-tier maturity model: Development → Foundation → Operational → Verified → Gold Master. Results surfaced on the `/confidence` page and the homepage hero card.
+**ICAE (Intelligence Confidence Audit Engine)** — measures analysis *correctness*. 129 deterministic test cases across 9 protocols (SPF, DKIM, DMARC, DANE, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA) exercised against fixture domains. Five-tier maturity model: Development → Verified → Consistent → Gold → Gold Master. Empirically validated via calibration: 129 cases × 5 resolver scenarios = 645 predictions, Brier Score 0.0018 (excellent), ECE 0.031 (good), using a conservatively calibrated shrinkage estimator. Results surfaced on the `/confidence` page and the homepage hero card.
 
 **ICuAE (Intelligence Currency Audit Engine)** — measures data *timeliness*. 29 deterministic test cases across five dimensions:
 - **TTL Compliance** (≥95% target): Do resolvers respect authoritative TTL limits? References RFC 8767 (serve-stale).

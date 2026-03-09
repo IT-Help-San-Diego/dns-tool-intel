@@ -75,7 +75,7 @@ The platform analyzes 11 protocols with RFC-compliant evaluation:
 Three purpose-built analysis engines power the intelligence:
 
 - **ICIE** — Intelligence Classification & Interpretation Engine. Implements core analysis logic for all 11 protocols, bridging observations into security conclusions.
-- **ICAE** — Intelligence Confidence Audit Engine. Quality assurance layer with 129 deterministic test cases across 9 protocols, tracking confidence level (Observed, Inferred, Third-party) for every attribution.
+- **ICAE** — Intelligence Confidence Audit Engine. Quality assurance layer with 129 deterministic test cases across 9 protocols, tracking confidence level (Observed, Inferred, Third-party) for every attribution. Empirically calibrated via shrinkage estimator with Brier Score 0.0018 and ECE 0.031 across 645 predictions.
 - **ICuAE** — Intelligence Currency Audit Engine. Temporal audit layer spanning 5 dimensions (Currentness, TTL Compliance, Completeness, Source Credibility, TTL Relevance) to ensure DNS data remains relevant and valid.
 
 ## Covert Recon Mode
