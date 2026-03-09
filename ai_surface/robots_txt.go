@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const directiveDisallow = directiveDisallow
+
 var knownAICrawlers = []string{
 	"GPTBot",
 	"ChatGPT-User",
@@ -112,8 +114,8 @@ func parseRobotsForAI(body string) (blocked []string, allowed []string, directiv
 			continue
 		}
 
-		if currentUA == "*" && strings.HasPrefix(lower, "disallow:") {
-			path := strings.TrimSpace(line[len("disallow:"):])
+		if currentUA == "*" && strings.HasPrefix(lower, directiveDisallow) {
+			path := strings.TrimSpace(line[len(directiveDisallow):])
 			if path == "/" {
 				wildcardDisallowAll = true
 			}
@@ -150,8 +152,8 @@ func processRobotsLine(lower, _ string, currentUA string, seenBlocked, seenAllow
 		return
 	}
 
-	if strings.HasPrefix(lower, "disallow:") {
-		path := strings.TrimSpace(lower[len("disallow:"):])
+	if strings.HasPrefix(lower, directiveDisallow) {
+		path := strings.TrimSpace(lower[len(directiveDisallow):])
 		if path == "/" || path == "" {
 			seenBlocked[matchedCrawler] = true
 			*directives = append(*directives, robotsDirective{
