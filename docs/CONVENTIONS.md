@@ -67,6 +67,12 @@ APIs must only use methods/events that `foundation.js` actually implements.
 - Must also update: `sonar-project.properties`, `CITATION.cff`, `codemeta.json`
 - Service worker cache version auto-updates from binary
 
+## Static Asset Serving
+- **MIME types**: Registered via `mime.AddExtensionType()` in `init()` of `main.go` — never rely on OS `/etc/mime.types`
+- **Rationale**: Nix production images have a broken `mailcap` mime.types file (I/O error), causing Go's `mime.TypeByExtension()` to panic or return empty Content-Type. Videos won't play, CSS/JS may fail.
+- **Rule**: When adding a new static file type, add its MIME mapping to the `init()` function in `go-server/cmd/server/main.go`
+- **Cache**: `isStaticAsset()` must include all served file extensions for cache-control headers
+
 ## Security Conventions
 - SRI SHA-384 on all CSS/JS assets (computed at startup by `InitSRI()`)
 - CSP: `default-src 'none'`, script/style-src with nonce

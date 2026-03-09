@@ -8,6 +8,7 @@ import (
         "fmt"
         "html/template"
         "log/slog"
+        "mime"
         "net/http"
         "os"
         "os/exec"
@@ -39,6 +40,39 @@ const (
 )
 
 const headerCacheControl = "Cache-Control"
+
+var staticMIME = map[string]string{
+        ".mp4":   "video/mp4",
+        ".webm":  "video/webm",
+        ".ogg":   "video/ogg",
+        ".m4a":   "audio/mp4",
+        ".css":   "text/css; charset=utf-8",
+        ".js":    "application/javascript",
+        ".json":  "application/json",
+        ".html":  "text/html; charset=utf-8",
+        ".xml":   "application/xml",
+        ".svg":   "image/svg+xml",
+        ".png":   "image/png",
+        ".jpg":   "image/jpeg",
+        ".jpeg":  "image/jpeg",
+        ".gif":   "image/gif",
+        ".webp":  "image/webp",
+        ".avif":  "image/avif",
+        ".ico":   "image/x-icon",
+        ".woff":  "font/woff",
+        ".woff2": "font/woff2",
+        ".ttf":   "font/ttf",
+        ".pdf":   "application/pdf",
+        ".txt":   "text/plain; charset=utf-8",
+        ".map":   "application/json",
+        ".zip":   "application/zip",
+}
+
+func init() {
+        for ext, ct := range staticMIME {
+                _ = mime.AddExtensionType(ext, ct)
+        }
+}
 
 func main() {
         slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -466,13 +500,16 @@ func findTemplatesDir() string {
         return "templates"
 }
 
+var cacheableExts = map[string]bool{
+        ".css": true, ".js": true, ".woff": true, ".woff2": true, ".ttf": true,
+        ".png": true, ".ico": true, ".svg": true, ".jpg": true, ".jpeg": true,
+        ".gif": true, ".webp": true, ".avif": true,
+        ".mp4": true, ".webm": true, ".ogg": true, ".m4a": true,
+        ".pdf": true, ".zip": true, ".map": true,
+}
+
 func isStaticAsset(fp string) bool {
-        for _, ext := range []string{".css", ".js", ".woff2", ".woff", ".png", ".ico", ".svg", ".jpg", ".webp", ".avif"} {
-                if strings.HasSuffix(fp, ext) {
-                        return true
-                }
-        }
-        return false
+        return cacheableExts[filepath.Ext(fp)]
 }
 
 func findStaticDir() string {
