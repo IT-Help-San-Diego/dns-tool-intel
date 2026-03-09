@@ -478,7 +478,7 @@ graph TB
         Handlers["handlers<br/>analysis · auth · history<br/>export · dossier · compare<br/>admin · analytics · about"]
         Analyzer["analyzer<br/>ICIE engine core<br/>posture · dkim · spf · dmarc<br/>remediation · brand · misplaced"]
         AISurface["analyzer/ai_surface<br/>robots.txt · llms.txt<br/>HTTP · poisoning · scanner"]
-        ICAE2["icae<br/>ICAE engine · 114 cases<br/>runner · evaluator · report"]
+        ICAE2["icae<br/>ICAE engine · 129 cases<br/>runner · evaluator · report"]
         ICuAE2["icuae<br/>Currency assurance<br/>5 audit dimensions"]
         DNSClient2["dnsclient<br/>Multi-resolver queries"]
         DB2["db<br/>PostgreSQL via pgx"]
