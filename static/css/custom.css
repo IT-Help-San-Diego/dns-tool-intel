@@ -6690,8 +6690,9 @@ body.covert-mode .math-copy-btn--copied {
 .u-opacity-85 { opacity: 0.85; }
 .u-roe-warning-box { background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.2); }
 .u-roe-footer-box { background: rgba(255,255,255,0.03); }
-#roeModal .modal-body { overflow-y: auto; max-height: calc(100vh - 10rem); }
-#roeModal .modal-footer { position: sticky; bottom: 0; background: #1a1d23; z-index: 1; }
+#roeModal .modal-content { max-height: calc(100vh - 3.5rem); display: flex; flex-direction: column; }
+#roeModal .modal-body { overflow-y: auto; flex: 1 1 auto; }
+#roeModal .modal-footer { flex-shrink: 0; }
 
 #roeDecline {
     background: rgba(139, 148, 158, 0.1);
