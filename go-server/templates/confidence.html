@@ -995,12 +995,12 @@
 
                 <div>
                     <h3 class="h6 fw-bold mb-2">{{icon "fingerprint" "me-1 text-info"}} Cryptographic Integrity</h3>
-                    <p class="text-muted small mb-2">Every analysis result is sealed with a SHA-3-512 digest over the canonical JSON representation. The hash function is the NIST FIPS 202 standard (Keccak sponge construction):</p>
+                    <p class="text-muted small mb-2">Every analysis result is sealed with a SHA-3-512 digest over a canonical pipe-delimited representation of posture fields. The hash function is the NIST FIPS 202 standard (Keccak sponge construction):</p>
                     <div class="math-display" data-latex="H = \text{SHA-3-512}\left(\text{Canonical}(R)\right)">
                         $$ H = \text{SHA-3-512}\left(\text{Canonical}(R)\right) $$
                     </div>
-                    <p class="text-muted small mb-2">Where \(R\) is the complete analysis result including metadata, timestamps, and engine versions. The digest is independently verifiable &mdash; anyone with the JSON export can recompute and confirm integrity.</p>
-                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>analyzer/posture_hash.go</code> &rarr; <code>CanonicalPostureHash()</code> &middot; Canonical JSON serialization with deterministic key ordering, verified by <code>icae/hash_audit.go</code></p>
+                    <p class="text-muted small mb-2">Where \(R\) is the canonical posture representation &mdash; protocol statuses, records, policies, and posture labels joined in deterministic field order. The digest is independently verifiable &mdash; anyone with the same posture fields can recompute and confirm integrity.</p>
+                    <p class="text-muted small mb-0 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>analyzer/posture_hash.go</code> &rarr; <code>CanonicalPostureHash()</code> &middot; Pipe-delimited canonical string with deterministic field ordering, verified by <code>icae/hash_audit.go</code></p>
                 </div>
             </div>
         </div>

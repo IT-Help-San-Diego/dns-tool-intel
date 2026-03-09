@@ -309,7 +309,7 @@ if (scannerProfile) {
   check('GenerateSuggestedConfig function exists', scannerProfile.includes('func GenerateSuggestedConfig'));
   check('BuildRollingStats function exists', scannerProfile.includes('func BuildRollingStats'));
   check('DefaultProfile defined', scannerProfile.includes('var DefaultProfile'));
-  check('NIST SP 800-53 SI-18 cited', scannerProfile.includes('NIST SP 800-53 SI-18'));
+  check('NIST SP 800-53 SI-7 cited', scannerProfile.includes('NIST SP 800-53 SI-7'));
   check('RFC 8767 cited', scannerProfile.includes('RFC 8767'));
 }
 const resultsHtml2 = read('go-server/templates/results.html');
