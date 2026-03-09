@@ -11,6 +11,7 @@ import (
 const (
         sectionDNSRecords = "DNS Records"
         sectionInfraIntel = "Infrastructure Intelligence"
+        sectionAISurface  = sectionAISurface
         rfcDNS1035        = "RFC 1035"
 )
 
@@ -395,17 +396,17 @@ func generateCDSCommands(domain string) []VerifyCommand {
 func generateAISurfaceCommands(domain string) []VerifyCommand {
         return []VerifyCommand{
                 {
-                        Section:     "AI Surface",
+                        Section:     sectionAISurface,
                         Description: "Check for llms.txt (LLM context file)",
                         Command:     fmt.Sprintf("curl -sL -o /dev/null -w '%%{http_code}' https://%s/llms.txt", domain),
                 },
                 {
-                        Section:     "AI Surface",
+                        Section:     sectionAISurface,
                         Description: "Check for llms-full.txt (extended LLM context)",
                         Command:     fmt.Sprintf("curl -sL -o /dev/null -w '%%{http_code}' https://%s/llms-full.txt", domain),
                 },
                 {
-                        Section:     "AI Surface",
+                        Section:     sectionAISurface,
                         Description: "Check robots.txt for AI crawler directives",
                         Command:     fmt.Sprintf("curl -sL https://%s/robots.txt | grep -i -E 'GPTBot|ChatGPT-User|Google-Extended|CCBot|anthropic|ClaudeBot|Bytespider|PerplexityBot'", domain),
                 },
