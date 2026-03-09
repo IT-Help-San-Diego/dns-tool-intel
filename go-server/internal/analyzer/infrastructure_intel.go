@@ -328,7 +328,9 @@ func (a *Analyzer) DetectEmailSecurityManagement(spf, dmarc, tlsrpt, mtasts map[
 	}
 }
 
-func enrichHostingFromEdgeCDN(results map[string]any) {}
+func enrichHostingFromEdgeCDN(results map[string]any) {
+	// Stub: CDN-specific hosting enrichment planned for future release.
+}
 
 func matchEnterpriseProvider(nsList []string) *infraMatch {
 	for _, ns := range nsList {
@@ -419,30 +421,41 @@ func matchMonitoringProvider(domain string) *managementProviderInfo {
 	return nil
 }
 
-func detectDMARCReportProviders(providers map[string]map[string]any, dmarc map[string]any) {}
+func detectDMARCReportProviders(providers map[string]map[string]any, dmarc map[string]any) {
+	// Stub: DMARC report provider detection planned for future release.
+}
 
-func detectTLSRPTReportProviders(providers map[string]map[string]any, tlsrpt map[string]any) {}
+func detectTLSRPTReportProviders(providers map[string]map[string]any, tlsrpt map[string]any) {
+	// Stub: TLS-RPT report provider detection planned for future release.
+}
 
 func detectSPFFlatteningProvider(providers map[string]map[string]any, spf map[string]any) map[string]any {
 	return nil
 }
 
-func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[string]any) {}
+func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[string]any) {
+	// Stub: MTA-STS management detection planned for future release.
+}
 
 func (a *Analyzer) detectHostedDKIMProviders(providers map[string]map[string]any, domain string, dkim map[string]any) {
+	// Stub: hosted DKIM provider detection planned for future release.
 }
 
 func matchDynamicServiceNS(nsLower string) (dynamicServiceInfo, bool) {
 	return dynamicServiceInfo{}, false
 }
 
-func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInfo, cap string) {}
+func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInfo, cap string) {
+	// Stub: dynamic service detection accumulation planned for future release.
+}
 
 func (a *Analyzer) scanDynamicServiceZones(ctx context.Context, zones map[string]string) map[string]*dsDetection {
 	return make(map[string]*dsDetection)
 }
 
-func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, domain string) {}
+func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, domain string) {
+	// Stub: dynamic service detection planned for future release.
+}
 
 func identifyEmailProvider(mxRecords []string) string {
 	if len(mxRecords) == 0 {
