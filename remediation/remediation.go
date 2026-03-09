@@ -27,6 +27,9 @@ const (
         tlsrptDescDefault = "TLS-RPT (TLS Reporting) sends you reports about TLS connection failures when other servers try to deliver mail to your domain. Helps diagnose MTA-STS and STARTTLS issues."
         tlsrptDescDANE    = "Your domain has DNSSEC + DANE — the strongest email transport security available. TLS-RPT adds operational visibility by reporting when sending servers fail DANE validation or encounter STARTTLS issues delivering to your MX hosts. It does not add security — it monitors the security you already have."
         tlsrptDescMTASTS  = "Your domain has MTA-STS configured for transport encryption. TLS-RPT complements MTA-STS by reporting when sending servers fail to establish TLS or encounter policy mismatches delivering to your domain. Essential for monitoring MTA-STS enforcement."
+
+	helpRootDomain = "@ means the root domain itself \u2014 some providers show this as the domain name or leave it blank"
+	helpDMARCHost  = "Enter _dmarc as the hostname \u2014 your provider will append the domain automatically"
 )
 
 func dkimRecordExample(domain, provider string) string {
@@ -215,7 +218,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSType:       "TXT",
                         DNSValue:      buildSPFValue(includes, "~all"),
                         DNSPurpose:    "Replaces the dangerous +all with ~all to restrict unauthorized senders",
-                        DNSHostHelp:   "@ means the root domain itself — some providers show this as the domain name or leave it blank",
+                        DNSHostHelp:   helpRootDomain,
                         RFC:           "RFC 7208 §5.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
                         Severity:      severityCritical,
@@ -234,7 +237,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSType:       "TXT",
                         DNSValue:      buildSPFValue(includes, "~all"),
                         DNSPurpose:    "Replaces ?all (neutral) with ~all to restrict unauthorized senders",
-                        DNSHostHelp:   "@ means the root domain itself — some providers show this as the domain name or leave it blank",
+                        DNSHostHelp:   helpRootDomain,
                         RFC:           "RFC 7208 §5.2",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.2",
                         Severity:      severityHigh,
@@ -271,7 +274,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                 DNSType:       "TXT",
                 DNSValue:      buildSPFValue(includes, "~all"),
                 DNSPurpose:    "Defines which servers are authorized to send email for this domain",
-                DNSHostHelp:   "@ means the root domain itself — some providers show this as the domain name or leave it blank",
+                DNSHostHelp:   helpRootDomain,
                 RFC:           "RFC 7208 §4",
                 RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4",
                 Severity:      severityCritical,
@@ -328,7 +331,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSType:       "TXT",
                         DNSValue:      fmt.Sprintf("v=DMARC1; p=none; rua=mailto:dmarc-reports@%s", domain),
                         DNSPurpose:    "Tells receivers how to handle messages that fail authentication checks",
-                        DNSHostHelp:   "Enter _dmarc as the hostname — your provider will append the domain automatically",
+                        DNSHostHelp:   helpDMARCHost,
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
                         Severity:      severityCritical,
@@ -347,7 +350,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSType:       "TXT",
                         DNSValue:      fmt.Sprintf("v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@%s", domain),
                         DNSPurpose:    "Upgrades DMARC from monitoring to quarantining failed messages",
-                        DNSHostHelp:   "Enter _dmarc as the hostname — your provider will append the domain automatically",
+                        DNSHostHelp:   helpDMARCHost,
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
                         Severity:      severityHigh,
@@ -366,7 +369,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSType:       "TXT",
                         DNSValue:      fmt.Sprintf("v=DMARC1; p=reject; rua=mailto:dmarc-reports@%s", domain),
                         DNSPurpose:    "Blocks spoofed messages entirely by rejecting authentication failures",
-                        DNSHostHelp:   "Enter _dmarc as the hostname — your provider will append the domain automatically",
+                        DNSHostHelp:   helpDMARCHost,
                         RFC:           rfcDMARCPolicy,
                         RFCURL:        rfcDMARCPolicyURL,
                         Severity:      severityLow,
@@ -385,7 +388,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSType:       "TXT",
                         DNSValue:      fmt.Sprintf("v=DMARC1; p=%s; rua=mailto:dmarc-reports@%s", ps.dmarcPolicy, domain),
                         DNSPurpose:    "Enables aggregate reports so you can see who sends email as your domain",
-                        DNSHostHelp:   "Enter _dmarc as the hostname — your provider will append the domain automatically",
+                        DNSHostHelp:   helpDMARCHost,
                         RFC:           "RFC 7489 §7.1",
                         RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-7.1",
                         Severity:      severityMedium,
@@ -491,7 +494,7 @@ func appendCAAFixes(fixes []fix, ps protocolState, domain string) []fix {
                 DNSType:       "CAA",
                 DNSValue:      `0 issue "letsencrypt.org"`,
                 DNSPurpose:    "Controls which certificate authorities can issue SSL certificates for this domain",
-                DNSHostHelp:   "@ means the root domain — some providers show this as the domain name or leave it blank",
+                DNSHostHelp:   helpRootDomain,
                 RFC:           "RFC 8659 §4",
                 RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8659#section-4",
                 Severity:      severityLow,
@@ -980,7 +983,7 @@ func buildNoMailStructuredRecords(mf mailFlags, domain string) []dnsRecord {
                         Host:       "@",
                         Value:      "0 .",
                         Purpose:    "Declares this domain does not accept email (null MX)",
-                        HostHelp:   "@ means the root domain itself — some providers show this as the domain name or leave it blank",
+                        HostHelp:   helpRootDomain,
                 })
         }
         if !mf.spfDenyAll {
@@ -989,7 +992,7 @@ func buildNoMailStructuredRecords(mf mailFlags, domain string) []dnsRecord {
                         Host:       "@",
                         Value:      "v=spf1 -all",
                         Purpose:    "Tells receiving mail servers that no one is authorized to send email from this domain",
-                        HostHelp:   "@ means the root domain itself — some providers show this as the domain name or leave it blank",
+                        HostHelp:   helpRootDomain,
                 })
         }
         if !mf.dmarcReject {
@@ -998,7 +1001,7 @@ func buildNoMailStructuredRecords(mf mailFlags, domain string) []dnsRecord {
                         Host:       "_dmarc",
                         Value:      "v=DMARC1; p=reject;",
                         Purpose:    "Instructs receiving servers to reject any email claiming to be from this domain",
-                        HostHelp:   "Enter _dmarc as the hostname — your provider will append the domain automatically",
+                        HostHelp:   helpDMARCHost,
                 })
         }
         return recs
