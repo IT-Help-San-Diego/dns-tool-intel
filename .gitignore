@@ -55,6 +55,12 @@ exports/
 # Private repo staging — never push to public
 dnstool-intel-staging/
 
+# Intelligence boundary files — private dns-tool-intel repo only
+# These files contain proprietary analysis logic and must NEVER be in the public repo.
+# If they show in git status after adding here, untrack from Shell:
+#   git rm --cached go-server/internal/analyzer/*_intel.go go-server/internal/analyzer/ai_surface/*_intel.go
+*_intel.go
+
 # Disposable venvs (cffconvert validation, etc.)
 .venv-cff/
 .venv*/
