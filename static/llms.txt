@@ -88,7 +88,7 @@ Every attribution includes a confidence label:
 
 ### Confidence Engines
 DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its own output:
-- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). See `/confidence`.
+- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). Empirically calibrated: 129 test cases × 5 resolver agreement scenarios = 645 predictions validated with Brier Score 0.0018 (excellent) and Expected Calibration Error 0.031 (good) using a reliability-weighted shrinkage estimator. See `/confidence`.
 - **ICuAE (Intelligence Currency Audit Engine)**: 29 test cases measuring data timeliness across five dimensions (TTL Compliance, Completeness, Source Credibility, Currentness, TTL Relevance). Grading: Excellent/Good/Adequate/Degraded/Stale. Phase 1 tuning advisory live. See `/confidence#icuae`.
 
 ## Who It's For

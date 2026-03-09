@@ -179,21 +179,21 @@ graph TB
     end
 
     subgraph "ICAE Evaluation Pipeline"
-        Runner["Test Runner<br/>114 Deterministic Cases · 9 Protocols"]
+        Runner["Test Runner<br/>129 Deterministic Cases · 9 Protocols"]
         
         subgraph "Analysis Layer Cases"
-            SPFCases["SPF Protocol<br/>18 cases"]
-            DMARCCases["DMARC Protocol<br/>18 cases"]
-            DNSSECCases["DNSSEC Protocol<br/>24 cases"]
+            SPFCases["SPF Protocol<br/>20 cases"]
+            DMARCCases["DMARC Protocol<br/>24 cases"]
+            DNSSECCases["DNSSEC Protocol<br/>25 cases"]
             DKIMCases["DKIM Protocol<br/>8 cases"]
         end
 
         subgraph "Transport & Brand Cases"
-            DANECases["DANE/TLSA Protocol<br/>12 cases"]
-            MTASTSCases["MTA-STS Protocol<br/>11 cases"]
+            DANECases["DANE/TLSA Protocol<br/>14 cases"]
+            MTASTSCases["MTA-STS Protocol<br/>12 cases"]
             TLSRPTCases["TLS-RPT Protocol<br/>5 cases"]
-            BIMICases["BIMI Protocol<br/>9 cases"]
-            CAACases["CAA Protocol<br/>9 cases"]
+            BIMICases["BIMI Protocol<br/>11 cases"]
+            CAACases["CAA Protocol<br/>10 cases"]
         end
     end
 
@@ -202,7 +202,7 @@ graph TB
         Verified["Verified<br/>100+ passes"]
         Consistent["Consistent<br/>500+ passes · 30+ days"]
         Gold["Gold<br/>1000+ passes · 90+ days"]
-        Master["Gold Master<br/>2500+ passes · 180+ days"]
+        Master["Gold Master<br/>5000+ passes · 180+ days"]
     end
 
     subgraph "Storage"
@@ -212,6 +212,7 @@ graph TB
     subgraph "Output"
         Scores["Protocol Confidence Scores<br/>0-100% per protocol"]
         Report["ICAE Audit Report<br/>Pass/Fail per case"]
+        Calibration["Calibration Validation<br/>Brier Score · ECE<br/>Reliability Diagram"]
         Hash["SHA-3-512 Integrity Hash<br/>Tamper-evident audit trail"]
     end
 
@@ -223,6 +224,7 @@ graph TB
     Scores --> Dev --> Verified --> Consistent --> Gold --> Master
     Runner --> DB
     Scores --> Report
+    Scores --> Calibration
     Report --> Hash
 
     classDef default fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#f0f6fc
@@ -478,7 +480,7 @@ graph TB
         Handlers["handlers<br/>analysis · auth · history<br/>export · dossier · compare<br/>admin · analytics · about"]
         Analyzer["analyzer<br/>ICIE engine core<br/>posture · dkim · spf · dmarc<br/>remediation · brand · misplaced"]
         AISurface["analyzer/ai_surface<br/>robots.txt · llms.txt<br/>HTTP · poisoning · scanner"]
-        ICAE2["icae<br/>ICAE engine · 114 cases<br/>runner · evaluator · report"]
+        ICAE2["icae<br/>ICAE engine · 129 cases<br/>calibration · runner · evaluator"]
         ICuAE2["icuae<br/>Currency assurance<br/>5 audit dimensions"]
         DNSClient2["dnsclient<br/>Multi-resolver queries"]
         DB2["db<br/>PostgreSQL via pgx"]
