@@ -28,64 +28,89 @@
     <main id="main-content" class="container my-4">
         {{template "flash_messages" .}}
 
-        <h1 class="h3 mb-1">Security Badge</h1>
-        <p class="text-muted mb-4">Scan your domain, then embed the badge anywhere &mdash; GitHub README, blog, personal site, Hacker News profile.</p>
+        <h1 class="h3 mb-1">{{icon "shield-halved" "me-2 text-brand-cobalt"}}Security Badge</h1>
+        <p class="text-muted mb-4">Generate a live security posture badge for any scanned domain. Embed it in your GitHub README, documentation, blog, or website.</p>
 
         <div class="row g-4">
-            <div class="col-lg-6">
+            <div class="col-lg-5">
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">{{icon "search" "me-2"}}Generate Badge</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="badgeDomain" class="form-label small fw-semibold">Domain</label>
-                            <input type="text" class="form-control" id="badgeDomain" placeholder="example.com" autocomplete="off" autocapitalize="none" spellcheck="false">
+                            <label for="badgeInput" class="form-label small fw-semibold">Domain or Scan Number</label>
+                            <input type="text" class="form-control" id="badgeInput" placeholder="example.com or 1234" autocomplete="off" autocapitalize="none" spellcheck="false">
+                            <div class="form-text">Enter a domain name or a scan number from any report URL.</div>
                         </div>
+
                         <div class="mb-3">
                             <span class="form-label small fw-semibold d-block">Style</span>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-primary active" id="btnStyleFlat" data-style="flat">Standard</button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnStyleCovert" data-style="covert">Covert</button>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-info active" id="btnStyleDetailed" data-style="detailed">
+                                    {{icon "chart-bar" "me-1"}}Detailed
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnStyleFlat" data-style="flat">
+                                    {{icon "tag" "me-1"}}Compact
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnStyleCovert" data-style="covert">
+                                    {{icon "user-secret" "me-1"}}Covert
+                                </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary" id="btnGenerateBadge">
-                            {{icon "terminal" "me-1"}}Generate
+
+                        <button type="button" class="btn btn-primary w-100" id="btnGenerateBadge">
+                            {{icon "bolt" "me-1"}}Generate Badge
                         </button>
                     </div>
                 </div>
 
                 <div class="card mb-4 d-none" id="badgePreviewCard">
-                    <div class="card-header">
-                        <h5 class="mb-0">{{icon "eye" "me-2"}}Preview</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{icon "eye" "me-2"}}Live Preview</h5>
+                        <span class="badge bg-secondary small" id="badgeStyleLabel">detailed</span>
                     </div>
-                    <div class="card-body text-center py-4" id="badgePreview">
+                    <div class="card-body text-center py-4" id="badgePreview" style="background: #0d1117; border-radius: 6px;">
+                    </div>
+                </div>
+
+                <div class="card border-secondary">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{icon "question-circle" "me-2"}}Where to Find Your Scan Number</h5>
+                    </div>
+                    <div class="card-body small text-muted">
+                        <p class="mb-2">After running a scan, look at the URL in your browser address bar:</p>
+                        <div class="bg-dark rounded p-2 mb-2 font-monospace small" style="border: 1px solid #30363d;">
+                            dnstool.it-help.tech/analyze?domain=example.com&amp;id=<strong class="text-info">1234</strong>
+                        </div>
+                        <p class="mb-2">The number after <code>id=</code> is your scan number. Using a scan number pins the badge to that specific scan result.</p>
+                        <p class="mb-0">Using a <strong>domain name</strong> always shows the most recent public scan.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
+            <div class="col-lg-7">
                 <div class="card mb-4 d-none" id="badgeEmbedCard">
                     <div class="card-header">
                         <h5 class="mb-0">{{icon "code" "me-2"}}Embed Code</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="embedHTML" class="form-label small fw-semibold font-monospace">HTML</label>
-                            <div class="input-group">
-                                <textarea class="form-control font-monospace small" id="embedHTML" rows="3" readonly></textarea>
-                                <button type="button" class="btn btn-outline-secondary" id="copyHTML" title="Copy HTML">{{icon "copy"}}</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="embedMarkdown" class="form-label small fw-semibold font-monospace">Markdown</label>
+                            <label for="embedMarkdown" class="form-label small fw-semibold font-monospace">Markdown (GitHub, GitLab, docs)</label>
                             <div class="input-group">
                                 <textarea class="form-control font-monospace small" id="embedMarkdown" rows="2" readonly></textarea>
                                 <button type="button" class="btn btn-outline-secondary" id="copyMarkdown" title="Copy Markdown">{{icon "copy"}}</button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="embedURL" class="form-label small fw-semibold font-monospace">Image URL</label>
+                            <label for="embedHTML" class="form-label small fw-semibold font-monospace">HTML (website, blog)</label>
+                            <div class="input-group">
+                                <textarea class="form-control font-monospace small" id="embedHTML" rows="3" readonly></textarea>
+                                <button type="button" class="btn btn-outline-secondary" id="copyHTML" title="Copy HTML">{{icon "copy"}}</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="embedURL" class="form-label small fw-semibold font-monospace">Direct Image URL</label>
                             <div class="input-group">
                                 <input type="text" class="form-control font-monospace small" id="embedURL" readonly>
                                 <button type="button" class="btn btn-outline-secondary" id="copyURL" title="Copy URL">{{icon "copy"}}</button>
@@ -101,12 +126,12 @@
                     </div>
                 </div>
 
-                <div class="card mb-4">
+                <div class="card mb-4 d-none" id="badgeShieldsCard">
                     <div class="card-header">
                         <h5 class="mb-0">{{icon "shield-halved" "me-2"}}GitHub &amp; Shields.io</h5>
                     </div>
                     <div class="card-body small">
-                        <p class="text-muted">Use the <strong>Shields.io endpoint</strong> for dynamic badges in your GitHub README, CI dashboards, or documentation.</p>
+                        <p class="text-muted mb-2">Use the <strong>Shields.io endpoint</strong> for dynamic badges in your GitHub README, CI dashboards, or documentation.</p>
                         <div class="mb-3">
                             <label for="embedShieldsURL" class="form-label small fw-semibold font-monospace">Shields.io Endpoint URL</label>
                             <div class="input-group">
@@ -127,12 +152,18 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">{{icon "info-circle" "me-2"}}How It Works</h5>
+                        <h5 class="mb-0">{{icon "info-circle" "me-2"}}Badge Styles</h5>
                     </div>
                     <div class="card-body small text-muted">
-                        <p>The badge reflects the most recent public scan of your domain. It shows the risk level from the DNS Security &amp; Trust Posture analysis.</p>
-                        <p>Badge data is cached for 1 hour. Private scans are not shown.</p>
-                        <p class="mb-0"><strong>Requirement:</strong> Your domain must have been scanned at least once on DNS Tool. <a href="/analyze">Run a scan</a> first if needed.</p>
+                        <div class="mb-3">
+                            <strong class="text-info">Detailed</strong> &mdash; Full security assessment card showing posture score (0&ndash;100), protocol-by-protocol breakdown (SPF, DKIM, DMARC, DNSSEC, DANE, MTA-STS, TLS-RPT, BIMI, CAA), risk classification, and scan date. Best for documentation, security pages, and README files where you want to show comprehensive posture.
+                        </div>
+                        <div class="mb-3">
+                            <strong class="text-primary">Compact</strong> &mdash; Standard shields-style badge showing risk level with color coding. Quick visual indicator for GitHub profiles, blog sidebars, and inline references.
+                        </div>
+                        <div class="mb-0">
+                            <strong class="text-danger">Covert</strong> &mdash; Terminal-aesthetic badge with monospace font and dark red palette. For security researchers and red-team documentation.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -170,41 +201,58 @@
 
     (function() {
         const baseURL = '{{.BaseURL}}';
-        const domain = document.getElementById('badgeDomain');
-        let style = 'flat';
+        const input = document.getElementById('badgeInput');
+        let style = 'detailed';
         const previewCard = document.getElementById('badgePreviewCard');
         const embedCard = document.getElementById('badgeEmbedCard');
+        const shieldsCard = document.getElementById('badgeShieldsCard');
         const preview = document.getElementById('badgePreview');
+        const styleLabel = document.getElementById('badgeStyleLabel');
+        const styleButtons = document.querySelectorAll('[data-style]');
 
-        document.getElementById('btnStyleFlat').addEventListener('click', function() {
-            style = 'flat';
-            this.classList.add('active');
-            document.getElementById('btnStyleCovert').classList.remove('active');
+        styleButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                style = this.dataset.style;
+                styleButtons.forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+            });
         });
-        document.getElementById('btnStyleCovert').addEventListener('click', function() {
-            style = 'covert';
-            this.classList.add('active');
-            document.getElementById('btnStyleFlat').classList.remove('active');
-        });
+
+        function isNumeric(val) {
+            return /^\d+$/.test(val);
+        }
 
         document.getElementById('btnGenerateBadge').addEventListener('click', function() {
-            const d = domain.value.trim();
-            if (!d) return;
+            const val = input.value.trim();
+            if (!val) return;
 
-            const badgeURL = baseURL + '/badge?domain=' + encodeURIComponent(d) + (style === 'flat' ? '' : '&style=' + style);
-            const reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(d);
+            var param;
+            var reportURL;
+            if (isNumeric(val)) {
+                param = 'id=' + encodeURIComponent(val);
+                reportURL = baseURL + '/analyze?id=' + encodeURIComponent(val);
+            } else {
+                param = 'domain=' + encodeURIComponent(val);
+                reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(val);
+            }
 
-            preview.innerHTML = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge for ' + d + '"></a>';
+            var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style);
+
+            preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="max-width:100%;"></a>';
             previewCard.classList.remove('d-none');
             embedCard.classList.remove('d-none');
+            shieldsCard.classList.remove('d-none');
+            styleLabel.textContent = style;
 
-            document.getElementById('embedHTML').value = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Security: ' + d + '"></a>';
-            document.getElementById('embedMarkdown').value = '[![DNS Security: ' + d + '](' + badgeURL + ')](' + reportURL + ')';
+            document.getElementById('embedMarkdown').value = '[![DNS Tool Security](' + badgeURL + ')](' + reportURL + ')';
+            document.getElementById('embedHTML').value = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge"></a>';
             document.getElementById('embedURL').value = badgeURL;
             document.getElementById('embedCurl').value = "curl -s '" + badgeURL + "' > dns-badge.svg";
 
-            const shieldsEndpoint = baseURL + '/badge/shields?domain=' + encodeURIComponent(d);
-            const shieldsURL = 'https://img.shields.io/endpoint?url=' + encodeURIComponent(shieldsEndpoint);
+            var shieldsDomain = isNumeric(val) ? val : val;
+            var shieldsParam = isNumeric(val) ? 'id=' : 'domain=';
+            var shieldsEndpoint = baseURL + '/badge/shields?' + shieldsParam + encodeURIComponent(shieldsDomain);
+            var shieldsURL = 'https://img.shields.io/endpoint?url=' + encodeURIComponent(shieldsEndpoint);
             document.getElementById('embedShieldsURL').value = shieldsURL;
             document.getElementById('embedShieldsMarkdown').value = '[![DNS Tool Security](' + shieldsURL + ')](' + reportURL + ')';
         });
@@ -216,13 +264,16 @@
         copyField('copyShieldsURL', 'embedShieldsURL');
         copyField('copyShieldsMarkdown', 'embedShieldsMarkdown');
 
-        domain.addEventListener('keydown', function(e) {
+        input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') document.getElementById('btnGenerateBadge').click();
         });
 
-        const params = new URLSearchParams(globalThis.location.search);
+        var params = new URLSearchParams(globalThis.location.search);
         if (params.get('domain')) {
-            domain.value = params.get('domain');
+            input.value = params.get('domain');
+            document.getElementById('btnGenerateBadge').click();
+        } else if (params.get('id')) {
+            input.value = params.get('id');
             document.getElementById('btnGenerateBadge').click();
         }
     })();
