@@ -93,7 +93,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         }
 
         riskLabel, riskColor := extractPostureRisk(results)
-        riskColor = riskColorToHex(riskColor)
+        riskHex := riskColorToHex(riskColor)
         style := c.DefaultQuery("style", "flat")
 
         c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
@@ -101,11 +101,11 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 
         switch style {
         case "covert":
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, riskLabel, riskColor))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, riskLabel, riskHex))
         case "detailed":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
         default:
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVG(labelDNSTool, riskLabel, riskColor))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVG(domain, riskLabel, riskHex))
         }
 }
 
@@ -162,9 +162,9 @@ func extractPostureRisk(results map[string]any) (string, string) {
 func riskColorToHex(color string) string {
         switch color {
         case "success":
-                return "#4c1"
+                return "#3fb950"
         case "warning":
-                return "#dfb317"
+                return "#d29922"
         case "danger":
                 return colorDanger
         default:
@@ -304,44 +304,124 @@ func riskColorToShields(color string) string {
         }
 }
 
-func badgeSVGCovert(domain, riskLabel, color string) []byte {
-        label := "DNS Tool // " + domain
-        labelWidth := len(label)*6 + 14
-        valueWidth := len(riskLabel)*7 + 10
-        totalWidth := labelWidth + valueWidth
+func covertRiskLabel(riskLabel string) string {
+        switch riskLabel {
+        case "Low Risk":
+                return "Hardened"
+        case "Medium Risk":
+                return "Patching"
+        case "High Risk":
+                return "Exposed"
+        case "Critical Risk":
+                return "Wide Open"
+        default:
+                return riskLabel
+        }
+}
 
-        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="20" role="img" aria-label="%s: %s">
+func covertTagline(riskLabel string) string {
+        switch riskLabel {
+        case "Low Risk":
+                return "Good luck with that."
+        case "Medium Risk":
+                return "Getting there."
+        case "High Risk":
+                return "Work to do."
+        case "Critical Risk":
+                return "Yikes."
+        default:
+                return ""
+        }
+}
+
+func badgeSVGCovert(domain, riskLabel, riskHex string) []byte {
+        covertLabel := covertRiskLabel(riskLabel)
+        tagline := covertTagline(riskLabel)
+
+        domainDisplay := domain
+        if len(domainDisplay) > 28 {
+                domainDisplay = domainDisplay[:25] + "..."
+        }
+
+        const (
+                width  = 320
+                height = 56
+        )
+
+        taglineSVG := ""
+        taglineX := width - 12
+        if tagline != "" {
+                taglineSVG = fmt.Sprintf(`<text x="%d" y="46" fill="#6e7681" font-size="9" font-family="'Courier New',monospace" text-anchor="end">%s</text>`, taglineX, tagline)
+        }
+
+        lineX2 := width - 12
+        rectX := width - len(covertLabel)*8 - 16
+        endTextX := width - 12
+
+        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s: %s">
   <title>%s: %s</title>
-  <clipPath id="r"><rect width="%d" height="20" rx="3" fill="#fff"/></clipPath>
-  <g clip-path="url(#r)">
-    <rect width="%d" height="20" fill="#1a0808"/>
-    <rect x="%d" width="%d" height="20" fill="%s"/>
-    <rect width="%d" height="20" fill="url(#s)"/>
-  </g>
-  <g fill="#c43c3c" text-anchor="middle" font-family="'Courier New',monospace" text-rendering="geometricPrecision" font-size="11">
-    <text x="%d" y="14">%s</text>
-  </g>
-  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="11">
-    <text x="%d" y="14">%s</text>
-  </g>
+  <rect width="%d" height="%d" rx="4" fill="#0a0a0a"/>
+  <rect x=".5" y=".5" width="%d" height="%d" rx="4" fill="none" stroke="#1a1a1a"/>
+  <line x1="12" y1="30" x2="%d" y2="30" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="12" y="20" fill="#c9d1d9" font-size="13" font-weight="600" font-family="'Courier New',monospace">%s</text>
+  <rect x="%d" y="8" width="4" height="16" rx="2" fill="%s"/>
+  <text x="%d" y="20" fill="%s" font-size="12" font-weight="700" font-family="'Courier New',monospace" text-anchor="end">%s</text>
+  <text x="12" y="46" fill="#484f58" font-size="9" font-family="'Courier New',monospace">$ dns-tool scan</text>
+  %s
 </svg>`,
-                totalWidth, domain, riskLabel, domain, riskLabel,
-                totalWidth,
-                labelWidth,
-                labelWidth, valueWidth, color,
-                totalWidth,
-                labelWidth/2+1, label,
-                labelWidth+valueWidth/2-1, riskLabel,
+                width, height, width, height,
+                domain, covertLabel,
+                domain, covertLabel,
+                width, height,
+                width-1, height-1,
+                lineX2,
+                domainDisplay,
+                rectX, riskHex,
+                endTextX, riskHex, covertLabel,
+                taglineSVG,
         )
         return []byte(svg)
 }
 
-type protocolIndicator struct {
-        abbrev string
-        status string
+type protocolNode struct {
+        abbrev     string
+        status     string
+        colorHex   string
+        x, y       int
+        groupColor string
 }
 
-func extractProtocolIndicators(results map[string]any) []protocolIndicator {
+func protocolGroupColor(abbrev string) string {
+        switch abbrev {
+        case "SPF", "DKIM", "DMARC":
+                return "#4a8fe7"
+        case "DNSSEC":
+                return "#d29922"
+        case "DANE", "MTA-STS", "TLS-RPT":
+                return "#3fb950"
+        case "BIMI":
+                return "#a371f7"
+        case "CAA":
+                return "#39d4d4"
+        default:
+                return "#484f58"
+        }
+}
+
+func protocolStatusToNodeColor(status, groupColor string) string {
+        switch status {
+        case "success":
+                return groupColor
+        case "warning":
+                return "#d29922"
+        case "error":
+                return "#f85149"
+        default:
+                return "#30363d"
+        }
+}
+
+func extractProtocolIndicators(results map[string]any) []protocolNode {
         protocols := []struct {
                 key    string
                 abbrev string
@@ -357,7 +437,7 @@ func extractProtocolIndicators(results map[string]any) []protocolIndicator {
                 {"caa_analysis", "CAA"},
         }
 
-        indicators := make([]protocolIndicator, 0, len(protocols))
+        nodes := make([]protocolNode, 0, len(protocols))
         for _, p := range protocols {
                 status := "missing"
                 if analysisRaw, ok := results[p.key]; ok {
@@ -367,39 +447,16 @@ func extractProtocolIndicators(results map[string]any) []protocolIndicator {
                                 }
                         }
                 }
-                indicators = append(indicators, protocolIndicator{abbrev: p.abbrev, status: status})
+                gc := protocolGroupColor(p.abbrev)
+                nc := protocolStatusToNodeColor(status, gc)
+                nodes = append(nodes, protocolNode{
+                        abbrev:     p.abbrev,
+                        status:     status,
+                        colorHex:   nc,
+                        groupColor: gc,
+                })
         }
-        return indicators
-}
-
-func protocolStatusColor(status string) string {
-        switch status {
-        case "success":
-                return "#3fb950"
-        case "warning":
-                return "#d29922"
-        case "error":
-                return "#f85149"
-        case "info":
-                return "#4a8fe7"
-        default:
-                return "#484f58"
-        }
-}
-
-func protocolStatusIcon(status string) string {
-        switch status {
-        case "success":
-                return "&#x2713;"
-        case "warning":
-                return "&#x25B2;"
-        case "error":
-                return "&#x2717;"
-        case "info":
-                return "&#x2139;"
-        default:
-                return "&#x2014;"
-        }
+        return nodes
 }
 
 func extractPostureScore(results map[string]any) int {
@@ -439,33 +496,27 @@ func scoreColor(score int) string {
 
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
-        _ = riskColorName
         score := extractPostureScore(results)
-        indicators := extractProtocolIndicators(results)
+        nodes := extractProtocolIndicators(results)
 
         sc := scoreColor(score)
         riskHex := riskColorToHex(riskColorName)
 
         domainDisplay := domain
-        if len(domainDisplay) > 32 {
-                domainDisplay = domainDisplay[:29] + "..."
+        if len(domainDisplay) > 30 {
+                domainDisplay = domainDisplay[:27] + "..."
         }
 
         scanDate := scanTime.UTC().Format("2006-01-02")
 
         const (
-                width       = 380
-                height      = 160
-                pad         = 16
-                gaugeR      = 38
-                gaugeCX     = 64
-                gaugeCY     = 92
-                startAngle  = 135.0
-                endAngle    = 405.0
-                protStartX  = 140
-                protStartY  = 48
-                protColW    = 80
-                protRowH    = 22
+                width  = 440
+                height = 186
+                pad    = 16
+
+                gaugeR  = 34
+                gaugeCX = 58
+                gaugeCY = 100
         )
 
         arcPath := func(cx, cy, r int, startDeg, endDeg float64) string {
@@ -482,6 +533,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 return fmt.Sprintf("M%.1f,%.1f A%d,%d 0 %d,1 %.1f,%.1f", x1, y1, r, r, largeArc, x2, y2)
         }
 
+        const startAngle = 135.0
+        const endAngle = 405.0
         bgTrack := arcPath(gaugeCX, gaugeCY, gaugeR, startAngle, endAngle)
 
         scoreAngle := startAngle
@@ -495,74 +548,140 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 scoreText = strconv.Itoa(score)
         }
 
-        var protRows strings.Builder
-        for i, ind := range indicators {
-                col := i / 3
-                row := i % 3
-                x := protStartX + col*protColW
-                y := protStartY + row*protRowH
-                iconColor := protocolStatusColor(ind.status)
-                icon := protocolStatusIcon(ind.status)
-                protRows.WriteString(fmt.Sprintf(
-                        `<text x="%d" y="%d" fill="%s" font-size="12" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>`+
-                                `<text x="%d" y="%d" fill="#c9d1d9" font-size="10" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                        x, y, iconColor, icon,
-                        x+16, y, ind.abbrev,
+        nodePositions := []struct{ x, y int }{
+                {148, 56},
+                {208, 56},
+                {268, 56},
+                {346, 56},
+                {346, 96},
+                {148, 96},
+                {208, 96},
+                {268, 96},
+                {148, 136},
+        }
+
+        var nodeSVG strings.Builder
+
+        connLines := [][4]int{
+                {148, 56, 208, 56},
+                {208, 56, 268, 56},
+                {148, 96, 208, 96},
+                {268, 96, 346, 96},
+                {268, 56, 268, 96},
+                {346, 56, 346, 96},
+        }
+        for _, cl := range connLines {
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#21262d" stroke-width="1" stroke-dasharray="4,3"/>`,
+                        cl[0], cl[1], cl[2], cl[3],
                 ))
         }
 
-        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool Security Assessment: %s — %s (Score: %s)">
+        for i, n := range nodes {
+                if i >= len(nodePositions) {
+                        break
+                }
+                pos := nodePositions[i]
+
+                r := 16
+                filled := n.status == "success" || n.status == "warning"
+                fillColor := "none"
+                fillOpacity := "0"
+                strokeColor := n.colorHex
+                strokeW := 2
+
+                if filled {
+                        fillColor = n.colorHex
+                        fillOpacity = "0.15"
+                        strokeW = 2
+                } else if n.status == "error" {
+                        fillColor = "#f85149"
+                        fillOpacity = "0.1"
+                        strokeColor = "#f85149"
+                } else {
+                        strokeColor = "#30363d"
+                        strokeW = 1
+                }
+
+                abbrevSize := 8
+                if len(n.abbrev) > 4 {
+                        abbrevSize = 7
+                }
+                if len(n.abbrev) > 6 {
+                        abbrevSize = 6
+                }
+
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-width="%d"/>`,
+                        pos.x, pos.y, r, fillColor, fillOpacity, strokeColor, strokeW,
+                ))
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                        pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
+                ))
+        }
+
+        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s (Score: %s)">
   <title>DNS Tool: %s — %s (Score: %s)</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#161b22"/>
       <stop offset="1" stop-color="#0d1117"/>
     </linearGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity=".03"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-    </linearGradient>
+    <radialGradient id="glow" cx="50%%" cy="50%%" r="50%%">
+      <stop offset="0" stop-color="%s" stop-opacity=".06"/>
+      <stop offset="1" stop-color="%s" stop-opacity="0"/>
+    </radialGradient>
   </defs>
+
   <rect width="%d" height="%d" rx="8" fill="url(#bg)"/>
-  <rect width="%d" height="%d" rx="8" fill="url(#shine)"/>
   <rect x=".5" y=".5" width="%d" height="%d" rx="8" fill="none" stroke="#30363d" stroke-width="1"/>
 
-  <text x="%d" y="24" fill="#c9d1d9" font-size="13" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
-  <text x="%d" y="24" fill="#484f58" font-size="10" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>
+  <circle cx="%d" cy="%d" r="60" fill="url(#glow)"/>
 
-  <line x1="%d" y1="32" x2="%d" y2="32" stroke="#21262d" stroke-width="1"/>
+  <text x="%d" y="26" fill="#e6edf3" font-size="14" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
+  <text x="%d" y="26" fill="#484f58" font-size="10" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>
 
-  <path d="%s" fill="none" stroke="#21262d" stroke-width="7" stroke-linecap="round"/>
-  <path d="%s" fill="none" stroke="%s" stroke-width="7" stroke-linecap="round"/>
+  <line x1="%d" y1="34" x2="%d" y2="34" stroke="#21262d" stroke-width="1"/>
 
-  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="22" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>
+  <path d="%s" fill="none" stroke="#21262d" stroke-width="6" stroke-linecap="round"/>
+  <path d="%s" fill="none" stroke="%s" stroke-width="6" stroke-linecap="round"/>
+
+  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="20" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>
   <text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">/ 100</text>
 
-  <rect x="%d" y="%d" width="4" height="14" rx="2" fill="%s"/>
+  <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
+
+  <text x="120" y="44" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Email Auth</text>
+  <text x="320" y="44" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Integrity</text>
+  <text x="120" y="124" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Brand</text>
+  <text x="200" y="124" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Transport</text>
 
   %s
 
-  <text x="%d" y="%d" fill="#484f58" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">dnstool.it-help.tech</text>
-  <text x="%d" y="%d" fill="#484f58" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">Scanned %s</text>
+  <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">dnstool.it-help.tech</text>
+  <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">Scanned %s</text>
 </svg>`,
-                width, height, width, height, domain, riskLabel, scoreText,
+                width, height, width, height,
                 domain, riskLabel, scoreText,
-                width, height,
+                domain, riskLabel, scoreText,
+                sc, sc,
                 width, height,
                 width-1, height-1,
+                gaugeCX, gaugeCY,
                 pad, domainDisplay,
                 width-pad, scanDate,
                 pad, width-pad,
                 bgTrack,
                 scoreFill, sc,
                 gaugeCX, gaugeCY+6, sc, scoreText,
-                gaugeCX, gaugeCY+18, 
-                24, 136, riskHex,
-                32, 147, riskHex, riskLabel,
-                protRows.String(),
-                pad, height-8,
-                width-pad, height-8, scanDate,
+                gaugeCX, gaugeCY+16,
+                20, 148, riskHex,
+                26, 159, riskHex, riskLabel,
+                nodeSVG.String(),
+                pad, height-6,
+                width-pad, height-6, scanDate,
         )
 
         return []byte(svg)
