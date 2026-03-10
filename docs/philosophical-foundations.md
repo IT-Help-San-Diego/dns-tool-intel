@@ -2,9 +2,12 @@
 
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
-
-*Companion artifact to "DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure"*
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
+Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
+Source: [github.com/careyjames/dns-tool-web](https://github.com/careyjames/dns-tool-web)
+Version 26.35.40 · License BUSL-1.1
+
+*Companion artifact to "Confidence-Scored Analysis of Domain Security Infrastructure"*
 
 ---
 

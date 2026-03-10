@@ -94,7 +94,7 @@ bash scripts/generate-methodology-pdf.sh "$VERSION"
 pass "Methodology PDF regenerated with version ${VERSION}"
 
 info "Gate 7b: Philosophical Foundations PDF regeneration"
-bash scripts/generate-foundations-pdf.sh
+bash scripts/generate-foundations-pdf.sh "$VERSION"
 pass "Philosophical Foundations PDF regenerated"
 
 info "Gate 8: Go tests"
