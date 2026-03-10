@@ -41,49 +41,49 @@ func NewBadgeHandler(database *db.Database, cfg *config.Config) *BadgeHandler {
         return &BadgeHandler{DB: database, Config: cfg}
 }
 
-func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results map[string]any, scanTime time.Time, ok bool) {
+func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string, ok bool) {
         domainQ := strings.TrimSpace(c.Query(mapKeyDomain))
         idQ := strings.TrimSpace(c.Query("id"))
 
         if domainQ == "" && idQ == "" {
                 c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "missing domain or id", colorDanger))
-                return "", nil, time.Time{}, false
+                return "", nil, time.Time{}, 0, "", false
         }
 
         ctx := c.Request.Context()
 
         if idQ != "" {
-                scanID, err := strconv.ParseInt(idQ, 10, 32)
+                sid, err := strconv.ParseInt(idQ, 10, 32)
                 if err != nil {
                         c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "invalid scan id", colorDanger))
-                        return "", nil, time.Time{}, false
+                        return "", nil, time.Time{}, 0, "", false
                 }
-                analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(scanID))
+                analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(sid))
                 if err != nil || analysis.Private {
                         c.Data(http.StatusNotFound, contentTypeSVG, badgeSVG(labelDNSTool, "scan not found", colorGrey))
-                        return "", nil, time.Time{}, false
+                        return "", nil, time.Time{}, 0, "", false
                 }
                 results := unmarshalResults(analysis.FullResults, "Badge")
-                return analysis.Domain, results, analysis.CreatedAt.Time, true
+                return analysis.Domain, results, analysis.CreatedAt.Time, analysis.ID, derefString(analysis.PostureHash), true
         }
 
         ascii, err := dnsclient.DomainToASCII(domainQ)
         if err != nil || !dnsclient.ValidateDomain(ascii) {
                 c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "invalid domain", colorDanger))
-                return "", nil, time.Time{}, false
+                return "", nil, time.Time{}, 0, "", false
         }
 
         analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, ascii)
         if err != nil || analysis.Private {
                 c.Data(http.StatusNotFound, contentTypeSVG, badgeSVG(labelDNSTool, "not scanned", colorGrey))
-                return "", nil, time.Time{}, false
+                return "", nil, time.Time{}, 0, "", false
         }
         res := unmarshalResults(analysis.FullResults, "Badge")
-        return ascii, res, analysis.CreatedAt.Time, true
+        return ascii, res, analysis.CreatedAt.Time, analysis.ID, derefString(analysis.PostureHash), true
 }
 
 func (h *BadgeHandler) Badge(c *gin.Context) {
-        domain, results, scanTime, ok := h.resolveAnalysis(c)
+        domain, results, scanTime, scanID, postureHash, ok := h.resolveAnalysis(c)
         if !ok {
                 return
         }
@@ -113,7 +113,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 
         switch style {
         case "covert":
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime, scanID, postureHash))
         case "detailed":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
         default:
@@ -491,7 +491,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
         }
 }
 
-func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) []byte {
+func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
@@ -596,7 +596,14 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         }
 
         lines = append(lines, cl("", "", ""))
-        lines = append(lines, cl("", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), alt))
+        hashDisplay := postureHash
+        if len(hashDisplay) > 8 {
+                hashDisplay = hashDisplay[:8]
+        }
+        if hashDisplay == "" {
+                hashDisplay = "--------"
+        }
+        lines = append(lines, cl("", fmt.Sprintf("[*] %s %s | scan #%d", scanDate, hashDisplay, scanID), alt))
 
         height := len(lines)*lineH + 24
 
