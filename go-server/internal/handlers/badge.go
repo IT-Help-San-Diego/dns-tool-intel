@@ -410,83 +410,83 @@ func covertProtocolLine(abbrev, status string) covertLine {
         vuln := "#B43C29"
         locked := "#58E790"
         partial := "#C7C400"
-        bodyRed := "#B43C29"
+        descAlt := "#664d2e"
 
         label := abbrev + " " + dots + " "
 
         switch abbrev {
         case "SPF":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge sender envelope", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge sender envelope", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — spoofing harder", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — spoofing harder", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "sender spoofing possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "sender spoofing possible", descColor: descAlt}
         case "DKIM":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge signatures", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge signatures", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "weak key — forgery harder", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "weak key — forgery harder", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "message forgery possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "message forgery possible", descColor: descAlt}
         case "DMARC":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "spoofing rejected at gate", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "spoofing rejected at gate", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "monitoring only — not blocking", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "monitoring only — not blocking", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "email spoofing wide open", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "email spoofing wide open", descColor: descAlt}
         case "DNSSEC":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't poison DNS cache", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't poison DNS cache", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — some zones exposed", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — some zones exposed", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "DNS cache poisoning possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "DNS cache poisoning possible", descColor: descAlt}
         case "DANE":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't downgrade TLS", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't downgrade TLS", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "TLSA present but weak", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "TLSA present but weak", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "TLS downgrade possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "TLS downgrade possible", descColor: descAlt}
         case "MTA-STS":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't intercept mail", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't intercept mail", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "testing mode — not enforcing", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "testing mode — not enforcing", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "mail interception possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "mail interception possible", descColor: descAlt}
         case "TLS-RPT":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "transport monitored", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "transport monitored", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial reporting", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial reporting", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "no transport monitoring", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "no transport monitoring", descColor: descAlt}
         case "BIMI":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "brand verification active", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "brand verification active", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "present but no VMC cert", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "present but no VMC cert", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "brand impersonation possible", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "brand impersonation possible", descColor: descAlt}
         case "CAA":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "cert issuance locked", descColor: bodyRed}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "cert issuance locked", descColor: descAlt}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "policy present but weak", descColor: bodyRed}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "policy present but weak", descColor: descAlt}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "anyone can issue certs", descColor: bodyRed}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "anyone can issue certs", descColor: descAlt}
         default:
                 return covertLine{prefix: "[?]", text: abbrev + " " + dots + " ", color: "#664d2e", desc: "unknown", descColor: "#664d2e"}
         }
@@ -569,7 +569,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                         } else if f.severity == "high" {
                                 sevTag = " [HIGH]"
                         }
-                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), sRed))
+                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), alt))
                 }
                 lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", sRed))
         }
@@ -592,7 +592,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         } else {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), sRed))
                 if exposure.findingCount > 0 {
-                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", sRed))
+                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", alt))
                 } else if tagline != "" {
                         lines = append(lines, cl("[!]", tagline, alt))
                 }
