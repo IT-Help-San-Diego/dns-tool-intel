@@ -1,6 +1,9 @@
 #!/bin/bash
 # Generate the philosophical foundations PDF from the HTML source using WeasyPrint.
-# Usage: bash scripts/generate-foundations-pdf.sh
+# Usage: bash scripts/generate-foundations-pdf.sh [VERSION]
+#
+# If VERSION is provided, updates the version in both .html and .md before
+# generating the PDF. If omitted, generates from current content.
 #
 # Prerequisites: weasyprint (listed in pyproject.toml)
 # Logo asset: static/images/owl-signature.png (Owl of Athena — dark background, premium version)
@@ -9,6 +12,17 @@
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+VERSION="${1:-}"
+
+if [ -n "$VERSION" ]; then
+  echo "Updating foundations version to ${VERSION}..."
+
+  sed -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/philosophical-foundations.html
+  sed -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/philosophical-foundations.md
+
+  echo "Version updated in .html and .md"
+fi
 
 echo "Generating philosophical foundations PDF..."
 python -c "
