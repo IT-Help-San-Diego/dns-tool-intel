@@ -95,11 +95,16 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         riskLabel, riskColor := extractPostureRisk(results)
         riskHex := riskColorToHex(riskColor)
         score := extractPostureScore(results)
+        exposure := extractExposure(results)
         style := c.DefaultQuery("style", "flat")
 
         compactValue := riskLabel
         if score >= 0 {
                 compactValue = fmt.Sprintf("%s (%d/100)", riskLabel, score)
+        }
+        if exposure.status == "exposed" && exposure.findingCount > 0 {
+                compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
+                riskHex = "#f85149"
         }
 
         c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
@@ -474,6 +479,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
         vulnerable := countVulnerable(nodes)
+        exposure := extractExposure(results)
 
         covertLabel := covertRiskLabel(riskLabel)
         tagline := covertTagline(riskLabel)
@@ -528,19 +534,48 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 }
         }
 
+        brightRed := "#ff4444"
+
+        if exposure.status == "exposed" && exposure.findingCount > 0 {
+                lines = append(lines, covertLine{"", "", ""})
+                lines = append(lines, covertLine{"[!!]", fmt.Sprintf("PUBLIC EXPOSURE — %d secret%s leaked", exposure.findingCount, pluralS(exposure.findingCount)), brightRed})
+                for _, f := range exposure.findings {
+                        label := f.findingType
+                        if label == "" {
+                                label = "Secret"
+                        }
+                        sevTag := ""
+                        if f.severity == "critical" || f.severity == "high" {
+                                sevTag = " (" + f.severity + ")"
+                        }
+                        redacted := f.redacted
+                        if len(redacted) > 24 {
+                                redacted = redacted[:21] + "..."
+                        }
+                        lines = append(lines, covertLine{"[!!]", fmt.Sprintf("  %s: %s%s", label, redacted, sevTag), brightRed})
+                }
+        }
+
         lines = append(lines, covertLine{"", "", ""})
 
-        if vulnerable == 0 {
+        if vulnerable == 0 && exposure.findingCount == 0 {
                 lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", green})
                 lines = append(lines, covertLine{"[!]", tagline, dimGreen})
+        } else if vulnerable == 0 && exposure.findingCount > 0 {
+                lines = append(lines, covertLine{"[!]", "Protocols hardened — but secrets are leaking", brightRed})
+                lines = append(lines, covertLine{"[!]", "Rotate exposed credentials immediately.", dimRed})
         } else if vulnerable <= 2 {
                 lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), amber})
-                if tagline != "" {
+                if exposure.findingCount > 0 {
+                        lines = append(lines, covertLine{"[!]", "Leaked secrets make protocol gaps worse.", brightRed})
+                } else if tagline != "" {
                         lines = append(lines, covertLine{"[!]", tagline, dimRed})
                 }
         } else {
                 lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), red})
-                if tagline != "" {
+                if exposure.findingCount > 0 {
+                        lines = append(lines, covertLine{"[!]", "Leaked secrets on top of open vectors.", brightRed})
+                } else if tagline != "" {
                         lines = append(lines, covertLine{"[!]", tagline, red})
                 }
         }
@@ -595,6 +630,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                                 prefixColor = dimGreen
                         } else if line.prefix == "[~]" {
                                 prefixColor = "#886622"
+                        } else if line.prefix == "[!!]" {
+                                prefixColor = "#ff4444"
                         } else if line.prefix == "[*]" {
                                 prefixColor = "#666666"
                         } else if line.prefix == "[!]" {
@@ -705,6 +742,59 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
         return nodes
 }
 
+type exposureFinding struct {
+        findingType string
+        severity    string
+        redacted    string
+}
+
+type exposureData struct {
+        status       string
+        findingCount int
+        findings     []exposureFinding
+}
+
+func extractExposure(results map[string]any) exposureData {
+        secRaw, ok := results["secret_exposure"]
+        if !ok {
+                return exposureData{status: "clear"}
+        }
+        sec, ok := secRaw.(map[string]any)
+        if !ok {
+                return exposureData{status: "clear"}
+        }
+        status, _ := sec["status"].(string)
+        if status == "" {
+                status = "clear"
+        }
+        count := 0
+        if c, ok := sec["finding_count"].(float64); ok {
+                count = int(c)
+        }
+        var findings []exposureFinding
+        if fRaw, ok := sec["findings"].([]any); ok {
+                for _, item := range fRaw {
+                        f, ok := item.(map[string]any)
+                        if !ok {
+                                continue
+                        }
+                        ft, _ := f["type"].(string)
+                        sev, _ := f["severity"].(string)
+                        red, _ := f["redacted"].(string)
+                        findings = append(findings, exposureFinding{
+                                findingType: ft,
+                                severity:    sev,
+                                redacted:    red,
+                        })
+                }
+        }
+        return exposureData{
+                status:       status,
+                findingCount: count,
+                findings:     findings,
+        }
+}
+
 func extractPostureScore(results map[string]any) int {
         postureRaw, ok := results["posture"]
         if !ok {
@@ -744,6 +834,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
+        exposure := extractExposure(results)
 
         sc := scoreColor(score)
         riskHex := riskColorToHex(riskColorName)
@@ -897,6 +988,21 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 )
         }
 
+        exposureSVG := ""
+        if exposure.status == "exposed" && exposure.findingCount > 0 {
+                label := fmt.Sprintf("⚠ %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
+                yPos := 158
+                if missing > 0 {
+                        yPos = 158
+                }
+                exposureSVG = fmt.Sprintf(
+                        `<rect x="%d" y="%d" width="%d" height="16" rx="3" fill="#f85149" fill-opacity="0.12"/>
+  <text x="%d" y="%d" fill="#ff6b6b" font-size="8" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>`,
+                        width-pad-len(label)*5-4, yPos-11, len(label)*5+8,
+                        width-pad, yPos, label,
+                )
+        }
+
         svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s (Score: %s)">
   <title>DNS Tool: %s — %s (Score: %s)</title>
   <defs>
@@ -936,6 +1042,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
 
   %s
 
+  %s
+
   <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">dnstool.it-help.tech</text>
   <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">Scanned %s</text>
 </svg>`,
@@ -957,6 +1065,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 26, 159, riskHex, riskLabel,
                 nodeSVG.String(),
                 missingSVG,
+                exposureSVG,
                 pad, height-6,
                 width-pad, height-6, scanDate,
         )
