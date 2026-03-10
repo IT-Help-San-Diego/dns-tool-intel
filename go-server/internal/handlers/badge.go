@@ -107,7 +107,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 
         switch style {
         case "covert":
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, riskLabel, riskHex))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime))
         case "detailed":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
         default:
@@ -363,53 +363,260 @@ func countMissing(nodes []protocolNode) int {
         return count
 }
 
-func badgeSVGCovert(domain, riskLabel, riskHex string) []byte {
+type covertLine struct {
+        prefix  string
+        text    string
+        color   string
+}
+
+func covertProtocolLine(abbrev, status string) covertLine {
+        pad := 10 - len(abbrev)
+        if pad < 1 {
+                pad = 1
+        }
+        dots := strings.Repeat(".", pad)
+
+        red := "#cc3333"
+        green := "#33cc33"
+
+        amber := "#cc8833"
+
+        switch abbrev {
+        case "SPF":
+                if status == "success" {
+                        return covertLine{"[+]", "SPF " + dots + " can't forge sender envelope", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "SPF " + dots + " partial — spoofing harder", amber}
+                }
+                return covertLine{"[-]", "SPF " + dots + " sender spoofing possible", red}
+        case "DKIM":
+                if status == "success" {
+                        return covertLine{"[+]", "DKIM " + dots + " can't forge signatures", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "DKIM " + dots + " weak key — forgery harder", amber}
+                }
+                return covertLine{"[-]", "DKIM " + dots + " message forgery possible", red}
+        case "DMARC":
+                if status == "success" {
+                        return covertLine{"[+]", "DMARC " + dots + " spoofing rejected at gate", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "DMARC " + dots + " monitoring only — not blocking", amber}
+                }
+                return covertLine{"[-]", "DMARC " + dots + " email spoofing wide open", red}
+        case "DNSSEC":
+                if status == "success" {
+                        return covertLine{"[+]", "DNSSEC " + dots + " can't poison DNS cache", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "DNSSEC " + dots + " partial — some zones exposed", amber}
+                }
+                return covertLine{"[-]", "DNSSEC " + dots + " DNS cache poisoning possible", red}
+        case "DANE":
+                if status == "success" {
+                        return covertLine{"[+]", "DANE " + dots + " can't downgrade TLS", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "DANE " + dots + " TLSA present but weak", amber}
+                }
+                return covertLine{"[-]", "DANE " + dots + " TLS downgrade possible", red}
+        case "MTA-STS":
+                if status == "success" {
+                        return covertLine{"[+]", "MTA-STS " + dots + " can't intercept mail", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "MTA-STS " + dots + " testing mode — not enforcing", amber}
+                }
+                return covertLine{"[-]", "MTA-STS " + dots + " mail interception possible", red}
+        case "TLS-RPT":
+                if status == "success" {
+                        return covertLine{"[+]", "TLS-RPT " + dots + " transport monitored", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "TLS-RPT " + dots + " partial reporting", amber}
+                }
+                return covertLine{"[-]", "TLS-RPT " + dots + " no transport monitoring", red}
+        case "BIMI":
+                if status == "success" {
+                        return covertLine{"[+]", "BIMI " + dots + " brand verification active", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "BIMI " + dots + " present but no VMC cert", amber}
+                }
+                return covertLine{"[-]", "BIMI " + dots + " brand impersonation possible", red}
+        case "CAA":
+                if status == "success" {
+                        return covertLine{"[+]", "CAA " + dots + " cert issuance locked", green}
+                }
+                if status == "warning" {
+                        return covertLine{"[~]", "CAA " + dots + " policy present but weak", amber}
+                }
+                return covertLine{"[-]", "CAA " + dots + " anyone can issue certs", red}
+        default:
+                return covertLine{"[?]", abbrev + " " + dots + " unknown", "#666666"}
+        }
+}
+
+func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) []byte {
+        riskLabel, riskColorName := extractPostureRisk(results)
+        score := extractPostureScore(results)
+        nodes := extractProtocolIndicators(results)
+        missing := countMissing(nodes)
+
         covertLabel := covertRiskLabel(riskLabel)
         tagline := covertTagline(riskLabel)
 
         domainDisplay := domain
-        if len(domainDisplay) > 28 {
-                domainDisplay = domainDisplay[:25] + "..."
+        if len(domainDisplay) > 35 {
+                domainDisplay = domainDisplay[:32] + "..."
         }
+
+        scoreText := "--"
+        if score >= 0 {
+                scoreText = strconv.Itoa(score)
+        }
+
+        scanDate := scanTime.UTC().Format("2006-01-02")
 
         const (
-                width  = 320
-                height = 56
+                width    = 460
+                lineH    = 15
+                fontSize = 11
+                xPad     = 14
         )
 
-        taglineSVG := ""
-        taglineX := width - 12
-        if tagline != "" {
-                taglineSVG = fmt.Sprintf(`<text x="%d" y="46" fill="#6e7681" font-size="9" font-family="'Courier New',monospace" text-anchor="end">%s</text>`, taglineX, tagline)
+        red := "#cc3333"
+        dimRed := "#882222"
+        green := "#33cc33"
+        dimGreen := "#226622"
+        amber := "#cc8833"
+
+        var lines []covertLine
+
+        lines = append(lines, covertLine{"", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimGreen})
+        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dns-tool --target %s --recon", domainDisplay), "#aaaaaa"})
+        lines = append(lines, covertLine{"", "", ""})
+
+        scoreColor := green
+        if score < 50 {
+                scoreColor = red
+        } else if score < 80 {
+                scoreColor = amber
+        }
+        _ = scoreColor
+
+        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Target: %s", domainDisplay), "#aaaaaa"})
+        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), riskColorToHex(riskColorName)})
+        lines = append(lines, covertLine{"", "", ""})
+
+        protocols := []string{"SPF", "DKIM", "DMARC", "DNSSEC", "DANE", "MTA-STS", "TLS-RPT", "BIMI", "CAA"}
+        for i, p := range protocols {
+                if i < len(nodes) {
+                        lines = append(lines, covertProtocolLine(p, nodes[i].status))
+                }
         }
 
-        lineX2 := width - 12
-        rectX := width - len(covertLabel)*8 - 16
-        endTextX := width - 12
+        lines = append(lines, covertLine{"", "", ""})
 
-        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s: %s">
-  <title>%s: %s</title>
-  <rect width="%d" height="%d" rx="4" fill="#0a0a0a"/>
-  <rect x=".5" y=".5" width="%d" height="%d" rx="4" fill="none" stroke="#1a1a1a"/>
-  <line x1="12" y1="30" x2="%d" y2="30" stroke="#1a1a1a" stroke-width="1"/>
-  <text x="12" y="20" fill="#c9d1d9" font-size="13" font-weight="600" font-family="'Courier New',monospace">%s</text>
-  <rect x="%d" y="8" width="4" height="16" rx="2" fill="%s"/>
-  <text x="%d" y="20" fill="%s" font-size="12" font-weight="700" font-family="'Courier New',monospace" text-anchor="end">%s</text>
-  <text x="12" y="46" fill="#484f58" font-size="9" font-family="'Courier New',monospace">$ dns-tool scan</text>
-  %s
-</svg>`,
+        if missing == 0 {
+                lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", green})
+                lines = append(lines, covertLine{"[!]", tagline, dimGreen})
+        } else if missing <= 2 {
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", missing, pluralS(missing)), amber})
+                if tagline != "" {
+                        lines = append(lines, covertLine{"[!]", tagline, dimRed})
+                }
+        } else {
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", missing), red})
+                if tagline != "" {
+                        lines = append(lines, covertLine{"[!]", tagline, red})
+                }
+        }
+
+        lines = append(lines, covertLine{"", "", ""})
+        lines = append(lines, covertLine{"", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimRed})
+
+        height := len(lines)*lineH + 24
+
+        var svg strings.Builder
+
+        svg.WriteString(fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Recon: %s — %s">
+  <title>DNS Recon: %s — %s</title>
+  <defs>
+    <linearGradient id="tbg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1a1a"/>
+      <stop offset="1" stop-color="#0d0d0d"/>
+    </linearGradient>
+  </defs>
+  <rect width="%d" height="%d" rx="6" fill="url(#tbg)"/>
+  <rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="none" stroke="#333"/>`,
                 width, height, width, height,
                 domain, covertLabel,
                 domain, covertLabel,
                 width, height,
                 width-1, height-1,
-                lineX2,
+        ))
+
+        svg.WriteString(fmt.Sprintf(`
+  <circle cx="16" cy="10" r="4" fill="#ff5f57"/>
+  <circle cx="28" cy="10" r="4" fill="#febc2e"/>
+  <circle cx="40" cy="10" r="4" fill="#28c840"/>
+  <text x="60" y="13" fill="#666" font-size="9" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">recon — %s</text>`,
                 domainDisplay,
-                rectX, riskHex,
-                endTextX, riskHex, covertLabel,
-                taglineSVG,
-        )
-        return []byte(svg)
+        ))
+
+        y := 32
+        for _, line := range lines {
+                if line.text == "" && line.prefix == "" {
+                        y += lineH / 2
+                        continue
+                }
+
+                color := line.color
+                if color == "" {
+                        color = "#888"
+                }
+
+                if line.prefix != "" {
+                        prefixColor := dimRed
+                        if line.prefix == "[+]" {
+                                prefixColor = dimGreen
+                        } else if line.prefix == "[~]" {
+                                prefixColor = "#886622"
+                        } else if line.prefix == "[*]" {
+                                prefixColor = "#666666"
+                        } else if line.prefix == "[!]" {
+                                prefixColor = amber
+                        }
+                        svg.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
+                                xPad, y, prefixColor, fontSize, line.prefix,
+                        ))
+                        svg.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
+                                xPad+28, y, color, fontSize, line.text,
+                        ))
+                } else {
+                        svg.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
+                                xPad, y, color, fontSize, line.text,
+                        ))
+                }
+                y += lineH
+        }
+
+        svg.WriteString(`</svg>`)
+
+        return []byte(svg.String())
+}
+
+func pluralS(n int) string {
+        if n == 1 {
+                return ""
+        }
+        return "s"
 }
 
 type protocolNode struct {
@@ -461,7 +668,7 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 {"dnssec_analysis", "DNSSEC"},
                 {"dane_analysis", "DANE"},
                 {"mta_sts_analysis", "MTA-STS"},
-                {"tls_rpt_analysis", "TLS-RPT"},
+                {"tlsrpt_analysis", "TLS-RPT"},
                 {"bimi_analysis", "BIMI"},
                 {"caa_analysis", "CAA"},
         }
