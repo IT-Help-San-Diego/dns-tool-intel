@@ -107,8 +107,9 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
                 riskHex = "#f85149"
         }
 
-        c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
-        c.Header("Expires", time.Now().Add(1*time.Hour).UTC().Format(http.TimeFormat))
+        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+        c.Header("Pragma", "no-cache")
+        c.Header("Expires", "0")
 
         switch style {
         case "covert":
@@ -300,8 +301,9 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         riskLabel, riskColorRaw := extractPostureRisk(results)
         shieldsColor := riskColorToShields(riskColorRaw)
 
-        c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
-        c.Header("Expires", time.Now().Add(1*time.Hour).UTC().Format(http.TimeFormat))
+        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+        c.Header("Pragma", "no-cache")
+        c.Header("Expires", "0")
 
         resp := gin.H{
                 strSchemaversion: 1,
