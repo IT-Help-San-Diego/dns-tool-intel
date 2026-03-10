@@ -30,6 +30,7 @@
         .badge-style-btn .style-label { font-weight: 600; font-size: .9rem; }
         .badge-style-btn .style-desc { font-size: .7rem; opacity: .7; }
         .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1.5rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        #badgePreviewCard { scroll-margin-top: 1rem; }
     </style>
 </head>
 <body>
@@ -264,6 +265,10 @@
             embedCard.classList.remove('d-none');
             shieldsCard.classList.remove('d-none');
             styleLabel.textContent = style === 'flat' ? 'compact' : style;
+
+            setTimeout(function() {
+                previewCard.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 100);
 
             document.getElementById('embedMarkdown').value = '[![DNS Tool Security](' + badgeURL + ')](' + reportURL + ')';
             document.getElementById('embedHTML').value = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge"></a>';
