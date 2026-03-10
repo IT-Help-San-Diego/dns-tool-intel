@@ -91,6 +91,13 @@ func (h *StaticHandler) MethodologyPDF(c *gin.Context) {
         c.File(filepath.Join(h.StaticDir, "docs", "dns-tool-methodology.pdf"))
 }
 
+func (h *StaticHandler) FoundationsPDF(c *gin.Context) {
+        c.Header(headerContentType, "application/pdf")
+        c.Header(headerCacheControl, cachePublicDay)
+        c.Header("Content-Disposition", "inline; filename=\"philosophical-foundations.pdf\"")
+        c.File(filepath.Join(h.StaticDir, "docs", "philosophical-foundations.pdf"))
+}
+
 func (h *StaticHandler) SitemapXML(c *gin.Context) {
         today := time.Now().Format("2006-01-02")
 

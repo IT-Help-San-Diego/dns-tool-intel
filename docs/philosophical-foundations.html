@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Philosophical Foundations for Security Analysis Communication</title>
+<style>
+  @page {
+    size: letter;
+    margin: 1in 1.1in;
+  }
+  body {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 11.5pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .cover-header {
+    text-align: center;
+    margin-bottom: 28pt;
+    padding-bottom: 18pt;
+    border-bottom: 1.5pt solid #C8A878;
+  }
+  .cover-header img {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 14pt;
+    background: #0d1117;
+    border-radius: 50%;
+    padding: 2px;
+    border: 2.5px solid #C8A878;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 8px rgba(0,0,0,0.3);
+  }
+  .cover-header h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 6pt 0 4pt 0;
+    letter-spacing: 0.03em;
+  }
+  .cover-header .subtitle {
+    font-size: 12pt;
+    color: #555;
+    font-style: italic;
+    margin: 0 0 14pt 0;
+  }
+  .metadata-block {
+    text-align: center;
+    font-size: 9.5pt;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 6pt;
+  }
+  .metadata-block .author-name {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4pt 0;
+  }
+  .metadata-block a {
+    color: #2a5d9f;
+    text-decoration: none;
+  }
+  .meta-label {
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    border-bottom: 0.75pt solid #C8A878;
+    padding-bottom: 4pt;
+    margin: 22pt 0 10pt 0;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #333;
+    margin: 14pt 0 6pt 0;
+  }
+  p {
+    margin: 0 0 8pt 0;
+    text-align: justify;
+  }
+  ul {
+    margin: 4pt 0 10pt 0;
+    padding-left: 18pt;
+  }
+  li {
+    margin-bottom: 3pt;
+  }
+  ol {
+    margin: 4pt 0 10pt 0;
+    padding-left: 22pt;
+  }
+  strong {
+    font-weight: 600;
+  }
+  .section-abstract {
+    font-size: 10.5pt;
+    color: #333;
+    background: #fafaf8;
+    border-left: 3pt solid #C8A878;
+    padding: 10pt 14pt;
+    margin: 12pt 0 18pt 0;
+  }
+  code, pre {
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    background: #f5f5f2;
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+  }
+  pre {
+    padding: 10pt 14pt;
+    overflow-x: auto;
+    border: 0.5pt solid #ddd;
+    margin: 8pt 0 12pt 0;
+  }
+  .citation-block {
+    background: #f5f5f2;
+    border: 0.5pt solid #ddd;
+    padding: 10pt 14pt;
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    margin: 8pt 0;
+    line-height: 1.5;
+  }
+  hr {
+    border: none;
+    border-top: 0.5pt solid #ccc;
+    margin: 20pt 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 8pt 0 14pt 0;
+  }
+  th {
+    background: #f5f5f2;
+    border: 0.5pt solid #ddd;
+    padding: 5pt 8pt;
+    text-align: left;
+    font-weight: 600;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #444;
+  }
+  td {
+    border: 0.5pt solid #ddd;
+    padding: 4pt 8pt;
+    vertical-align: top;
+  }
+  .lane-tag {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1pt 5pt;
+    border-radius: 2pt;
+    margin-right: 3pt;
+  }
+  .lane-protocol { background: #e3f2fd; color: #1565c0; }
+  .lane-human { background: #f3e5f5; color: #7b1fa2; }
+  .lane-philosophy { background: #fff3e0; color: #e65100; }
+  .companion-note {
+    font-size: 9.5pt;
+    color: #666;
+    font-style: italic;
+    background: #fafaf8;
+    border: 0.5pt solid #e0e0e0;
+    padding: 8pt 12pt;
+    margin: 10pt 0 16pt 0;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    font-size: 8.5pt;
+    color: #888;
+    margin-top: 28pt;
+    padding-top: 10pt;
+    border-top: 0.75pt solid #C8A878;
+    line-height: 1.6;
+  }
+  .footer a {
+    color: #2a5d9f;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-header">
+  <img src="../static/images/owl-signature.png" alt="Owl of Athena">
+  <h1>DNS Tool</h1>
+  <p class="subtitle">Philosophical Foundations for Security Analysis Communication</p>
+
+  <div class="metadata-block">
+    <p class="author-name">Carey James Balboa</p>
+    <p>
+      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a><br>
+      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a><br>
+      <span class="meta-label">Source</span>&ensp;<a href="https://github.com/careyjames/dns-tool-web">github.com/careyjames/dns-tool-web</a><br>
+      <span class="meta-label">License</span>&ensp;BUSL-1.1
+    </p>
+    <p style="font-style: italic; font-size: 10pt; color: #555; margin-top: 10pt;">Companion artifact to &ldquo;Confidence-Scored Analysis of Domain Security Infrastructure&rdquo;</p>
+  </div>
+</div>
+
+<h2>Abstract</h2>
+<div class="section-abstract">
+This document describes the philosophical and analytical foundations that inform the communication architecture of DNS Tool &mdash; an OSINT platform for domain security analysis. While the primary methodology document addresses protocol science (RFC compliance, confidence scoring, calibration), this companion artifact addresses a distinct question: <em>why is the analysis structured and communicated the way it is?</em>
+<br><br>
+DNS Tool&rsquo;s analytical framework reflects deliberate application of classical analytical structures &mdash; Socratic questioning, Aristotelian rhetorical categories, and structured narrative architecture &mdash; to the problem of presenting security intelligence in a form that enables human decision-making across multiple professional contexts.
+<br><br>
+This document identifies those structures, traces their academic lineage, provides verifiable citations across both philosophical and computer science literature, and establishes the boundaries between protocol science, human factors, and philosophy of analysis &mdash; three disciplines that inform the platform but must not be conflated.
+</div>
+
+<div class="companion-note">
+  This paper is a companion to the primary methodology document.<br>
+  See: <a href="https://dnstool.it-help.tech/methodology">dnstool.it-help.tech/methodology</a>
+</div>
+
+<h2>1. Scope and Disciplinary Boundaries</h2>
+
+<h3>1.1 Three Lanes</h3>
+<p>DNS Tool&rsquo;s methodology operates across three distinct disciplines. Each lane has its own standards of evidence, its own peer-reviewed literature, and its own criteria for correctness. Conflation between lanes &mdash; treating a rhetorical insight as protocol evidence, or a human factors finding as an RFC requirement &mdash; would undermine the rigor of all three.</p>
+
+<table>
+  <tr>
+    <th>Lane</th>
+    <th>Domain</th>
+    <th>Standards of Evidence</th>
+    <th>DNS Tool Implementation</th>
+  </tr>
+  <tr>
+    <td><span class="lane-tag lane-protocol">Protocol Science</span></td>
+    <td>RFC compliance, DNS resolution, cryptographic verification</td>
+    <td>RFC specifications, IETF standards, reproducible queries</td>
+    <td>Analyzer engines, resolver consensus, DNSSEC validation</td>
+  </tr>
+  <tr>
+    <td><span class="lane-tag lane-human">Human Factors</span></td>
+    <td>Cognitive load, visual perception, decision-making under uncertainty</td>
+    <td>Peer-reviewed psychology, vision science, HCI research</td>
+    <td>Scotopic interface design, executive brief structure, information hierarchy</td>
+  </tr>
+  <tr>
+    <td><span class="lane-tag lane-philosophy">Philosophy of Analysis</span></td>
+    <td>Analytical reasoning structures, epistemic integrity, communication ethics</td>
+    <td>Classical philosophy, rhetoric, peer-reviewed communication and IS research</td>
+    <td>Five Perspectives architecture, verification workflow, confidence taxonomy</td>
+  </tr>
+</table>
+
+<h3>1.2 Interaction Without Conflation</h3>
+<p>These lanes interact &mdash; a protocol finding (Lane 1) is communicated through a visual hierarchy informed by cognitive research (Lane 2) using a rhetorical structure grounded in analytical philosophy (Lane 3). The interaction is by design. The conflation would be claiming that Aristotelian rhetoric validates a DNS finding, or that scotopic vision research changes an RFC requirement. It does not. Each lane validates within its own domain.</p>
+
+<hr>
+
+<h2>2. Socratic Verification: Elenchus in the Analysis Workflow</h2>
+
+<h3>2.1 The Claim</h3>
+<p>DNS Tool implements a Socratic-inspired verification workflow: core security findings are paired with falsifiable questions and commands the reader can execute independently to test them.</p>
+
+<h3>2.2 Structure of the Elenchus</h3>
+<p>The Socratic method (<em>elenchus</em>) is a form of cooperative argumentative dialogue in which claims are tested through structured questioning, with the goal of exposing contradictions and arriving at justified conclusions (Benson, 2011; Vlastos, 1983). The method does not assert truth &mdash; it tests claims by inviting refutation.</p>
+
+<p>DNS Tool&rsquo;s verification workflow mirrors this structure:</p>
+<ol>
+  <li><strong>Initial claim</strong>: The platform presents an analytical finding (e.g., &ldquo;This domain&rsquo;s SPF record authorizes the entire internet to send mail as this domain&rdquo;)</li>
+  <li><strong>Structured question</strong>: The &ldquo;Big Questions&rdquo; framework reframes the finding as a falsifiable question (e.g., &ldquo;Can this domain be impersonated by email?&rdquo;)</li>
+  <li><strong>Verification command</strong>: A concrete <code>dig</code>, <code>openssl</code>, or <code>curl</code> command is provided so the reader can independently test the claim</li>
+  <li><strong>Resolution</strong>: The reader either confirms the finding or identifies a discrepancy &mdash; in either case, the epistemic process is transparent</li>
+</ol>
+
+<p>This is not a claim that DNS Tool conducts live Socratic dialogue with the user. It is a claim that the <em>structure</em> of the verification workflow &mdash; assert, question, provide means of refutation, resolve &mdash; follows the elenctic pattern.</p>
+
+<h3>2.3 Academic Grounding</h3>
+<p><strong>In philosophy:</strong></p>
+<ul>
+  <li>Vlastos, G. (1983). &ldquo;The Socratic Elenchus.&rdquo; <em>Oxford Studies in Ancient Philosophy</em>, 1, 27&ndash;58.</li>
+  <li>Benson, H. H. (2011). &ldquo;Socratic Method.&rdquo; In <em>The Cambridge Companion to Socrates</em>. Cambridge University Press.</li>
+</ul>
+
+<p><strong>In computer science:</strong></p>
+<ul>
+  <li>Anderson, R. (1987). &ldquo;The Socratic Method in Computer Science Education.&rdquo; <em>ACM SIGCSE Bulletin</em>, 19(1). DOI: <a href="https://doi.org/10.1145/31726.31755">10.1145/31726.31755</a></li>
+  <li>Wei, Y. et al. (2024). &ldquo;Socratic Human Feedback.&rdquo; <em>Findings of EMNLP 2024</em>. DOI: <a href="https://doi.org/10.18653/v1/2024.findings-emnlp.908">10.18653/v1/2024.findings-emnlp.908</a></li>
+</ul>
+
+<p><strong>Bridging claim:</strong> While the CS literature primarily applies Socratic method to pedagogy and code generation feedback, DNS Tool extends the pattern to <em>analytical verification</em> &mdash; the reader is not a student being taught but an analyst being equipped to independently falsify the platform&rsquo;s claims. This application appears uncommon in the OSINT and security tooling space, though not unprecedented in the broader software verification literature.</p>
+
+<hr>
+
+<h2>3. Aristotelian Analytical Categories and the Five Perspectives</h2>
+
+<h3>3.1 The Claim</h3>
+<p>DNS Tool&rsquo;s Five Perspectives architecture &mdash; Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro &mdash; maps to Aristotelian analytical categories drawn from <em>Rhetoric</em> (ethos, pathos, logos) and <em>Nicomachean Ethics</em> (phronesis, techne). This mapping is structural, not decorative: each perspective embodies a distinct mode of analytical reasoning that corresponds to a classical category.</p>
+
+<h3>3.2 The Mapping</h3>
+<table>
+  <tr>
+    <th>Perspective</th>
+    <th>Aristotelian Category</th>
+    <th>Function</th>
+    <th>What It Asks</th>
+  </tr>
+  <tr>
+    <td><strong>The Intelligence Officer</strong></td>
+    <td><strong>Ethos</strong> (credibility, trustworthiness)</td>
+    <td>Quantifies what you can trust &mdash; ICAE measures accuracy, ICuAE measures currency, Unified Confidence carries epistemic weight</td>
+    <td>&ldquo;How confident should I be in this finding?&rdquo;</td>
+  </tr>
+  <tr>
+    <td><strong>The DNS Engineer</strong></td>
+    <td><strong>Logos</strong> (logical argument, evidence)</td>
+    <td>Grounds findings in RFC specifications &mdash; not vendor interpretation, not blog posts, but the standards that define protocol correctness</td>
+    <td>&ldquo;What does the standard actually say?&rdquo;</td>
+  </tr>
+  <tr>
+    <td><strong>The Hacker</strong></td>
+    <td><strong>Pathos</strong> (urgency, consequence awareness)</td>
+    <td>Reframes the same data through an adversarial lens &mdash; surfaces attack surfaces, exposure vectors, the <em>stakes</em> of misconfiguration</td>
+    <td>&ldquo;What can an attacker do with this?&rdquo;</td>
+  </tr>
+  <tr>
+    <td><strong>The Executive</strong></td>
+    <td><strong>Phronesis</strong> (practical wisdom, judgment)</td>
+    <td>Distills findings into strategic decisions &mdash; posture, risk, what needs attention, what is secure</td>
+    <td>&ldquo;What do I need to decide?&rdquo;</td>
+  </tr>
+  <tr>
+    <td><strong>The IT Pro</strong></td>
+    <td><strong>Techne</strong> (craft, applied skill)</td>
+    <td>Translates findings into actionable remediation &mdash; provider-aware steps, TTL tuning, concrete next actions</td>
+    <td>&ldquo;What do I need to fix?&rdquo;</td>
+  </tr>
+</table>
+
+<h3>3.3 Academic Grounding</h3>
+<p><strong>In classical philosophy:</strong></p>
+<ul>
+  <li>Aristotle. <em>Rhetoric</em> (c. 350 BCE). Book I, Chapters 2&ndash;3 (ethos, pathos, logos).</li>
+  <li>Aristotle. <em>Nicomachean Ethics</em>, Book VI (phronesis, techne).</li>
+</ul>
+<p><strong>In peer-reviewed communication science:</strong></p>
+<ul>
+  <li>Turnbull, B. (2018). &ldquo;Ethos, pathos, logos: a script for clinical communication.&rdquo; <em>Journal of Pharmacy Practice and Research</em>, 48(4). DOI: <a href="https://doi.org/10.1002/jppr.1468">10.1002/jppr.1468</a></li>
+</ul>
+<p><strong>In peer-reviewed information systems and cybersecurity:</strong></p>
+<ul>
+  <li>IEEE TPC (2010). &ldquo;Ethos, Pathos, Logos, Kairos: Using a Rhetorical Heuristic to Mediate Digital-Tool Use.&rdquo; <em>IEEE Trans. Professional Communication</em>, 53(4). DOI: <a href="https://doi.org/10.1109/TPC.2010.2052856">10.1109/TPC.2010.2052856</a></li>
+  <li>Kearney, W. D. &amp; Kruger, H. A. (2023). &ldquo;Seeking rhetorical validity in fear appeal research in information security.&rdquo; <em>Computers &amp; Security</em>, 125. DOI: <a href="https://doi.org/10.1016/j.cose.2022.103020">10.1016/j.cose.2022.103020</a></li>
+  <li>Johnston, A. C. &amp; Warkentin, M. (2010). &ldquo;Fear Appeals and Information Security Behaviors.&rdquo; <em>MIS Quarterly</em>, 34(3). DOI: <a href="https://doi.org/10.2307/25750691">10.2307/25750691</a></li>
+</ul>
+<p><strong>In phronesis and engineering judgment:</strong></p>
+<ul>
+  <li>Calvo-Amodio, J. et al. (2016). &ldquo;Phronesis in Systems Engineering.&rdquo; <em>INCOSE International Symposium</em>, 26(1). DOI: <a href="https://doi.org/10.1002/j.2334-5837.2016.00263.x">10.1002/j.2334-5837.2016.00263.x</a></li>
+  <li>Tynjälä, P. et al. (2020). &ldquo;Phronesis in Medical Ethics.&rdquo; <em>Health Care Analysis</em>, 28. DOI: <a href="https://doi.org/10.1007/s10728-020-00398-7">10.1007/s10728-020-00398-7</a></li>
+</ul>
+
+<h3>3.4 Disciplinary Note</h3>
+<p>The Aristotelian mapping describes the <em>communication and analytical structure</em> of DNS Tool&rsquo;s output &mdash; not its protocol science. The RFC compliance of an SPF record is determined by RFC 7208, not by Aristotle. The <em>decision</em> to present that finding through five distinct analytical lenses, each optimized for a different mode of reasoning, is the philosophical design choice documented here.</p>
+
+<hr>
+
+<h2>4. Narrative Architecture Matrix</h2>
+
+<h3>4.1 Purpose</h3>
+<p>The Narrative Architecture Matrix is an infrastructure artifact &mdash; not a style guide. It maps every content zone in the platform to its story structure, applicable narrative lenses, claim protection status, and the archetype(s) it primarily serves. The goal is maintainability: if a new analytical framework is incorporated in the future, the matrix shows exactly which content zones it touches and which claim boundaries it must respect.</p>
+
+<h3>4.2 Definitions</h3>
+<p><strong>Story Structure</strong>: The narrative pattern governing how information is sequenced within a content zone.</p>
+<p><strong>Narrative Lens</strong>: An optional layer of voice, metaphor, or framing that can be applied across archetypes. Lenses are applied to creative-safe content only &mdash; never to protected claims.</p>
+<p><strong>Claim Protection Status:</strong></p>
+<ul>
+  <li><strong>PROTECTED</strong>: Facts, citations, methodology statements, RFC references, mathematical claims, and verified philosophical citations. Immutable without verifiable evidence.</li>
+  <li><strong>CREATIVE-SAFE</strong>: Metaphor, voice, tone, introductory framing, contextual prose. May be revised for style, clarity, or philosophical alignment.</li>
+</ul>
+
+<h3>4.3 The Matrix</h3>
+<table>
+  <tr>
+    <th>Content Zone</th>
+    <th>Story Structure</th>
+    <th>Primary Archetype(s)</th>
+    <th>Claim Status</th>
+  </tr>
+  <tr>
+    <td>Origin Story</td>
+    <td>Monomyth (Hero&rsquo;s Journey)</td>
+    <td>All</td>
+    <td>CREATIVE-SAFE</td>
+  </tr>
+  <tr>
+    <td>Five Perspectives</td>
+    <td>Aristotelian Categories</td>
+    <td>All</td>
+    <td>PROTECTED (structure) / CREATIVE-SAFE (prose)</td>
+  </tr>
+  <tr>
+    <td>Verification Principle</td>
+    <td>Socratic Elenchus</td>
+    <td>Intelligence Officer, DNS Engineer</td>
+    <td>PROTECTED</td>
+  </tr>
+  <tr>
+    <td>Big Questions</td>
+    <td>Socratic Elenchus</td>
+    <td>Executive, IT Pro</td>
+    <td>PROTECTED (questions) / CREATIVE-SAFE (framing)</td>
+  </tr>
+  <tr>
+    <td>Protocol Findings</td>
+    <td>Kishōtenketsu</td>
+    <td>DNS Engineer, Intelligence Officer</td>
+    <td>PROTECTED</td>
+  </tr>
+  <tr>
+    <td>Executive Brief</td>
+    <td>Consequence Framing + Phronesis</td>
+    <td>Executive</td>
+    <td>PROTECTED (findings) / CREATIVE-SAFE (framing)</td>
+  </tr>
+  <tr>
+    <td>Priority Actions</td>
+    <td>Fichtean Curve</td>
+    <td>IT Pro, DNS Engineer</td>
+    <td>PROTECTED (fixes) / CREATIVE-SAFE (headers)</td>
+  </tr>
+  <tr>
+    <td>Drift Timeline</td>
+    <td>Rebirth / Rags-to-Riches</td>
+    <td>All</td>
+    <td>PROTECTED (data) / CREATIVE-SAFE (prose)</td>
+  </tr>
+  <tr>
+    <td>Covert Recon Mode</td>
+    <td>Adversarial Reframing</td>
+    <td>Hacker</td>
+    <td>PROTECTED (findings) / CREATIVE-SAFE (voice)</td>
+  </tr>
+  <tr>
+    <td>Confidence Docs</td>
+    <td>Logical Exposition</td>
+    <td>Intelligence Officer</td>
+    <td>PROTECTED</td>
+  </tr>
+  <tr>
+    <td>Methodology (primary)</td>
+    <td>Scientific Paper</td>
+    <td>DNS Engineer, Intelligence Officer</td>
+    <td>PROTECTED</td>
+  </tr>
+  <tr>
+    <td>This Document</td>
+    <td>Academic Companion</td>
+    <td>All</td>
+    <td>PROTECTED (citations) / CREATIVE-SAFE (prose)</td>
+  </tr>
+  <tr>
+    <td>EDE Register</td>
+    <td>Epistemic Disclosure</td>
+    <td>Intelligence Officer</td>
+    <td>PROTECTED</td>
+  </tr>
+  <tr>
+    <td>Badges</td>
+    <td>Visual Summary</td>
+    <td>All</td>
+    <td>PROTECTED (data) / CREATIVE-SAFE (layout)</td>
+  </tr>
+  <tr>
+    <td>MISSION.md</td>
+    <td>Manifesto / Declaration</td>
+    <td>All</td>
+    <td>PROTECTED (principles) / CREATIVE-SAFE (voice)</td>
+  </tr>
+</table>
+
+<h3>4.4 Future Extension Protocol</h3>
+<p>When a new philosophical, analytical, or scientific framework is proposed for incorporation:</p>
+<ol>
+  <li><strong>Identify the lane</strong> (Protocol Science, Human Factors, or Philosophy of Analysis)</li>
+  <li><strong>Verify academic standing</strong> with peer-reviewed citations in the relevant lane</li>
+  <li><strong>Map to the matrix</strong> &mdash; which content zones does it touch?</li>
+  <li><strong>Respect claim boundaries</strong> &mdash; does it affect PROTECTED or CREATIVE-SAFE content?</li>
+  <li><strong>Cross-reference with existing structures</strong> &mdash; does it complement or conflict with current mappings?</li>
+  <li><strong>Document the citation with lane tags</strong> &mdash; add to the Citation Matrix with explicit domain classification</li>
+</ol>
+
+<hr>
+
+<h2>5. Citation Matrix</h2>
+<p>All citations organized by discipline lane with explicit lane assignment. Every citation maps to exactly one of the three declared lanes to prevent cross-lane conflation.</p>
+
+<h3>5.1 <span class="lane-tag lane-philosophy">Philosophy of Analysis</span></h3>
+<table>
+  <tr><th>Citation</th><th>DOI</th><th>Supports</th></tr>
+  <tr><td>Aristotle. <em>Rhetoric</em> (c. 350 BCE). Book I, Ch. 2&ndash;3.</td><td>&mdash;</td><td>Ethos/Pathos/Logos &mdash; Five Perspectives</td></tr>
+  <tr><td>Aristotle. <em>Nicomachean Ethics</em>, Book VI.</td><td>&mdash;</td><td>Phronesis (Executive); Techne (IT Pro)</td></tr>
+  <tr><td>Vlastos, G. (1983). &ldquo;The Socratic Elenchus.&rdquo; <em>OSAP</em></td><td>&mdash;</td><td>Socratic verification structure</td></tr>
+  <tr><td>Benson, H. H. (2011). &ldquo;Socratic Method.&rdquo; <em>Cambridge Companion</em></td><td>&mdash;</td><td>Elenchus definition and scope</td></tr>
+  <tr><td>Anderson, R. (1987). <em>ACM SIGCSE</em></td><td><a href="https://doi.org/10.1145/31726.31755">10.1145/31726.31755</a></td><td>Socratic method in CS</td></tr>
+  <tr><td>Wei, Y. et al. (2024). <em>EMNLP Findings</em></td><td><a href="https://doi.org/10.18653/v1/2024.findings-emnlp.908">10.18653/v1/2024.findings-emnlp.908</a></td><td>Socratic feedback in code generation</td></tr>
+  <tr><td>IEEE TPC (2010). &ldquo;Ethos, Pathos, Logos, Kairos.&rdquo;</td><td><a href="https://doi.org/10.1109/TPC.2010.2052856">10.1109/TPC.2010.2052856</a></td><td>Aristotelian rhetoric in digital tools</td></tr>
+  <tr><td>Calvo-Amodio et al. (2016). <em>INCOSE</em></td><td><a href="https://doi.org/10.1002/j.2334-5837.2016.00263.x">10.1002/j.2334-5837.2016.00263.x</a></td><td>Phronesis in systems engineering</td></tr>
+  <tr><td>Turnbull, B. (2018). <em>J. Pharmacy Practice</em></td><td><a href="https://doi.org/10.1002/jppr.1468">10.1002/jppr.1468</a></td><td>Aristotelian framework in practice</td></tr>
+  <tr><td>Tynjälä et al. (2020). <em>Health Care Analysis</em></td><td><a href="https://doi.org/10.1007/s10728-020-00398-7">10.1007/s10728-020-00398-7</a></td><td>Phronesis as professional virtue</td></tr>
+</table>
+
+<h3>5.2 <span class="lane-tag lane-human">Human Factors</span></h3>
+<table>
+  <tr><th>Citation</th><th>DOI</th><th>Supports</th></tr>
+  <tr><td>Kearney &amp; Kruger (2023). <em>Computers &amp; Security</em></td><td><a href="https://doi.org/10.1016/j.cose.2022.103020">10.1016/j.cose.2022.103020</a></td><td>Rhetorical validity in security communication</td></tr>
+  <tr><td>Johnston &amp; Warkentin (2010). <em>MIS Quarterly</em></td><td><a href="https://doi.org/10.2307/25750691">10.2307/25750691</a></td><td>Pathos-driven security motivation</td></tr>
+  <tr><td>Burns et al. (2015). <em>MISQ</em></td><td><a href="https://doi.org/10.25300/MISQ/2015/39.4.5">10.25300/MISQ/2015/39.4.5</a></td><td>Rhetorical validity in security messaging</td></tr>
+  <tr><td>Frik et al. (2019). <em>IJHCS</em></td><td><a href="https://doi.org/10.1016/j.ijhcs.2018.11.003">10.1016/j.ijhcs.2018.11.003</a></td><td>Security nudges and decision-making</td></tr>
+</table>
+
+<h3>5.3 <span class="lane-tag lane-protocol">Protocol Science</span></h3>
+<p>Protocol science citations are documented in the primary methodology document. See &ldquo;DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure,&rdquo; Section 8 (References) for the complete RFC and ICD 203 citation list. They are not duplicated here to maintain lane separation.</p>
+
+<hr>
+
+<h2>6. Precedent and Positioning</h2>
+
+<h3>6.1 What We Can Say</h3>
+<p>Based on review of publicly available OSINT security tool documentation, methodology papers, and academic literature on security tool design, the formal application of classical philosophical frameworks (Socratic elenchus, Aristotelian analytical categories) to security analysis communication &mdash; with lane-separated academic citations &mdash; appears uncommon in the domain security and OSINT tooling space.</p>
+
+<h3>6.2 What We Cannot Say</h3>
+<p>We have not conducted a systematic literature review (SLR) sufficient to claim &ldquo;first&rdquo; or &ldquo;only.&rdquo; The absence of found precedent is not proof of absence. If a systematic review is conducted in the future and confirms the claim, it can be stated with appropriate citation to that review.</p>
+
+<h3>6.3 What the Work Demonstrates</h3>
+<p>The work demonstrates that classical analytical structures can be applied to security intelligence communication without compromising protocol science &mdash; provided the disciplinary lanes remain separated, citations remain verifiable, and no philosophical claim is treated as protocol evidence.</p>
+
+<hr>
+
+<h2>7. Relationship to Primary Methodology</h2>
+<p>This document is a companion to &ldquo;DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure&rdquo; (Balboa, 2026). The primary methodology document addresses data collection, analysis methodology, confidence scoring, and epistemic correction &mdash; all within the Protocol Science lane.</p>
+<p>This companion document addresses why the analysis is structured into five perspectives (Philosophy of Analysis), why verification commands follow a Socratic pattern (Philosophy of Analysis), how communication structure accounts for multiple professional contexts (Human Factors), and how narrative architecture is maintained as infrastructure (Philosophy of Analysis).</p>
+<p>Neither document modifies the other. Protocol science findings are determined by RFC compliance and resolver evidence. Philosophical foundations explain the <em>communication architecture</em> through which those findings reach human decision-makers.</p>
+
+<hr>
+
+<div class="citation-block">
+@misc{balboa2026philfound,<br>
+&nbsp;&nbsp;author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Balboa, Carey James},<br>
+&nbsp;&nbsp;title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Philosophical Foundations for Security Analysis Communication},<br>
+&nbsp;&nbsp;year&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {2026},<br>
+&nbsp;&nbsp;note&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Companion to DNS Tool Methodology (DOI: 10.5281/zenodo.18854899)},<br>
+&nbsp;&nbsp;url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {https://dnstool.it-help.tech/foundations}<br>
+}
+</div>
+
+<div class="footer">
+  DNS Tool &middot; IT Help San Diego Inc. &middot; Licensed under BUSL-1.1<br>
+  DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a> &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>
+</div>
+
+</body>
+</html>
