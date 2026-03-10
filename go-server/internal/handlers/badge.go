@@ -603,7 +603,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         if hashDisplay == "" {
                 hashDisplay = "--------"
         }
-        lines = append(lines, cl("", fmt.Sprintf("[*] %s %s | scan #%d", scanDate, hashDisplay, scanID), alt))
+        lines = append(lines, cl("", fmt.Sprintf("[*] %s sha3:%s | scan #%d", scanDate, hashDisplay, scanID), alt))
 
         height := len(lines)*lineH + 24
 
