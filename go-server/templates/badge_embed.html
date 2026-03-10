@@ -257,7 +257,7 @@
                 reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(val);
             }
 
-            var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style);
+            var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style) + '&t=' + Date.now();
 
             preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="max-width:100%;"></a>';
             previewCard.classList.remove('d-none');
