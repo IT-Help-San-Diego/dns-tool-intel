@@ -604,7 +604,7 @@
 
                     <div class="approach-section">
                         <h2>{{icon "balance-scale" "me-2"}}The Verification Principle</h2>
-                        <p class="mb-3">DNS security analysis demands a position on this spectrum. The pressure to simplify pulls toward one extreme or the other &mdash; and the pull is rarely acknowledged. We chose the middle, and built the math to defend it.</p>
+                        <p class="mb-3">DNS security analysis demands a position on this spectrum. The pressure to simplify pulls toward one extreme or the other &mdash; and the pull is rarely acknowledged. We reject dogmatic priors; priors are protocol-specific, empirically set, and bounded away from 0 and 1 &mdash; and we built the math to defend it.</p>
 
                         <div class="verify-wrapper">
                             <div class="verify-infographic">
@@ -634,7 +634,8 @@
                                 </div>
                                 <div class="verify-formula-cell">
                                     <div class="verify-formula-label">Evidence-Weighted Update</div>
-                                    <div class="verify-formula-math verify-formula-main">\(\displaystyle P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}\)</div>
+                                    <div class="verify-formula-math verify-formula-main">\(\displaystyle P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}, \quad P(E) > 0\)</div>
+                                    <div class="verify-formula-note" style="font-size:0.7em;color:#888;margin-top:2px;">\(H\) = hypothesis (e.g., &ldquo;record is correctly configured&rdquo;)</div>
                                 </div>
                                 <div class="verify-formula-cell">
                                     <div class="verify-formula-label">Dogmatic Prior (Accusation)</div>
