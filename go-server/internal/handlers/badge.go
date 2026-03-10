@@ -614,7 +614,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         shaLine := cl("", "[*] SHA-3 (Keccak-512) NIST FIPS 202", sRed)
         shaLine.link = hashURL
         lines = append(lines, shaLine)
-        planetLine := cl("[&amp;&amp;]", "#HackThePlanet!   |  #2600", sRed)
+        planetLine := cl("&amp;&amp;", "#HackThePlanet!   |  #2600", sRed)
         planetLine.prefixColor = sRed
         planetLine.link = baseURL
         lines = append(lines, planetLine)
@@ -723,7 +723,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         planetText := "#HackThePlanet!   |  #2600"
         owlY := y - lineH + 2
-        owlX := xPad + 28 + len(planetText)*charW - 8
+        owlX := xPad + 28 + len(planetText)*charW - 14
         svg.WriteString(fmt.Sprintf(`<g transform="translate(%d,%d) scale(0.8)" opacity="0.9">`, owlX, owlY-11))
         svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
         svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
