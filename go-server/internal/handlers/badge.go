@@ -659,7 +659,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 alt, monoFont, domainDisplay,
         ))
 
-        scanTimeStr := scanTime.UTC().Format("15:04")
+        scanTimeStr := scanTime.UTC().Format("15:04") + "Z"
 
         promptY := 28
         svg.WriteString(fmt.Sprintf(
