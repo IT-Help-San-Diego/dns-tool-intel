@@ -534,8 +534,6 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         var lines []covertLine
 
-        lines = append(lines, cl("", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), sRed))
-        lines = append(lines, cl("", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), sRed))
         lines = append(lines, cl("", "", ""))
 
         lines = append(lines, cl("[*]", fmt.Sprintf("Target: %s", domainDisplay), alt))
@@ -619,9 +617,15 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         planetLine.link = baseURL
         lines = append(lines, planetLine)
 
-        height := len(lines)*lineH + 24
+        height := len(lines)*lineH + 24 + 2*lineH + 4
 
         var svg strings.Builder
+
+        cmdText := fmt.Sprintf("dnstool -R %s", domainDisplay)
+        cmdLen := len(cmdText)
+        typeTime := float64(cmdLen) * 0.06
+        cmdDoneAt := 0.8 + typeTime
+        resultStartAt := cmdDoneAt + 0.4
 
         svg.WriteString(fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Recon: %s — %s">
   <title>DNS Recon: %s — %s</title>
@@ -631,6 +635,13 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
       <stop offset="1" stop-color="#0a0000"/>
     </linearGradient>
   </defs>
+  <style>
+    @keyframes blink { 0%%,49%% {opacity:1} 50%%,100%% {opacity:0} }
+    @keyframes typeIn { from {opacity:0} to {opacity:1} }
+    @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+    .cursor { animation: blink 0.8s step-end infinite; animation-delay: 0s; }
+    .cursor-hide { animation: blink 0.8s step-end infinite; }
+  </style>
   <rect width="%d" height="%d" rx="6" fill="url(#tbg)"/>
   <rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="none" stroke="#3a1515"/>`,
                 width, height, width, height,
@@ -648,12 +659,41 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 alt, monoFont, domainDisplay,
         ))
 
-        y := 32
+        promptY := 28
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">[kali@kali]─[~/recon/%s]</text>`,
+                xPad, promptY, alt, fontSize, monoFont, domainDisplay,
+        ))
+        promptY2 := promptY + lineH
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
+                xPad, promptY2, alt, fontSize, monoFont,
+        ))
+
+        cmdX := xPad + 4*charW
+        for i, ch := range cmdText {
+                delay := 0.8 + float64(i)*0.06
+                svg.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.01s" begin="%.2fs" fill="freeze"/>%c</text>`,
+                        cmdX+i*charW, promptY2, sRed, fontSize, monoFont, delay, ch,
+                ))
+        }
+
+        cursorX := cmdX + cmdLen*charW
+        svg.WriteString(fmt.Sprintf(
+                `<rect x="%d" y="%d" width="%d" height="%d" fill="%s" class="cursor"><animate attributeName="opacity" to="0" dur="0.01s" begin="%.2fs" fill="freeze"/></rect>`,
+                cursorX, promptY2-10, charW, 12, sRed, cmdDoneAt,
+        ))
+
+        lineIdx := 0
+        y := promptY2 + lineH + 4
         for _, line := range lines {
                 if line.text == "" && line.prefix == "" {
                         y += lineH / 2
                         continue
                 }
+
+                delay := resultStartAt + float64(lineIdx)*0.12
 
                 color := line.color
                 if color == "" {
@@ -677,6 +717,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                                 pfxColor = sRed
                         }
                 }
+
+                svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, delay))
 
                 if line.link != "" {
                         svg.WriteString(fmt.Sprintf(`<a href="%s" target="_blank">`, line.link))
@@ -718,13 +760,16 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 if line.link != "" {
                         svg.WriteString(`</a>`)
                 }
+                svg.WriteString(`</g>`)
                 y += lineH
+                lineIdx++
         }
 
         planetText := "#HackThePlanet!   |  #2600"
+        owlDelay := resultStartAt + float64(lineIdx)*0.12
         owlY := y - lineH + 2
         owlX := xPad + 28 + len(planetText)*charW - 14
-        svg.WriteString(fmt.Sprintf(`<g transform="translate(%d,%d) scale(0.8)" opacity="0.9">`, owlX, owlY-11))
+        svg.WriteString(fmt.Sprintf(`<g opacity="0" transform="translate(%d,%d) scale(0.8)"><animate attributeName="opacity" from="0" to="0.9" dur="0.3s" begin="%.2fs" fill="freeze"/>`, owlX, owlY-11, owlDelay))
         svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
         svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
         svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="1.2" fill="%s"/>`, sRed))
