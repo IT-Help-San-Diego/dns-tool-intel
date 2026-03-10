@@ -1034,30 +1034,30 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         }
 
         nodePositions := []struct{ x, y int }{
-                {148, 60},
-                {208, 60},
-                {268, 60},
-                {356, 60},
-                {356, 100},
-                {148, 100},
-                {208, 100},
-                {268, 100},
-                {148, 140},
+                {155, 60},
+                {215, 60},
+                {275, 60},
+                {370, 60},
+                {370, 100},
+                {155, 100},
+                {215, 100},
+                {275, 100},
+                {370, 140},
         }
 
         var nodeSVG strings.Builder
 
         connLines := [][4]int{
-                {148, 60, 208, 60},
-                {208, 60, 268, 60},
-                {148, 100, 208, 100},
-                {268, 100, 356, 100},
-                {268, 60, 268, 100},
-                {356, 60, 356, 100},
+                {155, 60, 215, 60},
+                {215, 60, 275, 60},
+                {155, 100, 215, 100},
+                {275, 60, 275, 100},
+                {370, 60, 370, 100},
+                {370, 100, 370, 140},
         }
         for _, cl := range connLines {
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#21262d" stroke-width="1" stroke-dasharray="4,3"/>`,
+                        `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#21262d" stroke-width="1" class="topo-flow"/>`,
                         cl[0], cl[1], cl[2], cl[3],
                 ))
         }
@@ -1161,6 +1161,10 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
       <stop offset="1" stop-color="%s" stop-opacity="0"/>
     </radialGradient>
   </defs>
+  <style>
+    .topo-flow { stroke-dasharray: 4 3; animation: topodata 1.2s linear infinite; }
+    @keyframes topodata { to { stroke-dashoffset: -7; } }
+  </style>
 
   <rect width="%d" height="%d" rx="8" fill="url(#bg)"/>
   <rect x="1" y="1" width="%d" height="%d" rx="8" fill="none" stroke="%s" stroke-width="1.5"/>
@@ -1181,8 +1185,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="126" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">Email Auth</text>
-  <text x="330" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">Integrity</text>
+  <text x="215" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Email Auth</text>
+  <text x="370" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Integrity</text>
 
   %s
 

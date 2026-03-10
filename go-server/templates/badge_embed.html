@@ -260,7 +260,25 @@
 
             var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style) + '&t=' + Date.now();
 
-            preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="max-width:100%;"></a>';
+            fetch(badgeURL).then(function(r) { if (!r.ok) throw new Error('fetch failed'); return r.text(); }).then(function(svgText) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(svgText, 'image/svg+xml');
+                var svgEl = doc.querySelector('svg');
+                if (!svgEl || doc.querySelector('parsererror')) throw new Error('invalid svg');
+                svgEl.querySelectorAll('script,foreignObject').forEach(function(el) { el.remove(); });
+                svgEl.style.maxWidth = '100%';
+                svgEl.style.height = 'auto';
+                var link = document.createElement('a');
+                link.href = reportURL;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.style.display = 'block';
+                link.appendChild(svgEl);
+                preview.textContent = '';
+                preview.appendChild(link);
+            }).catch(function() {
+                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="max-width:100%;"></a>';
+            });
             previewCard.classList.remove('d-none');
             embedCard.classList.remove('d-none');
             shieldsCard.classList.remove('d-none');
