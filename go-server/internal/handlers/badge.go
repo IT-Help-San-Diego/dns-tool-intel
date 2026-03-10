@@ -384,7 +384,7 @@ func countMissing(nodes []protocolNode) int {
 func countVulnerable(nodes []protocolNode) int {
         count := 0
         for _, n := range nodes {
-                if n.status != "success" && n.status != "warning" {
+                if n.status != "success" {
                         count++
                 }
         }
@@ -582,7 +582,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         } else if vulnerable == 0 && exposure.findingCount > 0 {
                 lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", sRed))
                 lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", alt))
-        } else if vulnerable <= 2 {
+        } else if vulnerable <= 4 {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), sRed))
                 if exposure.findingCount > 0 {
                         lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
