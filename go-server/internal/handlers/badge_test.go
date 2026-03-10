@@ -261,7 +261,7 @@ func TestBadgeSVGDetailedExposure(t *testing.T) {
                         },
                 },
         }
-        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abc12345", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "secrets exposed") {
@@ -287,14 +287,14 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 "caa_analysis":     map[string]any{"status": "success"},
         }
 
-        svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "f2c73519", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "it-help.tech") {
                 t.Error("expected domain in detailed badge")
         }
-        if !strings.Contains(s, "90") {
-                t.Error("expected score 90 in detailed badge")
+        if !strings.Contains(s, "/ 9") {
+                t.Error("expected coverage denominator /9 in detailed badge")
         }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
@@ -317,7 +317,7 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 },
         }
 
-        svgFail := badgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svgFail := badgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 1, "deadbeef", "https://dnstool.it-help.tech")
         sf := string(svgFail)
 
         if !strings.Contains(sf, "failing-domain.com") {

@@ -115,7 +115,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         case "covert":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime, scanID, postureHash, h.Config.BaseURL))
         case "detailed":
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime, scanID, postureHash, h.Config.BaseURL))
         default:
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVG(domain, compactValue, riskHex))
         }
@@ -976,16 +976,15 @@ func scoreColor(score int) string {
         return "#484f58"
 }
 
-func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time) []byte {
+func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
-        score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)
 
-        sc := scoreColor(score)
         riskHex := riskColorToHex(riskColorName)
         borderColor := riskBorderColor(riskColorName)
         missing := countMissing(nodes)
+        configured := 9 - missing
 
         domainDisplay := domain
         if len(domainDisplay) > 30 {
@@ -994,9 +993,17 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
 
         scanDate := scanTime.UTC().Format("2006-01-02")
 
+        hashDisplay := postureHash
+        if len(hashDisplay) > 8 {
+                hashDisplay = hashDisplay[:8]
+        }
+        if hashDisplay == "" {
+                hashDisplay = "--------"
+        }
+
         const (
                 width  = 460
-                height = 186
+                height = 196
                 pad    = 16
 
                 gaugeR  = 34
@@ -1022,43 +1029,42 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         const endAngle = 405.0
         bgTrack := arcPath(gaugeCX, gaugeCY, gaugeR, startAngle, endAngle)
 
-        scoreAngle := startAngle
-        if score >= 0 {
-                scoreAngle = startAngle + (endAngle-startAngle)*float64(score)/100.0
-        }
-        scoreFill := arcPath(gaugeCX, gaugeCY, gaugeR, startAngle, scoreAngle)
+        coverageAngle := startAngle + (endAngle-startAngle)*float64(configured)/9.0
+        coverageFill := arcPath(gaugeCX, gaugeCY, gaugeR, startAngle, coverageAngle)
 
-        scoreText := "--"
-        if score >= 0 {
-                scoreText = strconv.Itoa(score)
+        coverageColor := "#f85149"
+        if configured >= 8 {
+                coverageColor = "#3fb950"
+        } else if configured >= 5 {
+                coverageColor = "#d29922"
         }
 
         nodePositions := []struct{ x, y int }{
-                {155, 60},
-                {215, 60},
-                {275, 60},
-                {370, 60},
-                {370, 100},
-                {155, 100},
-                {215, 100},
-                {275, 100},
-                {370, 140},
+                {155, 68},
+                {215, 68},
+                {275, 68},
+                {370, 68},
+                {370, 108},
+                {155, 108},
+                {215, 108},
+                {275, 108},
+                {370, 148},
         }
 
         var nodeSVG strings.Builder
 
         connLines := [][4]int{
-                {155, 60, 215, 60},
-                {215, 60, 275, 60},
-                {155, 100, 215, 100},
-                {275, 60, 275, 100},
-                {370, 60, 370, 100},
-                {370, 100, 370, 140},
+                {155, 68, 215, 68},
+                {215, 68, 275, 68},
+                {155, 108, 215, 108},
+                {275, 68, 275, 108},
+                {370, 68, 370, 108},
+                {370, 108, 370, 148},
         }
-        for _, cl := range connLines {
+        for _, c := range connLines {
                 nodeSVG.WriteString(fmt.Sprintf(
                         `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#21262d" stroke-width="1" class="topo-flow"/>`,
-                        cl[0], cl[1], cl[2], cl[3],
+                        c[0], c[1], c[2], c[3],
                 ))
         }
 
@@ -1130,27 +1136,29 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
                         `<text x="%d" y="%d" fill="#f85149" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
-                        width-pad, 170, missing,
+                        width-pad, 175, missing,
                 )
         }
 
         exposureSVG := ""
+        reportURL := fmt.Sprintf("%s/analyze?domain=%s", baseURL, domain)
+        exposureAnchor := fmt.Sprintf("%s/analysis/%d/view/C#secret-exposure", baseURL, scanID)
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 label := fmt.Sprintf("⚠ %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
-                yPos := 158
-                if missing > 0 {
-                        yPos = 158
-                }
+                yPos := 163
                 exposureSVG = fmt.Sprintf(
-                        `<rect x="%d" y="%d" width="%d" height="16" rx="3" fill="#f85149" fill-opacity="0.12"/>
-  <text x="%d" y="%d" fill="#ff6b6b" font-size="8" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>`,
+                        `<a href="%s" target="_blank"><rect x="%d" y="%d" width="%d" height="16" rx="3" fill="#f85149" fill-opacity="0.15" stroke="#f85149" stroke-width="0.5" cursor="pointer"/>
+  <text x="%d" y="%d" fill="#ff6b6b" font-size="8" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end" cursor="pointer">%s</text></a>`,
+                        exposureAnchor,
                         width-pad-len(label)*5-4, yPos-11, len(label)*5+8,
                         width-pad, yPos, label,
                 )
         }
 
-        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s (Score: %s)">
-  <title>DNS Tool: %s — %s (Score: %s)</title>
+        hashURL := fmt.Sprintf("%s/analysis/%d/view/C#intelligence-metadata", baseURL, scanID)
+
+        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s (%d/9)">
+  <title>DNS Tool: %s — %s (%d/9 configured)</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#161b22"/>
@@ -1171,6 +1179,16 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
 
   <circle cx="%d" cy="%d" r="60" fill="url(#glow)"/>
 
+  <a href="%s" target="_blank">
+    <g transform="translate(%d, 10) scale(1.1)">
+      <circle cx="4" cy="5" r="3" fill="none" stroke="#6e7681" stroke-width="1"/>
+      <circle cx="12" cy="5" r="3" fill="none" stroke="#6e7681" stroke-width="1"/>
+      <circle cx="4" cy="5" r="1.2" fill="%s"/>
+      <circle cx="12" cy="5" r="1.2" fill="%s"/>
+      <path d="M7,3 L8,0 L9,3" fill="none" stroke="#6e7681" stroke-width="0.8"/>
+      <path d="M3,8 Q8,14 13,8" fill="none" stroke="#6e7681" stroke-width="0.8"/>
+    </g>
+  </a>
   <text x="%d" y="26" fill="#e6edf3" font-size="14" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
   <text x="%d" y="26" fill="#484f58" font-size="10" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>
 
@@ -1179,14 +1197,14 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
   <path d="%s" fill="none" stroke="#21262d" stroke-width="6" stroke-linecap="round"/>
   <path d="%s" fill="none" stroke="%s" stroke-width="6" stroke-linecap="round"/>
 
-  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="22" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>
-  <text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">/ 100</text>
+  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="22" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%d</text>
+  <text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">/ 9</text>
 
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="215" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Email Auth</text>
-  <text x="370" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Integrity</text>
+  <text x="215" y="54" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Email Auth</text>
+  <text x="370" y="54" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Integrity</text>
 
   %s
 
@@ -1194,29 +1212,39 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
 
   %s
 
-  <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">dnstool.it-help.tech</text>
+  <a href="%s" target="_blank">
+    <text x="%d" y="%d" fill="#484f58" font-size="8" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace" cursor="pointer">sha3:%s</text>
+  </a>
+  <a href="%s" target="_blank">
+    <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" cursor="pointer">dnstool.it-help.tech</text>
+  </a>
   <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">Scanned %s</text>
 </svg>`,
                 width, height, width, height,
-                domain, riskLabel, scoreText,
-                domain, riskLabel, scoreText,
-                sc, sc,
+                domain, riskLabel, configured,
+                domain, riskLabel, configured,
+                coverageColor, coverageColor,
                 width, height,
                 width-2, height-2, borderColor,
                 gaugeCX, gaugeCY,
-                pad, domainDisplay,
+                reportURL,
+                pad, riskHex, riskHex,
+                pad+20, domainDisplay,
                 width-pad, scanDate,
                 pad, width-pad,
                 bgTrack,
-                scoreFill, sc,
-                gaugeCX, gaugeCY+6, sc, scoreText,
+                coverageFill, coverageColor,
+                gaugeCX, gaugeCY+6, coverageColor, configured,
                 gaugeCX, gaugeCY+16,
-                20, 148, riskHex,
-                26, 159, riskHex, riskLabel,
+                20, 155, riskHex,
+                26, 166, riskHex, riskLabel,
                 nodeSVG.String(),
                 missingSVG,
                 exposureSVG,
-                pad, height-6,
+                hashURL,
+                pad, height-6, hashDisplay,
+                reportURL,
+                pad+70, height-6,
                 width-pad, height-6, scanDate,
         )
 
