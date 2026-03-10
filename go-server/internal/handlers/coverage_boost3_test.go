@@ -1245,7 +1245,7 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
                 "spf_analysis":  map[string]any{"status": "success"},
                 "dkim_analysis": map[string]any{"status": "success"},
         }
-        svg := badgeSVGCovert("example.com", results, time.Now(), 1, "testhashtesttest")
+        svg := badgeSVGCovert("example.com", results, time.Now(), 1, "testhashtesttest", "https://dnstool.it-help.tech")
         if len(svg) == 0 {
                 t.Error("expected non-empty SVG")
         }

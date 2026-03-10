@@ -115,7 +115,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "caa_analysis":     map[string]any{"status": "success"},
         }
 
-        svg := badgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abcd1234efgh5678")
+        svg := badgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abcd1234efgh5678", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "<svg") {
@@ -148,7 +148,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 },
         }
 
-        svgCrit := badgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "deadbeef12345678")
+        svgCrit := badgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "deadbeef12345678", "https://dnstool.it-help.tech")
         sc := string(svgCrit)
 
         if !strings.Contains(sc, "Wide Open") {
@@ -177,7 +177,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "bimi_analysis":    map[string]any{"status": "warning"},
                 "caa_analysis":     map[string]any{"status": "success"},
         }
-        svgWarn := badgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 77, "face0ff0babe1234")
+        svgWarn := badgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 77, "face0ff0babe1234", "https://dnstool.it-help.tech")
         sw := string(svgWarn)
 
         if !strings.Contains(sw, "[~]") {
@@ -223,7 +223,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                         },
                 },
         }
-        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 55, "cafebabe90ab1234")
+        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 55, "cafebabe90ab1234", "https://dnstool.it-help.tech")
         se := string(svgExp)
 
         if !strings.Contains(se, "[!!]") {
