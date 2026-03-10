@@ -9,12 +9,14 @@ import "context"
 
 func (s *Scanner) CheckLLMSTxt(ctx context.Context, domain string) map[string]any {
         return map[string]any{
-                "found":      false,
-                "full_found": false,
-                "url":        nil,
-                "full_url":   nil,
-                "fields":     map[string]any{},
-                "evidence":   []Evidence{},
+                "found":        false,
+                "full_found":   false,
+                "url":          nil,
+                "full_url":     nil,
+                "fields":       map[string]any{},
+                "content":      "",
+                "full_content": "",
+                "evidence":     []Evidence{},
         }
 }
 
