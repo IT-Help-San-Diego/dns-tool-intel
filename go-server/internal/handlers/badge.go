@@ -621,7 +621,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         var svg strings.Builder
 
-        cmdText := fmt.Sprintf("dnstool -R %s", domainDisplay)
+        cmdText := fmt.Sprintf("dnstool -R -BC %s", domainDisplay)
         cmdLen := len(cmdText)
         typeTime := float64(cmdLen) * 0.06
         cmdDoneAt := 0.8 + typeTime
