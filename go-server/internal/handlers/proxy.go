@@ -21,10 +21,14 @@ import (
 const (
         bimiMaxRedirects     = 5
         bimiMaxResponseBytes = 512 * 1024
+        bimiUserAgent        = "DNS-Analyzer/1.0 BIMI-Logo-Fetcher"
+        hdrUserAgent         = "User-Agent"
+        msgInternalError     = "Internal error"
+        ctSVGXML             = "image/svg+xml"
 )
 
 var bimiAllowedContentTypes = map[string]bool{
-        "image/svg+xml": true,
+        ctSVGXML: true,
         "image/png":     true,
         "image/jpeg":    true,
         "image/gif":     true,
@@ -72,10 +76,10 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
         req, err := http.NewRequestWithContext(c.Request.Context(), "GET", safeURL, nil)
         if err != nil {
                 slog.Error("Failed to create BIMI request", "error", err)
-                c.String(http.StatusInternalServerError, "Internal error")
+                c.String(http.StatusInternalServerError, msgInternalError)
                 return
         }
-        req.Header.Set("User-Agent", "DNS-Analyzer/1.0 BIMI-Logo-Fetcher")
+        req.Header.Set(hdrUserAgent, bimiUserAgent)
 
         resp, err := client.Do(req)
         if err != nil {
@@ -184,10 +188,10 @@ func (h *ProxyHandler) followRedirects(c *gin.Context, client *http.Client, resp
                 req, err := http.NewRequestWithContext(c.Request.Context(), "GET", validatedRedirect, nil)
                 if err != nil {
                         slog.Error("Failed to create redirect request", "error", err)
-                        c.String(http.StatusInternalServerError, "Internal error")
+                        c.String(http.StatusInternalServerError, msgInternalError)
                         return nil, err
                 }
-                req.Header.Set("User-Agent", "DNS-Analyzer/1.0 BIMI-Logo-Fetcher")
+                req.Header.Set(hdrUserAgent, bimiUserAgent)
                 resp, err = client.Do(req)
                 if err != nil {
                         c.String(http.StatusBadGateway, "Failed to follow redirect")
@@ -219,7 +223,7 @@ func validateBIMIResponse(resp *http.Response) ([]byte, string, error) {
 
         safeCT := strings.TrimSpace(strings.Split(strings.ToLower(contentType), ";")[0])
         if !bimiAllowedContentTypes[safeCT] {
-                safeCT = "image/svg+xml"
+                safeCT = ctSVGXML
         }
         return body, safeCT, nil
 }
@@ -249,10 +253,10 @@ func (h *ProxyHandler) SonarBadge(c *gin.Context) {
         req, err := http.NewRequestWithContext(c.Request.Context(), "GET", badgeURL, nil)
         if err != nil {
                 slog.Error("Failed to create SonarCloud badge request", "key", key, "error", err)
-                c.String(http.StatusInternalServerError, "Internal error")
+                c.String(http.StatusInternalServerError, msgInternalError)
                 return
         }
-        req.Header.Set("User-Agent", "DNS-Tool/1.0 Badge-Proxy")
+        req.Header.Set(hdrUserAgent, "DNS-Tool/1.0 Badge-Proxy")
 
         resp, err := client.Do(req)
         if err != nil {
@@ -275,7 +279,7 @@ func (h *ProxyHandler) SonarBadge(c *gin.Context) {
 
         c.Header("Cache-Control", "public, max-age=300, stale-while-revalidate=60")
         c.Header("X-Content-Type-Options", "nosniff")
-        c.Data(http.StatusOK, "image/svg+xml", body)
+        c.Data(http.StatusOK, ctSVGXML, body)
 }
 
 type validationError struct {

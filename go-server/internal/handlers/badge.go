@@ -30,6 +30,19 @@ const (
         mapKeyLabel      = "label"
         mapKeyLightgrey  = "lightgrey"
         strSchemaversion = "schemaVersion"
+
+        hexRed       = "#f85149"
+        hexGreen     = "#3fb950"
+        hexYellow    = "#d29922"
+        hexScGreen   = "#58E790"
+        hexScYellow  = "#C7C400"
+        hexScRed     = "#B43C29"
+        hexDimGrey   = "#30363d"
+
+        protoMTASTS = "MTA-STS"
+        protoTLSRPT = "TLS-RPT"
+        protoDMARC  = "DMARC"
+        protoDNSSEC = "DNSSEC"
 )
 
 type BadgeHandler struct {
@@ -104,7 +117,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         }
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
-                riskHex = "#f85149"
+                riskHex = hexRed
         }
 
         c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -174,9 +187,9 @@ func extractPostureRisk(results map[string]any) (string, string) {
 func riskColorToHex(color string) string {
         switch color {
         case "success":
-                return "#3fb950"
+                return hexGreen
         case "warning":
-                return "#d29922"
+                return hexYellow
         case "danger":
                 return colorDanger
         default:
@@ -187,11 +200,11 @@ func riskColorToHex(color string) string {
 func scotopicRiskColor(color string) string {
         switch color {
         case "success":
-                return "#58E790"
+                return hexScGreen
         case "warning":
-                return "#C7C400"
+                return hexScYellow
         case "danger":
-                return "#B43C29"
+                return hexScRed
         default:
                 return "#9C7645"
         }
@@ -369,7 +382,7 @@ func riskBorderColor(riskColorName string) string {
         case "danger":
                 return "#da3633"
         default:
-                return "#30363d"
+                return hexDimGrey
         }
 }
 
@@ -410,7 +423,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
         }
         dots := strings.Repeat(".", pad)
 
-        sRed := "#B43C29"
+        sRed := hexScRed
 
         label := abbrev + " " + dots + " "
 
@@ -431,7 +444,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
                         return covertLine{prefix: "[~]", text: label, color: sRed, desc: "weak key — forgery harder", descColor: sRed}
                 }
                 return covertLine{prefix: "[-]", text: label, color: sRed, desc: "message forgery possible", descColor: sRed}
-        case "DMARC":
+        case protoDMARC:
                 if status == "success" {
                         return covertLine{prefix: "[+]", text: label, color: sRed, desc: "spoofing rejected at gate", descColor: sRed}
                 }
@@ -439,7 +452,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
                         return covertLine{prefix: "[~]", text: label, color: sRed, desc: "monitoring only — not blocking", descColor: sRed}
                 }
                 return covertLine{prefix: "[-]", text: label, color: sRed, desc: "email spoofing wide open", descColor: sRed}
-        case "DNSSEC":
+        case protoDNSSEC:
                 if status == "success" {
                         return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't poison DNS cache", descColor: sRed}
                 }
@@ -455,7 +468,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
                         return covertLine{prefix: "[~]", text: label, color: sRed, desc: "TLSA present but weak", descColor: sRed}
                 }
                 return covertLine{prefix: "[-]", text: label, color: sRed, desc: "TLS downgrade possible", descColor: sRed}
-        case "MTA-STS":
+        case protoMTASTS:
                 if status == "success" {
                         return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't intercept mail", descColor: sRed}
                 }
@@ -463,7 +476,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
                         return covertLine{prefix: "[~]", text: label, color: sRed, desc: "testing mode — not enforcing", descColor: sRed}
                 }
                 return covertLine{prefix: "[-]", text: label, color: sRed, desc: "mail interception possible", descColor: sRed}
-        case "TLS-RPT":
+        case protoTLSRPT:
                 if status == "success" {
                         return covertLine{prefix: "[+]", text: label, color: sRed, desc: "transport monitored", descColor: sRed}
                 }
@@ -523,7 +536,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 monoFont = "'Hack','Fira Code','JetBrains Mono','Menlo','Monaco','Source Code Pro','SF Mono','Ubuntu Mono','Courier New',monospace"
         )
 
-        sRed := "#B43C29"
+        sRed := hexScRed
         alt := "#664d2e"
         locked := "#58E790"
         dimLocked := "#2d7a47"
@@ -540,7 +553,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         lines = append(lines, cl("[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), scotopicRiskColor(riskColorName)))
         lines = append(lines, cl("", "", ""))
 
-        protocols := []string{"SPF", "DKIM", "DMARC", "DNSSEC", "DANE", "MTA-STS", "TLS-RPT", "BIMI", "CAA"}
+        protocols := []string{"SPF", "DKIM", protoDMARC, protoDNSSEC, "DANE", protoMTASTS, protoTLSRPT, "BIMI", "CAA"}
         for i, p := range protocols {
                 if i < len(nodes) {
                         lines = append(lines, covertProtocolLine(p, nodes[i].status))
@@ -822,12 +835,12 @@ type protocolNode struct {
 
 func protocolGroupColor(abbrev string) string {
         switch abbrev {
-        case "SPF", "DKIM", "DMARC":
+        case "SPF", "DKIM", protoDMARC:
                 return "#4a8fe7"
-        case "DNSSEC":
-                return "#d29922"
-        case "DANE", "MTA-STS", "TLS-RPT":
-                return "#3fb950"
+        case protoDNSSEC:
+                return hexYellow
+        case "DANE", protoMTASTS, protoTLSRPT:
+                return hexGreen
         case "BIMI":
                 return "#a371f7"
         case "CAA":
@@ -842,11 +855,11 @@ func protocolStatusToNodeColor(status, groupColor string) string {
         case "success":
                 return groupColor
         case "warning":
-                return "#d29922"
+                return hexYellow
         case "error":
-                return "#f85149"
+                return hexRed
         default:
-                return "#30363d"
+                return hexDimGrey
         }
 }
 
@@ -857,11 +870,11 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
         }{
                 {"spf_analysis", "SPF"},
                 {"dkim_analysis", "DKIM"},
-                {"dmarc_analysis", "DMARC"},
-                {"dnssec_analysis", "DNSSEC"},
+                {"dmarc_analysis", protoDMARC},
+                {"dnssec_analysis", protoDNSSEC},
                 {"dane_analysis", "DANE"},
-                {"mta_sts_analysis", "MTA-STS"},
-                {"tlsrpt_analysis", "TLS-RPT"},
+                {"mta_sts_analysis", protoMTASTS},
+                {"tlsrpt_analysis", protoTLSRPT},
                 {"bimi_analysis", "BIMI"},
                 {"caa_analysis", "CAA"},
         }
@@ -965,13 +978,13 @@ func extractPostureScore(results map[string]any) int {
 
 func scoreColor(score int) string {
         if score >= 80 {
-                return "#3fb950"
+                return hexGreen
         }
         if score >= 50 {
-                return "#d29922"
+                return hexYellow
         }
         if score >= 0 {
-                return "#f85149"
+                return hexRed
         }
         return "#484f58"
 }
@@ -1032,11 +1045,11 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         coverageAngle := startAngle + (endAngle-startAngle)*float64(configured)/9.0
         coverageFill := arcPath(gaugeCX, gaugeCY, gaugeR, startAngle, coverageAngle)
 
-        coverageColor := "#f85149"
+        coverageColor := hexRed
         if configured >= 8 {
-                coverageColor = "#3fb950"
+                coverageColor = hexGreen
         } else if configured >= 5 {
-                coverageColor = "#d29922"
+                coverageColor = hexYellow
         }
 
         nodePositions := []struct{ x, y int }{
@@ -1086,14 +1099,14 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         fillOpacity = "0.15"
                         strokeW = 2
                 } else if n.status == "error" {
-                        fillColor = "#f85149"
+                        fillColor = hexRed
                         fillOpacity = "0.12"
-                        strokeColor = "#f85149"
+                        strokeColor = hexRed
                         strokeW = 2
                 } else {
                         fillColor = "#f8514910"
                         fillOpacity = "0.05"
-                        strokeColor = "#f85149"
+                        strokeColor = hexRed
                         strokeW = 1
                 }
 
@@ -1113,16 +1126,16 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 if n.status == "missing" || n.status == "error" {
                         xOff := 5
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff,
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
                         ))
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff,
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
                         ))
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" text-anchor="middle" fill="#f85149" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" opacity="0.6">%s</text>`,
-                                pos.x, pos.y+r+10, abbrevSize, n.abbrev,
+                                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" opacity="0.6">%s</text>`,
+                                pos.x, pos.y+r+10, hexRed, abbrevSize, n.abbrev,
                         ))
                 } else {
                         nodeSVG.WriteString(fmt.Sprintf(
@@ -1135,8 +1148,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         missingSVG := ""
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
-                        `<text x="%d" y="%d" fill="#f85149" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
-                        width-pad, 195, missing,
+                        `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
+                        width-pad, 195, hexRed, missing,
                 )
         }
 
@@ -1147,10 +1160,10 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 label := fmt.Sprintf("⚠ %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
                 yPos := 183
                 exposureSVG = fmt.Sprintf(
-                        `<a href="%s" target="_blank"><rect x="%d" y="%d" width="%d" height="16" rx="3" fill="#f85149" fill-opacity="0.15" stroke="#f85149" stroke-width="0.5" cursor="pointer"/>
+                        `<a href="%s" target="_blank"><rect x="%d" y="%d" width="%d" height="16" rx="3" fill="%s" fill-opacity="0.15" stroke="%s" stroke-width="0.5" cursor="pointer"/>
   <text x="%d" y="%d" fill="#ff6b6b" font-size="8" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end" cursor="pointer">%s</text></a>`,
                         exposureAnchor,
-                        width-pad-len(label)*5-4, yPos-11, len(label)*5+8,
+                        width-pad-len(label)*5-4, yPos-11, len(label)*5+8, hexRed, hexRed,
                         width-pad, yPos, label,
                 )
         }
