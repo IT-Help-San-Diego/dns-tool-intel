@@ -376,7 +376,7 @@ func TestCovertLabels(t *testing.T) {
                 wantTag    string
         }{
                 {"Low Risk", "Hardened", "Good luck with that."},
-                {"Medium Risk", "Partial", "Getting there."},
+                {"Medium Risk", "Partial", "Gaps in the armor."},
                 {"High Risk", "Exposed", "Door's open."},
                 {"Critical Risk", "Wide Open", "Free real estate."},
         }
