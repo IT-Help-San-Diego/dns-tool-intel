@@ -363,6 +363,16 @@ func countMissing(nodes []protocolNode) int {
         return count
 }
 
+func countVulnerable(nodes []protocolNode) int {
+        count := 0
+        for _, n := range nodes {
+                if n.status != "success" && n.status != "warning" {
+                        count++
+                }
+        }
+        return count
+}
+
 type covertLine struct {
         prefix  string
         text    string
@@ -463,7 +473,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
-        missing := countMissing(nodes)
+        vulnerable := countVulnerable(nodes)
 
         covertLabel := covertRiskLabel(riskLabel)
         tagline := covertTagline(riskLabel)
@@ -496,7 +506,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         var lines []covertLine
 
         lines = append(lines, covertLine{"", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimGreen})
-        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dns-tool --target %s --recon", domainDisplay), "#aaaaaa"})
+        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), "#aaaaaa"})
         lines = append(lines, covertLine{"", "", ""})
 
         scoreColor := green
@@ -520,16 +530,16 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
 
         lines = append(lines, covertLine{"", "", ""})
 
-        if missing == 0 {
+        if vulnerable == 0 {
                 lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", green})
                 lines = append(lines, covertLine{"[!]", tagline, dimGreen})
-        } else if missing <= 2 {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", missing, pluralS(missing)), amber})
+        } else if vulnerable <= 2 {
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), amber})
                 if tagline != "" {
                         lines = append(lines, covertLine{"[!]", tagline, dimRed})
                 }
         } else {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", missing), red})
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), red})
                 if tagline != "" {
                         lines = append(lines, covertLine{"[!]", tagline, red})
                 }
@@ -563,7 +573,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
   <circle cx="16" cy="10" r="4" fill="#ff5f57"/>
   <circle cx="28" cy="10" r="4" fill="#febc2e"/>
   <circle cx="40" cy="10" r="4" fill="#28c840"/>
-  <text x="60" y="13" fill="#666" font-size="9" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">recon — %s</text>`,
+  <text x="60" y="13" fill="#666" font-size="9" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">kali@kali: ~/recon/%s</text>`,
                 domainDisplay,
         ))
 
