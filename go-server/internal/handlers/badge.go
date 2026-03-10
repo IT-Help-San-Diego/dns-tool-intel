@@ -350,7 +350,7 @@ func covertTagline(riskLabel string) string {
         case "Low Risk":
                 return "Good luck with that."
         case "Medium Risk":
-                return "Getting there."
+                return "Gaps in the armor."
         case "High Risk":
                 return "Door's open."
         case "Critical Risk":
