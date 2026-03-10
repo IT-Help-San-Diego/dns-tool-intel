@@ -40,7 +40,7 @@ func (s *Scanner) Scan(ctx context.Context, domain string) map[string]any {
         return map[string]any{
                 "status":         "info",
                 "message":        "AI surface scanning not available in stub version",
-                "llms_txt":       map[string]any{"found": false, "full_found": false, "url": nil, "full_url": nil, "fields": map[string]any{}, "evidence": []map[string]any{}},
+                "llms_txt":       map[string]any{"found": false, "full_found": false, "url": nil, "full_url": nil, "fields": map[string]any{}, "content": "", "full_content": "", "evidence": []map[string]any{}},
                 "robots_txt":     map[string]any{"found": false, "url": nil, "blocks_ai_crawlers": false, "allows_ai_crawlers": false, "blocked_crawlers": []string{}, "allowed_crawlers": []string{}, "directives": []map[string]any{}, "evidence": []map[string]any{}},
                 "poisoning":      map[string]any{"status": "success", "message": "No AI recommendation poisoning indicators found", "ioc_count": 0, "iocs": []map[string]any{}, "evidence": []map[string]any{}},
                 "hidden_prompts": map[string]any{"status": "success", "message": "No hidden prompt-like artifacts found", "artifact_count": 0, "artifacts": []map[string]any{}, "evidence": []map[string]any{}},
