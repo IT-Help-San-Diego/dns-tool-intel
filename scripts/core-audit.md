@@ -25,7 +25,7 @@ The agent will launch parallel architect calls, one per persona, and compile res
 2. Is the JSON-LD schema markup accurate and not misleading? Could Google flag it?
 3. Does the executive report inspire confidence for a board-level audience?
 4. Are there any liability concerns — promises the tool can't keep?
-5. Is the "no login required" / open-source positioning clear and credible?
+5. Is the "no login required" / open-core positioning clear and credible?
 6. Brand consistency issues (naming, tone, professionalism)?
 7. Would a competitor point to inaccuracies or overstatements?
 
