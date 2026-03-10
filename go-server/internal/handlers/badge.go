@@ -723,7 +723,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         planetText := "#HackThePlanet!   |  #2600"
         owlY := y - lineH + 2
-        owlX := xPad + 28 + len(planetText)*charW + 6
+        owlX := xPad + 28 + len(planetText)*charW - 8
         svg.WriteString(fmt.Sprintf(`<g transform="translate(%d,%d) scale(0.8)" opacity="0.9">`, owlX, owlY-11))
         svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
         svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
