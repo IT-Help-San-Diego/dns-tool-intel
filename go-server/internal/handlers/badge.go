@@ -617,7 +617,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         planetLine.link = baseURL
         lines = append(lines, planetLine)
 
-        height := len(lines)*lineH + 24 + 2*lineH + 4
+        height := len(lines)*lineH + 24 + 2*lineH + 4 + lineH + 6
 
         var svg strings.Builder
 
@@ -681,8 +681,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         cursorX := cmdX + cmdLen*charW
         svg.WriteString(fmt.Sprintf(
-                `<rect x="%d" y="%d" width="%d" height="%d" fill="%s" class="cursor"><animate attributeName="opacity" to="0" dur="0.01s" begin="%.2fs" fill="freeze"/></rect>`,
-                cursorX, promptY2-10, charW, 12, sRed, cmdDoneAt,
+                `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"><animate attributeName="opacity" to="0" dur="0.01s" begin="%.2fs" fill="freeze"/></rect>`,
+                cursorX, promptY2-10, 12, sRed, cmdDoneAt,
         ))
 
         lineIdx := 0
@@ -776,6 +776,19 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="1.2" fill="%s"/>`, sRed))
         svg.WriteString(fmt.Sprintf(`<path d="M7,3 L8,0 L9,3" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
         svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
+        svg.WriteString(`</g>`)
+
+        bottomPromptY := y + 6
+        bottomDelay := owlDelay + 0.3
+        svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, bottomDelay))
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
+                xPad, bottomPromptY, alt, fontSize, monoFont,
+        ))
+        svg.WriteString(fmt.Sprintf(
+                `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"/>`,
+                xPad+4*charW, bottomPromptY-10, 12, sRed,
+        ))
         svg.WriteString(`</g>`)
 
         svg.WriteString(`</svg>`)
