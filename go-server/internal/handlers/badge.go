@@ -113,7 +113,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 
         switch style {
         case "covert":
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime, scanID, postureHash))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVGCovert(domain, results, scanTime, scanID, postureHash, h.Config.BaseURL))
         case "detailed":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
         default:
@@ -400,6 +400,7 @@ type covertLine struct {
         prefixColor string
         desc        string
         descColor   string
+        link        string
 }
 
 func covertProtocolLine(abbrev, status string) covertLine {
@@ -491,7 +492,7 @@ func covertProtocolLine(abbrev, status string) covertLine {
         }
 }
 
-func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string) []byte {
+func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
         nodes := extractProtocolIndicators(results)
@@ -568,7 +569,9 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                         } else if f.severity == "high" {
                                 sevTag = " [HIGH]"
                         }
-                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), alt))
+                        findingLine := cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), alt)
+                        findingLine.link = fmt.Sprintf("%s/analysis/%d/view/C#secret-exposure", baseURL, scanID)
+                        lines = append(lines, findingLine)
                 }
                 lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", sRed))
         }
@@ -603,8 +606,14 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         if hashDisplay == "" {
                 hashDisplay = "--------"
         }
-        lines = append(lines, cl("", fmt.Sprintf("[*] %s sha3:%s | scan #%d", scanDate, hashDisplay, scanID), alt))
-        lines = append(lines, cl("", "[*] SHA-3 (Keccak-512) NIST FIPS 202", alt))
+        reportURL := fmt.Sprintf("%s/analyze?domain=%s", baseURL, domain)
+        hashURL := fmt.Sprintf("%s/analysis/%d/view/C#intelligence-metadata", baseURL, scanID)
+        scanLine := cl("", fmt.Sprintf("[*] %s sha3:%s | scan #%d", scanDate, hashDisplay, scanID), alt)
+        scanLine.link = reportURL
+        lines = append(lines, scanLine)
+        shaLine := cl("", "[*] SHA-3 (Keccak-512) NIST FIPS 202", sRed)
+        shaLine.link = hashURL
+        lines = append(lines, shaLine)
 
         height := len(lines)*lineH + 24
 
@@ -665,6 +674,10 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                         }
                 }
 
+                if line.link != "" {
+                        svg.WriteString(fmt.Sprintf(`<a href="%s" target="_blank">`, line.link))
+                }
+
                 if line.prefix != "" {
                         svg.WriteString(fmt.Sprintf(
                                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
@@ -696,6 +709,10 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
                                 xPad, y, color, fontSize, monoFont, line.text,
                         ))
+                }
+
+                if line.link != "" {
+                        svg.WriteString(`</a>`)
                 }
                 y += lineH
         }
