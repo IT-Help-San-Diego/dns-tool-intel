@@ -65,8 +65,9 @@ This is not a claim that DNS Tool conducts live Socratic dialogue with the user.
 - Benson, H. H. (2011). "Socratic Method." In *The Cambridge Companion to Socrates*. Cambridge University Press.
 
 **In computer science (pedagogical and verification contexts):**
-- Anderson, R. (1987). "The Socratic Method in Computer Science Education." *ACM SIGCSE Bulletin*, 19(1). DOI: [10.1145/31726.31755](https://doi.org/10.1145/31726.31755)
-- Wei, Y. et al. (2024). "Socratic Human Feedback for Code Generation." *Findings of EMNLP 2024*. DOI: [10.18653/v1/2024.findings-emnlp.908](https://doi.org/10.18653/v1/2024.findings-emnlp.908)
+- Wilson, J. D. (1987). "A Socratic approach to helping novice programmers debug programs." *ACM SIGCSE Bulletin*, 19(1). DOI: [10.1145/31726.31755](https://doi.org/10.1145/31726.31755)
+- Chidambaram, S. et al. (2024). "Socratic Human Feedback (SoHF): Expert Steering Strategies for LLM Code Generation." *Findings of EMNLP 2024*. DOI: [10.18653/v1/2024.findings-emnlp.908](https://doi.org/10.18653/v1/2024.findings-emnlp.908)
+- Krishnamurthy, B. et al. (2011). "A Socratic method for validation of measurement-based networking research." *Computer Communications*, 34(1). DOI: [10.1016/j.comcom.2010.09.014](https://doi.org/10.1016/j.comcom.2010.09.014)
 
 **Bridging claim:** While the CS literature primarily applies Socratic method to pedagogy and code generation feedback, DNS Tool extends the pattern to *analytical verification* — the reader is not a student being taught but an analyst being equipped to independently falsify the platform's claims. This application appears uncommon in the OSINT and security tooling space, though not unprecedented in the broader software verification literature.
 
@@ -94,20 +95,21 @@ DNS Tool's Five Perspectives architecture — Intelligence Officer, DNS Engineer
 - Aristotle. *Rhetoric* (c. 350 BCE). Book I, Chapters 2–3 (ethos, pathos, logos); *Nicomachean Ethics*, Book VI (phronesis, techne).
 
 **In peer-reviewed communication science:**
-- Turnbull, B. (2018). "Ethos, pathos, logos: a script for clinical communication." *Journal of Pharmacy Practice and Research*, 48(4). DOI: [10.1002/jppr.1468](https://doi.org/10.1002/jppr.1468)
+- Alderman, C. (2018). "Ethos, pathos, logos: a script for clinical communication." *Journal of Pharmacy Practice and Research*, 48(4). DOI: [10.1002/jppr.1468](https://doi.org/10.1002/jppr.1468)
 
 **In peer-reviewed information systems and cybersecurity:**
-- IEEE TPC (2010). "Ethos, Pathos, Logos, Kairos: Using a Rhetorical Heuristic to Mediate Digital-Tool Use." *IEEE Transactions on Professional Communication*, 53(4). DOI: [10.1109/TPC.2010.2052856](https://doi.org/10.1109/TPC.2010.2052856)
-- Kearney, W. D. & Kruger, H. A. (2023). "Seeking rhetorical validity in fear appeal research in information security." *Computers & Security*, 125. DOI: [10.1016/j.cose.2022.103020](https://doi.org/10.1016/j.cose.2022.103020)
+- Rife, M. C. (2010). "Ethos, Pathos, Logos, Kairos: Using a Rhetorical Heuristic to Mediate Digital-Survey Recruitment Strategies." *IEEE Transactions on Professional Communication*, 53(4). DOI: [10.1109/TPC.2010.2052856](https://doi.org/10.1109/TPC.2010.2052856)
+- Johnston, A. et al. (2023). "Seeking rhetorical validity in fear appeal research: An application of rhetorical theory." *Computers & Security*, 125. DOI: [10.1016/j.cose.2022.103020](https://doi.org/10.1016/j.cose.2022.103020)
 - Johnston, A. C. & Warkentin, M. (2010). "Fear Appeals and Information Security Behaviors." *MIS Quarterly*, 34(3). DOI: [10.2307/25750691](https://doi.org/10.2307/25750691)
 
 **In phronesis and engineering/professional judgment:**
 - Hilton, S. R. & Slotnick, H. B. (2005). "Proto-professionalism: how professionalisation occurs across the continuum of medical education." *Medical Education*, 39(1). (Phronesis in professional practice.)
-- Tynjälä, P. et al. (2020). "Phronesis in Medical Ethics: Courage and Motivation to Be a Good Doctor." *Health Care Analysis*, 28. DOI: [10.1007/s10728-020-00398-7](https://doi.org/10.1007/s10728-020-00398-7)
+- Malik, A. et al. (2020). "Phronesis in Medical Ethics: Courage and Motivation to Keep on the Track of Rightness in Decision-Making." *Health Care Analysis*, 28. DOI: [10.1007/s10728-020-00398-7](https://doi.org/10.1007/s10728-020-00398-7)
 - Goldkuhl, G. (2012). "Pragmatism vs interpretivism in qualitative information systems research." *European Journal of Information Systems*, 21(2). DOI: [10.1057/ejis.2011.54](https://doi.org/10.1057/ejis.2011.54)
 
 **In systems engineering:**
-- Calvo-Amodio, J. et al. (2016). "Phronesis in Systems Engineering." *INCOSE International Symposium*, 26(1). DOI: [10.1002/j.2334-5837.2016.00263.x](https://doi.org/10.1002/j.2334-5837.2016.00263.x)
+- Arrichiello, V. (2016). "Systems Engineer: the ultimate phronetic leader?" *INCOSE International Symposium*, 26(1). DOI: [10.1002/j.2334-5837.2016.00263.x](https://doi.org/10.1002/j.2334-5837.2016.00263.x)
+- Hylving, L. & Koutsikouri, D. (2016). "Putting Phronesis to Work in Digital Innovation." *HICSS 2016*. DOI: [10.1109/HICSS.2016.574](https://doi.org/10.1109/HICSS.2016.574)
 
 ### 3.4 Disciplinary Note
 
@@ -175,13 +177,13 @@ When a new philosophical, analytical, or scientific framework is proposed for in
 3. **Map to the matrix** — which content zones does it touch?
 4. **Respect claim boundaries** — does it affect PROTECTED or CREATIVE-SAFE content?
 5. **Cross-reference with existing structures** — does it complement or conflict with current mappings?
-6. **Document the citation with lane tags** — add to the Citation Matrix (Section 5) with explicit domain classification
+6. **Document the citation with lane tags** — add to the Citation Matrix (Section 5) with a primary lane and any secondary relevance tags
 
 ---
 
 ## 5. Citation Matrix
 
-All citations organized by discipline lane with explicit lane assignment. Every citation maps to exactly one of the three declared lanes (Protocol Science, Human Factors, Philosophy of Analysis) to prevent cross-lane conflation.
+All citations organized by discipline lane. Each citation has one primary lane and may include secondary relevance tags, reflecting the interdisciplinary nature of the literature. Strict single-lane assignment would be administratively clean but academically dishonest for inherently cross-disciplinary sources.
 
 ### 5.1 Philosophy of Analysis
 
@@ -191,23 +193,27 @@ All citations organized by discipline lane with explicit lane assignment. Every 
 | Aristotle. *Nicomachean Ethics*, Book VI. | — | Philosophy of Analysis | Phronesis (practical wisdom) — Executive perspective; Techne (craft) — IT Pro perspective |
 | Vlastos, G. (1983). "The Socratic Elenchus." *Oxford Studies in Ancient Philosophy*, 1, 27–58. | — | Philosophy of Analysis | Socratic verification workflow structure |
 | Benson, H. H. (2011). "Socratic Method." *The Cambridge Companion to Socrates*. | — | Philosophy of Analysis | Elenchus definition and scope |
-| Anderson, R. (1987). "The Socratic Method in Computer Science Education." *ACM SIGCSE Bulletin*. | [10.1145/31726.31755](https://doi.org/10.1145/31726.31755) | Philosophy of Analysis | Socratic method applied in CS pedagogical context |
-| Wei, Y. et al. (2024). "Socratic Human Feedback." *Findings of EMNLP 2024*. | [10.18653/v1/2024.findings-emnlp.908](https://doi.org/10.18653/v1/2024.findings-emnlp.908) | Philosophy of Analysis | Socratic feedback structure in code generation |
-| IEEE TPC (2010). "Ethos, Pathos, Logos, Kairos." *IEEE Trans. Professional Communication*. | [10.1109/TPC.2010.2052856](https://doi.org/10.1109/TPC.2010.2052856) | Philosophy of Analysis | Aristotelian rhetoric applied to digital tool communication |
-| Calvo-Amodio, J. et al. (2016). "Phronesis in Systems Engineering." *INCOSE*. | [10.1002/j.2334-5837.2016.00263.x](https://doi.org/10.1002/j.2334-5837.2016.00263.x) | Philosophy of Analysis | Phronesis in engineering judgment |
+| Wilson, J. D. (1987). "A Socratic approach to helping novice programmers debug programs." *ACM SIGCSE Bulletin*. | [10.1145/31726.31755](https://doi.org/10.1145/31726.31755) | Philosophy of Analysis | Socratic method applied in CS pedagogical context |
+| Chidambaram, S. et al. (2024). "Socratic Human Feedback (SoHF)." *Findings of EMNLP 2024*. | [10.18653/v1/2024.findings-emnlp.908](https://doi.org/10.18653/v1/2024.findings-emnlp.908) | Philosophy of Analysis | Socratic feedback structure in code generation |
+| Krishnamurthy, B. et al. (2011). "A Socratic method for validation..." *Computer Communications*. | [10.1016/j.comcom.2010.09.014](https://doi.org/10.1016/j.comcom.2010.09.014) | Philosophy of Analysis (+Protocol Science) | Socratic validation in networking |
+| Rife, M. C. (2010). "Ethos, Pathos, Logos, Kairos." *IEEE Trans. Prof. Comm.* | [10.1109/TPC.2010.2052856](https://doi.org/10.1109/TPC.2010.2052856) | Philosophy of Analysis | Aristotelian rhetoric applied to digital tool communication |
+| Arrichiello, V. (2016). "Systems Engineer: the ultimate phronetic leader?" *INCOSE*. | [10.1002/j.2334-5837.2016.00263.x](https://doi.org/10.1002/j.2334-5837.2016.00263.x) | Philosophy of Analysis | Phronesis in engineering judgment |
 | Goldkuhl, G. (2012). "Pragmatism vs interpretivism in qualitative IS research." *EJIS*. | [10.1057/ejis.2011.54](https://doi.org/10.1057/ejis.2011.54) | Philosophy of Analysis | Philosophical frameworks in information systems research |
-| Turnbull, B. (2018). "Ethos, pathos, logos: a script for clinical communication." *J. Pharmacy Practice and Research*. | [10.1002/jppr.1468](https://doi.org/10.1002/jppr.1468) | Philosophy of Analysis | Aristotelian framework applied in professional practice |
-| Tynjälä, P. et al. (2020). "Phronesis in Medical Ethics." *Health Care Analysis*. | [10.1007/s10728-020-00398-7](https://doi.org/10.1007/s10728-020-00398-7) | Philosophy of Analysis | Phronesis as professional virtue in applied ethics |
+| Alderman, C. (2018). "Ethos, pathos, logos: a script for clinical communication." *J. Pharmacy Practice and Research*. | [10.1002/jppr.1468](https://doi.org/10.1002/jppr.1468) | Philosophy of Analysis (+Human Factors) | Aristotelian framework applied in professional practice |
+| Malik, A. et al. (2020). "Phronesis in Medical Ethics." *Health Care Analysis*. | [10.1007/s10728-020-00398-7](https://doi.org/10.1007/s10728-020-00398-7) | Philosophy of Analysis | Phronesis as professional virtue in applied ethics |
+| Hylving, L. & Koutsikouri, D. (2016). "Putting Phronesis to Work in Digital Innovation." *HICSS*. | [10.1109/HICSS.2016.574](https://doi.org/10.1109/HICSS.2016.574) | Philosophy of Analysis (+Human Factors) | Phronesis in digital innovation |
 | Cataloging & Classification Quarterly (2009). "Ethos, Logos, Pathos... Information Technologies." | [10.1080/01639370903111981](https://doi.org/10.1080/01639370903111981) | Philosophy of Analysis | Aristotelian categories applied to information technology |
 
 ### 5.2 Human Factors
 
 | Citation | DOI | Lane | Supports |
 |---|---|---|---|
-| Kearney & Kruger (2023). "Seeking rhetorical validity in fear appeal research in information security." *Computers & Security*. | [10.1016/j.cose.2022.103020](https://doi.org/10.1016/j.cose.2022.103020) | Human Factors | Rhetorical frameworks in security communication and user behavior |
-| Johnston & Warkentin (2010). "Fear Appeals and Information Security Behaviors." *MIS Quarterly*. | [10.2307/25750691](https://doi.org/10.2307/25750691) | Human Factors | Emotional urgency (pathos) as driver of security behavior |
-| Burns et al. (2015). "Examining the Role of Fear Appeals." *MISQ*, 39(4). | [10.25300/MISQ/2015/39.4.5](https://doi.org/10.25300/MISQ/2015/39.4.5) | Human Factors | Rhetorical validity in security messaging and user response |
-| Frik et al. (2019). "Security nudges." *IJHCS*, 137. | [10.1016/j.ijhcs.2018.11.003](https://doi.org/10.1016/j.ijhcs.2018.11.003) | Human Factors | Cognitive nudge design in security decision-making |
+| Johnston, A. et al. (2023). "Seeking rhetorical validity in fear appeal research." *Computers & Security*. | [10.1016/j.cose.2022.103020](https://doi.org/10.1016/j.cose.2022.103020) | Human Factors (+Philosophy) | Rhetorical frameworks in security communication and user behavior |
+| Johnston, A. C. & Warkentin, M. (2010). "Fear Appeals and Information Security Behaviors." *MIS Quarterly*. | [10.2307/25750691](https://doi.org/10.2307/25750691) | Human Factors | Emotional urgency (pathos) as driver of security behavior |
+| Boss, S. R. et al. (2015). "What Do Systems Users Have to Fear?" *MIS Quarterly*, 39(4). | [10.25300/MISQ/2015/39.4.5](https://doi.org/10.25300/MISQ/2015/39.4.5) | Human Factors | Fear appeals and protective security behaviors |
+| van Bavel, R. et al. (2019). "Using protection motivation theory in the design of nudges..." *IJHCS*, 137. | [10.1016/j.ijhcs.2018.11.003](https://doi.org/10.1016/j.ijhcs.2018.11.003) | Human Factors | Protection motivation in security nudge design |
+| Benabdallah, G. & Peek, N. (2024). "Technical Mentality: Principles for HCI Research and Practice." *CHI EA*. | [10.1145/3613904.3642720](https://doi.org/10.1145/3613904.3642720) | Human Factors (+Philosophy) | Technical mentality in HCI practice |
+| Gray, C. M. et al. (2024). "Languaging Ethics in Technology Practice." *ACM J. Responsible Computing*. | [10.1145/3656468](https://doi.org/10.1145/3656468) | Human Factors (+Philosophy) | Ethics in technology practice |
 
 ### 5.3 Protocol Science
 
