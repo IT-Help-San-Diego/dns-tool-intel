@@ -384,7 +384,7 @@ func countMissing(nodes []protocolNode) int {
 func countVulnerable(nodes []protocolNode) int {
         count := 0
         for _, n := range nodes {
-                if n.status != "success" {
+                if n.status != "success" && n.status != "warning" {
                         count++
                 }
         }
@@ -582,17 +582,15 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         } else if vulnerable == 0 && exposure.findingCount > 0 {
                 lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", sRed))
                 lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", alt))
-        } else if vulnerable <= 4 {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), sRed))
+        } else {
+                vectors := vulnerable + exposure.findingCount
+                if vectors <= 2 {
+                        lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
+                } else {
+                        lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vectors), sRed))
+                }
                 if exposure.findingCount > 0 {
                         lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
-                } else if tagline != "" {
-                        lines = append(lines, cl("[!]", tagline, alt))
-                }
-        } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), sRed))
-                if exposure.findingCount > 0 {
-                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", alt))
                 } else if tagline != "" {
                         lines = append(lines, cl("[!]", tagline, alt))
                 }
