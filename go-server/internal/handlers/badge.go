@@ -409,88 +409,85 @@ func covertProtocolLine(abbrev, status string) covertLine {
         }
         dots := strings.Repeat(".", pad)
 
-        vuln := "#B43C29"
-        locked := "#58E790"
-        partial := "#C7C400"
-        descAlt := "#664d2e"
+        sRed := "#B43C29"
 
         label := abbrev + " " + dots + " "
 
         switch abbrev {
         case "SPF":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge sender envelope", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't forge sender envelope", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — spoofing harder", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial — spoofing harder", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "sender spoofing possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "sender spoofing possible", descColor: sRed}
         case "DKIM":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge signatures", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't forge signatures", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "weak key — forgery harder", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "weak key — forgery harder", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "message forgery possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "message forgery possible", descColor: sRed}
         case "DMARC":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "spoofing rejected at gate", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "spoofing rejected at gate", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "monitoring only — not blocking", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "monitoring only — not blocking", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "email spoofing wide open", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "email spoofing wide open", descColor: sRed}
         case "DNSSEC":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't poison DNS cache", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't poison DNS cache", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — some zones exposed", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial — some zones exposed", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "DNS cache poisoning possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "DNS cache poisoning possible", descColor: sRed}
         case "DANE":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't downgrade TLS", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't downgrade TLS", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "TLSA present but weak", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "TLSA present but weak", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "TLS downgrade possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "TLS downgrade possible", descColor: sRed}
         case "MTA-STS":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't intercept mail", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't intercept mail", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "testing mode — not enforcing", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "testing mode — not enforcing", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "mail interception possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "mail interception possible", descColor: sRed}
         case "TLS-RPT":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "transport monitored", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "transport monitored", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial reporting", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial reporting", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "no transport monitoring", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "no transport monitoring", descColor: sRed}
         case "BIMI":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "brand verification active", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "brand verification active", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "present but no VMC cert", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "present but no VMC cert", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "brand impersonation possible", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "brand impersonation possible", descColor: sRed}
         case "CAA":
                 if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "cert issuance locked", descColor: descAlt}
+                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "cert issuance locked", descColor: sRed}
                 }
                 if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "policy present but weak", descColor: descAlt}
+                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "policy present but weak", descColor: sRed}
                 }
-                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "anyone can issue certs", descColor: descAlt}
+                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "anyone can issue certs", descColor: sRed}
         default:
-                return covertLine{prefix: "[?]", text: abbrev + " " + dots + " ", color: "#664d2e", desc: "unknown", descColor: "#664d2e"}
+                return covertLine{prefix: "[?]", text: abbrev + " " + dots + " ", color: sRed, desc: "unknown", descColor: sRed}
         }
 }
 
