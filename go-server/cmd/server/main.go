@@ -400,6 +400,8 @@ func main() {
 
         router.GET("/methodology", staticHandler.MethodologyPDF)
         router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
+        router.GET("/foundations", staticHandler.FoundationsPDF)
+        router.GET("/docs/philosophical-foundations.pdf", staticHandler.FoundationsPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
