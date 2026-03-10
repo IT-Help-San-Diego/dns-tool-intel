@@ -392,9 +392,12 @@ func countVulnerable(nodes []protocolNode) int {
 }
 
 type covertLine struct {
-        prefix  string
-        text    string
-        color   string
+        prefix      string
+        text        string
+        color       string
+        prefixColor string
+        desc        string
+        descColor   string
 }
 
 func covertProtocolLine(abbrev, status string) covertLine {
@@ -407,82 +410,85 @@ func covertProtocolLine(abbrev, status string) covertLine {
         vuln := "#B43C29"
         locked := "#58E790"
         partial := "#C7C400"
+        bodyRed := "#B43C29"
+
+        label := abbrev + " " + dots + " "
 
         switch abbrev {
         case "SPF":
                 if status == "success" {
-                        return covertLine{"[+]", "SPF " + dots + " can't forge sender envelope", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge sender envelope", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "SPF " + dots + " partial — spoofing harder", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — spoofing harder", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "SPF " + dots + " sender spoofing possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "sender spoofing possible", descColor: bodyRed}
         case "DKIM":
                 if status == "success" {
-                        return covertLine{"[+]", "DKIM " + dots + " can't forge signatures", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't forge signatures", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DKIM " + dots + " weak key — forgery harder", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "weak key — forgery harder", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "DKIM " + dots + " message forgery possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "message forgery possible", descColor: bodyRed}
         case "DMARC":
                 if status == "success" {
-                        return covertLine{"[+]", "DMARC " + dots + " spoofing rejected at gate", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "spoofing rejected at gate", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DMARC " + dots + " monitoring only — not blocking", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "monitoring only — not blocking", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "DMARC " + dots + " email spoofing wide open", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "email spoofing wide open", descColor: bodyRed}
         case "DNSSEC":
                 if status == "success" {
-                        return covertLine{"[+]", "DNSSEC " + dots + " can't poison DNS cache", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't poison DNS cache", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DNSSEC " + dots + " partial — some zones exposed", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial — some zones exposed", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "DNSSEC " + dots + " DNS cache poisoning possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "DNS cache poisoning possible", descColor: bodyRed}
         case "DANE":
                 if status == "success" {
-                        return covertLine{"[+]", "DANE " + dots + " can't downgrade TLS", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't downgrade TLS", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DANE " + dots + " TLSA present but weak", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "TLSA present but weak", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "DANE " + dots + " TLS downgrade possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "TLS downgrade possible", descColor: bodyRed}
         case "MTA-STS":
                 if status == "success" {
-                        return covertLine{"[+]", "MTA-STS " + dots + " can't intercept mail", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "can't intercept mail", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "MTA-STS " + dots + " testing mode — not enforcing", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "testing mode — not enforcing", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "MTA-STS " + dots + " mail interception possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "mail interception possible", descColor: bodyRed}
         case "TLS-RPT":
                 if status == "success" {
-                        return covertLine{"[+]", "TLS-RPT " + dots + " transport monitored", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "transport monitored", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "TLS-RPT " + dots + " partial reporting", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "partial reporting", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "TLS-RPT " + dots + " no transport monitoring", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "no transport monitoring", descColor: bodyRed}
         case "BIMI":
                 if status == "success" {
-                        return covertLine{"[+]", "BIMI " + dots + " brand verification active", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "brand verification active", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "BIMI " + dots + " present but no VMC cert", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "present but no VMC cert", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "BIMI " + dots + " brand impersonation possible", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "brand impersonation possible", descColor: bodyRed}
         case "CAA":
                 if status == "success" {
-                        return covertLine{"[+]", "CAA " + dots + " cert issuance locked", locked}
+                        return covertLine{prefix: "[+]", text: label, color: locked, desc: "cert issuance locked", descColor: bodyRed}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "CAA " + dots + " policy present but weak", partial}
+                        return covertLine{prefix: "[~]", text: label, color: partial, desc: "policy present but weak", descColor: bodyRed}
                 }
-                return covertLine{"[-]", "CAA " + dots + " anyone can issue certs", vuln}
+                return covertLine{prefix: "[-]", text: label, color: vuln, desc: "anyone can issue certs", descColor: bodyRed}
         default:
-                return covertLine{"[?]", abbrev + " " + dots + " unknown", "#664d2e"}
+                return covertLine{prefix: "[?]", text: abbrev + " " + dots + " ", color: "#664d2e", desc: "unknown", descColor: "#664d2e"}
         }
 }
 
@@ -513,6 +519,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 lineH    = 15
                 fontSize = 11
                 xPad     = 14
+                charW    = 7
                 monoFont = "'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace"
         )
 
@@ -525,15 +532,19 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         exposureHi := "#DD7975"
         exposureBright := "#ff6b6b"
 
+        cl := func(pfx, txt, c string) covertLine {
+                return covertLine{prefix: pfx, text: txt, color: c}
+        }
+
         var lines []covertLine
 
-        lines = append(lines, covertLine{"", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimAmber})
-        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), amber})
-        lines = append(lines, covertLine{"", "", ""})
+        lines = append(lines, cl("", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimAmber))
+        lines = append(lines, cl("", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), amber))
+        lines = append(lines, cl("", "", ""))
 
-        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Target: %s", domainDisplay), amber})
-        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), scotopicRiskColor(riskColorName)})
-        lines = append(lines, covertLine{"", "", ""})
+        lines = append(lines, cl("[*]", fmt.Sprintf("Target: %s", domainDisplay), amber))
+        lines = append(lines, cl("[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), scotopicRiskColor(riskColorName)))
+        lines = append(lines, cl("", "", ""))
 
         protocols := []string{"SPF", "DKIM", "DMARC", "DNSSEC", "DANE", "MTA-STS", "TLS-RPT", "BIMI", "CAA"}
         for i, p := range protocols {
@@ -543,10 +554,10 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
         }
 
         if exposure.status == "exposed" && exposure.findingCount > 0 {
-                lines = append(lines, covertLine{"", "", ""})
-                lines = append(lines, covertLine{"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln})
-                lines = append(lines, covertLine{"[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), exposureBright})
-                lines = append(lines, covertLine{"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln})
+                lines = append(lines, cl("", "", ""))
+                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln))
+                lines = append(lines, cl("[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), exposureBright))
+                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln))
                 for _, f := range exposure.findings {
                         label := f.findingType
                         if label == "" {
@@ -562,37 +573,37 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                         } else if f.severity == "high" {
                                 sevTag = " [HIGH]"
                         }
-                        lines = append(lines, covertLine{"[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), exposureHi})
+                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), exposureHi))
                 }
-                lines = append(lines, covertLine{"[!!]", "  Credentials are publicly accessible.", exposureHi})
+                lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", exposureHi))
         }
 
-        lines = append(lines, covertLine{"", "", ""})
+        lines = append(lines, cl("", "", ""))
 
         if vulnerable == 0 && exposure.findingCount == 0 {
-                lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", locked})
-                lines = append(lines, covertLine{"[!]", tagline, dimLocked})
+                lines = append(lines, cl("[!]", "All 9 protocols configured — target is hardened", locked))
+                lines = append(lines, cl("[!]", tagline, dimLocked))
         } else if vulnerable == 0 && exposure.findingCount > 0 {
-                lines = append(lines, covertLine{"[!]", "Protocols hardened — but secrets are leaking", exposureBright})
-                lines = append(lines, covertLine{"[!]", "Rotate exposed credentials immediately.", exposureHi})
+                lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", exposureBright))
+                lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", exposureHi))
         } else if vulnerable <= 2 {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), partial})
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), partial))
                 if exposure.findingCount > 0 {
-                        lines = append(lines, covertLine{"[!]", "Leaked secrets make protocol gaps worse.", exposureHi})
+                        lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", exposureHi))
                 } else if tagline != "" {
-                        lines = append(lines, covertLine{"[!]", tagline, dimAmber})
+                        lines = append(lines, cl("[!]", tagline, dimAmber))
                 }
         } else {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), vuln})
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), vuln))
                 if exposure.findingCount > 0 {
-                        lines = append(lines, covertLine{"[!]", "Leaked secrets on top of open vectors.", exposureBright})
+                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", exposureBright))
                 } else if tagline != "" {
-                        lines = append(lines, covertLine{"[!]", tagline, vuln})
+                        lines = append(lines, cl("[!]", tagline, vuln))
                 }
         }
 
-        lines = append(lines, covertLine{"", "", ""})
-        lines = append(lines, covertLine{"", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimAmber})
+        lines = append(lines, cl("", "", ""))
+        lines = append(lines, cl("", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimAmber))
 
         height := len(lines)*lineH + 24
 
@@ -635,29 +646,50 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                         color = dimAmber
                 }
 
-                if line.prefix != "" {
-                        prefixColor := dimAmber
+                pfxColor := line.prefixColor
+                if pfxColor == "" && line.prefix != "" {
+                        pfxColor = dimAmber
                         if line.prefix == "[+]" {
-                                prefixColor = dimLocked
+                                pfxColor = dimLocked
                         } else if line.prefix == "[~]" {
-                                prefixColor = "#8a8a00"
+                                pfxColor = "#8a8a00"
                         } else if line.prefix == "[-]" {
-                                prefixColor = "#7a2419"
+                                pfxColor = "#7a2419"
                         } else if line.prefix == "[!!]" {
-                                prefixColor = exposureBright
+                                pfxColor = exposureBright
                         } else if line.prefix == "[*]" {
-                                prefixColor = dimAmber
+                                pfxColor = dimAmber
                         } else if line.prefix == "[!]" {
-                                prefixColor = amber
+                                pfxColor = amber
                         }
+                }
+
+                if line.prefix != "" {
                         svg.WriteString(fmt.Sprintf(
                                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                xPad, y, prefixColor, fontSize, monoFont, line.prefix,
+                                xPad, y, pfxColor, fontSize, monoFont, line.prefix,
                         ))
-                        svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                xPad+28, y, color, fontSize, monoFont, line.text,
-                        ))
+
+                        if line.desc != "" {
+                                svg.WriteString(fmt.Sprintf(
+                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                        xPad+28, y, color, fontSize, monoFont, line.text,
+                                ))
+                                descX := xPad + 28 + len(line.text)*charW
+                                dc := line.descColor
+                                if dc == "" {
+                                        dc = color
+                                }
+                                svg.WriteString(fmt.Sprintf(
+                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                        descX, y, dc, fontSize, monoFont, line.desc,
+                                ))
+                        } else {
+                                svg.WriteString(fmt.Sprintf(
+                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                        xPad+28, y, color, fontSize, monoFont, line.text,
+                                ))
+                        }
                 } else {
                         svg.WriteString(fmt.Sprintf(
                                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
