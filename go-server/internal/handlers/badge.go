@@ -333,7 +333,7 @@ func covertRiskLabel(riskLabel string) string {
         case "Low Risk":
                 return "Hardened"
         case "Medium Risk":
-                return "Patching"
+                return "Partial"
         case "High Risk":
                 return "Exposed"
         case "Critical Risk":
@@ -520,17 +520,13 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 fontSize = 11
                 xPad     = 14
                 charW    = 7
-                monoFont = "'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace"
+                monoFont = "'Hack','Fira Code','JetBrains Mono','Menlo','Monaco','Source Code Pro','SF Mono','Ubuntu Mono','Courier New',monospace"
         )
 
-        amber := "#9C7645"
-        dimAmber := "#664d2e"
-        vuln := "#B43C29"
+        sRed := "#B43C29"
+        alt := "#664d2e"
         locked := "#58E790"
         dimLocked := "#2d7a47"
-        partial := "#C7C400"
-        exposureHi := "#DD7975"
-        exposureBright := "#ff6b6b"
 
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
@@ -538,11 +534,11 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
 
         var lines []covertLine
 
-        lines = append(lines, cl("", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimAmber))
-        lines = append(lines, cl("", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), amber))
+        lines = append(lines, cl("", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), sRed))
+        lines = append(lines, cl("", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), sRed))
         lines = append(lines, cl("", "", ""))
 
-        lines = append(lines, cl("[*]", fmt.Sprintf("Target: %s", domainDisplay), amber))
+        lines = append(lines, cl("[*]", fmt.Sprintf("Target: %s", domainDisplay), alt))
         lines = append(lines, cl("[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), scotopicRiskColor(riskColorName)))
         lines = append(lines, cl("", "", ""))
 
@@ -555,9 +551,9 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
 
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 lines = append(lines, cl("", "", ""))
-                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln))
-                lines = append(lines, cl("[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), exposureBright))
-                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln))
+                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
+                lines = append(lines, cl("[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), sRed))
+                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
                 for _, f := range exposure.findings {
                         label := f.findingType
                         if label == "" {
@@ -573,9 +569,9 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                         } else if f.severity == "high" {
                                 sevTag = " [HIGH]"
                         }
-                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), exposureHi))
+                        lines = append(lines, cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), sRed))
                 }
-                lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", exposureHi))
+                lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", sRed))
         }
 
         lines = append(lines, cl("", "", ""))
@@ -584,26 +580,26 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 lines = append(lines, cl("[!]", "All 9 protocols configured — target is hardened", locked))
                 lines = append(lines, cl("[!]", tagline, dimLocked))
         } else if vulnerable == 0 && exposure.findingCount > 0 {
-                lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", exposureBright))
-                lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", exposureHi))
+                lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", sRed))
+                lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", alt))
         } else if vulnerable <= 2 {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), partial))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), sRed))
                 if exposure.findingCount > 0 {
-                        lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", exposureHi))
+                        lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
                 } else if tagline != "" {
-                        lines = append(lines, cl("[!]", tagline, dimAmber))
+                        lines = append(lines, cl("[!]", tagline, alt))
                 }
         } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), vuln))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), sRed))
                 if exposure.findingCount > 0 {
-                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", exposureBright))
+                        lines = append(lines, cl("[!]", "Leaked secrets on top of open vectors.", sRed))
                 } else if tagline != "" {
-                        lines = append(lines, cl("[!]", tagline, vuln))
+                        lines = append(lines, cl("[!]", tagline, alt))
                 }
         }
 
         lines = append(lines, cl("", "", ""))
-        lines = append(lines, cl("", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimAmber))
+        lines = append(lines, cl("", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), alt))
 
         height := len(lines)*lineH + 24
 
@@ -630,8 +626,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
   <circle cx="16" cy="10" r="4" fill="#ff5f57"/>
   <circle cx="28" cy="10" r="4" fill="#febc2e"/>
   <circle cx="40" cy="10" r="4" fill="#28c840"/>
-  <text x="60" y="13" fill="%s" font-size="9" font-family=%s>kali@kali: ~/recon/%s</text>`,
-                dimAmber, `"`+monoFont+`"`, domainDisplay,
+  <text x="60" y="13" fill="%s" font-size="9" font-family="%s">kali@kali: ~/recon/%s</text>`,
+                alt, monoFont, domainDisplay,
         ))
 
         y := 32
@@ -643,12 +639,12 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
 
                 color := line.color
                 if color == "" {
-                        color = dimAmber
+                        color = alt
                 }
 
                 pfxColor := line.prefixColor
                 if pfxColor == "" && line.prefix != "" {
-                        pfxColor = dimAmber
+                        pfxColor = alt
                         if line.prefix == "[+]" {
                                 pfxColor = dimLocked
                         } else if line.prefix == "[~]" {
@@ -656,11 +652,11 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                         } else if line.prefix == "[-]" {
                                 pfxColor = "#7a2419"
                         } else if line.prefix == "[!!]" {
-                                pfxColor = exposureBright
+                                pfxColor = sRed
                         } else if line.prefix == "[*]" {
-                                pfxColor = dimAmber
+                                pfxColor = alt
                         } else if line.prefix == "[!]" {
-                                pfxColor = amber
+                                pfxColor = sRed
                         }
                 }
 

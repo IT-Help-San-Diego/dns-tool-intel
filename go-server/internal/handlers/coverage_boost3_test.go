@@ -1253,8 +1253,8 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
         if !strings.Contains(svgStr, "example.com") {
                 t.Error("expected domain in SVG")
         }
-        if !strings.Contains(svgStr, "Patching") {
-                t.Error("expected covert label 'Patching' for medium risk")
+        if !strings.Contains(svgStr, "Partial") {
+                t.Error("expected covert label 'Partial' for medium risk")
         }
 }
 
