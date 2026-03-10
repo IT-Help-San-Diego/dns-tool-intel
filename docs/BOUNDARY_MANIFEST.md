@@ -8,7 +8,7 @@
 
 ## Purpose
 
-This document inventories every stubbed subsystem in the public repository and defines the boundary between public framework code and private intelligence modules. It exists so that contributors, auditors, and AI assistants can understand what is implemented in the open-source build versus what requires the `intel` build tag.
+This document inventories every stubbed subsystem in the public repository and defines the boundary between public framework code and private intelligence modules. It exists so that contributors, auditors, and AI assistants can understand what is implemented in the open-core public build versus what requires the `intel` build tag.
 
 ---
 
