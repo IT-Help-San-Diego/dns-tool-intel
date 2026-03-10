@@ -1236,7 +1236,16 @@ func TestBadgeSVGCB3(t *testing.T) {
 }
 
 func TestBadgeSVGCovertCB3(t *testing.T) {
-        svg := badgeSVGCovert("example.com", "Moderate", "#d29922")
+        results := map[string]any{
+                "posture": map[string]any{
+                        "label": "Medium Risk",
+                        "color": "warning",
+                        "score": float64(50),
+                },
+                "spf_analysis":  map[string]any{"status": "success"},
+                "dkim_analysis": map[string]any{"status": "success"},
+        }
+        svg := badgeSVGCovert("example.com", results, time.Now())
         if len(svg) == 0 {
                 t.Error("expected non-empty SVG")
         }
@@ -1244,8 +1253,8 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
         if !strings.Contains(svgStr, "example.com") {
                 t.Error("expected domain in SVG")
         }
-        if !strings.Contains(svgStr, "Moderate") {
-                t.Error("expected risk label in SVG")
+        if !strings.Contains(svgStr, "Patching") {
+                t.Error("expected covert label 'Patching' for medium risk")
         }
 }
 
