@@ -614,7 +614,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         shaLine := cl("", "[*] SHA-3 (Keccak-512) NIST FIPS 202", sRed)
         shaLine.link = hashURL
         lines = append(lines, shaLine)
-        planetLine := cl("", "[&&]  #HackThePlanet!   |  #2600", sRed)
+        planetLine := cl("", "[&amp;&amp;]  #HackThePlanet!   |  #2600", sRed)
         planetLine.link = baseURL
         lines = append(lines, planetLine)
 
