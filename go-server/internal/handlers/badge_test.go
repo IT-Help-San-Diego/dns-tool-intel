@@ -229,8 +229,8 @@ func TestBadgeSVGCovert(t *testing.T) {
         if !strings.Contains(se, "[!!]") {
                 t.Error("expected [!!] prefix for exposed secrets")
         }
-        if !strings.Contains(se, "PUBLIC EXPOSURE") {
-                t.Error("expected PUBLIC EXPOSURE heading")
+        if !strings.Contains(se, "SECRET EXPOSURE") {
+                t.Error("expected SECRET EXPOSURE heading")
         }
         if !strings.Contains(se, "Google API Key") {
                 t.Error("expected Google API Key finding type")
@@ -238,8 +238,8 @@ func TestBadgeSVGCovert(t *testing.T) {
         if !strings.Contains(se, "AIza") {
                 t.Error("expected redacted key value")
         }
-        if !strings.Contains(se, "secrets") {
-                t.Error("expected secrets reference in summary")
+        if !strings.Contains(se, "credential") {
+                t.Error("expected credential reference in exposure heading")
         }
 }
 
