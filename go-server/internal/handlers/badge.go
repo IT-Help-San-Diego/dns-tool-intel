@@ -183,6 +183,19 @@ func riskColorToHex(color string) string {
         }
 }
 
+func scotopicRiskColor(color string) string {
+        switch color {
+        case "success":
+                return "#58E790"
+        case "warning":
+                return "#C7C400"
+        case "danger":
+                return "#B43C29"
+        default:
+                return "#9C7645"
+        }
+}
+
 func badgeSVG(label, value, color string) []byte {
         labelWidth := len(label)*7 + 10
         valueWidth := len(value)*7 + 10
@@ -391,86 +404,85 @@ func covertProtocolLine(abbrev, status string) covertLine {
         }
         dots := strings.Repeat(".", pad)
 
-        red := "#cc3333"
-        green := "#33cc33"
-
-        amber := "#cc8833"
+        vuln := "#B43C29"
+        locked := "#58E790"
+        partial := "#C7C400"
 
         switch abbrev {
         case "SPF":
                 if status == "success" {
-                        return covertLine{"[+]", "SPF " + dots + " can't forge sender envelope", green}
+                        return covertLine{"[+]", "SPF " + dots + " can't forge sender envelope", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "SPF " + dots + " partial — spoofing harder", amber}
+                        return covertLine{"[~]", "SPF " + dots + " partial — spoofing harder", partial}
                 }
-                return covertLine{"[-]", "SPF " + dots + " sender spoofing possible", red}
+                return covertLine{"[-]", "SPF " + dots + " sender spoofing possible", vuln}
         case "DKIM":
                 if status == "success" {
-                        return covertLine{"[+]", "DKIM " + dots + " can't forge signatures", green}
+                        return covertLine{"[+]", "DKIM " + dots + " can't forge signatures", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DKIM " + dots + " weak key — forgery harder", amber}
+                        return covertLine{"[~]", "DKIM " + dots + " weak key — forgery harder", partial}
                 }
-                return covertLine{"[-]", "DKIM " + dots + " message forgery possible", red}
+                return covertLine{"[-]", "DKIM " + dots + " message forgery possible", vuln}
         case "DMARC":
                 if status == "success" {
-                        return covertLine{"[+]", "DMARC " + dots + " spoofing rejected at gate", green}
+                        return covertLine{"[+]", "DMARC " + dots + " spoofing rejected at gate", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DMARC " + dots + " monitoring only — not blocking", amber}
+                        return covertLine{"[~]", "DMARC " + dots + " monitoring only — not blocking", partial}
                 }
-                return covertLine{"[-]", "DMARC " + dots + " email spoofing wide open", red}
+                return covertLine{"[-]", "DMARC " + dots + " email spoofing wide open", vuln}
         case "DNSSEC":
                 if status == "success" {
-                        return covertLine{"[+]", "DNSSEC " + dots + " can't poison DNS cache", green}
+                        return covertLine{"[+]", "DNSSEC " + dots + " can't poison DNS cache", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DNSSEC " + dots + " partial — some zones exposed", amber}
+                        return covertLine{"[~]", "DNSSEC " + dots + " partial — some zones exposed", partial}
                 }
-                return covertLine{"[-]", "DNSSEC " + dots + " DNS cache poisoning possible", red}
+                return covertLine{"[-]", "DNSSEC " + dots + " DNS cache poisoning possible", vuln}
         case "DANE":
                 if status == "success" {
-                        return covertLine{"[+]", "DANE " + dots + " can't downgrade TLS", green}
+                        return covertLine{"[+]", "DANE " + dots + " can't downgrade TLS", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "DANE " + dots + " TLSA present but weak", amber}
+                        return covertLine{"[~]", "DANE " + dots + " TLSA present but weak", partial}
                 }
-                return covertLine{"[-]", "DANE " + dots + " TLS downgrade possible", red}
+                return covertLine{"[-]", "DANE " + dots + " TLS downgrade possible", vuln}
         case "MTA-STS":
                 if status == "success" {
-                        return covertLine{"[+]", "MTA-STS " + dots + " can't intercept mail", green}
+                        return covertLine{"[+]", "MTA-STS " + dots + " can't intercept mail", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "MTA-STS " + dots + " testing mode — not enforcing", amber}
+                        return covertLine{"[~]", "MTA-STS " + dots + " testing mode — not enforcing", partial}
                 }
-                return covertLine{"[-]", "MTA-STS " + dots + " mail interception possible", red}
+                return covertLine{"[-]", "MTA-STS " + dots + " mail interception possible", vuln}
         case "TLS-RPT":
                 if status == "success" {
-                        return covertLine{"[+]", "TLS-RPT " + dots + " transport monitored", green}
+                        return covertLine{"[+]", "TLS-RPT " + dots + " transport monitored", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "TLS-RPT " + dots + " partial reporting", amber}
+                        return covertLine{"[~]", "TLS-RPT " + dots + " partial reporting", partial}
                 }
-                return covertLine{"[-]", "TLS-RPT " + dots + " no transport monitoring", red}
+                return covertLine{"[-]", "TLS-RPT " + dots + " no transport monitoring", vuln}
         case "BIMI":
                 if status == "success" {
-                        return covertLine{"[+]", "BIMI " + dots + " brand verification active", green}
+                        return covertLine{"[+]", "BIMI " + dots + " brand verification active", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "BIMI " + dots + " present but no VMC cert", amber}
+                        return covertLine{"[~]", "BIMI " + dots + " present but no VMC cert", partial}
                 }
-                return covertLine{"[-]", "BIMI " + dots + " brand impersonation possible", red}
+                return covertLine{"[-]", "BIMI " + dots + " brand impersonation possible", vuln}
         case "CAA":
                 if status == "success" {
-                        return covertLine{"[+]", "CAA " + dots + " cert issuance locked", green}
+                        return covertLine{"[+]", "CAA " + dots + " cert issuance locked", locked}
                 }
                 if status == "warning" {
-                        return covertLine{"[~]", "CAA " + dots + " policy present but weak", amber}
+                        return covertLine{"[~]", "CAA " + dots + " policy present but weak", partial}
                 }
-                return covertLine{"[-]", "CAA " + dots + " anyone can issue certs", red}
+                return covertLine{"[-]", "CAA " + dots + " anyone can issue certs", vuln}
         default:
-                return covertLine{"[?]", abbrev + " " + dots + " unknown", "#666666"}
+                return covertLine{"[?]", abbrev + " " + dots + " unknown", "#664d2e"}
         }
 }
 
@@ -501,30 +513,26 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 lineH    = 15
                 fontSize = 11
                 xPad     = 14
+                monoFont = "'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace"
         )
 
-        red := "#cc3333"
-        dimRed := "#882222"
-        green := "#33cc33"
-        dimGreen := "#226622"
-        amber := "#cc8833"
+        amber := "#9C7645"
+        dimAmber := "#664d2e"
+        vuln := "#B43C29"
+        locked := "#58E790"
+        dimLocked := "#2d7a47"
+        partial := "#C7C400"
+        exposureHi := "#DD7975"
+        exposureBright := "#ff6b6b"
 
         var lines []covertLine
 
-        lines = append(lines, covertLine{"", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimGreen})
-        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), "#aaaaaa"})
+        lines = append(lines, covertLine{"", fmt.Sprintf("┌──(kali㉿kali)-[~/recon/%s]", domainDisplay), dimAmber})
+        lines = append(lines, covertLine{"", fmt.Sprintf("└─$ dnstool -R %s", domainDisplay), amber})
         lines = append(lines, covertLine{"", "", ""})
 
-        scoreColor := green
-        if score < 50 {
-                scoreColor = red
-        } else if score < 80 {
-                scoreColor = amber
-        }
-        _ = scoreColor
-
-        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Target: %s", domainDisplay), "#aaaaaa"})
-        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), riskColorToHex(riskColorName)})
+        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Target: %s", domainDisplay), amber})
+        lines = append(lines, covertLine{"[*]", fmt.Sprintf("Score: %s/100 — %s", scoreText, covertLabel), scotopicRiskColor(riskColorName)})
         lines = append(lines, covertLine{"", "", ""})
 
         protocols := []string{"SPF", "DKIM", "DMARC", "DNSSEC", "DANE", "MTA-STS", "TLS-RPT", "BIMI", "CAA"}
@@ -534,54 +542,57 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
                 }
         }
 
-        brightRed := "#ff4444"
-
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 lines = append(lines, covertLine{"", "", ""})
-                lines = append(lines, covertLine{"[!!]", fmt.Sprintf("PUBLIC EXPOSURE — %d secret%s leaked", exposure.findingCount, pluralS(exposure.findingCount)), brightRed})
+                lines = append(lines, covertLine{"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln})
+                lines = append(lines, covertLine{"[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), exposureBright})
+                lines = append(lines, covertLine{"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", vuln})
                 for _, f := range exposure.findings {
                         label := f.findingType
                         if label == "" {
                                 label = "Secret"
                         }
-                        sevTag := ""
-                        if f.severity == "critical" || f.severity == "high" {
-                                sevTag = " (" + f.severity + ")"
-                        }
                         redacted := f.redacted
                         if len(redacted) > 24 {
                                 redacted = redacted[:21] + "..."
                         }
-                        lines = append(lines, covertLine{"[!!]", fmt.Sprintf("  %s: %s%s", label, redacted, sevTag), brightRed})
+                        sevTag := ""
+                        if f.severity == "critical" {
+                                sevTag = " [CRITICAL]"
+                        } else if f.severity == "high" {
+                                sevTag = " [HIGH]"
+                        }
+                        lines = append(lines, covertLine{"[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), exposureHi})
                 }
+                lines = append(lines, covertLine{"[!!]", "  Credentials are publicly accessible.", exposureHi})
         }
 
         lines = append(lines, covertLine{"", "", ""})
 
         if vulnerable == 0 && exposure.findingCount == 0 {
-                lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", green})
-                lines = append(lines, covertLine{"[!]", tagline, dimGreen})
+                lines = append(lines, covertLine{"[!]", "All 9 protocols configured — target is hardened", locked})
+                lines = append(lines, covertLine{"[!]", tagline, dimLocked})
         } else if vulnerable == 0 && exposure.findingCount > 0 {
-                lines = append(lines, covertLine{"[!]", "Protocols hardened — but secrets are leaking", brightRed})
-                lines = append(lines, covertLine{"[!]", "Rotate exposed credentials immediately.", dimRed})
+                lines = append(lines, covertLine{"[!]", "Protocols hardened — but secrets are leaking", exposureBright})
+                lines = append(lines, covertLine{"[!]", "Rotate exposed credentials immediately.", exposureHi})
         } else if vulnerable <= 2 {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), amber})
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vulnerable, pluralS(vulnerable)), partial})
                 if exposure.findingCount > 0 {
-                        lines = append(lines, covertLine{"[!]", "Leaked secrets make protocol gaps worse.", brightRed})
+                        lines = append(lines, covertLine{"[!]", "Leaked secrets make protocol gaps worse.", exposureHi})
                 } else if tagline != "" {
-                        lines = append(lines, covertLine{"[!]", tagline, dimRed})
+                        lines = append(lines, covertLine{"[!]", tagline, dimAmber})
                 }
         } else {
-                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), red})
+                lines = append(lines, covertLine{"[!]", fmt.Sprintf("%d of 9 attack vectors available", vulnerable), vuln})
                 if exposure.findingCount > 0 {
-                        lines = append(lines, covertLine{"[!]", "Leaked secrets on top of open vectors.", brightRed})
+                        lines = append(lines, covertLine{"[!]", "Leaked secrets on top of open vectors.", exposureBright})
                 } else if tagline != "" {
-                        lines = append(lines, covertLine{"[!]", tagline, red})
+                        lines = append(lines, covertLine{"[!]", tagline, vuln})
                 }
         }
 
         lines = append(lines, covertLine{"", "", ""})
-        lines = append(lines, covertLine{"", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimRed})
+        lines = append(lines, covertLine{"", fmt.Sprintf("[*] Scan: %s — dnstool.it-help.tech", scanDate), dimAmber})
 
         height := len(lines)*lineH + 24
 
@@ -591,12 +602,12 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
   <title>DNS Recon: %s — %s</title>
   <defs>
     <linearGradient id="tbg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1a1a1a"/>
-      <stop offset="1" stop-color="#0d0d0d"/>
+      <stop offset="0" stop-color="#1a0505"/>
+      <stop offset="1" stop-color="#0a0000"/>
     </linearGradient>
   </defs>
   <rect width="%d" height="%d" rx="6" fill="url(#tbg)"/>
-  <rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="none" stroke="#333"/>`,
+  <rect x=".5" y=".5" width="%d" height="%d" rx="6" fill="none" stroke="#3a1515"/>`,
                 width, height, width, height,
                 domain, covertLabel,
                 domain, covertLabel,
@@ -608,8 +619,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
   <circle cx="16" cy="10" r="4" fill="#ff5f57"/>
   <circle cx="28" cy="10" r="4" fill="#febc2e"/>
   <circle cx="40" cy="10" r="4" fill="#28c840"/>
-  <text x="60" y="13" fill="#666" font-size="9" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">kali@kali: ~/recon/%s</text>`,
-                domainDisplay,
+  <text x="60" y="13" fill="%s" font-size="9" font-family=%s>kali@kali: ~/recon/%s</text>`,
+                dimAmber, `"`+monoFont+`"`, domainDisplay,
         ))
 
         y := 32
@@ -621,34 +632,36 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time) [
 
                 color := line.color
                 if color == "" {
-                        color = "#888"
+                        color = dimAmber
                 }
 
                 if line.prefix != "" {
-                        prefixColor := dimRed
+                        prefixColor := dimAmber
                         if line.prefix == "[+]" {
-                                prefixColor = dimGreen
+                                prefixColor = dimLocked
                         } else if line.prefix == "[~]" {
-                                prefixColor = "#886622"
+                                prefixColor = "#8a8a00"
+                        } else if line.prefix == "[-]" {
+                                prefixColor = "#7a2419"
                         } else if line.prefix == "[!!]" {
-                                prefixColor = "#ff4444"
+                                prefixColor = exposureBright
                         } else if line.prefix == "[*]" {
-                                prefixColor = "#666666"
+                                prefixColor = dimAmber
                         } else if line.prefix == "[!]" {
                                 prefixColor = amber
                         }
                         svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
-                                xPad, y, prefixColor, fontSize, line.prefix,
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                xPad, y, prefixColor, fontSize, monoFont, line.prefix,
                         ))
                         svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
-                                xPad+28, y, color, fontSize, line.text,
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                xPad+28, y, color, fontSize, monoFont, line.text,
                         ))
                 } else {
                         svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="'JetBrains Mono','Fira Code','SF Mono','Courier New',monospace">%s</text>`,
-                                xPad, y, color, fontSize, line.text,
+                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                                xPad, y, color, fontSize, monoFont, line.text,
                         ))
                 }
                 y += lineH
