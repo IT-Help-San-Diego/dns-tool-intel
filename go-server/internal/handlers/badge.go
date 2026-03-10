@@ -94,7 +94,13 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 
         riskLabel, riskColor := extractPostureRisk(results)
         riskHex := riskColorToHex(riskColor)
+        score := extractPostureScore(results)
         style := c.DefaultQuery("style", "flat")
+
+        compactValue := riskLabel
+        if score >= 0 {
+                compactValue = fmt.Sprintf("%s (%d/100)", riskLabel, score)
+        }
 
         c.Header("Cache-Control", "public, max-age=3600, s-maxage=3600")
         c.Header("Expires", time.Now().Add(1*time.Hour).UTC().Format(http.TimeFormat))
@@ -105,7 +111,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         case "detailed":
                 c.Data(http.StatusOK, contentTypeSVG, badgeSVGDetailed(domain, results, scanTime))
         default:
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVG(domain, riskLabel, riskHex))
+                c.Data(http.StatusOK, contentTypeSVG, badgeSVG(domain, compactValue, riskHex))
         }
 }
 
@@ -326,12 +332,35 @@ func covertTagline(riskLabel string) string {
         case "Medium Risk":
                 return "Getting there."
         case "High Risk":
-                return "Work to do."
+                return "Door's open."
         case "Critical Risk":
-                return "Yikes."
+                return "Free real estate."
         default:
                 return ""
         }
+}
+
+func riskBorderColor(riskColorName string) string {
+        switch riskColorName {
+        case "success":
+                return "#238636"
+        case "warning":
+                return "#9e6a03"
+        case "danger":
+                return "#da3633"
+        default:
+                return "#30363d"
+        }
+}
+
+func countMissing(nodes []protocolNode) int {
+        count := 0
+        for _, n := range nodes {
+                if n.status == "missing" || n.status == "error" {
+                        count++
+                }
+        }
+        return count
 }
 
 func badgeSVGCovert(domain, riskLabel, riskHex string) []byte {
@@ -501,6 +530,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
 
         sc := scoreColor(score)
         riskHex := riskColorToHex(riskColorName)
+        borderColor := riskBorderColor(riskColorName)
+        missing := countMissing(nodes)
 
         domainDisplay := domain
         if len(domainDisplay) > 30 {
@@ -510,7 +541,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         scanDate := scanTime.UTC().Format("2006-01-02")
 
         const (
-                width  = 440
+                width  = 460
                 height = 186
                 pad    = 16
 
@@ -549,26 +580,26 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
         }
 
         nodePositions := []struct{ x, y int }{
-                {148, 56},
-                {208, 56},
-                {268, 56},
-                {346, 56},
-                {346, 96},
-                {148, 96},
-                {208, 96},
-                {268, 96},
-                {148, 136},
+                {148, 60},
+                {208, 60},
+                {268, 60},
+                {356, 60},
+                {356, 100},
+                {148, 100},
+                {208, 100},
+                {268, 100},
+                {148, 140},
         }
 
         var nodeSVG strings.Builder
 
         connLines := [][4]int{
-                {148, 56, 208, 56},
-                {208, 56, 268, 56},
-                {148, 96, 208, 96},
-                {268, 96, 346, 96},
-                {268, 56, 268, 96},
-                {346, 56, 346, 96},
+                {148, 60, 208, 60},
+                {208, 60, 268, 60},
+                {148, 100, 208, 100},
+                {268, 100, 356, 100},
+                {268, 60, 268, 100},
+                {356, 60, 356, 100},
         }
         for _, cl := range connLines {
                 nodeSVG.WriteString(fmt.Sprintf(
@@ -583,7 +614,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 }
                 pos := nodePositions[i]
 
-                r := 16
+                r := 17
                 filled := n.status == "success" || n.status == "warning"
                 fillColor := "none"
                 fillOpacity := "0"
@@ -596,10 +627,13 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                         strokeW = 2
                 } else if n.status == "error" {
                         fillColor = "#f85149"
-                        fillOpacity = "0.1"
+                        fillOpacity = "0.12"
                         strokeColor = "#f85149"
+                        strokeW = 2
                 } else {
-                        strokeColor = "#30363d"
+                        fillColor = "#f8514910"
+                        fillOpacity = "0.05"
+                        strokeColor = "#f85149"
                         strokeW = 1
                 }
 
@@ -615,10 +649,35 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                         `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-width="%d"/>`,
                         pos.x, pos.y, r, fillColor, fillOpacity, strokeColor, strokeW,
                 ))
-                nodeSVG.WriteString(fmt.Sprintf(
-                        `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                        pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
-                ))
+
+                if n.status == "missing" || n.status == "error" {
+                        xOff := 5
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff,
+                        ))
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff,
+                        ))
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" text-anchor="middle" fill="#f85149" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" opacity="0.6">%s</text>`,
+                                pos.x, pos.y+r+10, abbrevSize, n.abbrev,
+                        ))
+                } else {
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                                pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
+                        ))
+                }
+        }
+
+        missingSVG := ""
+        if missing > 0 {
+                missingSVG = fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="#f85149" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
+                        width-pad, 170, missing,
+                )
         }
 
         svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s (Score: %s)">
@@ -629,13 +688,13 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
       <stop offset="1" stop-color="#0d1117"/>
     </linearGradient>
     <radialGradient id="glow" cx="50%%" cy="50%%" r="50%%">
-      <stop offset="0" stop-color="%s" stop-opacity=".06"/>
+      <stop offset="0" stop-color="%s" stop-opacity=".08"/>
       <stop offset="1" stop-color="%s" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <rect width="%d" height="%d" rx="8" fill="url(#bg)"/>
-  <rect x=".5" y=".5" width="%d" height="%d" rx="8" fill="none" stroke="#30363d" stroke-width="1"/>
+  <rect x="1" y="1" width="%d" height="%d" rx="8" fill="none" stroke="%s" stroke-width="1.5"/>
 
   <circle cx="%d" cy="%d" r="60" fill="url(#glow)"/>
 
@@ -647,16 +706,16 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
   <path d="%s" fill="none" stroke="#21262d" stroke-width="6" stroke-linecap="round"/>
   <path d="%s" fill="none" stroke="%s" stroke-width="6" stroke-linecap="round"/>
 
-  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="20" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>
+  <text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="22" font-weight="700" font-family="'JetBrains Mono','Fira Code','SF Mono',monospace">%s</text>
   <text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">/ 100</text>
 
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="120" y="44" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Email Auth</text>
-  <text x="320" y="44" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Integrity</text>
-  <text x="120" y="124" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Brand</text>
-  <text x="200" y="124" fill="#6e7681" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif">Transport</text>
+  <text x="126" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">Email Auth</text>
+  <text x="330" y="46" fill="#6e7681" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">Integrity</text>
+
+  %s
 
   %s
 
@@ -668,7 +727,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 domain, riskLabel, scoreText,
                 sc, sc,
                 width, height,
-                width-1, height-1,
+                width-2, height-2, borderColor,
                 gaugeCX, gaugeCY,
                 pad, domainDisplay,
                 width-pad, scanDate,
@@ -680,6 +739,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time)
                 20, 148, riskHex,
                 26, 159, riskHex, riskLabel,
                 nodeSVG.String(),
+                missingSVG,
                 pad, height-6,
                 width-pad, height-6, scanDate,
         )
