@@ -285,6 +285,14 @@ DNS Tool operates exclusively on publicly available DNS information. As a result
 - RFC 8460 — SMTP TLS Reporting (TLS-RPT)
 - ODNI ICD 203 — Analytic Standards (Intelligence Community Directive)
 
+### Companion Artifact
+
+The communication architecture and philosophical foundations underlying the Five Perspectives model, Socratic verification workflow, and narrative architecture are documented in a separate companion paper:
+
+- Balboa, C. J. (2026). *Philosophical Foundations for Security Analysis Communication*. Available at: `docs/philosophical-foundations.md`
+
+That document addresses the philosophy of analysis and human factors dimensions of the platform. This methodology document remains focused on protocol science: RFC compliance, confidence scoring, calibration, and reproducibility. The two artifacts cross-reference but do not modify each other.
+
 ---
 
 ## Citation
