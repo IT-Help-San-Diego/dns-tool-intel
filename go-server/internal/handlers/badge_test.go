@@ -198,6 +198,75 @@ func TestBadgeSVGCovert(t *testing.T) {
         if !strings.Contains(sw, "no transport monitoring") {
                 t.Error("expected TLS-RPT missing text")
         }
+
+        exposedResults := map[string]any{
+                "posture": map[string]any{
+                        "label": "Medium Risk",
+                        "color": "warning",
+                        "score": float64(50),
+                },
+                "spf_analysis":    map[string]any{"status": "success"},
+                "dkim_analysis":   map[string]any{"status": "success"},
+                "dmarc_analysis":  map[string]any{"status": "warning"},
+                "dnssec_analysis": map[string]any{"status": "warning"},
+                "dane_analysis":   map[string]any{"status": "success"},
+                "secret_exposure": map[string]any{
+                        "status":        "exposed",
+                        "finding_count": float64(1),
+                        "findings": []any{
+                                map[string]any{
+                                        "type":       "Google API Key",
+                                        "severity":   "high",
+                                        "redacted":   "AIza********17C8",
+                                        "confidence": "high",
+                                },
+                        },
+                },
+        }
+        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        se := string(svgExp)
+
+        if !strings.Contains(se, "[!!]") {
+                t.Error("expected [!!] prefix for exposed secrets")
+        }
+        if !strings.Contains(se, "PUBLIC EXPOSURE") {
+                t.Error("expected PUBLIC EXPOSURE heading")
+        }
+        if !strings.Contains(se, "Google API Key") {
+                t.Error("expected Google API Key finding type")
+        }
+        if !strings.Contains(se, "AIza") {
+                t.Error("expected redacted key value")
+        }
+        if !strings.Contains(se, "secrets") {
+                t.Error("expected secrets reference in summary")
+        }
+}
+
+func TestBadgeSVGDetailedExposure(t *testing.T) {
+        exposedResults := map[string]any{
+                "posture": map[string]any{
+                        "label": "Medium Risk",
+                        "color": "warning",
+                        "score": float64(50),
+                },
+                "spf_analysis":  map[string]any{"status": "success"},
+                "dkim_analysis": map[string]any{"status": "success"},
+                "secret_exposure": map[string]any{
+                        "status":        "exposed",
+                        "finding_count": float64(2),
+                        "findings": []any{
+                                map[string]any{"type": "AWS Access Key", "severity": "critical", "redacted": "AKIA****ABCD"},
+                                map[string]any{"type": "Stripe Key", "severity": "high", "redacted": "sk_live****wxyz"},
+                        },
+                },
+        }
+        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        s := string(svg)
+
+        if !strings.Contains(s, "secrets exposed") {
+                t.Error("expected exposure warning in detailed badge")
+        }
 }
 
 func TestBadgeSVGDetailed(t *testing.T) {
