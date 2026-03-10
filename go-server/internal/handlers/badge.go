@@ -617,7 +617,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         planetLine.link = baseURL
         lines = append(lines, planetLine)
 
-        height := len(lines)*lineH + 24 + 2*lineH + 4 + lineH + 6
+        height := len(lines)*lineH + 24 + 2*lineH + 4 + 2*lineH + 10
 
         var svg strings.Builder
 
@@ -659,10 +659,16 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 alt, monoFont, domainDisplay,
         ))
 
+        scanTimeStr := scanTime.UTC().Format("15:04")
+
         promptY := 28
         svg.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">[kali@kali]─[~/recon/%s]</text>`,
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">┌──(kali㉿kali)-[~/recon/%s]</text>`,
                 xPad, promptY, alt, fontSize, monoFont, domainDisplay,
+        ))
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" text-anchor="end">%s</text>`,
+                width-xPad, promptY, alt, fontSize, monoFont, scanTimeStr,
         ))
         promptY2 := promptY + lineH
         svg.WriteString(fmt.Sprintf(
@@ -678,12 +684,6 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                         cmdX+i*charW, promptY2, sRed, fontSize, monoFont, delay, ch,
                 ))
         }
-
-        cursorX := cmdX + cmdLen*charW
-        svg.WriteString(fmt.Sprintf(
-                `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"><animate attributeName="opacity" to="0" dur="0.01s" begin="%.2fs" fill="freeze"/></rect>`,
-                cursorX, promptY2-10, 12, sRed, cmdDoneAt,
-        ))
 
         lineIdx := 0
         y := promptY2 + lineH + 4
@@ -778,16 +778,25 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
         svg.WriteString(`</g>`)
 
-        bottomPromptY := y + 6
+        bottomY1 := y + 6
         bottomDelay := owlDelay + 0.3
         svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, bottomDelay))
         svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">┌──(kali㉿kali)-[~/recon/%s]</text>`,
+                xPad, bottomY1, alt, fontSize, monoFont, domainDisplay,
+        ))
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" text-anchor="end">%s</text>`,
+                width-xPad, bottomY1, alt, fontSize, monoFont, scanTimeStr,
+        ))
+        bottomY2 := bottomY1 + lineH
+        svg.WriteString(fmt.Sprintf(
                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
-                xPad, bottomPromptY, alt, fontSize, monoFont,
+                xPad, bottomY2, alt, fontSize, monoFont,
         ))
         svg.WriteString(fmt.Sprintf(
                 `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"/>`,
-                xPad+4*charW, bottomPromptY-10, 12, sRed,
+                xPad+4*charW, bottomY2-10, 12, sRed,
         ))
         svg.WriteString(`</g>`)
 
