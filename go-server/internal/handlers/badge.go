@@ -1067,7 +1067,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         const (
-                width = 520
+                width = 540
                 pad   = 16
                 nodeR = 16
         )
@@ -1405,9 +1405,9 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <text x="228" y="58" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">AUTH</text>
   <text x="228" y="108" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">TRANSPORT</text>
   <text x="228" y="158" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">DNS</text>
-  <line x1="228" y1="60" x2="510" y2="60" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="228" y1="108" x2="440" y2="108" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="228" y1="158" x2="510" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="60" x2="524" y2="60" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="108" x2="450" y2="108" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="158" x2="524" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
