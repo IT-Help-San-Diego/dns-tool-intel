@@ -311,6 +311,18 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "alignment") {
                 t.Error("expected 'alignment' edge label in detailed badge")
         }
+        if !strings.Contains(s, "p=quarantine+") {
+                t.Error("expected 'p=quarantine+' edge label (BIMI→DMARC)")
+        }
+        if !strings.Contains(s, "requires") {
+                t.Error("expected 'requires' edge label (DANE→DNSSEC)")
+        }
+        if !strings.Contains(s, "strengthens") {
+                t.Error("expected 'strengthens' edge label (CAA→DNSSEC)")
+        }
+        if !strings.Contains(s, "reports") {
+                t.Error("expected 'reports' edge label (TLS-RPT→MTA-STS/DANE)")
+        }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
         }

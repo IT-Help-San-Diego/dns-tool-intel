@@ -1034,28 +1034,30 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 x, y int
         }
         nodePositions := []nodePos{
-                {268, 76},
-                {332, 76},
-                {396, 76},
-                {268, 172},
-                {332, 172},
-                {268, 126},
-                {332, 126},
-                {460, 76},
-                {396, 172},
+                {270, 76},
+                {340, 76},
+                {410, 76},
+                {270, 172},
+                {340, 172},
+                {300, 126},
+                {400, 126},
+                {480, 76},
+                {410, 172},
         }
 
         type topoEdge struct {
                 from, to int
                 label    string
+                hard     bool
         }
         edges := []topoEdge{
-                {0, 2, "alignment"},
-                {1, 2, "alignment"},
-                {2, 7, ""},
-                {5, 6, "reports"},
-                {3, 4, "requires"},
-                {3, 5, "strengthens"},
+                {2, 0, "alignment", true},
+                {2, 1, "alignment", true},
+                {7, 2, "p=quarantine+", true},
+                {6, 5, "reports", false},
+                {6, 4, "reports", false},
+                {4, 3, "requires", true},
+                {8, 3, "strengthens", false},
         }
 
         icieCX := 200
@@ -1163,9 +1165,13 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 }
 
                 pathD := fmt.Sprintf("M%d,%d L%d,%d", fp.x, fp.y, tp.x, tp.y)
+                dashArray := "4 6"
+                if e.hard {
+                        dashArray = "none"
+                }
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%.1f" stroke-dasharray="6 4" class="topo-flow"/>`,
-                        pathD, lineColor, lineOpacity, lineW,
+                        `<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%.1f" stroke-dasharray="%s"/>`,
+                        pathD, lineColor, lineOpacity, lineW, dashArray,
                 ))
 
                 arrowDx := float64(tp.x - fp.x)
@@ -1350,12 +1356,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="245" y="52" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
-  <text x="245" y="106" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
-  <text x="245" y="152" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
-  <line x1="245" y1="54" x2="496" y2="54" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="245" y1="104" x2="365" y2="104" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="245" y1="150" x2="430" y2="150" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <text x="248" y="52" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
+  <text x="248" y="106" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
+  <text x="248" y="152" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
+  <line x1="248" y1="54" x2="504" y2="54" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="248" y1="104" x2="430" y2="104" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="248" y1="150" x2="440" y2="150" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
