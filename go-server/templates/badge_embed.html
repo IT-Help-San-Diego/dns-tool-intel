@@ -29,8 +29,9 @@
         .badge-style-btn.active-covert { border-color: #f85149; background: rgba(248,81,73,.08); color: #f85149; box-shadow: 0 0 12px rgba(248,81,73,.12); }
         .badge-style-btn .style-label { font-weight: 600; font-size: .9rem; }
         .badge-style-btn .style-desc { font-size: .7rem; opacity: .7; }
-        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1rem; min-height: 80px; }
-        .badge-preview-area svg, .badge-preview-area img { display: block; width: 100%; height: auto; max-width: none; }
+        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .badge-preview-area > a { display: block; max-width: 680px; width: 100%; }
+        .badge-preview-area svg, .badge-preview-area img { display: block; width: 100%; height: auto; }
         #badgePreviewCard { scroll-margin-top: 1rem; }
     </style>
 </head>
@@ -278,12 +279,11 @@
                 link.target = '_blank';
                 link.rel = 'noopener';
                 link.style.display = 'block';
-                link.style.width = '100%';
                 link.appendChild(svgEl);
                 preview.textContent = '';
                 preview.appendChild(link);
             }).catch(function() {
-                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener" style="display:block;width:100%"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="width:100%;height:auto;display:block;"></a>';
+                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener" style="display:block"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="width:100%;height:auto;display:block;"></a>';
             });
             previewCard.classList.remove('d-none');
             embedCard.classList.remove('d-none');
