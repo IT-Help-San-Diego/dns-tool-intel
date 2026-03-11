@@ -5,7 +5,7 @@
     "seed": 1729,
     "units": "px",
     "status": "extracted_from_production",
-    "note": "Extracted from live topology.html — canonical fixture for solver and benchmark."
+    "note": "Extracted from live topology.html \u2014 canonical fixture for solver and benchmark."
   },
   "viewportProfiles": {
     "desktop": {
@@ -45,14 +45,14 @@
         },
         "confidence": {
           "x1": 650,
-          "y1": 250,
-          "x2": 930,
-          "y2": 560,
+          "y1": 240,
+          "x2": 940,
+          "y2": 600,
           "padding": 8
         },
         "storage": {
           "x1": 640,
-          "y1": 540,
+          "y1": 580,
           "x2": 960,
           "y2": 820,
           "padding": 8
@@ -76,7 +76,7 @@
     "tablet": {
       "id": "tablet",
       "width": 1100,
-      "height": 820,
+      "height": 940,
       "rankGap": 110,
       "intraRankGap": 22,
       "stageGapY": 64,
@@ -109,31 +109,31 @@
           "padding": 8
         },
         "confidence": {
-          "x1": 440,
-          "y1": 250,
-          "x2": 670,
-          "y2": 500,
+          "x1": 430,
+          "y1": 230,
+          "x2": 710,
+          "y2": 570,
           "padding": 8
         },
         "storage": {
           "x1": 430,
-          "y1": 500,
-          "x2": 680,
-          "y2": 740,
+          "y1": 560,
+          "x2": 700,
+          "y2": 810,
           "padding": 8
         },
         "protocol": {
-          "x1": 680,
-          "y1": 100,
-          "x2": 910,
-          "y2": 750,
+          "x1": 670,
+          "y1": 60,
+          "x2": 940,
+          "y2": 830,
           "padding": 8
         },
         "output": {
-          "x1": 940,
-          "y1": 180,
+          "x1": 930,
+          "y1": 160,
           "x2": 1070,
-          "y2": 720,
+          "y2": 740,
           "padding": 8
         }
       }
@@ -141,7 +141,7 @@
     "mobile": {
       "id": "mobile",
       "width": 420,
-      "height": 1400,
+      "height": 1700,
       "rankGap": 0,
       "intraRankGap": 18,
       "stageGapY": 40,
@@ -156,49 +156,49 @@
           "x1": 14,
           "y1": 60,
           "x2": 406,
-          "y2": 220,
+          "y2": 260,
           "padding": 8
         },
         "hub": {
           "x1": 14,
-          "y1": 240,
+          "y1": 280,
           "x2": 406,
-          "y2": 320,
+          "y2": 380,
           "padding": 8
         },
         "engine": {
           "x1": 14,
-          "y1": 340,
+          "y1": 400,
           "x2": 406,
-          "y2": 420,
+          "y2": 520,
           "padding": 8
         },
         "confidence": {
           "x1": 14,
-          "y1": 440,
+          "y1": 540,
           "x2": 406,
-          "y2": 600,
+          "y2": 900,
           "padding": 8
         },
         "storage": {
           "x1": 14,
-          "y1": 620,
+          "y1": 920,
           "x2": 406,
-          "y2": 760,
+          "y2": 1100,
           "padding": 8
         },
         "protocol": {
           "x1": 14,
-          "y1": 780,
+          "y1": 1120,
           "x2": 406,
-          "y2": 1150,
+          "y2": 1480,
           "padding": 8
         },
         "output": {
           "x1": 14,
-          "y1": 1170,
+          "y1": 1500,
           "x2": 406,
-          "y2": 1360,
+          "y2": 1660,
           "padding": 8
         }
       }
@@ -256,7 +256,7 @@
         "source"
       ],
       "data": {
-        "sub": "IANA Root Zone · TLD Registries"
+        "sub": "IANA Root Zone \u00b7 TLD Registries"
       },
       "radius": 30,
       "sub": "IANA Root Zone\nTLD Registries"
@@ -288,10 +288,10 @@
         "source"
       ],
       "data": {
-        "sub": "crt.sh · Certspotter Transparency Logs"
+        "sub": "crt.sh \u00b7 Certspotter Transparency Logs"
       },
       "radius": 30,
-      "sub": "crt.sh · Certspotter\nTransparency Logs"
+      "sub": "crt.sh \u00b7 Certspotter\nTransparency Logs"
     },
     {
       "id": "cisa",
@@ -320,10 +320,10 @@
         "source"
       ],
       "data": {
-        "sub": "SMTP · DANE · TLS Nmap · testssl.sh"
+        "sub": "SMTP \u00b7 DANE \u00b7 TLS Nmap \u00b7 testssl.sh"
       },
       "radius": 30,
-      "sub": "SMTP · DANE · TLS\nNmap · testssl.sh"
+      "sub": "SMTP \u00b7 DANE \u00b7 TLS\nNmap \u00b7 testssl.sh"
     },
     {
       "id": "hub",
@@ -369,10 +369,10 @@
         "intel"
       ],
       "data": {
-        "sub": "RFC Status · Errata Draft Tracker"
+        "sub": "RFC Status \u00b7 Errata Draft Tracker"
       },
       "radius": 36,
-      "sub": "RFC Status · Errata\nDraft Tracker"
+      "sub": "RFC Status \u00b7 Errata\nDraft Tracker"
     },
     {
       "id": "icae",
@@ -385,7 +385,7 @@
         "confidence"
       ],
       "data": {
-        "sub": "Accuracy Audit · Calibration"
+        "sub": "Accuracy Audit \u00b7 Calibration"
       },
       "radius": 42,
       "sub": "Accuracy Audit"
@@ -433,10 +433,10 @@
         "storage"
       ],
       "data": {
-        "sub": "Scan Results · History Drift · Analytics"
+        "sub": "Scan Results \u00b7 History Drift \u00b7 Analytics"
       },
       "radius": 36,
-      "sub": "Scan Results · History\nDrift · Analytics"
+      "sub": "Scan Results \u00b7 History\nDrift \u00b7 Analytics"
     },
     {
       "id": "fixtures",
@@ -625,10 +625,10 @@
         "output"
       ],
       "data": {
-        "sub": "Engineer · Executive Recon · Comparison"
+        "sub": "Engineer \u00b7 Executive Recon \u00b7 Comparison"
       },
       "radius": 36,
-      "sub": "Engineer · Executive\nRecon · Comparison"
+      "sub": "Engineer \u00b7 Executive\nRecon \u00b7 Comparison"
     },
     {
       "id": "jsonapi",
@@ -641,10 +641,10 @@
         "output"
       ],
       "data": {
-        "sub": "Analysis · Checksums Subdomains · Health"
+        "sub": "Analysis \u00b7 Checksums Subdomains \u00b7 Health"
       },
       "radius": 36,
-      "sub": "Analysis · Checksums\nSubdomains · Health"
+      "sub": "Analysis \u00b7 Checksums\nSubdomains \u00b7 Health"
     },
     {
       "id": "seo",
@@ -657,10 +657,10 @@
         "output"
       ],
       "data": {
-        "sub": "JSON-LD Structured Data Google · Rich Results"
+        "sub": "JSON-LD Structured Data Google \u00b7 Rich Results"
       },
       "radius": 36,
-      "sub": "JSON-LD Structured Data\nGoogle · Rich Results"
+      "sub": "JSON-LD Structured Data\nGoogle \u00b7 Rich Results"
     },
     {
       "id": "badges",
