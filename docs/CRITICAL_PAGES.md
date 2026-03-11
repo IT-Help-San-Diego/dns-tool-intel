@@ -41,7 +41,7 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `results_covert.html` |
-| Sensitive Areas | Scotopic red-spectrum palette (#cc2020), exit covert mode button, Focus Mode button (Fullscreen API + webkit fallback, `fa-expand`/`fa-compress` icon swap), dynamic `meta[name="theme-color"]` per covert environment, dark background consistency, all text must pass WCAG contrast against dark bg, no light-theme color leaks, iPhone graceful degradation (Focus button hidden when Fullscreen API unavailable) |
+| Sensitive Areas | Scotopic red-spectrum palette (#cc2020), exit covert mode button, Focus Mode button (Fullscreen API + webkit fallback, inline SVG `expand`/`compress-arrows-alt` icon swap via `window._icons`), dynamic `meta[name="theme-color"]` per covert environment, dark background consistency, all text must pass WCAG contrast against dark bg, no light-theme color leaks, iPhone graceful degradation (Focus button hidden when Fullscreen API unavailable) |
 | Known Issues | None |
 | Resolved | — |
 
