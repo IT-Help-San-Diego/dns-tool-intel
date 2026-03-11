@@ -197,6 +197,23 @@ func riskColorToHex(color string) string {
         }
 }
 
+func normalizeRiskColor(label, color string) string {
+        switch color {
+        case "success", "warning", "danger":
+                return color
+        }
+        ll := strings.ToLower(label)
+        switch {
+        case strings.Contains(ll, "low"):
+                return "success"
+        case strings.Contains(ll, "medium"):
+                return "warning"
+        case strings.Contains(ll, "high"), strings.Contains(ll, "critical"):
+                return "danger"
+        }
+        return color
+}
+
 func reportRiskColor(color string) string {
         switch color {
         case "success":
@@ -1011,6 +1028,7 @@ func firstMissingProtocol(nodes []protocolNode) string {
 
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
+        riskColorName = normalizeRiskColor(riskLabel, riskColorName)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)
 
@@ -1105,36 +1123,40 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         var nodeSVG strings.Builder
 
+        resolverColor := "#5c6bc0"
+        icieColor := "#e0e0e0"
+
         nodeSVG.WriteString(fmt.Sprintf(
-                `<rect x="%d" y="%d" width="%d" height="%d" rx="4" fill="#0d1117" stroke="#30363d" stroke-width="1"/>`,
-                resolverCX-resolverW/2, resolverCY-resolverH/2, resolverW, resolverH,
+                `<rect x="%d" y="%d" width="%d" height="%d" rx="4" fill="%s" fill-opacity="0.10" stroke="%s" stroke-opacity="0.45" stroke-width="1"/>`,
+                resolverCX-resolverW/2, resolverCY-resolverH/2, resolverW, resolverH, resolverColor, resolverColor,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">Resolvers</text>`,
-                resolverCX, resolverCY+3,
+                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">Resolvers</text>`,
+                resolverCX, resolverCY+3, resolverColor,
         ))
 
         nodeSVG.WriteString(fmt.Sprintf(
-                `<circle cx="%d" cy="%d" r="%d" fill="#0d1117" stroke="#58a6ff" stroke-width="1.2"/>`,
-                icieCX, icieCY, icieR,
+                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.10" stroke="%s" stroke-opacity="0.45" stroke-width="1.2"/>`,
+                icieCX, icieCY, icieR, icieColor, icieColor,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#58a6ff" font-size="7" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">ICIE</text>`,
-                icieCX, icieCY+3,
+                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="7" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">ICIE</text>`,
+                icieCX, icieCY+3, icieColor,
         ))
 
         nodeSVG.WriteString(fmt.Sprintf(
-                `<path d="M%d,%d L%d,%d" fill="none" stroke="#30363d" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="3 2"/>`,
-                resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY,
+                `<path d="M%d,%d L%d,%d" fill="none" stroke="%s" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 2"/>`,
+                resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY, icieColor,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<circle r="1.5" fill="#58a6ff" opacity="0.7"><animateMotion dur="1.2s" repeatCount="indefinite" path="M%d,%d L%d,%d"/></circle>`,
-                resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY,
+                `<circle r="1.5" fill="%s" opacity="0.7"><animateMotion dur="1.2s" repeatCount="indefinite" path="M%d,%d L%d,%d"/></circle>`,
+                icieColor, resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY,
         ))
 
         type fanTarget struct {
                 x, y int
         }
+        fanTargetIdx := []int{0, 5, 3}
         fanTargets := []fanTarget{
                 {nodePositions[0].x, nodePositions[0].y},
                 {nodePositions[5].x, nodePositions[5].y},
@@ -1153,14 +1175,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 startY := float64(icieCY) + fny*float64(icieR)
                 endX := float64(ft.x) - fnx*float64(nodeR+2)
                 endY := float64(ft.y) - fny*float64(nodeR+2)
+                targetColor := protocolGroupColor(nodes[fanTargetIdx[fi]].abbrev)
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<path d="M%.0f,%.0f L%.0f,%.0f" fill="none" stroke="#58a6ff" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3 2"/>`,
-                        startX, startY, endX, endY,
+                        `<path d="M%.0f,%.0f L%.0f,%.0f" fill="none" stroke="%s" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3 2"/>`,
+                        startX, startY, endX, endY, targetColor,
                 ))
                 dur := fmt.Sprintf("%.1fs", 2.0+float64(fi)*0.5)
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<circle r="1.5" fill="#58a6ff" opacity="0.5"><animateMotion dur="%s" repeatCount="indefinite" path="M%.0f,%.0f L%.0f,%.0f"/></circle>`,
-                        dur, startX, startY, endX, endY,
+                        `<circle r="1.5" fill="%s" opacity="0.5"><animateMotion dur="%s" repeatCount="indefinite" path="M%.0f,%.0f L%.0f,%.0f"/></circle>`,
+                        targetColor, dur, startX, startY, endX, endY,
                 ))
         }
 
@@ -1172,10 +1195,11 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 tp := nodePositions[e.to]
                 dn := nodes[e.to]
 
-                lineColor := "#30363d"
-                lineOpacity := "0.4"
+                groupColor := protocolGroupColor(dn.abbrev)
+                lineColor := groupColor
+                lineOpacity := "0.15"
                 lineW := 1.5
-                packetColor := "#484f58"
+                packetColor := groupColor
                 if dn.status == "success" || dn.status == "warning" {
                         lineColor = dn.colorHex
                         lineOpacity = "0.35"
