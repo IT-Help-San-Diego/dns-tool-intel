@@ -286,7 +286,9 @@ func TestExtractReportsAndDurations(t *testing.T) {
                 if len(durations) != 1 {
                         t.Fatalf("expected 1 duration, got %d", len(durations))
                 }
-                _ = reports
+                if len(reports) != 1 {
+                        t.Fatalf("expected 1 report, got %d", len(reports))
+                }
         })
 
         t.Run("invalid JSON skipped", func(t *testing.T) {
@@ -748,7 +750,9 @@ func TestSecurityTrailsErrorMessages(t *testing.T) {
         for _, tt := range tests {
                 t.Run(tt.errMsg, func(t *testing.T) {
                         result := securityTrailsErrorMessage(fmt.Errorf("%s", tt.errMsg))
-                        _ = result
+                        if result == "" {
+                                t.Error("expected non-empty error message")
+                        }
                 })
         }
 }
@@ -765,7 +769,9 @@ func TestIpInfoErrorMessage(t *testing.T) {
         for _, tt := range tests {
                 t.Run(tt.errMsg, func(t *testing.T) {
                         result := ipInfoErrorMessage(fmt.Errorf("%s", tt.errMsg))
-                        _ = result
+                        if result == "" {
+                                t.Error("expected non-empty error message")
+                        }
                 })
         }
 }

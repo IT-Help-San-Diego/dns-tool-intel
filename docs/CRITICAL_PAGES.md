@@ -17,9 +17,9 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `index.html` |
-| Sensitive Areas | Hero section layout, domain input field (mobile autocapitalize), scan overlay animation (Safari fetch pattern), privacy banner |
+| Sensitive Areas | Hero section layout, domain input field (mobile autocapitalize), DKIM selector inputs (mobile autocapitalize), SecurityTrails API key input, scan overlay animation (Safari fetch pattern), privacy banner |
 | Known Issues | None |
-| Resolved | — |
+| Resolved | DKIM selector inputs missing `autocapitalize="none"` and `spellcheck="false"` — fixed v26.36.02 (Mar 2026); SecurityTrails API key input missing `autocapitalize="none"` — fixed v26.36.02 (Mar 2026) |
 
 ### Engineer's DNS Intelligence Report (`/analysis/:id/view/E`)
 | Attribute | Value |
@@ -175,6 +175,12 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 
 ---
 
+## Safari / Mobile Compatibility Audit Log
+
+| Date | Version | Audit Scope | Findings |
+|------|---------|-------------|----------|
+| 2026-03-11 | v26.36.02 | All critical pages: Safari fetch pattern, Fullscreen API, autocapitalize, PWA manifest, icon system, theme-color | Scan overlay uses fetch()+DOMParser+document.replaceChild() (Safari-safe). Fullscreen API has webkit fallbacks. Focus Mode button hidden when API unavailable. PWA manifest complete. Icon system uses inline SVGs from Go registry (icons.go), not CSS subsets. theme-color meta tag dynamically updated per covert env. Fixed: 6 inputs missing autocapitalize=none (DKIM selectors, API keys). audit_icons.py references obsolete fontawesome-subset.min.css path. |
+
 ## Cross-Page Regression Log
 
 Track when fixing one page breaks another.
@@ -192,7 +198,7 @@ Changes to these files affect multiple pages simultaneously. Extra caution requi
 | Resource | Pages Affected | Risk |
 |----------|---------------|------|
 | `_nav.html` | All pages | Navbar, maintenance badge, covert mode toggle, version display |
-| `_head.html` | All pages | CSS loading, Font Awesome, CSP nonce, SRI hashes |
+| `_head.html` | All pages | CSS loading, inline SVG icon system (via `go-server/internal/icons/icons.go`), CSP nonce, SRI hashes, PWA manifest/splash screens |
 | `_footer.html` | All pages | Footer links, copyright |
 | `static/css/custom.min.css` | All pages | Global styling, color tokens, glass effects |
 | `static/js/main.js` | Pages with scan overlay, covert mode pages | Safari fetch pattern, overlay animation, Focus Mode (Fullscreen API), dynamic theme-color, Morse audio easter egg |

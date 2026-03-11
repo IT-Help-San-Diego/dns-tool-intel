@@ -1554,7 +1554,7 @@ func startCountryCacheEviction() {
 }
 
 func lookupCountry(ip string) (string, string) {
-        if ip == "" || ip == "127.0.0.1" || ip == "::1" {
+        if ip == "" || ip == "127.0.0.1" || ip == "::1" { // S1313: loopback check — intentional
                 return "", ""
         }
 
