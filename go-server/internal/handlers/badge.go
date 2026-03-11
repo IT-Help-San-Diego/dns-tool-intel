@@ -1190,20 +1190,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
   <circle cx="%d" cy="%d" r="52" fill="url(#owlGlow)"/>
   <a href="%s" target="_blank">
-    <g transform="translate(%d,%d) scale(1.8)">
-      <path d="M20,4 C20,2 18,0 16,1 C14.5,-0.5 13,-0.5 12,0.5 C11,0 10,0 9,0.5 C8,-0.5 6.5,-0.5 5,1 C3,0 1,2 1,4 L0,7 C-0.5,10 1,14 3,17 C4.5,19 6,21 8,23 L10.5,26 L13,23 C15,21 16.5,19 18,17 C20,14 21.5,10 21,7 Z" fill="#161b22" stroke="#6e7681" stroke-width="0.6"/>
-      <ellipse cx="7" cy="9" rx="4.5" ry="4" fill="#0d1117" stroke="%s" stroke-width="0.7"/>
-      <ellipse cx="14" cy="9" rx="4.5" ry="4" fill="#0d1117" stroke="%s" stroke-width="0.7"/>
-      <circle cx="7" cy="9" r="2.2" fill="%s" opacity="0.9"/>
-      <circle cx="14" cy="9" r="2.2" fill="%s" opacity="0.9"/>
-      <circle cx="7.6" cy="8.4" r="0.7" fill="#e6edf3" opacity="0.8"/>
-      <circle cx="14.6" cy="8.4" r="0.7" fill="#e6edf3" opacity="0.8"/>
-      <path d="M9,13 L10.5,14.5 L12,13" fill="none" stroke="#6e7681" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M3,6 C1.5,5 0,6 0,7" fill="none" stroke="#6e7681" stroke-width="0.5"/>
-      <path d="M18,6 C19.5,5 21,6 21,7" fill="none" stroke="#6e7681" stroke-width="0.5"/>
-      <path d="M5,3 C4,1.5 2.5,2 2,3" fill="none" stroke="#6e7681" stroke-width="0.5"/>
-      <path d="M16,3 C17,1.5 18.5,2 19,3" fill="none" stroke="#6e7681" stroke-width="0.5"/>
-    </g>
+    <image x="%d" y="%d" width="80" height="80" href="%s" cursor="pointer"/>
   </a>
 
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
@@ -1239,9 +1226,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 pad, width-pad,
                 owlCX, owlCY,
                 reportURL,
-                owlCX-19, owlCY-24,
-                riskHex, riskHex,
-                riskHex, riskHex,
+                owlCX-40, owlCY-40, owlBadgePNG,
                 20, 158, riskHex,
                 26, 170, riskHex, riskLabel,
                 nodeSVG.String(),
