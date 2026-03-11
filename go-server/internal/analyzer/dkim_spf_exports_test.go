@@ -1197,7 +1197,9 @@ func TestExportFunctions(t *testing.T) {
         })
         t.Run("ClassifySelectorProvider", func(t *testing.T) {
                 got := ExportClassifySelectorProvider("google", "")
-                _ = got
+                if got == "" {
+                        t.Error("expected non-empty provider classification for 'google' selector")
+                }
         })
         t.Run("FilterSTSRecords", func(t *testing.T) {
                 got := ExportFilterSTSRecords([]string{"v=STSv1; id=123", "not-sts"})
@@ -1298,12 +1300,18 @@ func TestExportFunctions(t *testing.T) {
                 if count < 1 {
                         t.Error("expected lookups")
                 }
-                _ = lookupMechs
-                _ = includes
+                if len(lookupMechs) == 0 {
+                        t.Error("expected lookup mechanisms")
+                }
+                if len(includes) == 0 {
+                        t.Error("expected includes")
+                }
                 _ = perm
                 _ = allMech
                 _ = issues
-                _ = noMail
+                if noMail {
+                        t.Error("expected noMail=false")
+                }
         })
         t.Run("ClassifyEnterpriseDNS", func(t *testing.T) {
                 result := ExportClassifyEnterpriseDNS("example.com", []string{"ns1.cloudflare.com"})
@@ -1319,7 +1327,9 @@ func TestExportFunctions(t *testing.T) {
         })
         t.Run("IdentifyCAIssuer", func(t *testing.T) {
                 got := ExportIdentifyCAIssuer("0 issue \"letsencrypt.org\"")
-                _ = got
+                if got == "" {
+                        t.Error("expected non-empty CA issuer for letsencrypt")
+                }
         })
         t.Run("ParseCAARecords", func(t *testing.T) {
                 issuers, wildcardIssuers, hasWildcard, hasIodef := ExportParseCAARecords([]string{
