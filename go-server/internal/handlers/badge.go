@@ -849,15 +849,13 @@ type protocolNode struct {
 func protocolGroupColor(abbrev string) string {
         switch abbrev {
         case "SPF", "DKIM", protoDMARC:
-                return "#4a8fe7"
-        case protoDNSSEC:
-                return hexYellow
+                return "#4fc3f7"
+        case protoDNSSEC, "CAA":
+                return "#ffb74d"
         case "DANE", protoMTASTS, protoTLSRPT:
-                return hexGreen
+                return "#81c784"
         case "BIMI":
-                return "#a371f7"
-        case "CAA":
-                return "#39d4d4"
+                return "#ce93d8"
         default:
                 return "#484f58"
         }
@@ -1235,33 +1233,43 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 }
         }
 
+        var glowDefs strings.Builder
         for i, n := range nodes {
                 if i >= len(nodePositions) {
                         break
                 }
                 pos := nodePositions[i]
 
-                filled := n.status == "success" || n.status == "warning"
-                fillColor := "none"
-                fillOpacity := "0"
-                strokeColor := n.colorHex
-                strokeW := 2
+                nodeColor := n.groupColor
+                strokeColor := n.groupColor
+                fillOpacity := "0.10"
+                strokeOpacity := "0.45"
+                strokeW := 1.5
+                glowOpacity := "0.10"
+                textColor := "#e6edf3"
 
-                if filled {
-                        fillColor = n.colorHex
-                        fillOpacity = "0.18"
-                        strokeW = 2
-                } else if n.status == "error" {
-                        fillColor = hexRed
-                        fillOpacity = "0.12"
+                if n.status == "error" || n.status == "missing" {
+                        nodeColor = hexRed
                         strokeColor = hexRed
-                        strokeW = 2
-                } else {
-                        fillColor = hexRed
-                        fillOpacity = "0.05"
-                        strokeColor = hexRed
+                        fillOpacity = "0.06"
+                        strokeOpacity = "0.25"
                         strokeW = 1
+                        glowOpacity = "0.06"
+                        textColor = hexRed
+                } else if n.status == "warning" {
+                        fillOpacity = "0.14"
+                        strokeOpacity = "0.55"
+                        glowOpacity = "0.12"
+                } else if n.status == "success" {
+                        fillOpacity = "0.14"
+                        strokeOpacity = "0.55"
+                        glowOpacity = "0.12"
                 }
+
+                glowDefs.WriteString(fmt.Sprintf(
+                        `<radialGradient id="ng%d" cx="%d" cy="%d" r="%d" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s" stop-opacity="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>`,
+                        i, pos.x, pos.y, nodeR+8, nodeColor, glowOpacity, nodeColor,
+                ))
 
                 abbrevSize := 8
                 if len(n.abbrev) > 4 {
@@ -1271,16 +1279,21 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         abbrevSize = 6
                 }
 
-                if filled {
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<circle cx="%d" cy="%d" r="%d" fill="url(#ng%d)"/>`,
+                        pos.x, pos.y, nodeR+8, i,
+                ))
+
+                if n.status == "success" || n.status == "warning" {
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.06"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/></circle>`,
-                                pos.x, pos.y, nodeR+6, n.colorHex, nodeR+6, nodeR+10, nodeR+6,
+                                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.04"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.04;0.08;0.04" dur="3s" repeatCount="indefinite"/></circle>`,
+                                pos.x, pos.y, nodeR+6, nodeColor, nodeR+6, nodeR+10, nodeR+6,
                         ))
                 }
 
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-width="%d"/>`,
-                        pos.x, pos.y, nodeR, fillColor, fillOpacity, strokeColor, strokeW,
+                        `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-opacity="%s" stroke-width="%.1f"/>`,
+                        pos.x, pos.y, nodeR, nodeColor, fillOpacity, strokeColor, strokeOpacity, strokeW,
                 ))
 
                 if n.status == "missing" || n.status == "error" {
@@ -1297,7 +1310,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
                 nodeSVG.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                        pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
+                        pos.x, pos.y+3, textColor, abbrevSize, n.abbrev,
                 ))
         }
 
@@ -1341,6 +1354,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
       <stop offset="0" stop-color="%s" stop-opacity=".12"/>
       <stop offset="1" stop-color="%s" stop-opacity="0"/>
     </radialGradient>
+    %s
   </defs>
   <style>
     .topo-flow { stroke-dasharray: 4 3; animation: topodata 1.2s linear infinite; }
@@ -1388,6 +1402,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 domain, riskLabel,
                 domain, riskLabel,
                 riskHex, riskHex,
+                glowDefs.String(),
                 width, height,
                 width-2, height-2, borderColor,
                 pad, domainDisplay,
