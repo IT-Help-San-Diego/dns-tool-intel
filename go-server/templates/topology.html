@@ -1037,9 +1037,9 @@
             var pipeEnd = W * 0.99;
             var pipeTotal = pipeEnd - pipeStart;
             var colGap = Math.max(4, pipeTotal * 0.01);
-            var c1w = pipeTotal * 0.14;
-            var c2w = pipeTotal * 0.16;
-            var c3w = pipeTotal * 0.46;
+            var c1w = pipeTotal * 0.13;
+            var c2w = pipeTotal * 0.20;
+            var c3w = pipeTotal * 0.42;
             var c4w = pipeTotal * 0.16;
             var col1L = pipeStart;
             var col1R = col1L + c1w;
@@ -1067,16 +1067,16 @@
             ENGINE.targetX = procCx;
             ENGINE.targetY = titleSafe + usableH * 0.15;
 
-            var confSpread = Math.max(30, (col2R - col2L) * 0.25);
-            var confY = titleSafe + usableH * 0.45;
-            CONFIDENCE[0].targetX = procCx - confSpread * 0.8;
-            CONFIDENCE[0].targetY = confY - usableH * 0.04;
-            CONFIDENCE[1].targetX = procCx - confSpread * 0.4;
-            CONFIDENCE[1].targetY = confY + usableH * 0.08;
-            CONFIDENCE[2].targetX = procCx + confSpread * 0.4;
-            CONFIDENCE[2].targetY = confY + usableH * 0.08;
+            var confSpread = Math.max(40, (col2R - col2L) * 0.32);
+            var confY = titleSafe + usableH * 0.42;
+            CONFIDENCE[0].targetX = procCx;
+            CONFIDENCE[0].targetY = confY - usableH * 0.06;
+            CONFIDENCE[1].targetX = procCx - confSpread * 0.5;
+            CONFIDENCE[1].targetY = confY + usableH * 0.06;
+            CONFIDENCE[2].targetX = procCx + confSpread * 0.5;
+            CONFIDENCE[2].targetY = confY + usableH * 0.06;
             CONFIDENCE[3].targetX = procCx;
-            CONFIDENCE[3].targetY = confY + usableH * 0.20;
+            CONFIDENCE[3].targetY = confY + usableH * 0.18;
 
             var storeY = titleSafe + usableH * 0.78;
             var storeSpread = Math.max(confSpread * 0.8, 60);
@@ -1126,7 +1126,7 @@
                 'confidence': {
                     gx: procCx, gy: confY + usableH * 0.06,
                     gravity: 0.30,
-                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.30, y2: titleSafe + usableH * 0.72 }
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.75 }
                 },
                 'storage': {
                     gx: procCx, gy: storeY,
@@ -1159,7 +1159,7 @@
             if (solverData) {
                 SOLVER_ACTIVE = true;
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
-                var solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 820 }, mobile: { w: 420, h: 1400 } };
+                var solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
                 var ref = solverRef[solverProfile] || solverRef.desktop;
                 allLayoutNodes.forEach(function(nd) {
                     var pos = solverData[nd.id];
@@ -1193,8 +1193,8 @@
                 measureNodeBox(nd);
             });
 
-            var overlapPad = 8;
-            for (var op = 0; op < 20; op++) {
+            var overlapPad = 14;
+            for (var op = 0; op < 40; op++) {
                 var anyOverlap = false;
                 for (var oi = 0; oi < allLayoutNodes.length; oi++) {
                     for (var oj = oi + 1; oj < allLayoutNodes.length; oj++) {
@@ -1206,7 +1206,7 @@
                         if (odx < ohw && ody < ohh) {
                             var overX = ohw - odx;
                             var overY = ohh - ody;
-                            var pushStr = 0.55;
+                            var pushStr = 0.7;
                             if (overX < overY) {
                                 var sx = (nb.targetX >= na.targetX ? 1 : -1) * overX * pushStr;
                                 na.targetX -= sx;
@@ -1410,31 +1410,27 @@
                 }
                 ly -= 8 * SCL;
 
-                for (var lri = 0; lri < PROTOCOLS.length; lri++) {
-                    var lpn = PROTOCOLS[lri];
-                    var ldx = lx - lpn.x;
-                    var ldy = ly - lpn.y;
-                    var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
-                    if (ldist < lpn.radius + 20 && ldist > 0.1) {
-                        var lnorm = (lpn.radius + 25) / ldist;
-                        lx = lpn.x + ldx * lnorm;
-                        ly = lpn.y + ldy * lnorm;
-                    }
-                }
-
                 for (var nri = 0; nri < allLayoutNodes.length; nri++) {
                     var nn = allLayoutNodes[nri];
-                    if (nn.shape === 'circle') continue;
-                    var nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 8;
-                    var nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 8;
-                    var ndx = lx - nn.x;
-                    var ndy = ly - nn.y;
-                    if (Math.abs(ndx) < nhw + 30 && Math.abs(ndy) < nhh + 10) {
+                    var nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 12;
+                    var nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 12;
+                    if (nn.shape === 'circle') {
+                        var ldx = lx - nn.x;
+                        var ldy = ly - nn.y;
+                        var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
+                        if (ldist < nn.radius + 24 && ldist > 0.1) {
+                            var lnorm = (nn.radius + 28) / ldist;
+                            lx = nn.x + ldx * lnorm;
+                            ly = nn.y + ldy * lnorm;
+                        }
+                    } else {
+                        var ndx = lx - nn.x;
+                        var ndy = ly - nn.y;
                         if (Math.abs(ndx) < nhw && Math.abs(ndy) < nhh) {
                             if (Math.abs(ndx) / nhw > Math.abs(ndy) / nhh) {
-                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 4);
+                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 6);
                             } else {
-                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 4);
+                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 6);
                             }
                         }
                     }
@@ -1446,17 +1442,22 @@
                 var pw = tw + 8 * SCL;
                 var ph = edgeFontSize + 6 * SCL;
 
-                for (var pli = 0; pli < placedEdgeLabels.length; pli++) {
-                    var pl = placedEdgeLabels[pli];
-                    var olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
-                    var oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
-                    if (olx > 0 && oly > 0) {
-                        if (olx < oly) {
-                            lx += (lx >= pl.x ? 1 : -1) * (olx + 4);
-                        } else {
-                            ly += (ly >= pl.y ? 1 : -1) * (oly + 4);
+                for (var llPass = 0; llPass < 3; llPass++) {
+                    var llMoved = false;
+                    for (var pli = 0; pli < placedEdgeLabels.length; pli++) {
+                        var pl = placedEdgeLabels[pli];
+                        var olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
+                        var oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
+                        if (olx > 0 && oly > 0) {
+                            if (olx < oly) {
+                                lx += (lx >= pl.x ? 1 : -1) * (olx + 6);
+                            } else {
+                                ly += (ly >= pl.y ? 1 : -1) * (oly + 6);
+                            }
+                            llMoved = true;
                         }
                     }
+                    if (!llMoved) break;
                 }
 
                 ly = Math.max(20, Math.min(H - 20, ly));
