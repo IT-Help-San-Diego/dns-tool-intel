@@ -5,7 +5,7 @@
     "seed": 1729,
     "units": "px",
     "status": "extracted_from_production",
-    "note": "Extracted from live topology.html \u2014 canonical fixture for solver and benchmark."
+    "note": "Extracted from live topology.html — canonical fixture for solver and benchmark."
   },
   "viewportProfiles": {
     "desktop": {
@@ -256,8 +256,10 @@
         "source"
       ],
       "data": {
-        "sub": "IANA Root Zone \u00b7 TLD Registries"
-      }
+        "sub": "IANA Root Zone · TLD Registries"
+      },
+      "radius": 30,
+      "sub": "IANA Root Zone\nTLD Registries"
     },
     {
       "id": "rdap",
@@ -271,7 +273,9 @@
       ],
       "data": {
         "sub": "Registration Data Access Protocol"
-      }
+      },
+      "radius": 30,
+      "sub": "Registration Data\nAccess Protocol"
     },
     {
       "id": "ct",
@@ -284,8 +288,10 @@
         "source"
       ],
       "data": {
-        "sub": "crt.sh \u00b7 Certspotter Transparency Logs"
-      }
+        "sub": "crt.sh · Certspotter Transparency Logs"
+      },
+      "radius": 30,
+      "sub": "crt.sh · Certspotter\nTransparency Logs"
     },
     {
       "id": "cisa",
@@ -299,7 +305,9 @@
       ],
       "data": {
         "sub": "BOD 19-02 IP Scanner Detection"
-      }
+      },
+      "radius": 30,
+      "sub": "BOD 19-02\nIP Scanner Detection"
     },
     {
       "id": "probes",
@@ -312,8 +320,10 @@
         "source"
       ],
       "data": {
-        "sub": "SMTP \u00b7 DANE \u00b7 TLS Nmap \u00b7 testssl.sh"
-      }
+        "sub": "SMTP · DANE · TLS Nmap · testssl.sh"
+      },
+      "radius": 30,
+      "sub": "SMTP · DANE · TLS\nNmap · testssl.sh"
     },
     {
       "id": "hub",
@@ -327,7 +337,9 @@
       ],
       "data": {
         "sub": "Signal Aggregation"
-      }
+      },
+      "radius": 44,
+      "sub": "Signal Aggregation"
     },
     {
       "id": "engine",
@@ -341,7 +353,9 @@
       ],
       "data": {
         "sub": "Analysis Engine"
-      }
+      },
+      "radius": 54,
+      "sub": "Analysis Engine"
     },
     {
       "id": "ietf",
@@ -355,8 +369,10 @@
         "intel"
       ],
       "data": {
-        "sub": "RFC Status \u00b7 Errata Draft Tracker"
-      }
+        "sub": "RFC Status · Errata Draft Tracker"
+      },
+      "radius": 36,
+      "sub": "RFC Status · Errata\nDraft Tracker"
     },
     {
       "id": "icae",
@@ -370,7 +386,9 @@
       ],
       "data": {
         "sub": "Accuracy Audit · Calibration"
-      }
+      },
+      "radius": 42,
+      "sub": "Accuracy Audit"
     },
     {
       "id": "icuae",
@@ -384,7 +402,9 @@
       ],
       "data": {
         "sub": "Currency Audit"
-      }
+      },
+      "radius": 42,
+      "sub": "Currency Audit"
     },
     {
       "id": "ede",
@@ -398,7 +418,9 @@
       ],
       "data": {
         "sub": "Epistemic Disclosure"
-      }
+      },
+      "radius": 48,
+      "sub": "Epistemic\nDisclosure"
     },
     {
       "id": "postgres",
@@ -411,8 +433,10 @@
         "storage"
       ],
       "data": {
-        "sub": "Scan Results \u00b7 History Drift \u00b7 Analytics"
-      }
+        "sub": "Scan Results · History Drift · Analytics"
+      },
+      "radius": 36,
+      "sub": "Scan Results · History\nDrift · Analytics"
     },
     {
       "id": "fixtures",
@@ -426,7 +450,9 @@
       ],
       "data": {
         "sub": "Known-Good Baselines RFC Compliance Seeds"
-      }
+      },
+      "radius": 34,
+      "sub": "Known-Good Baselines\nRFC Compliance Seeds"
     },
     {
       "id": "wayback",
@@ -440,7 +466,9 @@
       ],
       "data": {
         "sub": "Wayback Machine Permanent Record"
-      }
+      },
+      "radius": 32,
+      "sub": "Wayback Machine\nPermanent Record"
     },
     {
       "id": "spf",
@@ -455,7 +483,8 @@
       ],
       "data": {
         "rfc": "7208"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "dkim",
@@ -470,7 +499,8 @@
       ],
       "data": {
         "rfc": "6376"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "dmarc",
@@ -485,7 +515,8 @@
       ],
       "data": {
         "rfc": "7489"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "dnssec",
@@ -500,7 +531,8 @@
       ],
       "data": {
         "rfc": "4035"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "dane",
@@ -515,7 +547,8 @@
       ],
       "data": {
         "rfc": "6698"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "mtasts",
@@ -530,7 +563,8 @@
       ],
       "data": {
         "rfc": "8461"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "tlsrpt",
@@ -545,7 +579,8 @@
       ],
       "data": {
         "rfc": "8460"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "bimi",
@@ -560,7 +595,8 @@
       ],
       "data": {
         "rfc": "draft"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "caa",
@@ -575,7 +611,8 @@
       ],
       "data": {
         "rfc": "8659"
-      }
+      },
+      "radius": 36
     },
     {
       "id": "reports",
@@ -588,8 +625,10 @@
         "output"
       ],
       "data": {
-        "sub": "Engineer \u00b7 Executive Recon \u00b7 Comparison"
-      }
+        "sub": "Engineer · Executive Recon · Comparison"
+      },
+      "radius": 36,
+      "sub": "Engineer · Executive\nRecon · Comparison"
     },
     {
       "id": "jsonapi",
@@ -602,8 +641,10 @@
         "output"
       ],
       "data": {
-        "sub": "Analysis \u00b7 Checksums Subdomains \u00b7 Health"
-      }
+        "sub": "Analysis · Checksums Subdomains · Health"
+      },
+      "radius": 36,
+      "sub": "Analysis · Checksums\nSubdomains · Health"
     },
     {
       "id": "seo",
@@ -616,8 +657,10 @@
         "output"
       ],
       "data": {
-        "sub": "JSON-LD Structured Data Google \u00b7 Rich Results"
-      }
+        "sub": "JSON-LD Structured Data Google · Rich Results"
+      },
+      "radius": 36,
+      "sub": "JSON-LD Structured Data\nGoogle · Rich Results"
     },
     {
       "id": "badges",
@@ -631,7 +674,9 @@
       ],
       "data": {
         "sub": "Posture Indicators Embeddable"
-      }
+      },
+      "radius": 36,
+      "sub": "Posture Indicators\nEmbeddable"
     }
   ],
   "edges": [
@@ -1018,7 +1063,7 @@
     "convergenceEpsilon": 0.0001,
     "stressWindow": 5,
     "weights": {
-      "flow": 1.0,
+      "flow": 1,
       "hardDependency": 0.35,
       "softDependency": 0.15,
       "anchor": 0.2,
