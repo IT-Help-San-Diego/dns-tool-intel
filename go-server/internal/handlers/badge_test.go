@@ -332,8 +332,8 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "1 of 9 missing") {
                 t.Error("expected missing count (DANE missing)")
         }
-        if !strings.Contains(s, `width="972"`) {
-                t.Error("expected 972px rendered width (540 viewBox * 1.8 scale)")
+        if !strings.Contains(s, `width="720"`) {
+                t.Error("expected 720px rendered width (540 viewBox * 4/3 scale)")
         }
 
         failResults := map[string]any{

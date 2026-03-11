@@ -1069,7 +1069,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         const (
                 vbWidth  = 540
                 vbHeight = 230
-                scale    = 1.8
+                scale    = 4.0 / 3.0
                 pad      = 16
                 nodeR    = 16
         )
