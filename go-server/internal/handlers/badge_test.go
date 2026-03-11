@@ -299,8 +299,8 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "owlGlow") {
                 t.Error("expected owl glow gradient in detailed badge")
         }
-        if !strings.Contains(s, "Email Auth &amp; Transport") {
-                t.Error("expected Email Auth & Transport header in detailed badge")
+        if !strings.Contains(s, "AUTH") || !strings.Contains(s, "TRANSPORT") || !strings.Contains(s, "DNS") {
+                t.Error("expected AUTH/TRANSPORT/DNS lane labels in detailed badge")
         }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
