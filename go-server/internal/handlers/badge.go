@@ -1113,11 +1113,11 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {8, 3, "strengthens", false, 440, 168},
         }
 
-        icieCX := 196
-        icieCY := 46
+        icieCX := 200
+        icieCY := 54
         icieR := 11
-        resolverCX := 148
-        resolverCY := 46
+        resolverCX := 136
+        resolverCY := 54
         resolverW := 52
         resolverH := 16
 
