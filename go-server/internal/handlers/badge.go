@@ -7,6 +7,7 @@ import (
         "encoding/json"
         "fmt"
         "log/slog"
+        "math"
         "net/http"
         "strconv"
         "strings"
@@ -1028,36 +1029,92 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         owlCX := 70
         owlCY := 105
 
-        nodePositions := []struct{ x, y int }{
-                {175, 78},
-                {235, 78},
-                {295, 78},
-                {175, 118},
-                {235, 118},
-                {295, 118},
-                {375, 78},
-                {375, 118},
-                {375, 158},
+        type nodePos struct {
+                x, y int
+        }
+        nodePositions := []nodePos{
+                {175, 72},
+                {245, 72},
+                {315, 72},
+                {175, 162},
+                {245, 162},
+                {245, 118},
+                {315, 118},
+                {395, 72},
+                {315, 162},
+        }
+
+        type topoEdge struct {
+                from, to int
+                label    string
+        }
+        edges := []topoEdge{
+                {0, 1, ""},
+                {1, 2, ""},
+                {2, 7, ""},
+                {5, 6, ""},
+                {3, 4, ""},
+                {4, 8, ""},
+                {3, 5, ""},
         }
 
         var nodeSVG strings.Builder
 
-        connLines := [][4]int{
-                {175, 78, 235, 78},
-                {235, 78, 295, 78},
-                {175, 118, 235, 118},
-                {235, 118, 295, 118},
-                {175, 78, 175, 118},
-                {295, 78, 295, 118},
-                {375, 78, 375, 118},
-                {375, 118, 375, 158},
-                {295, 78, 375, 78},
-        }
-        for _, c := range connLines {
+        for _, e := range edges {
+                if e.from >= len(nodes) || e.to >= len(nodes) {
+                        continue
+                }
+                fp := nodePositions[e.from]
+                tp := nodePositions[e.to]
+                dn := nodes[e.to]
+
+                lineColor := "#30363d"
+                lineOpacity := "0.4"
+                lineW := 1.5
+                packetColor := "#484f58"
+                if dn.status == "success" || dn.status == "warning" {
+                        lineColor = dn.colorHex
+                        lineOpacity = "0.35"
+                        lineW = 1.5
+                        packetColor = dn.colorHex
+                } else if dn.status == "error" {
+                        lineColor = hexRed
+                        lineOpacity = "0.3"
+                        packetColor = hexRed
+                }
+
+                pathD := fmt.Sprintf("M%d,%d L%d,%d", fp.x, fp.y, tp.x, tp.y)
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#21262d" stroke-width="1" class="topo-flow"/>`,
-                        c[0], c[1], c[2], c[3],
+                        `<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%.1f" stroke-dasharray="6 4" class="topo-flow"/>`,
+                        pathD, lineColor, lineOpacity, lineW,
                 ))
+
+                arrowDx := float64(tp.x - fp.x)
+                arrowDy := float64(tp.y - fp.y)
+                dist := math.Sqrt(arrowDx*arrowDx + arrowDy*arrowDy)
+                if dist > 0 {
+                        nx := arrowDx / dist
+                        ny := arrowDy / dist
+                        arrowTipX := float64(tp.x) - nx*19
+                        arrowTipY := float64(tp.y) - ny*19
+                        perpX := -ny * 3
+                        perpY := nx * 3
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f" fill="%s" fill-opacity="%s"/>`,
+                                arrowTipX, arrowTipY,
+                                arrowTipX-nx*6+perpX, arrowTipY-ny*6+perpY,
+                                arrowTipX-nx*6-perpX, arrowTipY-ny*6-perpY,
+                                lineColor, lineOpacity,
+                        ))
+                }
+
+                if dn.status == "success" || dn.status == "warning" {
+                        dur := fmt.Sprintf("%.1fs", 1.5+float64(e.from)*0.3)
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<circle r="2.5" fill="%s" opacity="0.9"><animateMotion dur="%s" repeatCount="indefinite" path="%s"/></circle>`,
+                                packetColor, dur, pathD,
+                        ))
+                }
         }
 
         for i, n := range nodes {
@@ -1066,7 +1123,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 }
                 pos := nodePositions[i]
 
-                r := 17
+                r := 15
                 filled := n.status == "success" || n.status == "warning"
                 fillColor := "none"
                 fillOpacity := "0"
@@ -1075,7 +1132,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
                 if filled {
                         fillColor = n.colorHex
-                        fillOpacity = "0.15"
+                        fillOpacity = "0.18"
                         strokeW = 2
                 } else if n.status == "error" {
                         fillColor = hexRed
@@ -1083,7 +1140,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         strokeColor = hexRed
                         strokeW = 2
                 } else {
-                        fillColor = "#f8514910"
+                        fillColor = hexRed
                         fillOpacity = "0.05"
                         strokeColor = hexRed
                         strokeW = 1
@@ -1097,13 +1154,20 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         abbrevSize = 6
                 }
 
+                if filled {
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.06"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/></circle>`,
+                                pos.x, pos.y, r+6, n.colorHex, r+6, r+10, r+6,
+                        ))
+                }
+
                 nodeSVG.WriteString(fmt.Sprintf(
                         `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-width="%d"/>`,
                         pos.x, pos.y, r, fillColor, fillOpacity, strokeColor, strokeW,
                 ))
 
                 if n.status == "missing" || n.status == "error" {
-                        xOff := 5
+                        xOff := 4
                         nodeSVG.WriteString(fmt.Sprintf(
                                 `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
                                 pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
@@ -1112,16 +1176,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                                 `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
                                 pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
                         ))
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" opacity="0.6">%s</text>`,
-                                pos.x, pos.y+r+10, hexRed, abbrevSize, n.abbrev,
-                        ))
-                } else {
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                                pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
-                        ))
                 }
+
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                        pos.x, pos.y+4, strokeColor, abbrevSize, n.abbrev,
+                ))
         }
 
         missingSVG := ""
@@ -1196,8 +1256,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="235" y="54" fill="#8b949e" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Email Auth &amp; Transport</text>
-  <text x="375" y="54" fill="#8b949e" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="middle">Integrity</text>
+  <text x="148" y="50" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
+  <text x="148" y="108" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
+  <text x="148" y="150" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
+  <line x1="148" y1="52" x2="430" y2="52" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="148" y1="98" x2="340" y2="98" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="148" y1="140" x2="340" y2="140" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
