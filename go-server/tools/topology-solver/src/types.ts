@@ -74,6 +74,8 @@ export interface NodeSpec {
   shape: NodeShape;
   width: number;
   height: number;
+  radius?: number;
+  sub?: string;
   tags?: string[];
   data?: Record<string, unknown>;
   anchor?: Partial<AnchorTarget>;
