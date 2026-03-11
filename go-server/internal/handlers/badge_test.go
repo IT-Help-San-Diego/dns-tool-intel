@@ -267,8 +267,8 @@ func TestBadgeSVGDetailedExposure(t *testing.T) {
         if !strings.Contains(s, "secrets exposed") {
                 t.Error("expected exposure warning in detailed badge")
         }
-        if !strings.Contains(s, `height="250"`) {
-                t.Error("expected 250px height when exposure is present")
+        if !strings.Contains(s, `height="260"`) {
+                t.Error("expected 260px height when exposure is present")
         }
 }
 
@@ -311,8 +311,8 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "1 of 9 missing") {
                 t.Error("expected missing count (DANE missing)")
         }
-        if !strings.Contains(s, `width="460"`) {
-                t.Error("expected 460px width")
+        if !strings.Contains(s, `width="520"`) {
+                t.Error("expected 520px width")
         }
 
         failResults := map[string]any{
