@@ -35,7 +35,8 @@ globalThis.addEventListener('pageshow', function(e) {
         document.body.classList.remove('loading');
         const reanalyzeBtn = document.getElementById('reanalyzeBtn');
         if (reanalyzeBtn && !reanalyzeBtn.classList.contains('disabled')) {
-            reanalyzeBtn.innerHTML = (window._icons ? window._icons.sync : '') + ' Re-analyze';
+            reanalyzeBtn.textContent = ' Re-analyze';
+            if (window._icons) { const ic = document.createElement('span'); ic.innerHTML = window._icons.sync; reanalyzeBtn.insertBefore(ic, reanalyzeBtn.firstChild); }
         }
         const analyzeBtn = document.getElementById('analyzeBtn');
         if (analyzeBtn) {
