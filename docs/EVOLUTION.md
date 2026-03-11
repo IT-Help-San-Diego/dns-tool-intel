@@ -3191,3 +3191,89 @@ The complete research software documentation stack is now:
 8. **OpenAlex / DataCite** — Scholarly search and discovery
 
 
+
+
+
+---
+
+## Session 29: March 7, 2026 (v26.35.08 — EDE Page UX + Integrity Hash Containment)
+
+- Fixed SHA-3-512 hash overflow on EDE page (dedicated CSS classes with word-break/overflow-wrap)
+- Added collapsible disclosure log (3 of 9 entries visible by default, toggle to expand)
+- Removed CSP-violating inline onclick, converted toggle to semantic button with aria-expanded/aria-controls
+- Notion synced: 5 new EDE entries created (EDE-004 through EDE-008)
+- Lesson ID: L029
+
+---
+
+## Session 30: March 7, 2026 (v26.35.15 — OG Social Cards + Release v26.35.15)
+
+- Rewrote OG image generation to Python/Pillow (scripts/generate-og-images.py) with mathematically centered layout
+- Added og:image:width/height/type/alt/site_name to all 33 templates
+- Updated llms.txt/llms-full.txt
+- Fixed copy: 'Email Intelligence' (not 'Email Header Analyzer'), 'Authentication Assessment' (not 'Verification')
+- Fixed R011 feature-inventory.js to search cmd/server/main.go for routes
+- Fixed release gate cffconvert (simplified to system install)
+- All 11 gates passed. Full release 26.35.15 shipped.
+
+---
+
+## Session 31: March 7, 2026 (v26.35.15 — Lighthouse CLI + Violet Contrast Fix + Notion Project Phases)
+
+- Installed Lighthouse CLI (v13.0.3) for automated dual-environment quality testing
+- Fixed violet contrast failure: #6c5ce7 (3.56:1 FAIL) → #a78bfa (6.36:1 PASS)
+- Updated validate-scientific-colors.js
+- Created Notion Project Phases database with 6 TRL-mapped phases (NASA/CERN/NIST framework)
+- Phase 3 (TRL 5 — Experimentation, Research & Calibration) marked Active
+- Established dual-environment Lighthouse protocol
+
+---
+
+## Session 32: March 8, 2026 (v26.35.15 — Video Playback Fix + Dual-Environment Quality Protocol)
+
+- Diagnosed Approach page video not playing; server-side verified: HTTP 200, video/mp4, range requests (206), H.264/AAC, moov atom fast-start, CSP media-src 'self' correct
+- Added playsinline + preload='auto' for Safari compatibility
+- Documented comprehensive Dual-Environment Quality Protocol in SKILL.md and replit.md
+
+---
+
+## Session 33: March 8, 2026 (v26.35.15 — Founder's Voice Database + MISSION.md Reflection)
+
+- Created Notion 'Founder's Voice' database for tracking Carey's quotes, reflections, and philosophical threads
+- Audited codebase: found 15 existing founder philosophy quotes, all added to Notion
+- Wrote edited publication excerpt for MISSION.md ('When Intrinsic Motivation Meets Metacognitive Process')
+- Added verbatim Branson Reflection to LEGACY_ARCHIVE.md
+- Fixed founder name Kerry → Carey everywhere
+- Lesson ID: L030
+
+---
+
+## Session 34: March 8, 2026 (v26.35.15 — Mathematical Rigor Audit)
+
+- External mathematical review commissioned by founder: 3 of 8 claims sound, 5 adjustments needed
+- Calibration formula renamed: 'Bayesian Confidence Calibration' → 'Reliability-Weighted Shrinkage Calibration'
+- NIST SP 800-53 SI-18 (PII) → SI-7 (Information Integrity) corrected in 15+ files
+- RFC 8767 'caching violations' → three-hypothesis language (serve-stale, timing skew, cache misconfiguration)
+- EWMA bootstrap parameters labeled as heuristic defaults
+- EDE-011 created (standards_misattribution, severity: significant, attribution: Both)
+
+---
+
+## Session 35: March 6, 2026 (v26.35.08 — DNS Analysis Improvements + Email Signature)
+
+- DNS analysis tool code and test improvements
+- Email signature development (layout, image display, dark background, web styling match)
+- Version bump to v26.35.08
+- Diagrams rendered, search indexing prevented
+
+---
+
+## Session 36: March 11, 2026 (v26.36.01 — Intel Sync + False Regression Correction)
+
+- Protocol compliance recovery: 14 _intel files pushed to dns-tool-intel
+- Ran Connected Ecosystem Pre-Flight
+- Production Lighthouse audit via container: reported 83/100/100/100 — CORRECTION: this was FALSE
+- Session 36 Correction: founder verified production is 100/100/100/100 via PageSpeed Insights
+- Container-local npx lighthouse produced artificially low scores due to CPU/memory constraints
+- EDE-012 created (false_positive, severity: moderate, attribution: AI Error)
+- Prevention rule: use PageSpeed Insights API for authoritative production scores, never container Lighthouse
