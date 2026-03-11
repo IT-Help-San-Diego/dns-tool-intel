@@ -1018,7 +1018,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         const (
                 width = 520
                 pad   = 16
-                nodeR = 21
+                nodeR = 18
         )
         height := 230
         if hasExposure {
@@ -1034,15 +1034,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 x, y int
         }
         nodePositions := []nodePos{
-                {185, 76},
-                {265, 76},
-                {345, 76},
-                {185, 172},
-                {265, 172},
-                {265, 126},
-                {345, 126},
-                {430, 76},
-                {345, 172},
+                {268, 76},
+                {332, 76},
+                {396, 76},
+                {268, 172},
+                {332, 172},
+                {268, 126},
+                {332, 126},
+                {460, 76},
+                {396, 172},
         }
 
         type topoEdge struct {
@@ -1058,7 +1058,86 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {3, 5, "strengthens"},
         }
 
+        icieCX := 200
+        icieCY := 124
+        icieR := 18
+        resolverX := 140
+        resolverY := 108
+        resolverW := 46
+        resolverH := 30
+
         var nodeSVG strings.Builder
+
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<rect x="%d" y="%d" width="%d" height="%d" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1.2"/>`,
+                resolverX, resolverY, resolverW, resolverH,
+        ))
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="6.5" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">DNS</text>`,
+                resolverX+resolverW/2, resolverY+13,
+        ))
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" text-anchor="middle" fill="#6e7681" font-size="5" font-family="'Inter','Segoe UI',system-ui,sans-serif">Resolvers</text>`,
+                resolverX+resolverW/2, resolverY+21,
+        ))
+
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<circle cx="%d" cy="%d" r="%d" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5"/>`,
+                icieCX, icieCY, icieR,
+        ))
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" text-anchor="middle" fill="#58a6ff" font-size="7.5" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">ICIE</text>`,
+                icieCX, icieCY-1,
+        ))
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="5" font-family="'Inter','Segoe UI',system-ui,sans-serif">Engine</text>`,
+                icieCX, icieCY+7,
+        ))
+
+        resolverRightX := resolverX + resolverW
+        resolverCY := resolverY + resolverH/2
+        icieLeftX := icieCX - icieR
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<path d="M%d,%d L%d,%d" fill="none" stroke="#30363d" stroke-opacity="0.5" stroke-width="1.2" stroke-dasharray="3 2"/>`,
+                resolverRightX, resolverCY, icieLeftX, icieCY,
+        ))
+        nodeSVG.WriteString(fmt.Sprintf(
+                `<circle r="2" fill="#58a6ff" opacity="0.7"><animateMotion dur="1.5s" repeatCount="indefinite" path="M%d,%d L%d,%d"/></circle>`,
+                resolverRightX, resolverCY, icieLeftX, icieCY,
+        ))
+
+        type fanTarget struct {
+                x, y int
+                lane string
+        }
+        fanTargets := []fanTarget{
+                {nodePositions[0].x, nodePositions[0].y, "auth"},
+                {nodePositions[5].x, nodePositions[5].y, "transport"},
+                {nodePositions[3].x, nodePositions[3].y, "dns"},
+        }
+        for fi, ft := range fanTargets {
+                fx := float64(ft.x - icieCX)
+                fy := float64(ft.y - icieCY)
+                fd := math.Sqrt(fx*fx + fy*fy)
+                if fd == 0 {
+                        continue
+                }
+                fnx := fx / fd
+                fny := fy / fd
+                startX := float64(icieCX) + fnx*float64(icieR)
+                startY := float64(icieCY) + fny*float64(icieR)
+                endX := float64(ft.x) - fnx*float64(nodeR+2)
+                endY := float64(ft.y) - fny*float64(nodeR+2)
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<path d="M%.0f,%.0f L%.0f,%.0f" fill="none" stroke="#58a6ff" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 2"/>`,
+                        startX, startY, endX, endY,
+                ))
+                dur := fmt.Sprintf("%.1fs", 2.0+float64(fi)*0.4)
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<circle r="2" fill="#58a6ff" opacity="0.6"><animateMotion dur="%s" repeatCount="indefinite" path="M%.0f,%.0f L%.0f,%.0f"/></circle>`,
+                        dur, startX, startY, endX, endY,
+                ))
+        }
 
         for _, e := range edges {
                 if e.from >= len(nodes) || e.to >= len(nodes) {
@@ -1115,7 +1194,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         offsetX := 0
                         offsetY := -5
                         if fp.y != tp.y {
-                                offsetX = 4
+                                offsetX = 6
                                 offsetY = 0
                         }
                         nodeSVG.WriteString(fmt.Sprintf(
@@ -1182,7 +1261,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 ))
 
                 if n.status == "missing" || n.status == "error" {
-                        xOff := 6
+                        xOff := 5
                         nodeSVG.WriteString(fmt.Sprintf(
                                 `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
                                 pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
@@ -1271,12 +1350,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="152" y="50" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
-  <text x="152" y="108" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
-  <text x="152" y="152" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
-  <line x1="152" y1="52" x2="470" y2="52" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="152" y1="104" x2="380" y2="104" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="152" y1="148" x2="380" y2="148" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <text x="245" y="52" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
+  <text x="245" y="106" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
+  <text x="245" y="152" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
+  <line x1="245" y1="54" x2="496" y2="54" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="245" y1="104" x2="365" y2="104" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="245" y1="150" x2="430" y2="150" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
