@@ -267,6 +267,9 @@ func TestBadgeSVGDetailedExposure(t *testing.T) {
         if !strings.Contains(s, "secrets exposed") {
                 t.Error("expected exposure warning in detailed badge")
         }
+        if !strings.Contains(s, `height="250"`) {
+                t.Error("expected 250px height when exposure is present")
+        }
 }
 
 func TestBadgeSVGDetailed(t *testing.T) {
@@ -293,8 +296,11 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "it-help.tech") {
                 t.Error("expected domain in detailed badge")
         }
-        if !strings.Contains(s, "/ 9") {
-                t.Error("expected coverage denominator /9 in detailed badge")
+        if !strings.Contains(s, "owlGlow") {
+                t.Error("expected owl glow gradient in detailed badge")
+        }
+        if !strings.Contains(s, "Email Auth &amp; Transport") {
+                t.Error("expected Email Auth & Transport header in detailed badge")
         }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
