@@ -197,6 +197,19 @@ func riskColorToHex(color string) string {
         }
 }
 
+func reportRiskColor(color string) string {
+        switch color {
+        case "success":
+                return "#198754"
+        case "warning":
+                return "#ffc107"
+        case "danger":
+                return "#dc3545"
+        default:
+                return colorGrey
+        }
+}
+
 func scotopicRiskColor(color string) string {
         switch color {
         case "success":
@@ -1004,6 +1017,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         exposure := extractExposure(results)
 
         riskHex := riskColorToHex(riskColorName)
+        riskLabelHex := reportRiskColor(riskColorName)
         borderColor := riskBorderColor(riskColorName)
         missing := countMissing(nodes)
 
@@ -1382,8 +1396,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 owlCX, owlCY,
                 reportURL,
                 owlCX-40, owlCY-40, owlBadgePNG,
-                20, 176, riskHex,
-                26, 188, riskHex, riskLine,
+                20, 176, riskLabelHex,
+                26, 188, riskLabelHex, riskLine,
                 26, 202, postureContext,
                 nodeSVG.String(),
                 missingSVG,
