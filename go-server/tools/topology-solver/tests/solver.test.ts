@@ -74,8 +74,10 @@ test('output is deterministic (run twice, compare)', () => {
 
 test('zero node overlaps', () => {
   const spec = loadSpec();
-  const result = solveLayout(spec, { profileId: 'desktop' });
-  assertEqual(result.metrics.nodeOverlaps, 0, 'node overlaps must be zero');
+  for (const profileId of ['desktop', 'tablet', 'mobile']) {
+    const result = solveLayout(spec, { profileId });
+    assertEqual(result.metrics.nodeOverlaps, 0, `node overlaps must be zero on ${profileId}`);
+  }
 });
 
 test('flow x-monotonicity violations tracked on desktop', () => {
