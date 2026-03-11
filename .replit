@@ -45,7 +45,6 @@ SONAR_PROJECT = "careyjames_DnsToolWeb"
 SMTP_PROBE_MODE = "remote"
 MAINTENANCE_NOTE = "Developing!"
 ANALYTICS_EXCLUDE_IPS = "76.218.253.212"
-MIRO_API_TOKEN = "eyJtaXJvLm9yaWdpbiI6ImV1MDEifQ_cLLX9C8gZuQKh4O83EUJeJ7kuRM"
 
 [userenv.development]
 BASE_URL = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev"
