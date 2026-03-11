@@ -29,7 +29,8 @@
         .badge-style-btn.active-covert { border-color: #f85149; background: rgba(248,81,73,.08); color: #f85149; box-shadow: 0 0 12px rgba(248,81,73,.12); }
         .badge-style-btn .style-label { font-weight: 600; font-size: .9rem; }
         .badge-style-btn .style-desc { font-size: .7rem; opacity: .7; }
-        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1.5rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .badge-preview-area img { width: 100%; height: auto; }
         #badgePreviewCard { scroll-margin-top: 1rem; }
     </style>
 </head>
@@ -41,6 +42,16 @@
 
         <h1 class="h3 mb-1">{{icon "shield-halved" "me-2 text-brand-cobalt"}}Security Badge</h1>
         <p class="text-muted mb-4">Generate a live security posture badge for any scanned domain. Embed it in your GitHub README, documentation, blog, or website.</p>
+
+        <div class="card mb-4 d-none" id="badgePreviewCard">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{icon "eye" "me-2"}}Live Preview</h5>
+                <span class="badge bg-secondary small" id="badgeStyleLabel">detailed</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="badge-preview-area" id="badgePreview"></div>
+            </div>
+        </div>
 
         <div class="row g-4">
             <div class="col-lg-5">
@@ -76,16 +87,6 @@
                         <button type="button" class="btn btn-primary w-100" id="btnGenerateBadge">
                             {{icon "bolt" "me-1"}}Generate Badge
                         </button>
-                    </div>
-                </div>
-
-                <div class="card mb-4 d-none" id="badgePreviewCard">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{icon "eye" "me-2"}}Live Preview</h5>
-                        <span class="badge bg-secondary small" id="badgeStyleLabel">detailed</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="badge-preview-area" id="badgePreview"></div>
                     </div>
                 </div>
 
