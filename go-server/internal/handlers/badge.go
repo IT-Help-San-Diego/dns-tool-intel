@@ -989,10 +989,20 @@ func scoreColor(score int) string {
         return "#484f58"
 }
 
+func firstMissingProtocol(nodes []protocolNode) string {
+        for _, n := range nodes {
+                if n.status == "missing" || n.status == "error" {
+                        return n.abbrev
+                }
+        }
+        return ""
+}
+
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)
+        score := extractPostureScore(results)
 
         riskHex := riskColorToHex(riskColorName)
         borderColor := riskBorderColor(riskColorName)
@@ -1014,6 +1024,23 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
+
+        scoreDisplay := ""
+        if score >= 0 {
+                scoreDisplay = fmt.Sprintf(" · %d/100", score)
+        }
+
+        postureContext := ""
+        if missing > 0 {
+                first := firstMissingProtocol(nodes)
+                if first != "" {
+                        postureContext = fmt.Sprintf("%d/9 controls missing — %s not found", missing, first)
+                } else {
+                        postureContext = fmt.Sprintf("%d/9 controls missing", missing)
+                }
+        } else {
+                postureContext = "All 9 controls verified"
+        }
 
         const (
                 width = 520
@@ -1293,6 +1320,8 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hashURL := fmt.Sprintf("%s/analysis/%d/view/C#intelligence-metadata", baseURL, scanID)
 
+        riskLine := riskLabel + scoreDisplay
+
         svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s">
   <title>DNS Tool: %s — %s</title>
   <defs>
@@ -1313,18 +1342,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <rect width="%d" height="%d" rx="8" fill="url(#bg)"/>
   <rect x="1" y="1" width="%d" height="%d" rx="8" fill="none" stroke="%s" stroke-width="1.5"/>
 
-  <a href="%s" target="_blank">
-    <g transform="translate(%d, 6)">
-      <path d="M10,2 Q10,0 8,1 Q6,0 6,2 L4,4 Q3,6 4,8 Q5,10 7,12 L8,14 L9,12 Q11,10 12,8 Q13,6 12,4 Z" fill="#21262d" stroke="#6e7681" stroke-width="0.8"/>
-      <circle cx="6.5" cy="5.5" r="2" fill="none" stroke="%s" stroke-width="0.8"/>
-      <circle cx="9.5" cy="5.5" r="2" fill="none" stroke="%s" stroke-width="0.8"/>
-      <circle cx="6.5" cy="5.5" r="0.9" fill="%s"/>
-      <circle cx="9.5" cy="5.5" r="0.9" fill="%s"/>
-      <path d="M7,8.5 L8,9.5 L9,8.5" fill="none" stroke="#6e7681" stroke-width="0.6"/>
-      <path d="M3,4 L4,4" stroke="#6e7681" stroke-width="0.7" stroke-linecap="round"/>
-      <path d="M12,4 L13,4" stroke="#6e7681" stroke-width="0.7" stroke-linecap="round"/>
-    </g>
-  </a>
   <text x="%d" y="26" fill="#e6edf3" font-size="14" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
   <text x="%d" y="26" fill="#484f58" font-size="10" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%s</text>
 
@@ -1337,6 +1354,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
+  <text x="%d" y="%d" fill="#8b949e" font-size="8" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
   <text x="228" y="58" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">AUTH</text>
   <text x="228" y="108" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">TRANSPORT</text>
@@ -1357,7 +1375,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <a href="%s" target="_blank">
     <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" cursor="pointer">dnstool.it-help.tech</text>
   </a>
-  <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">Scanned %s</text>
 </svg>`,
                 width, height, width, height,
                 domain, riskLabel,
@@ -1365,16 +1382,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 riskHex, riskHex,
                 width, height,
                 width-2, height-2, borderColor,
-                reportURL,
-                pad, riskHex, riskHex, riskHex, riskHex,
-                pad+20, domainDisplay,
+                pad, domainDisplay,
                 width-pad, scanDate,
                 pad, width-pad,
                 owlCX, owlCY,
                 reportURL,
                 owlCX-40, owlCY-40, owlBadgePNG,
-                20, 158, riskHex,
-                26, 170, riskHex, riskLabel,
+                20, 176, riskHex,
+                26, 188, riskHex, riskLine,
+                26, 202, postureContext,
                 nodeSVG.String(),
                 missingSVG,
                 exposureSVG,
@@ -1382,7 +1398,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 pad, height-6, hashDisplay,
                 reportURL,
                 pad+70, height-6,
-                width-pad, height-6, scanDate,
         )
 
         return []byte(svg)
