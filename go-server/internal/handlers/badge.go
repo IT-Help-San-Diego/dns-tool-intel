@@ -1049,15 +1049,17 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 from, to int
                 label    string
                 hard     bool
+                labelX   int
+                labelY   int
         }
         edges := []topoEdge{
-                {2, 0, "alignment", true},
-                {2, 1, "alignment", true},
-                {7, 2, "p=quarantine+", true},
-                {6, 5, "reports", false},
-                {6, 4, "reports", false},
-                {4, 3, "requires", true},
-                {8, 3, "strengthens", false},
+                {2, 0, "alignment", true, 291, 66},
+                {2, 1, "", true, 0, 0},
+                {7, 2, "p=quarantine+", true, 455, 66},
+                {6, 5, "reports", false, 362, 118},
+                {6, 4, "", false, 0, 0},
+                {4, 3, "requires", true, 311, 168},
+                {8, 3, "strengthens", false, 440, 168},
         }
 
         icieCX := 196
@@ -1182,17 +1184,10 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         ))
                 }
 
-                if e.label != "" && dist > 0 {
-                        midX := float64(fp.x+tp.x) / 2
-                        midY := float64(fp.y+tp.y) / 2
-                        perpNx := -arrowDy / dist
-                        perpNy := arrowDx / dist
-                        labelOff := 8.0
-                        lx := midX + perpNx*labelOff
-                        ly := midY + perpNy*labelOff
+                if e.label != "" && e.labelX > 0 {
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%.0f" y="%.0f" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                                lx, ly, e.label,
+                                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                                e.labelX, e.labelY, e.label,
                         ))
                 }
 
