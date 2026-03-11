@@ -826,7 +826,7 @@
                 w = Math.max(radius * 2, contentW);
                 h = radius * 2;
             } else if (shape === 'diamond') {
-                w = radius * 1.7;
+                w = Math.max(radius * 1.7, contentW + 8);
                 h = radius * 1.7;
             } else if (shape === 'hexagon') {
                 w = Math.max(radius * 2, contentW);
@@ -1422,15 +1422,47 @@
                     }
                 }
 
-                ly = Math.max(20, Math.min(H - 20, ly));
-                lx = Math.max(30, Math.min(W - 30, lx));
+                for (var nri = 0; nri < allLayoutNodes.length; nri++) {
+                    var nn = allLayoutNodes[nri];
+                    if (nn.shape === 'circle') continue;
+                    var nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 8;
+                    var nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 8;
+                    var ndx = lx - nn.x;
+                    var ndy = ly - nn.y;
+                    if (Math.abs(ndx) < nhw + 30 && Math.abs(ndy) < nhh + 10) {
+                        if (Math.abs(ndx) < nhw && Math.abs(ndy) < nhh) {
+                            if (Math.abs(ndx) / nhw > Math.abs(ndy) / nhh) {
+                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 4);
+                            } else {
+                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 4);
+                            }
+                        }
+                    }
+                }
+
                 var edgeFontSize = Math.max(8, FONT_SUB - 1);
                 ctx.font = edgeFontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
                 var tw = ctx.measureText(e.label).width;
                 var pw = tw + 8 * SCL;
                 var ph = edgeFontSize + 6 * SCL;
+
+                for (var pli = 0; pli < placedEdgeLabels.length; pli++) {
+                    var pl = placedEdgeLabels[pli];
+                    var olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
+                    var oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
+                    if (olx > 0 && oly > 0) {
+                        if (olx < oly) {
+                            lx += (lx >= pl.x ? 1 : -1) * (olx + 4);
+                        } else {
+                            ly += (ly >= pl.y ? 1 : -1) * (oly + 4);
+                        }
+                    }
+                }
+
+                ly = Math.max(20, Math.min(H - 20, ly));
+                lx = Math.max(30, Math.min(W - 30, lx));
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 var pillAlpha = isHL ? 0.85 : 0.55;
                 ctx.fillStyle = 'rgba(10, 14, 20, ' + pillAlpha + ')';
                 ctx.beginPath();
@@ -1447,6 +1479,7 @@
                 ctx.stroke();
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.9 : 0.45) + ')';
                 ctx.fillText(e.label, lx, ly);
+                placedEdgeLabels.push({ x: lx, y: ly, w: pw, h: ph });
             }
         }
 
@@ -1852,12 +1885,15 @@
             }
         }
 
+        var placedEdgeLabels = [];
+
         function draw() {
             ctx.clearRect(0, 0, W, H);
 
             drawAmbient();
             drawGlobe(time);
 
+            placedEdgeLabels = [];
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
             drawFlowParticles();

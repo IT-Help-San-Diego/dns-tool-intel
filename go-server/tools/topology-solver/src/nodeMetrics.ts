@@ -41,7 +41,7 @@ export const SHAPE_FORMULAS = {
   CIRCLE_W: (radius: number, contentW: number) => Math.max(radius * 2, contentW),
   CIRCLE_H: (radius: number) => radius * 2,
 
-  DIAMOND_W: (radius: number) => radius * 1.7,
+  DIAMOND_W: (radius: number, contentW: number) => Math.max(radius * 1.7, contentW + 8),
   DIAMOND_H: (radius: number) => radius * 1.7,
 
   HEXAGON_W: (radius: number, contentW: number) => Math.max(radius * 2, contentW),
@@ -86,7 +86,7 @@ export function computeNodeBox(
       height = SHAPE_FORMULAS.CIRCLE_H(radius);
       break;
     case 'diamond':
-      width = SHAPE_FORMULAS.DIAMOND_W(radius);
+      width = SHAPE_FORMULAS.DIAMOND_W(radius, contentW);
       height = SHAPE_FORMULAS.DIAMOND_H(radius);
       break;
     case 'hexagon':
