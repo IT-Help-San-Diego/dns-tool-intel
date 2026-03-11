@@ -129,7 +129,7 @@ function startStatusCycle(overlayEl) {
             const icon = phase.querySelector('.scan-icon');
             if (icon) {
                 icon.classList.remove('icon-spin', 'scan-pending');
-                if (window._icons) { icon.outerHTML = window._icons.checkCircle; }
+                if (window._icons) { const _t = document.createElement('span'); _t.innerHTML = window._icons.checkCircle; icon.replaceWith(_t.firstElementChild || _t); }
             }
         }, doneDelay);
     });
