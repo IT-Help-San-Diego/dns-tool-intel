@@ -1067,14 +1067,19 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         const (
-                width = 540
-                pad   = 16
-                nodeR = 16
+                vbWidth  = 540
+                vbHeight = 230
+                scale    = 1.3
+                pad      = 16
+                nodeR    = 16
         )
-        height := 230
+        width := vbWidth
+        height := vbHeight
         if hasExposure {
                 height = 260
         }
+        renderW := int(float64(width) * scale)
+        renderH := int(float64(height) * scale)
 
         reportURL := fmt.Sprintf("%s/analyze?domain=%s", baseURL, domain)
 
@@ -1422,7 +1427,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
     <text x="%d" y="%d" fill="#30363d" font-size="9" font-family="'Inter','Segoe UI',system-ui,sans-serif" cursor="pointer">dnstool.it-help.tech</text>
   </a>
 </svg>`,
-                width, height, width, height,
+                renderW, renderH, width, height,
                 domain, riskLabel,
                 domain, riskLabel,
                 riskHex, riskHex,
