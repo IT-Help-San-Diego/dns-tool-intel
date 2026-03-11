@@ -1078,8 +1078,9 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         if hasExposure {
                 height = 260
         }
-        renderW := int(float64(width) * scale)
-        renderH := int(float64(height) * scale)
+        _ = scale
+        renderW := "100%"
+        renderH := "auto"
 
         reportURL := fmt.Sprintf("%s/analyze?domain=%s", baseURL, domain)
 
@@ -1372,7 +1373,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         riskLine := riskLabel
 
-        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s">
+        svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="%s" height="%s" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s">
   <title>DNS Tool: %s — %s</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
