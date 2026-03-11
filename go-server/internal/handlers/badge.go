@@ -1002,7 +1002,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         riskLabel, riskColorName := extractPostureRisk(results)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)
-        score := extractPostureScore(results)
 
         riskHex := riskColorToHex(riskColorName)
         borderColor := riskBorderColor(riskColorName)
@@ -1024,11 +1023,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
-
-        scoreDisplay := ""
-        if score >= 0 {
-                scoreDisplay = fmt.Sprintf(" · %d/100", score)
-        }
 
         postureContext := ""
         if missing > 0 {
@@ -1320,7 +1314,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hashURL := fmt.Sprintf("%s/analysis/%d/view/C#intelligence-metadata", baseURL, scanID)
 
-        riskLine := riskLabel + scoreDisplay
+        riskLine := riskLabel
 
         svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="DNS Tool: %s — %s">
   <title>DNS Tool: %s — %s</title>
