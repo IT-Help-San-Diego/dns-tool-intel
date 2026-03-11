@@ -1018,7 +1018,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         const (
                 width = 520
                 pad   = 16
-                nodeR = 18
+                nodeR = 16
         )
         height := 230
         if hasExposure {
@@ -1034,15 +1034,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 x, y int
         }
         nodePositions := []nodePos{
-                {270, 76},
-                {340, 76},
-                {410, 76},
-                {270, 172},
-                {340, 172},
-                {300, 126},
-                {400, 126},
-                {480, 76},
-                {410, 172},
+                {250, 78},
+                {332, 78},
+                {414, 78},
+                {250, 178},
+                {373, 178},
+                {310, 128},
+                {414, 128},
+                {496, 78},
+                {496, 178},
         }
 
         type topoEdge struct {
@@ -1060,62 +1060,50 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {8, 3, "strengthens", false},
         }
 
-        icieCX := 200
-        icieCY := 124
-        icieR := 18
-        resolverX := 140
-        resolverY := 108
-        resolverW := 46
-        resolverH := 30
+        icieCX := 196
+        icieCY := 46
+        icieR := 11
+        resolverCX := 148
+        resolverCY := 46
+        resolverW := 52
+        resolverH := 16
 
         var nodeSVG strings.Builder
 
         nodeSVG.WriteString(fmt.Sprintf(
-                `<rect x="%d" y="%d" width="%d" height="%d" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1.2"/>`,
-                resolverX, resolverY, resolverW, resolverH,
+                `<rect x="%d" y="%d" width="%d" height="%d" rx="4" fill="#0d1117" stroke="#30363d" stroke-width="1"/>`,
+                resolverCX-resolverW/2, resolverCY-resolverH/2, resolverW, resolverH,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="6.5" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">DNS</text>`,
-                resolverX+resolverW/2, resolverY+13,
-        ))
-        nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#6e7681" font-size="5" font-family="'Inter','Segoe UI',system-ui,sans-serif">Resolvers</text>`,
-                resolverX+resolverW/2, resolverY+21,
+                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">Resolvers</text>`,
+                resolverCX, resolverCY+3,
         ))
 
         nodeSVG.WriteString(fmt.Sprintf(
-                `<circle cx="%d" cy="%d" r="%d" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5"/>`,
+                `<circle cx="%d" cy="%d" r="%d" fill="#0d1117" stroke="#58a6ff" stroke-width="1.2"/>`,
                 icieCX, icieCY, icieR,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#58a6ff" font-size="7.5" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">ICIE</text>`,
-                icieCX, icieCY-1,
-        ))
-        nodeSVG.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="5" font-family="'Inter','Segoe UI',system-ui,sans-serif">Engine</text>`,
-                icieCX, icieCY+7,
+                `<text x="%d" y="%d" text-anchor="middle" fill="#58a6ff" font-size="7" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif">ICIE</text>`,
+                icieCX, icieCY+3,
         ))
 
-        resolverRightX := resolverX + resolverW
-        resolverCY := resolverY + resolverH/2
-        icieLeftX := icieCX - icieR
         nodeSVG.WriteString(fmt.Sprintf(
-                `<path d="M%d,%d L%d,%d" fill="none" stroke="#30363d" stroke-opacity="0.5" stroke-width="1.2" stroke-dasharray="3 2"/>`,
-                resolverRightX, resolverCY, icieLeftX, icieCY,
+                `<path d="M%d,%d L%d,%d" fill="none" stroke="#30363d" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="3 2"/>`,
+                resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY,
         ))
         nodeSVG.WriteString(fmt.Sprintf(
-                `<circle r="2" fill="#58a6ff" opacity="0.7"><animateMotion dur="1.5s" repeatCount="indefinite" path="M%d,%d L%d,%d"/></circle>`,
-                resolverRightX, resolverCY, icieLeftX, icieCY,
+                `<circle r="1.5" fill="#58a6ff" opacity="0.7"><animateMotion dur="1.2s" repeatCount="indefinite" path="M%d,%d L%d,%d"/></circle>`,
+                resolverCX+resolverW/2, resolverCY, icieCX-icieR, icieCY,
         ))
 
         type fanTarget struct {
                 x, y int
-                lane string
         }
         fanTargets := []fanTarget{
-                {nodePositions[0].x, nodePositions[0].y, "auth"},
-                {nodePositions[5].x, nodePositions[5].y, "transport"},
-                {nodePositions[3].x, nodePositions[3].y, "dns"},
+                {nodePositions[0].x, nodePositions[0].y},
+                {nodePositions[5].x, nodePositions[5].y},
+                {nodePositions[3].x, nodePositions[3].y},
         }
         for fi, ft := range fanTargets {
                 fx := float64(ft.x - icieCX)
@@ -1131,12 +1119,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 endX := float64(ft.x) - fnx*float64(nodeR+2)
                 endY := float64(ft.y) - fny*float64(nodeR+2)
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<path d="M%.0f,%.0f L%.0f,%.0f" fill="none" stroke="#58a6ff" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 2"/>`,
+                        `<path d="M%.0f,%.0f L%.0f,%.0f" fill="none" stroke="#58a6ff" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3 2"/>`,
                         startX, startY, endX, endY,
                 ))
-                dur := fmt.Sprintf("%.1fs", 2.0+float64(fi)*0.4)
+                dur := fmt.Sprintf("%.1fs", 2.0+float64(fi)*0.5)
                 nodeSVG.WriteString(fmt.Sprintf(
-                        `<circle r="2" fill="#58a6ff" opacity="0.6"><animateMotion dur="%s" repeatCount="indefinite" path="M%.0f,%.0f L%.0f,%.0f"/></circle>`,
+                        `<circle r="1.5" fill="#58a6ff" opacity="0.5"><animateMotion dur="%s" repeatCount="indefinite" path="M%.0f,%.0f L%.0f,%.0f"/></circle>`,
                         dur, startX, startY, endX, endY,
                 ))
         }
@@ -1195,24 +1183,23 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 }
 
                 if e.label != "" && dist > 0 {
-                        midX := (fp.x + tp.x) / 2
-                        midY := (fp.y + tp.y) / 2
-                        offsetX := 0
-                        offsetY := -5
-                        if fp.y != tp.y {
-                                offsetX = 6
-                                offsetY = 0
-                        }
+                        midX := float64(fp.x+tp.x) / 2
+                        midY := float64(fp.y+tp.y) / 2
+                        perpNx := -arrowDy / dist
+                        perpNy := arrowDx / dist
+                        labelOff := 8.0
+                        lx := midX + perpNx*labelOff
+                        ly := midY + perpNy*labelOff
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" text-anchor="middle" fill="#484f58" font-size="6" font-style="italic" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                                midX+offsetX, midY+offsetY, e.label,
+                                `<text x="%.0f" y="%.0f" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                                lx, ly, e.label,
                         ))
                 }
 
                 if dn.status == "success" || dn.status == "warning" {
                         dur := fmt.Sprintf("%.1fs", 1.8+float64(e.from)*0.3)
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<circle r="2.5" fill="%s" opacity="0.9"><animateMotion dur="%s" repeatCount="indefinite" path="%s"/></circle>`,
+                                `<circle r="2" fill="%s" opacity="0.8"><animateMotion dur="%s" repeatCount="indefinite" path="%s"/></circle>`,
                                 packetColor, dur, pathD,
                         ))
                 }
@@ -1246,18 +1233,18 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                         strokeW = 1
                 }
 
-                abbrevSize := 9
+                abbrevSize := 8
                 if len(n.abbrev) > 4 {
-                        abbrevSize = 8
+                        abbrevSize = 7
                 }
                 if len(n.abbrev) > 6 {
-                        abbrevSize = 7
+                        abbrevSize = 6
                 }
 
                 if filled {
                         nodeSVG.WriteString(fmt.Sprintf(
                                 `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.06"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/></circle>`,
-                                pos.x, pos.y, nodeR+8, n.colorHex, nodeR+8, nodeR+12, nodeR+8,
+                                pos.x, pos.y, nodeR+6, n.colorHex, nodeR+6, nodeR+10, nodeR+6,
                         ))
                 }
 
@@ -1280,7 +1267,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
                 nodeSVG.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                        pos.x, pos.y+4, strokeColor, abbrevSize, n.abbrev,
+                        pos.x, pos.y+3, strokeColor, abbrevSize, n.abbrev,
                 ))
         }
 
@@ -1288,7 +1275,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
-                        width-pad, 195, hexRed, missing,
+                        width-pad, 198, hexRed, missing,
                 )
         }
 
@@ -1356,12 +1343,12 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <rect x="%d" y="%d" width="3" height="14" rx="1.5" fill="%s"/>
   <text x="%d" y="%d" fill="%s" font-size="11" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>
 
-  <text x="248" y="52" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">AUTH</text>
-  <text x="248" y="106" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">TRANSPORT</text>
-  <text x="248" y="152" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7">DNS</text>
-  <line x1="248" y1="54" x2="504" y2="54" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="248" y1="104" x2="430" y2="104" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="248" y1="150" x2="440" y2="150" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <text x="228" y="58" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">AUTH</text>
+  <text x="228" y="108" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">TRANSPORT</text>
+  <text x="228" y="158" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.6">DNS</text>
+  <line x1="228" y1="60" x2="510" y2="60" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="108" x2="440" y2="108" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="158" x2="510" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
