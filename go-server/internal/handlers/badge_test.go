@@ -302,6 +302,15 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "AUTH") || !strings.Contains(s, "TRANSPORT") || !strings.Contains(s, "DNS") {
                 t.Error("expected AUTH/TRANSPORT/DNS lane labels in detailed badge")
         }
+        if !strings.Contains(s, "ICIE") {
+                t.Error("expected ICIE analysis engine node in detailed badge")
+        }
+        if !strings.Contains(s, "Resolvers") {
+                t.Error("expected DNS Resolvers node in detailed badge")
+        }
+        if !strings.Contains(s, "alignment") {
+                t.Error("expected 'alignment' edge label in detailed badge")
+        }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
         }
