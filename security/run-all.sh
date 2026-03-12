@@ -147,7 +147,7 @@ fi
 if command -v trivy &>/dev/null; then
   trivy fs --format json --output "$TRIVY_SECRET_OUTPUT" \
     --scanners secret \
-    --skip-dirs .config --skip-dirs node_modules --skip-dirs .cache \
+    --skip-dirs .config/replit/.semgrep --skip-dirs node_modules --skip-dirs .cache \
     "$REPO_ROOT" 2>/dev/null || true
 
   if [ -f "$TRIVY_SECRET_OUTPUT" ]; then
@@ -176,7 +176,7 @@ if command -v trivy &>/dev/null; then
   trivy fs --format json --output "$TRIVY_OUTPUT" \
     --scanners vuln,misconfig \
     --severity HIGH,CRITICAL \
-    --skip-dirs .config --skip-dirs node_modules --skip-dirs .cache \
+    --skip-dirs .config/replit/.semgrep --skip-dirs node_modules --skip-dirs .cache \
     "$REPO_ROOT" 2>/dev/null || true
 
   if [ -f "$TRIVY_OUTPUT" ]; then
@@ -210,7 +210,7 @@ LICENSE_OUTPUT="$REPORTS_DIR/license-scan.json"
 if command -v trivy &>/dev/null; then
   trivy fs --format json --output "$LICENSE_OUTPUT" \
     --scanners license \
-    --skip-dirs .config --skip-dirs node_modules --skip-dirs .cache \
+    --skip-dirs .config/replit/.semgrep --skip-dirs node_modules --skip-dirs .cache \
     "$REPO_ROOT" 2>/dev/null || true
 
   if [ -f "$LICENSE_OUTPUT" ]; then
@@ -240,7 +240,7 @@ echo "▸ [$STEP/$TOTAL_STEPS] SBOM generation ..."
 SBOM_OUTPUT="$REPORTS_DIR/sbom.json"
 if command -v trivy &>/dev/null; then
   trivy fs --format cyclonedx --output "$SBOM_OUTPUT" \
-    --skip-dirs .config --skip-dirs node_modules --skip-dirs .cache \
+    --skip-dirs .config/replit/.semgrep --skip-dirs node_modules --skip-dirs .cache \
     "$REPO_ROOT" 2>/dev/null || true
   if [ -f "$SBOM_OUTPUT" ]; then
     echo -e "  ${GREEN}✓ SBOM generated (CycloneDX)${NC}"
