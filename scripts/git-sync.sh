@@ -30,6 +30,7 @@ TOKEN="${GITHUB_MASTER_PAT:-}"
 if [ -z "$TOKEN" ]; then
   fail "GITHUB_MASTER_PAT not set. Cannot authenticate with GitHub."
 fi
+PAT_REMOTE="https://${TOKEN}@github.com/${REPO_OWNER}/${REPO_NAME}.git"
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
 echo ""
@@ -73,7 +74,7 @@ LOCAL_HEAD=$(git rev-parse HEAD)
 REMOTE_HEAD=$(git rev-parse "origin/${BRANCH_SOURCE}" 2>/dev/null || echo "none")
 if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
   info "Local ${BRANCH_SOURCE} differs from origin — pushing"
-  timeout 30 git push origin "${BRANCH_SOURCE}" 2>&1 || fail "git push failed"
+  timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1 || fail "git push failed"
   pass "Pushed to origin/${BRANCH_SOURCE}"
 else
   pass "Local and origin/${BRANCH_SOURCE} in sync"
@@ -162,7 +163,7 @@ timeout 30 git merge --ff-only "origin/${BRANCH_TARGET}" 2>/dev/null || {
 }
 pass "Synced ${BRANCH_TARGET} → ${BRANCH_SOURCE}"
 
-timeout 30 git push origin "${BRANCH_SOURCE}" 2>/dev/null || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
+timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>/dev/null || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
 
 echo ""
 echo "═══════════════════════════════════════════"
