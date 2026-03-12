@@ -57,7 +57,7 @@ async function getToken() {
     ? "depl " + process.env.WEB_REPL_RENEWAL
     : null;
   if (!xReplitToken || !hostname) {
-    const pat = process.env.CAREY_PAT_ALL3_REPOS || process.env.CAREY_PAT_DNSTOOLWEB;
+    const pat = process.env.GITHUB_MASTER_PAT;
     if (pat) return pat;
     throw new Error("No auth available");
   }
