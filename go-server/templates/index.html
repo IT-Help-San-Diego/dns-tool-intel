@@ -427,10 +427,6 @@
                             <div class="form-text text-muted mt-1 u-privacy-hint">
                                 {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers. Avoid querying domains you do not own if front-running risk is a concern.
                             </div>
-                            <div class="mt-1" id="systemStatus" aria-live="polite">
-                                <span class="u-status-dot u-status-ok" id="statusDot" aria-hidden="true"></span>
-                                <span class="u-fs-075em text-muted" id="statusText">All Systems Operational</span>
-                            </div>
                             <div class="mt-2">
                                 <button type="button" class="btn btn-link small text-decoration-none p-0 border-0 u-a11y-muted" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="advancedOptions">
                                     {{icon "sliders-h" "me-1 u-color-blue-soft"}}Advanced Options <span class="u-a11y-muted small">(optional)</span> {{icon "chevron-down" "ms-1 small"}}
