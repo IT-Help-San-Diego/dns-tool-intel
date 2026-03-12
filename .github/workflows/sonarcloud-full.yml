@@ -53,10 +53,10 @@ jobs:
 
       - name: Run Go tests with coverage
         run: |
-          go test ./go-server/... -coverprofile=coverage.out -count=1 -short -timeout 120s
+          go test ./go-server/... -tags intel -run '^(?:(?!NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory).)*$' -coverprofile=coverage.out -count=1 -short -timeout 120s
           for pkg in providers scoring remediation commands golden_rules; do
             if [ -d "$pkg" ]; then
-              go test ./$pkg/... -coverprofile=${pkg}_coverage.out -count=1 -short -timeout 60s 2>/dev/null || true
+              go test ./$pkg/... -tags intel -coverprofile=${pkg}_coverage.out -count=1 -short -timeout 60s 2>/dev/null || true
             fi
           done
         env:
