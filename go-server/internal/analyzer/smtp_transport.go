@@ -986,7 +986,7 @@ func probeSingleSMTPServer(ctx context.Context, host string) map[string]any {
 func negotiateTLS(ctx context.Context, conn net.Conn, host string, result map[string]any) {
 	tlsCfg := &tls.Config{ //nolint:gosec // Intentional: diagnostic tool must connect to servers with self-signed/expired/mismatched certs to inspect and report on their TLS configuration. Certificate validation is performed separately in verifyCert().
 		ServerName:         host,
-		InsecureSkipVerify: true, //NOSONAR — S4830/S5527: deliberate diagnostic probe; verifyCert() validates independently
+		InsecureSkipVerify: true, //NOSONAR — S4830/S5527: deliberate diagnostic probe; verifyCert() validates independently // SECINTENT-001
 	}
 	tlsConn := tls.Client(conn, tlsCfg)
 	defer safeClose(tlsConn, "tls connection")

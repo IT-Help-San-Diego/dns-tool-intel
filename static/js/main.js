@@ -131,7 +131,7 @@ function startStatusCycle(overlayEl) {
             phase.classList.add('visible', 'active-phase');
         }, delay);
 
-        const doneDelay = delay + 1800 + Math.random() * 1200; // NOSONAR — animation timing, not cryptographic
+        const doneDelay = delay + 1800 + Math.random() * 1200; // NOSONAR — animation timing, not cryptographic // SECINTENT-005
         if (idx === phases.length - 1) {
             return;
         }
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var privToggle = document.getElementById('privacyToggle');
     var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
-        function togglePrivacy() { privDetail.classList.toggle('d-none'); }
+        function togglePrivacy() { privDetail.style.display = privDetail.style.display === 'none' ? 'block' : 'none'; }
         privToggle.addEventListener('click', togglePrivacy);
         privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
     }
