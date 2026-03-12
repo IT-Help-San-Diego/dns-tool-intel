@@ -29,6 +29,7 @@ type ResolverConfig struct {
 
 // S1313 suppressed: these are well-known public DNS resolver IPs — intentional
 // hardcoded constants for the multi-resolver consensus architecture (RFC-documented services).
+// SECINTENT-003: Hardcoded DNS resolver IPs
 var DefaultResolvers = []ResolverConfig{
         {Name: "Cloudflare", IP: resolverCloudflare, DoH: "https://cloudflare-dns.com/dns-query"},
         {Name: "Google", IP: resolverGoogle, DoH: "https://dns.google/resolve"},
