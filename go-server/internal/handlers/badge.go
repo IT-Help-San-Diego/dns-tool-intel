@@ -452,6 +452,19 @@ type covertDesc struct {
         fail    string
 }
 
+type covertRenderCtx struct {
+        xPad          int
+        lineH         int
+        fontSize      int
+        charW         int
+        width         int
+        monoFont      string
+        dimLocked     string
+        sRed          string
+        alt           string
+        resultStartAt float64
+}
+
 var covertDescriptions = map[string]covertDesc{
         "SPF":       {success: "can't forge sender envelope", warning: "partial — spoofing harder", fail: "sender spoofing possible"},
         "DKIM":      {success: "can't forge signatures", warning: "weak key — forgery harder", fail: "message forgery possible"},
@@ -586,24 +599,24 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         return lines
 }
 
-func renderCovertLines(svg *strings.Builder, lines []covertLine, startY int, resultStartAt float64, xPad, lineH, fontSize, charW int, monoFont, dimLocked, sRed, alt string) (lineIdx, y int) {
+func renderCovertLines(svg *strings.Builder, lines []covertLine, startY int, rc covertRenderCtx) (lineIdx, y int) {
         y = startY
         for _, line := range lines {
                 if line.text == "" && line.prefix == "" {
-                        y += lineH / 2
+                        y += rc.lineH / 2
                         continue
                 }
 
-                delay := resultStartAt + float64(lineIdx)*0.12
+                delay := rc.resultStartAt + float64(lineIdx)*0.12
 
                 color := line.color
                 if color == "" {
-                        color = alt
+                        color = rc.alt
                 }
 
                 pfxColor := line.prefixColor
                 if pfxColor == "" && line.prefix != "" {
-                        pfxColor = covertPrefixColor(line.prefix, dimLocked, sRed, alt)
+                        pfxColor = covertPrefixColor(line.prefix, rc.dimLocked, rc.sRed, rc.alt)
                 }
 
                 svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, delay))
@@ -612,64 +625,64 @@ func renderCovertLines(svg *strings.Builder, lines []covertLine, startY int, res
                         svg.WriteString(fmt.Sprintf(`<a href="%s" target="_blank">`, line.link))
                 }
 
-                renderCovertLineText(svg, line, xPad, y, pfxColor, color, fontSize, charW, monoFont)
+                renderCovertLineText(svg, line, y, pfxColor, color, rc)
 
                 if line.link != "" {
                         svg.WriteString(`</a>`)
                 }
                 svg.WriteString(`</g>`)
-                y += lineH
+                y += rc.lineH
                 lineIdx++
         }
         return lineIdx, y
 }
 
-func renderCovertLineText(svg *strings.Builder, line covertLine, xPad, y int, pfxColor, color string, fontSize, charW int, monoFont string) {
+func renderCovertLineText(svg *strings.Builder, line covertLine, y int, pfxColor, color string, rc covertRenderCtx) {
         if line.prefix == "" {
                 svg.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                        xPad, y, color, fontSize, monoFont, line.text,
+                        rc.xPad, y, color, rc.fontSize, rc.monoFont, line.text,
                 ))
                 return
         }
         svg.WriteString(fmt.Sprintf(
                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                xPad, y, pfxColor, fontSize, monoFont, line.prefix,
+                rc.xPad, y, pfxColor, rc.fontSize, rc.monoFont, line.prefix,
         ))
         if line.desc != "" {
                 svg.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                        xPad+28, y, color, fontSize, monoFont, line.text,
+                        rc.xPad+28, y, color, rc.fontSize, rc.monoFont, line.text,
                 ))
-                descX := xPad + 28 + len(line.text)*charW
+                descX := rc.xPad + 28 + len(line.text)*rc.charW
                 dc := line.descColor
                 if dc == "" {
                         dc = color
                 }
                 svg.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                        descX, y, dc, fontSize, monoFont, line.desc,
+                        descX, y, dc, rc.fontSize, rc.monoFont, line.desc,
                 ))
         } else {
                 svg.WriteString(fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                        xPad+28, y, color, fontSize, monoFont, line.text,
+                        rc.xPad+28, y, color, rc.fontSize, rc.monoFont, line.text,
                 ))
         }
 }
 
-func renderCovertFooter(svg *strings.Builder, lineIdx, y int, resultStartAt float64, xPad, lineH, fontSize, charW, width int, monoFont, domainDisplay, scanTimeStr, sRed, alt string) {
+func renderCovertFooter(svg *strings.Builder, lineIdx, y int, rc covertRenderCtx, domainDisplay, scanTimeStr string) {
         planetText := "#HackThePlanet!   |  #2600"
-        owlDelay := resultStartAt + float64(lineIdx)*0.12
-        owlY := y - lineH + 2
-        owlX := xPad + 28 + len(planetText)*charW - 14
+        owlDelay := rc.resultStartAt + float64(lineIdx)*0.12
+        owlY := y - rc.lineH + 2
+        owlX := rc.xPad + 28 + len(planetText)*rc.charW - 14
         svg.WriteString(fmt.Sprintf(`<g opacity="0" transform="translate(%d,%d) scale(0.8)"><animate attributeName="opacity" from="0" to="0.9" dur="0.3s" begin="%.2fs" fill="freeze"/>`, owlX, owlY-11, owlDelay))
-        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="1.2" fill="%s"/>`, sRed))
-        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="1.2" fill="%s"/>`, sRed))
-        svg.WriteString(fmt.Sprintf(`<path d="M7,3 L8,0 L9,3" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
+        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, rc.alt))
+        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, rc.alt))
+        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="1.2" fill="%s"/>`, rc.sRed))
+        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="1.2" fill="%s"/>`, rc.sRed))
+        svg.WriteString(fmt.Sprintf(`<path d="M7,3 L8,0 L9,3" fill="none" stroke="%s" stroke-width="0.8"/>`, rc.alt))
+        svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, rc.alt))
         svg.WriteString(`</g>`)
 
         bottomY1 := y + 6
@@ -677,20 +690,20 @@ func renderCovertFooter(svg *strings.Builder, lineIdx, y int, resultStartAt floa
         svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, bottomDelay))
         svg.WriteString(fmt.Sprintf(
                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">┌──(kali㉿kali)-[~/recon/%s]</text>`,
-                xPad, bottomY1, alt, fontSize, monoFont, domainDisplay,
+                rc.xPad, bottomY1, rc.alt, rc.fontSize, rc.monoFont, domainDisplay,
         ))
         svg.WriteString(fmt.Sprintf(
                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" text-anchor="end">%s</text>`,
-                width-xPad, bottomY1, alt, fontSize, monoFont, scanTimeStr,
+                rc.width-rc.xPad, bottomY1, rc.alt, rc.fontSize, rc.monoFont, scanTimeStr,
         ))
-        bottomY2 := bottomY1 + lineH
+        bottomY2 := bottomY1 + rc.lineH
         svg.WriteString(fmt.Sprintf(
                 `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
-                xPad, bottomY2, alt, fontSize, monoFont,
+                rc.xPad, bottomY2, rc.alt, rc.fontSize, rc.monoFont,
         ))
         svg.WriteString(fmt.Sprintf(
                 `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"/>`,
-                xPad+4*charW, bottomY2-10, 12, sRed,
+                rc.xPad+4*rc.charW, bottomY2-10, 12, rc.sRed,
         ))
         svg.WriteString(`</g>`)
 }
@@ -845,9 +858,15 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 ))
         }
 
-        lineIdx, y := renderCovertLines(&svg, lines, promptY2+lineH+4, resultStartAt, xPad, lineH, fontSize, charW, monoFont, dimLocked, sRed, alt)
+        rc := covertRenderCtx{
+                xPad: xPad, lineH: lineH, fontSize: fontSize, charW: charW,
+                width: width, monoFont: monoFont, dimLocked: dimLocked,
+                sRed: sRed, alt: alt, resultStartAt: resultStartAt,
+        }
 
-        renderCovertFooter(&svg, lineIdx, y, resultStartAt, xPad, lineH, fontSize, charW, width, monoFont, domainDisplay, scanTimeStr, sRed, alt)
+        lineIdx, y := renderCovertLines(&svg, lines, promptY2+lineH+4, rc)
+
+        renderCovertFooter(&svg, lineIdx, y, rc, domainDisplay, scanTimeStr)
 
         svg.WriteString(`</svg>`)
 

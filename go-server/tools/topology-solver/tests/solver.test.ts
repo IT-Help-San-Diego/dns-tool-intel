@@ -105,7 +105,7 @@ test('all nodes have positions within their zone bounds', () => {
     let halfH: number;
     if (node.radius) {
       const box = computeNodeBox(
-        { shape: node.shape as any, radius: node.radius, label: node.label, sub: node.sub, scale: 1.0, fontLabel: 14, fontSub: 10 },
+        { shape: node.shape as any, radius: node.radius, label: node.label, sub: node.sub, scale: 1, fontLabel: 14, fontSub: 10 },
         estimateTextWidth,
       );
       halfW = box.halfW;

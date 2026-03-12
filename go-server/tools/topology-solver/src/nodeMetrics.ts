@@ -14,8 +14,7 @@ export type MeasureTextFn = (text: string, fontSize: number) => number;
 
 export function estimateTextWidth(text: string, fontSize: number): number {
   let total = 0;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
+  for (const ch of text) {
     if (ch === ' ') {
       total += 0.28;
     } else if (/[mwMW]/.test(ch)) {
@@ -26,7 +25,7 @@ export function estimateTextWidth(text: string, fontSize: number): number {
       total += 0.72;
     } else if (/[a-z]/.test(ch)) {
       total += 0.52;
-    } else if (/[0-9]/.test(ch)) {
+    } else if (/\d/.test(ch)) {
       total += 0.56;
     } else if (ch === '·' || ch === '—' || ch === '–') {
       total += 0.56;
