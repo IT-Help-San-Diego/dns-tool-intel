@@ -34,6 +34,7 @@ type Analyzer struct {
         ianaMu      sync.RWMutex
         Telemetry   *telemetry.Registry
         RDAPCache   *telemetry.TTLCache[map[string]any]
+        CTStore     CTStore
 
         ctCacheMu  sync.RWMutex
         ctCache    map[string]ctCacheEntry

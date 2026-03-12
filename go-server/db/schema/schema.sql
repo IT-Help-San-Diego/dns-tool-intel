@@ -263,3 +263,50 @@ CREATE TABLE drift_notifications (
 
 CREATE INDEX ix_drift_notifications_event ON drift_notifications (drift_event_id);
 CREATE INDEX ix_drift_notifications_status ON drift_notifications (status) WHERE status = 'pending';
+
+-- ICuAE (Intelligence Currency Assurance Engine) tables
+CREATE TABLE icuae_scan_scores (
+    id SERIAL PRIMARY KEY,
+    domain VARCHAR(255) NOT NULL,
+    overall_score REAL NOT NULL DEFAULT 0,
+    overall_grade VARCHAR(5) NOT NULL DEFAULT 'F',
+    resolver_count INTEGER NOT NULL DEFAULT 0,
+    record_count INTEGER NOT NULL DEFAULT 0,
+    app_version VARCHAR(20) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE icuae_dimension_scores (
+    id SERIAL PRIMARY KEY,
+    scan_id INTEGER NOT NULL REFERENCES icuae_scan_scores(id) ON DELETE CASCADE,
+    dimension VARCHAR(50) NOT NULL,
+    score REAL NOT NULL DEFAULT 0,
+    grade VARCHAR(5) NOT NULL DEFAULT 'F',
+    record_types_evaluated TEXT[] NOT NULL DEFAULT '{}'
+);
+
+-- CT Subdomain Cache: persistent storage for Certificate Transparency discoveries.
+-- CT logs (RFC 6962) are append-only, immutable historical records.
+-- Caching them does NOT violate our "live data" promise — certificates are
+-- historical facts that cannot be un-issued. DNS liveness is always checked fresh.
+CREATE TABLE ct_subdomain_cache (
+    domain        VARCHAR(255) PRIMARY KEY,
+    subdomains    JSONB NOT NULL DEFAULT '[]',
+    unique_count  INTEGER NOT NULL DEFAULT 0,
+    source        VARCHAR(50) NOT NULL DEFAULT 'crt.sh',
+    fetched_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at    TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '24 hours')
+);
+
+CREATE INDEX ix_ct_cache_expires ON ct_subdomain_cache (expires_at);
+CREATE INDEX ix_ct_cache_fetched ON ct_subdomain_cache (fetched_at DESC);
+
+-- SecurityTrails monthly budget tracking (survives server restarts)
+CREATE TABLE securitytrails_budget (
+    month_key       VARCHAR(7) PRIMARY KEY,
+    calls_used      INTEGER NOT NULL DEFAULT 0,
+    domains_enriched JSONB NOT NULL DEFAULT '[]',
+    last_called_at  TIMESTAMP,
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
+);
