@@ -52,7 +52,13 @@ jobs:
           go-version: '1.25'
 
       - name: Run Go tests with coverage
-        run: go test ./go-server/... -coverprofile=coverage.out -count=1 -short -timeout 120s
+        run: |
+          go test ./go-server/... -coverprofile=coverage.out -count=1 -short -timeout 120s
+          for pkg in providers scoring remediation commands golden_rules; do
+            if [ -d "$pkg" ]; then
+              go test ./$pkg/... -coverprofile=${pkg}_coverage.out -count=1 -short -timeout 60s 2>/dev/null || true
+            fi
+          done
         env:
           CGO_ENABLED: '0'
 
@@ -62,6 +68,9 @@ jobs:
           args: >
             -Dsonar.projectKey=careyjames_dns-tool-full
             -Dsonar.projectName=DNS Tool (Full Product)
+            -Dsonar.sources=go-server,static,providers,scoring,remediation,commands,golden_rules
+            -Dsonar.tests=go-server,providers,scoring,commands,golden_rules
+            -Dsonar.test.inclusions=**/*_test.go
             -Dsonar.exclusions=**/*_test.go,**/vendor/**,.intel-checkout/**,.cache/**,.pythonlibs/**,attached_assets/**,.scannerwork/**,**/*.py,.agents/**,node_modules/**,static/**/*.min.css,static/**/*.min.js,static/sw.js,static/js/main.js,static/js/foundation.js
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_CAREY }}
