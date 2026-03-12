@@ -53,15 +53,13 @@ if ! git diff-index --quiet HEAD -- 2>/dev/null; then
 fi
 pass "Working tree clean"
 
-for LOCKFILE in .git/index.lock .git/shallow.lock .git/refs/heads/*.lock; do
-  if [ -f "$LOCKFILE" ] 2>/dev/null; then
-    LOCK_AGE=$(( $(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || stat -f %m "$LOCKFILE" 2>/dev/null || echo "0") ))
-    if [ "$LOCK_AGE" -gt 30 ]; then
-      echo -e "  ${YELLOW}⚠${NC} Removing stale lock: ${LOCKFILE} (${LOCK_AGE}s old)"
-      rm -f "$LOCKFILE"
-    else
-      fail "Active lock file: ${LOCKFILE} (${LOCK_AGE}s old). Git operation in progress?"
-    fi
+for LOCKFILE in $(find .git -name '*.lock' 2>/dev/null); do
+  LOCK_AGE=$(( $(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || stat -f %m "$LOCKFILE" 2>/dev/null || echo "0") ))
+  if [ "$LOCK_AGE" -gt 30 ]; then
+    echo -e "  ${YELLOW}⚠${NC} Removing stale lock: ${LOCKFILE} (${LOCK_AGE}s old)"
+    rm -f "$LOCKFILE"
+  else
+    fail "Active lock file: ${LOCKFILE} (${LOCK_AGE}s old). Git operation in progress?"
   fi
 done
 pass "No git lock files"
