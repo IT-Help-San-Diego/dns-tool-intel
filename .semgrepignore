@@ -1,0 +1,13 @@
+vendor/
+node_modules/
+.cache/
+.pythonlibs/
+attached_assets/
+.scannerwork/
+.agents/
+.local/
+docs/legacy/
+static/css/foundation.css
+static/js/foundation.js
+*.min.css
+*.min.js

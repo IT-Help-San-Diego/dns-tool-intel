@@ -10,10 +10,10 @@
 # Runs:
 #   1. Version bump in all versioned artifacts
 #   2. Methodology PDF regeneration
-#   3. CITATION.cff validation (SPDX, schema)
-#   4. Go tests
-#   5. Quality gates (R009/R010/R011)
-#   6. Git status check (must be clean after all updates)
+#   3. Philosophical Foundations PDF regeneration
+#   4. CITATION.cff validation (SPDX, schema)
+#   5. Go tests
+#   6. Quality gates (R009/R010/R011)
 #
 # Fails loudly on any error. Do NOT tag until this passes.
 #
@@ -92,6 +92,10 @@ pass "sonar-project.properties → ${VERSION}"
 info "Gate 7: Methodology PDF regeneration"
 bash scripts/generate-methodology-pdf.sh "$VERSION"
 pass "Methodology PDF regenerated with version ${VERSION}"
+
+info "Gate 7b: Philosophical Foundations PDF regeneration"
+bash scripts/generate-foundations-pdf.sh "$VERSION"
+pass "Philosophical Foundations PDF regenerated"
 
 info "Gate 8: Go tests"
 TEST_OUTPUT=$(go test ./go-server/... -count=1 -short -timeout 120s 2>&1) || true

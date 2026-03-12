@@ -425,11 +425,9 @@
                                 Enter a domain (e.g., <strong>example.com</strong>) or a top-level zone (e.g., <strong>tech</strong>, <strong>co.uk</strong>) &mdash; no https://. TLDs produce a <strong>Registry Zone Health Report</strong>.
                             </div>
                             <div class="form-text text-muted mt-1 u-privacy-hint">
-                                {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers. Avoid querying domains you do not own if front-running risk is a concern.
-                            </div>
-                            <div class="mt-1" id="systemStatus" aria-live="polite">
-                                <span class="u-status-dot u-status-ok" id="statusDot" aria-hidden="true"></span>
-                                <span class="u-fs-075em text-muted" id="statusText">All Systems Operational</span>
+                                {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers.
+                                <span id="privacyToggle" class="u-privacy-toggle" role="button" tabindex="0">{{icon "chevron-down" "ms-1 small"}} Why this matters if you&rsquo;re shopping for a domain?</span>
+                                <div id="privacyDetail" class="form-text text-muted mt-1 d-none">{{icon "info-circle" "me-1"}}When you look up a domain, that query can be seen by third parties. If you&rsquo;re considering buying a domain and don&rsquo;t want anyone to know you&rsquo;re interested, don&rsquo;t search for it here or on any public tool &mdash; someone could register it before you do. Before you buy, check whether the domain already carries a bad reputation using <a href="https://www.talosintelligence.com/reputation_center" target="_blank" rel="noopener noreferrer" class="text-info">Cisco Talos Reputation Center</a> &mdash; but do it from a private browser, not here.</div>
                             </div>
                             <div class="mt-2">
                                 <button type="button" class="btn btn-link small text-decoration-none p-0 border-0 u-a11y-muted" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="advancedOptions">
@@ -446,7 +444,9 @@
                                                            name="dkim_selector1"
                                                            id="dkim_selector1"
                                                            placeholder="e.g. selector1"
-                                                           autocomplete="off">
+                                                           autocomplete="off"
+                                                           autocapitalize="none"
+                                                           spellcheck="false">
                                                 </div>
                                                 <div class="col-6">
                                                     <label for="dkim_selector2" class="visually-hidden">DKIM Selector 2</label>
@@ -455,7 +455,9 @@
                                                            name="dkim_selector2"
                                                            id="dkim_selector2"
                                                            placeholder="e.g. 8452036334128736"
-                                                           autocomplete="off">
+                                                           autocomplete="off"
+                                                           autocapitalize="none"
+                                                           spellcheck="false">
                                                 </div>
                                             </div>
                                             <div class="form-text text-muted mt-1 u-fs-075em">
@@ -472,6 +474,7 @@
                                                        id="securitytrails_api_key"
                                                        placeholder="SecurityTrails API Key"
                                                        autocomplete="off"
+                                                       autocapitalize="none"
                                                        spellcheck="false">
                                             </div>
                                             <div class="form-text text-muted mt-1 u-fs-075em">

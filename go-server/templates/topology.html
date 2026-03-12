@@ -453,6 +453,7 @@
         }
 
         var hoveredPop = null;
+        var allLayoutNodes = [];
         var popHitAreas = [];
 
         function drawResolverMarkers() {
@@ -468,6 +469,12 @@
             visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
 
             var placedBoxes = [];
+            allLayoutNodes.forEach(function(nd) {
+                if (!nd._boxW) measureNodeBox(nd);
+                var hw = nd._halfW || nd.radius;
+                var hh = nd._halfH || nd.radius;
+                placedBoxes.push({ x: nd.x - hw, y: nd.y - hh, w: hw * 2, h: hh * 2 });
+            });
             popHitAreas = [];
 
             var labelGap = 12 * SCL;
@@ -801,40 +808,54 @@
             MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
         }
 
-        function measureNodeBox(n) {
-            ctx.font = FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-            var tw = ctx.measureText(n.label).width;
+        function computeNodeBox(shape, radius, label, sub, scale, fontLabel, fontSub, measureFn) {
+            var labelW = measureFn(label, fontLabel);
             var subW = 0;
-            if (n.sub) {
-                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-                var lines = n.sub.split('\n');
+            var subLineCount = 0;
+            if (sub) {
+                var lines = sub.split('\n');
+                subLineCount = lines.length;
                 for (var i = 0; i < lines.length; i++) {
-                    var sw = ctx.measureText(lines[i]).width;
+                    var sw = measureFn(lines[i], fontSub);
                     if (sw > subW) subW = sw;
                 }
             }
-            var contentW = Math.max(tw, subW) + 24 * SCL;
-            var baseW, baseH;
-            if (n.shape === 'circle') {
-                baseW = Math.max(n.radius * 2, contentW);
-                baseH = n.radius * 2;
-            } else if (n.shape === 'diamond') {
-                baseW = n.radius * 1.7;
-                baseH = n.radius * 1.7;
-            } else if (n.shape === 'hexagon') {
-                baseW = Math.max(n.radius * 2, contentW);
-                baseH = n.radius * 2;
-            } else if (n.shape === 'cylinder') {
-                baseW = Math.max(n.radius * 2.4, contentW);
-                baseH = n.radius * 1.5 + 16;
+            var contentW = Math.max(labelW, subW) + 24 * scale;
+            var w, h;
+            if (shape === 'circle') {
+                w = Math.max(radius * 2, contentW);
+                h = radius * 2;
+            } else if (shape === 'diamond') {
+                w = Math.max(radius * 1.7, contentW + 8);
+                h = radius * 1.7;
+            } else if (shape === 'hexagon') {
+                w = Math.max(radius * 2, contentW);
+                h = radius * 2;
+            } else if (shape === 'cylinder') {
+                w = Math.max(radius * 2.4, contentW);
+                h = radius * 1.5 + 16;
+            } else if (shape === 'hub' || shape === 'roundRect') {
+                w = Math.max(radius * 2.4, contentW);
+                h = Math.max(radius * 1.4, 40 * scale);
             } else {
-                var subLineCount = n.sub ? n.sub.split('\n').length : 0;
-                baseW = Math.max(n.radius * 2.4, contentW);
-                baseH = Math.max(n.radius * 1.3, 40 * SCL + (subLineCount > 1 ? (subLineCount - 1) * (FONT_SUB + 2) : 0));
+                w = Math.max(radius * 2.4, contentW);
+                h = Math.max(radius * 1.3, 40 * scale + (subLineCount > 1 ? (subLineCount - 1) * (fontSub + 2) : 0));
             }
-            n._boxW = baseW;
-            n._boxH = baseH;
-            return { w: baseW, h: baseH };
+            return { w: w, h: h, halfW: w / 2, halfH: h / 2, contentW: contentW, subLineCount: subLineCount };
+        }
+
+        function canvasMeasureText(text, fontSize) {
+            ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            return ctx.measureText(text).width;
+        }
+
+        function measureNodeBox(n) {
+            var box = computeNodeBox(n.shape, n.radius, n.label, n.sub || null, SCL, FONT_LABEL, FONT_SUB, canvasMeasureText);
+            n._boxW = box.w;
+            n._boxH = box.h;
+            n._halfW = box.halfW;
+            n._halfH = box.halfH;
+            return { w: box.w, h: box.h };
         }
 
         function aabbOverlap(a, b) {
@@ -1016,9 +1037,9 @@
             var pipeEnd = W * 0.99;
             var pipeTotal = pipeEnd - pipeStart;
             var colGap = Math.max(4, pipeTotal * 0.01);
-            var c1w = pipeTotal * 0.14;
-            var c2w = pipeTotal * 0.16;
-            var c3w = pipeTotal * 0.46;
+            var c1w = pipeTotal * 0.13;
+            var c2w = pipeTotal * 0.20;
+            var c3w = pipeTotal * 0.42;
             var c4w = pipeTotal * 0.16;
             var col1L = pipeStart;
             var col1R = col1L + c1w;
@@ -1046,16 +1067,16 @@
             ENGINE.targetX = procCx;
             ENGINE.targetY = titleSafe + usableH * 0.15;
 
-            var confSpread = Math.max(30, (col2R - col2L) * 0.25);
-            var confY = titleSafe + usableH * 0.45;
-            CONFIDENCE[0].targetX = procCx - confSpread * 0.8;
-            CONFIDENCE[0].targetY = confY - usableH * 0.04;
-            CONFIDENCE[1].targetX = procCx - confSpread * 0.4;
-            CONFIDENCE[1].targetY = confY + usableH * 0.08;
-            CONFIDENCE[2].targetX = procCx + confSpread * 0.4;
-            CONFIDENCE[2].targetY = confY + usableH * 0.08;
+            var confSpread = Math.max(40, (col2R - col2L) * 0.32);
+            var confY = titleSafe + usableH * 0.42;
+            CONFIDENCE[0].targetX = procCx;
+            CONFIDENCE[0].targetY = confY - usableH * 0.06;
+            CONFIDENCE[1].targetX = procCx - confSpread * 0.5;
+            CONFIDENCE[1].targetY = confY + usableH * 0.06;
+            CONFIDENCE[2].targetX = procCx + confSpread * 0.5;
+            CONFIDENCE[2].targetY = confY + usableH * 0.06;
             CONFIDENCE[3].targetX = procCx;
-            CONFIDENCE[3].targetY = confY + usableH * 0.20;
+            CONFIDENCE[3].targetY = confY + usableH * 0.18;
 
             var storeY = titleSafe + usableH * 0.78;
             var storeSpread = Math.max(confSpread * 0.8, 60);
@@ -1105,7 +1126,7 @@
                 'confidence': {
                     gx: procCx, gy: confY + usableH * 0.06,
                     gravity: 0.30,
-                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.30, y2: titleSafe + usableH * 0.72 }
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.75 }
                 },
                 'storage': {
                     gx: procCx, gy: storeY,
@@ -1124,7 +1145,7 @@
                 }
             };
 
-            var allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
+            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
             var allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
 
             var solverProfile = W > 1000 ? 'desktop' : (W > 600 ? 'tablet' : 'mobile');
@@ -1138,7 +1159,7 @@
             if (solverData) {
                 SOLVER_ACTIVE = true;
                 console.log('Topology: using hybrid solver (' + solverProfile + ')');
-                var solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 820 }, mobile: { w: 420, h: 1400 } };
+                var solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
                 var ref = solverRef[solverProfile] || solverRef.desktop;
                 allLayoutNodes.forEach(function(nd) {
                     var pos = solverData[nd.id];
@@ -1168,34 +1189,49 @@
                 forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
             }
 
-            var protoMinDist = 112;
-            for (var sp = 0; sp < 12; sp++) {
-                var moved = false;
-                for (var pi = 0; pi < PROTOCOLS.length; pi++) {
-                    for (var pj = pi + 1; pj < PROTOCOLS.length; pj++) {
-                        var pa = PROTOCOLS[pi], pb = PROTOCOLS[pj];
-                        var pdx = pb.targetX - pa.targetX;
-                        var pdy = pb.targetY - pa.targetY;
-                        var pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-                        if (pdist < protoMinDist && pdist > 0.1) {
-                            var push = (protoMinDist - pdist) / 2 + 2;
-                            var pnx = pdx / pdist, pny = pdy / pdist;
-                            pa.targetX -= pnx * push;
-                            pa.targetY -= pny * push;
-                            pb.targetX += pnx * push;
-                            pb.targetY += pny * push;
-                            moved = true;
+            allLayoutNodes.forEach(function(nd) {
+                measureNodeBox(nd);
+            });
+
+            var overlapPad = 14;
+            for (var op = 0; op < 40; op++) {
+                var anyOverlap = false;
+                for (var oi = 0; oi < allLayoutNodes.length; oi++) {
+                    for (var oj = oi + 1; oj < allLayoutNodes.length; oj++) {
+                        var na = allLayoutNodes[oi], nb = allLayoutNodes[oj];
+                        var ohw = (na._halfW || na.radius) + (nb._halfW || nb.radius) + overlapPad;
+                        var ohh = (na._halfH || na.radius) + (nb._halfH || nb.radius) + overlapPad;
+                        var odx = Math.abs(nb.targetX - na.targetX);
+                        var ody = Math.abs(nb.targetY - na.targetY);
+                        if (odx < ohw && ody < ohh) {
+                            var overX = ohw - odx;
+                            var overY = ohh - ody;
+                            var pushStr = 0.7;
+                            if (overX < overY) {
+                                var sx = (nb.targetX >= na.targetX ? 1 : -1) * overX * pushStr;
+                                na.targetX -= sx;
+                                nb.targetX += sx;
+                            } else {
+                                var sy = (nb.targetY >= na.targetY ? 1 : -1) * overY * pushStr;
+                                na.targetY -= sy;
+                                nb.targetY += sy;
+                            }
+                            anyOverlap = true;
                         }
                     }
                 }
-                if (!moved) break;
-                var pz = zones['protocol'];
-                if (pz && pz.bounds) {
-                    PROTOCOLS.forEach(function(pp) {
-                        pp.targetX = Math.max(pz.bounds.x1 + 40, Math.min(pz.bounds.x2 - 40, pp.targetX));
-                        pp.targetY = Math.max(pz.bounds.y1 + 40, Math.min(pz.bounds.y2 - 40, pp.targetY));
-                    });
-                }
+                if (!anyOverlap) break;
+                allLayoutNodes.forEach(function(nd) {
+                    var z = zones[nd.zone || nd.id];
+                    if (z && z.bounds) {
+                        var zHw = nd._halfW || nd.radius;
+                        var zHh = nd._halfH || nd.radius;
+                        nd.targetX = Math.max(z.bounds.x1 + zHw, Math.min(z.bounds.x2 - zHw, nd.targetX));
+                        nd.targetY = Math.max(z.bounds.y1 + zHh, Math.min(z.bounds.y2 - zHh, nd.targetY));
+                    }
+                    nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
+                    nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
+                });
             }
 
             allLayoutNodes.forEach(function(nd) {
@@ -1264,9 +1300,11 @@
             var ny = dy / len;
             var pad = 5;
 
+            if (!node._boxW) measureNodeBox(node);
+            var hw = node._halfW + pad;
+            var hh = node._halfH + pad;
+
             if (node.shape === 'rect' || node.shape === 'hub') {
-                var hw = ((node._drawW || node.radius * 2.4)) / 2 + pad;
-                var hh = ((node._drawH || node.radius * 1.3)) / 2 + pad;
                 var tx2 = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
                 var ty2 = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 var t = Math.min(tx2, ty2);
@@ -1278,10 +1316,8 @@
                 return { x: node.x + nx * t2, y: node.y + ny * t2 };
             }
             if (node.shape === 'cylinder') {
-                var hw2 = (node.radius * 2.4) / 2 + pad;
-                var hh2 = (node.radius * 1.5) / 2 + 8 + pad;
-                var tx3 = Math.abs(nx) > 0.001 ? hw2 / Math.abs(nx) : 99999;
-                var ty3 = Math.abs(ny) > 0.001 ? hh2 / Math.abs(ny) : 99999;
+                var tx3 = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
+                var ty3 = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
                 return { x: node.x + nx * Math.min(tx3, ty3), y: node.y + ny * Math.min(tx3, ty3) };
             }
             if (node.shape === 'hexagon') {
@@ -1374,27 +1410,60 @@
                 }
                 ly -= 8 * SCL;
 
-                for (var lri = 0; lri < PROTOCOLS.length; lri++) {
-                    var lpn = PROTOCOLS[lri];
-                    var ldx = lx - lpn.x;
-                    var ldy = ly - lpn.y;
-                    var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
-                    if (ldist < lpn.radius + 20 && ldist > 0.1) {
-                        var lnorm = (lpn.radius + 25) / ldist;
-                        lx = lpn.x + ldx * lnorm;
-                        ly = lpn.y + ldy * lnorm;
+                for (var nri = 0; nri < allLayoutNodes.length; nri++) {
+                    var nn = allLayoutNodes[nri];
+                    var nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 12;
+                    var nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 12;
+                    if (nn.shape === 'circle') {
+                        var ldx = lx - nn.x;
+                        var ldy = ly - nn.y;
+                        var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
+                        if (ldist < nn.radius + 24 && ldist > 0.1) {
+                            var lnorm = (nn.radius + 28) / ldist;
+                            lx = nn.x + ldx * lnorm;
+                            ly = nn.y + ldy * lnorm;
+                        }
+                    } else {
+                        var ndx = lx - nn.x;
+                        var ndy = ly - nn.y;
+                        if (Math.abs(ndx) < nhw && Math.abs(ndy) < nhh) {
+                            if (Math.abs(ndx) / nhw > Math.abs(ndy) / nhh) {
+                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 6);
+                            } else {
+                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 6);
+                            }
+                        }
                     }
+                }
+
+                var edgeFontSize = Math.max(8, FONT_SUB - 1);
+                ctx.font = edgeFontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                var tw = ctx.measureText(e.label).width;
+                var pw = tw + 8 * SCL;
+                var ph = edgeFontSize + 6 * SCL;
+
+                for (var llPass = 0; llPass < 3; llPass++) {
+                    var llMoved = false;
+                    for (var pli = 0; pli < placedEdgeLabels.length; pli++) {
+                        var pl = placedEdgeLabels[pli];
+                        var olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
+                        var oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
+                        if (olx > 0 && oly > 0) {
+                            if (olx < oly) {
+                                lx += (lx >= pl.x ? 1 : -1) * (olx + 6);
+                            } else {
+                                ly += (ly >= pl.y ? 1 : -1) * (oly + 6);
+                            }
+                            llMoved = true;
+                        }
+                    }
+                    if (!llMoved) break;
                 }
 
                 ly = Math.max(20, Math.min(H - 20, ly));
                 lx = Math.max(30, Math.min(W - 30, lx));
-                var edgeFontSize = Math.max(8, FONT_SUB - 1);
-                ctx.font = edgeFontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                var tw = ctx.measureText(e.label).width;
-                var pw = tw + 8 * SCL;
-                var ph = edgeFontSize + 6 * SCL;
                 var pillAlpha = isHL ? 0.85 : 0.55;
                 ctx.fillStyle = 'rgba(10, 14, 20, ' + pillAlpha + ')';
                 ctx.beginPath();
@@ -1411,28 +1480,18 @@
                 ctx.stroke();
                 ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.9 : 0.45) + ')';
                 ctx.fillText(e.label, lx, ly);
+                placedEdgeLabels.push({ x: lx, y: ly, w: pw, h: ph });
             }
         }
 
         function drawNodeTag(n, isHover, dimmed) {
             var fs = FONT_LABEL;
-            ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-            var tw = ctx.measureText(n.label).width;
-            var maxTextW = tw;
-            if (n.sub) {
-                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-                var subLines = n.sub.split('\n');
-                for (var si = 0; si < subLines.length; si++) {
-                    var sw = ctx.measureText(subLines[si]).width;
-                    if (sw > maxTextW) maxTextW = sw;
-                }
-                ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-            }
-            var w = Math.max(n.radius * 2.4, maxTextW + 22 * SCL);
-            var subLineCount = n.sub ? n.sub.split('\n').length : 0;
-            var h = Math.max(n.radius * 1.3, 40 * SCL + (subLineCount > 1 ? (subLineCount - 1) * (FONT_SUB + 2) : 0));
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
             n._drawW = w;
             n._drawH = h;
+            ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             var r = 5;
 
             roundRect(n.x - w / 2, n.y - h / 2, w, h, r);
@@ -1461,8 +1520,9 @@
             var isHover = hoverNode && hoverNode.id === n.id;
             var dimmed = hoverNode && !isHover && !getConnectedIds(hoverNode.id)[n.id];
 
-            var w = n.radius * 2.4;
-            var h = n.radius * 1.4;
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
             n._drawW = w;
             n._drawH = h;
 
@@ -1611,8 +1671,11 @@
             var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
             var dimmed = hoverNode && !isHover && !conn[n.id];
 
-            var w = n.radius * 2.4;
-            var h = n.radius * 1.5;
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
+            n._drawW = w;
+            n._drawH = h;
             var ew = w / 2;
             var eh = 7;
 
@@ -1823,12 +1886,15 @@
             }
         }
 
+        var placedEdgeLabels = [];
+
         function draw() {
             ctx.clearRect(0, 0, W, H);
 
             drawAmbient();
             drawGlobe(time);
 
+            placedEdgeLabels = [];
             FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
             PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
             drawFlowParticles();
@@ -1847,9 +1913,23 @@
             PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
             OUTPUTS.forEach(function(o) { drawOutputNode(o); });
 
+            if (debugBounds) {
+                allLayoutNodes.forEach(function(nd) {
+                    if (!nd._boxW) measureNodeBox(nd);
+                    var hw = nd._halfW || nd.radius;
+                    var hh = nd._halfH || nd.radius;
+                    ctx.strokeStyle = 'rgba(0,255,0,0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeRect(nd.x - hw, nd.y - hh, hw * 2, hh * 2);
+                    ctx.setLineDash([]);
+                });
+            }
+
             drawPopTooltip();
         }
 
+        var debugBounds = window.location.search.indexOf('debug=bounds') !== -1;
         var paused = false;
 
         function loop() {

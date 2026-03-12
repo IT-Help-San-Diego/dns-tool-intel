@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { solveLayout } from '../src/layoutSolver.js';
 import type { LayoutSpec, MetricsReport } from '../src/types.js';
+import { computeNodeBox, estimateTextWidth } from '../src/nodeMetrics.js';
 
 const FIXTURE_PATH = 'fixtures/dns-topology-production.json';
 
@@ -73,8 +74,10 @@ test('output is deterministic (run twice, compare)', () => {
 
 test('zero node overlaps', () => {
   const spec = loadSpec();
-  const result = solveLayout(spec, { profileId: 'desktop' });
-  assertEqual(result.metrics.nodeOverlaps, 0, 'node overlaps must be zero');
+  for (const profileId of ['desktop', 'tablet', 'mobile']) {
+    const result = solveLayout(spec, { profileId });
+    assertEqual(result.metrics.nodeOverlaps, 0, `node overlaps must be zero on ${profileId}`);
+  }
 });
 
 test('flow x-monotonicity violations tracked on desktop', () => {
@@ -98,8 +101,19 @@ test('all nodes have positions within their zone bounds', () => {
     if (!template) continue;
 
     const pos = result.nodeCenters[node.id];
-    const halfW = node.width / 2;
-    const halfH = node.height / 2;
+    let halfW: number;
+    let halfH: number;
+    if (node.radius) {
+      const box = computeNodeBox(
+        { shape: node.shape as any, radius: node.radius, label: node.label, sub: node.sub, scale: 1.0, fontLabel: 14, fontSub: 10 },
+        estimateTextWidth,
+      );
+      halfW = box.halfW;
+      halfH = box.halfH;
+    } else {
+      halfW = node.width / 2;
+      halfH = node.height / 2;
+    }
     const padding = template.padding ?? 8;
 
     const minX = template.x1 + padding + halfW;

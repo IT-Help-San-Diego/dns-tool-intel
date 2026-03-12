@@ -19,6 +19,18 @@
 (function() {
 'use strict';
 
+function parseIcon(html) {
+    if (!html) return document.createTextNode('');
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.firstElementChild || document.createTextNode('');
+}
+
+function setIconAndText(el, iconHtml, text) {
+    el.textContent = '';
+    if (iconHtml) el.appendChild(parseIcon(iconHtml));
+    if (text) el.appendChild(document.createTextNode(text));
+}
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
 }
@@ -35,11 +47,12 @@ globalThis.addEventListener('pageshow', function(e) {
         document.body.classList.remove('loading');
         const reanalyzeBtn = document.getElementById('reanalyzeBtn');
         if (reanalyzeBtn && !reanalyzeBtn.classList.contains('disabled')) {
-            reanalyzeBtn.innerHTML = (window._icons ? window._icons.sync : '') + ' Re-analyze';
+            reanalyzeBtn.textContent = ' Re-analyze';
+            if (window._icons) { reanalyzeBtn.insertBefore(parseIcon(window._icons.sync), reanalyzeBtn.firstChild); }
         }
         const analyzeBtn = document.getElementById('analyzeBtn');
         if (analyzeBtn) {
-            analyzeBtn.innerHTML = (window._icons ? window._icons.search : '') + ' Analyze';
+            setIconAndText(analyzeBtn, window._icons ? window._icons.search : null, ' Analyze');
             analyzeBtn.disabled = false;
         }
         document.querySelectorAll('.history-view-btn,.history-reanalyze-btn').forEach(function(b) {
@@ -118,7 +131,7 @@ function startStatusCycle(overlayEl) {
             phase.classList.add('visible', 'active-phase');
         }, delay);
 
-        const doneDelay = delay + 1800 + Math.random() * 1200; // NOSONAR — animation timing, not cryptographic
+        const doneDelay = delay + 1800 + Math.random() * 1200; // NOSONAR — animation timing, not cryptographic // SECINTENT-005
         if (idx === phases.length - 1) {
             return;
         }
@@ -128,7 +141,7 @@ function startStatusCycle(overlayEl) {
             const icon = phase.querySelector('.scan-icon');
             if (icon) {
                 icon.classList.remove('icon-spin', 'scan-pending');
-                if (window._icons) { icon.outerHTML = window._icons.checkCircle; }
+                if (window._icons) { icon.replaceWith(parseIcon(window._icons.checkCircle)); }
             }
         }, doneDelay);
     });
@@ -144,7 +157,7 @@ function hideOverlayAndReset(overlay, btn) {
     }
     document.body.classList.remove('loading');
     if (btn) {
-        btn.innerHTML = (window._icons ? window._icons.search : '') + ' Analyze';
+        setIconAndText(btn, window._icons ? window._icons.search : null, ' Analyze');
         btn.disabled = false;
     }
 }
@@ -173,14 +186,14 @@ function swapToTLDScanPhases(overlay) {
         { delay: 9000, normal: 'Registrar \u0026 RDAP analysis', covert: 'Mapping registrar \u0026 RDAP footprint' },
         { delay: 12000, normal: 'Classifying \u0026 Interpreting Intelligence', covert: 'Correlating attack surface\u2026' }
     ];
-    checklist.innerHTML = '';
+    checklist.textContent = '';
     phases.forEach(function(p) {
         const div = document.createElement('div');
         div.className = 'scan-phase';
         div.dataset.delay = p.delay;
         const iconWrap = document.createElement('span');
         iconWrap.className = 'scan-icon scan-pending';
-        iconWrap.innerHTML = window._icons ? window._icons.spinner : '';
+        iconWrap.appendChild(parseIcon(window._icons ? window._icons.spinner : ''));
         iconWrap.setAttribute('aria-hidden', 'true');
         const span = document.createElement('span');
         span.className = isCovert ? 'covert-show' : 'covert-hide';
@@ -200,17 +213,19 @@ function showCovertTLDToast(domain, callback) {
     toast.role = 'alert';
     toast.ariaLive = 'assertive';
     toast.className = 'tld-recon-toast';
-    toast.innerHTML = '<div class="tld-recon-toast-title">'
-        + window._icons.globe
-        + 'Planning to hack the planet, Zero Cool?</div>'
-        + '<div class="tld-recon-toast-body">'
-        + 'Bare\u2011TLD recon maps registry infrastructure only \u2014 '
-        + 'DNSSEC, NS delegation, CAA, registrar, Nmap, SVCB. '
-        + 'No SPF/DKIM/DMARC at zone scope.</div>'
-        + '<div class="tld-recon-toast-footer">'
-        + window._icons.satellite
-        + '</div>';
-    const toastFooter = toast.querySelector('.tld-recon-toast-footer');
+    const toastTitle = document.createElement('div');
+    toastTitle.className = 'tld-recon-toast-title';
+    toastTitle.appendChild(parseIcon(window._icons.globe));
+    toastTitle.appendChild(document.createTextNode('Planning to hack the planet, Zero Cool?'));
+    const toastBody = document.createElement('div');
+    toastBody.className = 'tld-recon-toast-body';
+    toastBody.textContent = 'Bare\u2011TLD recon maps registry infrastructure only \u2014 DNSSEC, NS delegation, CAA, registrar, Nmap, SVCB. No SPF/DKIM/DMARC at zone scope.';
+    const toastFooter = document.createElement('div');
+    toastFooter.className = 'tld-recon-toast-footer';
+    toastFooter.appendChild(parseIcon(window._icons.satellite));
+    toast.appendChild(toastTitle);
+    toast.appendChild(toastBody);
+    toast.appendChild(toastFooter);
     toastFooter.appendChild(document.createTextNode('Scanning .' + domain.toUpperCase() + ' \u2014 infrastructure vectors only'));
 
     document.body.appendChild(toast);
@@ -280,12 +295,14 @@ function applyFetchedPage(html, respUrl, overlay, btn) {
 }
 
 function resetCopyBtn(btn) {
-    btn.innerHTML = window._icons.copy;
+    btn.textContent = '';
+    btn.appendChild(parseIcon(window._icons.copy));
     btn.classList.remove('copied');
 }
 
 function handleCopyResult(btn, success) {
-    btn.innerHTML = success ? window._icons.check : window._icons.times;
+    btn.textContent = '';
+    btn.appendChild(parseIcon(success ? window._icons.check : window._icons.times));
     if (success) btn.classList.add('copied');
     setTimeout(function() { resetCopyBtn(btn); }, 1500);
 }
@@ -456,6 +473,14 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var privToggle = document.getElementById('privacyToggle');
+    var privDetail = document.getElementById('privacyDetail');
+    if (privToggle && privDetail) {
+        function togglePrivacy() { privDetail.style.display = privDetail.style.display === 'none' ? 'block' : 'none'; }
+        privToggle.addEventListener('click', togglePrivacy);
+        privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
+    }
+
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -547,10 +572,10 @@ document.addEventListener('DOMContentLoaded', function() {
         fsBtns.forEach(function(b) {
             var ic = b.querySelector('.icon');
             if (fsEl) {
-                if (ic && window._icons) { ic.outerHTML = window._icons.compress; }
+                if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.compress)); }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
             } else {
-                if (ic && window._icons) { ic.outerHTML = window._icons.expand; }
+                if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.expand)); }
                 b.setAttribute('title', 'Focus Mode — hide browser chrome for full scotopic immersion');
             }
         });
@@ -636,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showOverlay(overlay);
                 startStatusCycle(overlay);
             }
-            analyzeBtn.innerHTML = (window._icons ? window._icons.spinner : '') + ' Analyzing...';
+            setIconAndText(analyzeBtn, window._icons ? window._icons.spinner : null, ' Analyzing...');
             analyzeBtn.disabled = true;
             document.body.classList.add('loading');
             analysisSubmitted = true;
@@ -718,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.type = 'button';
         btn.className = 'copy-btn';
         btn.ariaLabel = 'Copy to clipboard';
-        btn.innerHTML = window._icons.copy;
+        btn.appendChild(parseIcon(window._icons.copy));
         codeBlock.appendChild(btn);
 
         const doCopy = createCopyHandler(codeBlock, btn);
@@ -735,7 +760,7 @@ if (allFixesCollapse) {
             return node.cloneNode(true);
         });
         allFixesCollapse.addEventListener('shown.bs.collapse', function() {
-            toggleBtn.innerHTML = (window._icons ? window._icons.chevronUp : '') + ' Show fewer';
+            setIconAndText(toggleBtn, window._icons ? window._icons.chevronUp : null, ' Show fewer');
         });
         allFixesCollapse.addEventListener('hidden.bs.collapse', function() {
             toggleBtn.textContent = '';
@@ -780,10 +805,10 @@ function createHistoryRow(ch) {
     const actionIcon = document.createElement('i');
     if (ch.action === 'added') {
         actionSpan.className = 'text-success';
-        actionSpan.innerHTML = (window._icons ? window._icons.plusCircle : '') + ' Added';
+        setIconAndText(actionSpan, window._icons ? window._icons.plusCircle : null, ' Added');
     } else {
         actionSpan.className = 'text-danger';
-        actionSpan.innerHTML = (window._icons ? window._icons.minusCircle : '') + ' Removed';
+        setIconAndText(actionSpan, window._icons ? window._icons.minusCircle : null, ' Removed');
     }
     tdAction.appendChild(actionSpan);
 
@@ -818,7 +843,7 @@ function loadDNSHistory(domain) {
     const btn = document.getElementById('dns-history-btn');
     if (!btn) return;
     btn.disabled = true;
-    btn.innerHTML = (window._icons ? window._icons.spinner : '') + ' Loading history\u2026';
+    setIconAndText(btn, window._icons ? window._icons.spinner : null, ' Loading history\u2026');
 
     fetch('/api/dns-history?domain=' + encodeURIComponent(domain))
         .then(function(r) { return r.json(); })
@@ -839,7 +864,7 @@ function loadDNSHistory(domain) {
             if (changes.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'text-muted mb-0';
-                p.innerHTML = (window._icons ? window._icons.checkCircle : '') + ' No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.';
+                setIconAndText(p, window._icons ? window._icons.checkCircle : null, ' No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.');
                 body.appendChild(p);
             } else {
                 const wrap = document.createElement('div');

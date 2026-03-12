@@ -115,7 +115,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "caa_analysis":     map[string]any{"status": "success"},
         }
 
-        svg := badgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svg := badgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abcd1234efgh5678", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "<svg") {
@@ -148,7 +148,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 },
         }
 
-        svgCrit := badgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svgCrit := badgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "deadbeef12345678", "https://dnstool.it-help.tech")
         sc := string(svgCrit)
 
         if !strings.Contains(sc, "Wide Open") {
@@ -177,7 +177,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "bimi_analysis":    map[string]any{"status": "warning"},
                 "caa_analysis":     map[string]any{"status": "success"},
         }
-        svgWarn := badgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svgWarn := badgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 77, "face0ff0babe1234", "https://dnstool.it-help.tech")
         sw := string(svgWarn)
 
         if !strings.Contains(sw, "[~]") {
@@ -223,7 +223,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                         },
                 },
         }
-        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 55, "cafebabe90ab1234", "https://dnstool.it-help.tech")
         se := string(svgExp)
 
         if !strings.Contains(se, "[!!]") {
@@ -261,11 +261,14 @@ func TestBadgeSVGDetailedExposure(t *testing.T) {
                         },
                 },
         }
-        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abc12345", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "secrets exposed") {
                 t.Error("expected exposure warning in detailed badge")
+        }
+        if !strings.Contains(s, `height="260"`) {
+                t.Error("expected 260px height when exposure is present")
         }
 }
 
@@ -287,14 +290,38 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 "caa_analysis":     map[string]any{"status": "success"},
         }
 
-        svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "f2c73519", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "it-help.tech") {
                 t.Error("expected domain in detailed badge")
         }
-        if !strings.Contains(s, "90") {
-                t.Error("expected score 90 in detailed badge")
+        if !strings.Contains(s, "owlGlow") {
+                t.Error("expected owl glow gradient in detailed badge")
+        }
+        if !strings.Contains(s, "AUTH") || !strings.Contains(s, "TRANSPORT") || !strings.Contains(s, "DNS") {
+                t.Error("expected AUTH/TRANSPORT/DNS lane labels in detailed badge")
+        }
+        if !strings.Contains(s, "ICIE") {
+                t.Error("expected ICIE analysis engine node in detailed badge")
+        }
+        if !strings.Contains(s, "Resolvers") {
+                t.Error("expected DNS Resolvers node in detailed badge")
+        }
+        if !strings.Contains(s, "alignment") {
+                t.Error("expected 'alignment' edge label in detailed badge")
+        }
+        if !strings.Contains(s, "p=quarantine+") {
+                t.Error("expected 'p=quarantine+' edge label (BIMI→DMARC)")
+        }
+        if !strings.Contains(s, "requires") {
+                t.Error("expected 'requires' edge label (DANE→DNSSEC)")
+        }
+        if !strings.Contains(s, "strengthens") {
+                t.Error("expected 'strengthens' edge label (CAA→DNSSEC)")
+        }
+        if !strings.Contains(s, "reports") {
+                t.Error("expected 'reports' edge label (TLS-RPT→MTA-STS/DANE)")
         }
         if !strings.Contains(s, "Low Risk") {
                 t.Error("expected risk label in detailed badge")
@@ -305,8 +332,8 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "1 of 9 missing") {
                 t.Error("expected missing count (DANE missing)")
         }
-        if !strings.Contains(s, `width="460"`) {
-                t.Error("expected 460px width")
+        if !strings.Contains(s, `width="720"`) {
+                t.Error("expected 720px rendered width (540 viewBox * 4/3 scale)")
         }
 
         failResults := map[string]any{
@@ -317,7 +344,7 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 },
         }
 
-        svgFail := badgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC))
+        svgFail := badgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 1, "deadbeef", "https://dnstool.it-help.tech")
         sf := string(svgFail)
 
         if !strings.Contains(sf, "failing-domain.com") {
@@ -376,7 +403,7 @@ func TestCovertLabels(t *testing.T) {
                 wantTag    string
         }{
                 {"Low Risk", "Hardened", "Good luck with that."},
-                {"Medium Risk", "Patching", "Getting there."},
+                {"Medium Risk", "Partial", "Gaps in the armor."},
                 {"High Risk", "Exposed", "Door's open."},
                 {"Critical Risk", "Wide Open", "Free real estate."},
         }

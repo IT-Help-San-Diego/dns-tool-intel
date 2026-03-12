@@ -29,7 +29,10 @@
         .badge-style-btn.active-covert { border-color: #f85149; background: rgba(248,81,73,.08); color: #f85149; box-shadow: 0 0 12px rgba(248,81,73,.12); }
         .badge-style-btn .style-label { font-weight: 600; font-size: .9rem; }
         .badge-style-btn .style-desc { font-size: .7rem; opacity: .7; }
-        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1.5rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .badge-preview-area { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 1rem; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .badge-preview-area > a { display: block; max-width: 720px; width: 100%; }
+        .badge-preview-area svg, .badge-preview-area img { display: block; width: 100%; height: auto; }
+        #badgePreviewCard { scroll-margin-top: 1rem; }
     </style>
 </head>
 <body>
@@ -40,6 +43,16 @@
 
         <h1 class="h3 mb-1">{{icon "shield-halved" "me-2 text-brand-cobalt"}}Security Badge</h1>
         <p class="text-muted mb-4">Generate a live security posture badge for any scanned domain. Embed it in your GitHub README, documentation, blog, or website.</p>
+
+        <div class="card mb-4 d-none" id="badgePreviewCard">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{icon "eye" "me-2"}}Live Preview</h5>
+                <span class="badge bg-secondary small" id="badgeStyleLabel">detailed</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="badge-preview-area" id="badgePreview"></div>
+            </div>
+        </div>
 
         <div class="row g-4">
             <div class="col-lg-5">
@@ -75,16 +88,6 @@
                         <button type="button" class="btn btn-primary w-100" id="btnGenerateBadge">
                             {{icon "bolt" "me-1"}}Generate Badge
                         </button>
-                    </div>
-                </div>
-
-                <div class="card mb-4 d-none" id="badgePreviewCard">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{icon "eye" "me-2"}}Live Preview</h5>
-                        <span class="badge bg-secondary small" id="badgeStyleLabel">detailed</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="badge-preview-area" id="badgePreview"></div>
                     </div>
                 </div>
 
@@ -257,13 +260,39 @@
                 reportURL = baseURL + '/analyze?domain=' + encodeURIComponent(val);
             }
 
-            var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style);
+            var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style) + '&t=' + Date.now();
 
-            preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="max-width:100%;"></a>';
+            fetch(badgeURL).then(function(r) { if (!r.ok) throw new Error('fetch failed'); return r.text(); }).then(function(svgText) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(svgText, 'image/svg+xml');
+                var svgEl = doc.querySelector('svg');
+                if (!svgEl || doc.querySelector('parsererror')) throw new Error('invalid svg');
+                svgEl.querySelectorAll('script,foreignObject').forEach(function(el) { el.remove(); });
+                svgEl.removeAttribute('width');
+                svgEl.removeAttribute('height');
+                svgEl.style.width = '100%';
+                svgEl.style.height = 'auto';
+                svgEl.style.display = 'block';
+                if (!svgEl.getAttribute('preserveAspectRatio')) svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                var link = document.createElement('a');
+                link.href = reportURL;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.style.display = 'block';
+                link.appendChild(svgEl);
+                preview.textContent = '';
+                preview.appendChild(link);
+            }).catch(function() {
+                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener" style="display:block"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="width:100%;height:auto;display:block;"></a>';
+            });
             previewCard.classList.remove('d-none');
             embedCard.classList.remove('d-none');
             shieldsCard.classList.remove('d-none');
             styleLabel.textContent = style === 'flat' ? 'compact' : style;
+
+            setTimeout(function() {
+                previewCard.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 100);
 
             document.getElementById('embedMarkdown').value = '[![DNS Tool Security](' + badgeURL + ')](' + reportURL + ')';
             document.getElementById('embedHTML').value = '<a href="' + reportURL + '"><img src="' + badgeURL + '" alt="DNS Tool Security Badge"></a>';

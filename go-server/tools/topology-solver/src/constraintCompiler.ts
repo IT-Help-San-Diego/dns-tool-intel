@@ -7,12 +7,14 @@ import {
   EqualityConstraint,
   HighLevelConstraint,
   LayoutSpec,
+  NodeBox,
   PrimitiveConstraint,
   ResolvedZone,
   Selector,
   SeparationConstraint,
   ViewportProfile,
 } from './types.js';
+import { computeNodeBox, estimateTextWidth } from './nodeMetrics.js';
 
 function stableCompare(a: string, b: string): number {
   return a.localeCompare(b);
@@ -102,9 +104,27 @@ export function compileConstraints(
     if (!zone) {
       throw new Error(`Node ${node.id} references unknown zone ${node.zoneId}`);
     }
+    let halfW = node.width / 2;
+    let halfH = node.height / 2;
+    if (node.radius != null) {
+      const box = computeNodeBox(
+        {
+          shape: node.shape,
+          radius: node.radius,
+          label: node.label,
+          sub: node.sub ?? null,
+          scale: 1.0,
+          fontLabel: 14,
+          fontSub: 10,
+        },
+        estimateTextWidth,
+      );
+      halfW = box.halfW;
+      halfH = box.halfH;
+    }
     primitives.push(
-      ...boundForZone(node.id, 'x', zone, node.width / 2, zone.padding),
-      ...boundForZone(node.id, 'y', zone, node.height / 2, zone.padding),
+      ...boundForZone(node.id, 'x', zone, halfW, zone.padding),
+      ...boundForZone(node.id, 'y', zone, halfH, zone.padding),
     );
   }
 
@@ -120,16 +140,34 @@ export function compileConstraints(
     primitives,
     zones,
     nodeBoxes: Object.fromEntries(
-      spec.nodes.map((n) => [
-        n.id,
-        {
-          id: n.id,
-          width: n.width,
-          height: n.height,
-          halfW: n.width / 2,
-          halfH: n.height / 2,
-        },
-      ]),
+      spec.nodes.map((n) => {
+        if (n.radius != null) {
+          const box = computeNodeBox(
+            {
+              shape: n.shape,
+              radius: n.radius,
+              label: n.label,
+              sub: n.sub ?? null,
+              scale: 1.0,
+              fontLabel: 14,
+              fontSub: 10,
+            },
+            estimateTextWidth,
+          );
+          box.id = n.id;
+          return [n.id, box as NodeBox];
+        }
+        return [
+          n.id,
+          {
+            id: n.id,
+            width: n.width,
+            height: n.height,
+            halfW: n.width / 2,
+            halfH: n.height / 2,
+          },
+        ];
+      }),
     ),
   };
 }

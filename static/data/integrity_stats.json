@@ -1,6 +1,6 @@
 {
   "schema_version": 4,
-  "last_updated": "2026-03-08",
+  "last_updated": "2026-03-11",
   "tamper_resistance_policy": {
     "enabled": true,
     "effective": "2026-03-07",
@@ -26,10 +26,10 @@
     "Process Gap": "No individual fault — the process or tooling lacked the necessary guard rail"
   },
   "summary": {
-    "total_events": 11,
+    "total_events": 12,
     "open": 0,
-    "closed": 11,
-    "last_event_date": "2026-03-08",
+    "closed": 12,
+    "last_event_date": "2026-03-11",
     "confidence_recalibrations": 2,
     "protocols_affected": [
       "DMARC",
@@ -271,6 +271,23 @@
       "correction_action": "Phase 1: Renamed calibration formula, corrected NIST reference, fixed RFC 8767 language, labeled EWMA bootstrap parameters, reframed prior language. Phase 2: Drift analysis completed — shrinkage vs true posterior compared across all protocols; decision: keep shrinkage (operationally correct for DNS), true posterior deferred to longitudinal analysis.",
       "prevention_rule": "Mathematical claims in public-facing documentation must pass three checks before deployment: (1) Is the formula correctly named per its mathematical family? (2) Are standards citations verified against the actual standard text, not inferred from title keywords? (3) Does protocol behavior language account for all permitted behaviors defined in the cited RFC?",
       "authoritative_source": "External mathematical review (2026-03-08), docs/plans/2026-03-08-math-rigor-audit.md. NIST SP 800-53 Rev 5 SI-7 text, RFC 8767 Section 4 (serve-stale semantics), shrinkage estimation literature (James-Stein, 1961)."
+    },
+    {
+      "id": "EDE-012",
+      "date": "2026-03-11",
+      "commit": "Session 36 — Correction",
+      "category": "false_positive",
+      "severity": "moderate",
+      "title": "False performance regression from container-constrained Lighthouse",
+      "status": "closed",
+      "attribution": "AI Error",
+      "protocols_affected": [],
+      "confidence_impact": "Agent reported Lighthouse performance scores of 83 (production) and 80 (development) as evidence of a real performance regression. These scores were artifacts of running npx lighthouse inside a resource-constrained Replit container with limited CPU, memory, and network. The agent then diagnosed phantom root causes (monolithic CSS, TBT 550ms, 25KB unused CSS) for a problem that did not exist, recommending unnecessary CSS splitting work.",
+      "resolution": "No code changes needed. Founder verified production scores via PageSpeed Insights (pagespeed.web.dev): 100/100/100/100. The false regression report from Session 36 was retracted. Container-local Lighthouse is directional only, never authoritative for production scoring.",
+      "bayesian_note": "The agent treated container-local Lighthouse output as authoritative evidence without cross-referencing against PageSpeed Insights or acknowledging the known container constraints. The diagnostic chain compounded the error: low score → identify 'root causes' → recommend remediation — all built on a false premise. The founder caught it immediately by running PageSpeed Insights externally. This demonstrates why measurement methodology matters: the same tool in different environments produces different results, and the environment must be controlled for the measurement to be meaningful.",
+      "correction_action": "Retracted false regression report. Production confirmed 100/100/100/100 via PageSpeed Insights. No CSS splitting or optimization changes applied.",
+      "prevention_rule": "Use PageSpeed Insights API (pagespeed.web.dev) for production performance scores. Container-local npx lighthouse is directional only — useful for catching gross regressions but never authoritative. When Lighthouse scores differ significantly between container and external measurement, trust the external measurement.",
+      "authoritative_source": "PageSpeed Insights (pagespeed.web.dev), Session 36 — Correction (2026-03-11). Founder verified production 100/100/100/100."
     }
   ]
 }

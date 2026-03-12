@@ -309,7 +309,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
 
         tlsCfg := &tls.Config{
                 ServerName:         host,
-                InsecureSkipVerify: true, //NOSONAR
+                InsecureSkipVerify: true, //NOSONAR — S4830/S5527: probe intentionally tests TLS; certificate validation happens separately // SECINTENT-002
         }
         tlsConn := tls.Client(conn, tlsCfg)
         if err := tlsConn.HandshakeContext(probeCtx); err != nil {
@@ -405,7 +405,7 @@ func probePort(ctx context.Context, host string, port int) map[string]any {
         if port == 465 {
                 tlsConn := tls.Client(conn, &tls.Config{
                         ServerName:         host,
-                        InsecureSkipVerify: true, //NOSONAR
+                        InsecureSkipVerify: true, //NOSONAR — S4830/S5527: diagnostic probe; cert validation is separate // SECINTENT-002
                 })
                 if err := tlsConn.HandshakeContext(ctx); err == nil {
                         result["tls"] = true
@@ -638,7 +638,7 @@ func extractCertInfo(conn net.Conn, host string) map[string]any {
 
         tlsCfg := &tls.Config{
                 ServerName:         host,
-                InsecureSkipVerify: true, //NOSONAR
+                InsecureSkipVerify: true, //NOSONAR — S4830/S5527: needs to connect regardless of cert validity to extract cert info // SECINTENT-002
         }
         tlsConn := tls.Client(conn, tlsCfg)
         defer safeClose(tlsConn, "extractCertInfo tlsConn")

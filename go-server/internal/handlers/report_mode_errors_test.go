@@ -286,7 +286,9 @@ func TestExtractReportsAndDurations(t *testing.T) {
                 if len(durations) != 1 {
                         t.Fatalf("expected 1 duration, got %d", len(durations))
                 }
-                _ = reports
+                if len(reports) != 1 {
+                        t.Fatalf("expected 1 report, got %d", len(reports))
+                }
         })
 
         t.Run("invalid JSON skipped", func(t *testing.T) {
@@ -748,7 +750,9 @@ func TestSecurityTrailsErrorMessages(t *testing.T) {
         for _, tt := range tests {
                 t.Run(tt.errMsg, func(t *testing.T) {
                         result := securityTrailsErrorMessage(fmt.Errorf("%s", tt.errMsg))
-                        _ = result
+                        if result == "" {
+                                t.Error("expected non-empty error message")
+                        }
                 })
         }
 }
@@ -765,7 +769,9 @@ func TestIpInfoErrorMessage(t *testing.T) {
         for _, tt := range tests {
                 t.Run(tt.errMsg, func(t *testing.T) {
                         result := ipInfoErrorMessage(fmt.Errorf("%s", tt.errMsg))
-                        _ = result
+                        if result == "" {
+                                t.Error("expected non-empty error message")
+                        }
                 })
         }
 }
@@ -1245,7 +1251,7 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
                 "spf_analysis":  map[string]any{"status": "success"},
                 "dkim_analysis": map[string]any{"status": "success"},
         }
-        svg := badgeSVGCovert("example.com", results, time.Now())
+        svg := badgeSVGCovert("example.com", results, time.Now(), 1, "testhashtesttest", "https://dnstool.it-help.tech")
         if len(svg) == 0 {
                 t.Error("expected non-empty SVG")
         }
@@ -1253,8 +1259,8 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
         if !strings.Contains(svgStr, "example.com") {
                 t.Error("expected domain in SVG")
         }
-        if !strings.Contains(svgStr, "Patching") {
-                t.Error("expected covert label 'Patching' for medium risk")
+        if !strings.Contains(svgStr, "Partial") {
+                t.Error("expected covert label 'Partial' for medium risk")
         }
 }
 

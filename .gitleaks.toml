@@ -1,3 +1,4 @@
+# SECINTENT-006: DNS record test fixtures contain verification tokens
 title = "Gitleaks configuration for DNS Tool"
 
 [allowlist]

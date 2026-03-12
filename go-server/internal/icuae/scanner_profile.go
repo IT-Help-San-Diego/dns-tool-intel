@@ -38,6 +38,7 @@ type ScannerProfile struct {
         ConcurrencyLimit   int      `json:"concurrency_limit"`
 }
 
+// S1313 suppressed: well-known public DNS resolver IPs — intentional for multi-resolver scanning.
 var DefaultProfile = ScannerProfile{
         ResolverSet:        []string{"8.8.8.8", "1.1.1.1", "9.9.9.9", "208.67.222.222", "185.228.168.168"},
         TimeoutSeconds:     5,

@@ -6647,18 +6647,11 @@ body.covert-mode .math-copy-btn--copied {
 @media print {
     .math-copy-btn { display: none !important; }
 }
-.u-status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 6px;
-    vertical-align: middle;
+.u-privacy-hint .u-privacy-toggle {
+    text-decoration: underline dotted;
+    cursor: help;
+    color: #cc2020 !important;
 }
-.u-status-ok { background: #198754; }
-.u-status-busy { background: #ffc107; }
-.u-status-full { background: #dc3545; }
-
 .anim-restart { animation: none !important; }
 
 @keyframes toastFadeIn {
