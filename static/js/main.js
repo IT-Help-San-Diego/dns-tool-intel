@@ -473,6 +473,12 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+            new bootstrap.Popover(el, { html: true });
+        }
+    });
+
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
