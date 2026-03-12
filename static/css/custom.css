@@ -6647,10 +6647,10 @@ body.covert-mode .math-copy-btn--copied {
 @media print {
     .math-copy-btn { display: none !important; }
 }
-.u-privacy-toggle {
+.u-privacy-hint .u-privacy-toggle {
     text-decoration: underline dotted;
     cursor: help;
-    color: #cc2020;
+    color: #cc2020 !important;
 }
 .anim-restart { animation: none !important; }
 
