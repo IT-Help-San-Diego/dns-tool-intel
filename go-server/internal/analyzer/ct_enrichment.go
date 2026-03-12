@@ -22,6 +22,7 @@ type STBudgetDB interface {
         GetSTBudget(ctx context.Context, monthKey string) (dbq.GetSTBudgetRow, error)
         UpsertSTBudget(ctx context.Context, arg dbq.UpsertSTBudgetParams) error
         GetTopAnalyzedDomains(ctx context.Context, limit int32) ([]dbq.GetTopAnalyzedDomainsRow, error)
+        ListPriorityDomains(ctx context.Context) ([]dbq.ListPriorityDomainsRow, error)
 }
 
 type CTEnrichmentJob struct {
@@ -88,11 +89,7 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
                 return
         }
 
-        topDomains, err := j.budgetDB.GetTopAnalyzedDomains(ctx, stTopDomainLimit)
-        if err != nil {
-                slog.Warn("CT enrichment: failed to get top domains", mapKeyError, err)
-                return
-        }
+        enrichmentTargets := j.buildEnrichmentList(ctx)
 
         var enrichedDomains []string
         if len(budget.DomainsEnriched) > 0 {
@@ -104,7 +101,7 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
         }
 
         enriched := 0
-        for _, td := range topDomains {
+        for _, td := range enrichmentTargets {
                 if remaining <= 0 {
                         break
                 }
@@ -154,6 +151,49 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
                 "total_used", budget.CallsUsed,
                 "remaining", remaining,
         )
+}
+
+type enrichmentTarget struct {
+        Domain   string
+        Priority bool
+}
+
+func (j *CTEnrichmentJob) buildEnrichmentList(ctx context.Context) []enrichmentTarget {
+        var targets []enrichmentTarget
+        seen := make(map[string]bool)
+
+        priorityDomains, err := j.budgetDB.ListPriorityDomains(ctx)
+        if err != nil {
+                slog.Warn("CT enrichment: failed to load priority domains", mapKeyError, err)
+        } else {
+                for _, pd := range priorityDomains {
+                        targets = append(targets, enrichmentTarget{Domain: pd.Domain, Priority: true})
+                        seen[pd.Domain] = true
+                }
+                slog.Info("CT enrichment: priority domains loaded", mapKeyCount, len(priorityDomains))
+        }
+
+        remaining := stTopDomainLimit - len(targets)
+        if remaining > 0 {
+                topDomains, err := j.budgetDB.GetTopAnalyzedDomains(ctx, int32(stTopDomainLimit))
+                if err != nil {
+                        slog.Warn("CT enrichment: failed to get top analyzed domains", mapKeyError, err)
+                } else {
+                        for _, td := range topDomains {
+                                if seen[td.Domain] {
+                                        continue
+                                }
+                                targets = append(targets, enrichmentTarget{Domain: td.Domain, Priority: false})
+                                seen[td.Domain] = true
+                                remaining--
+                                if remaining <= 0 {
+                                        break
+                                }
+                        }
+                }
+        }
+
+        return targets
 }
 
 func (j *CTEnrichmentJob) mergeST(ctx context.Context, domain string, stSubdomains []string) {

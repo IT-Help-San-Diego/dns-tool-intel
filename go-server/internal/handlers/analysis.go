@@ -1488,11 +1488,33 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
                 return 0, time.Now().UTC().Format(strUtc)
         }
 
+        if success {
+                go func() {
+                        bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                        defer cancel()
+                        _ = h.DB.Queries.UpsertDomainIndex(bgCtx, dbq.UpsertDomainIndexParams{
+                                Domain:    p.domain,
+                                HasDane:   analysisHasProtocol(p.results, "dane_analysis"),
+                                HasDnssec: analysisHasProtocol(p.results, "dnssec_analysis"),
+                                HasMtaSts: analysisHasProtocol(p.results, "mta_sts_analysis"),
+                        })
+                }()
+        }
+
         timestamp := "just now"
         if row.CreatedAt.Valid {
                 timestamp = row.CreatedAt.Time.Format(strUtc)
         }
         return row.ID, timestamp
+}
+
+func analysisHasProtocol(results map[string]any, key string) bool {
+        section, ok := results[key].(map[string]any)
+        if !ok {
+                return false
+        }
+        status, _ := section["status"].(string)
+        return status == "success" || status == "warning"
 }
 
 func extractAnalysisError(results map[string]any) (bool, *string) {
