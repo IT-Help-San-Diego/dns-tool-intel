@@ -1,0 +1,69 @@
+name: SonarCloud Full Product
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sonarcloud-full:
+    name: Full Product Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Intel repo
+        uses: actions/checkout@v6
+        with:
+          repository: careyjames/dns-tool-intel
+          token: ${{ secrets.GH_MASTER_PAT }}
+          path: .intel-checkout
+          fetch-depth: 0
+
+      - name: Overlay Intel files
+        run: |
+          echo "=== Overlaying go-server Intel files ==="
+          cp -rv .intel-checkout/go-server/internal/analyzer/*_intel.go go-server/internal/analyzer/ 2>/dev/null || true
+          cp -rv .intel-checkout/go-server/internal/analyzer/*_intel_test.go go-server/internal/analyzer/ 2>/dev/null || true
+          mkdir -p go-server/internal/analyzer/ai_surface
+          cp -rv .intel-checkout/go-server/internal/analyzer/ai_surface/*_intel.go go-server/internal/analyzer/ai_surface/ 2>/dev/null || true
+
+          echo "=== Overlaying standalone Intel packages ==="
+          for pkg in providers scoring remediation commands golden_rules; do
+            if [ -d ".intel-checkout/$pkg" ]; then
+              cp -rv ".intel-checkout/$pkg" . 2>/dev/null || true
+              echo "  copied $pkg/"
+            fi
+          done
+
+          echo "=== Intel overlay complete ==="
+          echo "Intel Go files:"
+          find go-server -name '*_intel*.go' 2>/dev/null | sort
+          echo "Standalone packages:"
+          for pkg in providers scoring remediation commands golden_rules; do
+            [ -d "$pkg" ] && echo "  $pkg/ ($(find $pkg -name '*.go' | wc -l) files)"
+          done
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+
+      - name: Run Go tests with coverage
+        run: go test ./go-server/... -coverprofile=coverage.out -count=1 -short -timeout 120s
+        env:
+          CGO_ENABLED: '0'
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarqube-scan-action@v7
+        with:
+          args: >
+            -Dsonar.projectKey=careyjames_dns-tool-full
+            -Dsonar.projectName=DNS Tool (Full Product)
+            -Dsonar.exclusions=**/*_test.go,**/vendor/**,.intel-checkout/**,.cache/**,.pythonlibs/**,attached_assets/**,.scannerwork/**,**/*.py,.agents/**,node_modules/**,static/**/*.min.css,static/**/*.min.js,static/sw.js,static/js/main.js,static/js/foundation.js
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_CAREY }}
+          SONAR_HOST_URL: https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
