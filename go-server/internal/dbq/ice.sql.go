@@ -3,7 +3,6 @@
 //   sqlc v1.26.0
 // source: ice.sql
 
-// dns-tool:scrutiny plumbing
 package dbq
 
 import (
@@ -20,7 +19,7 @@ SELECT protocol, layer,
 FROM ice_results
 WHERE run_id = $1
 GROUP BY protocol, layer
-ORDER BY protocol, layer
+ORDER BY protocol ASC, layer ASC
 `
 
 type ICAECountResultsByProtocolRow struct {
@@ -61,7 +60,7 @@ const iCAEGetAllMaturity = `-- name: ICAEGetAllMaturity :many
 SELECT protocol, layer, maturity, total_runs, consecutive_passes,
        first_pass_at, last_regression_at, last_evaluated_at
 FROM ice_maturity
-ORDER BY protocol, layer
+ORDER BY protocol ASC, layer ASC
 `
 
 type ICAEGetAllMaturityRow struct {

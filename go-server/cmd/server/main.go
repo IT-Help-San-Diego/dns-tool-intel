@@ -228,7 +228,8 @@ func main() {
         router.GET("/images/*filepath", imagesHandler)
         router.HEAD("/images/*filepath", imagesHandler)
 
-        dnsAnalyzer := analyzer.New()
+        ctStore := analyzer.NewPgCTStore(database.Queries)
+        dnsAnalyzer := analyzer.New(analyzer.WithCTStore(ctStore))
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
         dnsAnalyzer.ProbeAPIURL = cfg.ProbeAPIURL
         dnsAnalyzer.ProbeAPIKey = cfg.ProbeAPIKey
@@ -463,6 +464,9 @@ func main() {
         syncCtx, syncCancel := context.WithCancel(context.Background())
         defer syncCancel()
         startScheduledSync(syncCtx)
+
+        ctEnrichment := analyzer.NewCTEnrichmentJob(database.Queries, ctStore)
+        ctEnrichment.Start(syncCtx)
 
         driftNotifier := notifier.New(dbq.New(database.Pool))
         startNotificationDelivery(syncCtx, driftNotifier)

@@ -3,7 +3,6 @@
 //   sqlc v1.26.0
 // source: domain_analyses.sql
 
-// dns-tool:scrutiny plumbing
 package dbq
 
 import (
@@ -27,9 +26,9 @@ type CheckAnalysisOwnershipParams struct {
 
 func (q *Queries) CheckAnalysisOwnership(ctx context.Context, arg CheckAnalysisOwnershipParams) (bool, error) {
 	row := q.db.QueryRow(ctx, checkAnalysisOwnership, arg.AnalysisID, arg.UserID)
-	var isOwner bool
-	err := row.Scan(&isOwner)
-	return isOwner, err
+	var is_owner bool
+	err := row.Scan(&is_owner)
+	return is_owner, err
 }
 
 const countAllAnalyses = `-- name: CountAllAnalyses :one
@@ -38,6 +37,20 @@ SELECT COUNT(*) FROM domain_analyses
 
 func (q *Queries) CountAllAnalyses(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countAllAnalyses)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countFailedAnalyses = `-- name: CountFailedAnalyses :one
+SELECT COUNT(*) FROM domain_analyses
+WHERE analysis_success = FALSE
+  AND private = FALSE
+  AND scan_flag = FALSE
+`
+
+func (q *Queries) CountFailedAnalyses(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countFailedAnalyses)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -54,20 +67,6 @@ WHERE posture_hash IS NOT NULL
 
 func (q *Queries) CountHashedAnalyses(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countHashedAnalyses)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
-const countFailedAnalyses = `-- name: CountFailedAnalyses :one
-SELECT COUNT(*) FROM domain_analyses
-WHERE analysis_success = FALSE
-  AND private = FALSE
-  AND scan_flag = FALSE
-`
-
-func (q *Queries) CountFailedAnalyses(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, countFailedAnalyses)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -651,6 +650,53 @@ func (q *Queries) ListCountryDistribution(ctx context.Context, limit int32) ([]L
 	return items, nil
 }
 
+const listFailedAnalyses = `-- name: ListFailedAnalyses :many
+SELECT id, domain, error_message, created_at
+FROM domain_analyses
+WHERE analysis_success = FALSE
+  AND private = FALSE
+  AND scan_flag = FALSE
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListFailedAnalysesParams struct {
+	Limit  int32 `db:"limit" json:"limit"`
+	Offset int32 `db:"offset" json:"offset"`
+}
+
+type ListFailedAnalysesRow struct {
+	ID           int32            `db:"id" json:"id"`
+	Domain       string           `db:"domain" json:"domain"`
+	ErrorMessage *string          `db:"error_message" json:"error_message"`
+	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+func (q *Queries) ListFailedAnalyses(ctx context.Context, arg ListFailedAnalysesParams) ([]ListFailedAnalysesRow, error) {
+	rows, err := q.db.Query(ctx, listFailedAnalyses, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFailedAnalysesRow{}
+	for rows.Next() {
+		var i ListFailedAnalysesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Domain,
+			&i.ErrorMessage,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listHashedAnalyses = `-- name: ListHashedAnalyses :many
 SELECT id, domain, posture_hash, created_at FROM domain_analyses
 WHERE posture_hash IS NOT NULL
@@ -722,53 +768,6 @@ func (q *Queries) ListPopularDomains(ctx context.Context, limit int32) ([]ListPo
 	for rows.Next() {
 		var i ListPopularDomainsRow
 		if err := rows.Scan(&i.Domain, &i.Count); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listFailedAnalyses = `-- name: ListFailedAnalyses :many
-SELECT id, domain, error_message, created_at
-FROM domain_analyses
-WHERE analysis_success = FALSE
-  AND private = FALSE
-  AND scan_flag = FALSE
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
-`
-
-type ListFailedAnalysesParams struct {
-	Limit  int32 `db:"limit" json:"limit"`
-	Offset int32 `db:"offset" json:"offset"`
-}
-
-type ListFailedAnalysesRow struct {
-	ID           int32            `db:"id" json:"id"`
-	Domain       string           `db:"domain" json:"domain"`
-	ErrorMessage *string          `db:"error_message" json:"error_message"`
-	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
-}
-
-func (q *Queries) ListFailedAnalyses(ctx context.Context, arg ListFailedAnalysesParams) ([]ListFailedAnalysesRow, error) {
-	rows, err := q.db.Query(ctx, listFailedAnalyses, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListFailedAnalysesRow{}
-	for rows.Next() {
-		var i ListFailedAnalysesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Domain,
-			&i.ErrorMessage,
-			&i.CreatedAt,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

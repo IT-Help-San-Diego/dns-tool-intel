@@ -185,6 +185,14 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 return returnCachedSubdomains(result, cached)
         }
 
+        if a.CTStore != nil {
+                if dbCached, ok := a.CTStore.Get(ctx, domain); ok && len(dbCached) > 0 {
+                        a.setCTCache(domain, dbCached)
+                        result["ct_source"] = "database"
+                        return returnCachedSubdomains(result, dbCached)
+                }
+        }
+
         ct := a.fetchCTEntriesWithFallback(ctx, domain)
         if ct.fallback {
                 result["ct_source_fallback"] = "certspotter"
@@ -234,6 +242,14 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
 
         subdomains = sortSubdomainsSmartOrder(subdomains)
         a.setCTCache(domain, subdomains)
+
+        if a.CTStore != nil && len(subdomains) > 0 {
+                ctSource := "crt.sh"
+                if ct.fallback {
+                        ctSource = "certspotter"
+                }
+                go a.CTStore.Set(context.Background(), domain, subdomains, ctSource)
+        }
 
         result[mapKeyUniqueSubdomains] = len(subdomains)
         result["ct_source"] = "live"

@@ -2,7 +2,6 @@
 // versions:
 //   sqlc v1.26.0
 
-// dns-tool:scrutiny plumbing
 package dbq
 
 import (
@@ -21,6 +20,15 @@ type AnalysisStat struct {
 	AvgAnalysisTime    *float64         `db:"avg_analysis_time" json:"avg_analysis_time"`
 	CreatedAt          pgtype.Timestamp `db:"created_at" json:"created_at"`
 	UpdatedAt          pgtype.Timestamp `db:"updated_at" json:"updated_at"`
+}
+
+type CtSubdomainCache struct {
+	Domain      string           `db:"domain" json:"domain"`
+	Subdomains  []byte           `db:"subdomains" json:"subdomains"`
+	UniqueCount int32            `db:"unique_count" json:"unique_count"`
+	Source      string           `db:"source" json:"source"`
+	FetchedAt   pgtype.Timestamp `db:"fetched_at" json:"fetched_at"`
+	ExpiresAt   pgtype.Timestamp `db:"expires_at" json:"expires_at"`
 }
 
 type DataGovernanceEvent struct {
@@ -162,6 +170,26 @@ type IceTestRun struct {
 	CreatedAt   pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
+type IcuaeDimensionScore struct {
+	ID                   int32    `db:"id" json:"id"`
+	ScanID               int32    `db:"scan_id" json:"scan_id"`
+	Dimension            string   `db:"dimension" json:"dimension"`
+	Score                float32  `db:"score" json:"score"`
+	Grade                string   `db:"grade" json:"grade"`
+	RecordTypesEvaluated []string `db:"record_types_evaluated" json:"record_types_evaluated"`
+}
+
+type IcuaeScanScore struct {
+	ID            int32            `db:"id" json:"id"`
+	Domain        string           `db:"domain" json:"domain"`
+	OverallScore  float32          `db:"overall_score" json:"overall_score"`
+	OverallGrade  string           `db:"overall_grade" json:"overall_grade"`
+	ResolverCount int32            `db:"resolver_count" json:"resolver_count"`
+	RecordCount   int32            `db:"record_count" json:"record_count"`
+	AppVersion    string           `db:"app_version" json:"app_version"`
+	CreatedAt     pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
 type NotificationEndpoint struct {
 	ID           int32            `db:"id" json:"id"`
 	UserID       int32            `db:"user_id" json:"user_id"`
@@ -170,6 +198,15 @@ type NotificationEndpoint struct {
 	Secret       *string          `db:"secret" json:"secret"`
 	Enabled      bool             `db:"enabled" json:"enabled"`
 	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type SecuritytrailsBudget struct {
+	MonthKey        string           `db:"month_key" json:"month_key"`
+	CallsUsed       int32            `db:"calls_used" json:"calls_used"`
+	DomainsEnriched []byte           `db:"domains_enriched" json:"domains_enriched"`
+	LastCalledAt    pgtype.Timestamp `db:"last_called_at" json:"last_called_at"`
+	CreatedAt       pgtype.Timestamp `db:"created_at" json:"created_at"`
+	UpdatedAt       pgtype.Timestamp `db:"updated_at" json:"updated_at"`
 }
 
 type Session struct {
