@@ -446,93 +446,253 @@ type covertLine struct {
         link        string
 }
 
+type covertDesc struct {
+        success string
+        warning string
+        fail    string
+}
+
+var covertDescriptions = map[string]covertDesc{
+        "SPF":       {success: "can't forge sender envelope", warning: "partial — spoofing harder", fail: "sender spoofing possible"},
+        "DKIM":      {success: "can't forge signatures", warning: "weak key — forgery harder", fail: "message forgery possible"},
+        protoDMARC:  {success: "spoofing rejected at gate", warning: "monitoring only — not blocking", fail: "email spoofing wide open"},
+        protoDNSSEC: {success: "can't poison DNS cache", warning: "partial — some zones exposed", fail: "DNS cache poisoning possible"},
+        "DANE":      {success: "can't downgrade TLS", warning: "TLSA present but weak", fail: "TLS downgrade possible"},
+        protoMTASTS: {success: "can't intercept mail", warning: "testing mode — not enforcing", fail: "mail interception possible"},
+        protoTLSRPT: {success: "transport monitored", warning: "partial reporting", fail: "no transport monitoring"},
+        "BIMI":      {success: "brand verification active", warning: "present but no VMC cert", fail: "brand impersonation possible"},
+        "CAA":       {success: "cert issuance locked", warning: "policy present but weak", fail: "anyone can issue certs"},
+}
+
+func covertStatusPrefix(status string) string {
+        switch status {
+        case "success":
+                return "[+]"
+        case "warning":
+                return "[~]"
+        default:
+                return "[-]"
+        }
+}
+
 func covertProtocolLine(abbrev, status string) covertLine {
         pad := 10 - len(abbrev)
         if pad < 1 {
                 pad = 1
         }
         dots := strings.Repeat(".", pad)
-
-        sRed := hexScRed
-
         label := abbrev + " " + dots + " "
 
-        switch abbrev {
-        case "SPF":
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't forge sender envelope", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial — spoofing harder", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "sender spoofing possible", descColor: sRed}
-        case "DKIM":
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't forge signatures", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "weak key — forgery harder", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "message forgery possible", descColor: sRed}
-        case protoDMARC:
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "spoofing rejected at gate", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "monitoring only — not blocking", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "email spoofing wide open", descColor: sRed}
-        case protoDNSSEC:
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't poison DNS cache", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial — some zones exposed", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "DNS cache poisoning possible", descColor: sRed}
-        case "DANE":
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't downgrade TLS", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "TLSA present but weak", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "TLS downgrade possible", descColor: sRed}
-        case protoMTASTS:
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "can't intercept mail", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "testing mode — not enforcing", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "mail interception possible", descColor: sRed}
-        case protoTLSRPT:
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "transport monitored", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "partial reporting", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "no transport monitoring", descColor: sRed}
-        case "BIMI":
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "brand verification active", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "present but no VMC cert", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "brand impersonation possible", descColor: sRed}
-        case "CAA":
-                if status == "success" {
-                        return covertLine{prefix: "[+]", text: label, color: sRed, desc: "cert issuance locked", descColor: sRed}
-                }
-                if status == "warning" {
-                        return covertLine{prefix: "[~]", text: label, color: sRed, desc: "policy present but weak", descColor: sRed}
-                }
-                return covertLine{prefix: "[-]", text: label, color: sRed, desc: "anyone can issue certs", descColor: sRed}
-        default:
-                return covertLine{prefix: "[?]", text: abbrev + " " + dots + " ", color: sRed, desc: "unknown", descColor: sRed}
+        desc, ok := covertDescriptions[abbrev]
+        if !ok {
+                return covertLine{prefix: "[?]", text: label, color: hexScRed, desc: "unknown", descColor: hexScRed}
         }
+
+        msg := desc.fail
+        switch status {
+        case "success":
+                msg = desc.success
+        case "warning":
+                msg = desc.warning
+        }
+
+        return covertLine{prefix: covertStatusPrefix(status), text: label, color: hexScRed, desc: msg, descColor: hexScRed}
+}
+
+func covertExposureLines(exposure exposureData, sRed, alt, baseURL string, scanID int32) []covertLine {
+        if exposure.status != "exposed" || exposure.findingCount == 0 {
+                return nil
+        }
+        cl := func(pfx, txt, c string) covertLine {
+                return covertLine{prefix: pfx, text: txt, color: c}
+        }
+        var lines []covertLine
+        lines = append(lines, cl("", "", ""))
+        lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
+        lines = append(lines, cl("[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), sRed))
+        lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
+        for _, f := range exposure.findings {
+                label := f.findingType
+                if label == "" {
+                        label = "Secret"
+                }
+                redacted := f.redacted
+                if len(redacted) > 24 {
+                        redacted = redacted[:21] + "..."
+                }
+                sevTag := covertSeverityTag(f.severity)
+                findingLine := cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), alt)
+                findingLine.link = fmt.Sprintf("%s/analysis/%d/view/C#secret-exposure", baseURL, scanID)
+                lines = append(lines, findingLine)
+        }
+        lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", sRed))
+        return lines
+}
+
+func covertSeverityTag(severity string) string {
+        switch severity {
+        case "critical":
+                return " [CRITICAL]"
+        case "high":
+                return " [HIGH]"
+        default:
+                return ""
+        }
+}
+
+func covertPrefixColor(prefix, dimLocked, sRed, alt string) string {
+        switch prefix {
+        case "[+]":
+                return dimLocked
+        case "[~]":
+                return "#8a8a00"
+        case "[-]":
+                return "#7a2419"
+        case "[!!]", "[!]":
+                return sRed
+        default:
+                return alt
+        }
+}
+
+func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked, sRed, alt string) []covertLine {
+        cl := func(pfx, txt, c string) covertLine {
+                return covertLine{prefix: pfx, text: txt, color: c}
+        }
+        if vulnerable == 0 && findingCount == 0 {
+                return []covertLine{
+                        cl("[!]", "All 9 protocols configured — target is hardened", locked),
+                        cl("[!]", tagline, dimLocked),
+                }
+        }
+        if vulnerable == 0 {
+                return []covertLine{
+                        cl("[!]", "Protocols hardened — but secrets are leaking", sRed),
+                        cl("[!]", "Rotate exposed credentials immediately.", alt),
+                }
+        }
+        vectors := vulnerable + findingCount
+        var lines []covertLine
+        if vectors <= 2 {
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
+        } else {
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vectors), sRed))
+        }
+        if findingCount > 0 {
+                lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
+        } else if tagline != "" {
+                lines = append(lines, cl("[!]", tagline, alt))
+        }
+        return lines
+}
+
+func renderCovertLines(svg *strings.Builder, lines []covertLine, startY int, resultStartAt float64, xPad, lineH, fontSize, charW int, monoFont, dimLocked, sRed, alt string) (lineIdx, y int) {
+        y = startY
+        for _, line := range lines {
+                if line.text == "" && line.prefix == "" {
+                        y += lineH / 2
+                        continue
+                }
+
+                delay := resultStartAt + float64(lineIdx)*0.12
+
+                color := line.color
+                if color == "" {
+                        color = alt
+                }
+
+                pfxColor := line.prefixColor
+                if pfxColor == "" && line.prefix != "" {
+                        pfxColor = covertPrefixColor(line.prefix, dimLocked, sRed, alt)
+                }
+
+                svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, delay))
+
+                if line.link != "" {
+                        svg.WriteString(fmt.Sprintf(`<a href="%s" target="_blank">`, line.link))
+                }
+
+                renderCovertLineText(svg, line, xPad, y, pfxColor, color, fontSize, charW, monoFont)
+
+                if line.link != "" {
+                        svg.WriteString(`</a>`)
+                }
+                svg.WriteString(`</g>`)
+                y += lineH
+                lineIdx++
+        }
+        return lineIdx, y
+}
+
+func renderCovertLineText(svg *strings.Builder, line covertLine, xPad, y int, pfxColor, color string, fontSize, charW int, monoFont string) {
+        if line.prefix == "" {
+                svg.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                        xPad, y, color, fontSize, monoFont, line.text,
+                ))
+                return
+        }
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                xPad, y, pfxColor, fontSize, monoFont, line.prefix,
+        ))
+        if line.desc != "" {
+                svg.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                        xPad+28, y, color, fontSize, monoFont, line.text,
+                ))
+                descX := xPad + 28 + len(line.text)*charW
+                dc := line.descColor
+                if dc == "" {
+                        dc = color
+                }
+                svg.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                        descX, y, dc, fontSize, monoFont, line.desc,
+                ))
+        } else {
+                svg.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
+                        xPad+28, y, color, fontSize, monoFont, line.text,
+                ))
+        }
+}
+
+func renderCovertFooter(svg *strings.Builder, lineIdx, y int, resultStartAt float64, xPad, lineH, fontSize, charW, width int, monoFont, domainDisplay, scanTimeStr, sRed, alt string) {
+        planetText := "#HackThePlanet!   |  #2600"
+        owlDelay := resultStartAt + float64(lineIdx)*0.12
+        owlY := y - lineH + 2
+        owlX := xPad + 28 + len(planetText)*charW - 14
+        svg.WriteString(fmt.Sprintf(`<g opacity="0" transform="translate(%d,%d) scale(0.8)"><animate attributeName="opacity" from="0" to="0.9" dur="0.3s" begin="%.2fs" fill="freeze"/>`, owlX, owlY-11, owlDelay))
+        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
+        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
+        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="1.2" fill="%s"/>`, sRed))
+        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="1.2" fill="%s"/>`, sRed))
+        svg.WriteString(fmt.Sprintf(`<path d="M7,3 L8,0 L9,3" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
+        svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
+        svg.WriteString(`</g>`)
+
+        bottomY1 := y + 6
+        bottomDelay := owlDelay + 0.3
+        svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, bottomDelay))
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">┌──(kali㉿kali)-[~/recon/%s]</text>`,
+                xPad, bottomY1, alt, fontSize, monoFont, domainDisplay,
+        ))
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" text-anchor="end">%s</text>`,
+                width-xPad, bottomY1, alt, fontSize, monoFont, scanTimeStr,
+        ))
+        bottomY2 := bottomY1 + lineH
+        svg.WriteString(fmt.Sprintf(
+                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
+                xPad, bottomY2, alt, fontSize, monoFont,
+        ))
+        svg.WriteString(fmt.Sprintf(
+                `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"/>`,
+                xPad+4*charW, bottomY2-10, 12, sRed,
+        ))
+        svg.WriteString(`</g>`)
 }
 
 func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string, baseURL string) []byte {
@@ -568,7 +728,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         sRed := hexScRed
         alt := "#664d2e"
-        locked := "#58E790"
+        locked := hexScGreen
         dimLocked := "#2d7a47"
 
         cl := func(pfx, txt, c string) covertLine {
@@ -590,54 +750,11 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 }
         }
 
-        if exposure.status == "exposed" && exposure.findingCount > 0 {
-                lines = append(lines, cl("", "", ""))
-                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
-                lines = append(lines, cl("[!!]", fmt.Sprintf("SECRET EXPOSURE — %d credential%s found", exposure.findingCount, pluralS(exposure.findingCount)), sRed))
-                lines = append(lines, cl("", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", alt))
-                for _, f := range exposure.findings {
-                        label := f.findingType
-                        if label == "" {
-                                label = "Secret"
-                        }
-                        redacted := f.redacted
-                        if len(redacted) > 24 {
-                                redacted = redacted[:21] + "..."
-                        }
-                        sevTag := ""
-                        if f.severity == "critical" {
-                                sevTag = " [CRITICAL]"
-                        } else if f.severity == "high" {
-                                sevTag = " [HIGH]"
-                        }
-                        findingLine := cl("[!!]", fmt.Sprintf("  >>> %s: %s%s", label, redacted, sevTag), alt)
-                        findingLine.link = fmt.Sprintf("%s/analysis/%d/view/C#secret-exposure", baseURL, scanID)
-                        lines = append(lines, findingLine)
-                }
-                lines = append(lines, cl("[!!]", "  Credentials are publicly accessible.", sRed))
-        }
+        lines = append(lines, covertExposureLines(exposure, sRed, alt, baseURL, scanID)...)
 
         lines = append(lines, cl("", "", ""))
 
-        if vulnerable == 0 && exposure.findingCount == 0 {
-                lines = append(lines, cl("[!]", "All 9 protocols configured — target is hardened", locked))
-                lines = append(lines, cl("[!]", tagline, dimLocked))
-        } else if vulnerable == 0 && exposure.findingCount > 0 {
-                lines = append(lines, cl("[!]", "Protocols hardened — but secrets are leaking", sRed))
-                lines = append(lines, cl("[!]", "Rotate exposed credentials immediately.", alt))
-        } else {
-                vectors := vulnerable + exposure.findingCount
-                if vectors <= 2 {
-                        lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
-                } else {
-                        lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vectors), sRed))
-                }
-                if exposure.findingCount > 0 {
-                        lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
-                } else if tagline != "" {
-                        lines = append(lines, cl("[!]", tagline, alt))
-                }
-        }
+        lines = append(lines, covertSummaryLines(vulnerable, exposure.findingCount, tagline, locked, dimLocked, sRed, alt)...)
 
         lines = append(lines, cl("", "", ""))
         hashDisplay := postureHash
@@ -728,120 +845,9 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 ))
         }
 
-        lineIdx := 0
-        y := promptY2 + lineH + 4
-        for _, line := range lines {
-                if line.text == "" && line.prefix == "" {
-                        y += lineH / 2
-                        continue
-                }
+        lineIdx, y := renderCovertLines(&svg, lines, promptY2+lineH+4, resultStartAt, xPad, lineH, fontSize, charW, monoFont, dimLocked, sRed, alt)
 
-                delay := resultStartAt + float64(lineIdx)*0.12
-
-                color := line.color
-                if color == "" {
-                        color = alt
-                }
-
-                pfxColor := line.prefixColor
-                if pfxColor == "" && line.prefix != "" {
-                        pfxColor = alt
-                        if line.prefix == "[+]" {
-                                pfxColor = dimLocked
-                        } else if line.prefix == "[~]" {
-                                pfxColor = "#8a8a00"
-                        } else if line.prefix == "[-]" {
-                                pfxColor = "#7a2419"
-                        } else if line.prefix == "[!!]" {
-                                pfxColor = sRed
-                        } else if line.prefix == "[*]" {
-                                pfxColor = alt
-                        } else if line.prefix == "[!]" {
-                                pfxColor = sRed
-                        }
-                }
-
-                svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, delay))
-
-                if line.link != "" {
-                        svg.WriteString(fmt.Sprintf(`<a href="%s" target="_blank">`, line.link))
-                }
-
-                if line.prefix != "" {
-                        svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                xPad, y, pfxColor, fontSize, monoFont, line.prefix,
-                        ))
-
-                        if line.desc != "" {
-                                svg.WriteString(fmt.Sprintf(
-                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                        xPad+28, y, color, fontSize, monoFont, line.text,
-                                ))
-                                descX := xPad + 28 + len(line.text)*charW
-                                dc := line.descColor
-                                if dc == "" {
-                                        dc = color
-                                }
-                                svg.WriteString(fmt.Sprintf(
-                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                        descX, y, dc, fontSize, monoFont, line.desc,
-                                ))
-                        } else {
-                                svg.WriteString(fmt.Sprintf(
-                                        `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                        xPad+28, y, color, fontSize, monoFont, line.text,
-                                ))
-                        }
-                } else {
-                        svg.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">%s</text>`,
-                                xPad, y, color, fontSize, monoFont, line.text,
-                        ))
-                }
-
-                if line.link != "" {
-                        svg.WriteString(`</a>`)
-                }
-                svg.WriteString(`</g>`)
-                y += lineH
-                lineIdx++
-        }
-
-        planetText := "#HackThePlanet!   |  #2600"
-        owlDelay := resultStartAt + float64(lineIdx)*0.12
-        owlY := y - lineH + 2
-        owlX := xPad + 28 + len(planetText)*charW - 14
-        svg.WriteString(fmt.Sprintf(`<g opacity="0" transform="translate(%d,%d) scale(0.8)"><animate attributeName="opacity" from="0" to="0.9" dur="0.3s" begin="%.2fs" fill="freeze"/>`, owlX, owlY-11, owlDelay))
-        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="3" fill="none" stroke="%s" stroke-width="1"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<circle cx="4" cy="5" r="1.2" fill="%s"/>`, sRed))
-        svg.WriteString(fmt.Sprintf(`<circle cx="12" cy="5" r="1.2" fill="%s"/>`, sRed))
-        svg.WriteString(fmt.Sprintf(`<path d="M7,3 L8,0 L9,3" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
-        svg.WriteString(fmt.Sprintf(`<path d="M3,8 Q8,14 13,8" fill="none" stroke="%s" stroke-width="0.8"/>`, alt))
-        svg.WriteString(`</g>`)
-
-        bottomY1 := y + 6
-        bottomDelay := owlDelay + 0.3
-        svg.WriteString(fmt.Sprintf(`<g opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="%.2fs" fill="freeze"/>`, bottomDelay))
-        svg.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">┌──(kali㉿kali)-[~/recon/%s]</text>`,
-                xPad, bottomY1, alt, fontSize, monoFont, domainDisplay,
-        ))
-        svg.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s" text-anchor="end">%s</text>`,
-                width-xPad, bottomY1, alt, fontSize, monoFont, scanTimeStr,
-        ))
-        bottomY2 := bottomY1 + lineH
-        svg.WriteString(fmt.Sprintf(
-                `<text x="%d" y="%d" fill="%s" font-size="%d" font-family="%s">└─$</text>`,
-                xPad, bottomY2, alt, fontSize, monoFont,
-        ))
-        svg.WriteString(fmt.Sprintf(
-                `<rect x="%d" y="%d" width="2" height="%d" fill="%s" class="cursor"/>`,
-                xPad+4*charW, bottomY2-10, 12, sRed,
-        ))
-        svg.WriteString(`</g>`)
+        renderCovertFooter(&svg, lineIdx, y, resultStartAt, xPad, lineH, fontSize, charW, width, monoFont, domainDisplay, scanTimeStr, sRed, alt)
 
         svg.WriteString(`</svg>`)
 
@@ -1026,6 +1032,190 @@ func firstMissingProtocol(nodes []protocolNode) string {
         return ""
 }
 
+type nodePos struct {
+        x, y int
+}
+
+type topoEdge struct {
+        from, to int
+        label    string
+        hard     bool
+        labelX   int
+        labelY   int
+}
+
+func renderTopoEdges(svg *strings.Builder, edges []topoEdge, nodes []protocolNode, positions []nodePos, nodeR int) {
+        for _, e := range edges {
+                if e.from >= len(nodes) || e.to >= len(nodes) {
+                        continue
+                }
+                fp := positions[e.from]
+                tp := positions[e.to]
+                dn := nodes[e.to]
+
+                lineColor, lineOpacity, lineW, packetColor := topoEdgeColors(dn)
+
+                pathD := fmt.Sprintf("M%d,%d L%d,%d", fp.x, fp.y, tp.x, tp.y)
+                dashArray := "4 6"
+                if e.hard {
+                        dashArray = "none"
+                }
+                svg.WriteString(fmt.Sprintf(
+                        `<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%.1f" stroke-dasharray="%s"/>`,
+                        pathD, lineColor, lineOpacity, lineW, dashArray,
+                ))
+
+                renderArrowHead(svg, fp, tp, nodeR, lineColor, lineOpacity)
+
+                if e.label != "" && e.labelX > 0 {
+                        svg.WriteString(fmt.Sprintf(
+                                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                                e.labelX, e.labelY, e.label,
+                        ))
+                }
+
+                if dn.status == "success" || dn.status == "warning" {
+                        dur := fmt.Sprintf("%.1fs", 1.8+float64(e.from)*0.3)
+                        svg.WriteString(fmt.Sprintf(
+                                `<circle r="2" fill="%s" opacity="0.8"><animateMotion dur="%s" repeatCount="indefinite" path="%s"/></circle>`,
+                                packetColor, dur, pathD,
+                        ))
+                }
+        }
+}
+
+func topoEdgeColors(dn protocolNode) (lineColor, lineOpacity string, lineW float64, packetColor string) {
+        groupColor := protocolGroupColor(dn.abbrev)
+        switch dn.status {
+        case "success", "warning":
+                return dn.colorHex, "0.35", 1.5, dn.colorHex
+        case "error":
+                return hexRed, "0.3", 1.5, hexRed
+        default:
+                return groupColor, "0.15", 1.5, groupColor
+        }
+}
+
+func renderArrowHead(svg *strings.Builder, fp, tp nodePos, nodeR int, lineColor, lineOpacity string) {
+        arrowDx := float64(tp.x - fp.x)
+        arrowDy := float64(tp.y - fp.y)
+        dist := math.Sqrt(arrowDx*arrowDx + arrowDy*arrowDy)
+        if dist == 0 {
+                return
+        }
+        nx := arrowDx / dist
+        ny := arrowDy / dist
+        arrowR := float64(nodeR) + 3
+        arrowTipX := float64(tp.x) - nx*arrowR
+        arrowTipY := float64(tp.y) - ny*arrowR
+        perpX := -ny * 3.5
+        perpY := nx * 3.5
+        svg.WriteString(fmt.Sprintf(
+                `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f" fill="%s" fill-opacity="%s"/>`,
+                arrowTipX, arrowTipY,
+                arrowTipX-nx*7+perpX, arrowTipY-ny*7+perpY,
+                arrowTipX-nx*7-perpX, arrowTipY-ny*7-perpY,
+                lineColor, lineOpacity,
+        ))
+}
+
+type topoNodeStyle struct {
+        nodeColor    string
+        strokeColor  string
+        fillOpacity  string
+        strokeOpacity string
+        strokeW      float64
+        glowOpacity  string
+        textColor    string
+}
+
+func topoNodeStyleFor(n protocolNode) topoNodeStyle {
+        s := topoNodeStyle{
+                nodeColor:    n.groupColor,
+                strokeColor:  n.groupColor,
+                fillOpacity:  "0.10",
+                strokeOpacity: "0.45",
+                strokeW:      1.5,
+                glowOpacity:  "0.10",
+                textColor:    "#e6edf3",
+        }
+        switch n.status {
+        case "error", "missing":
+                s.nodeColor = hexRed
+                s.strokeColor = hexRed
+                s.fillOpacity = "0.06"
+                s.strokeOpacity = "0.25"
+                s.strokeW = 1
+                s.glowOpacity = "0.06"
+                s.textColor = hexRed
+        case "warning", "success":
+                s.fillOpacity = "0.14"
+                s.strokeOpacity = "0.55"
+                s.glowOpacity = "0.12"
+        }
+        return s
+}
+
+func abbrevFontSize(abbrev string) int {
+        switch {
+        case len(abbrev) > 6:
+                return 6
+        case len(abbrev) > 4:
+                return 7
+        default:
+                return 8
+        }
+}
+
+func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, positions []nodePos, nodeR int) {
+        for i, n := range nodes {
+                if i >= len(positions) {
+                        break
+                }
+                pos := positions[i]
+                s := topoNodeStyleFor(n)
+
+                glowDefs.WriteString(fmt.Sprintf(
+                        `<radialGradient id="ng%d" cx="%d" cy="%d" r="%d" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s" stop-opacity="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>`,
+                        i, pos.x, pos.y, nodeR+8, s.nodeColor, s.glowOpacity, s.nodeColor,
+                ))
+
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<circle cx="%d" cy="%d" r="%d" fill="url(#ng%d)"/>`,
+                        pos.x, pos.y, nodeR+8, i,
+                ))
+
+                if n.status == "success" || n.status == "warning" {
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.04"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.04;0.08;0.04" dur="3s" repeatCount="indefinite"/></circle>`,
+                                pos.x, pos.y, nodeR+6, s.nodeColor, nodeR+6, nodeR+10, nodeR+6,
+                        ))
+                }
+
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-opacity="%s" stroke-width="%.1f"/>`,
+                        pos.x, pos.y, nodeR, s.nodeColor, s.fillOpacity, s.strokeColor, s.strokeOpacity, s.strokeW,
+                ))
+
+                if n.status == "missing" || n.status == "error" {
+                        xOff := 5
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
+                        ))
+                        nodeSVG.WriteString(fmt.Sprintf(
+                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
+                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
+                        ))
+                }
+
+                nodeSVG.WriteString(fmt.Sprintf(
+                        `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
+                        pos.x, pos.y+3, s.textColor, abbrevFontSize(n.abbrev), n.abbrev,
+                ))
+        }
+}
+
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         riskColorName = normalizeRiskColor(riskLabel, riskColorName)
@@ -1086,9 +1276,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         owlCX := 70
         owlCY := 110
 
-        type nodePos struct {
-                x, y int
-        }
         nodePositions := []nodePos{
                 {250, 78},
                 {332, 78},
@@ -1101,13 +1288,6 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {496, 178},
         }
 
-        type topoEdge struct {
-                from, to int
-                label    string
-                hard     bool
-                labelX   int
-                labelY   int
-        }
         edges := []topoEdge{
                 {2, 0, "alignment", true, 291, 66},
                 {2, 1, "", true, 0, 0},
@@ -1192,156 +1372,10 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 ))
         }
 
-        for _, e := range edges {
-                if e.from >= len(nodes) || e.to >= len(nodes) {
-                        continue
-                }
-                fp := nodePositions[e.from]
-                tp := nodePositions[e.to]
-                dn := nodes[e.to]
-
-                groupColor := protocolGroupColor(dn.abbrev)
-                lineColor := groupColor
-                lineOpacity := "0.15"
-                lineW := 1.5
-                packetColor := groupColor
-                if dn.status == "success" || dn.status == "warning" {
-                        lineColor = dn.colorHex
-                        lineOpacity = "0.35"
-                        lineW = 1.5
-                        packetColor = dn.colorHex
-                } else if dn.status == "error" {
-                        lineColor = hexRed
-                        lineOpacity = "0.3"
-                        packetColor = hexRed
-                }
-
-                pathD := fmt.Sprintf("M%d,%d L%d,%d", fp.x, fp.y, tp.x, tp.y)
-                dashArray := "4 6"
-                if e.hard {
-                        dashArray = "none"
-                }
-                nodeSVG.WriteString(fmt.Sprintf(
-                        `<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%.1f" stroke-dasharray="%s"/>`,
-                        pathD, lineColor, lineOpacity, lineW, dashArray,
-                ))
-
-                arrowDx := float64(tp.x - fp.x)
-                arrowDy := float64(tp.y - fp.y)
-                dist := math.Sqrt(arrowDx*arrowDx + arrowDy*arrowDy)
-                if dist > 0 {
-                        nx := arrowDx / dist
-                        ny := arrowDy / dist
-                        arrowR := float64(nodeR) + 3
-                        arrowTipX := float64(tp.x) - nx*arrowR
-                        arrowTipY := float64(tp.y) - ny*arrowR
-                        perpX := -ny * 3.5
-                        perpY := nx * 3.5
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f" fill="%s" fill-opacity="%s"/>`,
-                                arrowTipX, arrowTipY,
-                                arrowTipX-nx*7+perpX, arrowTipY-ny*7+perpY,
-                                arrowTipX-nx*7-perpX, arrowTipY-ny*7-perpY,
-                                lineColor, lineOpacity,
-                        ))
-                }
-
-                if e.label != "" && e.labelX > 0 {
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<text x="%d" y="%d" text-anchor="middle" fill="#8b949e" font-size="7" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                                e.labelX, e.labelY, e.label,
-                        ))
-                }
-
-                if dn.status == "success" || dn.status == "warning" {
-                        dur := fmt.Sprintf("%.1fs", 1.8+float64(e.from)*0.3)
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<circle r="2" fill="%s" opacity="0.8"><animateMotion dur="%s" repeatCount="indefinite" path="%s"/></circle>`,
-                                packetColor, dur, pathD,
-                        ))
-                }
-        }
+        renderTopoEdges(&nodeSVG, edges, nodes, nodePositions, nodeR)
 
         var glowDefs strings.Builder
-        for i, n := range nodes {
-                if i >= len(nodePositions) {
-                        break
-                }
-                pos := nodePositions[i]
-
-                nodeColor := n.groupColor
-                strokeColor := n.groupColor
-                fillOpacity := "0.10"
-                strokeOpacity := "0.45"
-                strokeW := 1.5
-                glowOpacity := "0.10"
-                textColor := "#e6edf3"
-
-                if n.status == "error" || n.status == "missing" {
-                        nodeColor = hexRed
-                        strokeColor = hexRed
-                        fillOpacity = "0.06"
-                        strokeOpacity = "0.25"
-                        strokeW = 1
-                        glowOpacity = "0.06"
-                        textColor = hexRed
-                } else if n.status == "warning" {
-                        fillOpacity = "0.14"
-                        strokeOpacity = "0.55"
-                        glowOpacity = "0.12"
-                } else if n.status == "success" {
-                        fillOpacity = "0.14"
-                        strokeOpacity = "0.55"
-                        glowOpacity = "0.12"
-                }
-
-                glowDefs.WriteString(fmt.Sprintf(
-                        `<radialGradient id="ng%d" cx="%d" cy="%d" r="%d" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="%s" stop-opacity="%s"/><stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>`,
-                        i, pos.x, pos.y, nodeR+8, nodeColor, glowOpacity, nodeColor,
-                ))
-
-                abbrevSize := 8
-                if len(n.abbrev) > 4 {
-                        abbrevSize = 7
-                }
-                if len(n.abbrev) > 6 {
-                        abbrevSize = 6
-                }
-
-                nodeSVG.WriteString(fmt.Sprintf(
-                        `<circle cx="%d" cy="%d" r="%d" fill="url(#ng%d)"/>`,
-                        pos.x, pos.y, nodeR+8, i,
-                ))
-
-                if n.status == "success" || n.status == "warning" {
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="0.04"><animate attributeName="r" values="%d;%d;%d" dur="3s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="0.04;0.08;0.04" dur="3s" repeatCount="indefinite"/></circle>`,
-                                pos.x, pos.y, nodeR+6, nodeColor, nodeR+6, nodeR+10, nodeR+6,
-                        ))
-                }
-
-                nodeSVG.WriteString(fmt.Sprintf(
-                        `<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%s" stroke="%s" stroke-opacity="%s" stroke-width="%.1f"/>`,
-                        pos.x, pos.y, nodeR, nodeColor, fillOpacity, strokeColor, strokeOpacity, strokeW,
-                ))
-
-                if n.status == "missing" || n.status == "error" {
-                        xOff := 5
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
-                        ))
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
-                        ))
-                }
-
-                nodeSVG.WriteString(fmt.Sprintf(
-                        `<text x="%d" y="%d" text-anchor="middle" fill="%s" font-size="%d" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif">%s</text>`,
-                        pos.x, pos.y+3, textColor, abbrevSize, n.abbrev,
-                ))
-        }
+        renderTopoNodes(&nodeSVG, &glowDefs, nodes, nodePositions, nodeR)
 
         missingSVG := ""
         if missing > 0 {

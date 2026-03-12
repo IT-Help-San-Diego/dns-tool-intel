@@ -137,6 +137,7 @@ fi
 if command -v trivy &>/dev/null; then
   trivy fs --format json --output "$TRIVY_SECRET_OUTPUT" \
     --scanners secret \
+    --skip-dirs .config/replit/.semgrep --skip-dirs node_modules --skip-dirs .cache \
     "$REPO_ROOT" 2>/dev/null || true
 
   if [ -f "$TRIVY_SECRET_OUTPUT" ]; then
