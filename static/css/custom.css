@@ -6650,6 +6650,7 @@ body.covert-mode .math-copy-btn--copied {
 .u-privacy-toggle {
     text-decoration: underline dotted;
     cursor: help;
+    color: #cc2020;
 }
 .anim-restart { animation: none !important; }
 
