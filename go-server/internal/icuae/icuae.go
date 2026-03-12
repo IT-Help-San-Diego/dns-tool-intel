@@ -87,6 +87,16 @@ type DimensionScore struct {
         Findings    []TTLFinding `json:"findings,omitempty"`
 }
 
+func (d DimensionScore) RecordTypesList() []string {
+        out := make([]string, 0, d.RecordTypes)
+        for _, f := range d.Findings {
+                if f.RecordType != "" {
+                        out = append(out, f.RecordType)
+                }
+        }
+        return out
+}
+
 type TTLFinding struct {
         RecordType     string  `json:"record_type"`
         ObservedTTL    uint32  `json:"observed_ttl"`
