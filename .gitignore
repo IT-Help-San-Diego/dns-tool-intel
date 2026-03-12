@@ -69,6 +69,11 @@ dnstool-intel-staging/
 .venv-cff/
 .venv*/
 
+# Intel breadcrumbs — private project context, synced from dns-tool-intel
+# Contains PROJECT_CONTEXT.md, EVOLUTION.md, and other operational docs
+# that must never appear in the public repo.
+.intel/
+
 # Codex agent files (local tooling, not versioned)
 .codex/
 
