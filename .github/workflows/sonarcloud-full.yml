@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: careyjames/dns-tool-intel
-          token: ${{ secrets.GITHUB_MASTER_PAT }}
+          token: ${{ secrets.GH_MASTER_PAT }}
           path: .intel-checkout
           fetch-depth: 0
 
