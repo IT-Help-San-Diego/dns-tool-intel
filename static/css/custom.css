@@ -6647,6 +6647,10 @@ body.covert-mode .math-copy-btn--copied {
 @media print {
     .math-copy-btn { display: none !important; }
 }
+.u-privacy-toggle {
+    text-decoration: underline dotted;
+    cursor: help;
+}
 .anim-restart { animation: none !important; }
 
 @keyframes toastFadeIn {
