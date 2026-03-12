@@ -145,7 +145,12 @@ function hideOverlayAndReset(overlay, btn) {
     }
     document.body.classList.remove('loading');
     if (btn) {
-        btn.innerHTML = (window._icons ? window._icons.search : '') + ' Analyze';
+        btn.textContent = ' Analyze';
+        if (window._icons && window._icons.search) {
+            const _tmp = document.createElement('span');
+            _tmp.innerHTML = window._icons.search;
+            btn.insertBefore(_tmp.firstElementChild || _tmp, btn.firstChild);
+        }
         btn.disabled = false;
     }
 }
