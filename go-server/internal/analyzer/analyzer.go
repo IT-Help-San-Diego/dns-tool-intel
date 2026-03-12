@@ -4,178 +4,180 @@
 package analyzer
 
 import (
-	"context"
-	"log/slog"
-	"sync"
-	"sync/atomic"
-	"time"
+        "context"
+        "log/slog"
+        "sync"
+        "sync/atomic"
+        "time"
 
-	"dnstool/go-server/internal/dnsclient"
-	"dnstool/go-server/internal/telemetry"
+        "dnstool/go-server/internal/dnsclient"
+        "dnstool/go-server/internal/telemetry"
 )
 
 const (
-	mapKeyError = "error"
+        mapKeyError = "error"
 )
 
 type ProbeEndpoint struct {
-	ID    string
-	Label string
-	URL   string
-	Key   string
+        ID    string
+        Label string
+        URL   string
+        Key   string
 }
 
 type Analyzer struct {
-	DNS         DNSQuerier
-	HTTP        HTTPClient
-	SlowHTTP    HTTPClient
-	RDAPHTTP    HTTPClient
-	IANARDAPMap map[string][]string
-	ianaMu      sync.RWMutex
-	Telemetry   *telemetry.Registry
-	RDAPCache   *telemetry.TTLCache[map[string]any]
+        DNS         DNSQuerier
+        HTTP        HTTPClient
+        SlowHTTP    HTTPClient
+        RDAPHTTP    HTTPClient
+        IANARDAPMap map[string][]string
+        ianaMu      sync.RWMutex
+        Telemetry   *telemetry.Registry
+        RDAPCache   *telemetry.TTLCache[map[string]any]
 
-	ctCacheMu  sync.RWMutex
-	ctCache    map[string]ctCacheEntry
-	ctCacheTTL time.Duration
+        ctCacheMu  sync.RWMutex
+        ctCache    map[string]ctCacheEntry
+        ctCacheTTL time.Duration
 
-	maxConcurrent int
-	semaphore     chan struct{}
+        maxConcurrent int
+        semaphore     chan struct{}
 
-	SMTPProbeMode string
-	ProbeAPIURL   string
-	ProbeAPIKey   string
-	Probes        []ProbeEndpoint
+        SMTPProbeMode string
+        ProbeAPIURL   string
+        ProbeAPIKey   string
+        Probes        []ProbeEndpoint
 
-	backpressureRejections atomic.Int64
+        backpressureRejections atomic.Int64
 }
 
 type ctCacheEntry struct {
-	data      []map[string]any
-	timestamp time.Time
+        data      []map[string]any
+        timestamp time.Time
 }
 
 type Option func(*Analyzer)
 
 func WithMaxConcurrent(n int) Option {
-	return func(a *Analyzer) {
-		a.maxConcurrent = n
-		a.semaphore = make(chan struct{}, n)
-	}
+        return func(a *Analyzer) {
+                a.maxConcurrent = n
+                a.semaphore = make(chan struct{}, n)
+        }
 }
 
 func New(opts ...Option) *Analyzer {
-	a := &Analyzer{
-		DNS:           dnsclient.New(),
-		HTTP:          dnsclient.NewSafeHTTPClient(),
-		SlowHTTP:      dnsclient.NewSafeHTTPClientWithTimeout(75 * time.Second),
-		RDAPHTTP:      dnsclient.NewRDAPHTTPClient(),
-		IANARDAPMap:   make(map[string][]string),
-		Telemetry:     telemetry.NewRegistry(),
-		RDAPCache:     telemetry.NewTTLCache[map[string]any]("rdap", 500, 24*time.Hour),
-		ctCache:       make(map[string]ctCacheEntry),
-		ctCacheTTL:    1 * time.Hour,
-		maxConcurrent: 20,
-		semaphore:     make(chan struct{}, 20),
-	}
-	for _, o := range opts {
-		o(a)
-	}
+        ctHTTP := dnsclient.NewSafeHTTPClientWithTimeout(75 * time.Second)
+        ctHTTP.SkipSSRF = true
+        a := &Analyzer{
+                DNS:           dnsclient.New(),
+                HTTP:          dnsclient.NewSafeHTTPClient(),
+                SlowHTTP:      ctHTTP,
+                RDAPHTTP:      dnsclient.NewRDAPHTTPClient(),
+                IANARDAPMap:   make(map[string][]string),
+                Telemetry:     telemetry.NewRegistry(),
+                RDAPCache:     telemetry.NewTTLCache[map[string]any]("rdap", 500, 24*time.Hour),
+                ctCache:       make(map[string]ctCacheEntry),
+                ctCacheTTL:    1 * time.Hour,
+                maxConcurrent: 20,
+                semaphore:     make(chan struct{}, 20),
+        }
+        for _, o := range opts {
+                o(a)
+        }
 
-	go a.fetchIANARDAPData()
+        go a.fetchIANARDAPData()
 
-	return a
+        return a
 }
 
 func (a *Analyzer) fetchIANARDAPData() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
 
-	resp, err := a.HTTP.Get(ctx, "https://data.iana.org/rdap/dns.json")
-	if err != nil {
-		slog.Error("Failed to fetch IANA RDAP data", mapKeyError, err)
-		return
-	}
+        resp, err := a.HTTP.Get(ctx, "https://data.iana.org/rdap/dns.json")
+        if err != nil {
+                slog.Error("Failed to fetch IANA RDAP data", mapKeyError, err)
+                return
+        }
 
-	body, err := a.HTTP.ReadBody(resp, 1<<20)
-	if err != nil {
-		slog.Error("Failed to read IANA RDAP response", mapKeyError, err)
-		return
-	}
+        body, err := a.HTTP.ReadBody(resp, 1<<20)
+        if err != nil {
+                slog.Error("Failed to read IANA RDAP response", mapKeyError, err)
+                return
+        }
 
-	var data struct {
-		Services [][][]string `json:"services"`
-	}
+        var data struct {
+                Services [][][]string `json:"services"`
+        }
 
-	if err := jsonUnmarshal(body, &data); err != nil {
-		slog.Error("Failed to parse IANA RDAP data", mapKeyError, err)
-		return
-	}
+        if err := jsonUnmarshal(body, &data); err != nil {
+                slog.Error("Failed to parse IANA RDAP data", mapKeyError, err)
+                return
+        }
 
-	a.ianaMu.Lock()
-	for _, svc := range data.Services {
-		if len(svc) != 2 {
-			continue
-		}
-		tlds, endpoints := svc[0], svc[1]
-		if len(tlds) > 0 && len(endpoints) > 0 {
-			for _, tld := range tlds {
-				a.IANARDAPMap[tld] = endpoints
-			}
-		}
-	}
-	count := len(a.IANARDAPMap)
-	a.ianaMu.Unlock()
-	slog.Info("Loaded IANA RDAP map", "tld_count", count)
+        a.ianaMu.Lock()
+        for _, svc := range data.Services {
+                if len(svc) != 2 {
+                        continue
+                }
+                tlds, endpoints := svc[0], svc[1]
+                if len(tlds) > 0 && len(endpoints) > 0 {
+                        for _, tld := range tlds {
+                                a.IANARDAPMap[tld] = endpoints
+                        }
+                }
+        }
+        count := len(a.IANARDAPMap)
+        a.ianaMu.Unlock()
+        slog.Info("Loaded IANA RDAP map", "tld_count", count)
 }
 
 func (a *Analyzer) BackpressureRejections() int64 {
-	return a.backpressureRejections.Load()
+        return a.backpressureRejections.Load()
 }
 
 func (a *Analyzer) ConcurrentCapacity() (inUse, total int) {
-	return len(a.semaphore), cap(a.semaphore)
+        return len(a.semaphore), cap(a.semaphore)
 }
 
 func (a *Analyzer) getCTCache(domain string) ([]map[string]any, bool) {
-	a.ctCacheMu.RLock()
-	defer a.ctCacheMu.RUnlock()
-	entry, ok := a.ctCache[domain]
-	if !ok {
-		return nil, false
-	}
-	if time.Since(entry.timestamp) > a.ctCacheTTL {
-		return nil, false
-	}
-	return entry.data, true
+        a.ctCacheMu.RLock()
+        defer a.ctCacheMu.RUnlock()
+        entry, ok := a.ctCache[domain]
+        if !ok {
+                return nil, false
+        }
+        if time.Since(entry.timestamp) > a.ctCacheTTL {
+                return nil, false
+        }
+        return entry.data, true
 }
 
 func (a *Analyzer) GetCTCache(domain string) ([]map[string]any, bool) {
-	return a.getCTCache(domain)
+        return a.getCTCache(domain)
 }
 
 func (a *Analyzer) GetRDAPEndpoints(tld string) ([]string, bool) {
-	a.ianaMu.RLock()
-	defer a.ianaMu.RUnlock()
-	eps, ok := a.IANARDAPMap[tld]
-	if !ok {
-		return nil, false
-	}
-	out := make([]string, len(eps))
-	copy(out, eps)
-	return out, true
+        a.ianaMu.RLock()
+        defer a.ianaMu.RUnlock()
+        eps, ok := a.IANARDAPMap[tld]
+        if !ok {
+                return nil, false
+        }
+        out := make([]string, len(eps))
+        copy(out, eps)
+        return out, true
 }
 
 func (a *Analyzer) setCTCache(domain string, data []map[string]any) {
-	a.ctCacheMu.Lock()
-	defer a.ctCacheMu.Unlock()
-	a.ctCache[domain] = ctCacheEntry{data: data, timestamp: time.Now()}
-	if len(a.ctCache) > 200 {
-		cutoff := time.Now().Add(-a.ctCacheTTL)
-		for k, v := range a.ctCache {
-			if v.timestamp.Before(cutoff) {
-				delete(a.ctCache, k)
-			}
-		}
-	}
+        a.ctCacheMu.Lock()
+        defer a.ctCacheMu.Unlock()
+        a.ctCache[domain] = ctCacheEntry{data: data, timestamp: time.Now()}
+        if len(a.ctCache) > 200 {
+                cutoff := time.Now().Add(-a.ctCacheTTL)
+                for k, v := range a.ctCache {
+                        if v.timestamp.Before(cutoff) {
+                                delete(a.ctCache, k)
+                        }
+                }
+        }
 }
