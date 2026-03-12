@@ -473,6 +473,14 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var privToggle = document.getElementById('privacyToggle');
+    var privDetail = document.getElementById('privacyDetail');
+    if (privToggle && privDetail) {
+        function togglePrivacy() { privDetail.style.display = privDetail.style.display === 'none' ? 'block' : 'none'; }
+        privToggle.addEventListener('click', togglePrivacy);
+        privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
+    }
+
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
