@@ -8,6 +8,7 @@ dependencies = [
     "cffconvert>=2.0.0",
     "fonttools>=4.61.1",
     "pykwalify>=1.8.0",
+    "pynacl>=1.6.2",
     "ruamel-yaml>=0.19.1",
     "weasyprint>=68.1",
 ]

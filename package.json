@@ -22,6 +22,7 @@
     "@types/node": "^25.2.3",
     "axios": "^1.13.5",
     "csso-cli": "^4.0.2",
+    "libsodium-wrappers": "^0.8.2",
     "lighthouse": "^13.0.3",
     "minimatch": "^10.2.1",
     "pa11y": "^9.1.0",
