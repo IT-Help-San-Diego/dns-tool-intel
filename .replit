@@ -2,7 +2,7 @@ modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "python3", "pos
 
 [nix]
 channel = "stable-24_05"
-packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "rsync", "sqlc", "subfinder", "tcl", "testssl", "tk", "unzip", "whois", "zlib"]
+packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "rsync", "sqlc", "subfinder", "tcl", "testssl", "tk", "unzip", "whois", "zlib", "gitleaks", "trivy"]
 
 [deployment]
 deploymentTarget = "vm"
