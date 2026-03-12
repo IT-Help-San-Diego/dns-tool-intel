@@ -15,7 +15,6 @@
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
-    "@netlify/plugin-lighthouse": "^6.0.4",
     "@notionhq/client": "^2.2.15",
     "@octokit/rest": "^22.0.1",
     "@playwright/test": "^1.58.2",
@@ -24,8 +23,6 @@
     "axios": "^1.13.5",
     "csso-cli": "^4.0.2",
     "lighthouse": "^13.0.3",
-    "lighthouse-batch": "^8.1.1",
-    "lighthouse-ci": "^1.13.1",
     "minimatch": "^10.2.1",
     "pa11y": "^9.1.0",
     "playwright-lighthouse": "^4.0.0",
