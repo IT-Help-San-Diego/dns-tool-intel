@@ -76,6 +76,18 @@ type DomainAnalysis struct {
 	WaybackUrl           *string          `db:"wayback_url" json:"wayback_url"`
 }
 
+type DomainIndex struct {
+	Domain     string           `db:"domain" json:"domain"`
+	FirstSeen  pgtype.Timestamp `db:"first_seen" json:"first_seen"`
+	LastSeen   pgtype.Timestamp `db:"last_seen" json:"last_seen"`
+	TotalScans int32            `db:"total_scans" json:"total_scans"`
+	LastScore  *float32         `db:"last_score" json:"last_score"`
+	HasDane    bool             `db:"has_dane" json:"has_dane"`
+	HasDnssec  bool             `db:"has_dnssec" json:"has_dnssec"`
+	HasMtaSts  bool             `db:"has_mta_sts" json:"has_mta_sts"`
+	Tags       []string         `db:"tags" json:"tags"`
+}
+
 type DomainWatchlist struct {
 	ID        int32            `db:"id" json:"id"`
 	UserID    int32            `db:"user_id" json:"user_id"`
@@ -198,6 +210,13 @@ type NotificationEndpoint struct {
 	Secret       *string          `db:"secret" json:"secret"`
 	Enabled      bool             `db:"enabled" json:"enabled"`
 	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type PriorityDomain struct {
+	Domain  string           `db:"domain" json:"domain"`
+	Reason  string           `db:"reason" json:"reason"`
+	AddedAt pgtype.Timestamp `db:"added_at" json:"added_at"`
+	Enabled bool             `db:"enabled" json:"enabled"`
 }
 
 type SecuritytrailsBudget struct {
