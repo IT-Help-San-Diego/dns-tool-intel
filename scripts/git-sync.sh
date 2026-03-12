@@ -74,11 +74,14 @@ LOCAL_HEAD=$(git rev-parse HEAD)
 REMOTE_HEAD=$(git rev-parse "origin/${BRANCH_SOURCE}" 2>/dev/null || echo "none")
 if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
   info "Local ${BRANCH_SOURCE} differs from origin — pushing"
-  timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1 || fail "git push failed"
+  PUSH_OUTPUT=$(timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || fail "git push failed"
+  echo "$PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
   pass "Pushed to origin/${BRANCH_SOURCE}"
 else
   pass "Local and origin/${BRANCH_SOURCE} in sync"
 fi
+
+timeout 15 git fetch origin "${BRANCH_SOURCE}" "${BRANCH_TARGET}" 2>/dev/null || true
 
 AHEAD=$(git rev-list --count "origin/${BRANCH_TARGET}..origin/${BRANCH_SOURCE}" 2>/dev/null || echo "0")
 if [ "$AHEAD" -eq 0 ]; then
@@ -163,7 +166,8 @@ timeout 30 git merge --ff-only "origin/${BRANCH_TARGET}" 2>/dev/null || {
 }
 pass "Synced ${BRANCH_TARGET} → ${BRANCH_SOURCE}"
 
-timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>/dev/null || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
+SYNC_PUSH_OUTPUT=$(timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
+[ -n "${SYNC_PUSH_OUTPUT:-}" ] && echo "$SYNC_PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
 
 echo ""
 echo "═══════════════════════════════════════════"
