@@ -4,7 +4,7 @@
 #
 # Pre-flight → push → create PR → merge → sync back.
 # Preserves full commit history (merge commit, no squash).
-# Uses CAREY_PAT_DNSTOOLWEB for GitHub API authentication.
+# Uses GITHUB_MASTER_PAT for GitHub API authentication.
 #
 # Safe to run anytime. Fails loudly on any problem.
 
@@ -26,9 +26,9 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 fail() { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-TOKEN="${CAREY_PAT_DNSTOOLWEB:-}"
+TOKEN="${GITHUB_MASTER_PAT:-}"
 if [ -z "$TOKEN" ]; then
-  fail "CAREY_PAT_DNSTOOLWEB not set. Cannot authenticate with GitHub."
+  fail "GITHUB_MASTER_PAT not set. Cannot authenticate with GitHub."
 fi
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
