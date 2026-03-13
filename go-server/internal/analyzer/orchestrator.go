@@ -339,16 +339,18 @@ func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDK
                 timedTask(ch, mapKeyMtaSts, func() any { return a.AnalyzeMTASTS(ctx, domain) }),
                 timedTask(ch, mapKeyTlsrpt, func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
                 timedTask(ch, mapKeyBimi, func() any { return a.AnalyzeBIMI(ctx, domain) }),
-                timedTask(ch, mapKeyCtSubdomains, func() any {
-                        ctCtx, ctCancel := context.WithTimeout(context.Background(), 120*time.Second)
-                        defer ctCancel()
-                        return a.DiscoverSubdomains(ctCtx, domain)
-                }),
+                timedTask(ch, mapKeyCtSubdomains, func() any { return a.discoverSubdomainsWithBudget(domain) }),
                 timedTask(ch, mapKeySmimeaOpenpgpkey, func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
                 timedTask(ch, mapKeySecurityTxt, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
                 timedTask(ch, mapKeyAiSurface, func() any { return a.AnalyzeAISurface(ctx, domain) }),
                 timedTask(ch, mapKeySecretExposure, func() any { return a.ScanSecretExposure(ctx, domain) }),
         }
+}
+
+func (a *Analyzer) discoverSubdomainsWithBudget(domain string) map[string]any {
+        ctCtx, ctCancel := context.WithTimeout(context.Background(), 120*time.Second)
+        defer ctCancel()
+        return a.DiscoverSubdomains(ctCtx, domain)
 }
 
 func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, customDKIMSelectors []string) map[string]any {
