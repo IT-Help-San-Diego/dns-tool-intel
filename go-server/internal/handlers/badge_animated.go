@@ -70,23 +70,9 @@ func (h *BadgeHandler) BadgeAnimated(c *gin.Context) {
 
         cacheKey := fmt.Sprintf("anim:%s:%s:%d:%s", format, style, scanID, postureHash)
 
-        animCacheMu.RLock()
-        entry, cached := animCache[cacheKey]
-        if cached && time.Since(entry.createdAt) < time.Duration(animCacheMaxAge)*time.Second {
-                entry.lastAccess = time.Now()
-                animCacheMu.RUnlock()
-                if match := c.GetHeader("If-None-Match"); match == entry.etag {
-                        c.Status(http.StatusNotModified)
-                        return
-                }
-                ct := animContentType(format)
-                c.Header("Content-Type", ct)
-                c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", animCacheMaxAge))
-                c.Header("ETag", entry.etag)
-                c.Data(http.StatusOK, ct, entry.data)
+        if served := serveAnimFromCache(c, cacheKey, format); served {
                 return
         }
-        animCacheMu.RUnlock()
 
         var svgGen func(string, map[string]any, time.Time, int32, string, string) []byte
         switch style {
@@ -118,31 +104,7 @@ func (h *BadgeHandler) BadgeAnimated(c *gin.Context) {
                 return
         }
 
-        hash := sha256.Sum256(outData)
-        etag := fmt.Sprintf(`"%x"`, hash[:8])
-
-        now := time.Now()
-        animCacheMu.Lock()
-        if len(animCache) >= animMaxCacheItems {
-                var lruKey string
-                var lruTime time.Time
-                for k, v := range animCache {
-                        if lruKey == "" || v.lastAccess.Before(lruTime) {
-                                lruKey = k
-                                lruTime = v.lastAccess
-                        }
-                }
-                if lruKey != "" {
-                        delete(animCache, lruKey)
-                }
-        }
-        animCache[cacheKey] = &animCacheEntry{
-                data:       outData,
-                createdAt:  now,
-                lastAccess: now,
-                etag:       etag,
-        }
-        animCacheMu.Unlock()
+        etag := storeAnimInCache(cacheKey, outData)
 
         ext := "png"
         if format == "gif" {
@@ -154,6 +116,61 @@ func (h *BadgeHandler) BadgeAnimated(c *gin.Context) {
         c.Header("ETag", etag)
         c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s-dns-topology.%s"`, domain, ext))
         c.Data(http.StatusOK, ct, outData)
+}
+
+func serveAnimFromCache(c *gin.Context, cacheKey, format string) bool {
+        animCacheMu.RLock()
+        entry, cached := animCache[cacheKey]
+        if !cached || time.Since(entry.createdAt) >= time.Duration(animCacheMaxAge)*time.Second {
+                animCacheMu.RUnlock()
+                return false
+        }
+        entry.lastAccess = time.Now()
+        animCacheMu.RUnlock()
+
+        if match := c.GetHeader("If-None-Match"); match == entry.etag {
+                c.Status(http.StatusNotModified)
+                return true
+        }
+        ct := animContentType(format)
+        c.Header("Content-Type", ct)
+        c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", animCacheMaxAge))
+        c.Header("ETag", entry.etag)
+        c.Data(http.StatusOK, ct, entry.data)
+        return true
+}
+
+func storeAnimInCache(cacheKey string, outData []byte) string {
+        hash := sha256.Sum256(outData)
+        etag := fmt.Sprintf(`"%x"`, hash[:8])
+
+        now := time.Now()
+        animCacheMu.Lock()
+        if len(animCache) >= animMaxCacheItems {
+                evictLRUAnimEntry()
+        }
+        animCache[cacheKey] = &animCacheEntry{
+                data:       outData,
+                createdAt:  now,
+                lastAccess: now,
+                etag:       etag,
+        }
+        animCacheMu.Unlock()
+        return etag
+}
+
+func evictLRUAnimEntry() {
+        var lruKey string
+        var lruTime time.Time
+        for k, v := range animCache {
+                if lruKey == "" || v.lastAccess.Before(lruTime) {
+                        lruKey = k
+                        lruTime = v.lastAccess
+                }
+        }
+        if lruKey != "" {
+                delete(animCache, lruKey)
+        }
 }
 
 func animContentType(format string) string {

@@ -65,9 +65,10 @@ jobs:
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v7
         with:
+          projectBaseDir: .
           args: >
             -Dsonar.projectKey=careyjames_dns-tool-full
-            -Dsonar.projectName=DNS Tool (Full Product)
+            "-Dsonar.projectName=DNS Tool (Full Product)"
             -Dsonar.sources=go-server,static,providers,scoring,remediation,commands,golden_rules
             -Dsonar.tests=go-server,providers,scoring,commands,golden_rules
             -Dsonar.test.inclusions=**/*_test.go

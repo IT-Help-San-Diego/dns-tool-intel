@@ -22,6 +22,8 @@ import (
 
 var safeFilenameRe = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 
+const sectionSeparator = "\u00a7"
+
 type citationCFF struct {
         Title        string      `yaml:"title"`
         Version      string      `yaml:"version"`
@@ -88,44 +90,16 @@ func (h *CitationHandler) SoftwareCitation(c *gin.Context) {
                 return
         }
 
-        title := "DNS Tool: Domain Security Audit Platform"
-        version := h.Config.AppVersion
-        doi := "10.5281/zenodo.18854899"
-        url := "https://dnstool.it-help.tech"
-        authorFamily := "Balboa"
-        authorGiven := "Carey James"
-        date := "2026-03-09"
-
-        if cff := loadCitationCFF(); cff != nil {
-                if cff.Title != "" {
-                        title = cff.Title
-                }
-                if cff.Version != "" {
-                        version = cff.Version
-                }
-                if cff.DOI != "" {
-                        doi = cff.DOI
-                }
-                if cff.URL != "" {
-                        url = cff.URL
-                }
-                if cff.DateReleased != "" {
-                        date = cff.DateReleased
-                }
-                if len(cff.Authors) > 0 {
-                        authorFamily = cff.Authors[0].FamilyNames
-                        authorGiven = cff.Authors[0].GivenNames
-                }
-        }
+        title, version, doi, url, authorFamily, authorGiven, date := h.resolveSoftwareMeta()
 
         switch format {
         case "bibtex":
                 out := citation.SoftwareToBibTeX(title, version, doi, url, authorFamily, authorGiven, date)
-                c.Header("Content-Disposition", `attachment; filename="dnstool.bib"`)
+                c.Header(headerContentDisposition, `attachment; filename="dnstool.bib"`)
                 c.Data(http.StatusOK, "application/x-bibtex; charset=utf-8", []byte(out))
         case "ris":
                 out := citation.SoftwareToRIS(title, version, doi, url, authorFamily, authorGiven, date)
-                c.Header("Content-Disposition", `attachment; filename="dnstool.ris"`)
+                c.Header(headerContentDisposition, `attachment; filename="dnstool.ris"`)
                 c.Data(http.StatusOK, "application/x-research-info-systems; charset=utf-8", []byte(out))
         default:
                 out, err := citation.SoftwareToCSLJSON(title, version, doi, url, authorFamily, authorGiven, date)
@@ -133,9 +107,44 @@ func (h *CitationHandler) SoftwareCitation(c *gin.Context) {
                         c.JSON(http.StatusInternalServerError, gin.H{"error": "export failed"})
                         return
                 }
-                c.Header("Content-Disposition", `attachment; filename="dnstool.json"`)
+                c.Header(headerContentDisposition, `attachment; filename="dnstool.json"`)
                 c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(out))
         }
+}
+
+func (h *CitationHandler) resolveSoftwareMeta() (title, version, doi, url, authorFamily, authorGiven, date string) {
+        title = "DNS Tool: Domain Security Audit Platform"
+        version = h.Config.AppVersion
+        doi = "10.5281/zenodo.18854899"
+        url = "https://dnstool.it-help.tech"
+        authorFamily = "Balboa"
+        authorGiven = "Carey James"
+        date = "2026-03-09"
+
+        cff := loadCitationCFF()
+        if cff == nil {
+                return
+        }
+        if cff.Title != "" {
+                title = cff.Title
+        }
+        if cff.Version != "" {
+                version = cff.Version
+        }
+        if cff.DOI != "" {
+                doi = cff.DOI
+        }
+        if cff.URL != "" {
+                url = cff.URL
+        }
+        if cff.DateReleased != "" {
+                date = cff.DateReleased
+        }
+        if len(cff.Authors) > 0 {
+                authorFamily = cff.Authors[0].FamilyNames
+                authorGiven = cff.Authors[0].GivenNames
+        }
+        return
 }
 
 func (h *CitationHandler) AnalysisCitation(c *gin.Context) {
@@ -169,11 +178,11 @@ func (h *CitationHandler) AnalysisCitation(c *gin.Context) {
         switch format {
         case "bibtex":
                 out := citation.EntriesToBibTeX(manifestEntries)
-                c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="analysis-%s.bib"`, safeID))
+                c.Header(headerContentDisposition, fmt.Sprintf(`attachment; filename="analysis-%s.bib"`, safeID))
                 c.Data(http.StatusOK, "application/x-bibtex; charset=utf-8", []byte(out))
         case "ris":
                 out := citation.EntriesToRIS(manifestEntries)
-                c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="analysis-%s.ris"`, safeID))
+                c.Header(headerContentDisposition, fmt.Sprintf(`attachment; filename="analysis-%s.ris"`, safeID))
                 c.Data(http.StatusOK, "application/x-research-info-systems; charset=utf-8", []byte(out))
         default:
                 out, err := citation.EntriesToCSLJSON(manifestEntries)
@@ -181,7 +190,7 @@ func (h *CitationHandler) AnalysisCitation(c *gin.Context) {
                         c.JSON(http.StatusInternalServerError, gin.H{"error": "export failed"})
                         return
                 }
-                c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="analysis-%s.json"`, safeID))
+                c.Header(headerContentDisposition, fmt.Sprintf(`attachment; filename="analysis-%s.json"`, safeID))
                 c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(out))
         }
 }
@@ -213,6 +222,22 @@ func (h *CitationHandler) buildAnalysisManifest(fullResults json.RawMessage) []c
         return buildCitationManifestFromResults(fullResults)
 }
 
+var analysisCitationRules = []struct {
+        key  string
+        rfcs []string
+}{
+        {"spf_analysis", []string{"rfc:7208"}},
+        {"dmarc_analysis", []string{"rfc:7489"}},
+        {"dkim_analysis", []string{"rfc:6376", "rfc:8301"}},
+        {"dnssec_analysis", []string{"rfc:4033", "rfc:4034", "rfc:4035"}},
+        {"dane_analysis", []string{"rfc:6698", "rfc:7672"}},
+        {"mta_sts_analysis", []string{"rfc:8461"}},
+        {"tlsrpt_analysis", []string{"rfc:8460"}},
+        {"bimi_analysis", []string{"rfc:9495"}},
+        {"caa_analysis", []string{"rfc:8659"}},
+        {"ns_records", []string{"rfc:1034", "rfc:1035"}},
+}
+
 func buildCitationManifestFromResults(fullResults json.RawMessage) []citation.ManifestEntry {
         reg := citation.Global()
         m := citation.NewManifest()
@@ -222,40 +247,12 @@ func buildCitationManifestFromResults(fullResults json.RawMessage) []citation.Ma
                 return nil
         }
 
-        if _, ok := results["spf_analysis"]; ok {
-                m.Cite("rfc:7208")
-        }
-        if _, ok := results["dmarc_analysis"]; ok {
-                m.Cite("rfc:7489")
-        }
-        if _, ok := results["dkim_analysis"]; ok {
-                m.Cite("rfc:6376")
-                m.Cite("rfc:8301")
-        }
-        if _, ok := results["dnssec_analysis"]; ok {
-                m.Cite("rfc:4033")
-                m.Cite("rfc:4034")
-                m.Cite("rfc:4035")
-        }
-        if _, ok := results["dane_analysis"]; ok {
-                m.Cite("rfc:6698")
-                m.Cite("rfc:7672")
-        }
-        if _, ok := results["mta_sts_analysis"]; ok {
-                m.Cite("rfc:8461")
-        }
-        if _, ok := results["tlsrpt_analysis"]; ok {
-                m.Cite("rfc:8460")
-        }
-        if _, ok := results["bimi_analysis"]; ok {
-                m.Cite("rfc:9495")
-        }
-        if _, ok := results["caa_analysis"]; ok {
-                m.Cite("rfc:8659")
-        }
-        if _, ok := results["ns_records"]; ok {
-                m.Cite("rfc:1034")
-                m.Cite("rfc:1035")
+        for _, rule := range analysisCitationRules {
+                if _, ok := results[rule.key]; ok {
+                        for _, rfc := range rule.rfcs {
+                                m.Cite(rfc)
+                        }
+                }
         }
 
         if rem, ok := results["remediation"].(map[string]any); ok {
@@ -302,17 +299,17 @@ func rfcLabelToSectionID(label string) string {
         parts := strings.SplitN(rest, " ", 2)
         num := parts[0]
 
-        if idx := strings.Index(num, "\u00a7"); idx != -1 {
-                section := num[idx+len("\u00a7"):]
+        if idx := strings.Index(num, sectionSeparator); idx != -1 {
+                section := num[idx+len(sectionSeparator):]
                 num = num[:idx]
-                return "rfc:" + strings.TrimSpace(num) + "\u00a7" + strings.TrimSpace(section)
+                return "rfc:" + strings.TrimSpace(num) + sectionSeparator + strings.TrimSpace(section)
         }
 
         if len(parts) > 1 {
                 after := strings.TrimSpace(parts[1])
-                if strings.HasPrefix(after, "\u00a7") {
-                        section := strings.TrimPrefix(after, "\u00a7")
-                        return "rfc:" + strings.TrimSpace(num) + "\u00a7" + strings.TrimSpace(section)
+                if strings.HasPrefix(after, sectionSeparator) {
+                        section := strings.TrimPrefix(after, sectionSeparator)
+                        return "rfc:" + strings.TrimSpace(num) + sectionSeparator + strings.TrimSpace(section)
                 }
         }
 

@@ -286,7 +286,7 @@
             var ext = fmt === 'gif' ? 'gif' : 'png';
             var animURL = baseURL + '/badge/animated?' + animState.param + '&style=' + animState.style + '&format=' + fmt;
             btnDownloadAnim.href = animURL;
-            btnDownloadAnim.download = animState.val.replace(/[^a-zA-Z0-9.-]/g, '_') + '-dns-topology.' + ext;
+            btnDownloadAnim.download = animState.val.replaceAll(/[^a-zA-Z0-9.-]/g, '_') + '-dns-topology.' + ext;
             btnDownloadAnim.classList.remove('d-none');
             animSizeLabel.textContent = 'rendering\u2026';
             animSizeLabel.classList.remove('d-none');
@@ -314,7 +314,7 @@
                 var size = r.headers.get('content-length');
                 return r.blob().then(function(b) { return {blob: b, size: size || b.size}; });
             }).then(function(res) {
-                var kb = Math.round(parseInt(res.size) / 1024);
+                var kb = Math.round(Number.parseInt(res.size, 10) / 1024);
                 animSizeLabel.textContent = kb + ' KB';
                 animatedImg.src = URL.createObjectURL(res.blob);
                 animatedPreview.classList.remove('d-none');
