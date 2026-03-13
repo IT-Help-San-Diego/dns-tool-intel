@@ -90,3 +90,10 @@ security/reports/
 # Go build artifacts in subfolders
 go-server/dns-tool-server
 go-server/dns-tool
+go-server/probe
+
+# Compressed archives
+*.tar.gz
+
+# Inference CLI binaries
+inferencesh-cli-*

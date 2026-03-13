@@ -37,6 +37,10 @@ waitForPort = 5000
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 8099
+externalPort = 8099
+
 [userenv]
 
 [userenv.shared]
