@@ -1230,26 +1230,29 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
                 }
         }
 
+        citationManifest := buildCitationManifestFromResults(analysis.FullResults)
+
         payload := map[string]interface{}{
-                "analysis_duration": analysis.AnalysisDuration,
-                "analysis_success":  analysis.AnalysisSuccess,
-                "ascii_domain":      analysis.AsciiDomain,
-                "country_code":      analysis.CountryCode,
-                "country_name":      analysis.CountryName,
-                "created_at":        formatTimestampISO(analysis.CreatedAt),
-                "ct_subdomains":     ctSubdomains,
-                "dkim_status":       analysis.DkimStatus,
-                "dmarc_policy":      analysis.DmarcPolicy,
-                "dmarc_status":      analysis.DmarcStatus,
-                mapKeyDomain:        analysis.Domain,
-                "error_message":     analysis.ErrorMessage,
-                "full_results":      fullResults,
-                "id":                analysis.ID,
-                "provenance":        provenance,
-                "registrar_name":    analysis.RegistrarName,
-                "registrar_source":  analysis.RegistrarSource,
-                "spf_status":        analysis.SpfStatus,
-                "updated_at":        formatTimestampISO(analysis.UpdatedAt),
+                "analysis_duration":  analysis.AnalysisDuration,
+                "analysis_success":   analysis.AnalysisSuccess,
+                "ascii_domain":       analysis.AsciiDomain,
+                "citation_manifest":  citationManifest,
+                "country_code":       analysis.CountryCode,
+                "country_name":       analysis.CountryName,
+                "created_at":         formatTimestampISO(analysis.CreatedAt),
+                "ct_subdomains":      ctSubdomains,
+                "dkim_status":        analysis.DkimStatus,
+                "dmarc_policy":       analysis.DmarcPolicy,
+                "dmarc_status":       analysis.DmarcStatus,
+                mapKeyDomain:         analysis.Domain,
+                "error_message":      analysis.ErrorMessage,
+                "full_results":       fullResults,
+                "id":                 analysis.ID,
+                "provenance":         provenance,
+                "registrar_name":     analysis.RegistrarName,
+                "registrar_source":   analysis.RegistrarSource,
+                "spf_status":         analysis.SpfStatus,
+                "updated_at":         formatTimestampISO(analysis.UpdatedAt),
         }
 
         keys := make([]string, 0, len(payload))
