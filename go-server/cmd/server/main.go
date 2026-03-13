@@ -20,6 +20,7 @@ import (
         "time"
 
         "dnstool/go-server/internal/analyzer"
+        "dnstool/go-server/internal/citation"
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/entitlements"
         "dnstool/go-server/internal/db"
@@ -364,6 +365,12 @@ func main() {
 
         sourcesHandler := handlers.NewSourcesHandler(cfg)
         router.GET("/sources", sourcesHandler.Sources)
+
+        citationReg := citation.Global()
+        citationHandler := handlers.NewCitationHandler(cfg, citationReg, database)
+        router.GET("/api/authorities", citationHandler.Authorities)
+        router.GET("/cite/software", citationHandler.SoftwareCitation)
+        router.GET("/analysis/:id/cite", citationHandler.AnalysisCitation)
 
         architectureHandler := handlers.NewArchitectureHandler(cfg)
         router.GET("/architecture", architectureHandler.Architecture)

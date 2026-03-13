@@ -10,15 +10,6 @@ import (
 )
 
 const (
-        rfcSPFSection5    = "RFC 7208 §5"
-        rfcSPFSection464  = "RFC 7208 §4.6.4"
-        rfcSPF            = "RFC 7208"
-        rfcDMARC          = "RFC 7489"
-        rfcDNSSECSection2 = "RFC 4033 §2"
-        rfcDNSSEC         = "RFC 4033"
-        rfcDNSSection22   = "RFC 1035 §2.2"
-        rfcDNS            = "RFC 1035"
-
         testNS1Cloudflare   = "ns1.cloudflare.com"
         testNS2Cloudflare   = "ns2.cloudflare.com"
         testDomainExample   = "example.com"
@@ -164,7 +155,7 @@ func spfAnalysisCases() []TestCase {
                         CaseName:   "Multiple SPF records classified as error",
                         Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
-                        RFCSection: "RFC 7208 §3.2",
+                        RFCSection: citRFC7208S32,
                         Expected:   mapKeyError,
                         RunFn: func() (string, bool) {
                                 status, _ := analyzer.ExportBuildSPFVerdict(3, strPtr(strSoft), false, []string{testSPFSoftAll, "v=spf1 -all"}, nil)
@@ -234,7 +225,7 @@ func spfAnalysisCases() []TestCase {
                         CaseName:   "SPF record classification separates valid from spf-like",
                         Protocol:   protoSPF,
                         Layer:      LayerAnalysis,
-                        RFCSection: "RFC 7208 §3",
+                        RFCSection: citRFC7208S3,
                         Expected:   "1 valid, 1 spf-like",
                         RunFn: func() (string, bool) {
                                 valid, spfLike := analyzer.ExportClassifySPFRecords([]string{testSPFIncludeXSoft, "spf2.0/mfrom include:y ~all"})
@@ -324,7 +315,7 @@ func dmarcAnalysisCases() []TestCase {
                         CaseName:   "Null MX (no-mail domain) = not spoofable",
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerAnalysis,
-                        RFCSection: "RFC 7505",
+                        RFCSection: rfcNullMX7505,
                         Expected:   "No — null MX indicates no-mail domain",
                         RunFn: func() (string, bool) {
                                 answer := analyzer.ExportBuildEmailAnswer(false, "", 0, true, false, false)
