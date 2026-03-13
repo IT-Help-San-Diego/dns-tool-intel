@@ -6,6 +6,11 @@ import (
         "fmt"
 )
 
+const (
+        fmtE2ePair   = "%s + %s (end-to-end)"
+        fmtE2eSingle = "%s (end-to-end)"
+)
+
 var (
         rfcSPFSection5    string
         rfcSPFSection464  string
@@ -120,16 +125,16 @@ func init() {
         citRFC8659S44, _ = reg.ResolveRFC("rfc:8659§4.4")
         citRFC9495, _ = reg.ResolveRFC("rfc:9495")
 
-        citFixtureE2eDmarcSPF = fmt.Sprintf("%s + %s (end-to-end)", citRFC7489S63, citRFC7208)
+        citFixtureE2eDmarcSPF = fmt.Sprintf(fmtE2ePair, citRFC7489S63, citRFC7208)
         citFixtureE2eBimiCAA = fmt.Sprintf("%s + BIMI Spec + %s (end-to-end)", citRFC7489, citRFC8659S4)
-        citFixtureE2eDNSSEC = fmt.Sprintf("%s + %s (end-to-end)", citRFC4033, citRFC1035)
+        citFixtureE2eDNSSEC = fmt.Sprintf(fmtE2ePair, citRFC4033, citRFC1035)
         citFixtureE2eMTASTS = fmt.Sprintf("%s-3.2 (end-to-end)", citRFC8461S31)
-        citFixtureE2eDANE = fmt.Sprintf("%s + %s (end-to-end)", citRFC6698S21, citRFC7672)
-        citFixtureE2eNullMXSPF = fmt.Sprintf("%s + %s (end-to-end)", citRFC7505, citRFC7208)
-        citFixtureE2eSPF = fmt.Sprintf("%s (end-to-end)", citRFC7208)
+        citFixtureE2eDANE = fmt.Sprintf(fmtE2ePair, citRFC6698S21, citRFC7672)
+        citFixtureE2eNullMXSPF = fmt.Sprintf(fmtE2ePair, citRFC7505, citRFC7208)
+        citFixtureE2eSPF = fmt.Sprintf(fmtE2eSingle, citRFC7208)
         citFixtureE2eBimiCAASec = fmt.Sprintf("%s + BIMI + %s (end-to-end)", citRFC7489, citRFC8659S4)
-        citFixtureE2eDmarcS63 = fmt.Sprintf("%s (end-to-end)", citRFC7489S63)
-        citFixtureE2eSPFS5 = fmt.Sprintf("%s (end-to-end)", citRFC7208S5)
-        citFixtureE2eCAASection = fmt.Sprintf("%s (end-to-end)", citRFC8659S4)
-        citFixtureE2eDANEMulti = fmt.Sprintf("%s + %s (end-to-end)", citRFC6698S21, citRFC7672)
+        citFixtureE2eDmarcS63 = fmt.Sprintf(fmtE2eSingle, citRFC7489S63)
+        citFixtureE2eSPFS5 = fmt.Sprintf(fmtE2eSingle, citRFC7208S5)
+        citFixtureE2eCAASection = fmt.Sprintf(fmtE2eSingle, citRFC8659S4)
+        citFixtureE2eDANEMulti = fmt.Sprintf(fmtE2ePair, citRFC6698S21, citRFC7672)
 }

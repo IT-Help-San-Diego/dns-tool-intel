@@ -48,7 +48,7 @@ WATCHED_FILES=(
   "DRIFT_ENGINE.md"
   "go-server/internal/config/config.go"
   "go-server/db/schema/schema.sql"
-  "static/css/custom.css"
+  "src/css/custom.css"
   "static/css/custom.min.css"
   "static/manifest.json"
   "scripts/git-push.sh"
