@@ -160,7 +160,7 @@ func animContentType(format string) string {
         if format == "gif" {
                 return "image/gif"
         }
-        return "image/apng"
+        return "image/png"
 }
 
 var reAnimateMotionBlock = regexp.MustCompile(
