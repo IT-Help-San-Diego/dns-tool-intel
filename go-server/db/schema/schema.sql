@@ -310,3 +310,31 @@ CREATE TABLE securitytrails_budget (
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- Domain index: historical registry of every domain ever scanned.
+-- Enables intelligence trending, usage analytics, and enrichment targeting.
+CREATE TABLE domain_index (
+    domain        VARCHAR(255) PRIMARY KEY,
+    first_seen    TIMESTAMP NOT NULL DEFAULT NOW(),
+    last_seen     TIMESTAMP NOT NULL DEFAULT NOW(),
+    total_scans   INTEGER NOT NULL DEFAULT 1,
+    last_score    REAL,
+    has_dane      BOOLEAN NOT NULL DEFAULT FALSE,
+    has_dnssec    BOOLEAN NOT NULL DEFAULT FALSE,
+    has_mta_sts   BOOLEAN NOT NULL DEFAULT FALSE,
+    tags          TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX ix_domain_index_last_seen ON domain_index (last_seen DESC);
+CREATE INDEX ix_domain_index_total_scans ON domain_index (total_scans DESC);
+CREATE INDEX ix_domain_index_tags ON domain_index USING GIN (tags);
+
+-- Priority domains: always enriched first in CT intelligence pipeline.
+-- Domains with advanced DNS features (DANE, DNSSEC) that we track as
+-- reference implementations and industry benchmarks.
+CREATE TABLE priority_domains (
+    domain        VARCHAR(255) PRIMARY KEY,
+    reason        TEXT NOT NULL,
+    added_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    enabled       BOOLEAN NOT NULL DEFAULT TRUE
+);

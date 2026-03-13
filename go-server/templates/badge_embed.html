@@ -143,6 +143,35 @@
                     </div>
                 </div>
 
+                <div class="card mb-4 d-none" id="badgeAnimatedCard">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{icon "image" "me-2"}}Animated Badge</h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-info active" id="btnFormatAPNG" data-format="apng">APNG</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnFormatGIF" data-format="gif">GIF</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-2" id="formatDescription">Full-color animated PNG. Crystal clear, lossless quality. Supported by all modern browsers, Apple Mail, Notion, and most platforms.</p>
+                        <p class="text-muted small mb-3 d-none" id="formatDescriptionGIF">256-color animated GIF. Universal compatibility for legacy platforms. Use APNG for full quality.</p>
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <a class="btn btn-outline-info btn-sm d-none" id="btnDownloadAnimated" download>
+                                {{icon "download" "me-1"}}Download Animated Badge
+                            </a>
+                            <span class="badge bg-dark text-muted align-self-center d-none" id="animSizeLabel"></span>
+                        </div>
+                        <div class="badge-preview-area d-none" id="animatedPreview" style="max-height: 500px;">
+                            <img id="animatedPreviewImg" alt="Animated DNS Topology Badge" style="max-width: 100%; height: auto; display: block; image-rendering: auto;">
+                        </div>
+                        <p class="text-muted small mt-3 mb-0" style="font-size: .75rem; line-height: 1.4; opacity: .75;">
+                            This badge visualizes publicly available DNS records, certificate transparency logs, and protocol configurations &mdash;
+                            the same data queryable via <code>dig</code>, <code>nslookup</code>, or any CT log search.
+                            Domains missing SPF, DKIM, DMARC, or DNSSEC records are verifiably exposed to spoofing, impersonation, and interception.
+                            That is not an opinion. It is what the protocol specifications require and what the absence of those records permits.
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card mb-4 d-none" id="badgeShieldsCard">
                     <div class="card-header">
                         <h5 class="mb-0">{{icon "shield-halved" "me-2"}}GitHub &amp; Shields.io</h5>
@@ -242,6 +271,61 @@
             });
         });
 
+        var animatedCard = document.getElementById('badgeAnimatedCard');
+        var btnDownloadAnim = document.getElementById('btnDownloadAnimated');
+        var animSizeLabel = document.getElementById('animSizeLabel');
+        var animatedPreview = document.getElementById('animatedPreview');
+        var animatedImg = document.getElementById('animatedPreviewImg');
+        var btnAPNG = document.getElementById('btnFormatAPNG');
+        var btnGIFfmt = document.getElementById('btnFormatGIF');
+        var fmtDescAPNG = document.getElementById('formatDescription');
+        var fmtDescGIF = document.getElementById('formatDescriptionGIF');
+        var animState = { param: '', style: '', val: '' };
+
+        function loadAnimatedBadge(fmt) {
+            var ext = fmt === 'gif' ? 'gif' : 'png';
+            var animURL = baseURL + '/badge/animated?' + animState.param + '&style=' + animState.style + '&format=' + fmt;
+            btnDownloadAnim.href = animURL;
+            btnDownloadAnim.download = animState.val.replace(/[^a-zA-Z0-9.-]/g, '_') + '-dns-topology.' + ext;
+            btnDownloadAnim.classList.remove('d-none');
+            animSizeLabel.textContent = 'rendering\u2026';
+            animSizeLabel.classList.remove('d-none');
+            animatedPreview.classList.add('d-none');
+            animatedImg.src = '';
+
+            if (fmt === 'apng') {
+                btnAPNG.classList.remove('btn-outline-secondary');
+                btnAPNG.classList.add('btn-outline-info', 'active');
+                btnGIFfmt.classList.remove('btn-outline-info', 'active');
+                btnGIFfmt.classList.add('btn-outline-secondary');
+                fmtDescAPNG.classList.remove('d-none');
+                fmtDescGIF.classList.add('d-none');
+            } else {
+                btnGIFfmt.classList.remove('btn-outline-secondary');
+                btnGIFfmt.classList.add('btn-outline-info', 'active');
+                btnAPNG.classList.remove('btn-outline-info', 'active');
+                btnAPNG.classList.add('btn-outline-secondary');
+                fmtDescGIF.classList.remove('d-none');
+                fmtDescAPNG.classList.add('d-none');
+            }
+
+            fetch(animURL).then(function(r) {
+                if (!r.ok) throw new Error('render failed');
+                var size = r.headers.get('content-length');
+                return r.blob().then(function(b) { return {blob: b, size: size || b.size}; });
+            }).then(function(res) {
+                var kb = Math.round(parseInt(res.size) / 1024);
+                animSizeLabel.textContent = kb + ' KB';
+                animatedImg.src = URL.createObjectURL(res.blob);
+                animatedPreview.classList.remove('d-none');
+            }).catch(function() {
+                animSizeLabel.textContent = 'generation failed';
+            });
+        }
+
+        btnAPNG.addEventListener('click', function() { loadAnimatedBadge('apng'); });
+        btnGIFfmt.addEventListener('click', function() { loadAnimatedBadge('gif'); });
+
         function isNumeric(val) {
             return /^\d+$/.test(val);
         }
@@ -261,6 +345,16 @@
             }
 
             var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style) + '&t=' + Date.now();
+
+            if (style === 'detailed' || style === 'covert') {
+                animatedCard.classList.remove('d-none');
+                animState.param = param;
+                animState.style = style;
+                animState.val = val;
+                loadAnimatedBadge('apng');
+            } else {
+                animatedCard.classList.add('d-none');
+            }
 
             fetch(badgeURL).then(function(r) {
                 if (!r.ok) { throw new Error('fetch failed'); }

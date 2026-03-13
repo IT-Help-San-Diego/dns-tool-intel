@@ -36,7 +36,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 			CaseName:   "Well-configured domain: reject + SPF + DMARC = not spoofable",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7489 §6.3 + RFC 7208 (end-to-end)",
+			RFCSection: citFixtureE2eDmarcSPF,
 			Expected:   "No — SPF and DMARC reject policy enforced",
 			RunFn: func() (string, bool) {
 				spfRecords := []string{"v=spf1 include:_spf.google.com -all"}
@@ -52,7 +52,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 			CaseName:   "Well-configured domain: reject + BIMI + CAA = brand protected",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7489 + BIMI Spec + RFC 8659 (end-to-end)",
+			RFCSection: citFixtureE2eBimiCAA,
 			Expected:   "answer=No, label=Protected",
 			RunFn: func() (string, bool) {
 				verdict := analyzer.ExportBuildBrandVerdict(false, "reject", true, true)
@@ -67,7 +67,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 			CaseName:   "Well-configured domain: DNSSEC signed + enterprise DNS = protected",
 			Protocol:   "dnssec",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 4033 + RFC 1035 (end-to-end)",
+			RFCSection: citFixtureE2eDNSSEC,
 			Expected:   "tampering=No, provider=Cloudflare",
 			RunFn: func() (string, bool) {
 				dnsVerdict := analyzer.ExportBuildDNSVerdict(true, false)
@@ -89,7 +89,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 			CaseName:   "Well-configured domain: MTA-STS enforce + valid policy",
 			Protocol:   "mta_sts",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 8461 §3.1-3.2 (end-to-end)",
+			RFCSection: citFixtureE2eMTASTS,
 			Expected:   "mode=enforce, status=success, max_age valid",
 			RunFn: func() (string, bool) {
 				stsRecords := analyzer.ExportFilterSTSRecords([]string{"v=STSv1; id=20260220T000000", "unrelated-txt-record"})
@@ -121,7 +121,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 			CaseName:   "Well-configured domain: DANE full MX coverage",
 			Protocol:   "dane",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 6698 + RFC 7672 (end-to-end)",
+			RFCSection: citFixtureE2eDANE,
 			Expected:   "DANE verdict=success with full coverage",
 			RunFn: func() (string, bool) {
 				mxHosts := analyzer.ExportExtractMXHosts([]string{"10 mail.example.com.", "20 mail2.example.com."})
@@ -156,7 +156,7 @@ func noMailDomainFixtures() []TestCase {
 			CaseName:   "No-mail domain: null MX + SPF -all = not spoofable",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7505 + RFC 7208 (end-to-end)",
+			RFCSection: citFixtureE2eNullMXSPF,
 			Expected:   "No — null MX indicates no-mail domain",
 			RunFn: func() (string, bool) {
 				mxHosts := analyzer.ExportExtractMXHosts([]string{"0 ."})
@@ -180,7 +180,7 @@ func noMailDomainFixtures() []TestCase {
 			CaseName:   "No-mail domain: SPF -all standalone = success status",
 			Protocol:   "spf",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7208 (end-to-end)",
+			RFCSection: citFixtureE2eSPF,
 			Expected:   "SPF status=success for no-mail",
 			RunFn: func() (string, bool) {
 				count, _, _, perm, _, _, noMail := analyzer.ExportParseSPFMechanisms(testSPFDenyAll)
@@ -199,7 +199,7 @@ func partialProtectionFixtures() []TestCase {
 			CaseName:   "Partial protection: quarantine + no BIMI + no CAA",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7489 + BIMI + RFC 8659 (end-to-end)",
+			RFCSection: citFixtureE2eBimiCAASec,
 			Expected:   "answer=Likely, label=Basic",
 			RunFn: func() (string, bool) {
 				verdict := analyzer.ExportBuildBrandVerdict(false, "quarantine", false, false)
@@ -214,7 +214,7 @@ func partialProtectionFixtures() []TestCase {
 			CaseName:   "Partial protection: p=none with SPF = monitor-only spoofable",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7489 §6.3 (end-to-end)",
+			RFCSection: citFixtureE2eDmarcS63,
 			Expected:   "monitor-only (spoofable)",
 			RunFn: func() (string, bool) {
 				result := analyzer.ExportBuildEmailAnswerStructured(false, "none", 0, false, true, true)
@@ -229,7 +229,7 @@ func partialProtectionFixtures() []TestCase {
 			CaseName:   "Partial protection: quarantine at 25% = limited coverage",
 			Protocol:   mapKeyDmarc,
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7489 §6.3 (end-to-end)",
+			RFCSection: citFixtureE2eDmarcS63,
 			Expected:   "partial percentage flagged",
 			RunFn: func() (string, bool) {
 				answer := analyzer.ExportBuildEmailAnswer(false, "quarantine", 25, false, true, true)
@@ -246,7 +246,7 @@ func edgeCaseFixtures() []TestCase {
 			CaseName:   "Edge case: +all SPF = dangerous despite having DMARC reject",
 			Protocol:   "spf",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 7208 §5 (end-to-end)",
+			RFCSection: citFixtureE2eSPFS5,
 			Expected:   "SPF dangerous even with DMARC reject",
 			RunFn: func() (string, bool) {
 				qual := analyzer.ExportClassifyAllQualifier("v=spf1 +all")
@@ -285,7 +285,7 @@ func edgeCaseFixtures() []TestCase {
 			CaseName:   "Edge case: CAA with only iodef (no issue/issuewild) = open issuance",
 			Protocol:   "caa",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 8659 §4 (end-to-end)",
+			RFCSection: citFixtureE2eCAASection,
 			Expected:   "0 issuers but has iodef",
 			RunFn: func() (string, bool) {
 				issuers, wildcardIssuers, _, hasIodef := analyzer.ExportParseCAARecords([]string{
@@ -300,7 +300,7 @@ func edgeCaseFixtures() []TestCase {
 			CaseName:   "Edge case: DANE partial MX coverage = warning verdict",
 			Protocol:   "dane",
 			Layer:      LayerAnalysis,
-			RFCSection: "RFC 6698 + RFC 7672 (end-to-end)",
+			RFCSection: citFixtureE2eDANE,
 			Expected:   "DANE warning for partial coverage",
 			RunFn: func() (string, bool) {
 				mxHosts := analyzer.ExportExtractMXHosts([]string{"10 mail.example.com.", "20 mail2.example.com."})

@@ -1230,26 +1230,29 @@ func (h *AnalysisHandler) buildAnalysisJSON(ctx context.Context, analysis dbq.Do
                 }
         }
 
+        citationManifest := buildCitationManifestFromResults(analysis.FullResults)
+
         payload := map[string]interface{}{
-                "analysis_duration": analysis.AnalysisDuration,
-                "analysis_success":  analysis.AnalysisSuccess,
-                "ascii_domain":      analysis.AsciiDomain,
-                "country_code":      analysis.CountryCode,
-                "country_name":      analysis.CountryName,
-                "created_at":        formatTimestampISO(analysis.CreatedAt),
-                "ct_subdomains":     ctSubdomains,
-                "dkim_status":       analysis.DkimStatus,
-                "dmarc_policy":      analysis.DmarcPolicy,
-                "dmarc_status":      analysis.DmarcStatus,
-                mapKeyDomain:        analysis.Domain,
-                "error_message":     analysis.ErrorMessage,
-                "full_results":      fullResults,
-                "id":                analysis.ID,
-                "provenance":        provenance,
-                "registrar_name":    analysis.RegistrarName,
-                "registrar_source":  analysis.RegistrarSource,
-                "spf_status":        analysis.SpfStatus,
-                "updated_at":        formatTimestampISO(analysis.UpdatedAt),
+                "analysis_duration":  analysis.AnalysisDuration,
+                "analysis_success":   analysis.AnalysisSuccess,
+                "ascii_domain":       analysis.AsciiDomain,
+                "citation_manifest":  citationManifest,
+                "country_code":       analysis.CountryCode,
+                "country_name":       analysis.CountryName,
+                "created_at":         formatTimestampISO(analysis.CreatedAt),
+                "ct_subdomains":      ctSubdomains,
+                "dkim_status":        analysis.DkimStatus,
+                "dmarc_policy":       analysis.DmarcPolicy,
+                "dmarc_status":       analysis.DmarcStatus,
+                mapKeyDomain:         analysis.Domain,
+                "error_message":      analysis.ErrorMessage,
+                "full_results":       fullResults,
+                "id":                 analysis.ID,
+                "provenance":         provenance,
+                "registrar_name":     analysis.RegistrarName,
+                "registrar_source":   analysis.RegistrarSource,
+                "spf_status":         analysis.SpfStatus,
+                "updated_at":         formatTimestampISO(analysis.UpdatedAt),
         }
 
         keys := make([]string, 0, len(payload))
@@ -1488,11 +1491,33 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
                 return 0, time.Now().UTC().Format(strUtc)
         }
 
+        if success {
+                go func() {
+                        bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                        defer cancel()
+                        _ = h.DB.Queries.UpsertDomainIndex(bgCtx, dbq.UpsertDomainIndexParams{
+                                Domain:    p.domain,
+                                HasDane:   analysisHasProtocol(p.results, "dane_analysis"),
+                                HasDnssec: analysisHasProtocol(p.results, "dnssec_analysis"),
+                                HasMtaSts: analysisHasProtocol(p.results, "mta_sts_analysis"),
+                        })
+                }()
+        }
+
         timestamp := "just now"
         if row.CreatedAt.Valid {
                 timestamp = row.CreatedAt.Time.Format(strUtc)
         }
         return row.ID, timestamp
+}
+
+func analysisHasProtocol(results map[string]any, key string) bool {
+        section, ok := results[key].(map[string]any)
+        if !ok {
+                return false
+        }
+        status, _ := section["status"].(string)
+        return status == "success" || status == "warning"
 }
 
 func extractAnalysisError(results map[string]any) (bool, *string) {
