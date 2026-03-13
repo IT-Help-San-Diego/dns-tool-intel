@@ -143,6 +143,29 @@
                     </div>
                 </div>
 
+                <div class="card mb-4 d-none" id="badgeAnimatedCard">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{icon "image" "me-2"}}Animated GIF</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Download an animated GIF version of the badge. Works everywhere SVGs don't &mdash; email signatures, Slack previews, social media posts, presentations.</p>
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <a class="btn btn-outline-info btn-sm d-none" id="btnDownloadGIF" download>
+                                {{icon "download" "me-1"}}Download Animated GIF
+                            </a>
+                            <span class="badge bg-dark text-muted align-self-center d-none" id="gifSizeLabel"></span>
+                        </div>
+                        <div class="badge-preview-area d-none" id="animatedPreview" style="max-height: 340px;">
+                            <img id="animatedPreviewImg" alt="Animated DNS Topology Badge" style="max-width: 100%; height: auto; display: block; image-rendering: auto;">
+                        </div>
+                        <p class="text-muted small mt-3 mb-0" style="font-size: .75rem; line-height: 1.4; opacity: .75;">
+                            This badge displays publicly available DNS records, certificate transparency logs, and protocol configurations.
+                            The same data anyone can query with <code>dig</code>, <code>nslookup</code>, or a CT log search.
+                            We just made it look scarier. Share responsibly, embarrass irresponsibly.
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card mb-4 d-none" id="badgeShieldsCard">
                     <div class="card-header">
                         <h5 class="mb-0">{{icon "shield-halved" "me-2"}}GitHub &amp; Shields.io</h5>
@@ -261,6 +284,39 @@
             }
 
             var badgeURL = baseURL + '/badge?' + param + (style === 'flat' ? '' : '&style=' + style) + '&t=' + Date.now();
+
+            var animatedCard = document.getElementById('badgeAnimatedCard');
+            var btnGIF = document.getElementById('btnDownloadGIF');
+            var gifSizeLabel = document.getElementById('gifSizeLabel');
+            var animatedPreview = document.getElementById('animatedPreview');
+            var animatedImg = document.getElementById('animatedPreviewImg');
+
+            if (style === 'detailed' || style === 'covert') {
+                animatedCard.classList.remove('d-none');
+                var animURL = baseURL + '/badge/animated?' + param + '&style=' + style;
+                btnGIF.href = animURL;
+                btnGIF.download = val.replace(/[^a-zA-Z0-9.-]/g, '_') + '-dns-topology.gif';
+                btnGIF.classList.remove('d-none');
+                gifSizeLabel.classList.add('d-none');
+                animatedPreview.classList.add('d-none');
+                animatedImg.src = '';
+                fetch(animURL).then(function(r) {
+                    if (!r.ok) throw new Error('gif failed');
+                    var size = r.headers.get('content-length');
+                    return r.blob().then(function(b) { return {blob: b, size: size || b.size}; });
+                }).then(function(res) {
+                    var kb = Math.round(parseInt(res.size) / 1024);
+                    gifSizeLabel.textContent = kb + ' KB';
+                    gifSizeLabel.classList.remove('d-none');
+                    animatedImg.src = URL.createObjectURL(res.blob);
+                    animatedPreview.classList.remove('d-none');
+                }).catch(function() {
+                    gifSizeLabel.textContent = 'generation failed';
+                    gifSizeLabel.classList.remove('d-none');
+                });
+            } else {
+                animatedCard.classList.add('d-none');
+            }
 
             fetch(badgeURL).then(function(r) {
                 if (!r.ok) { throw new Error('fetch failed'); }

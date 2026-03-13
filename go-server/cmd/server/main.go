@@ -427,6 +427,7 @@ func main() {
         router.GET("/badge", badgeHandler.Badge)
         router.GET("/badge/shields", badgeHandler.BadgeShieldsIO)
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
+        router.GET("/badge/animated", badgeHandler.BadgeAnimated)
 
         zoneHandler := handlers.NewZoneHandler(database, cfg)
         router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
