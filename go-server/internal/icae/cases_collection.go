@@ -23,7 +23,6 @@ const (
         testSPFGoogleInclude    = "v=spf1 include:_spf.google.com ~all"
         testSPFDenyAll          = "v=spf1 -all"
         testSPFGoogleSoft       = "v=spf1 include:google.com ~all"
-        rfcCAASection4          = "RFC 8659 §4"
 )
 
 func CollectionTestCases() []TestCase {
@@ -145,7 +144,7 @@ func mxExtractionCases() []TestCase {
                         CaseName:   "MX host extraction strips priority prefix",
                         Protocol:   protocolDANE,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 5321 §5",
+                        RFCSection: rfcSMTP5321S5,
                         Expected:   "2 hosts extracted",
                         RunFn: func() (string, bool) {
                                 hosts := analyzer.ExportExtractMXHosts([]string{"10 mail1.example.com.", "20 mail2.example.com."})
@@ -158,7 +157,7 @@ func mxExtractionCases() []TestCase {
                         CaseName:   "Null MX (priority 0, dot) returns empty",
                         Protocol:   protocolDANE,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 7505",
+                        RFCSection: rfcNullMX7505,
                         Expected:   "0 hosts (null MX)",
                         RunFn: func() (string, bool) {
                                 hosts := analyzer.ExportExtractMXHosts([]string{"0 ."})
@@ -171,7 +170,7 @@ func mxExtractionCases() []TestCase {
                         CaseName:   "Empty MX input returns empty slice",
                         Protocol:   protocolDANE,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 5321 §5",
+                        RFCSection: rfcSMTP5321S5,
                         Expected:   "0 hosts",
                         RunFn: func() (string, bool) {
                                 hosts := analyzer.ExportExtractMXHosts(nil)
@@ -189,7 +188,7 @@ func recordFilteringCases() []TestCase {
                         CaseName:   "MTA-STS record filtering accepts v=STSv1",
                         Protocol:   mapKeyMtaSts,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 8461 §3.1",
+                        RFCSection: rfcMTASTS8461S31,
                         Expected:   "1 valid record",
                         RunFn: func() (string, bool) {
                                 records := analyzer.ExportFilterSTSRecords([]string{
@@ -206,7 +205,7 @@ func recordFilteringCases() []TestCase {
                         CaseName:   "MTA-STS ID extraction from valid record",
                         Protocol:   mapKeyMtaSts,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 8461 §3.1",
+                        RFCSection: rfcMTASTS8461S31,
                         Expected:   "ID extracted",
                         RunFn: func() (string, bool) {
                                 id := analyzer.ExportExtractSTSID("v=STSv1; id=20260220")
@@ -221,7 +220,7 @@ func recordFilteringCases() []TestCase {
                         CaseName:   "MTA-STS policy parsing extracts mode and max_age",
                         Protocol:   mapKeyMtaSts,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 8461 §3.2",
+                        RFCSection: citRFC8461S32,
                         Expected:   "mode=enforce, max_age>0",
                         RunFn: func() (string, bool) {
                                 mode, maxAge, mx, hasVersion := analyzer.ExportParseMTASTSPolicyLines(
@@ -305,7 +304,7 @@ func recordParsingCases() []TestCase {
                         CaseName:   "DKIM key analysis extracts key type and length",
                         Protocol:   "dkim",
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 6376 §3.6.1",
+                        RFCSection: citRFC6376S361,
                         Expected:   "key parsed with type and length",
                         RunFn: func() (string, bool) {
                                 result := analyzer.ExportAnalyzeDKIMKey("v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1234567890")
@@ -319,7 +318,7 @@ func recordParsingCases() []TestCase {
                         CaseName:   "TLSA entry parsing extracts usage and selector fields",
                         Protocol:   protocolDANE,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 6698 §2.1",
+                        RFCSection: citRFC6698S21,
                         Expected:   "valid TLSA with usage_name",
                         RunFn: func() (string, bool) {
                                 parsed, valid := analyzer.ExportParseTLSAEntry("3 1 1 abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", "mail.example.com", "_25._tcp.mail.example.com")
@@ -401,7 +400,7 @@ func dmarcCollectionCases() []TestCase {
                         CaseName:   "DMARC record filtering accepts v=DMARC1",
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 7489 §6.1",
+                        RFCSection: citRFC7489S61,
                         Expected:   "1 valid, 0 dmarc-like",
                         RunFn: func() (string, bool) {
                                 valid, dmarcLike := analyzer.ExportClassifyDMARCRecords([]string{
@@ -418,7 +417,7 @@ func dmarcCollectionCases() []TestCase {
                         CaseName:   "DMARC policy tag extraction from record",
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 7489 §6.3",
+                        RFCSection: citRFC7489S63,
                         Expected:   "policy=reject, pct=100, hasRUA=true",
                         RunFn: func() (string, bool) {
                                 policy, pct, hasRUA := analyzer.ExportParseDMARCPolicy("v=DMARC1; p=reject; pct=100; rua=mailto:dmarc@example.com")
@@ -431,7 +430,7 @@ func dmarcCollectionCases() []TestCase {
                         CaseName:   "Empty TXT records yield zero DMARC records",
                         Protocol:   mapKeyDmarc,
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 7489 §6.1",
+                        RFCSection: citRFC7489S61,
                         Expected:   "0 valid, 0 dmarc-like",
                         RunFn: func() (string, bool) {
                                 valid, dmarcLike := analyzer.ExportClassifyDMARCRecords(nil)
@@ -449,7 +448,7 @@ func tlsrptCollectionCases() []TestCase {
                         CaseName:   "TLS-RPT URI extraction from rua field",
                         Protocol:   "tlsrpt",
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 8460 §3",
+                        RFCSection: citRFC8460S3,
                         Expected:   "2 URIs extracted",
                         RunFn: func() (string, bool) {
                                 uris := analyzer.ExportExtractTLSRPTURIs("v=TLSRPTv1; rua=mailto:tls@example.com,https://report.example.com/tls")
@@ -462,7 +461,7 @@ func tlsrptCollectionCases() []TestCase {
                         CaseName:   "TLS-RPT record without rua yields zero URIs",
                         Protocol:   "tlsrpt",
                         Layer:      LayerCollection,
-                        RFCSection: "RFC 8460 §3",
+                        RFCSection: citRFC8460S3,
                         Expected:   "0 URIs",
                         RunFn: func() (string, bool) {
                                 uris := analyzer.ExportExtractTLSRPTURIs("v=TLSRPTv1")
