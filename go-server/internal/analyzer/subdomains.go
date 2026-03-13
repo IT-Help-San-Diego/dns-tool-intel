@@ -225,17 +225,28 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 a.enrichSubdomainsV2(ctx, domain, subdomains)
         }
 
-        if len(a.Probes) > 0 && len(subdomains) > 0 {
-                newSANs, nmapEnriched := a.enrichSubdomainsWithNmap(ctx, domain, subdomains)
-                if len(newSANs) > 0 {
-                        subdomains = append(subdomains, newSANs...)
-                        result["nmap_san_discovered"] = len(newSANs)
-                }
-                if nmapEnriched > 0 {
-                        result["nmap_enriched"] = nmapEnriched
-                }
-        }
+        subdomains = a.applyNmapEnrichment(ctx, domain, subdomains, result)
+        subdomains = a.finalizeSubdomains(ctx, domain, subdomains, ct, result)
 
+        return result
+}
+
+func (a *Analyzer) applyNmapEnrichment(ctx context.Context, domain string, subdomains []map[string]any, result map[string]any) []map[string]any {
+        if len(a.Probes) == 0 || len(subdomains) == 0 {
+                return subdomains
+        }
+        newSANs, nmapEnriched := a.enrichSubdomainsWithNmap(ctx, domain, subdomains)
+        if len(newSANs) > 0 {
+                subdomains = append(subdomains, newSANs...)
+                result["nmap_san_discovered"] = len(newSANs)
+        }
+        if nmapEnriched > 0 {
+                result["nmap_enriched"] = nmapEnriched
+        }
+        return subdomains
+}
+
+func (a *Analyzer) finalizeSubdomains(ctx context.Context, domain string, subdomains []map[string]any, ct ctFetchResult, result map[string]any) []map[string]any {
         currentCount, expiredCount := countSubdomainStats(subdomains)
         result[mapKeyCurrentCount] = fmt.Sprintf("%d", currentCount)
         result[mapKeyExpiredCount] = fmt.Sprintf("%d", expiredCount)
@@ -248,7 +259,7 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 if ct.fallback {
                         ctSource = "certspotter"
                 }
-                go a.CTStore.Set(context.Background(), domain, subdomains, ctSource)
+                go a.CTStore.Set(ctx, domain, subdomains, ctSource)
         }
 
         result[mapKeyUniqueSubdomains] = len(subdomains)
@@ -258,8 +269,7 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
                 result["ct_failure_reason"] = ct.failureReason
         }
         applySubdomainDisplayCap(result, subdomains, currentCount)
-
-        return result
+        return subdomains
 }
 
 func returnCachedSubdomains(result map[string]any, cached []map[string]any) map[string]any {
