@@ -47,6 +47,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "remediation"}} active{{end}}" href="/remediation" title="Remediation Workspace — copy-paste DNS records to fix security issues">
+                        {{icon "wrench" "me-1"}}Remediation
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "toolkit"}} active{{end}}" href="/toolkit" title="Field Tech Toolkit — guided network troubleshooting">
                         {{icon "tools" "me-1"}}Toolkit{{if index .BetaPages "toolkit"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
                     </a>

@@ -988,47 +988,66 @@
             <div class="loading-dots mt-2" aria-hidden="true">
                 <span></span><span></span><span></span>
             </div>
-            <div class="scan-checklist mt-3" id="scanChecklist" aria-hidden="true">
-                <div class="scan-phase" data-delay="0">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">DNS records &mdash; Cloudflare, Google, Quad9, OpenDNS, DNS4EU</span>
-                    <span class="covert-show">Enumerating DNS across 5 resolvers&hellip;</span>
-                </div>
-                <div class="scan-phase" data-delay="1200">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Email auth &mdash; SPF, DMARC, DKIM selectors</span>
-                    <span class="covert-show">Probing email spoofability &mdash; SPF, DMARC, DKIM</span>
-                </div>
-                <div class="scan-phase" data-delay="2500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">DNSSEC chain of trust &amp; DANE/TLSA</span>
-                    <span class="covert-show">Testing DNS poison resistance &mdash; DNSSEC, DANE</span>
-                </div>
-                <div class="scan-phase" data-delay="3500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Certificate Transparency &amp; subdomain discovery</span>
-                    <span class="covert-show">Harvesting subdomains from CT logs&hellip;</span>
-                </div>
-                <div class="scan-phase" data-delay="5000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">SMTP transport &amp; STARTTLS verification</span>
-                    <span class="covert-show">Fingerprinting SMTP &amp; checking downgrade paths</span>
-                </div>
-                <div class="scan-phase" data-delay="7000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">MTA-STS, TLS-RPT, BIMI, CAA</span>
-                    <span class="covert-show">Checking policy enforcement &mdash; MTA-STS, CAA, BIMI</span>
-                </div>
-                <div class="scan-phase" data-delay="9000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Registrar &amp; infrastructure analysis</span>
-                    <span class="covert-show">Mapping registrar &amp; infrastructure footprint</span>
-                </div>
-                <div class="scan-phase" data-delay="12000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Classifying &amp; Interpreting Intelligence</span>
-                    <span class="covert-show">Correlating attack surface&hellip;</span>
-                </div>
+            <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
+                <svg viewBox="0 0 440 280" width="440" height="280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scan progress topology">
+                    <style>
+                        .topo-node { fill: #2d333b; stroke: #444c56; stroke-width: 1.5; transition: fill 0.4s, stroke 0.4s; }
+                        .topo-label { fill: #8b949e; font-size: 10px; font-family: system-ui, sans-serif; text-anchor: middle; transition: fill 0.4s; }
+                        .topo-dur { fill: #8b949e; font-size: 9px; font-family: monospace; text-anchor: middle; opacity: 0; transition: opacity 0.3s; }
+                        .topo-node.phase-running { stroke: #4a8fe7; animation: topo-pulse 1.2s ease-in-out infinite; }
+                        .topo-node.phase-done { fill: #4a8fe7; stroke: #6cb0f7; }
+                        .topo-node.phase-done + text { fill: #c9d1d9; }
+                        .topo-dur.visible { opacity: 1; }
+                        @keyframes topo-pulse { 0%, 100% { fill: #2d333b; } 50% { fill: #1a3a5c; } }
+                        .topo-connector { stroke: #444c56; stroke-width: 1; stroke-dasharray: 3,3; opacity: 0.5; }
+                    </style>
+                    <line x1="220" y1="55" x2="60" y2="110" class="topo-connector"/>
+                    <line x1="220" y1="55" x2="160" y2="110" class="topo-connector"/>
+                    <line x1="220" y1="55" x2="280" y2="110" class="topo-connector"/>
+                    <line x1="220" y1="55" x2="380" y2="110" class="topo-connector"/>
+                    <line x1="60" y1="110" x2="60" y2="180" class="topo-connector"/>
+                    <line x1="160" y1="110" x2="160" y2="180" class="topo-connector"/>
+                    <line x1="280" y1="110" x2="280" y2="180" class="topo-connector"/>
+                    <line x1="380" y1="110" x2="380" y2="180" class="topo-connector"/>
+                    <line x1="60" y1="180" x2="220" y2="240" class="topo-connector"/>
+                    <line x1="160" y1="180" x2="220" y2="240" class="topo-connector"/>
+                    <line x1="280" y1="180" x2="220" y2="240" class="topo-connector"/>
+                    <line x1="380" y1="180" x2="220" y2="240" class="topo-connector"/>
+
+                    <rect x="180" y="20" width="80" height="35" rx="6" class="topo-node" data-phase="dns_records"/>
+                    <text x="220" y="42" class="topo-label">DNS Records</text>
+                    <text x="220" y="54" class="topo-dur" data-dur="dns_records"></text>
+
+                    <rect x="20" y="90" width="80" height="35" rx="6" class="topo-node" data-phase="email_auth"/>
+                    <text x="60" y="112" class="topo-label">Email Auth</text>
+                    <text x="60" y="124" class="topo-dur" data-dur="email_auth"></text>
+
+                    <rect x="120" y="90" width="80" height="35" rx="6" class="topo-node" data-phase="dnssec_dane"/>
+                    <text x="160" y="112" class="topo-label">DNSSEC/DANE</text>
+                    <text x="160" y="124" class="topo-dur" data-dur="dnssec_dane"></text>
+
+                    <rect x="240" y="90" width="80" height="35" rx="6" class="topo-node" data-phase="ct_subdomains"/>
+                    <text x="280" y="112" class="topo-label">CT/Subdomains</text>
+                    <text x="280" y="124" class="topo-dur" data-dur="ct_subdomains"></text>
+
+                    <rect x="340" y="90" width="80" height="35" rx="6" class="topo-node" data-phase="smtp_transport"/>
+                    <text x="380" y="112" class="topo-label">SMTP</text>
+                    <text x="380" y="124" class="topo-dur" data-dur="smtp_transport"></text>
+
+                    <rect x="20" y="160" width="80" height="35" rx="6" class="topo-node" data-phase="policy_records"/>
+                    <text x="60" y="182" class="topo-label">Policy Records</text>
+                    <text x="60" y="194" class="topo-dur" data-dur="policy_records"></text>
+
+                    <rect x="120" y="160" width="80" height="35" rx="6" class="topo-node" data-phase="registrar_infra"/>
+                    <text x="160" y="182" class="topo-label">Registrar</text>
+                    <text x="160" y="194" class="topo-dur" data-dur="registrar_infra"></text>
+
+                    <rect x="180" y="225" width="80" height="35" rx="6" class="topo-node" data-phase="analysis_engine"/>
+                    <text x="220" y="247" class="topo-label">Analysis</text>
+                    <text x="220" y="259" class="topo-dur" data-dur="analysis_engine"></text>
+                </svg>
+            </div>
+            <div class="scan-checklist mt-3 d-none" id="scanChecklist" aria-hidden="true">
             </div>
             <p class="text-muted small mt-3 mb-0 u-maxw-440-fadein covert-hide" id="loadingNote">
                 Every result includes terminal commands you can run to independently verify the underlying data. No proprietary magic.
