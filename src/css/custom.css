@@ -5027,6 +5027,10 @@ body.covert-mode .u-btn-accent-steel:focus {
     border: 1px solid rgba(13, 202, 240, 0.15);
 }
 .u-bg-info-soft { background: rgba(13, 202, 240, 0.08); word-wrap: break-word; overflow-wrap: break-word; }
+.bg-info.bg-opacity-10.rounded,
+.bg-warning.bg-opacity-10.rounded,
+.bg-danger.bg-opacity-10.rounded,
+.bg-dark.bg-opacity-50.small { overflow-wrap: break-word; word-break: break-word; }
 .u-bg-subtle-muted { background: rgba(125, 142, 168, 0.08); }
 .u-bg-warn-soft { background: rgba(210, 153, 34, 0.12); }
 .u-devnull-banner { background: #161b22; border-left: 3px solid #58a6ff; }
@@ -6651,6 +6655,9 @@ body.covert-mode .math-copy-btn--copied {
     text-decoration: underline dotted;
     cursor: help;
     color: #cc2020 !important;
+    white-space: normal;
+    text-align: left;
+    word-break: break-word;
 }
 .anim-restart { animation: none !important; }
 
