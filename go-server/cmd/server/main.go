@@ -284,6 +284,7 @@ func main() {
 
         router.GET("/analyze", analysisHandler.Analyze)
         router.POST("/analyze", middleware.AnalyzeRateLimit(rateLimiter), analysisHandler.Analyze)
+        router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysisHandler.ProgressStore))
 
         router.GET("/history", historyHandler.History)
 
@@ -330,6 +331,10 @@ func main() {
 
         analyticsHandler := handlers.NewAnalyticsHandler(database, cfg)
         router.GET("/ops/analytics", middleware.RequireAdmin(), analyticsHandler.Dashboard)
+
+        telemetryHandler := handlers.NewTelemetryHandler(database, cfg)
+        router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
+        router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
 
         router.GET("/snapshot/:domain", snapshotHandler.Snapshot)
 

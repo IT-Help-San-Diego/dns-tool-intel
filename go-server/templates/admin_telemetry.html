@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    <title>Scan Telemetry - DNS Tool</title>
+    <meta name="robots" content="noindex, nofollow">
+    {{template "critical_css" .}}
+    {{template "head_css" .}}
+</head>
+<body>
+    {{template "nav" .}}
+
+    <main id="main-content" class="container my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">
+                    {{icon "clock" "me-2"}}Scan Phase Telemetry
+                </h1>
+                <p class="text-muted mb-0">SHA-3-512 tamper-evident pipeline timing with per-phase performance metrics</p>
+            </div>
+            <a href="/ops" class="btn btn-outline-secondary">
+                {{icon "arrow-left" "me-2"}}Admin Dashboard
+            </a>
+        </div>
+
+        {{template "flash_messages" .}}
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>{{icon "list" "me-2"}}Recent Scans</span>
+                        <span class="badge bg-secondary">{{len .Summaries}} scans</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Domain</th>
+                                        <th>Duration</th>
+                                        <th>Phases</th>
+                                        <th>SHA-3-512</th>
+                                        <th>Integrity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .Summaries}}
+                                    <tr>
+                                        <td><a href="/analysis/{{.AnalysisID}}">{{.AnalysisID}}</a></td>
+                                        <td><code>{{.AsciiDomain}}</code></td>
+                                        <td>{{.TotalDurationMs}}ms</td>
+                                        <td>{{.PhaseCount}}</td>
+                                        <td><code class="small" title="{{.Sha3512}}">{{truncate 16 .Sha3512}}</code></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info verify-btn" data-analysis-id="{{.AnalysisID}}">
+                                                {{icon "shield-alt" ""}} Verify
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {{else}}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No telemetry data yet. Run a scan to begin collecting phase timings.</td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        {{icon "chart-bar" "me-2"}}Bottleneck Analysis (7-day P50 / P95 / P99)
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Phase Group</th>
+                                        <th>Task</th>
+                                        <th>Avg</th>
+                                        <th>P50</th>
+                                        <th>P95</th>
+                                        <th>P99</th>
+                                        <th>Samples</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .Slowest}}
+                                    <tr>
+                                        <td>{{.PhaseGroup}}</td>
+                                        <td><code>{{.PhaseTask}}</code></td>
+                                        <td>{{.AvgMs}}ms</td>
+                                        <td>{{.P50Ms}}ms</td>
+                                        <td class="{{if gt .P95Ms 5000}}text-danger{{else if gt .P95Ms 3000}}text-warning{{end}}">{{.P95Ms}}ms</td>
+                                        <td class="{{if gt .P99Ms 8000}}text-danger{{else if gt .P99Ms 5000}}text-warning{{end}}">{{.P99Ms}}ms</td>
+                                        <td>{{.SampleCount}}</td>
+                                    </tr>
+                                    {{else}}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">No bottleneck data available yet.</td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        {{icon "project-diagram" "me-2"}}Pipeline Architecture
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            {{range .PhaseGroupOrder}}
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="card bg-dark border-info">
+                                    <div class="card-body py-2 px-2">
+                                        <div class="small fw-bold text-info">{{index $.PhaseGroupLabels .}}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{.}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                        <div class="text-center text-muted small mt-2">
+                            {{icon "info-circle" "me-1"}}First 7 groups run in parallel. Analysis Engine runs sequentially after all data is collected.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="verifyResult" class="alert d-none mb-4" role="alert"></div>
+    </main>
+
+    {{template "footer" .}}
+    {{template "body_js" .}}
+
+    <script nonce="{{.CspNonce}}">
+    (function() {
+        document.querySelectorAll('.verify-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var aid = btn.dataset.analysisId;
+                btn.disabled = true;
+                btn.textContent = 'Verifying\u2026';
+                fetch('/api/telemetry/verify/' + aid)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var el = document.getElementById('verifyResult');
+                        el.classList.remove('d-none', 'alert-success', 'alert-danger');
+                        if (data.verified) {
+                            el.classList.add('alert-success');
+                            el.innerHTML = '<strong>Integrity Verified</strong> \u2014 Analysis #' + aid +
+                                ' SHA-3-512 hash matches. ' + data.phase_count + ' phases, ' +
+                                (data.total_duration_ms / 1000).toFixed(1) + 's total.<br>' +
+                                '<code class="small">' + data.stored_hash + '</code>';
+                        } else {
+                            el.classList.add('alert-danger');
+                            el.innerHTML = '<strong>INTEGRITY FAILURE</strong> \u2014 Analysis #' + aid +
+                                ' hash mismatch!<br>Stored: <code>' + data.stored_hash +
+                                '</code><br>Recomputed: <code>' + data.recomputed_hash + '</code>';
+                        }
+                        btn.disabled = false;
+                        btn.innerHTML = 'Verify';
+                        el.scrollIntoView({ behavior: 'smooth' });
+                    })
+                    .catch(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Verify';
+                    });
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

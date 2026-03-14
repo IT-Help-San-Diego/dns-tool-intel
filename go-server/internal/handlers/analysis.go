@@ -59,6 +59,7 @@ type AnalysisHandler struct {
         DNSHistoryCache *analyzer.DNSHistoryCache
         Calibration     *icae.CalibrationEngine
         DimCharts       *icuae.DimensionCharts
+        ProgressStore   *ProgressStore
 }
 
 func NewAnalysisHandler(database *db.Database, cfg *config.Config, a *analyzer.Analyzer, historyCache *analyzer.DNSHistoryCache) *AnalysisHandler {
@@ -69,6 +70,7 @@ func NewAnalysisHandler(database *db.Database, cfg *config.Config, a *analyzer.A
                 DNSHistoryCache: historyCache,
                 Calibration:     icae.NewCalibrationEngine(),
                 DimCharts:       icuae.NewDimensionCharts(),
+                ProgressStore:   NewProgressStore(),
         }
 }
 
@@ -307,6 +309,13 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         isAuthenticated, userID := extractAuthInfo(c)
         ephemeral := devNull || (hasNovelSelectors && !isAuthenticated)
 
+        wantsJSON := strings.Contains(c.GetHeader("Accept"), "application/json") && c.Request.Method == "POST"
+
+        if wantsJSON {
+                h.analyzeAsync(c, domain, asciiDomain, customSelectors, exposureChecks, devNull, isAuthenticated, userID, hasNovelSelectors, ephemeral)
+                return
+        }
+
         startTime := time.Now()
         ctx := c.Request.Context()
 
@@ -350,6 +359,8 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 devNull:           devNull,
         })
 
+        h.storeTelemetry(c.Request.Context(), analysisID, results, ephemeral)
+
         analysisSuccess, _ := extractAnalysisError(results) //nolint:errcheck // error message not needed here
         h.handlePostAnalysisSideEffects(ctx, c, sideEffectsParams{
                 asciiDomain:      asciiDomain,
@@ -390,6 +401,129 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         mergeAuthData(c, h.Config, analyzeData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
+}
+
+func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain string, customSelectors []string, exposureChecks, devNull, isAuthenticated bool, userID int32, hasNovelSelectors, ephemeral bool) {
+        token, sp := h.ProgressStore.NewToken()
+
+        clientIP := c.ClientIP()
+        countryCode, countryName := lookupCountry(clientIP)
+
+        c.JSON(http.StatusAccepted, gin.H{
+                "token":  token,
+                "domain": asciiDomain,
+        })
+
+        go func() {
+                ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+                defer cancel()
+
+                results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
+                        ExposureChecks:  exposureChecks,
+                        OnPhaseProgress: sp.MakeProgressCallback(),
+                })
+                analysisDuration := time.Since(sp.startTime).Seconds()
+
+                h.applyConfidenceEngines(results)
+
+                if failed, _ := isAnalysisFailure(results); failed {
+                        go h.recordDailyStats(false, analysisDuration)
+                        sp.MarkFailed("analysis failed")
+                        return
+                }
+
+                domainExists := resultsDomainExists(results)
+                scanClass := scanner.Classify(asciiDomain, clientIP)
+                postureHash := analyzer.CanonicalPostureHash(results)
+                drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
+
+                h.snapshotICAEMetrics(ctx, results)
+
+                isPrivate := hasNovelSelectors && isAuthenticated
+                analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
+                        domain:            domain,
+                        asciiDomain:       asciiDomain,
+                        results:           results,
+                        analysisDuration:  analysisDuration,
+                        countryCode:       countryCode,
+                        countryName:       countryName,
+                        isPrivate:         isPrivate,
+                        hasNovelSelectors: hasNovelSelectors,
+                        scanClass:         scanClass,
+                        ephemeral:         ephemeral,
+                        domainExists:      domainExists,
+                        devNull:           devNull,
+                })
+
+                h.storeTelemetry(ctx, analysisID, results, ephemeral)
+
+                analysisSuccess, _ := extractAnalysisError(results)
+                h.handlePostAnalysisSideEffectsAsync(ctx, sideEffectsParams{
+                        asciiDomain:      asciiDomain,
+                        analysisID:       analysisID,
+                        isAuthenticated:  isAuthenticated,
+                        userID:           userID,
+                        ephemeral:        ephemeral,
+                        domainExists:     domainExists,
+                        drift:            drift,
+                        postureHash:      postureHash,
+                        analysisSuccess:  analysisSuccess,
+                        analysisDuration: analysisDuration,
+                        isPrivate:        isPrivate,
+                        isScanFlagged:    scanClass.IsScan,
+                })
+
+                h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
+
+                redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
+                sp.MarkComplete(analysisID, redirectURL)
+        }()
+}
+
+func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
+        if ephemeral || analysisID == 0 {
+                return
+        }
+        telRaw, ok := results["_scan_telemetry"]
+        if !ok {
+                return
+        }
+        tel, ok := telRaw.(analyzer.ScanTelemetry)
+        if !ok {
+                return
+        }
+        delete(results, "_scan_telemetry")
+
+        go func() {
+                bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+                defer cancel()
+                for _, t := range tel.Timings {
+                        var errPtr *string
+                        if t.Error != "" {
+                                errPtr = &t.Error
+                        }
+                        rc := int32(t.RecordCount)
+                        if err := h.DB.Queries.InsertPhaseTelemetry(bgCtx, dbq.InsertPhaseTelemetryParams{
+                                AnalysisID:  analysisID,
+                                PhaseGroup:  t.PhaseGroup,
+                                PhaseTask:   t.PhaseTask,
+                                StartedAtMs: int32(t.StartedAtMs),
+                                DurationMs:  int32(t.DurationMs),
+                                RecordCount: &rc,
+                                Error:       errPtr,
+                        }); err != nil {
+                                slog.Warn("Failed to store phase telemetry", "analysis_id", analysisID, "task", t.PhaseTask, "error", err)
+                        }
+                }
+                if err := h.DB.Queries.InsertTelemetryHash(bgCtx, dbq.InsertTelemetryHashParams{
+                        AnalysisID:      analysisID,
+                        TotalDurationMs: int32(tel.TotalDurationMs),
+                        PhaseCount:      int32(len(tel.Timings)),
+                        Sha3512:         tel.SHA3Hash,
+                }); err != nil {
+                        slog.Warn("Failed to store telemetry hash", "analysis_id", analysisID, "error", err)
+                }
+        }()
 }
 
 func (h *AnalysisHandler) recordCurrencyIfEligible(ephemeral, domainExists bool, asciiDomain string, results map[string]any) {
@@ -726,6 +860,24 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
         if !p.ephemeral && p.domainExists {
                 icae.EvaluateAndRecord(c.Request.Context(), h.DB.Queries, h.Config.AppVersion)
                 recordAnalyticsCollector(c, p.asciiDomain)
+        }
+
+        go h.recordDailyStats(p.analysisSuccess, p.analysisDuration)
+}
+
+func (h *AnalysisHandler) handlePostAnalysisSideEffectsAsync(ctx context.Context, p sideEffectsParams) {
+        if p.analysisID > 0 {
+                h.recordUserAnalysisAsync(p)
+                if p.drift.Detected {
+                        go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
+                }
+                if p.analysisSuccess && !p.ephemeral && !p.isPrivate && !p.isScanFlagged {
+                        go h.archiveToWayback(p.analysisID, p.asciiDomain)
+                }
+        }
+
+        if !p.ephemeral && p.domainExists {
+                icae.EvaluateAndRecord(ctx, h.DB.Queries, h.Config.AppVersion)
         }
 
         go h.recordDailyStats(p.analysisSuccess, p.analysisDuration)

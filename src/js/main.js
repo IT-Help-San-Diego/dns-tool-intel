@@ -122,29 +122,69 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    const phases = overlayEl.querySelectorAll('.scan-phase');
-    if (phases.length === 0) return;
+    var topoEl = document.getElementById('scanTopology');
+    if (topoEl) {
+        topoEl.setAttribute('aria-hidden', 'false');
+        var nodes = topoEl.querySelectorAll('.topo-node');
+        nodes.forEach(function(n) { n.classList.add('phase-running'); });
+    }
+}
 
-    phases.forEach(function(phase, idx) {
-        const delay = Number.parseInt(phase.dataset.delay, 10) || 0;
-        setTimeout(function() {
-            phase.classList.add('visible', 'active-phase');
-        }, delay);
-
-        const doneDelay = delay + 1800 + Math.random() * 1200; // NOSONAR — animation timing, not cryptographic // SECINTENT-005
-        if (idx === phases.length - 1) {
-            return;
-        }
-        setTimeout(function() {
-            phase.classList.remove('active-phase');
-            phase.classList.add('done');
-            const icon = phase.querySelector('.scan-icon');
-            if (icon) {
-                icon.classList.remove('icon-spin', 'scan-pending');
-                if (window._icons) { icon.replaceWith(parseIcon(window._icons.checkCircle)); }
+function updateTopologyFromProgress(data) {
+    var topoEl = document.getElementById('scanTopology');
+    if (!topoEl || !data || !data.phases) return;
+    var phases = data.phases;
+    Object.keys(phases).forEach(function(group) {
+        var info = phases[group];
+        var node = topoEl.querySelector('[data-phase="' + group + '"]');
+        var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        if (!node) return;
+        node.classList.remove('phase-running', 'phase-done');
+        if (info.status === 'done') {
+            node.classList.add('phase-done');
+            if (durEl && info.duration_ms > 0) {
+                durEl.textContent = (info.duration_ms / 1000).toFixed(1) + 's';
+                durEl.classList.add('visible');
             }
-        }, doneDelay);
+        } else if (info.status === 'running') {
+            node.classList.add('phase-running');
+        }
     });
+}
+
+function startProgressPolling(token, overlay, analyzeBtn) {
+    var failures = 0;
+    var pollId = setInterval(function() {
+        fetch('/api/scan/progress/' + token).then(function(resp) {
+            if (!resp.ok) { failures++; return null; }
+            failures = 0;
+            return resp.json();
+        }).then(function(data) {
+            if (!data) return;
+            updateTopologyFromProgress(data);
+            if (data.status === 'complete' && data.redirect_url) {
+                clearInterval(pollId);
+                fetch(data.redirect_url, {
+                    headers: { 'X-Requested-With': 'fetch' },
+                    redirect: 'follow'
+                }).then(function(resp) {
+                    return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, analyzeBtn); });
+                }).catch(function() {
+                    hideOverlayAndReset(overlay, analyzeBtn);
+                    globalThis.location.href = data.redirect_url;
+                });
+            }
+            if (failures >= 3) {
+                clearInterval(pollId);
+            }
+        }).catch(function() {
+            failures++;
+            if (failures >= 3) {
+                clearInterval(pollId);
+            }
+        });
+    }, 500);
+    return pollId;
 }
 
 function hideOverlayAndReset(overlay, btn) {
@@ -666,19 +706,26 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('loading');
             analysisSubmitted = true;
             const formData = new FormData(domainForm);
-            fetchAndApplyPage(domainForm.action, {
+            fetch(domainForm.action, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'fetch' },
+                headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
                 redirect: 'follow'
-            }, overlay, analyzeBtn).catch(function() {
+            }).then(function(resp) {
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            }).then(function(data) {
+                if (data.token) {
+                    startProgressPolling(data.token, overlay, analyzeBtn);
+                }
+            }).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
-                const flash = document.createElement('div');
+                var flash = document.createElement('div');
                 flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
                 flash.role = 'alert';
-                flash.textContent = 'Network error — please check your connection and try again.';
-                const closeBtn = document.createElement('button');
+                flash.textContent = 'Network error \u2014 please check your connection and try again.';
+                var closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.className = 'btn-close';
                 closeBtn.dataset.bsDismiss = 'alert';
