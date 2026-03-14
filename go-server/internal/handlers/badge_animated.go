@@ -42,9 +42,16 @@ type animCacheEntry struct {
 }
 
 var (
-        animCache   = make(map[string]*animCacheEntry)
-        animCacheMu sync.RWMutex
+        animCache    = make(map[string]*animCacheEntry)
+        animCacheMu  sync.RWMutex
+        rsvgBinPath  string
 )
+
+func init() {
+        if p, err := exec.LookPath("rsvg-convert"); err == nil {
+                rsvgBinPath = p
+        }
+}
 
 func (h *BadgeHandler) BadgeAnimated(c *gin.Context) {
         domain, results, scanTime, scanID, postureHash, ok := h.resolveAnalysis(c)
@@ -318,7 +325,10 @@ func renderFramesConcurrentRGBA(baseSVG string, frameCount int, frameModifier fu
 }
 
 func rasterizeSVGToRGBA(svgData []byte) (*image.NRGBA, error) {
-        cmd := exec.Command("rsvg-convert",
+        if rsvgBinPath == "" {
+                return nil, fmt.Errorf("rsvg-convert: not found in PATH")
+        }
+        cmd := exec.Command(rsvgBinPath, //nolint:gosec // resolved at init via LookPath
                 fmt.Sprintf("--width=%d", animRasterWidth),
                 "--keep-aspect-ratio",
                 "--format=png",

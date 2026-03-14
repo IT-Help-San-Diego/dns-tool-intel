@@ -275,17 +275,22 @@ func extractRemCitations(rem map[string]any, m *citation.Manifest) {
                 if !ok {
                         continue
                 }
-                for _, f := range fixes {
-                        fix, ok := f.(map[string]any)
-                        if !ok {
-                                continue
-                        }
-                        if rfc, ok := fix["rfc"].(string); ok && rfc != "" {
-                                citID := rfcLabelToSectionID(rfc)
-                                if citID != "" {
-                                        m.Cite(citID)
-                                }
-                        }
+                extractFixCitations(fixes, m)
+        }
+}
+
+func extractFixCitations(fixes []any, m *citation.Manifest) {
+        for _, f := range fixes {
+                fix, ok := f.(map[string]any)
+                if !ok {
+                        continue
+                }
+                rfc, ok := fix["rfc"].(string)
+                if !ok || rfc == "" {
+                        continue
+                }
+                if citID := rfcLabelToSectionID(rfc); citID != "" {
+                        m.Cite(citID)
                 }
         }
 }

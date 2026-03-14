@@ -561,7 +561,7 @@ function initPrivacyBanner() {
     function dismissBanner(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         persistPrivacyDismiss();
-        banner.style.display = 'none';
+        banner.classList.add('d-none');
         if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
     var acceptBtn = document.getElementById('privacyAccept');
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var privToggle = document.getElementById('privacyToggle');
     var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
-        function togglePrivacy() { privDetail.style.display = privDetail.style.display === 'none' ? 'block' : 'none'; }
+        function togglePrivacy() { privDetail.classList.toggle('d-none'); }
         privToggle.addEventListener('click', togglePrivacy);
         privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
     }
