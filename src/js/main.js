@@ -43,7 +43,12 @@ globalThis.addEventListener('pageshow', function(e) {
                 clearInterval(Number(overlay.dataset.timerId));
                 delete overlay.dataset.timerId;
             }
+            if (overlay.dataset.pollId) {
+                clearInterval(Number(overlay.dataset.pollId));
+                delete overlay.dataset.pollId;
+            }
         });
+        resetTopologyNodes();
         document.body.classList.remove('loading');
         const reanalyzeBtn = document.getElementById('reanalyzeBtn');
         if (reanalyzeBtn && !reanalyzeBtn.classList.contains('disabled')) {
@@ -160,8 +165,21 @@ function startProgressPolling(token, overlay, analyzeBtn) {
             failures = 0;
             return resp.json();
         }).then(function(data) {
-            if (!data) return;
+            if (!data) {
+                if (failures >= 3) {
+                    clearInterval(pollId);
+                    hideOverlayAndReset(overlay, analyzeBtn);
+                }
+                return;
+            }
             updateTopologyFromProgress(data);
+            if (data.status === 'failed') {
+                clearInterval(pollId);
+                hideOverlayAndReset(overlay, analyzeBtn);
+                var msg = data.error || 'Analysis failed. Please try again.';
+                showFlashAlert(msg, overlay ? overlay.parentNode : document.body);
+                return;
+            }
             if (data.status === 'complete' && data.redirect_url) {
                 clearInterval(pollId);
                 fetch(data.redirect_url, {
@@ -173,17 +191,25 @@ function startProgressPolling(token, overlay, analyzeBtn) {
                     hideOverlayAndReset(overlay, analyzeBtn);
                     globalThis.location.href = data.redirect_url;
                 });
+            } else if (data.status === 'complete' && !data.redirect_url) {
+                clearInterval(pollId);
+                hideOverlayAndReset(overlay, analyzeBtn);
             }
             if (failures >= 3) {
                 clearInterval(pollId);
+                hideOverlayAndReset(overlay, analyzeBtn);
             }
         }).catch(function() {
             failures++;
             if (failures >= 3) {
                 clearInterval(pollId);
+                hideOverlayAndReset(overlay, analyzeBtn);
             }
         });
     }, 500);
+    if (overlay) {
+        overlay.dataset.pollId = pollId;
+    }
     return pollId;
 }
 
@@ -194,12 +220,49 @@ function hideOverlayAndReset(overlay, btn) {
             clearInterval(Number(overlay.dataset.timerId));
             delete overlay.dataset.timerId;
         }
+        if (overlay.dataset.pollId) {
+            clearInterval(Number(overlay.dataset.pollId));
+            delete overlay.dataset.pollId;
+        }
     }
+    resetTopologyNodes();
     document.body.classList.remove('loading');
     if (btn) {
         setIconAndText(btn, window._icons ? window._icons.search : null, ' Analyze');
         btn.disabled = false;
     }
+}
+
+function showFlashAlert(message, container) {
+    var flash = document.createElement('div');
+    flash.className = 'alert alert-warning alert-dismissible fade show mt-3';
+    flash.role = 'alert';
+    flash.textContent = message;
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.dataset.bsDismiss = 'alert';
+    flash.appendChild(closeBtn);
+    var target = container || document.body;
+    var form = target.querySelector('#domainForm');
+    if (form && form.parentNode) {
+        form.parentNode.insertBefore(flash, form);
+    } else {
+        target.insertBefore(flash, target.firstChild);
+    }
+}
+
+function resetTopologyNodes() {
+    var topoEl = document.getElementById('scanTopology');
+    if (!topoEl) return;
+    topoEl.setAttribute('aria-hidden', 'true');
+    topoEl.querySelectorAll('.topo-node').forEach(function(n) {
+        n.classList.remove('phase-running', 'phase-done');
+    });
+    topoEl.querySelectorAll('.topo-dur').forEach(function(d) {
+        d.textContent = '';
+        d.classList.remove('visible');
+    });
 }
 
 function isBareTopLevelDomain(domain) {
