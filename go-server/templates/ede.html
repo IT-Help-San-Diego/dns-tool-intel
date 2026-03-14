@@ -476,6 +476,9 @@
         .ede-events-hidden {
             display: none;
         }
+        .ede-icon-rotated {
+            transform: rotate(180deg);
+        }
 
         .ede-integrity-box {
             font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
@@ -871,7 +874,7 @@
                 </div>
                 {{end}}
             </div>
-            <button type="button" id="edeShowAllToggle" class="ede-show-all-toggle" style="display:none;" aria-expanded="false" aria-controls="edeEventList">
+            <button type="button" id="edeShowAllToggle" class="ede-show-all-toggle d-none" aria-expanded="false" aria-controls="edeEventList">
                 {{icon "chevron-down" "me-1"}}<span id="edeToggleLabel">Show all entries</span>
             </button>
         </div>
@@ -1047,7 +1050,8 @@
                 cards[i].classList.add('ede-events-hidden');
             }
             label.textContent = 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
-            toggle.style.display = 'flex';
+            toggle.classList.remove('d-none');
+            toggle.classList.add('d-flex');
             toggle.addEventListener('click', function() {
                 expanded = !expanded;
                 for (var i = VISIBLE_COUNT; i < cards.length; i++) {
@@ -1060,7 +1064,7 @@
                 toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
                 label.textContent = expanded ? 'Show fewer entries' : 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
                 var icon = toggle.querySelector('svg, i');
-                if (icon) icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                if (icon) { if (expanded) { icon.classList.add('ede-icon-rotated'); } else { icon.classList.remove('ede-icon-rotated'); } }
             });
         }
     })();
