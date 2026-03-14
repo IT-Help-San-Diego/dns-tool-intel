@@ -250,10 +250,10 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <div class="p-3 rounded" style="background: rgba(79, 210, 255, 0.05); border: 1px solid rgba(79, 210, 255, 0.15);">
+                        <div class="p-3 rounded u-icae-cal-box">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="text-muted small fw-semibold">Brier Score</span>
-                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.BrierRating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.BrierRating "good"}}info{{else if eq .ICAEMetrics.Calibration.BrierRating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.65rem;">{{.ICAEMetrics.Calibration.BrierRating}}</span>
+                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.BrierRating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.BrierRating "good"}}info{{else if eq .ICAEMetrics.Calibration.BrierRating "adequate"}}warning{{else}}danger{{end}} text-uppercase u-badge-xs">{{.ICAEMetrics.Calibration.BrierRating}}</span>
                             </div>
                             <div class="h3 fw-bold mb-1 text-info">{{.ICAEMetrics.Calibration.BrierDisplay}}</div>
                             <div class="text-muted small">{{.ICAEMetrics.Calibration.BrierInterpretation}}</div>
@@ -261,10 +261,10 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="p-3 rounded" style="background: rgba(79, 210, 255, 0.05); border: 1px solid rgba(79, 210, 255, 0.15);">
+                        <div class="p-3 rounded u-icae-cal-box">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="text-muted small fw-semibold">Expected Calibration Error</span>
-                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.ECERating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.ECERating "good"}}info{{else if eq .ICAEMetrics.Calibration.ECERating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.65rem;">{{.ICAEMetrics.Calibration.ECERating}}</span>
+                                <span class="badge bg-{{if eq .ICAEMetrics.Calibration.ECERating "excellent"}}success{{else if eq .ICAEMetrics.Calibration.ECERating "good"}}info{{else if eq .ICAEMetrics.Calibration.ECERating "adequate"}}warning{{else}}danger{{end}} text-uppercase u-badge-xs">{{.ICAEMetrics.Calibration.ECERating}}</span>
                             </div>
                             <div class="h3 fw-bold mb-1 text-info">{{.ICAEMetrics.Calibration.ECEDisplay}}</div>
                             <div class="text-muted small">{{.ICAEMetrics.Calibration.ECEInterpretation}}</div>
@@ -286,7 +286,7 @@
                                     <th scope="col" class="text-end">Predicted</th>
                                     <th scope="col" class="text-end">Observed</th>
                                     <th scope="col" class="text-end">Gap</th>
-                                    <th scope="col" style="width: 30%;">Distribution</th>
+                                    <th scope="col" class="u-col-w30">Distribution</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -302,8 +302,8 @@
                                         {{else}}<span class="text-danger">{{.GapDisplay}}</span>{{end}}
                                     </td>
                                     <td>
-                                        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
-                                            <div class="progress-bar bg-info" style="width: {{.BarWidthPct}}%;"></div>
+                                        <div class="progress u-progress-thin">
+                                            <div class="progress-bar bg-info" data-pct="{{.BarWidthPct}}"></div>
                                         </div>
                                     </td>
                                 </tr>
@@ -341,7 +341,7 @@
                                     <td class="text-end"><code>{{.BrierDisplay}}</code></td>
                                     <td class="text-end"><code>{{.GapDisplay}}</code></td>
                                     <td class="text-center">
-                                        <span class="badge bg-{{if eq .GapRating "excellent"}}success{{else if eq .GapRating "good"}}info{{else if eq .GapRating "adequate"}}warning{{else}}danger{{end}} text-uppercase" style="font-size: 0.6rem;">{{.GapRating}}</span>
+                                        <span class="badge bg-{{if eq .GapRating "excellent"}}success{{else if eq .GapRating "good"}}info{{else if eq .GapRating "adequate"}}warning{{else}}danger{{end}} text-uppercase u-badge-xxs">{{.GapRating}}</span>
                                     </td>
                                 </tr>
                                 {{end}}
@@ -1158,6 +1158,7 @@
     document.querySelectorAll('.icae-cal-fill[data-pct]').forEach(function(el){el.style.setProperty('width',el.dataset.pct+'%');});
     document.querySelectorAll('.icae-cal-needle[data-pct]').forEach(function(el){el.style.setProperty('left',el.dataset.pct+'%');});
     document.querySelectorAll('.icae-tier-meter-fill[data-pct]').forEach(function(el){el.style.setProperty('width',el.dataset.pct+'%');});
+    document.querySelectorAll('.progress-bar[data-pct]').forEach(function(el){el.style.setProperty('width',el.dataset.pct+'%');});
     </script>
     {{template "math_copy_script" .}}
 </body>
