@@ -100,8 +100,19 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
                 enrichedSet[d] = true
         }
 
+        enriched, remaining := j.enrichTargets(ctx, enrichmentTargets, enrichedSet, enrichedDomains, &budget, monthKey, remaining)
+
+        slog.Info("CT enrichment: cycle complete",
+                "month", monthKey,
+                "enriched_this_run", enriched,
+                "total_used", budget.CallsUsed,
+                "remaining", remaining,
+        )
+}
+
+func (j *CTEnrichmentJob) enrichTargets(ctx context.Context, targets []enrichmentTarget, enrichedSet map[string]bool, enrichedDomains []string, budget *dbq.GetSTBudgetRow, monthKey string, remaining int) (int, int) {
         enriched := 0
-        for _, td := range enrichmentTargets {
+        for _, td := range targets {
                 if remaining <= 0 {
                         break
                 }
@@ -122,35 +133,36 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
                         break
                 }
 
-                subs, status, fetchErr := FetchSubdomains(ctx, td.Domain)
-                if fetchErr != nil || (status != nil && (status.RateLimited || status.Errored)) {
-                        slog.Warn("CT enrichment: SecurityTrails fetch failed",
-                                mapKeyDomain, td.Domain,
-                                "rate_limited", status != nil && status.RateLimited,
-                        )
-                        enrichedDomains = append(enrichedDomains, td.Domain)
-                        enrichedSet[td.Domain] = true
-                        if status != nil && status.RateLimited {
-                                break
-                        }
-                        continue
+                ok := j.enrichSingleTarget(ctx, td, &enrichedDomains, enrichedSet)
+                if !ok {
+                        break
                 }
-
-                if len(subs) > 0 {
-                        j.mergeST(ctx, td.Domain, subs)
+                if enrichedSet[td.Domain] {
+                        enriched++
                 }
+        }
+        return enriched, remaining
+}
 
-                enrichedDomains = append(enrichedDomains, td.Domain)
+func (j *CTEnrichmentJob) enrichSingleTarget(ctx context.Context, td enrichmentTarget, enrichedDomains *[]string, enrichedSet map[string]bool) bool {
+        subs, status, fetchErr := FetchSubdomains(ctx, td.Domain)
+        if fetchErr != nil || (status != nil && (status.RateLimited || status.Errored)) {
+                slog.Warn("CT enrichment: SecurityTrails fetch failed",
+                        mapKeyDomain, td.Domain,
+                        "rate_limited", status != nil && status.RateLimited,
+                )
+                *enrichedDomains = append(*enrichedDomains, td.Domain)
                 enrichedSet[td.Domain] = true
-                enriched++
+                return !(status != nil && status.RateLimited)
         }
 
-        slog.Info("CT enrichment: cycle complete",
-                "month", monthKey,
-                "enriched_this_run", enriched,
-                "total_used", budget.CallsUsed,
-                "remaining", remaining,
-        )
+        if len(subs) > 0 {
+                j.mergeST(ctx, td.Domain, subs)
+        }
+
+        *enrichedDomains = append(*enrichedDomains, td.Domain)
+        enrichedSet[td.Domain] = true
+        return true
 }
 
 type enrichmentTarget struct {
@@ -162,37 +174,46 @@ func (j *CTEnrichmentJob) buildEnrichmentList(ctx context.Context) []enrichmentT
         var targets []enrichmentTarget
         seen := make(map[string]bool)
 
+        targets = j.loadPriorityDomains(ctx, targets, seen)
+        targets = j.loadTopDomains(ctx, targets, seen)
+        return targets
+}
+
+func (j *CTEnrichmentJob) loadPriorityDomains(ctx context.Context, targets []enrichmentTarget, seen map[string]bool) []enrichmentTarget {
         priorityDomains, err := j.budgetDB.ListPriorityDomains(ctx)
         if err != nil {
                 slog.Warn("CT enrichment: failed to load priority domains", mapKeyError, err)
-        } else {
-                for _, pd := range priorityDomains {
-                        targets = append(targets, enrichmentTarget{Domain: pd.Domain, Priority: true})
-                        seen[pd.Domain] = true
-                }
-                slog.Info("CT enrichment: priority domains loaded", mapKeyCount, len(priorityDomains))
+                return targets
         }
+        for _, pd := range priorityDomains {
+                targets = append(targets, enrichmentTarget{Domain: pd.Domain, Priority: true})
+                seen[pd.Domain] = true
+        }
+        slog.Info("CT enrichment: priority domains loaded", mapKeyCount, len(priorityDomains))
+        return targets
+}
 
+func (j *CTEnrichmentJob) loadTopDomains(ctx context.Context, targets []enrichmentTarget, seen map[string]bool) []enrichmentTarget {
         remaining := stTopDomainLimit - len(targets)
-        if remaining > 0 {
-                topDomains, err := j.budgetDB.GetTopAnalyzedDomains(ctx, int32(stTopDomainLimit))
-                if err != nil {
-                        slog.Warn("CT enrichment: failed to get top analyzed domains", mapKeyError, err)
-                } else {
-                        for _, td := range topDomains {
-                                if seen[td.Domain] {
-                                        continue
-                                }
-                                targets = append(targets, enrichmentTarget{Domain: td.Domain, Priority: false})
-                                seen[td.Domain] = true
-                                remaining--
-                                if remaining <= 0 {
-                                        break
-                                }
-                        }
+        if remaining <= 0 {
+                return targets
+        }
+        topDomains, err := j.budgetDB.GetTopAnalyzedDomains(ctx, int32(stTopDomainLimit))
+        if err != nil {
+                slog.Warn("CT enrichment: failed to get top analyzed domains", mapKeyError, err)
+                return targets
+        }
+        for _, td := range topDomains {
+                if seen[td.Domain] {
+                        continue
+                }
+                targets = append(targets, enrichmentTarget{Domain: td.Domain, Priority: false})
+                seen[td.Domain] = true
+                remaining--
+                if remaining <= 0 {
+                        break
                 }
         }
-
         return targets
 }
 

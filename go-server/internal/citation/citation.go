@@ -137,7 +137,7 @@ func (r *Registry) ResolveRFC(id string) (rfcLabel string, rfcURL string) {
         return rfcLabel, rfcURL
 }
 
-func (r *Registry) ResolveSectionURL(id string, section string) string {
+func (r *Registry) ResolveSectionURL(id, section string) string {
         e, ok := r.Lookup(id)
         if !ok {
                 return ""
