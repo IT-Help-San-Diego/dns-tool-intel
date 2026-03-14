@@ -355,6 +355,10 @@ func main() {
         router.GET("/ttl-tuner/analyze", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/ttl-tuner") })
         router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(rateLimiter), ttlTunerHandler.AnalyzeTTL)
 
+        remediationHandler := handlers.NewRemediationHandler(database, cfg)
+        router.GET("/remediation", remediationHandler.RemediationPage)
+        router.POST("/remediation", remediationHandler.RemediationSubmit)
+
         investigateHandler := handlers.NewInvestigateHandler(cfg, dnsAnalyzer)
         router.GET("/investigate", investigateHandler.InvestigatePage)
         router.POST("/investigate", middleware.AnalyzeRateLimit(rateLimiter), investigateHandler.Investigate)
