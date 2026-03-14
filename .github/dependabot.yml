@@ -9,7 +9,19 @@ updates:
       - "dependencies"
       - "go"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(go)"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "deps(npm)"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "github-actions"
@@ -32,4 +44,4 @@ updates:
       - "dependencies"
       - "python"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(py)"
