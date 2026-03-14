@@ -6655,6 +6655,9 @@ body.covert-mode .math-copy-btn--copied {
     text-decoration: underline dotted;
     cursor: help;
     color: #cc2020 !important;
+    white-space: normal;
+    text-align: left;
+    word-break: break-word;
 }
 .anim-restart { animation: none !important; }
 
