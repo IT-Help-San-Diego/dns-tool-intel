@@ -140,7 +140,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                         "script-src 'self' 'nonce-%s'; "+
                         "style-src 'self' 'nonce-%s'; "+
                         "font-src 'self'; "+
-                        "img-src 'self' data: https:; "+
+                        "img-src 'self' data: blob: https:; "+
                         "%s"+
                         "%s"+
                         "base-uri 'none'; "+
