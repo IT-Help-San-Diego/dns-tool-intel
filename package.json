@@ -15,7 +15,7 @@
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
-    "@notionhq/client": "^2.2.15",
+    "@notionhq/client": "^5.12.0",
     "@octokit/rest": "^22.0.1",
     "@playwright/test": "^1.58.2",
     "@replit/connectors-sdk": "^0.2.0",
