@@ -7089,3 +7089,25 @@ progress.bg-danger::-moz-progress-bar {
 .ttl-card-inactive { box-shadow: none; opacity: 0.45; transform: scale(1); }
 .ttl-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .ttl-loading-box { background: rgba(28,35,51,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 2rem 3rem; text-align: center; box-shadow: 0 1rem 3rem rgba(0,0,0,0.5); }
+
+.u-icae-cal-box { background: rgba(79, 210, 255, 0.05); border: 1px solid rgba(79, 210, 255, 0.15); }
+.u-badge-xs { font-size: 0.65rem; }
+.u-badge-xxs { font-size: 0.6rem; }
+.u-col-w30 { width: 30%; }
+.u-progress-thin { height: 8px; background: rgba(255,255,255,0.05); }
+.u-border-subtle { border: 1px solid #30363d; }
+.u-max-h-500 { max-height: 500px; }
+.u-badge-preview-img { max-width: 100%; height: auto; display: block; image-rendering: auto; }
+.u-caption-muted { font-size: .75rem; line-height: 1.4; opacity: .75; }
+.u-max-w-540 { max-width: 540px; }
+.u-max-w-320 { max-width: 320px; }
+.u-arch-grid-3col { grid-template-columns: repeat(3, 1fr); }
+.u-border-red { border-color: #ef4444; }
+.u-verify-note { font-size: 0.7em; color: #888; margin-top: 2px; }
+.u-text-075 { font-size: 0.75rem; }
+.u-ede-mt-06 { margin-top: 0.6rem; }
+.u-ede-mt-05 { margin-top: 0.5rem; }
+.u-ede-mb-075 { margin-bottom: 0.75rem; }
+.u-ede-m0 { margin: 0; }
+.u-ede-ml-04 { margin-left: 0.4rem; }
+.u-ede-link-blue { color: #58a6ff; }
