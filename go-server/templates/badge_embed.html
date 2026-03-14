@@ -97,7 +97,7 @@
                     </div>
                     <div class="card-body small text-muted">
                         <p class="mb-2">After running a scan, look at the URL in your browser address bar:</p>
-                        <div class="bg-dark rounded p-2 mb-2 font-monospace small" style="border: 1px solid #30363d;">
+                        <div class="bg-dark rounded p-2 mb-2 font-monospace small u-border-subtle">
                             dnstool.it-help.tech/analyze?domain=example.com&amp;id=<strong class="text-info">1234</strong>
                         </div>
                         <p class="mb-2">The number after <code>id=</code> is your scan number. Using a scan number pins the badge to that specific scan result.</p>
@@ -160,10 +160,10 @@
                             </a>
                             <span class="badge bg-dark text-muted align-self-center d-none" id="animSizeLabel"></span>
                         </div>
-                        <div class="badge-preview-area d-none" id="animatedPreview" style="max-height: 500px;">
-                            <img id="animatedPreviewImg" alt="Animated DNS Topology Badge" style="max-width: 100%; height: auto; display: block; image-rendering: auto;">
+                        <div class="badge-preview-area d-none u-max-h-500" id="animatedPreview">
+                            <img id="animatedPreviewImg" alt="Animated DNS Topology Badge" class="u-badge-preview-img">
                         </div>
-                        <p class="text-muted small mt-3 mb-0" style="font-size: .75rem; line-height: 1.4; opacity: .75;">
+                        <p class="text-muted small mt-3 mb-0 u-caption-muted">
                             This badge visualizes publicly available DNS records, certificate transparency logs, and protocol configurations &mdash;
                             the same data queryable via <code>dig</code>, <code>nslookup</code>, or any CT log search.
                             Domains missing SPF, DKIM, DMARC, or DNSSEC records are verifiably exposed to spoofing, impersonation, and interception.
@@ -367,20 +367,18 @@
                 svgEl.querySelectorAll('script,foreignObject').forEach(function(el) { el.remove(); });
                 svgEl.removeAttribute('width');
                 svgEl.removeAttribute('height');
-                svgEl.style.width = '100%';
-                svgEl.style.height = 'auto';
-                svgEl.style.display = 'block';
+                svgEl.classList.add('u-badge-preview-img');
                 if (!svgEl.getAttribute('preserveAspectRatio')) svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
                 var link = document.createElement('a');
                 link.href = reportURL;
                 link.target = '_blank';
                 link.rel = 'noopener';
-                link.style.display = 'block';
+                link.classList.add('d-block');
                 link.appendChild(svgEl);
                 preview.textContent = '';
                 preview.appendChild(link);
             }).catch(function() {
-                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener" style="display:block"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" style="width:100%;height:auto;display:block;"></a>';
+                preview.innerHTML = '<a href="' + reportURL + '" target="_blank" rel="noopener" class="d-block"><img src="' + badgeURL + '" alt="DNS Tool Security Badge" class="u-badge-preview-img"></a>';
             });
             previewCard.classList.remove('d-none');
             embedCard.classList.remove('d-none');

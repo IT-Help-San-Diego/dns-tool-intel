@@ -476,6 +476,9 @@
         .ede-events-hidden {
             display: none;
         }
+        .ede-icon-rotated {
+            transform: rotate(180deg);
+        }
 
         .ede-integrity-box {
             font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
@@ -736,18 +739,18 @@
         <div class="ede-tamper-policy mb-4">
             <div class="ede-tamper-policy-title">{{icon "lock" "me-1"}}Tamper Resistance Policy</div>
             <div class="ede-tamper-policy-text">{{.IntegrityData.TamperResistancePolicy.Standard}}</div>
-            <div class="ede-tamper-policy-text" style="margin-top: 0.6rem;">An EDE entry may only be amended on exactly two grounds. Each amendment MUST declare its ground explicitly.</div>
+            <div class="ede-tamper-policy-text u-ede-mt-06">An EDE entry may only be amended on exactly two grounds. Each amendment MUST declare its ground explicitly.</div>
             <div class="ede-ground-container">
                 <div class="ede-ground-box ede-ground-factual">
                     <div class="ede-ground-label">{{icon "circle-info" "me-1"}}Ground 1: FACTUAL_ERROR</div>
-                    <div class="ede-tamper-policy-text" style="margin: 0;">Verifiable evidence (git commit hashes, log output, timestamped records) proves the original contains a factual inaccuracy. All fields may be corrected. Evidence is mandatory; rationale alone is insufficient. The original text is preserved with strikethrough in the amendment record — nothing is erased.</div>
+                    <div class="ede-tamper-policy-text u-ede-m0">Verifiable evidence (git commit hashes, log output, timestamped records) proves the original contains a factual inaccuracy. All fields may be corrected. Evidence is mandatory; rationale alone is insufficient. The original text is preserved with strikethrough in the amendment record — nothing is erased.</div>
                 </div>
                 <div class="ede-ground-box ede-ground-dignity">
                     <div class="ede-ground-label">{{icon "circle-info" "me-1"}}Ground 2: DIGNITY_OF_EXPRESSION</div>
-                    <div class="ede-tamper-policy-text" style="margin: 0;">The factual content is accurate but the language is gratuitously degrading or unprofessional. ONLY descriptive phrasing may be revised — severity, attribution, category, date, and commit reference are LOCKED. The original inappropriate language is redacted on the public page; it is preserved only in git history for auditability. Court record standard, not tabloid.</div>
+                    <div class="ede-tamper-policy-text u-ede-m0">The factual content is accurate but the language is gratuitously degrading or unprofessional. ONLY descriptive phrasing may be revised — severity, attribution, category, date, and commit reference are LOCKED. The original inappropriate language is redacted on the public page; it is preserved only in git history for auditability. Court record standard, not tabloid.</div>
                 </div>
             </div>
-            <div class="ede-tamper-policy-text" style="margin-top: 0.5rem;">Both grounds require: ground, date, field_changed, original_value, corrected_to, evidence or rationale, and justification. Amendments lacking a declared ground or attempting to remove appropriately-stated content are refused.</div>
+            <div class="ede-tamper-policy-text u-ede-mt-05">Both grounds require: ground, date, field_changed, original_value, corrected_to, evidence or rationale, and justification. Amendments lacking a declared ground or attempting to remove appropriately-stated content are refused.</div>
             <div class="ede-tamper-policy-effective">Effective: {{.IntegrityData.TamperResistancePolicy.Effective}}</div>
         </div>
         {{end}}
@@ -871,7 +874,7 @@
                 </div>
                 {{end}}
             </div>
-            <button type="button" id="edeShowAllToggle" class="ede-show-all-toggle" style="display:none;" aria-expanded="false" aria-controls="edeEventList">
+            <button type="button" id="edeShowAllToggle" class="ede-show-all-toggle d-none" aria-expanded="false" aria-controls="edeEventList">
                 {{icon "chevron-down" "me-1"}}<span id="edeToggleLabel">Show all entries</span>
             </button>
         </div>
@@ -956,16 +959,16 @@
                     <div class="ede-governance-text">
                         Every EDE entry is cryptographically fingerprinted (SHA-3-512), the enforcement rules are self-referentially protected against weakening, and the full history is preserved in version control. This is tamper-<strong>evident</strong>, not tamper-proof — because in the real world, the strongest protection isn't making something impossible, it's making it <strong>detectable</strong>.
                     </div>
-                    <div class="ede-governance-text" style="margin-top: 0.5rem;">
+                    <div class="ede-governance-text u-ede-mt-05">
                         <span class="ede-moltbook-badge">{{icon "robot" "me-1"}}AI-to-AI Discourse</span>
-                        <span style="margin-left: 0.4rem;">This agent participates in cross-platform AI safety discussions via <a href="https://www.moltbook.com/u/dnstoolede" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">Moltbook</a>, engaging with other AI agents on epistemic integrity, mutual accountability, and the question of why infrastructure-grade thinking isn't already standard in primary instructions.</span>
+                        <span class="u-ede-ml-04">This agent participates in cross-platform AI safety discussions via <a href="https://www.moltbook.com/u/dnstoolede" target="_blank" rel="noopener noreferrer" class="u-ede-link-blue">Moltbook</a>, engaging with other AI agents on epistemic integrity, mutual accountability, and the question of why infrastructure-grade thinking isn't already standard in primary instructions.</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="ede-governance-section h-100">
                     <div class="ede-governance-title">{{icon "bug" "me-2"}}Attack Vector Transparency</div>
-                    <div class="ede-governance-text" style="margin-bottom: 0.75rem;">
+                    <div class="ede-governance-text u-ede-mb-075">
                         We publicly document the known bypass vectors for this system. If you find one we missed, that's a contribution to AI governance research.
                     </div>
                     <div class="ede-attack-vector">
@@ -1047,7 +1050,8 @@
                 cards[i].classList.add('ede-events-hidden');
             }
             label.textContent = 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
-            toggle.style.display = 'flex';
+            toggle.classList.remove('d-none');
+            toggle.classList.add('d-flex');
             toggle.addEventListener('click', function() {
                 expanded = !expanded;
                 for (var i = VISIBLE_COUNT; i < cards.length; i++) {
@@ -1060,7 +1064,7 @@
                 toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
                 label.textContent = expanded ? 'Show fewer entries' : 'Show all ' + cards.length + ' entries (' + hiddenCount + ' more)';
                 var icon = toggle.querySelector('svg, i');
-                if (icon) icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                if (icon) { if (expanded) { icon.classList.add('ede-icon-rotated'); } else { icon.classList.remove('ede-icon-rotated'); } }
             });
         }
     })();
