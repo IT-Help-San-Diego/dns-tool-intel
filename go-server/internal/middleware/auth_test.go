@@ -250,3 +250,50 @@ func TestRequireAdminNoAuth(t *testing.T) {
                 t.Fatalf("expected 401, got %d", w.Code)
         }
 }
+
+func TestRequireAdminBrowserRedirectUnauthenticated(t *testing.T) {
+        router := gin.New()
+        router.Use(middleware.RequireAdmin())
+        router.GET("/ops/pipeline", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/ops/pipeline", nil)
+        req.Header.Set("Accept", "text/html,application/xhtml+xml")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302 redirect, got %d", w.Code)
+        }
+        loc := w.Header().Get("Location")
+        if loc != "/auth/login?next=%2Fops%2Fpipeline" {
+                t.Fatalf("expected redirect to /auth/login?next=%%2Fops%%2Fpipeline, got %s", loc)
+        }
+}
+
+func TestRequireAdminBrowserRedirectNonAdmin(t *testing.T) {
+        router := gin.New()
+        router.Use(func(c *gin.Context) {
+                c.Set("authenticated", true)
+                c.Set("user_role", "user")
+                c.Next()
+        })
+        router.Use(middleware.RequireAdmin())
+        router.GET("/ops/pipeline", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/ops/pipeline", nil)
+        req.Header.Set("Accept", "text/html,application/xhtml+xml")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusFound {
+                t.Fatalf("expected 302 redirect, got %d", w.Code)
+        }
+        loc := w.Header().Get("Location")
+        if loc != "/" {
+                t.Fatalf("expected redirect to /, got %s", loc)
+        }
+}

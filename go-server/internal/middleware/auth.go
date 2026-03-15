@@ -8,6 +8,8 @@ import (
         "context"
         "log/slog"
         "net/http"
+        "net/url"
+        "strings"
         "time"
 
         "dnstool/go-server/internal/dbq"
@@ -77,6 +79,11 @@ func RequireAuth() gin.HandlerFunc {
         }
 }
 
+func wantsHTML(c *gin.Context) bool {
+        accept := c.GetHeader("Accept")
+        return strings.Contains(accept, "text/html")
+}
+
 func RequireAdmin() gin.HandlerFunc {
         return func(c *gin.Context) {
                 auth, exists := c.Get(mapKeyAuthenticated)
@@ -85,6 +92,11 @@ func RequireAdmin() gin.HandlerFunc {
                         authed = false
                 }
                 if !exists || !authed {
+                        if wantsHTML(c) {
+                                c.Redirect(http.StatusFound, "/auth/login?next="+url.QueryEscape(c.Request.URL.Path))
+                                c.Abort()
+                                return
+                        }
                         c.JSON(http.StatusUnauthorized, gin.H{
                                 mapKeyError: msgAuthRequired,
                         })
@@ -93,6 +105,11 @@ func RequireAdmin() gin.HandlerFunc {
                 }
                 role, exists := c.Get(mapKeyUserRole)
                 if !exists || role != "admin" {
+                        if wantsHTML(c) {
+                                c.Redirect(http.StatusFound, "/")
+                                c.Abort()
+                                return
+                        }
                         c.JSON(http.StatusForbidden, gin.H{
                                 mapKeyError: "Administrator access required",
                         })
