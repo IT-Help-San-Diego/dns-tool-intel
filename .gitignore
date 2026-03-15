@@ -47,7 +47,11 @@ generated-icon.png
 .agents/
 .local/skills/
 
+# Internal project documentation — development context, never public
 # NOTE: If these show in git status after adding here, untrack from Shell:
+#   git rm --cached EVOLUTION.md PROJECT_CONTEXT.md
+EVOLUTION.md
+PROJECT_CONTEXT.md
 
 # Figma asset bundle exports — generated, not versioned
 exports/
@@ -55,13 +59,20 @@ exports/
 # Private repo staging — never push to public
 dnstool-intel-staging/
 
+# Intelligence boundary files — private dns-tool-intel repo only
+# These files contain proprietary analysis logic and must NEVER be in the public repo.
 # If they show in git status after adding here, untrack from Shell:
+#   git rm --cached go-server/internal/analyzer/*_intel.go go-server/internal/analyzer/ai_surface/*_intel.go
+*_intel.go
 
 # Disposable venvs (cffconvert validation, etc.)
 .venv-cff/
 .venv*/
 
+# Intel breadcrumbs — private project context, synced from dns-tool-intel
 # Contains PROJECT_CONTEXT.md, EVOLUTION.md, and other operational docs
+# that must never appear in the public repo.
+.intel/
 
 # Codex agent files (local tooling, not versioned)
 .codex/

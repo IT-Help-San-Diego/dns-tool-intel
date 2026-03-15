@@ -1,20 +1,19 @@
 #!/bin/bash
-# Git sync — push replit-agent commits to main via GitHub PR.
+# Git sync — push local changes to dns-tool-intel main via GitHub API.
 # Usage: bash scripts/git-sync.sh
 #
-# Pre-flight → push → create PR → merge → sync back.
-# Preserves full commit history (merge commit, no squash).
-# Uses GITHUB_MASTER_PAT for GitHub API authentication.
+# Collects all tracked files, pushes them as a commit to main via the
+# GitHub Trees/Commits API. No git-push required — works even when
+# local and remote have unrelated histories.
 #
+# Uses GITHUB_MASTER_PAT for authentication.
 # Safe to run anytime. Fails loudly on any problem.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REPO_OWNER="careyjames"
-REPO_NAME="dns-tool-web"
-BRANCH_SOURCE="replit-agent"
-BRANCH_TARGET="main"
+REPO_NAME="dns-tool-intel"
 API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
 
 RED='\033[0;31m'
@@ -30,145 +29,176 @@ TOKEN="${GITHUB_MASTER_PAT:-}"
 if [ -z "$TOKEN" ]; then
   fail "GITHUB_MASTER_PAT not set. Cannot authenticate with GitHub."
 fi
-PAT_REMOTE="https://${TOKEN}@github.com/${REPO_OWNER}/${REPO_NAME}.git"
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
 echo ""
 echo "═══════════════════════════════════════════"
-echo "  Git Sync: ${BRANCH_SOURCE} → ${BRANCH_TARGET}"
+echo "  Git Sync → ${REPO_NAME}/main (API push)"
 echo "  App version: v${VERSION}"
 echo "═══════════════════════════════════════════"
 echo ""
 
 info "Pre-flight checks"
 
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ "$CURRENT_BRANCH" != "$BRANCH_SOURCE" ]; then
-  fail "Not on ${BRANCH_SOURCE} branch (on: ${CURRENT_BRANCH})"
-fi
-pass "On ${BRANCH_SOURCE} branch"
-
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
   fail "Working tree is dirty. Commit or stash changes first."
 fi
 pass "Working tree clean"
 
-for LOCKFILE in $(find .git -name '*.lock' 2>/dev/null); do
-  LOCK_AGE=$(( $(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || stat -f %m "$LOCKFILE" 2>/dev/null || echo "0") ))
-  if [ "$LOCK_AGE" -gt 30 ]; then
-    echo -e "  ${YELLOW}⚠${NC} Removing stale lock: ${LOCKFILE} (${LOCK_AGE}s old)"
-    rm -f "$LOCKFILE"
-  else
-    fail "Active lock file: ${LOCKFILE} (${LOCK_AGE}s old). Git operation in progress?"
-  fi
-done
-pass "No git lock files"
+LOCAL_MSG=$(git log -1 --format='%s' 2>/dev/null)
+pass "Last commit: ${LOCAL_MSG}"
 
-info "Fetching latest from origin"
-timeout 30 git fetch origin --prune 2>/dev/null || fail "git fetch timed out or failed"
-pass "Fetched origin"
+info "Comparing with remote"
 
-LOCAL_HEAD=$(git rev-parse HEAD)
-REMOTE_HEAD=$(git rev-parse "origin/${BRANCH_SOURCE}" 2>/dev/null || echo "none")
-if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
-  info "Local ${BRANCH_SOURCE} differs from origin — pushing"
-  PUSH_OUTPUT=$(timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || fail "git push failed"
-  echo "$PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
-  pass "Pushed to origin/${BRANCH_SOURCE}"
-else
-  pass "Local and origin/${BRANCH_SOURCE} in sync"
-fi
+REMOTE_TREE=$(python3 -c "
+import os, json, urllib.request
+token = os.environ['GITHUB_MASTER_PAT']
+headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json'}
+req = urllib.request.Request('${API}/git/ref/heads/main', headers=headers)
+ref = json.loads(urllib.request.urlopen(req).read())
+sha = ref['object']['sha']
+req2 = urllib.request.Request(f'${API}/git/commits/{sha}', headers=headers)
+commit = json.loads(urllib.request.urlopen(req2).read())
+print(commit['tree']['sha'])
+" 2>/dev/null) || fail "Failed to read remote main"
+pass "Remote main tree: ${REMOTE_TREE:0:12}"
 
-timeout 15 git fetch origin "${BRANCH_SOURCE}" "${BRANCH_TARGET}" 2>/dev/null || true
+info "Pushing changes via GitHub API"
 
-AHEAD=$(git rev-list --count "origin/${BRANCH_TARGET}..origin/${BRANCH_SOURCE}" 2>/dev/null || echo "0")
-if [ "$AHEAD" -eq 0 ]; then
-  pass "Nothing to merge — ${BRANCH_SOURCE} and ${BRANCH_TARGET} are in sync"
+RESULT=$(python3 << 'PYEOF'
+import os, sys, json, urllib.request, base64, subprocess, hashlib
+
+token = os.environ['GITHUB_MASTER_PAT']
+repo = "careyjames/dns-tool-intel"
+api_base = f"https://api.github.com/repos/{repo}"
+headers = {
+    'Authorization': f'Bearer {token}',
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+}
+
+def api(method, url, data=None):
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
+    resp = urllib.request.urlopen(req)
+    return json.loads(resp.read())
+
+ref = api('GET', f'/repos/{repo}/git/ref/heads/main')
+main_sha = ref['object']['sha']
+commit = api('GET', f'/repos/{repo}/git/commits/{main_sha}')
+old_tree_sha = commit['tree']['sha']
+
+old_tree = api('GET', f'/repos/{repo}/git/trees/{old_tree_sha}?recursive=1')
+remote_files = {}
+for entry in old_tree['tree']:
+    if entry['type'] == 'blob':
+        remote_files[entry['path']] = entry['sha']
+
+tracked = subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.strip().split('\n')
+tracked = [f for f in tracked if f]
+
+changed = []
+for fpath in tracked:
+    if not os.path.isfile(fpath):
+        continue
+    try:
+        with open(fpath, 'rb') as f:
+            content = f.read()
+    except:
+        continue
+    blob_header = f"blob {len(content)}\0".encode()
+    local_sha = hashlib.sha1(blob_header + content).hexdigest()
+    if fpath not in remote_files or remote_files[fpath] != local_sha:
+        changed.append(fpath)
+
+for rpath in remote_files:
+    if rpath not in tracked and os.path.isfile(rpath):
+        pass
+
+if not changed:
+    print("UP_TO_DATE")
+    sys.exit(0)
+
+print(f"PUSHING {len(changed)} file(s)", file=sys.stderr)
+
+tree_entries = []
+batch_size = 20
+for i in range(0, len(changed), batch_size):
+    batch = changed[i:i+batch_size]
+    for fpath in batch:
+        with open(fpath, 'rb') as f:
+            content = f.read()
+        try:
+            text_content = content.decode('utf-8')
+            blob = api('POST', f'/repos/{repo}/git/blobs', {
+                'content': text_content,
+                'encoding': 'utf-8'
+            })
+        except (UnicodeDecodeError, Exception):
+            blob = api('POST', f'/repos/{repo}/git/blobs', {
+                'content': base64.b64encode(content).decode(),
+                'encoding': 'base64'
+            })
+        tree_entries.append({
+            'path': fpath,
+            'mode': '100644',
+            'type': 'blob',
+            'sha': blob['sha']
+        })
+    print(f"  uploaded {min(i+batch_size, len(changed))}/{len(changed)}", file=sys.stderr)
+
+new_tree = api('POST', f'/repos/{repo}/git/trees', {
+    'base_tree': old_tree_sha,
+    'tree': tree_entries
+})
+
+if new_tree['sha'] == old_tree_sha:
+    print("UP_TO_DATE")
+    sys.exit(0)
+
+version = subprocess.run(
+    ['grep', 'Version.*=', 'go-server/internal/config/config.go'],
+    capture_output=True, text=True
+).stdout.strip()
+version = version.split('"')[1] if '"' in version else 'unknown'
+
+last_msg = subprocess.run(['git', 'log', '-1', '--format=%s'], capture_output=True, text=True).stdout.strip()
+commit_msg = f"v{version}: {last_msg}\n\nSynced from Replit workspace via API"
+
+new_commit = api('POST', f'/repos/{repo}/git/commits', {
+    'message': commit_msg,
+    'tree': new_tree['sha'],
+    'parents': [main_sha]
+})
+
+api('PATCH', f'/repos/{repo}/git/refs/heads/main', {'sha': new_commit['sha']})
+
+# Also update replit-agent branch to match
+try:
+    api('PATCH', f'/repos/{repo}/git/refs/heads/replit-agent', {'sha': new_commit['sha'], 'force': True})
+except:
+    try:
+        api('POST', f'/repos/{repo}/git/refs', {'ref': 'refs/heads/replit-agent', 'sha': new_commit['sha']})
+    except:
+        pass
+
+print(f"PUSHED {len(changed)} {new_commit['sha'][:12]}")
+PYEOF
+) || fail "API push failed"
+
+if [ "$RESULT" = "UP_TO_DATE" ]; then
+  pass "Already up to date — nothing to push"
   echo ""
   echo "All good. Nothing to do."
   exit 0
 fi
-pass "${AHEAD} commit(s) ahead of ${BRANCH_TARGET}"
 
-echo ""
-info "Creating pull request"
-
-EXISTING_PR=$(curl -sf -H "Authorization: token ${TOKEN}" \
-  -H "Accept: application/vnd.github+json" \
-  "${API}/pulls?head=${REPO_OWNER}:${BRANCH_SOURCE}&base=${BRANCH_TARGET}&state=open" \
-  2>/dev/null | python3 -c "import sys,json; prs=json.load(sys.stdin); print(prs[0]['number'] if prs else '')" 2>/dev/null || echo "")
-
-if [ -n "$EXISTING_PR" ]; then
-  PR_NUMBER="$EXISTING_PR"
-  pass "Using existing PR #${PR_NUMBER}"
-else
-  PR_TITLE="Merge ${BRANCH_SOURCE}: v${VERSION} — ${AHEAD} commits"
-  COMMITS=$(git log --oneline "origin/${BRANCH_TARGET}..origin/${BRANCH_SOURCE}" | head -20)
-
-  TMPFILE=$(mktemp)
-  trap "rm -f $TMPFILE" EXIT
-  python3 -c "
-import json, sys
-title = sys.argv[1]
-commits = sys.argv[2]
-ahead = sys.argv[3]
-branch_src = sys.argv[4]
-branch_tgt = sys.argv[5]
-version = sys.argv[6]
-body = f'Automated sync from \`{branch_src}\` to \`{branch_tgt}\`.\n\n'
-body += f'**Version**: v{version}\n**Commits**: {ahead}\n\n'
-body += f'\`\`\`\n{commits}\n\`\`\`'
-print(json.dumps({'title': title, 'head': branch_src, 'base': branch_tgt, 'body': body}))
-" "$PR_TITLE" "$COMMITS" "$AHEAD" "$BRANCH_SOURCE" "$BRANCH_TARGET" "$VERSION" > "$TMPFILE"
-
-  PR_RESPONSE=$(curl -sf -X POST \
-    -H "Authorization: token ${TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    "${API}/pulls" \
-    -d @"$TMPFILE" \
-    2>/dev/null) || fail "Failed to create PR. Check token permissions."
-
-  PR_NUMBER=$(echo "$PR_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['number'])" 2>/dev/null)
-  if [ -z "$PR_NUMBER" ]; then
-    echo "$PR_RESPONSE"
-    fail "PR creation returned unexpected response"
-  fi
-  pass "Created PR #${PR_NUMBER}: ${PR_TITLE}"
-fi
-
-echo ""
-info "Merging PR #${PR_NUMBER}"
-
-sleep 2
-
-MERGE_RESPONSE=$(curl -sf -X PUT \
-  -H "Authorization: token ${TOKEN}" \
-  -H "Accept: application/vnd.github+json" \
-  "${API}/pulls/${PR_NUMBER}/merge" \
-  -d "{\"merge_method\": \"merge\", \"commit_title\": \"Merge pull request #${PR_NUMBER} from ${REPO_OWNER}/${BRANCH_SOURCE}\"}" \
-  2>/dev/null) || fail "Merge failed. Check branch protection rules or merge conflicts."
-
-MERGED=$(echo "$MERGE_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('merged', False))" 2>/dev/null)
-if [ "$MERGED" != "True" ]; then
-  fail "Merge response did not confirm success"
-fi
-pass "PR #${PR_NUMBER} merged to ${BRANCH_TARGET}"
-
-echo ""
-info "Syncing ${BRANCH_TARGET} back to ${BRANCH_SOURCE}"
-
-timeout 30 git fetch origin "${BRANCH_TARGET}" 2>/dev/null || fail "Failed to fetch updated ${BRANCH_TARGET}"
-timeout 30 git merge --ff-only "origin/${BRANCH_TARGET}" 2>/dev/null || {
-  echo -e "  ${YELLOW}⚠${NC} Fast-forward failed — pulling with merge"
-  timeout 30 git pull origin "${BRANCH_TARGET}" --no-edit 2>/dev/null || fail "Reverse sync failed"
-}
-pass "Synced ${BRANCH_TARGET} → ${BRANCH_SOURCE}"
-
-SYNC_PUSH_OUTPUT=$(timeout 30 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
-[ -n "${SYNC_PUSH_OUTPUT:-}" ] && echo "$SYNC_PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
+COMMIT_SHA=$(echo "$RESULT" | grep "^PUSHED" | awk '{print $3}')
+FILE_COUNT=$(echo "$RESULT" | grep "^PUSHED" | awk '{print $2}')
+pass "Pushed ${FILE_COUNT} changed file(s) → main (${COMMIT_SHA})"
 
 echo ""
 echo "═══════════════════════════════════════════"
-echo -e "  ${GREEN}Done.${NC} v${VERSION} is on ${BRANCH_TARGET}."
+echo -e "  ${GREEN}Done.${NC} v${VERSION} is on ${REPO_NAME}/main."
 echo "═══════════════════════════════════════════"
 echo ""
