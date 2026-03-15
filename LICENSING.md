@@ -1,6 +1,6 @@
 # Licensing Model (Open Core)
 
-`DnsToolWeb` is licensed under **Business Source License 1.1 (BUSL-1.1)** with a rolling Change Date of **three years from the publication of each version**, after which it converts to **Apache-2.0**.
+`dns-tool-web` is licensed under **Business Source License 1.1 (BUSL-1.1)** with a rolling Change Date of **three years from the publication of each version**, after which it converts to **Apache-2.0**.
 
 ## What this means
 
@@ -37,65 +37,86 @@ Each version automatically converts to **Apache-2.0** — fully permissive, no r
 
 This repository contains the public web application:
 - Go/Gin web server, routing, middleware, templates
-- DNS client (multi-resolver, DoH fallback)
+- DNS client (multi-resolver, DoH fallback, UDP fast-probe)
 - SMTP transport probes
-- Frontend (Bootstrap dark theme, PWA, print/PDF)
-- Analyzer stub interfaces (13 files)
+- Frontend (Bootstrap dark theme, PWA, dual intelligence products with TLP classification)
+- Email Header Analyzer (SPF/DKIM/DMARC verification, spoofing detection, OpenPhish integration)
+- IP Intelligence (reverse lookups, ASN attribution, geolocation)
+- AI Surface Scanner (llms.txt, AI crawler governance, prompt injection detection)
+- DKIM selector discovery and key strength analysis
+- Enterprise DNS provider detection
+- Edge/CDN vs. origin detection
+- SaaS TXT footprint extraction and classification
+- Posture drift detection (canonical SHA-3-512 hashing)
+- Remediation engine with RFC-aligned Priority Actions
+- Analyzer stub interfaces (10 files — see replit.md for current registry)
 - Golden rules test suite
 - Live integration test suite
 
 ## What is in the private repo
 
-Advanced intelligence data and implementations live in a separate private repository (`dnstool-intel`), also licensed under **BSL 1.1** with the same terms and Change Date. This includes:
-- Provider detection databases
-- Scoring algorithms
-- Infrastructure classification logic
-- AI surface detection patterns
-- Remediation intelligence
+The private repository (`dns-tool-intel`) contains the proprietary intelligence that powers active features in the running product. Every item below is a feature users see today — the public repo provides the framework and safe defaults, while the private repo supplies the databases, patterns, and algorithms that produce real intelligence. Also licensed under **BUSL-1.1** with the same terms and Change Date.
+
+### Provider Intelligence (providers.go)
+- DMARC monitoring provider detection databases (vendor identification from rua/ruf domains)
+- SPF flattening provider detection (include-pattern matching)
+- Hosted DKIM provider identification and crediting
+- Dynamic service detection (zone-based CNAME delegation scanning)
+- CNAME-based provider classification database
+
+### Infrastructure Classification (infrastructure.go)
+- Self-hosted, managed, and government DNS tier databases
+- Government domain recognition and classification
+- Managed DNS provider tier detection
+- Extended web, DNS, and email hosting detection patterns
+- Email security management detection (provider-aware analysis)
+- Alternative security posture item collection
+
+### DKIM State Enrichment (dkim_state.go)
+The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPartyOnly, Inconclusive, WeakKeysOnly, NoMailDomain) is fully implemented in the public repo. The private repo extends this with provider-aware state transitions that credit known hosted DKIM providers.
+
+### Intelligence Confidence (confidence.go)
+- Extended confidence levels beyond the base Observed/Inferred/Third-party system
+
+### IP Investigation (ip_investigation.go)
+- Full PTR record analysis and forward-confirmed reverse DNS (FCrDNS) verification
+- ASN-to-CDN correlation and CDN/edge network detection
+- Domain relationship classification (direct assets, email providers, SPF-authorized senders, CT subdomain matches)
+- IP neighborhood analysis with executive verdicts
+- SPF record deep-inspection and include-chain IP matching
+- PTR-based hosting provider detection
+
+### AI Surface Scanner (ai_surface/*.go)
+- SSRF-hardened HTTP text file fetcher
+- llms.txt detection, parsing, and structured field extraction
+- Known AI crawler database for robots.txt governance analysis
+- AI recommendation poisoning detection patterns (prefilled prompts, CSS-hidden prompt injection)
+
+### Feature Parity Manifest (manifest.go)
+- Build-time populated feature registry for internal quality assurance and coverage tracking
 
 ## How they work together
 
-The public repo runs standalone with reduced functionality. In internal builds, selected stub interfaces are replaced with proprietary implementations at compile time. The two codebases share a Go package boundary and are both licensed under BSL 1.1.
+The public repo runs standalone with full core functionality. Every section renders in the UI — stub interfaces return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the public build; the private repo's implementations produce the full intelligence output. In internal builds, the stub files are replaced with proprietary implementations at compile time. The two codebases share a Go package boundary and are both licensed under BUSL-1.1.
 
 ## Contributing
 
-By contributing code to this repository, you agree that your contributions may be used under the terms of the BSL 1.1 (and the Apache-2.0 license after the Change Date). A Contributor License Agreement (CLA) may be required for substantial contributions.
+By contributing code to this repository, you agree that your contributions may be used under the terms of the BUSL-1.1 (and the Apache-2.0 license after the Change Date). A Contributor License Agreement (CLA) may be required for substantial contributions.
 
 ## Commercial Licensing
 
-For organizations that need capabilities beyond the BSL-permitted uses, commercial licenses are available. A commercial license includes:
+For organizations that need capabilities beyond the BUSL-1.1-permitted uses, commercial licenses are available by arrangement. Contact us to discuss your specific requirements.
 
-### Full Platform
-- All public repo capabilities (DNS security analysis, remediation engine, scoring)
-- Complete provider intelligence databases (email, DNS, hosting, CDN/edge detection)
-- Advanced scoring algorithms and infrastructure classification
-- AI Surface Scanner with full detection pattern library
-- White-label and custom branding options
+### What a commercial license can include
+- All public repo capabilities plus the complete private intelligence databases
+- Self-hosted deployment (on-premises or private cloud)
+- Additional deployment and integration options as needed
 
-### Enterprise Intelligence
-- Provider-aware DKIM selector detection and credit
-- Hosted email provider identification (automatic DANE suppression)
-- BIMI capability detection per provider
-- Enterprise DNS provider recognition and legacy provider blocklisting
-- SaaS TXT footprint extraction and classification
-
-### Deployment Options
-- Self-hosted (on-premises or private cloud)
-- Dedicated managed instance
-- API access for integration into existing security workflows
-- Volume licensing for MSP and multi-tenant deployments
-
-### Support and Maintenance
-- Priority support and SLA
-- Custom feature development
-- Early access to new protocol analyzers and detection capabilities
-- Training and onboarding for security teams
-
-### Who Should Contact Us
+### Who should contact us
 - Security vendors who want to embed DNS audit capabilities in their platform
 - Managed service providers who want to offer DNS Tool as a branded service
-- Enterprises requiring a dedicated instance with custom integrations
-- Organizations needing features beyond the public open-core release
+- Enterprises requiring dedicated deployment with custom integrations
+- Organizations needing capabilities beyond the public open-core release
 
 ## Questions
 

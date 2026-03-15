@@ -1,161 +1,60 @@
-# Drift Engine — Roadmap & Design
+# Drift Engine — Longitudinal Security Posture Monitoring
 
-## Philosophy
+## Status
 
-The drift engine extends DNS Tool's observation-based analysis from a point-in-time report into a longitudinal record. Every scan is a live, fresh observation (TTL=0, multi-resolver). The drift engine **never replaces or caches live results**. It records what was observed and detects when observations change over time.
+The drift engine extends DNS Tool's observation-based analysis from point-in-time reports into longitudinal monitoring. Every scan generates a canonical posture hash (SHA-3-512) that fingerprints the domain's security posture at the time of analysis. When a domain is re-analyzed, the current hash is compared against the previous observation to detect posture drift.
 
-This is our own intelligence — not SecurityTrails, not a third-party feed. We observed it, we recorded it, we detected the change.
+### Implemented (Phase 1–2): Core Detection
 
-## Architecture Principles
+- **Canonical posture hashing** (`posture_hash.go`): Deterministic SHA-3-512 of normalized security posture vector (SPF, DMARC, DKIM, MTA-STS, TLS-RPT, BIMI, DANE, CAA, DNSSEC, mail posture, MX, NS). Order-independent — sorted before hashing to prevent false drift from DNS provider record reordering.
+- **Database persistence**: `posture_hash VARCHAR(64)` column on `domain_analyses`. Every successful analysis stores its posture hash.
+- **Drift comparison**: Live analysis and history views compare current vs. previous posture hash. Drift detected when hashes differ.
+- **Drift alert UI**: "Posture Drift Detected" banner on results page when drift is found, with hash previews and link to previous report.
+- **Posture diff engine** (`posture_diff.go` / `posture_diff_oss.go`): Field-level comparison of previous vs. current security posture across 12 status fields and 6 sorted record sets. Severity classification (danger/warning/success/info) per field using policy-aware ranking (DMARC policy regression = danger, DNSSEC loss = danger, etc.).
 
-1. **Live results are sacred.** The analysis path (`AnalyzeDomain` → render `results.html`) is never altered. Snapshots are a side effect of analysis, stored after the live results are delivered.
-2. **Conservative storage.** We store lean posture hashes for drift comparison, not redundant copies of full results. The existing `full_results` JSON in `domain_analyses` is the detailed record.
-3. **Canonical hashing.** DNS records are normalized (sorted, lowercased, whitespace-stripped) before hashing so that cosmetic differences don't trigger false drift alerts.
-4. **No false alarms.** Drift detection compares posture hashes. A change in presentation (e.g., record ordering from a DNS provider) should not register as drift.
+### Implemented (Phase 3): Timeline & Visualization
 
----
+- **Drift timeline** (`drift.go`, `drift.html`): `/drift?domain=` route renders full posture change history for a domain with field-level diffs, severity badges, and timestamps.
+- **Drift events table** (`drift_events`): Normalized storage of individual field changes with severity, previous/current values, and analysis linkage.
+- **Timeline navigation**: Chart-line icons in results.html, dossier.html, and history.html link to the drift timeline for any analyzed domain.
 
-## Phase 1: Foundation (Current Session)
+### Implemented (Phase 4): Watchlist & Alerting
 
-### 1A. Posture Hash Column
+- **Domain watchlist** (`watchlist.go`, `watchlist.html`): `/watchlist` route with full CRUD for monitored domains. Max 25 domains per user. Configurable cadence (hourly/daily/weekly) with enable/disable toggle.
+- **Notification endpoints**: Webhook URL management with optional HMAC-SHA-256 secret for payload verification. Enable/disable toggle per endpoint.
+- **Database schema**: `domain_watchlist`, `notification_endpoints`, `drift_notifications` tables with proper indexes and foreign key constraints.
+- **Routes**: 7 watchlist endpoints — GET `/watchlist`, POST `/watchlist/add`, POST `/watchlist/:id/delete`, POST `/watchlist/:id/toggle`, POST `/watchlist/endpoint/add`, POST `/watchlist/endpoint/:id/delete`, POST `/watchlist/endpoint/:id/toggle`.
 
-Add a `posture_hash` column (VARCHAR 64, SHA-256 hex) to the existing `domain_analyses` table. This hash represents the canonical posture fingerprint at the time of analysis.
+### Implemented (Phase 5): Third-Party Evidence Archival
 
-**What gets hashed (the "posture vector"):**
-- SPF: status, record text (sorted)
-- DMARC: status, policy, record text
-- DKIM: status, discovered selectors (sorted)
-- MTA-STS: status, mode
-- TLS-RPT: status
-- BIMI: status
-- DANE/TLSA: status, has_dane flag, record count
-- CAA: status, issue/issuewild tags (sorted)
-- DNSSEC: status, validated flag
-- Mail posture: label
-- MX records: sorted list of MX hosts
-- NS records: sorted list of nameservers
+- **Wayback Machine integration** (`internal/wayback/client.go`): Every successful, non-private, non-scan-flagged analysis is automatically submitted to the Internet Archive via `web.archive.org/save/` in a background goroutine. Snapshot URL stored in `domain_analyses.wayback_url`.
+- **Three-layer evidence chain**: SHA-3-512 integrity hash (report-level) + posture hash (drift detection) + Wayback Machine archive (independent third-party verification). Legally defensible, independently verifiable, tamper-proof.
+- **Privacy guards**: Private analyses and scanner-flagged analyses are never archived.
+- **Results display**: Green "Archived" badge in header + "Internet Archive — Permanent Record" card on Engineer's and Executive's reports with View/Copy buttons.
 
-**Not included in posture hash (volatile/cosmetic):**
-- TTL values (change frequently, not posture-relevant)
-- Analysis duration
-- Country of requester
-- CT subdomains (discovery set varies)
-- ASN details (informational, not posture)
-- Timestamps
+### Architecture Principles
 
-### 1B. Canonical Hashing Utility
+1. **Live results are sacred.** The analysis path is never altered by drift detection. Snapshots are a side effect.
+2. **Conservative storage.** Lean posture hashes for comparison, not redundant copies of full results.
+3. **Canonical hashing.** DNS records normalized (sorted, lowercased, whitespace-stripped) before hashing. Cosmetic differences don't trigger false drift.
+4. **No false alarms.** Presentation changes (record ordering) don't register as drift.
+5. **Severity is policy-aware.** DMARC policy regression (reject→none) is danger. Status loss (pass→fail) is danger. Record changes are warning. Unknown changes are info.
+6. **Watchlist is user-scoped.** Each authenticated user manages their own monitored domains and notification preferences.
+7. **Third-party evidence is privacy-gated.** Only non-private, non-scan-flagged analyses are submitted to external archives. The Wayback Machine URL is validated before storage.
 
-New file: `go-server/internal/analyzer/posture_hash.go`
+### Build Tag Boundary
 
-- `CanonicalPostureHash(results map[string]any) string` — extracts posture vector from analysis results, normalizes, sorts, and returns SHA-256 hex digest.
-- Deterministic: same DNS posture → same hash, regardless of query order or formatting.
-- Unit tested: `posture_hash_test.go` with known inputs/outputs.
+The `posture_diff` boundary follows the open-core pattern:
+- `posture_diff.go` — Framework file (compiles unconditionally). Contains `ComputePostureDiff()` and extraction helpers.
+- `posture_diff_oss.go` — OSS stub (`//go:build !intel`). Contains `classifyDriftSeverity()`, `classifyPolicyChange()`, `classifyStatusChange()`.
+- `posture_diff_intel.go` — Private intel (exists only in dns-tool-intel repo). Enhanced severity classification with threat intelligence correlation.
 
-### 1C. Wire Into Save Path
+### Roadmap
 
-In `analysis.go` `saveAnalysis()`, compute posture hash from results and store it alongside the analysis. This is a one-line addition after the existing save logic — no changes to the live analysis path.
-
-### 1D. Query: Get Previous Hash
-
-New sqlc query: `GetPreviousPostureHash` — given a domain, return the posture_hash from the most recent prior successful analysis. This enables the handler to compare current vs. previous in a future phase.
+- **Background scheduler**: Automated re-analysis at watchlist cadence intervals.
+- **Webhook dispatch**: HTTP POST delivery of drift notifications with HMAC-SHA-256 signed payloads.
+- **Drift scoring**: Aggregate drift velocity metric for domains over time windows.
 
 ---
 
-## Phase 2: Drift Detection (Next Session)
-
-### 2A. Compare Current vs. Previous
-
-After computing the current posture hash, query the previous hash for the same domain. If they differ, flag `drift_detected: true` in the results passed to the template.
-
-### 2B. Drift Detail Extraction
-
-When drift is detected, compute a structured diff:
-- Which posture fields changed (e.g., "DMARC policy changed from none to reject")
-- Severity classification (critical: SPF/DMARC degradation; info: new CAA tag added)
-- Previous vs. current values for changed fields
-
-### 2C. Results Page Integration
-
-Add a drift section to `results.html`:
-- "Posture Change Detected" banner (only when drift exists)
-- Concise list of what changed with severity indicators
-- Link to previous analysis for comparison
-- Clear label: "Compared against your previous observation on [date]"
-
----
-
-## Phase 3: Timeline UI (Future)
-
-### 3A. Domain Posture Timeline
-
-New page: `/posture-timeline?domain=example.com`
-- Chronological list of all observations for a domain
-- Posture hash change markers (visual timeline)
-- Score/grade progression over time
-- Expandable detail for each observation
-
-### 3B. Posture Trend Visualization
-
-- Simple chart showing posture score over time
-- Protocol-level status progression (SPF: none → softfail → fail → pass)
-- Key events annotated on timeline
-
----
-
-## Phase 4: Alerting (Future)
-
-### 4A. Drift Notification Framework
-
-- Webhook support for posture changes
-- Email alerts (optional, requires SMTP config)
-- Configurable sensitivity (alert on any change vs. only degradations)
-- Rate limiting to prevent alert storms
-
-### 4B. Scheduled Monitoring
-
-- Periodic re-scan of watched domains
-- Configurable scan intervals
-- Dashboard of monitored domains with current posture status
-
----
-
-## Storage Considerations
-
-### Current approach (Phase 1):
-- `posture_hash` is 64 bytes per row — negligible storage cost
-- No new tables required — extends existing `domain_analyses`
-- Full results already stored as JSON — no duplication
-
-### Future considerations:
-- Retention policy: keep detailed `full_results` for N days, then retain only posture hash + key fields
-- Archival: compress old `full_results` JSON or move to cold storage
-- Index: add index on `(domain, posture_hash, created_at)` for drift queries
-
----
-
-## Testing Strategy
-
-- Golden rule test: `TestGoldenRulePostureHashDeterministic` — same input → same hash
-- Golden rule test: `TestGoldenRulePostureHashChangesOnDrift` — different SPF → different hash
-- Integration: verify posture_hash is stored and retrievable
-- Regression: all existing 50 golden rule sub-tests must continue to pass
-
----
-
-## Version History
-
-| Date | Phase | Status | Notes |
-|------|-------|--------|-------|
-| Feb 15, 2026 | 1 (Foundation) | Complete | Schema + hashing + save path + 10 golden rule tests |
-
----
-
-## Key Decisions
-
-1. **Single table, not a new table.** Adding `posture_hash` to `domain_analyses` keeps the schema simple. Each row is already a snapshot — adding a hash column makes it drift-comparable without architectural changes.
-
-2. **SHA-256 for hashing.** Standard, deterministic, collision-resistant. 64-char hex string fits in a VARCHAR(64).
-
-3. **Posture vector scope.** We hash security-relevant protocol states, not cosmetic/volatile fields. This prevents false drift signals from TTL changes, ASN updates, or CT log variance.
-
-4. **No caching of results.** The drift engine observes and records but never serves stale data. Live analysis always runs fresh.
+*Full roadmap and design documentation maintained in the private repository.*

@@ -54,14 +54,16 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/history` — List of recently analyzed domains
 - `/stats` — Usage statistics and trends with global reach, daily activity, and operational insights
 - `/compare` — Side-by-side domain comparison
-- `/architecture` — TLP:GREEN public system architecture overview: intelligence pipeline, dual-engine confidence framework (ICAE/ICuAE), protocol coverage, open-core design, standards foundation
+- `/architecture` — TLP:CLEAR public system architecture overview: intelligence pipeline, dual-engine confidence framework (ICAE/ICuAE), protocol coverage, open-core design, standards foundation
 - `/approach` — Our Methodology: five analytic perspectives (Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro) encoded as a precision algorithm — Symbiotic Security model, RFC provenance for every finding, time-series verification, and the architecture behind building a forensic audit engine instead of a simple checker
 - `/failures` — Analysis Transparency Log: public accountability page showing sanitized failure records — every failed analysis with domain, error category, and timestamp. Error messages are categorized (timeout, NXDOMAIN, connection refused, TLS error, etc.) with infrastructure details redacted. KPI cards showing total failures, total analyses, and failure rate
-- `/roadmap` — Public Roadmap: kanban-style view of project progress — completed features (55+), in-progress work, next-up priorities, and backlog items with transparent status tracking
+- `/roadmap` — Public Roadmap: kanban-style view of project progress — completed features (87+), in-progress work, next-up priorities (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and backlog items with transparent status tracking
 - `/about` — About page with project background and team information
 - `/color-science` — Color Science: CIE scotopic luminance calculations, WCAG contrast analysis, and the science behind the platform's dark-mode color system
 - `/brand-colors` — Brand Colors: platform color palette with accessibility rationale
 - `/badge` — Badge System: embeddable security posture badges (SVG, Shields.io format) for domain security status
+- `/ede` — Epistemic Disclosure Events: public correction log documenting every structural correction to the confidence scoring model — per-event SHA-3-512 integrity hashing, tamper resistance policy with two amendment grounds (FACTUAL_ERROR, DIGNITY_OF_EXPRESSION), full attribution model (Human Error / AI Error / Both / Process Gap), and methodology PDF
+- `/docs/dns-tool-methodology.pdf` — Methodology PDF: peer-review-ready methodology document covering data collection, protocol-specific evaluation, confidence scoring model (ICAE/ICuAE), epistemic correction disclosure, and output products
 - `/faq/subdomains` — Subdomain Discovery FAQ: methodology explanation for Certificate Transparency and DNS-based subdomain enumeration
 
 ## Intelligence Sources & Transparency
@@ -86,7 +88,7 @@ Every attribution includes a confidence label:
 
 ### Confidence Engines
 DNS Tool applies ICD 203 (Intelligence Community) confidence methodology to its own output:
-- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). See `/confidence`.
+- **ICAE (Intelligence Confidence Audit Engine)**: 129 deterministic test cases across 9 protocols measuring analysis correctness. Five-tier maturity model (Development → Gold Master). Empirically calibrated: 129 test cases × 5 resolver agreement scenarios = 645 predictions validated with Brier Score 0.0018 (excellent) and Expected Calibration Error 0.031 (good) using a reliability-weighted shrinkage estimator. See `/confidence`.
 - **ICuAE (Intelligence Currency Audit Engine)**: 29 test cases measuring data timeliness across five dimensions (TTL Compliance, Completeness, Source Credibility, Currentness, TTL Relevance). Grading: Excellent/Good/Adequate/Degraded/Stale. Phase 1 tuning advisory live. See `/confidence#icuae`.
 
 ## Who It's For
@@ -133,7 +135,7 @@ DNS Tool's engineering depth — statistical confidence calibration, drift detec
 
 Most DNS tools answer "does the record exist?" That question is dangerous to stop at. An SPF record can be syntactically perfect and still authorize 16.7 million IP addresses. A DNS record can exist at query time and be rotating every few minutes (fast-flux). A TTL can be valid and still operationally wasteful. SPF misconfiguration is the attack surface exploited in Business Email Compromise — $2.9 billion in 2023 (FBI IC3). The depth exists because the problem requires it.
 
-ICD 203 applies because it was designed for exactly this scenario: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment — distinguishing between observed, inferred, and third-party evidence. DNS Tool's own domain implements every protocol it audits (SPF `-all`, DKIM 2048-bit, DMARC `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS enforce, TLS-RPT, BIMI) and passes Lighthouse 98–100, Observatory 140 (A+), and SonarCloud A. Full methodology: `/approach`
+ICD 203 applies because it was designed for exactly this scenario: an operator making a high-stakes decision based on incomplete, potentially ambiguous data needs structured confidence assessment — distinguishing between observed, inferred, and third-party evidence. DNS Tool's own domain implements every protocol it audits (SPF `-all`, DKIM 2048-bit, DMARC `p=reject`, DANE/TLSA, DNSSEC, CAA, MTA-STS enforce, TLS-RPT, BIMI) and passes Lighthouse 100, Observatory 145 (A+) as of Mar 2026, and SonarCloud A. Full methodology: `/approach`
 
 ### On the Intelligence Community Framing
 The IC-style naming (ICAE — Intelligence Confidence Audit Engine, ICuAE — Intelligence Currency Assurance Engine, TLP classification) has been called "theatrical" when applied to DNS. We address this directly: ICD 203 was designed for operators making high-stakes decisions on incomplete data. BEC is a $2.9B/year problem. When an engineer evaluates a finding, they need to know: observed or inferred? Confirmed across resolvers or seen by one? Degraded by caching? ICD 203 provides that structure. The naming enforces separation between two fundamentally different subsystems — correctness vs currency — with precise terminology the IC spent decades refining. "Accuracy Checker" and "Freshness Checker" would have been imprecise. Full defense: `/approach#addressing-the-criticism`
@@ -144,9 +146,10 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 
 ### Engine Implementations (Public Repository)
 - **ICAE Engine**: 129 executable deterministic test cases across 9 protocols. Database-backed maturity tracking with statistical confidence calibration.
-- **ICuAE Engine**: 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-18). Statistical drift detection for per-dimension trend analysis.
+- **ICuAE Engine**: 29 inventory test cases across 5 dimensions. Standards-cited per dimension (ISO/IEC 25012, RFC 8767, NIST SP 800-53 SI-7). Statistical drift detection for per-dimension trend analysis.
 - **Confidence Tagging**: ICD 203-aligned observed/inferred/third-party classification applied to all attributions.
 - **Hash Integrity**: SHA-3-512 (FIPS 202) cryptographic hashing for report integrity and posture drift fingerprinting.
+- **Wayback Machine Archival**: Automatic submission of every successful, non-private analysis to the Internet Archive (web.archive.org/save/). Snapshot URL stored and displayed as "Archived" badge with direct link. Third layer of the evidence chain alongside SHA-3-512 integrity hash and posture hash.
 - **Threat Feed**: OpenPhish community phishing URL feed with 12-hour cache TTL.
 
 ### Analytical Methods
@@ -154,6 +157,7 @@ DNS Tool is a deterministic protocol validation engine implemented in Go — not
 - **Confidence Calibration**: Per-protocol priors encode historical detection reliability. Measurement quality (resolver agreement ratio) weights observations against priors. Framework aligned with ICD 203 confidence methodology.
 - **Resolver Consensus**: Multi-resolver quorum tracking agreement across Cloudflare, Google, Quad9, OpenDNS, and DNS4EU. Disagreement classified as measurement noise, not misconfiguration.
 - **Cryptographic Integrity**: SHA-3-512 (FIPS 202) for analysis result sealing and posture drift fingerprinting.
+- **Third-Party Evidence Archival**: Internet Archive Wayback Machine integration for independently verifiable, tamper-proof analysis snapshots. Three-layer evidence chain: integrity hash + posture hash + Wayback archive.
 
 ### Disclosure Boundary (What Is Intentionally Withheld)
 DNS Tool follows the same open-core disclosure model used by HashiCorp, GitLab, Elastic, and Grafana Labs. The public repository reveals architecture shape, protocol coverage, and engine existence — not proprietary mechanics. Specifically withheld:
@@ -170,6 +174,14 @@ DNS Tool embeds rich JSON-LD structured data on indexed pages, mapping the full 
 - **Index page (WebApplication)**: `featureList` enumerates 18 protocol analyzers with RFC citations. `hasPart` declares ICAE and ICuAE as named SoftwareApplication entities. `isBasedOn` links 10 RFC/draft references as CreativeWork objects to IETF DataTracker. `additionalProperty` documents intelligence sources, protocol coverage, output formats, risk classification, and CVE coverage.
 - **Approach page (Article)**: Maps methodology components (ICAE, ICuAE, multi-resolver consensus, posture drift detection) with `isBasedOn` RFC references and full Google Article eligibility fields.
 - **Result**: Google's knowledge graph understands not just "this is a web app" but specifically what DNS Tool analyzes, which RFCs it implements, how its confidence engines work, and what vulnerabilities it detects.
+
+### Open Graph Social Cards (Platform Compliance)
+All 33 public pages include full Open Graph and Twitter Card metadata for rich social sharing previews:
+- **Image dimensions**: 1200x630px PNG (optimal for Facebook, LinkedIn, Twitter/X, Discord, Slack)
+- **Required tags on every page**: `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:image:width`, `og:image:height`, `og:image:type`, `og:image:alt`, `og:site_name`
+- **Twitter Cards**: `summary_large_image` with `twitter:title`, `twitter:description`, `twitter:image` (video page uses `player` card type)
+- **Six unique OG images**: Main (DNS Tool), Field Tech Toolkit, IP Intelligence, Email Intelligence, TTL Tuner, Forgotten Domain — each with centered Owl of Athena emblem, protocol-specific content, and brand footer
+- **Validation**: All cards pass Facebook Sharing Debugger, Twitter Card Validator, and LinkedIn Post Inspector
 
 ### Architecture Diagrams (Public, Version-Controlled)
 Four Mermaid-sourced engineering diagrams are maintained in `docs/diagrams/*.mmd` (Git-diffable canonical source) with pre-rendered SVGs on the `/architecture` page:
@@ -188,9 +200,12 @@ Domain security audit, SPF checker, DKIM validator, DMARC lookup, DNSSEC validat
 ## Documentation
 - Full agent guide with result interpretation: /llms-full.txt
 - Intelligence sources inventory: /sources
+- Methodology PDF (peer-review-ready): /docs/dns-tool-methodology.pdf
+- Epistemic Disclosure Events (correction log): /ede
 - Blog guide: https://www.it-help.tech/blog/dns-security-best-practices/
 
 ## Contact
 IT Help San Diego Inc.
+Founder: Carey James Balboa (ORCID: https://orcid.org/0009-0000-5237-9065)
 Phone: 619-853-5008
 Website: https://www.it-help.tech

@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>Protocol Topology — DNS Tool</title>
+    <meta name="description" content="Interactive topology map of DNS Tool protocol analysis pipeline. Visualize resolver paths, dependency graphs, and security protocol coverage.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:url" content="https://dnstool.it-help.tech/topology">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Protocol Topology — DNS Tool">
+    <meta property="og:description" content="Interactive system architecture diagram showing DNS Tool protocol analysis topology.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="DNS Tool - Protocol Topology">
+    <meta property="og:site_name" content="DNS Tool">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Protocol Topology — DNS Tool">
+    <meta name="twitter:description" content="Interactive system architecture diagram showing DNS Tool protocol analysis topology.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <style nonce="{{.CspNonce}}">
+        .topo-canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 80px);
+            min-height: 750px;
+            overflow: hidden;
+            background: #070a0f;
+            border-radius: 8px;
+        }
+        .topo-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
+        .topo-canvas-wrap canvas.topo-cursor-pointer {
+            cursor: pointer;
+        }
+        .u-privacy-banner { display: none !important; }
+        .topo-legend {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: none;
+            transform: none;
+            background: rgba(7, 10, 15, 0.92);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 0 0 8px 8px;
+            padding: 5px 16px;
+            font-size: 0.68rem;
+            color: #8b9aad;
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .topo-legend-section { display: flex; align-items: center; gap: 4px; }
+        .topo-legend-label {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #5a6878;
+            margin-right: 4px;
+        }
+        .topo-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-right: 6px;
+            line-height: 1;
+        }
+        .topo-legend-item:last-child { margin-right: 0; }
+        .topo-legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .topo-legend-rect {
+            width: 10px;
+            height: 6px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .topo-title-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            pointer-events: none;
+        }
+        .topo-title-h1 {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: block;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+        .topo-beta-badge {
+            display: inline-block;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.12);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 4px;
+            padding: 1px 7px;
+            margin-left: 6px;
+            vertical-align: middle;
+            line-height: 1.6;
+        }
+        .topo-disclosure {
+            background: rgba(255, 193, 7, 0.06);
+            border: 1px solid rgba(255, 193, 7, 0.18);
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #c0c8d4;
+            line-height: 1.5;
+        }
+        .topo-disclosure-label {
+            font-weight: 700;
+            color: #ffc107;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-right: 6px;
+        }
+        .topo-c-cf { background: #f6821f; }
+        .topo-c-g  { background: #4285f4; }
+        .topo-c-q9 { background: #0078d4; }
+        .topo-c-od { background: #ff6a00; }
+        .topo-c-eu { background: #003399; }
+        .topo-c-email { background: #4fc3f7; }
+        .topo-c-transport { background: #81c784; }
+        .topo-c-policy { background: #ffb74d; }
+        .topo-c-brand { background: #ce93d8; }
+        .topo-flow-signal { color: #5c6bc0; font-size: 0.8rem; }
+        .topo-flow-query { color: #e0e0e0; font-size: 0.7rem; }
+        .topo-flow-dep { color: #78909c; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+    <main id="main-content">
+        <div class="container-fluid px-3 py-3">
+            <div class="topo-canvas-wrap" id="topoWrap">
+                <canvas id="topoCanvas"></canvas>
+                <div class="topo-title-overlay">
+                    <h1 class="topo-title-h1">Intelligence Topology <span class="topo-beta-badge">Beta</span></h1>
+                    DNS Security Pipeline &amp; Dependency Graph
+                </div>
+                <div class="topo-legend">
+                    <div class="topo-legend-section">
+                        <span class="topo-legend-label">Resolvers</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-cf"></span>CF</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-g"></span>Google</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-q9"></span>Quad9</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-od"></span>OpenDNS</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-eu"></span>DNS4EU</span>
+                    </div>
+                    <div class="topo-legend-section">
+                        <span class="topo-legend-label">Protocols</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-email"></span>Email</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-transport"></span>Transport</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-policy"></span>Policy</span>
+                        <span class="topo-legend-item"><span class="topo-legend-dot topo-c-brand"></span>Brand</span>
+                    </div>
+                    <div class="topo-legend-section">
+                        <span class="topo-legend-label">Flow</span>
+                        <span class="topo-legend-item"><span class="topo-flow-signal">&#8594;</span> Signal</span>
+                        <span class="topo-legend-item"><span class="topo-flow-query">&#9472;&#9654;</span> Query</span>
+                        <span class="topo-legend-item"><span class="topo-flow-dep">&#9476;&#9655;</span> Dep</span>
+                    </div>
+                </div>
+            </div>
+            <div class="topo-disclosure">
+                <span class="topo-disclosure-label">Beta</span> — Engineering validation in progress. Proven: deterministic constrained layout and metric pipeline (crossings, overlaps, stress, monotonicity). In-progress: external baseline (ELK), multi-dataset statistical significance, and publication-grade reproducibility.
+            </div>
+        </div>
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function() {
+        'use strict';
+
+        var SOLVER_LAYOUTS = {{.SolverLayouts}};
+        var SOLVER_ACTIVE = false;
+
+        var canvas = document.getElementById('topoCanvas');
+        var wrap = document.getElementById('topoWrap');
+        if (!canvas || !wrap) return;
+        var ctx = canvas.getContext('2d');
+        var dpr = window.devicePixelRatio || 1;
+        var W, H;
+        var SCL = 1;
+        var FONT_LABEL = 13;
+        var FONT_SUB = 10;
+        var FONT_TAG = 13;
+        var MIN_SPACING = 8;
+
+        var COLORS = {
+            email: '#4fc3f7',
+            transport: '#81c784',
+            policy: '#ffb74d',
+            brand: '#ce93d8',
+            source: '#5c6bc0',
+            intel: '#78909c',
+            engine: '#e0e0e0',
+            storage: '#ff8a65',
+            output: '#90caf9'
+        };
+
+        function hexToRgba(hex, a) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+        }
+
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        var DEG = Math.PI / 180;
+
+        var RESOLVER_POPS = [
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco', country: 'US', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'Primary US West PoP' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London', country: 'GB', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EMEA hub' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo', country: 'JP', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC hub' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore', country: 'SG', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'SEA PoP' },
+            { resolver: 'Cloudflare', tag: 'CF', ip: '1.1.1.1', ipAlt: '1.0.0.1', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo', country: 'BR', asn: 13335, asOrg: 'Cloudflare Inc.', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'LATAM hub' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs', country: 'US', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'US Central DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin', country: 'IE', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'EU DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney', country: 'AU', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Oceania DC' },
+            { resolver: 'Google', tag: 'G', ip: '8.8.8.8', ipAlt: '8.8.4.4', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei', country: 'TW', asn: 15169, asOrg: 'Google LLC', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC cache' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich', country: 'CH', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Swiss HQ, threat-blocking' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt', country: 'DE', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'DE-CIX peered' },
+            { resolver: 'Quad9', tag: 'Q9', ip: '9.9.9.9', ipAlt: '149.112.112.112', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore', country: 'SG', asn: 19281, asOrg: 'QUAD9-AS-1', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'SEA PoP' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose', country: 'US', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'core-dc', note: 'Cisco Umbrella HQ' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London', country: 'GB', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EMEA PoP' },
+            { resolver: 'OpenDNS', tag: 'OD', ip: '208.67.222.222', ipAlt: '208.67.220.220', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong', country: 'HK', asn: 36692, asOrg: 'Cisco OpenDNS LLC', transport: 'anycast', protocol: 'DoH/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'APAC PoP' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels', country: 'BE', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'EU HQ, sovereign DNS' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris', country: 'FR', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'France PoP' },
+            { resolver: 'DNS4EU', tag: 'EU', ip: 'dns4eu.eu', ipAlt: 'n/a', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin', country: 'DE', asn: 0, asOrg: 'EU Digital Sovereignty', transport: 'anycast', protocol: 'DoH/DoT/UDP', pipelineRole: 'resolver', hopType: 'edge-pop', note: 'Germany PoP' }
+        ];
+
+        var LAND = [
+            [[60,-140],[68,-165],[72,-158],[73,-80],[65,-62],[52,-56],[45,-62],[41,-71],[35,-76],[30,-82],[25,-80],[18,-88],[15,-92],[22,-110],[32,-117],[38,-123],[50,-128],[60,-140]],
+            [[10,-73],[5,-77],[-1,-80],[-5,-81],[-15,-75],[-23,-70],[-35,-57],[-40,-65],[-55,-68],[-53,-74],[-40,-73],[-23,-43],[-13,-38],[-2,-50],[5,-60],[10,-73]],
+            [[36,-10],[43,-9],[47,-2],[51,2],[54,8],[58,6],[63,7],[68,15],[71,28],[65,28],[56,22],[50,14],[45,14],[41,28],[36,22],[36,-10]],
+            [[36,-5],[37,10],[32,32],[22,37],[12,44],[2,42],[-12,44],[-25,35],[-35,18],[-22,14],[-5,12],[0,10],[5,-3],[10,-15],[20,-17],[30,-10],[36,-5]],
+            [[42,28],[42,50],[50,55],[58,60],[56,72],[53,87],[55,95],[60,100],[63,135],[56,138],[50,140],[45,142],[35,132],[25,120],[20,110],[10,99],[5,104],[-7,106],[-7,118],[4,128],[25,68],[32,48],[42,28]],
+            [[-14,129],[-12,133],[-16,137],[-19,146],[-28,153],[-35,151],[-38,146],[-38,140],[-33,134],[-28,114],[-23,114],[-18,122],[-14,129]],
+            [[50,-5],[51,1],[53,0],[56,-3],[58,-6],[56,-6],[53,-4],[50,-5]],
+            [[31,130],[34,132],[36,137],[40,140],[43,146],[42,143],[38,138],[34,134],[31,130]]
+        ];
+
+        var globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
+
+        function projectPt(lat, lon) {
+            var phi = lat * DEG;
+            var lam = (lon - globe.rotLon) * DEG;
+            var cosPhi = Math.cos(phi);
+            return {
+                x: globe.cx + globe.R * cosPhi * Math.sin(lam),
+                y: globe.cy - globe.R * Math.sin(phi),
+                vis: cosPhi * Math.cos(lam) > 0,
+                depth: cosPhi * Math.cos(lam)
+            };
+        }
+
+        function drawGlobeSphere() {
+            var grd = ctx.createRadialGradient(globe.cx - globe.R * 0.25, globe.cy - globe.R * 0.25, globe.R * 0.05, globe.cx, globe.cy, globe.R * 1.4);
+            grd.addColorStop(0, 'rgba(30,40,70,0.15)');
+            grd.addColorStop(0.7, 'rgba(15,20,40,0.08)');
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath();
+            ctx.arc(globe.cx, globe.cy, globe.R * 1.4, 0, Math.PI * 2);
+            ctx.fillStyle = grd;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(globe.cx, globe.cy, globe.R, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(8,12,22,0.9)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(100,140,200,0.2)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+        }
+
+        function drawGraticule() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+            ctx.clip();
+
+            ctx.strokeStyle = 'rgba(100,140,200,0.07)';
+            ctx.lineWidth = 0.5;
+
+            var lats = [-60, -30, 0, 30, 60];
+            for (var li = 0; li < lats.length; li++) {
+                ctx.beginPath();
+                var started = false;
+                for (var lon = -180; lon <= 180; lon += 3) {
+                    var p = projectPt(lats[li], lon);
+                    if (p.vis) {
+                        if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                        else ctx.lineTo(p.x, p.y);
+                    } else { started = false; }
+                }
+                ctx.stroke();
+            }
+
+            for (var mlon = -180; mlon < 180; mlon += 30) {
+                ctx.beginPath();
+                var started2 = false;
+                for (var lat = -90; lat <= 90; lat += 3) {
+                    var p = projectPt(lat, mlon);
+                    if (p.vis) {
+                        if (!started2) { ctx.moveTo(p.x, p.y); started2 = true; }
+                        else ctx.lineTo(p.x, p.y);
+                    } else { started2 = false; }
+                }
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = 'rgba(100,140,200,0.12)';
+            ctx.lineWidth = 0.7;
+            ctx.beginPath();
+            var started3 = false;
+            for (var elon = -180; elon <= 180; elon += 3) {
+                var ep = projectPt(0, elon);
+                if (ep.vis) {
+                    if (!started3) { ctx.moveTo(ep.x, ep.y); started3 = true; }
+                    else ctx.lineTo(ep.x, ep.y);
+                } else { started3 = false; }
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawContinents() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+            ctx.clip();
+
+            for (var ci = 0; ci < LAND.length; ci++) {
+                var coords = LAND[ci];
+                ctx.beginPath();
+                var started = false;
+                for (var pi = 0; pi < coords.length; pi++) {
+                    var p = projectPt(coords[pi][0], coords[pi][1]);
+                    if (p.vis) {
+                        if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                        else ctx.lineTo(p.x, p.y);
+                    } else { started = false; }
+                }
+                if (started) {
+                    ctx.fillStyle = 'rgba(80,120,180,0.04)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(100,160,220,0.12)';
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        var convergePt = { x: 0, y: 0 };
+        var signalParticles = [];
+
+        function initSignalParticles() {
+            signalParticles = [];
+            for (var i = 0; i < RESOLVER_POPS.length; i++) {
+                for (var j = 0; j < 3; j++) {
+                    signalParticles.push({
+                        popIdx: i,
+                        t: Math.random(),
+                        speed: 0.003 + Math.random() * 0.004,
+                        size: 1.5 + Math.random() * 1.5
+                    });
+                }
+            }
+        }
+
+        function drawSignalArcs(time) {
+            var tgtX = HUB.x - (HUB._drawW || 88) / 2;
+            var tgtY = HUB.y;
+            for (var i = 0; i < RESOLVER_POPS.length; i++) {
+                var pop = RESOLVER_POPS[i];
+                var p = projectPt(pop.lat, pop.lon);
+                if (!p.vis) continue;
+
+                var cpx = p.x + (tgtX - p.x) * 0.5 + (p.y - tgtY) * 0.12;
+                var cpy = p.y + (tgtY - p.y) * 0.5;
+
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.quadraticCurveTo(cpx, cpy, tgtX, tgtY);
+                ctx.strokeStyle = hexToRgba(pop.color, 0.12 + p.depth * 0.06);
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
+
+            for (var si = 0; si < signalParticles.length; si++) {
+                var sp = signalParticles[si];
+                var pop2 = RESOLVER_POPS[sp.popIdx];
+                var p2 = projectPt(pop2.lat, pop2.lon);
+                if (!p2.vis) continue;
+
+                var t = sp.t;
+                var cpx2 = p2.x + (tgtX - p2.x) * 0.5 + (p2.y - tgtY) * 0.12;
+                var cpy2 = p2.y + (tgtY - p2.y) * 0.5;
+                var mt = 1 - t;
+                var px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * tgtX;
+                var py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * tgtY;
+
+                ctx.beginPath();
+                ctx.arc(px, py, sp.size, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, 0.5 + t * 0.3);
+                ctx.fill();
+            }
+        }
+
+        var hoveredPop = null;
+        var allLayoutNodes = [];
+        var popHitAreas = [];
+
+        function drawResolverMarkers() {
+            var visiblePops = [];
+            for (var i = 0; i < RESOLVER_POPS.length; i++) {
+                var pop = RESOLVER_POPS[i];
+                var p = projectPt(pop.lat, pop.lon);
+                if (p.vis) {
+                    visiblePops.push({ pop: pop, p: p, idx: i });
+                }
+            }
+
+            visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
+
+            var placedBoxes = [];
+            allLayoutNodes.forEach(function(nd) {
+                if (!nd._boxW) measureNodeBox(nd);
+                var hw = nd._halfW || nd.radius;
+                var hh = nd._halfH || nd.radius;
+                placedBoxes.push({ x: nd.x - hw, y: nd.y - hh, w: hw * 2, h: hh * 2 });
+            });
+            popHitAreas = [];
+
+            var labelGap = 12 * SCL;
+            var labelBand = 120 * SCL;
+            var maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
+            var maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
+            var maxLabelTop = globe.cy - globe.R - labelBand;
+            var maxLabelBottom = globe.cy + globe.R + labelBand;
+
+            for (var vi = 0; vi < visiblePops.length; vi++) {
+                var vp = visiblePops[vi];
+                var pop2 = vp.pop;
+                var p2 = vp.p;
+                var alpha = 0.4 + p2.depth * 0.6;
+                var isHovered = hoveredPop === vp.idx;
+
+                ctx.beginPath();
+                ctx.arc(p2.x, p2.y, isHovered ? 9 : 7, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 0.3 : 0.15) * alpha);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(p2.x, p2.y, isHovered ? 5 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(pop2.color, (isHovered ? 1 : 0.85) * alpha);
+                ctx.fill();
+
+                var label = isHovered ? (pop2.tag + ' \u00b7 ' + pop2.city) : pop2.city;
+                ctx.font = (isHovered ? 'bold ' : '') + FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                var tw = ctx.measureText(label).width;
+                var tagW = tw + 18 * SCL;
+                var tagH = Math.round(20 * SCL + 2);
+
+                var baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
+                var bestX = null, bestY = null, bestScore = Infinity;
+                var candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
+
+                var candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+                for (var di = 0; di < candidateDists.length; di++) {
+                for (var ci = 0; ci < candidateAngles.length; ci++) {
+                    var ca = baseAngle + candidateAngles[ci] * DEG;
+                    var dist = candidateDists[di];
+                    var cx = p2.x + Math.cos(ca) * dist;
+                    var cy = p2.y + Math.sin(ca) * dist;
+
+                    if (Math.cos(ca) < 0) cx -= tagW;
+
+                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
+                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
+
+                    var hasCollision = false;
+                    for (var pi = 0; pi < placedBoxes.length; pi++) {
+                        var pb = placedBoxes[pi];
+                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
+                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
+                            hasCollision = true;
+                            break;
+                        }
+                    }
+
+                    var distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
+                    var score = (hasCollision ? 10000 : 0) + distFromDot;
+
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestX = cx;
+                        bestY = cy;
+                    }
+                }
+                }
+
+                if (bestScore >= 10000) {
+                    for (var ri = 0; ri < 8; ri++) {
+                        var shifted = false;
+                        for (var pi2 = 0; pi2 < placedBoxes.length; pi2++) {
+                            var pb2 = placedBoxes[pi2];
+                            var ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
+                            var ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
+                            if (ovX > 0 && ovY > 0) {
+                                if (ovY < ovX) {
+                                    bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
+                                } else {
+                                    bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
+                                }
+                                shifted = true;
+                            }
+                        }
+                        if (!shifted) break;
+                    }
+                    bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
+                    bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
+                }
+
+                var rawTagX = bestX;
+                var rawTagY = bestY;
+                placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
+                popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
+
+                var lineEndX = (rawTagX + tagW / 2 > p2.x) ? rawTagX : rawTagX + tagW;
+                ctx.beginPath();
+                ctx.moveTo(p2.x, p2.y);
+                ctx.lineTo(lineEndX, rawTagY + tagH / 2);
+                ctx.strokeStyle = hexToRgba(pop2.color, (isHovered ? 0.5 : 0.3) * alpha);
+                ctx.lineWidth = isHovered ? 1 : 0.7;
+                ctx.stroke();
+
+                roundRect(rawTagX, rawTagY, tagW, tagH, 4);
+                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 0.25 : 0.12 * alpha);
+                ctx.fill();
+                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.8 : 0.4 * alpha);
+                ctx.lineWidth = isHovered ? 1.2 : 0.6;
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255,255,255,' + (isHovered ? 0.95 : 0.8 * alpha) + ')';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, rawTagX + 9 * SCL, rawTagY + tagH / 2);
+            }
+        }
+
+        function drawPopTooltip() {
+            if (hoveredPop === null) return;
+            var pop = RESOLVER_POPS[hoveredPop];
+            if (!pop) return;
+            var p = projectPt(pop.lat, pop.lon);
+            if (!p.vis) { hoveredPop = null; return; }
+
+            var lines = [
+                pop.resolver + ' \u2014 ' + pop.city + ', ' + pop.country,
+                'IP: ' + pop.ip + (pop.ipAlt !== 'n/a' ? ' / ' + pop.ipAlt : ''),
+                'AS' + (pop.asn > 0 ? pop.asn : 'N/A') + ' (' + pop.asOrg + ')',
+                'Protocol: ' + pop.protocol + ' (' + pop.transport + ')',
+                'Type: ' + pop.hopType.replace('-', ' '),
+                pop.note
+            ];
+
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            var maxW = 0;
+            for (var i = 0; i < lines.length; i++) {
+                var lw = ctx.measureText(lines[i]).width;
+                if (lw > maxW) maxW = lw;
+            }
+
+            var tipW = maxW + 24;
+            var lineH = 18;
+            var tipH = lines.length * lineH + 16;
+            var tipX = p.x + 18;
+            var tipY = p.y - tipH / 2;
+
+            if (tipX + tipW > globe.cx + globe.R + 60) {
+                tipX = p.x - tipW - 18;
+            }
+            if (tipY < 10) tipY = 10;
+            if (tipY + tipH > H - 10) tipY = H - tipH - 10;
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.6)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.fillStyle = 'rgba(12, 16, 28, 0.95)';
+            ctx.fill();
+            ctx.restore();
+
+            roundRect(tipX, tipY, tipW, tipH, 6);
+            ctx.strokeStyle = hexToRgba(pop.color, 0.5);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            var headerH = lineH + 4;
+            roundRect(tipX, tipY, tipW, headerH, 6);
+            ctx.fillStyle = hexToRgba(pop.color, 0.15);
+            ctx.fill();
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = hexToRgba(pop.color, 0.95);
+            ctx.fillText(lines[0], tipX + 12, tipY + headerH / 2);
+
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, monospace';
+            for (var j = 1; j < lines.length; j++) {
+                ctx.fillStyle = j === lines.length - 1 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.7)';
+                if (j === lines.length - 1) ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText(lines[j], tipX + 12, tipY + headerH + (j - 1) * lineH + lineH / 2 + 4);
+            }
+        }
+
+        function drawGlobe(time) {
+            drawGlobeSphere();
+            drawGraticule();
+            drawContinents();
+            drawSignalArcs(time);
+            drawResolverMarkers();
+
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
+            var degLabel = ((globe.rotLon % 360) + 360) % 360;
+            if (degLabel > 180) degLabel -= 360;
+            ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
+        }
+
+        var SOURCES = [
+            { id: 'root',  label: 'Root / TLD',      sub: 'IANA Root Zone\nTLD Registries',       color: COLORS.source, zone: 'source' },
+            { id: 'rdap',  label: 'RDAP / WHOIS',    sub: 'Registration Data\nAccess Protocol',   color: COLORS.intel,  zone: 'source' },
+            { id: 'ct',    label: 'CT / Subdomains',  sub: 'crt.sh \u00b7 Certspotter\nTransparency Logs', color: COLORS.intel,  zone: 'source' },
+            { id: 'cisa',  label: 'CISA / Threat',    sub: 'BOD 19-02\nIP Scanner Detection',     color: COLORS.intel,  zone: 'source' },
+            { id: 'probes', label: 'Probe Fleet',     sub: 'SMTP \u00b7 DANE \u00b7 TLS\nNmap \u00b7 testssl.sh', color: COLORS.source, zone: 'source' }
+        ];
+
+        var HUB = { id: 'hub', label: 'DNS Resolvers', sub: 'Signal Aggregation', color: COLORS.source, zone: 'hub', x: 0, y: 0, targetX: 0, targetY: 0, radius: 44, _initialized: false, shape: 'hub' };
+
+        var ENGINE = { id: 'engine', label: 'ICIE', sub: 'Analysis Engine', color: COLORS.engine, zone: 'engine', x: 0, y: 0, targetX: 0, targetY: 0, radius: 54, _initialized: false };
+
+        var CONFIDENCE = [
+            { id: 'ietf',  label: 'IETF Metadata',   sub: 'RFC Status \u00b7 Errata\nDraft Tracker',  color: COLORS.intel,  zone: 'confidence' },
+            { id: 'icae',  label: 'ICAE',  sub: 'Accuracy Audit',   color: '#ef9a9a', zone: 'confidence' },
+            { id: 'icuae', label: 'ICuAE', sub: 'Currency Audit',   color: '#a5d6a7', zone: 'confidence' },
+            { id: 'ede',   label: 'EDE',   sub: 'Epistemic\nDisclosure', color: '#ffab91', zone: 'confidence' }
+        ];
+
+        var STORAGE = [
+            { id: 'postgres', label: 'PostgreSQL', sub: 'Scan Results \u00b7 History\nDrift \u00b7 Analytics', color: COLORS.storage, zone: 'storage' },
+            { id: 'fixtures', label: 'Golden Fixtures', sub: 'Known-Good Baselines\nRFC Compliance Seeds', color: '#ffcc80', zone: 'storage' },
+            { id: 'wayback', label: 'Internet Archive', sub: 'Wayback Machine\nPermanent Record', color: '#81c784', zone: 'storage' }
+        ];
+
+        var PROTOCOLS = [
+            { id: 'spf',    label: 'SPF',     rfc: '7208',  cat: 'email' },
+            { id: 'dkim',   label: 'DKIM',    rfc: '6376',  cat: 'email' },
+            { id: 'dmarc',  label: 'DMARC',   rfc: '7489',  cat: 'email' },
+            { id: 'dnssec', label: 'DNSSEC',  rfc: '4035',  cat: 'policy' },
+            { id: 'dane',   label: 'DANE',    rfc: '6698',  cat: 'transport' },
+            { id: 'mtasts', label: 'MTA-STS', rfc: '8461',  cat: 'transport' },
+            { id: 'tlsrpt', label: 'TLS-RPT', rfc: '8460',  cat: 'transport' },
+            { id: 'bimi',   label: 'BIMI',    rfc: 'draft', cat: 'brand' },
+            { id: 'caa',    label: 'CAA',     rfc: '8659',  cat: 'policy' }
+        ];
+
+        var OUTPUTS = [
+            { id: 'reports', label: 'Reports',    sub: 'Engineer \u00b7 Executive\nRecon \u00b7 Comparison', color: COLORS.output, zone: 'output' },
+            { id: 'jsonapi', label: 'JSON API',   sub: 'Analysis \u00b7 Checksums\nSubdomains \u00b7 Health', color: COLORS.output, zone: 'output' },
+            { id: 'seo',    label: 'Schema.org',  sub: 'JSON-LD Structured Data\nGoogle \u00b7 Rich Results', color: COLORS.output, zone: 'output' },
+            { id: 'badges', label: 'SVG Badges',  sub: 'Posture Indicators\nEmbeddable', color: COLORS.output, zone: 'output' }
+        ];
+
+        var PROTO_EDGES = [
+            { from: 'dmarc', to: 'spf',    type: 'hard',  label: 'alignment',     labelT: 0.45 },
+            { from: 'dmarc', to: 'dkim',   type: 'hard',  label: 'alignment',     labelT: 0.45 },
+            { from: 'dane',  to: 'dnssec', type: 'hard',  label: 'requires',      labelT: 0.35 },
+            { from: 'bimi',  to: 'dmarc',  type: 'hard',  label: 'p=quarantine+', labelT: 0.5 },
+            { from: 'tlsrpt', to: 'mtasts', type: 'soft', label: 'reports',       labelT: 0.5 },
+            { from: 'tlsrpt', to: 'dane',  type: 'soft',  label: 'reports',       labelT: 0.4 },
+            { from: 'caa',   to: 'dnssec', type: 'soft',  label: 'strengthens',   labelT: 0.5 }
+        ];
+
+        var allNodes = {};
+
+        SOURCES.forEach(function(s) {
+            s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
+            s.radius = 30; s._initialized = false; s.shape = 'rect';
+            allNodes[s.id] = s;
+        });
+        allNodes[HUB.id] = HUB;
+        allNodes[ENGINE.id] = ENGINE;
+
+        CONFIDENCE.forEach(function(c) {
+            c.x = 0; c.y = 0; c.targetX = 0; c.targetY = 0;
+            c.radius = (c.id === 'ede') ? 48 : (c.id === 'ietf') ? 36 : 42;
+            c._initialized = false; c.shape = (c.id === 'ietf') ? 'rect' : 'diamond';
+            allNodes[c.id] = c;
+        });
+
+        STORAGE.forEach(function(s) {
+            s.x = 0; s.y = 0; s.targetX = 0; s.targetY = 0;
+            s.radius = (s.id === 'postgres') ? 36 : (s.id === 'wayback') ? 32 : 34;
+            s._initialized = false; s.shape = 'cylinder';
+            allNodes[s.id] = s;
+        });
+
+        PROTOCOLS.forEach(function(p) {
+            p.x = 0; p.y = 0; p.targetX = 0; p.targetY = 0;
+            p.radius = 36; p.color = COLORS[p.cat]; p.shape = 'circle';
+            p._initialized = false; p.zone = 'protocol';
+            allNodes[p.id] = p;
+        });
+
+        OUTPUTS.forEach(function(o) {
+            o.x = 0; o.y = 0; o.targetX = 0; o.targetY = 0;
+            o.radius = 36; o._initialized = false; o.shape = 'hexagon';
+            allNodes[o.id] = o;
+        });
+
+        var FLOW_EDGES = [];
+        FLOW_EDGES.push({ from: 'hub', to: 'engine', type: 'flow', label: '' });
+        SOURCES.forEach(function(s) {
+            FLOW_EDGES.push({ from: s.id, to: 'hub', type: 'flow', label: '' });
+        });
+        FLOW_EDGES.push({ from: 'ietf', to: 'engine', type: 'flow', label: 'informs' });
+        FLOW_EDGES.push({ from: 'ietf', to: 'icae', type: 'flow', label: 'informs' });
+        FLOW_EDGES.push({ from: 'ietf', to: 'icuae', type: 'flow', label: 'informs' });
+        FLOW_EDGES.push({ from: 'engine', to: 'icae', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'engine', to: 'icuae', type: 'flow', label: '' });
+        FLOW_EDGES.push({ from: 'icae', to: 'ede', type: 'flow', label: 'discloses' });
+        FLOW_EDGES.push({ from: 'icuae', to: 'ede', type: 'flow', label: 'discloses' });
+        FLOW_EDGES.push({ from: 'engine', to: 'postgres', type: 'flow', label: 'persist' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'fixtures', type: 'flow', label: 'seeds' });
+        FLOW_EDGES.push({ from: 'postgres', to: 'wayback', type: 'flow', label: 'archives' });
+        PROTOCOLS.forEach(function(p) {
+            FLOW_EDGES.push({ from: 'engine', to: p.id, type: 'flow', label: '' });
+        });
+        OUTPUTS.forEach(function(o) {
+            FLOW_EDGES.push({ from: 'engine', to: o.id, type: 'flow', label: '' });
+        });
+        FLOW_EDGES.push({ from: 'postgres', to: 'reports', type: 'flow', label: 'history' });
+
+        function effRadius(n) {
+            var hw = (n._drawW || n.radius * 2.2) / 2;
+            var hh = (n._drawH || n.radius * 1.4) / 2;
+            return Math.max(hw, hh, n.radius) + 6;
+        }
+
+        function computeScaling() {
+            SCL = Math.max(0.65, Math.min(1.15, W / 1400));
+            FONT_LABEL = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
+            FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+            MIN_SPACING = Math.round(Math.max(5, 8 * SCL));
+        }
+
+        function computeNodeBox(shape, radius, label, sub, scale, fontLabel, fontSub, measureFn) {
+            var labelW = measureFn(label, fontLabel);
+            var subW = 0;
+            var subLineCount = 0;
+            if (sub) {
+                var lines = sub.split('\n');
+                subLineCount = lines.length;
+                for (var i = 0; i < lines.length; i++) {
+                    var sw = measureFn(lines[i], fontSub);
+                    if (sw > subW) subW = sw;
+                }
+            }
+            var contentW = Math.max(labelW, subW) + 24 * scale;
+            var w, h;
+            if (shape === 'circle') {
+                w = Math.max(radius * 2, contentW);
+                h = radius * 2;
+            } else if (shape === 'diamond') {
+                w = Math.max(radius * 1.7, contentW + 8);
+                h = radius * 1.7;
+            } else if (shape === 'hexagon') {
+                w = Math.max(radius * 2, contentW);
+                h = radius * 2;
+            } else if (shape === 'cylinder') {
+                w = Math.max(radius * 2.4, contentW);
+                h = radius * 1.5 + 16;
+            } else if (shape === 'hub' || shape === 'roundRect') {
+                w = Math.max(radius * 2.4, contentW);
+                h = Math.max(radius * 1.4, 40 * scale);
+            } else {
+                w = Math.max(radius * 2.4, contentW);
+                h = Math.max(radius * 1.3, 40 * scale + (subLineCount > 1 ? (subLineCount - 1) * (fontSub + 2) : 0));
+            }
+            return { w: w, h: h, halfW: w / 2, halfH: h / 2, contentW: contentW, subLineCount: subLineCount };
+        }
+
+        function canvasMeasureText(text, fontSize) {
+            ctx.font = fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            return ctx.measureText(text).width;
+        }
+
+        function measureNodeBox(n) {
+            var box = computeNodeBox(n.shape, n.radius, n.label, n.sub || null, SCL, FONT_LABEL, FONT_SUB, canvasMeasureText);
+            n._boxW = box.w;
+            n._boxH = box.h;
+            n._halfW = box.halfW;
+            n._halfH = box.halfH;
+            return { w: box.w, h: box.h };
+        }
+
+        function aabbOverlap(a, b) {
+            var ax1 = a.x - a.hw, ax2 = a.x + a.hw;
+            var ay1 = a.y - a.hh, ay2 = a.y + a.hh;
+            var bx1 = b.x - b.hw, bx2 = b.x + b.hw;
+            var by1 = b.y - b.hh, by2 = b.y + b.hh;
+            var ox = Math.min(ax2, bx2) - Math.max(ax1, bx1);
+            var oy = Math.min(ay2, by2) - Math.max(ay1, by1);
+            if (ox > 0 && oy > 0) return { ox: ox, oy: oy };
+            return null;
+        }
+
+        function forceDirectedLayout(nodes, edges, zones, globalBounds, maxIter) {
+            var n = nodes.length;
+            if (n === 0) return;
+            var area = (globalBounds.x2 - globalBounds.x1) * (globalBounds.y2 - globalBounds.y1);
+            var k = Math.sqrt(area / n) * 0.8;
+            var kSq = k * k;
+
+            var dispX = new Float64Array(n);
+            var dispY = new Float64Array(n);
+
+            var idxMap = {};
+            for (var i = 0; i < n; i++) idxMap[nodes[i].id] = i;
+
+            var boxes = [];
+            for (var i = 0; i < n; i++) boxes[i] = measureNodeBox(nodes[i]);
+
+            var T0 = Math.max(globalBounds.x2 - globalBounds.x1, globalBounds.y2 - globalBounds.y1) * 0.1;
+            var iter = maxIter || 80;
+
+            for (var it = 0; it < iter; it++) {
+                var temp = T0 * (1 - it / iter);
+                if (temp < 0.1) break;
+
+                for (var i = 0; i < n; i++) { dispX[i] = 0; dispY[i] = 0; }
+
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var bwi = (boxes[i].w / 2 + MIN_SPACING);
+                    var bhi = (boxes[i].h / 2 + MIN_SPACING);
+                    for (var j = i + 1; j < n; j++) {
+                        var nj = nodes[j];
+                        var dx = ni.targetX - nj.targetX;
+                        var dy = ni.targetY - nj.targetY;
+
+                        var bwj = (boxes[j].w / 2 + MIN_SPACING);
+                        var bhj = (boxes[j].h / 2 + MIN_SPACING);
+                        var minSepX = bwi + bwj;
+                        var minSepY = bhi + bhj;
+
+                        var normDx = minSepX > 0 ? dx / minSepX : dx;
+                        var normDy = minSepY > 0 ? dy / minSepY : dy;
+                        var normDist = Math.sqrt(normDx * normDx + normDy * normDy);
+                        if (normDist < 0.01) {
+                            normDx = (Math.random() - 0.5) * 0.1;
+                            normDy = (Math.random() - 0.5) * 0.1;
+                            normDist = Math.sqrt(normDx * normDx + normDy * normDy);
+                        }
+
+                        var repulse = kSq / (normDist * normDist + 0.01);
+                        if (normDist < 1.5) repulse *= 3.0;
+                        var fx = (normDx / normDist) * repulse;
+                        var fy = (normDy / normDist) * repulse;
+                        dispX[i] += fx; dispY[i] += fy;
+                        dispX[j] -= fx; dispY[j] -= fy;
+                    }
+                }
+
+                for (var ei = 0; ei < edges.length; ei++) {
+                    var e = edges[ei];
+                    var si = idxMap[e.from];
+                    var ti = idxMap[e.to];
+                    if (si === undefined || ti === undefined) continue;
+                    var dx = nodes[si].targetX - nodes[ti].targetX;
+                    var dy = nodes[si].targetY - nodes[ti].targetY;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 0.01) continue;
+                    var idealLen = k * 1.8;
+                    var attract = (dist - idealLen) / dist * 0.3;
+                    var fx = dx * attract;
+                    var fy = dy * attract;
+                    dispX[si] -= fx; dispY[si] -= fy;
+                    dispX[ti] += fx; dispY[ti] += fy;
+                }
+
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.gx !== undefined) {
+                        var gdx = z.gx - ni.targetX;
+                        var gdy = z.gy - ni.targetY;
+                        var gStr = z.gravity || 0.15;
+                        dispX[i] += gdx * gStr;
+                        dispY[i] += gdy * gStr;
+                    }
+                }
+
+                var maxDisp = 0;
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var dLen = Math.sqrt(dispX[i] * dispX[i] + dispY[i] * dispY[i]);
+                    if (dLen > 0) {
+                        var capped = Math.min(dLen, temp);
+                        ni.targetX += (dispX[i] / dLen) * capped;
+                        ni.targetY += (dispY[i] / dLen) * capped;
+                        if (capped > maxDisp) maxDisp = capped;
+                    }
+
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.bounds) {
+                        var hw = boxes[i].w / 2 + 4;
+                        var hh = boxes[i].h / 2 + 4;
+                        ni.targetX = Math.max(z.bounds.x1 + hw, Math.min(z.bounds.x2 - hw, ni.targetX));
+                        ni.targetY = Math.max(z.bounds.y1 + hh, Math.min(z.bounds.y2 - hh, ni.targetY));
+                    }
+                }
+
+                if (maxDisp < 0.5 && it > 10) break;
+            }
+
+            for (var pass = 0; pass < 12; pass++) {
+                var hasOverlap = false;
+                for (var i = 0; i < n; i++) {
+                    boxes[i] = measureNodeBox(nodes[i]);
+                }
+                for (var i = 0; i < n; i++) {
+                    var ni = nodes[i];
+                    var bwi = boxes[i].w / 2 + MIN_SPACING;
+                    var bhi = boxes[i].h / 2 + MIN_SPACING;
+                    for (var j = i + 1; j < n; j++) {
+                        var nj = nodes[j];
+                        var bwj = boxes[j].w / 2 + MIN_SPACING;
+                        var bhj = boxes[j].h / 2 + MIN_SPACING;
+                        var ov = aabbOverlap(
+                            { x: ni.targetX, y: ni.targetY, hw: bwi, hh: bhi },
+                            { x: nj.targetX, y: nj.targetY, hw: bwj, hh: bhj }
+                        );
+                        if (ov) {
+                            hasOverlap = true;
+                            var pushStr = 0.55 + pass * 0.08;
+                            if (ov.ox < ov.oy) {
+                                var px = ov.ox * pushStr + 3;
+                                if (ni.targetX <= nj.targetX) { ni.targetX -= px; nj.targetX += px; }
+                                else { ni.targetX += px; nj.targetX -= px; }
+                            } else {
+                                var py = ov.oy * pushStr + 3;
+                                if (ni.targetY <= nj.targetY) { ni.targetY -= py; nj.targetY += py; }
+                                else { ni.targetY += py; nj.targetY -= py; }
+                            }
+                        }
+                    }
+                    var z = zones[ni.zone || ni.id];
+                    if (z && z.bounds) {
+                        var hw = boxes[i].w / 2 + 4;
+                        var hh = boxes[i].h / 2 + 4;
+                        ni.targetX = Math.max(z.bounds.x1 + hw, Math.min(z.bounds.x2 - hw, ni.targetX));
+                        ni.targetY = Math.max(z.bounds.y1 + hh, Math.min(z.bounds.y2 - hh, ni.targetY));
+                    }
+                }
+                if (!hasOverlap) break;
+            }
+        }
+
+        function layoutAll() {
+            computeScaling();
+
+            var titleSafe = Math.max(H * 0.07, 42);
+            var legendSafe = H * 0.95;
+            var usableH = legendSafe - titleSafe;
+
+            var globeR = Math.min(W * 0.13 * SCL, H * 0.25 * SCL, 180);
+            globe.R = globeR;
+            globe.cx = W * 0.04 + globeR;
+            globe.cy = titleSafe + usableH * 0.42;
+
+            var pipeStart = globe.cx + globeR + W * 0.02;
+            var pipeEnd = W * 0.99;
+            var pipeTotal = pipeEnd - pipeStart;
+            var colGap = Math.max(4, pipeTotal * 0.01);
+            var c1w = pipeTotal * 0.13;
+            var c2w = pipeTotal * 0.20;
+            var c3w = pipeTotal * 0.42;
+            var c4w = pipeTotal * 0.16;
+            var col1L = pipeStart;
+            var col1R = col1L + c1w;
+            var col2L = col1R + colGap;
+            var col2R = col2L + c2w;
+            var col3L = col2R + colGap;
+            var col3R = col3L + c3w;
+            var col4L = col3R + colGap;
+            var col4R = pipeEnd;
+
+            var srcCx = (col1L + col1R) / 2;
+            convergePt.x = srcCx;
+            convergePt.y = globe.cy;
+
+            var srcSpacing = usableH / (SOURCES.length + 1);
+            SOURCES.forEach(function(s, i) {
+                s.targetX = srcCx;
+                s.targetY = titleSafe + (i + 1) * srcSpacing;
+            });
+
+            HUB.targetX = srcCx;
+            HUB.targetY = globe.cy;
+
+            var procCx = (col2L + col2R) / 2;
+            ENGINE.targetX = procCx;
+            ENGINE.targetY = titleSafe + usableH * 0.15;
+
+            var confSpread = Math.max(40, (col2R - col2L) * 0.32);
+            var confY = titleSafe + usableH * 0.42;
+            CONFIDENCE[0].targetX = procCx;
+            CONFIDENCE[0].targetY = confY - usableH * 0.06;
+            CONFIDENCE[1].targetX = procCx - confSpread * 0.5;
+            CONFIDENCE[1].targetY = confY + usableH * 0.06;
+            CONFIDENCE[2].targetX = procCx + confSpread * 0.5;
+            CONFIDENCE[2].targetY = confY + usableH * 0.06;
+            CONFIDENCE[3].targetX = procCx;
+            CONFIDENCE[3].targetY = confY + usableH * 0.18;
+
+            var storeY = titleSafe + usableH * 0.78;
+            var storeSpread = Math.max(confSpread * 0.8, 60);
+            STORAGE[0].targetX = procCx;
+            STORAGE[0].targetY = storeY;
+            STORAGE[1].targetX = procCx - storeSpread;
+            STORAGE[1].targetY = storeY + usableH * 0.10;
+            STORAGE[2].targetX = procCx + storeSpread;
+            STORAGE[2].targetY = storeY + usableH * 0.10;
+
+            var protoCx = (col3L + col3R) / 2;
+            var protoCy = titleSafe + usableH * 0.42;
+            var protoRx = (col3R - col3L) * 0.38;
+            var protoRy = usableH * 0.28;
+            var angleMap = [-130, -90, -50, -10, 30, 70, 110, 150, 190];
+            PROTOCOLS.forEach(function(p, i) {
+                var a = angleMap[i] * DEG;
+                p.targetX = protoCx + protoRx * Math.cos(a);
+                p.targetY = protoCy + protoRy * Math.sin(a);
+            });
+
+            var outCx = (col4L + col4R) / 2;
+            var outSpacing = usableH / (OUTPUTS.length + 1);
+            OUTPUTS.forEach(function(o, i) {
+                o.targetX = outCx;
+                o.targetY = titleSafe + (i + 1) * outSpacing;
+            });
+
+            var globalBounds = { x1: col1L, x2: col4R, y1: titleSafe, y2: legendSafe };
+
+            var zones = {
+                'source': {
+                    gx: srcCx, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.35,
+                    bounds: { x1: col1L, x2: col1R, y1: titleSafe, y2: legendSafe }
+                },
+                'hub': {
+                    gx: srcCx, gy: globe.cy,
+                    gravity: 0.6,
+                    bounds: { x1: col1L, x2: col1R, y1: titleSafe + usableH * 0.20, y2: titleSafe + usableH * 0.70 }
+                },
+                'engine': {
+                    gx: procCx, gy: titleSafe + usableH * 0.15,
+                    gravity: 0.6,
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe, y2: titleSafe + usableH * 0.30 }
+                },
+                'confidence': {
+                    gx: procCx, gy: confY + usableH * 0.06,
+                    gravity: 0.30,
+                    bounds: { x1: col2L, x2: col2R, y1: titleSafe + usableH * 0.25, y2: titleSafe + usableH * 0.75 }
+                },
+                'storage': {
+                    gx: procCx, gy: storeY,
+                    gravity: 0.35,
+                    bounds: { x1: col2L - c2w * 0.3, x2: col2R + c2w * 0.3, y1: titleSafe + usableH * 0.68, y2: legendSafe }
+                },
+                'protocol': {
+                    gx: protoCx, gy: protoCy,
+                    gravity: 0.18,
+                    bounds: { x1: col3L, x2: col3R, y1: titleSafe, y2: titleSafe + usableH * 0.88 }
+                },
+                'output': {
+                    gx: outCx, gy: titleSafe + usableH * 0.5,
+                    gravity: 0.35,
+                    bounds: { x1: col4L, x2: col4R, y1: titleSafe, y2: legendSafe }
+                }
+            };
+
+            allLayoutNodes = SOURCES.concat([HUB, ENGINE], CONFIDENCE, STORAGE, PROTOCOLS, OUTPUTS);
+            var allLayoutEdges = FLOW_EDGES.concat(PROTO_EDGES);
+
+            var solverProfile = W > 1000 ? 'desktop' : (W > 600 ? 'tablet' : 'mobile');
+            var solverData = null;
+            try {
+                if (SOLVER_LAYOUTS && SOLVER_LAYOUTS[solverProfile] && SOLVER_LAYOUTS[solverProfile].nodeCenters) {
+                    solverData = SOLVER_LAYOUTS[solverProfile].nodeCenters;
+                }
+            } catch (e) { solverData = null; }
+
+            if (solverData) {
+                SOLVER_ACTIVE = true;
+                console.log('Topology: using hybrid solver (' + solverProfile + ')');
+                var solverRef = { desktop: { w: 1600, h: 900 }, tablet: { w: 1100, h: 940 }, mobile: { w: 420, h: 1700 } };
+                var ref = solverRef[solverProfile] || solverRef.desktop;
+                allLayoutNodes.forEach(function(nd) {
+                    var pos = solverData[nd.id];
+                    if (pos) {
+                        nd.targetX = (pos.x / ref.w) * W;
+                        nd.targetY = titleSafe + (pos.y / ref.h) * (legendSafe - titleSafe);
+                        var z = zones[nd.zone || nd.id];
+                        if (z && z.bounds) {
+                            var zw = z.bounds.x2 - z.bounds.x1;
+                            var zh = z.bounds.y2 - z.bounds.y1;
+                            var zpx = Math.min(30, zw * 0.15);
+                            var zpy = Math.min(20, zh * 0.15);
+                            if (z.bounds.x1 + zpx < z.bounds.x2 - zpx) {
+                                nd.targetX = Math.max(z.bounds.x1 + zpx, Math.min(z.bounds.x2 - zpx, nd.targetX));
+                            }
+                            if (z.bounds.y1 + zpy < z.bounds.y2 - zpy) {
+                                nd.targetY = Math.max(z.bounds.y1 + zpy, Math.min(z.bounds.y2 - zpy, nd.targetY));
+                            }
+                        }
+                        nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
+                        nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
+                    }
+                });
+            } else {
+                SOLVER_ACTIVE = false;
+                console.log('Topology: using FR fallback');
+                forceDirectedLayout(allLayoutNodes, allLayoutEdges, zones, globalBounds, 120);
+            }
+
+            allLayoutNodes.forEach(function(nd) {
+                measureNodeBox(nd);
+            });
+
+            var overlapPad = 14;
+            for (var op = 0; op < 40; op++) {
+                var anyOverlap = false;
+                for (var oi = 0; oi < allLayoutNodes.length; oi++) {
+                    for (var oj = oi + 1; oj < allLayoutNodes.length; oj++) {
+                        var na = allLayoutNodes[oi], nb = allLayoutNodes[oj];
+                        var ohw = (na._halfW || na.radius) + (nb._halfW || nb.radius) + overlapPad;
+                        var ohh = (na._halfH || na.radius) + (nb._halfH || nb.radius) + overlapPad;
+                        var odx = Math.abs(nb.targetX - na.targetX);
+                        var ody = Math.abs(nb.targetY - na.targetY);
+                        if (odx < ohw && ody < ohh) {
+                            var overX = ohw - odx;
+                            var overY = ohh - ody;
+                            var pushStr = 0.7;
+                            if (overX < overY) {
+                                var sx = (nb.targetX >= na.targetX ? 1 : -1) * overX * pushStr;
+                                na.targetX -= sx;
+                                nb.targetX += sx;
+                            } else {
+                                var sy = (nb.targetY >= na.targetY ? 1 : -1) * overY * pushStr;
+                                na.targetY -= sy;
+                                nb.targetY += sy;
+                            }
+                            anyOverlap = true;
+                        }
+                    }
+                }
+                if (!anyOverlap) break;
+                allLayoutNodes.forEach(function(nd) {
+                    var z = zones[nd.zone || nd.id];
+                    if (z && z.bounds) {
+                        var zHw = nd._halfW || nd.radius;
+                        var zHh = nd._halfH || nd.radius;
+                        nd.targetX = Math.max(z.bounds.x1 + zHw, Math.min(z.bounds.x2 - zHw, nd.targetX));
+                        nd.targetY = Math.max(z.bounds.y1 + zHh, Math.min(z.bounds.y2 - zHh, nd.targetY));
+                    }
+                    nd.targetX = Math.max(globalBounds.x1 + 10, Math.min(globalBounds.x2 - 10, nd.targetX));
+                    nd.targetY = Math.max(globalBounds.y1 + 10, Math.min(globalBounds.y2 - 10, nd.targetY));
+                });
+            }
+
+            allLayoutNodes.forEach(function(nd) {
+                if (!nd._initialized) {
+                    nd.x = nd.targetX;
+                    nd.y = nd.targetY;
+                    nd._initialized = true;
+                }
+            });
+        }
+
+        var hoverNode = null;
+        var mouseX = -1, mouseY = -1;
+
+        function hitTest(mx, my) {
+            var all = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
+            for (var i = 0; i < all.length; i++) {
+                var n = all[i];
+                var dx = mx - n.x;
+                var dy = my - n.y;
+                var hr = n.radius + 12;
+                if (dx * dx + dy * dy < hr * hr) return n;
+            }
+            return null;
+        }
+
+        function hitTestPop(mx, my) {
+            for (var i = popHitAreas.length - 1; i >= 0; i--) {
+                var ha = popHitAreas[i];
+                if (mx >= ha.x && mx <= ha.x + ha.w && my >= ha.y && my <= ha.y + ha.h) return ha.idx;
+                var ddx = mx - ha.dotX;
+                var ddy = my - ha.dotY;
+                if (ddx * ddx + ddy * ddy < 144) return ha.idx;
+            }
+            return null;
+        }
+
+        canvas.addEventListener('mousemove', function(ev) {
+            var rect = canvas.getBoundingClientRect();
+            mouseX = ev.clientX - rect.left;
+            mouseY = ev.clientY - rect.top;
+            hoverNode = hitTest(mouseX, mouseY);
+            hoveredPop = hitTestPop(mouseX, mouseY);
+            canvas.classList.toggle('topo-cursor-pointer', !!(hoverNode || hoveredPop !== null));
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            mouseX = -1; mouseY = -1; hoverNode = null; hoveredPop = null;
+            canvas.classList.remove('topo-cursor-pointer');
+        });
+
+        function getConnectedIds(nodeId) {
+            var ids = {};
+            FLOW_EDGES.concat(PROTO_EDGES).forEach(function(e) {
+                if (e.from === nodeId) ids[e.to] = true;
+                if (e.to === nodeId) ids[e.from] = true;
+            });
+            return ids;
+        }
+
+        function getNodeBoundary(node, tx, ty) {
+            var dx = tx - node.x;
+            var dy = ty - node.y;
+            var len = Math.sqrt(dx * dx + dy * dy) || 1;
+            var nx = dx / len;
+            var ny = dy / len;
+            var pad = 5;
+
+            if (!node._boxW) measureNodeBox(node);
+            var hw = node._halfW + pad;
+            var hh = node._halfH + pad;
+
+            if (node.shape === 'rect' || node.shape === 'hub') {
+                var tx2 = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
+                var ty2 = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
+                var t = Math.min(tx2, ty2);
+                return { x: node.x + nx * t, y: node.y + ny * t };
+            }
+            if (node.shape === 'diamond') {
+                var s = node.radius * 0.85 + pad;
+                var t2 = s / (Math.abs(nx) + Math.abs(ny) || 1);
+                return { x: node.x + nx * t2, y: node.y + ny * t2 };
+            }
+            if (node.shape === 'cylinder') {
+                var tx3 = Math.abs(nx) > 0.001 ? hw / Math.abs(nx) : 99999;
+                var ty3 = Math.abs(ny) > 0.001 ? hh / Math.abs(ny) : 99999;
+                return { x: node.x + nx * Math.min(tx3, ty3), y: node.y + ny * Math.min(tx3, ty3) };
+            }
+            if (node.shape === 'hexagon') {
+                var angle = Math.atan2(ny, nx);
+                var sector = Math.round(angle / (Math.PI / 3));
+                var sAngle = sector * Math.PI / 3;
+                var cosD = Math.cos(angle - sAngle);
+                var dist = cosD > 0.001 ? (node.radius + pad) / cosD : node.radius + pad;
+                dist = Math.min(dist, node.radius + pad + 4);
+                return { x: node.x + nx * dist, y: node.y + ny * dist };
+            }
+            return { x: node.x + nx * (node.radius + pad), y: node.y + ny * (node.radius + pad) };
+        }
+
+        var PROTO_IDS = {};
+        PROTOCOLS.forEach(function(p) { PROTO_IDS[p.id] = true; });
+
+        function findEdgeCurveOffset(from, to, edgeType) {
+            if (edgeType === 'flow') return null;
+            if (!PROTO_IDS[from.id] || !PROTO_IDS[to.id]) return null;
+            var mx = (from.x + to.x) / 2;
+            var my = (from.y + to.y) / 2;
+            var edx = to.x - from.x;
+            var edy = to.y - from.y;
+            var elen = Math.sqrt(edx * edx + edy * edy) || 1;
+            var perpX = -edy / elen;
+            var perpY = edx / elen;
+            var bestOffset = 0;
+            var closestDist = Infinity;
+            for (var pi = 0; pi < PROTOCOLS.length; pi++) {
+                var pn = PROTOCOLS[pi];
+                if (pn.id === from.id || pn.id === to.id) continue;
+                var dx2 = pn.x - mx;
+                var dy2 = pn.y - my;
+                var distToMid = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                if (distToMid < pn.radius + 50 && distToMid < closestDist) {
+                    closestDist = distToMid;
+                    var side = dx2 * perpX + dy2 * perpY;
+                    bestOffset = (side > 0 ? -1 : 1) * Math.max(40, pn.radius + 20);
+                }
+            }
+            if (bestOffset === 0) return null;
+            return { cx: mx + perpX * bestOffset, cy: my + perpY * bestOffset };
+        }
+
+        function drawFlowEdge(e) {
+            var from = allNodes[e.from];
+            var to = allNodes[e.to];
+            if (!from || !to) return;
+
+            var isHL = hoverNode && (hoverNode.id === e.from || hoverNode.id === e.to);
+            var alpha;
+            if (e.type === 'flow') alpha = isHL ? 0.3 : 0.08;
+            else alpha = isHL ? 0.6 : (e.type === 'hard' ? 0.35 : 0.2);
+
+            var curve = findEdgeCurveOffset(from, to, e.type);
+
+            var startPt, endPt;
+            if (curve) {
+                startPt = getNodeBoundary(from, curve.cx, curve.cy);
+                endPt = getNodeBoundary(to, curve.cx, curve.cy);
+            } else {
+                startPt = getNodeBoundary(from, to.x, to.y);
+                endPt = getNodeBoundary(to, from.x, from.y);
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(startPt.x, startPt.y);
+            if (curve) {
+                ctx.quadraticCurveTo(curve.cx, curve.cy, endPt.x, endPt.y);
+            } else {
+                ctx.lineTo(endPt.x, endPt.y);
+            }
+            ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+            if (e.type === 'soft') { ctx.setLineDash([4, 6]); ctx.lineWidth = 1; }
+            else if (e.type === 'flow') { ctx.setLineDash([3, 5]); ctx.lineWidth = 0.8; }
+            else { ctx.setLineDash([]); ctx.lineWidth = 1.5; }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (e.label && (isHL || e.type !== 'flow')) {
+                var t = e.labelT || 0.5;
+                var lx, ly;
+                if (curve) {
+                    lx = (1 - t) * (1 - t) * from.x + 2 * (1 - t) * t * curve.cx + t * t * to.x;
+                    ly = (1 - t) * (1 - t) * from.y + 2 * (1 - t) * t * curve.cy + t * t * to.y;
+                } else {
+                    lx = from.x + (to.x - from.x) * t;
+                    ly = from.y + (to.y - from.y) * t;
+                }
+                ly -= 8 * SCL;
+
+                for (var nri = 0; nri < allLayoutNodes.length; nri++) {
+                    var nn = allLayoutNodes[nri];
+                    var nhw = (nn._halfW || nn._boxW / 2 || nn.radius) + 12;
+                    var nhh = (nn._halfH || nn._boxH / 2 || nn.radius) + 12;
+                    if (nn.shape === 'circle') {
+                        var ldx = lx - nn.x;
+                        var ldy = ly - nn.y;
+                        var ldist = Math.sqrt(ldx * ldx + ldy * ldy);
+                        if (ldist < nn.radius + 24 && ldist > 0.1) {
+                            var lnorm = (nn.radius + 28) / ldist;
+                            lx = nn.x + ldx * lnorm;
+                            ly = nn.y + ldy * lnorm;
+                        }
+                    } else {
+                        var ndx = lx - nn.x;
+                        var ndy = ly - nn.y;
+                        if (Math.abs(ndx) < nhw && Math.abs(ndy) < nhh) {
+                            if (Math.abs(ndx) / nhw > Math.abs(ndy) / nhh) {
+                                lx = nn.x + (ndx >= 0 ? 1 : -1) * (nhw + 6);
+                            } else {
+                                ly = nn.y + (ndy >= 0 ? 1 : -1) * (nhh + 6);
+                            }
+                        }
+                    }
+                }
+
+                var edgeFontSize = Math.max(8, FONT_SUB - 1);
+                ctx.font = edgeFontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                var tw = ctx.measureText(e.label).width;
+                var pw = tw + 8 * SCL;
+                var ph = edgeFontSize + 6 * SCL;
+
+                for (var llPass = 0; llPass < 3; llPass++) {
+                    var llMoved = false;
+                    for (var pli = 0; pli < placedEdgeLabels.length; pli++) {
+                        var pl = placedEdgeLabels[pli];
+                        var olx = Math.min(lx + pw / 2, pl.x + pl.w / 2) - Math.max(lx - pw / 2, pl.x - pl.w / 2);
+                        var oly = Math.min(ly + ph / 2, pl.y + pl.h / 2) - Math.max(ly - ph / 2, pl.y - pl.h / 2);
+                        if (olx > 0 && oly > 0) {
+                            if (olx < oly) {
+                                lx += (lx >= pl.x ? 1 : -1) * (olx + 6);
+                            } else {
+                                ly += (ly >= pl.y ? 1 : -1) * (oly + 6);
+                            }
+                            llMoved = true;
+                        }
+                    }
+                    if (!llMoved) break;
+                }
+
+                ly = Math.max(20, Math.min(H - 20, ly));
+                lx = Math.max(30, Math.min(W - 30, lx));
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                var pillAlpha = isHL ? 0.85 : 0.55;
+                ctx.fillStyle = 'rgba(10, 14, 20, ' + pillAlpha + ')';
+                ctx.beginPath();
+                var pr = ph / 2;
+                ctx.moveTo(lx - pw / 2 + pr, ly - ph / 2);
+                ctx.lineTo(lx + pw / 2 - pr, ly - ph / 2);
+                ctx.arc(lx + pw / 2 - pr, ly, pr, -Math.PI / 2, Math.PI / 2);
+                ctx.lineTo(lx - pw / 2 + pr, ly + ph / 2);
+                ctx.arc(lx - pw / 2 + pr, ly, pr, Math.PI / 2, -Math.PI / 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,' + (isHL ? 0.25 : 0.08) + ')';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,' + (isHL ? 0.9 : 0.45) + ')';
+                ctx.fillText(e.label, lx, ly);
+                placedEdgeLabels.push({ x: lx, y: ly, w: pw, h: ph });
+            }
+        }
+
+        function drawNodeTag(n, isHover, dimmed) {
+            var fs = FONT_LABEL;
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
+            n._drawW = w;
+            n._drawH = h;
+            ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            var r = 5;
+
+            roundRect(n.x - w / 2, n.y - h / 2, w, h, r);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 7 * SCL : 0));
+
+            if (!dimmed && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHover ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.3)';
+                for (var i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], n.x, n.y + 6 * SCL + i * (FONT_SUB + 2));
+                }
+            }
+        }
+
+        function drawHubNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var dimmed = hoverNode && !isHover && !getConnectedIds(hoverNode.id)[n.id];
+
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
+            n._drawW = w;
+            n._drawH = h;
+
+            var glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius * 2);
+            glow.addColorStop(0, hexToRgba(n.color, dimmed ? 0.03 : (isHover ? 0.15 : 0.06)));
+            glow.addColorStop(1, hexToRgba(n.color, 0));
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.radius * 2, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            roundRect(n.x - w / 2, n.y - h / 2, w, h, 6);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.05 : (isHover ? 0.2 : 0.1));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.15 : (isHover ? 0.8 : 0.4));
+            ctx.lineWidth = isHover ? 2 : 1.2;
+            ctx.stroke();
+
+            ctx.font = (isHover ? 'bold ' : '') + FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
+            ctx.fillText(n.label, n.x, n.y - 7 * SCL);
+
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)';
+            ctx.fillText(n.sub, n.x, n.y + 8 * SCL);
+        }
+
+        function drawEngineNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var dimmed = hoverNode && !isHover;
+
+            var pulseR = n.radius + Math.sin(time * 1.5) * 3;
+
+            var glow = ctx.createRadialGradient(n.x, n.y, pulseR * 0.2, n.x, n.y, pulseR * 2.5);
+            glow.addColorStop(0, hexToRgba(n.color, dimmed ? 0.03 : (isHover ? 0.15 : 0.08)));
+            glow.addColorStop(1, hexToRgba(n.color, 0));
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.05 : (isHover ? 0.2 : 0.1));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.15 : (isHover ? 0.8 : 0.4));
+            ctx.lineWidth = isHover ? 2 : 1.2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, pulseR * 0.55, 0, Math.PI * 2);
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.06 : 0.15);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            var engFont = Math.round(17 * SCL);
+            ctx.font = 'bold ' + engFont + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.2)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
+            ctx.fillText(n.label, n.x, n.y - 8 * SCL);
+
+            ctx.font = (FONT_SUB + 1) + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)';
+            ctx.fillText(n.sub, n.x, n.y + 12 * SCL);
+        }
+
+        function drawConfidenceNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
+            var dimmed = hoverNode && !isHover && !conn[n.id];
+
+            if (n.shape === 'rect') {
+                drawNodeTag(n, isHover, dimmed);
+                return;
+            }
+
+            var r = n.radius;
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.rotate(Math.PI / 4);
+            var s = r * 0.75;
+            ctx.beginPath();
+            ctx.rect(-s, -s, s * 2, s * 2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.35));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.font = (isHover ? 'bold ' : '') + FONT_LABEL + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.85)');
+            var subLines = n.sub ? n.sub.split('\n') : [];
+            ctx.fillText(n.label, n.x, n.y - (subLines.length > 1 ? 8 : 5) * SCL);
+
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.1)' : (isHover ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.35)');
+            for (var i = 0; i < subLines.length; i++) {
+                ctx.fillText(subLines[i], n.x, n.y + 6 * SCL + i * (FONT_SUB + 2));
+            }
+        }
+
+        function drawProtocolNode(p) {
+            var isHover = hoverNode && hoverNode.id === p.id;
+            var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
+            var dimmed = hoverNode && !isHover && !conn[p.id];
+
+            var r = p.radius;
+
+            var glowR = r * 1.5;
+            var glow = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, glowR);
+            glow.addColorStop(0, hexToRgba(p.color, dimmed ? 0.03 : (isHover ? 0.2 : 0.1)));
+            glow.addColorStop(1, hexToRgba(p.color, 0));
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(p.color, dimmed ? 0.05 : (isHover ? 0.22 : 0.1));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(p.color, dimmed ? 0.12 : (isHover ? 0.85 : 0.45));
+            ctx.lineWidth = isHover ? 2 : 1;
+            ctx.stroke();
+
+            var fontSize = Math.round((p.label.length > 6 ? 12 : (p.label.length > 4 ? 13 : 15)) * SCL);
+            ctx.font = (isHover ? 'bold ' : '') + fontSize + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.9)');
+            ctx.fillText(p.label, p.x, p.y - 6 * SCL);
+
+            ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.08)' : (isHover ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)');
+            ctx.fillText('RFC ' + (p.rfc === 'draft' ? 'Draft' : p.rfc), p.x, p.y + 10 * SCL);
+        }
+
+        function drawStorageNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
+            var dimmed = hoverNode && !isHover && !conn[n.id];
+
+            if (!n._boxW) measureNodeBox(n);
+            var w = n._boxW;
+            var h = n._boxH;
+            n._drawW = w;
+            n._drawH = h;
+            var ew = w / 2;
+            var eh = 7;
+
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, Math.PI, Math.PI * 2);
+            ctx.lineTo(n.x + ew, n.y + h / 2);
+            ctx.ellipse(n.x, n.y + h / 2, ew, eh, 0, 0, Math.PI);
+            ctx.lineTo(n.x - ew, n.y - h / 2);
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y - h / 2, ew, eh, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.08 : (isHover ? 0.5 : 0.2));
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            var fs = Math.round((n.label.length > 10 ? 11 : 12) * SCL);
+            ctx.font = (isHover ? 'bold ' : '') + fs + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
+            ctx.fillText(n.label, n.x, n.y);
+
+            if (!dimmed && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
+                for (var i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], n.x, n.y + h / 2 + 12 * SCL + i * (FONT_SUB + 2));
+                }
+            }
+        }
+
+        function drawOutputNode(n) {
+            var isHover = hoverNode && hoverNode.id === n.id;
+            var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
+            var dimmed = hoverNode && !isHover && !conn[n.id];
+
+            var r = n.radius;
+            ctx.beginPath();
+            for (var i = 0; i < 6; i++) {
+                var angle = Math.PI / 6 + i * Math.PI / 3;
+                var hx = n.x + r * Math.cos(angle);
+                var hy = n.y + r * Math.sin(angle);
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = hexToRgba(n.color, dimmed ? 0.04 : (isHover ? 0.18 : 0.08));
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(n.color, dimmed ? 0.12 : (isHover ? 0.7 : 0.3));
+            ctx.lineWidth = isHover ? 1.5 : 0.8;
+            ctx.stroke();
+
+            var fs2 = Math.round((n.label.length > 10 ? 10 : (n.label.length > 7 ? 11 : 13)) * SCL);
+            ctx.font = (isHover ? 'bold ' : '') + fs2 + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : (isHover ? '#fff' : 'rgba(255,255,255,0.75)');
+            ctx.fillText(n.label, n.x, n.y - (n.sub && !dimmed ? 5 * SCL : 0));
+
+            if (!dimmed && n.sub) {
+                var lines = n.sub.split('\n');
+                ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = isHover ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
+                for (var i = 0; i < lines.length; i++) {
+                    ctx.fillText(lines[i], n.x, n.y + 8 * SCL + i * (FONT_SUB + 2));
+                }
+            }
+        }
+
+        var AMBIENT_COUNT = 50;
+        var ambientParticles = [];
+        function initAmbient() {
+            ambientParticles = [];
+            for (var i = 0; i < AMBIENT_COUNT; i++) {
+                ambientParticles.push({
+                    x: Math.random() * (W || 1200),
+                    y: Math.random() * (H || 700),
+                    vx: (Math.random() - 0.5) * 0.15,
+                    vy: (Math.random() - 0.5) * 0.1 + 0.02,
+                    size: Math.random() * 1 + 0.3,
+                    alpha: Math.random() * 0.1 + 0.02
+                });
+            }
+        }
+
+        var flowParticles = [];
+        function initFlowParticles() {
+            flowParticles = [];
+            FLOW_EDGES.forEach(function(e) {
+                var count = 2;
+                for (var i = 0; i < count; i++) {
+                    flowParticles.push({
+                        edge: e,
+                        t: Math.random(),
+                        speed: 0.002 + Math.random() * 0.003,
+                        size: 1.8,
+                        alpha: 0.4
+                    });
+                }
+            });
+            PROTO_EDGES.forEach(function(e) {
+                for (var i = 0; i < 2; i++) {
+                    flowParticles.push({
+                        edge: e,
+                        t: Math.random(),
+                        speed: 0.002 + Math.random() * 0.002,
+                        size: 1.5,
+                        alpha: 0.35
+                    });
+                }
+            });
+        }
+
+        var time = 0;
+
+        function resize() {
+            var rect = wrap.getBoundingClientRect();
+            W = rect.width;
+            H = rect.height;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            layoutAll();
+        }
+
+        function update() {
+            time += 0.016;
+
+            globe.rotLon -= 0.08;
+
+            var allArr = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
+            for (var i = 0; i < allArr.length; i++) {
+                var n = allArr[i];
+                var bx = Math.sin(time * 0.3 + n.targetX * 0.01) * 1.5;
+                var by = Math.cos(time * 0.25 + n.targetY * 0.01) * 1;
+                n.x += (n.targetX + bx - n.x) * 0.04;
+                n.y += (n.targetY + by - n.y) * 0.04;
+            }
+
+            for (var ai = 0; ai < ambientParticles.length; ai++) {
+                var ap = ambientParticles[ai];
+                ap.x += ap.vx;
+                ap.y += ap.vy;
+                if (ap.x < 0) ap.x = W;
+                if (ap.x > W) ap.x = 0;
+                if (ap.y < 0) ap.y = H;
+                if (ap.y > H) ap.y = 0;
+            }
+
+            for (var fi = 0; fi < flowParticles.length; fi++) {
+                flowParticles[fi].t += flowParticles[fi].speed;
+                if (flowParticles[fi].t > 1) flowParticles[fi].t -= 1;
+            }
+
+            for (var si = 0; si < signalParticles.length; si++) {
+                signalParticles[si].t += signalParticles[si].speed;
+                if (signalParticles[si].t > 1) signalParticles[si].t -= 1;
+            }
+        }
+
+        function drawAmbient() {
+            for (var i = 0; i < ambientParticles.length; i++) {
+                var ap = ambientParticles[i];
+                ctx.beginPath();
+                ctx.arc(ap.x, ap.y, ap.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,' + ap.alpha + ')';
+                ctx.fill();
+            }
+        }
+
+        function drawFlowParticles() {
+            for (var i = 0; i < flowParticles.length; i++) {
+                var fp = flowParticles[i];
+                var from = allNodes[fp.edge.from];
+                var to = allNodes[fp.edge.to];
+                if (!from || !to) continue;
+                var curve = findEdgeCurveOffset(from, to, fp.edge.type);
+                var startPt, endPt;
+                if (curve) {
+                    startPt = getNodeBoundary(from, curve.cx, curve.cy);
+                    endPt = getNodeBoundary(to, curve.cx, curve.cy);
+                } else {
+                    startPt = getNodeBoundary(from, to.x, to.y);
+                    endPt = getNodeBoundary(to, from.x, from.y);
+                }
+                var x, y;
+                if (curve) {
+                    var ft = fp.t;
+                    x = (1 - ft) * (1 - ft) * startPt.x + 2 * (1 - ft) * ft * curve.cx + ft * ft * endPt.x;
+                    y = (1 - ft) * (1 - ft) * startPt.y + 2 * (1 - ft) * ft * curve.cy + ft * ft * endPt.y;
+                } else {
+                    x = startPt.x + (endPt.x - startPt.x) * fp.t;
+                    y = startPt.y + (endPt.y - startPt.y) * fp.t;
+                }
+                var isHL = hoverNode && (hoverNode.id === fp.edge.from || hoverNode.id === fp.edge.to);
+                var alpha = isHL ? fp.alpha * 1.8 : fp.alpha * 0.5;
+                var color = from.color || COLORS.engine;
+                ctx.beginPath();
+                ctx.arc(x, y, fp.size * (isHL ? 1.3 : 1), 0, Math.PI * 2);
+                ctx.fillStyle = hexToRgba(color, alpha);
+                ctx.fill();
+            }
+        }
+
+        var placedEdgeLabels = [];
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            drawAmbient();
+            drawGlobe(time);
+
+            placedEdgeLabels = [];
+            FLOW_EDGES.forEach(function(e) { drawFlowEdge(e); });
+            PROTO_EDGES.forEach(function(e) { drawFlowEdge(e); });
+            drawFlowParticles();
+
+            SOURCES.forEach(function(s) {
+                var isHover = hoverNode && hoverNode.id === s.id;
+                var conn = hoverNode ? getConnectedIds(hoverNode.id) : {};
+                var dimmed = hoverNode && !isHover && !conn[s.id];
+                drawNodeTag(s, isHover, dimmed);
+            });
+
+            drawHubNode(HUB);
+            drawEngineNode(ENGINE);
+            CONFIDENCE.forEach(function(c) { drawConfidenceNode(c); });
+            STORAGE.forEach(function(s) { drawStorageNode(s); });
+            PROTOCOLS.forEach(function(p) { drawProtocolNode(p); });
+            OUTPUTS.forEach(function(o) { drawOutputNode(o); });
+
+            if (debugBounds) {
+                allLayoutNodes.forEach(function(nd) {
+                    if (!nd._boxW) measureNodeBox(nd);
+                    var hw = nd._halfW || nd.radius;
+                    var hh = nd._halfH || nd.radius;
+                    ctx.strokeStyle = 'rgba(0,255,0,0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeRect(nd.x - hw, nd.y - hh, hw * 2, hh * 2);
+                    ctx.setLineDash([]);
+                });
+            }
+
+            drawPopTooltip();
+        }
+
+        var debugBounds = window.location.search.indexOf('debug=bounds') !== -1;
+        var paused = false;
+
+        function loop() {
+            if (!paused) {
+                update();
+                draw();
+            }
+            requestAnimationFrame(loop);
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            paused = document.hidden;
+        });
+
+        resize();
+        initAmbient();
+        initFlowParticles();
+        initSignalParticles();
+        window.addEventListener('resize', function() {
+            resize();
+            initAmbient();
+        });
+        loop();
+    })();
+    </script>
+</body>
+</html>
