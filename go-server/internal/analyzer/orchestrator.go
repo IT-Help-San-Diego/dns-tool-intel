@@ -361,7 +361,7 @@ func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDK
                 timedTask(ch, mapKeyMtaSts, t0, func() any { return a.AnalyzeMTASTS(ctx, domain) }),
                 timedTask(ch, mapKeyTlsrpt, t0, func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
                 timedTask(ch, mapKeyBimi, t0, func() any { return a.AnalyzeBIMI(ctx, domain) }),
-                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(domain) }),
+                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
                 timedTask(ch, mapKeySmimeaOpenpgpkey, t0, func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
                 timedTask(ch, mapKeySecurityTxt, t0, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
                 timedTask(ch, mapKeyAiSurface, t0, func() any { return a.AnalyzeAISurface(ctx, domain) }),
@@ -369,8 +369,18 @@ func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDK
         }
 }
 
-func (a *Analyzer) discoverSubdomainsWithBudget(domain string) map[string]any {
-        ctCtx, ctCancel := context.WithTimeout(context.Background(), 120*time.Second)
+func (a *Analyzer) discoverSubdomainsWithBudget(parent context.Context, domain string) map[string]any {
+        budget := 20 * time.Second
+        if deadline, ok := parent.Deadline(); ok {
+                if remaining := time.Until(deadline); remaining < budget {
+                        budget = remaining
+                }
+        }
+        if budget <= 0 {
+                slog.Warn("CT subdomain budget exhausted by parent deadline", mapKeyDomain, domain)
+                return map[string]any{"status": "deferred", "reason": "parent_deadline_exhausted"}
+        }
+        ctCtx, ctCancel := context.WithTimeout(parent, budget)
         defer ctCancel()
         return a.DiscoverSubdomains(ctCtx, domain)
 }

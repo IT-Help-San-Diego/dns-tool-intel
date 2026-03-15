@@ -65,6 +65,34 @@ func TestProgressStore_GetMissing(t *testing.T) {
         }
 }
 
+func TestProgressStore_CloseStopsCleanup(t *testing.T) {
+        ps := NewProgressStore()
+        token, _ := ps.NewToken()
+        if ps.Get(token) == nil {
+                t.Fatal("expected non-nil progress before close")
+        }
+        ps.Close()
+        ps.Close()
+}
+
+func TestAnalysisHandler_Close(t *testing.T) {
+        h := &AnalysisHandler{
+                ProgressStore: NewProgressStore(),
+        }
+        h.Close()
+        h.Close()
+}
+
+func TestAnalysisHandler_Close_NilStore(t *testing.T) {
+        h := &AnalysisHandler{}
+        h.Close()
+}
+
+func TestProgressStore_Close_ZeroValue(t *testing.T) {
+        ps := &ProgressStore{}
+        ps.Close()
+}
+
 func TestScanProgressHandler_NotFound(t *testing.T) {
         ps := &ProgressStore{}
 
