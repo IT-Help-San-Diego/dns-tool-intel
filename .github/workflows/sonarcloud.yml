@@ -22,10 +22,32 @@ jobs:
 
       - name: Run Go tests with coverage
         run: |
-          go test ./go-server/... -tags intel -coverprofile=coverage.out -count=1 -short -timeout 180s
+          go test ./go-server/... -tags intel -coverprofile=coverage.out -covermode=atomic -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
           DNS_TOOL_REPO_ROLE: intel
+          GOGC: '50'
+          GOMEMLIMIT: '1500MiB'
+
+      - name: Verify coverage completeness
+        run: |
+          echo "=== Coverage report summary ==="
+          TOTAL_LINES=$(grep -c "^dnstool" coverage.out || echo 0)
+          HANDLER_LINES=$(grep -c "go-server/internal/handlers/" coverage.out || echo 0)
+          ANALYZER_LINES=$(grep -c "go-server/internal/analyzer/" coverage.out || echo 0)
+          echo "Total coverage lines: $TOTAL_LINES"
+          echo "Handler coverage lines: $HANDLER_LINES"
+          echo "Analyzer coverage lines: $ANALYZER_LINES"
+
+          if [ "$HANDLER_LINES" -lt 100 ]; then
+            echo "::error::Handler coverage missing from coverage.out ($HANDLER_LINES lines found, expected 100+)"
+            echo "Packages present:"
+            grep "^dnstool" coverage.out | sed 's|:.*||' | sed 's|/[^/]*$||' | sort -u
+            exit 1
+          fi
+
+          echo "=== Per-package coverage ==="
+          go tool cover -func=coverage.out | grep "^total:" || true
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v7
