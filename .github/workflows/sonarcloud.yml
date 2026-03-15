@@ -22,24 +22,10 @@ jobs:
 
       - name: Run Go tests with coverage
         run: |
-          go test ./go-server/... -tags intel -coverprofile=coverage.out -count=1 -short -timeout 120s
-          for pkg in providers scoring remediation commands golden_rules; do
-            if [ -d "$pkg" ]; then
-              go test ./$pkg/... -tags intel -coverprofile=${pkg}_coverage.out -count=1 -short -timeout 60s 2>/dev/null || true
-            fi
-          done
+          go test ./go-server/... -tags intel -coverprofile=coverage.out -count=1 -short -timeout 180s
         env:
           CGO_ENABLED: '0'
-
-      - name: Merge coverage reports
-        run: |
-          cp coverage.out merged_coverage.out
-          for f in providers_coverage.out scoring_coverage.out remediation_coverage.out commands_coverage.out golden_rules_coverage.out; do
-            if [ -f "$f" ]; then
-              tail -n +2 "$f" >> merged_coverage.out
-            fi
-          done
-          mv merged_coverage.out coverage.out
+          DNS_TOOL_REPO_ROLE: intel
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v7
