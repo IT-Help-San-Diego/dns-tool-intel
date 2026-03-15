@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REPO_OWNER="careyjames"
-REPO_NAME="dns-tool-web"
+REPO_NAME="dns-tool-intel"
 BRANCH_SOURCE="replit-agent"
 BRANCH_TARGET="main"
 API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
