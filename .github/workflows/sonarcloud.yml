@@ -7,9 +7,10 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  coverage:
-    name: Generate Coverage
+  sonarcloud:
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -48,55 +49,9 @@ jobs:
           echo "=== Per-package coverage ==="
           go tool cover -func=coverage.out | grep "^total:" || true
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.out
-          retention-days: 1
-
-  scan-full:
-    name: SonarCloud Scan (Full Product)
-    needs: coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Download coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  scan-web:
-    name: SonarCloud Scan (Open-Core)
-    needs: coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Download coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarqube-scan-action@v7
-        with:
-          args: >
-            -Dsonar.projectKey=careyjames_dns-tool-web
-            -Dsonar.projectName=DNS Tool
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_CAREY }}
           SONAR_HOST_URL: https://sonarcloud.io
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
