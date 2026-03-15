@@ -8,9 +8,27 @@ import (
         "net/http/httptest"
         "net/url"
         "strings"
+        "time"
+
+        "dnstool/go-server/internal/config"
 
         "github.com/gin-gonic/gin"
 )
+
+var defaultTestConfig = config.Config{
+        AppVersion:      "26.37.11",
+        MaintenanceNote: "",
+        BetaPages:       map[string]bool{},
+        BaseURL:         "https://test.example.com",
+}
+
+func mustParseTime(s string) time.Time {
+        t, err := time.Parse(time.RFC3339, s)
+        if err != nil {
+                panic("mustParseTime: " + err.Error())
+        }
+        return t
+}
 
 func mustParseMinimalTemplate(name string) *template.Template {
         return template.Must(template.New(name).Parse("{{define \"" + name + "\"}}ok{{end}}"))
