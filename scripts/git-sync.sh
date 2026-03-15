@@ -32,6 +32,8 @@ if [ -z "$TOKEN" ]; then
 fi
 PAT_REMOTE="https://${TOKEN}@github.com/${REPO_OWNER}/${REPO_NAME}.git"
 
+git remote set-url origin "${PAT_REMOTE}" 2>/dev/null || git remote add origin "${PAT_REMOTE}" 2>/dev/null || true
+
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
 echo ""
 echo "═══════════════════════════════════════════"
@@ -65,21 +67,21 @@ done
 pass "No git lock files"
 
 info "Fetching latest from origin"
-timeout 120 git fetch "${PAT_REMOTE}" --prune 2>/dev/null || fail "git fetch timed out or failed"
+timeout 120 git fetch origin --prune 2>/dev/null || fail "git fetch timed out or failed"
 pass "Fetched origin"
 
 LOCAL_HEAD=$(git rev-parse HEAD)
 REMOTE_HEAD=$(git rev-parse "origin/${BRANCH_SOURCE}" 2>/dev/null || echo "none")
 if [ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]; then
   info "Local ${BRANCH_SOURCE} differs from origin — pushing"
-  PUSH_OUTPUT=$(timeout 120 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || fail "git push failed"
+  PUSH_OUTPUT=$(timeout 120 git push origin "${BRANCH_SOURCE}" 2>&1) || fail "git push failed"
   echo "$PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
   pass "Pushed to origin/${BRANCH_SOURCE}"
 else
   pass "Local and origin/${BRANCH_SOURCE} in sync"
 fi
 
-timeout 120 git fetch "${PAT_REMOTE}" "${BRANCH_SOURCE}" "${BRANCH_TARGET}" 2>/dev/null || true
+timeout 120 git fetch origin "${BRANCH_SOURCE}" "${BRANCH_TARGET}" 2>/dev/null || true
 
 AHEAD=$(git rev-list --count "origin/${BRANCH_TARGET}..origin/${BRANCH_SOURCE}" 2>/dev/null || echo "0")
 if [ "$AHEAD" -eq 0 ]; then
@@ -157,14 +159,14 @@ pass "PR #${PR_NUMBER} merged to ${BRANCH_TARGET}"
 echo ""
 info "Syncing ${BRANCH_TARGET} back to ${BRANCH_SOURCE}"
 
-timeout 120 git fetch "${PAT_REMOTE}" "${BRANCH_TARGET}" 2>/dev/null || fail "Failed to fetch updated ${BRANCH_TARGET}"
+timeout 120 git fetch origin "${BRANCH_TARGET}" 2>/dev/null || fail "Failed to fetch updated ${BRANCH_TARGET}"
 timeout 120 git merge --ff-only "origin/${BRANCH_TARGET}" 2>/dev/null || {
   echo -e "  ${YELLOW}⚠${NC} Fast-forward failed — pulling with merge"
-  timeout 120 git pull "${PAT_REMOTE}" "${BRANCH_TARGET}" --no-edit 2>/dev/null || fail "Reverse sync failed"
+  timeout 120 git pull origin "${BRANCH_TARGET}" --no-edit 2>/dev/null || fail "Reverse sync failed"
 }
 pass "Synced ${BRANCH_TARGET} → ${BRANCH_SOURCE}"
 
-SYNC_PUSH_OUTPUT=$(timeout 120 git push "${PAT_REMOTE}" "${BRANCH_SOURCE}" 2>&1) || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
+SYNC_PUSH_OUTPUT=$(timeout 120 git push origin "${BRANCH_SOURCE}" 2>&1) || echo -e "  ${YELLOW}⚠${NC} Push after sync skipped (may need manual push)"
 [ -n "${SYNC_PUSH_OUTPUT:-}" ] && echo "$SYNC_PUSH_OUTPUT" | sed "s|${TOKEN}|***|g"
 
 echo ""
