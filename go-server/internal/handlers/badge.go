@@ -46,8 +46,19 @@ const (
 )
 
 type BadgeHandler struct {
-        DB     *db.Database
-        Config *config.Config
+        DB          *db.Database
+        Config      *config.Config
+        lookupStore LookupStore
+}
+
+func (h *BadgeHandler) store() LookupStore {
+        if h.lookupStore != nil {
+                return h.lookupStore
+        }
+        if h.DB != nil {
+                return h.DB.Queries
+        }
+        return nil
 }
 
 func NewBadgeHandler(database *db.Database, cfg *config.Config) *BadgeHandler {
@@ -71,7 +82,7 @@ func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results m
                         c.Data(http.StatusBadRequest, contentTypeSVG, badgeSVG(mapKeyError, "invalid scan id", colorDanger))
                         return "", nil, time.Time{}, 0, "", false
                 }
-                analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(sid))
+                analysis, err := h.store().GetAnalysisByID(ctx, int32(sid))
                 if err != nil || analysis.Private {
                         c.Data(http.StatusNotFound, contentTypeSVG, badgeSVG(labelDNSTool, "scan not found", colorGrey))
                         return "", nil, time.Time{}, 0, "", false
@@ -86,7 +97,7 @@ func (h *BadgeHandler) resolveAnalysis(c *gin.Context) (domain string, results m
                 return "", nil, time.Time{}, 0, "", false
         }
 
-        analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, ascii)
+        analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
         if err != nil || analysis.Private {
                 c.Data(http.StatusNotFound, contentTypeSVG, badgeSVG(labelDNSTool, "not scanned", colorGrey))
                 return "", nil, time.Time{}, 0, "", false
@@ -304,7 +315,7 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
                         })
                         return
                 }
-                analysis, err := h.DB.Queries.GetAnalysisByID(ctx, int32(scanID))
+                analysis, err := h.store().GetAnalysisByID(ctx, int32(scanID))
                 if err != nil || analysis.Private {
                         c.JSON(http.StatusOK, gin.H{
                                 strSchemaversion: 1,
@@ -328,7 +339,7 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
                         return
                 }
 
-                analysis, err := h.DB.Queries.GetRecentAnalysisByDomain(ctx, ascii)
+                analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
                 if err != nil || analysis.Private {
                         c.JSON(http.StatusOK, gin.H{
                                 strSchemaversion: 1,

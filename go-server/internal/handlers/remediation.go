@@ -21,8 +21,19 @@ import (
 const remediationTemplate = "remediation.html"
 
 type RemediationHandler struct {
-        DB     *db.Database
-        Config *config.Config
+        DB          *db.Database
+        Config      *config.Config
+        lookupStore LookupStore
+}
+
+func (h *RemediationHandler) store() LookupStore {
+        if h.lookupStore != nil {
+                return h.lookupStore
+        }
+        if h.DB != nil {
+                return h.DB.Queries
+        }
+        return nil
 }
 
 func NewRemediationHandler(database *db.Database, cfg *config.Config) *RemediationHandler {
@@ -64,7 +75,7 @@ func (h *RemediationHandler) RemediationPage(c *gin.Context) {
                         c.HTML(http.StatusOK, remediationTemplate, data)
                         return
                 }
-                analysis, err = h.DB.Queries.GetAnalysisByID(ctx, int32(id))
+                analysis, err = h.store().GetAnalysisByID(ctx, int32(id))
                 if err != nil {
                         data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Analysis not found. Please check the scan number and try again."}}
                         c.HTML(http.StatusOK, remediationTemplate, data)
@@ -78,7 +89,7 @@ func (h *RemediationHandler) RemediationPage(c *gin.Context) {
                         c.HTML(http.StatusOK, remediationTemplate, data)
                         return
                 }
-                analysis, err = h.DB.Queries.GetRecentAnalysisByDomain(ctx, domain)
+                analysis, err = h.store().GetRecentAnalysisByDomain(ctx, domain)
                 if err != nil {
                         data["FlashMessages"] = []FlashMessage{{Category: mapKeyWarning, Message: fmt.Sprintf("No analysis found for %s. Run a scan first, then come back here.", domain)}}
                         data["FormDomain"] = domain
@@ -176,7 +187,7 @@ func (h *RemediationHandler) checkPrivateAccess(c *gin.Context, analysisID int32
         if !ok {
                 return false
         }
-        isOwner, err := h.DB.Queries.CheckAnalysisOwnership(c.Request.Context(), dbq.CheckAnalysisOwnershipParams{
+        isOwner, err := h.store().CheckAnalysisOwnership(c.Request.Context(), dbq.CheckAnalysisOwnershipParams{
                 AnalysisID: analysisID,
                 UserID:     userID,
         })

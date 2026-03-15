@@ -13,8 +13,19 @@ import (
 )
 
 type PipelineHandler struct {
-        DB     *db.Database
-        Config *config.Config
+        DB            *db.Database
+        Config        *config.Config
+        pipelineStore PipelineStore
+}
+
+func (h *PipelineHandler) store() PipelineStore {
+        if h.pipelineStore != nil {
+                return h.pipelineStore
+        }
+        if h.DB != nil {
+                return h.DB.Queries
+        }
+        return nil
 }
 
 func NewPipelineHandler(database *db.Database, cfg *config.Config) *PipelineHandler {
@@ -55,32 +66,32 @@ type pipelineStageView struct {
 func (h *PipelineHandler) Observatory(c *gin.Context) {
         ctx := c.Request.Context()
 
-        stageStats, err := h.DB.Queries.GetPipelineStageStats(ctx)
+        stageStats, err := h.store().GetPipelineStageStats(ctx)
         if err != nil {
                 stageStats = nil
         }
 
-        endToEnd, err := h.DB.Queries.GetPipelineEndToEndStats(ctx)
+        endToEnd, err := h.store().GetPipelineEndToEndStats(ctx)
         if err != nil {
                 endToEnd.TotalScans = 0
         }
 
-        distribution, err := h.DB.Queries.GetPipelineDurationDistribution(ctx)
+        distribution, err := h.store().GetPipelineDurationDistribution(ctx)
         if err != nil {
                 distribution = nil
         }
 
-        driftDist, err := h.DB.Queries.GetDriftSeverityDistribution(ctx)
+        driftDist, err := h.store().GetDriftSeverityDistribution(ctx)
         if err != nil {
                 driftDist = nil
         }
 
-        slowest, err := h.DB.Queries.GetSlowestPhases(ctx, 15)
+        slowest, err := h.store().GetSlowestPhases(ctx, 15)
         if err != nil {
                 slowest = nil
         }
 
-        trends, err := h.DB.Queries.GetTelemetryTrends(ctx)
+        trends, err := h.store().GetTelemetryTrends(ctx)
         if err != nil {
                 trends = nil
         }
