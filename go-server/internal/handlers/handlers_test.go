@@ -57,7 +57,7 @@ func getTestDB(t *testing.T) *db.Database {
         if dbURL == "" {
                 t.Skip("DATABASE_URL not set, skipping database integration test")
         }
-        database, err := db.Connect(dbURL)
+        database, err := db.ConnectForTests(dbURL)
         if err != nil {
                 t.Fatalf("Failed to connect to database: %v", err)
         }
