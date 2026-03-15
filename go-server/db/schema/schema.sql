@@ -282,7 +282,8 @@ CREATE TABLE icuae_dimension_scores (
     dimension VARCHAR(50) NOT NULL,
     score REAL NOT NULL DEFAULT 0,
     grade VARCHAR(5) NOT NULL DEFAULT 'F',
-    record_types_evaluated TEXT[] NOT NULL DEFAULT '{}'
+    record_types_evaluated INTEGER NOT NULL DEFAULT 0,
+    record_types_list TEXT[] NOT NULL DEFAULT '{}'
 );
 
 -- CT Subdomain Cache: persistent storage for Certificate Transparency discoveries.
