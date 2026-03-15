@@ -55,9 +55,20 @@ func loadCitationCFF() *citationCFF {
 }
 
 type CitationHandler struct {
-        Config   *config.Config
-        Registry *citation.Registry
-        DB       *db.Database
+        Config      *config.Config
+        Registry    *citation.Registry
+        DB          *db.Database
+        lookupStore LookupStore
+}
+
+func (h *CitationHandler) store() LookupStore {
+        if h.lookupStore != nil {
+                return h.lookupStore
+        }
+        if h.DB != nil {
+                return h.DB.Queries
+        }
+        return nil
 }
 
 func NewCitationHandler(cfg *config.Config, reg *citation.Registry, database *db.Database) *CitationHandler {
@@ -161,7 +172,7 @@ func (h *CitationHandler) AnalysisCitation(c *gin.Context) {
                 return
         }
 
-        analysis, err := h.DB.Queries.GetAnalysisByID(c.Request.Context(), int32(id))
+        analysis, err := h.store().GetAnalysisByID(c.Request.Context(), int32(id))
         if err != nil {
                 c.JSON(http.StatusNotFound, gin.H{"error": "analysis not found"})
                 return
@@ -211,7 +222,7 @@ func (h *CitationHandler) checkCitationAccess(c *gin.Context, analysisID int32, 
         if !ok {
                 return false
         }
-        isOwner, err := h.DB.Queries.CheckAnalysisOwnership(c.Request.Context(), dbq.CheckAnalysisOwnershipParams{
+        isOwner, err := h.store().CheckAnalysisOwnership(c.Request.Context(), dbq.CheckAnalysisOwnershipParams{
                 AnalysisID: analysisID,
                 UserID:     userID,
         })

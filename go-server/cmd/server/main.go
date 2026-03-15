@@ -336,6 +336,9 @@ func main() {
         router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
         router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
 
+        pipelineHandler := handlers.NewPipelineHandler(database, cfg)
+        router.GET("/ops/pipeline", middleware.RequireAdmin(), pipelineHandler.Observatory)
+
         router.GET("/snapshot/:domain", snapshotHandler.Snapshot)
 
         router.GET("/export/json", middleware.RequireAdmin(), exportHandler.ExportJSON)

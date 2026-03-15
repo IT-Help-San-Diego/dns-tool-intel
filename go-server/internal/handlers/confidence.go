@@ -15,8 +15,19 @@ import (
 )
 
 type ConfidenceHandler struct {
-        Config *config.Config
-        DB     *db.Database
+        Config     *config.Config
+        DB         *db.Database
+        auditStore AuditStore
+}
+
+func (h *ConfidenceHandler) auditQ() AuditStore {
+        if h.auditStore != nil {
+                return h.auditStore
+        }
+        if h.DB != nil {
+                return h.DB.Queries
+        }
+        return nil
 }
 
 func NewConfidenceHandler(cfg *config.Config, database *db.Database) *ConfidenceHandler {
