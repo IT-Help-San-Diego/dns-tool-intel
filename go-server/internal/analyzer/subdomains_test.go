@@ -919,7 +919,7 @@ func TestDiscoverSubdomainsWithBudget_NoData(t *testing.T) {
                 reg.RecordFailure("ct:crt.sh", "test forced failure")
         }
         a := newTestAnalyzerForCT(reg)
-        result := a.discoverSubdomainsWithBudget("nonexistent-test-domain.invalid")
+        result := a.discoverSubdomainsWithBudget(context.Background(), "nonexistent-test-domain.invalid")
         if result == nil {
                 t.Fatal("expected non-nil result map")
         }

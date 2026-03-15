@@ -1016,7 +1016,7 @@ func TestGoldenRuleSubdomainDiscoveryUnder60s(t *testing.T) {
                 t.Skip("skipping network-dependent test in CI")
         }
 
-        a := New()
+        a := New(WithInitialIANAFetch(false))
         ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
         defer cancel()
 

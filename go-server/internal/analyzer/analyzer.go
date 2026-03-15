@@ -48,6 +48,8 @@ type Analyzer struct {
         ProbeAPIKey   string
         Probes        []ProbeEndpoint
 
+        skipIANAFetch bool
+
         backpressureRejections atomic.Int64
 }
 
@@ -62,6 +64,12 @@ func WithMaxConcurrent(n int) Option {
         return func(a *Analyzer) {
                 a.maxConcurrent = n
                 a.semaphore = make(chan struct{}, n)
+        }
+}
+
+func WithInitialIANAFetch(enabled bool) Option {
+        return func(a *Analyzer) {
+                a.skipIANAFetch = !enabled
         }
 }
 
@@ -85,7 +93,9 @@ func New(opts ...Option) *Analyzer {
                 o(a)
         }
 
-        go a.fetchIANARDAPData()
+        if !a.skipIANAFetch {
+                go a.fetchIANARDAPData()
+        }
 
         return a
 }
