@@ -1,6 +1,6 @@
 package handlers
 
-// dns-tool:scrutiny science
+// dns-tool:scrutiny design
 
 import (
         "net/http"
