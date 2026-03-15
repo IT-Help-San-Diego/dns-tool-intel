@@ -103,6 +103,12 @@ func NewAnalysisHandler(database *db.Database, cfg *config.Config, a *analyzer.A
         }
 }
 
+func (h *AnalysisHandler) Close() {
+        if h.ProgressStore != nil {
+                h.ProgressStore.Close()
+        }
+}
+
 func (h *AnalysisHandler) checkPrivateAccess(c *gin.Context, analysisID int32, private bool) bool {
         if !private {
                 return true

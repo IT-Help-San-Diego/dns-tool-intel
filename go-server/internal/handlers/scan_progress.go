@@ -32,13 +32,29 @@ type scanProgress struct {
 }
 
 type ProgressStore struct {
-        store sync.Map
+        store    sync.Map
+        stopCh   chan struct{}
+        doneCh   chan struct{}
+        closeOnce sync.Once
 }
 
 func NewProgressStore() *ProgressStore {
-        ps := &ProgressStore{}
+        ps := &ProgressStore{
+                stopCh: make(chan struct{}),
+                doneCh: make(chan struct{}),
+        }
         go ps.cleanupLoop()
         return ps
+}
+
+func (ps *ProgressStore) Close() {
+        if ps.stopCh == nil {
+                return
+        }
+        ps.closeOnce.Do(func() {
+                close(ps.stopCh)
+                <-ps.doneCh
+        })
 }
 
 func (ps *ProgressStore) NewToken() (string, *scanProgress) {
@@ -72,16 +88,22 @@ func (ps *ProgressStore) Delete(token string) {
 }
 
 func (ps *ProgressStore) cleanupLoop() {
+        defer close(ps.doneCh)
         ticker := time.NewTicker(60 * time.Second)
         defer ticker.Stop()
-        for range ticker.C {
-                ps.store.Range(func(key, val any) bool {
-                        sp := val.(*scanProgress)
-                        if time.Since(sp.startTime) > 5*time.Minute {
-                                ps.store.Delete(key)
-                        }
-                        return true
-                })
+        for {
+                select {
+                case <-ps.stopCh:
+                        return
+                case <-ticker.C:
+                        ps.store.Range(func(key, val any) bool {
+                                sp := val.(*scanProgress)
+                                if time.Since(sp.startTime) > 5*time.Minute {
+                                        ps.store.Delete(key)
+                                }
+                                return true
+                        })
+                }
         }
 }
 
