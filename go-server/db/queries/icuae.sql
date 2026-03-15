@@ -4,8 +4,8 @@ VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id, created_at;
 
 -- name: ICuAEInsertDimensionScore :exec
-INSERT INTO icuae_dimension_scores (scan_id, dimension, score, grade, record_types_evaluated)
-VALUES ($1, $2, $3, $4, $5);
+INSERT INTO icuae_dimension_scores (scan_id, dimension, score, grade, record_types_evaluated, record_types_list)
+VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: ICuAEGetAggregateStats :one
 SELECT

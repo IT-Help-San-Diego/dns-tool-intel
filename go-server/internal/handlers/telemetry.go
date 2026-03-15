@@ -44,6 +44,10 @@ func (h *TelemetryHandler) Dashboard(c *gin.Context) {
 
         data := gin.H{
                 "Title":            "Scan Telemetry",
+                "ActivePage":       "telemetry",
+                "AppVersion":       h.Config.AppVersion,
+                "MaintenanceNote":  h.Config.MaintenanceNote,
+                "BetaPages":        h.Config.BetaPages,
                 "CspNonce":         nonce,
                 "CsrfToken":        csrfToken,
                 "Summaries":        summaries,

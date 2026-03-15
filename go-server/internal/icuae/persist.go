@@ -49,12 +49,14 @@ func RecordScanResult(ctx context.Context, queries DBTX, domain string, report C
         }
 
         for _, dim := range report.Dimensions {
+                rtList := dim.RecordTypesList()
                 if err := queries.ICuAEInsertDimensionScore(ctx, dbq.ICuAEInsertDimensionScoreParams{
                         ScanID:               row.ID,
                         Dimension:            dim.Dimension,
                         Score:                float32(dim.Score),
                         Grade:                dim.Grade,
-                        RecordTypesEvaluated: dim.RecordTypesList(),
+                        RecordTypesEvaluated: int32(len(rtList)),
+                        RecordTypesList:      rtList,
                 }); err != nil {
                         slog.Warn("ICuAE: failed to record dimension score", "dimension", dim.Dimension, mapKeyError, err)
                 }
