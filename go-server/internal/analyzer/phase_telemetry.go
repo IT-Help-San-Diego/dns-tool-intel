@@ -1,4 +1,5 @@
 package analyzer
+// dns-tool:scrutiny science
 
 import (
 	"encoding/hex"

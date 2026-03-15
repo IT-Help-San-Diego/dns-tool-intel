@@ -1,4 +1,5 @@
 package handlers
+// dns-tool:scrutiny design
 
 import (
         "fmt"
