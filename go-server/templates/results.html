@@ -6001,7 +6001,8 @@
             <div class="loading-dots mt-2" aria-hidden="true">
                 <span></span><span></span><span></span>
             </div>
-            <div class="scan-checklist mt-3" id="scanChecklist">
+            {{template "scan_topology" .}}
+            <div class="scan-checklist mt-3 d-none" id="scanChecklist">
                 <div class="scan-phase" data-delay="0">
                     {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
                     <span>DNS records &mdash; Cloudflare, Google, Quad9, OpenDNS, DNS4EU</span>

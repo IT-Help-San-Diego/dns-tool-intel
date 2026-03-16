@@ -1,0 +1,169 @@
+{{define "scan_topology"}}
+<div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
+    <svg viewBox="0 0 460 350" width="460" height="350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology">
+        <defs>
+            <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-dnssec" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-ct" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#78909c" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-smtp" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-policy" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ffb74d" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-registrar" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ce93d8" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-engine" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#e0e0e0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-res-cf" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#f6821f" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-res-g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#4285f4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-res-q9" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#0078d4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-res-od" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#ff6a00" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-res-eu" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#003399" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <style nonce="{{.CspNonce}}">
+            .topo-node { fill: #1c2128; stroke: #30363d; stroke-width: 1.5; rx: 8; transition: fill 0.5s, stroke 0.5s, filter 0.5s; }
+            .topo-label { fill: #484f58; font-size: 10px; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; text-anchor: middle; letter-spacing: 0.3px; transition: fill 0.5s; }
+            .topo-sub { fill: #30363d; font-size: 8px; font-family: monospace; text-anchor: middle; transition: fill 0.4s, opacity 0.4s; opacity: 0.6; }
+            .topo-dur { fill: #8b949e; font-size: 9px; font-weight: 600; font-family: monospace; text-anchor: middle; opacity: 0; transition: opacity 0.3s; }
+            .topo-node.phase-running { animation: topo-pulse 1.4s ease-in-out infinite; }
+            .topo-node.phase-done + text { fill: #e6edf3; }
+            .topo-dur.visible { opacity: 1; }
+            @keyframes topo-pulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+            .topo-connector { stroke: #21262d; stroke-width: 1.5; opacity: 0.4; transition: stroke 0.5s, opacity 0.5s; }
+            .topo-connector.active { stroke: #4a8fe7; opacity: 0.7; stroke-dasharray: 6,3; animation: topo-flow 1s linear infinite; }
+            .topo-connector.complete { stroke: #30363d; opacity: 0.6; stroke-dasharray: none; }
+            @keyframes topo-flow { to { stroke-dashoffset: -9; } }
+
+            .topo-res-line { stroke: #21262d; stroke-width: 0.8; opacity: 0.3; transition: stroke 0.5s, opacity 0.5s; }
+            .topo-res-dot { fill: #30363d; stroke: #30363d; stroke-width: 0.5; opacity: 0.5; transition: fill 0.5s, stroke 0.5s, opacity 0.5s, filter 0.5s; }
+            .topo-res-label { fill: #484f58; font-size: 7px; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; text-anchor: middle; opacity: 0.5; transition: fill 0.5s, opacity 0.5s; }
+            @keyframes topo-res-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+            .topo-res-dot.res-running { animation: topo-res-pulse 1.2s ease-in-out infinite; }
+            .topo-res-line.res-running { stroke-dasharray: 3,2; animation: topo-flow 1.2s linear infinite; opacity: 0.6; }
+            .topo-res-dot.res-done-cf { fill: #f6821f; stroke: #f6821f; opacity: 1; filter: url(#glow-res-cf); }
+            .topo-res-dot.res-done-g { fill: #4285f4; stroke: #4285f4; opacity: 1; filter: url(#glow-res-g); }
+            .topo-res-dot.res-done-q9 { fill: #0078d4; stroke: #0078d4; opacity: 1; filter: url(#glow-res-q9); }
+            .topo-res-dot.res-done-od { fill: #ff6a00; stroke: #ff6a00; opacity: 1; filter: url(#glow-res-od); }
+            .topo-res-dot.res-done-eu { fill: #003399; stroke: #003399; opacity: 1; filter: url(#glow-res-eu); }
+            .topo-res-line.res-done-cf { stroke: #f6821f; opacity: 0.5; }
+            .topo-res-line.res-done-g { stroke: #4285f4; opacity: 0.5; }
+            .topo-res-line.res-done-q9 { stroke: #0078d4; opacity: 0.5; }
+            .topo-res-line.res-done-od { stroke: #ff6a00; opacity: 0.5; }
+            .topo-res-line.res-done-eu { stroke: #003399; opacity: 0.5; }
+            .topo-res-label.res-label-done { fill: #e6edf3; opacity: 0.9; }
+
+            .topo-node.phase-done-dns { fill: #5c6bc0; stroke: #5c6bc0; filter: url(#glow-dns); }
+            .topo-node.phase-done-email { fill: #4fc3f7; stroke: #4fc3f7; filter: url(#glow-email); }
+            .topo-node.phase-done-dnssec { fill: #81c784; stroke: #81c784; filter: url(#glow-dnssec); }
+            .topo-node.phase-done-ct { fill: #78909c; stroke: #78909c; filter: url(#glow-ct); }
+            .topo-node.phase-done-smtp { fill: #81c784; stroke: #81c784; filter: url(#glow-smtp); }
+            .topo-node.phase-done-policy { fill: #ffb74d; stroke: #ffb74d; filter: url(#glow-policy); }
+            .topo-node.phase-done-registrar { fill: #ce93d8; stroke: #ce93d8; filter: url(#glow-registrar); }
+            .topo-node.phase-done-engine { fill: #e0e0e0; stroke: #e0e0e0; filter: url(#glow-engine); }
+
+            .topo-node.phase-running-dns { stroke: #5c6bc0; }
+            .topo-node.phase-running-email { stroke: #4fc3f7; }
+            .topo-node.phase-running-dnssec { stroke: #81c784; }
+            .topo-node.phase-running-ct { stroke: #78909c; }
+            .topo-node.phase-running-smtp { stroke: #81c784; }
+            .topo-node.phase-running-policy { stroke: #ffb74d; }
+            .topo-node.phase-running-registrar { stroke: #ce93d8; }
+            .topo-node.phase-running-engine { stroke: #e0e0e0; }
+
+            .topo-sub.sub-done { fill: #e6edf3; opacity: 0.8; }
+            .topo-sub.sub-running-dns { fill: #5c6bc0; }
+            .topo-sub.sub-running-email { fill: #4fc3f7; }
+            .topo-sub.sub-running-dnssec { fill: #81c784; }
+            .topo-sub.sub-running-ct { fill: #78909c; }
+            .topo-sub.sub-running-smtp { fill: #81c784; }
+            .topo-sub.sub-running-policy { fill: #ffb74d; }
+            .topo-sub.sub-running-registrar { fill: #ce93d8; }
+            .topo-sub.sub-running-engine { fill: #e0e0e0; }
+
+            .topo-connector.conn-done-dns { stroke: #5c6bc0; opacity: 0.5; }
+            .topo-connector.conn-done-email { stroke: #4fc3f7; opacity: 0.5; }
+            .topo-connector.conn-done-dnssec { stroke: #81c784; opacity: 0.5; }
+            .topo-connector.conn-done-ct { stroke: #78909c; opacity: 0.5; }
+            .topo-connector.conn-done-smtp { stroke: #81c784; opacity: 0.5; }
+            .topo-connector.conn-done-policy { stroke: #ffb74d; opacity: 0.5; }
+            .topo-connector.conn-done-registrar { stroke: #ce93d8; opacity: 0.5; }
+            .topo-connector.conn-done-engine { stroke: #e0e0e0; opacity: 0.5; }
+
+            .topo-connector.conn-active-dns { stroke: #5c6bc0; opacity: 0.7; }
+            .topo-connector.conn-active-email { stroke: #4fc3f7; opacity: 0.7; }
+            .topo-connector.conn-active-dnssec { stroke: #81c784; opacity: 0.7; }
+            .topo-connector.conn-active-ct { stroke: #78909c; opacity: 0.7; }
+            .topo-connector.conn-active-smtp { stroke: #81c784; opacity: 0.7; }
+            .topo-connector.conn-active-policy { stroke: #ffb74d; opacity: 0.7; }
+            .topo-connector.conn-active-registrar { stroke: #ce93d8; opacity: 0.7; }
+            .topo-connector.conn-active-engine { stroke: #e0e0e0; opacity: 0.7; }
+        </style>
+
+        <line x1="120" y1="18" x2="200" y2="55" class="topo-res-line" data-resolver="cf"/>
+        <line x1="165" y1="13" x2="210" y2="50" class="topo-res-line" data-resolver="g"/>
+        <line x1="230" y1="8" x2="230" y2="48" class="topo-res-line" data-resolver="q9"/>
+        <line x1="295" y1="13" x2="250" y2="50" class="topo-res-line" data-resolver="od"/>
+        <line x1="340" y1="18" x2="260" y2="55" class="topo-res-line" data-resolver="eu"/>
+
+        <circle cx="120" cy="15" r="4" class="topo-res-dot" data-resolver="cf"/>
+        <text x="120" y="28" class="topo-res-label" data-resolver="cf">CF</text>
+        <circle cx="165" cy="10" r="4" class="topo-res-dot" data-resolver="g"/>
+        <text x="165" y="23" class="topo-res-label" data-resolver="g">G</text>
+        <circle cx="230" cy="5" r="4" class="topo-res-dot" data-resolver="q9"/>
+        <text x="230" y="18" class="topo-res-label" data-resolver="q9">Q9</text>
+        <circle cx="295" cy="10" r="4" class="topo-res-dot" data-resolver="od"/>
+        <text x="295" y="23" class="topo-res-label" data-resolver="od">OD</text>
+        <circle cx="340" cy="15" r="4" class="topo-res-dot" data-resolver="eu"/>
+        <text x="340" y="28" class="topo-res-label" data-resolver="eu">EU</text>
+
+        <line x1="230" y1="90" x2="70" y2="150" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
+        <line x1="230" y1="90" x2="170" y2="150" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+        <line x1="230" y1="90" x2="290" y2="150" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+        <line x1="230" y1="90" x2="390" y2="150" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
+        <line x1="70" y1="150" x2="70" y2="230" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
+        <line x1="170" y1="150" x2="170" y2="230" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
+        <line x1="290" y1="150" x2="290" y2="230" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
+        <line x1="390" y1="150" x2="390" y2="230" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
+        <line x1="70" y1="230" x2="230" y2="300" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+        <line x1="170" y1="230" x2="230" y2="300" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+        <line x1="290" y1="230" x2="230" y2="300" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+        <line x1="390" y1="230" x2="230" y2="300" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+
+        <rect x="185" y="50" width="90" height="42" class="topo-node" data-phase="dns_records" data-pkey="dns"/>
+        <text x="230" y="69" class="topo-label">DNS Records</text>
+        <text x="230" y="80" class="topo-sub" data-tasks="dns_records">0/3</text>
+        <text x="230" y="102" class="topo-dur" data-dur="dns_records"></text>
+
+        <rect x="25" y="130" width="90" height="42" class="topo-node" data-phase="email_auth" data-pkey="email"/>
+        <text x="70" y="149" class="topo-label">Email Auth</text>
+        <text x="70" y="160" class="topo-sub" data-tasks="email_auth">0/3</text>
+        <text x="70" y="182" class="topo-dur" data-dur="email_auth"></text>
+
+        <rect x="125" y="130" width="90" height="42" class="topo-node" data-phase="dnssec_dane" data-pkey="dnssec"/>
+        <text x="170" y="149" class="topo-label">DNSSEC/DANE</text>
+        <text x="170" y="160" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
+        <text x="170" y="182" class="topo-dur" data-dur="dnssec_dane"></text>
+
+        <rect x="245" y="130" width="90" height="42" class="topo-node" data-phase="ct_subdomains" data-pkey="ct"/>
+        <text x="290" y="149" class="topo-label">CT/Subdomains</text>
+        <text x="290" y="160" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
+        <text x="290" y="182" class="topo-dur" data-dur="ct_subdomains"></text>
+
+        <rect x="345" y="130" width="90" height="42" class="topo-node" data-phase="smtp_transport" data-pkey="smtp"/>
+        <text x="390" y="149" class="topo-label">SMTP</text>
+        <text x="390" y="160" class="topo-sub" data-tasks="smtp_transport">0/3</text>
+        <text x="390" y="182" class="topo-dur" data-dur="smtp_transport"></text>
+
+        <rect x="25" y="210" width="90" height="42" class="topo-node" data-phase="policy_records" data-pkey="policy"/>
+        <text x="70" y="229" class="topo-label">Policy Records</text>
+        <text x="70" y="240" class="topo-sub" data-tasks="policy_records">0/4</text>
+        <text x="70" y="262" class="topo-dur" data-dur="policy_records"></text>
+
+        <rect x="125" y="210" width="90" height="42" class="topo-node" data-phase="registrar_infra" data-pkey="registrar"/>
+        <text x="170" y="229" class="topo-label">Registrar/Infra</text>
+        <text x="170" y="240" class="topo-sub" data-tasks="registrar_infra">0/5</text>
+        <text x="170" y="262" class="topo-dur" data-dur="registrar_infra"></text>
+
+        <rect x="185" y="280" width="90" height="42" class="topo-node" data-phase="analysis_engine" data-pkey="engine"/>
+        <text x="230" y="299" class="topo-label">ICIE Engine</text>
+        <text x="230" y="310" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+        <text x="230" y="332" class="topo-dur" data-dur="analysis_engine"></text>
+    </svg>
+</div>
+{{end}}
