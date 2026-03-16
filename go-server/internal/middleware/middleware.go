@@ -11,6 +11,7 @@ import (
         "log/slog"
         "net/http"
         "net/url"
+        "os"
         "strings"
         "time"
 
@@ -115,9 +116,13 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
 }
 
 func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
+        replitWidget := replitWidgetCSP()
+
         connectSrc := "connect-src 'self'; "
         if devMode {
                 connectSrc = "connect-src 'self' https://replit.com https://*.replit.com https://*.replit.dev; "
+        } else if replitWidget {
+                connectSrc = "connect-src 'self' https://replit.com https://*.replit.com; "
         }
 
         frameAncestors := "frame-ancestors 'none'; "
@@ -128,6 +133,13 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
         frameSrc := "frame-src 'none'; "
         if c.Request.URL.Path == "/signature" {
                 frameSrc = "frame-src 'self'; "
+        } else if replitWidget {
+                frameSrc = "frame-src https://replit.com https://*.replit.com; "
+        }
+
+        scriptSrc := fmt.Sprintf("script-src 'self' 'nonce-%s'; ", nonceStr)
+        if replitWidget && !devMode {
+                scriptSrc = fmt.Sprintf("script-src 'self' 'nonce-%s' https://replit.com https://*.replit.com; ", nonceStr)
         }
 
         upgradeDirective := ""
@@ -137,7 +149,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
 
         return fmt.Sprintf(
                 "default-src 'none'; "+
-                        "script-src 'self' 'nonce-%s'; "+
+                        "%s"+
                         "style-src 'self' 'nonce-%s'; "+
                         "font-src 'self'; "+
                         "img-src 'self' data: blob: https:; "+
@@ -151,8 +163,12 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                         "media-src 'self'; "+
                         "worker-src 'self'; "+
                         "%s",
-                nonceStr, nonceStr, connectSrc, frameAncestors, frameSrc, upgradeDirective,
+                scriptSrc, nonceStr, connectSrc, frameAncestors, frameSrc, upgradeDirective,
         )
+}
+
+func replitWidgetCSP() bool {
+        return os.Getenv("REPLIT_DEPLOYMENT") != ""
 }
 
 func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {
