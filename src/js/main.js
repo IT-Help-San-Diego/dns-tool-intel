@@ -140,11 +140,42 @@ var PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-ru
 var SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine'];
 var CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine'];
 var CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine'];
+var RESOLVER_KEYS = ['cf','g','q9','od','eu'];
+var RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
+
+function updateResolverDots(topoEl, dnsStatus) {
+    RESOLVER_KEYS.forEach(function(rk) {
+        var dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
+        var lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
+        var labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
+        dots.forEach(function(d) {
+            d.classList.remove('res-running');
+            RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
+        });
+        lines.forEach(function(l) {
+            l.classList.remove('res-running');
+            RES_DONE_CLASSES.forEach(function(c) { l.classList.remove(c); });
+        });
+        labels.forEach(function(lb) { lb.classList.remove('res-label-done'); });
+        if (dnsStatus === 'running') {
+            dots.forEach(function(d) { d.classList.add('res-running'); });
+            lines.forEach(function(l) { l.classList.add('res-running'); });
+        } else if (dnsStatus === 'done') {
+            dots.forEach(function(d) { d.classList.add('res-done-' + rk); });
+            lines.forEach(function(l) { l.classList.add('res-done-' + rk); });
+            labels.forEach(function(lb) { lb.classList.add('res-label-done'); });
+        }
+    });
+}
 
 function updateTopologyFromProgress(data) {
     var topoEl = document.getElementById('scanTopology');
     if (!topoEl || !data || !data.phases) return;
     var phases = data.phases;
+    var dnsPhase = phases['dns_records'];
+    if (dnsPhase) {
+        updateResolverDots(topoEl, dnsPhase.status);
+    }
     Object.keys(phases).forEach(function(group) {
         var info = phases[group];
         var node = topoEl.querySelector('[data-phase="' + group + '"]');
@@ -304,6 +335,17 @@ function resetTopologyNodes() {
         c.classList.remove('active', 'complete');
         CONN_DONE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
         CONN_ACTIVE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
+    });
+    topoEl.querySelectorAll('.topo-res-dot').forEach(function(d) {
+        d.classList.remove('res-running');
+        RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
+    });
+    topoEl.querySelectorAll('.topo-res-line').forEach(function(l) {
+        l.classList.remove('res-running');
+        RES_DONE_CLASSES.forEach(function(c) { l.classList.remove(c); });
+    });
+    topoEl.querySelectorAll('.topo-res-label').forEach(function(lb) {
+        lb.classList.remove('res-label-done');
     });
 }
 

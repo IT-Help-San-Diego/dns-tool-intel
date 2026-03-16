@@ -899,12 +899,12 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
                 if p.drift.Detected {
                         go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
                 }
-                if p.analysisSuccess && !p.ephemeral && !p.isPrivate && !p.isScanFlagged {
+                if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
                         go h.archiveToWayback(p.analysisID, p.asciiDomain)
                 }
         }
 
-        if !p.ephemeral && p.domainExists {
+        if shouldRunICAE(p.ephemeral, p.domainExists) {
                 if q := h.rawQueries(); q != nil {
                         icae.EvaluateAndRecord(c.Request.Context(), q, h.Config.AppVersion)
                 }
@@ -920,12 +920,12 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffectsAsync(ctx context.Context
                 if p.drift.Detected {
                         go h.persistDriftEvent(p.asciiDomain, p.analysisID, p.drift, p.postureHash)
                 }
-                if p.analysisSuccess && !p.ephemeral && !p.isPrivate && !p.isScanFlagged {
+                if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
                         go h.archiveToWayback(p.analysisID, p.asciiDomain)
                 }
         }
 
-        if !p.ephemeral && p.domainExists {
+        if shouldRunICAE(p.ephemeral, p.domainExists) {
                 if q := h.rawQueries(); q != nil {
                         icae.EvaluateAndRecord(ctx, q, h.Config.AppVersion)
                 }
@@ -1128,16 +1128,7 @@ func (h *AnalysisHandler) persistDriftEvent(domain string, analysisID int32, dri
                 return
         }
 
-        severity := "info"
-        for _, f := range drift.Fields {
-                if f.Severity == mapKeyCritical {
-                        severity = mapKeyCritical
-                        break
-                }
-                if f.Severity == mapKeyWarning && severity != mapKeyCritical {
-                        severity = mapKeyWarning
-                }
-        }
+        severity := computeDriftSeverity(drift.Fields)
 
         driftRow, insertErr := h.store().InsertDriftEvent(context.Background(), dbq.InsertDriftEventParams{
                 Domain:         domain,
@@ -1285,6 +1276,44 @@ func (h *AnalysisHandler) enrichResultsNoHistory(_ *gin.Context, _ string, resul
         }
 
         results["rfc_metadata"] = analyzer.GetAllRFCMetadata()
+}
+
+func shouldArchiveToWayback(analysisID int32, analysisSuccess, ephemeral, isPrivate, isScanFlagged bool) bool {
+        return analysisID > 0 && analysisSuccess && !ephemeral && !isPrivate && !isScanFlagged
+}
+
+func computeDriftSeverity(fields []analyzer.PostureDiffField) string {
+        severity := "info"
+        for _, f := range fields {
+                if f.Severity == mapKeyCritical {
+                        return mapKeyCritical
+                }
+                if f.Severity == mapKeyWarning {
+                        severity = mapKeyWarning
+                }
+        }
+        return severity
+}
+
+func shouldPersistResult(ephemeral, devNull, domainExists, analysisSuccess bool) (persist bool, reason string) {
+        if devNull {
+                return false, "devnull"
+        }
+        if ephemeral {
+                return false, "ephemeral"
+        }
+        if !domainExists && analysisSuccess {
+                return false, "nonexistent_domain"
+        }
+        return true, ""
+}
+
+func shouldRunICAE(ephemeral, domainExists bool) bool {
+        return !ephemeral && domainExists
+}
+
+func shouldRecordUserAssociation(isAuthenticated bool, userID int32) bool {
+        return isAuthenticated && userID > 0
 }
 
 func resultsDomainExists(results map[string]any) bool {
