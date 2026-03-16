@@ -495,13 +495,13 @@
             <div class="col-12">
                 <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark">
                     <div class="card-body py-3">
-                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#confidencePanel" aria-expanded="false" aria-controls="confidencePanel">
-                            <div class="d-flex align-items-center">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#confidencePanel" aria-expanded="false" aria-controls="confidencePanel">
+                            <span class="d-flex align-items-center">
                                 {{icon .UnifiedConfidence.Icon (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
                                 <span class="fw-semibold text-light">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
                                 <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} ms-2">{{.UnifiedConfidence.Level}}</span>
                                 <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
-                            </div>
+                            </span>
                             {{icon "chevron-down" "ms-auto text-muted small"}}
                         </button>
                         <div class="collapse" id="confidencePanel">
@@ -536,13 +536,13 @@
             <div class="col-12">
                 <div class="card bg-dark border-accent-gold-muted">
                     <div class="card-body py-3">
-                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#currencyPanel" aria-expanded="false" aria-controls="currencyPanel">
-                            <div class="d-flex align-items-center">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#currencyPanel" aria-expanded="false" aria-controls="currencyPanel">
+                            <span class="d-flex align-items-center">
                                 {{icon "clock" (printf "text-%s me-3" .CurrencyReport.BootstrapClass)}}
                                 <span class="fw-semibold text-light">Intelligence Currency</span>
                                 <span class="badge bg-{{.CurrencyReport.BootstrapClass}} ms-2">{{.CurrencyReport.OverallGradeDisplay}}</span>
                                 <span class="text-muted ms-2 small">{{formatFloat 0 .CurrencyReport.OverallScore}}/100</span>
-                            </div>
+                            </span>
                             {{icon "chevron-down" "ms-auto text-muted small"}}
                         </button>
                         <div class="collapse" id="currencyPanel">
