@@ -255,7 +255,7 @@ func renderDetailedFramesRGBA(svgStr string, frameCount int) ([]*image.NRGBA, er
                         cx := d.x1 + (d.x2-d.x1)*dotT
                         cy := d.y1 + (d.y2-d.y1)*dotT
                         dotSVG.WriteString(fmt.Sprintf(
-                                `<circle cx="%.1f" cy="%.1f" r="1.5" fill="%s" opacity="%s"/>`,
+                                `<circle cx="%.1f" cy="%.1f" r="2.5" fill="%s" opacity="%s"/>`,
                                 cx, cy, d.fillColor, d.opacity,
                         ))
                 }
