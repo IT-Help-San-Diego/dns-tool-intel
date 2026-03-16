@@ -27,7 +27,7 @@ jobs:
           CGO_ENABLED: '0'
           DNS_TOOL_REPO_ROLE: intel
           GOGC: '50'
-          GOMEMLIMIT: '1500MiB'
+          GOMEMLIMIT: '6000MiB'
 
       - name: Verify coverage completeness
         run: |
