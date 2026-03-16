@@ -7,10 +7,14 @@ import (
         "net/http"
         "net/http/httptest"
         "net/url"
+        "os"
+        "path/filepath"
         "strings"
+        "testing"
         "time"
 
         "dnstool/go-server/internal/config"
+        tmplfuncs "dnstool/go-server/internal/templates"
 
         "github.com/gin-gonic/gin"
 )
@@ -32,6 +36,32 @@ func mustParseTime(s string) time.Time {
 
 func mustParseMinimalTemplate(name string) *template.Template {
         return template.Must(template.New(name).Parse("{{define \"" + name + "\"}}ok{{end}}"))
+}
+
+func mustLoadRealTemplates(t *testing.T) *template.Template {
+        t.Helper()
+        candidates := []string{
+                "go-server/templates",
+                "../../../go-server/templates",
+                "../../../../go-server/templates",
+        }
+        var templatesDir string
+        for _, c := range candidates {
+                if _, err := os.Stat(filepath.Join(c, "_nav.html")); err == nil {
+                        templatesDir = c
+                        break
+                }
+        }
+        if templatesDir == "" {
+                cwd, _ := os.Getwd()
+                t.Skipf("cannot find go-server/templates from cwd=%s", cwd)
+        }
+        globPattern := filepath.Join(templatesDir, "*.html")
+        tmpl, err := template.New("").Funcs(tmplfuncs.FuncMap()).ParseGlob(globPattern)
+        if err != nil {
+                t.Fatalf("failed to parse templates: %v", err)
+        }
+        return tmpl
 }
 
 func init() {
