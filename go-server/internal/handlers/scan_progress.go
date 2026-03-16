@@ -18,6 +18,8 @@ type phaseStatus struct {
         DurationMs    int    `json:"duration_ms,omitempty"`
         CompletedAtMs int    `json:"completed_at_ms,omitempty"`
         StartedAtMs   int    `json:"started_at_ms,omitempty"`
+        expectedTasks int
+        completedTasks int
 }
 
 type scanProgress struct {
@@ -62,13 +64,18 @@ func (ps *ProgressStore) NewToken() (string, *scanProgress) {
         _, _ = rand.Read(b)
         token := hex.EncodeToString(b)
 
+        taskCounts := analyzer.PhaseGroupTaskCounts()
+
         progress := &scanProgress{
                 startTime: time.Now(),
                 phases:    make(map[string]*phaseStatus),
         }
 
         for _, group := range analyzer.PhaseGroupOrder {
-                progress.phases[group] = &phaseStatus{Status: "pending"}
+                progress.phases[group] = &phaseStatus{
+                        Status:        "pending",
+                        expectedTasks: taskCounts[group],
+                }
         }
 
         ps.store.Store(token, progress)
@@ -117,19 +124,26 @@ func (sp *scanProgress) UpdatePhase(group, status string, durationMs int) {
                 if startedAt < 0 {
                         startedAt = 0
                 }
-                sp.phases[group] = &phaseStatus{Status: status, DurationMs: durationMs, CompletedAtMs: elapsedMs, StartedAtMs: startedAt}
+                sp.phases[group] = &phaseStatus{Status: status, DurationMs: durationMs, CompletedAtMs: elapsedMs, StartedAtMs: startedAt, expectedTasks: 1, completedTasks: 1}
                 return
         }
         if ps.Status == "done" {
                 return
         }
-        if ps.StartedAtMs == 0 && status == "running" {
+        if ps.StartedAtMs == 0 {
                 ps.StartedAtMs = elapsedMs
         }
-        ps.Status = status
-        ps.DurationMs = durationMs
         if status == "done" {
-                ps.CompletedAtMs = elapsedMs
+                ps.completedTasks++
+                ps.DurationMs += durationMs
+                if ps.expectedTasks > 0 && ps.completedTasks >= ps.expectedTasks {
+                        ps.Status = "done"
+                        ps.CompletedAtMs = elapsedMs
+                } else {
+                        ps.Status = "running"
+                }
+        } else {
+                ps.Status = status
         }
 }
 
@@ -139,9 +153,14 @@ func (sp *scanProgress) MarkComplete(analysisID int32, redirectURL string) {
         sp.complete = true
         sp.analysisID = analysisID
         sp.redirectURL = redirectURL
+        elapsedMs := int(time.Since(sp.startTime).Milliseconds())
         for _, ps := range sp.phases {
                 if ps.Status != "done" {
                         ps.Status = "done"
+                        ps.completedTasks = ps.expectedTasks
+                        if ps.CompletedAtMs == 0 {
+                                ps.CompletedAtMs = elapsedMs
+                        }
                 }
         }
 }
@@ -175,12 +194,17 @@ func (sp *scanProgress) toJSON() map[string]any {
 
         phases := make(map[string]any, len(sp.phases))
         for group, ps := range sp.phases {
-                phases[group] = map[string]any{
+                p := map[string]any{
                         "status":          ps.Status,
                         "duration_ms":     ps.DurationMs,
                         "completed_at_ms": ps.CompletedAtMs,
                         "started_at_ms":   ps.StartedAtMs,
                 }
+                if ps.expectedTasks > 0 {
+                        p["tasks_total"] = ps.expectedTasks
+                        p["tasks_done"] = ps.completedTasks
+                }
+                phases[group] = p
         }
 
         result := map[string]any{

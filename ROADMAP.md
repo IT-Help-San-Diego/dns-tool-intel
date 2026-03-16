@@ -115,6 +115,7 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
+| Live Pipeline Topology — Scan Progress Visualization | In Progress | High | Replace flat-blue scan overlay with per-protocol colored topology. Phase 1: accurate phase completion semantics (task counting). Phase 2: SVG glow effects with topology colors (dns=#5c6bc0, email=#4fc3f7, dnssec=#81c784, ct=#78909c, smtp=#81c784, policy=#ffb74d, registrar=#ce93d8, engine=#e0e0e0). Phase 3: Admin pipeline control page with Gantt timeline and cross-scan comparison. Phase 4: dig vs in-process DNS benchmark. |
 | Non-Authenticated Zone Upload (One-Time View) | In Progress | High | Open zone upload to non-auth users with 1 MB limit, IP rate limiting, no persistence — funnel to signup |
 | SonarCloud Coverage Push (80%+ Target) | In Progress | High | Systematic coverage improvement across handlers, analyzer, dnsclient, and middleware packages |
 | Visual Cohesion — Top-to-Bottom Consistency | In Progress | Medium | Glass treatment, question branding, and token system across all report modes |
