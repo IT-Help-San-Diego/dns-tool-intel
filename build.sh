@@ -10,6 +10,9 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
+export GOCACHE=/tmp/go-build-cache
+export GOMODCACHE=/tmp/go-mod-cache
+
 cd "$SCRIPT_DIR/go-server"
 CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
   -buildvcs=false \
@@ -21,5 +24,8 @@ CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
 cd "$SCRIPT_DIR"
 mv /tmp/dns-tool-new dns-tool-server-new
 mv dns-tool-server-new dns-tool-server
+
+rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
+
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server
