@@ -130,6 +130,38 @@ func TestObservatory_WithData(t *testing.T) {
         }
 }
 
+func TestObservatory_NavDataPresent(t *testing.T) {
+        mock := &mockPipelineStore{}
+        betaPages := map[string]bool{"ttl-tuner": true}
+        h := &PipelineHandler{
+                Config:        &config.Config{AppVersion: "1.0.0", MaintenanceNote: "Test", BetaPages: betaPages},
+                pipelineStore: mock,
+        }
+
+        w := httptest.NewRecorder()
+        c, engine := gin.CreateTestContext(w)
+        engine.SetHTMLTemplate(mustParseMinimalTemplate("admin_pipeline.html"))
+        c.Request = httptest.NewRequest(http.MethodGet, "/admin/pipeline", nil)
+
+        func() {
+                defer func() {
+                        if r := recover(); r != nil {
+                                t.Fatalf("Observatory panicked with nav data — BetaPages/AppVersion/MaintenanceNote not wired: %v", r)
+                        }
+                }()
+                h.Observatory(c)
+        }()
+
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
+        }
+
+        body := w.Body.String()
+        if body == "" {
+                t.Fatal("response body is empty — template rendering failed (likely missing nav data)")
+        }
+}
+
 func TestPipelineStageView_HealthClassification(t *testing.T) {
         tests := []struct {
                 name       string
