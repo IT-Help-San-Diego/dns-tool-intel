@@ -495,31 +495,36 @@
             <div class="col-12">
                 <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark">
                     <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#confidencePanel" aria-expanded="false" aria-controls="confidencePanel">
                             <div class="d-flex align-items-center">
-                                {{icon .UnifiedConfidence.Icon "icon-2x" (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
-                                <div>
-                                    <span class="fw-semibold">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
-                                    <div class="d-flex align-items-center mt-1">
-                                        <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} fs-6 px-3 py-2">{{.UnifiedConfidence.Level}}</span>
-                                        <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
+                                {{icon .UnifiedConfidence.Icon (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
+                                <span class="fw-semibold text-light">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
+                                <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} ms-2">{{.UnifiedConfidence.Level}}</span>
+                                <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
+                            </div>
+                            {{icon "chevron-down" "ms-auto text-muted small"}}
+                        </button>
+                        <div class="collapse" id="confidencePanel">
+                            <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                                    <div>
+                                        <small class="text-muted d-block">{{.UnifiedConfidence.Explanation}}</small>
                                     </div>
-                                    <small class="text-muted d-block mt-1">{{.UnifiedConfidence.Explanation}}</small>
+                                    <div class="mt-2 mt-md-0 text-end">
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="Calibrated resolver agreement across {{.UnifiedConfidence.ProtocolCount}} protocols">{{icon "check-double" "me-1"}}Accuracy {{.UnifiedConfidence.AccuracyDisplay}}</span>
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICuAE data freshness, completeness, and consistency score">{{icon "clock" "me-1"}}Currency {{.UnifiedConfidence.CurrencyDisplay}}/100</span>
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICAE system maturity — caps maximum achievable confidence">{{icon "medal" "me-1"}}Maturity {{.UnifiedConfidence.MaturityLevel}}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mt-2 mt-md-0 text-end">
-                                <div class="d-flex flex-column gap-1">
-                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="Calibrated resolver agreement across {{.UnifiedConfidence.ProtocolCount}} protocols">{{icon "check-double" "me-1"}}Accuracy {{.UnifiedConfidence.AccuracyDisplay}}</span>
-                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICuAE data freshness, completeness, and consistency score">{{icon "clock" "me-1"}}Currency {{.UnifiedConfidence.CurrencyDisplay}}/100</span>
-                                    <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICAE system maturity — caps maximum achievable confidence">{{icon "medal" "me-1"}}Maturity {{.UnifiedConfidence.MaturityLevel}}</span>
+                                {{if ne .UnifiedConfidence.Level "HIGH"}}
+                                <div class="mt-2 pt-2 border-top border-secondary border-opacity-50">
+                                    <small class="text-{{.UnifiedConfidence.BootstrapClass}}">{{icon "info-circle" "me-1"}}Limiting factor: {{.UnifiedConfidence.WeakestDetail}}</small>
                                 </div>
+                                {{end}}
                             </div>
                         </div>
-                        {{if ne .UnifiedConfidence.Level "HIGH"}}
-                        <div class="mt-2 pt-2 border-top border-secondary border-opacity-50">
-                            <small class="text-{{.UnifiedConfidence.BootstrapClass}}">{{icon "info-circle" "me-1"}}Limiting factor: {{.UnifiedConfidence.WeakestDetail}}</small>
-                        </div>
-                        {{end}}
                     </div>
                 </div>
             </div>
@@ -531,24 +536,24 @@
             <div class="col-12">
                 <div class="card bg-dark border-accent-gold-muted">
                     <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#currencyPanel" aria-expanded="false" aria-controls="currencyPanel">
                             <div class="d-flex align-items-center">
-                                {{icon "clock" "icon-2x text-{{.CurrencyReport.BootstrapClass}} me-3"}}
-                                <div>
-                                    <span class="fw-semibold">Intelligence Currency</span>
-                                    <div class="d-flex align-items-center mt-1">
-                                        <span class="fw-semibold me-2">Data Currency:</span>
-                                        <span class="badge bg-{{.CurrencyReport.BootstrapClass}} fs-6 px-3 py-1">{{.CurrencyReport.OverallGradeDisplay}}</span>
-                                        <span class="text-muted ms-2 small">{{formatFloat 0 .CurrencyReport.OverallScore}}/100</span>
-                                    </div>
-                                </div>
+                                {{icon "clock" (printf "text-%s me-3" .CurrencyReport.BootstrapClass)}}
+                                <span class="fw-semibold text-light">Intelligence Currency</span>
+                                <span class="badge bg-{{.CurrencyReport.BootstrapClass}} ms-2">{{.CurrencyReport.OverallGradeDisplay}}</span>
+                                <span class="text-muted ms-2 small">{{formatFloat 0 .CurrencyReport.OverallScore}}/100</span>
+                            </div>
+                            {{icon "chevron-down" "ms-auto text-muted small"}}
+                        </button>
+                        <div class="collapse" id="currencyPanel">
+                        <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                {{range .CurrencyReport.Dimensions}}
+                                <span class="badge bg-{{.BootstrapClass}}" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
+                                {{end}}
                             </div>
                             <a href="/confidence" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0 white-space-nowrap">{{icon "flask" "me-1"}}ICuAE Details</a>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2 mt-2">
-                            {{range .CurrencyReport.Dimensions}}
-                            <span class="badge bg-{{.BootstrapClass}}" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
-                            {{end}}
                         </div>
                         <small class="text-muted d-block mt-2">{{.CurrencyReport.Guidance}}</small>
                         {{if .CurrencyReport.HasFindings}}
@@ -749,6 +754,8 @@
                         </div>
                         {{end}}
 
+                        </div>
+                        </div>
                     </div>
                 </div>
             </div>
