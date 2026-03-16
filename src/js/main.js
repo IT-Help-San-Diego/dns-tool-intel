@@ -143,16 +143,44 @@ function updateTopologyFromProgress(data) {
         var info = phases[group];
         var node = topoEl.querySelector('[data-phase="' + group + '"]');
         var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        var taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
         if (!node) return;
+        var phaseColor = node.getAttribute('data-color') || '#4a8fe7';
+        var glowId = node.getAttribute('data-glow');
         node.classList.remove('phase-running', 'phase-done');
+        if (taskEl && info.tasks_total > 0) {
+            taskEl.textContent = (info.tasks_done || 0) + '/' + info.tasks_total;
+        }
         if (info.status === 'done') {
             node.classList.add('phase-done');
+            node.style.fill = phaseColor;
+            node.style.stroke = phaseColor;
+            if (glowId) node.style.filter = 'url(#' + glowId + ')';
+            if (taskEl) { taskEl.style.fill = '#e6edf3'; taskEl.style.opacity = '0.8'; }
             if (durEl && info.duration_ms > 0) {
                 durEl.textContent = (info.duration_ms / 1000).toFixed(1) + 's';
                 durEl.classList.add('visible');
             }
+            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
+                var from = line.getAttribute('data-from');
+                if (from === group) {
+                    line.classList.remove('active');
+                    line.classList.add('complete');
+                    line.style.stroke = phaseColor;
+                    line.style.opacity = '0.5';
+                }
+            });
         } else if (info.status === 'running') {
             node.classList.add('phase-running');
+            node.style.stroke = phaseColor;
+            if (taskEl) taskEl.style.fill = phaseColor;
+            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
+                var from = line.getAttribute('data-from');
+                if (from === group) {
+                    line.classList.add('active');
+                    line.style.stroke = phaseColor;
+                }
+            });
         }
     });
 }
@@ -258,10 +286,22 @@ function resetTopologyNodes() {
     topoEl.setAttribute('aria-hidden', 'true');
     topoEl.querySelectorAll('.topo-node').forEach(function(n) {
         n.classList.remove('phase-running', 'phase-done');
+        n.style.fill = '';
+        n.style.stroke = '';
+        n.style.filter = '';
     });
     topoEl.querySelectorAll('.topo-dur').forEach(function(d) {
         d.textContent = '';
         d.classList.remove('visible');
+    });
+    topoEl.querySelectorAll('.topo-sub[data-tasks]').forEach(function(t) {
+        t.style.fill = '';
+        t.style.opacity = '';
+    });
+    topoEl.querySelectorAll('.topo-connector').forEach(function(c) {
+        c.classList.remove('active', 'complete');
+        c.style.stroke = '';
+        c.style.opacity = '';
     });
 }
 
