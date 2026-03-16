@@ -56,7 +56,7 @@ SELECT phase_group,
        MIN(duration_ms) AS min_ms,
        MAX(duration_ms) AS max_ms,
        SUM(record_count)::BIGINT AS total_records,
-       SUM(CASE WHEN error != '' THEN 1 ELSE 0 END)::INT AS error_count
+       SUM(CASE WHEN error <> '' THEN 1 ELSE 0 END)::INT AS error_count
 FROM scan_phase_telemetry
 WHERE created_at >= NOW() - INTERVAL '30 days'
 GROUP BY phase_group
