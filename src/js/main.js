@@ -135,6 +135,12 @@ function startStatusCycle(overlayEl) {
     }
 }
 
+var PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine'];
+var PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine'];
+var SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine'];
+var CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine'];
+var CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine'];
+
 function updateTopologyFromProgress(data) {
     var topoEl = document.getElementById('scanTopology');
     if (!topoEl || !data || !data.phases) return;
@@ -143,16 +149,41 @@ function updateTopologyFromProgress(data) {
         var info = phases[group];
         var node = topoEl.querySelector('[data-phase="' + group + '"]');
         var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        var taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
         if (!node) return;
+        var pkey = node.getAttribute('data-pkey') || 'dns';
         node.classList.remove('phase-running', 'phase-done');
+        PHASE_DONE_CLASSES.forEach(function(c) { node.classList.remove(c); });
+        PHASE_RUNNING_CLASSES.forEach(function(c) { node.classList.remove(c); });
+        if (taskEl) {
+            taskEl.classList.remove('sub-done');
+            SUB_RUNNING_CLASSES.forEach(function(c) { taskEl.classList.remove(c); });
+            if (info.tasks_total > 0) {
+                taskEl.textContent = (info.tasks_done || 0) + '/' + info.tasks_total;
+            }
+        }
         if (info.status === 'done') {
-            node.classList.add('phase-done');
+            node.classList.add('phase-done', 'phase-done-' + pkey);
+            if (taskEl) taskEl.classList.add('sub-done');
             if (durEl && info.duration_ms > 0) {
                 durEl.textContent = (info.duration_ms / 1000).toFixed(1) + 's';
                 durEl.classList.add('visible');
             }
+            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
+                if (line.getAttribute('data-from') === group) {
+                    line.classList.remove('active');
+                    CONN_ACTIVE_CLASSES.forEach(function(c) { line.classList.remove(c); });
+                    line.classList.add('complete', 'conn-done-' + pkey);
+                }
+            });
         } else if (info.status === 'running') {
-            node.classList.add('phase-running');
+            node.classList.add('phase-running', 'phase-running-' + pkey);
+            if (taskEl) taskEl.classList.add('sub-running-' + pkey);
+            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
+                if (line.getAttribute('data-from') === group) {
+                    line.classList.add('active', 'conn-active-' + pkey);
+                }
+            });
         }
     });
 }
@@ -258,10 +289,21 @@ function resetTopologyNodes() {
     topoEl.setAttribute('aria-hidden', 'true');
     topoEl.querySelectorAll('.topo-node').forEach(function(n) {
         n.classList.remove('phase-running', 'phase-done');
+        PHASE_DONE_CLASSES.forEach(function(c) { n.classList.remove(c); });
+        PHASE_RUNNING_CLASSES.forEach(function(c) { n.classList.remove(c); });
     });
     topoEl.querySelectorAll('.topo-dur').forEach(function(d) {
         d.textContent = '';
         d.classList.remove('visible');
+    });
+    topoEl.querySelectorAll('.topo-sub[data-tasks]').forEach(function(t) {
+        t.classList.remove('sub-done');
+        SUB_RUNNING_CLASSES.forEach(function(c) { t.classList.remove(c); });
+    });
+    topoEl.querySelectorAll('.topo-connector').forEach(function(c) {
+        c.classList.remove('active', 'complete');
+        CONN_DONE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
+        CONN_ACTIVE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
     });
 }
 
