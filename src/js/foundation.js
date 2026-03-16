@@ -2,6 +2,8 @@
     'use strict';
 
     function getCspNonce() {
+        var m = document.querySelector('meta[name="csp-nonce"]');
+        if (m) return m.content || '';
         var s = document.querySelector('script[nonce]');
         return s ? s.nonce || s.getAttribute('nonce') : '';
     }
