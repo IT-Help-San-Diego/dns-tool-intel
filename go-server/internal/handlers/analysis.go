@@ -851,7 +851,7 @@ type persistParams struct {
 
 func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistParams) (int32, string) {
         isSuccess, _ := extractAnalysisError(p.results) //nolint:errcheck // error message not needed here
-        if p.ephemeral || p.devNull || (!p.domainExists && isSuccess) {
+        if persist, _ := shouldPersistResult(p.ephemeral, p.devNull, p.domainExists, isSuccess); !persist {
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
                 return 0, time.Now().UTC().Format(strUtc)
         }
@@ -951,7 +951,7 @@ func (h *AnalysisHandler) archiveToWayback(analysisID int32, domain string) {
 }
 
 func (h *AnalysisHandler) recordUserAnalysisAsync(p sideEffectsParams) {
-        if !p.isAuthenticated || p.userID <= 0 {
+        if !shouldRecordUserAssociation(p.isAuthenticated, p.userID) {
                 return
         }
         go func() {
