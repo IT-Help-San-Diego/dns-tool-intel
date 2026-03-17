@@ -1443,11 +1443,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         var glowDefs strings.Builder
         renderTopoNodes(&nodeSVG, &glowDefs, nodes, nodePositions, nodeR)
 
+        totalControls := 9
+        if len(nodes) > 9 {
+                totalControls = len(nodes)
+        }
         missingSVG := ""
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
-                        `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
-                        width-pad, 198, hexRed, missing,
+                        `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of %d missing</text>`,
+                        width-pad, 198, hexRed, missing, totalControls,
                 )
         }
 
