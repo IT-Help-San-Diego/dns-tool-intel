@@ -362,6 +362,10 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         }
 
         riskLabel, riskColorRaw := extractPostureRisk(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorRaw = "warning"
+        }
         shieldsColor := riskColorToShields(riskColorRaw)
 
         c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -736,6 +740,11 @@ func renderCovertFooter(svg *strings.Builder, lineIdx, y int, rc covertRenderCtx
 func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorName = "warning"
+                score = -1
+        }
         nodes := extractProtocolIndicators(results)
         vulnerable := countVulnerable(nodes)
         exposure := extractExposure(results)
@@ -1284,6 +1293,10 @@ func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, p
 
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorName = "warning"
+        }
         riskColorName = normalizeRiskColor(riskLabel, riskColorName)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)

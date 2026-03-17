@@ -116,6 +116,8 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                         result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
                         result["web3_resolution"] = web3Resolution.ToMap()
                         result["input_kind"] = string(inputKind)
+                        result["_schema_version"] = 2
+                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, web3Resolution.AnalysisScope, web3Resolution, result)
                         return result
                 }
         }
@@ -138,6 +140,8 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                                 result[mapKeyDomain] = originalInput
                                 result["input_kind"] = string(inputKind)
                         }
+                        result["_schema_version"] = 2
+                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, ScopeOwnedDNS, web3Resolution, result)
                         return result
                 }
         }
