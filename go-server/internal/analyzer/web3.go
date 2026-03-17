@@ -5,9 +5,9 @@ package analyzer
 
 import (
         "context"
+        "dnstool/go-server/internal/dnsclient"
         "fmt"
         "io"
-        "net/http"
         "regexp"
         "strings"
         "time"
@@ -241,23 +241,11 @@ func probeIPFSGateway(ctx context.Context, url string) (bool, string) {
         probeCtx, cancel := context.WithTimeout(ctx, ipfsProbeTimeout)
         defer cancel()
 
-        req, err := http.NewRequestWithContext(probeCtx, http.MethodHead, url, nil)
-        if err != nil {
-                return false, "Failed to create request"
-        }
-        req.Header.Set("User-Agent", "DNS-Tool-Web3-Probe/1.0")
+        client := dnsclient.NewSafeHTTPClientWithTimeout(ipfsProbeTimeout)
 
-        client := &http.Client{
-                Timeout: ipfsProbeTimeout,
-                CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                        if len(via) >= 3 {
-                                return http.ErrUseLastResponse
-                        }
-                        return nil
-                },
-        }
-
-        resp, err := client.Do(req)
+        resp, err := client.GetWithHeaders(probeCtx, url, map[string]string{
+                "User-Agent": "DNS-Tool-Web3-Probe/1.0",
+        })
         if err != nil {
                 return false, fmt.Sprintf("Gateway unreachable: %s", classifyWeb3HTTPError(err))
         }
