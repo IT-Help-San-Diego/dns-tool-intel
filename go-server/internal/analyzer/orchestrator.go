@@ -101,9 +101,40 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
         defer cancel()
 
-        exists, domainStatus, domainStatusMessage := a.checkDomainExists(ctx, domain)
-        if !exists {
-                return a.buildNonExistentResult(domain, domainStatus, domainStatusMessage)
+        var web3Resolution Web3ResolutionResult
+        originalInput := domain
+        if IsWeb3Input(domain) {
+                web3Resolution = a.ResolveWeb3Domain(ctx, domain)
+                if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
+                        domain = web3Resolution.ResolvedDomain
+                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain, "type", web3Resolution.ResolutionType)
+                } else if web3Resolution.Error != "" {
+                        msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", originalInput, web3Resolution.Error)
+                        result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
+                        result["web3_resolution"] = web3Resolution.ToMap()
+                        return result
+                }
+        }
+
+        var domainStatus string
+        var domainStatusMessage *string
+        skipExistenceCheck := web3Resolution.IsWeb3Input && web3Resolution.ResolutionType == "hns" && web3Resolution.Error == ""
+        if skipExistenceCheck {
+                domainStatus = "hns_resolved"
+                msg := "Handshake domain resolved via HNS resolver"
+                domainStatusMessage = &msg
+        } else {
+                exists, ds, dsm := a.checkDomainExists(ctx, domain)
+                domainStatus = ds
+                domainStatusMessage = dsm
+                if !exists {
+                        result := a.buildNonExistentResult(domain, domainStatus, domainStatusMessage)
+                        if web3Resolution.IsWeb3Input {
+                                result["web3_resolution"] = web3Resolution.ToMap()
+                                result[mapKeyDomain] = originalInput
+                        }
+                        return result
+                }
         }
 
         analysisStart := time.Now()
@@ -114,6 +145,11 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 
         results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart)
         timings = append(timings, seqTimings...)
+
+        if web3Resolution.IsWeb3Input {
+                results["web3_resolution"] = web3Resolution.ToMap()
+                results["web3_original_input"] = originalInput
+        }
 
         totalElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Analysis complete", mapKeyDomain, domain, "total_s", fmt.Sprintf(fmtSeconds, totalElapsed), "parallel_s", fmt.Sprintf(fmtSeconds, parallelElapsed))
