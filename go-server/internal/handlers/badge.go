@@ -920,6 +920,8 @@ func protocolGroupColor(abbrev string) string {
                 return "#81c784"
         case "BIMI":
                 return "#ce93d8"
+        case "W3":
+                return "#d4a853"
         default:
                 return "#484f58"
         }
@@ -954,10 +956,24 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 {"caa_analysis", "CAA"},
         }
 
+        web3St := extractWeb3Status(results)
+        if web3St != "" {
+                protocols = append(protocols, struct {
+                        key    string
+                        abbrev string
+                }{"web3_analysis", "W3"})
+        }
+
         nodes := make([]protocolNode, 0, len(protocols))
         for _, p := range protocols {
                 status := "missing"
-                if analysisRaw, ok := results[p.key]; ok {
+                if p.key == "web3_analysis" {
+                        if web3St == "success" {
+                                status = "success"
+                        } else {
+                                status = "info"
+                        }
+                } else if analysisRaw, ok := results[p.key]; ok {
                         if analysis, ok := analysisRaw.(map[string]any); ok {
                                 if s, ok := analysis["status"].(string); ok {
                                         status = s
@@ -1333,6 +1349,9 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {414, 128},
                 {496, 78},
                 {496, 178},
+        }
+        if len(nodes) > 9 {
+                nodePositions = append(nodePositions, nodePos{496, 128})
         }
 
         edges := []topoEdge{
