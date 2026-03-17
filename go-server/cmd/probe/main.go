@@ -16,6 +16,7 @@ import (
         "os"
         "os/exec"
         "os/signal"
+        "regexp"
         "strings"
         "sync"
         "syscall"
@@ -55,6 +56,11 @@ const (
         protocolTCP           = "tcp"
         smtpBannerOK          = "220"
         mapKeyScripts         = "scripts"
+
+        ipfsProbeGatewayTimeout = 8 * time.Second
+        ipfsProbeBodyLimit      = 1024
+        ipfsProbeMaxGateways    = 8
+        ipfsProbeMaxRedirects   = 5
 )
 
 var (
@@ -64,6 +70,18 @@ var (
 
         rateMu    sync.Mutex
         rateCount = make(map[string]int)
+
+        ipfsGatewayAllowlist = map[string]bool{
+                "https://dweb.link":             true,
+                "https://ipfs.io":               true,
+                "https://w3s.link":              true,
+                "https://gateway.pinata.cloud":  true,
+                "https://cloudflare-ipfs.com":   true,
+                "https://4everland.io":          true,
+        }
+
+        cidV0Re = regexp.MustCompile(`^Qm[1-9A-HJ-NP-Za-km-z]{44}$`)
+        cidV1Re = regexp.MustCompile(`^b[a-z2-7]{58,}$`)
 )
 
 func safeClose(c io.Closer, label string) {
@@ -97,6 +115,7 @@ func main() {
         mux.HandleFunc("POST /probe/testssl", authMiddleware(rateLimitMiddleware(handleTestSSL)))
         mux.HandleFunc("POST /probe/dane-verify", authMiddleware(rateLimitMiddleware(handleDANEVerify)))
         mux.HandleFunc("POST /probe/nmap", authMiddleware(rateLimitMiddleware(handleNmapScan)))
+        mux.HandleFunc("POST /probe/ipfs", authMiddleware(rateLimitMiddleware(handleIPFSProbe)))
 
         go resetRateLimits()
 
@@ -1057,4 +1076,255 @@ func convertNmapPort(p nmapPort) map[string]any {
                 port[mapKeyScripts] = scripts
         }
         return port
+}
+
+func isValidCID(cid string) bool {
+        return cid != "" && (cidV0Re.MatchString(cid) || cidV1Re.MatchString(cid))
+}
+
+func isAllowlistedGateway(gw string) bool {
+        return ipfsGatewayAllowlist[gw]
+}
+
+func isAllowlistedGatewayHost(target string) bool {
+        if ipfsGatewayAllowlist[target] {
+                return true
+        }
+        for gw := range ipfsGatewayAllowlist {
+                gwHost := strings.TrimPrefix(gw, "https://")
+                targetHost := strings.TrimPrefix(strings.TrimPrefix(target, "https://"), "http://")
+                if targetHost == gwHost || strings.HasSuffix(targetHost, "."+gwHost) {
+                        return true
+                }
+        }
+        return false
+}
+
+type ipfsProbeRequest struct {
+        CID      string   `json:"cid"`
+        Gateways []string `json:"gateways"`
+}
+
+type ipfsGatewayResult struct {
+        Gateway       string            `json:"gateway"`
+        Reachable     bool              `json:"reachable"`
+        StatusCode    int               `json:"status_code,omitempty"`
+        ContentType   string            `json:"content_type,omitempty"`
+        LatencyMs     int64             `json:"latency_ms"`
+        ServerHeader  string            `json:"server_header,omitempty"`
+        TLSVersion    string            `json:"tls_version,omitempty"`
+        RedirectChain []ipfsRedirectHop `json:"redirect_chain,omitempty"`
+        FinalURL      string            `json:"final_url,omitempty"`
+        Error         string            `json:"error,omitempty"`
+}
+
+type ipfsRedirectHop struct {
+        StatusCode   int    `json:"status_code"`
+        LocationHost string `json:"location_host"`
+        LatencyMs    int64  `json:"latency_ms"`
+}
+
+func handleIPFSProbe(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+
+        body, err := io.ReadAll(io.LimitReader(r.Body, maxRequestBody))
+        if err != nil {
+                writeJSON(w, http.StatusBadRequest, map[string]string{mapKeyError: strInvalidRequestBody})
+                return
+        }
+
+        var req ipfsProbeRequest
+        if err := json.Unmarshal(body, &req); err != nil || req.CID == "" {
+                writeJSON(w, http.StatusBadRequest, map[string]string{mapKeyError: "invalid request: cid required"})
+                return
+        }
+
+        if !isValidCID(req.CID) {
+                writeJSON(w, http.StatusBadRequest, map[string]string{mapKeyError: "invalid CID format"})
+                return
+        }
+
+        if len(req.Gateways) == 0 {
+                writeJSON(w, http.StatusBadRequest, map[string]string{mapKeyError: "invalid request: gateways required"})
+                return
+        }
+        if len(req.Gateways) > ipfsProbeMaxGateways {
+                req.Gateways = req.Gateways[:ipfsProbeMaxGateways]
+        }
+
+        var safeGateways []string
+        for _, gw := range req.Gateways {
+                if isAllowlistedGateway(gw) {
+                        safeGateways = append(safeGateways, gw)
+                } else {
+                        slog.Warn("IPFS probe: rejected non-allowlisted gateway", "gateway", gw)
+                }
+        }
+        if len(safeGateways) == 0 {
+                writeJSON(w, http.StatusBadRequest, map[string]string{mapKeyError: "no allowlisted gateways provided"})
+                return
+        }
+
+        ctx, cancel := context.WithTimeout(r.Context(), requestTimeout)
+        defer cancel()
+
+        results := probeIPFSGateways(ctx, req.CID, safeGateways)
+
+        writeJSON(w, http.StatusOK, map[string]any{
+                mapKeyProbeHost:      hostname,
+                mapKeyVersion:        probeVersion,
+                mapKeyElapsedSeconds: time.Since(start).Seconds(),
+                "cid":                req.CID,
+                "results":            results,
+        })
+
+        slog.Info("IPFS probe completed",
+                "cid", truncate(req.CID, 20),
+                "gateways", len(safeGateways),
+                "elapsed", time.Since(start).Seconds(),
+        )
+}
+
+func probeIPFSGateways(ctx context.Context, cid string, gateways []string) []ipfsGatewayResult {
+        type indexedResult struct {
+                idx    int
+                result ipfsGatewayResult
+        }
+
+        ch := make(chan indexedResult, len(gateways))
+        sem := make(chan struct{}, 3)
+
+        for i, gw := range gateways {
+                go func(idx int, gateway string) {
+                        sem <- struct{}{}
+                        defer func() { <-sem }()
+                        ch <- indexedResult{idx: idx, result: probeOneIPFSGateway(ctx, cid, gateway)}
+                }(i, gw)
+        }
+
+        results := make([]ipfsGatewayResult, len(gateways))
+        for range gateways {
+                ir := <-ch
+                results[ir.idx] = ir.result
+        }
+        return results
+}
+
+func probeOneIPFSGateway(ctx context.Context, cid, gateway string) ipfsGatewayResult {
+        gwResult := ipfsGatewayResult{Gateway: gateway}
+        probeURL := fmt.Sprintf("%s/ipfs/%s", gateway, cid)
+
+        gwCtx, cancel := context.WithTimeout(ctx, ipfsProbeGatewayTimeout)
+        defer cancel()
+
+        transport := &http.Transport{
+                TLSClientConfig:   &tls.Config{MinVersion: tls.VersionTLS12},
+                DisableKeepAlives: true,
+        }
+        client := &http.Client{
+                Transport: transport,
+                Timeout:   ipfsProbeGatewayTimeout,
+                CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                        if len(via) >= ipfsProbeMaxRedirects {
+                                return http.ErrUseLastResponse
+                        }
+                        targetHost := req.URL.Scheme + "://" + req.URL.Host
+                        if !isAllowlistedGatewayHost(targetHost) {
+                                slog.Warn("IPFS probe: blocked redirect to non-allowlisted host", "target", targetHost, "gateway", gateway)
+                                return http.ErrUseLastResponse
+                        }
+                        return nil
+                },
+        }
+
+        start := time.Now()
+        req, err := http.NewRequestWithContext(gwCtx, "GET", probeURL, nil)
+        if err != nil {
+                gwResult.Error = "request creation error"
+                gwResult.LatencyMs = time.Since(start).Milliseconds()
+                return gwResult
+        }
+        req.Header.Set("User-Agent", "DNS-Tool-IPFS-Probe/1.0")
+
+        var redirectChain []ipfsRedirectHop
+        origTransport := client.Transport
+        client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+                hopStart := time.Now()
+                resp, rtErr := origTransport.RoundTrip(r)
+                if rtErr == nil && resp.StatusCode >= 300 && resp.StatusCode < 400 {
+                        loc := resp.Header.Get("Location")
+                        locHost := ""
+                        if parsed, parseErr := r.URL.Parse(loc); parseErr == nil {
+                                locHost = parsed.Host
+                        }
+                        redirectChain = append(redirectChain, ipfsRedirectHop{
+                                StatusCode:   resp.StatusCode,
+                                LocationHost: locHost,
+                                LatencyMs:    time.Since(hopStart).Milliseconds(),
+                        })
+                }
+                return resp, rtErr
+        })
+
+        resp, err := client.Do(req)
+        gwResult.LatencyMs = time.Since(start).Milliseconds()
+        if err != nil {
+                gwResult.Error = classifyIPFSError(err)
+                return gwResult
+        }
+        defer func() {
+                _, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, int64(ipfsProbeBodyLimit)))
+                resp.Body.Close()
+        }()
+
+        gwResult.StatusCode = resp.StatusCode
+        gwResult.Reachable = resp.StatusCode >= 200 && resp.StatusCode < 400
+        gwResult.ContentType = resp.Header.Get("Content-Type")
+        gwResult.ServerHeader = resp.Header.Get("Server")
+        gwResult.FinalURL = resp.Request.URL.String()
+
+        if resp.TLS != nil {
+                gwResult.TLSVersion = ipfsTLSVersionString(resp.TLS.Version)
+        }
+
+        if len(redirectChain) > 0 {
+                gwResult.RedirectChain = redirectChain
+        }
+
+        return gwResult
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func ipfsTLSVersionString(v uint16) string {
+        switch v {
+        case tls.VersionTLS10:
+                return "TLS 1.0"
+        case tls.VersionTLS11:
+                return "TLS 1.1"
+        case tls.VersionTLS12:
+                return "TLS 1.2"
+        case tls.VersionTLS13:
+                return "TLS 1.3"
+        default:
+                return fmt.Sprintf("unknown (0x%04x)", v)
+        }
+}
+
+func classifyIPFSError(err error) string {
+        s := err.Error()
+        switch {
+        case strings.Contains(s, "timeout"):
+                return "timeout"
+        case strings.Contains(s, "refused"):
+                return "connection refused"
+        case strings.Contains(s, "no such host"):
+                return "DNS resolution failed"
+        case strings.Contains(s, "certificate"):
+                return "TLS certificate error"
+        default:
+                return "connection error"
+        }
 }

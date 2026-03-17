@@ -330,9 +330,12 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         basicForWeb3 := getMapResult(results, mapKeyBasicRecords)
         txtRecords := ExtractTXTFromBasicRecords(basicForWeb3)
         dnssecForWeb3 := getMapResult(results, "dnssec_analysis")
-        results[mapKeyWeb3] = a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
+        web3Result := a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
+        results[mapKeyWeb3] = web3Result
         web3Dur := time.Since(web3Start)
         slog.Info(logTaskCompleted, mapKeyTaskOrch, "web3_analysis", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(web3Dur.Milliseconds())))
+
+        a.enrichWeb3WithFleetProbe(ctx, domain, web3Result)
 
         results["asn_info"] = a.LookupASN(ctx, results)
         results["edge_cdn"] = DetectEdgeCDN(results)
