@@ -174,7 +174,8 @@ func resolveViaGatewayRedirect(ctx context.Context, ensDomain, gateway string) (
         }
 
         if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-                return ensDomain, nil
+                gatewayDomain := strings.TrimSuffix(strings.ToLower(ensDomain), ".eth") + "." + gateway
+                return gatewayDomain, nil
         }
 
         return "", fmt.Errorf("gateway returned HTTP %d", resp.StatusCode)
