@@ -103,15 +103,21 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 
         var web3Resolution Web3ResolutionResult
         originalInput := domain
-        if IsWeb3Input(domain) {
+        inputKind := ClassifyInput(domain)
+        if inputKind != InputKindDNSDomain {
                 web3Resolution = a.ResolveWeb3Domain(ctx, domain)
                 if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
                         domain = web3Resolution.ResolvedDomain
-                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain, "type", web3Resolution.ResolutionType)
+                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain,
+                                "type", web3Resolution.ResolutionType, "scope", web3Resolution.AnalysisScope,
+                                "is_gateway", web3Resolution.IsGatewayDomain)
                 } else if web3Resolution.Error != "" {
                         msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", originalInput, web3Resolution.Error)
                         result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
                         result["web3_resolution"] = web3Resolution.ToMap()
+                        result["input_kind"] = string(inputKind)
+                        result["_schema_version"] = 2
+                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, web3Resolution.AnalysisScope, web3Resolution, result)
                         return result
                 }
         }
@@ -132,27 +138,42 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                         if web3Resolution.IsWeb3Input {
                                 result["web3_resolution"] = web3Resolution.ToMap()
                                 result[mapKeyDomain] = originalInput
+                                result["input_kind"] = string(inputKind)
                         }
+                        result["_schema_version"] = 2
+                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, ScopeOwnedDNS, web3Resolution, result)
                         return result
                 }
         }
 
         analysisStart := time.Now()
-        resultsMap, timings := a.runParallelAnalyses(ctx, domain, customDKIMSelectors, analysisStart, options.OnPhaseProgress)
+        scope := web3Resolution.AnalysisScope
+        if scope == "" {
+                scope = ScopeOwnedDNS
+        }
+        resultsMap, timings := a.runScopedAnalyses(ctx, domain, customDKIMSelectors, analysisStart, options.OnPhaseProgress, scope)
 
         parallelElapsed := time.Since(analysisStart).Seconds()
-        slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf(fmtSeconds, parallelElapsed), "tasks", len(resultsMap))
+        slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf(fmtSeconds, parallelElapsed), "tasks", len(resultsMap), "scope", scope)
 
-        results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart)
+        results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart, scope)
         timings = append(timings, seqTimings...)
 
         if web3Resolution.IsWeb3Input {
                 results["web3_resolution"] = web3Resolution.ToMap()
                 results["web3_original_input"] = originalInput
+                results["input_kind"] = string(inputKind)
                 if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
                         w3a["resolution_info"] = web3Resolution.ToMap()
                 }
+                if web3Resolution.AttributionWarning != "" {
+                        results["attribution_warning"] = web3Resolution.AttributionWarning
+                }
         }
+
+        provenance := buildAnalysisProvenance(inputKind, scope, web3Resolution, results)
+        results["_analysis_provenance"] = provenance
+        results["_schema_version"] = 2
 
         totalElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Analysis complete", mapKeyDomain, domain, "total_s", fmt.Sprintf(fmtSeconds, totalElapsed), "parallel_s", fmt.Sprintf(fmtSeconds, parallelElapsed))
@@ -167,7 +188,12 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         return results
 }
 
-func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMap map[string]any, domainStatus string, domainStatusMessage *string, options AnalysisOptions, analysisStart time.Time) (map[string]any, []PhaseTiming) {
+func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMap map[string]any, domainStatus string, domainStatusMessage *string, options AnalysisOptions, analysisStart time.Time, scope ...AnalysisScope) (map[string]any, []PhaseTiming) {
+        analysisScope := ScopeOwnedDNS
+        if len(scope) > 0 && scope[0] != "" {
+                analysisScope = scope[0]
+        }
+        _ = analysisScope
         basic := getMapResult(resultsMap, "basic")
         auth := getMapResult(resultsMap, "auth")
 
@@ -212,9 +238,16 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         seqTimings = append(seqTimings, web3Timing)
 
         results["is_tld"] = isTLD
-        results["posture"] = a.CalculatePosture(results)
-        results["remediation"] = a.GenerateRemediation(results)
-        results["mail_posture"] = buildMailPosture(results)
+        results["analysis_scope"] = string(analysisScope)
+        if analysisScope == ScopeGatewayDerived {
+                results["posture"] = buildGatewayPosture(results)
+                results["remediation"] = map[string]any{"status": "not_applicable", "reason": "gateway_derived", "items": []any{}}
+                results["mail_posture"] = map[string]any{"status": "not_applicable", "reason": "gateway_derived"}
+        } else {
+                results["posture"] = a.CalculatePosture(results)
+                results["remediation"] = a.GenerateRemediation(results)
+                results["mail_posture"] = buildMailPosture(results)
+        }
 
         populateTTLReports(results)
         engineDur := time.Since(engineStart)
@@ -443,13 +476,40 @@ func (a *Analyzer) discoverSubdomainsWithBudget(parent context.Context, domain s
 }
 
 func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, customDKIMSelectors []string, analysisStart time.Time, progressCb ProgressCallback) (map[string]any, []PhaseTiming) {
+        return a.runScopedAnalyses(ctx, domain, customDKIMSelectors, analysisStart, progressCb, ScopeOwnedDNS)
+}
+
+var emailProtocolKeys = map[string]bool{
+        mapKeySpfOrch:        true,
+        mapKeyDmarc:          true,
+        mapKeyDkimOrch:       true,
+        mapKeyMtaSts:         true,
+        mapKeyTlsrpt:         true,
+        mapKeyBimi:           true,
+        mapKeySmimeaOpenpgpkey: true,
+}
+
+func (a *Analyzer) buildGatewaySkippedResults() map[string]any {
+        results := make(map[string]any)
+        for key := range emailProtocolKeys {
+                results[key] = map[string]any{mapKeyStatus: "skipped", "reason": "gateway_attribution"}
+        }
+        return results
+}
+
+func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customDKIMSelectors []string, analysisStart time.Time, progressCb ProgressCallback, scope AnalysisScope) (map[string]any, []PhaseTiming) {
         resultsCh := make(chan namedResult, 28)
         var wg sync.WaitGroup
 
         tasks := a.buildCoreTasks(ctx, domain, resultsCh, analysisStart)
 
         if !dnsclient.IsTLDInput(domain) {
-                tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart)...)
+                if scope == ScopeGatewayDerived {
+                        gatewayTasks := a.buildGatewayDomainTasks(ctx, domain, resultsCh, analysisStart)
+                        tasks = append(tasks, gatewayTasks...)
+                } else {
+                        tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart)...)
+                }
         }
 
         for _, fn := range tasks {
@@ -466,6 +526,12 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
         }()
 
         resultsMap := make(map[string]any)
+        if scope == ScopeGatewayDerived {
+                for k, v := range a.buildGatewaySkippedResults() {
+                        resultsMap[k] = v
+                }
+        }
+
         var timings []PhaseTiming
         for nr := range resultsCh {
                 resultsMap[nr.key] = nr.result
@@ -483,6 +549,15 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
                 }
         }
         return resultsMap, timings
+}
+
+func (a *Analyzer) buildGatewayDomainTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time) []func() {
+        return []func(){
+                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
+                timedTask(ch, mapKeySecurityTxt, t0, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                timedTask(ch, mapKeyAiSurface, t0, func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                timedTask(ch, mapKeySecretExposure, t0, func() any { return a.ScanSecretExposure(ctx, domain) }),
+        }
 }
 
 func buildRecordCurrencies(resolverTTLMap map[string]uint32) []icuae.RecordCurrency {
@@ -793,4 +868,45 @@ func keysOf(m map[string]bool) []string {
                 keys = append(keys, k)
         }
         return keys
+}
+
+func buildAnalysisProvenance(inputKind InputKind, scope AnalysisScope, web3 Web3ResolutionResult, results map[string]any) map[string]any {
+        p := map[string]any{
+                "input_kind":     string(inputKind),
+                "analysis_scope": string(scope),
+        }
+        if web3.IsWeb3Input {
+                p["resolution_type"] = web3.ResolutionType
+                p["gateway_detected"] = web3.IsGatewayDomain
+                p["attribution_warning_emitted"] = web3.AttributionWarning != ""
+                if web3.Gateway != "" {
+                        p["gateway"] = web3.Gateway
+                }
+        }
+        if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
+                if ds, ok := w3a["dnslink_source"].(string); ok && ds != "" {
+                        p["dnslink_source"] = ds
+                }
+        }
+        if skip, ok := results["skip_reason"].(string); ok && skip != "" {
+                p["skip_reason"] = skip
+        }
+        return p
+}
+
+func buildGatewayPosture(results map[string]any) map[string]any {
+        return map[string]any{
+                "risk":             "attribution_limited",
+                "risk_label":       "Gateway Derived",
+                "score":            0,
+                "grade":            "N/A",
+                "reason":           "gateway_derived",
+                "issues":           []string{},
+                "recommendations":  []string{},
+                "monitoring":       []string{},
+                "configured":       []string{},
+                "absent":           []string{},
+                "provider_limited": []string{},
+                "attribution_note": "Posture scoring is suppressed for gateway-derived analysis. DNS infrastructure results reflect the gateway operator, not the domain owner.",
+        }
 }

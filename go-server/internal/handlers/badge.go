@@ -122,9 +122,18 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         exposure := extractExposure(results)
         style := c.DefaultQuery("style", "flat")
 
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskHex = hexYellow
+                score = -1
+        }
+
         compactValue := riskLabel
         if score >= 0 {
                 compactValue = fmt.Sprintf("%s (%d/100)", riskLabel, score)
+        }
+        if isGatewayDerivedResult(results) {
+                compactValue = "Gateway Derived — attribution limited"
         }
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
@@ -353,6 +362,10 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         }
 
         riskLabel, riskColorRaw := extractPostureRisk(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorRaw = "warning"
+        }
         shieldsColor := riskColorToShields(riskColorRaw)
 
         c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -584,19 +597,19 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
-        protocolCount := 9
+        checkCount := 9
         if web3Detected {
-                protocolCount = 10
+                checkCount = 10
         }
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
-                        cl("[!]", fmt.Sprintf("All %d protocols configured — target is hardened", protocolCount), locked),
+                        cl("[!]", fmt.Sprintf("All %d checks configured — target is hardened", checkCount), locked),
                         cl("[!]", tagline, dimLocked),
                 }
         }
         if vulnerable == 0 {
                 return []covertLine{
-                        cl("[!]", "Protocols hardened — but secrets are leaking", sRed),
+                        cl("[!]", "Infrastructure hardened — but secrets are leaking", sRed),
                         cl("[!]", "Rotate exposed credentials immediately.", alt),
                 }
         }
@@ -605,10 +618,10 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         if vectors <= 2 {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
         } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, protocolCount), sRed))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, checkCount), sRed))
         }
         if findingCount > 0 {
-                lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
+                lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
         } else if tagline != "" {
                 lines = append(lines, cl("[!]", tagline, alt))
         }
@@ -727,6 +740,11 @@ func renderCovertFooter(svg *strings.Builder, lineIdx, y int, rc covertRenderCtx
 func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash string, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorName = "warning"
+                score = -1
+        }
         nodes := extractProtocolIndicators(results)
         vulnerable := countVulnerable(nodes)
         exposure := extractExposure(results)
@@ -1275,6 +1293,10 @@ func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, p
 
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskColorName = "warning"
+        }
         riskColorName = normalizeRiskColor(riskLabel, riskColorName)
         nodes := extractProtocolIndicators(results)
         exposure := extractExposure(results)
@@ -1557,6 +1579,21 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         )
 
         return []byte(svg)
+}
+
+func isGatewayDerivedResult(results map[string]any) bool {
+        if results == nil {
+                return false
+        }
+        if scope, ok := results["analysis_scope"].(string); ok {
+                return scope == "gateway_derived" || scope == "core_dns_only"
+        }
+        if postureRaw, ok := results["posture"].(map[string]any); ok {
+                if reason, ok := postureRaw["reason"].(string); ok && reason == "gateway_derived" {
+                        return true
+                }
+        }
+        return false
 }
 
 func extractWeb3Status(results map[string]any) string {
