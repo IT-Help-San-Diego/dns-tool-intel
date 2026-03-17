@@ -149,6 +149,9 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         if web3Resolution.IsWeb3Input {
                 results["web3_resolution"] = web3Resolution.ToMap()
                 results["web3_original_input"] = originalInput
+                if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
+                        w3a["resolution_info"] = web3Resolution.ToMap()
+                }
         }
 
         totalElapsed := time.Since(analysisStart).Seconds()
