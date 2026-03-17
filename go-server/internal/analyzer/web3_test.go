@@ -360,6 +360,64 @@ func TestIndicatorLink_B14(t *testing.T) {
         }
 }
 
+func TestWalletPrefixedForms_B14(t *testing.T) {
+        cases := []struct {
+                name string
+                txt  string
+        }{
+                {"ETH= prefix", "ETH=0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"eth.addr= prefix", "eth.addr=0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"addr: prefix ETH", "addr: 0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"bare ETH", "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"BTC= prefix", "BTC=13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+                {"btc.addr= prefix", "btc.addr=13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+                {"bare BTC", "13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        result := AnalyzeWeb3Static([]string{tc.txt}, nil)
+                        if !result["detected"].(bool) {
+                                t.Fatalf("expected Web3 detected for %q", tc.txt)
+                        }
+                })
+        }
+}
+
+func TestDefaultWeb3Analysis_BackwardCompat_B14(t *testing.T) {
+        d := DefaultWeb3Analysis()
+        if d["detected"].(bool) {
+                t.Error("default should not be detected")
+        }
+        if d["status"] != web3StatusNotDetected {
+                t.Errorf("expected status=%q, got %q", web3StatusNotDetected, d["status"])
+        }
+        if d["indicator_count"].(int) != 0 {
+                t.Error("expected 0 indicators")
+        }
+        indicators, ok := d["indicators"].([]Web3Indicator)
+        if !ok {
+                t.Fatal("indicators must be []Web3Indicator")
+        }
+        if indicators == nil {
+                t.Error("indicators must be non-nil slice")
+        }
+}
+
+func TestPhaseGroupMapping_B14(t *testing.T) {
+        group := LookupPhaseGroup("web3_analysis")
+        if group != "web3_analysis" {
+                t.Errorf("expected web3_analysis phase group, got %q", group)
+        }
+}
+
+func TestNoDetection_PlainTXT_B14(t *testing.T) {
+        txt := []string{"v=spf1 include:_spf.google.com ~all", "google-site-verification=abc123"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if result["detected"].(bool) {
+                t.Error("plain DNS TXT records should not trigger Web3 detection")
+        }
+}
+
 func containsB14(s, substr string) bool {
         for i := 0; i <= len(s)-len(substr); i++ {
                 if s[i:i+len(substr)] == substr {
