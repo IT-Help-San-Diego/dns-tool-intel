@@ -169,7 +169,8 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         engineStart := time.Now()
         a.enrichWithHostingAndSecurity(ctx, domain, results, resultsMap, spfAnalysis)
         populateExtendedResults(results, resultsMap)
-        a.enrichWithPostAnalysis(ctx, domain, results, resultsMap, options)
+        web3Timing := a.enrichWithPostAnalysis(ctx, domain, results, resultsMap, options, analysisStart)
+        seqTimings = append(seqTimings, web3Timing)
 
         results["is_tld"] = isTLD
         results["posture"] = a.CalculatePosture(results)
@@ -244,7 +245,7 @@ func populateExtendedResults(results, resultsMap map[string]any) {
         results[mapKeyDnssecOps] = getOrDefault(resultsMap, mapKeyDnssecOps, map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: strNotChecked})
 }
 
-func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results, resultsMap map[string]any, options AnalysisOptions) {
+func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results, resultsMap map[string]any, options AnalysisOptions, analysisStart time.Time) PhaseTiming {
         if options.ExposureChecks {
                 exposureStart := time.Now()
                 results["web_exposure"] = a.ScanWebExposure(ctx, domain)
@@ -253,10 +254,13 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
 
+        web3Start := time.Now()
         basicForWeb3 := getMapResult(results, mapKeyBasicRecords)
         txtRecords := ExtractTXTFromBasicRecords(basicForWeb3)
         dnssecForWeb3 := getMapResult(results, "dnssec_analysis")
         results[mapKeyWeb3] = a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
+        web3Dur := time.Since(web3Start)
+        slog.Info(logTaskCompleted, mapKeyTaskOrch, "web3_analysis", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(web3Dur.Milliseconds())))
 
         results["asn_info"] = a.LookupASN(ctx, results)
         results["edge_cdn"] = DetectEdgeCDN(results)
@@ -265,6 +269,13 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         ctData := getMapResult(resultsMap, mapKeyCtSubdomains)
         ctSubdomains, _ := ctData[mapKeySubdomains].([]map[string]any)
         results["dangling_dns"] = a.DetectDanglingDNS(ctx, domain, ctSubdomains)
+
+        return PhaseTiming{
+                PhaseGroup:  "web3_analysis",
+                PhaseTask:   "web3_analysis",
+                StartedAtMs: int(web3Start.Sub(analysisStart).Milliseconds()),
+                DurationMs:  int(web3Dur.Milliseconds()),
+        }
 }
 
 func populateTTLReports(results map[string]any) {
