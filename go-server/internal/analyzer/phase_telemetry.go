@@ -62,6 +62,7 @@ var phaseGroupMap = map[string]string{
         "dangling_dns":             "analysis_engine",
         "edge_cdn":                 "analysis_engine",
         "saas_txt":                 "analysis_engine",
+        "web3_analysis":            "analysis_engine",
 }
 
 var PhaseGroupLabels = map[string]string{

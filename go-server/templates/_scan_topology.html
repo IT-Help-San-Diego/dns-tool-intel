@@ -10,6 +10,7 @@
             <filter id="glow-policy" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ffb74d" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-registrar" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ce93d8" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-engine" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#e0e0e0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-web3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#d4a853" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-cf" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#f6821f" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#4285f4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-q9" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#0078d4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -56,6 +57,7 @@
             .topo-node.phase-done-policy { fill: #ffb74d; stroke: #ffb74d; filter: url(#glow-policy); }
             .topo-node.phase-done-registrar { fill: #ce93d8; stroke: #ce93d8; filter: url(#glow-registrar); }
             .topo-node.phase-done-engine { fill: #e0e0e0; stroke: #e0e0e0; filter: url(#glow-engine); }
+            .topo-node.phase-done-web3 { fill: #d4a853; stroke: #d4a853; filter: url(#glow-web3); }
 
             .topo-node.phase-running-dns { stroke: #5c6bc0; }
             .topo-node.phase-running-email { stroke: #4fc3f7; }
@@ -65,6 +67,7 @@
             .topo-node.phase-running-policy { stroke: #ffb74d; }
             .topo-node.phase-running-registrar { stroke: #ce93d8; }
             .topo-node.phase-running-engine { stroke: #e0e0e0; }
+            .topo-node.phase-running-web3 { stroke: #d4a853; }
 
             .topo-sub.sub-done { fill: #e6edf3; opacity: 0.8; }
             .topo-sub.sub-running-dns { fill: #5c6bc0; }
@@ -75,6 +78,7 @@
             .topo-sub.sub-running-policy { fill: #ffb74d; }
             .topo-sub.sub-running-registrar { fill: #ce93d8; }
             .topo-sub.sub-running-engine { fill: #e0e0e0; }
+            .topo-sub.sub-running-web3 { fill: #d4a853; }
 
             .topo-connector.conn-done-dns { stroke: #5c6bc0; opacity: 0.5; }
             .topo-connector.conn-done-email { stroke: #4fc3f7; opacity: 0.5; }
@@ -84,6 +88,7 @@
             .topo-connector.conn-done-policy { stroke: #ffb74d; opacity: 0.5; }
             .topo-connector.conn-done-registrar { stroke: #ce93d8; opacity: 0.5; }
             .topo-connector.conn-done-engine { stroke: #e0e0e0; opacity: 0.5; }
+            .topo-connector.conn-done-web3 { stroke: #d4a853; opacity: 0.5; }
 
             .topo-connector.conn-active-dns { stroke: #5c6bc0; opacity: 0.7; }
             .topo-connector.conn-active-email { stroke: #4fc3f7; opacity: 0.7; }
@@ -93,6 +98,7 @@
             .topo-connector.conn-active-policy { stroke: #ffb74d; opacity: 0.7; }
             .topo-connector.conn-active-registrar { stroke: #ce93d8; opacity: 0.7; }
             .topo-connector.conn-active-engine { stroke: #e0e0e0; opacity: 0.7; }
+            .topo-connector.conn-active-web3 { stroke: #d4a853; opacity: 0.7; }
         </style>
 
         <line x1="120" y1="18" x2="200" y2="55" class="topo-res-line" data-resolver="cf"/>
@@ -162,7 +168,7 @@
 
         <rect x="185" y="280" width="90" height="42" class="topo-node" data-phase="analysis_engine" data-pkey="engine"/>
         <text x="230" y="299" class="topo-label">ICIE Engine</text>
-        <text x="230" y="310" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+        <text x="230" y="310" class="topo-sub" data-tasks="analysis_engine">0/11</text>
         <text x="230" y="332" class="topo-dur" data-dur="analysis_engine"></text>
     </svg>
 </div>

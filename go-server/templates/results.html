@@ -181,6 +181,7 @@
         {{$smimea := mapGetMap "smimea_openpgpkey" $results}}
         {{$security_txt := mapGetMap "security_txt" $results}}
         {{$ai_surface := mapGetMap "ai_surface" $results}}
+        {{$web3 := mapGetMap "web3_analysis" $results}}
         {{$secret_exposure := mapGetMap "secret_exposure" $results}}
         {{$web_exposure := mapGetMap "web_exposure" $results}}
         {{$nmap_dns := mapGetMap "nmap_dns" $results}}
@@ -2912,6 +2913,82 @@
 
         {{if not .IsPublicSuffix}}<hr class="section-separator-major">{{end}}
 
+        <!-- Web3 Domain Analysis Section -->
+        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}
+        <div class="row section-web3" id="section-web3">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                            <span>{{icon "globe" "me-2"}}Web3 Domain Analysis</span>
+                            <span class="badge bg-warning text-dark ms-2">{{icon "check-circle" "me-1"}}Detected</span>
+                            <span class="section-question dt-question dt-question--section">Does this domain use Web3 infrastructure — and is it properly secured?</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{$web3Indicators := mapGetSlice "indicators" $web3}}
+                        {{$web3Count := mapGetInt "indicator_count" $web3}}
+
+                        <p class="text-muted mb-3 small">{{$web3Count}} Web3 indicator{{if ne $web3Count 1}}s{{end}} detected in DNS records</p>
+
+                        {{if $web3Indicators}}
+                        <div class="mb-3">
+                            <h6 class="text-info">{{icon "search" "me-1"}} Web3 Indicators</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-dark mb-0">
+                                    <thead><tr><th>Type</th><th>Value</th><th>Description</th><th>Link</th></tr></thead>
+                                    <tbody>
+                                    {{range $web3Indicators}}
+                                        <tr>
+                                            <td><span class="badge bg-warning text-dark">{{mapGetStr "type" .}}</span></td>
+                                            <td class="font-monospace small">{{mapGetStr "value" .}}</td>
+                                            <td class="small">{{mapGetStr "description" .}}</td>
+                                            <td>{{$link := mapGetStr "link" .}}{{if $link}}<a href="{{$link}}" target="_blank" rel="noopener" class="text-info">{{icon "external-link-alt" "me-1"}}View</a>{{else}}<span class="text-muted">—</span>{{end}}</td>
+                                        </tr>
+                                    {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        {{$dnslinkCID := mapGetStr "dnslink_cid" $web3}}
+                        {{if $dnslinkCID}}
+                        <div class="mb-3">
+                            <h6 class="text-info">{{icon "link" "me-1"}} IPFS Content Addressing</h6>
+                            <div class="small">
+                                <strong>CID:</strong> <code>{{$dnslinkCID}}</code>
+                                {{$ipfsURL := mapGetStr "ipfs_gateway_url" $web3}}
+                                {{if $ipfsURL}}
+                                    <a href="{{$ipfsURL}}" target="_blank" rel="noopener" class="ms-2 text-info">{{icon "external-link-alt" "me-1"}}Open via gateway</a>
+                                {{end}}
+                            </div>
+                            {{if mapGetBool "ipfs_reachable" $web3}}
+                                <div class="alert alert-success py-2 small mt-2">{{icon "check-circle" "me-1"}} Content reachable via public IPFS gateway</div>
+                            {{else}}
+                                {{$ipfsErr := mapGetStr "ipfs_error" $web3}}
+                                {{if $ipfsErr}}
+                                <div class="alert alert-warning py-2 small mt-2">{{icon "exclamation-triangle" "me-1"}} {{$ipfsErr}}</div>
+                                {{end}}
+                            {{end}}
+                        </div>
+                        {{end}}
+
+                        {{$dnssecNote := mapGetStr "dnssec_trust_note" $web3}}
+                        {{if $dnssecNote}}
+                        <div class="mb-2">
+                            <h6 class="text-info">{{icon "shield-alt" "me-1"}} DNSSEC Trust Chain</h6>
+                            <p class="small text-muted mb-0">{{$dnssecNote}}</p>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        {{if not .IsPublicSuffix}}<hr class="section-separator-major">{{end}}
+
         <!-- AI Surface Scanner Section -->
         {{if and $ai_surface (not .IsPublicSuffix)}}
         <div class="row section-ai-surface" id="section-ai">
@@ -2959,6 +3036,7 @@
                             {{if mapGetBool "found" $aiLlms}}
                             <div class="alert alert-success py-2 small">
                                 {{icon "check-circle" "me-1"}} <strong>llms.txt found</strong> — domain provides structured context for LLMs
+                                <a href="https://{{.Domain}}/llms.txt" target="_blank" rel="noopener" class="ms-2 text-success">{{icon "external-link-alt" "me-1"}}View llms.txt</a>
                                 {{$llmsFields := mapGetMap "fields" $aiLlms}}
                                 {{if $llmsFields}}
                                 <ul class="mt-2 mb-0">
@@ -2974,6 +3052,7 @@
                             {{if mapGetBool "full_found" $aiLlms}}
                             <div class="alert alert-info py-2 small">
                                 {{icon "file" "me-1"}} <strong>llms-full.txt</strong> also found (extended LLM context)
+                                <a href="https://{{.Domain}}/llms-full.txt" target="_blank" rel="noopener" class="ms-2 text-info">{{icon "external-link-alt" "me-1"}}View llms-full.txt</a>
                             </div>
                             {{end}}
                             {{else}}
@@ -2981,6 +3060,7 @@
                             {{if mapGetBool "full_found" $aiLlms}}
                             <div class="alert alert-info py-2 small mt-2">
                                 {{icon "file" "me-1"}} <strong>llms-full.txt</strong> found (extended LLM context)
+                                <a href="https://{{.Domain}}/llms-full.txt" target="_blank" rel="noopener" class="ms-2 text-info">{{icon "external-link-alt" "me-1"}}View llms-full.txt</a>
                             </div>
                             {{else}}
                             <div class="text-muted small">{{icon "minus-circle" "me-1"}} No llms-full.txt found</div>
@@ -3010,6 +3090,7 @@
                                 {{if mapGetBool "blocks_ai_crawlers" $aiRobots}}
                                 <div class="alert alert-success py-2 small">
                                     {{icon "shield-alt" "me-1"}} <strong>AI crawlers blocked</strong>
+                                    <a href="https://{{.Domain}}/robots.txt" target="_blank" rel="noopener" class="ms-2 text-success">{{icon "external-link-alt" "me-1"}}View robots.txt</a>
                                     {{$blocked := mapGetSlice "blocked_crawlers" $aiRobots}}
                                     {{if $blocked}}
                                     <div class="mt-1">
@@ -3020,6 +3101,7 @@
                                 {{else if mapGetBool "allows_ai_crawlers" $aiRobots}}
                                 <div class="alert alert-warning py-2 small">
                                     {{icon "exclamation-triangle" "me-1"}} <strong>No AI crawler blocking observed</strong> — no blocking directives found in robots.txt
+                                    <a href="https://{{.Domain}}/robots.txt" target="_blank" rel="noopener" class="ms-2 text-warning">{{icon "external-link-alt" "me-1"}}View robots.txt</a>
                                     {{$allowed := mapGetSlice "allowed_crawlers" $aiRobots}}
                                     {{if $allowed}}
                                     <div class="mt-1">

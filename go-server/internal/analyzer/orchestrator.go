@@ -47,6 +47,7 @@ const (
         mapKeySmtpTransport         = "smtp_transport"
         mapKeySubdomains            = "subdomains"
         mapKeyTlsrpt                = "tlsrpt"
+        mapKeyWeb3                  = "web3_analysis"
         strNotChecked               = "Not checked"
         statusInfoOrch              = "info"
         mapKeyTaskOrch              = "task"
@@ -251,6 +252,12 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         }
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
+
+        basicForWeb3 := getMapResult(results, mapKeyBasicRecords)
+        txtRecords := ExtractTXTFromBasicRecords(basicForWeb3)
+        dnssecForWeb3 := getMapResult(results, "dnssec_analysis")
+        results[mapKeyWeb3] = a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
+
         results["asn_info"] = a.LookupASN(ctx, results)
         results["edge_cdn"] = DetectEdgeCDN(results)
         enrichHostingFromEdgeCDN(results)
@@ -660,6 +667,7 @@ func (a *Analyzer) buildNonExistentResult(domain, status string, statusMessage *
                 "asn_info":                  map[string]any{mapKeyStatus: statusInfoOrch, "ipv4_asn": []map[string]any{}, "ipv6_asn": []map[string]any{}, "unique_asns": []map[string]any{}, mapKeyIssues: []string{}},
                 "edge_cdn":                  map[string]any{mapKeyStatus: mapKeySuccess, "is_behind_cdn": false, "cdn_provider": "", "cdn_indicators": []string{}, "origin_visible": true, mapKeyIssues: []string{}},
                 "dangling_dns":              map[string]any{mapKeyStatus: mapKeySuccess, "checked": true, "dangling_count": 0, "dangling_records": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeyWeb3:                  DefaultWeb3Analysis(),
                 mapKeyDelegationConsistency: map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist},
                 mapKeyNsFleet:               map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist, "fleet": []map[string]any{}, mapKeyIssues: []string{}},
                 mapKeyDnssecOps:             map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist},

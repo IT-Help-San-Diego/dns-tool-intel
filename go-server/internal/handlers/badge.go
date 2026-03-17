@@ -486,6 +486,7 @@ var covertDescriptions = map[string]covertDesc{
         protoTLSRPT: {success: "transport monitored", warning: "partial reporting", fail: "no transport monitoring"},
         "BIMI":      {success: "brand verification active", warning: "present but no VMC cert", fail: "brand impersonation possible"},
         "CAA":       {success: "cert issuance locked", warning: "policy present but weak", fail: "anyone can issue certs"},
+        "Web3":      {success: "Web3 infra detected", warning: "partial Web3 presence", fail: "no Web3 detected"},
 }
 
 func covertStatusPrefix(status string) string {
@@ -772,6 +773,11 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 if i < len(nodes) {
                         lines = append(lines, covertProtocolLine(p, nodes[i].status))
                 }
+        }
+
+        web3Status := extractWeb3Status(results)
+        if web3Status != "" {
+                lines = append(lines, covertProtocolLine("Web3", web3Status))
         }
 
         lines = append(lines, covertExposureLines(exposure, sRed, alt, baseURL, scanID)...)
@@ -1517,4 +1523,20 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         )
 
         return []byte(svg)
+}
+
+func extractWeb3Status(results map[string]any) string {
+        web3Raw, ok := results["web3_analysis"]
+        if !ok {
+                return ""
+        }
+        web3, ok := web3Raw.(map[string]any)
+        if !ok {
+                return ""
+        }
+        detected, _ := web3["detected"].(bool)
+        if detected {
+                return "success"
+        }
+        return ""
 }
