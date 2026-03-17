@@ -3105,6 +3105,79 @@
                         </div>
                         {{end}}
 
+                        {{$fleetProbe := mapGetMap "ipfs_fleet_probe" $web3}}
+                        {{if $fleetProbe}}
+                        {{$fleetConsensus := mapGetMap "consensus" $fleetProbe}}
+                        <div class="mb-3">
+                            <h6 class="text-info">{{icon "server" "me-1"}} IPFS Fleet Probe — Distributed Verification</h6>
+                            <p class="small text-muted mb-2">Content availability verified from multiple independent vantage points via the Kali probe fleet.</p>
+                            {{if $fleetConsensus}}
+                            <div class="row g-2 mb-2">
+                                <div class="col-auto">
+                                    {{$persist := mapGetStr "persistence" $fleetConsensus}}
+                                    {{if eq $persist "persistence_verified"}}
+                                    <span class="badge bg-success px-3 py-2">{{icon "check-circle" "me-1"}}Persistence Verified</span>
+                                    {{else}}
+                                    <span class="badge bg-warning text-dark px-3 py-2">{{icon "exclamation-triangle" "me-1"}}Persistence Unproven</span>
+                                    {{end}}
+                                </div>
+                                <div class="col-auto"><span class="badge bg-secondary">{{mapGetInt "healthy_probes" $fleetConsensus}}/{{mapGetInt "total_probes" $fleetConsensus}} probes healthy</span></div>
+                                <div class="col-auto"><span class="badge bg-secondary">{{mapGetInt "reachable_by_any" $fleetConsensus}}/{{mapGetInt "total_gateways" $fleetConsensus}} gateways reachable</span></div>
+                                {{if mapGetBool "redirect_divergence" $fleetConsensus}}
+                                <div class="col-auto"><span class="badge bg-danger">{{icon "alert-triangle" "me-1"}}Redirect Divergence</span></div>
+                                {{end}}
+                            </div>
+                            {{end}}
+
+                            {{$fleetProbes := mapGetSlice "probes" $fleetProbe}}
+                            {{if $fleetProbes}}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-dark mb-0">
+                                    <thead>
+                                        <tr><th>Probe</th><th>Status</th><th>Gateways</th><th>Elapsed</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    {{range $fleetProbes}}
+                                        <tr>
+                                            <td class="small"><strong>{{mapGetStr "probe_label" .}}</strong><br><span class="text-muted">{{mapGetStr "probe_host" .}}</span></td>
+                                            <td>
+                                                {{$pStatus := mapGetStr "status" .}}
+                                                {{if eq $pStatus "completed"}}<span class="badge bg-success">{{$pStatus}}</span>
+                                                {{else}}<span class="badge bg-danger">{{$pStatus}}</span> <span class="text-danger small">{{mapGetStr "error" .}}</span>{{end}}
+                                            </td>
+                                            <td class="small">
+                                                {{$gws := mapGetSlice "gateways" .}}
+                                                {{if $gws}}
+                                                {{range $gws}}
+                                                    {{$gwReachable := mapGetBool "reachable" .}}
+                                                    {{if $gwReachable}}<span class="text-success">&#9679;</span>{{else}}<span class="text-danger">&#9679;</span>{{end}}
+                                                    <span class="font-monospace">{{mapGetStr "gateway" .}}</span>
+                                                    <span class="text-muted">({{mapGetInt "latency_ms" .}}ms{{if mapGetStr "server_header" .}}, {{mapGetStr "server_header" .}}{{end}})</span><br>
+                                                {{end}}
+                                                {{else}}<span class="text-muted">—</span>{{end}}
+                                            </td>
+                                            <td class="small text-muted">{{mapGetStr "elapsed_seconds" .}}s</td>
+                                        </tr>
+                                    {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{end}}
+
+                            {{$gwInfra := mapGetMap "gateway_infrastructure" $web3}}
+                            {{if $gwInfra}}
+                            <div class="mt-2">
+                                <h6 class="small text-info">{{icon "info" "me-1"}} Gateway Infrastructure Fingerprint</h6>
+                                <div class="small text-muted">
+                                    {{range $gw, $info := $gwInfra}}
+                                    <div><code>{{$gw}}</code>: Server={{mapGetStr "server_values" $info}} TLS={{mapGetStr "tls_versions" $info}}</div>
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+
                         {{$dnssecNote := mapGetStr "dnssec_trust_note" $web3}}
                         {{if $dnssecNote}}
                         <div class="mb-2">
