@@ -125,6 +125,12 @@ var commonSubdomainProbes = []string{
         "websocket", "socket", "realtime", "rt",
         "metrics", "trace", "tracing", "apm",
         "sandbox1", "sandbox2", "lab", "labs",
+        "dnstool", "webtool", "webtools", "nettools", "nettool", "syslog",
+        "mailgw", "mailrelay", "mailserver", "mailhost",
+        "webhost", "webserver", "webproxy", "webapp", "webapi",
+        "devops", "sysadmin", "netadmin",
+        "speedtest", "pingdom", "uptime", "statuspage",
+        "lookup", "whois", "dnscheck", "mxtoolbox",
 }
 
 type ctFetchResult struct {
