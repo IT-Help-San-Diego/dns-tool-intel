@@ -122,9 +122,18 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         exposure := extractExposure(results)
         style := c.DefaultQuery("style", "flat")
 
+        if isGatewayDerivedResult(results) {
+                riskLabel = "Gateway Derived"
+                riskHex = hexYellow
+                score = -1
+        }
+
         compactValue := riskLabel
         if score >= 0 {
                 compactValue = fmt.Sprintf("%s (%d/100)", riskLabel, score)
+        }
+        if isGatewayDerivedResult(results) {
+                compactValue = "Gateway Derived — attribution limited"
         }
         if exposure.status == "exposed" && exposure.findingCount > 0 {
                 compactValue += fmt.Sprintf(" · %d secret%s exposed", exposure.findingCount, pluralS(exposure.findingCount))
@@ -1557,6 +1566,21 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         )
 
         return []byte(svg)
+}
+
+func isGatewayDerivedResult(results map[string]any) bool {
+        if results == nil {
+                return false
+        }
+        if scope, ok := results["analysis_scope"].(string); ok {
+                return scope == "gateway_derived" || scope == "core_dns_only"
+        }
+        if postureRaw, ok := results["posture"].(map[string]any); ok {
+                if reason, ok := postureRaw["reason"].(string); ok && reason == "gateway_derived" {
+                        return true
+                }
+        }
+        return false
 }
 
 func extractWeb3Status(results map[string]any) string {
