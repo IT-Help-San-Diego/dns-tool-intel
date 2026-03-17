@@ -1,0 +1,428 @@
+// Copyright (c) 2024-2026 IT Help San Diego Inc.
+// Licensed under BUSL-1.1 — See LICENSE for terms.
+// dns-tool:scrutiny science
+package analyzer
+
+import (
+        "context"
+        "fmt"
+        "testing"
+)
+
+func TestDetectDNSLink_IPFS_B14(t *testing.T) {
+        txt := []string{"dnslink=/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected for IPFS dnslink")
+        }
+        indicators := result["indicators"].([]map[string]any)
+        if len(indicators) == 0 {
+                t.Fatal("expected at least one indicator")
+        }
+        if indicators[0]["type"] != indicatorTypeDNSLink {
+                t.Errorf("expected type=%q, got %q", indicatorTypeDNSLink, indicators[0]["type"])
+        }
+        if result["dnslink_cid"] != "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG" {
+                t.Errorf("unexpected CID: %v", result["dnslink_cid"])
+        }
+}
+
+func TestDetectDNSLink_IPNS_B14(t *testing.T) {
+        txt := []string{"dnslink=/ipns/example.com"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected for IPNS dnslink")
+        }
+        indicators := result["indicators"].([]map[string]any)
+        if indicators[0]["type"] != indicatorTypeIPNSName {
+                t.Errorf("expected type=%q, got %q", indicatorTypeIPNSName, indicators[0]["type"])
+        }
+        if result["dnslink_ipns"] != "example.com" {
+                t.Errorf("unexpected IPNS name: %v", result["dnslink_ipns"])
+        }
+}
+
+func TestDetectCryptoWallet_ETH_B14(t *testing.T) {
+        txt := []string{"0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected for ETH wallet")
+        }
+        indicators := result["indicators"].([]map[string]any)
+        if indicators[0]["type"] != indicatorTypeCryptoWallet {
+                t.Errorf("expected type=%q, got %q", indicatorTypeCryptoWallet, indicators[0]["type"])
+        }
+        if indicators[0]["value"] == txt[0] {
+                t.Error("wallet address should be redacted")
+        }
+}
+
+func TestDetectCryptoWallet_BTC_B14(t *testing.T) {
+        txt := []string{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected for BTC wallet")
+        }
+}
+
+func TestDetectENSRecord_B14(t *testing.T) {
+        txt := []string{"contenthash=0xe301017012..."}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected for ENS contenthash")
+        }
+        indicators := result["indicators"].([]map[string]any)
+        if indicators[0]["type"] != indicatorTypeENSRecord {
+                t.Errorf("expected type=%q, got %q", indicatorTypeENSRecord, indicators[0]["type"])
+        }
+}
+
+func TestNoWeb3Detected_B14(t *testing.T) {
+        txt := []string{"v=spf1 include:_spf.google.com ~all", "google-site-verification=abc123"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if result["detected"].(bool) {
+                t.Fatal("should not detect Web3 for standard TXT records")
+        }
+        if result["status"] != web3StatusNotDetected {
+                t.Errorf("expected status=%q, got %q", web3StatusNotDetected, result["status"])
+        }
+}
+
+func TestWeb3EmptyTXT_B14(t *testing.T) {
+        result := AnalyzeWeb3Static(nil, nil)
+        if result["detected"].(bool) {
+                t.Fatal("should not detect Web3 for nil TXT records")
+        }
+        if result["indicator_count"].(int) != 0 {
+                t.Errorf("expected indicator_count=0, got %v", result["indicator_count"])
+        }
+}
+
+func TestDNSSECTrustNote_Success_B14(t *testing.T) {
+        dnssec := map[string]any{"status": "success"}
+        result := AnalyzeWeb3Static(nil, dnssec)
+        note := result["dnssec_trust_note"].(string)
+        if note == "" {
+                t.Fatal("expected non-empty DNSSEC trust note")
+        }
+        if !containsB14(note, "validated") {
+                t.Errorf("success DNSSEC should mention 'validated', got: %s", note)
+        }
+}
+
+func TestDNSSECTrustNote_Warning_B14(t *testing.T) {
+        dnssec := map[string]any{"status": "warning"}
+        result := AnalyzeWeb3Static(nil, dnssec)
+        note := result["dnssec_trust_note"].(string)
+        if !containsB14(note, "partially") {
+                t.Errorf("warning DNSSEC should mention 'partially', got: %s", note)
+        }
+}
+
+func TestDNSSECTrustNote_Missing_B14(t *testing.T) {
+        dnssec := map[string]any{"status": "error"}
+        result := AnalyzeWeb3Static(nil, dnssec)
+        note := result["dnssec_trust_note"].(string)
+        if !containsB14(note, "not configured") {
+                t.Errorf("missing DNSSEC should mention 'not configured', got: %s", note)
+        }
+}
+
+func TestDNSSECTrustNote_Nil_B14(t *testing.T) {
+        result := AnalyzeWeb3Static(nil, nil)
+        note := result["dnssec_trust_note"].(string)
+        if !containsB14(note, "unknown") {
+                t.Errorf("nil DNSSEC should mention 'unknown', got: %s", note)
+        }
+}
+
+func TestIsValidCID_V0_B14(t *testing.T) {
+        if !IsValidCID("QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG") {
+                t.Error("expected valid CIDv0")
+        }
+}
+
+func TestIsValidCID_V1_B14(t *testing.T) {
+        cid := "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
+        if !IsValidCID(cid) {
+                t.Error("expected valid CIDv1")
+        }
+}
+
+func TestIsValidCID_Invalid_B14(t *testing.T) {
+        invalids := []string{"", "hello", "Qm123", "notacid"}
+        for _, c := range invalids {
+                if IsValidCID(c) {
+                        t.Errorf("expected invalid CID for %q", c)
+                }
+        }
+}
+
+func TestTruncateCID_B14(t *testing.T) {
+        short := "QmShort"
+        if truncateCID(short) != short {
+                t.Errorf("short CID should not be truncated")
+        }
+        long := "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+        truncated := truncateCID(long)
+        if len(truncated) >= len(long) {
+                t.Errorf("long CID should be truncated")
+        }
+}
+
+func TestTruncateStr_B14(t *testing.T) {
+        short := "hello"
+        if truncateStr(short, 10) != short {
+                t.Errorf("short string should not be truncated")
+        }
+        long := "this is a very long string that exceeds the limit"
+        truncated := truncateStr(long, 20)
+        if len(truncated) > 20 {
+                t.Errorf("expected truncated to <= 20 chars, got %d", len(truncated))
+        }
+}
+
+func TestRedactWalletAddress_B14(t *testing.T) {
+        addr := "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"
+        redacted := redactWalletAddress(addr)
+        if redacted == addr {
+                t.Error("address should be redacted")
+        }
+        if len(redacted) >= len(addr) {
+                t.Errorf("redacted should be shorter than original")
+        }
+
+        short := "0xABCD"
+        if redactWalletAddress(short) != short {
+                t.Error("short address should not be redacted")
+        }
+}
+
+func TestExtractTXTFromBasicRecords_B14(t *testing.T) {
+        tests := []struct {
+                name     string
+                input    map[string]any
+                expected int
+        }{
+                {"nil map", nil, 0},
+                {"no TXT key", map[string]any{"A": []string{"1.2.3.4"}}, 0},
+                {"string slice", map[string]any{"TXT": []string{"v=spf1", "dnslink=/ipfs/Qm123"}}, 2},
+                {"any slice", map[string]any{"TXT": []any{"v=spf1", "dnslink=/ipfs/Qm123"}}, 2},
+                {"any slice with non-string", map[string]any{"TXT": []any{"v=spf1", 42}}, 1},
+        }
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        result := ExtractTXTFromBasicRecords(tt.input)
+                        if len(result) != tt.expected {
+                                t.Errorf("expected %d TXT records, got %d", tt.expected, len(result))
+                        }
+                })
+        }
+}
+
+func TestDefaultWeb3Analysis_B14(t *testing.T) {
+        d := DefaultWeb3Analysis()
+        if d["detected"].(bool) {
+                t.Error("default should not be detected")
+        }
+        if d["status"] != web3StatusNotDetected {
+                t.Errorf("default status should be %q", web3StatusNotDetected)
+        }
+        if d["indicator_count"].(int) != 0 {
+                t.Error("default indicator_count should be 0")
+        }
+}
+
+func TestMultipleIndicators_B14(t *testing.T) {
+        txt := []string{
+                "dnslink=/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+                "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12",
+                "contenthash=0xe301017012abc",
+        }
+        result := AnalyzeWeb3Static(txt, map[string]any{"status": "success"})
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected")
+        }
+        indicators := result["indicators"].([]map[string]any)
+        if len(indicators) != 3 {
+                t.Errorf("expected 3 indicators, got %d", len(indicators))
+        }
+        if result["indicator_count"].(int) != 3 {
+                t.Errorf("expected indicator_count=3, got %v", result["indicator_count"])
+        }
+}
+
+func TestAnalyzeWeb3WithAnalyzer_B14(t *testing.T) {
+        a := &Analyzer{}
+        ctx := context.Background()
+        txt := []string{"dnslink=/ipns/example.com"}
+        dnssec := map[string]any{"status": "success"}
+        result := a.AnalyzeWeb3(ctx, "example.com", txt, dnssec)
+        if !result["detected"].(bool) {
+                t.Fatal("expected Web3 detected")
+        }
+        if result["dnslink_ipns"] != "example.com" {
+                t.Errorf("expected IPNS name example.com")
+        }
+}
+
+func TestClassifyWeb3HTTPError_B14(t *testing.T) {
+        tests := []struct {
+                errMsg   string
+                expected string
+        }{
+                {"connection timeout", "timeout"},
+                {"connection refused", "connection refused"},
+                {"no such host", "DNS resolution failed"},
+                {"other error", "connection error"},
+        }
+        for _, tt := range tests {
+                t.Run(tt.errMsg, func(t *testing.T) {
+                        result := classifyWeb3HTTPError(fmt.Errorf("%s", tt.errMsg))
+                        if result != tt.expected {
+                                t.Errorf("expected %q, got %q", tt.expected, result)
+                        }
+                })
+        }
+}
+
+func TestWeb3ToMap_AllFields_B14(t *testing.T) {
+        t1 := true
+        w := &Web3Analysis{
+                Detected:       true,
+                Status:         web3StatusDetected,
+                Indicators:     []Web3Indicator{{Type: indicatorTypeDNSLink, Value: "dnslink=/ipfs/QmTest", Description: "test", Link: "https://dweb.link/ipfs/QmTest"}},
+                DNSLinkCID:     "QmTest",
+                DNSLinkIPNS:    "example.com",
+                IPFSReachable:  &t1,
+                IPFSGatewayURL: "https://dweb.link/ipfs/QmTest",
+                DNSSECTrust:    "DNSSEC validated",
+                ResolutionInfo: map[string]any{"method": "eth.limo"},
+                IndicatorCount: 1,
+        }
+        m := w.toMap()
+        if !m["detected"].(bool) {
+                t.Error("expected detected=true")
+        }
+        if m["dnslink_cid"] != "QmTest" {
+                t.Error("expected dnslink_cid")
+        }
+        if m["dnslink_ipns"] != "example.com" {
+                t.Error("expected dnslink_ipns")
+        }
+        if !m["ipfs_reachable"].(bool) {
+                t.Error("expected ipfs_reachable=true")
+        }
+        if m["ipfs_gateway_url"] != "https://dweb.link/ipfs/QmTest" {
+                t.Error("expected ipfs_gateway_url")
+        }
+        if m["resolution_info"] == nil {
+                t.Error("expected resolution_info")
+        }
+}
+
+func TestVerifyIPFSReachability_InvalidCID_B14(t *testing.T) {
+        w := &Web3Analysis{
+                DNSLinkCID: "invalid-cid",
+        }
+        w.verifyIPFSReachability(context.Background())
+        if w.IPFSReachable == nil || *w.IPFSReachable {
+                t.Error("expected IPFSReachable=false for invalid CID")
+        }
+        if w.IPFSError != "Invalid IPFS CID format" {
+                t.Errorf("unexpected error: %s", w.IPFSError)
+        }
+}
+
+func TestVerifyIPFSReachability_EmptyCID_B14(t *testing.T) {
+        w := &Web3Analysis{}
+        w.verifyIPFSReachability(context.Background())
+        if w.IPFSReachable != nil {
+                t.Error("expected IPFSReachable=nil for empty CID")
+        }
+}
+
+func TestDNSLinkCaseInsensitive_B14(t *testing.T) {
+        txt := []string{"DNSLINK=/IPFS/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if !result["detected"].(bool) {
+                t.Fatal("expected case-insensitive dnslink detection")
+        }
+}
+
+func TestIndicatorLink_B14(t *testing.T) {
+        txt := []string{"dnslink=/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"}
+        result := AnalyzeWeb3Static(txt, nil)
+        indicators := result["indicators"].([]map[string]any)
+        link, ok := indicators[0]["link"].(string)
+        if !ok || link == "" {
+                t.Error("expected non-empty link for IPFS dnslink indicator")
+        }
+}
+
+func TestWalletPrefixedForms_B14(t *testing.T) {
+        cases := []struct {
+                name string
+                txt  string
+        }{
+                {"ETH= prefix", "ETH=0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"eth.addr= prefix", "eth.addr=0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"addr: prefix ETH", "addr: 0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"bare ETH", "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD12"},
+                {"BTC= prefix", "BTC=13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+                {"btc.addr= prefix", "btc.addr=13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+                {"bare BTC", "13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so"},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        result := AnalyzeWeb3Static([]string{tc.txt}, nil)
+                        if !result["detected"].(bool) {
+                                t.Fatalf("expected Web3 detected for %q", tc.txt)
+                        }
+                })
+        }
+}
+
+func TestDefaultWeb3Analysis_BackwardCompat_B14(t *testing.T) {
+        d := DefaultWeb3Analysis()
+        if d["detected"].(bool) {
+                t.Error("default should not be detected")
+        }
+        if d["status"] != web3StatusNotDetected {
+                t.Errorf("expected status=%q, got %q", web3StatusNotDetected, d["status"])
+        }
+        if d["indicator_count"].(int) != 0 {
+                t.Error("expected 0 indicators")
+        }
+        indicators, ok := d["indicators"].([]Web3Indicator)
+        if !ok {
+                t.Fatal("indicators must be []Web3Indicator")
+        }
+        if indicators == nil {
+                t.Error("indicators must be non-nil slice")
+        }
+}
+
+func TestPhaseGroupMapping_B14(t *testing.T) {
+        group := LookupPhaseGroup("web3_analysis")
+        if group != "web3_analysis" {
+                t.Errorf("expected web3_analysis phase group, got %q", group)
+        }
+}
+
+func TestNoDetection_PlainTXT_B14(t *testing.T) {
+        txt := []string{"v=spf1 include:_spf.google.com ~all", "google-site-verification=abc123"}
+        result := AnalyzeWeb3Static(txt, nil)
+        if result["detected"].(bool) {
+                t.Error("plain DNS TXT records should not trigger Web3 detection")
+        }
+}
+
+func containsB14(s, substr string) bool {
+        for i := 0; i <= len(s)-len(substr); i++ {
+                if s[i:i+len(substr)] == substr {
+                        return true
+                }
+        }
+        return false
+}

@@ -486,6 +486,7 @@ var covertDescriptions = map[string]covertDesc{
         protoTLSRPT: {success: "transport monitored", warning: "partial reporting", fail: "no transport monitoring"},
         "BIMI":      {success: "brand verification active", warning: "present but no VMC cert", fail: "brand impersonation possible"},
         "CAA":       {success: "cert issuance locked", warning: "policy present but weak", fail: "anyone can issue certs"},
+        "Web3":      {success: "Web3 infra detected", warning: "partial Web3 presence", fail: "no Web3 detected"},
 }
 
 func covertStatusPrefix(status string) string {
@@ -579,13 +580,17 @@ func covertPrefixColor(prefix, dimLocked, sRed, alt string) string {
         }
 }
 
-func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked, sRed, alt string) []covertLine {
+func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked, sRed, alt string, web3Detected bool) []covertLine {
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
+        protocolCount := 9
+        if web3Detected {
+                protocolCount = 10
+        }
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
-                        cl("[!]", "All 9 protocols configured — target is hardened", locked),
+                        cl("[!]", fmt.Sprintf("All %d protocols configured — target is hardened", protocolCount), locked),
                         cl("[!]", tagline, dimLocked),
                 }
         }
@@ -600,7 +605,7 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         if vectors <= 2 {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
         } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vectors), sRed))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, protocolCount), sRed))
         }
         if findingCount > 0 {
                 lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
@@ -774,11 +779,17 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
                 }
         }
 
+        web3Status := extractWeb3Status(results)
+        if web3Status != "" {
+                lines = append(lines, covertProtocolLine("Web3", web3Status))
+        }
+
         lines = append(lines, covertExposureLines(exposure, sRed, alt, baseURL, scanID)...)
 
         lines = append(lines, cl("", "", ""))
 
-        lines = append(lines, covertSummaryLines(vulnerable, exposure.findingCount, tagline, locked, dimLocked, sRed, alt)...)
+        web3Detected := web3Status != ""
+        lines = append(lines, covertSummaryLines(vulnerable, exposure.findingCount, tagline, locked, dimLocked, sRed, alt, web3Detected)...)
 
         lines = append(lines, cl("", "", ""))
         hashDisplay := postureHash
@@ -909,6 +920,8 @@ func protocolGroupColor(abbrev string) string {
                 return "#81c784"
         case "BIMI":
                 return "#ce93d8"
+        case "W3":
+                return "#d4a853"
         default:
                 return "#484f58"
         }
@@ -943,10 +956,24 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 {"caa_analysis", "CAA"},
         }
 
+        web3St := extractWeb3Status(results)
+        if web3St != "" {
+                protocols = append(protocols, struct {
+                        key    string
+                        abbrev string
+                }{"web3_analysis", "W3"})
+        }
+
         nodes := make([]protocolNode, 0, len(protocols))
         for _, p := range protocols {
                 status := "missing"
-                if analysisRaw, ok := results[p.key]; ok {
+                if p.key == "web3_analysis" {
+                        if web3St == "success" {
+                                status = "success"
+                        } else {
+                                status = "info"
+                        }
+                } else if analysisRaw, ok := results[p.key]; ok {
                         if analysis, ok := analysisRaw.(map[string]any); ok {
                                 if s, ok := analysis["status"].(string); ok {
                                         status = s
@@ -1274,16 +1301,22 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
 
+        web3StatusDetailed := extractWeb3Status(results)
+        controlCount := 9
+        if web3StatusDetailed != "" {
+                controlCount = 10
+        }
+
         postureContext := ""
         if missing > 0 {
                 first := firstMissingProtocol(nodes)
                 if first != "" {
-                        postureContext = fmt.Sprintf("%d/9 controls missing — %s not found", missing, first)
+                        postureContext = fmt.Sprintf("%d/%d controls missing — %s not found", missing, controlCount, first)
                 } else {
-                        postureContext = fmt.Sprintf("%d/9 controls missing", missing)
+                        postureContext = fmt.Sprintf("%d/%d controls missing", missing, controlCount)
                 }
         } else {
-                postureContext = "All 9 controls verified"
+                postureContext = fmt.Sprintf("All %d controls verified", controlCount)
         }
 
         const (
@@ -1316,6 +1349,9 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {414, 128},
                 {496, 78},
                 {496, 178},
+        }
+        if len(nodes) > 9 {
+                nodePositions = append(nodePositions, nodePos{496, 128})
         }
 
         edges := []topoEdge{
@@ -1407,11 +1443,15 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         var glowDefs strings.Builder
         renderTopoNodes(&nodeSVG, &glowDefs, nodes, nodePositions, nodeR)
 
+        totalControls := 9
+        if len(nodes) > 9 {
+                totalControls = len(nodes)
+        }
         missingSVG := ""
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
-                        `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of 9 missing</text>`,
-                        width-pad, 198, hexRed, missing,
+                        `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of %d missing</text>`,
+                        width-pad, 198, hexRed, missing, totalControls,
                 )
         }
 
@@ -1517,4 +1557,20 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         )
 
         return []byte(svg)
+}
+
+func extractWeb3Status(results map[string]any) string {
+        web3Raw, ok := results["web3_analysis"]
+        if !ok {
+                return ""
+        }
+        web3, ok := web3Raw.(map[string]any)
+        if !ok {
+                return ""
+        }
+        detected, _ := web3["detected"].(bool)
+        if detected {
+                return "success"
+        }
+        return ""
 }

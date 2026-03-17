@@ -47,6 +47,7 @@ const (
         mapKeySmtpTransport         = "smtp_transport"
         mapKeySubdomains            = "subdomains"
         mapKeyTlsrpt                = "tlsrpt"
+        mapKeyWeb3                  = "web3_analysis"
         strNotChecked               = "Not checked"
         statusInfoOrch              = "info"
         mapKeyTaskOrch              = "task"
@@ -100,9 +101,40 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
         defer cancel()
 
-        exists, domainStatus, domainStatusMessage := a.checkDomainExists(ctx, domain)
-        if !exists {
-                return a.buildNonExistentResult(domain, domainStatus, domainStatusMessage)
+        var web3Resolution Web3ResolutionResult
+        originalInput := domain
+        if IsWeb3Input(domain) {
+                web3Resolution = a.ResolveWeb3Domain(ctx, domain)
+                if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
+                        domain = web3Resolution.ResolvedDomain
+                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain, "type", web3Resolution.ResolutionType)
+                } else if web3Resolution.Error != "" {
+                        msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", originalInput, web3Resolution.Error)
+                        result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
+                        result["web3_resolution"] = web3Resolution.ToMap()
+                        return result
+                }
+        }
+
+        var domainStatus string
+        var domainStatusMessage *string
+        skipExistenceCheck := web3Resolution.IsWeb3Input && web3Resolution.ResolutionType == "hns" && web3Resolution.Error == ""
+        if skipExistenceCheck {
+                domainStatus = "hns_resolved"
+                msg := "Handshake domain resolved via HNS resolver"
+                domainStatusMessage = &msg
+        } else {
+                exists, ds, dsm := a.checkDomainExists(ctx, domain)
+                domainStatus = ds
+                domainStatusMessage = dsm
+                if !exists {
+                        result := a.buildNonExistentResult(domain, domainStatus, domainStatusMessage)
+                        if web3Resolution.IsWeb3Input {
+                                result["web3_resolution"] = web3Resolution.ToMap()
+                                result[mapKeyDomain] = originalInput
+                        }
+                        return result
+                }
         }
 
         analysisStart := time.Now()
@@ -113,6 +145,14 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 
         results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart)
         timings = append(timings, seqTimings...)
+
+        if web3Resolution.IsWeb3Input {
+                results["web3_resolution"] = web3Resolution.ToMap()
+                results["web3_original_input"] = originalInput
+                if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
+                        w3a["resolution_info"] = web3Resolution.ToMap()
+                }
+        }
 
         totalElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Analysis complete", mapKeyDomain, domain, "total_s", fmt.Sprintf(fmtSeconds, totalElapsed), "parallel_s", fmt.Sprintf(fmtSeconds, parallelElapsed))
@@ -168,7 +208,8 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         engineStart := time.Now()
         a.enrichWithHostingAndSecurity(ctx, domain, results, resultsMap, spfAnalysis)
         populateExtendedResults(results, resultsMap)
-        a.enrichWithPostAnalysis(ctx, domain, results, resultsMap, options)
+        web3Timing := a.enrichWithPostAnalysis(ctx, domain, results, resultsMap, options, analysisStart)
+        seqTimings = append(seqTimings, web3Timing)
 
         results["is_tld"] = isTLD
         results["posture"] = a.CalculatePosture(results)
@@ -243,7 +284,7 @@ func populateExtendedResults(results, resultsMap map[string]any) {
         results[mapKeyDnssecOps] = getOrDefault(resultsMap, mapKeyDnssecOps, map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: strNotChecked})
 }
 
-func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results, resultsMap map[string]any, options AnalysisOptions) {
+func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, results, resultsMap map[string]any, options AnalysisOptions, analysisStart time.Time) PhaseTiming {
         if options.ExposureChecks {
                 exposureStart := time.Now()
                 results["web_exposure"] = a.ScanWebExposure(ctx, domain)
@@ -251,6 +292,15 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         }
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
+
+        web3Start := time.Now()
+        basicForWeb3 := getMapResult(results, mapKeyBasicRecords)
+        txtRecords := ExtractTXTFromBasicRecords(basicForWeb3)
+        dnssecForWeb3 := getMapResult(results, "dnssec_analysis")
+        results[mapKeyWeb3] = a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
+        web3Dur := time.Since(web3Start)
+        slog.Info(logTaskCompleted, mapKeyTaskOrch, "web3_analysis", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(web3Dur.Milliseconds())))
+
         results["asn_info"] = a.LookupASN(ctx, results)
         results["edge_cdn"] = DetectEdgeCDN(results)
         enrichHostingFromEdgeCDN(results)
@@ -258,6 +308,13 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
         ctData := getMapResult(resultsMap, mapKeyCtSubdomains)
         ctSubdomains, _ := ctData[mapKeySubdomains].([]map[string]any)
         results["dangling_dns"] = a.DetectDanglingDNS(ctx, domain, ctSubdomains)
+
+        return PhaseTiming{
+                PhaseGroup:  "web3_analysis",
+                PhaseTask:   "web3_analysis",
+                StartedAtMs: int(web3Start.Sub(analysisStart).Milliseconds()),
+                DurationMs:  int(web3Dur.Milliseconds()),
+        }
 }
 
 func populateTTLReports(results map[string]any) {
@@ -660,6 +717,7 @@ func (a *Analyzer) buildNonExistentResult(domain, status string, statusMessage *
                 "asn_info":                  map[string]any{mapKeyStatus: statusInfoOrch, "ipv4_asn": []map[string]any{}, "ipv6_asn": []map[string]any{}, "unique_asns": []map[string]any{}, mapKeyIssues: []string{}},
                 "edge_cdn":                  map[string]any{mapKeyStatus: mapKeySuccess, "is_behind_cdn": false, "cdn_provider": "", "cdn_indicators": []string{}, "origin_visible": true, mapKeyIssues: []string{}},
                 "dangling_dns":              map[string]any{mapKeyStatus: mapKeySuccess, "checked": true, "dangling_count": 0, "dangling_records": []map[string]any{}, mapKeyIssues: []string{}},
+                mapKeyWeb3:                  DefaultWeb3Analysis(),
                 mapKeyDelegationConsistency: map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist},
                 mapKeyNsFleet:               map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist, "fleet": []map[string]any{}, mapKeyIssues: []string{}},
                 mapKeyDnssecOps:             map[string]any{mapKeyStatus: statusInfoOrch, mapKeyMessage: msgDomainNoExist},

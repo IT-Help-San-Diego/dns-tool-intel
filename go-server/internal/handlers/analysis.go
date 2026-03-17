@@ -326,7 +326,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
-        if !dnsclient.ValidateDomain(domain) {
+        if !dnsclient.ValidateDomain(domain) && !analyzer.IsWeb3Input(domain) {
                 h.renderIndexFlash(c, nonce, csrfToken, mapKeyDanger, fmt.Sprintf("Invalid domain name: %s", domain))
                 return
         }

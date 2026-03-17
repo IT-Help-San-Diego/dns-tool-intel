@@ -62,6 +62,7 @@ var phaseGroupMap = map[string]string{
         "dangling_dns":             "analysis_engine",
         "edge_cdn":                 "analysis_engine",
         "saas_txt":                 "analysis_engine",
+        "web3_analysis":            "web3_analysis",
 }
 
 var PhaseGroupLabels = map[string]string{
@@ -73,6 +74,7 @@ var PhaseGroupLabels = map[string]string{
         "policy_records":  "Policy Records",
         "registrar_infra": "Registrar & Infrastructure",
         "analysis_engine": "Analysis Engine",
+        "web3_analysis":   "Web3 Analysis",
 }
 
 var PhaseGroupOrder = []string{
@@ -83,6 +85,7 @@ var PhaseGroupOrder = []string{
         "smtp_transport",
         "policy_records",
         "registrar_infra",
+        "web3_analysis",
         "analysis_engine",
 }
 
