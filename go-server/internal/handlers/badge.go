@@ -580,13 +580,17 @@ func covertPrefixColor(prefix, dimLocked, sRed, alt string) string {
         }
 }
 
-func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked, sRed, alt string) []covertLine {
+func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked, sRed, alt string, web3Detected bool) []covertLine {
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
+        protocolCount := 9
+        if web3Detected {
+                protocolCount = 10
+        }
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
-                        cl("[!]", "All 9 protocols configured — target is hardened", locked),
+                        cl("[!]", fmt.Sprintf("All %d protocols configured — target is hardened", protocolCount), locked),
                         cl("[!]", tagline, dimLocked),
                 }
         }
@@ -601,7 +605,7 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         if vectors <= 2 {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
         } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of 9 attack vectors available", vectors), sRed))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, protocolCount), sRed))
         }
         if findingCount > 0 {
                 lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
@@ -784,7 +788,8 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
 
         lines = append(lines, cl("", "", ""))
 
-        lines = append(lines, covertSummaryLines(vulnerable, exposure.findingCount, tagline, locked, dimLocked, sRed, alt)...)
+        web3Detected := web3Status != ""
+        lines = append(lines, covertSummaryLines(vulnerable, exposure.findingCount, tagline, locked, dimLocked, sRed, alt, web3Detected)...)
 
         lines = append(lines, cl("", "", ""))
         hashDisplay := postureHash
@@ -1280,16 +1285,22 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
 
+        web3StatusDetailed := extractWeb3Status(results)
+        controlCount := 9
+        if web3StatusDetailed != "" {
+                controlCount = 10
+        }
+
         postureContext := ""
         if missing > 0 {
                 first := firstMissingProtocol(nodes)
                 if first != "" {
-                        postureContext = fmt.Sprintf("%d/9 controls missing — %s not found", missing, first)
+                        postureContext = fmt.Sprintf("%d/%d controls missing — %s not found", missing, controlCount, first)
                 } else {
-                        postureContext = fmt.Sprintf("%d/9 controls missing", missing)
+                        postureContext = fmt.Sprintf("%d/%d controls missing", missing, controlCount)
                 }
         } else {
-                postureContext = "All 9 controls verified"
+                postureContext = fmt.Sprintf("All %d controls verified", controlCount)
         }
 
         const (
