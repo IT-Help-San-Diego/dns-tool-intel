@@ -53,6 +53,16 @@ Large organizations running their own NS infrastructure are detected by multiple
 | `DATABASE_URL` | Yes | PostgreSQL connection string (e.g., `postgresql://user:pass@host/dbname`) |
 | `SESSION_SECRET` | Yes | Session encryption key for CSRF protection |
 | `PORT` | No | HTTP listen port (default: `5000`) |
+| `PROBE_API_URL` | No | Primary probe fleet node URL |
+| `PROBE_API_KEY` | No | Primary probe fleet authentication key |
+| `PROBE_API_URL_2` | No | Secondary probe fleet node URL |
+| `PROBE_API_KEY_2` | No | Secondary probe fleet authentication key |
+| `SMTP_PROBE_MODE` | No | SMTP probe mode: `off` (default) or `remote` |
+| `IPFS_PROBE_MODE` | No | IPFS fleet probe mode: `off` (default) or `remote` |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth 2.0 client ID |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth 2.0 client secret |
+| `DISCORD_WEBHOOK_URL` | No | Discord notification webhook |
+| `SECURITYTRAILS_API_KEY` | No | SecurityTrails API key for DNS history |
 
 ## Running the Application
 
@@ -90,13 +100,20 @@ main.py                    # Process trampoline (execs Go binary)
 dns-tool-server            # Compiled Go binary
 go-server/
   cmd/server/main.go       # Entry point
+  cmd/probe/main.go        # Probe agent (Kali fleet nodes)
   internal/
     analyzer/              # DNS analysis engine
+      web3.go              # Web3 domain analysis (IPFS, ENS, HNS)
+      web3_resolution.go   # ENS/HNS input resolution
+      web3_probe.go        # IPFS fleet probe client + consensus
+      orchestrator.go      # Analysis orchestration
     handlers/              # HTTP route handlers
     dnsclient/             # Multi-resolver DNS client
     db/                    # PostgreSQL (pgx v5, sqlc)
     middleware/            # Security middleware
     telemetry/             # Caching, metrics
+    config/                # Configuration (env vars, probe fleet)
+    entitlements/          # Feature tier gating
   templates/               # Server-rendered HTML
   static/                  # CSS, JS, assets
 ```
@@ -111,6 +128,9 @@ DNSSEC chain-of-trust verification, CAA certificate authority restrictions, DANE
 
 ### Infrastructure Detection
 Automatic enterprise DNS provider recognition, government domain tier classification, edge/CDN detection, SMTP transport validation.
+
+### Web3 Domain Analysis
+Detects and analyzes Web3 domain infrastructure via TXT record scanning. ENS `.eth` domains resolved via eth.limo gateway; Handshake TLDs via hnsdns.com/hdns.io resolvers. IPFS content identified through `_dnslink` TXT records. Authority containment prevents gateway infrastructure (NS, DNSSEC, CAA) from contaminating owner posture analysis. Distributed IPFS fleet probing (when `IPFS_PROBE_MODE=remote`) dispatches parallel requests to Kali probe fleet for multi-vantage content persistence verification, redirect divergence detection, and gateway infrastructure fingerprinting. Key files: `web3.go`, `web3_resolution.go`, `web3_probe.go`.
 
 ### Intelligence
 AI Surface Scanner, CT subdomain discovery, DNS history timeline (SecurityTrails), IP Intelligence, phishing detection.

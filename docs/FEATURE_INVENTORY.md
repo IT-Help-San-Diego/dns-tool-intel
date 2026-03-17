@@ -1,6 +1,6 @@
 # DNS Tool — Feature Overview
 
-**Last Updated:** March 9, 2026 (v26.35.20)
+**Last Updated:** March 17, 2026 (v26.37.24)
 **Implementation:** Go/Gin
 
 ---
@@ -54,6 +54,7 @@ The tool performs RFC-compliant parsing and validation of these protocols:
 - AI Surface Scanner (llms.txt, AI crawler governance, prompt injection detection)
 - Public exposure checks: secret/credential scanning in publicly accessible page source and JavaScript
 - Expanded exposure checks (opt-in): well-known misconfiguration path probing (/.env, /.git, /server-status, etc.) with content validation
+- Web3 domain analysis: IPFS CID detection via `_dnslink` TXT records, ENS `.eth` resolution (eth.limo gateway), Handshake TLD resolution (hnsdns.com/hdns.io), typed evidence model (IPFSProbe, Web3DNSSECTrust), authority containment (gateway posture isolation), distributed IPFS fleet probing (multi-probe persistence verification with redirect divergence detection and infrastructure fingerprinting)
 - Dangling DNS and subdomain takeover detection
 - DMARC external reporting authorization verification
 - Misplaced DMARC detection (post-analysis enrichment for incorrect record placement)
