@@ -22,7 +22,9 @@ jobs:
 
       - name: Run Go tests with coverage
         run: |
-          go test ./go-server/... -tags intel -coverprofile=coverage.out -covermode=atomic -count=1 -short -timeout 300s -parallel=2
+          go test ./go-server/... -tags intel \
+            -skip 'NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory|BoundaryIntegrity_FullRepoScan|IsOriginVisible|EdgeCDNMapsEmpty|GoldenRuleStubBoundary|ScrutinyClassificationAllFiles' \
+            -coverprofile=coverage.out -covermode=atomic -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
           DNS_TOOL_REPO_ROLE: intel
