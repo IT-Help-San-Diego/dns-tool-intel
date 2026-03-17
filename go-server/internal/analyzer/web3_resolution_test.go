@@ -308,3 +308,88 @@ func TestDefaultWeb3Resolution_AllKeys_B14(t *testing.T) {
                 }
         }
 }
+
+func TestIsWeb3Input_TraditionalDomains_Backward_B14(t *testing.T) {
+        traditional := []string{
+                "example.com", "google.co.uk", "amazon.de",
+                "test.org", "mail.example.com", "192.168.1.1",
+                "", "com", ".com",
+        }
+        for _, d := range traditional {
+                if IsWeb3Input(d) {
+                        t.Errorf("IsWeb3Input(%q) should be false for traditional domain", d)
+                }
+        }
+}
+
+func TestWeb3ResolutionResult_ToMap_EmptyResult_B14(t *testing.T) {
+        r := Web3ResolutionResult{}
+        m := r.ToMap()
+        if m["is_web3_input"] != false {
+                t.Error("zero-value result should have is_web3_input=false")
+        }
+        if m["input_domain"] != "" {
+                t.Error("zero-value result should have empty input_domain")
+        }
+        if m["error"] != "" {
+                t.Error("zero-value result should have empty error")
+        }
+}
+
+func TestResolveWeb3Domain_ENS_GatewayDomain_B14(t *testing.T) {
+        a := &Analyzer{DNS: NewMockDNSClient()}
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+        result := a.resolveENS(ctx, "vitalik.eth")
+
+        if result.ResolvedDomain != "" && result.Error == "" {
+                if !strings.HasSuffix(result.ResolvedDomain, "."+ensGateway) {
+                        t.Errorf("expected resolved domain to end with .%s, got %s", ensGateway, result.ResolvedDomain)
+                }
+        }
+}
+
+func TestResolveWeb3Domain_HNS_WithNS_AltResolver_B14(t *testing.T) {
+        mock := NewMockDNSClient()
+        mock.AddSpecificResolverResponse("NS", "mysite.hns", hnsResolverAlt+":53", []string{"ns1.alt.hns"})
+        a := &Analyzer{DNS: mock}
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+        result := a.resolveHNS(ctx, "mysite.hns")
+        if result.Error != "" {
+                t.Errorf("expected NS via alt resolver to succeed, got error: %s", result.Error)
+        }
+        if result.Gateway != hnsResolverAlt {
+                t.Errorf("expected gateway=%s, got %s", hnsResolverAlt, result.Gateway)
+        }
+}
+
+func TestWeb3Resolution_BackwardCompat_NoWeb3Input_B14(t *testing.T) {
+        result := DefaultWeb3Resolution()
+        if result["is_web3_input"] != false {
+                t.Error("default resolution should not be web3 input")
+        }
+        if result["resolved_domain"] != "" {
+                t.Error("default resolution should have empty resolved_domain")
+        }
+        if result["error"] != "" {
+                t.Error("default resolution should have no error")
+        }
+}
+
+func TestExtractDomainFromURL_EdgeCases_B14(t *testing.T) {
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"https://a.b.c.d.e.f.g/path?q=1", "a.b.c.d.e.f.g"},
+                {"http://localhost:3000", "localhost"},
+                {"https://domain.com:443/page", "domain.com"},
+        }
+        for _, tt := range tests {
+                if got := extractDomainFromURL(tt.input); got != tt.want {
+                        t.Errorf("extractDomainFromURL(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
