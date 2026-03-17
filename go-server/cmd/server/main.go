@@ -232,6 +232,7 @@ func main() {
         ctStore := analyzer.NewPgCTStore(database.Queries)
         dnsAnalyzer := analyzer.New(analyzer.WithCTStore(ctStore))
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
+        dnsAnalyzer.IPFSProbeMode = cfg.IPFSProbeMode
         dnsAnalyzer.ProbeAPIURL = cfg.ProbeAPIURL
         dnsAnalyzer.ProbeAPIKey = cfg.ProbeAPIKey
         for _, p := range cfg.Probes {
@@ -242,7 +243,7 @@ func main() {
                         Key:   p.Key,
                 })
         }
-        slog.Info("DNS analyzer initialized with telemetry", "smtp_probe_mode", cfg.SMTPProbeMode, "probe_count", len(cfg.Probes))
+        slog.Info("DNS analyzer initialized with telemetry", "smtp_probe_mode", cfg.SMTPProbeMode, "ipfs_probe_mode", cfg.IPFSProbeMode, "probe_count", len(cfg.Probes))
 
         analyzer.InitIETFMetadata()
         analyzer.ScheduleRFCRefresh()

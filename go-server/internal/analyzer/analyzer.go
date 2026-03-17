@@ -44,6 +44,7 @@ type Analyzer struct {
         semaphore     chan struct{}
 
         SMTPProbeMode string
+        IPFSProbeMode string
         ProbeAPIURL   string
         ProbeAPIKey   string
         Probes        []ProbeEndpoint

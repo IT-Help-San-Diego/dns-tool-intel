@@ -10,7 +10,7 @@ import (
 )
 
 var (
-        Version   = "26.37.24"
+        Version   = "26.37.25"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -28,6 +28,7 @@ type Config struct {
         Port               string
         AppVersion         string
         SMTPProbeMode      string
+        IPFSProbeMode      string
         ProbeAPIURL        string
         ProbeAPIKey        string
         Probes             []ProbeEndpoint
@@ -75,12 +76,18 @@ func Load() (*Config, error) {
         googleRedirectURL := envOrDefault("GOOGLE_REDIRECT_URL", baseURL+"/auth/callback")
         betaPages := copyBetaPages()
 
+        ipfsProbeMode := envOrDefault("IPFS_PROBE_MODE", "off")
+        if ipfsProbeMode == "remote" && len(probes) == 0 {
+                ipfsProbeMode = "off"
+        }
+
         return &Config{
                 DatabaseURL:        dbURL,
                 SessionSecret:      sessionSecret,
                 Port:               port,
                 AppVersion:         Version,
                 SMTPProbeMode:      smtpProbeMode,
+                IPFSProbeMode:      ipfsProbeMode,
                 ProbeAPIURL:        probeAPIURL,
                 ProbeAPIKey:        os.Getenv("PROBE_API_KEY"),
                 Probes:             probes,
