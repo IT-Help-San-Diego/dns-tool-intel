@@ -445,6 +445,26 @@
         
         <!-- Global Posture Score -->
         {{if and $posture (not .IsPublicSuffix)}}
+        {{if eq (mapGetStr "reason" $posture) "gateway_derived"}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-warning bg-warning bg-opacity-10">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center">
+                            {{icon "alert-triangle" "icon-2x" "text-warning me-3"}}
+                            <div>
+                                <span class="fw-semibold">DNS Security &amp; Trust Posture</span>
+                                <div class="d-flex align-items-center mt-1">
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">Gateway Derived &mdash; Attribution Limited</span>
+                                </div>
+                                <small class="d-block mt-1 text-muted">{{mapGetStr "attribution_note" $posture}}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{else}}
         {{$postureColor := mapGetStr "color" $posture}}
         {{$postureIcon := mapGetStr "icon" $posture}}
         {{$postureState := mapGetStr "state" $posture}}
@@ -490,7 +510,8 @@
                 </div>
             </div>
         </div>
-        {{end}}
+        {{end}}{{/* end gateway_derived else */}}
+        {{end}}{{/* end posture exists */}}
 
         {{if .UnifiedConfidence}}
         <div class="row mb-4">
@@ -2967,12 +2988,16 @@
                                     <tr>
                                         <td class="text-muted fw-semibold">Analysis Scope</td>
                                         <td>
-                                            {{if eq (mapGetStr "analysis_scope" $web3res) "core_dns_only"}}
-                                            <span class="badge bg-info">Core DNS Only</span>
+                                            {{if eq (mapGetStr "analysis_scope" $web3res) "gateway_derived"}}
+                                            <span class="badge bg-warning text-dark">Gateway Derived</span>
+                                            {{else if eq (mapGetStr "analysis_scope" $web3res) "identity_only"}}
+                                            <span class="badge bg-secondary">Identity Only</span>
+                                            {{else if eq (mapGetStr "analysis_scope" $web3res) "core_dns_only"}}
+                                            <span class="badge bg-warning text-dark">Gateway Derived</span>
                                             {{else if eq (mapGetStr "analysis_scope" $web3res) "web3_identity_only"}}
-                                            <span class="badge bg-secondary">Web3 Identity Only</span>
+                                            <span class="badge bg-secondary">Identity Only</span>
                                             {{else}}
-                                            <span class="badge bg-success">Full DNS</span>
+                                            <span class="badge bg-success">Owned DNS</span>
                                             {{end}}
                                         </td>
                                     </tr>

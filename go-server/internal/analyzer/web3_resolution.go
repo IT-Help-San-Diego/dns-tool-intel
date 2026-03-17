@@ -44,9 +44,9 @@ const (
 type AnalysisScope string
 
 const (
-        ScopeFullDNS          AnalysisScope = "full_dns"
-        ScopeWeb3IdentityOnly AnalysisScope = "web3_identity_only"
-        ScopeCoreDNSOnly      AnalysisScope = "core_dns_only"
+        ScopeOwnedDNS       AnalysisScope = "owned_dns"
+        ScopeGatewayDerived AnalysisScope = "gateway_derived"
+        ScopeIdentityOnly   AnalysisScope = "identity_only"
 )
 
 type Web3ResolutionResult struct {
@@ -71,7 +71,7 @@ func DefaultWeb3Resolution() map[string]any {
                 "gateway":              "",
                 "error":                "",
                 "input_kind":           string(InputKindDNSDomain),
-                "analysis_scope":       string(ScopeFullDNS),
+                "analysis_scope":       string(ScopeOwnedDNS),
                 "is_gateway_domain":    false,
                 "attribution_warning":  "",
         }
@@ -132,7 +132,7 @@ func (a *Analyzer) resolveENS(ctx context.Context, domain string) Web3Resolution
         resolved, err := resolveViaGatewayRedirect(resolveCtx, domain, ensGateway)
         if err != nil {
                 result.Error = fmt.Sprintf("ENS resolution failed: %s", err.Error())
-                result.AnalysisScope = ScopeWeb3IdentityOnly
+                result.AnalysisScope = ScopeIdentityOnly
                 slog.Warn("ENS resolution failed", "domain", domain, "error", err)
                 return result
         }
@@ -141,22 +141,22 @@ func (a *Analyzer) resolveENS(ctx context.Context, domain string) Web3Resolution
                 result.ResolvedDomain = resolved
                 result.IsGatewayDomain = isGatewayDomain(resolved, ensGateway)
                 if result.IsGatewayDomain {
-                        result.AnalysisScope = ScopeCoreDNSOnly
+                        result.AnalysisScope = ScopeGatewayDerived
                         result.AttributionWarning = fmt.Sprintf(
                                 "DNS analysis targets gateway domain %s, not the ENS identity %s. "+
                                         "Email security results (SPF/DKIM/DMARC/MTA-STS/TLSRPT/BIMI) reflect "+
                                         "the gateway operator's configuration, not the ENS owner's infrastructure.",
                                 resolved, domain)
                 } else {
-                        result.AnalysisScope = ScopeFullDNS
+                        result.AnalysisScope = ScopeOwnedDNS
                 }
                 slog.Info("ENS domain resolved", "input", domain, "resolved", resolved, "gateway", ensGateway, "is_gateway", result.IsGatewayDomain)
         } else if resolved == domain {
                 result.ResolvedDomain = domain
-                result.AnalysisScope = ScopeFullDNS
+                result.AnalysisScope = ScopeOwnedDNS
         } else {
                 result.Error = "ENS name did not resolve to a traditional domain"
-                result.AnalysisScope = ScopeWeb3IdentityOnly
+                result.AnalysisScope = ScopeIdentityOnly
         }
 
         return result
@@ -168,7 +168,7 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
                 InputDomain:    domain,
                 ResolutionType: "hns",
                 InputKind:      InputKindHNSName,
-                AnalysisScope:  ScopeFullDNS,
+                AnalysisScope:  ScopeGatewayDerived,
         }
 
         for _, resolver := range []string{hnsResolverDomain, hnsResolverAlt} {
@@ -176,6 +176,12 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
                 if err == nil && len(records) > 0 {
                         result.ResolvedDomain = domain
                         result.Gateway = resolver
+                        result.IsGatewayDomain = true
+                        result.AttributionWarning = fmt.Sprintf(
+                                "DNS analysis resolves %s through public HNS resolver %s. "+
+                                        "DNS infrastructure results (NS/DNSSEC/CAA) and email security results "+
+                                        "reflect the resolver's configuration, not the HNS owner's infrastructure.",
+                                domain, resolver)
                         slog.Info("HNS domain resolved", "input", domain, "resolved", domain, "resolver", resolver)
                         return result
                 }
@@ -184,6 +190,12 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
                 if nsErr == nil && len(nsRecords) > 0 {
                         result.ResolvedDomain = domain
                         result.Gateway = resolver
+                        result.IsGatewayDomain = true
+                        result.AttributionWarning = fmt.Sprintf(
+                                "DNS analysis resolves %s through public HNS resolver %s. "+
+                                        "DNS infrastructure results (NS/DNSSEC/CAA) and email security results "+
+                                        "reflect the resolver's configuration, not the HNS owner's infrastructure.",
+                                domain, resolver)
                         slog.Info("HNS domain resolved via NS", "input", domain, "resolver", resolver)
                         return result
                 }
@@ -192,7 +204,7 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
         }
 
         result.Error = "HNS name could not be resolved via public resolvers"
-        result.AnalysisScope = ScopeWeb3IdentityOnly
+        result.AnalysisScope = ScopeIdentityOnly
         return result
 }
 
