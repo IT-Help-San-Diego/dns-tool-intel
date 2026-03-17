@@ -9,7 +9,6 @@ import (
         "fmt"
         "io"
         "log/slog"
-        "net/http"
         "regexp"
         "strings"
         "time"
@@ -149,24 +148,9 @@ func resolveViaGatewayRedirect(ctx context.Context, ensDomain, gateway string) (
         name := strings.TrimSuffix(strings.ToLower(ensDomain), ".eth")
         targetURL := fmt.Sprintf("https://%s.%s/", name, gateway)
 
-        if !dnsclient.ValidateURLTarget(targetURL) {
-                return "", fmt.Errorf("SSRF protection: target URL blocked")
-        }
+        safeClient := dnsclient.NewSafeHTTPClientWithTimeout(web3ResolutionTimeout)
 
-        noRedirectClient := &http.Client{
-                Timeout: web3ResolutionTimeout,
-                CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                        return http.ErrUseLastResponse
-                },
-        }
-
-        req, err := http.NewRequestWithContext(ctx, http.MethodHead, targetURL, nil)
-        if err != nil {
-                return "", fmt.Errorf("failed to create request: %w", err)
-        }
-        req.Header.Set("User-Agent", "DNS-Tool-Web3-Resolver/1.0")
-
-        resp, err := noRedirectClient.Do(req)
+        resp, err := safeClient.HeadNoRedirect(ctx, targetURL)
         if err != nil {
                 if strings.Contains(err.Error(), "timeout") {
                         return "", fmt.Errorf("gateway timeout")

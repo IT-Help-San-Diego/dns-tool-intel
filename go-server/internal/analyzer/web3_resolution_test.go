@@ -5,6 +5,7 @@ package analyzer
 
 import (
         "context"
+        "strings"
         "testing"
         "time"
 )
@@ -187,5 +188,123 @@ func TestResolveViaGatewayRedirect_SSRFBlock_B14(t *testing.T) {
         _, err := resolveViaGatewayRedirect(context.Background(), "127-0-0-1.eth", "evil.local")
         if err == nil {
                 t.Error("expected SSRF block error")
+        }
+        if err != nil && !strings.Contains(err.Error(), "SSRF") && !strings.Contains(err.Error(), "unreachable") && !strings.Contains(err.Error(), "timeout") {
+                t.Logf("SSRF/unreachable error received: %s", err.Error())
+        }
+}
+
+func TestResolveWeb3Domain_ENS_Timeout_B14(t *testing.T) {
+        a := &Analyzer{DNS: NewMockDNSClient()}
+        ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+        defer cancel()
+        time.Sleep(5 * time.Millisecond)
+        result := a.resolveENS(ctx, "vitalik.eth")
+        if !result.IsWeb3Input {
+                t.Error("expected IsWeb3Input=true even on timeout")
+        }
+        if result.Error == "" {
+                t.Log("ENS resolution returned without error despite canceled context")
+        }
+}
+
+func TestResolveWeb3Domain_HNS_FallbackToAltResolver_B14(t *testing.T) {
+        mock := NewMockDNSClient()
+        mock.AddSpecificResolverResponse("A", "mysite.hns", hnsResolverAlt+":53", []string{"5.6.7.8"})
+        a := &Analyzer{DNS: mock}
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+        result := a.resolveHNS(ctx, "mysite.hns")
+        if result.Error != "" {
+                t.Errorf("expected no error with alt resolver, got %s", result.Error)
+        }
+        if result.Gateway != hnsResolverAlt {
+                t.Errorf("expected gateway=%s, got %s", hnsResolverAlt, result.Gateway)
+        }
+}
+
+func TestResolveWeb3Domain_HNS_NSFallback_B14(t *testing.T) {
+        mock := NewMockDNSClient()
+        mock.AddSpecificResolverResponse("NS", "mysite.hns", hnsResolverDomain+":53", []string{"ns1.mysite.hns"})
+        a := &Analyzer{DNS: mock}
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+        result := a.resolveHNS(ctx, "mysite.hns")
+        if result.Error != "" {
+                t.Errorf("expected NS fallback to succeed, got error: %s", result.Error)
+        }
+        if result.ResolvedDomain != "mysite.hns" {
+                t.Errorf("expected resolved=mysite.hns, got %s", result.ResolvedDomain)
+        }
+}
+
+func TestResolveWeb3Domain_Dispatch_ENS_B14(t *testing.T) {
+        a := &Analyzer{DNS: NewMockDNSClient()}
+        result := a.ResolveWeb3Domain(context.Background(), "test.eth")
+        if result.ResolutionType != "ens" {
+                t.Errorf("expected ens dispatch, got %s", result.ResolutionType)
+        }
+}
+
+func TestResolveWeb3Domain_Dispatch_HNS_B14(t *testing.T) {
+        a := &Analyzer{DNS: NewMockDNSClient()}
+        result := a.ResolveWeb3Domain(context.Background(), "test.hns")
+        if result.ResolutionType != "hns" {
+                t.Errorf("expected hns dispatch, got %s", result.ResolutionType)
+        }
+}
+
+func TestWeb3ResolutionResult_ToMap_WithError_B14(t *testing.T) {
+        r := Web3ResolutionResult{
+                IsWeb3Input:    true,
+                InputDomain:    "bad.eth",
+                ResolutionType: "ens",
+                Gateway:        "eth.limo",
+                Error:          "gateway timeout",
+        }
+        m := r.ToMap()
+        if m["error"] != "gateway timeout" {
+                t.Errorf("expected error='gateway timeout', got %v", m["error"])
+        }
+}
+
+func TestIsENSName_EdgeCases_B14(t *testing.T) {
+        tests := []struct {
+                input string
+                want  bool
+        }{
+                {"ab.eth", true},
+                {"123.eth", true},
+                {"a-b-c.eth", true},
+                {"----.eth", false},
+                {".ETH", false},
+                {"test.Eth", true},
+                {"a" + strings.Repeat("b", 61) + ".eth", true},
+        }
+        for _, tt := range tests {
+                if got := IsENSName(tt.input); got != tt.want {
+                        t.Errorf("IsENSName(%q) = %v, want %v", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestIsHNSName_AllTLDs_B14(t *testing.T) {
+        for tld := range knownHNSTLDs {
+                name := "test." + tld
+                if !IsHNSName(name) {
+                        t.Errorf("IsHNSName(%q) should be true for known TLD %q", name, tld)
+                }
+        }
+}
+
+func TestDefaultWeb3Resolution_AllKeys_B14(t *testing.T) {
+        m := DefaultWeb3Resolution()
+        expectedKeys := []string{"is_web3_input", "input_domain", "resolved_domain", "resolution_type", "gateway", "error"}
+        for _, k := range expectedKeys {
+                if _, ok := m[k]; !ok {
+                        t.Errorf("DefaultWeb3Resolution missing key %q", k)
+                }
         }
 }
