@@ -33,24 +33,58 @@ var (
         }
 )
 
+type InputKind string
+
+const (
+        InputKindDNSDomain InputKind = "dns_domain"
+        InputKindENSName   InputKind = "ens_name"
+        InputKindHNSName   InputKind = "hns_name"
+)
+
+type AnalysisScope string
+
+const (
+        ScopeFullDNS          AnalysisScope = "full_dns"
+        ScopeWeb3IdentityOnly AnalysisScope = "web3_identity_only"
+        ScopeCoreDNSOnly      AnalysisScope = "core_dns_only"
+)
+
 type Web3ResolutionResult struct {
-        IsWeb3Input    bool   `json:"is_web3_input"`
-        InputDomain    string `json:"input_domain"`
-        ResolvedDomain string `json:"resolved_domain"`
-        ResolutionType string `json:"resolution_type"`
-        Gateway        string `json:"gateway"`
-        Error          string `json:"error,omitempty"`
+        IsWeb3Input        bool          `json:"is_web3_input"`
+        InputDomain        string        `json:"input_domain"`
+        ResolvedDomain     string        `json:"resolved_domain"`
+        ResolutionType     string        `json:"resolution_type"`
+        Gateway            string        `json:"gateway"`
+        Error              string        `json:"error,omitempty"`
+        InputKind          InputKind     `json:"input_kind"`
+        AnalysisScope      AnalysisScope `json:"analysis_scope"`
+        IsGatewayDomain    bool          `json:"is_gateway_domain"`
+        AttributionWarning string        `json:"attribution_warning,omitempty"`
 }
 
 func DefaultWeb3Resolution() map[string]any {
         return map[string]any{
-                "is_web3_input":   false,
-                "input_domain":    "",
-                "resolved_domain": "",
-                "resolution_type": "",
-                "gateway":         "",
-                "error":           "",
+                "is_web3_input":        false,
+                "input_domain":         "",
+                "resolved_domain":      "",
+                "resolution_type":      "",
+                "gateway":              "",
+                "error":                "",
+                "input_kind":           string(InputKindDNSDomain),
+                "analysis_scope":       string(ScopeFullDNS),
+                "is_gateway_domain":    false,
+                "attribution_warning":  "",
         }
+}
+
+func ClassifyInput(domain string) InputKind {
+        if IsENSName(domain) {
+                return InputKindENSName
+        }
+        if IsHNSName(domain) {
+                return InputKindHNSName
+        }
+        return InputKindDNSDomain
 }
 
 func IsENSName(domain string) bool {
@@ -89,6 +123,7 @@ func (a *Analyzer) resolveENS(ctx context.Context, domain string) Web3Resolution
                 InputDomain:    domain,
                 ResolutionType: "ens",
                 Gateway:        ensGateway,
+                InputKind:      InputKindENSName,
         }
 
         resolveCtx, cancel := context.WithTimeout(ctx, web3ResolutionTimeout)
@@ -97,17 +132,31 @@ func (a *Analyzer) resolveENS(ctx context.Context, domain string) Web3Resolution
         resolved, err := resolveViaGatewayRedirect(resolveCtx, domain, ensGateway)
         if err != nil {
                 result.Error = fmt.Sprintf("ENS resolution failed: %s", err.Error())
+                result.AnalysisScope = ScopeWeb3IdentityOnly
                 slog.Warn("ENS resolution failed", "domain", domain, "error", err)
                 return result
         }
 
         if resolved != "" && resolved != domain {
                 result.ResolvedDomain = resolved
-                slog.Info("ENS domain resolved", "input", domain, "resolved", resolved, "gateway", ensGateway)
+                result.IsGatewayDomain = isGatewayDomain(resolved, ensGateway)
+                if result.IsGatewayDomain {
+                        result.AnalysisScope = ScopeCoreDNSOnly
+                        result.AttributionWarning = fmt.Sprintf(
+                                "DNS analysis targets gateway domain %s, not the ENS identity %s. "+
+                                        "Email security results (SPF/DKIM/DMARC/MTA-STS/TLSRPT/BIMI) reflect "+
+                                        "the gateway operator's configuration, not the ENS owner's infrastructure.",
+                                resolved, domain)
+                } else {
+                        result.AnalysisScope = ScopeFullDNS
+                }
+                slog.Info("ENS domain resolved", "input", domain, "resolved", resolved, "gateway", ensGateway, "is_gateway", result.IsGatewayDomain)
         } else if resolved == domain {
                 result.ResolvedDomain = domain
+                result.AnalysisScope = ScopeFullDNS
         } else {
                 result.Error = "ENS name did not resolve to a traditional domain"
+                result.AnalysisScope = ScopeWeb3IdentityOnly
         }
 
         return result
@@ -118,6 +167,8 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
                 IsWeb3Input:    true,
                 InputDomain:    domain,
                 ResolutionType: "hns",
+                InputKind:      InputKindHNSName,
+                AnalysisScope:  ScopeFullDNS,
         }
 
         for _, resolver := range []string{hnsResolverDomain, hnsResolverAlt} {
@@ -141,6 +192,7 @@ func (a *Analyzer) resolveHNS(ctx context.Context, domain string) Web3Resolution
         }
 
         result.Error = "HNS name could not be resolved via public resolvers"
+        result.AnalysisScope = ScopeWeb3IdentityOnly
         return result
 }
 
@@ -181,6 +233,10 @@ func resolveViaGatewayRedirect(ctx context.Context, ensDomain, gateway string) (
         return "", fmt.Errorf("gateway returned HTTP %d", resp.StatusCode)
 }
 
+func isGatewayDomain(resolved, gateway string) bool {
+        return strings.HasSuffix(strings.ToLower(resolved), "."+strings.ToLower(gateway))
+}
+
 func extractDomainFromURL(rawURL string) string {
         rawURL = strings.TrimPrefix(rawURL, "https://")
         rawURL = strings.TrimPrefix(rawURL, "http://")
@@ -194,12 +250,17 @@ func extractDomainFromURL(rawURL string) string {
 }
 
 func (r Web3ResolutionResult) ToMap() map[string]any {
-        return map[string]any{
-                "is_web3_input":   r.IsWeb3Input,
-                "input_domain":    r.InputDomain,
-                "resolved_domain": r.ResolvedDomain,
-                "resolution_type": r.ResolutionType,
-                "gateway":         r.Gateway,
-                "error":           r.Error,
+        m := map[string]any{
+                "is_web3_input":        r.IsWeb3Input,
+                "input_domain":         r.InputDomain,
+                "resolved_domain":      r.ResolvedDomain,
+                "resolution_type":      r.ResolutionType,
+                "gateway":              r.Gateway,
+                "error":                r.Error,
+                "input_kind":           string(r.InputKind),
+                "analysis_scope":       string(r.AnalysisScope),
+                "is_gateway_domain":    r.IsGatewayDomain,
+                "attribution_warning":  r.AttributionWarning,
         }
+        return m
 }

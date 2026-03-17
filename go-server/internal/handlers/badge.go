@@ -584,19 +584,19 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
-        protocolCount := 9
+        checkCount := 9
         if web3Detected {
-                protocolCount = 10
+                checkCount = 10
         }
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
-                        cl("[!]", fmt.Sprintf("All %d protocols configured — target is hardened", protocolCount), locked),
+                        cl("[!]", fmt.Sprintf("All %d checks configured — target is hardened", checkCount), locked),
                         cl("[!]", tagline, dimLocked),
                 }
         }
         if vulnerable == 0 {
                 return []covertLine{
-                        cl("[!]", "Protocols hardened — but secrets are leaking", sRed),
+                        cl("[!]", "Infrastructure hardened — but secrets are leaking", sRed),
                         cl("[!]", "Rotate exposed credentials immediately.", alt),
                 }
         }
@@ -605,10 +605,10 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         if vectors <= 2 {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
         } else {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, protocolCount), sRed))
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, checkCount), sRed))
         }
         if findingCount > 0 {
-                lines = append(lines, cl("[!]", "Leaked secrets make protocol gaps worse.", alt))
+                lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
         } else if tagline != "" {
                 lines = append(lines, cl("[!]", tagline, alt))
         }

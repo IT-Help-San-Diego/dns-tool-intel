@@ -103,15 +103,19 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 
         var web3Resolution Web3ResolutionResult
         originalInput := domain
-        if IsWeb3Input(domain) {
+        inputKind := ClassifyInput(domain)
+        if inputKind != InputKindDNSDomain {
                 web3Resolution = a.ResolveWeb3Domain(ctx, domain)
                 if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
                         domain = web3Resolution.ResolvedDomain
-                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain, "type", web3Resolution.ResolutionType)
+                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain,
+                                "type", web3Resolution.ResolutionType, "scope", web3Resolution.AnalysisScope,
+                                "is_gateway", web3Resolution.IsGatewayDomain)
                 } else if web3Resolution.Error != "" {
                         msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", originalInput, web3Resolution.Error)
                         result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
                         result["web3_resolution"] = web3Resolution.ToMap()
+                        result["input_kind"] = string(inputKind)
                         return result
                 }
         }
@@ -132,16 +136,21 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                         if web3Resolution.IsWeb3Input {
                                 result["web3_resolution"] = web3Resolution.ToMap()
                                 result[mapKeyDomain] = originalInput
+                                result["input_kind"] = string(inputKind)
                         }
                         return result
                 }
         }
 
         analysisStart := time.Now()
-        resultsMap, timings := a.runParallelAnalyses(ctx, domain, customDKIMSelectors, analysisStart, options.OnPhaseProgress)
+        scope := web3Resolution.AnalysisScope
+        if scope == "" {
+                scope = ScopeFullDNS
+        }
+        resultsMap, timings := a.runScopedAnalyses(ctx, domain, customDKIMSelectors, analysisStart, options.OnPhaseProgress, scope)
 
         parallelElapsed := time.Since(analysisStart).Seconds()
-        slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf(fmtSeconds, parallelElapsed), "tasks", len(resultsMap))
+        slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf(fmtSeconds, parallelElapsed), "tasks", len(resultsMap), "scope", scope)
 
         results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart)
         timings = append(timings, seqTimings...)
@@ -149,8 +158,12 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         if web3Resolution.IsWeb3Input {
                 results["web3_resolution"] = web3Resolution.ToMap()
                 results["web3_original_input"] = originalInput
+                results["input_kind"] = string(inputKind)
                 if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
                         w3a["resolution_info"] = web3Resolution.ToMap()
+                }
+                if web3Resolution.AttributionWarning != "" {
+                        results["attribution_warning"] = web3Resolution.AttributionWarning
                 }
         }
 
@@ -443,13 +456,40 @@ func (a *Analyzer) discoverSubdomainsWithBudget(parent context.Context, domain s
 }
 
 func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, customDKIMSelectors []string, analysisStart time.Time, progressCb ProgressCallback) (map[string]any, []PhaseTiming) {
+        return a.runScopedAnalyses(ctx, domain, customDKIMSelectors, analysisStart, progressCb, ScopeFullDNS)
+}
+
+var emailProtocolKeys = map[string]bool{
+        mapKeySpfOrch:        true,
+        mapKeyDmarc:          true,
+        mapKeyDkimOrch:       true,
+        mapKeyMtaSts:         true,
+        mapKeyTlsrpt:         true,
+        mapKeyBimi:           true,
+        mapKeySmimeaOpenpgpkey: true,
+}
+
+func (a *Analyzer) buildGatewaySkippedResults() map[string]any {
+        results := make(map[string]any)
+        for key := range emailProtocolKeys {
+                results[key] = map[string]any{mapKeyStatus: "skipped", "reason": "gateway_attribution"}
+        }
+        return results
+}
+
+func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customDKIMSelectors []string, analysisStart time.Time, progressCb ProgressCallback, scope AnalysisScope) (map[string]any, []PhaseTiming) {
         resultsCh := make(chan namedResult, 28)
         var wg sync.WaitGroup
 
         tasks := a.buildCoreTasks(ctx, domain, resultsCh, analysisStart)
 
         if !dnsclient.IsTLDInput(domain) {
-                tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart)...)
+                if scope == ScopeCoreDNSOnly {
+                        gatewayTasks := a.buildGatewayDomainTasks(ctx, domain, resultsCh, analysisStart)
+                        tasks = append(tasks, gatewayTasks...)
+                } else {
+                        tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart)...)
+                }
         }
 
         for _, fn := range tasks {
@@ -466,6 +506,12 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
         }()
 
         resultsMap := make(map[string]any)
+        if scope == ScopeCoreDNSOnly {
+                for k, v := range a.buildGatewaySkippedResults() {
+                        resultsMap[k] = v
+                }
+        }
+
         var timings []PhaseTiming
         for nr := range resultsCh {
                 resultsMap[nr.key] = nr.result
@@ -483,6 +529,15 @@ func (a *Analyzer) runParallelAnalyses(ctx context.Context, domain string, custo
                 }
         }
         return resultsMap, timings
+}
+
+func (a *Analyzer) buildGatewayDomainTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time) []func() {
+        return []func(){
+                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
+                timedTask(ch, mapKeySecurityTxt, t0, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                timedTask(ch, mapKeyAiSurface, t0, func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                timedTask(ch, mapKeySecretExposure, t0, func() any { return a.ScanSecretExposure(ctx, domain) }),
+        }
 }
 
 func buildRecordCurrencies(resolverTTLMap map[string]uint32) []icuae.RecordCurrency {

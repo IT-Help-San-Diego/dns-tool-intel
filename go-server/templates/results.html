@@ -2927,6 +2927,9 @@
                             {{else}}
                             <span class="badge bg-danger ms-2">Failed</span>
                             {{end}}
+                            {{if mapGetBool "is_gateway_domain" $web3res}}
+                            <span class="badge bg-warning text-dark ms-2">Gateway Domain</span>
+                            {{end}}
                         </h5>
                     </div>
                     <div class="card-body">
@@ -2938,9 +2941,13 @@
                                         <td><code>{{mapGetStr "input_domain" $web3res}}</code></td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted fw-semibold">Type</td>
+                                        <td class="text-muted fw-semibold">Input Kind</td>
                                         <td>
-                                            {{if eq (mapGetStr "resolution_type" $web3res) "ens"}}
+                                            {{if eq (mapGetStr "input_kind" $web3res) "ens_name"}}
+                                            <span class="badge bg-primary">ENS (Ethereum Name Service)</span>
+                                            {{else if eq (mapGetStr "input_kind" $web3res) "hns_name"}}
+                                            <span class="badge bg-warning text-dark">HNS (Handshake)</span>
+                                            {{else if eq (mapGetStr "resolution_type" $web3res) "ens"}}
                                             <span class="badge bg-primary">ENS (Ethereum Name Service)</span>
                                             {{else if eq (mapGetStr "resolution_type" $web3res) "hns"}}
                                             <span class="badge bg-warning text-dark">HNS (Handshake)</span>
@@ -2957,12 +2964,28 @@
                                         <td class="text-muted fw-semibold">Gateway</td>
                                         <td><code>{{mapGetStr "gateway" $web3res}}</code></td>
                                     </tr>
+                                    <tr>
+                                        <td class="text-muted fw-semibold">Analysis Scope</td>
+                                        <td>
+                                            {{if eq (mapGetStr "analysis_scope" $web3res) "core_dns_only"}}
+                                            <span class="badge bg-info">Core DNS Only</span>
+                                            {{else if eq (mapGetStr "analysis_scope" $web3res) "web3_identity_only"}}
+                                            <span class="badge bg-secondary">Web3 Identity Only</span>
+                                            {{else}}
+                                            <span class="badge bg-success">Full DNS</span>
+                                            {{end}}
+                                        </td>
+                                    </tr>
                                 </table>
                             </div>
                             <div class="col-md-6">
                                 {{if mapGetStr "error" $web3res}}
                                 <div class="alert alert-warning mb-0 small">
                                     {{icon "alert-triangle" "me-1"}}{{mapGetStr "error" $web3res}}
+                                </div>
+                                {{else if mapGetStr "attribution_warning" $web3res}}
+                                <div class="alert alert-warning mb-0 small">
+                                    {{icon "alert-triangle" "me-1"}}{{mapGetStr "attribution_warning" $web3res}}
                                 </div>
                                 {{else}}
                                 <div class="alert alert-info mb-0 small">
@@ -2977,15 +3000,22 @@
         </div>
         {{end}}
 
-        <!-- Web3 Domain Analysis Section -->
-        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}
+        <!-- Web3 Domain Analysis Section — shown when detected OR when input is ENS/HNS -->
+        {{$showWeb3Section := false}}
+        {{if and $web3 (mapGetBool "detected" $web3) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
+        {{if and $web3res (mapGetBool "is_web3_input" $web3res) (not .IsPublicSuffix)}}{{$showWeb3Section = true}}{{end}}
+        {{if $showWeb3Section}}
         <div class="row section-web3" id="section-web3">
             <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0 d-flex align-items-center justify-content-between flex-wrap">
                             <span>{{icon "globe" "me-2"}}Web3 Domain Analysis</span>
+                            {{if and $web3 (mapGetBool "detected" $web3)}}
                             <span class="badge bg-warning text-dark ms-2">{{icon "check-circle" "me-1"}}Detected</span>
+                            {{else}}
+                            <span class="badge bg-secondary ms-2">{{icon "info" "me-1"}}Web3 Input</span>
+                            {{end}}
                             <span class="section-question dt-question dt-question--section">Does this domain use Web3 infrastructure — and is it properly secured?</span>
                         </h5>
                     </div>
@@ -2993,18 +3023,23 @@
                         {{$web3Indicators := mapGetSlice "indicators" $web3}}
                         {{$web3Count := mapGetInt "indicator_count" $web3}}
 
+                        {{if and $web3 (mapGetBool "detected" $web3)}}
                         <p class="text-muted mb-3 small">{{$web3Count}} Web3 indicator{{if ne $web3Count 1}}s{{end}} detected in DNS records</p>
+                        {{else if and $web3res (mapGetBool "is_web3_input" $web3res)}}
+                        <p class="text-muted mb-3 small">Web3 input analyzed — no additional Web3 indicators found in DNS records of the resolved domain.</p>
+                        {{end}}
 
                         {{if $web3Indicators}}
                         <div class="mb-3">
                             <h6 class="text-info">{{icon "search" "me-1"}} Web3 Indicators</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-dark mb-0">
-                                    <thead><tr><th>Type</th><th>Value</th><th>Description</th><th>Link</th></tr></thead>
+                                    <thead><tr><th>Type</th><th>Evidence</th><th>Value</th><th>Description</th><th>Link</th></tr></thead>
                                     <tbody>
                                     {{range $web3Indicators}}
                                         <tr>
                                             <td><span class="badge bg-warning text-dark">{{mapGetStr "type" .}}</span></td>
+                                            <td><span class="badge bg-secondary">{{mapGetStr "evidence_class" .}}</span></td>
                                             <td class="font-monospace small">{{mapGetStr "value" .}}</td>
                                             <td class="small">{{mapGetStr "description" .}}</td>
                                             <td>{{$link := mapGetStr "link" .}}{{if $link}}<a href="{{$link}}" target="_blank" rel="noopener" class="text-info">{{icon "external-link-alt" "me-1"}}View</a>{{else}}<span class="text-muted">—</span>{{end}}</td>
@@ -3022,13 +3057,20 @@
                             <h6 class="text-info">{{icon "link" "me-1"}} IPFS Content Addressing</h6>
                             <div class="small">
                                 <strong>CID:</strong> <code>{{$dnslinkCID}}</code>
+                                {{$dnslinkSrc := mapGetStr "dnslink_source" $web3}}
+                                {{if $dnslinkSrc}}
+                                <span class="badge bg-secondary ms-2">via {{$dnslinkSrc}}</span>
+                                {{end}}
                                 {{$ipfsURL := mapGetStr "ipfs_gateway_url" $web3}}
                                 {{if $ipfsURL}}
                                     <a href="{{$ipfsURL}}" target="_blank" rel="noopener" class="ms-2 text-info">{{icon "external-link-alt" "me-1"}}Open via gateway</a>
                                 {{end}}
                             </div>
                             {{if mapGetBool "ipfs_reachable" $web3}}
-                                <div class="alert alert-success py-2 small mt-2">{{icon "check-circle" "me-1"}} Content reachable via public IPFS gateway</div>
+                                <div class="alert alert-success py-2 small mt-2">
+                                    {{icon "check-circle" "me-1"}} Content reachable via public IPFS gateway
+                                    <span class="text-muted ms-2">(gateway-trusted retrieval — persistence not verified)</span>
+                                </div>
                             {{else}}
                                 {{$ipfsErr := mapGetStr "ipfs_error" $web3}}
                                 {{if $ipfsErr}}
