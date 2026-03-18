@@ -53,10 +53,10 @@
                                         <td><code>{{.AsciiDomain}}</code></td>
                                         <td>{{.TotalDurationMs}}ms</td>
                                         <td>{{.PhaseCount}}</td>
-                                        <td style="min-width:200px">
+                                        <td class="u-gantt-col">
                                             <div class="gantt-bar" data-analysis-id="{{.AnalysisID}}" data-total-ms="{{.TotalDurationMs}}">
-                                                <div class="progress" style="height:14px;background:#1c2128;border-radius:3px">
-                                                    <div class="progress-bar" role="progressbar" style="width:100%;background:linear-gradient(90deg,#5c6bc0 0%,#4fc3f7 20%,#81c784 40%,#78909c 55%,#ffb74d 70%,#ce93d8 85%,#e0e0e0 100%);opacity:0.8;border-radius:3px" aria-valuenow="{{.TotalDurationMs}}" aria-valuemin="0" aria-valuemax="{{.TotalDurationMs}}"></div>
+                                                <div class="progress u-gantt-progress">
+                                                    <div class="progress-bar u-gantt-bar-fill" role="progressbar" aria-valuenow="{{.TotalDurationMs}}" aria-valuemin="0" aria-valuemax="{{.TotalDurationMs}}"></div>
                                                 </div>
                                                 <div class="d-flex justify-content-between mt-0">
                                                     <span class="u-text-075 text-muted">0s</span>
@@ -92,7 +92,7 @@
                     </div>
                     <div class="card-body">
                         {{if .Trends}}
-                        <div id="trendChart" style="overflow-x:auto"></div>
+                        <div id="trendChart" class="u-trend-scroll"></div>
                         {{else}}
                         <p class="text-center text-muted py-4">No trend data available yet. Trends appear after multiple scans over several days.</p>
                         {{end}}
