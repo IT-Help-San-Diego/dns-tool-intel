@@ -80,17 +80,17 @@
         }
         .doc-link:last-child { border-bottom: none; }
         .doc-link .doc-type {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.06em;
             background: var(--bs-primary-bg-subtle, #1a2744);
             color: var(--bs-primary-text-emphasis, #6ea8fe);
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
             white-space: nowrap;
-            min-width: 5.5rem;
-            text-align: center;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
         }
         .endpoint-row {
             display: flex;
@@ -122,7 +122,7 @@
 
         <div class="cite-card">
             <h3><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Recommended Citation</h3>
-            <div class="cite-block" id="citation-text">Balboa, C. J. ({{.Year}}). {{.Title}} (Version {{.Version}}) [Computer software]. https://doi.org/{{.DOI}}</div>
+            <div class="cite-block" id="citation-text">Balboa, C. J. ({{.Year}}). {{.Title}} (Version {{.Version}}) [Computer software]. https://doi.org/{{.DOI}}<button class="copy-btn btn btn-outline-secondary" onclick="copyCitation()" aria-label="Copy citation">Copy</button></div>
         </div>
 
         <div class="row g-3 mb-3">
@@ -249,5 +249,8 @@
     </main>
 
     {{template "footer" .}}
+    <script nonce="{{.CspNonce}}">
+    function copyCitation(){var e=document.getElementById('citation-text'),t=e.textContent.replace(/\s*Copy\s*$/,'').trim();navigator.clipboard.writeText(t).then(function(){var b=e.querySelector('.copy-btn');b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},2000)});}
+    </script>
 </body>
 </html>
