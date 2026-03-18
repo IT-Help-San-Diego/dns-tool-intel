@@ -149,6 +149,8 @@ func main() {
         }
         defer database.Close()
 
+        database.RunSeedMigrations("go-server/db/migrations")
+
         logger, err := logging.Setup(database.Pool, cfg.DiscordWebhookURL)
         if err != nil {
                 slog.Warn("Structured logger setup failed, continuing with default", mapKeyError, err)
