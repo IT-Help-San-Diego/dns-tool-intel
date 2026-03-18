@@ -3,162 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Philosophical Foundations for Security Analysis Communication</title>
+<link rel="stylesheet" href="pdf-base.css">
 <style>
-  @page {
-    size: letter;
-    margin: 1in 1.1in;
-  }
-  body {
-    font-family: "Times New Roman", Georgia, serif;
-    font-size: 11.5pt;
-    line-height: 1.55;
-    color: #1a1a1a;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  .cover-header {
-    text-align: center;
-    margin-bottom: 28pt;
-    padding-bottom: 18pt;
-    border-bottom: 1.5pt solid #C8A878;
-  }
-  .cover-header img {
-    width: 130px;
-    height: 130px;
-    margin-bottom: 14pt;
-    background: #0d1117;
-    border-radius: 50%;
-    padding: 2px;
-    border: 2.5px solid #C8A878;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 8px rgba(0,0,0,0.3);
-  }
-  .cover-header h1 {
-    font-size: 20pt;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 6pt 0 4pt 0;
-    letter-spacing: 0.03em;
-  }
-  .cover-header .subtitle {
-    font-size: 12pt;
-    color: #555;
-    font-style: italic;
-    margin: 0 0 14pt 0;
-  }
-  .metadata-block {
-    text-align: center;
-    font-size: 9.5pt;
-    color: #444;
-    line-height: 1.7;
-    margin-bottom: 6pt;
-  }
-  .metadata-block .author-name {
-    font-size: 13pt;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin: 0 0 4pt 0;
-  }
-  .metadata-block a {
-    color: #2a5d9f;
-    text-decoration: none;
-  }
-  .meta-label {
-    font-weight: 600;
-    color: #666;
-    text-transform: uppercase;
-    font-size: 8pt;
-    letter-spacing: 0.08em;
-  }
-  h2 {
-    font-size: 14pt;
-    font-weight: 700;
-    color: #1a1a1a;
-    border-bottom: 0.75pt solid #C8A878;
-    padding-bottom: 4pt;
-    margin: 22pt 0 10pt 0;
-  }
-  h3 {
-    font-size: 12pt;
-    font-weight: 600;
-    color: #333;
-    margin: 14pt 0 6pt 0;
-  }
-  p {
-    margin: 0 0 8pt 0;
-    text-align: justify;
-  }
-  ul {
-    margin: 4pt 0 10pt 0;
-    padding-left: 18pt;
-  }
-  li {
-    margin-bottom: 3pt;
-  }
-  ol {
-    margin: 4pt 0 10pt 0;
-    padding-left: 22pt;
-  }
-  strong {
-    font-weight: 600;
-  }
-  .section-abstract {
-    font-size: 10.5pt;
-    color: #333;
-    background: #fafaf8;
-    border-left: 3pt solid #C8A878;
-    padding: 10pt 14pt;
-    margin: 12pt 0 18pt 0;
-  }
-  code, pre {
-    font-family: "Courier New", monospace;
-    font-size: 9pt;
-    background: #f5f5f2;
-    padding: 1pt 4pt;
-    border-radius: 2pt;
-  }
-  pre {
-    padding: 10pt 14pt;
-    overflow-x: auto;
-    border: 0.5pt solid #ddd;
-    margin: 8pt 0 12pt 0;
-  }
-  .citation-block {
-    background: #f5f5f2;
-    border: 0.5pt solid #ddd;
-    padding: 10pt 14pt;
-    font-family: "Courier New", monospace;
-    font-size: 9pt;
-    margin: 8pt 0;
-    line-height: 1.5;
-  }
-  hr {
-    border: none;
-    border-top: 0.5pt solid #ccc;
-    margin: 20pt 0;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 9.5pt;
-    margin: 8pt 0 14pt 0;
-  }
-  th {
-    background: #f5f5f2;
-    border: 0.5pt solid #ddd;
-    padding: 5pt 8pt;
-    text-align: left;
-    font-weight: 600;
-    font-size: 8.5pt;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #444;
-  }
-  td {
-    border: 0.5pt solid #ddd;
-    padding: 4pt 8pt;
-    vertical-align: top;
-  }
   .lane-tag {
     display: inline-block;
     font-size: 7pt;
@@ -182,38 +28,45 @@
     margin: 10pt 0 16pt 0;
     text-align: center;
   }
-  .footer {
-    text-align: center;
-    font-size: 8.5pt;
-    color: #888;
-    margin-top: 28pt;
-    padding-top: 10pt;
-    border-top: 0.75pt solid #C8A878;
-    line-height: 1.6;
-  }
-  .footer a {
-    color: #2a5d9f;
-    text-decoration: none;
-  }
 </style>
 </head>
 <body>
 
-<div class="cover-header">
-  <img src="../static/images/owl-signature.png" alt="Owl of Athena">
-  <h1>DNS Tool</h1>
-  <p class="subtitle">Philosophical Foundations for Security Analysis Communication</p>
+<div class="authority-header">
+  <div class="authority-top">
+    <div class="authority-brand">
+      <p class="authority-brand-name">IT Help San Diego</p>
+      <p class="authority-brand-tagline">We solve tech problems. No monthly retainers.</p>
+    </div>
+    <div class="authority-contact">
+      Carey Balboa&ensp;|&ensp;Director of Technology<br>
+      ORCID: <a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a><br>
+      Research artifact: DNS Tool (DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a>)<br>
+      <a href="mailto:carey.balboa@it-help.tech">carey.balboa@it-help.tech</a><br>
+      <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&ensp;|&ensp;<a href="https://www.it-help.tech">www.it-help.tech</a>
+    </div>
+  </div>
 
-  <div class="metadata-block">
+  <div class="authority-logo">
+    <img src="../static/images/owl-signature.png" alt="Owl of Athena">
+  </div>
+
+  <div class="authority-title">
+    <h1>DNS Tool</h1>
+    <p class="subtitle">Philosophical Foundations for Security Analysis Communication</p>
+  </div>
+
+  <div class="authority-meta">
     <p class="author-name">Carey James Balboa</p>
+    <p class="author-role">Independent DNS Security Researcher</p>
     <p>
-      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a><br>
+      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a>&emsp;
       <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
-      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a><br>
+      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&emsp;
       <span class="meta-label">Source</span>&ensp;<a href="https://github.com/careyjames/dns-tool-web">github.com/careyjames/dns-tool-web</a><br>
-      <span class="meta-label">Version</span>&ensp;26.35.40&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+      <span class="meta-label">Version</span>&ensp;26.37.26&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
     </p>
-    <p style="font-style: italic; font-size: 10pt; color: #555; margin-top: 10pt;">Companion artifact to &ldquo;Confidence-Scored Analysis of Domain Security Infrastructure&rdquo;</p>
+    <p class="artifact-note">Companion artifact to &ldquo;Confidence-Scored Analysis of Domain Security Infrastructure&rdquo;</p>
   </div>
 </div>
 
@@ -304,7 +157,7 @@ This document identifies those structures, traces their academic lineage, provid
 
 <hr>
 
-<h2>3. Aristotelian Analytical Categories and the Five Perspectives</h2>
+<h2 class="page-break">3. Aristotelian Analytical Categories and the Five Perspectives</h2>
 
 <h3>3.1 The Claim</h3>
 <p>DNS Tool&rsquo;s Five Perspectives architecture &mdash; Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro &mdash; maps to Aristotelian analytical categories drawn from <em>Rhetoric</em> (ethos, pathos, logos) and <em>Nicomachean Ethics</em> (phronesis, techne). This mapping is structural, not decorative: each perspective embodies a distinct mode of analytical reasoning that corresponds to a classical category.</p>
@@ -377,7 +230,7 @@ This document identifies those structures, traces their academic lineage, provid
 
 <hr>
 
-<h2>4. Narrative Architecture Matrix</h2>
+<h2 class="page-break">4. Narrative Architecture Matrix</h2>
 
 <h3>4.1 Purpose</h3>
 <p>The Narrative Architecture Matrix is an infrastructure artifact &mdash; not a style guide. It maps every content zone in the platform to its story structure, applicable narrative lenses, claim protection status, and the archetype(s) it primarily serves. The goal is maintainability: if a new analytical framework is incorporated in the future, the matrix shows exactly which content zones it touches and which claim boundaries it must respect.</p>
@@ -425,7 +278,7 @@ This document identifies those structures, traces their academic lineage, provid
   </tr>
   <tr>
     <td>Protocol Findings</td>
-    <td>Kishōtenketsu</td>
+    <td>Kish&#333;tenketsu</td>
     <td>DNS Engineer, Intelligence Officer</td>
     <td>PROTECTED</td>
   </tr>
@@ -491,7 +344,60 @@ This document identifies those structures, traces their academic lineage, provid
   </tr>
 </table>
 
-<h3>4.4 Future Extension Protocol</h3>
+<h3>4.4 Narrative Lenses Registry</h3>
+<p>Lenses are NOT archetypes. They are voice/framing layers that can be applied to CREATIVE-SAFE content across any archetype.</p>
+<table>
+  <tr>
+    <th>Lens</th>
+    <th>Description</th>
+    <th>Primary Affinity</th>
+    <th>Application Boundary</th>
+  </tr>
+  <tr>
+    <td><strong>Fable</strong></td>
+    <td>Mythology, metaphor, wisdom stories, narrative patterns from classical tradition</td>
+    <td>The Hacker</td>
+    <td>Intros, outros, contextual framing. Never on findings, never on citations.</td>
+  </tr>
+  <tr>
+    <td><strong>Logic Chain</strong></td>
+    <td>Step-by-step reasoning, mathematical proof structure, RFC citation chains</td>
+    <td>The DNS Engineer</td>
+    <td>Findings, methodology, verification commands. Always PROTECTED.</td>
+  </tr>
+  <tr>
+    <td><strong>Tactical</strong></td>
+    <td>Mission-oriented, adversarial framing, time-to-fix urgency</td>
+    <td>The Hacker, The IT Pro</td>
+    <td>Covert mode, remediation, attack surface descriptions.</td>
+  </tr>
+  <tr>
+    <td><strong>Consequence</strong></td>
+    <td>Business impact, risk quantification with confidence qualifiers, strategic clarity</td>
+    <td>The Executive</td>
+    <td>Executive brief, posture summaries, Big Questions framing.</td>
+  </tr>
+  <tr>
+    <td><strong>Practical</strong></td>
+    <td>Step-by-step instructions, provider-aware guidance, copy-paste commands</td>
+    <td>The IT Pro</td>
+    <td>Remediation, TTL tuner, fix steps. Always PROTECTED for commands.</td>
+  </tr>
+  <tr>
+    <td><strong>Epistemic</strong></td>
+    <td>Confidence levels, uncertainty quantification, calibration transparency</td>
+    <td>The Intelligence Officer</td>
+    <td>Confidence documentation, ICAE/ICuAE, EDE register. Always PROTECTED.</td>
+  </tr>
+  <tr>
+    <td><strong>Founder&rsquo;s Voice</strong></td>
+    <td>Personal, direct, metacognitive &mdash; the voice of the builder reflecting on the process</td>
+    <td>All (contextual)</td>
+    <td>Mission statement, origin story, EDE philosophical context. CREATIVE-SAFE.</td>
+  </tr>
+</table>
+
+<h3>4.5 Future Extension Protocol</h3>
 <p>When a new philosophical, analytical, or scientific framework is proposed for incorporation:</p>
 <ol>
   <li><strong>Identify the lane</strong> (Protocol Science, Human Factors, or Philosophy of Analysis)</li>
@@ -504,7 +410,7 @@ This document identifies those structures, traces their academic lineage, provid
 
 <hr>
 
-<h2>5. Citation Matrix</h2>
+<h2 class="page-break">5. Citation Matrix</h2>
 <p>All citations organized by discipline lane. Each citation has one primary lane and may include secondary relevance tags, reflecting the interdisciplinary nature of the literature. Strict single-lane assignment would be administratively clean but academically dishonest for inherently cross-disciplinary sources.</p>
 
 <h3>5.1 <span class="lane-tag lane-philosophy">Philosophy of Analysis</span></h3>
@@ -565,6 +471,7 @@ This document identifies those structures, traces their academic lineage, provid
 
 <hr>
 
+<h2>Citation</h2>
 <div class="citation-block">
 @misc{balboa2026philfound,<br>
 &nbsp;&nbsp;author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Balboa, Carey James},<br>
@@ -576,8 +483,9 @@ This document identifies those structures, traces their academic lineage, provid
 </div>
 
 <div class="footer">
-  DNS Tool &middot; IT Help San Diego Inc. &middot; Licensed under BUSL-1.1<br>
-  DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a> &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>
+  <p>DNS Tool v26.37.26 &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a> &middot; DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a></p>
+  <p>&copy; 2024&ndash;2026 IT Help San Diego Inc. &middot; Licensed under BUSL-1.1</p>
+  <p>888 Prospect Street, Suite 200 &middot; La Jolla, CA 92037</p>
 </div>
 
 </body>
