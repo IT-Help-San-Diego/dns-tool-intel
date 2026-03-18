@@ -453,7 +453,7 @@ func countMissing(nodes []protocolNode) int {
 func countVulnerable(nodes []protocolNode) int {
         count := 0
         for _, n := range nodes {
-                if n.status != "success" && n.status != "warning" {
+                if n.status != "success" && n.status != "warning" && n.status != "info" {
                         count++
                 }
         }
@@ -935,7 +935,7 @@ func protocolGroupColor(abbrev string) string {
                 return "#81c784"
         case "BIMI":
                 return "#ce93d8"
-        case "W3":
+        case "Web3":
                 return "#d4a853"
         default:
                 return "#484f58"
@@ -950,6 +950,8 @@ func protocolStatusToNodeColor(status, groupColor string) string {
                 return hexYellow
         case "error":
                 return hexRed
+        case "info":
+                return groupColor
         default:
                 return hexDimGrey
         }
@@ -974,7 +976,7 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
         protocols = append(protocols, struct {
                 key    string
                 abbrev string
-        }{"web3_analysis", "W3"})
+        }{"web3_analysis", "Web3"})
 
         web3St := extractWeb3Status(results)
 
@@ -984,7 +986,7 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 if p.key == "web3_analysis" {
                         if web3St == "success" {
                                 status = "success"
-                        } else if web3St != "" {
+                        } else {
                                 status = "info"
                         }
                 } else if analysisRaw, ok := results[p.key]; ok {
