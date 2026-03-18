@@ -476,6 +476,9 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 
                 h.snapshotICAEMetrics(ctx, results)
 
+                telRaw := results["_scan_telemetry"]
+                delete(results, "_scan_telemetry")
+
                 isPrivate := hasNovelSelectors && isAuthenticated
                 analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
                         domain:            domain,
@@ -492,7 +495,7 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                         devNull:           devNull,
                 })
 
-                h.storeTelemetry(ctx, analysisID, results, ephemeral)
+                h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
 
                 analysisSuccess, _ := extractAnalysisError(results)
                 h.handlePostAnalysisSideEffectsAsync(ctx, sideEffectsParams{
@@ -522,18 +525,19 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 }
 
 func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
-        if ephemeral || analysisID == 0 {
-                return
-        }
-        telRaw, ok := results["_scan_telemetry"]
-        if !ok {
+        telRaw := results["_scan_telemetry"]
+        delete(results, "_scan_telemetry")
+        h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
+}
+
+func (h *AnalysisHandler) storeTelemetryFromRaw(_ context.Context, analysisID int32, telRaw any, ephemeral bool) {
+        if ephemeral || analysisID == 0 || telRaw == nil {
                 return
         }
         tel, ok := telRaw.(analyzer.ScanTelemetry)
         if !ok {
                 return
         }
-        delete(results, "_scan_telemetry")
 
         go func() {
                 bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
