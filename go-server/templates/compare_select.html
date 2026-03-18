@@ -69,29 +69,35 @@
                                     </td>
                                     <td>
                                         {{if eq $a.SpfStatus "success"}}
-                                            <span class="badge bg-success">SPF</span>
-                                        {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
-                                            <span class="badge bg-danger">{{icon "times" "me-1"}}SPF</span>
+                                            <span class="proto-badge proto-badge--success proto-spf">SPF</span>
+                                        {{else if eq $a.SpfStatus "warning"}}
+                                            <span class="proto-badge proto-badge--warning proto-spf">SPF</span>
+                                        {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                                            <span class="proto-badge proto-badge--danger proto-spf">SPF</span>
                                         {{else}}
-                                            <span class="text-muted">-</span>
+                                            <span class="proto-badge proto-badge--neutral proto-spf">SPF</span>
                                         {{end}}
                                     </td>
                                     <td>
                                         {{if eq $a.DmarcStatus "success"}}
-                                            <span class="badge bg-success">DMARC</span>
-                                        {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
-                                            <span class="badge bg-danger">{{icon "times" "me-1"}}DMARC</span>
+                                            <span class="proto-badge proto-badge--success proto-dmarc">DMARC</span>
+                                        {{else if eq $a.DmarcStatus "warning"}}
+                                            <span class="proto-badge proto-badge--warning proto-dmarc">DMARC</span>
+                                        {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                                            <span class="proto-badge proto-badge--danger proto-dmarc">DMARC</span>
                                         {{else}}
-                                            <span class="text-muted">-</span>
+                                            <span class="proto-badge proto-badge--neutral proto-dmarc">DMARC</span>
                                         {{end}}
                                     </td>
                                     <td>
                                         {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
-                                            <span class="badge bg-success">DKIM</span>
+                                            <span class="proto-badge proto-badge--success proto-dkim">DKIM</span>
                                         {{else if eq $a.DkimStatus "info"}}
-                                            <span class="badge bg-secondary">DKIM</span>
+                                            <span class="proto-badge proto-badge--info proto-dkim">DKIM</span>
+                                        {{else if or (eq $a.DkimStatus "error") (eq $a.DkimStatus "missing") (eq $a.DkimStatus "warning")}}
+                                            <span class="proto-badge proto-badge--danger proto-dkim">DKIM</span>
                                         {{else}}
-                                            <span class="text-muted">-</span>
+                                            <span class="proto-badge proto-badge--neutral proto-dkim">DKIM</span>
                                         {{end}}
                                     </td>
                                     <td>

@@ -208,21 +208,33 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-1">
+                                        <div class="proto-badge-row">
                                             {{if eq $a.SpfStatus "success"}}
-                                                <span class="badge bg-success" title="SPF configured">SPF</span>
-                                            {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
-                                                <span class="badge bg-danger" title="SPF missing or misconfigured">{{icon "times" "me-1"}}SPF</span>
+                                                <span class="proto-badge proto-badge--success proto-spf" title="SPF configured">SPF</span>
+                                            {{else if eq $a.SpfStatus "warning"}}
+                                                <span class="proto-badge proto-badge--warning proto-spf" title="SPF configured with warnings">SPF</span>
+                                            {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                                                <span class="proto-badge proto-badge--danger proto-spf" title="SPF missing or misconfigured">SPF</span>
+                                            {{else}}
+                                                <span class="proto-badge proto-badge--neutral proto-spf" title="SPF status unknown">SPF</span>
                                             {{end}}
                                             {{if eq $a.DmarcStatus "success"}}
-                                                <span class="badge bg-success" title="DMARC configured">DMARC</span>
-                                            {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
-                                                <span class="badge bg-danger" title="DMARC missing or misconfigured">{{icon "times" "me-1"}}DMARC</span>
+                                                <span class="proto-badge proto-badge--success proto-dmarc" title="DMARC configured">DMARC</span>
+                                            {{else if eq $a.DmarcStatus "warning"}}
+                                                <span class="proto-badge proto-badge--warning proto-dmarc" title="DMARC configured in monitoring mode">DMARC</span>
+                                            {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                                                <span class="proto-badge proto-badge--danger proto-dmarc" title="DMARC missing or misconfigured">DMARC</span>
+                                            {{else}}
+                                                <span class="proto-badge proto-badge--neutral proto-dmarc" title="DMARC status unknown">DMARC</span>
                                             {{end}}
                                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
-                                                <span class="badge bg-success" title="DKIM found">DKIM</span>
+                                                <span class="proto-badge proto-badge--success proto-dkim" title="DKIM found">DKIM</span>
                                             {{else if eq $a.DkimStatus "info"}}
-                                                <span class="badge bg-info" title="DKIM not auto-discoverable (selectors unknown)">DKIM</span>
+                                                <span class="proto-badge proto-badge--info proto-dkim" title="DKIM not auto-discoverable (selectors unknown)">DKIM</span>
+                                            {{else if or (eq $a.DkimStatus "error") (eq $a.DkimStatus "missing") (eq $a.DkimStatus "warning")}}
+                                                <span class="proto-badge proto-badge--danger proto-dkim" title="DKIM missing or misconfigured">DKIM</span>
+                                            {{else}}
+                                                <span class="proto-badge proto-badge--neutral proto-dkim" title="DKIM status unknown">DKIM</span>
                                             {{end}}
                                         </div>
                                     </td>
@@ -292,21 +304,33 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="d-flex flex-wrap align-items-center gap-1 small">
+                        <div class="proto-badge-row small">
                             {{if eq $a.SpfStatus "success"}}
-                                <span class="badge bg-success u-fs-065rem">SPF</span>
-                            {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
-                                <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}SPF</span>
+                                <span class="proto-badge proto-badge--compact proto-badge--success proto-spf">SPF</span>
+                            {{else if eq $a.SpfStatus "warning"}}
+                                <span class="proto-badge proto-badge--compact proto-badge--warning proto-spf">SPF</span>
+                            {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                                <span class="proto-badge proto-badge--compact proto-badge--danger proto-spf">SPF</span>
+                            {{else}}
+                                <span class="proto-badge proto-badge--compact proto-badge--neutral proto-spf">SPF</span>
                             {{end}}
                             {{if eq $a.DmarcStatus "success"}}
-                                <span class="badge bg-success u-fs-065rem">DMARC</span>
-                            {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
-                                <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}DMARC</span>
+                                <span class="proto-badge proto-badge--compact proto-badge--success proto-dmarc">DMARC</span>
+                            {{else if eq $a.DmarcStatus "warning"}}
+                                <span class="proto-badge proto-badge--compact proto-badge--warning proto-dmarc">DMARC</span>
+                            {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                                <span class="proto-badge proto-badge--compact proto-badge--danger proto-dmarc">DMARC</span>
+                            {{else}}
+                                <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dmarc">DMARC</span>
                             {{end}}
                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
-                                <span class="badge bg-success u-fs-065rem">DKIM</span>
+                                <span class="proto-badge proto-badge--compact proto-badge--success proto-dkim">DKIM</span>
                             {{else if eq $a.DkimStatus "info"}}
-                                <span class="badge bg-info u-fs-065rem">DKIM</span>
+                                <span class="proto-badge proto-badge--compact proto-badge--info proto-dkim">DKIM</span>
+                            {{else if or (eq $a.DkimStatus "error") (eq $a.DkimStatus "missing") (eq $a.DkimStatus "warning")}}
+                                <span class="proto-badge proto-badge--compact proto-badge--danger proto-dkim">DKIM</span>
+                            {{else}}
+                                <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dkim">DKIM</span>
                             {{end}}
                             <span class="text-muted ms-auto u-fs-070rem">
                                 {{$a.CreatedDate}} {{$a.CreatedTime}}

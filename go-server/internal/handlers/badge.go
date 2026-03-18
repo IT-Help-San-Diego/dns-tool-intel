@@ -453,7 +453,7 @@ func countMissing(nodes []protocolNode) int {
 func countVulnerable(nodes []protocolNode) int {
         count := 0
         for _, n := range nodes {
-                if n.status != "success" && n.status != "warning" {
+                if n.status != "success" && n.status != "warning" && n.status != "info" {
                         count++
                 }
         }
@@ -597,10 +597,7 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
-        checkCount := 9
-        if web3Detected {
-                checkCount = 10
-        }
+        checkCount := 10
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
                         cl("[!]", fmt.Sprintf("All %d checks configured — target is hardened", checkCount), locked),
@@ -615,15 +612,20 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         }
         vectors := vulnerable + findingCount
         var lines []covertLine
-        if vectors <= 2 {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
+        if vectors <= 2 && vulnerable <= 1 {
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), locked))
+                if findingCount > 0 {
+                        lines = append(lines, cl("[!]", "Rotate exposed credentials.", alt))
+                } else if tagline != "" {
+                        lines = append(lines, cl("[!]", tagline, dimLocked))
+                }
         } else {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, checkCount), sRed))
-        }
-        if findingCount > 0 {
-                lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
-        } else if tagline != "" {
-                lines = append(lines, cl("[!]", tagline, alt))
+                if findingCount > 0 {
+                        lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
+                } else if tagline != "" {
+                        lines = append(lines, cl("[!]", tagline, alt))
+                }
         }
         return lines
 }
@@ -938,7 +940,7 @@ func protocolGroupColor(abbrev string) string {
                 return "#81c784"
         case "BIMI":
                 return "#ce93d8"
-        case "W3":
+        case "Web3":
                 return "#d4a853"
         default:
                 return "#484f58"
@@ -953,6 +955,8 @@ func protocolStatusToNodeColor(status, groupColor string) string {
                 return hexYellow
         case "error":
                 return hexRed
+        case "info":
+                return groupColor
         default:
                 return hexDimGrey
         }
@@ -974,13 +978,12 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 {"caa_analysis", "CAA"},
         }
 
+        protocols = append(protocols, struct {
+                key    string
+                abbrev string
+        }{"web3_analysis", "Web3"})
+
         web3St := extractWeb3Status(results)
-        if web3St != "" {
-                protocols = append(protocols, struct {
-                        key    string
-                        abbrev string
-                }{"web3_analysis", "W3"})
-        }
 
         nodes := make([]protocolNode, 0, len(protocols))
         for _, p := range protocols {
@@ -1273,14 +1276,9 @@ func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, p
                 ))
 
                 if n.status == "missing" || n.status == "error" {
-                        xOff := 5
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
-                        ))
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
+                                `<circle cx="%d" cy="%d" r="%d" fill="none" stroke="%s" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="3 2"><animate attributeName="stroke-opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite"/></circle>`,
+                                pos.x, pos.y, nodeR+4, hexRed,
                         ))
                 }
 
@@ -1323,11 +1321,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
 
-        web3StatusDetailed := extractWeb3Status(results)
-        controlCount := 9
-        if web3StatusDetailed != "" {
-                controlCount = 10
-        }
+        controlCount := 10
 
         postureContext := ""
         if missing > 0 {
@@ -1342,7 +1336,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         const (
-                vbWidth  = 540
+                vbWidth  = 600
                 vbHeight = 230
                 scale    = 4.0 / 3.0
                 pad      = 16
@@ -1371,9 +1365,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {414, 128},
                 {496, 78},
                 {496, 178},
-        }
-        if len(nodes) > 9 {
-                nodePositions = append(nodePositions, nodePos{496, 128})
+                {558, 178},
         }
 
         edges := []topoEdge{
@@ -1384,6 +1376,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {6, 4, "", false, 0, 0},
                 {4, 3, "requires", true, 311, 168},
                 {8, 3, "strengthens", false, 440, 168},
+                {9, 8, "", false, 0, 0},
         }
 
         icieCX := 200
@@ -1465,10 +1458,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         var glowDefs strings.Builder
         renderTopoNodes(&nodeSVG, &glowDefs, nodes, nodePositions, nodeR)
 
-        totalControls := 9
-        if len(nodes) > 9 {
-                totalControls = len(nodes)
-        }
+        totalControls := len(nodes)
         missingSVG := ""
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
@@ -1538,7 +1528,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <text x="228" y="158" fill="#8b949e" font-size="7.5" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7" letter-spacing="0.5">DNS</text>
   <line x1="228" y1="60" x2="524" y2="60" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
   <line x1="228" y1="108" x2="450" y2="108" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="228" y1="158" x2="524" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="158" x2="586" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
