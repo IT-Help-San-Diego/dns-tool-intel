@@ -75,7 +75,7 @@
                                         {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
                                             <span class="proto-badge proto-badge--danger proto-spf">SPF</span>
                                         {{else}}
-                                            <span class="proto-badge proto-badge--neutral">—</span>
+                                            <span class="proto-badge proto-badge--neutral proto-spf">SPF</span>
                                         {{end}}
                                     </td>
                                     <td>
@@ -86,7 +86,7 @@
                                         {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
                                             <span class="proto-badge proto-badge--danger proto-dmarc">DMARC</span>
                                         {{else}}
-                                            <span class="proto-badge proto-badge--neutral">—</span>
+                                            <span class="proto-badge proto-badge--neutral proto-dmarc">DMARC</span>
                                         {{end}}
                                     </td>
                                     <td>
@@ -94,8 +94,10 @@
                                             <span class="proto-badge proto-badge--success proto-dkim">DKIM</span>
                                         {{else if eq $a.DkimStatus "info"}}
                                             <span class="proto-badge proto-badge--info proto-dkim">DKIM</span>
+                                        {{else if or (eq $a.DkimStatus "error") (eq $a.DkimStatus "missing") (eq $a.DkimStatus "warning")}}
+                                            <span class="proto-badge proto-badge--danger proto-dkim">DKIM</span>
                                         {{else}}
-                                            <span class="proto-badge proto-badge--neutral">—</span>
+                                            <span class="proto-badge proto-badge--neutral proto-dkim">DKIM</span>
                                         {{end}}
                                     </td>
                                     <td>

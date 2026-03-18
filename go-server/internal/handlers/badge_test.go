@@ -157,8 +157,8 @@ func TestBadgeSVGCovert(t *testing.T) {
         if !strings.Contains(sc, "Free real estate.") {
                 t.Error("expected critical tagline")
         }
-        if !strings.Contains(sc, "9 of 9 attack vectors") {
-                t.Error("expected 9 of 9 attack vectors for all-missing critical")
+        if !strings.Contains(sc, "9 of 10 attack vectors") {
+                t.Error("expected 9 of 10 attack vectors for all-missing critical (Web3 defaults to info)")
         }
 
         warnResults := map[string]any{
@@ -288,6 +288,7 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 "tlsrpt_analysis": map[string]any{"status": "success"},
                 "bimi_analysis":    map[string]any{"status": "success"},
                 "caa_analysis":     map[string]any{"status": "success"},
+                "web3_analysis":    map[string]any{"detected": false},
         }
 
         svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "f2c73519", "https://dnstool.it-help.tech")
@@ -329,11 +330,11 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(s, "#238636") {
                 t.Error("expected green border color for low risk")
         }
-        if !strings.Contains(s, "1 of 9 missing") {
-                t.Error("expected missing count (DANE missing)")
+        if !strings.Contains(s, "1/10 controls missing") {
+                t.Error("expected missing count (DANE missing, Web3 defaults to info)")
         }
-        if !strings.Contains(s, `width="720"`) {
-                t.Error("expected 720px rendered width (540 viewBox * 4/3 scale)")
+        if !strings.Contains(s, `width="800"`) {
+                t.Error("expected 800px rendered width (600 viewBox * 4/3 scale)")
         }
 
         failResults := map[string]any{
@@ -356,8 +357,8 @@ func TestBadgeSVGDetailed(t *testing.T) {
         if !strings.Contains(sf, "Critical Risk") {
                 t.Error("expected Critical Risk label")
         }
-        if !strings.Contains(sf, "9 of 9 missing") {
-                t.Error("expected all 9 protocols missing in failing badge")
+        if !strings.Contains(sf, "9/10 controls missing") {
+                t.Error("expected 9 of 10 protocols missing in failing badge (Web3 defaults to info)")
         }
 }
 
