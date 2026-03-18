@@ -428,37 +428,55 @@ func timedTask(ch chan<- namedResult, key string, analysisStart time.Time, fn fu
         }
 }
 
-func (a *Analyzer) buildCoreTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time) []func() {
-        return []func(){
-                timedTask(ch, "basic", t0, func() any { return a.GetBasicRecords(ctx, domain) }),
-                timedTask(ch, "auth", t0, func() any { return a.GetAuthoritativeRecords(ctx, domain) }),
-                timedTask(ch, "caa", t0, func() any { return a.AnalyzeCAA(ctx, domain) }),
-                timedTask(ch, "dnssec", t0, func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
-                timedTask(ch, "ns_delegation", t0, func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
-                timedTask(ch, mapKeyRegistrar, t0, func() any { return a.GetRegistrarInfo(ctx, domain) }),
-                timedTask(ch, mapKeyResolverConsensus, t0, func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
-                timedTask(ch, mapKeyHttpsSvcb, t0, func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
-                timedTask(ch, mapKeyCdsCdnskey, t0, func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
-                timedTask(ch, mapKeyNmapDns, t0, func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
-                timedTask(ch, mapKeyDelegationConsistency, t0, func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
-                timedTask(ch, mapKeyNsFleet, t0, func() any { return a.AnalyzeNSFleet(ctx, domain) }),
-                timedTask(ch, mapKeyDnssecOps, t0, func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
+func timedTaskWithProgress(ch chan<- namedResult, key string, analysisStart time.Time, progressCb ProgressCallback, fn func() any) func() {
+        return func() {
+                group := LookupPhaseGroup(key)
+                if progressCb != nil {
+                        progressCb(group, "running", 0)
+                }
+                start := time.Now()
+                result := fn()
+                ch <- namedResult{key, result, time.Since(start), start.Sub(analysisStart)}
         }
 }
 
-func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDKIMSelectors []string, ch chan namedResult, t0 time.Time) []func() {
+func (a *Analyzer) buildCoreTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time, progressCb ProgressCallback) []func() {
+        tt := func(key string, fn func() any) func() {
+                return timedTaskWithProgress(ch, key, t0, progressCb, fn)
+        }
         return []func(){
-                timedTask(ch, mapKeySpfOrch, t0, func() any { return a.AnalyzeSPF(ctx, domain) }),
-                timedTask(ch, mapKeyDmarc, t0, func() any { return a.AnalyzeDMARC(ctx, domain) }),
-                timedTask(ch, mapKeyDkimOrch, t0, func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
-                timedTask(ch, mapKeyMtaSts, t0, func() any { return a.AnalyzeMTASTS(ctx, domain) }),
-                timedTask(ch, mapKeyTlsrpt, t0, func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
-                timedTask(ch, mapKeyBimi, t0, func() any { return a.AnalyzeBIMI(ctx, domain) }),
-                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
-                timedTask(ch, mapKeySmimeaOpenpgpkey, t0, func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
-                timedTask(ch, mapKeySecurityTxt, t0, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
-                timedTask(ch, mapKeyAiSurface, t0, func() any { return a.AnalyzeAISurface(ctx, domain) }),
-                timedTask(ch, mapKeySecretExposure, t0, func() any { return a.ScanSecretExposure(ctx, domain) }),
+                tt("basic", func() any { return a.GetBasicRecords(ctx, domain) }),
+                tt("auth", func() any { return a.GetAuthoritativeRecords(ctx, domain) }),
+                tt("caa", func() any { return a.AnalyzeCAA(ctx, domain) }),
+                tt("dnssec", func() any { return a.AnalyzeDNSSEC(ctx, domain) }),
+                tt("ns_delegation", func() any { return a.AnalyzeNSDelegation(ctx, domain) }),
+                tt(mapKeyRegistrar, func() any { return a.GetRegistrarInfo(ctx, domain) }),
+                tt(mapKeyResolverConsensus, func() any { return a.DNS.ValidateResolverConsensus(ctx, domain) }),
+                tt(mapKeyHttpsSvcb, func() any { return a.AnalyzeHTTPSSVCB(ctx, domain) }),
+                tt(mapKeyCdsCdnskey, func() any { return a.AnalyzeCDSCDNSKEY(ctx, domain) }),
+                tt(mapKeyNmapDns, func() any { return a.AnalyzeNmapDNS(ctx, domain) }),
+                tt(mapKeyDelegationConsistency, func() any { return a.AnalyzeDelegationConsistency(ctx, domain) }),
+                tt(mapKeyNsFleet, func() any { return a.AnalyzeNSFleet(ctx, domain) }),
+                tt(mapKeyDnssecOps, func() any { return a.AnalyzeDNSSECOps(ctx, domain) }),
+        }
+}
+
+func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDKIMSelectors []string, ch chan namedResult, t0 time.Time, progressCb ProgressCallback) []func() {
+        tt := func(key string, fn func() any) func() {
+                return timedTaskWithProgress(ch, key, t0, progressCb, fn)
+        }
+        return []func(){
+                tt(mapKeySpfOrch, func() any { return a.AnalyzeSPF(ctx, domain) }),
+                tt(mapKeyDmarc, func() any { return a.AnalyzeDMARC(ctx, domain) }),
+                tt(mapKeyDkimOrch, func() any { return a.AnalyzeDKIM(ctx, domain, nil, customDKIMSelectors) }),
+                tt(mapKeyMtaSts, func() any { return a.AnalyzeMTASTS(ctx, domain) }),
+                tt(mapKeyTlsrpt, func() any { return a.AnalyzeTLSRPT(ctx, domain) }),
+                tt(mapKeyBimi, func() any { return a.AnalyzeBIMI(ctx, domain) }),
+                tt(mapKeyCtSubdomains, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
+                tt(mapKeySmimeaOpenpgpkey, func() any { return a.AnalyzeSMIMEA(ctx, domain) }),
+                tt(mapKeySecurityTxt, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                tt(mapKeyAiSurface, func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                tt(mapKeySecretExposure, func() any { return a.ScanSecretExposure(ctx, domain) }),
         }
 }
 
@@ -504,14 +522,14 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
         resultsCh := make(chan namedResult, 28)
         var wg sync.WaitGroup
 
-        tasks := a.buildCoreTasks(ctx, domain, resultsCh, analysisStart)
+        tasks := a.buildCoreTasks(ctx, domain, resultsCh, analysisStart, progressCb)
 
         if !dnsclient.IsTLDInput(domain) {
                 if scope == ScopeGatewayDerived {
-                        gatewayTasks := a.buildGatewayDomainTasks(ctx, domain, resultsCh, analysisStart)
+                        gatewayTasks := a.buildGatewayDomainTasks(ctx, domain, resultsCh, analysisStart, progressCb)
                         tasks = append(tasks, gatewayTasks...)
                 } else {
-                        tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart)...)
+                        tasks = append(tasks, a.buildDomainTasks(ctx, domain, customDKIMSelectors, resultsCh, analysisStart, progressCb)...)
                 }
         }
 
@@ -541,12 +559,14 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
                 durMs := int(nr.elapsed.Milliseconds())
                 group := LookupPhaseGroup(nr.key)
                 slog.Info(logTaskCompleted, mapKeyTaskOrch, nr.key, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(durMs)))
-                timings = append(timings, PhaseTiming{
+                pt := PhaseTiming{
                         PhaseGroup:  group,
                         PhaseTask:   nr.key,
                         StartedAtMs: int(nr.startOffset.Milliseconds()),
                         DurationMs:  durMs,
-                })
+                }
+                pt.RecordCount, pt.Error = extractResultMeta(nr.result)
+                timings = append(timings, pt)
                 if progressCb != nil {
                         progressCb(group, "done", durMs)
                 }
@@ -554,13 +574,41 @@ func (a *Analyzer) runScopedAnalyses(ctx context.Context, domain string, customD
         return resultsMap, timings
 }
 
-func (a *Analyzer) buildGatewayDomainTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time) []func() {
-        return []func(){
-                timedTask(ch, mapKeyCtSubdomains, t0, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
-                timedTask(ch, mapKeySecurityTxt, t0, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
-                timedTask(ch, mapKeyAiSurface, t0, func() any { return a.AnalyzeAISurface(ctx, domain) }),
-                timedTask(ch, mapKeySecretExposure, t0, func() any { return a.ScanSecretExposure(ctx, domain) }),
+func (a *Analyzer) buildGatewayDomainTasks(ctx context.Context, domain string, ch chan namedResult, t0 time.Time, progressCb ProgressCallback) []func() {
+        tt := func(key string, fn func() any) func() {
+                return timedTaskWithProgress(ch, key, t0, progressCb, fn)
         }
+        return []func(){
+                tt(mapKeyCtSubdomains, func() any { return a.discoverSubdomainsWithBudget(ctx, domain) }),
+                tt(mapKeySecurityTxt, func() any { return a.AnalyzeSecurityTxt(ctx, domain) }),
+                tt(mapKeyAiSurface, func() any { return a.AnalyzeAISurface(ctx, domain) }),
+                tt(mapKeySecretExposure, func() any { return a.ScanSecretExposure(ctx, domain) }),
+        }
+}
+
+func extractResultMeta(result any) (recordCount int, errMsg string) {
+        m, ok := result.(map[string]any)
+        if !ok {
+                return 0, ""
+        }
+        if e, ok := m["error"]; ok {
+                if s, ok := e.(string); ok && s != "" {
+                        errMsg = s
+                }
+        }
+        if records, ok := m["records"]; ok {
+                if arr, ok := records.([]any); ok {
+                        recordCount = len(arr)
+                }
+        }
+        if recordCount == 0 {
+                if cnt, ok := m["count"]; ok {
+                        if n, ok := cnt.(int); ok {
+                                recordCount = n
+                        }
+                }
+        }
+        return recordCount, errMsg
 }
 
 func buildRecordCurrencies(resolverTTLMap map[string]uint32) []icuae.RecordCurrency {
