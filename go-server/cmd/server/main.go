@@ -410,6 +410,8 @@ func main() {
         citationReg := citation.Global()
         citationHandler := handlers.NewCitationHandler(cfg, citationReg, database)
         router.GET("/api/authorities", citationHandler.Authorities)
+        router.GET("/api/research", citationHandler.ResearchAPI)
+        router.GET("/cite", citationHandler.CitePage)
         router.GET("/cite/software", citationHandler.SoftwareCitation)
         router.GET("/analysis/:id/cite", citationHandler.AnalysisCitation)
 
