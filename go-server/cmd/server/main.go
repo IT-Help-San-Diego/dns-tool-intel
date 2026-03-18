@@ -335,6 +335,7 @@ func main() {
 
         telemetryHandler := handlers.NewTelemetryHandler(database, cfg)
         router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
+        router.GET("/admin/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
         router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
 
         pipelineHandler := handlers.NewPipelineHandler(database, cfg)
