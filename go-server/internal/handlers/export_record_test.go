@@ -138,7 +138,7 @@ func TestCoverageBoost18_NewEDEHandler(t *testing.T) {
                 AppVersion:      "1.0.0",
                 MaintenanceNote: "",
         }
-        h := NewEDEHandler(cfg)
+        h := NewEDEHandler(&db.Database{}, cfg)
         if h == nil {
                 t.Fatal("expected non-nil handler")
         }

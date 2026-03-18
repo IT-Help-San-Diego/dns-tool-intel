@@ -446,7 +446,7 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
-        edeHandler := handlers.NewEDEHandler(cfg)
+        edeHandler := handlers.NewEDEHandler(database, cfg)
         router.GET("/ede", edeHandler.EDE)
 
         router.GET("/methodology", staticHandler.MethodologyPDF)

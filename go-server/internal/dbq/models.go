@@ -50,6 +50,23 @@ type BlackSiteRendition struct {
 	CreatedAt  pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
+type ConfidenceScore struct {
+	ID                pgtype.UUID        `db:"id" json:"id"`
+	ScanID            pgtype.UUID        `db:"scan_id" json:"scan_id"`
+	Domain            string             `db:"domain" json:"domain"`
+	Protocol          string             `db:"protocol" json:"protocol"`
+	Score             pgtype.Numeric     `db:"score" json:"score"`
+	Grade             *string            `db:"grade" json:"grade"`
+	ResolverCount     *int16             `db:"resolver_count" json:"resolver_count"`
+	ResolverAgreement pgtype.Numeric     `db:"resolver_agreement" json:"resolver_agreement"`
+	EvidenceFactors   []byte             `db:"evidence_factors" json:"evidence_factors"`
+	CalibratedScore   pgtype.Numeric     `db:"calibrated_score" json:"calibrated_score"`
+	RawScore          pgtype.Numeric     `db:"raw_score" json:"raw_score"`
+	Source            string             `db:"source" json:"source"`
+	ScannedAt         pgtype.Timestamptz `db:"scanned_at" json:"scanned_at"`
+	CreatedAt         pgtype.Timestamptz `db:"created_at" json:"created_at"`
+}
+
 type CtSubdomainCache struct {
 	Domain      string           `db:"domain" json:"domain"`
 	Subdomains  []byte           `db:"subdomains" json:"subdomains"`
@@ -148,6 +165,41 @@ type DriftNotification struct {
 	ResponseBody *string          `db:"response_body" json:"response_body"`
 	DeliveredAt  pgtype.Timestamp `db:"delivered_at" json:"delivered_at"`
 	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type EdeAmendment struct {
+	ID            pgtype.UUID        `db:"id" json:"id"`
+	EdeEventID    pgtype.UUID        `db:"ede_event_id" json:"ede_event_id"`
+	AmendmentDate pgtype.Date        `db:"amendment_date" json:"amendment_date"`
+	Ground        string             `db:"ground" json:"ground"`
+	FieldChanged  string             `db:"field_changed" json:"field_changed"`
+	OriginalValue string             `db:"original_value" json:"original_value"`
+	CorrectedTo   string             `db:"corrected_to" json:"corrected_to"`
+	Evidence      *string            `db:"evidence" json:"evidence"`
+	Rationale     *string            `db:"rationale" json:"rationale"`
+	Justification string             `db:"justification" json:"justification"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"created_at"`
+}
+
+type EdeEvent struct {
+	ID                  pgtype.UUID        `db:"id" json:"id"`
+	EdeID               string             `db:"ede_id" json:"ede_id"`
+	EventDate           pgtype.Date        `db:"event_date" json:"event_date"`
+	CommitRef           string             `db:"commit_ref" json:"commit_ref"`
+	Category            string             `db:"category" json:"category"`
+	Severity            string             `db:"severity" json:"severity"`
+	Title               string             `db:"title" json:"title"`
+	Status              string             `db:"status" json:"status"`
+	Attribution         string             `db:"attribution" json:"attribution"`
+	ProtocolsAffected   []byte             `db:"protocols_affected" json:"protocols_affected"`
+	ConfidenceImpact    *string            `db:"confidence_impact" json:"confidence_impact"`
+	Resolution          *string            `db:"resolution" json:"resolution"`
+	BayesianNote        *string            `db:"bayesian_note" json:"bayesian_note"`
+	CorrectionAction    *string            `db:"correction_action" json:"correction_action"`
+	PreventionRule      *string            `db:"prevention_rule" json:"prevention_rule"`
+	AuthoritativeSource *string            `db:"authoritative_source" json:"authoritative_source"`
+	CreatedAt           pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
 type Finding struct {
