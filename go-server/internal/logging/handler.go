@@ -62,11 +62,16 @@ func levelToSeverity(l slog.Level) string {
 }
 
 func (h *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
-        r.AddAttrs(slog.String("severity", levelToSeverity(r.Level)))
-
-        _ = h.json.Handle(ctx, r)
-
         redactedMsg := RedactMessage(r.Message)
+
+        redacted := slog.NewRecord(r.Time, r.Level, redactedMsg, r.PC)
+        redacted.AddAttrs(slog.String("severity", levelToSeverity(r.Level)))
+        r.Attrs(func(a slog.Attr) bool {
+                redacted.AddAttrs(redactAttr(a))
+                return true
+        })
+
+        _ = h.json.Handle(ctx, redacted)
 
         event := ""
         category := ""
