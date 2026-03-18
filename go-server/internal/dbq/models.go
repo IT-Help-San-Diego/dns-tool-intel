@@ -150,6 +150,51 @@ type DriftNotification struct {
 	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
 }
 
+type Finding struct {
+	ID                 pgtype.UUID        `db:"id" json:"id"`
+	PublicID           string             `db:"public_id" json:"public_id"`
+	Kind               string             `db:"kind" json:"kind"`
+	Domain             string             `db:"domain" json:"domain"`
+	Title              string             `db:"title" json:"title"`
+	SymptomMd          string             `db:"symptom_md" json:"symptom_md"`
+	HypothesisMd       *string            `db:"hypothesis_md" json:"hypothesis_md"`
+	RootCauseMd        *string            `db:"root_cause_md" json:"root_cause_md"`
+	Severity           int16              `db:"severity" json:"severity"`
+	Priority           int16              `db:"priority" json:"priority"`
+	Status             string             `db:"status" json:"status"`
+	CanonicalRuleID    string             `db:"canonical_rule_id" json:"canonical_rule_id"`
+	FingerprintVersion int16              `db:"fingerprint_version" json:"fingerprint_version"`
+	FingerprintSha256  string             `db:"fingerprint_sha256" json:"fingerprint_sha256"`
+	EvidenceGrade      string             `db:"evidence_grade" json:"evidence_grade"`
+	Confidence         pgtype.Numeric     `db:"confidence" json:"confidence"`
+	BlastRadius        string             `db:"blast_radius" json:"blast_radius"`
+	Visibility         string             `db:"visibility" json:"visibility"`
+	StandardRefs       []byte             `db:"standard_refs" json:"standard_refs"`
+	DuplicateOf        pgtype.UUID        `db:"duplicate_of" json:"duplicate_of"`
+	RegressionOf       pgtype.UUID        `db:"regression_of" json:"regression_of"`
+	SourceTeam         string             `db:"source_team" json:"source_team"`
+	Owner              *string            `db:"owner" json:"owner"`
+	IntroducedCommit   *string            `db:"introduced_commit" json:"introduced_commit"`
+	FixedCommit        *string            `db:"fixed_commit" json:"fixed_commit"`
+	FixedRelease       *string            `db:"fixed_release" json:"fixed_release"`
+	LegacyBsiID        *string            `db:"legacy_bsi_id" json:"legacy_bsi_id"`
+	LegacyThreatLevel  *string            `db:"legacy_threat_level" json:"legacy_threat_level"`
+	CreatedAt          pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type FindingEvent struct {
+	ID         pgtype.UUID        `db:"id" json:"id"`
+	FindingID  pgtype.UUID        `db:"finding_id" json:"finding_id"`
+	Actor      string             `db:"actor" json:"actor"`
+	EventType  string             `db:"event_type" json:"event_type"`
+	FromStatus *string            `db:"from_status" json:"from_status"`
+	ToStatus   *string            `db:"to_status" json:"to_status"`
+	CommitSha  *string            `db:"commit_sha" json:"commit_sha"`
+	NoteMd     *string            `db:"note_md" json:"note_md"`
+	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+}
+
 type IceMaturity struct {
 	ID                int32            `db:"id" json:"id"`
 	Protocol          string           `db:"protocol" json:"protocol"`
@@ -239,6 +284,21 @@ type NotificationEndpoint struct {
 	Secret       *string          `db:"secret" json:"secret"`
 	Enabled      bool             `db:"enabled" json:"enabled"`
 	CreatedAt    pgtype.Timestamp `db:"created_at" json:"created_at"`
+}
+
+type Observation struct {
+	ID             pgtype.UUID        `db:"id" json:"id"`
+	FindingID      pgtype.UUID        `db:"finding_id" json:"finding_id"`
+	SourceTeam     string             `db:"source_team" json:"source_team"`
+	BuildID        *string            `db:"build_id" json:"build_id"`
+	Route          *string            `db:"route" json:"route"`
+	Component      *string            `db:"component" json:"component"`
+	Browser        *string            `db:"browser" json:"browser"`
+	Viewport       *string            `db:"viewport" json:"viewport"`
+	ReproStepsMd   *string            `db:"repro_steps_md" json:"repro_steps_md"`
+	EvidenceSha256 string             `db:"evidence_sha256" json:"evidence_sha256"`
+	RawEvidence    []byte             `db:"raw_evidence" json:"raw_evidence"`
+	ObservedAt     pgtype.Timestamptz `db:"observed_at" json:"observed_at"`
 }
 
 type PriorityDomain struct {

@@ -6,11 +6,11 @@
     {{template "head_css" .}}
     <title>Black Site — Bug Interrogation Facility — DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Every defect gets a hash, a threat level, and a cell. 45 bugs detained, classified, and tracked across 5 parallel audit strike teams. This is what it looks like when engineers actually give a damn.">
+    <meta name="description" content="Every defect gets a hash, a severity, and a cell. 46 findings detained, classified, and tracked across 5 parallel audit strike teams. This is what it looks like when engineers actually give a damn.">
     <meta property="og:url" content="https://dnstool.it-help.tech/black-site">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Black Site — Bug Interrogation Facility">
-    <meta property="og:description" content="Every defect gets a hash, a threat level, and a cell. This is what it looks like when engineers actually give a damn.">
+    <meta property="og:description" content="Every defect gets a hash, a severity, and a cell. This is what it looks like when engineers actually give a damn.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -21,7 +21,7 @@
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/black-site">
     <meta name="twitter:title" content="Black Site — Bug Interrogation Facility">
-    <meta name="twitter:description" content="Every defect gets a hash, a threat level, and a cell. This is what it looks like when engineers actually give a damn.">
+    <meta name="twitter:description" content="Every defect gets a hash, a severity, and a cell. This is what it looks like when engineers actually give a damn.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/black-site">
     <style nonce="{{.CspNonce}}">
@@ -146,11 +146,11 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
-        .bsi-threat-apt { color: #f85149; border-left-color: rgba(248,81,73,0.4); }
-        .bsi-threat-zeroday { color: #d29922; border-left-color: rgba(210,153,34,0.4); }
-        .bsi-threat-exploit { color: #db6d28; border-left-color: rgba(219,109,40,0.4); }
-        .bsi-threat-cve { color: #58a6ff; border-left-color: rgba(88,166,255,0.3); }
-        .bsi-threat-ioc { color: #8b949e; border-left-color: rgba(139,148,158,0.15); }
+        .bsi-sev-s0 { color: #ff1744; border-left-color: rgba(255,23,68,0.4); }
+        .bsi-sev-s1 { color: #f85149; border-left-color: rgba(248,81,73,0.4); }
+        .bsi-sev-s2 { color: #d29922; border-left-color: rgba(210,153,34,0.4); }
+        .bsi-sev-s3 { color: #58a6ff; border-left-color: rgba(88,166,255,0.3); }
+        .bsi-sev-s4 { color: #8b949e; border-left-color: rgba(139,148,158,0.15); }
         .bsi-detainee {
             border-left: 3px solid;
             padding: 1rem 1.25rem;
@@ -208,27 +208,27 @@
             line-height: 1;
             vertical-align: middle;
         }
-        .bsi-badge-apt {
+        .bsi-badge-s0 {
+            color: #ff1744;
+            border-color: rgba(255,23,68,0.3);
+            background: rgba(255,23,68,0.08);
+        }
+        .bsi-badge-s1 {
             color: #f85149;
             border-color: rgba(248,81,73,0.3);
             background: rgba(248,81,73,0.08);
         }
-        .bsi-badge-zeroday {
+        .bsi-badge-s2 {
             color: #d29922;
             border-color: rgba(210,153,34,0.3);
             background: rgba(210,153,34,0.08);
         }
-        .bsi-badge-exploit {
-            color: #db6d28;
-            border-color: rgba(219,109,40,0.3);
-            background: rgba(219,109,40,0.08);
-        }
-        .bsi-badge-cve {
+        .bsi-badge-s3 {
             color: #58a6ff;
             border-color: rgba(88,166,255,0.3);
             background: rgba(88,166,255,0.08);
         }
-        .bsi-badge-ioc {
+        .bsi-badge-s4 {
             color: #8b949e;
             border-color: rgba(139,148,158,0.2);
             background: rgba(139,148,158,0.06);
@@ -244,6 +244,14 @@
             border-color: rgba(63,185,80,0.2);
             background: rgba(63,185,80,0.05);
             font-size: 0.55rem;
+        }
+        .bsi-badge-kind {
+            font-size: 0.55rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            color: #7d8590;
+            border-color: rgba(125,142,168,0.15);
+            background: rgba(125,142,168,0.05);
         }
         .bsi-census-grid {
             display: grid;
@@ -410,6 +418,24 @@
             color: #8b949e;
             line-height: 1.5;
         }
+        .bsi-canonical {
+            font-size: 0.72rem;
+            color: #7d8590;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.25rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed rgba(125,142,168,0.08);
+        }
+        .bsi-canonical span {
+            display: inline-flex;
+            gap: 0.25rem;
+        }
+        .bsi-canonical strong {
+            color: #8b949e;
+            font-weight: 500;
+        }
         @media print {
             .bsi-page::before { display: none; }
             .bsi-page { background: #fff; }
@@ -433,7 +459,7 @@
                 Facility Active
             </p>
             <h1>{{icon "crosshairs" "me-2"}}Black Site</h1>
-            <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a threat level, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system.</p>
+            <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a severity, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system.</p>
             <p class="bsi-epigraph mt-2" style="font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase;">We proudly use enhanced interrogation tactics.</p>
         </div>
     </header>
@@ -457,28 +483,28 @@
         </div>
 
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "shield-halved" "me-1"}} Threat Classification</h2>
-            <table class="bsi-classification-table" aria-label="Threat level definitions">
+            <h2 class="bsi-section-title">{{icon "shield-halved" "me-1"}} Severity Classification</h2>
+            <table class="bsi-classification-table" aria-label="Severity level definitions">
                 <tbody>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-apt">APT</span></td>
-                        <td class="bsi-classification-desc"><strong>Advanced Persistent Threat.</strong> Systemic. Architectural. This bug corrupts the entire user experience and will be found by anyone who looks carefully. Fix before anyone sees this in public.</td>
+                        <td><span class="bsi-badge bsi-badge-s0">S0</span></td>
+                        <td class="bsi-classification-desc"><strong>Systemic.</strong> Architectural. This defect corrupts the entire system and will be found by anyone who looks. Fix before anyone sees this in public.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-zeroday">Zero-Day</span></td>
-                        <td class="bsi-classification-desc"><strong>Unpatched Exploit.</strong> Actively exploitable, high-impact, no workaround. Users are hitting this right now and we have no defense.</td>
+                        <td><span class="bsi-badge bsi-badge-s1">S1</span></td>
+                        <td class="bsi-classification-desc"><strong>Critical Path.</strong> High-impact, actively causing damage. Users are hitting this right now. No workaround exists.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-exploit">Exploit</span></td>
-                        <td class="bsi-classification-desc"><strong>Known Vulnerability.</strong> Documented weakness being used against us. We know it&rsquo;s there, we know the damage, we haven&rsquo;t patched it yet.</td>
+                        <td><span class="bsi-badge bsi-badge-s2">S2</span></td>
+                        <td class="bsi-classification-desc"><strong>Major.</strong> Documented weakness being exploited. We know the damage. We haven&rsquo;t patched it yet.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-cve">CVE</span></td>
-                        <td class="bsi-classification-desc"><strong>Common Vulnerability.</strong> Design debt with a known attack surface. Not actively exploited but attackable. Track and remediate systematically.</td>
+                        <td><span class="bsi-badge bsi-badge-s3">S3</span></td>
+                        <td class="bsi-classification-desc"><strong>Contained.</strong> Design debt with a known attack surface. Not actively exploited but attackable. Track and remediate.</td>
                     </tr>
                     <tr>
-                        <td><span class="bsi-badge bsi-badge-ioc">IOC</span></td>
-                        <td class="bsi-classification-desc"><strong>Indicator of Compromise.</strong> Evidence that something isn&rsquo;t right. Minor, but left unaddressed it metastasizes.</td>
+                        <td><span class="bsi-badge bsi-badge-s4">S4</span></td>
+                        <td class="bsi-classification-desc"><strong>Minor.</strong> Indicator that something isn&rsquo;t right. Left unaddressed, it metastasizes.</td>
                     </tr>
                 </tbody>
             </table>
@@ -486,116 +512,165 @@
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Census</h2>
-            <div class="bsi-census-grid" role="list" aria-label="Detainee census">
+            <div class="bsi-census-grid" role="list" aria-label="Findings census by severity">
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-apt">{{.APTCount}}</div>
-                    <div class="bsi-census-label">APT</div>
+                    <div class="bsi-census-count bsi-sev-s0">{{.S0Count}}</div>
+                    <div class="bsi-census-label">S0 Systemic</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-zeroday">{{.ZeroDayCount}}</div>
-                    <div class="bsi-census-label">Zero-Day</div>
+                    <div class="bsi-census-count bsi-sev-s1">{{.S1Count}}</div>
+                    <div class="bsi-census-label">S1 Critical</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-exploit">{{.ExploitCount}}</div>
-                    <div class="bsi-census-label">Exploit</div>
+                    <div class="bsi-census-count bsi-sev-s2">{{.S2Count}}</div>
+                    <div class="bsi-census-label">S2 Major</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-cve">{{.CVECount}}</div>
-                    <div class="bsi-census-label">CVE</div>
+                    <div class="bsi-census-count bsi-sev-s3">{{.S3Count}}</div>
+                    <div class="bsi-census-label">S3 Contained</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-ioc">{{.IOCCount}}</div>
-                    <div class="bsi-census-label">IOC</div>
+                    <div class="bsi-census-count bsi-sev-s4">{{.S4Count}}</div>
+                    <div class="bsi-census-label">S4 Minor</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
                     <div class="bsi-census-count" style="color:#c9d1d9">{{.TotalCount}}</div>
                     <div class="bsi-census-label">Total Detained</div>
                 </div>
             </div>
+            <div class="bsi-census-grid mt-3" role="list" aria-label="Findings census by status">
+                <div class="bsi-census-card" role="listitem">
+                    <div class="bsi-census-count" style="color:#f85149">{{.DetainedCount}}</div>
+                    <div class="bsi-census-label">Detained</div>
+                </div>
+                <div class="bsi-census-card" role="listitem">
+                    <div class="bsi-census-count" style="color:#3fb950">{{.RenderedCount}}</div>
+                    <div class="bsi-census-label">Rendered</div>
+                </div>
+            </div>
         </div>
 
+        {{if .S1Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "bug" "me-1"}} APT &mdash; Advanced Persistent Threats</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">These bugs orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system. We proudly use enhanced interrogation tactics.</p>
-            {{range .APTDetainees}}
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">{{.ShaHash}}</span> {{.BsiID}}: {{.Title}}</h3>
-                {{if .CapturedBy}}<p class="bsi-detainee-meta">Captured by {{.CapturedBy}}{{if .FileReferences}} &bull; <code>{{.FileReferences}}</code>{{end}}</p>{{end}}
-                {{if .InterrogationNotes}}<p>{{.InterrogationNotes}}</p>{{end}}
-                {{if .WitnessStatement}}<p class="bsi-witness">&ldquo;{{.WitnessStatement}}&rdquo;</p>{{end}}
-                {{if .DamageAssessment}}<p class="bsi-damage">{{.DamageAssessment}}</p>{{end}}
-                {{if .RecommendedRemedy}}<p class="bsi-detainee-meta">Recommended: {{.RecommendedRemedy}}</p>{{end}}
-                <p class="bsi-detainee-meta">{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else if eq .Status "UNDER INTERROGATION"}}<span class="bsi-badge bsi-badge-detained" style="border-color:rgba(210,153,34,0.3);background:rgba(210,153,34,0.08);color:#d29922">Under Interrogation</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</p>
+            <h2 class="bsi-section-title">{{icon "bug" "me-1"}} S1 &mdash; Critical Path Threats</h2>
+            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">These findings orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
+            {{range .S1Findings}}
+            <div class="bsi-detainee bsi-sev-s1">
+                <h3>
+                    <span class="bsi-badge bsi-badge-s1">S1</span>
+                    {{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}
+                    <span class="bsi-badge bsi-badge-kind">{{.Kind}}</span>
+                    {{.PublicID}}: {{.Title}}
+                </h3>
+                <p>{{.SymptomMD}}</p>
+                {{if .HypothesisMD}}<p class="bsi-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
+                {{if .RootCauseMD}}<p class="bsi-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
+                <div class="bsi-canonical">
+                    <span><strong>Fingerprint:</strong> <code>{{.FingerprintSHA}}</code></span>
+                    <span><strong>Domain:</strong> {{.Domain}}</span>
+                    <span><strong>Evidence:</strong> {{.EvidenceGrade}}</span>
+                    <span><strong>Confidence:</strong> {{.Confidence}}</span>
+                    <span><strong>Blast:</strong> {{.BlastRadius}}</span>
+                    <span><strong>Team:</strong> {{.SourceTeam}}</span>
+                    {{if .LegacyBsiID}}<span><strong>Legacy:</strong> {{.LegacyBsiID}}</span>{{end}}
+                </div>
             </div>
             {{end}}
         </div>
+        {{end}}
 
+        {{if .S2Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "bolt" "me-1"}} Zero-Day &mdash; Unpatched Exploits</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">Actively causing damage. Users are hitting these right now.</p>
-            {{range .ZeroDayDetainees}}
-            <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">{{.ShaHash}}</span> {{.BsiID}}: {{.Title}}</h3>
-                {{if .CapturedBy}}<p class="bsi-detainee-meta">Captured by {{.CapturedBy}}{{if .FileReferences}} &bull; <code>{{.FileReferences}}</code>{{end}}</p>{{end}}
-                {{if .InterrogationNotes}}<p>{{.InterrogationNotes}}</p>{{end}}
-                {{if .DamageAssessment}}<p class="bsi-damage">{{.DamageAssessment}}</p>{{end}}
-                <p class="bsi-detainee-meta">{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</p>
+            <h2 class="bsi-section-title">{{icon "bolt" "me-1"}} S2 &mdash; Major Findings</h2>
+            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">Documented weaknesses actively causing damage. We know the impact. Patches pending.</p>
+            {{range .S2Findings}}
+            <div class="bsi-detainee bsi-sev-s2">
+                <h3>
+                    <span class="bsi-badge bsi-badge-s2">S2</span>
+                    {{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}
+                    <span class="bsi-badge bsi-badge-kind">{{.Kind}}</span>
+                    {{.PublicID}}: {{.Title}}
+                </h3>
+                <p>{{.SymptomMD}}</p>
+                {{if .HypothesisMD}}<p class="bsi-witness">&ldquo;{{.HypothesisMD}}&rdquo;</p>{{end}}
+                {{if .RootCauseMD}}<p class="bsi-damage">Root cause: {{.RootCauseMD}}</p>{{end}}
+                <div class="bsi-canonical">
+                    <span><strong>Fingerprint:</strong> <code>{{.FingerprintSHA}}</code></span>
+                    <span><strong>Domain:</strong> {{.Domain}}</span>
+                    <span><strong>Evidence:</strong> {{.EvidenceGrade}}</span>
+                    <span><strong>Confidence:</strong> {{.Confidence}}</span>
+                    <span><strong>Blast:</strong> {{.BlastRadius}}</span>
+                    <span><strong>Team:</strong> {{.SourceTeam}}</span>
+                    {{if .LegacyBsiID}}<span><strong>Legacy:</strong> {{.LegacyBsiID}}</span>{{end}}
+                </div>
             </div>
             {{end}}
         </div>
+        {{end}}
 
+        {{if .S3Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "shield-alt" "me-1"}} Exploit &mdash; Known Vulnerabilities</h2>
+            <h2 class="bsi-section-title">{{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings</h2>
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="Exploit-level detainees">
-                <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
+            <table class="bsi-compact-table" aria-label="S3 contained findings">
+                <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
                 <tbody>
-                    {{range .ExploitDetainees}}
-                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-exploit">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
+                    {{range .S3Findings}}
+                    <tr>
+                        <td><code class="bsi-hash">{{.FingerprintSHA}}</code></td>
+                        <td class="bsi-id bsi-sev-s3">{{.PublicID}}</td>
+                        <td><span class="bsi-badge bsi-badge-kind">{{.Kind}}</span></td>
+                        <td>{{.Title}}</td>
+                        <td>{{.Domain}}</td>
+                        <td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td>
+                    </tr>
                     {{end}}
                 </tbody>
             </table>
             </div>
         </div>
+        {{end}}
 
+        {{if .S4Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "database" "me-1"}} CVE &mdash; Design Debt</h2>
+            <h2 class="bsi-section-title">{{icon "eye" "me-1"}} S4 &mdash; Minor Indicators</h2>
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="CVE-level detainees">
-                <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
+            <table class="bsi-compact-table" aria-label="S4 minor indicators">
+                <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
                 <tbody>
-                    {{range .CVEDetainees}}
-                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-cve">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
+                    {{range .S4Findings}}
+                    <tr>
+                        <td><code class="bsi-hash">{{.FingerprintSHA}}</code></td>
+                        <td class="bsi-id bsi-sev-s4">{{.PublicID}}</td>
+                        <td><span class="bsi-badge bsi-badge-kind">{{.Kind}}</span></td>
+                        <td>{{.Title}}</td>
+                        <td>{{.Domain}}</td>
+                        <td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td>
+                    </tr>
                     {{end}}
                 </tbody>
             </table>
             </div>
         </div>
-
-        <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "eye" "me-1"}} IOC &mdash; Indicators of Compromise</h2>
-            <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="IOC-level detainees">
-                <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
-                <tbody>
-                    {{range .IOCDetainees}}
-                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-ioc">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
-                    {{end}}
-                </tbody>
-            </table>
-            </div>
-        </div>
+        {{end}}
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "crosshairs" "me-1"}} Rendition Log</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a detainee is eliminated, we record the kill. Date, commit hash, who pulled the trigger.</p>
-            {{if .HasRenditions}}
+            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger.</p>
+            {{if .HasEvents}}
             <div class="table-responsive">
             <table class="bsi-compact-table" aria-label="Rendition log">
-                <thead><tr><th scope="col">Hash</th><th scope="col">BSI</th><th scope="col">Detainee</th><th scope="col">Rendered</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
+                <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Action</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
                 <tbody>
-                    {{range .Renditions}}
-                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id">{{.BsiID}}</td><td>{{.Title}}</td><td>{{.RenderedAt}}</td><td><code>{{.CommitHash}}</code></td><td>{{.RenderedBy}}</td></tr>
+                    {{range .Events}}
+                    <tr>
+                        <td class="bsi-id">{{.PublicID}}</td>
+                        <td>{{.Title}}</td>
+                        <td>{{.ToStatus}}</td>
+                        <td>{{.CreatedAt}}</td>
+                        <td>{{if .CommitSHA}}<code>{{.CommitSHA}}</code>{{end}}</td>
+                        <td>{{.Actor}}</td>
+                    </tr>
                     {{end}}
                 </tbody>
             </table>
