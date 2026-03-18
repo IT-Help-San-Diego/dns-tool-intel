@@ -41,49 +41,6 @@ body {
   border-bottom: 1.5pt solid #C8A878;
 }
 
-.authority-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14pt;
-  padding-bottom: 12pt;
-  border-bottom: 0.5pt solid #e0d6c4;
-}
-
-.authority-brand {
-  text-align: left;
-  flex: 1;
-}
-
-.authority-brand-name {
-  font-size: 11pt;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 0 0 2pt 0;
-}
-
-.authority-brand-tagline {
-  font-size: 8.5pt;
-  color: #888;
-  font-style: italic;
-  margin: 0;
-}
-
-.authority-contact {
-  text-align: right;
-  flex-shrink: 0;
-  font-size: 8.5pt;
-  color: #555;
-  line-height: 1.65;
-}
-
-.authority-contact a {
-  color: #2a5d9f;
-  text-decoration: none;
-}
-
 .authority-logo {
   text-align: center;
   margin-bottom: 14pt;
