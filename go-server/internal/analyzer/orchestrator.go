@@ -156,6 +156,11 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         parallelElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Parallel lookups completed", mapKeyDomain, domain, "elapsed_s", fmt.Sprintf(fmtSeconds, parallelElapsed), "tasks", len(resultsMap), "scope", scope)
 
+        engineStart := time.Now()
+        if options.OnPhaseProgress != nil {
+                options.OnPhaseProgress("analysis_engine", "running", 0)
+        }
+
         results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart, scope)
         timings = append(timings, seqTimings...)
 
@@ -178,11 +183,12 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         totalElapsed := time.Since(analysisStart).Seconds()
         slog.Info("Analysis complete", mapKeyDomain, domain, "total_s", fmt.Sprintf(fmtSeconds, totalElapsed), "parallel_s", fmt.Sprintf(fmtSeconds, parallelElapsed))
 
+        engineDurMs := int(time.Since(engineStart).Milliseconds())
         telemetry := NewScanTelemetry(timings, int(time.Since(analysisStart).Milliseconds()))
         results["_scan_telemetry"] = telemetry
 
         if options.OnPhaseProgress != nil {
-                options.OnPhaseProgress("analysis_engine", "done", int(time.Since(analysisStart).Milliseconds()))
+                options.OnPhaseProgress("analysis_engine", "done", engineDurMs)
         }
 
         return results
@@ -207,18 +213,33 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         postCtx, postCancel := context.WithTimeout(ctx, 15*time.Second)
         defer postCancel()
 
+        progressCb := options.OnPhaseProgress
         var seqTimings []PhaseTiming
 
         daneStart := time.Now()
+        if progressCb != nil {
+                progressCb("dnssec_dane", "running", 0)
+        }
         resultsMap[mapKeyDaneOrch] = a.AnalyzeDANE(postCtx, domain, mxForDANE)
         daneDur := time.Since(daneStart)
-        slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeyDaneOrch, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(daneDur.Milliseconds())))
-        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "dnssec_dane", PhaseTask: "dane", StartedAtMs: int(daneStart.Sub(analysisStart).Milliseconds()), DurationMs: int(daneDur.Milliseconds())})
+        daneDurMs := int(daneDur.Milliseconds())
+        slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeyDaneOrch, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(daneDurMs)))
+        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "dnssec_dane", PhaseTask: "dane", StartedAtMs: int(daneStart.Sub(analysisStart).Milliseconds()), DurationMs: daneDurMs})
+        if progressCb != nil {
+                progressCb("dnssec_dane", "done", daneDurMs)
+        }
 
         smtpStart := time.Now()
+        if progressCb != nil {
+                progressCb("smtp_transport", "running", 0)
+        }
         smtpResult := a.computeSMTPResult(postCtx, domain, isTLD, mxForDANE, resultsMap)
         smtpDur := time.Since(smtpStart)
-        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "smtp_transport", PhaseTask: "smtp_transport", StartedAtMs: int(smtpStart.Sub(analysisStart).Milliseconds()), DurationMs: int(smtpDur.Milliseconds())})
+        smtpDurMs := int(smtpDur.Milliseconds())
+        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "smtp_transport", PhaseTask: "smtp_transport", StartedAtMs: int(smtpStart.Sub(analysisStart).Milliseconds()), DurationMs: smtpDurMs})
+        if progressCb != nil {
+                progressCb("smtp_transport", "done", smtpDurMs)
+        }
 
         enrichBasicRecords(basic, resultsMap)
 
@@ -326,14 +347,23 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
 
         results["saas_txt"] = ExtractSaaSTXTFootprint(results)
 
+        progressCb := options.OnPhaseProgress
+
         web3Start := time.Now()
+        if progressCb != nil {
+                progressCb("web3_analysis", "running", 0)
+        }
         basicForWeb3 := getMapResult(results, mapKeyBasicRecords)
         txtRecords := ExtractTXTFromBasicRecords(basicForWeb3)
         dnssecForWeb3 := getMapResult(results, "dnssec_analysis")
         web3Result := a.AnalyzeWeb3(ctx, domain, txtRecords, dnssecForWeb3)
         results[mapKeyWeb3] = web3Result
         web3Dur := time.Since(web3Start)
-        slog.Info(logTaskCompleted, mapKeyTaskOrch, "web3_analysis", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(web3Dur.Milliseconds())))
+        web3DurMs := int(web3Dur.Milliseconds())
+        slog.Info(logTaskCompleted, mapKeyTaskOrch, "web3_analysis", mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(web3DurMs)))
+        if progressCb != nil {
+                progressCb("web3_analysis", "done", web3DurMs)
+        }
 
         a.enrichWeb3WithFleetProbe(ctx, domain, web3Result)
 
@@ -349,7 +379,7 @@ func (a *Analyzer) enrichWithPostAnalysis(ctx context.Context, domain string, re
                 PhaseGroup:  "web3_analysis",
                 PhaseTask:   "web3_analysis",
                 StartedAtMs: int(web3Start.Sub(analysisStart).Milliseconds()),
-                DurationMs:  int(web3Dur.Milliseconds()),
+                DurationMs:  web3DurMs,
         }
 }
 
