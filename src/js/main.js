@@ -666,6 +666,25 @@ document.addEventListener('DOMContentLoaded', function() {
     globeMotion();
     rmq.addEventListener('change', globeMotion);
 
+    var csvEl = document.getElementById('caseStudyVideo');
+    if (csvEl) {
+        csvEl.addEventListener('error', function() {
+            var w = csvEl.closest('.approach-video-wrapper');
+            if (w) {
+                var msg = document.createElement('div');
+                msg.style.cssText = 'text-align:center;padding:1.5rem;color:rgba(170,178,188,0.7);font-size:0.85rem';
+                msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download directly</a>.';
+                csvEl.replaceWith(msg);
+            }
+        }, true);
+        var src = csvEl.querySelector('source');
+        if (src) {
+            src.addEventListener('error', function() {
+                csvEl.dispatchEvent(new Event('error'));
+            });
+        }
+    }
+
     var privToggle = document.getElementById('privacyToggle');
     var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
