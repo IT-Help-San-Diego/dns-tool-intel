@@ -1,6 +1,6 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="0 0 500 350" width="500" height="350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology">
+    <svg viewBox="0 0 500 400" width="500" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology">
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -16,6 +16,9 @@
             <filter id="glow-res-q9" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#0078d4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-od" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#ff6a00" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-eu" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#003399" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <radialGradient id="globe-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#648cc8" stop-opacity="0.08"/><stop offset="1" stop-color="#648cc8" stop-opacity="0"/></radialGradient>
+            <radialGradient id="globe-fill" cx="40%" cy="35%" r="60%"><stop offset="0" stop-color="#161e2e"/><stop offset="1" stop-color="#080c16"/></radialGradient>
+            <clipPath id="globe-clip"><circle cx="230" cy="42" r="38"/></clipPath>
         </defs>
         <style nonce="{{.CspNonce}}">
             .topo-node { fill: #1c2128; stroke: #30363d; stroke-width: 1.5; rx: 8; transition: fill 0.5s, stroke 0.5s, filter 0.5s; }
@@ -31,9 +34,9 @@
             .topo-connector.complete { stroke: #30363d; opacity: 0.6; stroke-dasharray: none; }
             @keyframes topo-flow { to { stroke-dashoffset: -9; } }
 
-            .topo-res-line { stroke: #21262d; stroke-width: 0.8; opacity: 0.3; transition: stroke 0.5s, opacity 0.5s; }
+            .topo-res-line { stroke: #21262d; stroke-width: 0.8; opacity: 0.3; fill: none; transition: stroke 0.5s, opacity 0.5s; }
             .topo-res-dot { fill: #30363d; stroke: #30363d; stroke-width: 0.5; opacity: 0.5; transition: fill 0.5s, stroke 0.5s, opacity 0.5s, filter 0.5s; }
-            .topo-res-label { fill: #484f58; font-size: 7px; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; text-anchor: middle; opacity: 0.5; transition: fill 0.5s, opacity 0.5s; }
+            .topo-res-label { fill: #484f58; font-size: 6px; font-weight: 700; font-family: system-ui, -apple-system, sans-serif; text-anchor: middle; opacity: 0.5; transition: fill 0.5s, opacity 0.5s; }
             @keyframes topo-res-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
             .topo-res-dot.res-running { animation: topo-res-pulse 1.2s ease-in-out infinite; }
             .topo-res-line.res-running { stroke-dasharray: 3,2; animation: topo-flow 1.2s linear infinite; opacity: 0.6; }
@@ -99,84 +102,103 @@
             .topo-connector.conn-active-registrar { stroke: #ce93d8; opacity: 0.7; }
             .topo-connector.conn-active-engine { stroke: #e0e0e0; opacity: 0.7; }
             .topo-connector.conn-active-web3 { stroke: #d4a853; opacity: 0.7; }
+
+            @media (prefers-reduced-motion: reduce) {
+                .topo-node.phase-running, .topo-res-dot.res-running { animation: none; }
+                .topo-connector.active, .topo-res-line.res-running { animation: none; }
+            }
         </style>
 
-        <line x1="120" y1="18" x2="200" y2="55" class="topo-res-line" data-resolver="cf"/>
-        <line x1="165" y1="13" x2="210" y2="50" class="topo-res-line" data-resolver="g"/>
-        <line x1="230" y1="8" x2="230" y2="48" class="topo-res-line" data-resolver="q9"/>
-        <line x1="295" y1="13" x2="250" y2="50" class="topo-res-line" data-resolver="od"/>
-        <line x1="340" y1="18" x2="260" y2="55" class="topo-res-line" data-resolver="eu"/>
+        <circle cx="230" cy="42" r="52" fill="url(#globe-glow)"/>
+        <circle cx="230" cy="42" r="38" fill="url(#globe-fill)" stroke="rgba(100,140,200,0.2)" stroke-width="1.2"/>
 
-        <circle cx="120" cy="15" r="4" class="topo-res-dot" data-resolver="cf"/>
-        <text x="120" y="28" class="topo-res-label" data-resolver="cf">CF</text>
-        <circle cx="165" cy="10" r="4" class="topo-res-dot" data-resolver="g"/>
-        <text x="165" y="23" class="topo-res-label" data-resolver="g">G</text>
-        <circle cx="230" cy="5" r="4" class="topo-res-dot" data-resolver="q9"/>
-        <text x="230" y="18" class="topo-res-label" data-resolver="q9">Q9</text>
-        <circle cx="295" cy="10" r="4" class="topo-res-dot" data-resolver="od"/>
-        <text x="295" y="23" class="topo-res-label" data-resolver="od">OD</text>
-        <circle cx="340" cy="15" r="4" class="topo-res-dot" data-resolver="eu"/>
-        <text x="340" y="28" class="topo-res-label" data-resolver="eu">EU</text>
+        <g clip-path="url(#globe-clip)">
+            <ellipse cx="230" cy="42" rx="38" ry="12" fill="none" stroke="rgba(100,140,200,0.07)" stroke-width="0.5"/>
+            <ellipse cx="230" cy="42" rx="38" ry="26" fill="none" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
+            <ellipse cx="230" cy="42" rx="12" ry="38" fill="none" stroke="rgba(100,140,200,0.08)" stroke-width="0.5"/>
+            <ellipse cx="230" cy="42" rx="28" ry="38" fill="none" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
+            <line x1="192" y1="42" x2="268" y2="42" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
+            <line x1="230" y1="4" x2="230" y2="80" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
+            <ellipse cx="230" cy="28" rx="36" ry="4" fill="none" stroke="rgba(100,140,200,0.05)" stroke-width="0.5"/>
+            <ellipse cx="230" cy="56" rx="36" ry="4" fill="none" stroke="rgba(100,140,200,0.05)" stroke-width="0.5"/>
+        </g>
 
-        <line x1="230" y1="90" x2="70" y2="150" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
-        <line x1="230" y1="90" x2="170" y2="150" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
-        <line x1="230" y1="90" x2="290" y2="150" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
-        <line x1="230" y1="90" x2="390" y2="150" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
-        <line x1="70" y1="150" x2="70" y2="230" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
-        <line x1="170" y1="150" x2="170" y2="230" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
-        <line x1="290" y1="150" x2="290" y2="230" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
-        <line x1="390" y1="150" x2="390" y2="230" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
-        <line x1="230" y1="90" x2="440" y2="230" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
-        <line x1="70" y1="230" x2="230" y2="300" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-        <line x1="170" y1="230" x2="230" y2="300" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-        <line x1="290" y1="230" x2="230" y2="300" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-        <line x1="390" y1="230" x2="230" y2="300" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-        <line x1="440" y1="250" x2="275" y2="300" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
+        <circle cx="208" cy="35" r="3.5" class="topo-res-dot" data-resolver="cf"/>
+        <text x="208" y="28" class="topo-res-label" data-resolver="cf">CF</text>
+        <circle cx="220" cy="55" r="3.5" class="topo-res-dot" data-resolver="g"/>
+        <text x="214" y="62" class="topo-res-label" data-resolver="g">G</text>
+        <circle cx="238" cy="22" r="3.5" class="topo-res-dot" data-resolver="q9"/>
+        <text x="238" y="16" class="topo-res-label" data-resolver="q9">Q9</text>
+        <circle cx="248" cy="50" r="3.5" class="topo-res-dot" data-resolver="od"/>
+        <text x="256" y="52" class="topo-res-label" data-resolver="od">OD</text>
+        <circle cx="252" cy="32" r="3.5" class="topo-res-dot" data-resolver="eu"/>
+        <text x="260" y="30" class="topo-res-label" data-resolver="eu">EU</text>
 
-        <rect x="185" y="50" width="90" height="42" class="topo-node" data-phase="dns_records" data-pkey="dns"/>
-        <text x="230" y="69" class="topo-label">DNS Records</text>
-        <text x="230" y="80" class="topo-sub" data-tasks="dns_records">0/3</text>
-        <text x="230" y="102" class="topo-dur" data-dur="dns_records"></text>
+        <path d="M208,38 C200,70 215,90 230,100" class="topo-res-line" data-resolver="cf"/>
+        <path d="M220,58 C215,75 222,90 230,100" class="topo-res-line" data-resolver="g"/>
+        <path d="M238,25 C238,60 234,85 230,100" class="topo-res-line" data-resolver="q9"/>
+        <path d="M248,53 C245,75 238,90 230,100" class="topo-res-line" data-resolver="od"/>
+        <path d="M252,35 C260,70 245,90 230,100" class="topo-res-line" data-resolver="eu"/>
 
-        <rect x="25" y="130" width="90" height="42" class="topo-node" data-phase="email_auth" data-pkey="email"/>
-        <text x="70" y="149" class="topo-label">Email Auth</text>
-        <text x="70" y="160" class="topo-sub" data-tasks="email_auth">0/3</text>
-        <text x="70" y="182" class="topo-dur" data-dur="email_auth"></text>
+        <line x1="230" y1="140" x2="70" y2="200" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
+        <line x1="230" y1="140" x2="170" y2="200" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+        <line x1="230" y1="140" x2="290" y2="200" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+        <line x1="230" y1="140" x2="390" y2="200" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
+        <line x1="70" y1="200" x2="70" y2="280" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
+        <line x1="170" y1="200" x2="170" y2="280" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
+        <line x1="290" y1="200" x2="290" y2="280" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
+        <line x1="390" y1="200" x2="390" y2="280" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
+        <line x1="230" y1="140" x2="440" y2="280" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
+        <line x1="70" y1="280" x2="230" y2="350" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+        <line x1="170" y1="280" x2="230" y2="350" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+        <line x1="290" y1="280" x2="230" y2="350" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+        <line x1="390" y1="280" x2="230" y2="350" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+        <line x1="440" y1="300" x2="275" y2="350" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
 
-        <rect x="125" y="130" width="90" height="42" class="topo-node" data-phase="dnssec_dane" data-pkey="dnssec"/>
-        <text x="170" y="149" class="topo-label">DNSSEC/DANE</text>
-        <text x="170" y="160" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
-        <text x="170" y="182" class="topo-dur" data-dur="dnssec_dane"></text>
+        <rect x="185" y="100" width="90" height="42" class="topo-node" data-phase="dns_records" data-pkey="dns"/>
+        <text x="230" y="119" class="topo-label">DNS Records</text>
+        <text x="230" y="130" class="topo-sub" data-tasks="dns_records">0/3</text>
+        <text x="230" y="152" class="topo-dur" data-dur="dns_records"></text>
 
-        <rect x="245" y="130" width="90" height="42" class="topo-node" data-phase="ct_subdomains" data-pkey="ct"/>
-        <text x="290" y="149" class="topo-label">CT/Subdomains</text>
-        <text x="290" y="160" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
-        <text x="290" y="182" class="topo-dur" data-dur="ct_subdomains"></text>
+        <rect x="25" y="180" width="90" height="42" class="topo-node" data-phase="email_auth" data-pkey="email"/>
+        <text x="70" y="199" class="topo-label">Email Auth</text>
+        <text x="70" y="210" class="topo-sub" data-tasks="email_auth">0/3</text>
+        <text x="70" y="232" class="topo-dur" data-dur="email_auth"></text>
 
-        <rect x="345" y="130" width="90" height="42" class="topo-node" data-phase="smtp_transport" data-pkey="smtp"/>
-        <text x="390" y="149" class="topo-label">SMTP</text>
-        <text x="390" y="160" class="topo-sub" data-tasks="smtp_transport">0/3</text>
-        <text x="390" y="182" class="topo-dur" data-dur="smtp_transport"></text>
+        <rect x="125" y="180" width="90" height="42" class="topo-node" data-phase="dnssec_dane" data-pkey="dnssec"/>
+        <text x="170" y="199" class="topo-label">DNSSEC/DANE</text>
+        <text x="170" y="210" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
+        <text x="170" y="232" class="topo-dur" data-dur="dnssec_dane"></text>
 
-        <rect x="25" y="210" width="90" height="42" class="topo-node" data-phase="policy_records" data-pkey="policy"/>
-        <text x="70" y="229" class="topo-label">Policy Records</text>
-        <text x="70" y="240" class="topo-sub" data-tasks="policy_records">0/4</text>
-        <text x="70" y="262" class="topo-dur" data-dur="policy_records"></text>
+        <rect x="245" y="180" width="90" height="42" class="topo-node" data-phase="ct_subdomains" data-pkey="ct"/>
+        <text x="290" y="199" class="topo-label">CT/Subdomains</text>
+        <text x="290" y="210" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
+        <text x="290" y="232" class="topo-dur" data-dur="ct_subdomains"></text>
 
-        <rect x="125" y="210" width="90" height="42" class="topo-node" data-phase="registrar_infra" data-pkey="registrar"/>
-        <text x="170" y="229" class="topo-label">Registrar/Infra</text>
-        <text x="170" y="240" class="topo-sub" data-tasks="registrar_infra">0/5</text>
-        <text x="170" y="262" class="topo-dur" data-dur="registrar_infra"></text>
+        <rect x="345" y="180" width="90" height="42" class="topo-node" data-phase="smtp_transport" data-pkey="smtp"/>
+        <text x="390" y="199" class="topo-label">SMTP</text>
+        <text x="390" y="210" class="topo-sub" data-tasks="smtp_transport">0/3</text>
+        <text x="390" y="232" class="topo-dur" data-dur="smtp_transport"></text>
 
-        <rect x="395" y="210" width="90" height="42" class="topo-node" data-phase="web3_analysis" data-pkey="web3"/>
-        <text x="440" y="229" class="topo-label">Web3</text>
-        <text x="440" y="240" class="topo-sub" data-tasks="web3_analysis">0/1</text>
-        <text x="440" y="262" class="topo-dur" data-dur="web3_analysis"></text>
+        <rect x="25" y="260" width="90" height="42" class="topo-node" data-phase="policy_records" data-pkey="policy"/>
+        <text x="70" y="279" class="topo-label">Policy Records</text>
+        <text x="70" y="290" class="topo-sub" data-tasks="policy_records">0/4</text>
+        <text x="70" y="312" class="topo-dur" data-dur="policy_records"></text>
 
-        <rect x="185" y="280" width="90" height="42" class="topo-node" data-phase="analysis_engine" data-pkey="engine"/>
-        <text x="230" y="299" class="topo-label">ICIE Engine</text>
-        <text x="230" y="310" class="topo-sub" data-tasks="analysis_engine">0/10</text>
-        <text x="230" y="332" class="topo-dur" data-dur="analysis_engine"></text>
+        <rect x="125" y="260" width="90" height="42" class="topo-node" data-phase="registrar_infra" data-pkey="registrar"/>
+        <text x="170" y="279" class="topo-label">Registrar/Infra</text>
+        <text x="170" y="290" class="topo-sub" data-tasks="registrar_infra">0/5</text>
+        <text x="170" y="312" class="topo-dur" data-dur="registrar_infra"></text>
+
+        <rect x="395" y="260" width="90" height="42" class="topo-node" data-phase="web3_analysis" data-pkey="web3"/>
+        <text x="440" y="279" class="topo-label">Web3</text>
+        <text x="440" y="290" class="topo-sub" data-tasks="web3_analysis">0/1</text>
+        <text x="440" y="312" class="topo-dur" data-dur="web3_analysis"></text>
+
+        <rect x="185" y="330" width="90" height="42" class="topo-node" data-phase="analysis_engine" data-pkey="engine"/>
+        <text x="230" y="349" class="topo-label">ICIE Engine</text>
+        <text x="230" y="360" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+        <text x="230" y="382" class="topo-dur" data-dur="analysis_engine"></text>
     </svg>
 </div>
 {{end}}
