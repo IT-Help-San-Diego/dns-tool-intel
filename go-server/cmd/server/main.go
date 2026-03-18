@@ -460,6 +460,9 @@ func main() {
         roeHandler := handlers.NewROEHandler(cfg)
         router.GET("/roe", roeHandler.ROE)
 
+        blackSiteHandler := handlers.NewBlackSiteHandler(cfg)
+        router.GET("/black-site", blackSiteHandler.BlackSite)
+
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)
 
