@@ -249,6 +249,7 @@
     </main>
 
     {{template "footer" .}}
+    {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     function copyCitation(){var e=document.getElementById('citation-text'),t=e.textContent.replace(/\s*Copy\s*$/,'').trim();navigator.clipboard.writeText(t).then(function(){var b=e.querySelector('.copy-btn');b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},2000)});}
     </script>
