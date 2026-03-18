@@ -597,10 +597,7 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         cl := func(pfx, txt, c string) covertLine {
                 return covertLine{prefix: pfx, text: txt, color: c}
         }
-        checkCount := 9
-        if web3Detected {
-                checkCount = 10
-        }
+        checkCount := 10
         if vulnerable == 0 && findingCount == 0 {
                 return []covertLine{
                         cl("[!]", fmt.Sprintf("All %d checks configured — target is hardened", checkCount), locked),
@@ -974,13 +971,12 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 {"caa_analysis", "CAA"},
         }
 
+        protocols = append(protocols, struct {
+                key    string
+                abbrev string
+        }{"web3_analysis", "W3"})
+
         web3St := extractWeb3Status(results)
-        if web3St != "" {
-                protocols = append(protocols, struct {
-                        key    string
-                        abbrev string
-                }{"web3_analysis", "W3"})
-        }
 
         nodes := make([]protocolNode, 0, len(protocols))
         for _, p := range protocols {
@@ -988,7 +984,7 @@ func extractProtocolIndicators(results map[string]any) []protocolNode {
                 if p.key == "web3_analysis" {
                         if web3St == "success" {
                                 status = "success"
-                        } else {
+                        } else if web3St != "" {
                                 status = "info"
                         }
                 } else if analysisRaw, ok := results[p.key]; ok {
@@ -1323,11 +1319,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         hasExposure := exposure.status == "exposed" && exposure.findingCount > 0
 
-        web3StatusDetailed := extractWeb3Status(results)
-        controlCount := 9
-        if web3StatusDetailed != "" {
-                controlCount = 10
-        }
+        controlCount := 10
 
         postureContext := ""
         if missing > 0 {
@@ -1371,9 +1363,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {414, 128},
                 {496, 78},
                 {496, 178},
-        }
-        if len(nodes) > 9 {
-                nodePositions = append(nodePositions, nodePos{496, 128})
+                {496, 128},
         }
 
         edges := []topoEdge{
@@ -1465,10 +1455,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         var glowDefs strings.Builder
         renderTopoNodes(&nodeSVG, &glowDefs, nodes, nodePositions, nodeR)
 
-        totalControls := 9
-        if len(nodes) > 9 {
-                totalControls = len(nodes)
-        }
+        totalControls := len(nodes)
         missingSVG := ""
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
