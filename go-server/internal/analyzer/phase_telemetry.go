@@ -100,6 +100,12 @@ func PhaseGroupTaskCounts() map[string]int {
         return counts
 }
 
+func PhaseGroupCallbackCounts() map[string]int {
+        counts := PhaseGroupTaskCounts()
+        counts["analysis_engine"] = 1
+        return counts
+}
+
 func LookupPhaseGroup(taskKey string) string {
         if group, ok := phaseGroupMap[taskKey]; ok {
                 return group

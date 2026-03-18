@@ -64,7 +64,7 @@ func (ps *ProgressStore) NewToken() (string, *scanProgress) {
         _, _ = rand.Read(b)
         token := hex.EncodeToString(b)
 
-        taskCounts := analyzer.PhaseGroupTaskCounts()
+        callbackCounts := analyzer.PhaseGroupCallbackCounts()
 
         progress := &scanProgress{
                 startTime: time.Now(),
@@ -74,7 +74,7 @@ func (ps *ProgressStore) NewToken() (string, *scanProgress) {
         for _, group := range analyzer.PhaseGroupOrder {
                 progress.phases[group] = &phaseStatus{
                         Status:        "pending",
-                        expectedTasks: taskCounts[group],
+                        expectedTasks: callbackCounts[group],
                 }
         }
 
