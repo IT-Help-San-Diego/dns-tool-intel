@@ -78,7 +78,16 @@ func init() {
 
 func main() {
         slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-                Level: slog.LevelDebug,
+                Level: slog.LevelInfo,
+                ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
+                        if a.Value.Kind() == slog.KindString {
+                                v := a.Value.String()
+                                if strings.Contains(v, "@") || strings.Contains(v, "webhook") || strings.Contains(v, "token=") {
+                                        return slog.Attr{Key: a.Key, Value: slog.StringValue("[REDACTED_EARLY]")}
+                                }
+                        }
+                        return a
+                },
         })))
 
         earlyPort := os.Getenv("PORT")

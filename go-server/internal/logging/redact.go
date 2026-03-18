@@ -44,8 +44,19 @@ func redactAttr(a slog.Attr) slog.Attr {
                 return a
         }
 
-        if a.Value.Kind() == slog.KindString {
+        switch a.Value.Kind() {
+        case slog.KindString:
                 a.Value = slog.StringValue(redactString(a.Value.String()))
+        case slog.KindAny:
+                if err, ok := a.Value.Any().(error); ok {
+                        a.Value = slog.StringValue(redactString(err.Error()))
+                } else {
+                        str := a.Value.String()
+                        redacted := redactString(str)
+                        if redacted != str {
+                                a.Value = slog.StringValue(redacted)
+                        }
+                }
         }
 
         if a.Value.Kind() == slog.KindGroup {
