@@ -539,7 +539,16 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 }
 
 func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
-        telRaw := results["_scan_telemetry"]
+        if ephemeral || analysisID == 0 {
+                return
+        }
+        telRaw, ok := results["_scan_telemetry"]
+        if !ok {
+                return
+        }
+        if _, valid := telRaw.(analyzer.ScanTelemetry); !valid {
+                return
+        }
         delete(results, "_scan_telemetry")
         h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
 }

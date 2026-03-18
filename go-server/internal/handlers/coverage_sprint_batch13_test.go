@@ -285,8 +285,8 @@ func TestCovertSummaryLines_Vulnerable_B13(t *testing.T) {
         if len(lines) < 1 {
                 t.Fatal("expected at least 1 line")
         }
-        if !strings.Contains(lines[0].text, "5 of 9") {
-                t.Errorf("expected 5 of 9, got %q", lines[0].text)
+        if !strings.Contains(lines[0].text, "5 of 10") {
+                t.Errorf("expected 5 of 10, got %q", lines[0].text)
         }
 }
 
@@ -395,8 +395,8 @@ func TestExtractProtocolIndicators_B13(t *testing.T) {
                 "dkim_analysis": map[string]any{"status": "warning"},
         }
         nodes := extractProtocolIndicators(results)
-        if len(nodes) != 9 {
-                t.Fatalf("expected 9 nodes, got %d", len(nodes))
+        if len(nodes) != 10 {
+                t.Fatalf("expected 10 nodes, got %d", len(nodes))
         }
         if nodes[0].status != "success" {
                 t.Errorf("SPF status: got %q", nodes[0].status)
