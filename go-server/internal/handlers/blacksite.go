@@ -37,6 +37,7 @@ type findingView struct {
         PriorityLabel  string
         Status         string
         StatusDisplay  string
+        StatusCSS      string
         EvidenceGrade  string
         Confidence     string
         BlastRadius    string
@@ -59,7 +60,7 @@ type eventView struct {
 }
 
 var severityLabels = map[int]string{
-        0: "S0 — Systemic",
+        0: "S0 — Red Notice",
         1: "S1 — Critical Path",
         2: "S2 — Major",
         3: "S3 — Contained",
@@ -82,6 +83,17 @@ var statusDisplay = map[string]string{
         "REGRESSED":            "Regressed",
         "EXTRADITED":           "Extradited",
         "DISMISSED":            "Dismissed",
+}
+
+var statusCSS = map[string]string{
+        "DETAINED":             "detained",
+        "VERIFIED":             "verified",
+        "UNDER_INTERROGATION":  "interrogation",
+        "CONTAINED":            "contained",
+        "RENDERED":             "rendered",
+        "REGRESSED":            "regressed",
+        "EXTRADITED":           "extradited",
+        "DISMISSED":            "dismissed",
 }
 
 func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
@@ -152,6 +164,7 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
                         PriorityLabel:  priorityLabels[int(f.Priority)],
                         Status:         f.Status,
                         StatusDisplay:  statusDisplay[f.Status],
+                        StatusCSS:      statusCSS[f.Status],
                         EvidenceGrade:  f.EvidenceGrade,
                         Confidence:     conf,
                         BlastRadius:    f.BlastRadius,
