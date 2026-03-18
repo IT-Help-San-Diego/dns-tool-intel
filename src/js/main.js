@@ -598,6 +598,7 @@ function activateCovertOrSwitch() {
         const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
         if (aid && (cur === 'E' || cur === 'C')) {
             const target = cur === 'E' ? 'C' : 'E';
+            try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
             globalThis.location.href = '/analysis/' + aid + '/view/' + target;
             return;
         }
@@ -658,6 +659,42 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    try {
+        var savedY = sessionStorage.getItem('covert_scroll_y');
+        if (savedY !== null) {
+            sessionStorage.removeItem('covert_scroll_y');
+            var y = parseInt(savedY, 10);
+            if (!isNaN(y) && y > 0) { globalThis.scrollTo(0, y); }
+        }
+    } catch(e) {}
+
+    var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function globeMotion() {
+        var at = document.querySelector('.globe-meridians animateTransform');
+        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    }
+    globeMotion();
+    rmq.addEventListener('change', globeMotion);
+
+    var csvEl = document.getElementById('caseStudyVideo');
+    if (csvEl) {
+        csvEl.addEventListener('error', function() {
+            var w = csvEl.closest('.approach-video-wrapper');
+            if (w) {
+                var msg = document.createElement('div');
+                msg.style.cssText = 'text-align:center;padding:1.5rem;color:rgba(170,178,188,0.7);font-size:0.85rem';
+                msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download directly</a>.';
+                csvEl.replaceWith(msg);
+            }
+        }, true);
+        var src = csvEl.querySelector('source');
+        if (src) {
+            src.addEventListener('error', function() {
+                csvEl.dispatchEvent(new Event('error'));
+            });
+        }
+    }
+
     var privToggle = document.getElementById('privacyToggle');
     var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
@@ -713,6 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setCovertMode(false);
                     const psMeta = document.querySelector('meta[name="x-public-suffix"]');
                     const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }

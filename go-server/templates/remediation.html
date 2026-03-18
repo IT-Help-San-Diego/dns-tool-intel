@@ -303,21 +303,24 @@
                 });
             });
         }
+        function handleCopyResult(el, orig) {
+            el.classList.add('border-success');
+            el.textContent = 'Copied!';
+            setTimeout(function() {
+                el.textContent = orig;
+                el.classList.remove('border-success');
+            }, 1200);
+        }
+        function copyCodeBlock(el) {
+            var text = el.textContent.trim();
+            navigator.clipboard.writeText(text).then(function() {
+                handleCopyResult(el, text);
+            });
+        }
         document.querySelectorAll('.code-block').forEach(function(el) {
             el.style.cursor = 'pointer';
             el.title = 'Click to copy';
-            el.addEventListener('click', function() {
-                var text = el.textContent.trim();
-                navigator.clipboard.writeText(text).then(function() {
-                    el.classList.add('border-success');
-                    var orig = el.textContent;
-                    el.textContent = 'Copied!';
-                    setTimeout(function() {
-                        el.textContent = orig;
-                        el.classList.remove('border-success');
-                    }, 1200);
-                });
-            });
+            el.addEventListener('click', function() { copyCodeBlock(el); });
         });
     })();
     </script>

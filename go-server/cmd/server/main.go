@@ -446,7 +446,7 @@ func main() {
         approachHandler := handlers.NewApproachHandler(cfg)
         router.GET("/approach", approachHandler.Approach)
 
-        edeHandler := handlers.NewEDEHandler(cfg)
+        edeHandler := handlers.NewEDEHandler(database, cfg)
         router.GET("/ede", edeHandler.EDE)
 
         router.GET("/methodology", staticHandler.MethodologyPDF)
@@ -459,6 +459,9 @@ func main() {
 
         roeHandler := handlers.NewROEHandler(cfg)
         router.GET("/roe", roeHandler.ROE)
+
+        blackSiteHandler := handlers.NewBlackSiteHandler(database, cfg)
+        router.GET("/black-site", blackSiteHandler.BlackSite)
 
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)

@@ -102,6 +102,35 @@
         }
     }
     </script>
+    <script type="application/ld+json" nonce="{{.CspNonce}}">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": "Forgotten Domain — Why Dormant Domains Need Published DNS Policy",
+        "description": "A domain registered for ten years with no published mail policy is not dormant — it is exposed. Without SPF, DMARC, and a Null MX record, any domain becomes a free spoofing vector. Reputation systems do not distinguish between negligence and compromise.",
+        "thumbnailUrl": "https://dnstool.it-help.tech/static/images/og-forgotten-domain.png",
+        "uploadDate": "2026-02-14",
+        "contentUrl": "https://dnstool.it-help.tech/static/video/forgotten-domain.mp4",
+        "embedUrl": "https://dnstool.it-help.tech/video/forgotten-domain",
+        "duration": "PT1M",
+        "encodingFormat": "video/mp4",
+        "inLanguage": "en",
+        "publisher": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://dnstool.it-help.tech/static/images/owl-of-athena.png"
+            }
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech"
+        }
+    }
+    </script>
     <style nonce="{{.CspNonce}}">
         .approach-section {
             background: linear-gradient(145deg, #0c1018 0%, #111720 50%, #0e141c 100%);
@@ -538,11 +567,12 @@
                         <p>A domain registered for ten years with no published mail policy is not dormant — it is exposed. Without SPF, DMARC, and a Null MX record, any domain becomes a free spoofing vector. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
                         <div class="approach-video-wrapper">
                             <div class="approach-video-label">{{icon "bolt"}} Case Study</div>
-                            <video controls playsinline preload="auto" poster="/static/images/og-forgotten-domain.png" class="approach-video" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
-                                <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
-                                Your browser does not support the video tag.
+                            <video id="caseStudyVideo" controls playsinline preload="metadata" poster="/static/images/og-forgotten-domain.png" class="approach-video" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
+                                <source src="/static/video/forgotten-domain.mp4" type='video/mp4; codecs="avc1.640028, mp4a.40.2"'>
+                                <track kind="captions" src="/static/video/forgotten-domain-captions.vtt" srclang="en" label="English" default>
+                                <p>Your browser does not support this video. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download the file</a>.</p>
                             </video>
-                            <div class="approach-video-caption">A ten-year-old domain with no mail policy — exposed for a decade without anyone noticing.</div>
+                            <div class="approach-video-caption">A ten-year-old domain with no mail policy — exposed for a decade without anyone noticing. <a href="/video/forgotten-domain" class="approach-video-fallback" style="font-size:0.68rem;color:rgba(88,166,255,0.6);margin-left:0.5rem">{{icon "external-link" "me-1"}}Watch fullscreen</a></div>
                         </div>
                     </div>
 

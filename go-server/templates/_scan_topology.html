@@ -1,6 +1,6 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="-20 0 500 410" width="500" height="410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology"
+    <svg viewBox="-20 0 500 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg"
          aria-description="Golden-ratio layout: Row 2 span (320) / Row 3 span (198) = 1.616 ≈ φ. Earth axial tilt: 23.44° (IAU 2006 obliquity). Meridian scroll: eastward (right), 20s decorative period.">
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -31,6 +31,7 @@
             </radialGradient>
         </defs>
         <style nonce="{{.CspNonce}}">
+            .topo-svg { width: 100%; max-width: 500px; height: auto; display: block; margin: 0 auto; }
             .topo-node { fill: url(#node-glass); stroke: rgba(48,54,61,0.5); stroke-width: 1; transition: stroke 0.5s; }
             .topo-ring { fill: none; stroke: #21262d; stroke-width: 2; opacity: 0.35; transition: stroke 0.5s, opacity 0.5s, filter 0.5s, stroke-width 0.5s; }
             .topo-halo { fill: none; stroke: #21262d; stroke-width: 0.5; stroke-dasharray: 3 2; opacity: 0.15; transition: stroke 0.5s, opacity 0.5s; }
@@ -147,17 +148,11 @@
             .globe-equator { fill: none; stroke: rgba(100,140,200,0.12); stroke-width: 0.7; }
             .globe-continent { fill: rgba(80,120,180,0.04); stroke: rgba(100,160,220,0.12); stroke-width: 0.8; }
 
-            .globe-meridians line { stroke: rgba(100,140,200,0.07); stroke-width: 0.5; fill: none; }
-            @keyframes globe-spin-meridians {
-                0% { transform: translate(0, 0); }
-                100% { transform: translate(14px, 0); }
-            }
-            .globe-meridians { animation: globe-spin-meridians 20s linear infinite; }
+            .globe-meridians line { stroke: rgba(100,140,200,0.18); stroke-width: 0.7; }
 
             @media (prefers-reduced-motion: reduce) {
                 .phase-running .topo-ring, .phase-running .topo-halo, .topo-res-dot.res-running { animation: none; }
                 .topo-connector.active, .topo-res-line.res-running { animation: none; }
-                .globe-meridians { animation: none; }
             }
         </style>
 
@@ -167,6 +162,8 @@
         <g clip-path="url(#globe-clip)">
             <g transform="rotate(23.44, 230, 48)">
                 <g class="globe-meridians">
+                    <animateTransform attributeName="transform" type="translate" values="0,0;14,0" dur="20s" repeatCount="indefinite"/>
+                    <line x1="160" y1="6" x2="160" y2="90"/>
                     <line x1="174" y1="6" x2="174" y2="90"/>
                     <line x1="188" y1="6" x2="188" y2="90"/>
                     <line x1="202" y1="6" x2="202" y2="90"/>
@@ -175,6 +172,7 @@
                     <line x1="244" y1="6" x2="244" y2="90"/>
                     <line x1="258" y1="6" x2="258" y2="90"/>
                     <line x1="272" y1="6" x2="272" y2="90"/>
+                    <line x1="286" y1="6" x2="286" y2="90"/>
                 </g>
 
                 <polyline class="globe-graticule" points="209.0,84.4 210.7,84.4 213.5,84.4 217.4,84.4 222.1,84.4 227.4,84.4 232.9,84.4 238.2,84.4 242.9,84.4 246.8,84.4 249.5,84.4 251.0,84.4"/>

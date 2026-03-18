@@ -39,6 +39,8 @@ const (
         hexScRed     = "#B43C29"
         hexDimGrey   = "#30363d"
 
+        labelGatewayDerived = "Gateway Derived"
+
         protoMTASTS = "MTA-STS"
         protoTLSRPT = "TLS-RPT"
         protoDMARC  = "DMARC"
@@ -123,7 +125,7 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
         style := c.DefaultQuery("style", "flat")
 
         if isGatewayDerivedResult(results) {
-                riskLabel = "Gateway Derived"
+                riskLabel = labelGatewayDerived
                 riskHex = hexYellow
                 score = -1
         }
@@ -294,18 +296,25 @@ func badgeSVG(label, value, color string) []byte {
         return []byte(svg)
 }
 
+func shieldsErrorJSON(msg string, isError bool) gin.H {
+        resp := gin.H{
+                strSchemaversion: 1,
+                mapKeyLabel:      labelDNSTool,
+                mapKeyMessage:    msg,
+                mapKeyColor:      mapKeyLightgrey,
+        }
+        if isError {
+                resp["isError"] = true
+        }
+        return resp
+}
+
 func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         domainQ := strings.TrimSpace(c.Query(mapKeyDomain))
         idQ := strings.TrimSpace(c.Query("id"))
 
         if domainQ == "" && idQ == "" {
-                c.JSON(http.StatusOK, gin.H{
-                        strSchemaversion: 1,
-                        mapKeyLabel:      labelDNSTool,
-                        mapKeyMessage:    "missing domain or id",
-                        mapKeyColor:      mapKeyLightgrey,
-                        "isError":        true,
-                })
+                c.JSON(http.StatusOK, shieldsErrorJSON("missing domain or id", true))
                 return
         }
 
@@ -315,47 +324,25 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         if idQ != "" {
                 scanID, err := strconv.ParseInt(idQ, 10, 32)
                 if err != nil {
-                        c.JSON(http.StatusOK, gin.H{
-                                strSchemaversion: 1,
-                                mapKeyLabel:      labelDNSTool,
-                                mapKeyMessage:    "invalid scan id",
-                                mapKeyColor:      mapKeyLightgrey,
-                                "isError":        true,
-                        })
+                        c.JSON(http.StatusOK, shieldsErrorJSON("invalid scan id", true))
                         return
                 }
                 analysis, err := h.store().GetAnalysisByID(ctx, int32(scanID))
                 if err != nil || analysis.Private {
-                        c.JSON(http.StatusOK, gin.H{
-                                strSchemaversion: 1,
-                                mapKeyLabel:      labelDNSTool,
-                                mapKeyMessage:    "scan not found",
-                                mapKeyColor:      mapKeyLightgrey,
-                        })
+                        c.JSON(http.StatusOK, shieldsErrorJSON("scan not found", false))
                         return
                 }
                 results = unmarshalResults(analysis.FullResults, "BadgeShieldsIO")
         } else {
                 ascii, err := dnsclient.DomainToASCII(domainQ)
                 if err != nil || !dnsclient.ValidateDomain(ascii) {
-                        c.JSON(http.StatusOK, gin.H{
-                                strSchemaversion: 1,
-                                mapKeyLabel:      labelDNSTool,
-                                mapKeyMessage:    "invalid domain",
-                                mapKeyColor:      mapKeyLightgrey,
-                                "isError":        true,
-                        })
+                        c.JSON(http.StatusOK, shieldsErrorJSON("invalid domain", true))
                         return
                 }
 
                 analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
                 if err != nil || analysis.Private {
-                        c.JSON(http.StatusOK, gin.H{
-                                strSchemaversion: 1,
-                                mapKeyLabel:      labelDNSTool,
-                                mapKeyMessage:    "not scanned",
-                                mapKeyColor:      mapKeyLightgrey,
-                        })
+                        c.JSON(http.StatusOK, shieldsErrorJSON("not scanned", false))
                         return
                 }
                 results = unmarshalResults(analysis.FullResults, "BadgeShieldsIO")
@@ -363,7 +350,7 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
 
         riskLabel, riskColorRaw := extractPostureRisk(results)
         if isGatewayDerivedResult(results) {
-                riskLabel = "Gateway Derived"
+                riskLabel = labelGatewayDerived
                 riskColorRaw = "warning"
         }
         shieldsColor := riskColorToShields(riskColorRaw)
@@ -743,7 +730,7 @@ func badgeSVGCovert(domain string, results map[string]any, scanTime time.Time, s
         riskLabel, riskColorName := extractPostureRisk(results)
         score := extractPostureScore(results)
         if isGatewayDerivedResult(results) {
-                riskLabel = "Gateway Derived"
+                riskLabel = labelGatewayDerived
                 riskColorName = "warning"
                 score = -1
         }
@@ -1292,7 +1279,7 @@ func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, p
 func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time, scanID int32, postureHash, baseURL string) []byte {
         riskLabel, riskColorName := extractPostureRisk(results)
         if isGatewayDerivedResult(results) {
-                riskLabel = "Gateway Derived"
+                riskLabel = labelGatewayDerived
                 riskColorName = "warning"
         }
         riskColorName = normalizeRiskColor(riskLabel, riskColorName)

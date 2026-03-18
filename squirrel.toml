@@ -1,5 +1,5 @@
 [project]
-domains = [dnstool.it-help.tech]
+domains = ["dnstool.it-help.tech"]
 name = "dnstool"
 
 [crawler]
@@ -31,6 +31,6 @@ timeout_ms = 10000
 concurrency = 5
 
 [output]
-format = "llm"
+format = "console"
 
 [rule_options]

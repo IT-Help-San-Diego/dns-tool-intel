@@ -7,6 +7,7 @@ import (
         "testing"
 
         "dnstool/go-server/internal/citation"
+        "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/handlers"
 
         "github.com/gin-gonic/gin"
@@ -111,7 +112,7 @@ func edeRouter_CB10(t *testing.T) *gin.Engine {
         t.Helper()
         r := allTemplates()
         cfg := testConfig()
-        h := handlers.NewEDEHandler(cfg)
+        h := handlers.NewEDEHandler(&db.Database{}, cfg)
         r.GET("/ede", h.EDE)
         return r
 }

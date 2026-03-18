@@ -382,3 +382,182 @@ CREATE INDEX idx_sle_category ON system_log_entries (category) WHERE category !=
 CREATE INDEX idx_sle_domain ON system_log_entries (domain) WHERE domain != '';
 CREATE INDEX idx_sle_trace_id ON system_log_entries (trace_id) WHERE trace_id != '';
 CREATE INDEX idx_sle_event ON system_log_entries (event) WHERE event != '';
+
+CREATE TABLE black_site_detainees (
+    id              SERIAL PRIMARY KEY,
+    bsi_id          VARCHAR(10) NOT NULL UNIQUE,
+    sha_hash        VARCHAR(6) NOT NULL,
+    title           TEXT NOT NULL,
+    threat_level    VARCHAR(20) NOT NULL CHECK (threat_level IN ('APT', 'ZERO-DAY', 'EXPLOIT', 'CVE', 'IOC')),
+    status          VARCHAR(30) NOT NULL DEFAULT 'DETAINED' CHECK (status IN ('DETAINED', 'UNDER INTERROGATION', 'RENDERED', 'EXTRADITED')),
+    captured_by     TEXT NOT NULL DEFAULT '',
+    file_references TEXT NOT NULL DEFAULT '',
+    interrogation_notes TEXT NOT NULL DEFAULT '',
+    witness_statement   TEXT NOT NULL DEFAULT '',
+    damage_assessment   TEXT NOT NULL DEFAULT '',
+    recommended_remedy  TEXT NOT NULL DEFAULT '',
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_bsd_threat_level ON black_site_detainees (threat_level);
+CREATE INDEX idx_bsd_status ON black_site_detainees (status);
+CREATE INDEX idx_bsd_bsi_id ON black_site_detainees (bsi_id);
+
+CREATE TABLE black_site_renditions (
+    id              SERIAL PRIMARY KEY,
+    detainee_id     INTEGER NOT NULL REFERENCES black_site_detainees(id),
+    rendered_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    commit_hash     VARCHAR(40) NOT NULL,
+    rendered_by     TEXT NOT NULL DEFAULT '',
+    method          TEXT NOT NULL DEFAULT '',
+    notes           TEXT NOT NULL DEFAULT '',
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_bsr_detainee_id ON black_site_renditions (detainee_id);
+CREATE INDEX idx_bsr_rendered_at ON black_site_renditions (rendered_at DESC);
+
+CREATE TABLE findings (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    public_id       TEXT UNIQUE NOT NULL,
+    kind            TEXT NOT NULL CHECK (kind IN ('defect', 'weakness', 'incident', 'compliance_gap', 'claim_integrity', 'design_debt')),
+    domain          TEXT NOT NULL CHECK (domain IN ('security', 'accessibility', 'ux', 'performance', 'seo', 'content', 'design_system', 'architecture')),
+    title           TEXT NOT NULL,
+    symptom_md      TEXT NOT NULL,
+    hypothesis_md   TEXT,
+    root_cause_md   TEXT,
+    severity        SMALLINT NOT NULL CHECK (severity BETWEEN 0 AND 4),
+    priority        SMALLINT NOT NULL CHECK (priority BETWEEN 0 AND 3),
+    status          TEXT NOT NULL DEFAULT 'DETAINED' CHECK (status IN ('DETAINED', 'VERIFIED', 'UNDER_INTERROGATION', 'CONTAINED', 'RENDERED', 'REGRESSED', 'EXTRADITED', 'DISMISSED')),
+    canonical_rule_id       TEXT NOT NULL,
+    fingerprint_version     SMALLINT NOT NULL DEFAULT 1,
+    fingerprint_sha256      CHAR(64) NOT NULL,
+    evidence_grade  TEXT NOT NULL CHECK (evidence_grade IN ('measured', 'reproduced', 'static_analysis', 'inferred')),
+    confidence      NUMERIC(3,2) NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+    blast_radius    TEXT NOT NULL CHECK (blast_radius IN ('component', 'page', 'flow', 'sitewide')),
+    visibility      TEXT NOT NULL CHECK (visibility IN ('internal', 'edge_case', 'common', 'critical_path', 'conference_demo')),
+    standard_refs   JSONB NOT NULL DEFAULT '[]'::JSONB,
+    duplicate_of    UUID REFERENCES findings(id),
+    regression_of   UUID REFERENCES findings(id),
+    source_team     TEXT NOT NULL DEFAULT '',
+    owner           TEXT,
+    introduced_commit   TEXT,
+    fixed_commit        TEXT,
+    fixed_release       TEXT,
+    legacy_bsi_id       TEXT,
+    legacy_threat_level TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX findings_canonical_uq ON findings (canonical_rule_id, fingerprint_version, fingerprint_sha256) WHERE duplicate_of IS NULL;
+CREATE INDEX idx_findings_kind ON findings (kind);
+CREATE INDEX idx_findings_domain ON findings (domain);
+CREATE INDEX idx_findings_severity ON findings (severity);
+CREATE INDEX idx_findings_status ON findings (status);
+CREATE INDEX idx_findings_public_id ON findings (public_id);
+
+CREATE TABLE observations (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    finding_id  UUID NOT NULL REFERENCES findings(id) ON DELETE CASCADE,
+    source_team     TEXT NOT NULL,
+    build_id        TEXT,
+    route           TEXT,
+    component       TEXT,
+    browser         TEXT,
+    viewport        TEXT,
+    repro_steps_md  TEXT,
+    evidence_sha256 CHAR(64) NOT NULL,
+    raw_evidence    JSONB NOT NULL DEFAULT '{}'::JSONB,
+    observed_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_observations_finding ON observations (finding_id);
+
+CREATE TABLE finding_events (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    finding_id  UUID NOT NULL REFERENCES findings(id) ON DELETE CASCADE,
+    actor       TEXT NOT NULL,
+    event_type  TEXT NOT NULL CHECK (event_type IN ('status_change', 'note', 'fix_linked', 'regression', 'verification')),
+    from_status TEXT,
+    to_status   TEXT,
+    commit_sha  TEXT,
+    note_md     TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_finding_events_finding ON finding_events (finding_id);
+CREATE INDEX idx_finding_events_type ON finding_events (event_type);
+
+CREATE TABLE ede_events (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ede_id          TEXT NOT NULL UNIQUE,
+    event_date      DATE NOT NULL,
+    commit_ref      TEXT NOT NULL,
+    category        TEXT NOT NULL CHECK (category IN (
+        'scoring_calibration','evidence_reinterpretation','drift_detection',
+        'resolver_trust','false_positive','confidence_decay',
+        'governance_correction','citation_error','overclaim','standards_misattribution'
+    )),
+    severity        TEXT NOT NULL CHECK (severity IN ('critical','significant','moderate','minor')),
+    title           TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','closed')),
+    attribution     TEXT NOT NULL CHECK (attribution IN ('Human Error','AI Error','Both','Process Gap')),
+    protocols_affected  JSONB NOT NULL DEFAULT '[]'::jsonb,
+    confidence_impact   TEXT,
+    resolution          TEXT,
+    bayesian_note       TEXT,
+    correction_action   TEXT,
+    prevention_rule     TEXT,
+    authoritative_source TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_ede_events_category ON ede_events (category);
+CREATE INDEX idx_ede_events_severity ON ede_events (severity);
+CREATE INDEX idx_ede_events_status ON ede_events (status);
+CREATE INDEX idx_ede_events_attribution ON ede_events (attribution);
+CREATE INDEX idx_ede_events_date ON ede_events (event_date);
+
+CREATE TABLE ede_amendments (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ede_event_id    UUID NOT NULL REFERENCES ede_events(id) ON DELETE CASCADE,
+    amendment_date  DATE NOT NULL,
+    ground          TEXT NOT NULL CHECK (ground IN ('FACTUAL_ERROR','DIGNITY_OF_EXPRESSION')),
+    field_changed   TEXT NOT NULL,
+    original_value  TEXT NOT NULL,
+    corrected_to    TEXT NOT NULL,
+    evidence        TEXT,
+    rationale       TEXT,
+    justification   TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_ede_amendments_event ON ede_amendments (ede_event_id);
+
+CREATE TABLE confidence_scores (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scan_id         UUID,
+    domain          TEXT NOT NULL,
+    protocol        TEXT NOT NULL CHECK (protocol IN (
+        'SPF','DKIM','DMARC','DNSSEC','DANE','CAA','MTA-STS','BIMI','TLS-RPT','MX','NS','SOA'
+    )),
+    score           NUMERIC(5,4) NOT NULL CHECK (score >= 0 AND score <= 1),
+    grade           TEXT CHECK (grade IN ('A+','A','A-','B+','B','B-','C+','C','C-','D','F')),
+    resolver_count  SMALLINT,
+    resolver_agreement NUMERIC(5,4),
+    evidence_factors    JSONB NOT NULL DEFAULT '{}'::jsonb,
+    calibrated_score    NUMERIC(5,4),
+    raw_score           NUMERIC(5,4),
+    source          TEXT NOT NULL DEFAULT 'scan' CHECK (source IN ('scan','manual','import','recalibration')),
+    scanned_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_confidence_scores_domain ON confidence_scores (domain);
+CREATE INDEX idx_confidence_scores_protocol ON confidence_scores (protocol);
+CREATE INDEX idx_confidence_scores_domain_protocol ON confidence_scores (domain, protocol);
+CREATE INDEX idx_confidence_scores_scanned_at ON confidence_scores (scanned_at);
+CREATE INDEX idx_confidence_scores_scan_id ON confidence_scores (scan_id);
