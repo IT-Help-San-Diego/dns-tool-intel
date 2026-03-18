@@ -597,18 +597,42 @@ func extractResultMeta(result any) (recordCount int, errMsg string) {
                 }
         }
         if records, ok := m["records"]; ok {
-                if arr, ok := records.([]any); ok {
-                        recordCount = len(arr)
-                }
+                recordCount = countSlice(records)
         }
         if recordCount == 0 {
                 if cnt, ok := m["count"]; ok {
-                        if n, ok := cnt.(int); ok {
-                                recordCount = n
-                        }
+                        recordCount = toInt(cnt)
                 }
         }
         return recordCount, errMsg
+}
+
+func countSlice(v any) int {
+        switch s := v.(type) {
+        case []any:
+                return len(s)
+        case []string:
+                return len(s)
+        case []map[string]any:
+                return len(s)
+        default:
+                return 0
+        }
+}
+
+func toInt(v any) int {
+        switch n := v.(type) {
+        case int:
+                return n
+        case int32:
+                return int(n)
+        case int64:
+                return int(n)
+        case float64:
+                return int(n)
+        default:
+                return 0
+        }
 }
 
 func buildRecordCurrencies(resolverTTLMap map[string]uint32) []icuae.RecordCurrency {
