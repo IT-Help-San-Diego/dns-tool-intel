@@ -173,6 +173,34 @@ func (h *CitationHandler) ResearchAPI(c *gin.Context) {
                 }
         }
 
+        analysisCases := icae.AnalysisTestCases()
+        collectionCases := icae.CollectionTestCases()
+        icaeTotalCases := len(analysisCases) + len(collectionCases)
+
+        protoCounts := icae.CountCasesByProtocol()
+        protocols := make([]gin.H, 0, len(protoCounts))
+        for proto, pc := range protoCounts {
+                protocols = append(protocols, gin.H{
+                        "protocol":   proto,
+                        "analysis":   pc.Analysis,
+                        "collection": pc.Collection,
+                        "total":      pc.Total,
+                })
+        }
+
+        icuaeInv := icuae.GetTestInventory()
+        icuaeCategories := make([]gin.H, 0, len(icuaeInv.Categories))
+        for _, cat := range icuaeInv.Categories {
+                icuaeCategories = append(icuaeCategories, gin.H{
+                        "name":     cat.Name,
+                        "standard": cat.Standard,
+                        "cases":    cat.Cases,
+                })
+        }
+
+        citationReg := citation.Global()
+        allEntries := citationReg.All()
+
         c.JSON(http.StatusOK, gin.H{
                 "label":       "Published Research Software",
                 "title":       title,
@@ -185,6 +213,26 @@ func (h *CitationHandler) ResearchAPI(c *gin.Context) {
                 "date":        date,
                 "url":         url,
                 "citation":    fmt.Sprintf("Balboa, C. J. (%s). %s (Version %s) [Computer software]. %s", date[:4], title, version, "https://doi.org/"+doi),
+                "engines": gin.H{
+                        "icae": gin.H{
+                                "name":             "Intelligence Confidence Audit Engine",
+                                "total_cases":      icaeTotalCases,
+                                "analysis_cases":   len(analysisCases),
+                                "collection_cases": len(collectionCases),
+                                "maturity_tiers":   []string{"Development", "Verified", "Consistent", "Gold", "Gold Master"},
+                                "protocols":        protocols,
+                        },
+                        "icuae": gin.H{
+                                "name":             "Intelligence Currency Assurance Engine",
+                                "total_cases":      icuaeInv.TotalCases,
+                                "total_dimensions": icuaeInv.TotalDimensions,
+                                "categories":       icuaeCategories,
+                        },
+                },
+                "authorities_registry": gin.H{
+                        "total_entries": len(allEntries),
+                        "url":           url + "/api/authorities",
+                },
                 "documents": []gin.H{
                         {
                                 "title":       "DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure",
@@ -217,6 +265,14 @@ func (h *CitationHandler) CitePage(c *gin.Context) {
                 orcid = strings.TrimPrefix(cff.Authors[0].ORCID, "https://orcid.org/")
         }
 
+        analysisCases := icae.AnalysisTestCases()
+        collectionCases := icae.CollectionTestCases()
+        icuaeInv := icuae.GetTestInventory()
+        protoCounts := icae.CountCasesByProtocol()
+
+        citationReg := citation.Global()
+        allEntries := citationReg.All()
+
         nonce, _ := c.Get("csp_nonce")
 
         c.HTML(http.StatusOK, "cite.html", gin.H{
@@ -233,6 +289,13 @@ func (h *CitationHandler) CitePage(c *gin.Context) {
                 "ORCID":           orcid,
                 "Date":            date,
                 "Year":            date[:4],
+                "ICAETotal":       len(analysisCases) + len(collectionCases),
+                "ICAEAnalysis":    len(analysisCases),
+                "ICAECollection":  len(collectionCases),
+                "ICAEProtocols":   len(protoCounts),
+                "ICuAETotal":      icuaeInv.TotalCases,
+                "ICuAEDimensions": icuaeInv.TotalDimensions,
+                "AuthoritiesTotal": len(allEntries),
         })
 }
 
