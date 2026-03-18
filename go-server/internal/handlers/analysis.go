@@ -445,8 +445,9 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
         countryCode, countryName := lookupCountry(clientIP)
 
         c.JSON(http.StatusAccepted, gin.H{
-                "token":  token,
-                "domain": asciiDomain,
+                "token":       token,
+                "domain":      asciiDomain,
+                "analysis_id": nil,
         })
 
         go func() {
