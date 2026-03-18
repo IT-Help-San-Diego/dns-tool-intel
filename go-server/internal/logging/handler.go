@@ -13,6 +13,7 @@ type MultiHandler struct {
 	discord *DiscordSink
 	attrs   []slog.Attr
 	groups  []string
+	level   slog.Level
 }
 
 type Config struct {
@@ -39,11 +40,12 @@ func NewMultiHandler(cfg Config) *MultiHandler {
 		json:    slog.NewJSONHandler(writer, jsonOpts),
 		dbSink:  cfg.DBSink,
 		discord: cfg.DiscordSink,
+		level:   cfg.MinLevel,
 	}
 }
 
 func (h *MultiHandler) Enabled(_ context.Context, level slog.Level) bool {
-	return true
+	return level >= h.level
 }
 
 func (h *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
@@ -90,7 +92,7 @@ func (h *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
 		})
 	}
 
-	if h.discord != nil && h.discord.ShouldSend(r.Level, event) {
+	if h.discord != nil && h.discord.ShouldSend(r.Level, event, category) {
 		discordAttrs := map[string]string{
 			AttrCategory:   category,
 			AttrDomain:     domain,
@@ -112,6 +114,7 @@ func (h *MultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		discord: h.discord,
 		attrs:   append(append([]slog.Attr{}, h.attrs...), attrs...),
 		groups:  h.groups,
+		level:   h.level,
 	}
 }
 
@@ -122,5 +125,6 @@ func (h *MultiHandler) WithGroup(name string) slog.Handler {
 		discord: h.discord,
 		attrs:   h.attrs,
 		groups:  append(append([]string{}, h.groups...), name),
+		level:   h.level,
 	}
 }

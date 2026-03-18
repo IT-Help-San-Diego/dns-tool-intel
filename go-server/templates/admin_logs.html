@@ -25,7 +25,7 @@
                 <a href="/ops/telemetry" class="btn btn-outline-info me-2">
                     {{icon "activity" "me-1"}}Telemetry
                 </a>
-                <a href="/admin/logs/export{{buildExportQuery .FilterLevel .FilterCategory .FilterDomain .FilterTraceID}}" class="btn btn-outline-success">
+                <a href="/admin/logs/export{{buildExportQuery .FilterLevel .FilterCategory .FilterDomain .FilterTraceID .FilterAfter .FilterBefore}}" class="btn btn-outline-success">
                     {{icon "download" "me-1"}}Export JSONL
                 </a>
             </div>
@@ -77,6 +77,14 @@
                     <div class="col-auto">
                         <label class="form-label small text-muted mb-1">Trace ID</label>
                         <input type="text" name="trace_id" class="form-control form-control-sm" placeholder="e.g. a1b2c3d4" value="{{.FilterTraceID}}">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1">After</label>
+                        <input type="datetime-local" name="after" class="form-control form-control-sm" value="{{.FilterAfter}}">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1">Before</label>
+                        <input type="datetime-local" name="before" class="form-control form-control-sm" value="{{.FilterBefore}}">
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-sm btn-primary">{{icon "search" "me-1"}}Filter</button>

@@ -28,22 +28,27 @@ type DiscordSink struct {
         minLevel   slog.Level
 }
 
-func NewDiscordSink(webhookURL string, minLevel slog.Level) *DiscordSink {
+func NewDiscordSink(webhookURL string) *DiscordSink {
         return &DiscordSink{
                 webhookURL: webhookURL,
                 client:     &http.Client{Timeout: discordHTTPTimeout},
                 lastSent:   make(map[string]time.Time),
-                minLevel:   minLevel,
+                minLevel:   slog.LevelError,
         }
 }
 
-func (d *DiscordSink) ShouldSend(level slog.Level, event string) bool {
-        if d.webhookURL == "" || level < d.minLevel {
+func (d *DiscordSink) ShouldSend(level slog.Level, event string, category string) bool {
+        if d.webhookURL == "" {
+                return false
+        }
+        isSecurityCategory := category == CategorySecurity
+        isCriticalLevel := level >= slog.LevelError
+        if !isSecurityCategory && !isCriticalLevel {
                 return false
         }
         d.mu.Lock()
         defer d.mu.Unlock()
-        key := fmt.Sprintf("%s:%d", event, level)
+        key := fmt.Sprintf("%s:%s:%d", category, event, level)
         if last, ok := d.lastSent[key]; ok && time.Since(last) < discordRateWindow {
                 return false
         }

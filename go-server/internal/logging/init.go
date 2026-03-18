@@ -5,6 +5,7 @@ import (
         "io"
         "log/slog"
         "os"
+        "time"
 
         "github.com/jackc/pgx/v5/pgxpool"
 )
@@ -13,6 +14,7 @@ type Logger struct {
         FileWriter *RotatingFileWriter
         DBSink     *DBSink
         Discord    *DiscordSink
+        done       chan struct{}
 }
 
 func Setup(pool *pgxpool.Pool, discordWebhookURL string) (*Logger, error) {
@@ -33,7 +35,7 @@ func Setup(pool *pgxpool.Pool, discordWebhookURL string) (*Logger, error) {
 
         var discordSink *DiscordSink
         if discordWebhookURL != "" {
-                discordSink = NewDiscordSink(discordWebhookURL, slog.LevelWarn)
+                discordSink = NewDiscordSink(discordWebhookURL)
         }
 
         combined := io.MultiWriter(os.Stdout, fileWriter)
@@ -47,18 +49,38 @@ func Setup(pool *pgxpool.Pool, discordWebhookURL string) (*Logger, error) {
 
         slog.SetDefault(slog.New(handler))
 
-        return &Logger{
+        logger := &Logger{
                 FileWriter: fileWriter,
                 DBSink:     dbSink,
                 Discord:    discordSink,
-        }, nil
+                done:       make(chan struct{}),
+        }
+        go logger.fileCleanupLoop()
+
+        return logger, nil
 }
 
 func (l *Logger) Close() {
+        close(l.done)
         if l.FileWriter != nil {
                 l.FileWriter.Close()
         }
         if l.DBSink != nil {
                 l.DBSink.Close()
+        }
+}
+
+func (l *Logger) fileCleanupLoop() {
+        ticker := time.NewTicker(1 * time.Hour)
+        defer ticker.Stop()
+        for {
+                select {
+                case <-ticker.C:
+                        if l.FileWriter != nil {
+                                l.FileWriter.Cleanup()
+                        }
+                case <-l.done:
+                        return
+                }
         }
 }
