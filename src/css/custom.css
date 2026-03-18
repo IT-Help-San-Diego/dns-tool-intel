@@ -4511,6 +4511,90 @@ body.covert-mode .loading-overlay .h4.covert-show {
 body.covert-mode img[src*="owl-of-athena"] {
     filter: brightness(0.7);
 }
+.proto-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3em;
+    white-space: nowrap;
+    line-height: 1;
+    border-radius: 999px;
+    padding: .38em .72em;
+    font-size: .72em;
+    font-weight: 600;
+    letter-spacing: .02em;
+    position: relative;
+    overflow: visible;
+    background: linear-gradient(135deg, rgba(28, 33, 40, .82), rgba(28, 33, 40, .56));
+    border: 1.5px solid rgba(48, 54, 61, .9);
+    color: #e6edf3 !important;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .35);
+    box-shadow:
+        0 0 0 2.5px var(--proto-ring, rgba(139, 148, 158, .12)),
+        0 0 8px var(--proto-glow, rgba(139, 148, 158, .06)),
+        inset 0 1px 0 rgba(255, 255, 255, .07);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: box-shadow .3s, border-color .3s;
+    vertical-align: middle;
+}
+.proto-badge--success {
+    --proto-ring: rgba(63, 185, 80, .28);
+    --proto-glow: rgba(63, 185, 80, .18);
+    border-color: rgba(63, 185, 80, .25);
+}
+.proto-badge--warning {
+    --proto-ring: rgba(227, 179, 65, .30);
+    --proto-glow: rgba(227, 179, 65, .20);
+    border-color: rgba(227, 179, 65, .28);
+}
+.proto-badge--danger {
+    --proto-ring: rgba(248, 81, 73, .30);
+    --proto-glow: rgba(248, 81, 73, .20);
+    border-color: rgba(248, 81, 73, .28);
+}
+.proto-badge--info {
+    --proto-ring: rgba(88, 166, 255, .26);
+    --proto-glow: rgba(88, 166, 255, .16);
+    border-color: rgba(88, 166, 255, .24);
+}
+.proto-badge--neutral {
+    --proto-ring: rgba(139, 148, 158, .16);
+    --proto-glow: rgba(139, 148, 158, .08);
+    border-color: rgba(139, 148, 158, .20);
+    color: #8b949e !important;
+}
+.proto-badge--compact {
+    font-size: .62em;
+    padding: .32em .58em;
+}
+.proto-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    min-width: 0;
+    align-items: center;
+}
+body.covert-mode .proto-badge.proto-spf {
+    background: linear-gradient(135deg, rgba(26, 37, 64, .85), rgba(26, 37, 64, .55)) !important;
+    color: #5580bb !important;
+    border-color: rgba(85, 128, 187, .30) !important;
+    --proto-ring: rgba(85, 128, 187, .20);
+    --proto-glow: rgba(85, 128, 187, .10);
+}
+body.covert-mode .proto-badge.proto-dmarc {
+    background: linear-gradient(135deg, rgba(42, 18, 21, .85), rgba(42, 18, 21, .55)) !important;
+    color: #a03030 !important;
+    border-color: rgba(160, 48, 48, .30) !important;
+    --proto-ring: rgba(160, 48, 48, .20);
+    --proto-glow: rgba(160, 48, 48, .10);
+}
+body.covert-mode .proto-badge.proto-dkim {
+    background: linear-gradient(135deg, rgba(20, 32, 24, .85), rgba(20, 32, 24, .55)) !important;
+    color: #3d7a4a !important;
+    border-color: rgba(61, 122, 74, .30) !important;
+    --proto-ring: rgba(61, 122, 74, .20);
+    --proto-glow: rgba(61, 122, 74, .10);
+}
 body.covert-mode .proto-spf.bg-success {
     background-color: #1a2540 !important;
     color: #5580bb !important;
