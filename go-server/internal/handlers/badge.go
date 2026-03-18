@@ -1271,14 +1271,9 @@ func renderTopoNodes(nodeSVG, glowDefs *strings.Builder, nodes []protocolNode, p
                 ))
 
                 if n.status == "missing" || n.status == "error" {
-                        xOff := 5
                         nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x-xOff, pos.y-xOff, pos.x+xOff, pos.y+xOff, hexRed,
-                        ))
-                        nodeSVG.WriteString(fmt.Sprintf(
-                                `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-                                pos.x+xOff, pos.y-xOff, pos.x-xOff, pos.y+xOff, hexRed,
+                                `<circle cx="%d" cy="%d" r="%d" fill="none" stroke="%s" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="3 2"><animate attributeName="stroke-opacity" values="0.6;0.3;0.6" dur="2s" repeatCount="indefinite"/></circle>`,
+                                pos.x, pos.y, nodeR+4, hexRed,
                         ))
                 }
 
