@@ -246,17 +246,18 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <h3>4.1 Intelligence Confidence Audit Engine (ICAE)</h3>
 <p>DNS Tool applies a confidence scoring model inspired by intelligence community analytic standards (ODNI ICD 203). Each protocol finding receives a confidence level:</p>
 <ul>
-<li><strong>Verified</strong>: Strong evidence from multiple sources, RFC-compliant configuration confirmed</li>
-<li><strong>Assessed</strong>: Evidence supports the finding, but with some uncertainty</li>
-<li><strong>Adequate</strong>: Minimum evidence threshold met, but gaps exist</li>
-<li><strong>Development</strong>: Insufficient evidence to form a reliable assessment</li>
+<li><strong>Gold Master</strong>: Sustained correctness across 5,000+ consecutive passes over 180+ days &mdash; the highest maturity tier</li>
+<li><strong>Gold</strong>: High correctness with 500+ consecutive passes over 90+ days</li>
+<li><strong>Consistent</strong>: Reliable correctness with 100+ consecutive passes over 30+ days</li>
+<li><strong>Verified</strong>: Correctness demonstrated with 10+ consecutive passes over 7+ days</li>
+<li><strong>Development</strong>: Insufficient test history to establish confidence &mdash; the initial tier for all new protocols</li>
 </ul>
 
-<h3>4.2 Confidence Factors</h3>
-<p>Confidence is calculated based on: (1) evidence completeness &mdash; were all expected records found? (2) cross-resolver consistency &mdash; do multiple resolvers agree? (3) RFC compliance &mdash; does the configuration meet specification requirements? (4) temporal stability &mdash; has the configuration been consistent across observation windows? (5) dependency satisfaction &mdash; are prerequisite protocols properly configured?</p>
+<h3>4.2 Confidence Calibration</h3>
+<p>Confidence calibration uses a reliability-weighted shrinkage estimator. For each protocol: (1) protocol-specific priors &mdash; empirically determined base rates encoding historical detection reliability per protocol; (2) resolver agreement ratio &mdash; the fraction of queried resolvers that return consistent results, used as measurement quality weight; (3) shrinkage toward prior &mdash; when resolver agreement is low, the calibrated score is pulled toward the prior mean; when agreement is high, the observation dominates. This produces a calibrated confidence score per protocol, distinct from the raw detection score. The calibration formula is a shrinkage estimator &mdash; not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).</p>
 
 <h3>4.3 Overall Posture Score</h3>
-<p>The individual protocol confidence scores are aggregated into an overall domain security posture score, weighted by protocol importance and interdependency relationships.</p>
+<p>The overall domain security posture is determined by the unified confidence engine, which combines ICAE accuracy scores, ICuAE currency scores, and ICAE maturity level. The maturity level imposes a ceiling on the maximum achievable confidence &mdash; a protocol in the &ldquo;development&rdquo; tier cannot reach full confidence regardless of its accuracy score. The weakest protocol dimension determines the overall confidence level.</p>
 
 <h3>4.4 Epistemic Correction Disclosure</h3>
 <p>When structural corrections to the confidence model are identified &mdash; such as recalibrated scoring weights, reinterpreted evidence thresholds, or corrected RFC compliance mappings &mdash; the system records these as Epistemic Disclosure Events (EDEs). Each EDE documents the original assessment, the correction applied, the confidence impact, and the verifiable commit reference. This practice is modeled on scientific corrigenda culture: corrections strengthen rather than undermine analytical credibility, provided they are transparent, traceable, and independently verifiable.</p>
