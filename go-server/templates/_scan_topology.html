@@ -16,9 +16,9 @@
             <filter id="glow-res-q9" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#0078d4" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-od" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#ff6a00" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-res-eu" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feFlood flood-color="#003399" flood-opacity="0.7" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <radialGradient id="globe-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#648cc8" stop-opacity="0.08"/><stop offset="1" stop-color="#648cc8" stop-opacity="0"/></radialGradient>
-            <radialGradient id="globe-fill" cx="40%" cy="35%" r="60%"><stop offset="0" stop-color="#161e2e"/><stop offset="1" stop-color="#080c16"/></radialGradient>
-            <clipPath id="globe-clip"><circle cx="230" cy="42" r="38"/></clipPath>
+            <radialGradient id="globe-glow" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="rgba(30,40,70,0.15)"/><stop offset="0.7" stop-color="rgba(15,20,40,0.08)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient>
+            <radialGradient id="globe-fill" cx="42%" cy="38%" r="60%"><stop offset="0" stop-color="#161e2e"/><stop offset="1" stop-color="#080c16"/></radialGradient>
+            <clipPath id="globe-clip"><circle cx="230" cy="48" r="42"/></clipPath>
         </defs>
         <style nonce="{{.CspNonce}}">
             .topo-node { fill: #1c2128; stroke: #30363d; stroke-width: 1.5; rx: 8; transition: fill 0.5s, stroke 0.5s, filter 0.5s; }
@@ -36,7 +36,7 @@
 
             .topo-res-line { stroke: #21262d; stroke-width: 0.8; opacity: 0.3; fill: none; transition: stroke 0.5s, opacity 0.5s; }
             .topo-res-dot { fill: #30363d; stroke: #30363d; stroke-width: 0.5; opacity: 0.5; transition: fill 0.5s, stroke 0.5s, opacity 0.5s, filter 0.5s; }
-            .topo-res-label { fill: #484f58; font-size: 6px; font-weight: 700; font-family: system-ui, -apple-system, sans-serif; text-anchor: middle; opacity: 0.5; transition: fill 0.5s, opacity 0.5s; }
+            .topo-res-label { fill: #484f58; font-size: 7px; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; opacity: 0.5; transition: fill 0.5s, opacity 0.5s; }
             @keyframes topo-res-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
             .topo-res-dot.res-running { animation: topo-res-pulse 1.2s ease-in-out infinite; }
             .topo-res-line.res-running { stroke-dasharray: 3,2; animation: topo-flow 1.2s linear infinite; opacity: 0.6; }
@@ -103,62 +103,84 @@
             .topo-connector.conn-active-engine { stroke: #e0e0e0; opacity: 0.7; }
             .topo-connector.conn-active-web3 { stroke: #d4a853; opacity: 0.7; }
 
+            .globe-graticule { fill: none; stroke: rgba(100,140,200,0.07); stroke-width: 0.5; }
+            .globe-equator { fill: none; stroke: rgba(100,140,200,0.12); stroke-width: 0.7; }
+            .globe-continent { fill: rgba(80,120,180,0.04); stroke: rgba(100,160,220,0.12); stroke-width: 0.8; }
+
             @media (prefers-reduced-motion: reduce) {
                 .topo-node.phase-running, .topo-res-dot.res-running { animation: none; }
                 .topo-connector.active, .topo-res-line.res-running { animation: none; }
             }
         </style>
 
-        <circle cx="230" cy="42" r="52" fill="url(#globe-glow)"/>
-        <circle cx="230" cy="42" r="38" fill="url(#globe-fill)" stroke="rgba(100,140,200,0.2)" stroke-width="1.2"/>
+        <circle cx="230" cy="48" r="59" fill="url(#globe-glow)"/>
+        <circle cx="230" cy="48" r="42" fill="url(#globe-fill)" stroke="rgba(100,140,200,0.2)" stroke-width="1.2"/>
 
         <g clip-path="url(#globe-clip)">
-            <ellipse cx="230" cy="42" rx="38" ry="12" fill="none" stroke="rgba(100,140,200,0.07)" stroke-width="0.5"/>
-            <ellipse cx="230" cy="42" rx="38" ry="26" fill="none" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
-            <ellipse cx="230" cy="42" rx="12" ry="38" fill="none" stroke="rgba(100,140,200,0.08)" stroke-width="0.5"/>
-            <ellipse cx="230" cy="42" rx="28" ry="38" fill="none" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
-            <line x1="192" y1="42" x2="268" y2="42" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
-            <line x1="230" y1="4" x2="230" y2="80" stroke="rgba(100,140,200,0.06)" stroke-width="0.5"/>
-            <ellipse cx="230" cy="28" rx="36" ry="4" fill="none" stroke="rgba(100,140,200,0.05)" stroke-width="0.5"/>
-            <ellipse cx="230" cy="56" rx="36" ry="4" fill="none" stroke="rgba(100,140,200,0.05)" stroke-width="0.5"/>
+            <polyline class="globe-graticule" points="209.0,84.4 209.7,84.4 211.0,84.4 213.9,84.4 218.0,84.4 222.8,84.4 228.2,84.4 233.6,84.4 238.9,84.4 243.5,84.4 247.2,84.4 249.7,84.4 251.0,84.4"/>
+            <polyline class="globe-graticule" points="193.6,69.0 195.0,69.0 198.5,69.0 204.3,69.0 211.8,69.0 220.6,69.0 230.0,69.0 239.4,69.0 248.2,69.0 255.7,69.0 261.5,69.0 265.1,69.0 266.4,69.0"/>
+            <polyline class="globe-equator" points="188.0,48.0 189.4,48.0 193.6,48.0 200.3,48.0 209.0,48.0 219.1,48.0 230.0,48.0 240.9,48.0 251.0,48.0 259.7,48.0 266.4,48.0 270.6,48.0 272.0,48.0"/>
+            <polyline class="globe-graticule" points="193.6,27.0 195.0,27.0 198.5,27.0 204.3,27.0 211.8,27.0 220.6,27.0 230.0,27.0 239.4,27.0 248.2,27.0 255.7,27.0 261.5,27.0 265.1,27.0 266.4,27.0"/>
+            <polyline class="globe-graticule" points="209.0,11.6 209.7,11.6 211.0,11.6 213.9,11.6 218.0,11.6 222.8,11.6 228.2,11.6 233.6,11.6 238.9,11.6 243.5,11.6 247.2,11.6 249.7,11.6 251.0,11.6"/>
+
+            <polyline class="globe-graticule" points="230.0,90.0 226.6,89.8 219.8,88.6 210.3,84.4 202.1,77.7 195.8,69.0 191.9,58.9 190.5,48.0 191.9,37.1 195.8,27.0 202.1,18.3 210.3,11.6 219.8,7.4 226.6,6.2 230.0,6.0"/>
+            <polyline class="globe-graticule" points="230.0,90.0 227.6,89.8 220.8,87.5 214.5,82.4 209.3,75.0 205.5,65.7 203.4,55.3 203.0,48.0 203.4,40.7 205.5,30.3 209.3,21.0 214.5,13.6 220.8,8.5 227.6,6.2 230.0,6.0"/>
+            <polyline class="globe-graticule" points="230.0,90.0 229.4,89.8 227.5,87.5 225.8,82.4 224.4,75.0 223.4,65.7 222.8,55.3 222.7,48.0 222.8,40.7 223.4,30.3 224.4,21.0 225.8,13.6 227.5,8.5 229.4,6.2 230.0,6.0"/>
+            <polyline class="globe-graticule" points="230.0,90.0 231.3,89.8 234.9,87.5 238.2,82.4 241.0,75.0 243.0,65.7 244.1,55.3 244.4,48.0 244.1,40.7 243.0,30.3 241.0,21.0 238.2,13.6 234.9,8.5 231.3,6.2 230.0,6.0"/>
+            <polyline class="globe-graticule" points="230.0,90.0 232.8,89.8 241.0,87.5 248.5,82.4 254.6,75.0 259.2,65.7 261.7,55.3 262.2,48.0 261.7,40.7 259.2,30.3 254.6,21.0 248.5,13.6 241.0,8.5 232.8,6.2 230.0,6.0"/>
+            <polyline class="globe-graticule" points="230.0,90.0 233.6,89.8 244.1,87.5 253.7,82.4 261.7,75.0 267.5,65.7 270.7,55.3 271.4,48.0 270.7,40.7 267.5,30.3 261.7,21.0 253.7,13.6 244.1,8.5 233.6,6.2 230.0,6.0"/>
+
+            <polygon class="globe-continent" points="223.9,7.8 226.3,9.9 227.3,14.9 223.8,18.3 218.6,20.4 214.9,23.9 210.7,27.0 211.0,30.3 205.4,35.0 202.9,37.1 196.3,32.3 197.2,25.7 198.3,22.1 203.6,15.8 209.0,11.6"/>
+            <polygon class="globe-continent" points="213.8,40.7 211.0,44.3 209.0,48.7 208.5,51.7 212.9,58.9 216.8,64.4 225.8,72.1 221.7,75.0 222.6,82.4 219.7,81.5 217.4,75.0 234.7,64.4 238.5,57.4 230.0,49.5 222.7,44.3"/>
+            <polygon class="globe-continent" points="251.8,23.3 250.2,19.4 251.3,17.3 250.8,15.4 250.9,14.0 248.5,12.4 246.0,10.6 244.3,9.1 243.4,8.3 247.4,9.9 252.3,13.2 254.3,15.8 256.7,18.3 261.0,20.4 262.3,23.3"/>
+            <polygon class="globe-continent" points="254.0,23.3 259.0,22.7 265.3,25.7 266.4,48.0 260.6,44.3 253.7,40.7 251.5,33.6 253.4,27.0"/>
         </g>
 
-        <circle cx="208" cy="35" r="3.5" class="topo-res-dot" data-resolver="cf"/>
-        <text x="208" y="28" class="topo-res-label" data-resolver="cf">CF</text>
-        <circle cx="220" cy="55" r="3.5" class="topo-res-dot" data-resolver="g"/>
-        <text x="214" y="62" class="topo-res-label" data-resolver="g">G</text>
-        <circle cx="238" cy="22" r="3.5" class="topo-res-dot" data-resolver="q9"/>
-        <text x="238" y="16" class="topo-res-label" data-resolver="q9">Q9</text>
-        <circle cx="248" cy="50" r="3.5" class="topo-res-dot" data-resolver="od"/>
-        <text x="256" y="52" class="topo-res-label" data-resolver="od">OD</text>
-        <circle cx="252" cy="32" r="3.5" class="topo-res-dot" data-resolver="eu"/>
-        <text x="260" y="30" class="topo-res-label" data-resolver="eu">EU</text>
+        <circle cx="198" cy="22" r="7" fill="rgba(246,130,31,0.15)"/>
+        <circle cx="198" cy="22" r="3.5" class="topo-res-dot" data-resolver="cf"/>
+        <text x="183" y="19" class="topo-res-label" data-resolver="cf" text-anchor="end">San Francisco</text>
 
-        <path d="M208,38 C200,70 215,90 230,100" class="topo-res-line" data-resolver="cf"/>
-        <path d="M220,58 C215,75 222,90 230,100" class="topo-res-line" data-resolver="g"/>
-        <path d="M238,25 C238,60 234,85 230,100" class="topo-res-line" data-resolver="q9"/>
-        <path d="M248,53 C245,75 238,90 230,100" class="topo-res-line" data-resolver="od"/>
-        <path d="M252,35 C260,70 245,90 230,100" class="topo-res-line" data-resolver="eu"/>
+        <circle cx="207" cy="20" r="7" fill="rgba(66,133,244,0.15)"/>
+        <circle cx="207" cy="20" r="3.5" class="topo-res-dot" data-resolver="g"/>
+        <text x="207" y="12" class="topo-res-label" data-resolver="g" text-anchor="middle">Council Bluffs</text>
 
-        <line x1="230" y1="140" x2="70" y2="200" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
-        <line x1="230" y1="140" x2="170" y2="200" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
-        <line x1="230" y1="140" x2="290" y2="200" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
-        <line x1="230" y1="140" x2="390" y2="200" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
+        <circle cx="247" cy="14" r="7" fill="rgba(0,120,212,0.15)"/>
+        <circle cx="247" cy="14" r="3.5" class="topo-res-dot" data-resolver="q9"/>
+        <text x="262" y="11" class="topo-res-label" data-resolver="q9" text-anchor="start">Dublin</text>
+
+        <circle cx="196" cy="26" r="7" fill="rgba(255,106,0,0.15)"/>
+        <circle cx="196" cy="26" r="3.5" class="topo-res-dot" data-resolver="od"/>
+        <text x="181" y="29" class="topo-res-label" data-resolver="od" text-anchor="end">San Jose</text>
+
+        <circle cx="252" cy="16" r="7" fill="rgba(0,51,153,0.15)"/>
+        <circle cx="252" cy="16" r="3.5" class="topo-res-dot" data-resolver="eu"/>
+        <text x="267" y="19" class="topo-res-label" data-resolver="eu" text-anchor="start">Paris</text>
+
+        <path d="M198,25 C192,60 218,95 230,110" class="topo-res-line" data-resolver="cf"/>
+        <path d="M207,23 C203,60 220,95 230,110" class="topo-res-line" data-resolver="g"/>
+        <path d="M247,17 C247,55 236,95 230,110" class="topo-res-line" data-resolver="q9"/>
+        <path d="M196,29 C190,65 215,95 230,110" class="topo-res-line" data-resolver="od"/>
+        <path d="M252,19 C260,60 245,95 230,110" class="topo-res-line" data-resolver="eu"/>
+
+        <line x1="230" y1="150" x2="70" y2="200" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
+        <line x1="230" y1="150" x2="170" y2="200" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+        <line x1="230" y1="150" x2="290" y2="200" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+        <line x1="230" y1="150" x2="390" y2="200" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
         <line x1="70" y1="200" x2="70" y2="280" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
         <line x1="170" y1="200" x2="170" y2="280" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
         <line x1="290" y1="200" x2="290" y2="280" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
         <line x1="390" y1="200" x2="390" y2="280" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
-        <line x1="230" y1="140" x2="440" y2="280" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
+        <line x1="230" y1="150" x2="440" y2="280" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
         <line x1="70" y1="280" x2="230" y2="350" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
         <line x1="170" y1="280" x2="230" y2="350" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
         <line x1="290" y1="280" x2="230" y2="350" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
         <line x1="390" y1="280" x2="230" y2="350" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
         <line x1="440" y1="300" x2="275" y2="350" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
 
-        <rect x="185" y="100" width="90" height="42" class="topo-node" data-phase="dns_records" data-pkey="dns"/>
-        <text x="230" y="119" class="topo-label">DNS Records</text>
-        <text x="230" y="130" class="topo-sub" data-tasks="dns_records">0/3</text>
-        <text x="230" y="152" class="topo-dur" data-dur="dns_records"></text>
+        <rect x="185" y="110" width="90" height="42" class="topo-node" data-phase="dns_records" data-pkey="dns"/>
+        <text x="230" y="129" class="topo-label">DNS Records</text>
+        <text x="230" y="140" class="topo-sub" data-tasks="dns_records">0/3</text>
+        <text x="230" y="162" class="topo-dur" data-dur="dns_records"></text>
 
         <rect x="25" y="180" width="90" height="42" class="topo-node" data-phase="email_auth" data-pkey="email"/>
         <text x="70" y="199" class="topo-label">Email Auth</text>
