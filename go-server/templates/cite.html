@@ -278,7 +278,7 @@
     {{template "footer" .}}
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
-    document.getElementById('copy-cite-btn').addEventListener('click',function(){var e=document.getElementById('citation-text'),t=e.textContent.replace(/\s*Copy\s*$/,'').trim(),b=this;navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},2000)});});
+    document.getElementById('copy-cite-btn').addEventListener('click',function(){var e=document.getElementById('citation-text'),t=e.textContent.trim(),b=this;if(t.endsWith('Copy')){t=t.slice(0,-4).trim();}navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},2000)});});
     </script>
 </body>
 </html>
