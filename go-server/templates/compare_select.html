@@ -70,7 +70,9 @@
                                     <td>
                                         {{if eq $a.SpfStatus "success"}}
                                             <span class="badge bg-success">SPF</span>
-                                        {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                                        {{else if eq $a.SpfStatus "warning"}}
+                                            <span class="badge bg-warning text-dark">SPF</span>
+                                        {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
                                             <span class="badge bg-danger">{{icon "times" "me-1"}}SPF</span>
                                         {{else}}
                                             <span class="text-muted">-</span>
@@ -79,7 +81,9 @@
                                     <td>
                                         {{if eq $a.DmarcStatus "success"}}
                                             <span class="badge bg-success">DMARC</span>
-                                        {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                                        {{else if eq $a.DmarcStatus "warning"}}
+                                            <span class="badge bg-warning text-dark">DMARC</span>
+                                        {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
                                             <span class="badge bg-danger">{{icon "times" "me-1"}}DMARC</span>
                                         {{else}}
                                             <span class="text-muted">-</span>
