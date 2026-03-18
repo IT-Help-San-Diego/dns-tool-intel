@@ -4,13 +4,19 @@ package logging
 import (
         "context"
         "encoding/json"
-        "log/slog"
+        "fmt"
+        "os"
         "sync"
         "sync/atomic"
         "time"
 
         "github.com/jackc/pgx/v5/pgxpool"
 )
+
+var stderrLog = func(msg string) {
+        fmt.Fprintf(os.Stderr, `{"time":"%s","level":"ERROR","msg":"%s","source":"dbsink"}`+"\n",
+                time.Now().UTC().Format(time.RFC3339), msg)
+}
 
 const (
         dbFlushInterval = 5 * time.Second
@@ -127,7 +133,7 @@ func (s *DBSink) flushBatch(batch []DBLogEntry) {
                         entry.Timestamp, entry.Level, entry.Message, entry.Event, entry.Category, entry.Domain, tid, attrsJSON,
                 )
                 if err != nil {
-                        slog.Error("log db insert failed", "error", err.Error(), "event", entry.Event, "level", entry.Level)
+                        stderrLog("log db insert failed: " + err.Error())
                 }
         }
 }
@@ -157,6 +163,6 @@ func (s *DBSink) prune() {
                      LIMIT $1
                  )`, dbMaxCap)
         if err != nil {
-                slog.Warn("log pruning failed", "error", err)
+                stderrLog("log pruning failed: " + err.Error())
         }
 }

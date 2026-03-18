@@ -371,7 +371,7 @@ CREATE TABLE system_log_entries (
     event      VARCHAR(50) NOT NULL DEFAULT '',
     category   VARCHAR(30) NOT NULL DEFAULT '',
     domain     VARCHAR(255) NOT NULL DEFAULT '',
-    trace_id   VARCHAR(20) NOT NULL DEFAULT '',
+    trace_id   VARCHAR(64) NOT NULL DEFAULT '',
     attrs      JSONB NOT NULL DEFAULT '{}',
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
