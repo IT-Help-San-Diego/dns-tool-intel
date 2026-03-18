@@ -5,7 +5,7 @@ package handlers
 
 import (
         "fmt"
-        "log"
+        "log/slog"
         "net/http"
 
         "dnstool/go-server/internal/config"
@@ -102,32 +102,32 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
 
         findings, err := h.DB.Queries.ListFindings(ctx)
         if err != nil {
-                log.Printf("black-site: failed to list findings: %v", err)
+                slog.Warn("black-site: failed to list findings", "error", err)
         }
 
         sevCounts, err := h.DB.Queries.CountFindingsBySeverity(ctx)
         if err != nil {
-                log.Printf("black-site: failed to count by severity: %v", err)
+                slog.Warn("black-site: failed to count by severity", "error", err)
         }
 
         kindCounts, err := h.DB.Queries.CountFindingsByKind(ctx)
         if err != nil {
-                log.Printf("black-site: failed to count by kind: %v", err)
+                slog.Warn("black-site: failed to count by kind", "error", err)
         }
 
         statusCounts, err := h.DB.Queries.CountFindingsByStatus(ctx)
         if err != nil {
-                log.Printf("black-site: failed to count by status: %v", err)
+                slog.Warn("black-site: failed to count by status", "error", err)
         }
 
         totalRow, err := h.DB.Queries.CountFindingsTotal(ctx)
         if err != nil {
-                log.Printf("black-site: failed to count total: %v", err)
+                slog.Warn("black-site: failed to count total", "error", err)
         }
 
         eventsRaw, err := h.DB.Queries.ListFindingEvents(ctx)
         if err != nil {
-                log.Printf("black-site: failed to list events: %v", err)
+                slog.Warn("black-site: failed to list events", "error", err)
         }
 
         s0 := []findingView{}
@@ -140,8 +140,8 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
                 sev := int(f.Severity)
                 conf := "—"
                 if f.Confidence.Valid {
-                        fl, _ := f.Confidence.Float64Value()
-                        if fl.Valid {
+                        fl, fErr := f.Confidence.Float64Value()
+                        if fErr == nil && fl.Valid {
                                 conf = fmt.Sprintf("%.0f%%", fl.Float64*100)
                         }
                 }
