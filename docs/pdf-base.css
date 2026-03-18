@@ -36,24 +36,23 @@ body {
 
 .authority-header {
   text-align: center;
-  margin-bottom: 10pt;
-  padding-bottom: 12pt;
+  margin-bottom: 8pt;
+  padding-bottom: 10pt;
   border-bottom: 1.5pt solid #C8A878;
 }
 
 .authority-logo {
   text-align: center;
-  margin-bottom: 14pt;
+  margin-bottom: 10pt;
 }
 
 .authority-logo img {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   background: #0d1117;
   border-radius: 50%;
   padding: 2px;
   border: 2px solid #C8A878;
-  box-shadow: 0 3px 14px rgba(0,0,0,0.3), inset 0 0 6px rgba(0,0,0,0.2);
 }
 
 .authority-title {
@@ -61,38 +60,38 @@ body {
 }
 
 .authority-title h1 {
-  font-size: 19pt;
+  font-size: 18pt;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 4pt 0;
+  margin: 0 0 3pt 0;
   letter-spacing: 0.03em;
 }
 
 .authority-title .subtitle {
-  font-size: 11.5pt;
+  font-size: 11pt;
   color: #555;
   font-style: italic;
-  margin: 0 0 14pt 0;
+  margin: 0 0 10pt 0;
 }
 
 .authority-meta {
   text-align: center;
   font-size: 9pt;
   color: #444;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .authority-meta .author-name {
-  font-size: 12.5pt;
+  font-size: 12pt;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 3pt 0;
+  margin: 0 0 2pt 0;
 }
 
 .authority-meta .author-role {
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #666;
-  margin: 0 0 6pt 0;
+  margin: 0 0 4pt 0;
 }
 
 .authority-meta a {
@@ -110,9 +109,9 @@ body {
 
 .authority-meta .artifact-note {
   font-style: italic;
-  font-size: 9.5pt;
+  font-size: 9pt;
   color: #555;
-  margin-top: 8pt;
+  margin-top: 6pt;
 }
 
 h2 {
