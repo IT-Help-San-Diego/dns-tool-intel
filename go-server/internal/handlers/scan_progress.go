@@ -1,14 +1,17 @@
 package handlers
+
 // dns-tool:scrutiny design
 
 import (
         "crypto/rand"
         "encoding/hex"
+        "log/slog"
         "net/http"
         "sync"
         "time"
 
         "dnstool/go-server/internal/analyzer"
+        "dnstool/go-server/internal/logging"
 
         "github.com/gin-gonic/gin"
 )
@@ -177,6 +180,20 @@ func (sp *scanProgress) MarkFailed(errMsg string) {
 func (sp *scanProgress) MakeProgressCallback() analyzer.ProgressCallback {
         return func(group, status string, durationMs int) {
                 sp.UpdatePhase(group, status, durationMs)
+        }
+}
+
+func (sp *scanProgress) MakeInstrumentedProgressCallback(domain, traceID string) analyzer.ProgressCallback {
+        return func(group, status string, durationMs int) {
+                if status == "running" || status == "started" {
+                        slog.LogAttrs(nil, slog.LevelDebug, "phase started",
+                                logging.PhaseStarted(domain, traceID, group, "")...)
+                }
+                sp.UpdatePhase(group, status, durationMs)
+                if status == "done" {
+                        slog.LogAttrs(nil, slog.LevelDebug, "phase finished",
+                                logging.PhaseFinished(domain, traceID, group, "", int64(durationMs), "success")...)
+                }
         }
 }
 
