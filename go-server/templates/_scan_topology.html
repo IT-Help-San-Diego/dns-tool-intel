@@ -1,6 +1,6 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="-20 0 500 410" width="500" height="410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology"
+    <svg viewBox="-20 0 500 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg"
          aria-description="Golden-ratio layout: Row 2 span (320) / Row 3 span (198) = 1.616 ≈ φ. Earth axial tilt: 23.44° (IAU 2006 obliquity). Meridian scroll: eastward (right), 20s decorative period.">
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -31,6 +31,7 @@
             </radialGradient>
         </defs>
         <style nonce="{{.CspNonce}}">
+            .topo-svg { width: 100%; max-width: 500px; height: auto; display: block; margin: 0 auto; }
             .topo-node { fill: url(#node-glass); stroke: rgba(48,54,61,0.5); stroke-width: 1; transition: stroke 0.5s; }
             .topo-ring { fill: none; stroke: #21262d; stroke-width: 2; opacity: 0.35; transition: stroke 0.5s, opacity 0.5s, filter 0.5s, stroke-width 0.5s; }
             .topo-halo { fill: none; stroke: #21262d; stroke-width: 0.5; stroke-dasharray: 3 2; opacity: 0.15; transition: stroke 0.5s, opacity 0.5s; }

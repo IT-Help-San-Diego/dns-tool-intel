@@ -210,6 +210,64 @@ func dispatchIPFSProbe(ctx context.Context, ep ProbeEndpoint, cid string, gatewa
         return entry
 }
 
+func collectInfraAndURLs(healthyEntries []IPFSFleetProbeEntry, matrix map[string]map[string]bool) (map[string]*GatewayInfraFingerprint, map[string]map[string]bool) {
+        infraMap := make(map[string]*GatewayInfraFingerprint)
+        finalURLs := make(map[string]map[string]bool)
+
+        for _, entry := range healthyEntries {
+                for _, gwr := range entry.Gateways {
+                        if _, ok := matrix[gwr.Gateway]; ok {
+                                matrix[gwr.Gateway][entry.ProbeID] = gwr.Reachable
+                        }
+                        collectGatewayFingerprint(infraMap, &gwr)
+                        collectFinalURL(finalURLs, &gwr)
+                }
+        }
+        return infraMap, finalURLs
+}
+
+func collectGatewayFingerprint(infraMap map[string]*GatewayInfraFingerprint, gwr *IPFSFleetGatewayResult) {
+        if infraMap[gwr.Gateway] == nil {
+                infraMap[gwr.Gateway] = &GatewayInfraFingerprint{Gateway: gwr.Gateway}
+        }
+        fp := infraMap[gwr.Gateway]
+        if gwr.ServerHeader != "" {
+                fp.ServerValues = appendUniqueStr(fp.ServerValues, gwr.ServerHeader)
+        }
+        if gwr.TLSVersion != "" {
+                fp.TLSVersions = appendUniqueStr(fp.TLSVersions, gwr.TLSVersion)
+        }
+}
+
+func collectFinalURL(finalURLs map[string]map[string]bool, gwr *IPFSFleetGatewayResult) {
+        if gwr.FinalURL == "" {
+                return
+        }
+        if finalURLs[gwr.Gateway] == nil {
+                finalURLs[gwr.Gateway] = make(map[string]bool)
+        }
+        finalURLs[gwr.Gateway][gwr.FinalURL] = true
+}
+
+func countGatewayReachability(matrix map[string]map[string]bool, healthyCount int) (int, int) {
+        byAll, byAny := 0, 0
+        for _, probeMap := range matrix {
+                reachCount := 0
+                for _, reachable := range probeMap {
+                        if reachable {
+                                reachCount++
+                        }
+                }
+                if reachCount > 0 {
+                        byAny++
+                }
+                if reachCount == healthyCount {
+                        byAll++
+                }
+        }
+        return byAll, byAny
+}
+
 func computeIPFSConsensus(entries []IPFSFleetProbeEntry, gateways []string) IPFSFleetConsensus {
         consensus := IPFSFleetConsensus{
                 TotalProbes:   len(entries),
@@ -234,55 +292,11 @@ func computeIPFSConsensus(entries []IPFSFleetProbeEntry, gateways []string) IPFS
                 consensus.GatewayMatrix[gw] = make(map[string]bool)
         }
 
-        infraMap := make(map[string]*GatewayInfraFingerprint)
-        finalURLs := make(map[string]map[string]bool)
+        infraMap, finalURLs := collectInfraAndURLs(healthyEntries, consensus.GatewayMatrix)
 
-        for _, entry := range healthyEntries {
-                for _, gwr := range entry.Gateways {
-                        if _, ok := consensus.GatewayMatrix[gwr.Gateway]; ok {
-                                consensus.GatewayMatrix[gwr.Gateway][entry.ProbeID] = gwr.Reachable
-                        }
+        consensus.ReachableByAll, consensus.ReachableByAny = countGatewayReachability(consensus.GatewayMatrix, len(healthyEntries))
 
-                        if infraMap[gwr.Gateway] == nil {
-                                infraMap[gwr.Gateway] = &GatewayInfraFingerprint{Gateway: gwr.Gateway}
-                        }
-                        fp := infraMap[gwr.Gateway]
-                        if gwr.ServerHeader != "" {
-                                fp.ServerValues = appendUniqueStr(fp.ServerValues, gwr.ServerHeader)
-                        }
-                        if gwr.TLSVersion != "" {
-                                fp.TLSVersions = appendUniqueStr(fp.TLSVersions, gwr.TLSVersion)
-                        }
-
-                        if gwr.FinalURL != "" {
-                                if finalURLs[gwr.Gateway] == nil {
-                                        finalURLs[gwr.Gateway] = make(map[string]bool)
-                                }
-                                finalURLs[gwr.Gateway][gwr.FinalURL] = true
-                        }
-                }
-        }
-
-        gwReachableByAll := 0
-        gwReachableByAny := 0
-        for _, probeMap := range consensus.GatewayMatrix {
-                reachCount := 0
-                for _, reachable := range probeMap {
-                        if reachable {
-                                reachCount++
-                        }
-                }
-                if reachCount > 0 {
-                        gwReachableByAny++
-                }
-                if reachCount == len(healthyEntries) {
-                        gwReachableByAll++
-                }
-        }
-        consensus.ReachableByAll = gwReachableByAll
-        consensus.ReachableByAny = gwReachableByAny
-
-        if len(healthyEntries) >= 2 && gwReachableByAny >= 2 {
+        if len(healthyEntries) >= 2 && consensus.ReachableByAny >= 2 {
                 consensus.Persistence = persistenceVerified
         }
 
@@ -325,6 +339,61 @@ func appendUniqueStr(slice []string, val string) []string {
         return append(slice, val)
 }
 
+func gatewayResultToMap(gw *IPFSFleetGatewayResult) map[string]any {
+        gwm := map[string]any{
+                "gateway":    gw.Gateway,
+                "reachable":  gw.Reachable,
+                "latency_ms": gw.LatencyMs,
+        }
+        if gw.StatusCode > 0 {
+                gwm["status_code"] = gw.StatusCode
+        }
+        if gw.ContentType != "" {
+                gwm["content_type"] = gw.ContentType
+        }
+        if gw.ServerHeader != "" {
+                gwm["server_header"] = gw.ServerHeader
+        }
+        if gw.TLSVersion != "" {
+                gwm["tls_version"] = gw.TLSVersion
+        }
+        if gw.FinalURL != "" {
+                gwm["final_url"] = gw.FinalURL
+        }
+        if gw.Error != "" {
+                gwm[mapKeyError] = gw.Error
+        }
+        if len(gw.RedirectChain) > 0 {
+                gwm["redirect_chain"] = gw.RedirectChain
+        }
+        return gwm
+}
+
+func probeEntryToMap(p *IPFSFleetProbeEntry) map[string]any {
+        entry := map[string]any{
+                "probe_id":    p.ProbeID,
+                "probe_label": p.ProbeLabel,
+                "status":      p.Status,
+        }
+        if p.ProbeHost != "" {
+                entry["probe_host"] = p.ProbeHost
+        }
+        if p.Elapsed > 0 {
+                entry["elapsed_seconds"] = p.Elapsed
+        }
+        if p.Error != "" {
+                entry[mapKeyError] = p.Error
+        }
+        if len(p.Gateways) > 0 {
+                gws := make([]map[string]any, len(p.Gateways))
+                for j, gw := range p.Gateways {
+                        gws[j] = gatewayResultToMap(&gw)
+                }
+                entry["gateways"] = gws
+        }
+        return entry
+}
+
 func (f *IPFSFleetResult) ToMap() map[string]any {
         if f == nil {
                 return nil
@@ -332,54 +401,7 @@ func (f *IPFSFleetResult) ToMap() map[string]any {
 
         probes := make([]map[string]any, len(f.Probes))
         for i, p := range f.Probes {
-                entry := map[string]any{
-                        "probe_id":    p.ProbeID,
-                        "probe_label": p.ProbeLabel,
-                        "status":      p.Status,
-                }
-                if p.ProbeHost != "" {
-                        entry["probe_host"] = p.ProbeHost
-                }
-                if p.Elapsed > 0 {
-                        entry["elapsed_seconds"] = p.Elapsed
-                }
-                if p.Error != "" {
-                        entry[mapKeyError] = p.Error
-                }
-                if len(p.Gateways) > 0 {
-                        gws := make([]map[string]any, len(p.Gateways))
-                        for j, gw := range p.Gateways {
-                                gwm := map[string]any{
-                                        "gateway":     gw.Gateway,
-                                        "reachable":   gw.Reachable,
-                                        "latency_ms":  gw.LatencyMs,
-                                }
-                                if gw.StatusCode > 0 {
-                                        gwm["status_code"] = gw.StatusCode
-                                }
-                                if gw.ContentType != "" {
-                                        gwm["content_type"] = gw.ContentType
-                                }
-                                if gw.ServerHeader != "" {
-                                        gwm["server_header"] = gw.ServerHeader
-                                }
-                                if gw.TLSVersion != "" {
-                                        gwm["tls_version"] = gw.TLSVersion
-                                }
-                                if gw.FinalURL != "" {
-                                        gwm["final_url"] = gw.FinalURL
-                                }
-                                if gw.Error != "" {
-                                        gwm[mapKeyError] = gw.Error
-                                }
-                                if len(gw.RedirectChain) > 0 {
-                                        gwm["redirect_chain"] = gw.RedirectChain
-                                }
-                                gws[j] = gwm
-                        }
-                        entry["gateways"] = gws
-                }
-                probes[i] = entry
+                probes[i] = probeEntryToMap(&p)
         }
 
         gwMatrix := make(map[string]any)

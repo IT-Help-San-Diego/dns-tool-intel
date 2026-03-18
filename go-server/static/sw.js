@@ -1,9 +1,9 @@
-var CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
-var CACHE_NAME = 'dnstool-' + CACHE_VERSION;
-var PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
-var MAX_CACHED_PAGES = 20;
+const CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
+const CACHE_NAME = 'dnstool-' + CACHE_VERSION;
+const PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
+const MAX_CACHED_PAGES = 20;
 
-var IMMUTABLE_ASSETS = [
+const IMMUTABLE_ASSETS = [
   '/static/css/foundation.min.css',
   '/static/css/custom.min.css',
   '/static/js/foundation.min.js',
@@ -11,7 +11,7 @@ var IMMUTABLE_ASSETS = [
   '/static/favicon.svg'
 ];
 
-var OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
+const OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
   '<meta charset="UTF-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<meta name="theme-color" content="#0d1117">' +
@@ -44,7 +44,7 @@ var OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
   '<div class="brand">DNS Tool \u2014 Domain Security Intelligence</div>' +
   '</div></body></html>';
 
-var CACHEABLE_PAGES = [
+const CACHEABLE_PAGES = [
   /^\/analysis\/\d+/,
   /^\/stats$/,
   /^\/changelog$/,
@@ -53,8 +53,8 @@ var CACHEABLE_PAGES = [
 ];
 
 function isPageCacheable(pathname) {
-  for (var i = 0; i < CACHEABLE_PAGES.length; i++) {
-    if (CACHEABLE_PAGES[i].test(pathname)) return true;
+  for (const pattern of CACHEABLE_PAGES) {
+    if (pattern.test(pathname)) return true;
   }
   return false;
 }
@@ -63,7 +63,7 @@ function trimPageCache() {
   return caches.open(PAGES_CACHE).then(function(cache) {
     return cache.keys().then(function(keys) {
       if (keys.length <= MAX_CACHED_PAGES) return;
-      var toDelete = keys.slice(0, keys.length - MAX_CACHED_PAGES);
+      const toDelete = keys.slice(0, keys.length - MAX_CACHED_PAGES);
       return Promise.all(toDelete.map(function(key) { return cache.delete(key); }));
     });
   });
@@ -94,7 +94,7 @@ globalThis.addEventListener('activate', function(event) {
 });
 
 globalThis.addEventListener('fetch', function(event) {
-  var url = new URL(event.request.url);
+  const url = new URL(event.request.url);
 
   if (event.request.method !== 'GET') return;
 
@@ -105,7 +105,7 @@ globalThis.addEventListener('fetch', function(event) {
       event.respondWith(
         fetch(event.request).then(function(response) {
           if (response.ok && isPageCacheable(url.pathname)) {
-            var clone = response.clone();
+            const clone = response.clone();
             caches.open(PAGES_CACHE).then(function(cache) {
               cache.put(event.request, clone);
               trimPageCache();
@@ -135,13 +135,13 @@ globalThis.addEventListener('fetch', function(event) {
     return;
   }
 
-  var isVersioned = url.search.indexOf('v=') !== -1;
+  const isVersioned = url.search.includes('v=');
 
   if (isVersioned) {
     event.respondWith(
       fetch(event.request).then(function(response) {
         if (response.ok) {
-          var clone = response.clone();
+          const clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
             cache.put(event.request, clone);
           });
@@ -157,7 +157,7 @@ globalThis.addEventListener('fetch', function(event) {
         if (cached) return cached;
         return fetch(event.request).then(function(response) {
           if (response.ok) {
-            var clone = response.clone();
+            const clone = response.clone();
             caches.open(CACHE_NAME).then(function(cache) {
               cache.put(event.request, clone);
             });
