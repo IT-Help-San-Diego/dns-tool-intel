@@ -211,12 +211,16 @@
                                         <div class="d-flex gap-1">
                                             {{if eq $a.SpfStatus "success"}}
                                                 <span class="badge bg-success" title="SPF configured">SPF</span>
-                                            {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                                            {{else if eq $a.SpfStatus "warning"}}
+                                                <span class="badge bg-warning text-dark" title="SPF configured with warnings">SPF</span>
+                                            {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
                                                 <span class="badge bg-danger" title="SPF missing or misconfigured">{{icon "times" "me-1"}}SPF</span>
                                             {{end}}
                                             {{if eq $a.DmarcStatus "success"}}
                                                 <span class="badge bg-success" title="DMARC configured">DMARC</span>
-                                            {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                                            {{else if eq $a.DmarcStatus "warning"}}
+                                                <span class="badge bg-warning text-dark" title="DMARC configured in monitoring mode">DMARC</span>
+                                            {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
                                                 <span class="badge bg-danger" title="DMARC missing or misconfigured">{{icon "times" "me-1"}}DMARC</span>
                                             {{end}}
                                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
@@ -295,12 +299,16 @@
                         <div class="d-flex flex-wrap align-items-center gap-1 small">
                             {{if eq $a.SpfStatus "success"}}
                                 <span class="badge bg-success u-fs-065rem">SPF</span>
-                            {{else if or (eq $a.SpfStatus "warning") (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
+                            {{else if eq $a.SpfStatus "warning"}}
+                                <span class="badge bg-warning text-dark u-fs-065rem">SPF</span>
+                            {{else if or (eq $a.SpfStatus "error") (eq $a.SpfStatus "missing")}}
                                 <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}SPF</span>
                             {{end}}
                             {{if eq $a.DmarcStatus "success"}}
                                 <span class="badge bg-success u-fs-065rem">DMARC</span>
-                            {{else if or (eq $a.DmarcStatus "warning") (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
+                            {{else if eq $a.DmarcStatus "warning"}}
+                                <span class="badge bg-warning text-dark u-fs-065rem">DMARC</span>
+                            {{else if or (eq $a.DmarcStatus "error") (eq $a.DmarcStatus "missing")}}
                                 <span class="badge bg-danger u-fs-065rem">{{icon "times" "me-1"}}DMARC</span>
                             {{end}}
                             {{if or (eq $a.DkimStatus "success") (eq $a.DkimStatus "partial")}}
