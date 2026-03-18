@@ -21,7 +21,7 @@
 
 function parseIcon(html) {
     if (!html) return document.createTextNode('');
-    var doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.firstElementChild || document.createTextNode('');
 }
 
@@ -127,25 +127,25 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    var topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology');
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
     }
 }
 
-var PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
-var PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
-var SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
-var CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
-var CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
-var RESOLVER_KEYS = ['cf','g','q9','od','eu'];
-var RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
+const PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
+const PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
+const SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
+const CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
+const CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
+const RESOLVER_KEYS = ['cf','g','q9','od','eu'];
+const RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
 
 function updateResolverDots(topoEl, dnsStatus) {
     RESOLVER_KEYS.forEach(function(rk) {
-        var dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
-        var lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
-        var labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
+        const dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
+        const lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
+        const labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
         dots.forEach(function(d) {
             d.classList.remove('res-running');
             RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
@@ -167,20 +167,20 @@ function updateResolverDots(topoEl, dnsStatus) {
 }
 
 function updateTopologyFromProgress(data) {
-    var topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology');
     if (!topoEl || !data || !data.phases) return;
-    var phases = data.phases;
-    var dnsPhase = phases['dns_records'];
+    const phases = data.phases;
+    const dnsPhase = phases['dns_records'];
     if (dnsPhase) {
         updateResolverDots(topoEl, dnsPhase.status);
     }
     Object.keys(phases).forEach(function(group) {
-        var info = phases[group];
-        var node = topoEl.querySelector('[data-phase="' + group + '"]');
-        var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
-        var taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
+        const info = phases[group];
+        const node = topoEl.querySelector('[data-phase="' + group + '"]');
+        const durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        const taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
         if (!node) return;
-        var pkey = node.getAttribute('data-pkey') || 'dns';
+        const pkey = node.getAttribute('data-pkey') || 'dns';
         node.classList.remove('phase-running', 'phase-done');
         PHASE_DONE_CLASSES.forEach(function(c) { node.classList.remove(c); });
         PHASE_RUNNING_CLASSES.forEach(function(c) { node.classList.remove(c); });
@@ -218,8 +218,8 @@ function updateTopologyFromProgress(data) {
 }
 
 function startProgressPolling(token, overlay, analyzeBtn) {
-    var failures = 0;
-    var pollId = setInterval(function() {
+    let failures = 0;
+    const pollId = setInterval(function() {
         fetch('/api/scan/progress/' + token).then(function(resp) {
             if (!resp.ok) { failures++; return null; }
             failures = 0;
@@ -236,7 +236,7 @@ function startProgressPolling(token, overlay, analyzeBtn) {
             if (data.status === 'failed') {
                 clearInterval(pollId);
                 hideOverlayAndReset(overlay, analyzeBtn);
-                var msg = data.error || 'Analysis failed. Please try again.';
+                const msg = data.error || 'Analysis failed. Please try again.';
                 showFlashAlert(msg, overlay ? overlay.parentNode : document.body);
                 return;
             }
@@ -294,17 +294,17 @@ function hideOverlayAndReset(overlay, btn) {
 }
 
 function showFlashAlert(message, container) {
-    var flash = document.createElement('div');
+    const flash = document.createElement('div');
     flash.className = 'alert alert-warning alert-dismissible fade show mt-3';
     flash.role = 'alert';
     flash.textContent = message;
-    var closeBtn = document.createElement('button');
+    const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'btn-close';
     closeBtn.dataset.bsDismiss = 'alert';
     flash.appendChild(closeBtn);
-    var target = container || document.body;
-    var form = target.querySelector('#domainForm');
+    const target = container || document.body;
+    const form = target.querySelector('#domainForm');
     if (form && form.parentNode) {
         form.parentNode.insertBefore(flash, form);
     } else {
@@ -313,7 +313,7 @@ function showFlashAlert(message, container) {
 }
 
 function resetTopologyNodes() {
-    var topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
     topoEl.querySelectorAll('.topo-node').forEach(function(n) {
@@ -428,24 +428,32 @@ function showCovertTLDToast(domain, callback) {
     }, 4000);
 }
 
-function isValidDomain(domain) {
-    if (!domain) return false;
-    let d = domain;
+function stripDots(s) {
+    let d = s;
     while (d.charAt(0) === '.') d = d.slice(1);
     while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
+    return d;
+}
+
+function isValidLabel(label) {
+    if (label.length === 0 || label.length > 63) return false;
+    return !(label.startsWith('-') || label.endsWith('-'));
+}
+
+function isValidDomain(domain) {
+    if (!domain) return false;
+    const d = stripDots(domain);
     if (d.length > 253 || d.length === 0) return false;
     const labels = d.split('.');
     if (labels.length === 1) {
         return /^[a-zA-Z]{2,}$/.test(labels[0]) || labels[0].startsWith('xn--');
     }
     for (const label of labels) {
-        if (label.length === 0 || label.length > 63) return false;
-        if (label.startsWith('-') || label.endsWith('-')) return false;
+        if (!isValidLabel(label)) return false;
     }
     const lastLabel = labels[labels.length - 1];
     if (/^\d+$/.test(lastLabel)) return false;
-    const hasNonAscii = /[^\u0020-\u007F]/.test(d);
-    if (!hasNonAscii) {
+    if (!/[^\u0020-\u007F]/.test(d)) {
         for (const label of labels) {
             if (!/^[a-zA-Z0-9-]+$/.test(label)) return false;
         }
@@ -574,6 +582,12 @@ function setCovertEnv(env) {
     if (document.body.classList.contains('covert-mode')) { updateThemeColor(env); }
 }
 
+function exitFullscreenSafe() {
+    const activeFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!activeFs) return;
+    try { if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } } catch(_e) { /* intentional */ } // NOSONAR
+}
+
 function setCovertMode(active) {
     if (active) {
         document.body.classList.add('covert-mode');
@@ -582,8 +596,7 @@ function setCovertMode(active) {
         document.body.classList.remove('covert-mode');
         clearCovertEnv();
         restoreThemeColor();
-        const activeFs = document.fullscreenElement || document.webkitFullscreenElement;
-        if (activeFs) { try { if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); } } catch(_e) { /* intentional */ } } // NOSONAR
+        exitFullscreenSafe();
     }
     const toggle = document.getElementById('covertToggle');
     if (toggle) { toggle.setAttribute('aria-pressed', active ? 'true' : 'false'); }
@@ -637,7 +650,7 @@ function persistPrivacyDismiss() {
     try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
 }
 function initPrivacyBanner() {
-    var banner = document.getElementById('privacyBanner');
+    const banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
     if (privacyWasDismissed()) { banner.remove(); return; }
     function dismissBanner(e) {
@@ -646,7 +659,7 @@ function initPrivacyBanner() {
         banner.classList.add('d-none');
         if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
-    var acceptBtn = document.getElementById('privacyAccept');
+    const acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
         acceptBtn.onclick = dismissBanner;
     }
@@ -657,15 +670,17 @@ function initPrivacyBanner() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var privToggle = document.getElementById('privacyToggle');
-    var privDetail = document.getElementById('privacyDetail');
+function initPrivacyToggle() {
+    const privToggle = document.getElementById('privacyToggle');
+    const privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
         function togglePrivacy() { privDetail.classList.toggle('d-none'); }
         privToggle.addEventListener('click', togglePrivacy);
         privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
     }
+}
 
+function initROEModal() {
     const roeModalEl = document.getElementById('roeModal');
     let roeModal = null;
     if (roeModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -703,6 +718,10 @@ document.addEventListener('DOMContentLoaded', function() {
         roeDeclineBtn.addEventListener('click', handleRoeDecline);
         roeDeclineBtn.addEventListener('touchend', handleRoeDecline);
     }
+    return roeModal;
+}
+
+function initCovertControls(roeModal) {
     const covertBtn = document.getElementById('covertToggle');
     if (covertBtn) {
         covertBtn.addEventListener('click', function() {
@@ -733,6 +752,15 @@ document.addEventListener('DOMContentLoaded', function() {
             setCovertMode(false);
         });
     }
+    initFullscreenControls();
+    if (document.body.classList.contains('covert-mode')) {
+        setCovertEnv(getCovertEnv());
+        const initToggle = document.getElementById('covertToggle');
+        if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
+    }
+}
+
+function initFullscreenControls() {
     document.addEventListener('click', function(e) {
         const envBtn = e.target.closest('.covert-env-btn');
         if (envBtn && envBtn.dataset && envBtn.dataset.env) {
@@ -755,7 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
-            var ic = b.querySelector('.icon');
+            const ic = b.querySelector('.icon');
             if (fsEl) {
                 if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.compress)); }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
@@ -773,12 +801,12 @@ document.addEventListener('DOMContentLoaded', function() {
             b.classList.add('d-none');
         });
     }
-    if (document.body.classList.contains('covert-mode')) {
-        setCovertEnv(getCovertEnv());
-        const initToggle = document.getElementById('covertToggle');
-        if (initToggle) { initToggle.setAttribute('aria-pressed', 'true'); }
-    }
+}
 
+document.addEventListener('DOMContentLoaded', function() {
+    initPrivacyToggle();
+    const roeModal = initROEModal();
+    initCovertControls(roeModal);
     initPrivacyBanner();
 
     const domainForm = document.getElementById('domainForm');
@@ -866,11 +894,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
-                var flash = document.createElement('div');
+                const flash = document.createElement('div');
                 flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
                 flash.role = 'alert';
                 flash.textContent = 'Network error \u2014 please check your connection and try again.';
-                var closeBtn = document.createElement('button');
+                const closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.className = 'btn-close';
                 closeBtn.dataset.bsDismiss = 'alert';

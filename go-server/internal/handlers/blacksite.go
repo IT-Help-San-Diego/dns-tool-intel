@@ -10,6 +10,7 @@ import (
 
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/dbq"
 
         "github.com/gin-gonic/gin"
 )
@@ -75,25 +76,25 @@ var priorityLabels = map[int]string{
 }
 
 var statusDisplay = map[string]string{
-        "DETAINED":             "Detained",
-        "VERIFIED":             "Verified",
-        "UNDER_INTERROGATION":  "Under Interrogation",
-        "CONTAINED":            "Contained",
-        "RENDERED":             "Rendered",
-        "REGRESSED":            "Regressed",
-        "EXTRADITED":           "Extradited",
-        "DISMISSED":            "Dismissed",
+        "DETAINED":            "Detained",
+        "VERIFIED":            "Verified",
+        "UNDER_INTERROGATION": "Under Interrogation",
+        "CONTAINED":           "Contained",
+        "RENDERED":            "Rendered",
+        "REGRESSED":           "Regressed",
+        "EXTRADITED":          "Extradited",
+        "DISMISSED":           "Dismissed",
 }
 
 var statusCSS = map[string]string{
-        "DETAINED":             "detained",
-        "VERIFIED":             "verified",
-        "UNDER_INTERROGATION":  "interrogation",
-        "CONTAINED":            "contained",
-        "RENDERED":             "rendered",
-        "REGRESSED":            "regressed",
-        "EXTRADITED":           "extradited",
-        "DISMISSED":            "dismissed",
+        "DETAINED":            "detained",
+        "VERIFIED":            "verified",
+        "UNDER_INTERROGATION": "interrogation",
+        "CONTAINED":           "contained",
+        "RENDERED":            "rendered",
+        "REGRESSED":           "regressed",
+        "EXTRADITED":          "extradited",
+        "DISMISSED":           "dismissed",
 }
 
 func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
@@ -130,79 +131,122 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
                 slog.Warn("black-site: failed to list events", "error", err)
         }
 
-        s0 := []findingView{}
-        s1 := []findingView{}
-        s2 := []findingView{}
-        s3 := []findingView{}
-        s4 := []findingView{}
+        sevBuckets := bucketBySeverity(findings)
+        sevMap := buildSeverityMap(sevCounts)
+        kindMap := buildKindMap(kindCounts)
+        stMap := buildStatusMap(statusCounts)
+        events := buildEventViews(eventsRaw)
 
+        data := gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "ActivePage":      "black-site",
+
+                "S0Findings": sevBuckets[0],
+                "S1Findings": sevBuckets[1],
+                "S2Findings": sevBuckets[2],
+                "S3Findings": sevBuckets[3],
+                "S4Findings": sevBuckets[4],
+
+                "S0Count":    sevMap[0],
+                "S1Count":    sevMap[1],
+                "S2Count":    sevMap[2],
+                "S3Count":    sevMap[3],
+                "S4Count":    sevMap[4],
+                "TotalCount": totalRow,
+
+                "DefectCount":         kindMap["defect"],
+                "WeaknessCount":       kindMap["weakness"],
+                "ComplianceGapCount":  kindMap["compliance_gap"],
+                "ClaimIntegrityCount": kindMap["claim_integrity"],
+                "DesignDebtCount":     kindMap["design_debt"],
+                "IncidentCount":       kindMap["incident"],
+
+                "DetainedCount": stMap["DETAINED"],
+                "RenderedCount": stMap["RENDERED"],
+
+                "Events":    events,
+                "HasEvents": len(events) > 0,
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "black_site.html", data)
+}
+
+func toFindingView(f dbq.Finding) findingView {
+        sev := int(f.Severity)
+        conf := "—"
+        if f.Confidence.Valid {
+                fl, fErr := f.Confidence.Float64Value()
+                if fErr == nil && fl.Valid {
+                        conf = fmt.Sprintf("%.0f%%", fl.Float64*100)
+                }
+        }
+        fpShort := f.FingerprintSha256
+        if len(fpShort) > 8 {
+                fpShort = fpShort[:8]
+        }
+        return findingView{
+                PublicID:       f.PublicID,
+                Kind:           f.Kind,
+                Domain:         f.Domain,
+                Title:          f.Title,
+                SymptomMD:      f.SymptomMd,
+                HypothesisMD:   stringOrEmpty(f.HypothesisMd),
+                RootCauseMD:    stringOrEmpty(f.RootCauseMd),
+                Severity:       sev,
+                SeverityLabel:  severityLabels[sev],
+                Priority:       int(f.Priority),
+                PriorityLabel:  priorityLabels[int(f.Priority)],
+                Status:         f.Status,
+                StatusDisplay:  statusDisplay[f.Status],
+                StatusCSS:      statusCSS[f.Status],
+                EvidenceGrade:  f.EvidenceGrade,
+                Confidence:     conf,
+                BlastRadius:    f.BlastRadius,
+                Visibility:     f.Visibility,
+                SourceTeam:     f.SourceTeam,
+                LegacyBsiID:    stringOrEmpty(f.LegacyBsiID),
+                FingerprintSHA: fpShort,
+        }
+}
+
+func bucketBySeverity(findings []dbq.Finding) map[int][]findingView {
+        buckets := map[int][]findingView{0: {}, 1: {}, 2: {}, 3: {}, 4: {}}
         for _, f := range findings {
-                sev := int(f.Severity)
-                conf := "—"
-                if f.Confidence.Valid {
-                        fl, fErr := f.Confidence.Float64Value()
-                        if fErr == nil && fl.Valid {
-                                conf = fmt.Sprintf("%.0f%%", fl.Float64*100)
-                        }
-                }
-                fpShort := f.FingerprintSha256
-                if len(fpShort) > 8 {
-                        fpShort = fpShort[:8]
-                }
-
-                fv := findingView{
-                        PublicID:       f.PublicID,
-                        Kind:           f.Kind,
-                        Domain:         f.Domain,
-                        Title:          f.Title,
-                        SymptomMD:      f.SymptomMd,
-                        HypothesisMD:   stringOrEmpty(f.HypothesisMd),
-                        RootCauseMD:    stringOrEmpty(f.RootCauseMd),
-                        Severity:       sev,
-                        SeverityLabel:  severityLabels[sev],
-                        Priority:       int(f.Priority),
-                        PriorityLabel:  priorityLabels[int(f.Priority)],
-                        Status:         f.Status,
-                        StatusDisplay:  statusDisplay[f.Status],
-                        StatusCSS:      statusCSS[f.Status],
-                        EvidenceGrade:  f.EvidenceGrade,
-                        Confidence:     conf,
-                        BlastRadius:    f.BlastRadius,
-                        Visibility:     f.Visibility,
-                        SourceTeam:     f.SourceTeam,
-                        LegacyBsiID:    stringOrEmpty(f.LegacyBsiID),
-                        FingerprintSHA: fpShort,
-                }
-                switch sev {
-                case 0:
-                        s0 = append(s0, fv)
-                case 1:
-                        s1 = append(s1, fv)
-                case 2:
-                        s2 = append(s2, fv)
-                case 3:
-                        s3 = append(s3, fv)
-                case 4:
-                        s4 = append(s4, fv)
-                }
+                fv := toFindingView(f)
+                buckets[fv.Severity] = append(buckets[fv.Severity], fv)
         }
+        return buckets
+}
 
-        sevMap := map[int16]int64{}
-        for _, sc := range sevCounts {
-                sevMap[sc.Severity] = sc.Count
+func buildSeverityMap(counts []dbq.CountFindingsBySeverityRow) map[int16]int64 {
+        m := map[int16]int64{}
+        for _, sc := range counts {
+                m[sc.Severity] = sc.Count
         }
+        return m
+}
 
-        kindMap := map[string]int64{}
-        for _, kc := range kindCounts {
-                kindMap[kc.Kind] = kc.Count
+func buildKindMap(counts []dbq.CountFindingsByKindRow) map[string]int64 {
+        m := map[string]int64{}
+        for _, kc := range counts {
+                m[kc.Kind] = kc.Count
         }
+        return m
+}
 
-        statusMap := map[string]int64{}
-        for _, sc := range statusCounts {
-                statusMap[sc.Status] = sc.Count
+func buildStatusMap(counts []dbq.CountFindingsByStatusRow) map[string]int64 {
+        m := map[string]int64{}
+        for _, sc := range counts {
+                m[sc.Status] = sc.Count
         }
+        return m
+}
 
-        events := []eventView{}
+func buildEventViews(eventsRaw []dbq.ListFindingEventsRow) []eventView {
+        events := make([]eventView, 0, len(eventsRaw))
         for _, e := range eventsRaw {
                 ev := eventView{
                         PublicID:  e.PublicID,
@@ -221,42 +265,7 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
                 }
                 events = append(events, ev)
         }
-
-        data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "black-site",
-
-                "S0Findings": s0,
-                "S1Findings": s1,
-                "S2Findings": s2,
-                "S3Findings": s3,
-                "S4Findings": s4,
-
-                "S0Count":     sevMap[0],
-                "S1Count":     sevMap[1],
-                "S2Count":     sevMap[2],
-                "S3Count":     sevMap[3],
-                "S4Count":     sevMap[4],
-                "TotalCount":  totalRow,
-
-                "DefectCount":         kindMap["defect"],
-                "WeaknessCount":       kindMap["weakness"],
-                "ComplianceGapCount":  kindMap["compliance_gap"],
-                "ClaimIntegrityCount": kindMap["claim_integrity"],
-                "DesignDebtCount":     kindMap["design_debt"],
-                "IncidentCount":       kindMap["incident"],
-
-                "DetainedCount":  statusMap["DETAINED"],
-                "RenderedCount":  statusMap["RENDERED"],
-
-                "Events":    events,
-                "HasEvents": len(events) > 0,
-        }
-        mergeAuthData(c, h.Config, data)
-        c.HTML(http.StatusOK, "black_site.html", data)
+        return events
 }
 
 func stringOrEmpty(s *string) string {

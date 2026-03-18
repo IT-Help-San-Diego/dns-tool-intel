@@ -672,32 +672,59 @@ func (h *AnalysisHandler) enrichViewDataMetrics(ctx context.Context, data gin.H,
 }
 
 func (h *AnalysisHandler) enrichFromSnapshot(ctx context.Context, data gin.H, results map[string]any, snap map[string]any, domain string, analysisID int32) {
-        if q := h.rawQueries(); q != nil {
-                if icaeMetrics := icae.LoadReportMetrics(ctx, q); icaeMetrics != nil {
-                        snappedMaturity, _ := snap["overall_maturity"].(string) //nolint:errcheck // zero-value fallback is intentional
-                        if snappedMaturity != "" {
-                                icaeMetrics.OverallMaturity = snappedMaturity
-                                icaeMetrics.OverallMaturityDisplay = snappedMaturity
-                        }
-                        data["ICAEMetrics"] = icaeMetrics
-                }
+        h.enrichICAEFromSnapshot(ctx, data, snap)
+        enrichCurrencyReport(data, results)
+        enrichUnifiedConfidence(data, snap)
+        h.enrichSuggestedConfig(ctx, data, domain, analysisID)
+}
+
+func (h *AnalysisHandler) enrichICAEFromSnapshot(ctx context.Context, data gin.H, snap map[string]any) {
+        q := h.rawQueries()
+        if q == nil {
+                return
         }
-        if cr, ok := results[mapKeyCurrencyReport]; ok {
-                if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
-                        data["CurrencyReport"] = report
-                }
+        icaeMetrics := icae.LoadReportMetrics(ctx, q)
+        if icaeMetrics == nil {
+                return
         }
-        if uc, ok := snap["unified_confidence"]; ok {
-                if ucMap, valid := uc.(map[string]any); valid {
-                        data["UnifiedConfidence"] = restoreUnifiedConfidence(ucMap)
-                }
+        snappedMaturity, _ := snap["overall_maturity"].(string) //nolint:errcheck // zero-value fallback is intentional
+        if snappedMaturity != "" {
+                icaeMetrics.OverallMaturity = snappedMaturity
+                icaeMetrics.OverallMaturityDisplay = snappedMaturity
         }
-        if analysisID > 0 {
-                if q := h.rawQueries(); q != nil {
-                        if sugConfig := buildSuggestedConfig(ctx, q, domain, analysisID); sugConfig != nil {
-                                data["SuggestedConfig"] = sugConfig
-                        }
-                }
+        data["ICAEMetrics"] = icaeMetrics
+}
+
+func enrichCurrencyReport(data gin.H, results map[string]any) {
+        cr, ok := results[mapKeyCurrencyReport]
+        if !ok {
+                return
+        }
+        if report, hydrated := icuae.HydrateCurrencyReport(cr); hydrated {
+                data["CurrencyReport"] = report
+        }
+}
+
+func enrichUnifiedConfidence(data gin.H, snap map[string]any) {
+        uc, ok := snap["unified_confidence"]
+        if !ok {
+                return
+        }
+        if ucMap, valid := uc.(map[string]any); valid {
+                data["UnifiedConfidence"] = restoreUnifiedConfidence(ucMap)
+        }
+}
+
+func (h *AnalysisHandler) enrichSuggestedConfig(ctx context.Context, data gin.H, domain string, analysisID int32) {
+        if analysisID <= 0 {
+                return
+        }
+        q := h.rawQueries()
+        if q == nil {
+                return
+        }
+        if sugConfig := buildSuggestedConfig(ctx, q, domain, analysisID); sugConfig != nil {
+                data["SuggestedConfig"] = sugConfig
         }
 }
 
