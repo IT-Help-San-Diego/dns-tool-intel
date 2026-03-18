@@ -1,6 +1,7 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="0 0 500 400" width="500" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology">
+    <svg viewBox="-20 0 500 410" width="500" height="410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology"
+         aria-description="Golden-ratio layout: Row 2 span (320) / Row 3 span (198) = 1.616 ≈ φ. Earth axial tilt: 23.44° (IAU 2006 obliquity). Meridian scroll: eastward (right), 20s decorative period.">
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -146,9 +147,17 @@
             .globe-equator { fill: none; stroke: rgba(100,140,200,0.12); stroke-width: 0.7; }
             .globe-continent { fill: rgba(80,120,180,0.04); stroke: rgba(100,160,220,0.12); stroke-width: 0.8; }
 
+            .globe-meridians line { stroke: rgba(100,140,200,0.07); stroke-width: 0.5; fill: none; }
+            @keyframes globe-spin-meridians {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(14px, 0); }
+            }
+            .globe-meridians { animation: globe-spin-meridians 20s linear infinite; }
+
             @media (prefers-reduced-motion: reduce) {
                 .phase-running .topo-ring, .phase-running .topo-halo, .topo-res-dot.res-running { animation: none; }
                 .topo-connector.active, .topo-res-line.res-running { animation: none; }
+                .globe-meridians { animation: none; }
             }
         </style>
 
@@ -156,24 +165,37 @@
         <circle cx="230" cy="48" r="42" fill="url(#globe-fill)" stroke="rgba(100,140,200,0.2)" stroke-width="1.2"/>
 
         <g clip-path="url(#globe-clip)">
-            <polyline class="globe-graticule" points="209.0,84.4 210.7,84.4 213.5,84.4 217.4,84.4 222.1,84.4 227.4,84.4 232.9,84.4 238.2,84.4 242.9,84.4 246.8,84.4 249.5,84.4 251.0,84.4"/>
-            <polyline class="globe-graticule" points="193.7,69.0 196.5,69.0 201.3,69.0 208.1,69.0 216.4,69.0 225.6,69.0 235.1,69.0 244.2,69.0 252.4,69.0 259.0,69.0 264.8,69.0 266.4,69.0"/>
-            <polyline class="globe-equator" points="188.1,48.0 190.1,48.0 194.8,48.0 201.9,48.0 210.9,48.0 221.3,48.0 232.2,48.0 243.0,48.0 252.9,48.0 261.2,48.0 267.4,48.0 271.1,48.0 272.0,48.0"/>
-            <polyline class="globe-graticule" points="193.7,27.0 196.5,27.0 201.3,27.0 208.1,27.0 216.4,27.0 225.6,27.0 235.1,27.0 244.2,27.0 252.4,27.0 259.0,27.0 264.8,27.0 266.4,27.0"/>
-            <polyline class="globe-graticule" points="209.0,11.6 210.7,11.6 213.5,11.6 217.4,11.6 222.1,11.6 227.4,11.6 232.9,11.6 238.2,11.6 242.9,11.6 246.8,11.6 249.5,11.6 251.0,11.6"/>
+            <g transform="rotate(23.44, 230, 48)">
+                <g class="globe-meridians">
+                    <line x1="174" y1="6" x2="174" y2="90"/>
+                    <line x1="188" y1="6" x2="188" y2="90"/>
+                    <line x1="202" y1="6" x2="202" y2="90"/>
+                    <line x1="216" y1="6" x2="216" y2="90"/>
+                    <line x1="230" y1="6" x2="230" y2="90"/>
+                    <line x1="244" y1="6" x2="244" y2="90"/>
+                    <line x1="258" y1="6" x2="258" y2="90"/>
+                    <line x1="272" y1="6" x2="272" y2="90"/>
+                </g>
 
-            <polyline class="globe-graticule" points="230.0,90.0 226.8,89.8 220.4,88.6 211.5,84.4 203.8,77.7 197.9,69.0 193.5,58.9 192.9,48.0 193.5,37.1 197.9,27.0 203.8,18.3 211.5,11.6 220.4,7.4 226.8,6.2 230.0,6.0"/>
-            <polyline class="globe-graticule" points="230.0,90.0 228.1,89.8 224.2,88.6 218.9,84.4 214.3,77.7 210.7,69.0 208.5,58.9 207.7,48.0 208.5,37.1 210.7,27.0 214.3,18.3 218.9,11.6 224.2,7.4 228.1,6.2 230.0,6.0"/>
-            <polyline class="globe-graticule" points="230.0,90.0 229.7,89.8 229.5,87.5 229.2,82.4 228.9,75.0 228.7,65.7 228.6,55.3 228.5,48.0 228.6,40.7 228.7,30.3 228.9,21.0 229.2,13.6 229.5,8.5 229.7,6.2 230.0,6.0"/>
-            <polyline class="globe-graticule" points="230.0,90.0 231.7,89.8 235.1,87.5 238.3,82.4 241.4,75.0 244.3,65.7 246.8,55.3 249.7,48.0 249.4,40.7 247.9,30.3 247.1,21.0 236.7,8.5 233.4,6.6 231.7,6.2 230.0,6.0"/>
-            <polyline class="globe-graticule" points="230.0,90.0 233.1,89.8 239.2,88.6 247.8,84.4 255.2,77.7 260.8,69.0 265.1,58.9 265.6,48.0 265.1,37.1 262.3,30.3 260.8,27.0 255.2,18.3 247.8,11.6 239.2,7.4 233.1,6.2 230.0,6.0"/>
-            <polyline class="globe-graticule" points="230.0,90.0 233.7,89.8 240.9,88.6 251.0,84.4 259.7,77.7 266.4,69.0 271.3,58.9 272.0,48.0 271.3,37.1 268.0,30.3 266.4,27.0 262.2,21.0 253.7,13.6 244.4,8.5 237.3,6.6 233.7,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="209.0,84.4 210.7,84.4 213.5,84.4 217.4,84.4 222.1,84.4 227.4,84.4 232.9,84.4 238.2,84.4 242.9,84.4 246.8,84.4 249.5,84.4 251.0,84.4"/>
+                <polyline class="globe-graticule" points="193.7,69.0 196.5,69.0 201.3,69.0 208.1,69.0 216.4,69.0 225.6,69.0 235.1,69.0 244.2,69.0 252.4,69.0 259.0,69.0 264.8,69.0 266.4,69.0"/>
+                <polyline class="globe-equator" points="188.1,48.0 190.1,48.0 194.8,48.0 201.9,48.0 210.9,48.0 221.3,48.0 232.2,48.0 243.0,48.0 252.9,48.0 261.2,48.0 267.4,48.0 271.1,48.0 272.0,48.0"/>
+                <polyline class="globe-graticule" points="193.7,27.0 196.5,27.0 201.3,27.0 208.1,27.0 216.4,27.0 225.6,27.0 235.1,27.0 244.2,27.0 252.4,27.0 259.0,27.0 264.8,27.0 266.4,27.0"/>
+                <polyline class="globe-graticule" points="209.0,11.6 210.7,11.6 213.5,11.6 217.4,11.6 222.1,11.6 227.4,11.6 232.9,11.6 238.2,11.6 242.9,11.6 246.8,11.6 249.5,11.6 251.0,11.6"/>
 
-            <polygon class="globe-continent" points="225.6,8.1 209.2,11.6 205.9,14.9 201.5,19.9 199.5,25.7 199.8,30.9 205.2,33.6 210.0,35.0 212.1,37.8 215.8,41.4 217.2,40.7 215.4,32.3 215.2,27.0 219.4,23.9 223.5,19.9 228.4,18.3 232.5,17.3 230.7,11.6 225.6,8.1"/>
-            <polygon class="globe-continent" points="220.1,39.3 217.2,40.7 216.4,44.3 214.3,48.7 213.7,51.7 215.1,53.8 217.4,58.2 221.8,62.4 239.4,64.4 235.8,67.7 233.7,70.9 230.6,72.1 226.7,75.6 225.4,78.2 225.1,81.1 225.8,82.4 227.5,82.4 223.7,81.1 221.1,78.7 226.2,76.1 230.6,73.9 236.4,67.7 242.3,61.0 246.3,53.8 246.3,51.7 232.2,46.5 228.5,44.3 222.8,40.7 220.1,39.3"/>
-            <polygon class="globe-continent" points="255.3,23.3 254.3,21.0 253.6,19.9 254.9,19.4 253.4,15.8 252.7,14.0 251.5,13.2 248.7,11.6 247.7,10.6 245.1,9.1 243.6,8.3 244.4,8.5 248.4,10.3 250.5,11.6 252.9,14.0 255.7,15.8 258.0,17.8 258.4,18.8 261.7,20.4 263.1,22.7 263.5,23.3 262.3,23.3 255.3,23.3"/>
-            <polygon class="globe-continent" points="261.1,22.7 259.2,23.9 257.3,25.7 255.0,30.3 255.5,32.3 256.6,37.1 258.9,42.2 263.8,44.3 268.9,48.0 269.6,53.8 268.9,56.7 267.0,63.7 265.3,69.0 266.4,27.0 261.1,22.7"/>
-            <polygon class="globe-continent" points="235.1,11.6 237.4,9.1 237.6,8.1 233.4,6.6 230.3,6.4 228.5,6.9 230.0,7.8 232.2,9.1 235.1,11.6"/>
+                <polyline class="globe-graticule" points="230.0,90.0 226.8,89.8 220.4,88.6 211.5,84.4 203.8,77.7 197.9,69.0 193.5,58.9 192.9,48.0 193.5,37.1 197.9,27.0 203.8,18.3 211.5,11.6 220.4,7.4 226.8,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="230.0,90.0 228.1,89.8 224.2,88.6 218.9,84.4 214.3,77.7 210.7,69.0 208.5,58.9 207.7,48.0 208.5,37.1 210.7,27.0 214.3,18.3 218.9,11.6 224.2,7.4 228.1,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="230.0,90.0 229.7,89.8 229.5,87.5 229.2,82.4 228.9,75.0 228.7,65.7 228.6,55.3 228.5,48.0 228.6,40.7 228.7,30.3 228.9,21.0 229.2,13.6 229.5,8.5 229.7,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="230.0,90.0 231.7,89.8 235.1,87.5 238.3,82.4 241.4,75.0 244.3,65.7 246.8,55.3 249.7,48.0 249.4,40.7 247.9,30.3 247.1,21.0 236.7,8.5 233.4,6.6 231.7,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="230.0,90.0 233.1,89.8 239.2,88.6 247.8,84.4 255.2,77.7 260.8,69.0 265.1,58.9 265.6,48.0 265.1,37.1 262.3,30.3 260.8,27.0 255.2,18.3 247.8,11.6 239.2,7.4 233.1,6.2 230.0,6.0"/>
+                <polyline class="globe-graticule" points="230.0,90.0 233.7,89.8 240.9,88.6 251.0,84.4 259.7,77.7 266.4,69.0 271.3,58.9 272.0,48.0 271.3,37.1 268.0,30.3 266.4,27.0 262.2,21.0 253.7,13.6 244.4,8.5 237.3,6.6 233.7,6.2 230.0,6.0"/>
+
+                <polygon class="globe-continent" points="225.6,8.1 209.2,11.6 205.9,14.9 201.5,19.9 199.5,25.7 199.8,30.9 205.2,33.6 210.0,35.0 212.1,37.8 215.8,41.4 217.2,40.7 215.4,32.3 215.2,27.0 219.4,23.9 223.5,19.9 228.4,18.3 232.5,17.3 230.7,11.6 225.6,8.1"/>
+                <polygon class="globe-continent" points="220.1,39.3 217.2,40.7 216.4,44.3 214.3,48.7 213.7,51.7 215.1,53.8 217.4,58.2 221.8,62.4 239.4,64.4 235.8,67.7 233.7,70.9 230.6,72.1 226.7,75.6 225.4,78.2 225.1,81.1 225.8,82.4 227.5,82.4 223.7,81.1 221.1,78.7 226.2,76.1 230.6,73.9 236.4,67.7 242.3,61.0 246.3,53.8 246.3,51.7 232.2,46.5 228.5,44.3 222.8,40.7 220.1,39.3"/>
+                <polygon class="globe-continent" points="255.3,23.3 254.3,21.0 253.6,19.9 254.9,19.4 253.4,15.8 252.7,14.0 251.5,13.2 248.7,11.6 247.7,10.6 245.1,9.1 243.6,8.3 244.4,8.5 248.4,10.3 250.5,11.6 252.9,14.0 255.7,15.8 258.0,17.8 258.4,18.8 261.7,20.4 263.1,22.7 263.5,23.3 262.3,23.3 255.3,23.3"/>
+                <polygon class="globe-continent" points="261.1,22.7 259.2,23.9 257.3,25.7 255.0,30.3 255.5,32.3 256.6,37.1 258.9,42.2 263.8,44.3 268.9,48.0 269.6,53.8 268.9,56.7 267.0,63.7 265.3,69.0 266.4,27.0 261.1,22.7"/>
+                <polygon class="globe-continent" points="235.1,11.6 237.4,9.1 237.6,8.1 233.4,6.6 230.3,6.4 228.5,6.9 230.0,7.8 232.2,9.1 235.1,11.6"/>
+            </g>
         </g>
 
         <circle cx="200" cy="22" r="7" fill="rgba(246,130,31,0.15)"/>
@@ -203,19 +225,17 @@
         <path d="M254,19 C252,51 240,95 230,110" class="topo-res-line" data-resolver="eu"/>
 
         <line x1="230" y1="131" x2="70" y2="201" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
-        <line x1="230" y1="131" x2="170" y2="201" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
-        <line x1="230" y1="131" x2="290" y2="201" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+        <line x1="230" y1="131" x2="177" y2="201" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+        <line x1="230" y1="131" x2="283" y2="201" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
         <line x1="230" y1="131" x2="390" y2="201" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
-        <line x1="70" y1="201" x2="70" y2="281" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
-        <line x1="170" y1="201" x2="170" y2="281" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
-        <line x1="290" y1="201" x2="290" y2="281" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
-        <line x1="390" y1="201" x2="390" y2="281" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
-        <line x1="230" y1="131" x2="440" y2="281" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
-        <line x1="70" y1="281" x2="230" y2="351" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-        <line x1="170" y1="281" x2="230" y2="351" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-        <line x1="290" y1="281" x2="230" y2="351" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-        <line x1="390" y1="281" x2="230" y2="351" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-        <line x1="440" y1="281" x2="230" y2="351" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
+        <line x1="70" y1="201" x2="131" y2="281" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
+        <line x1="177" y1="201" x2="230" y2="281" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
+        <line x1="283" y1="201" x2="131" y2="281" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
+        <line x1="390" y1="201" x2="230" y2="281" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
+        <line x1="230" y1="131" x2="329" y2="281" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
+        <line x1="131" y1="281" x2="230" y2="351" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+        <line x1="230" y1="281" x2="230" y2="351" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+        <line x1="329" y1="281" x2="230" y2="351" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
 
         <g data-phase="dns_records" data-pkey="dns">
             <circle cx="230" cy="131" r="38" class="topo-halo"/>
@@ -240,26 +260,26 @@
         <text x="70" y="245" class="topo-dur" data-dur="email_auth"></text>
 
         <g data-phase="dnssec_dane" data-pkey="dnssec">
-            <circle cx="170" cy="201" r="38" class="topo-halo"/>
-            <circle cx="170" cy="201" r="34" class="topo-ring"/>
-            <circle cx="170" cy="201" r="28" class="topo-node"/>
-            <circle cx="170" cy="201" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="170" y="197" class="topo-label">DNSSEC</text>
-            <text x="170" y="206" class="topo-label topo-label-sub">DANE</text>
-            <text x="170" y="217" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
+            <circle cx="177" cy="201" r="38" class="topo-halo"/>
+            <circle cx="177" cy="201" r="34" class="topo-ring"/>
+            <circle cx="177" cy="201" r="28" class="topo-node"/>
+            <circle cx="177" cy="201" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="177" y="197" class="topo-label">DNSSEC</text>
+            <text x="177" y="206" class="topo-label topo-label-sub">DANE</text>
+            <text x="177" y="217" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
         </g>
-        <text x="170" y="245" class="topo-dur" data-dur="dnssec_dane"></text>
+        <text x="177" y="245" class="topo-dur" data-dur="dnssec_dane"></text>
 
         <g data-phase="ct_subdomains" data-pkey="ct">
-            <circle cx="290" cy="201" r="38" class="topo-halo"/>
-            <circle cx="290" cy="201" r="34" class="topo-ring"/>
-            <circle cx="290" cy="201" r="28" class="topo-node"/>
-            <circle cx="290" cy="201" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="290" y="197" class="topo-label">CT/Sub</text>
-            <text x="290" y="206" class="topo-label topo-label-sub">domains</text>
-            <text x="290" y="217" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
+            <circle cx="283" cy="201" r="38" class="topo-halo"/>
+            <circle cx="283" cy="201" r="34" class="topo-ring"/>
+            <circle cx="283" cy="201" r="28" class="topo-node"/>
+            <circle cx="283" cy="201" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="283" y="197" class="topo-label">CT/Sub</text>
+            <text x="283" y="206" class="topo-label topo-label-sub">domains</text>
+            <text x="283" y="217" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
         </g>
-        <text x="290" y="245" class="topo-dur" data-dur="ct_subdomains"></text>
+        <text x="283" y="245" class="topo-dur" data-dur="ct_subdomains"></text>
 
         <g data-phase="smtp_transport" data-pkey="smtp">
             <circle cx="390" cy="201" r="38" class="topo-halo"/>
@@ -273,36 +293,36 @@
         <text x="390" y="245" class="topo-dur" data-dur="smtp_transport"></text>
 
         <g data-phase="policy_records" data-pkey="policy">
-            <circle cx="70" cy="281" r="38" class="topo-halo"/>
-            <circle cx="70" cy="281" r="34" class="topo-ring"/>
-            <circle cx="70" cy="281" r="28" class="topo-node"/>
-            <circle cx="70" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="70" y="277" class="topo-label">Policy</text>
-            <text x="70" y="286" class="topo-label topo-label-sub">Records</text>
-            <text x="70" y="297" class="topo-sub" data-tasks="policy_records">0/4</text>
+            <circle cx="131" cy="281" r="38" class="topo-halo"/>
+            <circle cx="131" cy="281" r="34" class="topo-ring"/>
+            <circle cx="131" cy="281" r="28" class="topo-node"/>
+            <circle cx="131" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="131" y="277" class="topo-label">Policy</text>
+            <text x="131" y="286" class="topo-label topo-label-sub">Records</text>
+            <text x="131" y="297" class="topo-sub" data-tasks="policy_records">0/4</text>
         </g>
-        <text x="70" y="325" class="topo-dur" data-dur="policy_records"></text>
+        <text x="131" y="325" class="topo-dur" data-dur="policy_records"></text>
 
         <g data-phase="registrar_infra" data-pkey="registrar">
-            <circle cx="170" cy="281" r="38" class="topo-halo"/>
-            <circle cx="170" cy="281" r="34" class="topo-ring"/>
-            <circle cx="170" cy="281" r="28" class="topo-node"/>
-            <circle cx="170" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="170" y="277" class="topo-label">Registrar</text>
-            <text x="170" y="286" class="topo-label topo-label-sub">Infra</text>
-            <text x="170" y="297" class="topo-sub" data-tasks="registrar_infra">0/5</text>
+            <circle cx="230" cy="281" r="38" class="topo-halo"/>
+            <circle cx="230" cy="281" r="34" class="topo-ring"/>
+            <circle cx="230" cy="281" r="28" class="topo-node"/>
+            <circle cx="230" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="230" y="277" class="topo-label">Registrar</text>
+            <text x="230" y="286" class="topo-label topo-label-sub">Infra</text>
+            <text x="230" y="297" class="topo-sub" data-tasks="registrar_infra">0/5</text>
         </g>
-        <text x="170" y="325" class="topo-dur" data-dur="registrar_infra"></text>
+        <text x="230" y="325" class="topo-dur" data-dur="registrar_infra"></text>
 
         <g data-phase="web3_analysis" data-pkey="web3">
-            <circle cx="440" cy="281" r="38" class="topo-halo"/>
-            <circle cx="440" cy="281" r="34" class="topo-ring"/>
-            <circle cx="440" cy="281" r="28" class="topo-node"/>
-            <circle cx="440" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="440" y="278" class="topo-label">Web3</text>
-            <text x="440" y="290" class="topo-sub" data-tasks="web3_analysis">0/1</text>
+            <circle cx="329" cy="281" r="38" class="topo-halo"/>
+            <circle cx="329" cy="281" r="34" class="topo-ring"/>
+            <circle cx="329" cy="281" r="28" class="topo-node"/>
+            <circle cx="329" cy="281" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="329" y="278" class="topo-label">Web3</text>
+            <text x="329" y="290" class="topo-sub" data-tasks="web3_analysis">0/1</text>
         </g>
-        <text x="440" y="325" class="topo-dur" data-dur="web3_analysis"></text>
+        <text x="329" y="325" class="topo-dur" data-dur="web3_analysis"></text>
 
         <g data-phase="analysis_engine" data-pkey="engine">
             <circle cx="230" cy="351" r="38" class="topo-halo"/>
