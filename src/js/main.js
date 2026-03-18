@@ -658,6 +658,14 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function globeMotion() {
+        var at = document.querySelector('.globe-meridians animateTransform');
+        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    }
+    globeMotion();
+    rmq.addEventListener('change', globeMotion);
+
     var privToggle = document.getElementById('privacyToggle');
     var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
