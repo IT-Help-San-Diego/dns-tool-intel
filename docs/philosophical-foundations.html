@@ -171,7 +171,7 @@ This document identifies those structures, traces their academic lineage, provid
   <tr>
     <td><strong>The Hacker</strong></td>
     <td><strong>Pathos</strong> (urgency, consequence awareness)</td>
-    <td>Reframes the same data through an adversarial lens &mdash; surfaces attack surfaces, exposure vectors, the <em>stakes</em> of misconfiguration</td>
+    <td>Reframes the same data through an adversarial lens &mdash; reveals attack surfaces, exposure vectors, the <em>stakes</em> of misconfiguration</td>
     <td>&ldquo;What can an attacker do with this?&rdquo;</td>
   </tr>
   <tr>
@@ -240,7 +240,7 @@ This document identifies those structures, traces their academic lineage, provid
   </tr>
   <tr>
     <td>Origin Story</td>
-    <td>Monomyth (Hero&rsquo;s Journey)</td>
+    <td>Monomyth (Hero&rsquo;s Journey &mdash; Campbell&rsquo;s comparative narrative structure, not &ldquo;myth&rdquo; in the sense of something false)</td>
     <td>All</td>
     <td>CREATIVE-SAFE</td>
   </tr>
@@ -432,8 +432,38 @@ This document identifies those structures, traces their academic lineage, provid
 <h3>5.3 <span class="lane-tag lane-protocol">Protocol Science</span></h3>
 <p>Protocol science citations are documented in the primary methodology document. See &ldquo;DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure,&rdquo; Section 8 (References) for the complete RFC and ICD 203 citation list. They are not duplicated here to maintain lane separation.</p>
 
-<h3>5.4 Scotopic Interface Design (Human Factors &mdash; Pending)</h3>
-<p>DNS Tool&rsquo;s Covert Recon Mode uses a scotopic-optimized red interface informed by vision science research on rod-cell sensitivity and dark adaptation. The specific vision science citations supporting this design choice are documented in the platform&rsquo;s approach page and will be added to this matrix when the formal literature review is complete. Until then, the claim is scoped as &ldquo;informed by published vision science research&rdquo; rather than citing specific papers.</p>
+<h3>5.4 <span class="lane-tag lane-human">Human Factors</span> Scotopic Interface Design</h3>
+<p>DNS Tool&rsquo;s Covert Recon Mode uses a scotopic-informed red-spectrum interface designed to preserve dark adaptation for operators working in low-light environments. The design is grounded in established vision science:</p>
+<ul>
+  <li>Hecht, S. &amp; Hsia, Y. (1945). &ldquo;Dark adaptation following light adaptation to red and white lights.&rdquo; <em>J. Opt. Soc. Am.</em>, 35(4). DOI: <a href="https://doi.org/10.1364/JOSA.35.000261">10.1364/JOSA.35.000261</a> &mdash; Demonstrates that red light preserves rod sensitivity during dark adaptation.</li>
+  <li>Miles, W. R. (1953). &ldquo;Red goggles for producing dark adaptation.&rdquo; <em>J. Opt. Soc. Am.</em>, 43(4). DOI: <a href="https://doi.org/10.1364/JOSA.43.000435">10.1364/JOSA.43.000435</a> &mdash; Confirms the effectiveness of red-filtered environments for maintaining scotopic sensitivity.</li>
+  <li>CIE scotopic luminous efficiency function V&prime;(&lambda;), CIE dataset DOI: <a href="https://doi.org/10.25039/cie.ds.gr6w4b5g">10.25039/cie.ds.gr6w4b5g</a></li>
+</ul>
+<p>Military standards informing the design: MIL-STD-3009 (NVIS radiance compatibility for cockpit displays) and MIL-STD-1472H (human engineering design criteria for military systems).</p>
+
+<h4>Hardware Limitation Disclosure</h4>
+<p>Consumer RGB displays cannot produce true scotopic-compliant output. Standard LCD and OLED panels use RGB subpixel arrays that emit across the visible spectrum, including wavelengths that stimulate rod cells and degrade dark adaptation. Achieving full scotopic compliance requires NVIS-compatible display hardware (e.g., military-grade cockpit displays with narrow-band red phosphors or filtered backlight systems).</p>
+<p>DNS Tool&rsquo;s current implementation is therefore a <strong>scotopic-informed approximation on consumer RGB hardware</strong>. The red-spectrum palette minimizes blue-light emission and reduces rod stimulation relative to conventional dark-theme interfaces, but cannot achieve the spectral purity of NVIS-compliant systems. This is an explicit research goal: the platform is designed so that operators on NVIS-compatible hardware would experience a display environment meeting MIL-STD-3009 radiance requirements, while operators on consumer hardware receive the best available approximation within the physical constraints of their display technology.</p>
+<p>The color palette selection reflects years of iterative refinement seeking 3&ndash;5 colors that maintain readability, semantic distinction, and visual hierarchy within the red-spectrum constraints imposed by scotopic design principles.</p>
+
+<h3>5.5 <span class="lane-tag lane-human">Human Factors</span> Live Topology Visualization</h3>
+<p>During analysis, DNS Tool presents a live protocol/workflow topology that shows DNS resolution unfolding in real time &mdash; not a simulated loading animation, but actual phase-by-phase progress through the multi-resolver analysis pipeline. This design serves multiple human-factors objectives supported by peer-reviewed research:</p>
+<p><strong>Perceived performance and uncertainty reduction:</strong></p>
+<ul>
+  <li>Myers, B. A. (1985). &ldquo;The importance of percent-done progress indicators for computer-human interfaces.&rdquo; <em>CHI &rsquo;85</em>. DOI: <a href="https://doi.org/10.1145/317456.317459">10.1145/317456.317459</a> &mdash; Progress indicators reduce perceived duration and user anxiety.</li>
+  <li>Nah, F. F.-H. (2004). &ldquo;A study on tolerable waiting time.&rdquo; <em>Behaviour &amp; Information Technology</em>, 23(3). DOI: <a href="https://doi.org/10.1080/01449290410001669914">10.1080/01449290410001669914</a> &mdash; Meaningful feedback during waits extends user tolerance thresholds.</li>
+  <li>Harrison, C. et al. (2010). &ldquo;Faster Progress Bars: Manipulating Perceived Duration with Visual Augmentations.&rdquo; <em>CHI &rsquo;10</em>. DOI: <a href="https://doi.org/10.1145/1753326.1753556">10.1145/1753326.1753556</a></li>
+</ul>
+<p><strong>Mental model formation through process visualization:</strong></p>
+<ul>
+  <li>Hundhausen, C. D. et al. (2002). &ldquo;A meta-study of algorithm visualization effectiveness.&rdquo; <em>J. Visual Languages &amp; Computing</em>, 13(3). DOI: <a href="https://doi.org/10.1006/jvlc.2002.0237">10.1006/jvlc.2002.0237</a> &mdash; Dynamic process visualization supports cognitive engagement and comprehension of system behavior.</li>
+  <li>Shaffer, C. A. et al. (2010). &ldquo;Algorithm visualization: the state of the field.&rdquo; <em>ACM Trans. Computing Education</em>, 10(3). DOI: <a href="https://doi.org/10.1145/1821996.1821997">10.1145/1821996.1821997</a></li>
+</ul>
+<p><strong>Transparency and trust in automated analysis:</strong></p>
+<ul>
+  <li>Dzindolet, M. T. et al. (2003). &ldquo;The role of trust in automation reliance.&rdquo; <em>Int. J. Human-Computer Studies</em>, 58(6). DOI: <a href="https://doi.org/10.1016/S1071-5819(03)00038-7">10.1016/S1071-5819(03)00038-7</a> &mdash; Users calibrate trust more accurately when they can observe the automated process operating.</li>
+</ul>
+<p>The topology visualization bridges the gap between the abstraction of DNS infrastructure and human understanding by making protocol behavior observable. Users do not merely receive results &mdash; they watch multi-resolver consensus form, see DNSSEC validation chains resolve, and observe the analysis pipeline traversing protocol-specific evaluation stages. This transforms a passive waiting experience into an active learning opportunity, serving both the educational mission and the transparency commitment documented in the Socratic verification workflow (Section 2).</p>
 
 <hr>
 
