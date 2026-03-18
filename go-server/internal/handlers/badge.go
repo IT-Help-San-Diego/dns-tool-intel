@@ -612,15 +612,20 @@ func covertSummaryLines(vulnerable, findingCount int, tagline, locked, dimLocked
         }
         vectors := vulnerable + findingCount
         var lines []covertLine
-        if vectors <= 2 {
-                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), sRed))
+        if vectors <= 2 && vulnerable <= 1 {
+                lines = append(lines, cl("[!]", fmt.Sprintf("%d attack vector%s available — mostly locked down", vectors, pluralS(vectors)), locked))
+                if findingCount > 0 {
+                        lines = append(lines, cl("[!]", "Rotate exposed credentials.", alt))
+                } else if tagline != "" {
+                        lines = append(lines, cl("[!]", tagline, dimLocked))
+                }
         } else {
                 lines = append(lines, cl("[!]", fmt.Sprintf("%d of %d attack vectors available", vectors, checkCount), sRed))
-        }
-        if findingCount > 0 {
-                lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
-        } else if tagline != "" {
-                lines = append(lines, cl("[!]", tagline, alt))
+                if findingCount > 0 {
+                        lines = append(lines, cl("[!]", "Leaked secrets make infrastructure gaps worse.", alt))
+                } else if tagline != "" {
+                        lines = append(lines, cl("[!]", tagline, alt))
+                }
         }
         return lines
 }
@@ -1331,7 +1336,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         }
 
         const (
-                vbWidth  = 540
+                vbWidth  = 600
                 vbHeight = 230
                 scale    = 4.0 / 3.0
                 pad      = 16
@@ -1360,7 +1365,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {414, 128},
                 {496, 78},
                 {496, 178},
-                {496, 128},
+                {558, 178},
         }
 
         edges := []topoEdge{
@@ -1371,6 +1376,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
                 {6, 4, "", false, 0, 0},
                 {4, 3, "requires", true, 311, 168},
                 {8, 3, "strengthens", false, 440, 168},
+                {9, 8, "", false, 0, 0},
         }
 
         icieCX := 200
@@ -1522,7 +1528,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
   <text x="228" y="158" fill="#8b949e" font-size="7.5" font-weight="700" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="start" opacity="0.7" letter-spacing="0.5">DNS</text>
   <line x1="228" y1="60" x2="524" y2="60" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
   <line x1="228" y1="108" x2="450" y2="108" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
-  <line x1="228" y1="158" x2="524" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="228" y1="158" x2="586" y2="158" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2 3"/>
 
   %s
 
