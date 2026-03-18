@@ -80,17 +80,17 @@
         }
         .doc-link:last-child { border-bottom: none; }
         .doc-link .doc-type {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.06em;
             background: var(--bs-primary-bg-subtle, #1a2744);
             color: var(--bs-primary-text-emphasis, #6ea8fe);
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
             white-space: nowrap;
-            min-width: 5.5rem;
-            text-align: center;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
         }
         .endpoint-row {
             display: flex;
@@ -109,13 +109,39 @@
         .orcid-icon {
             width: 16px; height: 16px; vertical-align: -2px;
         }
+        .stat-box {
+            border: 1px solid var(--bs-border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--bs-emphasis-color);
+        }
+        .stat-desc {
+            font-size: 0.75rem;
+        }
+        .stat-detail {
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+        .doc-desc {
+            font-size: 0.82rem;
+        }
+        .maturity-note {
+            font-size: 0.75rem;
+        }
+        .endpoint-desc {
+            font-size: 0.75rem;
+        }
     </style>
 </head>
 <body class="bg-dark text-light">
-    {{template "navbar" .}}
-    {{template "maintenance_banner" .}}
+    {{template "nav" .}}
 
-    <main class="container py-4 cite-page">
+    <main id="main-content" class="container py-4 cite-page">
         <div class="mb-4">
             <h1 class="h3 fw-bold mb-1">Cite This Research</h1>
             <p class="text-secondary mb-0">Published research software for RFC-compliant domain security analysis</p>
@@ -123,7 +149,7 @@
 
         <div class="cite-card">
             <h3><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Recommended Citation</h3>
-            <div class="cite-block" id="citation-text">Balboa, C. J. ({{.Year}}). {{.Title}} (Version {{.Version}}) [Computer software]. https://doi.org/{{.DOI}}</div>
+            <div class="cite-block" id="citation-text">Balboa, C. J. ({{.Year}}). {{.Title}} (Version {{.Version}}) [Computer software]. https://doi.org/{{.DOI}}<button class="copy-btn btn btn-outline-secondary" id="copy-cite-btn" aria-label="Copy citation">Copy</button></div>
         </div>
 
         <div class="row g-3 mb-3">
@@ -176,31 +202,31 @@
             <h3><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Confidence Engines</h3>
             <div class="row g-3">
                 <div class="col-md-4">
-                    <div style="border: 1px solid var(--bs-border-color); border-radius: 6px; padding: 1rem; text-align: center;">
+                    <div class="stat-box">
                         <div class="cite-label mb-1">ICAE</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--bs-emphasis-color);">{{.ICAETotal}}</div>
-                        <div class="text-secondary" style="font-size: 0.75rem;">deterministic test cases</div>
-                        <div class="text-secondary" style="font-size: 0.7rem; margin-top: 0.25rem;">{{.ICAEAnalysis}} analysis · {{.ICAECollection}} collection</div>
+                        <div class="stat-number">{{.ICAETotal}}</div>
+                        <div class="text-secondary stat-desc">deterministic test cases</div>
+                        <div class="text-secondary stat-detail">{{.ICAEAnalysis}} analysis · {{.ICAECollection}} collection</div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div style="border: 1px solid var(--bs-border-color); border-radius: 6px; padding: 1rem; text-align: center;">
+                    <div class="stat-box">
                         <div class="cite-label mb-1">ICuAE</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--bs-emphasis-color);">{{.ICuAETotal}}</div>
-                        <div class="text-secondary" style="font-size: 0.75rem;">currency assurance tests</div>
-                        <div class="text-secondary" style="font-size: 0.7rem; margin-top: 0.25rem;">{{.ICuAEDimensions}} timeliness dimensions</div>
+                        <div class="stat-number">{{.ICuAETotal}}</div>
+                        <div class="text-secondary stat-desc">currency assurance tests</div>
+                        <div class="text-secondary stat-detail">{{.ICuAEDimensions}} timeliness dimensions</div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div style="border: 1px solid var(--bs-border-color); border-radius: 6px; padding: 1rem; text-align: center;">
+                    <div class="stat-box">
                         <div class="cite-label mb-1">Authorities</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--bs-emphasis-color);">{{.AuthoritiesTotal}}</div>
-                        <div class="text-secondary" style="font-size: 0.75rem;">RFC/standards citations</div>
-                        <div class="text-secondary" style="font-size: 0.7rem; margin-top: 0.25rem;">{{.ICAEProtocols}} protocols covered</div>
+                        <div class="stat-number">{{.AuthoritiesTotal}}</div>
+                        <div class="text-secondary stat-desc">RFC/standards citations</div>
+                        <div class="text-secondary stat-detail">{{.ICAEProtocols}} protocols covered</div>
                     </div>
                 </div>
             </div>
-            <div class="text-secondary mt-2" style="font-size: 0.75rem;">Five-tier maturity model: Development → Verified → Consistent → Gold → Gold Master</div>
+            <div class="text-secondary mt-2 maturity-note">Five-tier maturity model: Development → Verified → Consistent → Gold → Gold Master</div>
         </div>
 
         <div class="cite-card">
@@ -209,14 +235,14 @@
                 <span class="doc-type">Methodology</span>
                 <div>
                     <a href="/methodology" class="text-decoration-none fw-semibold">DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure</a>
-                    <div class="text-secondary" style="font-size: 0.82rem;">Primary methodology — ICAE/ICuAE confidence framework, multi-resolver consensus, RFC-grounded analysis engines.</div>
+                    <div class="text-secondary doc-desc">Primary methodology — ICAE/ICuAE confidence framework, multi-resolver consensus, RFC-grounded analysis engines.</div>
                 </div>
             </div>
             <div class="doc-link">
                 <span class="doc-type">Companion</span>
                 <div>
                     <a href="/foundations" class="text-decoration-none fw-semibold">Philosophical Foundations for Security Analysis Communication</a>
-                    <div class="text-secondary" style="font-size: 0.82rem;">Aristotelian rhetoric, Socratic verification, scotopic interface design, and narrative architecture.</div>
+                    <div class="text-secondary doc-desc">Aristotelian rhetoric, Socratic verification, scotopic interface design, and narrative architecture.</div>
                 </div>
             </div>
         </div>
@@ -235,12 +261,12 @@
             <div class="endpoint-row">
                 <span class="method">GET</span>
                 <code><a href="/api/research" class="text-decoration-none">/api/research</a></code>
-                <span class="text-secondary" style="font-size: 0.75rem;">— JSON research metadata, DOIs, documents</span>
+                <span class="text-secondary endpoint-desc">— JSON research metadata, DOIs, documents</span>
             </div>
             <div class="endpoint-row">
                 <span class="method">GET</span>
                 <code><a href="/api/authorities" class="text-decoration-none">/api/authorities</a></code>
-                <span class="text-secondary" style="font-size: 0.75rem;">— RFC/standards citation registry</span>
+                <span class="text-secondary endpoint-desc">— RFC/standards citation registry</span>
             </div>
             <div class="mt-3">
                 <span class="cite-label">Terminal</span>
@@ -250,5 +276,9 @@
     </main>
 
     {{template "footer" .}}
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.getElementById('copy-cite-btn').addEventListener('click',function(){var e=document.getElementById('citation-text'),t=e.textContent.replace(/\s*Copy\s*$/,'').trim(),b=this;navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},2000)});});
+    </script>
 </body>
 </html>
