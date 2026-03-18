@@ -4740,7 +4740,7 @@
                                 {{else if eq $dnssecStatus "success"}}
                                     <div class="small text-success mb-2">
                                         {{icon "check-circle" "me-1"}}
-                                        Chain of trust: Root → TLD → Domain. DNS responses are authenticated and tamper-proof.
+                                        Chain of trust: Root → TLD → Domain. DNS responses are cryptographically authenticated and tamper-evident.
                                     </div>
                                     {{if mapGetBool "ad_flag" $dnssec}}
                                     <div class="small text-success mb-2">
@@ -6029,7 +6029,7 @@
             </div>
             <div class="card-body">
                 <p class="small mb-3 u-color-text">
-                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-proof, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it cannot be altered, deleted, or disputed. Combined with the SHA-3-512 integrity hash, this creates a legally defensible chain of evidence for domain security state.
+                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-evident, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it provides an independently verifiable record of the analysis at this point in time. Combined with the SHA-3-512 integrity hash, this creates a verifiable chain of evidence for domain security state.
                 </p>
                 <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                     <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
