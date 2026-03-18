@@ -598,6 +598,7 @@ function activateCovertOrSwitch() {
         const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
         if (aid && (cur === 'E' || cur === 'C')) {
             const target = cur === 'E' ? 'C' : 'E';
+            try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
             globalThis.location.href = '/analysis/' + aid + '/view/' + target;
             return;
         }
@@ -658,6 +659,15 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    try {
+        var savedY = sessionStorage.getItem('covert_scroll_y');
+        if (savedY !== null) {
+            sessionStorage.removeItem('covert_scroll_y');
+            var y = parseInt(savedY, 10);
+            if (!isNaN(y) && y > 0) { globalThis.scrollTo(0, y); }
+        }
+    } catch(e) {}
+
     var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
     function globeMotion() {
         var at = document.querySelector('.globe-meridians animateTransform');
@@ -740,6 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setCovertMode(false);
                     const psMeta = document.querySelector('meta[name="x-public-suffix"]');
                     const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }

@@ -62,7 +62,7 @@
                             </thead>
                             <tbody>
                                 {{range $a := .Analyses}}
-                                <tr class="compare-row u-pointer" data-id="{{$a.ID}}">
+                                <tr class="compare-row u-pointer" data-id="{{$a.ID}}" tabindex="0" role="button" aria-label="Select analysis from {{$a.CreatedAt}}">
                                     <td>{{icon "square" "compare-check"}}</td>
                                     <td>
                                         {{$a.CreatedAt}}
@@ -176,6 +176,12 @@
         const hint = document.getElementById('selectionHint');
 
         rows.forEach(function(row) {
+            row.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    row.click();
+                }
+            });
             row.addEventListener('click', function() {
                 const id = row.dataset.id;
                 const idx = selected.indexOf(id);

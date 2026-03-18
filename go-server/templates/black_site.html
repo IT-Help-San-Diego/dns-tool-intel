@@ -433,7 +433,8 @@
                 Facility Active
             </p>
             <h1>{{icon "crosshairs" "me-2"}}Black Site</h1>
-            <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a threat level, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system. This is what it looks like when engineers actually give a damn.</p>
+            <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a threat level, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system.</p>
+            <p class="bsi-epigraph mt-2" style="font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase;">We proudly use enhanced interrogation tactics.</p>
         </div>
     </header>
 
@@ -487,27 +488,27 @@
             <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Census</h2>
             <div class="bsi-census-grid" role="list" aria-label="Detainee census">
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-apt">8</div>
+                    <div class="bsi-census-count bsi-threat-apt">{{.APTCount}}</div>
                     <div class="bsi-census-label">APT</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-zeroday">5</div>
+                    <div class="bsi-census-count bsi-threat-zeroday">{{.ZeroDayCount}}</div>
                     <div class="bsi-census-label">Zero-Day</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-exploit">6</div>
+                    <div class="bsi-census-count bsi-threat-exploit">{{.ExploitCount}}</div>
                     <div class="bsi-census-label">Exploit</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-cve">14</div>
+                    <div class="bsi-census-count bsi-threat-cve">{{.CVECount}}</div>
                     <div class="bsi-census-label">CVE</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count bsi-threat-ioc">12</div>
+                    <div class="bsi-census-count bsi-threat-ioc">{{.IOCCount}}</div>
                     <div class="bsi-census-label">IOC</div>
                 </div>
                 <div class="bsi-census-card" role="listitem">
-                    <div class="bsi-census-count" style="color:#c9d1d9">45</div>
+                    <div class="bsi-census-count" style="color:#c9d1d9">{{.TotalCount}}</div>
                     <div class="bsi-census-label">Total Detained</div>
                 </div>
             </div>
@@ -515,112 +516,32 @@
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "bug" "me-1"}} APT &mdash; Advanced Persistent Threats</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">These bugs orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
-
+            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">These bugs orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system. We proudly use enhanced interrogation tactics.</p>
+            {{range .APTDetainees}}
             <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">f65edf</span> BSI-001: Covert Mode Is a Page Navigation, Not a Toggle</h3>
-                <p class="bsi-detainee-meta">Captured by T002 (Ghost Protocol), T005 (The Architect) &bull; <code>src/js/main.js:593-606</code></p>
-                <p>On the Engineer&rsquo;s Report, pressing the covert button doesn&rsquo;t toggle &mdash; it navigates to <code>/analysis/{'{'}id{'}'}/view/C</code> (full page load). Pressing it again navigates back. User loses scroll position, loading state resets, and the interaction feels fundamentally broken. On non-results pages, the same button does a client-side class toggle. Two completely different behaviors behind the same red button.</p>
-                <p class="bsi-witness">&ldquo;When you press the red button it works. But then if you hit it again, nothing happens.&rdquo;</p>
-                <p class="bsi-damage">Core interaction feels broken. Conference demo killer.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
+                <h3><span class="bsi-hash">{{.ShaHash}}</span> {{.BsiID}}: {{.Title}}</h3>
+                {{if .CapturedBy}}<p class="bsi-detainee-meta">Captured by {{.CapturedBy}}{{if .FileReferences}} &bull; <code>{{.FileReferences}}</code>{{end}}</p>{{end}}
+                {{if .InterrogationNotes}}<p>{{.InterrogationNotes}}</p>{{end}}
+                {{if .WitnessStatement}}<p class="bsi-witness">&ldquo;{{.WitnessStatement}}&rdquo;</p>{{end}}
+                {{if .DamageAssessment}}<p class="bsi-damage">{{.DamageAssessment}}</p>{{end}}
+                {{if .RecommendedRemedy}}<p class="bsi-detainee-meta">Recommended: {{.RecommendedRemedy}}</p>{{end}}
+                <p class="bsi-detainee-meta">{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else if eq .Status "UNDER INTERROGATION"}}<span class="bsi-badge bsi-badge-detained" style="border-color:rgba(210,153,34,0.3);background:rgba(210,153,34,0.08);color:#d29922">Under Interrogation</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</p>
             </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">1d4705</span> BSI-002: Glass Treatment Only on Posture Cards</h3>
-                <p class="bsi-detainee-meta">Captured by T002, T004 (Design Forensics) &bull; <code>src/css/custom.css:1087-1135</code></p>
-                <p>The glassmorphism CSS selectors are extremely specific &mdash; only cards with the exact class combo <code>card.border-{'{'}status{'}'}.bg-{'{'}status{'}'}.bg-opacity-10</code> get the treatment. Confidence, Currency, and Domain Summary cards all use different class patterns. Result: the posture card is alive with glass and hover-lift. Everything around it is a dead slab.</p>
-                <p class="bsi-damage">Inconsistent visual language. It looks like we started a design system and got tired halfway through.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">cffa37</span> BSI-003: Golden Ratio Claims Without Mathematical Evidence</h3>
-                <p class="bsi-detainee-meta">Captured by T005 (The Architect)</p>
-                <p>The scan topology SVG delivers (320/198 &asymp; 1.616 &asymp; &phi;). But the CSS type scale and spacing system uses ad hoc values: <code>0.75</code>, <code>0.8</code>, <code>0.85</code>, <code>1.1</code>, <code>3.5</code>, <code>2.5rem</code>. These are not Fibonacci numbers. They&rsquo;re not derived from &phi;. If someone at a conference opens DevTools and checks the math, the claim becomes a liability instead of a feature.</p>
-                <p class="bsi-damage">Intellectual honesty risk. The topology claim is real. The system-wide claim is not.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">d95e9a</span> BSI-004: No <code>prefers-reduced-motion</code> in CSS</h3>
-                <p class="bsi-detainee-meta">Captured by T004 (Design Forensics), T005 (The Architect) &bull; Entire <code>src/css/custom.css</code></p>
-                <p>Users who set &ldquo;Reduce Motion&rdquo; in their OS still see every transition, transform, and animation. JavaScript handles the topology SVG SMIL animation, but CSS transitions are completely unprotected. WCAG 2.1 SC 2.3.3 requires this. It&rsquo;s not optional.</p>
-                <p class="bsi-damage">Hard accessibility compliance failure. Any accessibility auditor would flag this instantly.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">12de6c</span> BSI-005: Stats Label &mdash; 2.1:1 Contrast (WCAG Requires 4.5:1)</h3>
-                <p class="bsi-detainee-meta">Captured by T003 (Perimeter Sweep) &bull; <code>stats.html:158-159</code></p>
-                <p><code>.stats-confidence-metric-label { color: #484f58; }</code> on <code>#0d1117</code> background. Contrast ratio: 2.1:1. WCAG AA requires 4.5:1 for normal text. Less than half the required ratio. Users with low vision cannot read it at all.</p>
-                <p class="bsi-damage">This isn&rsquo;t a style preference &mdash; this is text that cannot be read. On a page where the numbers are the entire point.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">a37166</span> BSI-006: Compare Select &mdash; Keyboard Users Locked Out</h3>
-                <p class="bsi-detainee-meta">Captured by T003 (Perimeter Sweep) &bull; <code>compare_select.html:170-219</code></p>
-                <p>Domain comparison rows use click handlers on bare <code>&lt;tr&gt;</code> elements. No <code>tabindex</code>. No <code>role=&quot;button&quot;</code>. Keyboard-only users literally cannot reach or activate these rows. WCAG 2.1 Level A &mdash; the absolute baseline.</p>
-                <p class="bsi-damage">An entire feature of the product is inaccessible to keyboard-only users, screen reader users, and users with motor disabilities.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">b1951c</span> BSI-007: Broken SVGs on Architecture Page</h3>
-                <p class="bsi-detainee-meta">Captured by T001 (SquirrelScan) &bull; <code>/architecture</code> page</p>
-                <p>Two SVG diagrams return 404: <code>drift-notification-pipeline.svg</code> and <code>github-issues-triage.svg</code>. These are on the page specifically designed to demonstrate our engineering discipline and system design rigor.</p>
-                <p class="bsi-damage">Broken images on the page that&rsquo;s supposed to prove we build things carefully. The irony is not lost.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-apt">
-                <h3><span class="bsi-hash">44bddb</span> BSI-008: Copy Buttons Exist Only for Mouse Users</h3>
-                <p class="bsi-detainee-meta">Captured by T002 (Ghost Protocol) &bull; <code>src/css/custom.css:1030</code></p>
-                <p><code>.copy-btn</code> has <code>opacity: 0</code> by default, only visible on <code>:hover</code>. Keyboard-only users never see the button, cannot focus on it, and cannot use the copy functionality that exists on every code block.</p>
-                <p class="bsi-damage">Copy functionality is invisible and unreachable for an entire class of users.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
+            {{end}}
         </div>
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "bolt" "me-1"}} Zero-Day &mdash; Unpatched Exploits</h2>
             <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">Actively causing damage. Users are hitting these right now.</p>
-
+            {{range .ZeroDayDetainees}}
             <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">94b175</span> BSI-009: Anchor Scroll Hijacks Bootstrap Collapse</h3>
-                <p class="bsi-detainee-meta">Captured by T002 &bull; <code>src/js/main.js:944-955</code></p>
-                <p>Generic smooth-scroll handler on ALL <code>a[href^=&quot;#&quot;]</code> links calls <code>e.preventDefault()</code>, which blocks Bootstrap collapse triggers using <code>href</code> instead of <code>data-bs-target</code>. Some sections silently refuse to toggle. No error. No feedback.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
+                <h3><span class="bsi-hash">{{.ShaHash}}</span> {{.BsiID}}: {{.Title}}</h3>
+                {{if .CapturedBy}}<p class="bsi-detainee-meta">Captured by {{.CapturedBy}}{{if .FileReferences}} &bull; <code>{{.FileReferences}}</code>{{end}}</p>{{end}}
+                {{if .InterrogationNotes}}<p>{{.InterrogationNotes}}</p>{{end}}
+                {{if .DamageAssessment}}<p class="bsi-damage">{{.DamageAssessment}}</p>{{end}}
+                <p class="bsi-detainee-meta">{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</p>
             </div>
-
-            <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">006e72</span> BSI-010: <code>white-space-nowrap</code> &mdash; A Class That Doesn&rsquo;t Exist</h3>
-                <p class="bsi-detainee-meta">Captured by T002 &bull; <code>results.html:579</code></p>
-                <p>Template references <code>white-space-nowrap</code>. Should be Bootstrap&rsquo;s <code>text-nowrap</code>. Does nothing &mdash; buttons wrap freely on mobile.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">d11eb2</span> BSI-011: <code>border-accent-gold-muted</code> &mdash; A Ghost Class</h3>
-                <p class="bsi-detainee-meta">Captured by T002 &bull; <code>results.html:560</code></p>
-                <p>Currency card references a CSS class that doesn&rsquo;t exist. Border falls back to default. The gold accent that was clearly intended is absent on every analysis page.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">1a64dd</span> BSI-018: Secrets Exposed in Page Source</h3>
-                <p class="bsi-detainee-meta">Captured by T001 &bull; <code>/auth/login</code>, <code>/analysis/6141/view</code></p>
-                <p>Google OAuth Client ID in inline script. Sanity Token in analysis HTML. On a platform that audits DNS security for other people.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span> &mdash; scope investigation required</p>
-            </div>
-
-            <div class="bsi-detainee bsi-threat-zeroday">
-                <h3><span class="bsi-hash">4e93d8</span> BSI-019: CSP <code>script-src</code> Allows Wildcard <code>*</code></h3>
-                <p class="bsi-detainee-meta">Captured by T001 &bull; Content-Security-Policy header</p>
-                <p>The <code>script-src</code> directive uses <code>*</code>, allowing JavaScript from any origin. We audit DNS security for the world, and our own CSP is wide open.</p>
-                <p class="bsi-detainee-meta"><span class="bsi-badge bsi-badge-detained">Detained</span></p>
-            </div>
+            {{end}}
         </div>
 
         <div class="bsi-section">
@@ -629,12 +550,9 @@
             <table class="bsi-compact-table" aria-label="Exploit-level detainees">
                 <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
                 <tbody>
-                    <tr><td class="bsi-hash">e58ba4</td><td class="bsi-id bsi-threat-exploit">BSI-012</td><td>DNS Hosting column missing <code>text-truncate</code> &mdash; overflow on mobile</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">5fabbe</td><td class="bsi-id bsi-threat-exploit">BSI-013</td><td>Chevron icons never rotate on collapse &mdash; no expand/collapse feedback</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">1f30a9</td><td class="bsi-id bsi-threat-exploit">BSI-014</td><td>Tooltips only initialized on results page &mdash; broken everywhere else</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">f5c551</td><td class="bsi-id bsi-threat-exploit">BSI-015</td><td>Mobile navbar can extend below viewport &mdash; no scroll, no max-height</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">f26008</td><td class="bsi-id bsi-threat-exploit">BSI-016</td><td>Footer becomes wall of text at 375px &mdash; no grouping or columns</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">862bdc</td><td class="bsi-id bsi-threat-exploit">BSI-017</td><td>Video category score: F (57/100) &mdash; missing schema, captions, posters</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
+                    {{range .ExploitDetainees}}
+                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-exploit">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
+                    {{end}}
                 </tbody>
             </table>
             </div>
@@ -646,20 +564,9 @@
             <table class="bsi-compact-table" aria-label="CVE-level detainees">
                 <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
                 <tbody>
-                    <tr><td class="bsi-hash">ce05ca</td><td class="bsi-id bsi-threat-cve">BSI-020</td><td>908 <code>!important</code> declarations &mdash; specificity arms race</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">aaf0b6</td><td class="bsi-id bsi-threat-cve">BSI-021</td><td>50+ hardcoded hex colors outside token system</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">2833b2</td><td class="bsi-id bsi-threat-cve">BSI-022</td><td>Blur radius has 4 values, no design token</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">710519</td><td class="bsi-id bsi-threat-cve">BSI-023</td><td>5+ transition timing values &mdash; no system</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">71bbc3</td><td class="bsi-id bsi-threat-cve">BSI-024</td><td><code>transition: all</code> performance anti-pattern</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">43f8ad</td><td class="bsi-id bsi-threat-cve">BSI-025</td><td>Three syntaxes for the same breakpoint (767/767.98/768px)</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">6d7824</td><td class="bsi-id bsi-threat-cve">BSI-026</td><td>Print CSS scattered across 4 locations</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">49e5dc</td><td class="bsi-id bsi-threat-cve">BSI-027</td><td>Covert mode missed <code>.u-code-block</code> and <code>.icae-card</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">959082</td><td class="bsi-id bsi-threat-cve">BSI-028</td><td>Font units mixed &mdash; rem, px, pt in non-print CSS</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">f61e00</td><td class="bsi-id bsi-threat-cve">BSI-029</td><td>Two code block implementations &mdash; one has features, one doesn&rsquo;t</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">a9ed45</td><td class="bsi-id bsi-threat-cve">BSI-030</td><td>66+ pages missing canonical URLs</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">a80284</td><td class="bsi-id bsi-threat-cve">BSI-031</td><td>Charset not first element in <code>&lt;head&gt;</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">e08829</td><td class="bsi-id bsi-threat-cve">BSI-032</td><td>4 external links returning 403/404 (DTIC, IANA, DNI)</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">37a3a9</td><td class="bsi-id bsi-threat-cve">BSI-033</td><td>15 duplicate page titles across 43 pages</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
+                    {{range .CVEDetainees}}
+                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-cve">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
+                    {{end}}
                 </tbody>
             </table>
             </div>
@@ -671,18 +578,9 @@
             <table class="bsi-compact-table" aria-label="IOC-level detainees">
                 <thead><tr><th scope="col">Hash</th><th scope="col">ID</th><th scope="col">Detainee</th><th scope="col">Status</th></tr></thead>
                 <tbody>
-                    <tr><td class="bsi-hash">31731f</td><td class="bsi-id bsi-threat-ioc">BSI-034</td><td>Domain input missing <code>required</code> attribute</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">6ae8f2</td><td class="bsi-id bsi-threat-ioc">BSI-035</td><td>Search hint not linked via <code>aria-describedby</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">f997f8</td><td class="bsi-id bsi-threat-ioc">BSI-036</td><td>Recon mode button &mdash; icon only on mobile, no context</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">ce793e</td><td class="bsi-id bsi-threat-ioc">BSI-037</td><td>ROE script tags look clickable but aren&rsquo;t interactive</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">19a2b6</td><td class="bsi-id bsi-threat-ioc">BSI-038</td><td>TLP dropdown items use <code>href=&quot;#&quot;</code> without <code>role</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">c4383f</td><td class="bsi-id bsi-threat-ioc">BSI-039</td><td>No active nav state on analysis pages</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">919efc</td><td class="bsi-id bsi-threat-ioc">BSI-040</td><td>7 header buttons compress at 375px</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">d1b46a</td><td class="bsi-id bsi-threat-ioc">BSI-041</td><td>Accordion focus styles invisible on dark background</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">cd860f</td><td class="bsi-id bsi-threat-ioc">BSI-042</td><td>Skip link uses <code>:focus</code> instead of <code>:focus-visible</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">b570fe</td><td class="bsi-id bsi-threat-ioc">BSI-043</td><td>No <code>@supports</code> fallback for <code>backdrop-filter</code></td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">cd3cd2</td><td class="bsi-id bsi-threat-ioc">BSI-044</td><td>TTL Tuner promo card overflows at 375px</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
-                    <tr><td class="bsi-hash">68514d</td><td class="bsi-id bsi-threat-ioc">BSI-045</td><td>Sign-out button touch target too small on mobile</td><td><span class="bsi-badge bsi-badge-detained">Detained</span></td></tr>
+                    {{range .IOCDetainees}}
+                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id bsi-threat-ioc">{{.BsiID}}</td><td>{{.Title}}</td><td>{{if eq .Status "RENDERED"}}<span class="bsi-badge bsi-badge-rendered">Rendered</span>{{else}}<span class="bsi-badge bsi-badge-detained">Detained</span>{{end}}</td></tr>
+                    {{end}}
                 </tbody>
             </table>
             </div>
@@ -691,9 +589,22 @@
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "crosshairs" "me-1"}} Rendition Log</h2>
             <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a detainee is eliminated, we record the kill. Date, commit hash, who pulled the trigger.</p>
+            {{if .HasRenditions}}
+            <div class="table-responsive">
+            <table class="bsi-compact-table" aria-label="Rendition log">
+                <thead><tr><th scope="col">Hash</th><th scope="col">BSI</th><th scope="col">Detainee</th><th scope="col">Rendered</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
+                <tbody>
+                    {{range .Renditions}}
+                    <tr><td class="bsi-hash">{{.ShaHash}}</td><td class="bsi-id">{{.BsiID}}</td><td>{{.Title}}</td><td>{{.RenderedAt}}</td><td><code>{{.CommitHash}}</code></td><td>{{.RenderedBy}}</td></tr>
+                    {{end}}
+                </tbody>
+            </table>
+            </div>
+            {{else}}
             <div class="bsi-rendition-log">
                 <p class="bsi-rendition-empty">No renditions yet. The interrogations have just begun.</p>
             </div>
+            {{end}}
         </div>
 
         <div class="bsi-section">
