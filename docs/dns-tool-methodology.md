@@ -3,7 +3,7 @@
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 
-Version 26.35.34
+Version 26.37.26
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
 
 *Independent research artifact accompanying the DNS Tool software platform.*
@@ -162,24 +162,25 @@ TLS-RPT evaluation checks:
 
 DNS Tool applies a confidence scoring model inspired by intelligence community analytic standards (ODNI ICD 203). Each protocol finding receives a confidence level:
 
-- **Verified**: Strong evidence from multiple sources, RFC-compliant configuration confirmed
-- **Assessed**: Evidence supports the finding, but with some uncertainty
-- **Adequate**: Minimum evidence threshold met, but gaps exist
-- **Development**: Insufficient evidence to form a reliable assessment
+- **Gold Master**: Sustained correctness across 5,000+ consecutive passes over 180+ days — the highest maturity tier
+- **Gold**: High correctness with 500+ consecutive passes over 90+ days
+- **Consistent**: Reliable correctness with 100+ consecutive passes over 30+ days
+- **Verified**: Correctness demonstrated with 10+ consecutive passes over 7+ days
+- **Development**: Insufficient test history to establish confidence — the initial tier for all new protocols
 
-### 4.2 Confidence Factors
+### 4.2 Confidence Calibration
 
-Confidence is calculated based on:
+Confidence calibration uses a reliability-weighted shrinkage estimator. For each protocol:
 
-1. **Evidence completeness**: Were all expected records found?
-2. **Cross-resolver consistency**: Do multiple resolvers agree?
-3. **RFC compliance**: Does the configuration meet specification requirements?
-4. **Temporal stability**: Has the configuration been consistent across observation windows?
-5. **Dependency satisfaction**: Are prerequisite protocols properly configured?
+1. **Protocol-specific priors**: Empirically determined base rates encoding historical detection reliability per protocol
+2. **Resolver agreement ratio**: The fraction of queried resolvers that return consistent results, used as measurement quality weight
+3. **Shrinkage toward prior**: When resolver agreement is low, the calibrated score is pulled toward the prior mean; when agreement is high, the observation dominates
+
+This produces a calibrated confidence score per protocol, distinct from the raw detection score. The calibration formula is a shrinkage estimator — not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).
 
 ### 4.3 Overall Posture Score
 
-The individual protocol confidence scores are aggregated into an overall domain security posture score, weighted by protocol importance and interdependency relationships.
+The overall domain security posture is determined by the unified confidence engine, which combines ICAE accuracy scores, ICuAE currency scores, and ICAE maturity level. The maturity level imposes a ceiling on the maximum achievable confidence — a protocol in the "development" tier cannot reach full confidence regardless of its accuracy score. The weakest protocol dimension determines the overall confidence level.
 
 ### 4.4 Epistemic Correction Disclosure
 

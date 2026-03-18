@@ -4740,7 +4740,7 @@
                                 {{else if eq $dnssecStatus "success"}}
                                     <div class="small text-success mb-2">
                                         {{icon "check-circle" "me-1"}}
-                                        Chain of trust: Root → TLD → Domain. DNS responses are authenticated and tamper-proof.
+                                        Chain of trust: Root → TLD → Domain. DNS responses are cryptographically authenticated and tamper-evident.
                                     </div>
                                     {{if mapGetBool "ad_flag" $dnssec}}
                                     <div class="small text-success mb-2">
@@ -6029,7 +6029,7 @@
             </div>
             <div class="card-body">
                 <p class="small mb-3 u-color-text">
-                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-proof, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it cannot be altered, deleted, or disputed. Combined with the SHA-3-512 integrity hash, this creates a legally defensible chain of evidence for domain security state.
+                    This analysis has been automatically submitted to the <strong>Internet Archive's Wayback Machine</strong>, creating a tamper-evident, third-party-hosted snapshot of the DNS security posture at analysis time. This archived copy is independent of DNS Tool &mdash; it provides an independently verifiable record of the analysis at this point in time. Combined with the SHA-3-512 integrity hash, this creates a verifiable chain of evidence for domain security state.
                 </p>
                 <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                     <a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
@@ -6268,6 +6268,9 @@
             </div>
             <div class="print-footer-disclaimer" id="printFooterTlp">
                 <strong id="footerTlpLabel">TLP:AMBER</strong> — This report contains security posture information that may reveal actionable vulnerabilities. Recipients may share within their organization and with clients/customers who need the information to protect themselves, but not via publicly accessible channels. DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance &copy; DNS Tool. All conclusions independently verifiable — see Verification Commands appendix.
+            </div>
+            <div class="print-footer-provenance">
+                Methodology: dnstool.it-help.tech/methodology &middot; DOI: 10.5281/zenodo.18854899 &middot; ORCID: 0009-0000-5237-9065
             </div>
         </footer>
 

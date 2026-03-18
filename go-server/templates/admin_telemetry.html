@@ -29,7 +29,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>{{icon "list" "me-2"}}Recent Scans</span>
+                        <span>{{icon "list" "me-2"}}Recent Scans Timeline</span>
                         <span class="badge bg-secondary">{{len .Summaries}} scans</span>
                     </div>
                     <div class="card-body p-0">
@@ -41,6 +41,7 @@
                                         <th>Domain</th>
                                         <th>Duration</th>
                                         <th>Phases</th>
+                                        <th>Gantt</th>
                                         <th>SHA-3-512</th>
                                         <th>Integrity</th>
                                     </tr>
@@ -52,6 +53,17 @@
                                         <td><code>{{.AsciiDomain}}</code></td>
                                         <td>{{.TotalDurationMs}}ms</td>
                                         <td>{{.PhaseCount}}</td>
+                                        <td style="min-width:200px">
+                                            <div class="gantt-bar" data-analysis-id="{{.AnalysisID}}" data-total-ms="{{.TotalDurationMs}}">
+                                                <div class="progress" style="height:14px;background:#1c2128;border-radius:3px">
+                                                    <div class="progress-bar" role="progressbar" style="width:100%;background:linear-gradient(90deg,#5c6bc0 0%,#4fc3f7 20%,#81c784 40%,#78909c 55%,#ffb74d 70%,#ce93d8 85%,#e0e0e0 100%);opacity:0.8;border-radius:3px" aria-valuenow="{{.TotalDurationMs}}" aria-valuemin="0" aria-valuemax="{{.TotalDurationMs}}"></div>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-0">
+                                                    <span class="u-text-075 text-muted">0s</span>
+                                                    <span class="u-text-075 text-muted">{{divf .TotalDurationMs 1000}}s</span>
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td><code class="small" title="{{.Sha3512}}">{{truncate 16 .Sha3512}}</code></td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-info verify-btn" data-analysis-id="{{.AnalysisID}}">
@@ -61,12 +73,29 @@
                                     </tr>
                                     {{else}}
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">No telemetry data yet. Run a scan to begin collecting phase timings.</td>
+                                        <td colspan="7" class="text-center text-muted py-4">No telemetry data yet. Run a scan to begin collecting phase timings.</td>
                                     </tr>
                                     {{end}}
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        {{icon "chart-line" "me-2"}}Phase Performance Trends (7-day)
+                    </div>
+                    <div class="card-body">
+                        {{if .Trends}}
+                        <div id="trendChart" style="overflow-x:auto"></div>
+                        {{else}}
+                        <p class="text-center text-muted py-4">No trend data available yet. Trends appear after multiple scans over several days.</p>
+                        {{end}}
                     </div>
                 </div>
             </div>
@@ -151,6 +180,43 @@
 
     <script nonce="{{.CspNonce}}">
     (function() {
+        var NS = 'http://www.w3.org/2000/svg';
+
+        function buildVerifyDOM(el, verified, aid, data) {
+            while (el.firstChild) el.removeChild(el.firstChild);
+            el.classList.remove('d-none', 'alert-success', 'alert-danger');
+            if (verified) {
+                el.classList.add('alert-success');
+                var strong = document.createElement('strong');
+                strong.textContent = 'Integrity Verified';
+                el.appendChild(strong);
+                el.appendChild(document.createTextNode(' \u2014 Analysis #' + aid +
+                    ' SHA-3-512 hash matches. ' + data.phase_count + ' phases, ' +
+                    (data.total_duration_ms / 1000).toFixed(1) + 's total.'));
+                el.appendChild(document.createElement('br'));
+                var code = document.createElement('code');
+                code.className = 'small';
+                code.textContent = data.stored_hash;
+                el.appendChild(code);
+            } else {
+                el.classList.add('alert-danger');
+                var s2 = document.createElement('strong');
+                s2.textContent = 'INTEGRITY FAILURE';
+                el.appendChild(s2);
+                el.appendChild(document.createTextNode(' \u2014 Analysis #' + aid + ' hash mismatch!'));
+                el.appendChild(document.createElement('br'));
+                el.appendChild(document.createTextNode('Stored: '));
+                var c1 = document.createElement('code');
+                c1.textContent = data.stored_hash;
+                el.appendChild(c1);
+                el.appendChild(document.createElement('br'));
+                el.appendChild(document.createTextNode('Recomputed: '));
+                var c2 = document.createElement('code');
+                c2.textContent = data.recomputed_hash;
+                el.appendChild(c2);
+            }
+        }
+
         document.querySelectorAll('.verify-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var aid = btn.dataset.analysisId;
@@ -160,29 +226,117 @@
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         var el = document.getElementById('verifyResult');
-                        el.classList.remove('d-none', 'alert-success', 'alert-danger');
-                        if (data.verified) {
-                            el.classList.add('alert-success');
-                            el.innerHTML = '<strong>Integrity Verified</strong> \u2014 Analysis #' + aid +
-                                ' SHA-3-512 hash matches. ' + data.phase_count + ' phases, ' +
-                                (data.total_duration_ms / 1000).toFixed(1) + 's total.<br>' +
-                                '<code class="small">' + data.stored_hash + '</code>';
-                        } else {
-                            el.classList.add('alert-danger');
-                            el.innerHTML = '<strong>INTEGRITY FAILURE</strong> \u2014 Analysis #' + aid +
-                                ' hash mismatch!<br>Stored: <code>' + data.stored_hash +
-                                '</code><br>Recomputed: <code>' + data.recomputed_hash + '</code>';
-                        }
+                        buildVerifyDOM(el, data.verified, aid, data);
                         btn.disabled = false;
-                        btn.innerHTML = 'Verify';
+                        btn.textContent = 'Verify';
                         el.scrollIntoView({ behavior: 'smooth' });
                     })
                     .catch(function() {
                         btn.disabled = false;
-                        btn.innerHTML = 'Verify';
+                        btn.textContent = 'Verify';
                     });
             });
         });
+
+        var trendData = {{.TrendsJSON}};
+        if (trendData && trendData.length > 0) {
+            renderTrendChart(trendData);
+        }
+
+        function svgEl(tag, attrs) {
+            var el = document.createElementNS(NS, tag);
+            if (attrs) {
+                Object.keys(attrs).forEach(function(k) {
+                    el.setAttribute(k, attrs[k]);
+                });
+            }
+            return el;
+        }
+
+        function svgText(tag, attrs, text) {
+            var el = svgEl(tag, attrs);
+            el.textContent = text;
+            return el;
+        }
+
+        function renderTrendChart(data) {
+            var container = document.getElementById('trendChart');
+            if (!container) return;
+
+            var groups = {};
+            var allDates = [];
+            var maxMs = 0;
+            data.forEach(function(row) {
+                if (!groups[row.phase_group]) groups[row.phase_group] = {};
+                groups[row.phase_group][row.trend_date] = row.avg_duration_ms;
+                if (allDates.indexOf(row.trend_date) === -1) allDates.push(row.trend_date);
+                if (row.avg_duration_ms > maxMs) maxMs = row.avg_duration_ms;
+            });
+            allDates.sort();
+            if (maxMs === 0) maxMs = 1;
+
+            var colors = {
+                'dns_records': '#5c6bc0', 'email_auth': '#4fc3f7', 'dnssec_dane': '#81c784',
+                'ct_subdomains': '#78909c', 'smtp_transport': '#66bb6a', 'policy_records': '#ffb74d',
+                'registrar_infra': '#ce93d8', 'analysis_engine': '#e0e0e0', 'web3_analysis': '#d4a853'
+            };
+
+            var w = Math.max(600, allDates.length * 80 + 100);
+            var h = 260;
+            var padL = 60, padR = 20, padT = 20, padB = 40;
+            var plotW = w - padL - padR;
+            var plotH = h - padT - padB;
+
+            var svg = svgEl('svg', {viewBox: '0 0 ' + w + ' ' + h, width: w, height: h, style: 'font-family:system-ui,sans-serif'});
+            svg.appendChild(svgEl('rect', {width: w, height: h, fill: '#0d1117', rx: 4}));
+
+            var yTicks = 5;
+            for (var yi = 0; yi <= yTicks; yi++) {
+                var yVal = Math.round(maxMs * yi / yTicks);
+                var yPos = padT + plotH - (plotH * yi / yTicks);
+                svg.appendChild(svgEl('line', {x1: padL, y1: yPos, x2: w - padR, y2: yPos, stroke: '#21262d', 'stroke-width': 1}));
+                svg.appendChild(svgText('text', {x: padL - 5, y: yPos + 3, 'text-anchor': 'end', fill: '#8b949e', 'font-size': 9}, (yVal / 1000).toFixed(1) + 's'));
+            }
+
+            allDates.forEach(function(d, i) {
+                var xPos = padL + (plotW * i / Math.max(allDates.length - 1, 1));
+                svg.appendChild(svgText('text', {x: xPos, y: h - 8, 'text-anchor': 'middle', fill: '#8b949e', 'font-size': 9}, d.substring(5)));
+            });
+
+            Object.keys(groups).forEach(function(group) {
+                var pts = [];
+                allDates.forEach(function(d, i) {
+                    var val = groups[group][d];
+                    if (val !== undefined) {
+                        var x = padL + (plotW * i / Math.max(allDates.length - 1, 1));
+                        var y = padT + plotH - (plotH * val / maxMs);
+                        pts.push({x: x, y: y});
+                    }
+                });
+                if (pts.length > 1) {
+                    var col = colors[group] || '#8b949e';
+                    var pointStr = pts.map(function(p) { return p.x + ',' + p.y; }).join(' ');
+                    svg.appendChild(svgEl('polyline', {points: pointStr, fill: 'none', stroke: col, 'stroke-width': 2, opacity: 0.8}));
+                    pts.forEach(function(p) {
+                        svg.appendChild(svgEl('circle', {cx: p.x, cy: p.y, r: 3, fill: col}));
+                    });
+                }
+            });
+
+            var legendY = padT + 5;
+            var legendIdx = 0;
+            Object.keys(colors).forEach(function(group) {
+                if (!groups[group]) return;
+                var lx = padL + 10;
+                var ly = legendY + legendIdx * 14;
+                svg.appendChild(svgEl('rect', {x: lx, y: ly - 6, width: 10, height: 10, rx: 2, fill: colors[group], opacity: 0.8}));
+                svg.appendChild(svgText('text', {x: lx + 14, y: ly + 3, fill: '#e6edf3', 'font-size': 9}, group));
+                legendIdx++;
+            });
+
+            while (container.firstChild) container.removeChild(container.firstChild);
+            container.appendChild(svg);
+        }
     })();
     </script>
 </body>

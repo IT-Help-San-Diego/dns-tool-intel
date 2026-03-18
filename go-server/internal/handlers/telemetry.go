@@ -2,7 +2,9 @@ package handlers
 // dns-tool:scrutiny design
 
 import (
+        "encoding/json"
         "fmt"
+        "html/template"
         "net/http"
 
         "dnstool/go-server/internal/analyzer"
@@ -39,6 +41,30 @@ func (h *TelemetryHandler) Dashboard(c *gin.Context) {
                 trends = nil
         }
 
+        type trendRow struct {
+                PhaseGroup    string `json:"phase_group"`
+                TrendDate     string `json:"trend_date"`
+                AvgDurationMs int32  `json:"avg_duration_ms"`
+                SampleCount   int64  `json:"sample_count"`
+        }
+        var trendRows []trendRow
+        for _, t := range trends {
+                dateStr := ""
+                if t.TrendDate.Valid {
+                        dateStr = t.TrendDate.Time.Format("2006-01-02")
+                }
+                trendRows = append(trendRows, trendRow{
+                        PhaseGroup:    t.PhaseGroup,
+                        TrendDate:     dateStr,
+                        AvgDurationMs: t.AvgDurationMs,
+                        SampleCount:   t.SampleCount,
+                })
+        }
+        trendsJSON, _ := json.Marshal(trendRows)
+        if trendsJSON == nil {
+                trendsJSON = []byte("[]")
+        }
+
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
 
@@ -53,6 +79,7 @@ func (h *TelemetryHandler) Dashboard(c *gin.Context) {
                 "Summaries":        summaries,
                 "Slowest":          slowest,
                 "Trends":           trends,
+                "TrendsJSON":       template.JS(trendsJSON),
                 "PhaseGroupLabels": analyzer.PhaseGroupLabels,
                 "PhaseGroupOrder":  analyzer.PhaseGroupOrder,
         }

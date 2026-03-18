@@ -3,172 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <title>DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure</title>
+<link rel="stylesheet" href="pdf-base.css">
 <style>
-  @page {
-    size: letter;
-    margin: 1in 1.1in;
-  }
-  body {
-    font-family: "Times New Roman", Georgia, serif;
-    font-size: 11.5pt;
-    line-height: 1.55;
-    color: #1a1a1a;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  .cover-header {
-    text-align: center;
-    margin-bottom: 28pt;
-    padding-bottom: 18pt;
-    border-bottom: 1.5pt solid #C8A878;
-  }
-  .cover-header img {
-    width: 130px;
-    height: 130px;
-    margin-bottom: 14pt;
-    background: #0d1117;
-    border-radius: 50%;
-    padding: 2px;
-    border: 2.5px solid #C8A878;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 8px rgba(0,0,0,0.3);
-  }
-  .cover-header h1 {
-    font-size: 20pt;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 6pt 0 4pt 0;
-    letter-spacing: 0.03em;
-  }
-  .cover-header .subtitle {
-    font-size: 12pt;
-    color: #555;
-    font-style: italic;
-    margin: 0 0 14pt 0;
-  }
-  .metadata-block {
-    text-align: center;
-    font-size: 9.5pt;
-    color: #444;
-    line-height: 1.7;
-    margin-bottom: 6pt;
-  }
-  .metadata-block .author-name {
-    font-size: 13pt;
+  .lane-tag {
+    display: inline-block;
+    font-size: 7pt;
     font-weight: 600;
-    color: #1a1a1a;
-    margin: 0 0 4pt 0;
-  }
-  .metadata-block a {
-    color: #2a5d9f;
-    text-decoration: none;
-  }
-  .meta-label {
-    font-weight: 600;
-    color: #666;
     text-transform: uppercase;
-    font-size: 8pt;
-    letter-spacing: 0.08em;
-  }
-  h2 {
-    font-size: 14pt;
-    font-weight: 700;
-    color: #1a1a1a;
-    border-bottom: 0.75pt solid #C8A878;
-    padding-bottom: 4pt;
-    margin: 22pt 0 10pt 0;
-  }
-  h3 {
-    font-size: 12pt;
-    font-weight: 600;
-    color: #333;
-    margin: 14pt 0 6pt 0;
-  }
-  p {
-    margin: 0 0 8pt 0;
-    text-align: justify;
-  }
-  ul {
-    margin: 4pt 0 10pt 0;
-    padding-left: 18pt;
-  }
-  li {
-    margin-bottom: 3pt;
-  }
-  ol {
-    margin: 4pt 0 10pt 0;
-    padding-left: 22pt;
-  }
-  strong {
-    font-weight: 600;
-  }
-  .section-abstract {
-    font-size: 10.5pt;
-    color: #333;
-    background: #fafaf8;
-    border-left: 3pt solid #C8A878;
-    padding: 10pt 14pt;
-    margin: 12pt 0 18pt 0;
-  }
-  code, pre {
-    font-family: "Courier New", monospace;
-    font-size: 9pt;
-    background: #f5f5f2;
-    padding: 1pt 4pt;
+    letter-spacing: 0.06em;
+    padding: 1pt 5pt;
     border-radius: 2pt;
-  }
-  pre {
-    padding: 10pt 14pt;
-    overflow-x: auto;
-    border: 0.5pt solid #ddd;
-    margin: 8pt 0 12pt 0;
-  }
-  .citation-block {
-    background: #f5f5f2;
-    border: 0.5pt solid #ddd;
-    padding: 10pt 14pt;
-    font-family: "Courier New", monospace;
-    font-size: 9pt;
-    margin: 8pt 0;
-    line-height: 1.5;
-  }
-  hr {
-    border: none;
-    border-top: 0.5pt solid #ccc;
-    margin: 20pt 0;
-  }
-  .footer {
-    text-align: center;
-    font-size: 8.5pt;
-    color: #888;
-    margin-top: 28pt;
-    padding-top: 10pt;
-    border-top: 0.75pt solid #C8A878;
-    line-height: 1.6;
-  }
-  .footer a {
-    color: #2a5d9f;
-    text-decoration: none;
   }
 </style>
 </head>
 <body>
 
-<div class="cover-header">
-  <img src="../static/images/owl-signature.png" alt="Owl of Athena">
-  <h1>DNS Tool</h1>
-  <p class="subtitle">Confidence-Scored Analysis of Domain Security Infrastructure</p>
+<div class="authority-header">
+  <div class="authority-logo">
+    <img src="../static/images/owl-signature.png" alt="Owl of Athena">
+  </div>
 
-  <div class="metadata-block">
+  <div class="authority-title">
+    <h1>DNS Tool</h1>
+    <p class="subtitle">Confidence-Scored Analysis of Domain Security Infrastructure</p>
+  </div>
+
+  <div class="authority-meta">
     <p class="author-name">Carey James Balboa</p>
+    <p class="author-role">Independent DNS Security Researcher</p>
     <p>
-      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a><br>
+      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a>&emsp;
       <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
-      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a><br>
+      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&emsp;
       <span class="meta-label">Source</span>&ensp;<a href="https://github.com/careyjames/dns-tool-web">github.com/careyjames/dns-tool-web</a><br>
-      <span class="meta-label">Version</span>&ensp;26.35.34&emsp;·&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+      <span class="meta-label">Version</span>&ensp;26.37.26&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
     </p>
-    <p style="font-style: italic; font-size: 10pt; color: #555; margin-top: 10pt;">Independent research artifact accompanying the DNS Tool software platform.</p>
+    <p class="artifact-note">Independent research artifact accompanying the DNS Tool software platform.</p>
   </div>
 </div>
 
@@ -246,17 +116,18 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <h3>4.1 Intelligence Confidence Audit Engine (ICAE)</h3>
 <p>DNS Tool applies a confidence scoring model inspired by intelligence community analytic standards (ODNI ICD 203). Each protocol finding receives a confidence level:</p>
 <ul>
-<li><strong>Verified</strong>: Strong evidence from multiple sources, RFC-compliant configuration confirmed</li>
-<li><strong>Assessed</strong>: Evidence supports the finding, but with some uncertainty</li>
-<li><strong>Adequate</strong>: Minimum evidence threshold met, but gaps exist</li>
-<li><strong>Development</strong>: Insufficient evidence to form a reliable assessment</li>
+<li><strong>Gold Master</strong>: Sustained correctness across 5,000+ consecutive passes over 180+ days &mdash; the highest maturity tier</li>
+<li><strong>Gold</strong>: High correctness with 500+ consecutive passes over 90+ days</li>
+<li><strong>Consistent</strong>: Reliable correctness with 100+ consecutive passes over 30+ days</li>
+<li><strong>Verified</strong>: Correctness demonstrated with 10+ consecutive passes over 7+ days</li>
+<li><strong>Development</strong>: Insufficient test history to establish confidence &mdash; the initial tier for all new protocols</li>
 </ul>
 
-<h3>4.2 Confidence Factors</h3>
-<p>Confidence is calculated based on: (1) evidence completeness &mdash; were all expected records found? (2) cross-resolver consistency &mdash; do multiple resolvers agree? (3) RFC compliance &mdash; does the configuration meet specification requirements? (4) temporal stability &mdash; has the configuration been consistent across observation windows? (5) dependency satisfaction &mdash; are prerequisite protocols properly configured?</p>
+<h3>4.2 Confidence Calibration</h3>
+<p>Confidence calibration uses a reliability-weighted shrinkage estimator. For each protocol: (1) protocol-specific priors &mdash; empirically determined base rates encoding historical detection reliability per protocol; (2) resolver agreement ratio &mdash; the fraction of queried resolvers that return consistent results, used as measurement quality weight; (3) shrinkage toward prior &mdash; when resolver agreement is low, the calibrated score is pulled toward the prior mean; when agreement is high, the observation dominates. This produces a calibrated confidence score per protocol, distinct from the raw detection score. The calibration formula is a shrinkage estimator &mdash; not a true Bayesian posterior (see EDE-006 for the correction history on this distinction).</p>
 
 <h3>4.3 Overall Posture Score</h3>
-<p>The individual protocol confidence scores are aggregated into an overall domain security posture score, weighted by protocol importance and interdependency relationships.</p>
+<p>The overall domain security posture is determined by the unified confidence engine, which combines ICAE accuracy scores, ICuAE currency scores, and ICAE maturity level. The maturity level imposes a ceiling on the maximum achievable confidence &mdash; a protocol in the &ldquo;development&rdquo; tier cannot reach full confidence regardless of its accuracy score. The weakest protocol dimension determines the overall confidence level.</p>
 
 <h3>4.4 Epistemic Correction Disclosure</h3>
 <p>When structural corrections to the confidence model are identified &mdash; such as recalibrated scoring weights, reinterpreted evidence thresholds, or corrected RFC compliance mappings &mdash; the system records these as Epistemic Disclosure Events (EDEs). Each EDE documents the original assessment, the correction applied, the confidence impact, and the verifiable commit reference. This practice is modeled on scientific corrigenda culture: corrections strengthen rather than undermine analytical credibility, provided they are transparent, traceable, and independently verifiable.</p>
@@ -311,6 +182,12 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 <li>The confidence model is heuristic-based and may not capture all edge cases</li>
 </ul>
 
+<h3 class="page-break">Companion Artifact</h3>
+<p>The communication architecture and philosophical foundations underlying the Five Perspectives model, Socratic verification workflow, and narrative architecture are documented in a separate companion paper:</p>
+<ul>
+<li>Balboa, C. J. (2026). <em>Philosophical Foundations for Security Analysis Communication</em>. Available at: <a href="https://dnstool.it-help.tech/foundations">dnstool.it-help.tech/foundations</a></li>
+</ul>
+
 <h2>8. References</h2>
 <ul>
 <li>RFC 7208 &mdash; Sender Policy Framework (SPF)</li>
@@ -334,7 +211,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 &nbsp;&nbsp;author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Balboa, Carey James},<br>
 &nbsp;&nbsp;title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {{DNS Tool}: Domain Security Audit Platform},<br>
 &nbsp;&nbsp;year&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {2026},<br>
-&nbsp;&nbsp;version&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {26.35.34},<br>
+&nbsp;&nbsp;version&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {26.37.26},<br>
 &nbsp;&nbsp;doi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {10.5281/zenodo.18854899},<br>
 &nbsp;&nbsp;url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {https://dnstool.it-help.tech},<br>
 &nbsp;&nbsp;license&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {BUSL-1.1}<br>
@@ -342,7 +219,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 </div>
 
 <div class="footer">
-  <p>DNS Tool v26.35.34 &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a> &middot; DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a></p>
+  <p>DNS Tool v26.37.26 &middot; <a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a> &middot; DOI: <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a></p>
   <p>&copy; 2024&ndash;2026 IT Help San Diego Inc. &middot; Licensed under BUSL-1.1</p>
 </div>
 

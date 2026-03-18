@@ -781,7 +781,66 @@ func displayFuncs() template.FuncMap {
                 "toStr":             toStr,
                 "pluralize":         pluralize,
                 "htmlComment":       htmlComment,
+                "levelBadge":        logLevelBadge,
+                "levelColor":        logLevelColor,
+                "buildExportQuery":  buildExportQuery,
         }
+}
+
+func logLevelBadge(level string) string {
+        switch strings.ToUpper(level) {
+        case "ERROR":
+                return "bg-danger"
+        case "WARN":
+                return "bg-warning text-dark"
+        case "INFO":
+                return "bg-info text-dark"
+        case "DEBUG":
+                return "bg-secondary"
+        default:
+                return "bg-light text-dark"
+        }
+}
+
+func logLevelColor(level string) string {
+        switch strings.ToUpper(level) {
+        case "ERROR":
+                return "text-danger"
+        case "WARN":
+                return "text-warning"
+        case "INFO":
+                return "text-info"
+        case "DEBUG":
+                return "text-secondary"
+        default:
+                return ""
+        }
+}
+
+func buildExportQuery(level, category, domain, traceID, after, before string) string {
+        params := url.Values{}
+        if level != "" {
+                params.Set("level", level)
+        }
+        if category != "" {
+                params.Set("category", category)
+        }
+        if domain != "" {
+                params.Set("domain", domain)
+        }
+        if traceID != "" {
+                params.Set("trace_id", traceID)
+        }
+        if after != "" {
+                params.Set("after", after)
+        }
+        if before != "" {
+                params.Set("before", before)
+        }
+        if len(params) == 0 {
+                return ""
+        }
+        return "?" + params.Encode()
 }
 
 var sectionStatusCSSMap = map[string]string{

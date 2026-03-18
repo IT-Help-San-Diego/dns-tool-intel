@@ -5,7 +5,7 @@ ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/careyjames/dns-tool-web](https://github.com/careyjames/dns-tool-web)
-Version 26.35.40 · License BUSL-1.1
+Version 26.37.26 · License BUSL-1.1
 
 *Companion artifact to "Confidence-Scored Analysis of Domain Security Infrastructure"*
 
@@ -85,7 +85,7 @@ DNS Tool's Five Perspectives architecture — Intelligence Officer, DNS Engineer
 |---|---|---|---|
 | **The Intelligence Officer** | **Ethos** (credibility, trustworthiness) | Quantifies what you can trust — ICAE measures accuracy, ICuAE measures currency, Unified Confidence carries epistemic weight | "How confident should I be in this finding?" |
 | **The DNS Engineer** | **Logos** (logical argument, evidence) | Grounds findings in RFC specifications — not vendor interpretation, not blog posts, but the standards that define protocol correctness | "What does the standard actually say?" |
-| **The Hacker** | **Pathos** (emotional/urgency appeal, consequence awareness) | Reframes the same data through an adversarial lens — surfaces attack surfaces, exposure vectors, the *stakes* of misconfiguration | "What can an attacker do with this?" |
+| **The Hacker** | **Pathos** (emotional/urgency appeal, consequence awareness) | Reframes the same data through an adversarial lens — reveals attack surfaces, exposure vectors, the *stakes* of misconfiguration | "What can an attacker do with this?" |
 | **The Executive** | **Phronesis** (practical wisdom, judgment) | Distills findings into strategic decisions — posture, risk, what needs attention, what is secure | "What do I need to decide?" |
 | **The IT Pro** | **Techne** (craft, applied skill) | Translates findings into actionable remediation — provider-aware steps, TTL tuning, concrete next actions | "What do I need to fix?" |
 
@@ -137,7 +137,7 @@ The Narrative Architecture Matrix is an infrastructure artifact — not a style 
 
 | Content Zone | Story Structure | Primary Archetype(s) | Claim Status | Narrative Lenses Available |
 |---|---|---|---|---|
-| **Origin Story** (about.html) | Monomyth (Hero's Journey) | All | CREATIVE-SAFE | Fable, personal narrative |
+| **Origin Story** (about.html) | Monomyth (Hero's Journey — Campbell's comparative narrative structure, not "myth" in the sense of something false) | All | CREATIVE-SAFE | Fable, personal narrative |
 | **Five Perspectives** (approach.html) | Aristotelian Categories | All | PROTECTED (structure) / CREATIVE-SAFE (prose) | Classical philosophy, craft metaphor |
 | **Verification Principle** (approach.html) | Socratic Elenchus | Intelligence Officer, DNS Engineer | PROTECTED | Logic chain |
 | **Big Questions** (results templates) | Socratic Elenchus | Executive, IT Pro | PROTECTED (questions) / CREATIVE-SAFE (framing) | Consequence, tactical |
@@ -219,9 +219,44 @@ All citations organized by discipline lane. Each citation has one primary lane a
 
 Protocol science citations are documented in the primary methodology document (Balboa, 2026). They are not duplicated here to maintain lane separation. See "DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure," Section 8 (References) for the complete RFC and ICD 203 citation list.
 
-### 5.4 Scotopic Interface Design (Human Factors — Pending)
+### 5.4 Scotopic Interface Design (Human Factors)
 
-DNS Tool's Covert Recon Mode uses a scotopic-optimized red interface informed by vision science research on rod-cell sensitivity and dark adaptation. The specific vision science citations supporting this design choice are documented in the platform's approach page and will be added to this matrix when the formal literature review is complete. Until then, the claim is scoped as "informed by published vision science research" rather than citing specific papers.
+DNS Tool's Covert Recon Mode uses a scotopic-informed red-spectrum interface designed to preserve dark adaptation for operators working in low-light environments. The design is grounded in established vision science:
+
+- Hecht, S. & Hsia, Y. (1945). "Dark adaptation following light adaptation to red and white lights." *J. Opt. Soc. Am.*, 35(4). DOI: [10.1364/JOSA.35.000261](https://doi.org/10.1364/JOSA.35.000261) — Demonstrates that red light preserves rod sensitivity during dark adaptation.
+- Miles, W. R. (1953). "Red goggles for producing dark adaptation." *J. Opt. Soc. Am.*, 43(4). DOI: [10.1364/JOSA.43.000435](https://doi.org/10.1364/JOSA.43.000435) — Confirms the effectiveness of red-filtered environments for maintaining scotopic sensitivity.
+- CIE scotopic luminous efficiency function V′(λ), CIE dataset DOI: [10.25039/cie.ds.gr6w4b5g](https://doi.org/10.25039/cie.ds.gr6w4b5g)
+
+Military standards informing the design: MIL-STD-3009 (NVIS radiance compatibility for cockpit displays) and MIL-STD-1472H (human engineering design criteria for military systems).
+
+#### Hardware Limitation Disclosure
+
+Consumer RGB displays cannot produce true scotopic-compliant output. Standard LCD and OLED panels use RGB subpixel arrays that emit across the visible spectrum, including wavelengths that stimulate rod cells and degrade dark adaptation. Achieving full scotopic compliance requires NVIS-compatible display hardware (e.g., military-grade cockpit displays with narrow-band red phosphors or filtered backlight systems).
+
+DNS Tool's current implementation is therefore a **scotopic-informed approximation on consumer RGB hardware**. The red-spectrum palette minimizes blue-light emission and reduces rod stimulation relative to conventional dark-theme interfaces, but cannot achieve the spectral purity of NVIS-compliant systems. This is an explicit research goal: the platform is designed so that operators on NVIS-compatible hardware would experience a display environment meeting MIL-STD-3009 radiance requirements, while operators on consumer hardware receive the best available approximation within the physical constraints of their display technology.
+
+The color palette selection reflects years of iterative refinement seeking 3–5 colors that maintain readability, semantic distinction, and visual hierarchy within the red-spectrum constraints imposed by scotopic design principles.
+
+### 5.5 Live Topology Visualization (Human Factors)
+
+During analysis, DNS Tool presents a live protocol/workflow topology that shows DNS resolution unfolding in real time — not a simulated loading animation, but actual phase-by-phase progress through the multi-resolver analysis pipeline. This design serves multiple human-factors objectives supported by peer-reviewed research:
+
+**Perceived performance and uncertainty reduction:**
+
+- Myers, B. A. (1985). "The importance of percent-done progress indicators for computer-human interfaces." *CHI '85*. DOI: [10.1145/317456.317459](https://doi.org/10.1145/317456.317459) — Progress indicators reduce perceived duration and user anxiety.
+- Nah, F. F.-H. (2004). "A study on tolerable waiting time." *Behaviour & Information Technology*, 23(3). DOI: [10.1080/01449290410001669914](https://doi.org/10.1080/01449290410001669914) — Meaningful feedback during waits extends user tolerance thresholds.
+- Harrison, C. et al. (2010). "Faster Progress Bars: Manipulating Perceived Duration with Visual Augmentations." *CHI '10*. DOI: [10.1145/1753326.1753556](https://doi.org/10.1145/1753326.1753556)
+
+**Mental model formation through process visualization:**
+
+- Hundhausen, C. D. et al. (2002). "A meta-study of algorithm visualization effectiveness." *J. Visual Languages & Computing*, 13(3). DOI: [10.1006/jvlc.2002.0237](https://doi.org/10.1006/jvlc.2002.0237) — Dynamic process visualization supports cognitive engagement and comprehension of system behavior.
+- Shaffer, C. A. et al. (2010). "Algorithm visualization: the state of the field." *ACM Trans. Computing Education*, 10(3). DOI: [10.1145/1821996.1821997](https://doi.org/10.1145/1821996.1821997)
+
+**Transparency and trust in automated analysis:**
+
+- Dzindolet, M. T. et al. (2003). "The role of trust in automation reliance." *Int. J. Human-Computer Studies*, 58(6). DOI: [10.1016/S1071-5819(03)00038-7](https://doi.org/10.1016/S1071-5819(03)00038-7) — Users calibrate trust more accurately when they can observe the automated process operating.
+
+The topology visualization bridges the gap between the abstraction of DNS infrastructure and human understanding by making protocol behavior observable. Users do not merely receive results — they watch multi-resolver consensus form, see DNSSEC validation chains resolve, and observe the analysis pipeline traversing protocol-specific evaluation stages. This transforms a passive waiting experience into an active learning opportunity, serving both the educational mission and the transparency commitment documented in the Socratic verification workflow (Section 2).
 
 ---
 

@@ -15,6 +15,8 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
+        "dnstool/go-server/internal/icae"
+        "dnstool/go-server/internal/icuae"
 
         "github.com/gin-gonic/gin"
         "github.com/goccy/go-yaml"
@@ -36,6 +38,7 @@ type citationCFF struct {
 type cffAuthor struct {
         FamilyNames string `yaml:"family-names"`
         GivenNames  string `yaml:"given-names"`
+        ORCID       string `yaml:"orcid"`
 }
 
 func loadCitationCFF() *citationCFF {
@@ -156,6 +159,81 @@ func (h *CitationHandler) resolveSoftwareMeta() (title, version, doi, url, autho
                 authorGiven = cff.Authors[0].GivenNames
         }
         return
+}
+
+func (h *CitationHandler) ResearchAPI(c *gin.Context) {
+        title, version, doi, url, authorFamily, authorGiven, date := h.resolveSoftwareMeta()
+
+        cff := loadCitationCFF()
+        orcid := "0009-0000-5237-9065"
+        license := "BUSL-1.1"
+        if cff != nil {
+                if len(cff.Authors) > 0 && cff.Authors[0].ORCID != "" {
+                        orcid = strings.TrimPrefix(cff.Authors[0].ORCID, "https://orcid.org/")
+                }
+        }
+
+        c.JSON(http.StatusOK, gin.H{
+                "label":       "Published Research Software",
+                "title":       title,
+                "version":     version,
+                "concept_doi": "10.5281/zenodo.18854899",
+                "latest_doi":  doi,
+                "orcid":       orcid,
+                "author":      authorGiven + " " + authorFamily,
+                "license":     license,
+                "date":        date,
+                "url":         url,
+                "citation":    fmt.Sprintf("Balboa, C. J. (%s). %s (Version %s) [Computer software]. %s", date[:4], title, version, "https://doi.org/"+doi),
+                "documents": []gin.H{
+                        {
+                                "title":       "DNS Tool: Confidence-Scored Analysis of Domain Security Infrastructure",
+                                "type":        "methodology",
+                                "url":         url + "/methodology",
+                                "description": "Primary methodology document covering ICAE/ICuAE confidence framework, multi-resolver consensus, and RFC-grounded analysis engines.",
+                        },
+                        {
+                                "title":       "Philosophical Foundations for Security Analysis Communication",
+                                "type":        "companion",
+                                "url":         url + "/foundations",
+                                "description": "Companion document covering Aristotelian rhetoric, Socratic verification, scotopic interface design, and narrative architecture.",
+                        },
+                },
+                "endpoints": gin.H{
+                        "cite_page":         url + "/cite",
+                        "software_citation": url + "/cite/software",
+                        "authorities":       url + "/api/authorities",
+                        "research":          url + "/api/research",
+                },
+        })
+}
+
+func (h *CitationHandler) CitePage(c *gin.Context) {
+        title, version, doi, url, authorFamily, authorGiven, date := h.resolveSoftwareMeta()
+
+        cff := loadCitationCFF()
+        orcid := "0009-0000-5237-9065"
+        if cff != nil && len(cff.Authors) > 0 && cff.Authors[0].ORCID != "" {
+                orcid = strings.TrimPrefix(cff.Authors[0].ORCID, "https://orcid.org/")
+        }
+
+        nonce, _ := c.Get("csp_nonce")
+
+        c.HTML(http.StatusOK, "cite.html", gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "Title":           title,
+                "Version":         version,
+                "DOI":             doi,
+                "URL":             url,
+                "AuthorFamily":    authorFamily,
+                "AuthorGiven":     authorGiven,
+                "ORCID":           orcid,
+                "Date":            date,
+                "Year":            date[:4],
+        })
 }
 
 func (h *CitationHandler) AnalysisCitation(c *gin.Context) {

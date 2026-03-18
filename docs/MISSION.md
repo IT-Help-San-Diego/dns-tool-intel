@@ -49,7 +49,7 @@ Mock tests exist for CI speed — they run in milliseconds, catch regressions in
 Golden fixtures in `tests/golden_fixtures/` are captured from real production scans of real domains (google.com, cloudflare.com, whitehouse.gov, example.com). These are not synthetic test data — they are the intelligence vault, preserving what the real DNS ecosystem actually looks like at a point in time.
 
 ### Fresh Scans, Historical Cross-Referencing
-Public scans are always fresh (non-cached) — every user gets current data. But the intelligence engine uses historical data from the vault for cross-referencing and confidence validation. What the universe has given us, used intelligently — every scan result feeds back into the intelligence vault for future cross-referencing.
+Public scans are always fresh (non-cached) — every user gets current data. The intelligence engine uses historical data from the vault for cross-referencing and confidence validation via the Confidence Bridge. Golden fixtures are curated test assets captured from real scans — they are not automatically populated by every runtime scan. The bridge validates that mock analysis pipelines produce structurally consistent output compared to real-world golden fixture data.
 
 ### Parallel Verification System
 The Confidence Bridge is a parallel verification layer: mocks run fast in CI, golden fixtures prove the mocks are truthful. The bridge loads golden fixture data, runs the same analysis through the mock pipeline, and compares structural output. If the mock produces a different shape of result than reality, the bridge flags it.
@@ -103,7 +103,7 @@ This is why DNS is the proving ground for the experiment. The confidence engine,
 
 If this can be proven in a domain with ground truth this strong — where every claim can be independently verified against RFC specifications and live DNS resolution — then the same principles can be extended to fuzzier domains. Domains where the rules are less rigid, where "correct" is harder to define, where the gap between human intention and system state is wider and more consequential.
 
-That is the vision. DNS is the foundation. The mathematical rigor, the log data, the historical intelligence vault, the confidence scoring — all of it is being collected and preserved not just to serve today's domain security audits, but to build the dataset and the methodology that proves this approach works. Every scan, every confidence score, every drift detection feeds forward into that proof.
+That is the vision. DNS is the foundation. The mathematical rigor, the log data, the curated intelligence vault, the confidence scoring — all of it is being collected and preserved not just to serve today's domain security audits, but to build the dataset and the methodology that proves this approach works. Confidence scores, drift detections, and calibration metrics feed forward into that proof as the system matures.
 
 The symbiotic interface between human intelligence and machine intelligence starts here, with ground truth. It grows from here, into the harder problems.
 

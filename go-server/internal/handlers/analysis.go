@@ -23,6 +23,7 @@ import (
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
+        "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/scanner"
         "dnstool/go-server/internal/unified"
         "dnstool/go-server/internal/wayback"
@@ -444,25 +445,37 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
         clientIP := c.ClientIP()
         countryCode, countryName := lookupCountry(clientIP)
 
+        traceID := token
+
         c.JSON(http.StatusAccepted, gin.H{
-                "token":  token,
-                "domain": asciiDomain,
+                "token":       token,
+                "domain":      asciiDomain,
+                "analysis_id": nil,
         })
 
         go func() {
                 ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
                 defer cancel()
 
+                slog.LogAttrs(ctx, slog.LevelInfo, "scan started",
+                        logging.ScanStarted(asciiDomain, traceID, 0)...)
+
+                scanStart := time.Now()
+
                 results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
                         ExposureChecks:  exposureChecks,
-                        OnPhaseProgress: sp.MakeProgressCallback(),
+                        OnPhaseProgress: sp.MakeInstrumentedProgressCallback(asciiDomain, traceID),
                 })
                 analysisDuration := time.Since(sp.startTime).Seconds()
+                scanElapsedMs := time.Since(scanStart).Milliseconds()
 
                 h.applyConfidenceEngines(results)
+                h.enrichResultsAsync(results)
 
                 if failed, _ := isAnalysisFailure(results); failed {
                         go h.recordDailyStats(false, analysisDuration)
+                        slog.LogAttrs(ctx, slog.LevelError, "scan failed",
+                                logging.ScanFailed(asciiDomain, traceID, "analysis returned failure")...)
                         sp.MarkFailed("analysis failed")
                         return
                 }
@@ -473,6 +486,9 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
 
                 h.snapshotICAEMetrics(ctx, results)
+
+                telRaw := results["_scan_telemetry"]
+                delete(results, "_scan_telemetry")
 
                 isPrivate := hasNovelSelectors && isAuthenticated
                 analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
@@ -490,7 +506,7 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                         devNull:           devNull,
                 })
 
-                h.storeTelemetry(ctx, analysisID, results, ephemeral)
+                h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
 
                 analysisSuccess, _ := extractAnalysisError(results)
                 h.handlePostAnalysisSideEffectsAsync(ctx, sideEffectsParams{
@@ -510,24 +526,32 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 
                 h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
 
-                redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
-                sp.MarkComplete(analysisID, redirectURL)
+                slog.LogAttrs(ctx, slog.LevelInfo, "scan completed",
+                        logging.ScanCompleted(asciiDomain, traceID, int(analysisID), scanElapsedMs)...)
+
+                if analysisID > 0 {
+                        redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
+                        sp.MarkComplete(analysisID, redirectURL)
+                } else {
+                        sp.MarkComplete(0, "")
+                }
         }()
 }
 
 func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
-        if ephemeral || analysisID == 0 {
-                return
-        }
-        telRaw, ok := results["_scan_telemetry"]
-        if !ok {
+        telRaw := results["_scan_telemetry"]
+        delete(results, "_scan_telemetry")
+        h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
+}
+
+func (h *AnalysisHandler) storeTelemetryFromRaw(_ context.Context, analysisID int32, telRaw any, ephemeral bool) {
+        if ephemeral || analysisID == 0 || telRaw == nil {
                 return
         }
         tel, ok := telRaw.(analyzer.ScanTelemetry)
         if !ok {
                 return
         }
-        delete(results, "_scan_telemetry")
 
         go func() {
                 bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -1271,6 +1295,10 @@ func (h *AnalysisHandler) APIDNSHistory(c *gin.Context) {
 }
 
 func (h *AnalysisHandler) enrichResultsNoHistory(_ *gin.Context, _ string, results map[string]any) {
+        h.enrichResultsAsync(results)
+}
+
+func (h *AnalysisHandler) enrichResultsAsync(results map[string]any) {
         if rem, ok := results["remediation"].(map[string]any); ok {
                 results["remediation"] = analyzer.EnrichRemediationWithRFCMeta(rem)
         }

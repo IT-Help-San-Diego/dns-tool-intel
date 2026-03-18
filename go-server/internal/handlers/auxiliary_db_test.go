@@ -93,6 +93,78 @@ func TestProgressStore_Close_ZeroValue(t *testing.T) {
         ps.Close()
 }
 
+func TestProgressStore_LifecyclePendingRunningDone(t *testing.T) {
+        ps := &ProgressStore{}
+        _, progress := ps.NewToken()
+
+        data := progress.toJSON()
+        phases := data["phases"].(map[string]any)
+        dns := phases["dns_records"].(map[string]any)
+        if dns["status"] != "pending" {
+                t.Errorf("initial dns_records status = %v, want pending", dns["status"])
+        }
+
+        time.Sleep(2 * time.Millisecond)
+        progress.UpdatePhase("dns_records", "running", 0)
+        data = progress.toJSON()
+        phases = data["phases"].(map[string]any)
+        dns = phases["dns_records"].(map[string]any)
+        if dns["status"] != "running" {
+                t.Errorf("after running signal, dns_records status = %v, want running", dns["status"])
+        }
+        startedAt, _ := dns["started_at_ms"].(int)
+        if startedAt == 0 {
+                startedAtF, _ := dns["started_at_ms"].(float64)
+                if startedAtF == 0 {
+                        t.Error("started_at_ms should be > 0 after running signal with delay")
+                }
+        }
+
+        time.Sleep(2 * time.Millisecond)
+        progress.UpdatePhase("dns_records", "done", 100)
+        progress.UpdatePhase("dns_records", "done", 200)
+        progress.UpdatePhase("dns_records", "done", 150)
+        data = progress.toJSON()
+        phases = data["phases"].(map[string]any)
+        dns = phases["dns_records"].(map[string]any)
+        if dns["status"] != "done" {
+                t.Errorf("after all tasks complete, dns_records status = %v, want done", dns["status"])
+        }
+        completedAt, _ := dns["completed_at_ms"].(int)
+        if completedAt == 0 {
+                completedAtF, _ := dns["completed_at_ms"].(float64)
+                if completedAtF == 0 {
+                        t.Error("completed_at_ms should be > 0 when done with delay")
+                }
+        }
+}
+
+func TestProgressStore_MakeProgressCallback(t *testing.T) {
+        ps := &ProgressStore{}
+        _, progress := ps.NewToken()
+
+        cb := progress.MakeProgressCallback()
+        cb("dns_records", "running", 0)
+
+        data := progress.toJSON()
+        phases := data["phases"].(map[string]any)
+        dns := phases["dns_records"].(map[string]any)
+        if dns["status"] != "running" {
+                t.Errorf("callback running: dns_records status = %v, want running", dns["status"])
+        }
+
+        cb("dns_records", "done", 200)
+        cb("dns_records", "done", 300)
+        cb("dns_records", "done", 100)
+
+        data = progress.toJSON()
+        phases = data["phases"].(map[string]any)
+        dns = phases["dns_records"].(map[string]any)
+        if dns["status"] != "done" {
+                t.Errorf("callback done: dns_records status = %v, want done", dns["status"])
+        }
+}
+
 func TestScanProgressHandler_NotFound(t *testing.T) {
         ps := &ProgressStore{}
 
