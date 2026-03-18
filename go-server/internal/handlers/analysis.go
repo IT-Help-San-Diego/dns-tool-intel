@@ -461,6 +461,7 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 analysisDuration := time.Since(sp.startTime).Seconds()
 
                 h.applyConfidenceEngines(results)
+                h.enrichResultsAsync(results)
 
                 if failed, _ := isAnalysisFailure(results); failed {
                         go h.recordDailyStats(false, analysisDuration)
@@ -511,8 +512,12 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 
                 h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
 
-                redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
-                sp.MarkComplete(analysisID, redirectURL)
+                if analysisID > 0 {
+                        redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
+                        sp.MarkComplete(analysisID, redirectURL)
+                } else {
+                        sp.MarkComplete(0, "")
+                }
         }()
 }
 
@@ -1272,6 +1277,10 @@ func (h *AnalysisHandler) APIDNSHistory(c *gin.Context) {
 }
 
 func (h *AnalysisHandler) enrichResultsNoHistory(_ *gin.Context, _ string, results map[string]any) {
+        h.enrichResultsAsync(results)
+}
+
+func (h *AnalysisHandler) enrichResultsAsync(results map[string]any) {
         if rem, ok := results["remediation"].(map[string]any); ok {
                 results["remediation"] = analyzer.EnrichRemediationWithRFCMeta(rem)
         }
