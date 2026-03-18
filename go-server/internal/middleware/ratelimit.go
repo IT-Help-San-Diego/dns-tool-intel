@@ -12,6 +12,8 @@ import (
         "sync"
         "time"
 
+        "dnstool/go-server/internal/logging"
+
         "github.com/gin-gonic/gin"
 )
 
@@ -145,11 +147,14 @@ func AuthRateLimit(limiter *InMemoryRateLimiter) gin.HandlerFunc {
                 result := limiter.CheckAndRecord(clientIP, pathKey)
 
                 if !result.Allowed {
-                        slog.Warn("Auth rate limit triggered",
-                                "ip", clientIP,
-                                "path", c.Request.URL.Path,
-                                mapKeyReason, result.Reason,
-                                mapKeyWaitSeconds, result.WaitSeconds,
+                        traceID, _ := c.Get(ginKeyTraceID)
+                        tid := fmt.Sprintf("%v", traceID)
+                        slog.LogAttrs(c.Request.Context(), slog.LevelWarn, "Auth rate limit triggered",
+                                append(logging.SecurityEvent(logging.EventRateLimitHit, tid, clientIP),
+                                        slog.String("path", c.Request.URL.Path),
+                                        slog.String(mapKeyReason, result.Reason),
+                                        slog.Int(mapKeyWaitSeconds, result.WaitSeconds),
+                                )...,
                         )
                         c.Redirect(http.StatusFound, "/")
                         c.Abort()
@@ -189,12 +194,13 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
 
 func logRateLimitTriggered(c *gin.Context, clientIP, domain string, result RateLimitResult) {
         traceID, _ := c.Get(ginKeyTraceID) //nolint:errcheck // value used for logging only
-        slog.Info("Rate limit triggered",
-                ginKeyTraceID, traceID,
-                "ip", clientIP,
-                "domain", domain,
-                mapKeyReason, result.Reason,
-                mapKeyWaitSeconds, result.WaitSeconds,
+        tid := fmt.Sprintf("%v", traceID)
+        slog.LogAttrs(c.Request.Context(), slog.LevelWarn, "Rate limit triggered",
+                append(logging.SecurityEvent(logging.EventRateLimitHit, tid, clientIP),
+                        slog.String(logging.AttrDomain, domain),
+                        slog.String(mapKeyReason, result.Reason),
+                        slog.Int(mapKeyWaitSeconds, result.WaitSeconds),
+                )...,
         )
 }
 
