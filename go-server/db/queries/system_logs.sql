@@ -6,6 +6,8 @@ WHERE
     AND (sqlc.narg('category')::text IS NULL OR category = sqlc.narg('category'))
     AND (sqlc.narg('domain_filter')::text IS NULL OR domain ILIKE '%' || sqlc.narg('domain_filter') || '%')
     AND (sqlc.narg('trace_id_filter')::text IS NULL OR trace_id = sqlc.narg('trace_id_filter'))
+    AND (sqlc.narg('after_ts')::timestamp IS NULL OR timestamp >= sqlc.narg('after_ts'))
+    AND (sqlc.narg('before_ts')::timestamp IS NULL OR timestamp <= sqlc.narg('before_ts'))
 ORDER BY timestamp DESC
 LIMIT sqlc.arg('max_rows');
 

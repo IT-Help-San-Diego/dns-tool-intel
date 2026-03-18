@@ -817,7 +817,7 @@ func logLevelColor(level string) string {
         }
 }
 
-func buildExportQuery(level, category, domain, traceID string) string {
+func buildExportQuery(level, category, domain, traceID, after, before string) string {
         params := url.Values{}
         if level != "" {
                 params.Set("level", level)
@@ -830,6 +830,12 @@ func buildExportQuery(level, category, domain, traceID string) string {
         }
         if traceID != "" {
                 params.Set("trace_id", traceID)
+        }
+        if after != "" {
+                params.Set("after", after)
+        }
+        if before != "" {
+                params.Set("before", before)
         }
         if len(params) == 0 {
                 return ""

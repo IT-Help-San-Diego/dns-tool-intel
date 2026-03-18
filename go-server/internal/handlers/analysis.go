@@ -23,6 +23,7 @@ import (
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
+        "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/scanner"
         "dnstool/go-server/internal/unified"
         "dnstool/go-server/internal/wayback"
@@ -444,6 +445,8 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
         clientIP := c.ClientIP()
         countryCode, countryName := lookupCountry(clientIP)
 
+        traceID := token
+
         c.JSON(http.StatusAccepted, gin.H{
                 "token":       token,
                 "domain":      asciiDomain,
@@ -454,17 +457,25 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
                 defer cancel()
 
+                slog.LogAttrs(ctx, slog.LevelInfo, "scan started",
+                        logging.ScanStarted(asciiDomain, traceID, 0)...)
+
+                scanStart := time.Now()
+
                 results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
                         ExposureChecks:  exposureChecks,
                         OnPhaseProgress: sp.MakeProgressCallback(),
                 })
                 analysisDuration := time.Since(sp.startTime).Seconds()
+                scanElapsedMs := time.Since(scanStart).Milliseconds()
 
                 h.applyConfidenceEngines(results)
                 h.enrichResultsAsync(results)
 
                 if failed, _ := isAnalysisFailure(results); failed {
                         go h.recordDailyStats(false, analysisDuration)
+                        slog.LogAttrs(ctx, slog.LevelError, "scan failed",
+                                logging.ScanFailed(asciiDomain, traceID, "analysis returned failure")...)
                         sp.MarkFailed("analysis failed")
                         return
                 }
@@ -514,6 +525,9 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 })
 
                 h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
+
+                slog.LogAttrs(ctx, slog.LevelInfo, "scan completed",
+                        logging.ScanCompleted(asciiDomain, traceID, int(analysisID), scanElapsedMs)...)
 
                 if analysisID > 0 {
                         redirectURL := fmt.Sprintf("/analysis/%d", analysisID)

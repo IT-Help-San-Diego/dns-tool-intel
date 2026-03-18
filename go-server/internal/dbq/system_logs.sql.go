@@ -98,16 +98,20 @@ WHERE
     AND ($2::text IS NULL OR category = $2)
     AND ($3::text IS NULL OR domain ILIKE '%' || $3 || '%')
     AND ($4::text IS NULL OR trace_id = $4)
+    AND ($5::timestamp IS NULL OR timestamp >= $5)
+    AND ($6::timestamp IS NULL OR timestamp <= $6)
 ORDER BY timestamp DESC
-LIMIT $5
+LIMIT $7
 `
 
 type ListSystemLogsParams struct {
-	Level         *string `db:"level" json:"level"`
-	Category      *string `db:"category" json:"category"`
-	DomainFilter  *string `db:"domain_filter" json:"domain_filter"`
-	TraceIDFilter *string `db:"trace_id_filter" json:"trace_id_filter"`
-	MaxRows       int32   `db:"max_rows" json:"max_rows"`
+	Level         *string          `db:"level" json:"level"`
+	Category      *string          `db:"category" json:"category"`
+	DomainFilter  *string          `db:"domain_filter" json:"domain_filter"`
+	TraceIDFilter *string          `db:"trace_id_filter" json:"trace_id_filter"`
+	AfterTs       pgtype.Timestamp `db:"after_ts" json:"after_ts"`
+	BeforeTs      pgtype.Timestamp `db:"before_ts" json:"before_ts"`
+	MaxRows       int32            `db:"max_rows" json:"max_rows"`
 }
 
 type ListSystemLogsRow struct {
@@ -128,6 +132,8 @@ func (q *Queries) ListSystemLogs(ctx context.Context, arg ListSystemLogsParams) 
 		arg.Category,
 		arg.DomainFilter,
 		arg.TraceIDFilter,
+		arg.AfterTs,
+		arg.BeforeTs,
 		arg.MaxRows,
 	)
 	if err != nil {
