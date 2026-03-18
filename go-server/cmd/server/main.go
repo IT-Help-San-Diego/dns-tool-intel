@@ -27,6 +27,7 @@ import (
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/handlers"
+        "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/middleware"
         "dnstool/go-server/internal/notifier"
         "dnstool/go-server/internal/scanner"
@@ -138,6 +139,18 @@ func main() {
                 os.Exit(1)
         }
         defer database.Close()
+
+        logger, err := logging.Setup(database.Pool, cfg.DiscordWebhookURL)
+        if err != nil {
+                slog.Warn("Structured logger setup failed, continuing with default", mapKeyError, err)
+        } else {
+                defer logger.Close()
+                slog.Info("Structured logging initialized",
+                        logging.AttrEvent, logging.EventStartup,
+                        logging.AttrCategory, logging.CategorySystem,
+                        "sinks", "stdout+jsonl+db+discord",
+                )
+        }
 
         gin.SetMode(gin.ReleaseMode)
         router := gin.New()
@@ -337,6 +350,11 @@ func main() {
         router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
         router.GET("/admin/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
         router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
+
+        logsHandler := handlers.NewLogsHandler(database, cfg)
+        router.GET("/ops/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
+        router.GET("/admin/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
+        router.GET("/admin/logs/export", middleware.RequireAdmin(), logsHandler.ExportJSONL)
 
         pipelineHandler := handlers.NewPipelineHandler(database, cfg)
         router.GET("/ops/pipeline", middleware.RequireAdmin(), pipelineHandler.Observatory)

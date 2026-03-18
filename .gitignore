@@ -9,6 +9,7 @@ node_modules/
 dns-tool
 dns-tool-server
 dns-tool-server-new
+logs/
 go-server/server
 go-server/dnstool
 server
