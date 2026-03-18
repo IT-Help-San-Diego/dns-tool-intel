@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,10 +32,11 @@ type DBLogEntry struct {
 }
 
 type DBSink struct {
-	pool    *pgxpool.Pool
-	ch      chan DBLogEntry
-	done    chan struct{}
-	wg      sync.WaitGroup
+	pool   *pgxpool.Pool
+	ch     chan DBLogEntry
+	done   chan struct{}
+	wg     sync.WaitGroup
+	closed atomic.Bool
 }
 
 func NewDBSink(pool *pgxpool.Pool) *DBSink {
@@ -50,6 +52,9 @@ func NewDBSink(pool *pgxpool.Pool) *DBSink {
 }
 
 func (s *DBSink) Write(entry DBLogEntry) {
+	if s.closed.Load() {
+		return
+	}
 	select {
 	case s.ch <- entry:
 	default:
@@ -57,6 +62,9 @@ func (s *DBSink) Write(entry DBLogEntry) {
 }
 
 func (s *DBSink) Close() {
+	if s.closed.Swap(true) {
+		return
+	}
 	close(s.done)
 	s.wg.Wait()
 }
@@ -81,9 +89,14 @@ func (s *DBSink) worker() {
 				batch = batch[:0]
 			}
 		case <-s.done:
-			close(s.ch)
-			for entry := range s.ch {
-				batch = append(batch, entry)
+		drain:
+			for {
+				select {
+				case entry := <-s.ch:
+					batch = append(batch, entry)
+				default:
+					break drain
+				}
 			}
 			if len(batch) > 0 {
 				s.flushBatch(batch)

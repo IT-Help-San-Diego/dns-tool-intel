@@ -464,7 +464,7 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 
                 results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
                         ExposureChecks:  exposureChecks,
-                        OnPhaseProgress: sp.MakeProgressCallback(),
+                        OnPhaseProgress: sp.MakeInstrumentedProgressCallback(asciiDomain, traceID),
                 })
                 analysisDuration := time.Since(sp.startTime).Seconds()
                 scanElapsedMs := time.Since(scanStart).Milliseconds()
