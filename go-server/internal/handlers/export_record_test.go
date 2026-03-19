@@ -161,10 +161,11 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                         Config: cfg,
                 }
 
+                panicked1 := false
                 func() {
                         defer func() {
                                 if r := recover(); r != nil {
-                                        t.Logf("recovered expected panic (no template engine): %v", r)
+                                        panicked1 = true
                                 }
                         }()
                         renderCompareError(c, compareErrorParams{
@@ -177,6 +178,9 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                                 domain:     "example.com",
                         })
                 }()
+                if !panicked1 {
+                        t.Error("expected panic with no template engine")
+                }
         })
 
         t.Run("renders error without domain", func(t *testing.T) {
@@ -190,10 +194,11 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                         Config: cfg,
                 }
 
+                panicked2 := false
                 func() {
                         defer func() {
                                 if r := recover(); r != nil {
-                                        t.Logf("recovered expected panic (no template engine): %v", r)
+                                        panicked2 = true
                                 }
                         }()
                         renderCompareError(c, compareErrorParams{
@@ -206,6 +211,9 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                                 domain:     "",
                         })
                 }()
+                if !panicked2 {
+                        t.Error("expected panic with no template engine")
+                }
         })
 }
 

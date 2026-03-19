@@ -4,6 +4,7 @@
 package handlers
 
 import (
+        "fmt"
         "net/http"
 
         "dnstool/go-server/internal/config"
@@ -36,7 +37,8 @@ func (h *SignatureHandler) SignaturePage(c *gin.Context) {
         mergeAuthData(c, h.Config, data)
 
         if mode == "raw" {
-                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' https:; font-src 'self'; base-uri 'none'; form-action 'none'")
+                nonceStr, _ := nonce.(string)
+                c.Header("Content-Security-Policy", fmt.Sprintf("default-src 'none'; style-src 'nonce-%s'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'", nonceStr))
                 c.HTML(http.StatusOK, "signature_raw.html", data)
                 return
         }

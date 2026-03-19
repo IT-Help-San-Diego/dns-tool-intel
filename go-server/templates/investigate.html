@@ -134,7 +134,7 @@
                                 </div>
                             </details>
                             <div class="form-text search-hint mt-2">
-                                {{icon "info-circle" "me-1"}}
+                                
                                 Enter a domain and an IP address from a report, log, or email header. We&rsquo;ll correlate reverse DNS, ASN ownership, SPF authorization, and infrastructure mapping &mdash; evidence-based attribution, not just a lookup.
                                 All queries use publicly available DNS records, RDAP data, and Certificate Transparency logs via open-standard protocols.
                             </div>
@@ -207,7 +207,7 @@
     <div class="container mt-4">
         <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
             <h1 class="h3 mb-0">
-                {{icon "route" "me-2 text-info"}}IP Intelligence Report
+                {{icon "route" "me-2 text-accent-gold"}}IP Intelligence Report
                 <span class="badge bg-warning text-dark ms-2 u-fs-050em-vmid">BETA</span>
             </h1>
             <a href="/investigate" class="btn btn-outline-secondary btn-sm ms-auto">
@@ -238,7 +238,7 @@
                                 {{if eq $verdictSev "success"}}
                                     {{icon "check-circle" "icon-2x text-success"}}
                                 {{else if eq $verdictSev "info"}}
-                                    {{icon "circle-info" "icon-2x text-info"}}
+                                    {{icon "circle-info" "icon-2x text-accent-gold"}}
                                 {{else if eq $verdictSev "warning"}}
                                     {{icon "exclamation-triangle" "icon-2x text-warning"}}
                                 {{else if eq $verdictSev "primary"}}
@@ -324,7 +324,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Reverse DNS (PTR) is set by the IP owner; Forward-Confirmed (FCrDNS) proves the PTR name actually points back to this IP.</p>
+                <p class="text-muted small mb-3">Reverse DNS (PTR) is set by the IP owner; Forward-Confirmed (FCrDNS) proves the PTR name actually points back to this IP.</p>
 
                 <div class="row">
                     <div class="col-lg-6 mb-3 mb-lg-0">
@@ -420,7 +420,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Geolocation and organization data from <a href="https://ipinfo.io/{{.IPAddress}}" target="_blank" rel="noopener" class="text-info">IPinfo.io</a>. Verify: <code>curl ipinfo.io/{{.IPAddress}}</code></p>
+                <p class="text-muted small mb-3">Geolocation and organization data from <a href="https://ipinfo.io/{{.IPAddress}}" target="_blank" rel="noopener" class="text-info">IPinfo.io</a>. Verify: <code>curl ipinfo.io/{{.IPAddress}}</code></p>
 
                 {{$ipCity := index $ipinfo "city"}}
                 {{$ipRegion := index $ipinfo "region"}}
@@ -501,7 +501,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}Checks A/AAAA (web hosting), MX (email), NS (DNS) records and SPF authorization to send email on your behalf.</p>
+                <p class="text-muted small mb-3">Checks A/AAAA (web hosting), MX (email), NS (DNS) records and SPF authorization to send email on your behalf.</p>
 
                 {{if and $directRels (gt (len $directRels) 0)}}
                     <table class="table table-dark table-sm table-hover mb-0">
@@ -572,7 +572,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}CDN edge network membership and Certificate Transparency subdomain matches — infrastructure links beyond direct DNS records.</p>
+                <p class="text-muted small mb-3">CDN edge network membership and Certificate Transparency subdomain matches — infrastructure links beyond direct DNS records.</p>
 
                 <table class="table table-dark table-sm table-hover mb-0">
                     <thead>
@@ -643,7 +643,7 @@
                 </div>
                 {{end}}
 
-                <p class="text-muted small mb-3">{{icon "info-circle" "me-1"}}{{if $isCdn}}On CDN networks, thousands of unrelated websites share edge IPs — co-tenants, not affiliates.{{else}}On shared hosting, co-tenants may be worth reviewing for reputation. On dedicated hosting, these could indicate properties owned by the same organization.{{end}}</p>
+                <p class="text-muted small mb-3">{{if $isCdn}}On CDN networks, thousands of unrelated websites share edge IPs — co-tenants, not affiliates.{{else}}On shared hosting, co-tenants may be worth reviewing for reputation. On dedicated hosting, these could indicate properties owned by the same organization.{{end}}</p>
 
                 {{if and $neighborRels (gt (len $neighborRels) 0)}}
                     <table class="table table-dark table-sm mb-0">
@@ -663,7 +663,7 @@
                         </tbody>
                     </table>
                     {{if gt $neighborTotal 10}}
-                    <p class="text-muted small mt-2 mb-0">{{icon "info-circle" "me-1"}}Showing 10 of {{$neighborTotal}} domains. {{if $isCdn}}The remaining domains are additional {{$cdnProv}} customers sharing this edge node.{{else}}Additional domains omitted for brevity.{{end}}</p>
+                    <p class="text-muted small mt-2 mb-0">Showing 10 of {{$neighborTotal}} domains. {{if $isCdn}}The remaining domains are additional {{$cdnProv}} customers sharing this edge node.{{else}}Additional domains omitted for brevity.{{end}}</p>
                     {{end}}
                 {{end}}
             </div>
