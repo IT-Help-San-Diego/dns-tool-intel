@@ -65,7 +65,7 @@
         {{if .IsPrivateReport}}
         <div class="alert alert-info border-0 mb-3 u-bg-info-soft">
             <div class="d-flex align-items-start">
-                {{icon "lock" "me-2 mt-1 text-info"}}
+                {{icon "lock" "me-2 mt-1 text-accent-gold"}}
                 <div>
                     <strong>Private Intelligence Report</strong>
                     <span class="ms-1">— This report contains user-provided DKIM selectors and is visible only to you in your <a href="/dossier" class="alert-link text-info">Intelligence Reports</a>. It will not appear in public history.</span>
@@ -77,7 +77,7 @@
         {{if .IsSubdomain}}
         <div class="alert alert-info border-0 mb-3 u-bg-info-soft">
             <div class="d-flex align-items-start">
-                {{icon "sitemap" "me-2 mt-1 text-info"}}
+                {{icon "sitemap" "me-2 mt-1 text-accent-gold"}}
                 <div>
                     <span>You are analyzing the subdomain <strong>{{.Domain}}</strong>.
                     <a href="/analyze?domain={{.RootDomain}}" class="alert-link text-info">Analyze the root domain <strong>{{.RootDomain}}</strong> instead?</a></span>
@@ -412,7 +412,7 @@
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
                 <div class="mb-4">
-                    {{icon "question-circle" "icon-4x text-info opacity-75"}}
+                    {{icon "question-circle" "icon-4x text-accent-gold opacity-75"}}
                 </div>
                 <h2 class="h3 mb-3">
                     <span class="badge bg-info-subtle text-info border border-info px-4 py-2">
@@ -423,7 +423,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div class="alert alert-info border-info mb-0 text-light u-bg-info-15">
-                            <p class="alert-heading mb-2 text-info fw-semibold">{{icon "info-circle" "me-2"}}What This Means</p>
+                            <p class="alert-heading mb-2 text-accent-gold fw-semibold">{{icon "info-circle" "me-2"}}What This Means</p>
                             <ul class="text-start mb-0 small">
                                 <li>No authoritative DNS data is available for this domain</li>
                                 <li>Security posture cannot be evaluated without DNS records</li>
@@ -638,7 +638,7 @@
                                         </table>
                                     </div>
                                     <div class="mt-3 p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
-                                        <p class="fw-semibold small mb-2">{{icon "compass" "me-2 text-info"}}Big Picture Questions</p>
+                                        <p class="fw-semibold small mb-2">{{icon "compass" "me-2 text-accent-gold"}}Big Picture Questions</p>
                                         <ul class="small text-muted mb-2">
                                             {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
                                             <li class="mb-1">This domain runs short TTLs across multiple record types. Does it operate a global anycast network where DNS-based traffic steering justifies the query volume?</li>
@@ -669,7 +669,7 @@
                         {{if .HasSOA}}
                         <div class="mt-3 border-top border-secondary pt-3">
                             <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#soaCompliance" type="button" aria-expanded="false" aria-controls="soaCompliance">
-                                {{icon "server" "text-info me-2"}}
+                                {{icon "server" "text-accent-gold me-2"}}
                                 <span class="fw-semibold small">SOA Timer RFC Compliance</span>
                                 {{if .HasFindings}}
                                 <span class="badge bg-warning text-dark ms-2">{{len .Findings}} {{if eq (len .Findings) 1}}Finding{{else}}Findings{{end}}</span>
@@ -744,7 +744,7 @@
                         {{if .CurrencyReport.HasProviderComplianceNotes}}
                         <div class="mt-3 border-top border-secondary pt-3">
                             <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#providerCompliance" type="button" aria-expanded="false" aria-controls="providerCompliance">
-                                {{icon "building" "text-info me-2"}}
+                                {{icon "building" "text-accent-gold me-2"}}
                                 <span class="fw-semibold small">{{.CurrencyReport.ProviderName}} RFC Compliance Dossier</span>
                                 <span class="badge bg-info ms-2">{{len .CurrencyReport.ProviderComplianceNotes}} {{if eq (len .CurrencyReport.ProviderComplianceNotes) 1}}Note{{else}}Notes{{end}}</span>
                                 {{icon "chevron-down" "ms-auto small"}}
@@ -756,7 +756,7 @@
                                     <div class="card bg-dark border-secondary mb-2">
                                         <div class="card-body py-2 px-3">
                                             <div class="d-flex align-items-start">
-                                                {{icon "file-alt" "text-info me-2 mt-1"}}
+                                                {{icon "file-alt" "text-accent-gold me-2 mt-1"}}
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                                         <strong class="small">{{.Title}}</strong>
@@ -846,7 +846,7 @@
                 <div class="card border-info bg-info bg-opacity-10">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center">
-                            {{icon "globe-americas" "icon-2x text-info me-3"}}
+                            {{icon "globe-americas" "icon-2x text-accent-gold me-3"}}
                             <div>
                                 <span class="fw-semibold">Registry Zone Health</span>
                                 <div class="d-flex align-items-center mt-1 flex-wrap gap-2">
@@ -1386,7 +1386,7 @@
                                 <div class="mb-2">{{mapGetStr "summary" $mp}}</div>
                                 <div class="mt-2 pt-2 border-top border-info border-opacity-25">
                                     <div class="d-flex align-items-start mb-2">
-                                        {{icon "graduation-cap" "text-info me-2 mt-1"}}
+                                        {{icon "graduation-cap" "text-accent-gold me-2 mt-1"}}
                                         <div>
                                             <strong class="d-block mb-1">It looks like this is meant to be a no-mail domain.</strong>
                                             <span class="text-muted">Three RFC specifications define how to properly declare a domain does not send or receive email. Completing all three signals to receiving mail servers that this domain should never originate email &mdash; preventing spoofing attacks.</span>
@@ -1593,7 +1593,7 @@
                                 {{if $redirectChain}}
                                     <div class="mt-2 p-2 rounded small u-bg-info-subtle">
                                         <div class="d-flex align-items-center mb-1">
-                                            {{icon "directions" "text-info me-2"}}
+                                            {{icon "directions" "text-accent-gold me-2"}}
                                             <strong class="text-info">SPF Redirect Chain</strong>
                                             <span class="badge bg-info bg-opacity-25 text-info ms-2 u-fs-065rem">RFC 7208 §6.1</span>
                                         </div>
@@ -2942,7 +2942,7 @@
                 <div class="card border-info">
                     <div class="card-header bg-info bg-opacity-10">
                         <h5 class="mb-0 d-flex align-items-center">
-                            {{icon "globe" "me-2 text-info"}}Web3 Name Resolution
+                            {{icon "globe" "me-2 text-accent-gold"}}Web3 Name Resolution
                             {{if mapGetStr "resolved_domain" $web3res}}
                             <span class="badge bg-success ms-2">Resolved</span>
                             {{else}}
@@ -3056,7 +3056,7 @@
 
                         {{if $web3Indicators}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "search" "me-1"}} Web3 Indicators</h6>
+                            <h6 class="text-accent-gold">Web3 Indicators</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-dark mb-0">
                                     <thead><tr><th>Type</th><th>Evidence</th><th>Value</th><th>Description</th><th>Link</th></tr></thead>
@@ -3079,7 +3079,7 @@
                         {{$dnslinkCID := mapGetStr "dnslink_cid" $web3}}
                         {{if $dnslinkCID}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "link" "me-1"}} IPFS Content Addressing</h6>
+                            <h6 class="text-accent-gold">IPFS Content Addressing</h6>
                             <div class="small">
                                 <strong>CID:</strong> <code>{{$dnslinkCID}}</code>
                                 {{$dnslinkSrc := mapGetStr "dnslink_source" $web3}}
@@ -3109,7 +3109,7 @@
                         {{if $fleetProbe}}
                         {{$fleetConsensus := mapGetMap "consensus" $fleetProbe}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "server" "me-1"}} IPFS Fleet Probe — Distributed Verification</h6>
+                            <h6 class="text-accent-gold">IPFS Fleet Probe — Distributed Verification</h6>
                             <p class="small text-muted mb-2">Content availability verified from multiple independent vantage points via the Kali probe fleet.</p>
                             {{if $fleetConsensus}}
                             <div class="row g-2 mb-2">
@@ -3167,7 +3167,7 @@
                             {{$gwInfra := mapGetMap "gateway_infrastructure" $web3}}
                             {{if $gwInfra}}
                             <div class="mt-2">
-                                <h6 class="small text-info">{{icon "info" "me-1"}} Gateway Infrastructure Fingerprint</h6>
+                                <h6 class="small text-accent-gold">Gateway Infrastructure Fingerprint</h6>
                                 <div class="small text-muted">
                                     {{range $gw, $info := $gwInfra}}
                                     <div><code>{{$gw}}</code>: Server={{mapGetStr "server_values" $info}} TLS={{mapGetStr "tls_versions" $info}}</div>
@@ -3181,7 +3181,7 @@
                         {{$dnssecNote := mapGetStr "dnssec_trust_note" $web3}}
                         {{if $dnssecNote}}
                         <div class="mb-2">
-                            <h6 class="text-info">{{icon "shield-alt" "me-1"}} DNSSEC Trust Chain</h6>
+                            <h6 class="text-accent-gold">DNSSEC Trust Chain</h6>
                             <p class="small text-muted mb-0">{{$dnssecNote}}</p>
                         </div>
                         {{end}}
@@ -3226,7 +3226,7 @@
                         <!-- llms.txt Detection -->
                         {{if $aiLlms}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "file-alt" "me-1"}} llms.txt
+                            <h6 class="text-accent-gold">llms.txt
                                 <a href="https://llmstxt.org/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>llms.txt Community Convention</strong><br>Community convention (llmstxt.org) for providing structured LLM-readable context via Markdown. Defines llms.txt and llms-full.txt file formats for AI-readable site descriptions. Not an IETF standard.">{{icon "info-circle"}}<span class="rfc-label">llmstxt.org</span></a>
                             </h6>
                             <div class="protocol-question mb-2">
@@ -3276,7 +3276,7 @@
                         <!-- robots.txt AI Crawler Directives -->
                         {{if $aiRobots}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "ban" "me-1"}} AI Crawler Governance (robots.txt)
+                            <h6 class="text-accent-gold">AI Crawler Governance (robots.txt)
                                 <a href="https://datatracker.ietf.org/doc/html/rfc9309" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Robots Exclusion Protocol</strong><br>Formalizes robots.txt as the standard mechanism for controlling crawler access. AI-specific User-agent directives use this same protocol.">{{icon "info-circle"}}<span class="rfc-label">RFC 9309</span></a>
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>IETF working group draft (not yet ratified) defining Content-Usage directives for robots.txt and HTTP headers, enabling sites to express AI training and inference preferences.">{{icon "info-circle"}}<span class="rfc-label">IETF Draft</span></a>
                             </h6>
@@ -3326,7 +3326,7 @@
                         {{if $aiRobots}}
                         {{$contentUsage := mapGetMap "content_usage" $aiRobots}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "file-contract" "me-1"}} Content-Usage Directive
+                            <h6 class="text-accent-gold">Content-Usage Directive
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>Experimental directive allowing sites to express AI training and inference preferences via robots.txt. Adoption is emerging and enforcement varies by crawler.">{{icon "info-circle"}}<span class="rfc-label">IETF Draft</span></a>
                             </h6>
                             {{if and $contentUsage (mapGetBool "found" $contentUsage)}}
@@ -3367,7 +3367,7 @@
                         <!-- AI Recommendation Poisoning IOCs -->
                         {{if $aiPoisoning}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "biohazard" "me-1"}} AI Recommendation Poisoning</h6>
+                            <h6 class="text-accent-gold">AI Recommendation Poisoning</h6>
                             {{$iocCount := mapGetFloat "ioc_count" $aiPoisoning}}
                             <div class="protocol-question mb-2">
                                 <span class="protocol-question-text dt-question dt-question--protocol">Is this site trying to manipulate AI recommendations?</span>
@@ -3406,7 +3406,7 @@
                         <!-- Hidden Prompt Artifacts -->
                         {{if $aiHidden}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "eye-slash" "me-1"}} Hidden Prompt Artifacts</h6>
+                            <h6 class="text-accent-gold">Hidden Prompt Artifacts</h6>
                             {{$hiddenCount := mapGetFloat "artifact_count" $aiHidden}}
                             <div class="protocol-question mb-2">
                                 <span class="protocol-question-text dt-question dt-question--protocol">Is hidden prompt-injection text present in the source?</span>
@@ -5959,7 +5959,7 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="mb-1 u-color-text-bright">
-                            {{icon "diagram-project" "me-2 text-info"}}Intelligence Sources
+                            {{icon "diagram-project" "me-2 text-accent-gold"}}Intelligence Sources
                         </h6>
                         <p class="text-muted small mb-0">
                             This analysis used
@@ -6898,7 +6898,7 @@
             const nudge = document.createElement('div');
             nudge.id = 'pwaInstallNudge';
             nudge.className = 'pwa-install-nudge';
-            nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-info"}}<span>Add DNS Tool to your device for quick access</span><button type="button" class="btn btn-sm btn-outline-info ms-3 pwa-install-btn" id="pwaInstallBtn">Install</button><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
+            nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-accent-gold"}}<span>Add DNS Tool to your device for quick access</span><button type="button" class="btn btn-sm btn-outline-info ms-3 pwa-install-btn" id="pwaInstallBtn">Install</button><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
             document.body.appendChild(nudge);
             requestAnimationFrame(function() { nudge.classList.add('show'); });
 
@@ -6926,7 +6926,7 @@
                     const nudge = document.createElement('div');
                     nudge.id = 'pwaInstallNudge';
                     nudge.className = 'pwa-install-nudge';
-                    nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-info"}}<span>Add to Home Screen: tap {{icon "share-square" "text-info"}} then &ldquo;Add to Home Screen&rdquo;</span><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
+                    nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-accent-gold"}}<span>Add to Home Screen: tap {{icon "share-square" "text-info"}} then &ldquo;Add to Home Screen&rdquo;</span><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
                     document.body.appendChild(nudge);
                     requestAnimationFrame(function() { nudge.classList.add('show'); });
                     document.getElementById('pwaDismissBtn').addEventListener('click', function() {
