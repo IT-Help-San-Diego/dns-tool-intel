@@ -310,5 +310,9 @@ Neither document modifies the other. Protocol science findings are determined by
 
 ---
 
+**Related documents:**
+- [Founder's Manifesto](FOUNDERS_MANIFESTO.md) — Non-normative aspirational statement of design philosophy (the *why behind the why*)
+- [Communication Standards](COMMUNICATION_STANDARDS.md) — Measurable Clarity + Vision dual-gate quality enforcement
+
 DNS Tool · IT Help San Diego Inc. · Licensed under BUSL-1.1
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899) · [dnstool.it-help.tech](https://dnstool.it-help.tech)

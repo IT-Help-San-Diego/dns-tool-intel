@@ -451,6 +451,12 @@ func main() {
         edeHandler := handlers.NewEDEHandler(database, cfg)
         router.GET("/ede", edeHandler.EDE)
 
+        manifestoHandler := handlers.NewManifestoHandler(cfg)
+        router.GET("/manifesto", manifestoHandler.Manifesto)
+
+        commStdsHandler := handlers.NewCommunicationStandardsHandler(cfg)
+        router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
+
         router.GET("/methodology", staticHandler.MethodologyPDF)
         router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
         router.GET("/foundations", staticHandler.FoundationsPDF)

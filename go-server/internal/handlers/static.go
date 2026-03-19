@@ -119,6 +119,8 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 {h.BaseURL + "/roadmap", mapKeyWeekly, sitemapPriorityLow},
                 {h.BaseURL + "/architecture", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/topology", mapKeyMonthly, sitemapPriorityLow},
+                {h.BaseURL + "/manifesto", mapKeyMonthly, sitemapPriorityLow},
+                {h.BaseURL + "/communication-standards", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/ttl-tuner", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/ede", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/roe", mapKeyMonthly, sitemapPriorityLow},
