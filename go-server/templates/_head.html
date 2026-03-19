@@ -31,11 +31,11 @@
 {{end}}
 
 {{define "head_katex"}}
-<link rel="stylesheet" href="/static/vendor/katex/katex.min.css" id="katex-css" media="print">
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css" id="katex-css" media="print" {{staticSRI "vendor/katex/katex.min.css"}}>
 <script nonce="{{.CspNonce}}">var kl=document.getElementById('katex-css');if(kl){kl.addEventListener('load',function(){kl.media='all'});}</script>
-<noscript><link rel="stylesheet" href="/static/vendor/katex/katex.min.css"></noscript>
-<script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/katex.min.js"></script>
-<script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/auto-render.min.js"></script>
+<noscript><link rel="stylesheet" href="/static/vendor/katex/katex.min.css" {{staticSRI "vendor/katex/katex.min.css"}}></noscript>
+<script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/katex.min.js" {{staticSRI "vendor/katex/katex.min.js"}}></script>
+<script defer nonce="{{.CspNonce}}" src="/static/vendor/katex/auto-render.min.js" {{staticSRI "vendor/katex/auto-render.min.js"}}></script>
 <script nonce="{{.CspNonce}}">
 document.addEventListener("DOMContentLoaded",function(){if(typeof renderMathInElement==="function"){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:String.raw`\(`,right:String.raw`\)`,display:false}],throwOnError:false})}});
 </script>

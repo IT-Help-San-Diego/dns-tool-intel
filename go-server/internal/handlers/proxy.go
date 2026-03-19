@@ -107,7 +107,7 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
 
         c.Header("Cache-Control", "public, max-age=3600")
         c.Header("X-Content-Type-Options", "nosniff")
-        c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+        c.Header("Content-Security-Policy", "default-src 'none'; style-src 'none'")
         c.Header("X-Frame-Options", "DENY")
         c.Data(http.StatusOK, safeCT, body)
 }

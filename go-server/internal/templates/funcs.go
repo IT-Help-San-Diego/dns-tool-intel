@@ -35,6 +35,9 @@ func InitSRI(staticDir string) {
                 "css/print.min.css",
                 "js/main.min.js",
                 "js/foundation.min.js",
+                "vendor/katex/katex.min.css",
+                "vendor/katex/katex.min.js",
+                "vendor/katex/auto-render.min.js",
         }
         for _, asset := range assets {
                 fp := filepath.Join(staticDir, asset)
