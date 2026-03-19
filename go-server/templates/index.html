@@ -293,6 +293,8 @@
     </script>
     
     <link rel="canonical" href="{{.BaseURL}}/">
+    <link rel="preload" as="image" type="image/webp" href="{{staticVersionURL "images/owl-of-athena-160.webp" .AppVersion}}">
+    <link rel="preload" as="image" type="image/webp" href="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}">
     {{template "critical_css" .}}
     <style nonce="{{.CspNonce}}">
         #main-content{min-height:50vh}

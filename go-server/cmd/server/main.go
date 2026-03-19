@@ -451,10 +451,20 @@ func main() {
         edeHandler := handlers.NewEDEHandler(database, cfg)
         router.GET("/ede", edeHandler.EDE)
 
+        manifestoHandler := handlers.NewManifestoHandler(cfg)
+        router.GET("/manifesto", manifestoHandler.Manifesto)
+
+        commStdsHandler := handlers.NewCommunicationStandardsHandler(cfg)
+        router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
+
         router.GET("/methodology", staticHandler.MethodologyPDF)
         router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
         router.GET("/foundations", staticHandler.FoundationsPDF)
         router.GET("/docs/philosophical-foundations.pdf", staticHandler.FoundationsPDF)
+        router.GET("/manifesto-pdf", staticHandler.ManifestoPDF)
+        router.GET("/docs/founders-manifesto.pdf", staticHandler.ManifestoPDF)
+        router.GET("/communication-standards-pdf", staticHandler.CommStandardsPDF)
+        router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)

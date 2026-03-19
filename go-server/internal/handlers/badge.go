@@ -4,6 +4,7 @@
 package handlers
 
 import (
+        "context"
         "encoding/json"
         "fmt"
         "log/slog"
@@ -318,34 +319,10 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
                 return
         }
 
-        ctx := c.Request.Context()
-        var results map[string]any
-
-        if idQ != "" {
-                scanID, err := strconv.ParseInt(idQ, 10, 32)
-                if err != nil {
-                        c.JSON(http.StatusOK, shieldsErrorJSON("invalid scan id", true))
-                        return
-                }
-                analysis, err := h.store().GetAnalysisByID(ctx, int32(scanID))
-                if err != nil || analysis.Private {
-                        c.JSON(http.StatusOK, shieldsErrorJSON("scan not found", false))
-                        return
-                }
-                results = unmarshalResults(analysis.FullResults, "BadgeShieldsIO")
-        } else {
-                ascii, err := dnsclient.DomainToASCII(domainQ)
-                if err != nil || !dnsclient.ValidateDomain(ascii) {
-                        c.JSON(http.StatusOK, shieldsErrorJSON("invalid domain", true))
-                        return
-                }
-
-                analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
-                if err != nil || analysis.Private {
-                        c.JSON(http.StatusOK, shieldsErrorJSON("not scanned", false))
-                        return
-                }
-                results = unmarshalResults(analysis.FullResults, "BadgeShieldsIO")
+        results, errResp := h.loadShieldsResults(c.Request.Context(), idQ, domainQ)
+        if errResp != nil {
+                c.JSON(http.StatusOK, errResp)
+                return
         }
 
         riskLabel, riskColorRaw := extractPostureRisk(results)
@@ -369,6 +346,29 @@ func (h *BadgeHandler) BadgeShieldsIO(c *gin.Context) {
         }
 
         c.JSON(http.StatusOK, resp)
+}
+
+func (h *BadgeHandler) loadShieldsResults(ctx context.Context, idQ, domainQ string) (map[string]any, gin.H) {
+        if idQ != "" {
+                scanID, err := strconv.ParseInt(idQ, 10, 32)
+                if err != nil {
+                        return nil, shieldsErrorJSON("invalid scan id", true)
+                }
+                analysis, err := h.store().GetAnalysisByID(ctx, int32(scanID))
+                if err != nil || analysis.Private {
+                        return nil, shieldsErrorJSON("scan not found", false)
+                }
+                return unmarshalResults(analysis.FullResults, "BadgeShieldsIO"), nil
+        }
+        ascii, err := dnsclient.DomainToASCII(domainQ)
+        if err != nil || !dnsclient.ValidateDomain(ascii) {
+                return nil, shieldsErrorJSON("invalid domain", true)
+        }
+        analysis, err := h.store().GetRecentAnalysisByDomain(ctx, ascii)
+        if err != nil || analysis.Private {
+                return nil, shieldsErrorJSON("not scanned", false)
+        }
+        return unmarshalResults(analysis.FullResults, "BadgeShieldsIO"), nil
 }
 
 func riskColorToShields(color string) string {
@@ -1088,6 +1088,17 @@ func scoreColor(score int) string {
         return "#484f58"
 }
 
+func buildPostureContext(nodes []protocolNode, missing, controlCount int) string {
+        if missing <= 0 {
+                return fmt.Sprintf("All %d controls verified", controlCount)
+        }
+        first := firstMissingProtocol(nodes)
+        if first != "" {
+                return fmt.Sprintf("%d/%d controls missing — %s not found", missing, controlCount, first)
+        }
+        return fmt.Sprintf("%d/%d controls missing", missing, controlCount)
+}
+
 func firstMissingProtocol(nodes []protocolNode) string {
         for _, n := range nodes {
                 if n.status == "missing" || n.status == "error" {
@@ -1310,17 +1321,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
 
         controlCount := 10
 
-        postureContext := ""
-        if missing > 0 {
-                first := firstMissingProtocol(nodes)
-                if first != "" {
-                        postureContext = fmt.Sprintf("%d/%d controls missing — %s not found", missing, controlCount, first)
-                } else {
-                        postureContext = fmt.Sprintf("%d/%d controls missing", missing, controlCount)
-                }
-        } else {
-                postureContext = fmt.Sprintf("All %d controls verified", controlCount)
-        }
+        postureContext := buildPostureContext(nodes, missing, controlCount)
 
         const (
                 vbWidth  = 600

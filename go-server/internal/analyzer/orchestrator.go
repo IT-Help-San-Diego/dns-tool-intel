@@ -81,69 +81,27 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         if len(opts) > 0 {
                 options = opts[0]
         }
-        queueStart := time.Now()
-        select {
-        case a.semaphore <- struct{}{}:
-                defer func() { <-a.semaphore }()
-                if waited := time.Since(queueStart); waited > 500*time.Millisecond {
-                        slog.Info("Analysis queued before slot opened", mapKeyDomain, domain, "waited_ms", waited.Milliseconds())
-                }
-        case <-time.After(30 * time.Second):
-                a.backpressureRejections.Add(1)
-                slog.Warn("Backpressure: rejected analysis after 30s queue", mapKeyDomain, domain)
-                return map[string]any{
-                        mapKeyDomain:       domain,
-                        mapKeyError:        "System is currently at capacity. Please try again in a moment.",
-                        "analysis_success": false,
-                }
+        if rejected := a.acquireSlot(domain); rejected != nil {
+                return rejected
         }
+        defer func() { <-a.semaphore }()
 
         ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
         defer cancel()
 
-        var web3Resolution Web3ResolutionResult
         originalInput := domain
         inputKind := ClassifyInput(domain)
-        if inputKind != InputKindDNSDomain {
-                web3Resolution = a.ResolveWeb3Domain(ctx, domain)
-                if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
-                        domain = web3Resolution.ResolvedDomain
-                        slog.Info("Web3 input resolved", "original", originalInput, "resolved", domain,
-                                "type", web3Resolution.ResolutionType, "scope", web3Resolution.AnalysisScope,
-                                "is_gateway", web3Resolution.IsGatewayDomain)
-                } else if web3Resolution.Error != "" {
-                        msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", originalInput, web3Resolution.Error)
-                        result := a.buildNonExistentResult(originalInput, "web3_unresolved", &msg)
-                        result["web3_resolution"] = web3Resolution.ToMap()
-                        result["input_kind"] = string(inputKind)
-                        result["_schema_version"] = 2
-                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, web3Resolution.AnalysisScope, web3Resolution, result)
-                        return result
-                }
+        web3Resolution, resolved, earlyReturn := a.resolveWeb3Input(ctx, domain, inputKind)
+        if earlyReturn != nil {
+                return earlyReturn
+        }
+        if resolved != "" {
+                domain = resolved
         }
 
-        var domainStatus string
-        var domainStatusMessage *string
-        skipExistenceCheck := web3Resolution.IsWeb3Input && web3Resolution.ResolutionType == "hns" && web3Resolution.Error == ""
-        if skipExistenceCheck {
-                domainStatus = "hns_resolved"
-                msg := "Handshake domain resolved via HNS resolver"
-                domainStatusMessage = &msg
-        } else {
-                exists, ds, dsm := a.checkDomainExists(ctx, domain)
-                domainStatus = ds
-                domainStatusMessage = dsm
-                if !exists {
-                        result := a.buildNonExistentResult(domain, domainStatus, domainStatusMessage)
-                        if web3Resolution.IsWeb3Input {
-                                result["web3_resolution"] = web3Resolution.ToMap()
-                                result[mapKeyDomain] = originalInput
-                                result["input_kind"] = string(inputKind)
-                        }
-                        result["_schema_version"] = 2
-                        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, ScopeOwnedDNS, web3Resolution, result)
-                        return result
-                }
+        domainStatus, domainStatusMessage, earlyReturn := a.checkExistence(ctx, domain, originalInput, inputKind, web3Resolution)
+        if earlyReturn != nil {
+                return earlyReturn
         }
 
         analysisStart := time.Now()
@@ -164,17 +122,7 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         results, seqTimings := a.assembleResults(ctx, domain, resultsMap, domainStatus, domainStatusMessage, options, analysisStart, scope)
         timings = append(timings, seqTimings...)
 
-        if web3Resolution.IsWeb3Input {
-                results["web3_resolution"] = web3Resolution.ToMap()
-                results["web3_original_input"] = originalInput
-                results["input_kind"] = string(inputKind)
-                if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
-                        w3a["resolution_info"] = web3Resolution.ToMap()
-                }
-                if web3Resolution.AttributionWarning != "" {
-                        results["attribution_warning"] = web3Resolution.AttributionWarning
-                }
-        }
+        annotateWeb3Results(results, web3Resolution, originalInput, inputKind)
 
         provenance := buildAnalysisProvenance(inputKind, scope, web3Resolution, results)
         results["_analysis_provenance"] = provenance
@@ -192,6 +140,86 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
         }
 
         return results
+}
+
+func (a *Analyzer) acquireSlot(domain string) map[string]any {
+        queueStart := time.Now()
+        select {
+        case a.semaphore <- struct{}{}:
+                go func() {
+                        if waited := time.Since(queueStart); waited > 500*time.Millisecond {
+                                slog.Info("Analysis queued before slot opened", mapKeyDomain, domain, "waited_ms", waited.Milliseconds())
+                        }
+                }()
+                return nil
+        case <-time.After(30 * time.Second):
+                a.backpressureRejections.Add(1)
+                slog.Warn("Backpressure: rejected analysis after 30s queue", mapKeyDomain, domain)
+                return map[string]any{
+                        mapKeyDomain:       domain,
+                        mapKeyError:        "System is currently at capacity. Please try again in a moment.",
+                        "analysis_success": false,
+                }
+        }
+}
+
+func (a *Analyzer) resolveWeb3Input(ctx context.Context, domain string, inputKind InputKind) (Web3ResolutionResult, string, map[string]any) {
+        var web3Resolution Web3ResolutionResult
+        if inputKind == InputKindDNSDomain {
+                return web3Resolution, "", nil
+        }
+        web3Resolution = a.ResolveWeb3Domain(ctx, domain)
+        if web3Resolution.ResolvedDomain != "" && web3Resolution.Error == "" {
+                slog.Info("Web3 input resolved", "original", domain, "resolved", web3Resolution.ResolvedDomain,
+                        "type", web3Resolution.ResolutionType, "scope", web3Resolution.AnalysisScope,
+                        "is_gateway", web3Resolution.IsGatewayDomain)
+                return web3Resolution, web3Resolution.ResolvedDomain, nil
+        }
+        if web3Resolution.Error != "" {
+                msg := fmt.Sprintf("Web3 domain resolution failed for %s: %s", domain, web3Resolution.Error)
+                result := a.buildNonExistentResult(domain, "web3_unresolved", &msg)
+                result["web3_resolution"] = web3Resolution.ToMap()
+                result["input_kind"] = string(inputKind)
+                result["_schema_version"] = 2
+                result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, web3Resolution.AnalysisScope, web3Resolution, result)
+                return web3Resolution, "", result
+        }
+        return web3Resolution, "", nil
+}
+
+func (a *Analyzer) checkExistence(ctx context.Context, domain, originalInput string, inputKind InputKind, web3 Web3ResolutionResult) (string, *string, map[string]any) {
+        if web3.IsWeb3Input && web3.ResolutionType == "hns" && web3.Error == "" {
+                msg := "Handshake domain resolved via HNS resolver"
+                return "hns_resolved", &msg, nil
+        }
+        exists, ds, dsm := a.checkDomainExists(ctx, domain)
+        if exists {
+                return ds, dsm, nil
+        }
+        result := a.buildNonExistentResult(domain, ds, dsm)
+        if web3.IsWeb3Input {
+                result["web3_resolution"] = web3.ToMap()
+                result[mapKeyDomain] = originalInput
+                result["input_kind"] = string(inputKind)
+        }
+        result["_schema_version"] = 2
+        result["_analysis_provenance"] = buildAnalysisProvenance(inputKind, ScopeOwnedDNS, web3, result)
+        return ds, dsm, result
+}
+
+func annotateWeb3Results(results map[string]any, web3 Web3ResolutionResult, originalInput string, inputKind InputKind) {
+        if !web3.IsWeb3Input {
+                return
+        }
+        results["web3_resolution"] = web3.ToMap()
+        results["web3_original_input"] = originalInput
+        results["input_kind"] = string(inputKind)
+        if w3a, ok := results[mapKeyWeb3].(map[string]any); ok {
+                w3a["resolution_info"] = web3.ToMap()
+        }
+        if web3.AttributionWarning != "" {
+                results["attribution_warning"] = web3.AttributionWarning
+        }
 }
 
 func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMap map[string]any, domainStatus string, domainStatusMessage *string, options AnalysisOptions, analysisStart time.Time, scope ...AnalysisScope) (map[string]any, []PhaseTiming) {

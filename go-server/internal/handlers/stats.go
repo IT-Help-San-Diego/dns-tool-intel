@@ -28,6 +28,7 @@ type EDEAmendment struct {
         OriginalValue string `json:"original_value"`
         CorrectedTo   string `json:"corrected_to"`
         Evidence      string `json:"evidence"`
+        Rationale     string `json:"rationale"`
         Justification string `json:"justification"`
 }
 
