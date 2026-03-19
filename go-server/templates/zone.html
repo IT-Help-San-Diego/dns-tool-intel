@@ -113,7 +113,7 @@
 
         <div class="card bg-dark border-secondary mb-4">
             <div class="card-header border-secondary">
-                <h3 class="mb-0 h5">{{icon "info-circle" "me-2"}}File Summary</h3>
+                <h3 class="mb-0 h5">File Summary</h3>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -704,7 +704,7 @@
         </div>
         {{else}}
         <div class="alert alert-info" role="alert">
-            {{icon "info-circle" "me-2"}}
+            
             No previous live DNS analysis found for <strong>{{.ParseResult.Domain}}</strong>. 
             <a href="/analyze?domain={{.ParseResult.Domain}}" class="alert-link">Run a live analysis</a> first, then re-upload the zone file to generate a drift report.
         </div>

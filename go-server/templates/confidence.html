@@ -193,7 +193,7 @@
                     <span class="icae-cal-legend-item"><span class="icae-cal-leg-swatch icae-cal-leg-gm"></span>Gold Master 5K+ &amp; 180d</span>
                 </div>
                 <div class="text-muted small mt-2 pt-2 border-top border-secondary">
-                    {{icon "info-circle" "me-1"}}<strong>Effective Maturity</strong> = min(Analysis, Collection).
+                    <strong>Effective Maturity</strong> = min(Analysis, Collection).
                     A protocol&rsquo;s assessed level reflects the lower of its two layers &mdash; both collection and analysis
                     must independently reach each threshold. No layer is exempted.
                 </div>
@@ -352,7 +352,7 @@
                 {{end}}
 
                 <div class="text-muted small mt-3 pt-2 border-top border-secondary">
-                    {{icon "info-circle" "me-1"}}<strong>Methodology:</strong> Predictions use fixed <code>rawConfidence=1.0</code> (engine predicts &ldquo;correct&rdquo;) with 5 resolver agreement levels (5/5 through 1/5) per test case. No label leakage &mdash; ground-truth outcomes are never used as prediction inputs. The shrinkage estimator <code>w&middot;C<sub>raw</sub> + (1-w)&middot;&alpha;/(&alpha;+&beta;)</code> is what produces the varying confidence levels as measurement quality degrades.
+                    <strong>Methodology:</strong> Predictions use fixed <code>rawConfidence=1.0</code> (engine predicts &ldquo;correct&rdquo;) with 5 resolver agreement levels (5/5 through 1/5) per test case. No label leakage &mdash; ground-truth outcomes are never used as prediction inputs. The shrinkage estimator <code>w&middot;C<sub>raw</sub> + (1-w)&middot;&alpha;/(&alpha;+&beta;)</code> is what produces the varying confidence levels as measurement quality degrades.
                 </div>
             </div>
         </div>
@@ -489,7 +489,7 @@
 
         {{else}}
         <div class="alert alert-secondary text-center">
-            {{icon "info-circle" "me-1"}}
+            
             Intelligence confidence data is not yet available. Audit runs begin automatically after the first analysis.
         </div>
         {{end}}
@@ -789,7 +789,7 @@
                 {{end}}
 
                 <div class="mt-3 small text-muted">
-                    {{icon "info-circle" "me-1"}} Last evaluated: {{.ICuAERuntimeMetrics.LastEvaluatedAt}}
+                     Last evaluated: {{.ICuAERuntimeMetrics.LastEvaluatedAt}}
                 </div>
             </div>
         </div>
@@ -807,7 +807,7 @@
                         <p class="text-muted small mb-0">&ldquo;How close is the collected data to ground truth?&rdquo; ICuAE scores each scan against a theoretical ideal &mdash; a machine-locked collector with perfect TTL compliance, complete records, and full resolver consensus. Real-world DNS fluctuates, so instead of pass/fail we track <strong>statistical stability</strong> &mdash; rolling averages and variance across scans.</p>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0">{{icon "balance-scale" "me-1"}} Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
+                <p class="text-muted small mt-3 mb-0">Per ICD 203, confidence requires both: an accurate interpretation of data that is also current. One without the other is incomplete intelligence.</p>
             </div>
         </div>
         {{end}}
@@ -889,7 +889,7 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0">{{icon "flask" "me-1"}} <strong>The vision:</strong> With enough scans and enough science, the confidence engine tunes TTLs, resolver weighting, query cadence, and retry logic until the system achieves the highest possible fidelity against the theoretical ideal &mdash; automatically, measurably, and with full provenance.</p>
+                <p class="text-muted small mt-3 mb-0"><strong>The vision:</strong> With enough scans and enough science, the confidence engine tunes TTLs, resolver weighting, query cadence, and retry logic until the system achieves the highest possible fidelity against the theoretical ideal &mdash; automatically, measurably, and with full provenance.</p>
             </div>
         </div>
 
@@ -1063,7 +1063,7 @@
                     </table>
                 </div>
 
-                <p class="text-muted small mb-0">{{icon "flask" "me-1"}} <strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-7 (Information Integrity) similarly treats data completeness and validity as measurable properties requiring periodic verification. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
+                <p class="text-muted small mb-0"><strong>Why 0&ndash;100?</strong> ISO/IEC 25012 defines timeliness as a <em>quantitative</em> data quality dimension &mdash; it exists on a continuum, not as a binary. A 0&ndash;100 normalized score allows statistical tracking (rolling averages, standard deviation, trend analysis) that binary pass/fail cannot. NIST SP 800-53 SI-7 (Information Integrity) similarly treats data completeness and validity as measurable properties requiring periodic verification. The five-tier grading scale maps the continuous score to actionable categories, paralleling how ICD 203 maps analytic confidence to five levels (almost no confidence through high confidence).</p>
             </div>
         </div>
 
@@ -1086,7 +1086,7 @@
                     </div>
                     <p class="text-muted small mb-2">Where \(\lambda\) is the smoothing factor (0.2), \(L\) is the control limit multiplier (3&sigma;), and \(t\) is the observation period. Based on NIST/SEMATECH Engineering Statistics Handbook &sect;6.3.2.4.</p>
                     <p class="text-muted small mb-2 opacity-75">{{icon "code" "me-1"}}<strong>Implementation:</strong> <code>icuae/ewma.go</code> &rarr; <code>EWMAControlChart.Add()</code>, <code>EWMAControlChart.IsOutOfControl()</code> &middot; Parameters: <code>NewEWMAControlChart(&lambda;=0.2, &mu;<sub>0</sub>=50, &sigma;=10, L=3.0)</code></p>
-                    <p class="text-muted small mb-0 opacity-75">{{icon "info-circle" "me-1"}}<strong>Bootstrap note:</strong> The initial parameters (&mu;<sub>0</sub>=50, &sigma;=10, L=3.0) are heuristic defaults that allow monitoring to begin immediately without a Phase I calibration dataset. &sigma; is refined adaptively from observed data after 10+ observations (see <code>Add()</code> method). These are operational starting points per NIST/SEMATECH &sect;6.3.2.4, not values fitted from historical in-control DNS data.</p>
+                    <p class="text-muted small mb-0 opacity-75"><strong>Bootstrap note:</strong> The initial parameters (&mu;<sub>0</sub>=50, &sigma;=10, L=3.0) are heuristic defaults that allow monitoring to begin immediately without a Phase I calibration dataset. &sigma; is refined adaptively from observed data after 10+ observations (see <code>Add()</code> method). These are operational starting points per NIST/SEMATECH &sect;6.3.2.4, not values fitted from historical in-control DNS data.</p>
                 </div>
 
                 <div class="mb-4">
