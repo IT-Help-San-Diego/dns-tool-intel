@@ -50,8 +50,8 @@
             <div class="card-header">
                 <form method="GET" action="/admin/logs" class="row g-2 align-items-end">
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">Level</label>
-                        <select name="level" class="form-select form-select-sm">
+                        <label for="filter-level" class="form-label small text-muted mb-1">Level</label>
+                        <select id="filter-level" name="level" class="form-select form-select-sm">
                             <option value="">All</option>
                             <option value="ERROR" {{if eq .FilterLevel "ERROR"}}selected{{end}}>ERROR</option>
                             <option value="WARN" {{if eq .FilterLevel "WARN"}}selected{{end}}>WARN</option>
@@ -60,8 +60,8 @@
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">Category</label>
-                        <select name="category" class="form-select form-select-sm">
+                        <label for="filter-category" class="form-label small text-muted mb-1">Category</label>
+                        <select id="filter-category" name="category" class="form-select form-select-sm">
                             <option value="">All</option>
                             <option value="scan" {{if eq .FilterCategory "scan"}}selected{{end}}>Scan</option>
                             <option value="security" {{if eq .FilterCategory "security"}}selected{{end}}>Security</option>
@@ -71,20 +71,20 @@
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">Domain</label>
-                        <input type="text" name="domain" class="form-control form-control-sm" placeholder="e.g. example.com" value="{{.FilterDomain}}">
+                        <label for="filter-domain" class="form-label small text-muted mb-1">Domain</label>
+                        <input id="filter-domain" type="text" name="domain" class="form-control form-control-sm" placeholder="e.g. example.com" value="{{.FilterDomain}}">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">Trace ID</label>
-                        <input type="text" name="trace_id" class="form-control form-control-sm" placeholder="e.g. a1b2c3d4" value="{{.FilterTraceID}}">
+                        <label for="filter-trace-id" class="form-label small text-muted mb-1">Trace ID</label>
+                        <input id="filter-trace-id" type="text" name="trace_id" class="form-control form-control-sm" placeholder="e.g. a1b2c3d4" value="{{.FilterTraceID}}">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">After</label>
-                        <input type="datetime-local" name="after" class="form-control form-control-sm" value="{{.FilterAfter}}">
+                        <label for="filter-after" class="form-label small text-muted mb-1">After</label>
+                        <input id="filter-after" type="datetime-local" name="after" class="form-control form-control-sm" value="{{.FilterAfter}}">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1">Before</label>
-                        <input type="datetime-local" name="before" class="form-control form-control-sm" value="{{.FilterBefore}}">
+                        <label for="filter-before" class="form-label small text-muted mb-1">Before</label>
+                        <input id="filter-before" type="datetime-local" name="before" class="form-control form-control-sm" value="{{.FilterBefore}}">
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-sm btn-primary">{{icon "search" "me-1"}}Filter</button>
