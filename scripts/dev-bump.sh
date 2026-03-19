@@ -52,6 +52,7 @@ echo "Protected (untouched):"
 echo "  CITATION.cff ✓ (concept DOI safe)"
 echo "  codemeta.json ✓"
 echo "  methodology docs ✓"
+echo "  manifesto + comm standards PDFs ✓"
 echo ""
 echo "Restarting app..."
 PID=$(pgrep -f 'dns-tool-server$' 2>/dev/null || true)
