@@ -10,7 +10,7 @@ import (
 )
 
 var (
-        Version   = "26.37.38"
+        Version   = "26.38.01"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -42,6 +42,7 @@ type Config struct {
         BaseURL            string
         IsDevEnvironment   bool
         DiscordWebhookURL  string
+        YouTubeVideoIDs    map[string]string
 }
 
 var betaPagesMap = map[string]bool{
@@ -101,7 +102,22 @@ func Load() (*Config, error) {
                 BaseURL:            baseURL,
                 IsDevEnvironment:   isDevEnv,
                 DiscordWebhookURL:  os.Getenv("DISCORD_WEBHOOK_URL"),
+                YouTubeVideoIDs:    parseYouTubeIDs(os.Getenv("YOUTUBE_VIDEO_IDS")),
         }, nil
+}
+
+func parseYouTubeIDs(raw string) map[string]string {
+        m := make(map[string]string)
+        if raw == "" {
+                return m
+        }
+        for _, pair := range strings.Split(raw, ",") {
+                parts := strings.SplitN(strings.TrimSpace(pair), "=", 2)
+                if len(parts) == 2 {
+                        m[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+                }
+        }
+        return m
 }
 
 func envOrDefault(key, defaultVal string) string {

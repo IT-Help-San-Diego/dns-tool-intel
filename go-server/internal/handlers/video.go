@@ -4,30 +4,32 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type VideoHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewVideoHandler(cfg *config.Config) *VideoHandler {
-	return &VideoHandler{Config: cfg}
+        return &VideoHandler{Config: cfg}
 }
 
 func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "approach",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "video_forgotten_domain.html", data)
+        nonce, _ := c.Get("csp_nonce")
+        ytID := h.Config.YouTubeVideoIDs["forgotten-domain"]
+        data := gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "ActivePage":      "approach",
+                "YouTubeID":       ytID,
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "video_forgotten_domain.html", data)
 }

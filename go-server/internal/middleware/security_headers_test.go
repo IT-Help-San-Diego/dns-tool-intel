@@ -30,8 +30,18 @@ func TestSecurityHeadersStaticPath(t *testing.T) {
         if w.Header().Get("X-Content-Type-Options") != "nosniff" {
                 t.Error("expected X-Content-Type-Options nosniff for static path")
         }
-        if w.Header().Get("Content-Security-Policy") != "" {
-                t.Error("static paths should not have CSP header")
+        csp := w.Header().Get("Content-Security-Policy")
+        if csp == "" {
+                t.Error("static paths should have a restrictive CSP header")
+        }
+        if !strings.Contains(csp, "default-src 'none'") {
+                t.Error("static CSP should contain default-src 'none'")
+        }
+        if !strings.Contains(csp, "script-src 'none'") {
+                t.Error("static CSP should contain script-src 'none'")
+        }
+        if !strings.Contains(csp, "style-src 'unsafe-inline'") {
+                t.Error("static CSP should allow unsafe-inline styles for SVG compatibility")
         }
         if w.Header().Get("X-Frame-Options") != "" {
                 t.Error("static paths should not have X-Frame-Options")

@@ -58,8 +58,8 @@
         .btn-outline-danger:hover{color:#fff;background-color:#dc3545}
         .btn-outline-warning{color:#ffc107;border-color:#ffc107}
         .btn-outline-warning:hover{color:#000;background-color:#ffc107}
-        .btn-outline-info{color:#0dcaf0;border-color:#0dcaf0}
-        .btn-outline-info:hover{color:#000;background-color:#0dcaf0}
+        .btn-outline-info{color:#d4a853;border-color:#d4a853}
+        .btn-outline-info:hover{color:#000;background-color:#d4a853}
         .btn-outline-secondary{color:#6c757d;border-color:#6c757d}
         .btn-outline-secondary:hover{color:#fff;background-color:#6c757d}
         .badge{display:inline-block;padding:.35em .65em;font-size:.75em;font-weight:700;line-height:1;text-align:center;white-space:nowrap;vertical-align:baseline;border-radius:.375rem}
@@ -67,7 +67,7 @@
         .bg-warning{background-color:#ffc107!important}
         .bg-danger{background-color:#dc3545!important}
         .bg-secondary{background-color:#6c757d!important}
-        .bg-info{background-color:#0dcaf0!important}
+        .bg-info{background-color:#d4a853!important}
         .card{position:relative;display:flex;flex-direction:column;min-width:0;word-wrap:break-word;background-color:#212529;background-clip:border-box;border:1px solid rgba(255,255,255,.125);border-radius:.375rem}
         .card-header{padding:.5rem 1rem;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.125)}
         .card-body{flex:1 1 auto;padding:1rem}
@@ -91,7 +91,7 @@
         .flex-wrap{flex-wrap:wrap}
         .text-nowrap{white-space:nowrap}
         .text-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .border-info{border-color:#0dcaf0!important}
+        .border-info{border-color:#d4a853!important}
         .border-warning{border-color:#ffc107!important}
         .u-opacity-70{opacity:.7}
         .alert{position:relative;padding:1rem;margin-bottom:1rem;border:1px solid transparent;border-radius:.375rem}
@@ -112,7 +112,7 @@
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h1 class="mb-1 wl-heading">{{icon "crosshairs" "me-2 text-info"}}Drift Watchlist</h1>
+                <h1 class="mb-1 wl-heading">{{icon "crosshairs" "me-2 text-accent-gold"}}Drift Watchlist</h1>
                 <p class="text-muted mb-0 small">Monitor domains for security posture changes. Get notified when drift is detected.</p>
             </div>
         </div>
@@ -121,7 +121,7 @@
             <div class="col-12 col-md-6 mb-4">
                 <div class="card border-info">
                     <div class="card-header d-flex align-items-center justify-content-between">
-                        <span class="fw-semibold">{{icon "satellite-dish" "me-1 text-info"}}Watched Domains</span>
+                        <span class="fw-semibold">{{icon "satellite-dish" "me-1 text-accent-gold"}}Watched Domains</span>
                         <span class="badge bg-info">{{.WatchlistCount}} / {{.MaxWatchlist}}</span>
                     </div>
                     <div class="card-body">

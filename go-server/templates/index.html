@@ -303,7 +303,7 @@
         .hero-title{font-size:2.5rem;font-weight:700;color:#e6edf3}
         .hero-tagline{font-size:1.5rem;color:#8b949e}
         .hero-subtitle{font-size:1.1rem;color:#8b949e}
-        .hero-badge{display:inline-block;padding:.5rem 1rem;border-radius:2rem;background:rgba(56,139,253,.15);color:#58a6ff;font-size:.85rem;font-weight:600}
+        .hero-badge{display:inline-block;padding:.5rem 1rem;border-radius:2rem;background:rgba(200,149,106,.15);color:#c8956a;font-size:.85rem;font-weight:600}
     </style>
     {{template "head_css" .}}
 </head>
@@ -332,10 +332,10 @@
 ██   ██ ███████  ██████  ██████  ██   ████</pre></span><span class="hero-text-standard">Domain Security Audit</span>
                 </h1>
                 <p class="hero-tagline mx-auto mb-2 u-hero-tagline covert-hide">
-                    We answer the <span class="text-info">BIG</span> questions.
+                    We answer the <span class="text-accent-gold">BIG</span> questions.
                 </p>
                 <p class="hero-subtitle mx-auto mb-2 covert-hide">
-                    Producing <span class="text-info">Engineer's DNS Intelligence Reports</span> and <span class="text-info">Executive's DNS Intelligence Briefs</span> with <span class="text-info">posture&nbsp;scoring</span>
+                    Producing <span class="text-accent-gold">Engineer's DNS Intelligence Reports</span> and <span class="text-accent-gold">Executive's DNS Intelligence Briefs</span> with <span class="text-accent-gold">posture&nbsp;scoring</span>
                 </p>
             </div>
 
@@ -423,13 +423,13 @@
                                 </button>
                             </div>
                             <div class="form-text search-hint mt-2">
-                                {{icon "info-circle" "me-1"}}
+                                
                                 Enter a domain (e.g., <strong>example.com</strong>) or a top-level zone (e.g., <strong>tech</strong>, <strong>co.uk</strong>) &mdash; no https://. TLDs produce a <strong>Registry Zone Health Report</strong>.
                             </div>
                             <div class="form-text text-muted mt-1 u-privacy-hint">
                                 {{icon "shield-alt" "me-1"}}DNS lookups may be logged by upstream resolvers and authoritative nameservers.
                                 <button type="button" id="privacyToggle" class="u-privacy-toggle btn btn-link p-0 border-0 text-decoration-none text-reset" tabindex="0">{{icon "chevron-down" "ms-1 small"}} Shopping for a domain?</button>
-                                <div id="privacyDetail" class="form-text text-muted mt-1 d-none">{{icon "info-circle" "me-1"}}When you look up a domain, that query can be seen by third parties. If you&rsquo;re considering buying a domain and don&rsquo;t want anyone to know you&rsquo;re interested, don&rsquo;t search for it here or on any public tool &mdash; someone could register it before you do. Before you buy, check whether the domain already carries a bad reputation using <a href="https://www.talosintelligence.com/reputation_center" target="_blank" rel="noopener noreferrer" class="text-info">Cisco Talos Reputation Center</a> &mdash; but do it from a private browser, not here.</div>
+                                <div id="privacyDetail" class="form-text text-muted mt-1 d-none">When you look up a domain, that query can be seen by third parties. If you&rsquo;re considering buying a domain and don&rsquo;t want anyone to know you&rsquo;re interested, don&rsquo;t search for it here or on any public tool &mdash; someone could register it before you do. Before you buy, check whether the domain already carries a bad reputation using <a href="https://www.talosintelligence.com/reputation_center" target="_blank" rel="noopener noreferrer" class="text-info">Cisco Talos Reputation Center</a> &mdash; but do it from a private browser, not here.</div>
                             </div>
                             <div class="mt-2">
                                 <button type="button" class="btn btn-link small text-decoration-none p-0 border-0 u-a11y-muted" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="{{if .DKIMExpand}}true{{else}}false{{end}}" aria-controls="advancedOptions">

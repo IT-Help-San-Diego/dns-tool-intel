@@ -1451,7 +1451,7 @@ func badgeSVGDetailed(domain string, results map[string]any, scanTime time.Time,
         if missing > 0 {
                 missingSVG = fmt.Sprintf(
                         `<text x="%d" y="%d" fill="%s" font-size="9" font-weight="600" font-family="'Inter','Segoe UI',system-ui,sans-serif" text-anchor="end">%d of %d missing</text>`,
-                        width-pad, 198, hexRed, missing, totalControls,
+                        width-pad, 218, hexRed, missing, totalControls,
                 )
         }
 

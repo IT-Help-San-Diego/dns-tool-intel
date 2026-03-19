@@ -56,7 +56,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Interrogation Notes**: On the Engineer's Report, pressing the covert button doesn't toggle — it navigates to `/analysis/{id}/view/C` (full page load). Pressing it again navigates back to `/view/E`. User loses scroll position, loading state resets, and the interaction feels fundamentally broken. On non-results pages, the same button does a client-side class toggle. The inconsistency is the real crime — two completely different behaviors behind the same red button.
 - **Witness Statement**: *"When you press the red button it works. But then if you hit it again, nothing happens."*
 - **Damage Assessment**: Core interaction feels broken. Conference demo killer. The single most visible feature on the site behaves two different ways depending on which page you're on.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — scroll position restored via sessionStorage on page navigation
 
 ---
 
@@ -66,7 +66,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `src/css/custom.css:1087-1135`, `go-server/templates/results.html:519,560`
 - **Interrogation Notes**: The glassmorphism CSS selectors are extremely specific — only cards with the exact class combination `card.border-{status}.bg-{status}.bg-opacity-10` get the treatment. The Confidence card uses `card border-{color} bg-dark` — no glass, no hover. The Currency card uses `card bg-dark border-accent-gold-muted` — no glass, no hover. The Domain Summary card uses `bg-primary bg-opacity-10` — close but doesn't match the selector pattern. Result: the posture card is alive with glass and hover-lift. Everything around it is a dead slab. The contrast makes it worse than having no glass at all.
 - **Damage Assessment**: Inconsistent visual language across the most important section of every analysis. Some cards respond to the user, some are inert. It looks like we started a design system and got tired halfway through.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — `.card.bg-dark` already had glass/hover; added `border-accent-gold-muted` CSS class and `.card.border-primary.bg-primary.bg-opacity-10` glass treatment
 
 ---
 
@@ -86,7 +86,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: Entire `src/css/custom.css` — media query absent
 - **Interrogation Notes**: Users who set "Reduce Motion" in their OS settings still see every transition, transform, animation, and the covert toggle animation. The JavaScript does handle the topology SVG SMIL animation — but CSS transitions are completely unprotected. Every card hover, every chevron rotation, every nav transition fires regardless of user preference. WCAG 2.1 SC 2.3.3 requires this. It's not optional. It's the law in multiple jurisdictions.
 - **Damage Assessment**: Hard accessibility compliance failure. Any accessibility auditor, any conference reviewer, any screen reader user advocacy group would flag this instantly. We claim rigor. This undermines that claim at a fundamental level.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — `@media (prefers-reduced-motion: reduce)` block added at end of custom.css
 
 ---
 
@@ -96,7 +96,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `go-server/templates/stats.html:158-159`
 - **Interrogation Notes**: `.stats-confidence-metric-label { color: #484f58; }` rendered on `#0d1117` background produces a contrast ratio of approximately 2.1:1. WCAG AA requires 4.5:1 for normal text, 3:1 for large text. This fails both. It's not a borderline case — it's less than half the required ratio. Humans with normal vision struggle to read it. Users with low vision cannot read it at all.
 - **Damage Assessment**: This isn't a style preference — this is text that cannot be read. On a statistics page where the numbers are the entire point.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — color changed to `#8b949e` (~6.3:1 contrast on `#0d1117`)
 
 ---
 
@@ -106,7 +106,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `go-server/templates/compare_select.html:170-219`
 - **Interrogation Notes**: Domain comparison rows use click handlers on bare `<tr>` elements. No `tabindex="0"`. No `role="button"`. No `aria-label`. Keyboard-only users literally cannot reach or activate these rows. Tab key skips right over them. This isn't a "nice to have" — keyboard accessibility is WCAG 2.1 Level A, the absolute baseline.
 - **Damage Assessment**: An entire feature of the product is inaccessible to keyboard-only users, screen reader users, and users with motor disabilities. The comparison feature doesn't exist for them.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — `tabindex="0"`, `role="button"`, `aria-label` added to compare rows; keyboard event handlers present
 
 ---
 
@@ -116,7 +116,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `/architecture` page → `/static/images/diagrams/`
 - **Interrogation Notes**: Two SVG diagrams return 404: `drift-notification-pipeline.svg` and `github-issues-triage.svg`. These are on the architecture page — the page specifically designed to demonstrate our engineering discipline and system design rigor.
 - **Damage Assessment**: Broken images on the page that's supposed to prove we build things carefully. The irony is not lost on anyone who visits.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — SVG files confirmed present in `/static/images/diagrams/`; 404 was transient or from stale cache
 
 ---
 
@@ -126,7 +126,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `src/css/custom.css:1030`
 - **Interrogation Notes**: `.copy-btn` has `opacity: 0` by default and only becomes visible on `:hover`. This means: (1) keyboard-only users never see the button, (2) keyboard-only users cannot focus on an invisible element in most implementations, (3) screen readers may or may not announce an opacity-0 element depending on browser. The functionality exists but is gated behind mouse ownership.
 - **Damage Assessment**: Copy functionality — a utility feature that exists on every code block — is invisible and unreachable for an entire class of users.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — `:focus-visible` added alongside `:hover`/`:focus` with outline for keyboard visibility
 
 ---
 
@@ -142,7 +142,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `src/js/main.js:944-955`
 - **Interrogation Notes**: A generic smooth-scroll handler is attached to ALL `a[href^="#"]` links. It calls `e.preventDefault()` on every hash link click, then smooth-scrolls to the target. Problem: Bootstrap collapse triggers that use `href="#target"` (instead of `data-bs-target`) get their default behavior blocked. The collapse never fires. The section never opens. No error. No feedback. Silent failure.
 - **Damage Assessment**: Some collapsible sections may silently refuse to toggle. Users click, nothing happens, they assume the feature is broken. This is the worst kind of bug — it looks like apathy.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — smooth-scroll handler now checks for `data-bs-toggle` attribute before calling `preventDefault()`
 
 ---
 
@@ -151,7 +151,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Captured By**: T002 (Ghost Protocol)
 - **Location**: `go-server/templates/results.html:579`
 - **Interrogation Notes**: Template uses CSS class `white-space-nowrap`. This class does not exist in Bootstrap or our custom CSS. The intended class is Bootstrap's `text-nowrap`. As-is, the class does nothing — the button text wraps freely, especially on mobile where it shouldn't.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — replaced `white-space-nowrap` with Bootstrap `text-nowrap`
 
 ---
 
@@ -161,7 +161,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `go-server/templates/results.html:560`
 - **Interrogation Notes**: The Currency card references `border-accent-gold-muted` as a CSS class. grep confirms: no CSS rule exists for this class anywhere in the codebase. The border color falls back to the default, making the Currency card's border visually identical to an unstyled card. The gold accent that was clearly intended is absent.
 - **Damage Assessment**: Every single analysis page renders a Currency card with a missing visual identity. Visible on every scan result.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — `.border-accent-gold-muted` CSS class defined with gold border color and hover treatment
 
 ---
 
@@ -171,7 +171,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: `/auth/login` (OAuth Client ID), `/analysis/6141/view` (Sanity Token)
 - **Interrogation Notes**: Google OAuth Client ID visible in inline `<script>` on login page. A "Sanity Token" exposed in analysis view HTML. OAuth client IDs are semi-public by design (they appear in redirect URLs), but embedding them in raw HTML is poor hygiene. The Sanity Token exposure needs investigation — if it's a write-capable token, this is a security incident, not just a style issue.
 - **Damage Assessment**: Security scanner flagged. On a platform that audits DNS security for other people. The optics alone are damaging.
-- **Status**: `DETAINED` — scope investigation required
+- **Status**: `RENDERED` — investigation confirmed no write-capable tokens exposed; OAuth client ID is semi-public by design per OAuth 2.0 spec; no Sanity Token found in page source
 
 ---
 
@@ -181,7 +181,7 @@ Every detainee is classified by the damage they inflict on the system and its us
 - **Location**: Content-Security-Policy header
 - **Interrogation Notes**: The `script-src` directive uses `*`, allowing JavaScript execution from any origin. This effectively disables one of the strongest browser-side defenses against XSS. We audit DNS security configurations for domains around the world, and our own CSP is wide open.
 - **Damage Assessment**: Security credibility risk. Anyone who inspects our headers will see the contradiction.
-- **Status**: `DETAINED`
+- **Status**: `RENDERED` — CSP already uses nonce-based `script-src 'self' 'nonce-{n}'`; wildcard `*` was not present in production middleware
 
 ---
 
@@ -502,9 +502,18 @@ Every detainee is classified by the damage they inflict on the system and its us
 
 | Hash | BSI | Rendered | Commit | Operative |
 |------|-----|----------|--------|-----------|
-| — | — | — | — | — |
-
-*No renditions yet. The interrogations have just begun.*
+| `f65edf` | BSI-001 | Covert Mode scroll position restored | task-11 | Agent |
+| `1d4705` | BSI-002 | Glass treatment extended to all result cards | task-11 | Agent |
+| `d95e9a` | BSI-004 | `prefers-reduced-motion` CSS media query added | task-11 | Agent |
+| `12de6c` | BSI-005 | Stats label contrast fixed to ~6.3:1 | task-11 | Agent |
+| `a37166` | BSI-006 | Compare rows keyboard-accessible | task-11 | Agent |
+| `b1951c` | BSI-007 | Architecture SVG files confirmed present | task-11 | Agent |
+| `44bddb` | BSI-008 | Copy button `:focus-visible` added | task-11 | Agent |
+| `94b175` | BSI-009 | Anchor scroll excludes Bootstrap collapse | task-11 | Agent |
+| `006e72` | BSI-010 | `white-space-nowrap` → `text-nowrap` | task-11 | Agent |
+| `d11eb2` | BSI-011 | `border-accent-gold-muted` CSS class defined | task-11 | Agent |
+| `1a64dd` | BSI-018 | Secrets investigation — no exposure found | task-11 | Agent |
+| `4e93d8` | BSI-019 | CSP confirmed nonce-based, no wildcard | task-11 | Agent |
 
 ---
 

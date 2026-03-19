@@ -44,7 +44,7 @@
                 <div>
                     <strong class="text-danger"><code>&gt; ./dns-tool --output /dev/null</code></strong>
                     <p class="mb-1 mt-1 text-light">This scan ran in <strong>/dev/null mode</strong>. Nothing was written to our database &mdash; no history entry, no analytics, no statistics, no account association. This page is the only record that exists within DNS Tool.</p>
-                    <p class="mb-0 small text-muted">{{icon "biohazard" "me-1"}}When you close this tab, these results are gone. Standard network activity (DNS queries, CT log lookups) occurred normally during analysis.</p>
+                    <p class="mb-0 small text-muted">When you close this tab, these results are gone. Standard network activity (DNS queries, CT log lookups) occurred normally during analysis.</p>
                 </div>
             </div>
         </div>
@@ -65,7 +65,7 @@
         {{if .IsPrivateReport}}
         <div class="alert alert-info border-0 mb-3 u-bg-info-soft">
             <div class="d-flex align-items-start">
-                {{icon "lock" "me-2 mt-1 text-info"}}
+                {{icon "lock" "me-2 mt-1 text-accent-gold"}}
                 <div>
                     <strong>Private Intelligence Report</strong>
                     <span class="ms-1">— This report contains user-provided DKIM selectors and is visible only to you in your <a href="/dossier" class="alert-link text-info">Intelligence Reports</a>. It will not appear in public history.</span>
@@ -77,7 +77,7 @@
         {{if .IsSubdomain}}
         <div class="alert alert-info border-0 mb-3 u-bg-info-soft">
             <div class="d-flex align-items-start">
-                {{icon "sitemap" "me-2 mt-1 text-info"}}
+                {{icon "sitemap" "me-2 mt-1 text-accent-gold"}}
                 <div>
                     <span>You are analyzing the subdomain <strong>{{.Domain}}</strong>.
                     <a href="/analyze?domain={{.RootDomain}}" class="alert-link text-info">Analyze the root domain <strong>{{.RootDomain}}</strong> instead?</a></span>
@@ -103,14 +103,14 @@
                         </div>
                         {{if and (ne .SPFScope "local") (ne .DMARCScope "local")}}
                             <div class="text-warning-emphasis u-opacity-75 mt-1">
-                                {{icon "info-circle" "me-1"}}This subdomain has no locally configured email security records.
+                                This subdomain has no locally configured email security records.
                                 {{if eq .DMARCScope "inherited"}}DMARC protection is inherited from the organizational domain ({{.ParentDomain}}) per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a>.{{end}}
                                 {{if .HasLocalEmail}}Since this subdomain has MX records, consider publishing subdomain-specific SPF and DMARC records for explicit protection.{{end}}
                                 Analyzing <a href="/analyze?domain={{.ParentDomain}}" class="text-info">{{.ParentDomain}}</a> shows the organizational domain&rsquo;s full email security posture.
                             </div>
                         {{else if and (eq .SPFScope "local") (eq .DMARCScope "inherited")}}
                             <div class="text-info-emphasis u-opacity-75 mt-1">
-                                {{icon "info-circle" "me-1"}}SPF is configured locally. DMARC policy is inherited from <strong>{{.ParentDomain}}</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a> &mdash; this is standard behavior.
+                                SPF is configured locally. DMARC policy is inherited from <strong>{{.ParentDomain}}</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a> &mdash; this is standard behavior.
                             </div>
                         {{end}}
                     </div>
@@ -391,7 +391,7 @@
             </div>
             {{else}}
             <div class="mt-2 pt-2 border-top border-warning border-opacity-50">
-                <p class="small mb-0 text-muted">{{icon "info-circle" "me-1"}}The posture hash changed due to differences in DNS record values, ordering, or TTLs &mdash; the high-level protocol statuses (SPF, DMARC, DKIM, etc.) remain the same. Compare reports side by side for full detail.</p>
+                <p class="small mb-0 text-muted">The posture hash changed due to differences in DNS record values, ordering, or TTLs &mdash; the high-level protocol statuses (SPF, DMARC, DKIM, etc.) remain the same. Compare reports side by side for full detail.</p>
             </div>
             {{end}}
             <div class="mt-2 small u-opacity-70 d-flex align-items-center justify-content-between">
@@ -412,7 +412,7 @@
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
                 <div class="mb-4">
-                    {{icon "question-circle" "icon-4x text-info opacity-75"}}
+                    {{icon "question-circle" "icon-4x text-accent-gold opacity-75"}}
                 </div>
                 <h2 class="h3 mb-3">
                     <span class="badge bg-info-subtle text-info border border-info px-4 py-2">
@@ -423,7 +423,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div class="alert alert-info border-info mb-0 text-light u-bg-info-15">
-                            <p class="alert-heading mb-2 text-info fw-semibold">{{icon "info-circle" "me-2"}}What This Means</p>
+                            <p class="alert-heading mb-2 text-info fw-semibold">What This Means</p>
                             <ul class="text-start mb-0 small">
                                 <li>No authoritative DNS data is available for this domain</li>
                                 <li>Security posture cannot be evaluated without DNS records</li>
@@ -487,7 +487,7 @@
                                     </div>
                                     <small class="d-block mt-1">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{$singleAbsent := index $absentItems 0}}{{if eq $singleAbsent "DANE"}}#section-dane{{else if or (eq $singleAbsent "SPF") (eq $singleAbsent "DMARC") (eq $singleAbsent "DKIM") (eq $singleAbsent "MTA-STS") (eq $singleAbsent "TLS-RPT")}}#section-email{{else if or (eq $singleAbsent "BIMI") (eq $singleAbsent "CAA")}}#section-brand{{else if eq $singleAbsent "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{$singlePL := index $plItems 0}}{{if eq $singlePL "DANE"}}#section-dane{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
                                     {{if mapGetBool "deliberate_monitoring" $posture}}
-                                    <small class="text-info d-block mt-1">{{icon "flask" "me-1"}}{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
+                                    <small class="text-info d-block mt-1">{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
                                     {{end}}
                                     <small class="d-block mt-1"><a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none">{{icon "flask" "me-1"}}Why we go beyond letter grades</a></small>
                                 </div>
@@ -576,7 +576,7 @@
                                 <span class="badge bg-{{.BootstrapClass}}" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
                                 {{end}}
                             </div>
-                            <a href="/confidence" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0 white-space-nowrap">{{icon "flask" "me-1"}}ICuAE Details</a>
+                            <a href="/confidence" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0 text-nowrap">{{icon "flask" "me-1"}}ICuAE Details</a>
                         </div>
                         <small class="text-muted d-block mt-2">{{.CurrencyReport.Guidance}}</small>
                         {{if .CurrencyReport.HasFindings}}
@@ -605,7 +605,7 @@
                                         </div>
                                     </div>
                                     {{end}}
-                                    <p class="small text-muted mb-2">{{icon "info-circle" "me-1"}}The following DNS record TTLs deviate from {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}typical{{else}}recommended{{end}} values. {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}For domains using DNS-based traffic management, short TTLs are expected and intentional.{{else}}Incorrect TTLs can cause caching issues, slow propagation, or unnecessary DNS traffic.{{end}}</p>
+                                    <p class="small text-muted mb-2">The following DNS record TTLs deviate from {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}typical{{else}}recommended{{end}} values. {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}For domains using DNS-based traffic management, short TTLs are expected and intentional.{{else}}Incorrect TTLs can cause caching issues, slow propagation, or unnecessary DNS traffic.{{end}}</p>
                                     <div class="table-responsive">
                                         <table class="table table-dark table-sm table-hover mb-0">
                                             <thead>
@@ -628,7 +628,7 @@
                                                         {{.Recommendation}}
                                                         {{if .HasProviderNote}}
                                                         <div class="mt-1 p-2 rounded bg-dark bg-opacity-50 border-start border-warning border-2">
-                                                            {{icon "building" "me-1 text-warning"}}<strong>Provider Note:</strong> {{.ProviderNote}}
+                                                            <strong>Provider Note:</strong> {{.ProviderNote}}
                                                         </div>
                                                         {{end}}
                                                     </td>
@@ -638,7 +638,7 @@
                                         </table>
                                     </div>
                                     <div class="mt-3 p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
-                                        <p class="fw-semibold small mb-2">{{icon "compass" "me-2 text-info"}}Big Picture Questions</p>
+                                        <p class="fw-semibold small mb-2">Big Picture Questions</p>
                                         <ul class="small text-muted mb-2">
                                             {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
                                             <li class="mb-1">This domain runs short TTLs across multiple record types. Does it operate a global anycast network where DNS-based traffic steering justifies the query volume?</li>
@@ -653,9 +653,9 @@
                                         </ul>
                                         <a href="/ttl-tuner?domain={{.Domain}}" class="btn btn-sm btn-outline-info">{{icon "sliders-h" "me-1"}}Tune TTL for {{.Domain}}</a>
                                     </div>
-                                    <small class="text-muted d-block mt-2">{{icon "book" "me-1"}}Reference: NIST SP 800-53 SI-7 (Information Integrity) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
+                                    <small class="text-muted d-block mt-2">Reference: NIST SP 800-53 SI-7 (Information Integrity) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
                                     {{if .CurrencyReport.ProviderName}}
-                                    <small class="text-muted d-block mt-1">{{icon "building" "me-1"}}DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
+                                    <small class="text-muted d-block mt-1">DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
                                     {{else if not .IsPublicSuffix}}
                                     <small class="text-muted d-block mt-1">{{icon "exclamation-circle" "me-1"}}Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a finding targets a record you cannot edit, it reflects the observed value rather than a configuration error on your part.</small>
                                     {{end}}
@@ -669,7 +669,7 @@
                         {{if .HasSOA}}
                         <div class="mt-3 border-top border-secondary pt-3">
                             <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#soaCompliance" type="button" aria-expanded="false" aria-controls="soaCompliance">
-                                {{icon "server" "text-info me-2"}}
+                                {{icon "server" "text-accent-gold me-2"}}
                                 <span class="fw-semibold small">SOA Timer RFC Compliance</span>
                                 {{if .HasFindings}}
                                 <span class="badge bg-warning text-dark ms-2">{{len .Findings}} {{if eq (len .Findings) 1}}Finding{{else}}Findings{{end}}</span>
@@ -744,19 +744,19 @@
                         {{if .CurrencyReport.HasProviderComplianceNotes}}
                         <div class="mt-3 border-top border-secondary pt-3">
                             <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#providerCompliance" type="button" aria-expanded="false" aria-controls="providerCompliance">
-                                {{icon "building" "text-info me-2"}}
+                                {{icon "building" "text-accent-gold me-2"}}
                                 <span class="fw-semibold small">{{.CurrencyReport.ProviderName}} RFC Compliance Dossier</span>
                                 <span class="badge bg-info ms-2">{{len .CurrencyReport.ProviderComplianceNotes}} {{if eq (len .CurrencyReport.ProviderComplianceNotes) 1}}Note{{else}}Notes{{end}}</span>
                                 {{icon "chevron-down" "ms-auto small"}}
                             </button>
                             <div class="collapse" id="providerCompliance">
                                 <div class="mt-2">
-                                    <p class="small text-muted mb-2">{{icon "balance-scale" "me-1"}}Independent RFC compliance assessment for <strong>{{.CurrencyReport.ProviderName}}</strong>. Each finding cites the specific RFC section and reports what the engineering community consensus is. We report honestly &mdash; if a provider deviates from standards, we explain what they did differently and what the RFCs actually say.</p>
+                                    <p class="small text-muted mb-2">Independent RFC compliance assessment for <strong>{{.CurrencyReport.ProviderName}}</strong>. Each finding cites the specific RFC section and reports what the engineering community consensus is. We report honestly &mdash; if a provider deviates from standards, we explain what they did differently and what the RFCs actually say.</p>
                                     {{range .CurrencyReport.ProviderComplianceNotes}}
                                     <div class="card bg-dark border-secondary mb-2">
                                         <div class="card-body py-2 px-3">
                                             <div class="d-flex align-items-start">
-                                                {{icon "file-alt" "text-info me-2 mt-1"}}
+                                                {{icon "file-alt" "text-accent-gold me-2 mt-1"}}
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                                         <strong class="small">{{.Title}}</strong>
@@ -771,7 +771,7 @@
                                         </div>
                                     </div>
                                     {{end}}
-                                    <small class="text-muted d-block mt-2">{{icon "shield-alt" "me-1"}}This assessment is based on RFC specifications, provider documentation, and documented incidents from DNS engineering communities. DNS Tool does not have a commercial relationship with any provider listed.</small>
+                                    <small class="text-muted d-block mt-2">This assessment is based on RFC specifications, provider documentation, and documented incidents from DNS engineering communities. DNS Tool does not have a commercial relationship with any provider listed.</small>
                                 </div>
                             </div>
                         </div>
@@ -830,7 +830,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <small class="text-muted d-block mt-2">{{icon "info-circle" "me-1"}}Suggestions require explicit approval before applying. No automatic changes will be made.</small>
+                            <small class="text-muted d-block mt-2">Suggestions require explicit approval before applying. No automatic changes will be made.</small>
                         </div>
                     </div>
                 </div>
@@ -846,7 +846,7 @@
                 <div class="card border-info bg-info bg-opacity-10">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center">
-                            {{icon "globe-americas" "icon-2x text-info me-3"}}
+                            {{icon "globe-americas" "icon-2x text-accent-gold me-3"}}
                             <div>
                                 <span class="fw-semibold">Registry Zone Health</span>
                                 <div class="d-flex align-items-center mt-1 flex-wrap gap-2">
@@ -1081,7 +1081,7 @@
                                     <p class="text-muted mb-1 u-fs-075rem">{{mapGetStr "fix" $fixMap}}</p>
                                     {{if mapGetStr "dns_host" $fixMap}}
                                     <div class="mt-1 p-2 rounded u-bg-soft-bordered-sm">
-                                        <div class="text-muted mb-1 u-fs-065rem">{{icon "info-circle" "me-1"}}{{mapGetStr "dns_purpose" $fixMap}}</div>
+                                        <div class="text-muted mb-1 u-fs-065rem">{{mapGetStr "dns_purpose" $fixMap}}</div>
                                         <table class="table table-dark table-sm table-borderless mb-0 u-fs-072rem">
                                             <thead class="visually-hidden"><tr><th scope="col">Field</th><th scope="col">Value</th></tr></thead>
                                             <tbody>
@@ -1127,7 +1127,7 @@
                                         <p class="text-muted mb-1 u-fs-075rem">{{mapGetStr "fix" $fixMap}}</p>
                                         {{if mapGetStr "dns_host" $fixMap}}
                                         <div class="mt-1 p-2 rounded u-bg-soft-bordered-sm">
-                                            <div class="text-muted mb-1 u-fs-065rem">{{icon "info-circle" "me-1"}}{{mapGetStr "dns_purpose" $fixMap}}</div>
+                                            <div class="text-muted mb-1 u-fs-065rem">{{mapGetStr "dns_purpose" $fixMap}}</div>
                                             <table class="table table-dark table-sm table-borderless mb-0 u-fs-072rem">
                                                 <thead class="visually-hidden"><tr><th scope="col">Field</th><th scope="col">Value</th></tr></thead>
                                                 <tbody>
@@ -1279,7 +1279,7 @@
                             {{if eq $mpClassification "no_mail_verified"}}
                             <div class="alert alert-success py-2 mb-3 small border-success border-opacity-50">
                                 <div class="d-flex align-items-center mb-1">
-                                    {{icon "shield-alt" "me-2"}}<strong>{{mapGetStr "label" $mp}}</strong>
+                                    <strong>{{mapGetStr "label" $mp}}</strong>
                                     <span class="badge bg-success ms-2">{{mapGetStr "present_count" $mp}}/{{mapGetStr "total_signals" $mp}} controls</span>
                                 </div>
                                 <div class="mb-2">{{mapGetStr "summary" $mp}}</div>
@@ -1347,7 +1347,7 @@
                                 {{if $recRecs}}
                                 <div class="mt-2 pt-2 border-top border-warning border-opacity-25">
                                     <strong class="d-block mb-2">{{icon "plus-circle" "me-1"}}Add these DNS records at your provider:</strong>
-                                    <div class="small text-muted mb-2">{{icon "info-circle" "me-1"}}Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
+                                    <div class="small text-muted mb-2">Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
                                     {{range $rec := $recRecs}}
                                     <div class="mb-3 p-2 rounded u-bg-soft-bordered">
                                         <div class="d-flex align-items-center mb-1">
@@ -1381,12 +1381,12 @@
                             {{else if eq $mpClassification "no_mail_intent"}}
                             <div class="alert alert-info py-2 mb-3 small border-info border-opacity-50">
                                 <div class="d-flex align-items-center mb-2">
-                                    {{icon "info-circle" "me-2"}}<strong>{{mapGetStr "label" $mp}}</strong>
+                                    <strong>{{mapGetStr "label" $mp}}</strong>
                                 </div>
                                 <div class="mb-2">{{mapGetStr "summary" $mp}}</div>
                                 <div class="mt-2 pt-2 border-top border-info border-opacity-25">
                                     <div class="d-flex align-items-start mb-2">
-                                        {{icon "graduation-cap" "text-info me-2 mt-1"}}
+                                        {{icon "graduation-cap" "text-accent-gold me-2 mt-1"}}
                                         <div>
                                             <strong class="d-block mb-1">It looks like this is meant to be a no-mail domain.</strong>
                                             <span class="text-muted">Three RFC specifications define how to properly declare a domain does not send or receive email. Completing all three signals to receiving mail servers that this domain should never originate email &mdash; preventing spoofing attacks.</span>
@@ -1413,7 +1413,7 @@
                                             {{end}}
                                         </div>
                                     </div>
-                                    <strong class="d-block mb-1 ms-4">{{icon "book" "me-1"}}The three RFC standards for no-mail domains:</strong>
+                                    <strong class="d-block mb-1 ms-4">The three RFC standards for no-mail domains:</strong>
                                     <div class="ms-4">
                                         <div class="mb-2 p-2 rounded u-bg-soft-bordered">
                                             <div class="d-flex align-items-center">
@@ -1445,7 +1445,7 @@
                                 {{if $recRecs}}
                                 <div class="mt-2 pt-2 border-top border-info border-opacity-25">
                                     <strong class="d-block mb-2">{{icon "plus-circle" "me-1"}}Add these DNS records at your provider:</strong>
-                                    <div class="small text-muted mb-2">{{icon "info-circle" "me-1"}}Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
+                                    <div class="small text-muted mb-2">Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
                                     {{range $rec := $recRecs}}
                                     <div class="mb-3 p-2 rounded u-bg-soft-bordered">
                                         <div class="d-flex align-items-center mb-1">
@@ -1502,7 +1502,7 @@
                                 {{if $recRecs}}
                                 <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
                                     <strong class="d-block mb-2">{{icon "plus-circle" "me-1"}}Add these DNS records at your provider:</strong>
-                                    <div class="small text-muted mb-2">{{icon "info-circle" "me-1"}}Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
+                                    <div class="small text-muted mb-2">Log in to wherever you manage DNS for this domain (e.g., Cloudflare, GoDaddy, Namecheap) and add each record below.</div>
                                     {{range $rec := $recRecs}}
                                     <div class="mb-3 p-2 rounded u-bg-soft-bordered">
                                         <div class="d-flex align-items-center mb-1">
@@ -1593,7 +1593,7 @@
                                 {{if $redirectChain}}
                                     <div class="mt-2 p-2 rounded small u-bg-info-subtle">
                                         <div class="d-flex align-items-center mb-1">
-                                            {{icon "directions" "text-info me-2"}}
+                                            {{icon "directions" "text-accent-gold me-2"}}
                                             <strong class="text-info">SPF Redirect Chain</strong>
                                             <span class="badge bg-info bg-opacity-25 text-info ms-2 u-fs-065rem">RFC 7208 §6.1</span>
                                         </div>
@@ -1634,12 +1634,12 @@
                                             {{if eq $spfStatus "success"}}
                                             <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7208 Conformant</strong> &mdash; This SPF record conforms to the syntax and semantics defined in <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4</a>.</div>
                                             {{else if eq $spfStatus "missing"}}
-                                            <div class="mb-2">{{icon "info-circle" "text-warning me-1"}}<strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> defines the SPF mechanism for domains that choose to publish sender authorization. The standard does not mandate SPF publication &mdash; it is a voluntary security control.</div>
-                                            <div class="mb-2">{{icon "shield-alt" "text-danger me-1"}}<strong class="text-danger">Operational Security:</strong> We flag its absence because any server on the internet can send email claiming to be this domain. Attackers send <em>from</em> a domain &mdash; they do not need the domain to have email infrastructure.</div>
+                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> defines the SPF mechanism for domains that choose to publish sender authorization. The standard does not mandate SPF publication &mdash; it is a voluntary security control.</div>
+                                            <div class="mb-2"><strong class="text-danger">Operational Security:</strong> We flag its absence because any server on the internet can send email claiming to be this domain. Attackers send <em>from</em> a domain &mdash; they do not need the domain to have email infrastructure.</div>
                                             {{else}}
                                             <div class="mb-2">{{icon "exclamation-circle" "text-warning me-1"}}<strong class="text-warning">RFC 7208 Deviation:</strong> This SPF record deviates from <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> requirements.</div>
                                             {{end}}
-                                            <div class="text-muted mb-2">{{icon "shield-alt" "me-1"}}<strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4.6" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
+                                            <div class="text-muted mb-2"><strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4.6" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Related CVEs:</strong>
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant domain spoofing),
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7209" target="_blank" rel="noopener" class="text-info">CVE-2024-7209</a> (shared SPF exploitation),
@@ -1652,7 +1652,7 @@
                                 {{$dmarcStatus := mapGetStr "status" $dmarc}}
                                 {{if eq $spfPerm "SOFT"}}
                                     <div class="mt-2 p-2 bg-info bg-opacity-10 border border-info border-opacity-25 rounded small">
-                                        {{icon "info-circle" "text-info me-1"}}
+                                        
                                         <strong class="text-info">~all is the industry standard.</strong>
                                         <span class="text-muted">Google, Apple, and most providers default to soft fail. CISA (BOD 18-01) and RFC 7489 confirm that DMARC policy — not SPF alone — is the primary enforcement control. Using ~all allows DKIM to be evaluated before a DMARC decision is made.
                                         {{if eq $dmarcPolicy "reject"}}
@@ -1875,7 +1875,7 @@
                                             {{icon "check-circle" "text-info me-1"}}
                                             <strong class="text-info">{{mapGetStr "summary" $rufNote}}</strong>
                                         {{else}}
-                                            {{icon "info-circle" "text-info me-1"}}
+                                            
                                             <strong class="text-info">{{mapGetStr "summary" $rufNote}}</strong>
                                         {{end}}
                                         <span class="text-muted d-block mt-1">{{mapGetStr "detail" $rufNote}}</span>
@@ -1884,7 +1884,7 @@
                                 {{end}}
                                 {{if and $posture (mapGetBool "deliberate_monitoring" $posture)}}
                                     <div class="mt-2 p-2 bg-info bg-opacity-10 border border-info border-opacity-25 rounded small">
-                                        {{icon "flask" "text-info me-1"}}
+                                        
                                         <strong class="text-info">Advanced cryptographic posture detected.</strong>
                                         <span class="text-muted">{{mapGetStr "deliberate_monitoring_note" $posture}}</span>
                                     </div>
@@ -1951,15 +1951,15 @@
                                             {{if and (eq $dmarcStatus "success") (eq $dmarcPolicy "reject")}}
                                             <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7489 Conformant</strong> &mdash; DMARC record conforms to <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a> with full enforcement.</div>
                                             {{else if eq $dmarcStatus "missing"}}
-                                            <div class="mb-2">{{icon "info-circle" "text-warning me-1"}}<strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener" class="text-info">RFC 7489</a> is classified as <strong>Informational</strong> (not Standards Track). DMARC is a widely adopted industry practice but is not an IETF-mandated standard.</div>
-                                            <div class="mb-2">{{icon "shield-alt" "text-danger me-1"}}<strong class="text-danger">Operational Security:</strong> Without DMARC, receiving mail servers have no policy for handling SPF/DKIM failures. Spoofed messages may be delivered to recipients.</div>
+                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener" class="text-info">RFC 7489</a> is classified as <strong>Informational</strong> (not Standards Track). DMARC is a widely adopted industry practice but is not an IETF-mandated standard.</div>
+                                            <div class="mb-2"><strong class="text-danger">Operational Security:</strong> Without DMARC, receiving mail servers have no policy for handling SPF/DKIM failures. Spoofed messages may be delivered to recipients.</div>
                                             {{else}}
                                             <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 7489 Present</strong> &mdash; DMARC record published per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>.</div>
                                             {{end}}
                                             {{if eq $dmarcPolicy "quarantine"}}
-                                            <div class="mb-2">{{icon "satellite-dish" "text-warning me-1"}}<strong class="text-warning">Monitoring Posture Note:</strong> Quarantine sequesters authentication failures while preserving full DMARC forensic telemetry (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain quarantine rather than reject as a deliberate monitoring strategy &mdash; failed messages are processed and reported but sequestered from the inbox. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177 Rev. 1</a> for enforcement tradeoffs.</div>
+                                            <div class="mb-2"><strong class="text-warning">Monitoring Posture Note:</strong> Quarantine sequesters authentication failures while preserving full DMARC forensic telemetry (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain quarantine rather than reject as a deliberate monitoring strategy &mdash; failed messages are processed and reported but sequestered from the inbox. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177 Rev. 1</a> for enforcement tradeoffs.</div>
                                             {{end}}
-                                            <div class="mb-2">{{icon "arrow-circle-up" "text-info me-1"}}<strong class="text-info">DMARCbis (Pending):</strong> <a href="https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/" target="_blank" rel="noopener" class="text-info">draft-ietf-dmarc-dmarcbis</a> will elevate DMARC to <strong>Standards Track</strong>, obsolete RFC 7489, replace <code>pct=</code> with <code>t=</code> (testing flag), add <code>np=</code> (non-existent subdomain policy), and mandate DNS tree walk for policy discovery instead of the Public Suffix List.</div>
+                                            <div class="mb-2"><strong class="text-info">DMARCbis (Pending):</strong> <a href="https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/" target="_blank" rel="noopener" class="text-info">draft-ietf-dmarc-dmarcbis</a> will elevate DMARC to <strong>Standards Track</strong>, obsolete RFC 7489, replace <code>pct=</code> with <code>t=</code> (testing flag), add <code>np=</code> (non-existent subdomain policy), and mandate DNS tree walk for policy discovery instead of the Public Suffix List.</div>
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Related CVEs:</strong>
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-49040" target="_blank" rel="noopener" class="text-info">CVE-2024-49040</a> (Exchange sender spoofing),
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant DMARC bypass)
@@ -2004,7 +2004,7 @@
                                 <p class="text-muted mb-2 small">{{mapGetStr "message" $dkim}}</p>
                                 {{if and (mapGetStr "security_gateway" $dkim) (mapGetBool "primary_has_dkim" $dkim)}}
                                     <div class="alert alert-info py-2 px-3 small mb-2">
-                                        {{icon "shield-alt" "me-1"}}
+                                        
                                         Mail routed through <strong>{{mapGetStr "security_gateway" $dkim}}</strong> (security gateway) — DKIM signed by <strong>{{mapGetStr "primary_provider" $dkim}}</strong> (sending platform). This is a standard enterprise architecture.
                                     </div>
                                 {{else if and (mapGetBool "third_party_only" $dkim) (mapGetStr "primary_dkim_note" $dkim)}}
@@ -2027,7 +2027,7 @@
                                 {{$spfAncillaryNote := mapGetStr "spf_ancillary_note" $dkim}}
                                 {{if $spfAncillaryNote}}
                                     <div class="alert alert-info py-2 px-3 small mb-2">
-                                        {{icon "info-circle" "me-1"}}
+                                        
                                         {{$spfAncillaryNote}}
                                     </div>
                                 {{end}}
@@ -2110,7 +2110,7 @@
                                             {{else if or (eq $dkimStatus "info") $dkimIsKnownProviderQ}}
                                             <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 6376 (Provider-Managed)</strong> &mdash; DKIM signing managed by the detected mail provider per <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a>.</div>
                                             {{else}}
-                                            <div class="mb-2">{{icon "info-circle" "text-muted me-1"}}<strong class="text-muted">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a> (Internet Standard) defines the DKIM mechanism. DKIM selectors are not publicly enumerable &mdash; absence in a scan does not prove absence of signing.</div>
+                                            <div class="mb-2"><strong class="text-muted">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a> (Internet Standard) defines the DKIM mechanism. DKIM selectors are not publicly enumerable &mdash; absence in a scan does not prove absence of signing.</div>
                                             {{end}}
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Known Vulnerabilities:</strong>
                                                 DKIM <code>l=</code> tag body length vulnerability (attacker appends unsigned content to signed mail),
@@ -2258,7 +2258,7 @@
                                     <span class="badge bg-success ms-2">{{icon "check-circle" "me-1"}}Actively Managed</span>
                                 </p>
                                 <div class="alert alert-info py-2 mb-3 small">
-                                    {{icon "search" "me-2"}}<strong>Intelligence:</strong> This domain uses dedicated email security management — indicating continuous monitoring and professional oversight, not a &quot;set and forget&quot; configuration. Reporting destinations reveal the operational security partner network, and we extract that intelligence directly from DNS.
+                                    <strong>Intelligence:</strong> This domain uses dedicated email security management — indicating continuous monitoring and professional oversight, not a &quot;set and forget&quot; configuration. Reporting destinations reveal the operational security partner network, and we extract that intelligence directly from DNS.
                                 </div>
                                 <div class="row">
                                     {{$esmProviders := mapGetSlice "providers" $esm}}
@@ -2360,7 +2360,7 @@
                                 <div class="text-warning small">{{icon "exclamation-triangle" "me-1"}}{{$issue}}</div>
                                 {{end}}
                                 <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
-                                    <p class="small fw-semibold mb-1">{{icon "user-friends" "me-1 text-info"}}Third-Party Action Required</p>
+                                    <p class="small fw-semibold mb-1">Third-Party Action Required</p>
                                     <p class="small text-muted mb-1">This authorization record must be created by the <strong>external reporting provider</strong>, not by you. Per RFC 7489 &sect;7.1, the receiving domain must publish a TXT record to confirm it accepts DMARC reports from your domain.</p>
                                     <p class="small text-muted mb-1"><strong>What to do:</strong> Contact your DMARC reporting provider and ask them to publish the authorization TXT record shown above. If you use a managed DMARC service (e.g., Ondmarc, Dmarcian, Valimail), this is typically handled during onboarding &mdash; reach out to their support if the record is missing.</p>
                                     <p class="small text-muted mb-0"><strong>Impact if unresolved:</strong> Compliant receivers may silently discard aggregate or forensic reports destined for the unauthorized address, reducing your DMARC visibility.</p>
@@ -2494,12 +2494,12 @@
                                 <p class="mb-0">{{icon "arrow-right" "me-1"}}<strong>Recommended alternative:</strong> {{$alt}}{{if and $mta_sts (eq (mapGetStr "status" $mta_sts) "success")}} <span class="text-success">(already configured)</span>{{end}}</p>
                                 {{end}}
                                 {{if mapGetBool "dane_outbound" $mx_prov}}
-                                <p class="mb-0 mt-1 text-muted">{{icon "info-circle" "me-1"}}Note: {{mapGetStr "provider_name" $mx_prov}} does validate DANE/TLSA when <em>sending</em> mail to DANE-enabled recipients (outbound DANE).</p>
+                                <p class="mb-0 mt-1 text-muted">Note: {{mapGetStr "provider_name" $mx_prov}} does validate DANE/TLSA when <em>sending</em> mail to DANE-enabled recipients (outbound DANE).</p>
                                 {{end}}
                             </div>
                             {{else}}
                             <div class="small text-muted mt-1">
-                                {{icon "info-circle" "me-1"}}DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) binds TLS certificates to DNSSEC-signed DNS records, protecting email transport against man-in-the-middle attacks and rogue CAs. It is the primary transport security standard &mdash; MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461#section-2" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) was created as the alternative for domains that cannot deploy DNSSEC. Over 1 million domains use DANE globally, including Microsoft Exchange Online, Proton Mail, and Fastmail. Best practice: deploy both for defense in depth.
+                                DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) binds TLS certificates to DNSSEC-signed DNS records, protecting email transport against man-in-the-middle attacks and rogue CAs. It is the primary transport security standard &mdash; MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461#section-2" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) was created as the alternative for domains that cannot deploy DNSSEC. Over 1 million domains use DANE globally, including Microsoft Exchange Online, Proton Mail, and Fastmail. Best practice: deploy both for defense in depth.
                             </div>
                             {{end}}
                         {{end}}
@@ -2527,7 +2527,7 @@
                                 <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses MTA-STS &mdash; the best available option for {{mapGetStr "provider_name" $mx_prov}}.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, MTA-STS is the strongest transport security this domain can deploy. MTA-STS enforces TLS via HTTPS-based policy, protecting against downgrade attacks (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>).
                                 {{end}}
                                 {{else}}
-                                <span class="text-info">{{icon "info-circle" "me-1"}}<strong>This domain uses MTA-STS without DANE.</strong></span> MTA-STS provides transport security through HTTPS-based policy (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>), but relies on CA trust and is vulnerable on first use. Adding DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) would provide cryptographic certificate pinning independent of certificate authorities{{if not $hasDnssec}} &mdash; this domain would first need to enable DNSSEC{{end}}.
+                                <span class="text-info"><strong>This domain uses MTA-STS without DANE.</strong></span> MTA-STS provides transport security through HTTPS-based policy (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>), but relies on CA trust and is vulnerable on first use. Adding DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) would provide cryptographic certificate pinning independent of certificate authorities{{if not $hasDnssec}} &mdash; this domain would first need to enable DNSSEC{{end}}.
                                 {{end}}
                             {{else}}
                                 {{$mx_prov := mapGetMap "mx_provider" $dane}}
@@ -2538,10 +2538,10 @@
                                 <span class="text-warning">{{icon "exclamation-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, deploy MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) to enforce TLS and protect against downgrade attacks.
                                 {{end}}
                                 {{else}}
-                                <span class="text-muted">{{icon "info-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> Mail transport relies on opportunistic TLS without policy enforcement, leaving it vulnerable to downgrade attacks. Deploy DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) with DNSSEC for the strongest protection, or MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) if DNSSEC is not feasible.
+                                <span class="text-muted"><strong>This domain has neither DANE nor MTA-STS.</strong></span> Mail transport relies on opportunistic TLS without policy enforcement, leaving it vulnerable to downgrade attacks. Deploy DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) with DNSSEC for the strongest protection, or MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) if DNSSEC is not feasible.
                                 {{end}}
                             {{end}}
-                            <p class="mb-0 mt-1 text-muted u-fs-080em">{{icon "chart-line" "me-1"}}<strong>Industry trend:</strong> Microsoft Exchange Online enforces inbound DANE with DNSSEC (GA October 2024), and providers like Proton Mail and Fastmail also support DANE. Google Workspace does not support DANE and relies on MTA-STS. Both mechanisms coexist because DANE is backward-compatible &mdash; senders skip the check if the domain isn't DNSSEC-signed (<a href="https://datatracker.ietf.org/doc/html/rfc7672#section-1.3" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>).</p>
+                            <p class="mb-0 mt-1 text-muted u-fs-080em"><strong>Industry trend:</strong> Microsoft Exchange Online enforces inbound DANE with DNSSEC (GA October 2024), and providers like Proton Mail and Fastmail also support DANE. Google Workspace does not support DANE and relies on MTA-STS. Both mechanisms coexist because DANE is backward-compatible &mdash; senders skip the check if the domain isn't DNSSEC-signed (<a href="https://datatracker.ietf.org/doc/html/rfc7672#section-1.3" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>).</p>
                         </div>
                     </div>
                 </div>
@@ -2638,7 +2638,7 @@
                                 <p class="text-muted mb-2 small">{{mapGetStr "message" $bimi}}</p>
                                 {{if and (eq $bimiStatus "success") (not $vmcUrl)}}
                                     <div class="small text-info mb-2">
-                                        {{icon "info-circle" "me-1"}}
+                                        
                                         BIMI works without VMC! VMC (Verified Mark Certificate) requires a registered trademark. Small businesses can use BIMI with just a logo - it shows in Apple Mail and some providers. Gmail requires VMC.
                                     </div>
                                 {{else if mapGetBool "vmc_valid" $bimi}}
@@ -2731,7 +2731,7 @@
                                 {{$mpicNote := mapGetStr "mpic_note" $caa}}
                                 {{if $mpicNote}}
                                     <div class="mt-2 small text-muted">
-                                        {{icon "globe" "me-1"}}{{$mpicNote}}
+                                        {{$mpicNote}}
                                     </div>
                                 {{end}}
                                 {{end}}
@@ -2827,7 +2827,7 @@
                         {{if mapGetBool "found" $security_txt}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <p class="fw-semibold mb-2">{{icon "envelope" "me-1"}}Contact</p>
+                                <p class="fw-semibold mb-2">Contact</p>
                                 {{$contacts := mapGetSlice "contacts" $security_txt}}
                                 {{if $contacts}}
                                     {{range $c := $contacts}}
@@ -2838,7 +2838,7 @@
                                 {{end}}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <p class="fw-semibold mb-2">{{icon "clock" "me-1"}}Expires</p>
+                                <p class="fw-semibold mb-2">Expires</p>
                                 {{$expires := mapGetStr "expires" $security_txt}}
                                 {{if $expires}}
                                     <div class="code-block small mb-1">
@@ -2942,7 +2942,7 @@
                 <div class="card border-info">
                     <div class="card-header bg-info bg-opacity-10">
                         <h5 class="mb-0 d-flex align-items-center">
-                            {{icon "globe" "me-2 text-info"}}Web3 Name Resolution
+                            {{icon "globe" "me-2 text-accent-gold"}}Web3 Name Resolution
                             {{if mapGetStr "resolved_domain" $web3res}}
                             <span class="badge bg-success ms-2">Resolved</span>
                             {{else}}
@@ -3014,7 +3014,7 @@
                                 </div>
                                 {{else}}
                                 <div class="alert alert-info mb-0 small">
-                                    {{icon "info" "me-1"}}This Web3 name was resolved via <strong>{{mapGetStr "gateway" $web3res}}</strong> and the analysis below shows results for the resolved domain.
+                                    This Web3 name was resolved via <strong>{{mapGetStr "gateway" $web3res}}</strong> and the analysis below shows results for the resolved domain.
                                 </div>
                                 {{end}}
                             </div>
@@ -3056,7 +3056,7 @@
 
                         {{if $web3Indicators}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "search" "me-1"}} Web3 Indicators</h6>
+                            <h6 class="text-accent-gold">Web3 Indicators</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-dark mb-0">
                                     <thead><tr><th>Type</th><th>Evidence</th><th>Value</th><th>Description</th><th>Link</th></tr></thead>
@@ -3079,7 +3079,7 @@
                         {{$dnslinkCID := mapGetStr "dnslink_cid" $web3}}
                         {{if $dnslinkCID}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "link" "me-1"}} IPFS Content Addressing</h6>
+                            <h6 class="text-accent-gold">IPFS Content Addressing</h6>
                             <div class="small">
                                 <strong>CID:</strong> <code>{{$dnslinkCID}}</code>
                                 {{$dnslinkSrc := mapGetStr "dnslink_source" $web3}}
@@ -3109,7 +3109,7 @@
                         {{if $fleetProbe}}
                         {{$fleetConsensus := mapGetMap "consensus" $fleetProbe}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "server" "me-1"}} IPFS Fleet Probe — Distributed Verification</h6>
+                            <h6 class="text-accent-gold">IPFS Fleet Probe — Distributed Verification</h6>
                             <p class="small text-muted mb-2">Content availability verified from multiple independent vantage points via the Kali probe fleet.</p>
                             {{if $fleetConsensus}}
                             <div class="row g-2 mb-2">
@@ -3167,7 +3167,7 @@
                             {{$gwInfra := mapGetMap "gateway_infrastructure" $web3}}
                             {{if $gwInfra}}
                             <div class="mt-2">
-                                <h6 class="small text-info">{{icon "info" "me-1"}} Gateway Infrastructure Fingerprint</h6>
+                                <h6 class="small text-accent-gold">Gateway Infrastructure Fingerprint</h6>
                                 <div class="small text-muted">
                                     {{range $gw, $info := $gwInfra}}
                                     <div><code>{{$gw}}</code>: Server={{mapGetStr "server_values" $info}} TLS={{mapGetStr "tls_versions" $info}}</div>
@@ -3181,7 +3181,7 @@
                         {{$dnssecNote := mapGetStr "dnssec_trust_note" $web3}}
                         {{if $dnssecNote}}
                         <div class="mb-2">
-                            <h6 class="text-info">{{icon "shield-alt" "me-1"}} DNSSEC Trust Chain</h6>
+                            <h6 class="text-accent-gold">DNSSEC Trust Chain</h6>
                             <p class="small text-muted mb-0">{{$dnssecNote}}</p>
                         </div>
                         {{end}}
@@ -3226,7 +3226,7 @@
                         <!-- llms.txt Detection -->
                         {{if $aiLlms}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "file-alt" "me-1"}} llms.txt
+                            <h6 class="text-accent-gold">llms.txt
                                 <a href="https://llmstxt.org/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>llms.txt Community Convention</strong><br>Community convention (llmstxt.org) for providing structured LLM-readable context via Markdown. Defines llms.txt and llms-full.txt file formats for AI-readable site descriptions. Not an IETF standard.">{{icon "info-circle"}}<span class="rfc-label">llmstxt.org</span></a>
                             </h6>
                             <div class="protocol-question mb-2">
@@ -3276,7 +3276,7 @@
                         <!-- robots.txt AI Crawler Directives -->
                         {{if $aiRobots}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "ban" "me-1"}} AI Crawler Governance (robots.txt)
+                            <h6 class="text-accent-gold">AI Crawler Governance (robots.txt)
                                 <a href="https://datatracker.ietf.org/doc/html/rfc9309" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Robots Exclusion Protocol</strong><br>Formalizes robots.txt as the standard mechanism for controlling crawler access. AI-specific User-agent directives use this same protocol.">{{icon "info-circle"}}<span class="rfc-label">RFC 9309</span></a>
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>IETF working group draft (not yet ratified) defining Content-Usage directives for robots.txt and HTTP headers, enabling sites to express AI training and inference preferences.">{{icon "info-circle"}}<span class="rfc-label">IETF Draft</span></a>
                             </h6>
@@ -3326,7 +3326,7 @@
                         {{if $aiRobots}}
                         {{$contentUsage := mapGetMap "content_usage" $aiRobots}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "file-contract" "me-1"}} Content-Usage Directive
+                            <h6 class="text-accent-gold">Content-Usage Directive
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>Experimental directive allowing sites to express AI training and inference preferences via robots.txt. Adoption is emerging and enforcement varies by crawler.">{{icon "info-circle"}}<span class="rfc-label">IETF Draft</span></a>
                             </h6>
                             {{if and $contentUsage (mapGetBool "found" $contentUsage)}}
@@ -3352,7 +3352,7 @@
                                 <span class="badge bg-secondary">Not Configured</span>
                             </div>
                             <div class="alert alert-secondary py-2 small border-0 u-bg-subtle-muted">
-                                {{icon "info-circle" "me-1 text-info"}}
+                                
                                 <strong>No Content-Usage directive detected.</strong>
                                 The <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="text-info">IETF AI Preferences working group</a> is developing a <code>Content-Usage:</code> directive for robots.txt that lets site owners declare whether their content may be used for AI training and inference. This is an active draft, not yet a ratified standard.
                                 <div class="mt-2">
@@ -3367,7 +3367,7 @@
                         <!-- AI Recommendation Poisoning IOCs -->
                         {{if $aiPoisoning}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "biohazard" "me-1"}} AI Recommendation Poisoning</h6>
+                            <h6 class="text-accent-gold">AI Recommendation Poisoning</h6>
                             {{$iocCount := mapGetFloat "ioc_count" $aiPoisoning}}
                             <div class="protocol-question mb-2">
                                 <span class="protocol-question-text dt-question dt-question--protocol">Is this site trying to manipulate AI recommendations?</span>
@@ -3406,7 +3406,7 @@
                         <!-- Hidden Prompt Artifacts -->
                         {{if $aiHidden}}
                         <div class="mb-3">
-                            <h6 class="text-info">{{icon "eye-slash" "me-1"}} Hidden Prompt Artifacts</h6>
+                            <h6 class="text-accent-gold">Hidden Prompt Artifacts</h6>
                             {{$hiddenCount := mapGetFloat "artifact_count" $aiHidden}}
                             <div class="protocol-question mb-2">
                                 <span class="protocol-question-text dt-question dt-question--protocol">Is hidden prompt-injection text present in the source?</span>
@@ -3533,7 +3533,7 @@
                         </div>
                         {{end}}
                         <div class="mt-3 small text-muted">
-                            {{icon "info-circle" "me-1"}}
+                            
                             <strong>Remediation:</strong> (1) Rotate all exposed credentials immediately at the provider's dashboard. (2) Remove secrets from public-facing source code. (3) Use environment variables or a secrets manager instead. (4) Review git history for previously committed secrets.
                         </div>
                         {{else}}
@@ -3653,7 +3653,7 @@
 
                         {{$nmapNS := mapGetSlice "nameservers" $nmap_dns}}
                         {{if $nmapNS}}
-                        <p class="text-muted small mt-2 mb-0">{{icon "info-circle" "me-1"}}Tested nameserver{{if gt (len $nmapNS) 1}}s{{end}}: {{range $i, $ns := $nmapNS}}{{if $i}}, {{end}}<code>{{$ns}}</code>{{end}}</p>
+                        <p class="text-muted small mt-2 mb-0">Tested nameserver{{if gt (len $nmapNS) 1}}s{{end}}: {{range $i, $ns := $nmapNS}}{{if $i}}, {{end}}<code>{{$ns}}</code>{{end}}</p>
                         {{end}}
                     </div>
                 </div>
@@ -3910,7 +3910,7 @@
                             </div>
                         </div>
                         {{if mapGetStr "score_detail" $diversity}}
-                        <p class="text-muted small mt-2 mb-0">{{icon "info-circle" "me-1"}}{{mapGetStr "score_detail" $diversity}}</p>
+                        <p class="text-muted small mt-2 mb-0">{{mapGetStr "score_detail" $diversity}}</p>
                         {{end}}
                         {{end}}
                     </div>
@@ -4210,7 +4210,7 @@
                                 {{end}}
                             </ul>
                             {{else}}
-                            <p class="small text-muted mb-0">{{icon "info-circle" "me-1"}}No transport enforcement policies detected. Mail delivery relies on opportunistic STARTTLS, which is vulnerable to downgrade attacks (RFC 3207). Consider deploying MTA-STS (RFC 8461) or DANE (RFC 7672).</p>
+                            <p class="small text-muted mb-0">No transport enforcement policies detected. Mail delivery relies on opportunistic STARTTLS, which is vulnerable to downgrade attacks (RFC 3207). Consider deploying MTA-STS (RFC 8461) or DANE (RFC 7672).</p>
                             {{end}}
                         </div>
 
@@ -4363,7 +4363,7 @@
                             {{$inferNote := mapGetStr "inference_note" $smtp}}
                             {{if $inferNote}}
                             <div class="alert alert-info py-2 mb-3 small">
-                                {{icon "info-circle" "me-2"}}{{$inferNote}}
+                                {{$inferNote}}
                             </div>
                             {{end}}
                             {{$signals := mapGetSlice "inference_signals" $smtp}}
@@ -4785,7 +4785,7 @@
                                     </div>
                                     {{else}}
                                     <div class="small text-muted mb-2">
-                                        {{icon "info-circle" "me-1"}}
+                                        
                                         Domain does not use DNSSEC. Enable in your registrar's DNS settings (look for "DNSSEC" or "DS records" section).
                                     </div>
                                     {{end}}
@@ -5309,7 +5309,7 @@
                             {{end}}
                             <span class="badge bg-dark bg-opacity-25 text-muted fw-normal">{{icon "database" "me-1"}}Source: {{mapGetStr "source" $ct}}</span>
                         </div>
-                        <small class="text-muted">{{icon "info-circle" "me-1"}}{{mapGetStr "caveat" $ct}}</small>
+                        <small class="text-muted">{{mapGetStr "caveat" $ct}}</small>
                         {{$wildcardCerts := mapGetMap "wildcard_certs" $ct}}
                         {{if and $wildcardCerts (mapGetBool "present" $wildcardCerts)}}
                         <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 py-2 mt-2 mb-0 small">
@@ -5350,7 +5350,7 @@
                     {{$caSummary := mapGetSlice "ca_summary" $ct}}
                     {{if and $caSummary (gt (len $caSummary) 0)}}
                     <div class="alert alert-secondary bg-secondary bg-opacity-10 border-secondary border-opacity-25 py-2 mt-2 mb-2 small">
-                        {{icon "shield-alt" "me-1 text-info"}}
+                        
                         <strong>Certificate Authority Diversity</strong>
                         <span class="text-muted ms-1">({{len $caSummary}} CA{{if gt (len $caSummary) 1}}s{{end}} observed across CT log history)</span>
                         <div class="table-responsive mt-2">
@@ -5539,7 +5539,7 @@
                     </div>
                     {{else}}
                     <p class="text-muted mb-0 small">
-                        {{icon "info-circle" "me-1"}}
+                        
                         No subdomains found via Certificate Transparency logs, DNS probing, or CNAME chain traversal for this domain. No TLS certificates have been issued and no common service names resolve for subdomains of <strong>{{.Domain}}</strong>.
                     </p>
                     {{end}}
@@ -5550,12 +5550,12 @@
                     </p>
                     {{else if eq $ctStatus "not_available"}}
                     <p class="text-muted mb-0 small">
-                        {{icon "info-circle" "me-1"}}
+                        
                         Subdomain discovery data is not available for this older report. Re-analyze the domain to include CT log results.
                     </p>
                     {{else}}
                     <p class="text-muted mb-0 small">
-                        {{icon "shield-alt" "me-1"}}
+                        
                         Passive discovery using <strong>Certificate Transparency Logs</strong> — publicly auditable records of every TLS certificate ever issued.
                         {{$ctMessage := mapGetStr "message" $ct}}
                         {{if $ctMessage}}{{$ctMessage}}{{end}}
@@ -5633,7 +5633,7 @@
                 </div>
                 <div class="card-body">
                     <div class="text-muted">
-                        {{icon "info-circle" "me-2"}}Certificate Transparency subdomain enumeration is not applicable for registry suffixes. For <strong>{{.Domain}}</strong>, CT logs would show registered domains under this zone rather than organizational subdomains. To analyze a specific domain's exposure, scan a registrable domain like <code>example.{{.Domain}}</code>.
+                        Certificate Transparency subdomain enumeration is not applicable for registry suffixes. For <strong>{{.Domain}}</strong>, CT logs would show registered domains under this zone rather than organizational subdomains. To analyze a specific domain's exposure, scan a registrable domain like <code>example.{{.Domain}}</code>.
                     </div>
                 </div>
             </div>
@@ -5667,7 +5667,7 @@
                         <span class="ms-2 small text-muted">Resolver ≠ Authoritative (TTL / CDN rotation / recent change)</span>
                     </div>
                     <small class="text-warning-emphasis">
-                        {{icon "clock" "me-1"}}Risk: Low - typically resolves within TTL
+                        Risk: Low - typically resolves within TTL
                     </small>
                 </div>
                 {{else}}
@@ -5959,7 +5959,7 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="mb-1 u-color-text-bright">
-                            {{icon "diagram-project" "me-2 text-info"}}Intelligence Sources
+                            {{icon "diagram-project" "me-2 text-accent-gold"}}Intelligence Sources
                         </h6>
                         <p class="text-muted small mb-0">
                             This analysis used
@@ -6100,7 +6100,7 @@
                         <pre class="p-2 rounded small mb-0 u-code-block"><code>sha3sum -a 512 dns-intelligence-{{.AsciiDomain}}.json</code></pre>
                     </div>
                     <div class="small u-color-muted mt-2">
-                        {{icon "info-circle" "me-1"}}Compare the output against the <code class="u-color-link">.sha3</code> file or the checksum API at <code class="u-color-link">/api/analysis/{{.AnalysisID}}/checksum</code>. Hash algorithm: SHA-3-512 (Keccak, NIST FIPS 202).
+                        Compare the output against the <code class="u-color-link">.sha3</code> file or the checksum API at <code class="u-color-link">/api/analysis/{{.AnalysisID}}/checksum</code>. Hash algorithm: SHA-3-512 (Keccak, NIST FIPS 202).
                     </div>
                 </div>
             </div>
@@ -6147,7 +6147,7 @@
                     </div>
                     {{end}}
                     <div class="small mt-3 u-color-muted">
-                        {{icon "info-circle" "me-1"}}Commands use <code class="u-color-link">dig</code>, <code class="u-color-link">openssl</code>, and <code class="u-color-link">curl</code> &mdash; standard tools available on macOS, Linux, and WSL. Results may vary slightly due to DNS propagation timing and resolver caching.
+                        Commands use <code class="u-color-link">dig</code>, <code class="u-color-link">openssl</code>, and <code class="u-color-link">curl</code> &mdash; standard tools available on macOS, Linux, and WSL. Results may vary slightly due to DNS propagation timing and resolver caching.
                     </div>
                 </div>
             </div>
@@ -6898,7 +6898,7 @@
             const nudge = document.createElement('div');
             nudge.id = 'pwaInstallNudge';
             nudge.className = 'pwa-install-nudge';
-            nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-info"}}<span>Add DNS Tool to your device for quick access</span><button type="button" class="btn btn-sm btn-outline-info ms-3 pwa-install-btn" id="pwaInstallBtn">Install</button><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
+            nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-accent-gold"}}<span>Add DNS Tool to your device for quick access</span><button type="button" class="btn btn-sm btn-outline-info ms-3 pwa-install-btn" id="pwaInstallBtn">Install</button><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
             document.body.appendChild(nudge);
             requestAnimationFrame(function() { nudge.classList.add('show'); });
 
@@ -6926,7 +6926,7 @@
                     const nudge = document.createElement('div');
                     nudge.id = 'pwaInstallNudge';
                     nudge.className = 'pwa-install-nudge';
-                    nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-info"}}<span>Add to Home Screen: tap {{icon "share-square" "text-info"}} then &ldquo;Add to Home Screen&rdquo;</span><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
+                    nudge.innerHTML = '<div class="pwa-nudge-content">{{icon "mobile-alt" "me-2 text-accent-gold"}}<span>Add to Home Screen: tap {{icon "share-square" "text-info"}} then &ldquo;Add to Home Screen&rdquo;</span><button type="button" class="btn-close btn-close-white ms-2" id="pwaDismissBtn" aria-label="Dismiss"></button></div>';
                     document.body.appendChild(nudge);
                     requestAnimationFrame(function() { nudge.classList.add('show'); });
                     document.getElementById('pwaDismissBtn').addEventListener('click', function() {
@@ -7049,7 +7049,7 @@
     </div>
     {{if .DevNull}}
     <script nonce="{{.CspNonce}}">
-    console.log('%c > ./dns-tool --output /dev/null', 'color: #58a6ff; font-family: monospace; font-size: 14px; font-weight: bold;');
+    console.log('%c > ./dns-tool --output /dev/null', 'color: #c8956a; font-family: monospace; font-size: 14px; font-weight: bold;');
     console.log('%c Cause I\'m a hacker, baby, I\'m gonna pwn you good,\n Exploit bad config like you knew I would.\n Cite those RFCs, baby, so my argument stood,\n If it\'s not in 1034 — it ain\'t understood.', 'color: #8b949e; font-family: monospace; font-size: 11px;');
     console.log('%c Zero persistence. Full analysis. Standards over swagger.', 'color: #3fb950; font-family: monospace; font-size: 11px;');
     console.log('%c Passive OSINT only. No penetration, no exploitation, no unauthorized access.\n "Hacker" per RFC 1392: "A person who delights in having an intimate understanding\n of the internal workings of a system." That\'s us. That\'s always been us.', 'color: #484f58; font-family: monospace; font-size: 10px;');

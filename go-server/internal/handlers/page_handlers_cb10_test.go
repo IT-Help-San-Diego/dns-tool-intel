@@ -373,3 +373,35 @@ func TestCompareNotFoundIDs_CB10(t *testing.T) {
                 t.Fatalf("expected non-500, got %d", w.Code)
         }
 }
+
+func TestSignatureRawCSPNonce_CB10(t *testing.T) {
+        r := allTemplates()
+        cfg := testConfig()
+        h := handlers.NewSignatureHandler(cfg)
+        r.GET("/signature", h.SignaturePage)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest(http.MethodGet, "/signature?mode=raw", nil)
+        r.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d; body: %s", w.Code, w.Body.String())
+        }
+
+        csp := w.Header().Get("Content-Security-Policy")
+        if csp == "" {
+                t.Fatal("expected CSP header on signature raw endpoint")
+        }
+        if strings.Contains(csp, "unsafe-inline") {
+                t.Error("signature raw CSP must not contain unsafe-inline")
+        }
+        if !strings.Contains(csp, "style-src 'nonce-") {
+                t.Error("signature raw CSP must use nonce-based style-src")
+        }
+        if !strings.Contains(csp, "default-src 'none'") {
+                t.Error("signature raw CSP must have default-src 'none'")
+        }
+        if strings.Contains(csp, "img-src 'self' https:") {
+                t.Error("signature raw CSP img-src must not allow blanket https:")
+        }
+}

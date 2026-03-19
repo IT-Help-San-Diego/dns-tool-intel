@@ -71,6 +71,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         return func(c *gin.Context) {
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
+                        c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
                         c.Next()
                         return
                 }
@@ -133,6 +134,8 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
         frameSrc := "frame-src 'none'; "
         if c.Request.URL.Path == "/signature" {
                 frameSrc = "frame-src 'self'; "
+        } else if c.Request.URL.Path == "/video/forgotten-domain" {
+                frameSrc = "frame-src https://www.youtube-nocookie.com; "
         } else if replitWidget {
                 frameSrc = "frame-src https://replit.com https://*.replit.com; "
         }
@@ -152,7 +155,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                         "%s"+
                         "style-src 'self' 'nonce-%s'; "+
                         "font-src 'self'; "+
-                        "img-src 'self' data: blob: https:; "+
+                        "img-src 'self' data: blob:; "+
                         "%s"+
                         "%s"+
                         "base-uri 'none'; "+
