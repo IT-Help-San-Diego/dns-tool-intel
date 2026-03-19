@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Communication Standards — DNS Tool</title>
+<link rel="stylesheet" href="pdf-base.css">
+<style>
+  .gate-badge {
+    display: inline-block;
+    font-size: 7.5pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1pt 5pt;
+    border-radius: 2pt;
+    margin-right: 3pt;
+  }
+  .gate-clarity { background: #e3f2fd; color: #1565c0; }
+  .gate-vision { background: #e8f5e9; color: #2e7d32; }
+  .level-must {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    background: #fce4ec;
+    color: #c62828;
+  }
+  .level-should {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    background: #fff3e0;
+    color: #e65100;
+  }
+  .audience-block {
+    background: #fafaf8;
+    border: 0.5pt solid #e5e5e0;
+    border-left: 3pt solid #2e7d32;
+    padding: 8pt 12pt;
+    margin: 6pt 0;
+    break-inside: avoid;
+  }
+  .audience-block h4 { margin: 0 0 3pt 0; }
+  .checklist-item {
+    margin-bottom: 4pt;
+    padding-left: 14pt;
+    text-indent: -14pt;
+  }
+  .checklist-item::before {
+    content: "\2610  ";
+    color: #999;
+  }
+  .philosophy-tag { color: #b8860b; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="authority-header">
+  <div class="authority-logo">
+    <img src="../static/images/owl-signature.png" alt="Owl of Athena">
+  </div>
+
+  <div class="authority-title">
+    <h1>DNS Tool</h1>
+    <p class="subtitle">Communication Standards &mdash; Clarity &amp; Vision Quality Gate</p>
+  </div>
+
+  <div class="authority-meta">
+    <p class="author-name">Carey James Balboa</p>
+    <p class="author-role">Independent DNS Security Researcher</p>
+    <p>
+      <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a>&emsp;
+      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+      <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&emsp;
+      <span class="meta-label">Source</span>&ensp;<a href="https://github.com/careyjames/dns-tool-web">github.com/careyjames/dns-tool-web</a><br>
+      <span class="meta-label">Version</span>&ensp;26.37.35&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+    </p>
+    <p class="artifact-note">Companion to <a href="https://dnstool.it-help.tech/manifesto">Founder&rsquo;s Manifesto</a> and <a href="https://dnstool.it-help.tech/foundations">Philosophical Foundations</a></p>
+  </div>
+</div>
+
+<h2>1. Dual-Gate Requirement</h2>
+
+<p>Every piece of user-facing text must pass <strong>both</strong> gates simultaneously. Passing one gate but failing the other is a failure.</p>
+
+<h3>Gate 1: Clarity</h3>
+
+<p>The words chosen must be clear, communicative, and logical to the reader. Text should educate, not obscure.</p>
+
+<table>
+  <tr><th>Requirement</th><th>Level</th><th>Measurement</th></tr>
+  <tr><td>Jargon with first use</td><td><span class="level-must">MUST</span></td><td>Every acronym expanded on first use per page, or linked</td></tr>
+  <tr><td>Active voice</td><td><span class="level-should">SHOULD</span></td><td>Prefer &ldquo;The SPF record authorizes...&rdquo; over passive</td></tr>
+  <tr><td>Sentence length</td><td><span class="level-should">SHOULD</span></td><td>Body copy sentences should not exceed 35 words</td></tr>
+  <tr><td>One idea per paragraph</td><td><span class="level-should">SHOULD</span></td><td>Each paragraph should advance one concept</td></tr>
+  <tr><td>Action-oriented findings</td><td><span class="level-must">MUST</span></td><td>State what was observed, why it matters, what to do</td></tr>
+  <tr><td>RFC citation</td><td><span class="level-must">MUST</span></td><td>Claims about protocol behavior must cite specific RFC section</td></tr>
+  <tr><td>Transformative language</td><td><span class="level-should">SHOULD</span></td><td>Prefer language that teaches rather than restates</td></tr>
+</table>
+
+<h3>Gate 2: Vision</h3>
+
+<p>The visual presentation must not cause strain or impede comprehension. The reader&rsquo;s eyes matter.</p>
+
+<table>
+  <tr><th>Requirement</th><th>Level</th><th>Measurement</th></tr>
+  <tr><td>Minimum font size</td><td><span class="level-must">MUST</span></td><td>No rendered text below 0.75rem (12px)</td></tr>
+  <tr><td>Body text minimum</td><td><span class="level-should">SHOULD</span></td><td>Primary reading text at least 0.875rem (14px)</td></tr>
+  <tr><td>Contrast ratio (normal text)</td><td><span class="level-must">MUST</span></td><td>WCAG 2.1 AA: minimum 4.5:1 against background</td></tr>
+  <tr><td>Contrast ratio (large text)</td><td><span class="level-must">MUST</span></td><td>WCAG 2.1 AA: minimum 3:1 for 18px+ or 14px+ bold</td></tr>
+  <tr><td>Text overflow</td><td><span class="level-must">MUST</span></td><td>No text beyond container boundary</td></tr>
+  <tr><td>Line length</td><td><span class="level-should">SHOULD</span></td><td>Body text &le; 80 characters per line</td></tr>
+  <tr><td>Line height</td><td><span class="level-should">SHOULD</span></td><td>Body text at least 1.5 line-height</td></tr>
+  <tr><td>Scotopic mode</td><td><span class="level-must">MUST</span></td><td>Minimum 4.5:1 contrast against covert background (#0a0c10)</td></tr>
+  <tr><td>Focus indicators</td><td><span class="level-must">MUST</span></td><td>Visible focus indicators on all interactive elements</td></tr>
+</table>
+
+<h2>2. Audience Calibration</h2>
+
+<p>DNS Tool serves three primary audiences with different reading contexts:</p>
+
+<div class="audience-block">
+  <h4>The Engineer</h4>
+  <p><strong>Context:</strong> Analyzing a domain at a terminal, possibly at 2 AM, under incident pressure.<br>
+  <strong>Needs:</strong> Precision, RFC references, verification commands, machine-parseable output.<br>
+  <strong>Vision concern:</strong> Extended reading sessions on dark backgrounds. Font size and contrast directly affect error rate.</p>
+</div>
+
+<div class="audience-block">
+  <h4>The Executive</h4>
+  <p><strong>Context:</strong> Reading a brief before a board meeting or vendor assessment.<br>
+  <strong>Needs:</strong> Risk posture in business terms, remediation cost/complexity, decision points.<br>
+  <strong>Vision concern:</strong> May be reading on phone, tablet, or printed page. Layout must be responsive.</p>
+</div>
+
+<div class="audience-block">
+  <h4>The Older Professional</h4>
+  <p><strong>Context:</strong> 20+ years in infosec, may have age-related vision changes (presbyopia, reduced contrast sensitivity).<br>
+  <strong>Needs:</strong> Everything both audiences need, plus accommodation for reduced visual acuity.<br>
+  <strong>Vision concern:</strong> This is the primary reason the font-size floor exists. 10px text that &ldquo;looks fine&rdquo; to a 25-year-old developer may be unreadable to the 55-year-old CISO.</p>
+</div>
+
+<h2>3. Enforcement</h2>
+
+<h3>Automated Checks</h3>
+
+<table>
+  <tr><th>Check</th><th>Tool</th><th>Threshold</th></tr>
+  <tr><td>Font size floor</td><td>CSS audit</td><td>Zero sub-0.75rem values</td></tr>
+  <tr><td>Contrast ratio</td><td>squirrelscan</td><td>Zero errors</td></tr>
+  <tr><td>Text overflow</td><td>Manual viewport testing</td><td>No horizontal scrollbar at 375px, 768px, 1024px, 1440px</td></tr>
+  <tr><td>Heading hierarchy</td><td>squirrelscan</td><td>No skipped levels</td></tr>
+  <tr><td>Lighthouse accessibility</td><td>Chrome Lighthouse</td><td>Score &ge; 95</td></tr>
+</table>
+
+<h3>Manual Review Checklist</h3>
+
+<p class="checklist-item"><span class="gate-badge gate-clarity">Clarity</span> Can a non-technical executive understand the main finding within 10 seconds?</p>
+<p class="checklist-item"><span class="gate-badge gate-clarity">Clarity</span> Does every acronym have a first-use expansion or link?</p>
+<p class="checklist-item"><span class="gate-badge gate-clarity">Clarity</span> Does every security finding include a &ldquo;what to do&rdquo; action?</p>
+<p class="checklist-item"><span class="gate-badge gate-vision">Vision</span> At 50cm / 20&Prime;, can all text be read on a 13&Prime; laptop at 100% zoom?</p>
+<p class="checklist-item"><span class="gate-badge gate-vision">Vision</span> In scotopic mode, does all text pass WCAG AA contrast (4.5:1)?</p>
+<p class="checklist-item"><span class="gate-badge gate-vision">Vision</span> On a 375px mobile viewport, does all content fit without horizontal scroll?</p>
+<p class="checklist-item"><span class="gate-badge gate-vision">Vision</span> Are interactive elements large enough for touch targets (44&times;44px)?</p>
+
+<h2>4. CSS Reference Values</h2>
+
+<p>Enforced values as of v26.37.35:</p>
+
+<table>
+  <tr><th>Property</th><th>Value</th><th>Contrast Ratio</th><th>Standard</th></tr>
+  <tr><td>Font size floor</td><td><code>0.75rem</code> (12px)</td><td>&mdash;</td><td>All <code>.u-fs-*</code> utility classes enforce this minimum</td></tr>
+  <tr><td><code>.text-muted</code></td><td><code>#9ca3af</code> on <code>#0d1117</code></td><td>~7.45:1</td><td>WCAG AA (requires 4.5:1)</td></tr>
+  <tr><td><code>.card.bg-dark .text-muted</code></td><td><code>#adb5bd</code> on <code>#21262d</code></td><td>~8.8:1</td><td>WCAG AA</td></tr>
+  <tr><td>Secondary text minimum</td><td><code>#8b949e</code> on <code>#0d1117</code></td><td>~6.15:1</td><td>Replaces prior <code>#6c757d</code> (~4.04:1)</td></tr>
+</table>
+
+<h2>5. Connection to Project Philosophy</h2>
+
+<p><span class="philosophy-tag">[ACCOUNTABILITY]</span> &mdash; If the text is unreadable, the finding is unaccountable: it exists but cannot be acted upon.</p>
+
+<p><span class="philosophy-tag">[ZERO_WASTE]</span> &mdash; Text that cannot be read is wasted: it consumes space without delivering value.</p>
+
+<p><span class="philosophy-tag">[VERBOSE+++++]</span> &mdash; Clarity does not mean brevity. It means every word earns its place by advancing the reader&rsquo;s understanding.</p>
+
+<p><strong>Vision as Ethics</strong> &mdash; Causing eye strain to a reader who came for security intelligence is a design failure with real consequences.</p>
+
+<div class="footer">
+  <p>&ldquo;A score without a citation is an opinion. A finding without readability is invisible.&rdquo;</p>
+  <p>&copy; 2024&ndash;2026 IT Help San Diego Inc. &mdash; <a href="https://dnstool.it-help.tech">DNS Security Intelligence</a></p>
+  <p><strong>Related documents:</strong>
+    <a href="https://dnstool.it-help.tech/manifesto">Founder&rsquo;s Manifesto</a> &middot;
+    <a href="https://dnstool.it-help.tech/foundations">Philosophical Foundations</a> &middot;
+    <a href="https://dnstool.it-help.tech/methodology">Methodology Paper</a>
+  </p>
+</div>
+
+</body>
+</html>

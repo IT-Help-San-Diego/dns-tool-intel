@@ -98,6 +98,20 @@ func (h *StaticHandler) FoundationsPDF(c *gin.Context) {
         c.File(filepath.Join(h.StaticDir, "docs", "philosophical-foundations.pdf"))
 }
 
+func (h *StaticHandler) ManifestoPDF(c *gin.Context) {
+        c.Header(headerContentType, "application/pdf")
+        c.Header(headerCacheControl, cachePublicDay)
+        c.Header("Content-Disposition", "inline; filename=\"founders-manifesto.pdf\"")
+        c.File(filepath.Join(h.StaticDir, "docs", "founders-manifesto.pdf"))
+}
+
+func (h *StaticHandler) CommStandardsPDF(c *gin.Context) {
+        c.Header(headerContentType, "application/pdf")
+        c.Header(headerCacheControl, cachePublicDay)
+        c.Header("Content-Disposition", "inline; filename=\"communication-standards.pdf\"")
+        c.File(filepath.Join(h.StaticDir, "docs", "communication-standards.pdf"))
+}
+
 func (h *StaticHandler) SitemapXML(c *gin.Context) {
         today := time.Now().Format("2006-01-02")
 

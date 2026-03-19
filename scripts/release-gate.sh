@@ -97,6 +97,14 @@ info "Gate 7b: Philosophical Foundations PDF regeneration"
 bash scripts/generate-foundations-pdf.sh "$VERSION"
 pass "Philosophical Foundations PDF regenerated"
 
+info "Gate 7c: Founder's Manifesto PDF regeneration"
+bash scripts/generate-manifesto-pdf.sh "$VERSION"
+pass "Founder's Manifesto PDF regenerated"
+
+info "Gate 7d: Communication Standards PDF regeneration"
+bash scripts/generate-comm-standards-pdf.sh "$VERSION"
+pass "Communication Standards PDF regenerated"
+
 info "Gate 8: Go tests"
 TEST_OUTPUT=$(go test ./go-server/... -count=1 -short -timeout 120s 2>&1) || true
 FAILED_TESTS=$(echo "$TEST_OUTPUT" | grep -E "^--- FAIL:" || true)
