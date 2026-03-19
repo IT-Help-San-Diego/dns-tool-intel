@@ -302,6 +302,9 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 1rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
         .bsi-census-card {
             text-align: center;
@@ -530,6 +533,7 @@
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "shield-halved" "me-1"}} Severity Classification</h2>
             <table class="bsi-classification-table" aria-label="Severity level definitions">
+                <thead><tr><th class="visually-hidden">Severity</th><th class="visually-hidden">Description</th></tr></thead>
                 <tbody>
                     <tr>
                         <td><span class="bsi-badge bsi-badge-s0">S0</span></td>
@@ -557,42 +561,42 @@
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Census</h2>
-            <div class="bsi-census-grid" role="list" aria-label="Findings census by severity">
-                <div class="bsi-census-card" role="listitem">
+            <ul class="bsi-census-grid" aria-label="Findings census by severity">
+                <li class="bsi-census-card">
                     <div class="bsi-census-count bsi-sev-s0">{{.S0Count}}</div>
                     <div class="bsi-census-label">S0 Red Notice</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count bsi-sev-s1">{{.S1Count}}</div>
                     <div class="bsi-census-label">S1 Critical</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count bsi-sev-s2">{{.S2Count}}</div>
                     <div class="bsi-census-label">S2 Major</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count bsi-sev-s3">{{.S3Count}}</div>
                     <div class="bsi-census-label">S3 Contained</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count bsi-sev-s4">{{.S4Count}}</div>
                     <div class="bsi-census-label">S4 Minor</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count" style="color:#c9d1d9">{{.TotalCount}}</div>
                     <div class="bsi-census-label">Total Detained</div>
-                </div>
-            </div>
-            <div class="bsi-census-grid mt-3" role="list" aria-label="Findings census by status">
-                <div class="bsi-census-card" role="listitem">
+                </li>
+            </ul>
+            <ul class="bsi-census-grid mt-3" aria-label="Findings census by status">
+                <li class="bsi-census-card">
                     <div class="bsi-census-count" style="color:#f85149">{{.DetainedCount}}</div>
                     <div class="bsi-census-label">Detained</div>
-                </div>
-                <div class="bsi-census-card" role="listitem">
+                </li>
+                <li class="bsi-census-card">
                     <div class="bsi-census-count" style="color:#3fb950">{{.RenderedCount}}</div>
                     <div class="bsi-census-label">Rendered</div>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
 
         {{if .S0Findings}}

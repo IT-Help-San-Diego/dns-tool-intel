@@ -21,7 +21,7 @@
 
 function parseIcon(html) {
     if (!html) return document.createTextNode('');
-    var doc = new DOMParser().parseFromString(html, 'text/html');
+    let doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.firstElementChild || document.createTextNode('');
 }
 
@@ -127,25 +127,25 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    var topoEl = document.getElementById('scanTopology');
+    let topoEl = document.getElementById('scanTopology');
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
     }
 }
 
-var PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
-var PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
-var SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
-var CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
-var CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
-var RESOLVER_KEYS = ['cf','g','q9','od','eu'];
-var RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
+const PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
+const PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
+const SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
+const CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
+const CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
+const RESOLVER_KEYS = ['cf','g','q9','od','eu'];
+const RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
 
 function updateResolverDots(topoEl, dnsStatus) {
     RESOLVER_KEYS.forEach(function(rk) {
-        var dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
-        var lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
-        var labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
+        let dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
+        let lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
+        let labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
         dots.forEach(function(d) {
             d.classList.remove('res-running');
             RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
@@ -167,20 +167,20 @@ function updateResolverDots(topoEl, dnsStatus) {
 }
 
 function updateTopologyFromProgress(data) {
-    var topoEl = document.getElementById('scanTopology');
-    if (!topoEl || !data || !data.phases) return;
-    var phases = data.phases;
-    var dnsPhase = phases['dns_records'];
+    let topoEl = document.getElementById('scanTopology');
+    if (!topoEl || !data?.phases) return;
+    let phases = data.phases;
+    let dnsPhase = phases['dns_records'];
     if (dnsPhase) {
         updateResolverDots(topoEl, dnsPhase.status);
     }
     Object.keys(phases).forEach(function(group) {
-        var info = phases[group];
-        var node = topoEl.querySelector('[data-phase="' + group + '"]');
-        var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
-        var taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
+        let info = phases[group];
+        let node = topoEl.querySelector('[data-phase="' + group + '"]');
+        let durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        let taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
         if (!node) return;
-        var pkey = node.getAttribute('data-pkey') || 'dns';
+        let pkey = node.dataset.pkey || 'dns';
         node.classList.remove('phase-running', 'phase-done');
         PHASE_DONE_CLASSES.forEach(function(c) { node.classList.remove(c); });
         PHASE_RUNNING_CLASSES.forEach(function(c) { node.classList.remove(c); });
@@ -199,7 +199,7 @@ function updateTopologyFromProgress(data) {
                 durEl.classList.add('visible');
             }
             topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.getAttribute('data-from') === group) {
+                if (line.dataset.from === group) {
                     line.classList.remove('active');
                     CONN_ACTIVE_CLASSES.forEach(function(c) { line.classList.remove(c); });
                     line.classList.add('complete', 'conn-done-' + pkey);
@@ -209,7 +209,7 @@ function updateTopologyFromProgress(data) {
             node.classList.add('phase-running', 'phase-running-' + pkey);
             if (taskEl) taskEl.classList.add('sub-running-' + pkey);
             topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.getAttribute('data-from') === group) {
+                if (line.dataset.from === group) {
                     line.classList.add('active', 'conn-active-' + pkey);
                 }
             });
@@ -218,8 +218,8 @@ function updateTopologyFromProgress(data) {
 }
 
 function startProgressPolling(token, overlay, analyzeBtn) {
-    var failures = 0;
-    var pollId = setInterval(function() {
+    let failures = 0;
+    let pollId = setInterval(function() {
         fetch('/api/scan/progress/' + token).then(function(resp) {
             if (!resp.ok) { failures++; return null; }
             failures = 0;
@@ -236,7 +236,7 @@ function startProgressPolling(token, overlay, analyzeBtn) {
             if (data.status === 'failed') {
                 clearInterval(pollId);
                 hideOverlayAndReset(overlay, analyzeBtn);
-                var msg = data.error || 'Analysis failed. Please try again.';
+                let msg = data.error || 'Analysis failed. Please try again.';
                 showFlashAlert(msg, overlay ? overlay.parentNode : document.body);
                 return;
             }
@@ -294,17 +294,17 @@ function hideOverlayAndReset(overlay, btn) {
 }
 
 function showFlashAlert(message, container) {
-    var flash = document.createElement('div');
+    let flash = document.createElement('div');
     flash.className = 'alert alert-warning alert-dismissible fade show mt-3';
     flash.role = 'alert';
     flash.textContent = message;
-    var closeBtn = document.createElement('button');
+    let closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'btn-close';
     closeBtn.dataset.bsDismiss = 'alert';
     flash.appendChild(closeBtn);
-    var target = container || document.body;
-    var form = target.querySelector('#domainForm');
+    let target = container || document.body;
+    let form = target.querySelector('#domainForm');
     if (form && form.parentNode) {
         form.parentNode.insertBefore(flash, form);
     } else {
@@ -313,7 +313,7 @@ function showFlashAlert(message, container) {
 }
 
 function resetTopologyNodes() {
-    var topoEl = document.getElementById('scanTopology');
+    let topoEl = document.getElementById('scanTopology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
     topoEl.querySelectorAll('.topo-node').forEach(function(n) {
@@ -637,7 +637,7 @@ function persistPrivacyDismiss() {
     try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
 }
 function initPrivacyBanner() {
-    var banner = document.getElementById('privacyBanner');
+    let banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
     if (privacyWasDismissed()) { banner.remove(); return; }
     function dismissBanner(e) {
@@ -646,7 +646,7 @@ function initPrivacyBanner() {
         banner.classList.add('d-none');
         if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
-    var acceptBtn = document.getElementById('privacyAccept');
+    let acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
         acceptBtn.onclick = dismissBanner;
     }
@@ -658,8 +658,8 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var privToggle = document.getElementById('privacyToggle');
-    var privDetail = document.getElementById('privacyDetail');
+    let privToggle = document.getElementById('privacyToggle');
+    let privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
         function togglePrivacy() { privDetail.classList.toggle('d-none'); }
         privToggle.addEventListener('click', togglePrivacy);
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
-            var ic = b.querySelector('.icon');
+            let ic = b.querySelector('.icon');
             if (fsEl) {
                 if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.compress)); }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
@@ -866,11 +866,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
-                var flash = document.createElement('div');
+                let flash = document.createElement('div');
                 flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
                 flash.role = 'alert';
                 flash.textContent = 'Network error \u2014 please check your connection and try again.';
-                var closeBtn = document.createElement('button');
+                let closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.className = 'btn-close';
                 closeBtn.dataset.bsDismiss = 'alert';
