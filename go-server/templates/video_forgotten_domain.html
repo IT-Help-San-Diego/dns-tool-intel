@@ -214,7 +214,9 @@
         <div class="video-page-wrap">
             <div class="video-container">
                 {{if .YouTubeID}}
-                <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
+                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden">
+                    <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
+                </div>
                 {{else}}
                 <video controls preload="metadata" playsinline poster="/static/images/og-forgotten-domain.png" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
                     <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
