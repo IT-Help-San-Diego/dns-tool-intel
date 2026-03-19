@@ -16,8 +16,13 @@
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:alt" content="DNS Tool - Forgotten Domain">
     <meta property="og:site_name" content="DNS Tool">
+    {{if .YouTubeID}}
+    <meta property="og:video" content="https://www.youtube.com/embed/{{.YouTubeID}}">
+    <meta property="og:video:type" content="text/html">
+    {{else}}
     <meta property="og:video" content="https://dnstool.it-help.tech/static/video/forgotten-domain.mp4">
     <meta property="og:video:type" content="video/mp4">
+    {{end}}
     <meta property="og:video:width" content="1920">
     <meta property="og:video:height" content="1080">
     <meta name="twitter:card" content="player">
@@ -39,7 +44,11 @@
         "thumbnailUrl": "https://dnstool.it-help.tech/static/images/og-forgotten-domain.png",
         "uploadDate": "2026-02-14",
         "contentUrl": "https://dnstool.it-help.tech/static/video/forgotten-domain.mp4",
+        {{if .YouTubeID}}
+        "embedUrl": "https://www.youtube.com/embed/{{.YouTubeID}}",
+        {{else}}
         "embedUrl": "https://dnstool.it-help.tech/video/forgotten-domain",
+        {{end}}
         "duration": "PT1M",
         "encodingFormat": "video/mp4",
         "inLanguage": "en",
@@ -71,6 +80,12 @@
             display: block;
             width: 100%;
             height: auto;
+        }
+        .video-container iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
         }
         .video-meta {
             margin-top: 1.5rem;
@@ -139,6 +154,57 @@
             color: #8b949e;
             font-weight: 600;
         }
+        .share-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(200,149,106,0.1);
+        }
+        .share-bar-label {
+            font-size: 0.78rem;
+            color: #8b949e;
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #c9d1d9;
+            background: rgba(200,149,106,0.08);
+            border: 1px solid rgba(200,149,106,0.15);
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+        .share-btn:hover {
+            background: rgba(200,149,106,0.15);
+            border-color: rgba(200,149,106,0.3);
+            color: #d4a853;
+        }
+        .share-btn-yt {
+            color: #ff4444;
+            border-color: rgba(255,68,68,0.2);
+            background: rgba(255,68,68,0.06);
+        }
+        .share-btn-yt:hover {
+            background: rgba(255,68,68,0.12);
+            border-color: rgba(255,68,68,0.35);
+            color: #ff6666;
+        }
+        .share-copied {
+            background: rgba(46,160,67,0.15);
+            border-color: #2ea043;
+            color: #7ee787;
+        }
     </style>
 </head>
 <body>
@@ -147,11 +213,15 @@
     <main id="main-content" class="container mt-4 mb-5">
         <div class="video-page-wrap">
             <div class="video-container">
+                {{if .YouTubeID}}
+                <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
+                {{else}}
                 <video controls preload="metadata" playsinline poster="/static/images/og-forgotten-domain.png" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
                     <source src="/static/video/forgotten-domain.mp4" type="video/mp4">
                     <track kind="captions" src="/static/video/forgotten-domain-captions.vtt" srclang="en" label="English">
                     Your browser does not support the video tag.
                 </video>
+                {{end}}
             </div>
 
             <div class="video-meta">
@@ -166,6 +236,17 @@
 
                 <p class="mt-3">If a domain sends no mail, publish SPF <code>-all</code>, DMARC <code>reject</code>, and Null MX. Silence is not protection.</p>
 
+                <div class="share-bar">
+                    <span class="share-bar-label">{{icon "share-alt"}} Share:</span>
+                    <button type="button" class="share-btn" id="copyLinkBtn" aria-label="Copy link to clipboard">{{icon "link"}} Copy Link</button>
+                    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain&text=A%20domain%20with%20no%20published%20mail%20policy%20is%20not%20dormant%20%E2%80%94%20it%20is%20exposed.%20Three%20DNS%20records%20separate%20protection%20from%20impersonation." class="share-btn" target="_blank" rel="noopener noreferrer" aria-label="Share on X (Twitter)">{{icon "twitter"}} Post</a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">{{icon "linkedin"}} Share</a>
+                    <a href="mailto:?subject=Forgotten%20Domain%20%E2%80%94%20DNS%20Tool&body=A%20domain%20with%20no%20published%20mail%20policy%20is%20not%20dormant%20%E2%80%94%20it%20is%20exposed.%0A%0Ahttps%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn" aria-label="Share via email">{{icon "envelope"}} Email</a>
+                    {{if .YouTubeID}}
+                    <a href="https://www.youtube.com/watch?v={{.YouTubeID}}" class="share-btn share-btn-yt" target="_blank" rel="noopener noreferrer" aria-label="Watch on YouTube">{{icon "play-circle"}} Watch on YouTube</a>
+                    {{end}}
+                </div>
+
                 <div class="video-cta">
                     <a href="/" class="cta-primary">{{icon "search"}} Scan Your Domain</a>
                     <a href="/approach" class="cta-secondary">{{icon "flask"}} Our Methodology</a>
@@ -176,5 +257,24 @@
 
     {{template "footer" .}}
     {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function() {
+        var btn = document.getElementById('copyLinkBtn');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+            var url = 'https://dnstool.it-help.tech/video/forgotten-domain';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function() {
+                    btn.classList.add('share-copied');
+                    btn.textContent = 'Copied!';
+                    setTimeout(function() {
+                        btn.classList.remove('share-copied');
+                        btn.innerHTML = '{{icon "link"}} Copy Link';
+                    }, 2000);
+                });
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
