@@ -21,7 +21,7 @@
 
 function parseIcon(html) {
     if (!html) return document.createTextNode('');
-    let doc = new DOMParser().parseFromString(html, 'text/html');
+    var doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.firstElementChild || document.createTextNode('');
 }
 
@@ -127,25 +127,25 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    let topoEl = document.getElementById('scanTopology');
+    var topoEl = document.getElementById('scanTopology');
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
     }
 }
 
-const PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
-const PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
-const SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
-const CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
-const CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
-const RESOLVER_KEYS = ['cf','g','q9','od','eu'];
-const RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
+var PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
+var PHASE_RUNNING_CLASSES = ['phase-running-dns','phase-running-email','phase-running-dnssec','phase-running-ct','phase-running-smtp','phase-running-policy','phase-running-registrar','phase-running-engine','phase-running-web3'];
+var SUB_RUNNING_CLASSES = ['sub-running-dns','sub-running-email','sub-running-dnssec','sub-running-ct','sub-running-smtp','sub-running-policy','sub-running-registrar','sub-running-engine','sub-running-web3'];
+var CONN_DONE_CLASSES = ['conn-done-dns','conn-done-email','conn-done-dnssec','conn-done-ct','conn-done-smtp','conn-done-policy','conn-done-registrar','conn-done-engine','conn-done-web3'];
+var CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-dnssec','conn-active-ct','conn-active-smtp','conn-active-policy','conn-active-registrar','conn-active-engine','conn-active-web3'];
+var RESOLVER_KEYS = ['cf','g','q9','od','eu'];
+var RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
 
 function updateResolverDots(topoEl, dnsStatus) {
     RESOLVER_KEYS.forEach(function(rk) {
-        let dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
-        let lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
-        let labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
+        var dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
+        var lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
+        var labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
         dots.forEach(function(d) {
             d.classList.remove('res-running');
             RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
@@ -167,20 +167,20 @@ function updateResolverDots(topoEl, dnsStatus) {
 }
 
 function updateTopologyFromProgress(data) {
-    let topoEl = document.getElementById('scanTopology');
-    if (!topoEl || !data?.phases) return;
-    let phases = data.phases;
-    let dnsPhase = phases['dns_records'];
+    var topoEl = document.getElementById('scanTopology');
+    if (!topoEl || !data || !data.phases) return;
+    var phases = data.phases;
+    var dnsPhase = phases['dns_records'];
     if (dnsPhase) {
         updateResolverDots(topoEl, dnsPhase.status);
     }
     Object.keys(phases).forEach(function(group) {
-        let info = phases[group];
-        let node = topoEl.querySelector('[data-phase="' + group + '"]');
-        let durEl = topoEl.querySelector('[data-dur="' + group + '"]');
-        let taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
+        var info = phases[group];
+        var node = topoEl.querySelector('[data-phase="' + group + '"]');
+        var durEl = topoEl.querySelector('[data-dur="' + group + '"]');
+        var taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
         if (!node) return;
-        let pkey = node.dataset.pkey || 'dns';
+        var pkey = node.getAttribute('data-pkey') || 'dns';
         node.classList.remove('phase-running', 'phase-done');
         PHASE_DONE_CLASSES.forEach(function(c) { node.classList.remove(c); });
         PHASE_RUNNING_CLASSES.forEach(function(c) { node.classList.remove(c); });
@@ -199,7 +199,7 @@ function updateTopologyFromProgress(data) {
                 durEl.classList.add('visible');
             }
             topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.dataset.from === group) {
+                if (line.getAttribute('data-from') === group) {
                     line.classList.remove('active');
                     CONN_ACTIVE_CLASSES.forEach(function(c) { line.classList.remove(c); });
                     line.classList.add('complete', 'conn-done-' + pkey);
@@ -209,7 +209,7 @@ function updateTopologyFromProgress(data) {
             node.classList.add('phase-running', 'phase-running-' + pkey);
             if (taskEl) taskEl.classList.add('sub-running-' + pkey);
             topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.dataset.from === group) {
+                if (line.getAttribute('data-from') === group) {
                     line.classList.add('active', 'conn-active-' + pkey);
                 }
             });
@@ -218,8 +218,8 @@ function updateTopologyFromProgress(data) {
 }
 
 function startProgressPolling(token, overlay, analyzeBtn) {
-    let failures = 0;
-    let pollId = setInterval(function() {
+    var failures = 0;
+    var pollId = setInterval(function() {
         fetch('/api/scan/progress/' + token).then(function(resp) {
             if (!resp.ok) { failures++; return null; }
             failures = 0;
@@ -236,7 +236,7 @@ function startProgressPolling(token, overlay, analyzeBtn) {
             if (data.status === 'failed') {
                 clearInterval(pollId);
                 hideOverlayAndReset(overlay, analyzeBtn);
-                let msg = data.error || 'Analysis failed. Please try again.';
+                var msg = data.error || 'Analysis failed. Please try again.';
                 showFlashAlert(msg, overlay ? overlay.parentNode : document.body);
                 return;
             }
@@ -294,17 +294,17 @@ function hideOverlayAndReset(overlay, btn) {
 }
 
 function showFlashAlert(message, container) {
-    let flash = document.createElement('div');
+    var flash = document.createElement('div');
     flash.className = 'alert alert-warning alert-dismissible fade show mt-3';
     flash.role = 'alert';
     flash.textContent = message;
-    let closeBtn = document.createElement('button');
+    var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'btn-close';
     closeBtn.dataset.bsDismiss = 'alert';
     flash.appendChild(closeBtn);
-    let target = container || document.body;
-    let form = target.querySelector('#domainForm');
+    var target = container || document.body;
+    var form = target.querySelector('#domainForm');
     if (form && form.parentNode) {
         form.parentNode.insertBefore(flash, form);
     } else {
@@ -313,7 +313,7 @@ function showFlashAlert(message, container) {
 }
 
 function resetTopologyNodes() {
-    let topoEl = document.getElementById('scanTopology');
+    var topoEl = document.getElementById('scanTopology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
     topoEl.querySelectorAll('.topo-node').forEach(function(n) {
@@ -529,11 +529,26 @@ function markROEAccepted() {
     try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
+var _morseAudio = null;
+function _ensureMorseAudio() {
+    if (!_morseAudio) {
+        try {
+            _morseAudio = new Audio('/static/audio/morse-hack-the-planet.m4a');
+            _morseAudio.volume = 0.4;
+            _morseAudio.preload = 'auto';
+        } catch(_e) { /* Audio API unavailable */ } // NOSONAR
+    }
+    return _morseAudio;
+}
 function playMorseEasterEgg() {
     try {
-        const a = new Audio('/static/audio/morse-hack-the-planet.m4a');
-        a.volume = 0.4;
-        a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
+        var a = _ensureMorseAudio();
+        if (a) {
+            a.currentTime = 0;
+            a.play().catch(function(err) {
+                console.warn('Morse audio blocked by autoplay policy:', err.message);
+            });
+        }
     } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
 }
 
@@ -598,6 +613,7 @@ function activateCovertOrSwitch() {
         const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
         if (aid && (cur === 'E' || cur === 'C')) {
             const target = cur === 'E' ? 'C' : 'E';
+            try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
             globalThis.location.href = '/analysis/' + aid + '/view/' + target;
             return;
         }
@@ -637,7 +653,7 @@ function persistPrivacyDismiss() {
     try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
 }
 function initPrivacyBanner() {
-    let banner = document.getElementById('privacyBanner');
+    var banner = document.getElementById('privacyBanner');
     if (!banner) { return; }
     if (privacyWasDismissed()) { banner.remove(); return; }
     function dismissBanner(e) {
@@ -646,7 +662,7 @@ function initPrivacyBanner() {
         banner.classList.add('d-none');
         if (banner.parentNode) { banner.parentNode.removeChild(banner); }
     }
-    let acceptBtn = document.getElementById('privacyAccept');
+    var acceptBtn = document.getElementById('privacyAccept');
     if (acceptBtn) {
         acceptBtn.onclick = dismissBanner;
     }
@@ -658,8 +674,46 @@ function initPrivacyBanner() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let privToggle = document.getElementById('privacyToggle');
-    let privDetail = document.getElementById('privacyDetail');
+    try {
+        var savedY = sessionStorage.getItem('covert_scroll_y');
+        if (savedY !== null) {
+            sessionStorage.removeItem('covert_scroll_y');
+            var y = parseInt(savedY, 10);
+            if (!isNaN(y) && y > 0) { globalThis.scrollTo(0, y); }
+        }
+    } catch(e) {}
+
+    document.addEventListener('click', function() { _ensureMorseAudio(); }, { once: true });
+
+    var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function globeMotion() {
+        var at = document.querySelector('.globe-meridians animateTransform');
+        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    }
+    globeMotion();
+    rmq.addEventListener('change', globeMotion);
+
+    var csvEl = document.getElementById('caseStudyVideo');
+    if (csvEl) {
+        csvEl.addEventListener('error', function() {
+            var w = csvEl.closest('.approach-video-wrapper');
+            if (w) {
+                var msg = document.createElement('div');
+                msg.style.cssText = 'text-align:center;padding:1.5rem;color:rgba(170,178,188,0.7);font-size:0.85rem';
+                msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download directly</a>.';
+                csvEl.replaceWith(msg);
+            }
+        }, true);
+        var src = csvEl.querySelector('source');
+        if (src) {
+            src.addEventListener('error', function() {
+                csvEl.dispatchEvent(new Event('error'));
+            });
+        }
+    }
+
+    var privToggle = document.getElementById('privacyToggle');
+    var privDetail = document.getElementById('privacyDetail');
     if (privToggle && privDetail) {
         function togglePrivacy() { privDetail.classList.toggle('d-none'); }
         privToggle.addEventListener('click', togglePrivacy);
@@ -713,6 +767,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setCovertMode(false);
                     const psMeta = document.querySelector('meta[name="x-public-suffix"]');
                     const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(e) {}
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }
@@ -755,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
         fsBtns.forEach(function(b) {
-            let ic = b.querySelector('.icon');
+            var ic = b.querySelector('.icon');
             if (fsEl) {
                 if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.compress)); }
                 b.setAttribute('title', 'Exit Focus Mode (Esc)');
@@ -866,11 +921,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(function() {
                 hideOverlayAndReset(overlay, analyzeBtn);
                 analysisSubmitted = false;
-                let flash = document.createElement('div');
+                var flash = document.createElement('div');
                 flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
                 flash.role = 'alert';
                 flash.textContent = 'Network error \u2014 please check your connection and try again.';
-                let closeBtn = document.createElement('button');
+                var closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.className = 'btn-close';
                 closeBtn.dataset.bsDismiss = 'alert';
@@ -916,14 +971,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
         anchor.addEventListener('click', function(e) {
+            if (this.hasAttribute('data-bs-toggle')) return;
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+            var href = this.getAttribute('href');
+            if (!href || href === '#') return;
+            try {
+                var target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            } catch(_e) { /* invalid selector */ } // NOSONAR
         });
     });
     

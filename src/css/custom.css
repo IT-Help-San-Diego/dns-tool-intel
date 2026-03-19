@@ -1049,8 +1049,13 @@ main.container {
 
 .code-block:hover .copy-btn,
 .code-block:focus-within .copy-btn,
-.code-block .copy-btn:focus {
+.code-block .copy-btn:focus,
+.code-block .copy-btn:focus-visible {
     opacity: 1;
+}
+.code-block .copy-btn:focus-visible {
+    outline: 2px solid var(--status-info);
+    outline-offset: 2px;
 }
 
 .code-block .copy-btn:hover {
@@ -1156,6 +1161,33 @@ main.container {
 .card.bg-dark:hover {
     transform: translateY(-1px);
     box-shadow: 0 0 0 1px rgba(139, 148, 158, 0.12), 0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.border-accent-gold-muted {
+    border-color: var(--accent-gold-muted) !important;
+}
+.card.border-accent-gold-muted {
+    box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.08), 0 2px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(201, 168, 76, 0.06);
+}
+.card.border-accent-gold-muted:hover {
+    border-color: rgba(201, 168, 76, 0.5) !important;
+    box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.12), 0 4px 20px rgba(201, 168, 76, 0.08), 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.card.border-primary.bg-primary.bg-opacity-10 {
+    background: rgba(22, 27, 34, 0.65) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    --bs-bg-opacity: 1;
+    border-color: rgba(13, 110, 253, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.08), 0 2px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(13, 110, 253, 0.06);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.card.border-primary.bg-primary.bg-opacity-10:hover {
+    border-color: rgba(13, 110, 253, 0.5) !important;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.12), 0 4px 20px rgba(13, 110, 253, 0.08), 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
 }
 
 .card-header {

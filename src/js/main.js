@@ -529,11 +529,26 @@ function markROEAccepted() {
     try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
+var _morseAudio = null;
+function _ensureMorseAudio() {
+    if (!_morseAudio) {
+        try {
+            _morseAudio = new Audio('/static/audio/morse-hack-the-planet.m4a');
+            _morseAudio.volume = 0.4;
+            _morseAudio.preload = 'auto';
+        } catch(_e) { /* Audio API unavailable */ } // NOSONAR
+    }
+    return _morseAudio;
+}
 function playMorseEasterEgg() {
     try {
-        const a = new Audio('/static/audio/morse-hack-the-planet.m4a');
-        a.volume = 0.4;
-        a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
+        var a = _ensureMorseAudio();
+        if (a) {
+            a.currentTime = 0;
+            a.play().catch(function(err) {
+                console.warn('Morse audio blocked by autoplay policy:', err.message);
+            });
+        }
     } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
 }
 
@@ -667,6 +682,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isNaN(y) && y > 0) { globalThis.scrollTo(0, y); }
         }
     } catch(e) {}
+
+    document.addEventListener('click', function() { _ensureMorseAudio(); }, { once: true });
 
     var rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
     function globeMotion() {
@@ -954,14 +971,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
         anchor.addEventListener('click', function(e) {
+            if (this.hasAttribute('data-bs-toggle')) return;
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+            var href = this.getAttribute('href');
+            if (!href || href === '#') return;
+            try {
+                var target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            } catch(_e) { /* invalid selector */ } // NOSONAR
         });
     });
     
