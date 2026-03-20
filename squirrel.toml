@@ -1,10 +1,10 @@
 [project]
-domains = ["dnstool.it-help.tech"]
+domains = []
 name = "dnstool"
 
 [crawler]
 max_pages = 100
-coverage = "full"
+coverage = "surface"
 delay_ms = 100
 timeout_ms = 30000
 user_agent = ""

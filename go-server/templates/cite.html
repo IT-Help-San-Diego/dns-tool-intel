@@ -4,12 +4,12 @@
 <head>
     {{template "head" .}}
     {{template "head_css" .}}
-    <title>Cite This Research — DNS Tool</title>
+    <title>Cite This Research — DOI &amp; ORCID — DNS Tool</title>
     <meta name="robots" content="index, follow">
     <meta name="description" content="Citation information, DOI, ORCID, and machine-readable research metadata for DNS Tool. Published research software for RFC-compliant domain security analysis.">
     <meta property="og:url" content="https://dnstool.it-help.tech/cite">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Cite This Research — DNS Tool">
+    <meta property="og:title" content="Cite This Research — DOI &amp; ORCID — DNS Tool">
     <meta property="og:description" content="Citation information, DOI, ORCID, and machine-readable research metadata for DNS Tool.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
@@ -20,10 +20,53 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
     <meta property="twitter:url" content="https://dnstool.it-help.tech/cite">
-    <meta name="twitter:title" content="Cite This Research — DNS Tool">
+    <meta name="twitter:title" content="Cite This Research — DOI &amp; ORCID — DNS Tool">
     <meta name="twitter:description" content="Citation information, DOI, ORCID, and machine-readable research metadata for DNS Tool.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/cite">
+    <script type="application/ld+json" nonce="{{.CspNonce}}">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "{{.Title}}",
+        "version": "{{.Version}}",
+        "description": "RFC-compliant domain security analysis platform providing multi-resolver DNS intelligence, email authentication auditing, and CVSS-aligned risk scoring across 9 protocol families.",
+        "url": "https://dnstool.it-help.tech",
+        "codeRepository": "https://dnstool.it-help.tech",
+        "programmingLanguage": ["Go", "JavaScript"],
+        "runtimePlatform": "Web",
+        "license": "https://dnstool.it-help.tech/roe",
+        "datePublished": "2025-01-15",
+        "dateModified": "{{.Date}}",
+        "author": {
+            "@type": "Person",
+            "name": "{{.AuthorGiven}} {{.AuthorFamily}}",
+            "sameAs": "https://orcid.org/{{.ORCID}}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech"
+        },
+        "identifier": [
+            {
+                "@type": "PropertyValue",
+                "propertyID": "DOI",
+                "value": "{{.DOI}}"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "Concept DOI",
+                "value": "10.5281/zenodo.18854899"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "ORCID",
+                "value": "{{.ORCID}}"
+            }
+        ]
+    }
+    </script>
     <style nonce="{{.CspNonce}}">
         .cite-page { max-width: 860px; }
         .cite-card {

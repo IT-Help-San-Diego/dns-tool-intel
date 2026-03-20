@@ -241,7 +241,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         toolVersion := extractToolVersion(results)
         verifyCommands := analyzer.GenerateVerificationCommands(analysis.AsciiDomain, results)
         integrityHash := computeIntegrityHash(analysis, timestamp, toolVersion, h.Config.AppVersion, results)
-        rfcCount := analyzer.CountVerifiedRFCs(results)
+        rfcCount := analyzer.CountVerifiedStandards(results)
         currentHash := derefString(analysis.PostureHash)
         drift := h.detectHistoricalDrift(ctx, currentHash, analysis.Domain, analysis.ID, results)
         isSub, rootDom := extractRootDomain(analysis.AsciiDomain)
@@ -1087,7 +1087,7 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
         ctx := c.Request.Context()
         verifyCommands := analyzer.GenerateVerificationCommands(v.asciiDomain, v.results)
         integrityHash := analyzer.ReportIntegrityHash(v.asciiDomain, v.analysisID, v.timestamp, h.Config.AppVersion, v.results)
-        rfcCount := analyzer.CountVerifiedRFCs(v.results)
+        rfcCount := analyzer.CountVerifiedStandards(v.results)
 
         isSub, rootDom := extractRootDomain(v.asciiDomain)
         emailScope := h.resolveEmailScope(ctx, isSub, rootDom, v.asciiDomain, v.results)

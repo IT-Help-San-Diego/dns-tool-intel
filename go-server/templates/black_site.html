@@ -6,7 +6,7 @@
     {{template "head_css" .}}
     <title>Black Site — Bug Interrogation Facility — DNS Tool</title>
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Every defect gets a hash, a severity, and a cell. 46 findings detained, classified, and tracked across 5 parallel audit strike teams. This is what it looks like when engineers actually give a damn.">
+    <meta name="description" content="Every defect gets a hash, a severity, and a cell. Findings detained, classified, and tracked across five parallel audit strike teams.">
     <meta property="og:url" content="https://dnstool.it-help.tech/black-site">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Black Site — Bug Interrogation Facility">
@@ -688,7 +688,11 @@
 
         {{if .S3Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings</h2>
+            <h2 class="bsi-section-title" role="button" tabindex="0" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings" style="cursor:pointer;">
+                {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span style="font-weight:400; color:#c8956a;">({{len .S3Findings}})</span>
+                <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+            </h2>
+            <div class="collapse" id="s3Findings">
             <div class="table-responsive">
             <table class="bsi-compact-table" aria-label="S3 contained findings">
                 <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
@@ -706,12 +710,17 @@
                 </tbody>
             </table>
             </div>
+            </div>
         </div>
         {{end}}
 
         {{if .S4Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title">{{icon "eye" "me-1"}} S4 &mdash; Minor Indicators</h2>
+            <h2 class="bsi-section-title" role="button" tabindex="0" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings" style="cursor:pointer;">
+                {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span style="font-weight:400; color:#8b949e;">({{len .S4Findings}})</span>
+                <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+            </h2>
+            <div class="collapse" id="s4Findings">
             <div class="table-responsive">
             <table class="bsi-compact-table" aria-label="S4 minor indicators">
                 <thead><tr><th scope="col">FP</th><th scope="col">ID</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Domain</th><th scope="col">Status</th></tr></thead>
@@ -729,18 +738,19 @@
                 </tbody>
             </table>
             </div>
+            </div>
         </div>
         {{end}}
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "crosshairs" "me-1"}} Rendition Log</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger.</p>
+            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger. {{if .HasEvents}}<span style="color:#c9d1d9;">{{.TotalEventCount}} events recorded.</span>{{end}}</p>
             {{if .HasEvents}}
             <div class="table-responsive">
-            <table class="bsi-compact-table" aria-label="Rendition log">
+            <table class="bsi-compact-table" aria-label="Recent rendition log entries">
                 <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Action</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
                 <tbody>
-                    {{range .Events}}
+                    {{range .RecentEvents}}
                     <tr>
                         <td class="bsi-id">{{.PublicID}}</td>
                         <td>{{.Title}}</td>
@@ -753,6 +763,32 @@
                 </tbody>
             </table>
             </div>
+            {{if .ArchiveEvents}}
+            <div class="text-center mt-3">
+                <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#fullRenditionLog" aria-expanded="false" aria-controls="fullRenditionLog" style="font-family:ui-monospace,monospace; font-size:0.7rem; color:#7d8590; border:1px solid rgba(125,142,168,0.15); letter-spacing:0.1em; text-transform:uppercase;">
+                    {{icon "chevron-down" "me-1"}} {{.ArchiveEventCount}} earlier events
+                </button>
+            </div>
+            <div class="collapse mt-3" id="fullRenditionLog">
+                <div class="table-responsive">
+                <table class="bsi-compact-table" aria-label="Full rendition log archive">
+                    <thead><tr><th scope="col">BSI</th><th scope="col">Finding</th><th scope="col">Action</th><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">Operative</th></tr></thead>
+                    <tbody>
+                        {{range .ArchiveEvents}}
+                        <tr>
+                            <td class="bsi-id">{{.PublicID}}</td>
+                            <td>{{.Title}}</td>
+                            <td>{{.ToStatus}}</td>
+                            <td>{{.CreatedAt}}</td>
+                            <td>{{if .CommitSHA}}<code>{{.CommitSHA}}</code>{{end}}</td>
+                            <td>{{.Actor}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            {{end}}
             {{else}}
             <div class="bsi-rendition-log">
                 <p class="bsi-rendition-empty">No renditions yet. The interrogations have just begun.</p>

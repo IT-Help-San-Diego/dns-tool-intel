@@ -59,7 +59,7 @@
             "DNSSEC Analysis — RFC 4035 (Standards Track) — DNS Security Extensions chain validation, algorithm strength assessment (RSA/ECDSA/Ed25519), DS/DNSKEY record verification",
             "MTA-STS Analysis — RFC 8461 (Standards Track) — Mail Transfer Agent Strict Transport Security policy retrieval and validation, mode enforcement (enforce/testing/none)",
             "TLS-RPT Analysis — RFC 8460 (Standards Track) — SMTP TLS Reporting endpoint validation, DANE and MTA-STS failure reporting coverage",
-            "BIMI Analysis — RFC 9495 (Experimental) — Brand Indicators for Message Identification, VMC certificate detection, DMARC p=quarantine+ prerequisite verification",
+            "BIMI Analysis — draft-brand-indicators-for-message-identification (Internet-Draft) — Brand Indicators for Message Identification, VMC certificate detection, DMARC p=quarantine+ prerequisite verification",
             "CAA Analysis — RFC 8659 (Standards Track) — Certificate Authority Authorization with MPIC (Multi-Perspective Issuance Corroboration) context, issue/issuewild/iodef tag parsing",
             "Multi-Resolver Consensus — Parallel queries to Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), OpenDNS (208.67.222.222), DNS4EU with majority-agreement verification",
             "ICIE Intelligence Engine — Integrated Confidence in Ingested Evidence — central analysis engine processing all intelligence sources into scored findings",
@@ -113,7 +113,8 @@
             {"@type": "CreativeWork", "name": "RFC 8461 — MTA-STS", "url": "https://datatracker.ietf.org/doc/html/rfc8461"},
             {"@type": "CreativeWork", "name": "RFC 8460 — TLS-RPT", "url": "https://datatracker.ietf.org/doc/html/rfc8460"},
             {"@type": "CreativeWork", "name": "RFC 8659 — CAA", "url": "https://datatracker.ietf.org/doc/html/rfc8659"},
-            {"@type": "CreativeWork", "name": "draft-ietf-dmarc-dmarcbis — DMARCbis", "url": "https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/"}
+            {"@type": "CreativeWork", "name": "draft-ietf-dmarc-dmarcbis — DMARCbis", "url": "https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/"},
+            {"@type": "CreativeWork", "name": "draft-brand-indicators-for-message-identification — BIMI", "url": "https://datatracker.ietf.org/doc/draft-brand-indicators-for-message-identification/"}
         ],
         "author": {
             "@type": "Organization",
@@ -305,6 +306,7 @@
         .hero-subtitle{font-size:1.1rem;color:#8b949e}
         .hero-badge{display:inline-block;padding:.5rem 1rem;border-radius:2rem;background:rgba(200,149,106,.15);color:#c8956a;font-size:.85rem;font-weight:600}
     </style>
+    {{template "head_lcp_preload" .}}
     {{template "head_css" .}}
 </head>
 <body>
@@ -357,7 +359,7 @@
                                                 <button type="button" class="covert-env-btn" data-env="basement" title="Operator's Den — Enhanced readability with tactical red tinting. For extended analysis sessions.">{{icon "terminal" "me-1"}}Operator</button>
                                             </span>
                                         </div>
-                                        <div class="mt-1 u-covert-disclosure">{{icon "info-circle" "me-1"}}Red spectrum preserves <a href="https://apps.dtic.mil/sti/citations/tr/AD0639176" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf" target="_blank" rel="noopener">MIL-STD-3009</a> and <a href="https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf" target="_blank" rel="noopener">MIL-STD-1472G</a> tactical lighting discipline. All findings are identical to the standard report. For full immersion, use Focus Mode or <a href="https://support.google.com/chrome/answer/9658361" target="_blank" rel="noopener">install as app</a>.</div>
+                                        <div class="mt-1 u-covert-disclosure">{{icon "info-circle" "me-1"}}Red spectrum preserves <a href="https://apps.dtic.mil/sti/citations/tr/AD0639176" target="_blank" rel="noopener">scotopic adaptation</a> per <a href="https://apps.dtic.mil/sti/tr/pdf/ADA148883.pdf" target="_blank" rel="noopener">MIL-STD-3009</a> and <a href="/static/references/MIL-STD-1472G.pdf" target="_blank" rel="noopener">MIL-STD-1472G</a> tactical lighting discipline. All findings are identical to the standard report. For full immersion, use Focus Mode or <a href="https://support.google.com/chrome/answer/9658361" target="_blank" rel="noopener">install as app</a>.</div>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center flex-nowrap">

@@ -439,8 +439,17 @@ func main() {
         securityPolicyHandler := handlers.NewSecurityPolicyHandler(cfg)
         router.GET("/security-policy", securityPolicyHandler.SecurityPolicy)
 
+        privacyHandler := handlers.NewPrivacyHandler(cfg)
+        router.GET("/privacy", privacyHandler.Privacy)
+
         aboutHandler := handlers.NewAboutHandler(cfg)
         router.GET("/about", aboutHandler.About)
+
+        contactHandler := handlers.NewContactHandler(cfg)
+        router.GET("/contact", contactHandler.Contact)
+
+        refLibHandler := handlers.NewReferenceLibraryHandler(cfg)
+        router.GET("/reference-library", refLibHandler.ReferenceLibrary)
 
         roadmapHandler := handlers.NewRoadmapHandler(cfg)
         router.GET("/roadmap", roadmapHandler.Roadmap)
@@ -467,7 +476,10 @@ func main() {
         router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
+        router.GET("/publications", videoHandler.Publications)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
+        router.GET("/case-study/", videoHandler.CaseStudyIndex)
+        router.GET("/case-study/intelligence-dmarc", videoHandler.IntelligenceDMARC)
 
         roeHandler := handlers.NewROEHandler(cfg)
         router.GET("/roe", roeHandler.ROE)

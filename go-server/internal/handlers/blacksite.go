@@ -135,7 +135,14 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
         sevMap := buildSeverityMap(sevCounts)
         kindMap := buildKindMap(kindCounts)
         stMap := buildStatusMap(statusCounts)
-        events := buildEventViews(eventsRaw)
+        allEvents := buildEventViews(eventsRaw)
+
+        recentCut := 25
+        if recentCut > len(allEvents) {
+                recentCut = len(allEvents)
+        }
+        recentEvents := allEvents[:recentCut]
+        archiveEvents := allEvents[recentCut:]
 
         data := gin.H{
                 "AppVersion":      h.Config.AppVersion,
@@ -167,8 +174,11 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
                 "DetainedCount": stMap["DETAINED"],
                 "RenderedCount": stMap["RENDERED"],
 
-                "Events":    events,
-                "HasEvents": len(events) > 0,
+                "RecentEvents":      recentEvents,
+                "ArchiveEvents":     archiveEvents,
+                "ArchiveEventCount": len(archiveEvents),
+                "TotalEventCount":   len(allEvents),
+                "HasEvents":         len(allEvents) > 0,
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "black_site.html", data)

@@ -133,9 +133,15 @@ func (h *StaticHandler) SitemapXML(c *gin.Context) {
                 {h.BaseURL + "/ttl-tuner", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/ede", mapKeyMonthly, sitemapPriorityLow},
                 {h.BaseURL + "/roe", mapKeyMonthly, sitemapPriorityLow},
+                {h.BaseURL + "/contact", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/privacy", mapKeyMonthly, sitemapPriorityMedium},
                 {h.BaseURL + "/security-policy", mapKeyMonthly, "0.4"},
                 {h.BaseURL + "/changelog", mapKeyMonthly, "0.3"},
                 {h.BaseURL + "/video/forgotten-domain", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/reference-library", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/publications", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/case-study/", mapKeyMonthly, sitemapPriorityMedium},
+                {h.BaseURL + "/case-study/intelligence-dmarc", mapKeyMonthly, sitemapPriorityMedium},
         }
 
         xml := `<?xml version="1.0" encoding="UTF-8"?>` + "\n"

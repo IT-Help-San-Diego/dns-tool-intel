@@ -4,7 +4,7 @@
 
 > **Status:** PARTIALLY ARCHIVED — Core ICIE architecture is implemented and live. Sections marked [CURRENT] are accurate. Sections marked [DESIGN] describe future phases.  
 > **Canonical version:** Miro Blueprint board `uXjVG83d8PY=`, documents A6 (Intelligence Products Architecture) and A10 (ICAE Engine Architecture)  
-> **Related engines:** ICAE (129 test cases, `go-server/internal/icae/`), ICuAE (29 test cases, `go-server/internal/icuae/`)
+> **Related engines:** ICAE (129 test cases, `go-server/internal/icae/`), ICuAE (29 test cases, `go-server/internal/icuae/`), ICSAE (standards compliance evaluator, `dns-eval/`)
 
 ---
 

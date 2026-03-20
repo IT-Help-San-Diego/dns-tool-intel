@@ -22,6 +22,8 @@
     <meta name="twitter:description" content="Transparency into DNS Tool's Intelligence Confidence Audit Engine (ICAE) — per-protocol correctness tracking from development through gold master maturity.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/confidence">
+    <meta property="article:published_time" content="2025-09-01">
+    <meta property="article:modified_time" content="2026-03-20">
     {{template "critical_css" .}}
     {{template "head_css" .}}
     {{template "head_katex" .}}
@@ -469,7 +471,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1"><span class="text-accent-gold">BIMI</span> <span class="text-muted u-fs-075em">&mdash; {{with index .ICAEMetrics.ByKey "bimi"}}{{.TotalCases}} total ({{.AnalysisCases}} analysis + {{.CollectionCases}} collection){{end}} test cases</span></h3>
-                                <p class="text-muted small mb-1">Validates record filtering (v=BIMI1 per <a href="https://datatracker.ietf.org/doc/html/rfc9495#section-3" class="text-info" target="_blank" rel="noopener">RFC 9495 &sect;3</a>), logo URL extraction, VMC (Verified Mark Certificate) URL extraction, and absent-VMC null handling.</p>
+                                <p class="text-muted small mb-1">Validates record filtering (v=BIMI1 per <a href="https://datatracker.ietf.org/doc/draft-brand-indicators-for-message-identification/" class="text-info" target="_blank" rel="noopener">BIMI I-D</a>), logo URL extraction, VMC (Verified Mark Certificate) URL extraction, and absent-VMC null handling.</p>
                                 <p class="text-muted small mb-0"><strong>Methodology:</strong> Synthetic BIMI records &rarr; expected parsed URLs + null checks.</p>
                             </div>
                         </div>
