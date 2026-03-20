@@ -468,6 +468,7 @@ func main() {
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
+        router.GET("/case-study/", videoHandler.CaseStudyIndex)
         router.GET("/case-study/intelligence-dmarc", videoHandler.IntelligenceDMARC)
 
         roeHandler := handlers.NewROEHandler(cfg)
