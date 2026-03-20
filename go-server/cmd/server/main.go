@@ -448,6 +448,9 @@ func main() {
         contactHandler := handlers.NewContactHandler(cfg)
         router.GET("/contact", contactHandler.Contact)
 
+        refLibHandler := handlers.NewReferenceLibraryHandler(cfg)
+        router.GET("/reference-library", refLibHandler.ReferenceLibrary)
+
         roadmapHandler := handlers.NewRoadmapHandler(cfg)
         router.GET("/roadmap", roadmapHandler.Roadmap)
 
