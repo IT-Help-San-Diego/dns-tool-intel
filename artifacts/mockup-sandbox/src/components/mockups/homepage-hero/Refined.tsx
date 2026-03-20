@@ -2,6 +2,13 @@ import './_group.css';
 import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 
 function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: string }) {
+  /*
+   * CENTER-FIRST APPROACH:
+   * 100×100 artboard. Center = (50,50).
+   * All artwork placed symmetrically around center.
+   * viewBox = "0 0 100 100" — no offset, no tricks.
+   * The circle container just renders the square SVG; flexbox centers it.
+   */
   return (
     <span style={{
       display: 'inline-flex',
@@ -16,47 +23,65 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       flexShrink: 0,
     }}>
       <svg
-        width={Math.round(size * 0.68)}
-        height={Math.round(size * 0.68)}
-        viewBox="6.5 1 87 95"
+        width={Math.round(size * 0.7)}
+        height={Math.round(size * 0.7)}
+        viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ display: 'block', overflow: 'visible' }}
+        style={{ display: 'block' }}
       >
+        {/*
+         * LAYOUT (center=50,50):
+         * Skull: y=10→58, height=48, vert-center=34 (above 50 by 16)
+         * Bones: y=52→90, height=38, vert-center=71 (below 50 by 21)
+         * Combined: y=10→90, height=80, geometric center=50 ✓
+         * Horizontal: everything symmetric around x=50 ✓
+         *
+         * Bones wider than skull (x 8→92 vs x 20→80) = classic Jolly Roger
+         */}
 
-        {/* === CROSSBONES === */}
+        {/* === CROSSBONES — behind skull, crossing at (50,71) === */}
         <g>
-          <line x1="14" y1="64" x2="86" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
-          <circle cx="11" cy="60.5" r="4.5" fill={color} />
-          <circle cx="14.5" cy="67.5" r="4.5" fill={color} />
-          <circle cx="85.5" cy="80.5" r="4.5" fill={color} />
-          <circle cx="89" cy="87.5" r="4.5" fill={color} />
+          {/* Bone shaft 1: upper-left to lower-right */}
+          <line x1="12" y1="61" x2="88" y2="81" stroke={color} strokeWidth="7" strokeLinecap="round" />
+          {/* Bone 1 knobs — upper-left */}
+          <circle cx="10" cy="57" r="5" fill={color} />
+          <circle cx="10" cy="65" r="5" fill={color} />
+          {/* Bone 1 knobs — lower-right */}
+          <circle cx="90" cy="77" r="5" fill={color} />
+          <circle cx="90" cy="85" r="5" fill={color} />
 
-          <line x1="86" y1="64" x2="14" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
-          <circle cx="89" cy="60.5" r="4.5" fill={color} />
-          <circle cx="85.5" cy="67.5" r="4.5" fill={color} />
-          <circle cx="14.5" cy="80.5" r="4.5" fill={color} />
-          <circle cx="11" cy="87.5" r="4.5" fill={color} />
+          {/* Bone shaft 2: upper-right to lower-left (exact mirror) */}
+          <line x1="88" y1="61" x2="12" y2="81" stroke={color} strokeWidth="7" strokeLinecap="round" />
+          {/* Bone 2 knobs — upper-right */}
+          <circle cx="90" cy="57" r="5" fill={color} />
+          <circle cx="90" cy="65" r="5" fill={color} />
+          {/* Bone 2 knobs — lower-left */}
+          <circle cx="10" cy="77" r="5" fill={color} />
+          <circle cx="10" cy="85" r="5" fill={color} />
         </g>
 
-        {/* === SKULL === */}
+        {/* === SKULL — centered at x=50, y 10→58 === */}
         <g>
           <path d="
-            M50 8
-            C31 8  19 20  19 34
-            C19 42  23 47  28 51
-            L28 55 C28 57 30 59 33 59
-            L39 59 L39 56 L42 59
-            L58 59 L61 56 L61 59
-            L67 59 C70 59 72 57 72 55
-            L72 51 C77 47 81 42 81 34
-            C81 20  69 8  50 8 Z
+            M50 10
+            C32 10  20 22  20 35
+            C20 42  24 47  29 51
+            L29 54 C29 56 31 58 34 58
+            L40 58 L40 55 L43 58
+            L57 58 L60 55 L60 58
+            L66 58 C69 58 71 56 71 54
+            L71 51 C76 47 80 42 80 35
+            C80 22  68 10  50 10 Z
           " fill={color} />
-          <ellipse cx="37" cy="30" rx="7" ry="7.5" fill="#0d1117" />
-          <ellipse cx="63" cy="30" rx="7" ry="7.5" fill="#0d1117" />
-          <path d="M46 43 L50 38 L54 43 Z" fill="#0d1117" />
-          <rect x="43" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
-          <rect x="49.25" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
-          <rect x="55.5" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          {/* Eye sockets */}
+          <ellipse cx="38" cy="31" rx="7" ry="7.5" fill="#0d1117" />
+          <ellipse cx="62" cy="31" rx="7" ry="7.5" fill="#0d1117" />
+          {/* Nose */}
+          <path d="M46.5 43 L50 38 L53.5 43 Z" fill="#0d1117" />
+          {/* Teeth gaps */}
+          <rect x="43.5" y="49" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="49.25" y="49" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="55" y="49" width="1.5" height="9" fill="#0d1117" rx="0.5" />
         </g>
       </svg>
     </span>
