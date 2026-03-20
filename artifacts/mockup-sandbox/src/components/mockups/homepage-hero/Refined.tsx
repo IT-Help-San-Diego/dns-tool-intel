@@ -19,7 +19,7 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       <svg
         width={Math.round(size * 0.72)}
         height={Math.round(size * 0.72)}
-        viewBox="0 0 100 100"
+        viewBox="0 -3 100 103"
         xmlns="http://www.w3.org/2000/svg"
         style={{ display: 'block' }}
       >
