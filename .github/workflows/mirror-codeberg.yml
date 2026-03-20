@@ -15,10 +15,18 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Mirror to Codeberg
+      - name: Mirror to Codeberg (dns-tool-web)
         env:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         run: |
-          git remote add codeberg "https://careybalboa:${CODEBERG_TOKEN}@codeberg.org/careybalboa/dns-tool-web.git"
-          git push --force --all codeberg
-          git push --force --tags codeberg
+          git remote add codeberg-web "https://careybalboa:${CODEBERG_TOKEN}@codeberg.org/careybalboa/dns-tool-web.git"
+          git push --force --all codeberg-web
+          git push --force --tags codeberg-web
+
+      - name: Mirror to Codeberg (dns-tool-intel)
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          git remote add codeberg-intel "https://careybalboa:${CODEBERG_TOKEN}@codeberg.org/careybalboa/dns-tool-intel.git"
+          git push --force --all codeberg-intel
+          git push --force --tags codeberg-intel
