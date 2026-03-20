@@ -24,6 +24,49 @@
     <meta name="twitter:description" content="Citation information, DOI, ORCID, and machine-readable research metadata for DNS Tool.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/cite">
+    <script type="application/ld+json" nonce="{{.CspNonce}}">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "{{.Title}}",
+        "version": "{{.Version}}",
+        "description": "RFC-compliant domain security analysis platform providing multi-resolver DNS intelligence, email authentication auditing, and CVSS-aligned risk scoring across 9 protocol families.",
+        "url": "https://dnstool.it-help.tech",
+        "codeRepository": "https://dnstool.it-help.tech",
+        "programmingLanguage": ["Go", "JavaScript"],
+        "runtimePlatform": "Web",
+        "license": "https://dnstool.it-help.tech/roe",
+        "datePublished": "2025-01-15",
+        "dateModified": "{{.Date}}",
+        "author": {
+            "@type": "Person",
+            "name": "{{.AuthorGiven}} {{.AuthorFamily}}",
+            "sameAs": "https://orcid.org/{{.ORCID}}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "IT Help San Diego Inc.",
+            "url": "https://www.it-help.tech"
+        },
+        "identifier": [
+            {
+                "@type": "PropertyValue",
+                "propertyID": "DOI",
+                "value": "{{.DOI}}"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "Concept DOI",
+                "value": "10.5281/zenodo.18854899"
+            },
+            {
+                "@type": "PropertyValue",
+                "propertyID": "ORCID",
+                "value": "{{.ORCID}}"
+            }
+        ]
+    }
+    </script>
     <style nonce="{{.CspNonce}}">
         .cite-page { max-width: 860px; }
         .cite-card {
