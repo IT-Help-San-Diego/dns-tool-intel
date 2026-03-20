@@ -33,3 +33,16 @@ func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "video_forgotten_domain.html", data)
 }
+
+func (h *VideoHandler) IntelligenceDMARC(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "ActivePage":      "approach",
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "case_study_intelligence_dmarc.html", data)
+}
