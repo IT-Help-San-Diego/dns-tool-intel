@@ -1,41 +1,10 @@
 import './_group.css';
 import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 
-function HackerSkull({ size = 14, color = '#c43c3c', bg = '#0d1117' }: { size?: number; color?: string; bg?: string }) {
+function HackerSkull({ size = 14, color = '#c43c3c' }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ verticalAlign: '-2px' }}>
-      {/* Crossbones — two diagonal bones with knobbed ends, behind the skull */}
-      <g>
-        {/* Bone 1: top-left to bottom-right */}
-        <line x1="4" y1="20" x2="28" y2="30" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
-        <circle cx="3.2" cy="19" r="2" fill={color} />
-        <circle cx="4.8" cy="21" r="2" fill={color} />
-        <circle cx="28.8" cy="29" r="2" fill={color} />
-        <circle cx="27.2" cy="31" r="2" fill={color} />
-        {/* Bone 2: top-right to bottom-left */}
-        <line x1="28" y1="20" x2="4" y2="30" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
-        <circle cx="28.8" cy="19" r="2" fill={color} />
-        <circle cx="27.2" cy="21" r="2" fill={color} />
-        <circle cx="3.2" cy="29" r="2" fill={color} />
-        <circle cx="4.8" cy="31" r="2" fill={color} />
-      </g>
-      {/* Skull — cranium with cheekbones tapering to narrow jaw */}
-      <path
-        d="M16 1 C8 1 4 5.5 4 11 C4 14.5 5.5 16.5 7 18 L7 20 C7 21 8 22 9.5 22 L13 22 L13 20.5 L14.5 22 L17.5 22 L19 20.5 L19 22 L22.5 22 C24 22 25 21 25 20 L25 18 C26.5 16.5 28 14.5 28 11 C28 5.5 24 1 16 1 Z"
-        fill={color}
-        stroke={color}
-        strokeWidth="0.5"
-      />
-      {/* Eye sockets — large dark ovals */}
-      <ellipse cx="11" cy="11" rx="3" ry="3.5" fill={bg} />
-      <ellipse cx="21" cy="11" rx="3" ry="3.5" fill={bg} />
-      {/* Nose — inverted triangle hole */}
-      <path d="M14.5 16 L16 13.5 L17.5 16 Z" fill={bg} />
-      {/* Teeth — vertical lines across the jaw */}
-      <line x1="13" y1="19" x2="13" y2="22" stroke={bg} strokeWidth="0.8" />
-      <line x1="14.5" y1="19" x2="14.5" y2="22" stroke={bg} strokeWidth="0.8" />
-      <line x1="17.5" y1="19" x2="17.5" y2="22" stroke={bg} strokeWidth="0.8" />
-      <line x1="19" y1="19" x2="19" y2="22" stroke={bg} strokeWidth="0.8" />
+    <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ verticalAlign: '-2px' }}>
+      <path fill={color} d="M15.8,18.5L21.8,20.1L21.4,22L12,19.5L2.6,22L2.1,20.1L8.1,18.5L2,16.9L2.5,15L11.9,17.5L21.3,15L21.8,16.9L15.8,18.5M18,8C18,9.8 17.2,11.3 16,12.4V15H14V13.7L14,13H13V15H11V13H10V13.7L10,15H8V12.4C6.8,11.3 6,9.8 6,8A6,6 0 0,1 12,2A6,6 0 0,1 18,8M11,7.5C11,6.7 10.3,6 9.5,6C8.7,6 8,6.7 8,7.5C8,8.3 8.7,9 9.5,9C10.3,9 11,8.3 11,7.5M13,11L12,9L11,11H13M16,7.5C16,6.7 15.3,6 14.5,6C13.7,6 13,6.7 13,7.5C13,8.3 13.7,9 14.5,9C15.3,9 16,8.3 16,7.5Z" />
     </svg>
   );
 }
@@ -92,7 +61,7 @@ export function Refined() {
             letterSpacing: '0.04em',
             marginBottom: '1rem',
           }}>
-            <HackerSkull size={18} color="#c43c3c" />
+            <HackerSkull size={20} color="#c43c3c" />
             <span>DNS SECURITY INTELLIGENCE</span>
           </div>
 
