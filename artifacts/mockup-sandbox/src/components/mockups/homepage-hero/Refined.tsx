@@ -15,35 +15,53 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       boxShadow: '0 0 6px rgba(196,60,60,0.1), inset 0 1px 1px rgba(255,255,255,0.04)',
       flexShrink: 0,
     }}>
-      <svg width={size * 0.7} height={size * 0.7} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-        {/* Crossbones — behind skull, two thick bones in an X */}
+      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+        {/* === CROSSBONES — two bones in a clean X, behind skull === */}
         <g>
-          {/* Bone 1: top-left to bottom-right */}
-          <rect x="2" y="36" width="60" height="5" rx="2.5" fill={color} transform="rotate(-25 32 38.5)" />
-          <circle cx="7" cy="32.5" r="4" fill={color} />
-          <circle cx="3" cy="37.5" r="4" fill={color} />
-          <circle cx="57" cy="39.5" r="4" fill={color} />
-          <circle cx="61" cy="44.5" r="4" fill={color} />
-          {/* Bone 2: top-right to bottom-left */}
-          <rect x="2" y="36" width="60" height="5" rx="2.5" fill={color} transform="rotate(25 32 38.5)" />
-          <circle cx="57" cy="32.5" r="4" fill={color} />
-          <circle cx="61" cy="37.5" r="4" fill={color} />
-          <circle cx="7" cy="44.5" r="4" fill={color} />
-          <circle cx="3" cy="39.5" r="4" fill={color} />
+          {/* Bone 1 shaft: bottom-left to top-right, 30° */}
+          <line x1="12" y1="82" x2="88" y2="58" stroke={color} strokeWidth="7" strokeLinecap="round" />
+          {/* Bone 1 knobs — bottom-left end */}
+          <circle cx="8"  cy="78" r="5.5" fill={color} />
+          <circle cx="8"  cy="87" r="5.5" fill={color} />
+          {/* Bone 1 knobs — top-right end */}
+          <circle cx="92" cy="53" r="5.5" fill={color} />
+          <circle cx="92" cy="62" r="5.5" fill={color} />
+
+          {/* Bone 2 shaft: top-left to bottom-right, mirrored */}
+          <line x1="12" y1="58" x2="88" y2="82" stroke={color} strokeWidth="7" strokeLinecap="round" />
+          {/* Bone 2 knobs — top-left end */}
+          <circle cx="8"  cy="53" r="5.5" fill={color} />
+          <circle cx="8"  cy="62" r="5.5" fill={color} />
+          {/* Bone 2 knobs — bottom-right end */}
+          <circle cx="92" cy="78" r="5.5" fill={color} />
+          <circle cx="92" cy="87" r="5.5" fill={color} />
         </g>
-        {/* Skull — sits on top of bones */}
+
+        {/* === SKULL — overlaps bones === */}
         <g>
-          {/* Cranium */}
-          <path d="M32 4 C18 4 10 14 10 24 C10 30 13 34 16 37 L16 42 C16 44 18 46 21 46 L26 46 L26 42 L28 46 L36 46 L38 42 L38 46 L43 46 C46 46 48 44 48 42 L48 37 C51 34 54 30 54 24 C54 14 46 4 32 4 Z" fill={color} />
-          {/* Eye sockets */}
-          <ellipse cx="24" cy="22" rx="5.5" ry="6" fill="#0d1117" />
-          <ellipse cx="40" cy="22" rx="5.5" ry="6" fill="#0d1117" />
-          {/* Nose cavity */}
-          <path d="M30 32 L32 28 L34 32 Z" fill="#0d1117" />
-          {/* Teeth gaps */}
-          <rect x="25.5" y="38" width="1.2" height="8" fill="#0d1117" />
-          <rect x="31.4" y="38" width="1.2" height="8" fill="#0d1117" />
-          <rect x="37.3" y="38" width="1.2" height="8" fill="#0d1117" />
+          {/* Cranium + jaw as one shape */}
+          <path d="
+            M50 5
+            C28 5  15 18  15 33
+            C15 42  20 48  25 52
+            L25 58 C25 60 27 62 30 62
+            L35 62 L35 58 L38 62
+            L62 62 L65 58 L65 62
+            L70 62 C73 62 75 60 75 58
+            L75 52 C80 48 85 42 85 33
+            C85 18  72 5  50 5 Z
+          " fill={color} />
+          {/* Left eye socket */}
+          <ellipse cx="37" cy="30" rx="8" ry="9" fill="#0d1117" />
+          {/* Right eye socket */}
+          <ellipse cx="63" cy="30" rx="8" ry="9" fill="#0d1117" />
+          {/* Nose — heart-shaped nasal cavity */}
+          <path d="M46 44 L50 38 L54 44 Q50 47 46 44 Z" fill="#0d1117" />
+          {/* Teeth dividers */}
+          <rect x="38" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="44" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="50" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="56" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
         </g>
       </svg>
     </span>
