@@ -28,39 +28,35 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       boxShadow: '0 0 6px rgba(196,60,60,0.1), inset 0 1px 1px rgba(255,255,255,0.04)',
       flexShrink: 0,
     }}>
-      <svg width={size * 0.78} height={size * 0.78} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+      <svg
+        width={size * 0.68}
+        height={size * 0.68}
+        viewBox="6.5 8 87 84"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ display: 'block' }}
+      >
         {/*
-         * MATH:
-         * Content bbox: skull top y=4, bone-knob bottom y=88 → height=84, center=46
-         * Skull bbox: y 4→55, height=51. Bone bbox: y 57→88, height=31.
-         * Visual centroid (weighted 60% skull, 40% bones): ~42
-         * viewBox center: 50. Shift everything down by 8 to center at 50.
-         * But skull is the visual anchor, so we center the skull's
-         * vertical midpoint (y=29.5 → shifted to ~33) slightly above center.
-         *
-         * Horizontal: everything symmetric around x=50.
-         * Bones span x=10→90, skull x=19→81.
-         * Bone knobs: r=4.5, perpendicular spacing 7u.
+         * viewBox is cropped to exact content bounds:
+         *   Left:   11 - 4.5 = 6.5   (leftmost knob edge)
+         *   Top:    8                 (skull crown)
+         *   Right:  89 + 4.5 = 93.5  (rightmost knob edge)
+         *   Bottom: 87.5 + 4.5 = 92  (bottommost knob edge)
+         *   Width:  93.5 - 6.5 = 87
+         *   Height: 92 - 8 = 84
+         * Content center: x = 6.5 + 87/2 = 50 ✓
+         *                 y = 8 + 84/2 = 50 ✓
+         * The SVG content IS the viewBox — no dead space, no offset.
+         * The circle container's flexbox centering handles the rest.
          */}
 
-        {/*
-         * VERIFIED CENTERING:
-         * Skull: y8→59, Bones: y56→92.  Total: y8→92, height=84.
-         * Vertical center = 8 + 84/2 = 50 ✓ (matches viewBox center)
-         * Horizontal: all symmetric around x=50 ✓
-         * Bone knobs outer edge: x 6.5→93.5, horizontal center = 50 ✓
-         */}
-
-        {/* === CROSSBONES behind skull === */}
+        {/* === CROSSBONES === */}
         <g>
-          {/* Bone 1: top-left → bottom-right */}
           <line x1="14" y1="64" x2="86" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
           <circle cx="11" cy="60.5" r="4.5" fill={color} />
           <circle cx="14.5" cy="67.5" r="4.5" fill={color} />
           <circle cx="85.5" cy="80.5" r="4.5" fill={color} />
           <circle cx="89" cy="87.5" r="4.5" fill={color} />
 
-          {/* Bone 2: top-right → bottom-left (perfect mirror) */}
           <line x1="86" y1="64" x2="14" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
           <circle cx="89" cy="60.5" r="4.5" fill={color} />
           <circle cx="85.5" cy="67.5" r="4.5" fill={color} />
@@ -68,7 +64,7 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
           <circle cx="11" cy="87.5" r="4.5" fill={color} />
         </g>
 
-        {/* === SKULL — y 8→59, centered horizontally at x=50 === */}
+        {/* === SKULL === */}
         <g>
           <path d="
             M50 8
@@ -81,15 +77,9 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
             L72 51 C77 47 81 42 81 34
             C81 20  69 8  50 8 Z
           " fill={color} />
-
-          {/* Eye sockets — at vertical center of cranium */}
           <ellipse cx="37" cy="30" rx="7" ry="7.5" fill="#0d1117" />
           <ellipse cx="63" cy="30" rx="7" ry="7.5" fill="#0d1117" />
-
-          {/* Nose */}
           <path d="M46 43 L50 38 L54 43 Z" fill="#0d1117" />
-
-          {/* Teeth gaps */}
           <rect x="43" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
           <rect x="49.25" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
           <rect x="55.5" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
