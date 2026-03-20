@@ -16,13 +16,12 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       flexShrink: 0,
     }}>
       <svg
-        width={size * 0.68}
-        height={size * 0.68}
-        viewBox="6.5 6.5 87 87"
+        width={Math.round(size * 0.68)}
+        height={Math.round(size * 0.68)}
+        viewBox="6.5 4 87 92"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ display: 'block' }}
+        style={{ display: 'block', overflow: 'visible' }}
       >
-        {/* Square viewBox "6.5 6.5 87 87" — content center at (50,50) */}
 
         {/* === CROSSBONES === */}
         <g>
