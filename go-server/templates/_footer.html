@@ -29,35 +29,89 @@
     <p class="mb-1 u-text-footer">We answer the BIG questions.</p>
     <p class="mb-1 text-muted u-footer-tagline">DNS. Open standard since 1983.</p>
     <p class="mb-0">&copy; {{currentYear}} <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="text-info">IT Help San Diego Inc.</a> All rights reserved.</p>
-    <div class="d-flex flex-wrap justify-content-center gap-4 mt-3" style="max-width:680px;margin-left:auto;margin-right:auto;text-align:left">
-        <div>
-            <p class="mb-1" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#484f58">Research</p>
-            <a href="/publications" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Publications</a>
-            <a href="/case-study/" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Case Studies</a>
-            <a href="/sources" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Sources</a>
-            <a href="/cite" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Cite</a>
+    <style nonce="{{.CspNonce}}">
+        .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 1.25rem auto 0; text-align: left; }
+        @media (max-width: 640px) { .ftr-grid { grid-template-columns: repeat(2, 1fr); } }
+        .ftr-cell {
+            background: rgba(22, 27, 34, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(48, 54, 61, 0.4);
+            border-radius: 10px;
+            padding: 0.85rem 0.9rem;
+            transition: border-color 0.25s, background 0.25s;
+        }
+        .ftr-cell:hover { border-color: rgba(200, 149, 106, 0.18); background: rgba(22, 27, 34, 0.7); }
+        .ftr-heading {
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #d4a853;
+            margin-bottom: 0.55rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid rgba(200, 149, 106, 0.08);
+        }
+        .ftr-link {
+            display: block;
+            font-size: 0.76rem;
+            line-height: 1.95;
+            color: #8b949e;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .ftr-link:hover { color: #e6edf3; }
+        .ftr-blacksite {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+            padding: 0.3rem 0.65rem;
+            background: rgba(248, 81, 73, 0.04);
+            border: 1px solid rgba(248, 81, 73, 0.12);
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #f85149;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: border-color 0.25s, background 0.25s, color 0.25s;
+        }
+        .ftr-blacksite:hover { border-color: rgba(248, 81, 73, 0.35); background: rgba(248, 81, 73, 0.08); color: #ff7b72; }
+        .ftr-blacksite svg { opacity: 0.7; }
+    </style>
+    <div class="ftr-grid">
+        <div class="ftr-cell">
+            <span class="ftr-heading">{{icon "flask" "me-1"}}Research</span>
+            <a href="/publications" class="ftr-link">Publications</a>
+            <a href="/case-study/" class="ftr-link">Case Studies</a>
+            <a href="/sources" class="ftr-link">Sources</a>
+            <a href="/cite" class="ftr-link">Cite</a>
         </div>
-        <div>
-            <p class="mb-1" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#484f58">Platform</p>
-            <a href="/approach" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Approach</a>
-            <a href="/architecture" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Architecture</a>
-            <a href="/confidence" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Confidence</a>
-            <a href="/topology" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Topology</a>
+        <div class="ftr-cell">
+            <span class="ftr-heading">{{icon "microchip" "me-1"}}Platform</span>
+            <a href="/approach" class="ftr-link">Approach</a>
+            <a href="/architecture" class="ftr-link">Architecture</a>
+            <a href="/confidence" class="ftr-link">Confidence</a>
+            <a href="/topology" class="ftr-link">Topology</a>
         </div>
-        <div>
-            <p class="mb-1" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#484f58">Governance</p>
-            <a href="/manifesto" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Manifesto</a>
-            <a href="/communication-standards" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Comm Standards</a>
-            <a href="/roe" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Rules of Engagement</a>
+        <div class="ftr-cell">
+            <span class="ftr-heading">{{icon "scroll" "me-1"}}Governance</span>
+            <a href="/manifesto" class="ftr-link">Manifesto</a>
+            <a href="/communication-standards" class="ftr-link">Comm Standards</a>
+            <a href="/roe" class="ftr-link">Rules of Engagement</a>
         </div>
-        <div>
-            <p class="mb-1" style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#484f58">Legal &amp; About</p>
-            <a href="/security-policy" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Security Policy</a>
-            <a href="/security-policy#privacy-pledge" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">{{icon "shield-halved" "me-1"}}Privacy</a>
-            <a href="/about" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Origin Story</a>
-            <a href="/changelog" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">Changelog</a>
-            <a href="/black-site" class="text-muted d-block" style="font-size:0.78rem;line-height:1.8">{{icon "crosshairs" "me-1"}}Black Site</a>
+        <div class="ftr-cell">
+            <span class="ftr-heading">{{icon "shield-halved" "me-1"}}Legal &amp; About</span>
+            <a href="/security-policy" class="ftr-link">Security Policy</a>
+            <a href="/security-policy#privacy-pledge" class="ftr-link">{{icon "shield-halved" "me-1"}}Privacy</a>
+            <a href="/about" class="ftr-link">Origin Story</a>
+            <a href="/changelog" class="ftr-link">Changelog</a>
         </div>
+    </div>
+    <div class="text-center mt-3">
+        <a href="/black-site" class="ftr-blacksite"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/><circle cx="12" cy="12" r="2"/></svg> BLACK SITE <span style="font-size:0.6rem;opacity:0.5;font-weight:400">RESTRICTED</span></a>
     </div>
     <p class="mb-0 mt-3 u-fs-075em text-muted">Repositories</p>
     <div class="d-flex justify-content-center gap-3 mt-1">
