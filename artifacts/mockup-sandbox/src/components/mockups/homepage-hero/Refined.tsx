@@ -2,19 +2,6 @@ import './_group.css';
 import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 
 function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: string }) {
-  /*
-   * Geometry notes (100×100 viewBox, center at 50,50):
-   *
-   * Golden ratio φ = 1.618
-   * Skull height : bone-spread ≈ 1 : φ  →  skull ~38u tall, bones span ~62u wide
-   * Skull centered horizontally at x=50
-   * Skull occupies top 62% of canvas (y 8→58), bones cross at y≈58 (jaw level)
-   * Bones extend to edges, angled ±18° from horizontal (classic Jolly Roger)
-   * Bone knobs: radius 5, spaced 8u apart perpendicular to shaft
-   * Entire composition centered at (50, 50) within the viewBox
-   *
-   * Circle container padding: icon uses ~88% of circle diameter
-   */
   return (
     <span style={{
       display: 'inline-flex',
@@ -31,23 +18,11 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       <svg
         width={size * 0.68}
         height={size * 0.68}
-        viewBox="6.5 8 87 84"
+        viewBox="6.5 6.5 87 87"
         xmlns="http://www.w3.org/2000/svg"
         style={{ display: 'block' }}
       >
-        {/*
-         * viewBox is cropped to exact content bounds:
-         *   Left:   11 - 4.5 = 6.5   (leftmost knob edge)
-         *   Top:    8                 (skull crown)
-         *   Right:  89 + 4.5 = 93.5  (rightmost knob edge)
-         *   Bottom: 87.5 + 4.5 = 92  (bottommost knob edge)
-         *   Width:  93.5 - 6.5 = 87
-         *   Height: 92 - 8 = 84
-         * Content center: x = 6.5 + 87/2 = 50 ✓
-         *                 y = 8 + 84/2 = 50 ✓
-         * The SVG content IS the viewBox — no dead space, no offset.
-         * The circle container's flexbox centering handles the rest.
-         */}
+        {/* Square viewBox "6.5 6.5 87 87" — content center at (50,50) */}
 
         {/* === CROSSBONES === */}
         <g>
