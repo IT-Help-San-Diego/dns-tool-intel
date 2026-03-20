@@ -7,6 +7,13 @@
 #
 # MAINTENANCE: Re-run extraction script or update manually when adding citations.
 # Zotero snapshots recommended for government/military sources prone to link rot.
+#
+# ARCHIVAL STATUS (go-server/static/references/):
+#   ICD-203-Analytic-Standards.pdf (amended), ICD-203-Analytic-Standards-2015.pdf (original)
+#   2023-IC3-Annual-Report.pdf, 2024-IC3-Annual-Report.pdf, 2023-IC3-Cryptocurrency-Report.pdf
+#   MIL-STD-1472G.pdf (official, replaces third-party cvgstrategy.com link)
+#   Kwoun-Tradecraft-Standards-Military-Review-2021.pdf (ICD 203 supporting reference)
+#   zotero-bimi.rdf, zotero-dmarcbis.rdf, zotero-aipref-attach.rdf, zotero-pqc-dnssec-strategy.rdf
 
 ## RFC/IETF Standards (59 citations)
 
