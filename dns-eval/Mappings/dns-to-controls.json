@@ -1,5 +1,7 @@
 {
-  "schema_version": 7,
+  "schema_version": 8,
+  "engine": "ICSAE",
+  "engine_name": "Intelligence Compliance & Standards Assessment Engine",
   "citation_style": "chicago-note",
   "standards_registry": {
     "ISO_27002_2022": {
@@ -70,15 +72,15 @@
       "fail_explanation": "DNSSEC not authenticated — DNS responses for this domain are not cryptographically validated. An attacker positioned between the resolver and authoritative server can forge responses (Kaminsky attack, RFC 5452). Per RFC 4033 §2, \"DNSSEC provides origin authentication and integrity assurance.\""
     },
     {
-      "id": "DNSSEC_INHERITED_TRUST",
-      "title": "DNSSEC Chain of Trust Inheritance",
-      "severity": "medium",
-      "requires": ["DNSSEC_INHERITED"],
+      "id": "DNSSEC_CHAIN_TRUSTED",
+      "title": "DNSSEC Chain of Trust Validated",
+      "severity": "high",
+      "requires": ["DNSSEC_CHAIN_VALID"],
       "standards": ["ISO_27002_2022:8.24"],
       "rfcs": ["RFC4033", "RFC4035"],
-      "rationale": "A valid DNSSEC chain of trust from the root zone through each delegation point ensures that trust is not broken at any level. RFC 4035 §5 specifies the authentication chain validation process.",
-      "evidence_keys": ["dnssec_analysis.chain_of_trust"],
-      "fail_explanation": "DNSSEC chain of trust not inherited from parent zone. Per RFC 4035 §5, validators must be able to trace a chain of signed DNSKEY and DS records from a trust anchor to the zone."
+      "rationale": "A valid DNSSEC chain of trust — whether complete (apex zone with own DS/DNSKEY) or inherited (subdomain validated via parent zone) — ensures cryptographic authentication. RFC 4035 §5 specifies the authentication chain validation process. Both 'complete' and 'inherited' chain states are valid when the AD flag is set. Subdomains on managed platforms (Route 53, Cloudflare, etc.) typically inherit trust from the parent zone — this is correct behavior, not a deficiency.",
+      "evidence_keys": ["dnssec_analysis.chain_of_trust", "dnssec_analysis.ad_flag"],
+      "fail_explanation": "DNSSEC chain of trust not validated. Per RFC 4035 §5, validators must be able to trace a chain of signed DNSKEY and DS records from a trust anchor to the zone. The AD (Authenticated Data) flag was not set by the validating resolver."
     },
     {
       "id": "DNSSEC_KEY_ROLLOVER",
@@ -96,23 +98,24 @@
       "title": "No-Mail Domain Hardening",
       "severity": "medium",
       "applies_when": ["NO_MAIL_DOMAIN"],
-      "requires": ["NO_MAIL_DOMAIN", "NULL_MX", "SPF_HARD_FAIL", "DMARC_REJECT"],
+      "requires": ["NO_MAIL_DOMAIN", "NULL_MX", "DMARC_REJECT"],
+      "requires_spf": ["SPF_HARD_FAIL"],
       "standards": ["ISO_27002_2022:8.23", "NIST_800_177:§4.3"],
       "rfcs": ["RFC7208", "RFC7489", "RFC5321"],
-      "rationale": "Domains that do not send email must explicitly declare this posture. RFC 7208 §10.1.2 specifies \"v=spf1 -all\" for non-mail domains. RFC 7489 §6.3 requires p=reject for domains asserting no mail. NIST SP 800-177 Rev. 1 §4.3 recommends null MX (RFC 7505) for non-mail domains. ISO/IEC 27002:2022 §8.23 requires controlled access to external networks.",
+      "rationale": "Domains that do not send email must explicitly declare this posture. The critical requirements are null MX (RFC 7505), DMARC p=reject (RFC 7489 §6.3), and a restrictive SPF policy. For no-mail domains, SPF -all is ideal (RFC 7208 §10.1.2), but ~all with DMARC p=reject achieves equivalent enforcement. NIST SP 800-177 Rev. 1 §4.3 recommends null MX for non-mail domains. ISO/IEC 27002:2022 §8.23 requires controlled access to external networks.",
       "evidence_keys": ["mail_posture.verdict", "has_null_mx", "spf_analysis.all_mechanism", "dmarc_analysis.policy"],
-      "fail_explanation": "No-mail domain not fully hardened — missing one or more of: null MX record, SPF hard fail (-all), or DMARC reject policy. Attackers exploit domains without explicit no-mail declarations to send spoofed email."
+      "fail_explanation": "No-mail domain not fully hardened — missing null MX record or DMARC reject policy. Attackers exploit domains without explicit no-mail declarations to send spoofed email."
     },
     {
-      "id": "SPF_RESTRICTIVE",
-      "title": "SPF Policy Restrictiveness",
-      "severity": "high",
-      "requires": ["SPF_HARD_FAIL"],
+      "id": "SPF_EFFECTIVE_POLICY",
+      "title": "SPF Effective Authorization Policy",
+      "severity": "medium",
+      "requires_any": ["SPF_HARD_FAIL", "SPF_SOFTFAIL_WITH_DMARC"],
       "standards": ["ISO_27002_2022:8.23", "NIST_800_177:§4.3.1"],
-      "rfcs": ["RFC7208"],
-      "rationale": "RFC 7208 §10.1 states that SPF \"softfail\" (~all) was intended as a transitional mechanism. NIST SP 800-177 Rev. 1 §4.3.1 recommends \"-all\" (hard fail) for production domains. ISO/IEC 27002:2022 §8.23 requires access control for external network services, which includes email authorization.",
-      "evidence_keys": ["spf_analysis.all_mechanism"],
-      "fail_explanation": "SPF policy is not set to hard fail (-all). Per RFC 7208 §10.1, softfail (~all) was designed as a transitional mechanism. NIST SP 800-177 Rev. 1 §4.3.1 recommends \"-all\" for production deployments. Without hard fail, forged email from this domain may be delivered."
+      "rfcs": ["RFC7208", "RFC7489"],
+      "rationale": "RFC 7208 §10.1 describes softfail (~all) as transitional, and NIST SP 800-177 Rev. 1 §4.3.1 recommends hard fail (-all). However, RFC 7208 §2.6.3 explicitly defines softfail as a valid policy, not a deficiency. In operational practice, softfail (~all) is the industry standard because it enables DMARC alignment (RFC 7489) to function as the primary enforcement mechanism. A domain with SPF ~all + DMARC p=reject achieves stronger effective protection than SPF -all alone, because DMARC reject instructs receivers to discard unauthenticated messages regardless of SPF result. Hard fail (-all) without DMARC can break legitimate mail flows (forwarding, mailing lists) without providing the enforcement DMARC delivers. The effective security posture depends on the SPF + DMARC combination, not SPF in isolation.",
+      "evidence_keys": ["spf_analysis.all_mechanism", "dmarc_analysis.policy"],
+      "fail_explanation": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy."
     },
     {
       "id": "DMARC_ENFORCEMENT",

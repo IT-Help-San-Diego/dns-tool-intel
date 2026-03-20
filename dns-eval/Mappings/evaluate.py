@@ -14,6 +14,24 @@ with open("Mappings/normalized-from-dnstool.json") as f:
 
 obs = data["observations"]
 confidence = data.get("calibrated_confidence", {})
+context = data.get("context", {})
+provider_hint = data.get("dns_provider_hint", "unknown")
+is_subdomain = data.get("is_subdomain", False)
+
+ICIE_SOURCE_TIERS = {
+    "DNSSEC": {"tier": 1, "label": "Authoritative DNS", "note": "Tier 1 — cryptographic validation from authoritative zone"},
+    "SPF": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — RFC-defined TXT record semantics"},
+    "DMARC": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — RFC-defined TXT record semantics"},
+    "DKIM": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — RFC-defined TXT record semantics"},
+    "CAA": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — RFC-defined resource record semantics"},
+    "DANE": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — DNSSEC-dependent TLSA records"},
+    "BIMI": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — TXT record with logo binding"},
+    "MTA_STS": {"tier": 8, "label": "Web Intelligence", "note": "Tier 8 — HTTPS-fetched policy, transient"},
+    "TLS_RPT": {"tier": 2, "label": "Protocol Records", "note": "Tier 2 — RFC-defined TXT record"},
+    "DELEGATION": {"tier": 1, "label": "Authoritative DNS", "note": "Tier 1 — parent/child NS delegation"},
+    "SECRET": {"tier": 8, "label": "Web Intelligence", "note": "Tier 8 — HTTP page source scan"},
+    "SECURITY_TXT": {"tier": 8, "label": "Web Intelligence", "note": "Tier 8 — .well-known HTTPS fetch"}
+}
 
 results = []
 
@@ -99,12 +117,20 @@ SEP = "=" * W
 THIN = "-" * W
 
 print(SEP)
-print("DNS STANDARDS COMPLIANCE ASSESSMENT")
+print("ICSAE — Intelligence Compliance & Standards Assessment Engine")
 print(SEP)
 print(f"  Domain:     {data['domain']}")
 print(f"  Source:      {data['source_file']}")
+print(f"  Provider:    {provider_hint}")
+if is_subdomain:
+    print(f"  Type:        Subdomain (inheritance rules apply per RFC 8659)")
 print(f"  Evaluated:   {summary['evaluated_at']}")
 print(f"  Controls:    {summary['total_controls']} evaluated, {summary['passed_count']} passed, {summary['failed_count']} failed, {summary['na_count']} N/A")
+if context.get("spf_dmarc_effective"):
+    spf_mech = context.get("spf_mechanism", "?")
+    dmarc_pol = context.get("dmarc_policy", "?")
+    eff = context["spf_dmarc_effective"]
+    print(f"  Mail Auth:   SPF {spf_mech} + DMARC p={dmarc_pol} → {eff}")
 print(SEP)
 
 if not failed:
@@ -151,13 +177,22 @@ for severity_label in ["HIGH", "MEDIUM", "LOW"]:
             "BIMI": "BIMI", "MTA_STS": "MTA_STS", "TLS_RPT": "TLS_RPT"
         }
         relevant_conf = []
+        relevant_tiers = []
         for ck, cv in conf_keys.items():
-            if ck.lower() in r["id"].lower() and cv in confidence:
-                relevant_conf.append((cv, confidence[cv]))
-        if relevant_conf:
-            print(f"\n     CONFIDENCE (ICD 203):")
+            if ck.lower() in r["id"].lower():
+                if cv in confidence:
+                    relevant_conf.append((cv, confidence[cv]))
+                if ck in ICIE_SOURCE_TIERS:
+                    relevant_tiers.append((ck, ICIE_SOURCE_TIERS[ck]))
+        for k in ["DELEGATION", "SECRET", "SECURITY_TXT"]:
+            if k.lower() in r["id"].lower() and k in ICIE_SOURCE_TIERS:
+                relevant_tiers.append((k, ICIE_SOURCE_TIERS[k]))
+        if relevant_conf or relevant_tiers:
+            print(f"\n     INTELLIGENCE PROVENANCE:")
             for name, val in relevant_conf:
-                print(f"       {name}: {val}")
+                print(f"       ICD 203 Confidence ({name}): {val}")
+            for name, tier in relevant_tiers:
+                print(f"       ICIE Source Authority: {tier['note']}")
 
         print()
 
@@ -166,6 +201,14 @@ if passed:
     print(THIN)
     for r in passed:
         print(f"  {'✓':>2} {r['title']} ({r['id']})")
+        if "DNSSEC_CHAIN" in r["id"] and context.get("dnssec_chain_type"):
+            chain_t = context["dnssec_chain_type"]
+            if chain_t == "inherited" and is_subdomain:
+                print(f"       ℹ Chain type: inherited from parent zone (valid for subdomains)")
+            elif chain_t == "complete":
+                print(f"       ℹ Chain type: complete (zone has own DS/DNSKEY)")
+        if "SPF" in r["id"] and obs.get("SPF_SOFTFAIL_WITH_DMARC"):
+            print(f"       ℹ SPF ~all + DMARC p={context.get('dmarc_policy','reject')} = operationally enforced")
         if r["standards"]:
             for s in r["standards"]:
                 print(f"       → {format_citation(s)}")
