@@ -29,53 +29,67 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       flexShrink: 0,
     }}>
       <svg width={size * 0.78} height={size * 0.78} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-        {/* === CROSSBONES — classic X behind skull, bones at ±18° === */}
-        {/* Bone centers cross at (50, 70). Each bone is 80u long. */}
-        {/* 18° angle: cos18≈0.951, sin18≈0.309 */}
-        {/* Endpoints: (50±38, 70∓12) */}
+        {/*
+         * MATH:
+         * Content bbox: skull top y=4, bone-knob bottom y=88 → height=84, center=46
+         * Skull bbox: y 4→55, height=51. Bone bbox: y 57→88, height=31.
+         * Visual centroid (weighted 60% skull, 40% bones): ~42
+         * viewBox center: 50. Shift everything down by 8 to center at 50.
+         * But skull is the visual anchor, so we center the skull's
+         * vertical midpoint (y=29.5 → shifted to ~33) slightly above center.
+         *
+         * Horizontal: everything symmetric around x=50.
+         * Bones span x=10→90, skull x=19→81.
+         * Bone knobs: r=4.5, perpendicular spacing 7u.
+         */}
+
+        {/*
+         * VERIFIED CENTERING:
+         * Skull: y8→59, Bones: y56→92.  Total: y8→92, height=84.
+         * Vertical center = 8 + 84/2 = 50 ✓ (matches viewBox center)
+         * Horizontal: all symmetric around x=50 ✓
+         * Bone knobs outer edge: x 6.5→93.5, horizontal center = 50 ✓
+         */}
+
+        {/* === CROSSBONES behind skull === */}
         <g>
           {/* Bone 1: top-left → bottom-right */}
-          <line x1="12" y1="58" x2="88" y2="82" stroke={color} strokeWidth="6.5" strokeLinecap="round" />
-          {/* Knobs — top-left end (perpendicular to shaft, ±4u) */}
-          <circle cx="10" cy="54" r="5" fill={color} />
-          <circle cx="14" cy="62" r="5" fill={color} />
-          {/* Knobs — bottom-right end */}
-          <circle cx="86" cy="78" r="5" fill={color} />
-          <circle cx="90" cy="86" r="5" fill={color} />
+          <line x1="14" y1="64" x2="86" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
+          <circle cx="11" cy="60.5" r="4.5" fill={color} />
+          <circle cx="14.5" cy="67.5" r="4.5" fill={color} />
+          <circle cx="85.5" cy="80.5" r="4.5" fill={color} />
+          <circle cx="89" cy="87.5" r="4.5" fill={color} />
 
-          {/* Bone 2: top-right → bottom-left (mirror) */}
-          <line x1="88" y1="58" x2="12" y2="82" stroke={color} strokeWidth="6.5" strokeLinecap="round" />
-          {/* Knobs — top-right end */}
-          <circle cx="90" cy="54" r="5" fill={color} />
-          <circle cx="86" cy="62" r="5" fill={color} />
-          {/* Knobs — bottom-left end */}
-          <circle cx="14" cy="78" r="5" fill={color} />
-          <circle cx="10" cy="86" r="5" fill={color} />
+          {/* Bone 2: top-right → bottom-left (perfect mirror) */}
+          <line x1="86" y1="64" x2="14" y2="84" stroke={color} strokeWidth="6" strokeLinecap="round" />
+          <circle cx="89" cy="60.5" r="4.5" fill={color} />
+          <circle cx="85.5" cy="67.5" r="4.5" fill={color} />
+          <circle cx="14.5" cy="80.5" r="4.5" fill={color} />
+          <circle cx="11" cy="87.5" r="4.5" fill={color} />
         </g>
 
-        {/* === SKULL — centered at x=50, top of composition === */}
+        {/* === SKULL — y 8→59, centered horizontally at x=50 === */}
         <g>
-          {/* Cranium: wide dome (y 8→45) tapering to jaw (y 45→60) */}
           <path d="
             M50 8
-            C30 8  18 20  18 34
-            C18 42  22 47  27 51
-            L27 55 C27 57 29 59 32 59
-            L38 59 L38 56 L41 59
-            L59 59 L62 56 L62 59
-            L68 59 C71 59 73 57 73 55
-            L73 51 C78 47 82 42 82 34
-            C82 20  70 8  50 8 Z
+            C31 8  19 20  19 34
+            C19 42  23 47  28 51
+            L28 55 C28 57 30 59 33 59
+            L39 59 L39 56 L42 59
+            L58 59 L61 56 L61 59
+            L67 59 C70 59 72 57 72 55
+            L72 51 C77 47 81 42 81 34
+            C81 20  69 8  50 8 Z
           " fill={color} />
 
-          {/* Eye sockets — vertically centered in cranium */}
-          <ellipse cx="37" cy="30" rx="7.5" ry="8" fill="#0d1117" />
-          <ellipse cx="63" cy="30" rx="7.5" ry="8" fill="#0d1117" />
+          {/* Eye sockets — at vertical center of cranium */}
+          <ellipse cx="37" cy="30" rx="7" ry="7.5" fill="#0d1117" />
+          <ellipse cx="63" cy="30" rx="7" ry="7.5" fill="#0d1117" />
 
-          {/* Nose — inverted triangle */}
-          <path d="M46 43 L50 37 L54 43 Z" fill="#0d1117" />
+          {/* Nose */}
+          <path d="M46 43 L50 38 L54 43 Z" fill="#0d1117" />
 
-          {/* Teeth gaps — 3 dividers across jaw */}
+          {/* Teeth gaps */}
           <rect x="43" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
           <rect x="49.25" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
           <rect x="55.5" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
