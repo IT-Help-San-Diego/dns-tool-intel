@@ -100,6 +100,8 @@ globalThis.addEventListener('fetch', function(event) {
 
   if (url.pathname === '/' || url.pathname === '') return;
 
+  if (url.pathname.startsWith('/case-study/') || url.pathname.startsWith('/video/')) return;
+
   if (!url.pathname.startsWith('/static/')) {
     if (event.request.mode === 'navigate') {
       event.respondWith(
