@@ -1,0 +1,15 @@
+{
+  "source_file": "dns-intelligence-dnstool.it-help.tech.json",
+  "domain": "dnstool.it-help.tech",
+  "observations": {
+    "DNSSEC_VALID": true,
+    "DNSSEC_INHERITED": true,
+    "NULL_MX": true,
+    "SPF_HARD_FAIL": true,
+    "DMARC_REJECT": true,
+    "NO_MAIL_DOMAIN": true,
+    "TLS_RPT": true,
+    "MTA_STS_DNS": true,
+    "CAA_PRESENT": false
+  }
+}

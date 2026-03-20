@@ -1,0 +1,31 @@
+{
+  "schema_version": 6,
+  "mappings": [
+    {
+      "id": "DNSSEC_AUTHENTICATED",
+      "severity": "high",
+      "requires": ["DNSSEC_VALID"]
+    },
+    {
+      "id": "DNSSEC_INHERITED_TRUST",
+      "severity": "medium",
+      "requires": ["DNSSEC_INHERITED"]
+    },
+    {
+      "id": "NO_MAIL_HARDENED",
+      "severity": "medium",
+      "applies_when": ["NO_MAIL_DOMAIN"],
+      "requires": ["NO_MAIL_DOMAIN", "NULL_MX", "SPF_HARD_FAIL", "DMARC_REJECT"]
+    },
+    {
+      "id": "MAIL_POLICY_SIGNALING",
+      "severity": "low",
+      "requires_any": ["MTA_STS_DNS", "TLS_RPT"]
+    },
+    {
+      "id": "CAA_RESTRICTION_PRESENT",
+      "severity": "medium",
+      "requires": ["CAA_PRESENT"]
+    }
+  ]
+}
