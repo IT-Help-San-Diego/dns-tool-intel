@@ -4,14 +4,24 @@ import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 function HackerSkull({ size = 14, color = '#c43c3c' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ verticalAlign: '-2px' }}>
-      <circle cx="12" cy="10" r="7.5" stroke={color} strokeWidth="1.8" fill="none" />
-      <circle cx="9.2" cy="9" r="1.6" fill={color} />
-      <circle cx="14.8" cy="9" r="1.6" fill={color} />
-      <path d="M9.5 13.5 C10.5 14.8 13.5 14.8 14.5 13.5" stroke={color} strokeWidth="1.4" strokeLinecap="round" fill="none" />
-      <line x1="7" y1="19" x2="17" y2="19" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="9" y1="17.5" x2="9" y2="20.5" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="12" y1="17.5" x2="12" y2="20.5" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="15" y1="17.5" x2="15" y2="20.5" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
+      {/* Crossbones behind skull */}
+      <line x1="3" y1="16" x2="21" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="21" y1="16" x2="3" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="3.5" cy="15.5" r="1.8" fill={color} />
+      <circle cx="20.5" cy="15.5" r="1.8" fill={color} />
+      <circle cx="3.5" cy="22.5" r="1.8" fill={color} />
+      <circle cx="20.5" cy="22.5" r="1.8" fill={color} />
+      {/* Skull */}
+      <ellipse cx="12" cy="9" rx="7.5" ry="8" fill={color} />
+      <ellipse cx="12" cy="9" rx="6.5" ry="7" fill="#0d1117" />
+      <ellipse cx="12" cy="9" rx="7.5" ry="8" stroke={color} strokeWidth="1.5" fill="none" />
+      {/* Eye sockets */}
+      <ellipse cx="9" cy="8.5" rx="2.2" ry="2.5" fill={color} />
+      <ellipse cx="15" cy="8.5" rx="2.2" ry="2.5" fill={color} />
+      {/* Nose */}
+      <path d="M11.2 12.5 L12 11 L12.8 12.5" stroke={color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      {/* Jaw / teeth area */}
+      <path d="M8.5 14.5 Q12 16.5 15.5 14.5" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
