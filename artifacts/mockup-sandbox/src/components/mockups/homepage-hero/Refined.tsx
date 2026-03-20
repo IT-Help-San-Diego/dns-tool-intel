@@ -19,60 +19,64 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       <svg
         width={Math.round(size * 0.72)}
         height={Math.round(size * 0.72)}
-        viewBox="0 -3 100 103"
+        viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
         style={{ display: 'block' }}
       >
         {/*
-         * SKULL-DOMINANT, BONES-BELOW layout.
+         * PRODUCTION ICON — measured, padded, self-centering.
          *
-         * Skull: y=5→62, height=57 → 71% of composition
-         * Bones: y=64→85, height=21 → compact, subordinate
-         * Combined bbox: (5,5)→(95,90), center=(50,47.5)
-         * viewBox padded to center: extra 5 units bottom → visual center=50
-         * Horizontal: all symmetric around x=50
+         * Artboard: 100×100, viewBox="0 0 100 100"
+         * Content bbox: (9,4)→(91,96), center = (50, 50) ✓
+         * Padding: T=4, B=4, L=9, R=9
+         *
+         * Skull:  y=4→60,  h=56, 61% of content
+         * Gap:    3 units
+         * Bones:  y=63→88, h=25, 27% of content
+         * Knobs:  r=4, ⊥ to shaft, offset=4
+         *
+         * No translate. No viewBox offset. Clean 0 0 100 100.
          */}
 
-        {/* === CROSSBONES === */}
-        <g transform="translate(0,-3)">
-          <line x1="16" y1="62" x2="84" y2="90" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="14" cy="66" r="4.5" fill={color} />
-          <circle cx="18" cy="58" r="4.5" fill={color} />
-          <circle cx="82" cy="94" r="4.5" fill={color} />
-          <circle cx="86" cy="86" r="4.5" fill={color} />
+        {/* === CROSSBONES (behind skull) === */}
+        <g>
+          <line x1="14" y1="63" x2="86" y2="88" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="13" cy="67" r="4" fill={color} />
+          <circle cx="15" cy="59" r="4" fill={color} />
+          <circle cx="85" cy="92" r="4" fill={color} />
+          <circle cx="87" cy="84" r="4" fill={color} />
 
-          <line x1="84" y1="62" x2="16" y2="90" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="86" cy="66" r="4.5" fill={color} />
-          <circle cx="82" cy="58" r="4.5" fill={color} />
-          <circle cx="18" cy="94" r="4.5" fill={color} />
-          <circle cx="14" cy="86" r="4.5" fill={color} />
+          <line x1="86" y1="63" x2="14" y2="88" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="87" cy="67" r="4" fill={color} />
+          <circle cx="85" cy="59" r="4" fill={color} />
+          <circle cx="15" cy="92" r="4" fill={color} />
+          <circle cx="13" cy="84" r="4" fill={color} />
         </g>
 
-        {/* === SKULL === */}
-        <g transform="translate(0,-3)">
+        {/* === SKULL (on top, dominant) === */}
+        <g>
           <path d={`
-            M50 0
-            C28 0  15 15  15 31
-            C15 41  20 47  26 51
-            L26 53 C26 55 28 57 32 57
-            L40 57 L40 54 L43 57
-            L57 57 L60 54 L60 57
-            L68 57 C72 57 74 55 74 53
-            L74 51 C80 47 85 41 85 31
-            C85 15  72 0  50 0 Z
+            M50 4
+            C29 4  17 18  17 33
+            C17 43  22 48  27 52
+            L27 54 C27 56 29 60 33 60
+            L41 60 L41 57 L44 60
+            L56 60 L59 57 L59 60
+            L67 60 C71 60 73 56 73 54
+            L73 52 C78 48 83 43 83 33
+            C83 18  71 4  50 4 Z
           `} fill={color} />
-          <ellipse cx="36" cy="27" rx="9" ry="9" fill={bg} />
-          <ellipse cx="64" cy="27" rx="9" ry="9" fill={bg} />
-          <path d="M45 42 L50 36 L55 42 Z" fill={bg} />
-          <rect x="41" y="47" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="49" y="47" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="57" y="47" width="2" height="10" fill={bg} rx="0.5" />
+          <ellipse cx="37" cy="29" rx="9" ry="9" fill={bg} />
+          <ellipse cx="63" cy="29" rx="9" ry="9" fill={bg} />
+          <path d="M46 44 L50 38 L54 44 Z" fill={bg} />
+          <rect x="42" y="49" width="2" height="11" fill={bg} rx="0.5" />
+          <rect x="49" y="49" width="2" height="11" fill={bg} rx="0.5" />
+          <rect x="56" y="49" width="2" height="11" fill={bg} rx="0.5" />
         </g>
       </svg>
     </span>
   );
 }
-
 export function Refined() {
   return (
     <div style={{ background: '#0d1117', minHeight: '100vh', padding: 0 }}>
