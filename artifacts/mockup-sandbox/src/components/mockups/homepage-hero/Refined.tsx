@@ -1,27 +1,41 @@
 import './_group.css';
 import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 
-function HackerSkull({ size = 14, color = '#c43c3c' }: { size?: number; color?: string }) {
+function HackerSkull({ size = 14, color = '#c43c3c', bg = '#0d1117' }: { size?: number; color?: string; bg?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ verticalAlign: '-2px' }}>
-      {/* Crossbones behind skull */}
-      <line x1="3" y1="16" x2="21" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="21" y1="16" x2="3" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="3.5" cy="15.5" r="1.8" fill={color} />
-      <circle cx="20.5" cy="15.5" r="1.8" fill={color} />
-      <circle cx="3.5" cy="22.5" r="1.8" fill={color} />
-      <circle cx="20.5" cy="22.5" r="1.8" fill={color} />
-      {/* Skull */}
-      <ellipse cx="12" cy="9" rx="7.5" ry="8" fill={color} />
-      <ellipse cx="12" cy="9" rx="6.5" ry="7" fill="#0d1117" />
-      <ellipse cx="12" cy="9" rx="7.5" ry="8" stroke={color} strokeWidth="1.5" fill="none" />
-      {/* Eye sockets */}
-      <ellipse cx="9" cy="8.5" rx="2.2" ry="2.5" fill={color} />
-      <ellipse cx="15" cy="8.5" rx="2.2" ry="2.5" fill={color} />
-      {/* Nose */}
-      <path d="M11.2 12.5 L12 11 L12.8 12.5" stroke={color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Jaw / teeth area */}
-      <path d="M8.5 14.5 Q12 16.5 15.5 14.5" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" />
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ verticalAlign: '-2px' }}>
+      {/* Crossbones — two diagonal bones with knobbed ends, behind the skull */}
+      <g>
+        {/* Bone 1: top-left to bottom-right */}
+        <line x1="4" y1="20" x2="28" y2="30" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx="3.2" cy="19" r="2" fill={color} />
+        <circle cx="4.8" cy="21" r="2" fill={color} />
+        <circle cx="28.8" cy="29" r="2" fill={color} />
+        <circle cx="27.2" cy="31" r="2" fill={color} />
+        {/* Bone 2: top-right to bottom-left */}
+        <line x1="28" y1="20" x2="4" y2="30" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx="28.8" cy="19" r="2" fill={color} />
+        <circle cx="27.2" cy="21" r="2" fill={color} />
+        <circle cx="3.2" cy="29" r="2" fill={color} />
+        <circle cx="4.8" cy="31" r="2" fill={color} />
+      </g>
+      {/* Skull — cranium with cheekbones tapering to narrow jaw */}
+      <path
+        d="M16 1 C8 1 4 5.5 4 11 C4 14.5 5.5 16.5 7 18 L7 20 C7 21 8 22 9.5 22 L13 22 L13 20.5 L14.5 22 L17.5 22 L19 20.5 L19 22 L22.5 22 C24 22 25 21 25 20 L25 18 C26.5 16.5 28 14.5 28 11 C28 5.5 24 1 16 1 Z"
+        fill={color}
+        stroke={color}
+        strokeWidth="0.5"
+      />
+      {/* Eye sockets — large dark ovals */}
+      <ellipse cx="11" cy="11" rx="3" ry="3.5" fill={bg} />
+      <ellipse cx="21" cy="11" rx="3" ry="3.5" fill={bg} />
+      {/* Nose — inverted triangle hole */}
+      <path d="M14.5 16 L16 13.5 L17.5 16 Z" fill={bg} />
+      {/* Teeth — vertical lines across the jaw */}
+      <line x1="13" y1="19" x2="13" y2="22" stroke={bg} strokeWidth="0.8" />
+      <line x1="14.5" y1="19" x2="14.5" y2="22" stroke={bg} strokeWidth="0.8" />
+      <line x1="17.5" y1="19" x2="17.5" y2="22" stroke={bg} strokeWidth="0.8" />
+      <line x1="19" y1="19" x2="19" y2="22" stroke={bg} strokeWidth="0.8" />
     </svg>
   );
 }
@@ -78,7 +92,7 @@ export function Refined() {
             letterSpacing: '0.04em',
             marginBottom: '1rem',
           }}>
-            <HackerSkull size={15} color="#c43c3c" />
+            <HackerSkull size={18} color="#c43c3c" />
             <span>DNS SECURITY INTELLIGENCE</span>
           </div>
 
@@ -199,7 +213,7 @@ export function Refined() {
               border: '1px solid rgba(196,60,60,0.1)',
               borderRadius: '8px',
             }}>
-              <HackerSkull size={13} color="rgba(196,60,60,0.5)" />
+              <HackerSkull size={16} color="rgba(196,60,60,0.5)" />
               <span style={{
                 fontSize: '0.72rem',
                 color: '#6e7681',
