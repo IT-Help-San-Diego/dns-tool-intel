@@ -439,8 +439,14 @@ func main() {
         securityPolicyHandler := handlers.NewSecurityPolicyHandler(cfg)
         router.GET("/security-policy", securityPolicyHandler.SecurityPolicy)
 
+        privacyHandler := handlers.NewPrivacyHandler(cfg)
+        router.GET("/privacy", privacyHandler.Privacy)
+
         aboutHandler := handlers.NewAboutHandler(cfg)
         router.GET("/about", aboutHandler.About)
+
+        contactHandler := handlers.NewContactHandler(cfg)
+        router.GET("/contact", contactHandler.Contact)
 
         roadmapHandler := handlers.NewRoadmapHandler(cfg)
         router.GET("/roadmap", roadmapHandler.Roadmap)
