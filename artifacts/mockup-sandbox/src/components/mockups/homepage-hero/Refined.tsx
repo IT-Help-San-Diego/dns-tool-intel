@@ -33,40 +33,40 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
          * Horizontal: all symmetric around x=50
          */}
 
-        {/* === CROSSBONES (steep X below skull) === */}
+        {/* === CROSSBONES (below skull, fitted to circle) === */}
         <g>
-          <line x1="14" y1="63" x2="86" y2="89" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="10" cy="59" r="4" fill={color} />
-          <circle cx="10" cy="67" r="4" fill={color} />
-          <circle cx="90" cy="85" r="4" fill={color} />
-          <circle cx="90" cy="93" r="4" fill={color} />
+          <line x1="18" y1="62" x2="82" y2="82" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="14" cy="58" r="4" fill={color} />
+          <circle cx="14" cy="66" r="4" fill={color} />
+          <circle cx="86" cy="78" r="4" fill={color} />
+          <circle cx="86" cy="86" r="4" fill={color} />
 
-          <line x1="86" y1="63" x2="14" y2="89" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="90" cy="59" r="4" fill={color} />
-          <circle cx="90" cy="67" r="4" fill={color} />
-          <circle cx="10" cy="85" r="4" fill={color} />
-          <circle cx="10" cy="93" r="4" fill={color} />
+          <line x1="82" y1="62" x2="18" y2="82" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="86" cy="58" r="4" fill={color} />
+          <circle cx="86" cy="66" r="4" fill={color} />
+          <circle cx="14" cy="78" r="4" fill={color} />
+          <circle cx="14" cy="86" r="4" fill={color} />
         </g>
 
-        {/* === SKULL (dominant — wide, imposing, fills the space) === */}
+        {/* === SKULL (dominant) === */}
         <g>
           <path d={`
-            M50 3
-            C28 3  15 18  15 34
-            C15 44  20 50  26 54
-            L26 56 C26 58 28 60 32 60
-            L40 60 L40 57 L43 60
-            L57 60 L60 57 L60 60
-            L68 60 C72 60 74 58 74 56
-            L74 54 C80 50 85 44 85 34
-            C85 18  72 3  50 3 Z
+            M50 4
+            C28 4  15 19  15 35
+            C15 45  20 51  26 55
+            L26 57 C26 59 28 61 32 61
+            L40 61 L40 58 L43 61
+            L57 61 L60 58 L60 61
+            L68 61 C72 61 74 59 74 57
+            L74 55 C80 51 85 45 85 35
+            C85 19  72 4  50 4 Z
           `} fill={color} />
-          <ellipse cx="36" cy="30" rx="9" ry="9" fill={bg} />
-          <ellipse cx="64" cy="30" rx="9" ry="9" fill={bg} />
-          <path d="M45 45 L50 39 L55 45 Z" fill={bg} />
-          <rect x="41" y="50" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="49" y="50" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="57" y="50" width="2" height="10" fill={bg} rx="0.5" />
+          <ellipse cx="36" cy="31" rx="9" ry="9" fill={bg} />
+          <ellipse cx="64" cy="31" rx="9" ry="9" fill={bg} />
+          <path d="M45 46 L50 40 L55 46 Z" fill={bg} />
+          <rect x="41" y="51" width="2" height="10" fill={bg} rx="0.5" />
+          <rect x="49" y="51" width="2" height="10" fill={bg} rx="0.5" />
+          <rect x="57" y="51" width="2" height="10" fill={bg} rx="0.5" />
         </g>
       </svg>
     </span>
