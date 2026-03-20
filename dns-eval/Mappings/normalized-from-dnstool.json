@@ -1,15 +1,38 @@
 {
-  "source_file": "dns-intelligence-dnstool.it-help.tech.json",
-  "domain": "dnstool.it-help.tech",
+  "source_file": "dns-intelligence-neildegrassetyson.com.json",
+  "domain": "neildegrassetyson.com",
+  "is_mail_domain": true,
+  "is_no_mail_domain": false,
+  "calibrated_confidence": {
+    "BIMI": 0.7,
+    "CAA": 0.7,
+    "DANE": 0.7,
+    "DKIM": 0.7,
+    "DMARC": 0.5,
+    "DNSSEC": 0.5,
+    "MTA_STS": 0.7,
+    "SPF": 0.5,
+    "TLS_RPT": 0.7
+  },
   "observations": {
     "DNSSEC_VALID": true,
-    "DNSSEC_INHERITED": true,
-    "NULL_MX": true,
-    "SPF_HARD_FAIL": true,
-    "DMARC_REJECT": true,
-    "NO_MAIL_DOMAIN": true,
-    "TLS_RPT": true,
+    "DNSSEC_INHERITED": false,
+    "DNSSEC_ROLLOVER_READY": true,
+    "NULL_MX": false,
+    "SPF_HARD_FAIL": false,
+    "DMARC_REJECT": false,
+    "NO_MAIL_DOMAIN": false,
+    "MAIL_DOMAIN": true,
+    "TLS_RPT": false,
     "MTA_STS_DNS": true,
-    "CAA_PRESENT": false
+    "CAA_PRESENT": false,
+    "DKIM_FOUND": false,
+    "DANE_PRESENT": false,
+    "BIMI_VALID": false,
+    "SECURITY_TXT_FOUND": false,
+    "NO_DANGLING_DNS": true,
+    "DELEGATION_OK": false,
+    "NO_SECRETS_EXPOSED": true,
+    "HTTPS_SVCB_PRESENT": false
   }
 }
