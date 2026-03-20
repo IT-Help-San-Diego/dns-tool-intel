@@ -33,19 +33,19 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
          * Horizontal: all symmetric around x=50
          */}
 
-        {/* === CROSSBONES — knobs placed perpendicular to shaft === */}
+        {/* === CROSSBONES — 5-unit gap below skull, knobs ⊥ shaft === */}
         <g>
-          <line x1="16" y1="56" x2="84" y2="84" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="14" cy="61" r="4" fill={color} />
-          <circle cx="18" cy="51" r="4" fill={color} />
-          <circle cx="82" cy="89" r="4" fill={color} />
-          <circle cx="86" cy="79" r="4" fill={color} />
+          <line x1="16" y1="62" x2="84" y2="90" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="14" cy="66" r="4.5" fill={color} />
+          <circle cx="18" cy="58" r="4.5" fill={color} />
+          <circle cx="82" cy="94" r="4.5" fill={color} />
+          <circle cx="86" cy="86" r="4.5" fill={color} />
 
-          <line x1="84" y1="56" x2="16" y2="84" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="86" cy="61" r="4" fill={color} />
-          <circle cx="82" cy="51" r="4" fill={color} />
-          <circle cx="18" cy="89" r="4" fill={color} />
-          <circle cx="14" cy="79" r="4" fill={color} />
+          <line x1="84" y1="62" x2="16" y2="90" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="86" cy="66" r="4.5" fill={color} />
+          <circle cx="82" cy="58" r="4.5" fill={color} />
+          <circle cx="18" cy="94" r="4.5" fill={color} />
+          <circle cx="14" cy="86" r="4.5" fill={color} />
         </g>
 
         {/* === SKULL (dominant, shifted up) === */}
