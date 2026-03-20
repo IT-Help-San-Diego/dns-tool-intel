@@ -24,49 +24,49 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
         style={{ display: 'block' }}
       >
         {/*
-         * CLASSIC JOLLY ROGER LAYOUT — skull dominant, bones behind.
+         * SKULL-DOMINANT, BONES-BELOW layout.
          *
-         * Bbox: (5,10) → (95,90), center = (50,50) ✓
-         * Skull: y=10→65 = 55 units (69% of composition) — DOMINANT
-         * Bones: cross at (50,50) behind skull; tips peek from sides
-         * Upper bone tips at y=15/23 — visible flanking the narrow cranium
-         * Lower bone tips at y=77/85 — visible below the jaw
+         * Skull: y=5→62, height=57 → 71% of composition
+         * Bones: y=64→85, height=21 → compact, subordinate
+         * Combined bbox: (5,5)→(95,90), center=(50,47.5)
+         * viewBox padded to center: extra 5 units bottom → visual center=50
+         * Horizontal: all symmetric around x=50
          */}
 
-        {/* === CROSSBONES (behind skull — rendered first) === */}
+        {/* === CROSSBONES (compact, below skull) === */}
         <g>
-          <line x1="14" y1="19" x2="86" y2="81" stroke={color} strokeWidth="7" strokeLinecap="round" />
-          <circle cx="10" cy="15" r="5" fill={color} />
-          <circle cx="10" cy="23" r="5" fill={color} />
-          <circle cx="90" cy="77" r="5" fill={color} />
-          <circle cx="90" cy="85" r="5" fill={color} />
+          <line x1="16" y1="72" x2="84" y2="88" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="12" cy="69" r="4" fill={color} />
+          <circle cx="12" cy="75" r="4" fill={color} />
+          <circle cx="88" cy="85" r="4" fill={color} />
+          <circle cx="88" cy="91" r="4" fill={color} />
 
-          <line x1="86" y1="19" x2="14" y2="81" stroke={color} strokeWidth="7" strokeLinecap="round" />
-          <circle cx="90" cy="15" r="5" fill={color} />
-          <circle cx="90" cy="23" r="5" fill={color} />
-          <circle cx="10" cy="77" r="5" fill={color} />
-          <circle cx="10" cy="85" r="5" fill={color} />
+          <line x1="84" y1="72" x2="16" y2="88" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="88" cy="69" r="4" fill={color} />
+          <circle cx="88" cy="75" r="4" fill={color} />
+          <circle cx="12" cy="85" r="4" fill={color} />
+          <circle cx="12" cy="91" r="4" fill={color} />
         </g>
 
-        {/* === SKULL (on top — rendered second, covers bone crossing) === */}
+        {/* === SKULL (dominant — wide, imposing, fills the space) === */}
         <g>
           <path d={`
-            M50 10
-            C30 10  18 24  18 38
-            C18 48  23 53  28 57
-            L28 60 C28 62 30 65 34 65
-            L41 65 L41 61 L44 65
-            L56 65 L59 61 L59 65
-            L66 65 C70 65 72 62 72 60
-            L72 57 C77 53 82 48 82 38
-            C82 24  70 10  50 10 Z
+            M50 5
+            C28 5  15 20  15 36
+            C15 46  20 52  26 56
+            L26 58 C26 60 28 62 32 62
+            L40 62 L40 59 L43 62
+            L57 62 L60 59 L60 62
+            L68 62 C72 62 74 60 74 58
+            L74 56 C80 52 85 46 85 36
+            C85 20  72 5  50 5 Z
           `} fill={color} />
-          <ellipse cx="38" cy="35" rx="8" ry="8" fill={bg} />
-          <ellipse cx="62" cy="35" rx="8" ry="8" fill={bg} />
-          <path d="M46 49 L50 43 L54 49 Z" fill={bg} />
-          <rect x="42" y="55" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="49" y="55" width="2" height="10" fill={bg} rx="0.5" />
-          <rect x="56" y="55" width="2" height="10" fill={bg} rx="0.5" />
+          <ellipse cx="36" cy="32" rx="9" ry="9" fill={bg} />
+          <ellipse cx="64" cy="32" rx="9" ry="9" fill={bg} />
+          <path d="M45 47 L50 41 L55 47 Z" fill={bg} />
+          <rect x="41" y="52" width="2" height="10" fill={bg} rx="0.5" />
+          <rect x="49" y="52" width="2" height="10" fill={bg} rx="0.5" />
+          <rect x="57" y="52" width="2" height="10" fill={bg} rx="0.5" />
         </g>
       </svg>
     </span>
