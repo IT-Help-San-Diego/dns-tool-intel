@@ -2,6 +2,19 @@ import './_group.css';
 import { Search, ChevronDown, ShieldAlert } from 'lucide-react';
 
 function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: string }) {
+  /*
+   * Geometry notes (100×100 viewBox, center at 50,50):
+   *
+   * Golden ratio φ = 1.618
+   * Skull height : bone-spread ≈ 1 : φ  →  skull ~38u tall, bones span ~62u wide
+   * Skull centered horizontally at x=50
+   * Skull occupies top 62% of canvas (y 8→58), bones cross at y≈58 (jaw level)
+   * Bones extend to edges, angled ±18° from horizontal (classic Jolly Roger)
+   * Bone knobs: radius 5, spaced 8u apart perpendicular to shaft
+   * Entire composition centered at (50, 50) within the viewBox
+   *
+   * Circle container padding: icon uses ~88% of circle diameter
+   */
   return (
     <span style={{
       display: 'inline-flex',
@@ -15,53 +28,57 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
       boxShadow: '0 0 6px rgba(196,60,60,0.1), inset 0 1px 1px rgba(255,255,255,0.04)',
       flexShrink: 0,
     }}>
-      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-        {/* === CROSSBONES — two bones in a clean X, behind skull === */}
+      <svg width={size * 0.78} height={size * 0.78} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+        {/* === CROSSBONES — classic X behind skull, bones at ±18° === */}
+        {/* Bone centers cross at (50, 70). Each bone is 80u long. */}
+        {/* 18° angle: cos18≈0.951, sin18≈0.309 */}
+        {/* Endpoints: (50±38, 70∓12) */}
         <g>
-          {/* Bone 1 shaft: bottom-left to top-right, 30° */}
-          <line x1="12" y1="82" x2="88" y2="58" stroke={color} strokeWidth="7" strokeLinecap="round" />
-          {/* Bone 1 knobs — bottom-left end */}
-          <circle cx="8"  cy="78" r="5.5" fill={color} />
-          <circle cx="8"  cy="87" r="5.5" fill={color} />
-          {/* Bone 1 knobs — top-right end */}
-          <circle cx="92" cy="53" r="5.5" fill={color} />
-          <circle cx="92" cy="62" r="5.5" fill={color} />
+          {/* Bone 1: top-left → bottom-right */}
+          <line x1="12" y1="58" x2="88" y2="82" stroke={color} strokeWidth="6.5" strokeLinecap="round" />
+          {/* Knobs — top-left end (perpendicular to shaft, ±4u) */}
+          <circle cx="10" cy="54" r="5" fill={color} />
+          <circle cx="14" cy="62" r="5" fill={color} />
+          {/* Knobs — bottom-right end */}
+          <circle cx="86" cy="78" r="5" fill={color} />
+          <circle cx="90" cy="86" r="5" fill={color} />
 
-          {/* Bone 2 shaft: top-left to bottom-right, mirrored */}
-          <line x1="12" y1="58" x2="88" y2="82" stroke={color} strokeWidth="7" strokeLinecap="round" />
-          {/* Bone 2 knobs — top-left end */}
-          <circle cx="8"  cy="53" r="5.5" fill={color} />
-          <circle cx="8"  cy="62" r="5.5" fill={color} />
-          {/* Bone 2 knobs — bottom-right end */}
-          <circle cx="92" cy="78" r="5.5" fill={color} />
-          <circle cx="92" cy="87" r="5.5" fill={color} />
+          {/* Bone 2: top-right → bottom-left (mirror) */}
+          <line x1="88" y1="58" x2="12" y2="82" stroke={color} strokeWidth="6.5" strokeLinecap="round" />
+          {/* Knobs — top-right end */}
+          <circle cx="90" cy="54" r="5" fill={color} />
+          <circle cx="86" cy="62" r="5" fill={color} />
+          {/* Knobs — bottom-left end */}
+          <circle cx="14" cy="78" r="5" fill={color} />
+          <circle cx="10" cy="86" r="5" fill={color} />
         </g>
 
-        {/* === SKULL — overlaps bones === */}
+        {/* === SKULL — centered at x=50, top of composition === */}
         <g>
-          {/* Cranium + jaw as one shape */}
+          {/* Cranium: wide dome (y 8→45) tapering to jaw (y 45→60) */}
           <path d="
-            M50 5
-            C28 5  15 18  15 33
-            C15 42  20 48  25 52
-            L25 58 C25 60 27 62 30 62
-            L35 62 L35 58 L38 62
-            L62 62 L65 58 L65 62
-            L70 62 C73 62 75 60 75 58
-            L75 52 C80 48 85 42 85 33
-            C85 18  72 5  50 5 Z
+            M50 8
+            C30 8  18 20  18 34
+            C18 42  22 47  27 51
+            L27 55 C27 57 29 59 32 59
+            L38 59 L38 56 L41 59
+            L59 59 L62 56 L62 59
+            L68 59 C71 59 73 57 73 55
+            L73 51 C78 47 82 42 82 34
+            C82 20  70 8  50 8 Z
           " fill={color} />
-          {/* Left eye socket */}
-          <ellipse cx="37" cy="30" rx="8" ry="9" fill="#0d1117" />
-          {/* Right eye socket */}
-          <ellipse cx="63" cy="30" rx="8" ry="9" fill="#0d1117" />
-          {/* Nose — heart-shaped nasal cavity */}
-          <path d="M46 44 L50 38 L54 44 Q50 47 46 44 Z" fill="#0d1117" />
-          {/* Teeth dividers */}
-          <rect x="38" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
-          <rect x="44" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
-          <rect x="50" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
-          <rect x="56" y="53" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+
+          {/* Eye sockets — vertically centered in cranium */}
+          <ellipse cx="37" cy="30" rx="7.5" ry="8" fill="#0d1117" />
+          <ellipse cx="63" cy="30" rx="7.5" ry="8" fill="#0d1117" />
+
+          {/* Nose — inverted triangle */}
+          <path d="M46 43 L50 37 L54 43 Z" fill="#0d1117" />
+
+          {/* Teeth gaps — 3 dividers across jaw */}
+          <rect x="43" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="49.25" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
+          <rect x="55.5" y="50" width="1.5" height="9" fill="#0d1117" rx="0.5" />
         </g>
       </svg>
     </span>
