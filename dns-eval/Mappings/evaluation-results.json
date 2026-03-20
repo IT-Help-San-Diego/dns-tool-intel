@@ -1,36 +1,36 @@
 {
-  "domain": "dnstool.it-help.tech",
-  "source": "dns-intelligence-dnstool.it-help.tech.json",
-  "evaluated_at": "2026-03-20T01:46:51.761041+00:00",
+  "domain": "it-help.tech",
+  "source": "dns-intelligence-it-help.tech.json",
+  "evaluated_at": "2026-03-20T01:49:56.783491+00:00",
   "schema_version": 8,
   "total_controls": 16,
-  "passed_count": 10,
-  "failed_count": 3,
-  "na_count": 3,
+  "passed_count": 11,
+  "failed_count": 4,
+  "na_count": 1,
   "high_failures": [],
   "medium_failures": [
     "DNSSEC_KEY_ROLLOVER",
     "DELEGATION_CONSISTENT"
   ],
   "low_failures": [
+    "DANE_DEPLOYED",
     "HTTPS_SVCB_MODERN"
   ],
   "passed": [
     "DNSSEC_AUTHENTICATED",
     "DNSSEC_CHAIN_TRUSTED",
-    "NO_MAIL_HARDENED",
     "SPF_EFFECTIVE_POLICY",
     "DMARC_ENFORCEMENT",
+    "DKIM_PRESENT",
     "MAIL_POLICY_SIGNALING",
     "CAA_RESTRICTION_PRESENT",
+    "BIMI_CONFIGURED",
     "SECURITY_TXT_PRESENT",
     "DANGLING_DNS_CLEAN",
     "SECRET_EXPOSURE_CLEAN"
   ],
   "not_applicable": [
-    "DKIM_PRESENT",
-    "DANE_DEPLOYED",
-    "BIMI_CONFIGURED"
+    "NO_MAIL_HARDENED"
   ],
   "results": [
     {
@@ -83,7 +83,7 @@
     {
       "id": "NO_MAIL_HARDENED",
       "title": "No-Mail Domain Hardening",
-      "status": "passed",
+      "status": "not_applicable",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.23",
@@ -131,7 +131,7 @@
     {
       "id": "DKIM_PRESENT",
       "title": "DKIM Signature Availability",
-      "status": "not_applicable",
+      "status": "passed",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -178,7 +178,7 @@
     {
       "id": "DANE_DEPLOYED",
       "title": "DANE / TLSA Deployment",
-      "status": "not_applicable",
+      "status": "failed",
       "severity": "low",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -189,12 +189,12 @@
         "RFC7672"
       ],
       "rationale": "RFC 6698 \u00a71 defines DANE as binding TLS certificates to DNS names via DNSSEC. RFC 7672 extends DANE to SMTP, providing authenticated encryption without reliance on the CA system. Requires DNSSEC (RFC 6698 \u00a71).",
-      "fail_explanation": ""
+      "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system."
     },
     {
       "id": "BIMI_CONFIGURED",
       "title": "BIMI Brand Indicator",
-      "status": "not_applicable",
+      "status": "passed",
       "severity": "low",
       "standards": [],
       "rfcs": [],
