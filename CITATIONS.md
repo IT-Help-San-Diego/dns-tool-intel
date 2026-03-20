@@ -163,10 +163,16 @@
   Pages: brand_colors
 - https://www.dni.gov/files/documents/ICD/ICD%20203%20Analytic%20Standards.pdf
   Pages: approach
-  NOTE: Government PDF. Zotero snapshot recommended for archival.
-- https://www.ic3.gov/AnnualReport/Reports/2023_IC3Report.pdf
-  Pages: approach
-  NOTE: Government PDF. Zotero snapshot recommended for archival.
+  ARCHIVED: go-server/static/references/ICD-203-Analytic-Standards.pdf (amended version)
+  ARCHIVED: go-server/static/references/ICD-203-Analytic-Standards-2015.pdf (original 02 Jan 2015)
+  SUPPORTING: go-server/static/references/Kwoun-Tradecraft-Standards-Military-Review-2021.pdf
+    (Lt. Col. Schmor & Maj. Kwoun, "Analytic Tradecraft Standards: An Opportunity to Provide
+     Decision Advantage for Army Commanders," Military Review, Mar-Apr 2021)
+- https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf
+  Pages: approach (UPDATED from 2023 to 2024 report — $2.77B BEC in 2024, $16.6B total)
+  ARCHIVED: go-server/static/references/2024-IC3-Annual-Report.pdf
+  ARCHIVED: go-server/static/references/2023-IC3-Annual-Report.pdf (prior year, retained)
+  ARCHIVED: go-server/static/references/2023-IC3-Cryptocurrency-Report.pdf (supplemental)
 
 ## Academic/Research (5 citations)
 
