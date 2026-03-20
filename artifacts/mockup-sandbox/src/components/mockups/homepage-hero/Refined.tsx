@@ -33,19 +33,19 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
          * Horizontal: all symmetric around x=50
          */}
 
-        {/* === CROSSBONES (fanned out, steep X) === */}
+        {/* === CROSSBONES — knobs placed perpendicular to shaft === */}
         <g>
           <line x1="16" y1="56" x2="84" y2="84" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="12" cy="50" r="4" fill={color} />
-          <circle cx="12" cy="62" r="4" fill={color} />
-          <circle cx="88" cy="78" r="4" fill={color} />
-          <circle cx="88" cy="90" r="4" fill={color} />
+          <circle cx="14" cy="61" r="4" fill={color} />
+          <circle cx="18" cy="51" r="4" fill={color} />
+          <circle cx="82" cy="89" r="4" fill={color} />
+          <circle cx="86" cy="79" r="4" fill={color} />
 
           <line x1="84" y1="56" x2="16" y2="84" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
-          <circle cx="88" cy="50" r="4" fill={color} />
-          <circle cx="88" cy="62" r="4" fill={color} />
-          <circle cx="12" cy="78" r="4" fill={color} />
-          <circle cx="12" cy="90" r="4" fill={color} />
+          <circle cx="86" cy="61" r="4" fill={color} />
+          <circle cx="82" cy="51" r="4" fill={color} />
+          <circle cx="18" cy="89" r="4" fill={color} />
+          <circle cx="14" cy="79" r="4" fill={color} />
         </g>
 
         {/* === SKULL (dominant, shifted up) === */}
