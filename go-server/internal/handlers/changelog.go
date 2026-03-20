@@ -67,6 +67,13 @@
 package handlers
 
 const (
+        dateMar20 = "Mar 20, 2026"
+        dateMar19 = "Mar 19, 2026"
+        dateMar18 = "Mar 18, 2026"
+        dateMar14 = "Mar 14, 2026"
+        dateMar12 = "Mar 12, 2026"
+        dateMar10 = "Mar 10, 2026"
+        dateMar08 = "Mar 8, 2026"
         dateMar06 = "Mar 6, 2026"
         dateFeb28 = "Feb 28, 2026"
         dateFeb26 = "Feb 26, 2026"
@@ -88,6 +95,13 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263802 = "26.38.02"
+        ver263732 = "26.37.32"
+        ver263716 = "26.37.16"
+        ver263611 = "26.36.11"
+        ver263609 = "26.36.09"
+        ver263535 = "26.35.35"
+        ver263534 = "26.35.34"
         ver263440 = "26.34.40"
         ver263439 = "26.34.39"
         ver263438 = "26.34.38"
@@ -137,6 +151,86 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver263802,
+                        Date:        dateMar20,
+                        Category:    catIntelligence,
+                        Title:       "Publications & Research Index",
+                        Description: "New /publications page consolidating all scientific papers, case studies, governance documents, and technical documentation in a single, citable index. Includes format badges (PDF/HTML/Video), metadata, and DOI citation link. Footer redesigned with glassmorphism grid cards organized into Research, Platform, Governance, and Legal categories.",
+                        Icon:        "book-open",
+                },
+                {
+                        Version:     ver263802,
+                        Date:        dateMar19,
+                        Category:    catIntelligence,
+                        Title:       "Domain Confessions #2 — Intelligence DMARC Case Study",
+                        Description: "Published case study analyzing DMARC postures across 13 U.S. intelligence and federal agencies. The CIA and ODNI are the only agencies in the survey that have not upgraded to DMARC reject eight years after BOD 18-01. Analysis of forensic reporting (ruf=) configurations, strict alignment adoption, and the deliberate monitoring posture hypothesis. Includes accessible agency comparison table, SPF technical explanation, and nuanced treatment of the ruf= specification status (DMARCbis removal vs. government system support).",
+                        Icon:        "eye",
+                },
+                {
+                        Version:     ver263802,
+                        Date:        dateMar19,
+                        Category:    catIntelligence,
+                        Title:       "Case Study Index & Cross-Linking",
+                        Description: "New /case-study/ index page listing all Domain Confessions entries. Cross-links between Confessions #1 (Forgotten Domain) and #2 (Intelligence DMARC). Case study section added to the Approach page. Service worker updated to skip /case-study/ and /video/ paths to prevent stale cache interference.",
+                        Icon:        "list",
+                },
+                {
+                        Version:     ver263732,
+                        Date:        dateMar18,
+                        Category:    catIntelligence,
+                        Title:       "Founder's Manifesto & Communication Standards",
+                        Description: "Two new governance documents published as both HTML pages and downloadable PDFs. The Founder's Manifesto declares aspirational design philosophy (non-normative). The Communication Standards document defines the measurable quality gate for all DNS Tool output — clarity requirements, vision accessibility standards (WCAG AA), acronym expansion rules, and the manual review checklist.",
+                        Icon:        "scroll",
+                },
+                {
+                        Version:     ver263716,
+                        Date:        dateMar14,
+                        Category:    catIntelligence,
+                        Title:       "ICSAE Standards Evaluation Engine",
+                        Description: "DNS analysis results now include mapping against formal security standards: INCITS/ISO/IEC 27001, INCITS/ISO/IEC 27002, INCITS 585-2025, and DoD DI-IPSC-81427B. Each finding maps to specific control clauses with compliance context. Standards reference documentation added to the project.",
+                        Icon:        iconShieldAlt,
+                },
+                {
+                        Version:     ver263611,
+                        Date:        dateMar12,
+                        Category:    catUX,
+                        Title:       "UX Clarity & Vision Audit",
+                        Description: "Comprehensive warm-shift of the accent palette from cool blue to gold/amber tones across all templates. Icon consistency sweep replacing generic icons with domain-specific choices. Glassmorphism treatment applied to protocol badges and scan topology nodes. Font-size floor raised to 0.75rem for WCAG AA compliance. LCP preload hints added. Heading hierarchy corrected across all pages.",
+                        Icon:        "palette",
+                },
+                {
+                        Version:     ver263611,
+                        Date:        dateMar12,
+                        Category:    catSecurity,
+                        Title:       "CSP Deep Audit",
+                        Description: "Eliminated all remaining unsafe-inline directives from Content Security Policy. All inline scripts and styles now use nonce-based CSP. Static asset serving hardened with Subresource Integrity (SRI) hashes. Image source directive tightened. Complete CSP compliance across all page templates.",
+                        Icon:        "lock",
+                },
+                {
+                        Version:     ver263609,
+                        Date:        dateMar10,
+                        Category:    catIntelligence,
+                        Title:       "Web3 Analysis Node & Topology Globe",
+                        Description: "Added Web3 domain analysis phase to the scan pipeline — detects ENS/HNS names, IPFS/DNSLink CIDs, gateway infrastructure, and decentralized web indicators in DNS records. Scan topology visualization updated with Web3 node, golden-ratio layout, animated Earth globe with continent outlines, and concentric glass ring node design.",
+                        Icon:        "globe",
+                },
+                {
+                        Version:     ver263535,
+                        Date:        dateMar08,
+                        Category:    catIntelligence,
+                        Title:       "Black Site — Adversarial Testing Framework",
+                        Description: "New /black-site page implementing a bug tracking system styled as a detainee interrogation facility. Findings (BSI entries) are tracked with severity classification, rendition status, and resolution tracking. Integrated with PostgreSQL for persistent storage. EDE (Extended DNS Errors) data seeded on startup with auto-applied findings.",
+                        Icon:        iconSatDish,
+                },
+                {
+                        Version:     ver263534,
+                        Date:        dateMar08,
+                        Category:    catUX,
+                        Title:       "Domain Confessions Video Platform",
+                        Description: "Video content system with YouTube embed support, privacy-preserving nocookie player, structured data (Schema.org VideoObject), WebVTT captions, share buttons (Copy Link, Post, Share, Email), and Watch on YouTube integration. Approach page updated with clickable video thumbnails. CSP frame-src configured for youtube-nocookie.com.",
+                        Icon:        "play-circle",
+                },
                 {
                         Version:     ver263440,
                         Date:        dateMar06,
