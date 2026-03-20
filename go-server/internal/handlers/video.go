@@ -34,6 +34,19 @@ func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
         c.HTML(http.StatusOK, "video_forgotten_domain.html", data)
 }
 
+func (h *VideoHandler) Publications(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                "AppVersion":      h.Config.AppVersion,
+                "MaintenanceNote": h.Config.MaintenanceNote,
+                "BetaPages":       h.Config.BetaPages,
+                "CspNonce":        nonce,
+                "ActivePage":      "publications",
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "publications.html", data)
+}
+
 func (h *VideoHandler) CaseStudyIndex(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{

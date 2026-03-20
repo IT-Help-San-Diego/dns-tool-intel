@@ -467,6 +467,7 @@ func main() {
         router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
 
         videoHandler := handlers.NewVideoHandler(cfg)
+        router.GET("/publications", videoHandler.Publications)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
         router.GET("/case-study/", videoHandler.CaseStudyIndex)
         router.GET("/case-study/intelligence-dmarc", videoHandler.IntelligenceDMARC)
