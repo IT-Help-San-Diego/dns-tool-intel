@@ -33,8 +33,8 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
          * Horizontal: all symmetric around x=50
          */}
 
-        {/* === CROSSBONES — 5-unit gap below skull, knobs ⊥ shaft === */}
-        <g>
+        {/* === CROSSBONES === */}
+        <g transform="translate(0,-3)">
           <line x1="16" y1="62" x2="84" y2="90" stroke={color} strokeWidth="5.5" strokeLinecap="round" />
           <circle cx="14" cy="66" r="4.5" fill={color} />
           <circle cx="18" cy="58" r="4.5" fill={color} />
@@ -48,8 +48,8 @@ function HackerSkull({ size = 20, color = '#c43c3c' }: { size?: number; color?: 
           <circle cx="14" cy="86" r="4.5" fill={color} />
         </g>
 
-        {/* === SKULL (dominant, shifted up) === */}
-        <g>
+        {/* === SKULL === */}
+        <g transform="translate(0,-3)">
           <path d={`
             M50 0
             C28 0  15 15  15 31
