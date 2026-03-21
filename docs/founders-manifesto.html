@@ -124,6 +124,38 @@
   This document expresses the aspirational vision and design philosophy that motivates DNS Tool&rsquo;s architecture. It is distinct from the project&rsquo;s scientific claims, which are bounded, falsifiable, and documented separately in the <a href="https://dnstool.it-help.tech/foundations">Philosophical Foundations</a> paper and the <a href="https://dnstool.it-help.tech/methodology">methodology paper</a> (Balboa, 2026). Where this manifesto says &ldquo;[MUST],&rdquo; it declares a design target, not a proven state. The <a href="https://dnstool.it-help.tech/communication-standards">Communication Standards</a> document enforces the measurable quality gate that ensures these aspirations translate into readable, accessible output.
 </div>
 
+<h2>The Owl Semaphore</h2>
+
+<p style="font-size:9.5pt;color:#444;margin-bottom:10pt;">The Owl of Athena encodes semantic state through orientation and color. Each transform is a distance-preserving linear transformation of the plane&mdash;a subset of the orthogonal group O(2). This document carries the <strong style="color:#4A9D96;">Non-Normative</strong> designation.</p>
+
+<table style="width:100%;border-collapse:collapse;margin-bottom:14pt;font-size:8.5pt;">
+  <tr>
+    <td style="text-align:center;padding:8pt;vertical-align:top;width:33%;border:0.5pt solid #ddd;">
+      <img src="../static/exports/owl-semaphore/owl-NORMATIVE-512.png" alt="Normative Owl" width="60" height="60" style="border-radius:50%;background:#0d1117;padding:2px;border:1.5pt solid #C8A878;margin-bottom:4pt;"><br>
+      <strong style="color:#b8860b;">NORMATIVE</strong><br>
+      <span style="font-family:monospace;font-size:7.5pt;color:#666;">T = I &ensp; det = +1</span><br>
+      <span style="font-family:monospace;font-size:7pt;color:#888;">(x, y) &rarr; (x, y)</span><br>
+      <em style="font-size:8pt;color:#888;">&ldquo;This is the standard.&rdquo;</em>
+    </td>
+    <td style="text-align:center;padding:8pt;vertical-align:top;width:33%;border:0.5pt solid #ddd;">
+      <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" alt="Non-Normative Owl" width="60" height="60" style="border-radius:50%;background:#0d1117;padding:2px;border:1.5pt solid #4A9D96;margin-bottom:4pt;"><br>
+      <strong style="color:#4A9D96;">NON-NORMATIVE</strong><br>
+      <span style="font-family:monospace;font-size:7.5pt;color:#666;">T = R(&pi;/8) &ensp; det = +1</span><br>
+      <span style="font-family:monospace;font-size:7pt;color:#888;">(x, y) &rarr; (x&middot;cos &pi;/8 &minus; y&middot;sin &pi;/8, &hellip;)</span><br>
+      <em style="font-size:8pt;color:#4A9D96;">&ldquo;Think about your thinking.&rdquo;</em>
+    </td>
+    <td style="text-align:center;padding:8pt;vertical-align:top;width:33%;border:0.5pt solid #ddd;">
+      <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" alt="Critical Owl" width="60" height="60" style="border-radius:50%;background:#0d1117;padding:2px;border:1.5pt solid #8B0000;margin-bottom:4pt;"><br>
+      <strong style="color:#8B0000;">CRITICAL</strong><br>
+      <span style="font-family:monospace;font-size:7.5pt;color:#666;">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</span><br>
+      <span style="font-family:monospace;font-size:7pt;color:#888;">(x, y) &rarr; (x, &minus;y)</span><br>
+      <em style="font-size:8pt;color:#c00;">&ldquo;This is danger. Heed it.&rdquo;</em>
+    </td>
+  </tr>
+</table>
+
+<p style="font-size:8pt;color:#888;margin-bottom:14pt;"><strong>Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and degraded single-channel contexts. <strong>Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory.</p>
+
 <h2>The Declaration</h2>
 
 <div class="declaration-block">
