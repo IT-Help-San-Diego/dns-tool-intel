@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+{{htmlComment " NORMATIVE — The Owl Semaphore is the standard. "}}
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_css" .}}
+    <title>The Owl Semaphore — Three States of Knowledge — DNS Tool</title>
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="The Owl Semaphore: a visual knowledge-state system using three mathematical transforms of the Owl of Athena. Normative, Non-Normative, and Critical states encode epistemic stance for scientific communication.">
+    <meta property="article:published_time" content="2026-03-21">
+    <meta property="article:modified_time" content="2026-03-21">
+    <meta property="og:url" content="https://dnstool.it-help.tech/owl-semaphore">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="The Owl Semaphore — Three States of Knowledge">
+    <meta property="og:description" content="A visual knowledge-state system using three mathematical transforms of the Owl of Athena. Download, cite, and integrate into your scientific workflow.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/owl-NORMATIVE-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="The Owl of Athena — Normative state">
+    <meta property="og:site_name" content="DNS Tool">
+    <meta name="twitter:card" content="summary">
+    <meta property="twitter:domain" content="dnstool.it-help.tech">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/owl-semaphore">
+    <meta name="twitter:title" content="The Owl Semaphore — Three States of Knowledge">
+    <meta name="twitter:description" content="A visual knowledge-state system using three mathematical transforms of the Owl of Athena.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/owl-NORMATIVE-512.png">
+    <link rel="canonical" href="https://dnstool.it-help.tech/owl-semaphore">
+
+    <meta name="citation_title" content="The Owl Semaphore: Three States of Knowledge">
+    <meta name="citation_author" content="Balboa, Carey James">
+    <meta name="citation_publication_date" content="2026/03/21">
+    <meta name="citation_doi" content="10.5281/zenodo.18854899">
+    <meta name="citation_language" content="en">
+    <meta name="citation_keywords" content="semaphore; epistemology; visual communication; knowledge states; scientific notation; orthogonal group">
+
+    <script type="application/ld+json" nonce="{{.CspNonce}}">
+    &#x7b;
+      "@context": "https://schema.org",
+      "@type": "ScholarlyArticle",
+      "name": "The Owl Semaphore: Three States of Knowledge",
+      "headline": "The Owl Semaphore: Three States of Knowledge",
+      "author": &#x7b;
+        "@type": "Person",
+        "name": "Carey James Balboa",
+        "url": "https://orcid.org/0009-0000-5237-9065"
+      &#x7d;,
+      "publisher": &#x7b;
+        "@type": "Organization",
+        "name": "IT Help San Diego Inc."
+      &#x7d;,
+      "datePublished": "2026-03-21",
+      "dateModified": "2026-03-21",
+      "description": "A visual epistemic notation system using three mathematical transforms from the orthogonal group O(2) of the Owl of Athena to encode knowledge state: Normative (identity), Non-Normative (rotation), and Critical (reflection).",
+      "url": "https://dnstool.it-help.tech/owl-semaphore",
+      "sameAs": "https://doi.org/10.5281/zenodo.18854899",
+      "keywords": ["semaphore", "epistemology", "visual communication", "knowledge states", "orthogonal group", "scientific notation"],
+      "license": "https://spdx.org/licenses/BUSL-1.1.html",
+      "inLanguage": "en"
+    &#x7d;
+    </script>
+
+    <style nonce="{{.CspNonce}}">
+        .sem-page { max-width: 1000px; }
+
+        .sem-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(212,168,83,0.1);
+            border: 1px solid rgba(212,168,83,0.35);
+            border-radius: 4px;
+            padding: 0.2rem 0.65rem;
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #d4a853;
+            white-space: nowrap;
+        }
+        .sem-badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4a853;
+        }
+
+        .sem-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            overflow: hidden;
+        }
+        .sem-section-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #30363d;
+            background: rgba(13,17,23,0.4);
+        }
+        .sem-section-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e6edf3;
+            margin: 0;
+        }
+        .sem-section-body {
+            padding: 1rem;
+        }
+
+        .owl-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            transition: transform 0.15s ease;
+            height: 100%;
+        }
+        .owl-card:hover { transform: translateY(-2px); }
+        .owl-card-normative {
+            background: rgba(212,168,83,0.06);
+            border: 1px solid rgba(212,168,83,0.2);
+        }
+        .owl-card-nonnormative {
+            background: rgba(74,157,150,0.06);
+            border: 1px solid rgba(74,157,150,0.2);
+        }
+        .owl-card-critical {
+            background: rgba(139,0,0,0.06);
+            border: 1px solid rgba(139,0,0,0.2);
+        }
+
+        .owl-img-dark {
+            border-radius: 50%;
+            background: #0d1117;
+            padding: 3px;
+        }
+        .owl-img-light {
+            border-radius: 50%;
+            background: #ffffff;
+            padding: 3px;
+        }
+
+        .owl-state-name {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.25rem;
+        }
+        .owl-transform {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.78rem;
+            color: #aab2bc;
+        }
+        .owl-mapping {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.72rem;
+            color: #8b949e;
+        }
+        .owl-tagline {
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        .owl-standards {
+            font-size: 0.72rem;
+            color: #8b949e;
+            margin-top: 0.4rem;
+        }
+
+        .owl-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s ease, color 0.15s ease;
+            border: 1px solid transparent;
+        }
+        .owl-download-btn:hover { text-decoration: none; }
+        .dl-normative {
+            color: #d4a853;
+            border-color: rgba(212,168,83,0.3);
+            background: rgba(212,168,83,0.08);
+        }
+        .dl-normative:hover { background: rgba(212,168,83,0.18); color: #d4a853; }
+        .dl-nonnormative {
+            color: #4A9D96;
+            border-color: rgba(74,157,150,0.3);
+            background: rgba(74,157,150,0.08);
+        }
+        .dl-nonnormative:hover { background: rgba(74,157,150,0.18); color: #4A9D96; }
+        .dl-critical {
+            color: #f85149;
+            border-color: rgba(139,0,0,0.3);
+            background: rgba(139,0,0,0.08);
+        }
+        .dl-critical:hover { background: rgba(139,0,0,0.18); color: #f85149; }
+
+        .surface-demo {
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+        .surface-dark {
+            background: #0d1117;
+            border: 1px solid #30363d;
+        }
+        .surface-light {
+            background: #ffffff;
+            border: 1px solid #d0d7de;
+        }
+        .surface-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .bibtex-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.72rem;
+            color: #8b949e;
+            white-space: pre-wrap;
+            word-break: break-all;
+            position: relative;
+        }
+        .bibtex-copy {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(88,166,255,0.1);
+            border: 1px solid rgba(88,166,255,0.25);
+            color: #58a6ff;
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.68rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .bibtex-copy:hover { background: rgba(88,166,255,0.2); }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+    <main id="main-content">
+        <div class="container sem-page py-4">
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h1 class="h4 mb-1" style="color: #e6edf3;">The Owl Semaphore</h1>
+                    <p class="mb-0" style="font-size: 0.82rem; color: #8b949e;">Three States of Knowledge &mdash; A Visual Epistemic Notation System</p>
+                </div>
+                <span class="sem-badge"><span class="sem-badge-dot"></span>Normative</span>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-body" style="padding-top: 1rem; padding-bottom: 0.75rem;">
+                    <p class="mb-0" style="font-size: 0.82rem; color: rgba(170,178,188,0.7);">The Owl of Athena encodes epistemic state through orientation and color. Each state is a distance-preserving linear transformation of the plane &mdash; a subset of the orthogonal group <strong style="color:#e6edf3;">O(2)</strong>. The system provides redundant encoding (color + orientation + context label) so the signal remains readable under color vision deficiency, small render sizes, and degraded single-channel contexts.</p>
+                    <p class="mb-0 mt-2" style="font-size: 0.78rem; color: rgba(170,178,188,0.5);">
+                        <strong style="color:#58a6ff;">Research project:</strong>
+                        <a href="https://doi.org/10.5281/zenodo.18854899" target="_blank" rel="noopener" class="text-info text-decoration-none">DOI 10.5281/zenodo.18854899</a> &middot;
+                        <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">ORCID 0009-0000-5237-9065</a> &middot;
+                        Carey James Balboa &middot; <strong style="color:#d4a853;">This page is Normative.</strong>
+                    </p>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "eye" "me-2"}}The Three States</h2>
+                </div>
+                <div class="sem-section-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="owl-card owl-card-normative">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative Owl — identity transform, gold, upright" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(212,168,83,0.4);">
+                                <p class="owl-state-name" style="color:#d4a853;">NORMATIVE</p>
+                                <p class="owl-transform">T = I &ensp; det = +1</p>
+                                <p class="owl-mapping">(x, y) &rarr; (x, y)</p>
+                                <p class="owl-tagline" style="color:#d4a853;">&ldquo;This is the standard.&rdquo;</p>
+                                <p class="owl-standards">RFC 2119 MUST / SHALL</p>
+                                <hr style="border-color:rgba(212,168,83,0.15);margin:0.75rem 0;">
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">The identity transform. The owl stands exactly as designed &mdash; no rotation, no reflection. What you see has been verified. This is the standard.</p>
+                                <a href="/static/exports/owl-semaphore/owl-NORMATIVE-512.png" download="owl-NORMATIVE-512.png" class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Download PNG</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="owl-card owl-card-nonnormative">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative Owl — rotation, verdigris" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(74,157,150,0.4);">
+                                <p class="owl-state-name" style="color:#4A9D96;">NON-NORMATIVE</p>
+                                <p class="owl-transform">T = R(&pi;/8) &ensp; det = +1</p>
+                                <p class="owl-mapping">(x, y) &rarr; (x&middot;cos &pi;/8 &minus; y&middot;sin &pi;/8,<br>&ensp;x&middot;sin &pi;/8 + y&middot;cos &pi;/8)</p>
+                                <p class="owl-tagline" style="color:#4A9D96;">&ldquo;Think about your thinking.&rdquo;</p>
+                                <p class="owl-standards">Informative / NOTE</p>
+                                <hr style="border-color:rgba(74,157,150,0.15);margin:0.75rem 0;">
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A proper rotation &mdash; det&nbsp;=&nbsp;+1, orientation preserved. The owl is shifted from its canonical stance. The content is exploratory, aspirational, or informative. Consider it, but verify before relying on it.</p>
+                                <a href="/static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" download="owl-NONNORMATIVE-512.png" class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Download PNG</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="owl-card owl-card-critical">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical Owl — reflection, crimson" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(139,0,0,0.4);">
+                                <p class="owl-state-name" style="color:#f85149;">CRITICAL</p>
+                                <p class="owl-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
+                                <p class="owl-mapping">(x, y) &rarr; (x, &minus;y)</p>
+                                <p class="owl-tagline" style="color:#f85149;">&ldquo;This is danger. Heed it.&rdquo;</p>
+                                <p class="owl-standards">CVE / Security Advisory / DANGER</p>
+                                <hr style="border-color:rgba(139,0,0,0.15);margin:0.75rem 0;">
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A reflection &mdash; det&nbsp;=&nbsp;&minus;1, orientation reversed. The owl is mirrored. Think critically. Reflect. There is danger here. This content identifies a verified threat, a vulnerability, or a condition requiring immediate attention.</p>
+                                <a href="/static/exports/owl-semaphore/owl-CRITICAL-512.png" download="owl-CRITICAL-512.png" class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Download PNG</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "palette" "me-2"}}Surface Demonstration</h2>
+                </div>
+                <div class="sem-section-body">
+                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">The semaphore must function on both dark interfaces and light-background documents (PDFs, printed papers, slides). All assets ship with transparent backgrounds.</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="surface-demo surface-dark">
+                                <p class="surface-label" style="color:#8b949e;">Dark Surface</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(212,168,83,0.3);padding:2px;">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(74,157,150,0.3);padding:2px;">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(139,0,0,0.3);padding:2px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="surface-demo surface-light">
+                                <p class="surface-label" style="color:#57606a;">Light Surface (PDF / Print)</p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(212,168,83,0.5);padding:2px;">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(74,157,150,0.5);padding:2px;">
+                                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(139,0,0,0.5);padding:2px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "ruler-combined" "me-2"}}Mathematical Foundation</h2>
+                </div>
+                <div class="sem-section-body">
+                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">Each semaphore state is a distance-preserving linear transformation <em>T</em> &isin; <strong style="color:#e6edf3;">O(2)</strong>, the orthogonal group of the plane. The determinant separates proper rotations (det&nbsp;=&nbsp;+1) from improper reflections (det&nbsp;=&nbsp;&minus;1).</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered" style="font-size:0.8rem;border-color:#30363d;">
+                            <thead style="background:rgba(13,17,23,0.6);">
+                                <tr>
+                                    <th style="color:#e6edf3;border-color:#30363d;width:18%;">State</th>
+                                    <th style="color:#e6edf3;border-color:#30363d;width:15%;">Transform</th>
+                                    <th style="color:#e6edf3;border-color:#30363d;width:8%;">det</th>
+                                    <th style="color:#e6edf3;border-color:#30363d;width:22%;">Mapping</th>
+                                    <th style="color:#e6edf3;border-color:#30363d;width:12%;">Color</th>
+                                    <th style="color:#e6edf3;border-color:#30363d;">Semantics</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="color:#d4a853;font-weight:700;border-color:#30363d;">NORMATIVE</td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = I</td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">+1</td>
+                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (x, y)</td>
+                                    <td style="border-color:#30363d;"><span style="color:#d4a853;">&#9679;</span> Gold</td>
+                                    <td style="color:#8b949e;border-color:#30363d;">Verified. Authoritative. The standard.</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:#4A9D96;font-weight:700;border-color:#30363d;">NON-NORMATIVE</td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = R(&pi;/8)</td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">+1</td>
+                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (x cos &pi;/8 &minus; y sin &pi;/8, x sin &pi;/8 + y cos &pi;/8)</td>
+                                    <td style="border-color:#30363d;"><span style="color:#4A9D96;">&#9679;</span> Verdigris</td>
+                                    <td style="color:#8b949e;border-color:#30363d;">Exploratory. Informative. Think about your thinking.</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:#f85149;font-weight:700;border-color:#30363d;">CRITICAL</td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = &sigma;<sub>h</sub></td>
+                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">&minus;1</td>
+                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (x, &minus;y)</td>
+                                    <td style="border-color:#30363d;"><span style="color:#8B0000;">&#9679;</span> Crimson</td>
+                                    <td style="color:#8b949e;border-color:#30363d;">Danger. Reflect critically. Verified threat.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-2 mt-2" style="background:rgba(13,17,23,0.4);border:1px solid rgba(200,149,106,0.1);border-radius:6px;">
+                        <p class="mb-0" style="font-size:0.75rem;color:#8b949e;">
+                            <strong style="color:#58a6ff;">Why O(2)?</strong> The orthogonal group O(2) contains all distance-preserving linear maps of the plane. The determinant cleanly partitions the group: det = +1 (proper rotations, SO(2)) preserves orientation; det = &minus;1 (improper, reflections) reverses it. Two mathematical classes map to two epistemic stances: <em>shifted perspective</em> (rotation, same handedness) versus <em>danger, reversal</em> (reflection, flipped handedness). The identity T = I anchors the system as the unmodified reference.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "map-signs" "me-2"}}Standards Mapping</h2>
+                </div>
+                <div class="sem-section-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3" style="background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.12);border-radius:8px;">
+                                <p class="mb-1" style="font-weight:700;color:#d4a853;font-size:0.85rem;">NORMATIVE</p>
+                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
+                                    <li><strong style="color:#aab2bc;">RFC 2119:</strong> MUST, SHALL, REQUIRED</li>
+                                    <li><strong style="color:#aab2bc;">ISO/IEC:</strong> Normative clauses</li>
+                                    <li><strong style="color:#aab2bc;">W3C:</strong> Normative sections</li>
+                                    <li><strong style="color:#aab2bc;">Science:</strong> Verified, peer-reviewed claims</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3" style="background:rgba(74,157,150,0.04);border:1px solid rgba(74,157,150,0.12);border-radius:8px;">
+                                <p class="mb-1" style="font-weight:700;color:#4A9D96;font-size:0.85rem;">NON-NORMATIVE</p>
+                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
+                                    <li><strong style="color:#aab2bc;">RFC:</strong> Informative, NOTE</li>
+                                    <li><strong style="color:#aab2bc;">ISO/IEC:</strong> Informative annexes</li>
+                                    <li><strong style="color:#aab2bc;">W3C:</strong> Non-normative notes</li>
+                                    <li><strong style="color:#aab2bc;">Science:</strong> Hypotheses, exploratory analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3" style="background:rgba(139,0,0,0.04);border:1px solid rgba(139,0,0,0.12);border-radius:8px;">
+                                <p class="mb-1" style="font-weight:700;color:#f85149;font-size:0.85rem;">CRITICAL</p>
+                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
+                                    <li><strong style="color:#aab2bc;">CVE:</strong> Security vulnerability</li>
+                                    <li><strong style="color:#aab2bc;">CVSS:</strong> Critical severity (9.0&ndash;10.0)</li>
+                                    <li><strong style="color:#aab2bc;">CISA:</strong> Known Exploited Vulnerability</li>
+                                    <li><strong style="color:#aab2bc;">Science:</strong> Falsified claim, retraction, danger</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "download" "me-2"}}Download &amp; Cite</h2>
+                </div>
+                <div class="sem-section-body">
+                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">All assets are 512x512 PNG with transparent backgrounds. Free to use in scientific publications, technical documentation, and research projects with attribution.</p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4 text-center">
+                            <a href="/static/exports/owl-semaphore/owl-NORMATIVE-512.png" download="owl-NORMATIVE-512.png" class="owl-download-btn dl-normative mb-2">{{icon "download" "me-1"}}NORMATIVE (PNG)</a>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <a href="/static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" download="owl-NONNORMATIVE-512.png" class="owl-download-btn dl-nonnormative mb-2">{{icon "download" "me-1"}}NON-NORMATIVE (PNG)</a>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <a href="/static/exports/owl-semaphore/owl-CRITICAL-512.png" download="owl-CRITICAL-512.png" class="owl-download-btn dl-critical mb-2">{{icon "download" "me-1"}}CRITICAL (PNG)</a>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size:0.88rem;color:#e6edf3;margin-bottom:0.75rem;">BibTeX</h3>
+                    <div class="bibtex-block" id="bibtex-block">
+                        <button class="bibtex-copy" id="bibtex-copy-btn">Copy</button>
+<code id="bibtex-text">@misc&#x7b;balboa2026owlsemaphore,
+  author       = &#x7b;Balboa, Carey James&#x7d;,
+  title        = &#x7b;The Owl Semaphore: Three States of Knowledge&#x7d;,
+  year         = &#x7b;2026&#x7d;,
+  publisher    = &#x7b;IT Help San Diego Inc.&#x7d;,
+  doi          = &#x7b;10.5281/zenodo.18854899&#x7d;,
+  url          = &#x7b;https://dnstool.it-help.tech/owl-semaphore&#x7d;,
+  note         = &#x7b;A visual epistemic notation system using O(2)
+                  group transforms of the Owl of Athena.&#x7d;
+&#x7d;</code>
+                    </div>
+
+                    <h3 class="mt-3" style="font-size:0.88rem;color:#e6edf3;margin-bottom:0.75rem;">Zotero / Reference Managers</h3>
+                    <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0.5rem;">This page includes <strong style="color:#aab2bc;">Highwire Press</strong> metadata tags (<code style="color:#58a6ff;">citation_*</code>) and <strong style="color:#aab2bc;">Schema.org JSON-LD</strong> structured data. Zotero, Mendeley, and other reference managers will auto-detect and import this page&rsquo;s citation metadata directly from the browser toolbar.</p>
+                    <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">
+                        <strong style="color:#aab2bc;">DOI:</strong> <a href="https://doi.org/10.5281/zenodo.18854899" target="_blank" rel="noopener" class="text-info text-decoration-none">10.5281/zenodo.18854899</a> &middot;
+                        <strong style="color:#aab2bc;">ORCID:</strong> <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">0009-0000-5237-9065</a> &middot;
+                        <strong style="color:#aab2bc;">License:</strong> BUSL-1.1
+                    </p>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-header">
+                    <h2>{{icon "flask" "me-2"}}For Scientists</h2>
+                </div>
+                <div class="sem-section-body">
+                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">This system was created by one researcher working at the intersection of DNS security, epistemology, and ancient Greek analytical philosophy. It is offered to the global scientific community as a starting point &mdash; a standardized way to visually mark the epistemic state of any document, dataset, or claim.</p>
+                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">The semaphore is designed to be improved. If you find a better transform, a clearer color, or a more precise mapping to your field&rsquo;s standards, that is exactly the point. The Owl of Athena has watched over rigorous thinking for 2,500 years. This is one attempt to give her a formal notation.</p>
+                    <div class="p-3" style="background:rgba(88,166,255,0.04);border:1px solid rgba(88,166,255,0.15);border-radius:8px;">
+                        <p class="mb-1" style="font-size:0.82rem;color:#e6edf3;font-weight:600;">How to use in your project:</p>
+                        <ol style="font-size:0.78rem;color:#8b949e;padding-left:1.5rem;margin-bottom:0;">
+                            <li>Download the PNG assets above (transparent backgrounds, 512x512).</li>
+                            <li>Place the appropriate owl on your document header, slide, or page to indicate its epistemic state.</li>
+                            <li>Include the BibTeX citation if referencing the system formally.</li>
+                            <li>The color + orientation + label together ensure the meaning survives any single-channel loss.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-section">
+                <div class="sem-section-body">
+                    <p class="mb-0 text-center" style="font-size:0.75rem;color:rgba(170,178,188,0.4);font-style:italic;">
+                        &ldquo;How much better would science be if every scientist thought about their thinking as they did their science?&rdquo;
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center py-3">
+                <p class="mb-1" style="font-size:0.72rem;color:#8b949e;">
+                    <a href="/manifesto" class="text-info text-decoration-none">Founder&rsquo;s Manifesto</a> &middot;
+                    <a href="/publications" class="text-info text-decoration-none">Publications</a> &middot;
+                    <a href="/foundations" class="text-info text-decoration-none">Philosophical Foundations</a> &middot;
+                    <a href="/methodology" class="text-info text-decoration-none">Methodology</a>
+                </p>
+                <p class="mb-0" style="font-size:0.68rem;color:rgba(170,178,188,0.35);">DNS Tool v{{.AppVersion}} &middot; IT Help San Diego Inc.</p>
+            </div>
+
+        </div>
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    (function() {
+        var btn = document.getElementById('bibtex-copy-btn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                var el = document.getElementById('bibtex-text');
+                if (el) {
+                    navigator.clipboard.writeText(el.textContent);
+                    btn.textContent = 'Copied!';
+                    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>
