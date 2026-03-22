@@ -465,6 +465,7 @@ func main() {
 
         owlSemaphoreHandler := handlers.NewOwlSemaphoreHandler(cfg)
         router.GET("/owl-semaphore", owlSemaphoreHandler.OwlSemaphore)
+        router.GET("/owl-layers", owlSemaphoreHandler.OwlLayers)
 
         commStdsHandler := handlers.NewCommunicationStandardsHandler(cfg)
         router.GET("/communication-standards", commStdsHandler.CommunicationStandards)

@@ -71,11 +71,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         return func(c *gin.Context) {
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
-                        if strings.HasPrefix(c.Request.URL.Path, "/static/exports/owl-semaphore/layers/") && strings.HasSuffix(c.Request.URL.Path, ".html") || c.Request.URL.Path == "/static/exports/owl-semaphore/layers/" {
-                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self'; object-src 'none'; base-uri 'none'")
-                        } else {
-                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
-                        }
+                        c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
                         c.Next()
                         return
                 }
