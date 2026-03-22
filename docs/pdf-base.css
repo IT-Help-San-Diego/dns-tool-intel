@@ -259,23 +259,35 @@ hr {
   text-decoration: none;
 }
 
-.checklist-item {
-  margin-bottom: 6pt;
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 9.5pt;
   line-height: 1.4;
+  margin-bottom: 10pt;
+}
+
+.checklist-table td {
+  padding: 3pt 0;
+  vertical-align: top;
+  border: none;
+}
+
+.checklist-badge {
+  width: 52pt;
+  padding-right: 6pt !important;
 }
 
 .gate-badge {
-  display: inline;
+  display: inline-block;
   font-size: 6.5pt;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.5pt 4pt;
+  padding: 1pt 4pt;
   border-radius: 2pt;
   white-space: nowrap;
-  margin-right: 4pt;
-  vertical-align: baseline;
+  line-height: 1;
 }
 
 .gate-clarity {
