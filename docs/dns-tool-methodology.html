@@ -17,39 +17,39 @@
 
   .semaphore-designation {
     text-align: center;
-    margin: 6pt 0 2pt 0;
-    padding: 5pt 0 0 0;
+    margin: -2pt 0 4pt 0;
+    padding: 0;
   }
   .semaphore-designation .sem-label {
     font-family: "Times New Roman", Georgia, serif;
-    font-size: 8pt;
+    font-size: 7.5pt;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: #9e7c38;
-    margin: 0 0 2pt 0;
+    margin: 0 0 1pt 0;
   }
   .semaphore-designation .sem-math {
     font-family: "Courier New", monospace;
-    font-size: 7.5pt;
-    color: #666;
-    line-height: 1.45;
-    margin: 0 0 1pt 0;
+    font-size: 6.5pt;
+    color: #777;
+    line-height: 1.3;
+    margin: 0;
   }
   .semaphore-designation .sem-quote {
     font-family: "Times New Roman", Georgia, serif;
-    font-size: 7.5pt;
+    font-size: 7pt;
     font-style: italic;
-    color: #555;
+    color: #666;
     margin: 1pt 0 0 0;
   }
   .semaphore-designation .sem-rfc {
     font-family: "Times New Roman", Georgia, serif;
-    font-size: 7pt;
+    font-size: 6.5pt;
     font-weight: 600;
-    color: #888;
+    color: #999;
     letter-spacing: 0.06em;
-    margin: 1pt 0 0 0;
+    margin: 0;
   }
 
   .semaphore-ledger {
@@ -60,59 +60,59 @@
   }
   .semaphore-ledger .ledger-title {
     text-align: center;
-    font-size: 8pt;
+    font-size: 7.5pt;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #888;
+    color: #999;
     margin: 0 0 8pt 0;
   }
-  .semaphore-ledger table {
-    width: 100%;
-    border-collapse: collapse;
+  .ledger-cards {
+    display: flex;
+    gap: 8pt;
+  }
+  .ledger-card {
+    flex: 1;
+    border: 0.5pt solid #ddd;
+    border-radius: 3pt;
+    padding: 7pt 6pt 6pt 6pt;
+    text-align: center;
+  }
+  .ledger-card.lc-norm { border-top: 2pt solid #9e7c38; }
+  .ledger-card.lc-nonnorm { border-top: 2pt solid #316964; }
+  .ledger-card.lc-crit { border-top: 2pt solid #990f1e; }
+  .ledger-card .lc-name {
+    font-family: "Times New Roman", Georgia, serif;
     font-size: 7.5pt;
-    margin: 0;
-  }
-  .semaphore-ledger th {
-    font-size: 7pt;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 3pt 6pt;
-    border-bottom: 0.75pt solid #C8A878;
-    text-align: center;
-    background: none;
-    color: #888;
-  }
-  .semaphore-ledger td {
-    padding: 5pt 6pt;
-    text-align: center;
-    vertical-align: top;
-    border-bottom: 0.25pt solid #e5e5e0;
-    line-height: 1.4;
-  }
-  .semaphore-ledger .led-standard {
     font-weight: 700;
-    letter-spacing: 0.1em;
-    font-size: 7.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 3pt 0;
   }
-  .semaphore-ledger .led-norm { color: #9e7c38; }
-  .semaphore-ledger .led-nonnorm { color: #316964; }
-  .semaphore-ledger .led-crit { color: #990f1e; }
-  .semaphore-ledger .led-math {
+  .ledger-card.lc-norm .lc-name { color: #9e7c38; }
+  .ledger-card.lc-nonnorm .lc-name { color: #316964; }
+  .ledger-card.lc-crit .lc-name { color: #990f1e; }
+  .ledger-card .lc-transform {
     font-family: "Courier New", monospace;
-    font-size: 7pt;
+    font-size: 6.5pt;
     color: #666;
+    line-height: 1.35;
+    margin: 0 0 1pt 0;
   }
-  .semaphore-ledger .led-quote {
-    font-style: italic;
+  .ledger-card .lc-quote {
+    font-family: "Times New Roman", Georgia, serif;
     font-size: 7pt;
+    font-style: italic;
     color: #555;
+    margin: 2pt 0 1pt 0;
   }
-  .semaphore-ledger .led-rfc {
+  .ledger-card .lc-rfc {
+    font-family: "Times New Roman", Georgia, serif;
     font-size: 6.5pt;
     font-weight: 600;
     color: #999;
     letter-spacing: 0.04em;
+    margin: 0;
   }
 </style>
 </head>
@@ -327,40 +327,29 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 
 <div class="semaphore-ledger">
   <p class="ledger-title">Owl Semaphore Badge System &mdash; Classification Ledger</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Standard</th>
-        <th>Transform</th>
-        <th>Determinant</th>
-        <th>Designation</th>
-        <th>RFC 2119</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="led-standard led-norm">NORMATIVE</span></td>
-        <td class="led-math">(x, y) &rarr; (x, y)</td>
-        <td class="led-math">det = +1</td>
-        <td class="led-quote">&ldquo;This is the standard.&rdquo;</td>
-        <td class="led-rfc">MUST / SHALL</td>
-      </tr>
-      <tr>
-        <td><span class="led-standard led-nonnorm">NON-NORMATIVE</span></td>
-        <td class="led-math">(x, y) &rarr; (&minus;x, y)</td>
-        <td class="led-math">det = &minus;1</td>
-        <td class="led-quote">&ldquo;This reflects the standard.&rdquo;</td>
-        <td class="led-rfc">SHOULD / RECOMMENDED</td>
-      </tr>
-      <tr>
-        <td><span class="led-standard led-crit">CRITICAL</span></td>
-        <td class="led-math">(x, y) &rarr; (&minus;x, &minus;y)</td>
-        <td class="led-math">det = +1</td>
-        <td class="led-quote">&ldquo;This inverts the standard.&rdquo;</td>
-        <td class="led-rfc">MUST NOT / SHALL NOT</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="ledger-cards">
+    <div class="ledger-card lc-norm">
+      <p class="lc-name">Normative</p>
+      <p class="lc-transform">T = I &ensp; det = +1</p>
+      <p class="lc-transform">(x, y) &rarr; (x, y)</p>
+      <p class="lc-quote">&ldquo;This is the standard.&rdquo;</p>
+      <p class="lc-rfc">RFC 2119 MUST / SHALL</p>
+    </div>
+    <div class="ledger-card lc-nonnorm">
+      <p class="lc-name">Non-Normative</p>
+      <p class="lc-transform">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</p>
+      <p class="lc-transform">(x, y) &rarr; (&minus;x, y)</p>
+      <p class="lc-quote">&ldquo;This reflects the standard.&rdquo;</p>
+      <p class="lc-rfc">RFC 2119 SHOULD / RECOMMENDED</p>
+    </div>
+    <div class="ledger-card lc-crit">
+      <p class="lc-name">Critical</p>
+      <p class="lc-transform">T = C<sub>2</sub> &ensp; det = +1</p>
+      <p class="lc-transform">(x, y) &rarr; (&minus;x, &minus;y)</p>
+      <p class="lc-quote">&ldquo;This inverts the standard.&rdquo;</p>
+      <p class="lc-rfc">RFC 2119 MUST NOT / SHALL NOT</p>
+    </div>
+  </div>
 </div>
 
 <div class="footer">
