@@ -17,17 +17,20 @@
 
   .semaphore-designation {
     text-align: center;
-    margin: -2pt 0 4pt 0;
+    margin: 0 auto 6pt auto;
     padding: 0;
+    width: 100%;
+    display: block;
   }
   .semaphore-designation .sem-label {
     font-family: "Times New Roman", Georgia, serif;
     font-size: 7.5pt;
     font-weight: 700;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: #9e7c38;
     margin: 0 0 1pt 0;
+    text-align: center;
   }
   .semaphore-designation .sem-math {
     font-family: "Courier New", monospace;
@@ -35,6 +38,7 @@
     color: #777;
     line-height: 1.3;
     margin: 0;
+    text-align: center;
   }
   .semaphore-designation .sem-quote {
     font-family: "Times New Roman", Georgia, serif;
@@ -42,6 +46,7 @@
     font-style: italic;
     color: #666;
     margin: 1pt 0 0 0;
+    text-align: center;
   }
   .semaphore-designation .sem-rfc {
     font-family: "Times New Roman", Georgia, serif;
@@ -50,6 +55,7 @@
     color: #999;
     letter-spacing: 0.06em;
     margin: 0;
+    text-align: center;
   }
 
   .semaphore-ledger {
@@ -75,19 +81,25 @@
     flex: 1;
     border: 0.5pt solid #ddd;
     border-radius: 3pt;
-    padding: 7pt 6pt 6pt 6pt;
+    padding: 6pt 6pt 5pt 6pt;
     text-align: center;
   }
   .ledger-card.lc-norm { border-top: 2pt solid #9e7c38; }
   .ledger-card.lc-nonnorm { border-top: 2pt solid #316964; }
   .ledger-card.lc-crit { border-top: 2pt solid #990f1e; }
+  .ledger-card .lc-badge {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 3pt auto;
+    display: block;
+  }
   .ledger-card .lc-name {
     font-family: "Times New Roman", Georgia, serif;
     font-size: 7.5pt;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin: 0 0 3pt 0;
+    margin: 0 0 2pt 0;
   }
   .ledger-card.lc-norm .lc-name { color: #9e7c38; }
   .ledger-card.lc-nonnorm .lc-name { color: #316964; }
@@ -329,6 +341,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
   <p class="ledger-title">Owl Semaphore Badge System &mdash; Classification Ledger</p>
   <div class="ledger-cards">
     <div class="ledger-card lc-norm">
+      <img class="lc-badge" src="assets/ledger-norm.png" alt="Normative Owl">
       <p class="lc-name">Normative</p>
       <p class="lc-transform">T = I &ensp; det = +1</p>
       <p class="lc-transform">(x, y) &rarr; (x, y)</p>
@@ -336,6 +349,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
       <p class="lc-rfc">RFC 2119 MUST / SHALL</p>
     </div>
     <div class="ledger-card lc-nonnorm">
+      <img class="lc-badge" src="assets/ledger-nonnorm.png" alt="Non-Normative Owl">
       <p class="lc-name">Non-Normative</p>
       <p class="lc-transform">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</p>
       <p class="lc-transform">(x, y) &rarr; (&minus;x, y)</p>
@@ -343,6 +357,7 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
       <p class="lc-rfc">RFC 2119 SHOULD / RECOMMENDED</p>
     </div>
     <div class="ledger-card lc-crit">
+      <img class="lc-badge" src="assets/ledger-crit.png" alt="Critical Owl">
       <p class="lc-name">Critical</p>
       <p class="lc-transform">T = C<sub>2</sub> &ensp; det = +1</p>
       <p class="lc-transform">(x, y) &rarr; (&minus;x, &minus;y)</p>
