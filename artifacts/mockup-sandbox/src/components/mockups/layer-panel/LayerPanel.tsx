@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-const ASSET_BASE = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev:5904";
-
 const layers = [
   {
     id: "L0",
@@ -15,28 +13,28 @@ const layers = [
     name: "L1 — Emerald Circle",
     desc: "r=252, #48B86E, LOCKED",
     type: "image" as const,
-    src: `${ASSET_BASE}/L1-emerald-540.png`,
+    src: "/__mockup/owl-assets/L1-emerald-540.png",
   },
   {
     id: "L4",
     name: "L4 — Outer Status Ring",
     desc: "r=248–262, #d4a853 gold",
     type: "image" as const,
-    src: `${ASSET_BASE}/L4-outer-ring-540.png`,
+    src: "/__mockup/owl-assets/L4-outer-ring-540.png",
   },
   {
     id: "L2",
     name: "L2 — Meander Ring",
     desc: "r=200–255, gold+teal, LOCKED",
     type: "image" as const,
-    src: `${ASSET_BASE}/L2-ring-540.png`,
+    src: "/__mockup/owl-assets/L2-ring-540.png",
   },
   {
     id: "L3",
     name: "L3 — Owl Figure",
     desc: "r<184, LOCKED",
     type: "image" as const,
-    src: `${ASSET_BASE}/L3-owl-540.png`,
+    src: "/__mockup/owl-assets/L3-owl-540.png",
   },
 ];
 
