@@ -1,6 +1,7 @@
 export default function NonNormativePalette() {
   const basePath = import.meta.env.BASE_URL;
-  const goldOwl = `${basePath}owl-of-athena.png`;
+  const nnOwl = `${basePath}owl-NONNORMATIVE-transparent.png`;
+  const crOwl = `${basePath}owl-CRITICAL-transparent.png`;
 
   const teals = [
     { name: "Black", hex: "#0d1117" },
@@ -26,17 +27,17 @@ export default function NonNormativePalette() {
   return (
     <div style={{ background: "#fff", padding: "24px", fontFamily: "Georgia, serif", color: "#222", minHeight: "100vh" }}>
       <h1 style={{ textAlign: "center", fontSize: "18px", color: "#1f3f3b", marginBottom: "4px" }}>
-        NON-NORMATIVE — Gold on Teal Palette
+        NON-NORMATIVE — Background Palette
       </h1>
       <p style={{ textAlign: "center", fontSize: "11px", color: "#888", marginBottom: "20px" }}>
-        owl-of-athena.png (52% transparent) with CSS background-color
+        Tilted green owl (truly transparent) with CSS background-color
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center", marginBottom: "32px" }}>
         {teals.map((t) => (
           <div key={t.hex} style={{ textAlign: "center", width: "100px" }}>
             <img
-              src={goldOwl}
+              src={nnOwl}
               alt={t.name}
               style={{
                 width: "90px", height: "90px",
@@ -54,17 +55,17 @@ export default function NonNormativePalette() {
       </div>
 
       <h2 style={{ textAlign: "center", fontSize: "16px", color: "#8b1a1a", marginBottom: "4px" }}>
-        CRITICAL — Gold on Oxblood Palette
+        CRITICAL — Background Palette
       </h2>
       <p style={{ textAlign: "center", fontSize: "11px", color: "#888", marginBottom: "20px" }}>
-        Same gold owl, red/oxblood backgrounds
+        Reflected red owl (truly transparent) with CSS background-color
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center" }}>
         {reds.map((r) => (
           <div key={r.hex} style={{ textAlign: "center", width: "100px" }}>
             <img
-              src={goldOwl}
+              src={crOwl}
               alt={r.name}
               style={{
                 width: "90px", height: "90px",
