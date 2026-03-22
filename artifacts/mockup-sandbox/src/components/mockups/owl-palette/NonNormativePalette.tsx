@@ -1,7 +1,5 @@
 export default function NonNormativePalette() {
   const basePath = import.meta.env.BASE_URL;
-  const nnOwl = `${basePath}owl-NONNORMATIVE-clean-512.png`;
-  const crOwl = `${basePath}owl-CRITICAL-clean-512.png`;
   const goldOwl = `${basePath}owl-of-athena.png`;
 
   const teals = [
@@ -26,77 +24,59 @@ export default function NonNormativePalette() {
   ];
 
   return (
-    <div style={{ background: "#111", padding: "24px", fontFamily: "Georgia, serif", color: "#ccc", minHeight: "100vh" }}>
-      <h1 style={{ textAlign: "center", fontSize: "18px", color: "#C8A878", marginBottom: "4px" }}>
-        NON-NORMATIVE — Background Palette
+    <div style={{ background: "#fff", padding: "24px", fontFamily: "Georgia, serif", color: "#222", minHeight: "100vh" }}>
+      <h1 style={{ textAlign: "center", fontSize: "18px", color: "#1f3f3b", marginBottom: "4px" }}>
+        NON-NORMATIVE — Gold on Teal Palette
       </h1>
       <p style={{ textAlign: "center", fontSize: "11px", color: "#888", marginBottom: "20px" }}>
-        Gold owl on teal · CSS background-color behind transparent PNG
+        owl-of-athena.png (52% transparent) with CSS background-color
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center", marginBottom: "32px" }}>
         {teals.map((t) => (
           <div key={t.hex} style={{ textAlign: "center", width: "100px" }}>
-            <div style={{
-              width: "90px", height: "90px", borderRadius: "50%",
-              backgroundColor: t.hex, border: "2px solid #C8A878",
-              overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto"
-            }}>
-              <img src={nnOwl} alt={t.name} style={{ width: "90px", height: "90px" }} />
-            </div>
-            <div style={{ fontSize: "9px", color: "#aaa", marginTop: "4px", fontWeight: "bold" }}>{t.name}</div>
-            <div style={{ fontSize: "9px", color: "#666", fontFamily: "monospace" }}>{t.hex}</div>
+            <img
+              src={goldOwl}
+              alt={t.name}
+              style={{
+                width: "90px", height: "90px",
+                borderRadius: "50%",
+                backgroundColor: t.hex,
+                border: "2px solid #C8A878",
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+            <div style={{ fontSize: "9px", color: "#444", marginTop: "4px", fontWeight: "bold" }}>{t.name}</div>
+            <div style={{ fontSize: "9px", color: "#888", fontFamily: "monospace" }}>{t.hex}</div>
           </div>
         ))}
       </div>
 
-      <h2 style={{ textAlign: "center", fontSize: "14px", color: "#C8A878", marginBottom: "4px" }}>
-        Gold on Teal — Reference (#1f3f3b)
+      <h2 style={{ textAlign: "center", fontSize: "16px", color: "#8b1a1a", marginBottom: "4px" }}>
+        CRITICAL — Gold on Oxblood Palette
       </h2>
-      <div style={{ display: "flex", gap: "24px", justifyContent: "center", marginBottom: "32px" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: "120px", height: "120px", borderRadius: "50%",
-            backgroundColor: "#1f3f3b", border: "2px solid #C8A878",
-            overflow: "hidden", margin: "0 auto"
-          }}>
-            <img src={goldOwl} alt="Gold on Teal" style={{ width: "120px", height: "120px" }} />
-          </div>
-          <div style={{ fontSize: "10px", color: "#C8A878", marginTop: "6px" }}>GOLD on Teal</div>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: "120px", height: "120px", borderRadius: "50%",
-            backgroundColor: "#1f3f3b", border: "2px solid #C8A878",
-            overflow: "hidden", margin: "0 auto"
-          }}>
-            <img src={nnOwl} alt="Green on Teal" style={{ width: "120px", height: "120px" }} />
-          </div>
-          <div style={{ fontSize: "10px", color: "#5fa89e", marginTop: "6px" }}>GREEN on Teal</div>
-        </div>
-      </div>
-
-      <h1 style={{ textAlign: "center", fontSize: "18px", color: "#cc3333", marginBottom: "4px" }}>
-        CRITICAL — Background Palette
-      </h1>
       <p style={{ textAlign: "center", fontSize: "11px", color: "#888", marginBottom: "20px" }}>
-        Red owl on oxblood · CSS background-color behind transparent PNG
+        Same gold owl, red/oxblood backgrounds
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center" }}>
         {reds.map((r) => (
           <div key={r.hex} style={{ textAlign: "center", width: "100px" }}>
-            <div style={{
-              width: "90px", height: "90px", borderRadius: "50%",
-              backgroundColor: r.hex, border: "2px solid #C8A878",
-              overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto"
-            }}>
-              <img src={crOwl} alt={r.name} style={{ width: "90px", height: "90px" }} />
-            </div>
-            <div style={{ fontSize: "9px", color: "#aaa", marginTop: "4px", fontWeight: "bold" }}>{r.name}</div>
-            <div style={{ fontSize: "9px", color: "#666", fontFamily: "monospace" }}>{r.hex}</div>
+            <img
+              src={goldOwl}
+              alt={r.name}
+              style={{
+                width: "90px", height: "90px",
+                borderRadius: "50%",
+                backgroundColor: r.hex,
+                border: "2px solid #C8A878",
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+            <div style={{ fontSize: "9px", color: "#444", marginTop: "4px", fontWeight: "bold" }}>{r.name}</div>
+            <div style={{ fontSize: "9px", color: "#888", fontFamily: "monospace" }}>{r.hex}</div>
           </div>
         ))}
       </div>
