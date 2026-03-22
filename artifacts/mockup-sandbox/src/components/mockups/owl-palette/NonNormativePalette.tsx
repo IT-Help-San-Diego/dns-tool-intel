@@ -17,18 +17,18 @@ export default function NonNormativePalette() {
       overflow: "hidden",
       isolation: "isolate",
     }}>
-      <img src={owlRing} alt="" style={{
-        position: "absolute", inset: 0,
-        width: "100%", height: "100%",
-        zIndex: 2,
-        display: "block",
-        pointerEvents: "none",
-      }} />
       <img src={owlFigure} alt="NON-NORMATIVE owl" style={{
         position: "absolute",
         left: "50%", top: "50%",
         width: "72.27%", height: "72.27%",
         transform: "translate(-50%, -50%)",
+        zIndex: 2,
+        display: "block",
+        pointerEvents: "none",
+      }} />
+      <img src={owlRing} alt="" style={{
+        position: "absolute", inset: 0,
+        width: "100%", height: "100%",
         zIndex: 3,
         display: "block",
         pointerEvents: "none",
@@ -43,11 +43,11 @@ export default function NonNormativePalette() {
         NON-NORMATIVE OWL — Layered Asset Kit
       </h1>
       <p style={{ textAlign: "center", fontSize: "10px", color: "#888", marginBottom: "28px" }}>
-        Layer stack: background plate (container bg) → ring (z:2) → owl figure (z:3)
+        L1 Background Plate (bottom) → L2 Owl Figure (middle) → L3 Ring Frame (top)
       </p>
 
       <h2 style={{ textAlign: "center", fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
-        Individual Layers (on checkerboard)
+        Individual Layers
       </h2>
       <div style={{ display: "flex", gap: 32, justifyContent: "center", marginBottom: 36 }}>
         <div style={{ textAlign: "center" }}>
@@ -55,26 +55,26 @@ export default function NonNormativePalette() {
             <div style={{ width: 140, height: 140, borderRadius: "50%", background: "#1f3f3b" }} />
           </div>
           <div style={{ fontSize: 9, fontWeight: "bold", marginTop: 8 }}>L1: Background Plate</div>
-          <div style={{ fontSize: 8, color: "#999" }}>Opaque circle · #1f3f3b</div>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 160, height: 160, background: checkerBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src={owlRing} alt="Ring" style={{ width: 140, height: 140 }} />
-          </div>
-          <div style={{ fontSize: 9, fontWeight: "bold", marginTop: 8 }}>L2: Ring</div>
-          <div style={{ fontSize: 8, color: "#999" }}>Transparent PNG · z-index: 2</div>
+          <div style={{ fontSize: 8, color: "#999" }}>Opaque circle · bottom</div>
         </div>
         <div style={{ textAlign: "center" }}>
           <div style={{ width: 160, height: 160, background: checkerBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img src={owlFigure} alt="Owl figure" style={{ width: 100, height: 100 }} />
           </div>
-          <div style={{ fontSize: 9, fontWeight: "bold", marginTop: 8 }}>L3: Owl Figure</div>
-          <div style={{ fontSize: 8, color: "#999" }}>Transparent PNG · z-index: 3</div>
+          <div style={{ fontSize: 9, fontWeight: "bold", marginTop: 8 }}>L2: Owl Figure</div>
+          <div style={{ fontSize: 8, color: "#999" }}>z-index: 2 · middle</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 160, height: 160, background: checkerBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={owlRing} alt="Ring frame" style={{ width: 140, height: 140 }} />
+          </div>
+          <div style={{ fontSize: 9, fontWeight: "bold", marginTop: 8 }}>L3: Ring Frame</div>
+          <div style={{ fontSize: 8, color: "#999" }}>z-index: 3 · top</div>
         </div>
       </div>
 
       <h2 style={{ textAlign: "center", fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
-        Composed — Proper Layer Stack
+        Composed — L1 + L2 + L3
       </h2>
       <div style={{ display: "flex", gap: 28, justifyContent: "center", flexWrap: "wrap", marginBottom: 36 }}>
         {[
@@ -94,7 +94,7 @@ export default function NonNormativePalette() {
       </div>
 
       <h2 style={{ textAlign: "center", fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
-        Flattened Complete Asset — Transparency Proof
+        Flattened Composite — Transparency Proof
       </h2>
       <div style={{ display: "flex", gap: 32, justifyContent: "center" }}>
         {[
