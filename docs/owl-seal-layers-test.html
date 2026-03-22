@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Owl Seal — CSS Layer Test v2</title>
+<title>NON-NORMATIVE Owl — Background Palette</title>
 <style>
-  @page { size: A4 landscape; margin: 15mm; }
+  @page { size: A4; margin: 12mm; }
   body { font-family: Georgia, serif; color: #222; background: #fff; }
-  h1 { text-align: center; font-size: 16pt; margin-bottom: 4pt; }
-  p.subtitle { text-align: center; font-size: 9pt; color: #888; margin-bottom: 16pt; }
-  .comparison { display: flex; justify-content: center; gap: 36px; margin-top: 10pt; }
-  .seal-card { text-align: center; width: 140px; }
-  .seal-card h2 { font-size: 8pt; margin-bottom: 4pt; text-transform: uppercase; letter-spacing: 0.06em; }
-  .seal-card .hex { font-size: 7pt; color: #666; font-family: monospace; margin-top: 3pt; }
+  h1 { text-align: center; font-size: 15pt; margin-bottom: 2pt; }
+  p.subtitle { text-align: center; font-size: 8pt; color: #888; margin-bottom: 12pt; }
+  .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 8pt; }
+  .seal-card { text-align: center; width: 105px; }
+  .seal-card h2 { font-size: 7pt; margin-bottom: 3pt; text-transform: uppercase; letter-spacing: 0.04em; font-weight: bold; }
+  .seal-card .hex { font-size: 6.5pt; color: #666; font-family: monospace; margin-top: 2pt; }
   .seal-card img {
     width: 90px;
     height: 90px;
@@ -19,117 +19,128 @@
     padding: 2px;
     border: 2px solid #C8A878;
   }
-  .row-label { text-align: center; font-size: 10pt; font-weight: bold; margin-top: 20pt; margin-bottom: 6pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 3pt; }
+  .row-label { text-align: center; font-size: 9pt; font-weight: bold; margin-top: 16pt; margin-bottom: 4pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 2pt; }
+  .winner { border: 3px solid #4A9D96 !important; }
 </style>
 </head>
 <body>
 
-<h1>Owl Seal — Layer-Friendly Assets v2</h1>
-<p class="subtitle">Dark background pixels removed from artwork. CSS background-color now shows through.</p>
+<h1>NON-NORMATIVE Owl — Background Palette</h1>
+<p class="subtitle">Layer-friendly asset. Same PNG everywhere. Only CSS background changes.</p>
 
-<div class="row-label">NON-NORMATIVE — the problem owl — CSS background variations</div>
-<div class="comparison">
+<div class="row-label">Row A: Very Dark (near-black with teal undertone)</div>
+<div class="grid">
   <div class="seal-card">
-    <h2>Black</h2>
+    <h2>Current Black</h2>
     <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#0d1117;">
     <div class="hex">#0d1117</div>
   </div>
   <div class="seal-card">
-    <h2>Dark Teal</h2>
+    <h2>Ink Teal</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#0c1a18;">
+    <div class="hex">#0c1a18</div>
+  </div>
+  <div class="seal-card">
+    <h2>Night Teal</h2>
     <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#0f231e;">
     <div class="hex">#0f231e</div>
   </div>
   <div class="seal-card">
-    <h2>Deep Teal</h2>
+    <h2>Shadow Teal</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#112822;">
+    <div class="hex">#112822</div>
+  </div>
+  <div class="seal-card">
+    <h2>Deep Verdigris</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#142d28;">
+    <div class="hex">#142d28</div>
+  </div>
+</div>
+
+<div class="row-label">Row B: Dark (visible teal, still dark)</div>
+<div class="grid">
+  <div class="seal-card">
+    <h2>Forest Floor</h2>
     <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#17302d;">
     <div class="hex">#17302d</div>
   </div>
   <div class="seal-card">
-    <h2>Rich Teal</h2>
+    <h2>Patina Dark</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#1a3533;">
+    <div class="hex">#1a3533</div>
+  </div>
+  <div class="seal-card">
+    <h2>Bronze Age</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#1d3a38;">
+    <div class="hex">#1d3a38</div>
+  </div>
+  <div class="seal-card">
+    <h2>Copper Mine</h2>
     <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#1f3f3b;">
     <div class="hex">#1f3f3b</div>
   </div>
   <div class="seal-card">
-    <h2>Bright Proof</h2>
-    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#22aa88;">
-    <div class="hex">#22aa88</div>
+    <h2>Aged Copper</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#224440;">
+    <div class="hex">#224440</div>
   </div>
 </div>
 
-<div class="row-label">NORMATIVE — should still look great on black</div>
-<div class="comparison">
+<div class="row-label">Row C: Medium (clear teal presence)</div>
+<div class="grid">
   <div class="seal-card">
-    <h2>Black</h2>
-    <img src="assets/owl-NORMATIVE-layerable.png" style="background:#0d1117;">
-    <div class="hex">#0d1117</div>
+    <h2>Deep Sea</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#264a45;">
+    <div class="hex">#264a45</div>
   </div>
   <div class="seal-card">
-    <h2>Deep Navy</h2>
-    <img src="assets/owl-NORMATIVE-layerable.png" style="background:#0a1628;">
-    <div class="hex">#0a1628</div>
+    <h2>Verdigris</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#2a504b;">
+    <div class="hex">#2a504b</div>
   </div>
   <div class="seal-card">
-    <h2>Dark Gold</h2>
-    <img src="assets/owl-NORMATIVE-layerable.png" style="background:#1a1508;">
-    <div class="hex">#1a1508</div>
+    <h2>Athena Teal</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#2e5550;">
+    <div class="hex">#2e5550</div>
   </div>
   <div class="seal-card">
-    <h2>Bright Proof</h2>
-    <img src="assets/owl-NORMATIVE-layerable.png" style="background:#4488ff;">
-    <div class="hex">#4488ff</div>
-  </div>
-</div>
-
-<div class="row-label">CRITICAL — CSS background variations</div>
-<div class="comparison">
-  <div class="seal-card">
-    <h2>Black</h2>
-    <img src="assets/owl-CRITICAL-layerable.png" style="background:#0d1117;">
-    <div class="hex">#0d1117</div>
+    <h2>Temple Green</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#325b55;">
+    <div class="hex">#325b55</div>
   </div>
   <div class="seal-card">
-    <h2>Dark Oxblood</h2>
-    <img src="assets/owl-CRITICAL-layerable.png" style="background:#230f12;">
-    <div class="hex">#230f12</div>
-  </div>
-  <div class="seal-card">
-    <h2>Deep Oxblood</h2>
-    <img src="assets/owl-CRITICAL-layerable.png" style="background:#2a1518;">
-    <div class="hex">#2a1518</div>
-  </div>
-  <div class="seal-card">
-    <h2>Warm Oxblood</h2>
-    <img src="assets/owl-CRITICAL-layerable.png" style="background:#351a1e;">
-    <div class="hex">#351a1e</div>
-  </div>
-  <div class="seal-card">
-    <h2>Bright Proof</h2>
-    <img src="assets/owl-CRITICAL-layerable.png" style="background:#cc3344;">
-    <div class="hex">#cc3344</div>
+    <h2>Aegean</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#36615b;">
+    <div class="hex">#36615b</div>
   </div>
 </div>
 
-<div class="row-label">Side-by-side: Original opaque vs Layer-friendly on same teal background</div>
-<div class="comparison">
+<div class="row-label">Row D: In context — how would it look on the manifesto header?</div>
+<div class="grid">
   <div class="seal-card">
-    <h2>Original (opaque)</h2>
-    <img src="assets/owl-NONNORMATIVE-512-opaque.png" style="background:#1f3f3b;">
-    <div class="hex">Opaque — bg hidden</div>
-  </div>
-  <div class="seal-card">
-    <h2>Layer-friendly</h2>
-    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#1f3f3b;">
-    <div class="hex">Layerable — bg shows</div>
-  </div>
-  <div class="seal-card">
-    <h2>Original (opaque)</h2>
-    <img src="assets/owl-NONNORMATIVE-512-opaque.png" style="background:#0d1117;">
-    <div class="hex">Opaque on black</div>
-  </div>
-  <div class="seal-card">
-    <h2>Layer-friendly</h2>
+    <h2>Current</h2>
     <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#0d1117;">
-    <div class="hex">Layerable on black</div>
+    <div class="hex">#0d1117</div>
+  </div>
+  <div class="seal-card">
+    <h2>Subtle</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#142d28;">
+    <div class="hex">#142d28</div>
+  </div>
+  <div class="seal-card">
+    <h2>Medium</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#1d3a38;">
+    <div class="hex">#1d3a38</div>
+  </div>
+  <div class="seal-card">
+    <h2>Bold</h2>
+    <img src="assets/owl-NONNORMATIVE-layerable.png" style="background:#2a504b;">
+    <div class="hex">#2a504b</div>
+  </div>
+  <div class="seal-card">
+    <h2>Reference</h2>
+    <img src="assets/owl-NORMATIVE-layerable.png" style="background:#0d1117;">
+    <div class="hex">NORMATIVE for ref</div>
   </div>
 </div>
 
