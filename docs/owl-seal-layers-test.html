@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Owl Seal — CSS Layer Test</title>
+<style>
+  @page { size: A4 landscape; margin: 15mm; }
+  body { font-family: Georgia, serif; color: #222; background: #fff; }
+  h1 { text-align: center; font-size: 16pt; margin-bottom: 4pt; }
+  p.subtitle { text-align: center; font-size: 9pt; color: #888; margin-bottom: 16pt; }
+  .comparison { display: flex; justify-content: center; gap: 40px; margin-top: 10pt; }
+  .seal-card { text-align: center; width: 160px; }
+  .seal-card h2 { font-size: 9pt; margin-bottom: 4pt; text-transform: uppercase; letter-spacing: 0.08em; }
+  .seal-card .hex { font-size: 7pt; color: #666; font-family: monospace; margin-top: 3pt; }
+  .seal-card img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    padding: 2px;
+    border: 2px solid #C8A878;
+  }
+  .row-label { text-align: center; font-size: 10pt; font-weight: bold; margin-top: 22pt; margin-bottom: 6pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 3pt; }
+</style>
+</head>
+<body>
+
+<h1>CSS Layer Test — Transparent PNGs + CSS Backgrounds</h1>
+<p class="subtitle">NO baked images. Same transparent owl PNG in every column. Only CSS background-color changes.</p>
+
+<div class="row-label">NORMATIVE owl — CSS background variations</div>
+<div class="comparison">
+  <div class="seal-card">
+    <h2>Black (current)</h2>
+    <img src="../static/exports/owl-semaphore/owl-NORMATIVE-512.png" style="background:#0d1117;">
+    <div class="hex">#0d1117</div>
+  </div>
+  <div class="seal-card">
+    <h2>Deep Navy</h2>
+    <img src="../static/exports/owl-semaphore/owl-NORMATIVE-512.png" style="background:#0a1628;">
+    <div class="hex">#0a1628</div>
+  </div>
+  <div class="seal-card">
+    <h2>Dark Gold</h2>
+    <img src="../static/exports/owl-semaphore/owl-NORMATIVE-512.png" style="background:#1a1508;">
+    <div class="hex">#1a1508</div>
+  </div>
+  <div class="seal-card">
+    <h2>BRIGHT (proof)</h2>
+    <img src="../static/exports/owl-semaphore/owl-NORMATIVE-512.png" style="background:#4488ff;">
+    <div class="hex">#4488ff — proof it works</div>
+  </div>
+</div>
+
+<div class="row-label">NON-NORMATIVE owl — CSS background variations</div>
+<div class="comparison">
+  <div class="seal-card">
+    <h2>Black (problem)</h2>
+    <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" style="background:#0d1117;">
+    <div class="hex">#0d1117 — green lost</div>
+  </div>
+  <div class="seal-card">
+    <h2>Dark Teal</h2>
+    <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" style="background:#0f231e;">
+    <div class="hex">#0f231e</div>
+  </div>
+  <div class="seal-card">
+    <h2>Deep Teal</h2>
+    <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" style="background:#17302d;">
+    <div class="hex">#17302d</div>
+  </div>
+  <div class="seal-card">
+    <h2>Rich Teal</h2>
+    <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" style="background:#1f3f3b;">
+    <div class="hex">#1f3f3b</div>
+  </div>
+  <div class="seal-card">
+    <h2>BRIGHT (proof)</h2>
+    <img src="../static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" style="background:#22aa88;">
+    <div class="hex">#22aa88 — proof it works</div>
+  </div>
+</div>
+
+<div class="row-label">CRITICAL owl — CSS background variations</div>
+<div class="comparison">
+  <div class="seal-card">
+    <h2>Black (current)</h2>
+    <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" style="background:#0d1117;">
+    <div class="hex">#0d1117</div>
+  </div>
+  <div class="seal-card">
+    <h2>Dark Oxblood</h2>
+    <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" style="background:#230f12;">
+    <div class="hex">#230f12</div>
+  </div>
+  <div class="seal-card">
+    <h2>Deep Oxblood</h2>
+    <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" style="background:#2a1518;">
+    <div class="hex">#2a1518</div>
+  </div>
+  <div class="seal-card">
+    <h2>Warm Oxblood</h2>
+    <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" style="background:#351a1e;">
+    <div class="hex">#351a1e</div>
+  </div>
+  <div class="seal-card">
+    <h2>BRIGHT (proof)</h2>
+    <img src="../static/exports/owl-semaphore/owl-CRITICAL-512.png" style="background:#cc3344;">
+    <div class="hex">#cc3344 — proof it works</div>
+  </div>
+</div>
+
+</body>
+</html>
