@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Owl Seal System — Background Comparison</title>
+<style>
+  @page { size: A4 landscape; margin: 20mm; }
+  body { font-family: Georgia, serif; color: #222; background: #fff; }
+  h1 { text-align: center; font-size: 18pt; margin-bottom: 30pt; }
+  .comparison { display: flex; justify-content: center; gap: 60px; margin-top: 20pt; }
+  .seal-card { text-align: center; width: 200px; }
+  .seal-card h2 { font-size: 11pt; margin-bottom: 8pt; text-transform: uppercase; letter-spacing: 0.08em; }
+  .seal-card .hex { font-size: 8pt; color: #666; font-family: monospace; margin-top: 6pt; }
+  .seal-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    padding: 3px;
+    border: 3px solid #C8A878;
+  }
+  .seal-normative img { background: #0d1117; }
+  .seal-nonnormative img { background: #17302d; }
+  .seal-critical img { background: #241316; }
+
+  .row-label { text-align: center; font-size: 13pt; font-weight: bold; margin-top: 40pt; margin-bottom: 10pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 6pt; }
+
+  .seal-nonnormative-alt1 img { background: #132826; }
+  .seal-nonnormative-alt2 img { background: #1a3533; }
+  .seal-critical-alt1 img { background: #2a1518; }
+  .seal-critical-alt2 img { background: #1e1015; }
+</style>
+</head>
+<body>
+
+<h1>Owl Seal System — Background Color Comparison</h1>
+
+<div class="row-label">Row 1: Recommended Palette</div>
+<div class="comparison">
+  <div class="seal-card seal-normative">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
+    <div class="hex">#0d1117 (current — unchanged)</div>
+  </div>
+  <div class="seal-card seal-nonnormative">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
+    <div class="hex">#17302d (deep teal)</div>
+  </div>
+  <div class="seal-card seal-critical">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
+    <div class="hex">#241316 (deep oxblood)</div>
+  </div>
+</div>
+
+<div class="row-label">Row 2: Alternate Darker Variants</div>
+<div class="comparison">
+  <div class="seal-card seal-normative">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
+    <div class="hex">#0d1117 (same)</div>
+  </div>
+  <div class="seal-card seal-nonnormative-alt1">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
+    <div class="hex">#132826 (darker teal)</div>
+  </div>
+  <div class="seal-card seal-critical-alt1">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
+    <div class="hex">#2a1518 (deeper oxblood)</div>
+  </div>
+</div>
+
+<div class="row-label">Row 3: Lighter Variants</div>
+<div class="comparison">
+  <div class="seal-card seal-normative">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
+    <div class="hex">#0d1117 (same)</div>
+  </div>
+  <div class="seal-card seal-nonnormative-alt2">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
+    <div class="hex">#1a3533 (lighter teal)</div>
+  </div>
+  <div class="seal-card seal-critical-alt2">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
+    <div class="hex">#1e1015 (subtle oxblood)</div>
+  </div>
+</div>
+
+<div class="row-label">Row 4: All on Current Black (the problem)</div>
+<div class="comparison">
+  <div class="seal-card seal-normative">
+    <h2>Normative ✓</h2>
+    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
+    <div class="hex">#0d1117 — works great</div>
+  </div>
+  <div class="seal-card seal-normative">
+    <h2>Non-Normative ✗</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
+    <div class="hex">#0d1117 — green gets lost</div>
+  </div>
+  <div class="seal-card seal-normative">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
+    <div class="hex">#0d1117 — for comparison</div>
+  </div>
+</div>
+
+</body>
+</html>
