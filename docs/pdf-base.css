@@ -260,26 +260,22 @@ hr {
 }
 
 .checklist-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8pt;
-  margin-bottom: 4pt;
+  margin-bottom: 6pt;
   font-size: 9.5pt;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .gate-badge {
-  display: inline-block;
-  font-size: 7pt;
+  display: inline;
+  font-size: 6.5pt;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 1pt 5pt;
-  border-radius: 3pt;
+  padding: 0.5pt 4pt;
+  border-radius: 2pt;
   white-space: nowrap;
-  flex-shrink: 0;
-  min-width: 48pt;
-  text-align: center;
+  margin-right: 4pt;
+  vertical-align: baseline;
 }
 
 .gate-clarity {
