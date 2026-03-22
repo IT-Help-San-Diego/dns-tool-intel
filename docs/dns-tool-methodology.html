@@ -14,13 +14,120 @@
     padding: 1pt 5pt;
     border-radius: 2pt;
   }
+
+  .semaphore-designation {
+    text-align: center;
+    margin: 6pt 0 2pt 0;
+    padding: 5pt 0 0 0;
+  }
+  .semaphore-designation .sem-label {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #9e7c38;
+    margin: 0 0 2pt 0;
+  }
+  .semaphore-designation .sem-math {
+    font-family: "Courier New", monospace;
+    font-size: 7.5pt;
+    color: #666;
+    line-height: 1.45;
+    margin: 0 0 1pt 0;
+  }
+  .semaphore-designation .sem-quote {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 7.5pt;
+    font-style: italic;
+    color: #555;
+    margin: 1pt 0 0 0;
+  }
+  .semaphore-designation .sem-rfc {
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 7pt;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 0.06em;
+    margin: 1pt 0 0 0;
+  }
+
+  .semaphore-ledger {
+    break-inside: avoid;
+    margin: 16pt 0 6pt 0;
+    padding: 10pt 0 0 0;
+    border-top: 0.75pt solid #C8A878;
+  }
+  .semaphore-ledger .ledger-title {
+    text-align: center;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 8pt 0;
+  }
+  .semaphore-ledger table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+    margin: 0;
+  }
+  .semaphore-ledger th {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3pt 6pt;
+    border-bottom: 0.75pt solid #C8A878;
+    text-align: center;
+    background: none;
+    color: #888;
+  }
+  .semaphore-ledger td {
+    padding: 5pt 6pt;
+    text-align: center;
+    vertical-align: top;
+    border-bottom: 0.25pt solid #e5e5e0;
+    line-height: 1.4;
+  }
+  .semaphore-ledger .led-standard {
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-size: 7.5pt;
+  }
+  .semaphore-ledger .led-norm { color: #9e7c38; }
+  .semaphore-ledger .led-nonnorm { color: #316964; }
+  .semaphore-ledger .led-crit { color: #990f1e; }
+  .semaphore-ledger .led-math {
+    font-family: "Courier New", monospace;
+    font-size: 7pt;
+    color: #666;
+  }
+  .semaphore-ledger .led-quote {
+    font-style: italic;
+    font-size: 7pt;
+    color: #555;
+  }
+  .semaphore-ledger .led-rfc {
+    font-size: 6.5pt;
+    font-weight: 600;
+    color: #999;
+    letter-spacing: 0.04em;
+  }
 </style>
 </head>
 <body>
 
 <div class="authority-header">
   <div class="authority-logo">
-    <img src="assets/owl-signature-opaque.png" alt="Owl of Athena">
+    <img src="assets/owl-signature-opaque.png" alt="Owl of Athena &mdash; Normative Standard">
+  </div>
+
+  <div class="semaphore-designation">
+    <p class="sem-label">Normative</p>
+    <p class="sem-math">T = I &ensp; det = +1 &ensp;&ensp; (x, y) &rarr; (x, y)</p>
+    <p class="sem-quote">&ldquo;This is the standard.&rdquo;</p>
+    <p class="sem-rfc">RFC 2119 MUST / SHALL</p>
   </div>
 
   <div class="authority-title">
@@ -216,6 +323,44 @@ The platform focuses on five major areas: email authentication (SPF, DKIM, DMARC
 &nbsp;&nbsp;url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {https://dnstool.it-help.tech},<br>
 &nbsp;&nbsp;license&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {BUSL-1.1}<br>
 }
+</div>
+
+<div class="semaphore-ledger">
+  <p class="ledger-title">Owl Semaphore Badge System &mdash; Classification Ledger</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard</th>
+        <th>Transform</th>
+        <th>Determinant</th>
+        <th>Designation</th>
+        <th>RFC 2119</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="led-standard led-norm">NORMATIVE</span></td>
+        <td class="led-math">(x, y) &rarr; (x, y)</td>
+        <td class="led-math">det = +1</td>
+        <td class="led-quote">&ldquo;This is the standard.&rdquo;</td>
+        <td class="led-rfc">MUST / SHALL</td>
+      </tr>
+      <tr>
+        <td><span class="led-standard led-nonnorm">NON-NORMATIVE</span></td>
+        <td class="led-math">(x, y) &rarr; (&minus;x, y)</td>
+        <td class="led-math">det = &minus;1</td>
+        <td class="led-quote">&ldquo;This reflects the standard.&rdquo;</td>
+        <td class="led-rfc">SHOULD / RECOMMENDED</td>
+      </tr>
+      <tr>
+        <td><span class="led-standard led-crit">CRITICAL</span></td>
+        <td class="led-math">(x, y) &rarr; (&minus;x, &minus;y)</td>
+        <td class="led-math">det = +1</td>
+        <td class="led-quote">&ldquo;This inverts the standard.&rdquo;</td>
+        <td class="led-rfc">MUST NOT / SHALL NOT</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 <div class="footer">
