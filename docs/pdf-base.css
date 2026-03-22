@@ -36,19 +36,19 @@ body {
 
 .authority-header {
   text-align: center;
-  margin-bottom: 8pt;
-  padding-bottom: 10pt;
+  margin-bottom: 4pt;
+  padding-bottom: 6pt;
   border-bottom: 1.5pt solid #C8A878;
 }
 
 .authority-logo {
   text-align: center;
-  margin-bottom: 3pt;
+  margin-bottom: 1pt;
 }
 
 .authority-logo img {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
 }
 
 .authority-title {
@@ -56,38 +56,38 @@ body {
 }
 
 .authority-title h1 {
-  font-size: 18pt;
+  font-size: 16.5pt;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 3pt 0;
-  letter-spacing: 0.03em;
+  margin: 0 0 1pt 0;
+  letter-spacing: 0.015em;
 }
 
 .authority-title .subtitle {
-  font-size: 11pt;
+  font-size: 10pt;
   color: #555;
   font-style: italic;
-  margin: 0 0 10pt 0;
+  margin: 0 0 5pt 0;
 }
 
 .authority-meta {
   text-align: center;
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #444;
-  line-height: 1.6;
+  line-height: 1.35;
 }
 
 .authority-meta .author-name {
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 2pt 0;
+  margin: 0 0 1pt 0;
 }
 
 .authority-meta .author-role {
-  font-size: 8.5pt;
+  font-size: 8pt;
   color: #666;
-  margin: 0 0 4pt 0;
+  margin: 0 0 2pt 0;
 }
 
 .authority-meta a {
@@ -105,9 +105,9 @@ body {
 
 .authority-meta .artifact-note {
   font-style: italic;
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #555;
-  margin-top: 6pt;
+  margin-top: 3pt;
 }
 
 h2 {
