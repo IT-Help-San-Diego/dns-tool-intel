@@ -128,13 +128,17 @@ for i in range(0, len(changed), batch_size):
     for fpath in batch:
         with open(fpath, 'rb') as f:
             content = f.read()
+        is_text = True
         try:
             text_content = content.decode('utf-8')
+        except UnicodeDecodeError:
+            is_text = False
+        if is_text:
             blob = api('POST', f'/repos/{repo}/git/blobs', {
                 'content': text_content,
                 'encoding': 'utf-8'
             })
-        except (UnicodeDecodeError, Exception):
+        else:
             blob = api('POST', f'/repos/{repo}/git/blobs', {
                 'content': base64.b64encode(content).decode(),
                 'encoding': 'base64'
@@ -146,6 +150,7 @@ for i in range(0, len(changed), batch_size):
             'sha': blob['sha']
         })
     print(f"  uploaded {min(i+batch_size, len(changed))}/{len(changed)}", file=sys.stderr)
+    import time; time.sleep(0.5)
 
 new_tree = api('POST', f'/repos/{repo}/git/trees', {
     'base_tree': old_tree_sha,

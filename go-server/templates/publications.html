@@ -2,6 +2,7 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     {{template "head" .}}
+    {{template "head_lcp_preload" .}}
     {{template "head_css" .}}
     <title>Publications &amp; Research — DNS Tool</title>
     <meta name="robots" content="index, follow">
@@ -254,6 +255,18 @@
             <p class="mb-1" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#d4a853">DNS Tool Research</p>
             <h1 style="font-size:1.5rem;font-weight:700">{{icon "book-open" "me-2 text-warning"}}Publications &amp; Research</h1>
             <p style="font-size:0.92rem;color:#8b949e;line-height:1.6;max-width:660px">Scientific papers, case studies, and governance documents. Every claim is backed by data you can verify with standard tools. Every paper is independently citable.</p>
+
+            <div class="pub-section">
+                <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(45,43,44,0.6); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px;">
+                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative Owl" width="56" height="56">
+                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative Owl" width="56" height="56">
+                    <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical Owl" width="56" height="56">
+                    <div style="margin-left: 0.5rem;">
+                        <p class="mb-0" style="font-size: 0.82rem; font-weight: 700; color: #d4a853;">The Owl Semaphore</p>
+                        <p class="mb-0" style="font-size: 0.72rem; color: #8b949e;">Three states of knowledge. <span style="color:#d4a853">Normative</span> &mdash; <span style="color:#4A9D96">Non-Normative</span> &mdash; <span style="color:#8B0000">Critical</span>. See <a href="/brand-colors" style="color:#58a6ff">Brand Colors</a> for full specification.</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="pub-section">
                 <p class="pub-section-label">Scientific Papers</p>

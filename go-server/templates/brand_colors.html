@@ -408,6 +408,57 @@
                     </div>
                 </div>
 
+                <!-- ===================== OWL SEMAPHORE ===================== -->
+                <div class="section-divider"></div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="section-icon section-icon-amber">
+                        {{icon "feather-alt"}}
+                    </div>
+                    <div>
+                        <h2 class="h5 mb-0">The Owl Semaphore</h2>
+                        <span class="text-muted small">Three states of knowledge &mdash; a subset of O(2).</span>
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-3">The Owl of Athena encodes semantic state through orientation and color. Each transform is a distance-preserving linear transformation of the plane.</p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.2); border-radius: 10px;">
+                            <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative Owl" width="80" height="80" class="mb-2">
+                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #d4a853;">NORMATIVE</p>
+                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = I &nbsp; det = +1</p>
+                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x, y)</p>
+                            <p class="mb-0" style="font-size: 0.78rem; color: #aab2bc; font-style: italic;">&ldquo;This is the standard.&rdquo;</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.2); border-radius: 10px;">
+                            <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative Owl" width="80" height="80" class="mb-2">
+                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #4A9D96;">NON-NORMATIVE</p>
+                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = R(&pi;/8) &nbsp; det = +1</p>
+                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x&middot;cos &pi;/8 &minus; y&middot;sin &pi;/8, ...)</p>
+                            <p class="mb-0" style="font-size: 0.78rem; color: #4A9D96; font-style: italic;">&ldquo;Think about your thinking.&rdquo;</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3" style="background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.2); border-radius: 10px;">
+                            <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical Owl" width="80" height="80" class="mb-2">
+                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #8B0000;">CRITICAL</p>
+                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = &sigma;<sub>h</sub> &nbsp; det = &minus;1</p>
+                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x, &minus;y)</p>
+                            <p class="mb-0" style="font-size: 0.78rem; color: #f85149; font-style: italic;">&ldquo;This is danger. Heed it.&rdquo;</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-dark border-secondary mb-3">
+                    <div class="card-body small" style="color: #8b949e;">
+                        <p class="mb-2"><strong class="text-info">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and contexts where any single channel is degraded.</p>
+                        <p class="mb-0"><strong class="u-color-amber">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory.</p>
+                    </div>
+                </div>
+
                 <!-- ===================== USAGE RULES ===================== -->
                 <div class="section-divider"></div>
                 <div class="d-flex align-items-center gap-2 mb-3">

@@ -36,23 +36,19 @@ body {
 
 .authority-header {
   text-align: center;
-  margin-bottom: 8pt;
-  padding-bottom: 10pt;
+  margin-bottom: 4pt;
+  padding-bottom: 6pt;
   border-bottom: 1.5pt solid #C8A878;
 }
 
 .authority-logo {
   text-align: center;
-  margin-bottom: 10pt;
+  margin-bottom: 1pt;
 }
 
 .authority-logo img {
-  width: 90px;
-  height: 90px;
-  background: #0d1117;
-  border-radius: 50%;
-  padding: 2px;
-  border: 2px solid #C8A878;
+  width: 96px;
+  height: 96px;
 }
 
 .authority-title {
@@ -60,38 +56,38 @@ body {
 }
 
 .authority-title h1 {
-  font-size: 18pt;
+  font-size: 16.5pt;
   font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 3pt 0;
-  letter-spacing: 0.03em;
+  margin: 0 0 1pt 0;
+  letter-spacing: 0.015em;
 }
 
 .authority-title .subtitle {
-  font-size: 11pt;
+  font-size: 10pt;
   color: #555;
   font-style: italic;
-  margin: 0 0 10pt 0;
+  margin: 0 0 5pt 0;
 }
 
 .authority-meta {
   text-align: center;
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #444;
-  line-height: 1.6;
+  line-height: 1.35;
 }
 
 .authority-meta .author-name {
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 2pt 0;
+  margin: 0 0 1pt 0;
 }
 
 .authority-meta .author-role {
-  font-size: 8.5pt;
+  font-size: 8pt;
   color: #666;
-  margin: 0 0 4pt 0;
+  margin: 0 0 2pt 0;
 }
 
 .authority-meta a {
@@ -109,9 +105,9 @@ body {
 
 .authority-meta .artifact-note {
   font-style: italic;
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #555;
-  margin-top: 6pt;
+  margin-top: 3pt;
 }
 
 h2 {
@@ -261,4 +257,47 @@ hr {
 .footer a {
   color: #2a5d9f;
   text-decoration: none;
+}
+
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+  line-height: 1.4;
+  margin-bottom: 10pt;
+}
+
+.checklist-table td {
+  padding: 3pt 0;
+  vertical-align: top;
+  border: none;
+}
+
+.checklist-badge {
+  width: 52pt;
+  padding-right: 6pt !important;
+}
+
+.gate-badge {
+  display: inline-block;
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1pt 4pt;
+  border-radius: 2pt;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.gate-clarity {
+  background: #e8f0fe;
+  color: #1a4d8f;
+  border: 0.5pt solid #b6d0f0;
+}
+
+.gate-vision {
+  background: #fef3e0;
+  color: #8a5a00;
+  border: 0.5pt solid #f0d8a0;
 }

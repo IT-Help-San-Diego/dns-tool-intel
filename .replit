@@ -33,14 +33,6 @@ task = "shell.exec"
 args = "./dns-tool-server"
 waitForPort = 5000
 
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 8099
-externalPort = 8099
-
 [userenv]
 
 [userenv.shared]
@@ -60,3 +52,19 @@ integrations = ["github:1.0.0", "notion:1.0.0"]
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 120000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8765
+externalPort = 3001
+
+[[ports]]
+localPort = 23636
+externalPort = 3000
+
+[[ports]]
+localPort = 23637
+externalPort = 3002

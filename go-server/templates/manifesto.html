@@ -8,6 +8,7 @@
     <meta name="robots" content="index, follow">
     <meta name="description" content="Non-normative founder's statement of intent: the aspirational vision and design philosophy that motivates DNS Tool's architecture. By Carey James Balboa.">
     <meta property="article:published_time" content="2025-04-01">
+    <meta property="article:modified_time" content="2026-03-20">
     <meta property="og:url" content="https://dnstool.it-help.tech/manifesto">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Founder's Manifesto — DNS Tool">
@@ -290,6 +291,49 @@
             <div class="manifesto-section">
                 <div class="manifesto-section-body" style="padding-top: 1rem; padding-bottom: 0.75rem;">
                     <p class="mb-0" style="font-size: 0.82rem; color: rgba(170,178,188,0.7);">This document expresses the aspirational vision and design philosophy that motivates DNS Tool's architecture. It is distinct from the project's scientific claims, which are bounded, falsifiable, and documented separately in the <a href="/foundations" class="text-info text-decoration-none">Philosophical Foundations</a> paper and the <a href="/methodology" class="text-info text-decoration-none">methodology paper</a> (Balboa, 2026). Where this manifesto says "<span class="tag" style="color: #d2992a;">[MUST]</span>," it declares a design target, not a proven state. The <a href="/communication-standards" class="text-info text-decoration-none">Communication Standards</a> document enforces the measurable quality gate that ensures these aspirations translate into readable, accessible output.</p>
+                </div>
+            </div>
+
+            <div class="manifesto-section">
+                <div class="manifesto-section-header">
+                    <h2>{{icon "eye" "me-2"}}The Owl Semaphore</h2>
+                </div>
+                <div class="manifesto-section-body">
+                    <p class="mb-3" style="font-size: 0.85rem; color: #8b949e;">The Owl of Athena encodes semantic state through orientation and color. Each transform is a distance-preserving linear transformation of the plane &mdash; a subset of the orthogonal group O(2). This document carries the <span style="color:#4A9D96;font-weight:700;">Non-Normative</span> designation.</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="text-center p-3" style="background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px;">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative Owl" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(212,168,83,0.3);">
+                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#d4a853;">NORMATIVE</p>
+                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = I &ensp; det = +1</p>
+                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (x, y)</p>
+                                <p class="mb-0" style="font-size:0.78rem;color:#aab2bc;font-style:italic;">&ldquo;This is the standard.&rdquo;</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3" style="background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.15); border-radius: 10px;">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative Owl" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(74,157,150,0.3);">
+                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#4A9D96;">NON-NORMATIVE</p>
+                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = R(&pi;/8) &ensp; det = +1</p>
+                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (x&middot;cos &pi;/8 &minus; y&middot;sin &pi;/8, &hellip;)</p>
+                                <p class="mb-0" style="font-size:0.78rem;color:#4A9D96;font-style:italic;">&ldquo;Think about your thinking.&rdquo;</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3" style="background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.15); border-radius: 10px;">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical Owl" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(139,0,0,0.3);">
+                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#8B0000;">CRITICAL</p>
+                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
+                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (x, &minus;y)</p>
+                                <p class="mb-0" style="font-size:0.78rem;color:#f85149;font-style:italic;">&ldquo;This is danger. Heed it.&rdquo;</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-2" style="background:rgba(13,17,23,0.4);border:1px solid rgba(200,149,106,0.1);border-radius:6px;">
+                        <p class="mb-0" style="font-size:0.75rem;color:#8b949e;"><strong style="color:#58a6ff;">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and degraded single-channel contexts. <strong style="color:#d4a853;">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory.</p>
+                    </div>
                 </div>
             </div>
 
