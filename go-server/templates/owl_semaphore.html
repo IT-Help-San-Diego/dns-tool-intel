@@ -13,9 +13,9 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="The Owl Semaphore — Three States of Knowledge">
     <meta property="og:description" content="A visual knowledge-state system using three mathematical transforms of the Owl of Athena. Download, cite, and integrate into your scientific workflow.">
-    <meta property="og:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/owl-NORMATIVE-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/NORM-composite-white-540.png">
+    <meta property="og:image:width" content="540">
+    <meta property="og:image:height" content="540">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:alt" content="The Owl of Athena — Normative state">
     <meta property="og:site_name" content="DNS Tool">
@@ -24,7 +24,7 @@
     <meta property="twitter:url" content="https://dnstool.it-help.tech/owl-semaphore">
     <meta name="twitter:title" content="The Owl Semaphore — Three States of Knowledge">
     <meta name="twitter:description" content="A visual knowledge-state system using three mathematical transforms of the Owl of Athena.">
-    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/owl-NORMATIVE-512.png">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/exports/owl-semaphore/NORM-composite-white-540.png">
     <link rel="canonical" href="https://dnstool.it-help.tech/owl-semaphore">
 
     <meta name="citation_title" content="The Owl Semaphore: Three States of Knowledge">
@@ -245,6 +245,22 @@
             font-family: inherit;
         }
         .bibtex-copy:hover { background: rgba(88,166,255,0.2); }
+
+        .spec-label {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.65rem;
+            line-height: 1.5;
+            margin-top: 0.6rem;
+        }
+        .spec-label p { margin-bottom: 0.15rem; }
+
+        .dl-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            justify-content: center;
+            margin-top: 0.75rem;
+        }
     </style>
 </head>
 <body>
@@ -280,41 +296,68 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="owl-card owl-card-normative">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative Owl — identity transform, gold, upright" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(212,168,83,0.4);">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-dark-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="150" height="150" style="border-radius:50%;" class="mb-3">
                                 <p class="owl-state-name" style="color:#d4a853;">NORMATIVE</p>
                                 <p class="owl-transform">T = I &ensp; det = +1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (x, y)</p>
                                 <p class="owl-tagline" style="color:#d4a853;">&ldquo;This is the standard.&rdquo;</p>
                                 <p class="owl-standards">RFC 2119 MUST / SHALL</p>
+                                <div class="spec-label">
+                                    <p style="color:#d4a853;">Owl #d4a853 on #0f0f0f</p>
+                                    <p style="color:#d4a853;">Contrast 8.69:1</p>
+                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 gold | L4/L6 #0f0f0f</p>
+                                </div>
                                 <hr style="border-color:rgba(212,168,83,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">The identity transform. The owl stands exactly as designed &mdash; no rotation, no reflection. What you see has been verified, tested against reality, and found to hold. This is the standard. When the data aligns with the claim, when the evidence has been weighed and the confidence is earned &mdash; the owl stands upright. No qualification needed.</p>
-                                <a href="/static/exports/owl-semaphore/owl-NORMATIVE-512.png" download="owl-NORMATIVE-512.png" class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Download PNG</a>
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">The identity transform. The owl stands exactly as designed &mdash; no rotation, no reflection. What you see has been verified, tested against reality, and found to hold. This is the standard.</p>
+                                <div class="dl-grid">
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-white-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-dark-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-transparent-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="owl-card owl-card-nonnormative">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative Owl — rotation, verdigris" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(74,157,150,0.4);">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-dark-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="150" height="150" style="border-radius:50%;" class="mb-3">
                                 <p class="owl-state-name" style="color:#4A9D96;">NON-NORMATIVE</p>
                                 <p class="owl-transform">T = R(&pi;/8) &ensp; det = +1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (x&middot;cos &pi;/8 &minus; y&middot;sin &pi;/8,<br>&ensp;x&middot;sin &pi;/8 + y&middot;cos &pi;/8)</p>
                                 <p class="owl-tagline" style="color:#4A9D96;">&ldquo;Think about your thinking.&rdquo;</p>
                                 <p class="owl-standards">Informative / NOTE</p>
+                                <div class="spec-label">
+                                    <p style="color:#4A9D96;">Owl #316964 on #d2d8d6</p>
+                                    <p style="color:#4A9D96;">Contrast 4.36:1</p>
+                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 teal | L4/L6 #0f0f0f</p>
+                                </div>
                                 <hr style="border-color:rgba(74,157,150,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A proper rotation &mdash; det&nbsp;=&nbsp;+1, orientation preserved. The owl leans forward from its canonical stance. This is the state of exploration, of hypotheses not yet proven, of thinking about your thinking. When Da Vinci studied birds and attempted to build wings, he was a Non-Normative owl &mdash; leaning into the unknown, failing forward, leaving the rest of the world a guideline for eventual success. The orientation is preserved because the intent is constructive. The thinker has not broken faith with the process &mdash; they are simply not finished yet.</p>
-                                <a href="/static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" download="owl-NONNORMATIVE-512.png" class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Download PNG</a>
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A proper rotation &mdash; det&nbsp;=&nbsp;+1, orientation preserved. The owl leans forward from its canonical stance. This is the state of exploration, of thinking about your thinking.</p>
+                                <div class="dl-grid">
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-white-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-dark-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-transparent-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="owl-card owl-card-critical">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical Owl — reflection, crimson" width="120" height="120" class="owl-img-dark mb-3" style="border: 2px solid rgba(139,0,0,0.4);">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-dark-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="150" height="150" style="border-radius:50%;" class="mb-3">
                                 <p class="owl-state-name" style="color:#f85149;">CRITICAL</p>
                                 <p class="owl-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (x, &minus;y)</p>
                                 <p class="owl-tagline" style="color:#f85149;">&ldquo;Your proof turns on you.&rdquo;</p>
                                 <p class="owl-standards">CVE / Security Advisory / DANGER</p>
+                                <div class="spec-label">
+                                    <p style="color:#f85149;">Owl #990f1e on #8c121c</p>
+                                    <p style="color:#f85149;">Contrast 1.10:1</p>
+                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 red | L4/L6 #0f0f0f</p>
+                                </div>
                                 <hr style="border-color:rgba(139,0,0,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A reflection &mdash; det&nbsp;=&nbsp;&minus;1, orientation reversed. The owl is mirrored. This is not a general label for critical thinking &mdash; it is the specific state entered when your own rigorous analysis reveals something dangerous. Your what-if scenarios ran correctly and returned results that frighten you. The math works. The conclusion is what&rsquo;s terrifying. The physicists of the Manhattan Project knew this owl &mdash; the moment their calculations stopped being theoretical and became a countdown. Psychiatry calls it ego-dystonic insight. Philosophy calls it aporia. The orientation is reversed because your proof has turned on you.</p>
-                                <a href="/static/exports/owl-semaphore/owl-CRITICAL-512.png" download="owl-CRITICAL-512.png" class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Download PNG</a>
+                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A reflection &mdash; det&nbsp;=&nbsp;&minus;1, orientation reversed. The owl is mirrored. Your own rigorous analysis reveals something dangerous. Your proof has turned on you.</p>
+                                <div class="dl-grid">
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-white-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-dark-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-transparent-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -371,15 +414,15 @@
                                 <p style="font-size:0.68rem;color:#8b949e;margin-bottom:1rem;">Dashboards, terminals, dark-mode interfaces</p>
                                 <div class="d-flex justify-content-center gap-4">
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(212,168,83,0.4);padding:2px;background:#0d1117;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-dark-540.png" .AppVersion}}" alt="Normative on dark" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#d4a853;margin-top:0.4rem;margin-bottom:0;">NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(74,157,150,0.4);padding:2px;background:#0d1117;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-dark-540.png" .AppVersion}}" alt="Non-Normative on dark" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#4A9D96;margin-top:0.4rem;margin-bottom:0;">NON-NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical on dark" width="80" height="80" style="border-radius:50%;border:2px solid rgba(139,0,0,0.4);padding:2px;background:#0d1117;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-dark-540.png" .AppVersion}}" alt="Critical on dark" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#f85149;margin-top:0.4rem;margin-bottom:0;">CRITICAL</p>
                                     </div>
                                 </div>
@@ -391,22 +434,22 @@
                                 <p style="font-size:0.68rem;color:#57606a;margin-bottom:1rem;">PDFs, printed papers, slide decks, white pages</p>
                                 <div class="d-flex justify-content-center gap-4">
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-NORMATIVE-512.png" .AppVersion}}" alt="Normative on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(180,140,50,0.6);padding:2px;background:#ffffff;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-white-540.png" .AppVersion}}" alt="Normative on light" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#8a6914;margin-top:0.4rem;margin-bottom:0;">NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-NONNORMATIVE-512.png" .AppVersion}}" alt="Non-Normative on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(50,120,110,0.6);padding:2px;background:#ffffff;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-white-540.png" .AppVersion}}" alt="Non-Normative on light" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#2d7a71;margin-top:0.4rem;margin-bottom:0;">NON-NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/owl-CRITICAL-512.png" .AppVersion}}" alt="Critical on light" width="80" height="80" style="border-radius:50%;border:2px solid rgba(139,0,0,0.6);padding:2px;background:#ffffff;">
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-white-540.png" .AppVersion}}" alt="Critical on light" width="80" height="80" style="border-radius:50%;">
                                         <p style="font-size:0.62rem;font-weight:700;color:#8B0000;margin-top:0.4rem;margin-bottom:0;">CRITICAL</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="mb-0" style="font-size:0.72rem;color:rgba(170,178,188,0.5);text-align:center;">Both surfaces use the same transparent PNG assets &mdash; no separate light/dark versions needed.</p>
+                    <p class="mb-0" style="font-size:0.72rem;color:rgba(170,178,188,0.5);text-align:center;">Each standard ships in three variants: white background (print), dark background (UI), and transparent (compositing).</p>
                 </div>
             </div>
 
@@ -525,17 +568,38 @@
                     <h2>{{icon "download" "me-2"}}Download &amp; Cite</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">All assets are 512x512 PNG with transparent backgrounds. Free to use in scientific publications, technical documentation, and research projects with attribution.</p>
+                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">All assets are 540&times;540 PNG composites. Each standard ships in three background variants. Free to use in scientific publications, technical documentation, and research projects with attribution.</p>
 
                     <div class="row g-3 mb-4">
-                        <div class="col-md-4 text-center">
-                            <a href="/static/exports/owl-semaphore/owl-NORMATIVE-512.png" download="owl-NORMATIVE-512.png" class="owl-download-btn dl-normative mb-2">{{icon "download" "me-1"}}NORMATIVE (PNG)</a>
+                        <div class="col-md-4">
+                            <div class="p-3 text-center" style="background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.12);border-radius:8px;">
+                                <p class="mb-2" style="font-weight:700;color:#d4a853;font-size:0.85rem;">NORMATIVE</p>
+                                <div class="dl-grid" style="margin-top:0;">
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-white-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-dark-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/NORM-composite-transparent-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4 text-center">
-                            <a href="/static/exports/owl-semaphore/owl-NONNORMATIVE-512.png" download="owl-NONNORMATIVE-512.png" class="owl-download-btn dl-nonnormative mb-2">{{icon "download" "me-1"}}NON-NORMATIVE (PNG)</a>
+                        <div class="col-md-4">
+                            <div class="p-3 text-center" style="background:rgba(74,157,150,0.04);border:1px solid rgba(74,157,150,0.12);border-radius:8px;">
+                                <p class="mb-2" style="font-weight:700;color:#4A9D96;font-size:0.85rem;">NON-NORMATIVE</p>
+                                <div class="dl-grid" style="margin-top:0;">
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-white-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-dark-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/NONNORM-composite-transparent-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4 text-center">
-                            <a href="/static/exports/owl-semaphore/owl-CRITICAL-512.png" download="owl-CRITICAL-512.png" class="owl-download-btn dl-critical mb-2">{{icon "download" "me-1"}}CRITICAL (PNG)</a>
+                        <div class="col-md-4">
+                            <div class="p-3 text-center" style="background:rgba(139,0,0,0.04);border:1px solid rgba(139,0,0,0.12);border-radius:8px;">
+                                <p class="mb-2" style="font-weight:700;color:#f85149;font-size:0.85rem;">CRITICAL</p>
+                                <div class="dl-grid" style="margin-top:0;">
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-white-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}White</a>
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-dark-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Dark</a>
+                                    <a href="/static/exports/owl-semaphore/CRIT-composite-transparent-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Transparent</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -575,7 +639,7 @@
                     <div class="p-3" style="background:rgba(88,166,255,0.04);border:1px solid rgba(88,166,255,0.15);border-radius:8px;">
                         <p class="mb-1" style="font-size:0.82rem;color:#e6edf3;font-weight:600;">How to use in your project:</p>
                         <ol style="font-size:0.78rem;color:#8b949e;padding-left:1.5rem;margin-bottom:0;">
-                            <li>Download the PNG assets above (transparent backgrounds, 512x512).</li>
+                            <li>Download the PNG composites above (540&times;540, available in white, dark, and transparent backgrounds).</li>
                             <li>Place the appropriate owl on your document header, slide, or page to indicate its epistemic state.</li>
                             <li>Include the BibTeX citation if referencing the system formally.</li>
                             <li>The color + orientation + label together ensure the meaning survives any single-channel loss.</li>
