@@ -4,109 +4,140 @@
 <meta charset="UTF-8">
 <title>Owl Seal System — Background Comparison</title>
 <style>
-  @page { size: A4 landscape; margin: 20mm; }
+  @page { size: A4 landscape; margin: 15mm; }
   body { font-family: Georgia, serif; color: #222; background: #fff; }
-  h1 { text-align: center; font-size: 18pt; margin-bottom: 30pt; }
-  .comparison { display: flex; justify-content: center; gap: 60px; margin-top: 20pt; }
-  .seal-card { text-align: center; width: 200px; }
-  .seal-card h2 { font-size: 11pt; margin-bottom: 8pt; text-transform: uppercase; letter-spacing: 0.08em; }
-  .seal-card .hex { font-size: 8pt; color: #666; font-family: monospace; margin-top: 6pt; }
+  h1 { text-align: center; font-size: 16pt; margin-bottom: 6pt; }
+  p.subtitle { text-align: center; font-size: 9pt; color: #888; margin-bottom: 20pt; }
+  .comparison { display: flex; justify-content: center; gap: 50px; margin-top: 12pt; }
+  .seal-card { text-align: center; width: 180px; }
+  .seal-card h2 { font-size: 10pt; margin-bottom: 6pt; text-transform: uppercase; letter-spacing: 0.08em; }
+  .seal-card .hex { font-size: 7.5pt; color: #666; font-family: monospace; margin-top: 4pt; }
   .seal-card img {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    height: 110px;
     border-radius: 50%;
     padding: 3px;
     border: 3px solid #C8A878;
   }
-  .seal-normative img { background: #0d1117; }
-  .seal-nonnormative img { background: #17302d; }
-  .seal-critical img { background: #241316; }
-
-  .row-label { text-align: center; font-size: 13pt; font-weight: bold; margin-top: 40pt; margin-bottom: 10pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 6pt; }
-
-  .seal-nonnormative-alt1 img { background: #132826; }
-  .seal-nonnormative-alt2 img { background: #1a3533; }
-  .seal-critical-alt1 img { background: #2a1518; }
-  .seal-critical-alt2 img { background: #1e1015; }
+  .row-label { text-align: center; font-size: 11pt; font-weight: bold; margin-top: 28pt; margin-bottom: 8pt; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 4pt; }
 </style>
 </head>
 <body>
 
 <h1>Owl Seal System — Background Color Comparison</h1>
+<p class="subtitle">All owls use TRANSPARENT PNGs. Only the CSS background-color behind each circle changes.</p>
 
-<div class="row-label">Row 1: Recommended Palette</div>
+<div class="row-label">Row 1: Current — All on #0d1117 (the problem: green gets lost)</div>
 <div class="comparison">
-  <div class="seal-card seal-normative">
+  <div class="seal-card">
     <h2>Normative</h2>
-    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
-    <div class="hex">#0d1117 (current — unchanged)</div>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117</div>
   </div>
-  <div class="seal-card seal-nonnormative">
+  <div class="seal-card">
     <h2>Non-Normative</h2>
-    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
-    <div class="hex">#17302d (deep teal)</div>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117 — green lost</div>
   </div>
-  <div class="seal-card seal-critical">
+  <div class="seal-card">
     <h2>Critical</h2>
-    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
-    <div class="hex">#241316 (deep oxblood)</div>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117</div>
   </div>
 </div>
 
-<div class="row-label">Row 2: Alternate Darker Variants</div>
+<div class="row-label">Row 2: State-Matched — Deep Teal for Green, Deep Oxblood for Red</div>
 <div class="comparison">
-  <div class="seal-card seal-normative">
+  <div class="seal-card">
     <h2>Normative</h2>
-    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
-    <div class="hex">#0d1117 (same)</div>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117 (unchanged)</div>
   </div>
-  <div class="seal-card seal-nonnormative-alt1">
+  <div class="seal-card">
     <h2>Non-Normative</h2>
-    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
-    <div class="hex">#132826 (darker teal)</div>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #17302d;">
+    <div class="hex">bg: #17302d (deep teal)</div>
   </div>
-  <div class="seal-card seal-critical-alt1">
+  <div class="seal-card">
     <h2>Critical</h2>
-    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
-    <div class="hex">#2a1518 (deeper oxblood)</div>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #2a1518;">
+    <div class="hex">bg: #2a1518 (deep oxblood)</div>
   </div>
 </div>
 
-<div class="row-label">Row 3: Lighter Variants</div>
+<div class="row-label">Row 3: Warmer Teal, Warmer Oxblood</div>
 <div class="comparison">
-  <div class="seal-card seal-normative">
+  <div class="seal-card">
     <h2>Normative</h2>
-    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
-    <div class="hex">#0d1117 (same)</div>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117 (unchanged)</div>
   </div>
-  <div class="seal-card seal-nonnormative-alt2">
+  <div class="seal-card">
     <h2>Non-Normative</h2>
-    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
-    <div class="hex">#1a3533 (lighter teal)</div>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #1a3533;">
+    <div class="hex">bg: #1a3533 (warmer teal)</div>
   </div>
-  <div class="seal-card seal-critical-alt2">
+  <div class="seal-card">
     <h2>Critical</h2>
-    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
-    <div class="hex">#1e1015 (subtle oxblood)</div>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #351a1e;">
+    <div class="hex">bg: #351a1e (warmer oxblood)</div>
   </div>
 </div>
 
-<div class="row-label">Row 4: All on Current Black (the problem)</div>
+<div class="row-label">Row 4: More Saturated — Really Show the Color</div>
 <div class="comparison">
-  <div class="seal-card seal-normative">
-    <h2>Normative ✓</h2>
-    <img src="assets/owl-NORMATIVE-512-opaque.png" alt="Normative">
-    <div class="hex">#0d1117 — works great</div>
+  <div class="seal-card">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #0d1117;">
+    <div class="hex">bg: #0d1117 (unchanged)</div>
   </div>
-  <div class="seal-card seal-normative">
-    <h2>Non-Normative ✗</h2>
-    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative">
-    <div class="hex">#0d1117 — green gets lost</div>
+  <div class="seal-card">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #1f3f3b;">
+    <div class="hex">bg: #1f3f3b (rich teal)</div>
   </div>
-  <div class="seal-card seal-normative">
+  <div class="seal-card">
     <h2>Critical</h2>
-    <img src="assets/owl-CRITICAL-512-opaque.png" alt="Critical">
-    <div class="hex">#0d1117 — for comparison</div>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #3d1f23;">
+    <div class="hex">bg: #3d1f23 (rich oxblood)</div>
+  </div>
+</div>
+
+<div class="row-label">Row 5: State-Colored Rings (border matches state, not gold)</div>
+<div class="comparison">
+  <div class="seal-card">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #0d1117; border-color: #C8A878;">
+    <div class="hex">bg: #0d1117 / ring: #C8A878</div>
+  </div>
+  <div class="seal-card">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #17302d; border-color: #4A9D96;">
+    <div class="hex">bg: #17302d / ring: #4A9D96</div>
+  </div>
+  <div class="seal-card">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #2a1518; border-color: #8B0000;">
+    <div class="hex">bg: #2a1518 / ring: #8B0000</div>
+  </div>
+</div>
+
+<div class="row-label">Row 6: Neutral Charcoal for All (one background, three rings)</div>
+<div class="comparison">
+  <div class="seal-card">
+    <h2>Normative</h2>
+    <img src="assets/owl-NORMATIVE-512-transparent.png" alt="Normative" style="background: #1a1a2e; border-color: #C8A878;">
+    <div class="hex">bg: #1a1a2e / ring: gold</div>
+  </div>
+  <div class="seal-card">
+    <h2>Non-Normative</h2>
+    <img src="assets/owl-NONNORMATIVE-512-transparent.png" alt="Non-Normative" style="background: #1a1a2e; border-color: #4A9D96;">
+    <div class="hex">bg: #1a1a2e / ring: verdigris</div>
+  </div>
+  <div class="seal-card">
+    <h2>Critical</h2>
+    <img src="assets/owl-CRITICAL-512-transparent.png" alt="Critical" style="background: #1a1a2e; border-color: #8B0000;">
+    <div class="hex">bg: #1a1a2e / ring: crimson</div>
   </div>
 </div>
 
