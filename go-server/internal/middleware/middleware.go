@@ -97,7 +97,7 @@ func extractNonceStr(c *gin.Context) string {
 func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
         c.Header("X-Content-Type-Options", "nosniff")
         if !devMode {
-                if c.Request.URL.Path == "/signature" {
+                if c.Request.URL.Path == "/signature" || strings.HasPrefix(c.Request.URL.Path, "/docs/") {
                         c.Header("X-Frame-Options", "SAMEORIGIN")
                 } else {
                         c.Header("X-Frame-Options", "DENY")
@@ -129,6 +129,8 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
         frameAncestors := "frame-ancestors 'none'; "
         if devMode {
                 frameAncestors = "frame-ancestors https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app https://*.picard.replit.dev; "
+        } else if strings.HasPrefix(c.Request.URL.Path, "/docs/") {
+                frameAncestors = "frame-ancestors 'self'; "
         }
 
         frameSrc := "frame-src 'none'; "
