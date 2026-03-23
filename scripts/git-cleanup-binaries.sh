@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 export PYTHONPATH="/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages:${PYTHONPATH:-}"
 
 echo ""
-info "Git history cleanup — removing binary blobs"
+info "Git history cleanup — removing binary blobs (phase 2)"
 echo ""
 echo "  Before:"
 echo "    .git size: $(du -sh .git | cut -f1)"
@@ -22,7 +22,28 @@ BLOB_COUNT=$(git rev-list --objects --all -- dns-tool-server dns-tool-server-new
 echo "    Binary objects in history: $BLOB_COUNT"
 echo ""
 
-info "Running git-filter-repo to remove binary paths from history..."
+info "Deleting stale subrepl branches..."
+for branch in $(git branch | grep 'subrepl-' | tr -d ' '); do
+  git branch -D "$branch" 2>/dev/null && pass "Deleted branch $branch" || true
+done
+
+info "Deleting stale local branches..."
+for branch in cleanup-venv main; do
+  git branch -D "$branch" 2>/dev/null && pass "Deleted branch $branch" || true
+done
+
+info "Removing all remote tracking refs..."
+rm -rf .git/refs/remotes 2>/dev/null || true
+git remote remove origin 2>/dev/null || true
+git remote remove gitsafe-backup 2>/dev/null || true
+
+info "Clearing packed-refs of remote entries..."
+if [ -f .git/packed-refs ]; then
+  grep -v 'refs/remotes/' .git/packed-refs > .git/packed-refs.tmp 2>/dev/null || true
+  mv .git/packed-refs.tmp .git/packed-refs
+fi
+
+info "Running git-filter-repo to remove binary paths from ALL history..."
 git filter-repo \
   --path dns-tool-server \
   --path dns-tool-server-new \
@@ -33,7 +54,7 @@ git filter-repo \
   --invert-paths \
   --force
 
-info "Cleaning up reflog and repacking..."
+info "Expiring reflog and aggressive repack..."
 git reflog expire --expire=now --all 2>/dev/null || true
 git gc --prune=now --aggressive 2>/dev/null || true
 
@@ -50,7 +71,5 @@ git remote add gitsafe-backup git://gitsafe:5418/backup.git 2>/dev/null || true
 
 pass "Local git history cleaned. All code commits preserved, binary blobs removed."
 echo ""
-echo "  Note: GitHub repo is already clean (158 MB). No force-push needed."
-echo "  The .git.backup directory (3.2 GB) can also be safely deleted:"
-echo "    rm -rf .git.backup.20260304_170840"
+echo "  GitHub repo is already clean (158 MB). No force-push needed."
 echo ""
