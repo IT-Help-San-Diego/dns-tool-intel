@@ -219,6 +219,20 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
 
         a.probeCommonSubdomains(ctx, domain, subdomainSet)
 
+        extResults := RunExternalTools(ctx, domain)
+        for _, fqdn := range extResults {
+                if _, exists := subdomainSet[fqdn]; !exists {
+                        subdomainSet[fqdn] = map[string]any{
+                                mapKeyName:      fqdn,
+                                mapKeySource:    "external_tools",
+                                mapKeyIsCurrent: true,
+                                mapKeyCertCount: "—",
+                                mapKeyFirstSeen: "—",
+                                mapKeyIssuers:   []string{},
+                        }
+                }
+        }
+
         if ct.available && len(dedupedEntries) > 0 {
                 enrichDNSWithCTData(dedupedEntries, domain, subdomainSet)
         }
@@ -258,14 +272,20 @@ func (a *Analyzer) finalizeSubdomains(ctx context.Context, domain string, subdom
         result[mapKeyExpiredCount] = fmt.Sprintf("%d", expiredCount)
 
         subdomains = sortSubdomainsSmartOrder(subdomains)
-        a.setCTCache(domain, subdomains)
+        if ct.available {
+                a.setCTCache(domain, subdomains)
 
-        if a.CTStore != nil && len(subdomains) > 0 {
-                ctSource := "crt.sh"
-                if ct.fallback {
-                        ctSource = "certspotter"
+                if a.CTStore != nil && len(subdomains) > 0 {
+                        ctSource := "crt.sh"
+                        if ct.fallback {
+                                ctSource = "certspotter"
+                        }
+                        go func() {
+                                storeCtx, storeCancel := context.WithTimeout(context.Background(), 10*time.Second)
+                                defer storeCancel()
+                                a.CTStore.Set(storeCtx, domain, subdomains, ctSource)
+                        }()
                 }
-                go a.CTStore.Set(ctx, domain, subdomains, ctSource)
         }
 
         result[mapKeyUniqueSubdomains] = len(subdomains)
@@ -496,7 +516,7 @@ func convertCertspotterEntries(csEntries []certspotterEntry) []ctEntry {
 }
 
 func (a *Analyzer) fetchCertspotter(ctx context.Context, domain string) ([]ctEntry, bool) {
-        const maxPages = 10
+        const maxPages = 25
         budgetCtx, budgetCancel := context.WithTimeout(ctx, 60*time.Second)
         defer budgetCancel()
 

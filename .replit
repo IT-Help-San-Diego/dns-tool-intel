@@ -2,7 +2,7 @@ modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "python3", "pos
 
 [nix]
 channel = "stable-24_05"
-packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "gitleaks", "glib", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "librsvg", "libsodium", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "rsync", "sqlc", "subfinder", "tcl", "testssl", "tk", "trivy", "unzip", "whois", "zlib"]
+packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "freetype", "ghostscript", "gitleaks", "glib", "glibcLocales", "harfbuzz", "httpx", "imagemagick", "lcms2", "libimagequant", "libjpeg", "librsvg", "libsodium", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "nuclei", "openjpeg", "openssl", "pango", "postgresql", "potrace", "python312Packages.nmapthon2", "rsync", "sqlc", "subfinder", "tcl", "testssl", "tk", "trivy", "unzip", "whois", "xcodebuild", "zlib"]
 
 [deployment]
 deploymentTarget = "vm"
@@ -45,7 +45,8 @@ YOUTUBE_VIDEO_IDS = "forgotten-domain=kavj5GTxx4s"
 
 [userenv.development]
 BASE_URL = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev"
-DATABASE_URL_OVERRIDE = "postgresql://neondb_owner:npg_Vf38wGHNeijE@ep-broad-frog-afnxvxzs.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
+
+[userenv.production]
 
 [agent]
 integrations = ["github:1.0.0", "notion:1.0.0"]
