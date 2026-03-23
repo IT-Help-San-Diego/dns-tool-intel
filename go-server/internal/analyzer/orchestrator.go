@@ -539,7 +539,7 @@ func (a *Analyzer) buildDomainTasks(ctx context.Context, domain string, customDK
 }
 
 func (a *Analyzer) discoverSubdomainsWithBudget(parent context.Context, domain string) map[string]any {
-        budget := 20 * time.Second
+        budget := 60 * time.Second
         if deadline, ok := parent.Deadline(); ok {
                 if remaining := time.Until(deadline); remaining < budget {
                         budget = remaining
