@@ -20,7 +20,25 @@ type Database struct {
 }
 
 func Connect(databaseURL string) (*Database, error) {
-        return connectWithPoolSize(databaseURL, 10, 2)
+        const maxRetries = 5
+        const retryDelay = 3 * time.Second
+        var lastErr error
+        for attempt := 1; attempt <= maxRetries; attempt++ {
+                db, err := connectWithPoolSize(databaseURL, 10, 2)
+                if err == nil {
+                        return db, nil
+                }
+                lastErr = err
+                if attempt < maxRetries {
+                        slog.Warn("Database connection attempt failed, retrying",
+                                "attempt", attempt,
+                                "max_retries", maxRetries,
+                                "retry_in", retryDelay.String(),
+                                "error", err)
+                        time.Sleep(retryDelay)
+                }
+        }
+        return nil, lastErr
 }
 
 func ConnectForTests(databaseURL string) (*Database, error) {
