@@ -11,6 +11,8 @@ info() { echo -e "${YELLOW}▸${NC} $1"; }
 
 cd "$(dirname "$0")/.."
 
+export PYTHONPATH="/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages:${PYTHONPATH:-}"
+
 echo ""
 info "Git history cleanup — removing binary blobs"
 echo ""
