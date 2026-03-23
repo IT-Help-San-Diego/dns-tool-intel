@@ -145,7 +145,37 @@ func main() {
         database, err := db.Connect(cfg.DatabaseURL)
         if err != nil {
                 slog.Error("Failed to connect to database", mapKeyError, err)
-                os.Exit(1)
+                handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                        if r.URL.Path == "/healthz" {
+                                w.Header().Set("Content-Type", "application/json")
+                                w.WriteHeader(http.StatusOK)
+                                w.Write([]byte(`{"status":"degraded","reason":"database_unavailable"}`))
+                                return
+                        }
+                        w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                        w.Header().Set("Retry-After", "30")
+                        w.WriteHeader(http.StatusServiceUnavailable)
+                        w.Write([]byte(`<!DOCTYPE html><html><head><title>DNS Tool — Maintenance</title><meta http-equiv="refresh" content="30"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0d1117;color:#c9d1d9}div{text-align:center;max-width:480px;padding:2rem}.icon{font-size:3rem;margin-bottom:1rem}h1{color:#58a6ff;margin:0 0 .5rem}p{color:#8b949e;line-height:1.6}</style></head><body><div><div class="icon">🦉</div><h1>DNS Tool</h1><p>The service is temporarily unavailable while the database connection is being restored. This page will automatically refresh.</p></div></body></html>`))
+                }))
+                slog.Warn("Running in DEGRADED mode — serving maintenance page, waiting for database")
+                go func() {
+                        for {
+                                time.Sleep(15 * time.Second)
+                                slog.Info("Retrying database connection in degraded mode...")
+                                if retryDB, retryErr := db.Connect(cfg.DatabaseURL); retryErr == nil {
+                                        slog.Info("Database reconnected in degraded mode — full restart required")
+                                        retryDB.Close()
+                                }
+                        }
+                }()
+                quit := make(chan os.Signal, 1)
+                signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+                <-quit
+                slog.Info("Shutdown signal received in degraded mode")
+                shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
+                defer shutdownCancel()
+                srv.Shutdown(shutdownCtx)
+                return
         }
         defer database.Close()
 
@@ -478,6 +508,9 @@ func main() {
         router.GET("/docs/founders-manifesto.pdf", staticHandler.ManifestoPDF)
         router.GET("/communication-standards-pdf", staticHandler.CommStandardsPDF)
         router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
+
+        corpusHandler := handlers.NewCorpusHandler(cfg)
+        router.GET("/corpus", corpusHandler.Corpus)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/publications", videoHandler.Publications)

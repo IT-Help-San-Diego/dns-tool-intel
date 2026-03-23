@@ -131,7 +131,7 @@ func TestIsMinifiedJSFalsePositive_CB8(t *testing.T) {
 }
 
 func TestEvaluateMatch_CB8(t *testing.T) {
-        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'"
+        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //gitleaks:allow
         pat := secretPatterns[0]
         loc := pat.Re.FindStringIndex(body)
         if loc == nil {
@@ -158,7 +158,7 @@ func TestEvaluateMatch_CB8(t *testing.T) {
 
 func TestScanContent_CB8(t *testing.T) {
         scanner := &SecretScanner{}
-        body := `var key = "AKIAIOSFODNN7EXAMPLE1";`
+        body := `var key = "AKIAIOSFODNN7EXAMPLE1";` // gitleaks:allow
         findings := scanner.scanContent(body, "https://example.com/app.js", nil)
         _ = findings
 }

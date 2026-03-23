@@ -7,6 +7,8 @@ import (
         "context"
         "fmt"
         "log/slog"
+        "net/url"
+        "os"
         "time"
 
         "dnstool/go-server/internal/dbq"
@@ -20,7 +22,30 @@ type Database struct {
 }
 
 func Connect(databaseURL string) (*Database, error) {
-        return connectWithPoolSize(databaseURL, 10, 2)
+        if os.Getenv("REPLIT_DEPLOYMENT") != "" {
+                if u, err := url.Parse(databaseURL); err == nil && u.Hostname() == "helium" {
+                        return nil, fmt.Errorf("misconfiguration: production deployment is using development database host 'helium'; set DATABASE_URL in production app secrets to the production database connection string")
+                }
+        }
+        const maxRetries = 5
+        const retryDelay = 3 * time.Second
+        var lastErr error
+        for attempt := 1; attempt <= maxRetries; attempt++ {
+                db, err := connectWithPoolSize(databaseURL, 10, 2)
+                if err == nil {
+                        return db, nil
+                }
+                lastErr = err
+                if attempt < maxRetries {
+                        slog.Warn("Database connection attempt failed, retrying",
+                                "attempt", attempt,
+                                "max_retries", maxRetries,
+                                "retry_in", retryDelay.String(),
+                                "error", err)
+                        time.Sleep(retryDelay)
+                }
+        }
+        return nil, lastErr
 }
 
 func ConnectForTests(databaseURL string) (*Database, error) {

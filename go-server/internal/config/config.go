@@ -10,7 +10,7 @@ import (
 )
 
 var (
-        Version   = "26.38.12"
+        Version   = "26.38.16"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
@@ -59,7 +59,10 @@ var sectionTuningMap = map[string]string{
 }
 
 func Load() (*Config, error) {
-        dbURL := os.Getenv("DATABASE_URL")
+        dbURL := os.Getenv("DATABASE_URL_OVERRIDE")
+        if dbURL == "" {
+                dbURL = os.Getenv("DATABASE_URL")
+        }
         if dbURL == "" {
                 return nil, fmt.Errorf("DATABASE_URL environment variable is required")
         }
