@@ -71,7 +71,7 @@ func TestIsSameOrigin_CB8(t *testing.T) {
 }
 
 func TestExtractContext_CB8(t *testing.T) {
-        body := "prefix...AKIAXXXXXXXXXXXXXXXX...suffix"
+        body := "prefix...TESTKEYXXXXXXXXXXXXXXXX...suffix" // gitleaks:allow
         ctx := extractContext(body, 9, 29)
         if ctx == "" {
                 t.Fatal("expected non-empty context")
