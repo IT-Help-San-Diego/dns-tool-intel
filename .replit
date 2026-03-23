@@ -7,7 +7,7 @@ packages = ["amass", "cacert", "chromium", "dnsutils", "dnsx", "fontconfig", "fr
 [deployment]
 deploymentTarget = "vm"
 run = ["sh", "-c", "./dns-tool-server"]
-build = ["bash", "build.sh"]
+build = ["bash", "build.sh", "--deploy"]
 
 [workflows]
 runButton = "Project"
