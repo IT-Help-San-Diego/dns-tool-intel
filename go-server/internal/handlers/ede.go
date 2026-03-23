@@ -31,11 +31,11 @@ func (h *EDEHandler) EDE(c *gin.Context) {
         integrityData := h.resolveIntegrityData(c.Request.Context())
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "ede",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "ede",
                 "IntegrityData":   integrityData,
         }
         mergeAuthData(c, h.Config, data)

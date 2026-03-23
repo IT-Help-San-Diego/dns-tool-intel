@@ -27,5 +27,32 @@ mv dns-tool-server-new dns-tool-server
 
 rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
+if [ "$1" = "--deploy" ]; then
+  echo "Deployment build — cleaning large non-runtime files"
+  echo "Before cleanup:"
+  du -sh . 2>/dev/null || true
+
+  rm -rf .git.backup* 2>/dev/null || true
+
+  if [ -d .git ]; then
+    echo "Removing .git directory — not needed at runtime"
+    rm -rf .git
+  fi
+
+  rm -rf .local .cache .scannerwork .codex .drift .gitpanel \
+         exports dnstool-intel-staging .intel \
+         attached_assets .canvas artifacts \
+         docs/legacy docs/EVOLUTION_APPEND_*.md docs/dns-tool-methodology.pdf \
+         EVOLUTION.md PROJECT_CONTEXT.md \
+         sonar-project.properties \
+         2>/dev/null || true
+
+  find go-server/internal -name '*_test.go' -delete 2>/dev/null || true
+
+  echo "After cleanup:"
+  du -sh . 2>/dev/null || true
+  echo "Deployment cleanup complete"
+fi
+
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server

@@ -4,30 +4,30 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type CorpusHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewCorpusHandler(cfg *config.Config) *CorpusHandler {
-	return &CorpusHandler{Config: cfg}
+        return &CorpusHandler{Config: cfg}
 }
 
 func (h *CorpusHandler) Corpus(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "corpus",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "corpus.html", data)
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "corpus",
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "corpus.html", data)
 }

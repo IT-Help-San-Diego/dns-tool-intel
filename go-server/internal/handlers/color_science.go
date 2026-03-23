@@ -22,11 +22,11 @@ func NewColorScienceHandler(cfg *config.Config) *ColorScienceHandler {
 func (h *ColorScienceHandler) ColorScience(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "color-science",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "color-science",
 	}
 	mergeAuthData(c, h.Config, data)
 	c.HTML(http.StatusOK, "color_science.html", data)

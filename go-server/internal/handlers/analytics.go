@@ -66,12 +66,12 @@ func (h *AnalyticsHandler) Dashboard(c *gin.Context) {
 	summary := h.computeSummary(ctx, days)
 
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
 		"CsrfToken":       csrfToken,
-		"ActivePage":      "admin",
+		keyActivePage:      "admin",
 		"Days":            days,
 		"Summary":         summary,
 	}

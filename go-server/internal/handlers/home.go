@@ -62,12 +62,12 @@ func (h *HomeHandler) Index(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	csrfToken, _ := c.Get("csrf_token")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
 		"BaseURL":         h.Config.BaseURL,
-		"CspNonce":        nonce,
-		"ActivePage":      "home",
+		keyCspNonce:        nonce,
+		keyActivePage:      "home",
 		"CsrfToken":       csrfToken,
 		"WaitDomain":      c.Query("wait_domain"),
 		"WaitSeconds":     c.Query("wait_seconds"),

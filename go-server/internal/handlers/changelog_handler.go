@@ -29,11 +29,11 @@ func (h *ChangelogHandler) Changelog(c *gin.Context) {
         }
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "changelog",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "changelog",
                 "RecentChangelog":  all[:recentCut],
                 "ArchiveChangelog": all[recentCut:],
                 "ArchiveCount":     len(all) - recentCut,

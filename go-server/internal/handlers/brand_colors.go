@@ -40,11 +40,11 @@ func NewBrandColorsHandler(cfg *config.Config) *BrandColorsHandler {
 func (h *BrandColorsHandler) BrandColors(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "brand-colors",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "brand-colors",
 		"BrandPalette":    getBrandPalette(),
 		"StatusColors":    getStatusColors(),
 		"SurfaceColors":   getSurfaceColors(),

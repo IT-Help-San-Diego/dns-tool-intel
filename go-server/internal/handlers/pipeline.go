@@ -134,11 +134,11 @@ func (h *PipelineHandler) Observatory(c *gin.Context) {
 
         data := gin.H{
                 "Title":            "Pipeline Observatory",
-                "ActivePage":       "pipeline",
-                "AppVersion":       h.Config.AppVersion,
-                "MaintenanceNote":  h.Config.MaintenanceNote,
-                "BetaPages":        h.Config.BetaPages,
-                "CspNonce":         nonce,
+                keyActivePage:       "pipeline",
+                keyAppVersion:       h.Config.AppVersion,
+                keyMaintenanceNote:  h.Config.MaintenanceNote,
+                keyBetaPages:        h.Config.BetaPages,
+                keyCspNonce:         nonce,
                 "CsrfToken":        csrfToken,
                 "Stages":           stages,
                 "EndToEnd":         endToEnd,

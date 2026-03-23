@@ -161,12 +161,12 @@ func (h *BadgeHandler) BadgeEmbed(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
         c.HTML(http.StatusOK, "badge_embed.html", gin.H{
-                "CspNonce":        nonce,
+                keyCspNonce:        nonce,
                 "CsrfToken":       csrfToken,
-                "AppVersion":      h.Config.AppVersion,
+                keyAppVersion:      h.Config.AppVersion,
                 "BaseURL":         h.Config.BaseURL,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
         })
 }
 

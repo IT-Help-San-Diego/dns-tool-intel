@@ -38,12 +38,12 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         csrfToken, _ := c.Get("csrf_token")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
                 "CsrfToken":       csrfToken,
-                "ActivePage":      "confidence",
+                keyActivePage:      "confidence",
         }
 
         isDev := h.Config.IsDevEnvironment

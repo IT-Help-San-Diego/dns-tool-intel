@@ -23,11 +23,11 @@ func (h *ApproachHandler) Approach(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         ytID := h.Config.YouTubeVideoIDs["forgotten-domain"]
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "approach",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "approach",
                 "YouTubeID":       ytID,
         }
         mergeAuthData(c, h.Config, data)

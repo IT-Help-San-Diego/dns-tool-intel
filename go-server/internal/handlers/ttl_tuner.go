@@ -43,12 +43,12 @@ func (h *TTLTunerHandler) TTLTunerPage(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	csrfToken, _ := c.Get("csrf_token")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
 		"CsrfToken":       csrfToken,
-		"ActivePage":      "ttl-tuner",
+		keyActivePage:      "ttl-tuner",
 	}
 	mergeAuthData(c, h.Config, data)
 	c.HTML(http.StatusOK, tplTTLTuner, data)
@@ -97,12 +97,12 @@ func (h *TTLTunerHandler) AnalyzeTTL(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
 		"CsrfToken":       csrfToken,
-		"ActivePage":      "ttl-tuner",
+		keyActivePage:      "ttl-tuner",
 		"Domain":          domain,
 		"Profile":         profile,
 	}
