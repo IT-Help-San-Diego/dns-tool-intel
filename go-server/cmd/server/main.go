@@ -479,6 +479,9 @@ func main() {
         router.GET("/communication-standards-pdf", staticHandler.CommStandardsPDF)
         router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
 
+        corpusHandler := handlers.NewCorpusHandler(cfg)
+        router.GET("/corpus", corpusHandler.Corpus)
+
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/publications", videoHandler.Publications)
         router.GET("/video/forgotten-domain", videoHandler.ForgottenDomain)
