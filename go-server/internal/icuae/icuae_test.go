@@ -1121,6 +1121,44 @@ func TestTypicalTTLFor_Unknown(t *testing.T) {
         }
 }
 
+func TestRecordTypesList_WithFindings(t *testing.T) {
+        d := DimensionScore{
+                RecordTypes: 3,
+                Findings: []TTLFinding{
+                        {RecordType: "A"},
+                        {RecordType: "MX"},
+                        {RecordType: ""},
+                        {RecordType: "TXT"},
+                },
+        }
+        types := d.RecordTypesList()
+        if len(types) != 3 {
+                t.Errorf("expected 3 record types (empty excluded), got %d: %v", len(types), types)
+        }
+}
+
+func TestRecordTypesList_NoFindings(t *testing.T) {
+        d := DimensionScore{RecordTypes: 0}
+        types := d.RecordTypesList()
+        if len(types) != 0 {
+                t.Errorf("expected 0 record types, got %d", len(types))
+        }
+}
+
+func TestRecordTypesList_AllEmpty(t *testing.T) {
+        d := DimensionScore{
+                RecordTypes: 2,
+                Findings: []TTLFinding{
+                        {RecordType: ""},
+                        {RecordType: ""},
+                },
+        }
+        types := d.RecordTypesList()
+        if len(types) != 0 {
+                t.Errorf("expected 0 record types (all empty), got %d", len(types))
+        }
+}
+
 func TestSOAComplianceReport_HasFindings(t *testing.T) {
         r := SOAComplianceReport{}
         if r.HasFindings() {
