@@ -158,12 +158,12 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         recentStats, err := h.DB.Queries.ListRecentStats(ctx, 30)
         if err != nil {
                 errData := gin.H{
-                        "AppVersion":      h.Config.AppVersion,
-                        "MaintenanceNote": h.Config.MaintenanceNote,
-                        "BetaPages":       h.Config.BetaPages,
-                        "CspNonce":        nonce,
+                        keyAppVersion:      h.Config.AppVersion,
+                        keyMaintenanceNote: h.Config.MaintenanceNote,
+                        keyBetaPages:       h.Config.BetaPages,
+                        keyCspNonce:        nonce,
                         "CsrfToken":       csrfToken,
-                        "ActivePage":      "stats",
+                        keyActivePage:      "stats",
                         "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to fetch stats"}},
                 }
                 mergeAuthData(c, h.Config, errData)
@@ -228,12 +228,12 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         integrityData := loadIntegrityData()
 
         data := gin.H{
-                "AppVersion":         h.Config.AppVersion,
-                "MaintenanceNote":    h.Config.MaintenanceNote,
-                "BetaPages":          h.Config.BetaPages,
-                "CspNonce":           nonce,
+                keyAppVersion:         h.Config.AppVersion,
+                keyMaintenanceNote:    h.Config.MaintenanceNote,
+                keyBetaPages:          h.Config.BetaPages,
+                keyCspNonce:           nonce,
                 "CsrfToken":          csrfToken,
-                "ActivePage":         "stats",
+                keyActivePage:         "stats",
                 "TotalAnalyses":      totalAnalyses,
                 "SuccessfulAnalyses": successfulAnalyses,
                 "FailedAnalyses":     failedAnalyses,

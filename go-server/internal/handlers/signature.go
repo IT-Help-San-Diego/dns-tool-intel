@@ -26,11 +26,11 @@ func (h *SignatureHandler) SignaturePage(c *gin.Context) {
         mode := c.DefaultQuery("mode", "page")
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "signature",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "signature",
                 "RawMode":         mode == "raw",
                 "BaseURL":         h.Config.BaseURL,
         }

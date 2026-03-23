@@ -145,11 +145,11 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
         archiveEvents := allEvents[recentCut:]
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "black-site",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "black-site",
 
                 "S0Findings": sevBuckets[0],
                 "S1Findings": sevBuckets[1],

@@ -23,11 +23,11 @@ func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         ytID := h.Config.YouTubeVideoIDs["forgotten-domain"]
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "approach",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "approach",
                 "YouTubeID":       ytID,
         }
         mergeAuthData(c, h.Config, data)
@@ -37,11 +37,11 @@ func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
 func (h *VideoHandler) Publications(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "publications",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "publications",
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "publications.html", data)
@@ -50,11 +50,11 @@ func (h *VideoHandler) Publications(c *gin.Context) {
 func (h *VideoHandler) CaseStudyIndex(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "approach",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "approach",
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "case_study_index.html", data)
@@ -63,11 +63,11 @@ func (h *VideoHandler) CaseStudyIndex(c *gin.Context) {
 func (h *VideoHandler) IntelligenceDMARC(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "approach",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "approach",
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "case_study_intelligence_dmarc.html", data)

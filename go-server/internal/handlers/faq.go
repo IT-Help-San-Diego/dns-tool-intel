@@ -22,11 +22,11 @@ func NewFAQHandler(cfg *config.Config) *FAQHandler {
 func (h *FAQHandler) SubdomainDiscovery(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "faq",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "faq",
 	}
 	mergeAuthData(c, h.Config, data)
 	c.HTML(http.StatusOK, "faq_subdomains.html", data)

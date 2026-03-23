@@ -22,11 +22,11 @@ func NewCommunicationStandardsHandler(cfg *config.Config) *CommunicationStandard
 func (h *CommunicationStandardsHandler) CommunicationStandards(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "communication-standards",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "communication-standards",
 	}
 	mergeAuthData(c, h.Config, data)
 	c.HTML(http.StatusOK, "communication_standards.html", data)

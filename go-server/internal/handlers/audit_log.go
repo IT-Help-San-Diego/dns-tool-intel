@@ -107,12 +107,12 @@ func (h *ConfidenceHandler) AuditLog(c *gin.Context) {
         page := parsePageParam(c)
 
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
                 "CsrfToken":       csrfToken,
-                "ActivePage":      "confidence",
+                keyActivePage:      "confidence",
         }
         data["IsDev"] = h.Config.IsDevEnvironment
         mergeAuthData(c, h.Config, data)

@@ -4,30 +4,30 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type ContactHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewContactHandler(cfg *config.Config) *ContactHandler {
-	return &ContactHandler{Config: cfg}
+        return &ContactHandler{Config: cfg}
 }
 
 func (h *ContactHandler) Contact(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "contact",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "contact.html", data)
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "contact",
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "contact.html", data)
 }

@@ -103,12 +103,12 @@ func (h *DriftHandler) driftBaseData(c *gin.Context, domain string) gin.H {
 	nonce := c.MustGet("csp_nonce")
 	csrfToken := c.MustGet("csrf_token")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
 		"CsrfToken":       csrfToken,
-		"ActivePage":      "",
+		keyActivePage:      "",
 	}
 	if domain != "" {
 		data["Domain"] = domain
