@@ -93,7 +93,9 @@ func (j *CTEnrichmentJob) run(ctx context.Context) {
 
         var enrichedDomains []string
         if len(budget.DomainsEnriched) > 0 {
-                _ = json.Unmarshal(budget.DomainsEnriched, &enrichedDomains)
+                if err := json.Unmarshal(budget.DomainsEnriched, &enrichedDomains); err != nil {
+                        slog.Warn("CT enrichment: failed to unmarshal enriched domains", "error", err)
+                }
         }
         enrichedSet := make(map[string]bool, len(enrichedDomains))
         for _, d := range enrichedDomains {
