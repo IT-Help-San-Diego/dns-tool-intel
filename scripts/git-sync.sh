@@ -106,6 +106,17 @@ for entry in old_tree['tree']:
 tracked = subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.strip().split('\n')
 tracked = [f for f in tracked if f]
 
+intel_files = subprocess.run(
+    ['find', '.', '-name', '*_intel.go', '-not', '-path', './.git/*', '-not', '-path', './node_modules/*'],
+    capture_output=True, text=True
+).stdout.strip().split('\n')
+intel_files = [f.lstrip('./') for f in intel_files if f]
+tracked_set = set(tracked)
+for f in intel_files:
+    if f not in tracked_set and os.path.isfile(f):
+        tracked.append(f)
+        tracked_set.add(f)
+
 changed = []
 for fpath in tracked:
     if not os.path.isfile(fpath):
