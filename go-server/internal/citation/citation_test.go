@@ -258,6 +258,256 @@ func TestAuthoritiesMDSyncWithRegistry(t *testing.T) {
         t.Skip("AUTHORITIES.md not found in expected locations")
 }
 
+func TestMustLookup_Found(t *testing.T) {
+        r := Global()
+        e := r.MustLookup("rfc:7208")
+        if e.ID != "rfc:7208" {
+                t.Errorf("MustLookup found ID = %q, want rfc:7208", e.ID)
+        }
+        if e.Title == "" {
+                t.Error("MustLookup found entry has empty title")
+        }
+}
+
+func TestMustLookup_NotFound(t *testing.T) {
+        r := Global()
+        e := r.MustLookup("nonexistent:999")
+        if e.ID != "nonexistent:999" {
+                t.Errorf("MustLookup fallback ID = %q, want nonexistent:999", e.ID)
+        }
+        if e.Title != "nonexistent:999" {
+                t.Errorf("MustLookup fallback Title = %q, want nonexistent:999", e.Title)
+        }
+        if e.URL != "" {
+                t.Errorf("MustLookup fallback URL = %q, want empty", e.URL)
+        }
+}
+
+func TestResolveSectionURL(t *testing.T) {
+        r := Global()
+
+        url := r.ResolveSectionURL("rfc:7208", "5")
+        if !strings.Contains(url, "#section-5") {
+                t.Errorf("ResolveSectionURL with section: got %q, want #section-5", url)
+        }
+
+        url2 := r.ResolveSectionURL("rfc:7208", "")
+        if strings.Contains(url2, "#section") {
+                t.Errorf("ResolveSectionURL without section should not have anchor: %q", url2)
+        }
+        if url2 == "" {
+                t.Error("ResolveSectionURL without section returned empty URL")
+        }
+
+        url3 := r.ResolveSectionURL("nonexistent:999", "5")
+        if url3 != "" {
+                t.Errorf("ResolveSectionURL for unknown ID = %q, want empty", url3)
+        }
+}
+
+func TestByStatus(t *testing.T) {
+        r := Global()
+        entries := r.ByStatus("standards-track")
+        if len(entries) == 0 {
+                t.Fatal("expected non-empty standards-track list")
+        }
+        for _, e := range entries {
+                if e.Status != "standards-track" {
+                        t.Errorf("ByStatus(standards-track): got status=%q for %s", e.Status, e.ID)
+                }
+        }
+
+        empty := r.ByStatus("nonexistent-status")
+        if len(empty) != 0 {
+                t.Errorf("ByStatus(nonexistent) = %d entries, want 0", len(empty))
+        }
+}
+
+func TestCiteSection(t *testing.T) {
+        m := NewManifest()
+        m.CiteSection("rfc:7208", "5")
+        m.CiteSection("rfc:7208", "5")
+
+        ids := m.IDs()
+        if len(ids) != 1 {
+                t.Errorf("expected 1 unique ID after duplicate CiteSection, got %d", len(ids))
+        }
+        if ids[0] != "rfc:7208§5" {
+                t.Errorf("expected rfc:7208§5, got %s", ids[0])
+        }
+}
+
+func TestMapCSLType(t *testing.T) {
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"rfc", "report"},
+                {"draft", "report"},
+                {"standard", "standard"},
+                {"directive", "standard"},
+                {"tool", "software"},
+                {"data-source", "webpage"},
+                {"unknown", "document"},
+                {"", "document"},
+        }
+        for _, tt := range tests {
+                got := mapCSLType(tt.input)
+                if got != tt.want {
+                        t.Errorf("mapCSLType(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestBibTeXExport_WithSection(t *testing.T) {
+        entries := []ManifestEntry{
+                {ID: "rfc:7208", Section: "5", Title: "SPF", URL: "https://example.com#section-5", Type: "rfc"},
+        }
+        out := EntriesToBibTeX(entries)
+        if !strings.Contains(out, "Section 5") {
+                t.Errorf("BibTeX with section missing Section 5: %s", out)
+        }
+        if !strings.Contains(out, "_s5") {
+                t.Errorf("BibTeX with section missing key suffix: %s", out)
+        }
+}
+
+func TestRISExport_WithSection(t *testing.T) {
+        entries := []ManifestEntry{
+                {ID: "rfc:7208", Section: "5", Title: "SPF", URL: "https://example.com#section-5", Type: "rfc"},
+        }
+        out := EntriesToRIS(entries)
+        if !strings.Contains(out, "Section 5") {
+                t.Errorf("RIS with section missing Section 5: %s", out)
+        }
+        if !strings.Contains(out, "§5") {
+                t.Errorf("RIS with section missing §5 in ID: %s", out)
+        }
+}
+
+func TestCSLJSONExport_WithSection(t *testing.T) {
+        entries := []ManifestEntry{
+                {ID: "rfc:7208", Section: "5", Title: "SPF", URL: "https://example.com#section-5", Type: "rfc"},
+        }
+        out, err := EntriesToCSLJSON(entries)
+        if err != nil {
+                t.Fatalf("CSL-JSON export error: %v", err)
+        }
+        if !strings.Contains(out, `"section"`) {
+                t.Errorf("CSL-JSON with section missing section field: %s", out)
+        }
+}
+
+func TestBibTeXExport_Empty(t *testing.T) {
+        out := EntriesToBibTeX(nil)
+        if out != "" {
+                t.Errorf("expected empty output for nil entries, got %q", out)
+        }
+}
+
+func TestRISExport_Empty(t *testing.T) {
+        out := EntriesToRIS(nil)
+        if out != "" {
+                t.Errorf("expected empty output for nil entries, got %q", out)
+        }
+}
+
+func TestCSLJSONExport_Empty(t *testing.T) {
+        out, err := EntriesToCSLJSON(nil)
+        if err != nil {
+                t.Fatalf("error: %v", err)
+        }
+        if out != "[]" {
+                t.Errorf("expected empty array, got %q", out)
+        }
+}
+
+func TestEscapeBibTeX(t *testing.T) {
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"Hello & World", `Hello \& World`},
+                {"100%", `100\%`},
+                {"#tag", `\#tag`},
+                {"under_score", `under\_score`},
+                {"no special", "no special"},
+        }
+        for _, tt := range tests {
+                got := escapeBibTeX(tt.input)
+                if got != tt.want {
+                        t.Errorf("escapeBibTeX(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestBibKey(t *testing.T) {
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"rfc:7208", "rfc_7208"},
+                {"a.b-c d", "a_b_c_d"},
+        }
+        for _, tt := range tests {
+                got := bibKey(tt.input)
+                if got != tt.want {
+                        t.Errorf("bibKey(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+}
+
+func TestResolveRFC_NotFound(t *testing.T) {
+        r := Global()
+        label, url := r.ResolveRFC("nonexistent:999")
+        if label != "nonexistent:999" {
+                t.Errorf("label = %q, want nonexistent:999", label)
+        }
+        if url != "" {
+                t.Errorf("url = %q, want empty", url)
+        }
+}
+
+func TestIsObsolete_NotFound(t *testing.T) {
+        r := Global()
+        if r.IsObsolete("nonexistent:999") {
+                t.Error("nonexistent ID should not be obsolete")
+        }
+}
+
+func TestFilter_WithQuery(t *testing.T) {
+        r := Global()
+        filtered := r.Filter("", "", "", "SPF")
+        if len(filtered) == 0 {
+                t.Fatal("expected results for query 'SPF'")
+        }
+}
+
+func TestFilter_NoMatch(t *testing.T) {
+        r := Global()
+        filtered := r.Filter("nonexistent-type", "", "", "")
+        if len(filtered) != 0 {
+                t.Errorf("expected 0 results, got %d", len(filtered))
+        }
+}
+
+func TestManifest_EntriesUnknownID(t *testing.T) {
+        m := NewManifest()
+        m.Cite("nonexistent:999")
+        r := Global()
+        entries := m.Entries(r)
+        if len(entries) != 0 {
+                t.Errorf("expected 0 entries for unknown ID, got %d", len(entries))
+        }
+}
+
+func TestParseRegistry_InvalidYAML(t *testing.T) {
+        _, err := parseRegistry([]byte("not: [valid: yaml: {{"))
+        if err == nil {
+                t.Fatal("expected error for invalid YAML")
+        }
+}
+
 func TestManifestSectionPreservation(t *testing.T) {
         m := NewManifest()
         m.Cite("rfc:7489§6.3")
