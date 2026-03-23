@@ -66,7 +66,7 @@ pass "Remote main tree: ${REMOTE_TREE:0:12}"
 info "Pushing changes via GitHub API"
 
 RESULT=$(python3 << 'PYEOF'
-import os, sys, json, urllib.request, base64, subprocess, hashlib
+import os, sys, json, urllib.request, base64, subprocess, hashlib, time
 
 token = os.environ['GITHUB_MASTER_PAT']
 repo = "careyjames/dns-tool-intel"
@@ -77,11 +77,20 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-def api(method, url, data=None):
+def api(method, url, data=None, retries=3):
     body = json.dumps(data).encode() if data else None
-    req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
-    resp = urllib.request.urlopen(req)
-    return json.loads(resp.read())
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
+            resp = urllib.request.urlopen(req)
+            return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 429, 502, 503) and attempt < retries - 1:
+                wait = (attempt + 1) * 5
+                print(f"  API {e.code}, retrying in {wait}s... ({url})", file=sys.stderr)
+                time.sleep(wait)
+            else:
+                raise
 
 ref = api('GET', f'/repos/{repo}/git/ref/heads/main')
 main_sha = ref['object']['sha']
@@ -96,6 +105,17 @@ for entry in old_tree['tree']:
 
 tracked = subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.strip().split('\n')
 tracked = [f for f in tracked if f]
+
+intel_files = subprocess.run(
+    ['find', '.', '-name', '*_intel.go', '-not', '-path', './.git/*', '-not', '-path', './node_modules/*'],
+    capture_output=True, text=True
+).stdout.strip().split('\n')
+intel_files = [f.lstrip('./') for f in intel_files if f]
+tracked_set = set(tracked)
+for f in intel_files:
+    if f not in tracked_set and os.path.isfile(f):
+        tracked.append(f)
+        tracked_set.add(f)
 
 changed = []
 for fpath in tracked:
@@ -150,7 +170,7 @@ for i in range(0, len(changed), batch_size):
             'sha': blob['sha']
         })
     print(f"  uploaded {min(i+batch_size, len(changed))}/{len(changed)}", file=sys.stderr)
-    import time; time.sleep(0.5)
+    time.sleep(0.5)
 
 new_tree = api('POST', f'/repos/{repo}/git/trees', {
     'base_tree': old_tree_sha,
