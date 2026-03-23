@@ -26,6 +26,10 @@ type ArchiveResult struct {
 }
 
 func Archive(ctx context.Context, targetURL string) ArchiveResult {
+	return archiveWith(ctx, saveEndpoint, targetURL)
+}
+
+func archiveWith(ctx context.Context, endpoint, targetURL string) ArchiveResult {
 	client := &http.Client{
 		Timeout: httpTimeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -33,7 +37,7 @@ func Archive(ctx context.Context, targetURL string) ArchiveResult {
 		},
 	}
 
-	reqURL := saveEndpoint + targetURL
+	reqURL := endpoint + targetURL
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
 		return ArchiveResult{Err: fmt.Errorf("wayback: build request: %w", err)}
