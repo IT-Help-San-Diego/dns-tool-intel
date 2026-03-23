@@ -1,4 +1,5 @@
 #!/bin/sh
+# cache-bust: 2026-03-23T23:10Z — workspace cleaned from 7.7GB to 1.7GB
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

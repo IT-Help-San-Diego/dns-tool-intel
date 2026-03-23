@@ -492,6 +492,34 @@ func TestBuildCSPSignaturePath(t *testing.T) {
         }
 }
 
+func TestDocsPDFFrameAncestorsSelf(t *testing.T) {
+        router := gin.New()
+        router.Use(RequestContext())
+        router.Use(SecurityHeaders(false))
+        router.GET("/docs/dns-tool-methodology.pdf", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/docs/dns-tool-methodology.pdf", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
+        }
+        csp := w.Header().Get("Content-Security-Policy")
+        if !strings.Contains(csp, "frame-ancestors 'self'") {
+                t.Errorf("CSP for /docs/ should have frame-ancestors 'self', got: %s", csp)
+        }
+        if strings.Contains(csp, "frame-ancestors 'none'") {
+                t.Error("CSP for /docs/ should NOT have frame-ancestors 'none'")
+        }
+        xfo := w.Header().Get("X-Frame-Options")
+        if xfo != "SAMEORIGIN" {
+                t.Errorf("X-Frame-Options for /docs/ should be SAMEORIGIN, got: %s", xfo)
+        }
+}
+
 func TestRequireAuthNonBoolValue(t *testing.T) {
         router := gin.New()
         router.Use(func(c *gin.Context) {
