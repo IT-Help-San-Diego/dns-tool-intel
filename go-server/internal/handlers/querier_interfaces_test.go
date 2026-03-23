@@ -33,3 +33,31 @@ func TestStatsExecInterfaceCompiles(t *testing.T) {
 	var _ StatsExec = nil
 	t.Log("StatsExec interface compiles")
 }
+
+func TestAnalysisStoreInterfaceSatisfiedByMock(t *testing.T) {
+	var store AnalysisStore = &mockAnalysisStore{}
+	if store == nil {
+		t.Fatal("expected non-nil mock store")
+	}
+}
+
+func TestStatsExecInterfaceSatisfiedByMock(t *testing.T) {
+	var exec StatsExec = &mockStatsExec{}
+	if exec == nil {
+		t.Fatal("expected non-nil mock exec")
+	}
+}
+
+func TestLookupStoreInterfaceSatisfiedByMock(t *testing.T) {
+	var store LookupStore = &mockLookupStore{}
+	if store == nil {
+		t.Fatal("expected non-nil mock store")
+	}
+}
+
+func TestAuditStoreInterfaceSatisfiedByMock(t *testing.T) {
+	var store AuditStore = &mockAuditStore{}
+	if store == nil {
+		t.Fatal("expected non-nil mock store")
+	}
+}
