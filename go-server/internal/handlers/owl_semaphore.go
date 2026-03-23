@@ -22,11 +22,11 @@ func NewOwlSemaphoreHandler(cfg *config.Config) *OwlSemaphoreHandler {
 func (h *OwlSemaphoreHandler) OwlSemaphore(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "owl-semaphore",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "owl-semaphore",
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "owl_semaphore.html", data)
@@ -35,11 +35,11 @@ func (h *OwlSemaphoreHandler) OwlSemaphore(c *gin.Context) {
 func (h *OwlSemaphoreHandler) OwlLayers(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
         data := gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
-                "ActivePage":      "owl-layers",
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "owl-layers",
         }
         mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "owl_layers.html", data)

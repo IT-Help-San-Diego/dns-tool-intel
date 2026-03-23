@@ -42,11 +42,11 @@ func NewSourcesHandler(cfg *config.Config) *SourcesHandler {
 func (h *SourcesHandler) Sources(c *gin.Context) {
 	nonce, _ := c.Get("csp_nonce")
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "sources",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "sources",
 		"DNSSources":      getDNSSources(),
 		"InfraSources":    getInfraSources(),
 		"ThreatSources":   getThreatSources(),

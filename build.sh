@@ -27,5 +27,24 @@ mv dns-tool-server-new dns-tool-server
 
 rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
+if [ "${REPL_DEPLOYMENT}" = "1" ] || [ "${REPLIT_DEPLOYMENT}" = "1" ] || [ -n "${REPL_DEPLOYMENT_ID}" ]; then
+  echo "Deployment build detected — cleaning workspace to reduce disk usage"
+  rm -rf .git.backup* .local .cache node_modules .pythonlibs attached_assets \
+         .canvas artifacts logs .scannerwork .venv* .codex .drift .gitpanel \
+         exports dnstool-intel-staging .agents docs/legacy \
+         go-server/internal/*_test.go \
+         go-server/internal/**/*_test.go \
+         go-server/internal/**/**/*_test.go \
+         2>/dev/null || true
+
+  if [ -d .git ]; then
+    echo "Removing .git directory (~3.5GB) — not needed at runtime"
+    rm -rf .git
+  fi
+
+  echo "Deployment cleanup complete"
+  du -sh . 2>/dev/null || true
+fi
+
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server

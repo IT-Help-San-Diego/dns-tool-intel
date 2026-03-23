@@ -48,6 +48,13 @@ jobs:
             exit 1
           fi
 
+          if [ "$ANALYZER_LINES" -lt 50 ]; then
+            echo "::error::Analyzer coverage missing from coverage.out ($ANALYZER_LINES lines found, expected 50+)"
+            echo "Packages present:"
+            grep "^dnstool" coverage.out | sed 's|:.*||' | sed 's|/[^/]*$||' | sort -u
+            exit 1
+          fi
+
           echo "=== Per-package coverage ==="
           go tool cover -func=coverage.out | grep "^total:" || true
 

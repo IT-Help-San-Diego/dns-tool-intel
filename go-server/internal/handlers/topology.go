@@ -57,11 +57,11 @@ func (h *TopologyHandler) Topology(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
-		"ActivePage":      "topology",
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
+		keyActivePage:      "topology",
 		"SolverLayouts":   template.JS(solverJSON),
 	}
 	mergeAuthData(c, h.Config, data)

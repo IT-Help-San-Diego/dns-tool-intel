@@ -127,12 +127,12 @@ func (h *FailuresHandler) Failures(c *gin.Context) {
 	})
 	if err != nil {
 		errData := gin.H{
-			"AppVersion":      h.Config.AppVersion,
-			"MaintenanceNote": h.Config.MaintenanceNote,
-			"BetaPages":       h.Config.BetaPages,
-			"CspNonce":        nonce,
+			keyAppVersion:      h.Config.AppVersion,
+			keyMaintenanceNote: h.Config.MaintenanceNote,
+			keyBetaPages:       h.Config.BetaPages,
+			keyCspNonce:        nonce,
 			"CsrfToken":       csrfToken,
-			"ActivePage":      "failures",
+			keyActivePage:      "failures",
 			"FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to fetch failure log"}},
 		}
 		mergeAuthData(c, h.Config, errData)
@@ -164,12 +164,12 @@ func (h *FailuresHandler) Failures(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"AppVersion":      h.Config.AppVersion,
-		"MaintenanceNote": h.Config.MaintenanceNote,
-		"BetaPages":       h.Config.BetaPages,
-		"CspNonce":        nonce,
+		keyAppVersion:      h.Config.AppVersion,
+		keyMaintenanceNote: h.Config.MaintenanceNote,
+		keyBetaPages:       h.Config.BetaPages,
+		keyCspNonce:        nonce,
 		"CsrfToken":       csrfToken,
-		"ActivePage":      "failures",
+		keyActivePage:      "failures",
 		"Failures":        entries,
 		"TotalFailed":     statsFailedCount,
 		"TotalAnalyses":   totalAll,
