@@ -1799,12 +1799,14 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
                 go func() {
                         bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
                         defer cancel()
-                        _ = h.store().UpsertDomainIndex(bgCtx, dbq.UpsertDomainIndexParams{
+                        if err := h.store().UpsertDomainIndex(bgCtx, dbq.UpsertDomainIndexParams{
                                 Domain:    p.domain,
                                 HasDane:   analysisHasProtocol(p.results, "dane_analysis"),
                                 HasDnssec: analysisHasProtocol(p.results, "dnssec_analysis"),
                                 HasMtaSts: analysisHasProtocol(p.results, "mta_sts_analysis"),
-                        })
+                        }); err != nil {
+                                slog.Warn("domain index upsert failed", "domain", p.domain, "error", err)
+                        }
                 }()
         }
 

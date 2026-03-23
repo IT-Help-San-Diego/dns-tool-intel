@@ -227,7 +227,6 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         if len(scope) > 0 && scope[0] != "" {
                 analysisScope = scope[0]
         }
-        _ = analysisScope
         basic := getMapResult(resultsMap, "basic")
         auth := getMapResult(resultsMap, "auth")
 
