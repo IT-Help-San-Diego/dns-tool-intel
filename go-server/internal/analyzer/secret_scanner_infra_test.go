@@ -131,7 +131,7 @@ func TestIsMinifiedJSFalsePositive_CB8(t *testing.T) {
 }
 
 func TestEvaluateMatch_CB8(t *testing.T) {
-        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'"
+        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //gitleaks:allow
         pat := secretPatterns[0]
         loc := pat.Re.FindStringIndex(body)
         if loc == nil {
