@@ -148,7 +148,9 @@ func (a *Analyzer) fetchCTEntriesWithFallback(ctx context.Context, domain string
                 if available && len(entries) > 0 {
                         return ctFetchResult{entries: entries, available: true}
                 }
-                _ = failReason
+                if failReason != "" {
+                        slog.Info("CT primary provider failed, trying fallback", mapKeyDomain, domain, "reason", failReason)
+                }
         } else {
                 slog.Info("CT provider in cooldown, trying certspotter", mapKeyDomain, domain)
         }
