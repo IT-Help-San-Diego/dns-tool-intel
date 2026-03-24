@@ -165,6 +165,15 @@ for rel in eligible:
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     shutil.copy2(src, dst)
 
+sonar_props = os.path.join(clone_dir, 'sonar-project.properties')
+if os.path.exists(sonar_props):
+    with open(sonar_props, 'r') as f:
+        content = f.read()
+    content = content.replace('sonar.projectKey=dns-tool-full', 'sonar.projectKey=dns-tool-web')
+    content = content.replace('sonar.projectName=DNS Tool (Full Product)', 'sonar.projectName=DNS Tool')
+    with open(sonar_props, 'w') as f:
+        f.write(content)
+
 subprocess.run(['git', 'config', 'user.email', 'research@it-help.tech'], cwd=clone_dir, check=True)
 subprocess.run(['git', 'config', 'user.name', 'IT Help San Diego'], cwd=clone_dir, check=True)
 subprocess.run(['git', 'add', '-A'], cwd=clone_dir, check=True, capture_output=True)
