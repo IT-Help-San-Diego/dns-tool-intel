@@ -60,7 +60,6 @@ jobs:
             --exclude='models.py' \
             --exclude='app.py' \
             --exclude='PROPRIETARY.md' \
-            --exclude='BLACK-SITE-INTERROGATIONS.md' \
             --exclude='.breakpoints' \
             --exclude='.gitattributes' \
             --exclude='.cursorignore' \
