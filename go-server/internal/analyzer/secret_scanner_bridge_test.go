@@ -71,8 +71,9 @@ func TestScanSecretExposure_ClearWhenClean(t *testing.T) {
 
 func TestScanSecretExposure_DetectsExposedKeys(t *testing.T) {
         mockHTTP := NewMockHTTPClient()
+        fakeAWSKey := "AKIA1234567890ABCDEF" //nolint:gosec // #nosec G101 -- test fixture: fake AWS key for secret exposure detection test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.generic-api-key, generic.secrets.gitleaks.aws-access-token, generic.secrets.security.detected-aws-access-key-id-value // NOSONAR
         pageWithKey := `<html><body><script>
-                const apiKey = "AKIA1234567890ABCDEF";
+                const apiKey = "` + fakeAWSKey + `";
                 fetch("https://api.example.com", {headers: {"Authorization": apiKey}});
         </script></body></html>`
         mockHTTP.AddResponse("https://leaky.example.com", 200, pageWithKey)

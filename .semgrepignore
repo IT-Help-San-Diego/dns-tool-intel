@@ -29,3 +29,4 @@ static/icons/
 *.ico
 *.svg
 dns-tool-server
+dns-eval/Inputs/

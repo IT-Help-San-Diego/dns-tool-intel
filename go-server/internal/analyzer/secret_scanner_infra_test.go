@@ -14,8 +14,8 @@ func TestRedactSecret_CB8(t *testing.T) {
                 want  string
         }{
                 {"short", "****"},
-                {"AKIA1234567890ABCDEF", "AKIA********CDEF"},
-                {"-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN [PRIVATE KEY REDACTED]-----"},
+                {"AKIA1234567890ABCDEF", "AKIA********CDEF"}, //nolint:gosec // #nosec G101 -- test fixture: fake AWS key for redaction unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token, generic.secrets.security.detected-aws-access-key-id-value // NOSONAR
+                {"-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN [PRIVATE KEY REDACTED]-----"}, //nolint:gosec // #nosec G101 -- test fixture: fake PEM header for redaction unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key // NOSONAR
                 {"abcd1234efgh", "abcd********efgh"},
         }
         for _, tt := range tests {
@@ -71,7 +71,7 @@ func TestIsSameOrigin_CB8(t *testing.T) {
 }
 
 func TestExtractContext_CB8(t *testing.T) {
-        body := "prefix...TESTKEYXXXXXXXXXXXXXXXX...suffix" // gitleaks:allow
+        body := "prefix...TESTKEYXXXXXXXXXXXXXXXX...suffix" //nolint:gosec // #nosec G101 -- test fixture: fake placeholder key for extractContext unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.generic-api-key // NOSONAR
         ctx := extractContext(body, 9, 29)
         if ctx == "" {
                 t.Fatal("expected non-empty context")
@@ -131,7 +131,7 @@ func TestIsMinifiedJSFalsePositive_CB8(t *testing.T) {
 }
 
 func TestEvaluateMatch_CB8(t *testing.T) {
-        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //gitleaks:allow
+        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //nolint:gosec // #nosec G101 -- test fixture: fake AWS key for evaluateMatch unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token, generic.secrets.gitleaks.generic-api-key, generic.secrets.security.detected-aws-access-key-id-value // NOSONAR
         pat := secretPatterns[0]
         loc := pat.Re.FindStringIndex(body)
         if loc == nil {
@@ -158,7 +158,7 @@ func TestEvaluateMatch_CB8(t *testing.T) {
 
 func TestScanContent_CB8(t *testing.T) {
         scanner := &SecretScanner{}
-        body := `var key = "AKIAIOSFODNN7EXAMPLE1";` // gitleaks:allow
+        body := `var key = "AKIAIOSFODNN7EXAMPLE1";` //nolint:gosec // #nosec G101 -- test fixture: AWS example key for scanContent unit test // gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token // NOSONAR
         findings := scanner.scanContent(body, "https://example.com/app.js", nil)
         _ = findings
 }

@@ -608,7 +608,7 @@ func TestMaskURL_B13(t *testing.T) {
         if got := maskURL(short); got != short {
                 t.Errorf("short URL: got %q want %q", got, short)
         }
-        long := "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+        long := "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX" //nolint:gosec // #nosec G101 -- test fixture: dummy Slack webhook (all zeros/Xs) for maskURL unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.slack-webhook-url // NOSONAR
         got := maskURL(long)
         if len(got) > 35 {
                 t.Errorf("long URL not masked: %q", got)
