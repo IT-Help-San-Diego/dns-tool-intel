@@ -2,7 +2,7 @@
 
 > **This file has been moved to the private Intel repository for operational security.**
 >
-> See: `careyjames/dns-tool-intel/docs/EVOLUTION_APPEND_20260303.md`
+> See: `IT-Help-San-Diego/dns-tool-intel/docs/EVOLUTION_APPEND_20260303.md`
 >
 > For public project information, see:
 > - [README.md](../README.md) — Project overview

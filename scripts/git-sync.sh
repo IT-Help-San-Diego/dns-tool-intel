@@ -38,15 +38,28 @@ echo "  App version: v${VERSION}"
 echo "═══════════════════════════════════════════"
 echo ""
 
+COMMIT_MSG="${1:-}"
+
 info "Pre-flight checks"
 
+DIRTY=false
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-  fail "Working tree is dirty. Commit or stash changes first."
+  DIRTY=true
 fi
-pass "Working tree clean"
 
-LOCAL_MSG=$(git log -1 --format='%s' 2>/dev/null)
-pass "Last commit: ${LOCAL_MSG}"
+if [ "$DIRTY" = true ] && [ -z "$COMMIT_MSG" ]; then
+  fail "Working tree is dirty. Pass a commit message as argument, e.g.: bash scripts/git-sync.sh 'fix: my changes'"
+fi
+
+if [ "$DIRTY" = true ]; then
+  info "Working tree dirty — will use provided message for API commit"
+  pass "Commit message: $COMMIT_MSG"
+else
+  pass "Working tree clean"
+fi
+
+LOCAL_MSG="${COMMIT_MSG:-$(git log -1 --format='%s' 2>/dev/null)}"
+pass "Commit message: ${LOCAL_MSG}"
 
 info "Comparing with remote"
 
