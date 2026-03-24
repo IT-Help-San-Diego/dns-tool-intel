@@ -203,14 +203,15 @@ def upload_blob(fpath):
             'encoding': 'base64'
         })
 
-chunk_size = 200
-all_items = list(changed) + [None]
+chunk_size = 80
+all_items = list(changed)
 chunks = [all_items[i:i+chunk_size] for i in range(0, len(all_items), chunk_size)]
 if to_delete:
-    if len(chunks[-1]) + len(to_delete) <= chunk_size:
-        chunks[-1] = [x for x in chunks[-1] if x is not None] + [('DEL', d) for d in to_delete] + [None]
+    del_chunk = [('DEL', d) for d in to_delete]
+    if len(chunks[-1]) + len(del_chunk) <= chunk_size:
+        chunks[-1] = chunks[-1] + del_chunk
     else:
-        chunks.append([('DEL', d) for d in to_delete])
+        chunks.append(del_chunk)
 
 current_tree_sha = old_tree_sha
 parent_sha = main_sha
@@ -219,8 +220,6 @@ total_pushed = 0
 for ci, chunk in enumerate(chunks):
     tree_entries = []
     for item in chunk:
-        if item is None:
-            continue
         if isinstance(item, tuple) and item[0] == 'DEL':
             tree_entries.append({
                 'path': item[1],
@@ -228,7 +227,6 @@ for ci, chunk in enumerate(chunks):
                 'type': 'blob',
                 'sha': None
             })
-            print(f"  queued delete: {item[1]}", file=sys.stderr)
         else:
             blob = upload_blob(item)
             tree_entries.append({
@@ -240,10 +238,12 @@ for ci, chunk in enumerate(chunks):
             total_pushed += 1
             if total_pushed % 20 == 0:
                 print(f"  uploaded {total_pushed}/{len(changed)}", file=sys.stderr)
+        time.sleep(0.3)
 
     if not tree_entries:
         continue
 
+    print(f"  creating tree for chunk {ci+1}/{len(chunks)} ({len(tree_entries)} entries)...", file=sys.stderr)
     new_tree = api('POST', f'/repos/{repo}/git/trees', {
         'base_tree': current_tree_sha,
         'tree': tree_entries
@@ -266,6 +266,7 @@ for ci, chunk in enumerate(chunks):
     current_tree_sha = new_tree['sha']
     parent_sha = new_commit['sha']
     print(f"  committed chunk {ci+1}/{len(chunks)} → {new_commit['sha'][:12]}", file=sys.stderr)
+    time.sleep(2)
 
 print(f"PUSHED {total_pushed} {parent_sha[:12]}")
 PYEOF
