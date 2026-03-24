@@ -1,0 +1,44 @@
+name: CI — Build & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+
+      - name: Build binary
+        run: |
+          cd go-server
+          CGO_ENABLED=0 go build -tags intel -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
+        env:
+          DNS_TOOL_REPO_ROLE: intel
+
+      - name: Run tests
+        run: |
+          go test ./go-server/... -tags intel \
+            -skip 'NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory|BoundaryIntegrity_FullRepoScan|IsOriginVisible|EdgeCDNMapsEmpty|GoldenRuleStubBoundary|ScrutinyClassificationAllFiles' \
+            -count=1 -short -timeout 300s -parallel=2
+        env:
+          CGO_ENABLED: '0'
+          DNS_TOOL_REPO_ROLE: intel
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
+
+      - name: Verify binary
+        run: |
+          ls -lh dns-tool-server
+          file dns-tool-server

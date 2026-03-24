@@ -1,0 +1,110 @@
+name: Mirror to dns-tool-web (OSS)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    name: Sync filtered mirror
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Filter and push to dns-tool-web
+        env:
+          WEB_REPO_TOKEN: ${{ secrets.ORG_PAT }}
+        run: |
+          set -euo pipefail
+
+          WEB_REPO="IT-Help-San-Diego/dns-tool-web"
+          CLONE_DIR="/tmp/web-mirror"
+
+          git clone --depth 1 --single-branch --branch main \
+            "https://x-access-token:${WEB_REPO_TOKEN}@github.com/${WEB_REPO}.git" \
+            "$CLONE_DIR"
+
+          find "$CLONE_DIR" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+
+          rsync -a --exclude='.git' \
+            --exclude='providers/' \
+            --exclude='ai_surface/' \
+            --exclude='stubs/' \
+            --exclude='.local/' \
+            --exclude='.agents/' \
+            --exclude='attached_assets/' \
+            --exclude='node_modules/' \
+            --exclude='.cache/' \
+            --exclude='.config/' \
+            --exclude='.upm/' \
+            --exclude='__pycache__/' \
+            --exclude='.pythonlibs/' \
+            --exclude='premium_templates/' \
+            --exclude='premium_docs/' \
+            --exclude='generated/' \
+            --exclude='.replit' \
+            --exclude='replit.nix' \
+            --exclude='replit_agent.toml' \
+            --exclude='dns-tool-server' \
+            --exclude='Makefile.proprietary' \
+            --exclude='.env' \
+            --exclude='main.py' \
+            --exclude='models.py' \
+            --exclude='app.py' \
+            --exclude='PROPRIETARY.md' \
+            --exclude='BLACK-SITE-INTERROGATIONS.md' \
+            --exclude='.breakpoints' \
+            --exclude='.gitattributes' \
+            --exclude='.cursorignore' \
+            --exclude='.cursorindexingignore' \
+            --exclude='.cursorrules' \
+            ./ "$CLONE_DIR/"
+
+          find "$CLONE_DIR" -name '*.go' -exec grep -l '//go:build.*intel' {} + 2>/dev/null | while read f; do
+            rm -f "$f"
+          done
+
+          cd "$CLONE_DIR"
+          git config user.email "research@it-help.tech"
+          git config user.name "IT Help San Diego"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+            exit 0
+          fi
+
+          CHANGE_COUNT=$(git diff --cached --numstat | wc -l)
+          VERSION=$(grep 'Version.*=' go-server/internal/config/config.go 2>/dev/null | head -1 | sed 's/.*"\(.*\)".*/\1/' || echo "unknown")
+          COMMIT_MSG=$(git -C "$GITHUB_WORKSPACE" log -1 --format='%s')
+
+          BRANCH="sync/v${VERSION}"
+          git commit -m "v${VERSION}: ${COMMIT_MSG}" -m "${CHANGE_COUNT} files synced (proprietary excluded)"
+          git push origin "HEAD:${BRANCH}" --force
+
+          PR_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${WEB_REPO_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${WEB_REPO}/pulls" \
+            -d "{\"title\":\"v${VERSION}: ${COMMIT_MSG}\",\"head\":\"${BRANCH}\",\"base\":\"main\",\"body\":\"${CHANGE_COUNT} files synced. Proprietary excluded.\"}")
+
+          PR_NUM=$(echo "$PR_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('number',''))")
+
+          if [ -n "$PR_NUM" ]; then
+            sleep 2
+            curl -s -X PUT \
+              -H "Authorization: Bearer ${WEB_REPO_TOKEN}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${WEB_REPO}/pulls/${PR_NUM}/merge" \
+              -d "{\"merge_method\":\"squash\",\"commit_title\":\"v${VERSION}: ${COMMIT_MSG}\"}"
+
+            curl -s -X DELETE \
+              -H "Authorization: Bearer ${WEB_REPO_TOKEN}" \
+              "https://api.github.com/repos/${WEB_REPO}/git/refs/heads/${BRANCH}" || true
+
+            echo "PR #${PR_NUM} merged successfully."
+          fi
