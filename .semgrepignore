@@ -30,4 +30,3 @@ static/icons/
 *.svg
 dns-tool-server
 dns-eval/Inputs/
-go-server/internal/analyzer/secret_scanner_bridge_test.go
