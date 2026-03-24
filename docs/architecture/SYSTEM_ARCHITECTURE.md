@@ -684,4 +684,4 @@ graph TD
 ---
 
 *Generated for DNS Tool v26.34.54 — March 6, 2026*
-*Diagrams render natively on GitHub, GitLab, Codeberg, and VS Code with Mermaid plugins.*
+*Diagrams render natively on GitHub, GitLab, and VS Code with Mermaid plugins.*

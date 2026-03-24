@@ -105,10 +105,6 @@ The Recon Report includes live CIE scotopic/photopic luminosity validation and W
 
 Server binds to `:5000` with multi-resolver DNS client, PostgreSQL backend, and Google OAuth 2.0 (PKCE-S256, OIDC nonce, 5-minute clock skew tolerance).
 
-## Mirrors
-
-This repository is the canonical source. A read-only mirror is maintained at [codeberg.org/careybalboa/dns-tool-web](https://codeberg.org/careybalboa/dns-tool-web).
-
 ## License
 
 [Business Source License 1.1](LICENSE) — IT Help San Diego Inc.

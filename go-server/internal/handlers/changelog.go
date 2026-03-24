@@ -404,7 +404,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateFeb23,
                         Category:    "Architecture",
                         Title:       "Architecture Page — TLP:GREEN Public Release",
-                        Description: "Complete redesign of the /architecture page: replaced 2.9MB Mermaid.js dependency with static HTML/CSS diagrams for zero-JavaScript rendering and Lighthouse-optimal performance. Page now carries FIRST TLP:GREEN classification with six curated public-safe sections — Intelligence Pipeline, Dual-Engine Confidence Framework (ICAE/ICuAE), Protocol Coverage (9 RFCs), Open-Core Architecture boundary, Intelligence Products, and Standards Foundation (ICD 203, NIST SI-18, ISO 25012, FIPS 202). Redacted content bars protect proprietary methodology. Full Mermaid source retained in docs/architecture/ for GitHub/Codeberg rendering.",
+                        Description: "Complete redesign of the /architecture page: replaced 2.9MB Mermaid.js dependency with static HTML/CSS diagrams for zero-JavaScript rendering and Lighthouse-optimal performance. Page now carries FIRST TLP:GREEN classification with six curated public-safe sections — Intelligence Pipeline, Dual-Engine Confidence Framework (ICAE/ICuAE), Protocol Coverage (9 RFCs), Open-Core Architecture boundary, Intelligence Products, and Standards Foundation (ICD 203, NIST SI-18, ISO 25012, FIPS 202). Redacted content bars protect proprietary methodology. Full Mermaid source retained in docs/architecture/ for GitHub rendering.",
                         Icon:        "sitemap",
                 },
                 {
