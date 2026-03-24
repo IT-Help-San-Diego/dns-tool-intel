@@ -47,9 +47,9 @@ if [[ ! "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   fail "Version must be X.Y.Z format (got: $VER)"
 fi
 
-TOKEN="${ORG_PAT:-${GITHUB_MASTER_PAT:-}}"
+TOKEN="${GH_SYNC_TOKEN:-${ORG_PAT:-${GITHUB_MASTER_PAT:-}}}"
 if [ -z "$TOKEN" ]; then
-  fail "ORG_PAT (or GITHUB_MASTER_PAT fallback) not set. Cannot authenticate with GitHub."
+  fail "GH_SYNC_TOKEN (or ORG_PAT) not set. Cannot authenticate with GitHub."
 fi
 
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
@@ -90,7 +90,7 @@ echo ""
 WEB_COMMIT_SHA=$(python3 << PYEOF
 import os, sys, json, urllib.request, base64, subprocess, hashlib
 
-token = os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
+token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
 repo = "${WEB_REPO}"
 headers = {
     'Authorization': f'Bearer {token}',
@@ -217,7 +217,7 @@ echo -e "${YELLOW}Step 5/5${NC}: Creating tag ${TAG} on dns-tool-web..."
 python3 << PYEOF
 import os, json, urllib.request
 
-token = os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
+token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
 repo = "${WEB_REPO}"
 headers = {
     'Authorization': f'Bearer {token}',
