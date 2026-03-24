@@ -10,7 +10,7 @@
   "dateModified": "2026-03-09",
   "datePublished": "2026-03-09",
   "license": "https://spdx.org/licenses/BUSL-1.1.html",
-  "codeRepository": "https://github.com/careyjames/dns-tool-web",
+  "codeRepository": "https://github.com/IT-Help-San-Diego/dns-tool-web",
   "url": "https://dnstool.it-help.tech",
   "author": [
     {
@@ -61,9 +61,9 @@
   "operatingSystem": "Linux",
   "runtimePlatform": "Go 1.25",
   "developmentStatus": "active",
-  "continuousIntegration": "https://github.com/careyjames/dns-tool-web/actions",
-  "issueTracker": "https://github.com/careyjames/dns-tool-web/issues",
-  "readme": "https://github.com/careyjames/dns-tool-web/blob/main/README.md",
+  "continuousIntegration": "https://github.com/IT-Help-San-Diego/dns-tool-web/actions",
+  "issueTracker": "https://github.com/IT-Help-San-Diego/dns-tool-web/issues",
+  "readme": "https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/README.md",
   "relatedLink": [
     "https://dnstool.it-help.tech/methodology",
     "https://dnstool.it-help.tech/confidence"
