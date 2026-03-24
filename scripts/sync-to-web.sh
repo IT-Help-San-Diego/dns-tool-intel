@@ -51,17 +51,23 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-def api(method, url, data=None, retries=3):
+call_count = 0
+
+def api(method, url, data=None, retries=5):
+    global call_count
     body = json.dumps(data).encode() if data else None
     for attempt in range(retries):
         try:
             req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
             resp = urllib.request.urlopen(req)
+            call_count += 1
+            if call_count % 50 == 0:
+                time.sleep(1)
             return json.loads(resp.read())
         except urllib.error.HTTPError as e:
             if e.code in (403, 429) and attempt < retries - 1:
-                wait = 2 ** (attempt + 1)
-                print(f"  rate-limited ({e.code}), retrying in {wait}s...", file=sys.stderr)
+                wait = min(10 * (attempt + 1), 60)
+                print(f"  rate-limited ({e.code}), retrying in {wait}s (attempt {attempt+1}/{retries})...", file=sys.stderr)
                 time.sleep(wait)
             else:
                 raise
