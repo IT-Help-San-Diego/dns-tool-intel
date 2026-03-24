@@ -66,7 +66,7 @@ echo "    Binary objects in history: $NEW_BLOB_COUNT"
 echo ""
 
 info "Re-adding remotes..."
-git remote add origin https://github.com/careyjames/dns-tool-intel.git 2>/dev/null || true
+git remote add origin https://github.com/IT-Help-San-Diego/dns-tool-intel.git 2>/dev/null || true
 git remote add gitsafe-backup git://gitsafe:5418/backup.git 2>/dev/null || true
 
 pass "Local git history cleaned. All code commits preserved, binary blobs removed."
