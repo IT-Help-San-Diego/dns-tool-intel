@@ -9,7 +9,7 @@
       "orcid": "0009-0000-5237-9065"
     }
   ],
-  "description": "![Owl of Athena](https://dnstool.it-help.tech/static/images/owl-of-athena.png)\n\n# DNS Tool — Domain Security Audit Platform\n\n**DNS Tool** is a research platform for analyzing the security posture of domain infrastructure using a confidence-scored, multi-source intelligence methodology.\n\n## Protocols / signals evaluated\n- SPF, DKIM, DMARC, BIMI\n- DNSSEC, DANE\n- MTA-STS, TLS-RPT\n- CAA\n- HTTPS/SVCB records\n\n## Outputs\n- Engineer-level DNS Intelligence Reports\n- Executive-level DNS Intelligence Briefs\n- Confidence-scored security posture assessments (ICD 203-derived taxonomy)\n- Domain Confessions case study series\n\n## Research publications\n- Methodology paper: https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\n- Philosophical Foundations: https://dnstool.it-help.tech/docs/philosophical-foundations.pdf\n- Publications index: https://dnstool.it-help.tech/publications\n\n## Research artifact\n- Live system: https://dnstool.it-help.tech\n- Source: https://github.com/careyjames/dns-tool-web\n",
+  "description": "![Owl of Athena](https://dnstool.it-help.tech/static/images/owl-of-athena.png)\n\n# DNS Tool — Domain Security Audit Platform\n\n**DNS Tool** is a research platform for analyzing the security posture of domain infrastructure using a confidence-scored, multi-source intelligence methodology.\n\n## Protocols / signals evaluated\n- SPF, DKIM, DMARC, BIMI\n- DNSSEC, DANE\n- MTA-STS, TLS-RPT\n- CAA\n- HTTPS/SVCB records\n\n## Outputs\n- Engineer-level DNS Intelligence Reports\n- Executive-level DNS Intelligence Briefs\n- Confidence-scored security posture assessments (ICD 203-derived taxonomy)\n- Domain Confessions case study series\n\n## Research publications\n- Methodology paper: https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\n- Philosophical Foundations: https://dnstool.it-help.tech/docs/philosophical-foundations.pdf\n- Publications index: https://dnstool.it-help.tech/publications\n\n## Research artifact\n- Live system: https://dnstool.it-help.tech\n- Source: https://github.com/IT-Help-San-Diego/dns-tool-web\n",
   "keywords": [
     "DNS security",
     "SPF",
@@ -32,7 +32,7 @@
   ],
   "related_identifiers": [
     {
-      "identifier": "https://github.com/careyjames/dns-tool-web",
+      "identifier": "https://github.com/IT-Help-San-Diego/dns-tool-web",
       "relation": "isSupplementTo",
       "scheme": "url"
     },
