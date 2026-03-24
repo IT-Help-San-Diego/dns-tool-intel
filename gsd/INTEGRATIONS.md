@@ -41,7 +41,6 @@
 | Discord | Webhook notifications | `DISCORD_WEBHOOK_URL` env var |
 | Notion | Roadmap sync | `scripts/notion-roadmap-sync.mjs` |
 | GitHub | Intel sync, CI | `scripts/github-intel-sync.mjs` |
-| Codeberg | Mirror sync | `scripts/codeberg-intel-sync.mjs` |
 | SonarQube | Code quality | `sonar-project.properties` |
 
 ## Environment Variables

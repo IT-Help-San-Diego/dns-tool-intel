@@ -45,7 +45,7 @@
 | Internet Archive | Wayback Machine automatic archival | `internal/wayback/client.go` |
 | Discord | Webhook notifications | Config: `DISCORD_WEBHOOK_URL` |
 | Notion | Roadmap synchronization | `scripts/notion-roadmap-sync.mjs` |
-| GitHub/Codeberg | Intel sync, CI | `scripts/github-intel-sync.mjs` |
+| GitHub | Intel sync, CI | `scripts/github-intel-sync.mjs` |
 | DoH | DNS-over-HTTPS (Cloudflare, Google) | `internal/dnsclient/` |
 
 ## System Tools

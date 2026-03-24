@@ -266,10 +266,6 @@
 
 ## Industry/Vendor (23 citations)
 
-- https://codeberg.org/careybalboa/dns-tool-cli
-  Pages: _footer
-- https://codeberg.org/careybalboa/dns-tool-web
-  Pages: _footer
 - https://codeberg.org/miekg/dns
   Pages: sources
 - https://forums.raspberrypi.com/viewtopic.php?t=358732
