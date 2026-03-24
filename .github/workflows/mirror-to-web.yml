@@ -71,6 +71,11 @@ jobs:
             rm -f "$f"
           done
 
+          if [ -f "$CLONE_DIR/sonar-project.properties" ]; then
+            sed -i 's/sonar.projectKey=dns-tool-full/sonar.projectKey=dns-tool-web/' "$CLONE_DIR/sonar-project.properties"
+            sed -i 's/sonar.projectName=DNS Tool (Full Product)/sonar.projectName=DNS Tool/' "$CLONE_DIR/sonar-project.properties"
+          fi
+
           cd "$CLONE_DIR"
           git config user.email "research@it-help.tech"
           git config user.name "IT Help San Diego"
