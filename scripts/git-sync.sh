@@ -6,7 +6,7 @@
 # GitHub Trees/Commits API. No git-push required — works even when
 # local and remote have unrelated histories.
 #
-# Uses ORG_PAT (or GITHUB_MASTER_PAT fallback) for authentication.
+# Uses GH_SYNC_TOKEN (or ORG_PAT / GITHUB_MASTER_PAT fallback) for authentication.
 # Safe to run anytime. Fails loudly on any problem.
 
 set -euo pipefail
@@ -25,9 +25,9 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 fail() { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-TOKEN="${ORG_PAT:-${GITHUB_MASTER_PAT:-}}"
+TOKEN="${GH_SYNC_TOKEN:-${ORG_PAT:-${GITHUB_MASTER_PAT:-}}}"
 if [ -z "$TOKEN" ]; then
-  fail "ORG_PAT not set. Cannot authenticate with GitHub."
+  fail "GH_SYNC_TOKEN (or ORG_PAT) not set. Cannot authenticate with GitHub."
 fi
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
@@ -65,7 +65,7 @@ info "Comparing with remote"
 
 REMOTE_TREE=$(python3 -c "
 import os, json, urllib.request
-token = os.environ.get('ORG_PAT') or os.environ['GITHUB_MASTER_PAT']
+token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
 headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json'}
 req = urllib.request.Request('${API}/git/ref/heads/main', headers=headers)
 ref = json.loads(urllib.request.urlopen(req).read())
@@ -81,7 +81,7 @@ info "Pushing changes via GitHub API"
 RESULT=$(python3 << 'PYEOF'
 import os, sys, json, urllib.request, base64, subprocess, hashlib, time
 
-token = os.environ.get('ORG_PAT') or os.environ['GITHUB_MASTER_PAT']
+token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
 repo = "IT-Help-San-Diego/dns-tool-intel"
 api_base = f"https://api.github.com/repos/{repo}"
 headers = {

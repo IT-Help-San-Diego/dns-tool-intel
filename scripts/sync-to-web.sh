@@ -6,7 +6,7 @@
 # (proprietary files excluded), commits, pushes to a sync branch, and
 # auto-merges via PR. Works reliably regardless of file count.
 #
-# Uses ORG_PAT (or GITHUB_MASTER_PAT fallback) for authentication.
+# Uses GH_SYNC_TOKEN (or ORG_PAT / GITHUB_MASTER_PAT fallback) for authentication.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -23,9 +23,9 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 fail() { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-TOKEN="${ORG_PAT:-${GITHUB_MASTER_PAT:-}}"
+TOKEN="${GH_SYNC_TOKEN:-${ORG_PAT:-${GITHUB_MASTER_PAT:-}}}"
 if [ -z "$TOKEN" ]; then
-  fail "ORG_PAT not set. Cannot authenticate with GitHub."
+  fail "GH_SYNC_TOKEN (or ORG_PAT) not set. Cannot authenticate with GitHub."
 fi
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
@@ -52,7 +52,7 @@ import os, sys, json, urllib.request, subprocess, shutil, time
 
 src_dir = os.getcwd()
 clone_dir = "/tmp/dns-tool-web-sync"
-token = os.environ.get('ORG_PAT') or os.environ['GITHUB_MASTER_PAT']
+token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
 repo_slug = "IT-Help-San-Diego/dns-tool-web"
 repo_url = f"https://x-access-token:{token}@github.com/{repo_slug}.git"
 headers = {
