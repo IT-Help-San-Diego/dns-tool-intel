@@ -78,6 +78,14 @@ dnstool-intel-staging/
 # Codex agent files (local tooling, not versioned)
 .codex/
 
+# Replit environment files — never commit
+.replit
+replit_agent.toml
+.config/
+.upm/
+.pythonlibs/
+.planning/
+
 # Git backups (created by recovery scripts)
 .git.backup*/
 

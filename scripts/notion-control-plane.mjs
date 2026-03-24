@@ -280,7 +280,7 @@ async function createArchitecturePage(notion, parentId) {
       {
         object: "block",
         type: "numbered_list_item",
-        numbered_list_item: { rich_text: [{ text: { content: "Git (careyjames/dns-tool-web) — single source of truth for all code, diagrams, and documentation" } }] },
+        numbered_list_item: { rich_text: [{ text: { content: "Git (IT-Help-San-Diego/dns-tool-web) — single source of truth for all code, diagrams, and documentation" } }] },
       },
       {
         object: "block",
@@ -333,7 +333,7 @@ async function createArchitecturePage(notion, parentId) {
         type: "bulleted_list_item",
         bulleted_list_item: { rich_text: [
           { text: { content: "GitHub: " } },
-          { text: { content: "https://github.com/careyjames/dns-tool-web", link: { url: "https://github.com/careyjames/dns-tool-web" } } },
+          { text: { content: "https://github.com/IT-Help-San-Diego/dns-tool-web", link: { url: "https://github.com/IT-Help-San-Diego/dns-tool-web" } } },
         ]},
       },
       {
