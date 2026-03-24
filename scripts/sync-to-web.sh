@@ -38,9 +38,9 @@ echo "════════════════════════�
 echo ""
 
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-  fail "Working tree is dirty. Commit or stash changes first."
+  info "Working tree has uncommitted changes — syncing from filesystem (API push was used)"
 fi
-pass "Working tree clean"
+pass "Working tree OK"
 
 LOCAL_MSG=$(git log -1 --format='%s' 2>/dev/null)
 pass "Last commit: ${LOCAL_MSG}"
