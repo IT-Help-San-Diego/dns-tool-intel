@@ -40,7 +40,7 @@ pass "Last commit: ${LOCAL_MSG}"
 info "Syncing to ${REPO_NAME} (public OSS repo — proprietary code stripped)"
 
 RESULT=$(python3 << 'PYEOF'
-import os, sys, json, urllib.request, base64, subprocess, hashlib, re
+import os, sys, json, urllib.request, base64, subprocess, hashlib, re, time
 
 token = os.environ['GITHUB_MASTER_PAT']
 repo = "careyjames/dns-tool-web"
@@ -51,11 +51,20 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-def api(method, url, data=None):
+def api(method, url, data=None, retries=3):
     body = json.dumps(data).encode() if data else None
-    req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
-    resp = urllib.request.urlopen(req)
-    return json.loads(resp.read())
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(f'https://api.github.com{url}', data=body, headers=headers, method=method)
+            resp = urllib.request.urlopen(req)
+            return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 429) and attempt < retries - 1:
+                wait = 2 ** (attempt + 1)
+                print(f"  rate-limited ({e.code}), retrying in {wait}s...", file=sys.stderr)
+                time.sleep(wait)
+            else:
+                raise
 
 EXCLUDE_DIRS = {
     'providers',
