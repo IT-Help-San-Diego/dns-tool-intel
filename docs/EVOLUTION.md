@@ -11,6 +11,62 @@ This file is the project's permanent breadcrumb trail — every session's decisi
 ---
 
 
+## Session: March 18, 2026 (Scientific Accuracy Audit — Overclaim Correction, Documentation Reconciliation)
+
+### Deep Architect Audit: Publication-Readiness Assessment
+A comprehensive scientific accuracy audit was conducted across all public-facing documentation, LLM-facing files, user-visible templates, and methodology documents. The audit compared every claim against the actual codebase implementation.
+
+### Findings & Corrections
+
+#### 1. "Tamper-Proof" → "Tamper-Evident" (OVERCLAIM — Production-Visible)
+- **Where**: `results.html` (2 instances), `llms.txt`, `llms-full.txt`
+- **Problem**: DNSSEC and Wayback Machine descriptions used "tamper-proof" — the system is tamper-evident (makes unauthorized modification detectable), not tamper-proof (physically impossible to modify). The EDE page (`ede.html`) already used the correct terminology.
+- **Fix**: All instances changed to "tamper-evident" with accurate supporting language.
+
+#### 2. ICAE Maturity Taxonomy Mismatch (INACCURATE — Methodology Doc)
+- **Where**: `docs/dns-tool-methodology.md` Section 4.1
+- **Problem**: Listed maturity levels as "Verified/Assessed/Adequate/Development" — the actual code uses "Development/Verified/Consistent/Gold/Gold Master" with specific threshold requirements (consecutive passes + elapsed days).
+- **Fix**: Replaced with the actual five-tier taxonomy from `go-server/internal/icae/icae.go` with correct thresholds.
+
+#### 3. Confidence Factor Model Mismatch (INACCURATE — Methodology Doc)
+- **Where**: `docs/dns-tool-methodology.md` Sections 4.2–4.3
+- **Problem**: Described a five-factor model (evidence completeness, cross-resolver consistency, RFC compliance, temporal stability, dependency satisfaction) and weighted aggregation. Actual implementation uses a reliability-weighted shrinkage estimator based on resolver agreement ratio with protocol-specific priors.
+- **Fix**: Replaced with accurate description of the calibration formula, explicitly noting it is a shrinkage estimator (not Bayesian posterior, per EDE-006).
+
+#### 4. ICAE Overclaim on Approach Page (OVERCLAIM — Production-Visible)
+- **Where**: `go-server/templates/approach.html`
+- **Problem**: Claimed ICAE "validates every scoring decision against RFC-defined behavior." ICAE validates deterministic test-case coverage, not literally every runtime decision.
+- **Fix**: Changed to "129 deterministic test cases verifying scoring logic against RFC-defined behavior."
+
+#### 5. Discord Webhook Threshold (INACCURATE — replit.md)
+- **Where**: `replit.md` line 52
+- **Problem**: Described Discord sink as "WARN+" — actual code restricts Discord to ERROR+ or security-category events only.
+- **Fix**: Corrected to "ERROR+ or security-category events only."
+
+#### 6. Intelligence Vault Auto-Ingestion Overclaim (OVERCLAIM — MISSION.md)
+- **Where**: `docs/MISSION.md` lines 52, 106
+- **Problem**: Implied every public scan automatically feeds into the intelligence vault. Golden fixtures are curated test assets, not auto-populated by runtime scans. The Confidence Bridge operates at build time via build-tag gating.
+- **Fix**: Clarified that golden fixtures are curated and that the bridge validates structural consistency between mock and golden fixture data.
+
+### Items Confirmed Accurate
+- ICAE = 129 test cases (45+42+27+15), ICuAE = 29 test cases / 5 dimensions, 9 protocols — all verified against code
+- NIST SP 800-53 SI-7 citations — correct (SI-18 was already corrected in a prior session, documented in integrity_stats.json)
+- Structured logging architecture description in replit.md — accurate (except Discord threshold, now fixed)
+- Calibration metrics (Brier ~0.0018, ECE ~0.031) — reproducible via `go test`
+
+### Task #8 & #10 History (March 8–18)
+- **Task #8** (Scan Phase Telemetry): Progress callbacks with phase lifecycle events, Gantt timeline visualization, trend chart, analysis_id linkage, XSS hardening
+- **Task #10** (Hybrid Structured Logging): Multi-sink architecture — stdout+JSONL (all levels), PostgreSQL ring buffer (WARN+), Discord (ERROR+/security only). Redaction engine, DB sink with atomic.Bool close guard, bounded channel worker, admin log dashboard with time-range filtering and JSONL export.
+
+### Companion Document (Philosophical Foundations) — Audited
+The companion paper (`docs/philosophical-foundations.md`) was reviewed for scientific accuracy. Result: **CLEAN** — no overclaims, no inaccurate technical assertions. The document correctly defers all ICAE/confidence/calibration claims to the primary methodology document and stays within its philosophical lane. Only its version stamp (26.35.40) was updated to 26.37.26 for consistency. The HTML version of the methodology doc (`docs/dns-tool-methodology.html`) was also updated with the corrected maturity taxonomy and calibration description.
+
+### Methodology Version Note
+Both `docs/dns-tool-methodology.md` and `docs/philosophical-foundations.md` have been updated to Version 26.37.26. Both PDFs and the Zenodo deposit will need regeneration for the next publication release.
+
+---
+
+
 ## Session: March 7, 2026 (EDE-009 — Human Error Attribution, Accountability Architecture)
 
 ### EDE-009: Founder Lost Analytical Perspective During High-Pressure Debugging Session
@@ -232,45 +288,29 @@ Systematic audit of all templates, docs, and code for overstated claims:
 - Notion EDE Register: No new epistemic corrections required from this audit
 - TheBrain: No MCP integration available — requires manual update
 
-
 ---
 
-## Session: March 15, 2026 (v26.37.11+ — Intel Migration Test Infrastructure & Quality Gate Realignment)
+## Session 38 — Topology Redesign & Release Cleanup (2026-03-18)
 
-### Migration Phase 1 Completion — Test Infrastructure for Intel Repo Context
+### Scan Topology Node Redesign (Glass Circles with Concentric Rings)
+- **Replaced** all 9 filled solid rectangular `<rect>` nodes in `_scan_topology.html` with uniform glass/transparent `<circle>` elements
+- **Three concentric layers per node**: outer dashed halo ring (r=38, `.topo-halo`), status indicator ring (r=34, `.topo-ring`), glass body (r=28, `.topo-node`)
+- **Glass body**: radial gradient fill (`node-glass`) with highlight overlay (`node-highlight`) — stays transparent at all times, never fills solid
+- **Status communicated via outer rings only**: running phases pulse the status ring with phase color, completed phases light up ring + halo with glow filter
+- **`<g>` group wrappers**: Each node wrapped in `<g data-phase="..." data-pkey="...">` — CSS child selectors (`.phase-done-dns .topo-ring`) handle styling
+- **No JavaScript changes needed**: existing `querySelector('[data-phase]')` finds the group, CSS descendant selectors do the rest
+- **Labels split to two lines** for readability inside circles (e.g., "DNS" / "Records", "DNSSEC" / "DANE")
+- **Connector lines updated** to use circle center coordinates
+- **Scientific data uniformity**: matches resolver dots on the globe — uniform circles with ring-based indicators
 
-#### Problem Statement
-After migrating dns-tool-intel to canonical dev repo status, 4 test suites failed:
-1. `TestBoundaryIntegrity_NoIntelInPublicRepo` — hard-failed on presence of `_intel.go` files
-2. `TestBoundaryIntegrity_FullRepoScan` — same
-3. `TestGoldenRuleStubBoundaryFunctionsRegistered` — flagged boundary functions in `_intel.go` as violations
-4. `TestScrutinyClassificationAllFiles` — 27 new files missing scrutiny tags
+### Previous Session Changes Documented
+- **Covert badge contradiction fixed**: `covertSummaryLines()` now requires `vectors <= 2 && vulnerable <= 1` for "mostly locked down" text
+- **Empty history/compare/dossier badges**: Added `{{else}}` neutral fallback badges for unknown/empty SPF/DMARC/DKIM status
+- **Web3 node added to detailed badge SVG topology**: Positioned at `{558,178}` with edge connecting Web3 to CAA
 
-SonarCloud reported 5% coverage (actual: ~69%) because `sonar.sources` included 6 non-module top-level directories (providers, scoring, remediation, commands, golden_rules, ai_surface) that have Go files but aren't part of the `go-server` module.
-
-#### Root Cause
-The test infrastructure was designed exclusively for the public repo context where `_intel.go` files should never exist. After migration, the tests enforced the wrong invariant.
-
-#### Changes
-- **Repo-role-aware boundary tests**: Added `isIntelRepo()` detection (env var `DNS_TOOL_REPO_ROLE` or presence of `_intel.go` files). Public-only checks skip in intel context. New `TestBoundaryIntegrity_IntelFilesPresent` verifies intel files exist with correct `//go:build intel` tags.
-- **Golden rules test updated**: `_intel.go` files excluded from boundary function leak detection — they're the legitimate home for those functions.
-- **28 scrutiny tags added**: All intel files tagged `science`, dbq generated files tagged `plumbing`, handler utility files tagged per directory convention.
-- **SonarCloud scope narrowed**: `sonar.sources=go-server` (was `go-server,static,providers,scoring,...`). Coverage exclusions for generated dbq code and main.go.
-- **CI simplified**: Single `go test` command with `DNS_TOOL_REPO_ROLE=intel` env.
-- **Remediation template a11y fix**: Removed `role="presentation"` from BS5 tab `<li>` elements, added `aria-selected` attributes.
-
-#### SKILL.md Updated
-- Canonical governance hierarchy: dns-tool-intel documented as canonical dev repo
-- Repository Migration Architecture section added with operational facts, SonarCloud project mapping, boundary test architecture
-- git-sync.sh documented as API-based (no git push)
-
-#### Lessons
-- **L38**: SonarCloud scope must match the Go module boundary. Non-module Go source files in top-level directories are counted as uncovered code, creating false low-coverage readings.
-- **L39**: Boundary tests must be parameterized by repo context. The intel repo has opposite invariants from the public repo — both sets of invariants must be enforced, not just the public ones.
-- **L40**: Suggesting workarounds (changing Quality Gate) instead of fixing the actual problem (wrong scope + failing tests) is the exact failure mode ACIP warns about. Fix the root cause.
-
-#### Quality Gates
-- `go test ./go-server/... -count=1 -short`: 20/20 packages pass
-- `go build ./go-server/...`: clean
-- All boundary integrity tests: PASS
-- All scrutiny classification tests: PASS
+### Release Cleanup
+- CSS audit: verified potentially unused classes (arch-standard-card, exec-finding-row, etc.) are in fact used in templates
+- Template CSP audit: signature_raw.html inline styles confirmed correct (email signature requires inline CSS)
+- Admin telemetry inline styles moved to CSS classes
+- Documentation sweep: replit.md, EVOLUTION.md, llms.txt updated
+- Quality gate verification: badge tests passing, build succeeds

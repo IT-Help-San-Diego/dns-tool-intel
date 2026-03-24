@@ -65,7 +65,8 @@ EXCLUDE_DIRS = {
     'providers', 'ai_surface', 'stubs', '.local', '.agents',
     'attached_assets', 'node_modules', '.git', '.cache', '.config',
     '.upm', '__pycache__', '.replit.nix', '.pythonlibs',
-    'premium_templates', 'generated', 'premium_docs'
+    'premium_templates', 'generated', 'premium_docs',
+    '.generated', '.replit-artifact', 'artifacts'
 }
 EXCLUDE_FILES = {
     '.replit', 'replit.nix', '.replit.nix', 'replit_agent.toml',
@@ -77,7 +78,8 @@ EXCLUDE_FILES = {
 }
 EXCLUDE_PREFIXES = (
     '.local/', '.agents/', 'attached_assets/', 'providers/',
-    'ai_surface/', 'stubs/', 'premium_', 'generated/'
+    'ai_surface/', 'stubs/', 'premium_', 'generated/',
+    'artifacts/', '.github/workflows/'
 )
 
 def is_excluded(path):

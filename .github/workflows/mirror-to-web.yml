@@ -46,6 +46,10 @@ jobs:
             --exclude='premium_templates/' \
             --exclude='premium_docs/' \
             --exclude='generated/' \
+            --exclude='.generated/' \
+            --exclude='.replit-artifact/' \
+            --exclude='artifacts/' \
+            --exclude='.github/workflows/' \
             --exclude='.replit' \
             --exclude='replit.nix' \
             --exclude='replit_agent.toml' \
