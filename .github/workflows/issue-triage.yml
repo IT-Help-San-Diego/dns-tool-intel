@@ -213,7 +213,7 @@ jobs:
                 '',
                 'If this is a security report, please:',
                 '1. **Delete or edit** this issue to remove sensitive details',
-                '2. Report privately via [GitHub Security Advisory](https://github.com/careyjames/dns-tool-web/security/advisories/new)',
+                '2. Report privately via [GitHub Security Advisory](https://github.com/IT-Help-San-Diego/dns-tool-web/security/advisories/new)',
                 '3. Or email [security@it-help.tech](mailto:security@it-help.tech)',
                 '',
                 'If this is NOT a security report (e.g., discussing security features or analysis results), you can ignore this message.',
