@@ -9,19 +9,12 @@ on:
 jobs:
   mirror:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
-
-      - name: Mirror to Codeberg (dns-tool-web)
-        env:
-          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
-        run: |
-          git remote add codeberg-web "https://careybalboa:${CODEBERG_TOKEN}@codeberg.org/careybalboa/dns-tool-web.git"
-          git push --force --all codeberg-web
-          git push --force --tags codeberg-web
 
       - name: Mirror to Codeberg (dns-tool-intel)
         env:
