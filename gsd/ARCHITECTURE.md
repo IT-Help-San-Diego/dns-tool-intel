@@ -126,10 +126,10 @@ go-server/templates/
 ## Multi-Repository Architecture
 | Repository | Visibility | Purpose |
 |------------|-----------|---------|
-| `careyjames/dns-tool-web` | **Public** | Production webapp source, published by science |
-| `careyjames/dns-tool-intel` | **Private** | IP modules (non-stub Go), internal docs, breadcrumbs |
-| `careyjames/dns-tool` | **Public** (Archived) | Legacy CLI tool |
-| `careyjames/dns-tool-cli` | **Public** | Future hacker CLI terminal app |
+| `IT-Help-San-Diego/dns-tool-web` | **Public** | Production webapp source, published by science |
+| `IT-Help-San-Diego/dns-tool-intel` | **Private** | IP modules (non-stub Go), internal docs, breadcrumbs |
+| `IT-Help-San-Diego/dns-tool` | **Public** (Archived) | Legacy CLI tool |
+| `IT-Help-San-Diego/dns-tool-cli` | **Public** | Future hacker CLI terminal app |
 
 ## Open-Core Build Model
 - **OSS build** (`go build`): Uses `*_oss.go` stubs — return safe non-nil defaults, never errors

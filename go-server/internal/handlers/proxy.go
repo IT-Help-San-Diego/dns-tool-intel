@@ -229,16 +229,16 @@ func validateBIMIResponse(resp *http.Response) ([]byte, string, error) {
 }
 
 var sonarBadgeURLs = map[string]string{
-        "qg-web":   "https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-web&metric=alert_status",
-        "ai-web":   "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool-web",
-        "qg-full":  "https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-full&metric=alert_status",
-        "ai-full":  "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool-full",
-        "qg-intel": "https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-intel&metric=alert_status",
-        "ai-intel": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool-intel",
-        "qg-cli":   "https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool-cli&metric=alert_status",
-        "ai-cli":   "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool-cli",
-        "qg-legacy": "https://sonarcloud.io/api/project_badges/measure?project=careyjames_dns-tool&metric=alert_status",
-        "ai-legacy": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=careyjames_dns-tool",
+        "qg-web":   "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-web&metric=alert_status",
+        "ai-web":   "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-web",
+        "qg-full":  "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-full&metric=alert_status",
+        "ai-full":  "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-full",
+        "qg-intel": "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-intel&metric=alert_status",
+        "ai-intel": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-intel",
+        "qg-cli":   "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-cli&metric=alert_status",
+        "ai-cli":   "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-cli",
+        "qg-legacy": "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool&metric=alert_status",
+        "ai-legacy": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool",
 }
 
 func (h *ProxyHandler) SonarBadge(c *gin.Context) {

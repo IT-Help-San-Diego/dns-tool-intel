@@ -17,7 +17,7 @@
 
 cd /home/runner/workspace
 
-REPO="careyjames/dns-tool-web"
+REPO="IT-Help-San-Diego/dns-tool-web"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 PAT_URL="https://${GITHUB_MASTER_PAT}@github.com/${REPO}.git"
 

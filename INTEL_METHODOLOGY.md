@@ -103,4 +103,4 @@ CT fetch → deduplication → processCTEntries() → DNS probing → CNAME trav
 ---
 
 *Last updated: February 18, 2026 — v26.19.42*
-*This document is PROPRIETARY. It belongs in the careyjames/dnstool-intel private repository ONLY.*
+*This document is PROPRIETARY. It belongs in the IT-Help-San-Diego/dns-tool-intel private repository ONLY.*

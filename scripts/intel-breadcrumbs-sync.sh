@@ -19,13 +19,13 @@ NC='\033[0m'
 pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-info "Syncing Intel breadcrumbs from careyjames/dns-tool-intel..."
+info "Syncing Intel breadcrumbs from IT-Help-San-Diego/dns-tool-intel..."
 
 node -e '
 const fs = require("fs");
 const path = require("path");
 
-const REPO = "careyjames/dns-tool-intel";
+const REPO = "IT-Help-San-Diego/dns-tool-intel";
 const BRANCH = "main";
 const DEST = process.argv[1];
 
