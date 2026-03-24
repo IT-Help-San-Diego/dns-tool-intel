@@ -14,7 +14,7 @@ func TestRedactSecret_CB8(t *testing.T) {
                 want  string
         }{
                 {"short", "****"},
-                {"AKIA1234567890ABCDEF", "AKIA********CDEF"},
+                {"AKIA1234567890ABCDEF", "AKIA********CDEF"}, //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token, generic.secrets.security.detected-aws-access-key-id-value
                 {"-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN [PRIVATE KEY REDACTED]-----"},
                 {"abcd1234efgh", "abcd********efgh"},
         }
@@ -131,7 +131,7 @@ func TestIsMinifiedJSFalsePositive_CB8(t *testing.T) {
 }
 
 func TestEvaluateMatch_CB8(t *testing.T) {
-        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //gitleaks:allow
+        body := "var key = 'AKIAI0SFODNN7ZQRSTUB'" //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token, generic.secrets.gitleaks.generic-api-key, generic.secrets.security.detected-aws-access-key-id-value
         pat := secretPatterns[0]
         loc := pat.Re.FindStringIndex(body)
         if loc == nil {
@@ -158,7 +158,7 @@ func TestEvaluateMatch_CB8(t *testing.T) {
 
 func TestScanContent_CB8(t *testing.T) {
         scanner := &SecretScanner{}
-        body := `var key = "AKIAIOSFODNN7EXAMPLE1";` // gitleaks:allow
+        body := `var key = "AKIAIOSFODNN7EXAMPLE1";` // gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token
         findings := scanner.scanContent(body, "https://example.com/app.js", nil)
         _ = findings
 }

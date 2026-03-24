@@ -71,10 +71,11 @@ func TestScanSecretExposure_ClearWhenClean(t *testing.T) {
 
 func TestScanSecretExposure_DetectsExposedKeys(t *testing.T) {
         mockHTTP := NewMockHTTPClient()
+        // nosemgrep: generic.secrets.gitleaks.generic-api-key, generic.secrets.gitleaks.aws-access-token, generic.secrets.security.detected-aws-access-key-id-value
         pageWithKey := `<html><body><script>
                 const apiKey = "AKIA1234567890ABCDEF";
                 fetch("https://api.example.com", {headers: {"Authorization": apiKey}});
-        </script></body></html>`
+        </script></body></html>` //gitleaks:allow
         mockHTTP.AddResponse("https://leaky.example.com", 200, pageWithKey)
         mockHTTP.AddResponse("http://leaky.example.com", 200, pageWithKey)
 

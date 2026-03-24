@@ -189,7 +189,7 @@ func TestWriteKeyFile_Base64(t *testing.T) {
 }
 
 func TestWriteKeyFile_RawPEM(t *testing.T) {
-        raw := "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----" // gitleaks:allow
+        raw := "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----" // gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key
         path, err := writeKeyFile(raw, "test-raw")
         if err != nil {
                 t.Fatalf("unexpected error: %v", err)
