@@ -31,7 +31,7 @@ jobs:
                 '',
                 '| Channel | Link |',
                 '| ------- | ---- |',
-                '| **GitHub Security Advisory** | [Create Private Advisory](https://github.com/careyjames/dns-tool-web/security/advisories/new) |',
+                '| **GitHub Security Advisory** | [Create Private Advisory](https://github.com/IT-Help-San-Diego/dns-tool-web/security/advisories/new) |',
                 '| **Email** | [security@it-help.tech](mailto:security@it-help.tech) |',
                 '| **security.txt** | [/.well-known/security.txt](https://dnstool.it-help.tech/.well-known/security.txt) |',
                 '',
