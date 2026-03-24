@@ -180,50 +180,6 @@ if not changed and not to_delete:
 
 print(f"PUSHING {len(changed)} changed, {len(to_delete)} to delete", file=sys.stderr)
 
-tree_entries = []
-batch_size = 20
-for i in range(0, len(changed), batch_size):
-    batch = changed[i:i+batch_size]
-    for fpath in batch:
-        with open(fpath, 'rb') as f:
-            content = f.read()
-        try:
-            text_content = content.decode('utf-8')
-            blob = api('POST', f'/repos/{repo}/git/blobs', {
-                'content': text_content,
-                'encoding': 'utf-8'
-            })
-        except (UnicodeDecodeError, Exception):
-            blob = api('POST', f'/repos/{repo}/git/blobs', {
-                'content': base64.b64encode(content).decode(),
-                'encoding': 'base64'
-            })
-        tree_entries.append({
-            'path': fpath,
-            'mode': '100644',
-            'type': 'blob',
-            'sha': blob['sha']
-        })
-    print(f"  uploaded {min(i+batch_size, len(changed))}/{len(changed)}", file=sys.stderr)
-
-for dpath in to_delete:
-    tree_entries.append({
-        'path': dpath,
-        'mode': '100644',
-        'type': 'blob',
-        'sha': None
-    })
-    print(f"  queued delete: {dpath}", file=sys.stderr)
-
-new_tree = api('POST', f'/repos/{repo}/git/trees', {
-    'base_tree': old_tree_sha,
-    'tree': tree_entries
-})
-
-if new_tree['sha'] == old_tree_sha:
-    print("UP_TO_DATE")
-    sys.exit(0)
-
 version = subprocess.run(
     ['grep', 'Version.*=', 'go-server/internal/config/config.go'],
     capture_output=True, text=True
@@ -231,17 +187,87 @@ version = subprocess.run(
 version = version.split('"')[1] if '"' in version else 'unknown'
 
 last_msg = subprocess.run(['git', 'log', '-1', '--format=%s'], capture_output=True, text=True).stdout.strip()
-commit_msg = f"v{version}: {last_msg}\n\nSynced from dns-tool-intel (proprietary files excluded)"
 
-new_commit = api('POST', f'/repos/{repo}/git/commits', {
-    'message': commit_msg,
-    'tree': new_tree['sha'],
-    'parents': [main_sha]
-})
+def upload_blob(fpath):
+    with open(fpath, 'rb') as f:
+        content = f.read()
+    try:
+        text_content = content.decode('utf-8')
+        return api('POST', f'/repos/{repo}/git/blobs', {
+            'content': text_content,
+            'encoding': 'utf-8'
+        })
+    except UnicodeDecodeError:
+        return api('POST', f'/repos/{repo}/git/blobs', {
+            'content': base64.b64encode(content).decode(),
+            'encoding': 'base64'
+        })
 
-api('PATCH', f'/repos/{repo}/git/refs/heads/main', {'sha': new_commit['sha']})
+chunk_size = 200
+all_items = list(changed) + [None]
+chunks = [all_items[i:i+chunk_size] for i in range(0, len(all_items), chunk_size)]
+if to_delete:
+    if len(chunks[-1]) + len(to_delete) <= chunk_size:
+        chunks[-1] = [x for x in chunks[-1] if x is not None] + [('DEL', d) for d in to_delete] + [None]
+    else:
+        chunks.append([('DEL', d) for d in to_delete])
 
-print(f"PUSHED {len(changed)} {new_commit['sha'][:12]}")
+current_tree_sha = old_tree_sha
+parent_sha = main_sha
+total_pushed = 0
+
+for ci, chunk in enumerate(chunks):
+    tree_entries = []
+    for item in chunk:
+        if item is None:
+            continue
+        if isinstance(item, tuple) and item[0] == 'DEL':
+            tree_entries.append({
+                'path': item[1],
+                'mode': '100644',
+                'type': 'blob',
+                'sha': None
+            })
+            print(f"  queued delete: {item[1]}", file=sys.stderr)
+        else:
+            blob = upload_blob(item)
+            tree_entries.append({
+                'path': item,
+                'mode': '100644',
+                'type': 'blob',
+                'sha': blob['sha']
+            })
+            total_pushed += 1
+            if total_pushed % 20 == 0:
+                print(f"  uploaded {total_pushed}/{len(changed)}", file=sys.stderr)
+
+    if not tree_entries:
+        continue
+
+    new_tree = api('POST', f'/repos/{repo}/git/trees', {
+        'base_tree': current_tree_sha,
+        'tree': tree_entries
+    })
+
+    if new_tree['sha'] == current_tree_sha:
+        continue
+
+    chunk_num = f" ({ci+1}/{len(chunks)})" if len(chunks) > 1 else ""
+    commit_msg = f"v{version}: {last_msg}{chunk_num}\n\nSynced from dns-tool-intel (proprietary files excluded)"
+
+    new_commit = api('POST', f'/repos/{repo}/git/commits', {
+        'message': commit_msg,
+        'tree': new_tree['sha'],
+        'parents': [parent_sha]
+    })
+
+    api('PATCH', f'/repos/{repo}/git/refs/heads/main', {'sha': new_commit['sha']})
+
+    current_tree_sha = new_tree['sha']
+    parent_sha = new_commit['sha']
+    print(f"  committed chunk {ci+1}/{len(chunks)} → {new_commit['sha'][:12]}", file=sys.stderr)
+
+print(f"PUSHED {total_pushed} {parent_sha[:12]}")
 PYEOF
 ) || fail "API push failed"
 
