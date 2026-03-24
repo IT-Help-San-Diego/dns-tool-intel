@@ -19,7 +19,7 @@ jobs:
 
       - name: Mirror to off-site-backup
         env:
-          BACKUP_TOKEN: ${{ secrets.ORG_PAT }}
+          BACKUP_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
         run: |
           git remote add backup "https://x-access-token:${BACKUP_TOKEN}@github.com/IT-Help-San-Diego/off-site-backup.git"
           git push --force --all backup
