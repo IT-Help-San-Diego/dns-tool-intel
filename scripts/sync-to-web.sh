@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-REPO_OWNER="careyjames"
+REPO_OWNER="IT-Help-San-Diego"
 REPO_NAME="dns-tool-web"
 API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
 
@@ -15,9 +15,9 @@ pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 fail() { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-TOKEN="${GITHUB_MASTER_PAT:-}"
+TOKEN="${ORG_PAT:-${GITHUB_MASTER_PAT:-}}"
 if [ -z "$TOKEN" ]; then
-  fail "GITHUB_MASTER_PAT not set. Cannot authenticate with GitHub."
+  fail "ORG_PAT not set. Cannot authenticate with GitHub."
 fi
 
 VERSION=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
@@ -42,8 +42,8 @@ info "Syncing to ${REPO_NAME} (public OSS repo — proprietary code stripped)"
 RESULT=$(python3 << 'PYEOF'
 import os, sys, json, urllib.request, base64, subprocess, hashlib, re, time
 
-token = os.environ['GITHUB_MASTER_PAT']
-repo = "careyjames/dns-tool-web"
+token = os.environ.get('ORG_PAT') or os.environ['GITHUB_MASTER_PAT']
+repo = "IT-Help-San-Diego/dns-tool-web"
 api_base = f"https://api.github.com/repos/{repo}"
 headers = {
     'Authorization': f'Bearer {token}',
