@@ -274,17 +274,17 @@
   Pages: sources
 - https://forums.raspberrypi.com/viewtopic.php?t=358732
   Pages: about
-- https://github.com/careyjames/dns-tool
+- https://github.com/IT-Help-San-Diego/dns-tool
   Pages: approach
-- https://github.com/careyjames/dns-tool-cli
+- https://github.com/IT-Help-San-Diego/dns-tool-cli
   Pages: _footer, approach
-- https://github.com/careyjames/dns-tool-web
+- https://github.com/IT-Help-San-Diego/dns-tool-web
   Pages: _footer, approach, architecture, privacy, security_policy
-- https://github.com/careyjames/dns-tool-web/blob/main/LICENSE
+- https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/LICENSE
   Pages: _footer, privacy, security_policy
-- https://github.com/careyjames/dns-tool-web/blob/main/docs/BLACK-SITE-INTERROGATIONS.md
+- https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/docs/BLACK-SITE-INTERROGATIONS.md
   Pages: black_site
-- https://github.com/careyjames/dns-tool/issues/1
+- https://github.com/IT-Help-San-Diego/dns-tool/issues/1
   Pages: about
 - https://github.com/silvia-odwyer
   Pages: about
@@ -294,15 +294,15 @@
   Pages: results
 - https://snapcraft.io/
   Pages: about
-- https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool
+- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool
   Pages: approach
-- https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-cli
+- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-cli
   Pages: approach
-- https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-full
+- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full
   Pages: approach
-- https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-intel
+- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-intel
   Pages: approach
-- https://sonarcloud.io/summary/new_code?id=careyjames_dns-tool-web
+- https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-web
   Pages: approach
 - https://support.google.com/chrome/answer/9658361
   Pages: index, results_covert

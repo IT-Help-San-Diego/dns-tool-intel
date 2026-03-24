@@ -10,7 +10,7 @@ DNS Tool is licensed under [BUSL-1.1](LICENSE) (Business Source License 1.1). By
 
 ### Reporting Issues
 
-We use [GitHub Issues](https://github.com/careyjames/dns-tool-web/issues/new/choose) with structured templates. Blank issues are disabled — please choose the appropriate template:
+We use [GitHub Issues](https://github.com/IT-Help-San-Diego/dns-tool-web/issues/new/choose) with structured templates. Blank issues are disabled — please choose the appropriate template:
 
 | Template | When to Use | Priority |
 |----------|------------|----------|
@@ -18,7 +18,7 @@ We use [GitHub Issues](https://github.com/careyjames/dns-tool-web/issues/new/cho
 | **Cosmetic / UX / UI** | Visual bugs, layout issues, accessibility problems, user experience improvements | Normal cadence |
 | **Security Vulnerability** | Security issues — **redirects to private reporting** | Private channel only |
 
-**Questions and discussions** should go to [GitHub Discussions](https://github.com/careyjames/dns-tool-web/discussions), not the issue tracker.
+**Questions and discussions** should go to [GitHub Discussions](https://github.com/IT-Help-San-Diego/dns-tool-web/discussions), not the issue tracker.
 
 ### Research Mission Critical Issues
 
@@ -36,7 +36,7 @@ This rigor is not bureaucracy — it is how we maintain scientific accuracy. A v
 
 **Never post security vulnerability details in a public issue.** Use one of these private channels:
 
-- [GitHub Security Advisory](https://github.com/careyjames/dns-tool-web/security/advisories/new)
+- [GitHub Security Advisory](https://github.com/IT-Help-San-Diego/dns-tool-web/security/advisories/new)
 - Email: [security@it-help.tech](mailto:security@it-help.tech)
 - [security.txt](https://dnstool.it-help.tech/.well-known/security.txt)
 

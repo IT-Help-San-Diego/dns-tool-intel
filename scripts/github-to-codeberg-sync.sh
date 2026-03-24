@@ -12,9 +12,9 @@ trap "rm -rf $WORK" EXIT
 sync_repo() {
   local gh_repo="$1"
   local cb_repo="$2"
-  echo "Syncing github.com/careyjames/${gh_repo} → codeberg.org/careybalboa/${cb_repo}..."
+  echo "Syncing github.com/IT-Help-San-Diego/${gh_repo} → codeberg.org/careybalboa/${cb_repo}..."
 
-  if ! git clone --bare "https://github.com/careyjames/${gh_repo}.git" "${WORK}/${cb_repo}"; then
+  if ! git clone --bare "https://github.com/IT-Help-San-Diego/${gh_repo}.git" "${WORK}/${cb_repo}"; then
     echo "  ✗ Failed to clone ${gh_repo}" >&2
     return 1
   fi
@@ -33,5 +33,5 @@ sync_repo "dns-tool-cli" "dns-tool-cli"
 
 echo ""
 echo "Public repos synced. For dns-tool-intel (private), run:"
-echo "  git clone --bare https://github.com/careyjames/dns-tool-intel.git /tmp/intel-sync"
+echo "  git clone --bare https://github.com/IT-Help-San-Diego/dns-tool-intel.git /tmp/intel-sync"
 echo "  git -C /tmp/intel-sync push --mirror https://careybalboa:\${CODEBERG_FORGEJO_API}@codeberg.org/careybalboa/dns-tool-intel.git"

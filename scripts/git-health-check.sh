@@ -101,7 +101,7 @@ git branch --show-current 2>/dev/null || true
 # 6. Sync status via ls-remote (read-only, safe everywhere)
 if [ -n "$GITHUB_MASTER_PAT" ]; then
   LOCAL_SHA=$(git rev-parse HEAD 2>/dev/null)
-  REMOTE_SHA=$(git ls-remote "https://${GITHUB_MASTER_PAT}@github.com/careyjames/dns-tool-web.git" refs/heads/main 2>/dev/null | awk '{print $1}')
+  REMOTE_SHA=$(git ls-remote "https://${GITHUB_MASTER_PAT}@github.com/IT-Help-San-Diego/dns-tool-web.git" refs/heads/main 2>/dev/null | awk '{print $1}')
   if [ -n "$REMOTE_SHA" ]; then
     if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
       echo "Sync status: MATCHED — local HEAD = GitHub HEAD ($LOCAL_SHA)"

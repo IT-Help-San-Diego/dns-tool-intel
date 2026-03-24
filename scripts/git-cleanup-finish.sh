@@ -47,7 +47,7 @@ echo "  Binary objects remaining: $BLOBS"
 echo ""
 
 info "Re-adding remotes..."
-git remote add origin https://github.com/careyjames/dns-tool-intel.git 2>/dev/null || true
+git remote add origin https://github.com/IT-Help-San-Diego/dns-tool-intel.git 2>/dev/null || true
 git remote add gitsafe-backup git://gitsafe:5418/backup.git 2>/dev/null || true
 
 pass "Done! Git history cleanup complete."

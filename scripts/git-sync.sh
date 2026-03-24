@@ -98,11 +98,20 @@ def api(method, url, data=None, retries=3):
             resp = urllib.request.urlopen(req)
             return json.loads(resp.read())
         except urllib.error.HTTPError as e:
+            err_body = ''
+            try:
+                err_body = e.read().decode('utf-8', errors='replace')
+            except:
+                pass
             if e.code in (403, 429, 502, 503) and attempt < retries - 1:
                 wait = (attempt + 1) * 5
                 print(f"  API {e.code}, retrying in {wait}s... ({url})", file=sys.stderr)
                 time.sleep(wait)
+            elif e.code == 422 and attempt < retries - 1:
+                print(f"  API 422 on {url}: {err_body[:300]}", file=sys.stderr)
+                time.sleep(3)
             else:
+                print(f"  API {e.code} on {url}: {err_body[:500]}", file=sys.stderr)
                 raise
 
 ref = api('GET', f'/repos/{repo}/git/ref/heads/main')
@@ -130,9 +139,13 @@ for f in intel_files:
         tracked.append(f)
         tracked_set.add(f)
 
+SKIP_FILES = {'.replit', 'replit.nix', 'replit_agent.toml', '.env'}
+
 changed = []
 for fpath in tracked:
     if not os.path.isfile(fpath):
+        continue
+    if os.path.basename(fpath) in SKIP_FILES:
         continue
     try:
         with open(fpath, 'rb') as f:
