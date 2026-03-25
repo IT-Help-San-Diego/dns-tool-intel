@@ -72,51 +72,19 @@
         .ftr-node svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
         .ftr-vline { width: 1px; height: 12px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
         .ftr-hline { height: 1px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
-        .ftr-org {
-            position: relative;
-            width: 100%;
-            max-width: 740px;
-            margin: 0 auto;
-            padding: 12px 0 0;
+        .ftr-fork {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
-        .ftr-org::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: rgba(200, 149, 106, 0.18);
-        }
-        .ftr-org-reg {
-            position: relative;
-            z-index: 1;
+        .ftr-fork > .ftr-hline { margin-top: 0; flex-shrink: 0; }
+        .ftr-fork-leg {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            margin-bottom: 16px;
-        }
-        .ftr-org-reg-left {
-            display: flex;
             align-items: center;
-            gap: 0;
-            align-self: flex-end;
-            margin-right: 50%;
         }
-        .ftr-org-reg-right {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            align-self: flex-start;
-            margin-left: 50%;
-        }
-        .ftr-org-reg-arm {
-            width: 12px;
-            height: 1px;
-            background: rgba(200, 149, 106, 0.18);
-            flex-shrink: 0;
-        }
-        .ftr-reg-label {
+        .ftr-fork-leg .ftr-vline { height: 8px; }
+        .ftr-reg-tag {
             font-size: 0.62rem;
             color: #6e7681;
             padding: 0.18rem 0.55rem;
@@ -124,34 +92,14 @@
             border-radius: 4px;
             letter-spacing: 0.03em;
             white-space: nowrap;
-            text-decoration: none;
-            transition: border-color 0.25s, color 0.25s;
         }
-        .ftr-reg-label:hover { border-color: rgba(200, 149, 106, 0.25); color: #e6edf3; }
-        .ftr-org-dept {
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 auto;
-            width: fit-content;
-        }
-        .ftr-org-dept-head {
-            position: relative;
-        }
-        .ftr-org-dept-branch {
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
+        .ftr-dept-row {
             display: flex;
             align-items: center;
             gap: 0;
-            white-space: nowrap;
+            justify-content: center;
         }
-        .ftr-org-dept-branch .ftr-hline { width: 2rem; }
-        .ftr-org-dept .ftr-vline { flex-shrink: 0; }
-        .ftr-org-dept .ftr-node { position: relative; z-index: 1; }
+        .ftr-dept-row .ftr-hline { width: 2.5rem; }
         .ftr-grid-connector {
             display: flex;
             flex-direction: column;
@@ -163,7 +111,7 @@
             height: 1px;
             background: rgba(200, 149, 106, 0.18);
             align-self: stretch;
-            margin: 0;
+            margin: 0 calc(12.5% + 0.375rem);
         }
         .ftr-grid-drops {
             display: grid;
@@ -175,25 +123,13 @@
         .ftr-grid-drop .ftr-vline { height: 8px; }
         @media (max-width: 640px) {
             .ftr-copyright { flex-wrap: wrap; justify-content: center; font-size: 0.72rem; }
+            .ftr-fork { flex-direction: column; align-items: center; }
+            .ftr-fork-bar .ftr-hline { display: none; }
+            .ftr-fork-leg .ftr-vline { height: 4px; }
+            .ftr-dept-row { flex-direction: column; }
+            .ftr-dept-row .ftr-hline { width: 1px; height: 8px; }
+            .ftr-grid-bar { margin: 0 calc(25% + 0.375rem); }
             .ftr-grid-drops { grid-template-columns: repeat(2, 1fr); }
-            .ftr-org::before { display: none; }
-            .ftr-org { padding: 8px 0 0; }
-            .ftr-org-reg { align-items: center; }
-            .ftr-org-reg-left, .ftr-org-reg-right {
-                margin-left: 0; margin-right: 0; align-self: center;
-                flex-direction: row;
-            }
-            .ftr-org-dept { margin: 0 auto; }
-            .ftr-org-dept-branch {
-                position: static;
-                transform: none;
-                margin-top: 4px;
-            }
-            .ftr-org-dept-head {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
         }
         .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0 auto; text-align: left; }
         @media (max-width: 640px) { .ftr-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -220,19 +156,16 @@
         }
         .ftr-link {
             display: flex;
-            font-size: 0.74rem;
-            line-height: 1.35;
-            padding: 0.35rem 0;
-            min-height: 34px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            padding: 0.4rem 0;
+            min-height: 38px;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.5rem;
             color: #8b949e;
             text-decoration: none;
             transition: color 0.2s;
             border-bottom: 1px solid rgba(48, 54, 61, 0.35);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         .ftr-link:last-child { border-bottom: none; }
         .ftr-link:hover { color: #e6edf3; }
@@ -260,27 +193,29 @@
     <nav class="ftr-tree" aria-label="Organizational structure">
         <div class="ftr-copyright">
             <span>&copy; {{currentYear}}</span>
-            <a href="https://github.com/IT-Help-San-Diego" target="_blank" rel="noopener">{{icon "building"}} IT Help San Diego Inc.</a>
+            <a href="https://www.it-help.tech" target="_blank" rel="noopener">{{icon "building"}} IT Help San Diego Inc.</a>
             <span>All rights reserved.</span>
         </div>
         <div class="ftr-vline"></div>
-        <div class="ftr-org">
-            <div class="ftr-org-reg">
-                <div class="ftr-org-reg-left"><a href="https://opencorporates.com/companies/us_de/10191352" target="_blank" rel="noopener" class="ftr-reg-label">Incorporated in Delaware</a><div class="ftr-org-reg-arm"></div></div>
-                <div class="ftr-org-reg-right"><div class="ftr-org-reg-arm"></div><a href="https://opencorporates.com/companies/us_ca/B20250124081" target="_blank" rel="noopener" class="ftr-reg-label">Foreign Entity in California</a></div>
-            </div>
-            <div class="ftr-org-dept">
-                <div class="ftr-org-dept-head">
-                    <a href="/corpus" class="ftr-node">{{icon "brain"}} Research Department</a>
-                    <div class="ftr-org-dept-branch">
-                        <div class="ftr-hline"></div>
-                        <a href="https://schedule.it-help.tech" target="_blank" rel="noopener" class="ftr-node">{{icon "briefcase"}} Professional Consulting</a>
-                    </div>
-                </div>
+        <div class="ftr-fork">
+            <div class="ftr-fork-leg">
                 <div class="ftr-vline"></div>
-                <a href="https://github.com/IT-Help-San-Diego/dns-tool-web" target="_blank" rel="noopener" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
+                <span class="ftr-reg-tag">Incorporated in Delaware</span>
+            </div>
+            <div class="ftr-hline" style="width:3rem;margin-top:0"></div>
+            <div class="ftr-fork-leg">
+                <div class="ftr-vline"></div>
+                <span class="ftr-reg-tag">Foreign Entity in California</span>
             </div>
         </div>
+        <div class="ftr-vline"></div>
+        <div class="ftr-dept-row">
+            <span class="ftr-node">{{icon "brain"}} Research Department</span>
+            <div class="ftr-hline" style="width:2.5rem"></div>
+            <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="ftr-node">{{icon "briefcase"}} Professional Consulting</a>
+        </div>
+        <div class="ftr-vline"></div>
+        <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
     </nav>
     <div class="ftr-grid-connector">
         <div class="ftr-vline"></div>
@@ -298,9 +233,9 @@
             <a href="/publications" class="ftr-link">{{icon "book-open"}} Publications</a>
             <a href="/case-study/" class="ftr-link">{{icon "folder-open"}} Case Studies</a>
             <a href="/sources" class="ftr-link">{{icon "database"}} Sources</a>
-            <a href="/reference-library" class="ftr-link">{{icon "book"}} References</a>
+            <a href="/reference-library" class="ftr-link">{{icon "book"}} Reference Library</a>
             <a href="/corpus" class="ftr-link">{{icon "box-archive"}} Corpus</a>
-            <a href="/cite" class="ftr-link">{{icon "graduation-cap"}} Cite</a>
+            <a href="/cite" class="ftr-link">{{icon "graduation-cap"}} Cite This Work</a>
         </div>
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "microchip" "me-1"}}Platform</span>
@@ -309,21 +244,21 @@
             <a href="/confidence" class="ftr-link">{{icon "shield"}} Confidence</a>
             <a href="/topology" class="ftr-link">{{icon "sitemap"}} Topology</a>
             <a href="/roadmap" class="ftr-link">{{icon "map"}} Roadmap</a>
-            <a href="/changelog" class="ftr-link">{{icon "clock-rotate-left"}} Changelog</a>
         </div>
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "scroll" "me-1"}}Governance</span>
             <a href="/owl-semaphore" class="ftr-link">{{icon "eye"}} Owl Semaphore</a>
             <a href="/manifesto" class="ftr-link">{{icon "scroll"}} Manifesto</a>
-            <a href="/communication-standards" class="ftr-link">{{icon "bullhorn"}} Standards</a>
-            <a href="/roe" class="ftr-link">{{icon "scale-balanced"}} ROE</a>
+            <a href="/communication-standards" class="ftr-link">{{icon "bullhorn"}} Comm Standards</a>
+            <a href="/roe" class="ftr-link">{{icon "scale-balanced"}} Rules of Engagement</a>
         </div>
         <div class="ftr-cell">
-            <span class="ftr-heading">{{icon "building" "me-1"}}Company</span>
+            <span class="ftr-heading">{{icon "shield-halved" "me-1"}}Legal &amp; About</span>
+            <a href="/security-policy" class="ftr-link">{{icon "shield-halved"}} Security Policy</a>
+            <a href="/privacy" class="ftr-link">{{icon "user-shield"}} Privacy</a>
             <a href="/about" class="ftr-link">{{icon "landmark"}} Origin Story</a>
             <a href="/contact" class="ftr-link">{{icon "envelope"}} Contact</a>
-            <a href="/security-policy" class="ftr-link">{{icon "shield-halved"}} Security</a>
-            <a href="/privacy" class="ftr-link">{{icon "user-shield"}} Privacy</a>
+            <a href="/changelog" class="ftr-link">{{icon "clock-rotate-left"}} Changelog</a>
         </div>
     </div>
     <div class="text-center mt-3">

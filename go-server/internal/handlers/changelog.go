@@ -67,6 +67,8 @@
 package handlers
 
 const (
+        dateMar25 = "Mar 25, 2026"
+        dateMar24 = "Mar 24, 2026"
         dateMar20 = "Mar 20, 2026"
         dateMar19 = "Mar 19, 2026"
         dateMar18 = "Mar 18, 2026"
@@ -95,6 +97,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263830 = "26.38.30"
         ver263802 = "26.38.02"
         ver263732 = "26.37.32"
         ver263716 = "26.37.16"
@@ -151,6 +154,38 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
+                {
+                        Version:     ver263830,
+                        Date:        dateMar25,
+                        Category:    catUX,
+                        Title:       "ICAE Progress Bar Color Science Overhaul",
+                        Description: "Replaced harsh electric cyan (#4fd2ff) and saturated violet (#7c5cff) Collection/Analysis bar colors with scotopic-safe warm amber-gold (#C9A15A) and muted copper/terracotta (#B07A5A). Color selection informed by rod-cell sensitivity research (scotopic peak ~507nm), WCAG contrast analysis on dark backgrounds, and color-blind distinguishability. Updated across CSS, SVG diagrams, and architecture page.",
+                        Icon:        "palette",
+                },
+                {
+                        Version:     ver263830,
+                        Date:        dateMar25,
+                        Category:    catSecurity,
+                        Title:       "SAST False-Positive Suppression (17 HIGH Findings)",
+                        Description: "Resolved all 17 HIGH-severity SAST false positives in test files with comprehensive five-scanner suppression tags (gosec, nosec, gitleaks, semgrep, SonarQube) and human-readable justifications. Added dns-eval/Inputs/ to .semgrepignore for JSON fixture data. Every suppression is traceable and defensible for third-party security auditors.",
+                        Icon:        iconShieldAlt,
+                },
+                {
+                        Version:     ver263830,
+                        Date:        dateMar24,
+                        Category:    catSecurity,
+                        Title:       "Off-Site Backup Automation",
+                        Description: "Added daily cron schedule (06:15 UTC) to the off-site backup workflow for the IT-Help-San-Diego/off-site-backup repository. Previously backup was only triggered manually. Disabled orphaned mirror-codeberg.yml workflow (221 consecutive failures) via GitHub API.",
+                        Icon:        "database",
+                },
+                {
+                        Version:     ver263830,
+                        Date:        dateMar25,
+                        Category:    catTransparency,
+                        Title:       "Pre-Release Science Audit",
+                        Description: "Full repository audit ahead of science documentation release: verified all 35+ public page routes, all static assets, all hosted PDFs, robots.txt, llms.txt, sitemap.xml, and navigation links. Updated roadmap with March 2026 accomplishments. Footer enriched with Roadmap and Corpus links.",
+                        Icon:        "clipboard-check",
+                },
                 {
                         Version:     ver263802,
                         Date:        dateMar20,

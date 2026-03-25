@@ -12,8 +12,9 @@ import (
 )
 
 const (
-        roadmapDateFeb2026  = "Feb 2026"
-        roadmapDateMar2026  = "Mar 2026"
+        roadmapDateFeb2026   = "Feb 2026"
+        roadmapDateMar2026   = "Mar 2026"
+        strV263830           = "v26.38.30"
         roadmapVersionV2620 = "v26.20.0+"
         roadmapTypeFeature  = "Feature"
 
@@ -136,6 +137,16 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "Performance Optimization (gzip, CSS/font preload hints)", Version: "v26.28.45", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
                 {Title: "Video Styling Fix (approach page — constrained width, poster)", Version: "v26.28.46", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
                 {Title: "Test Coverage Expansion (exports_ice, coverage_boost14, main)", Version: "v26.28.46", Date: roadmapDateMar2026, Type: strQuality},
+                {Title: "Publications & Research Index Page", Version: "v26.38.02", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Case Study Index & Intelligence DMARC Case Study", Version: "v26.38.02", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "Founder's Manifesto & Communication Standards (HTML + PDF)", Version: "v26.37.32", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "ICSAE Standards Evaluation Engine (ISO 27001/27002, INCITS 585)", Version: "v26.37.16", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "UX Palette Warm-Shift (Gold/Amber, WCAG AA, CSP Deep Audit)", Version: "v26.36.11", Date: roadmapDateMar2026, Type: strQuality},
+                {Title: "Web3 Analysis Node & Topology Globe (ENS, HNS, IPFS)", Version: "v26.36.09", Date: roadmapDateMar2026, Type: roadmapTypeFeature},
+                {Title: "ICAE Progress Bar Color Science Overhaul (Scotopic-Safe)", Version: strV263830, Date: roadmapDateMar2026, Type: strQuality},
+                {Title: "SAST False-Positive Suppression (17 HIGH, 5-Scanner Tags)", Version: strV263830, Date: roadmapDateMar2026, Type: "Security"},
+                {Title: "Off-Site Backup Automation (Daily Cron)", Version: strV263830, Date: roadmapDateMar2026, Type: "Security"},
+                {Title: "Pre-Release Science Documentation Audit", Version: strV263830, Date: roadmapDateMar2026, Type: strQuality},
         }
 
         inProgress := []RoadmapItem{
