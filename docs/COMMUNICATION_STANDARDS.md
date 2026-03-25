@@ -2,7 +2,7 @@
 
 **DNS Tool — Clarity and Vision Quality Gate**
 
-Version 26.37.35 · Effective 2026-03-18
+Version 26.38.35 · Effective 2026-03-18
 
 *This document defines the measurable standards that all user-facing copy and interface elements must pass before publication. These standards are enforceable: a page that fails any MUST-level requirement is not ready for production.*
 

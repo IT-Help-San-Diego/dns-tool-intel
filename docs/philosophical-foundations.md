@@ -5,7 +5,7 @@ ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/IT-Help-San-Diego/dns-tool-web](https://github.com/IT-Help-San-Diego/dns-tool-web)
-Version 26.37.26 · License BUSL-1.1
+Version 26.38.35 · License BUSL-1.1
 
 *Companion artifact to "Confidence-Scored Analysis of Domain Security Infrastructure"*
 
