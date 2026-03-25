@@ -62,7 +62,7 @@
                             </thead>
                             <tbody>
                                 {{range $a := .Analyses}}
-                                <tr class="compare-row u-pointer" data-id="{{$a.ID}}" tabindex="0" role="button" aria-label="Select analysis from {{$a.CreatedAt}}">
+                                <tr class="compare-row u-pointer" data-id="{{$a.ID}}" tabindex="0" role="button" aria-label="Select analysis from {{$a.CreatedAt}}" aria-pressed="false">
                                     <td>{{icon "square" "compare-check"}}</td>
                                     <td>
                                         {{$a.CreatedAt}}
@@ -188,6 +188,7 @@
                 if (idx > -1) {
                     selected.splice(idx, 1);
                     row.classList.remove('selected-row');
+                    row.setAttribute('aria-pressed', 'false');
                     row.querySelector('.compare-check').innerHTML = globalThis._iconSquare;
                     row.querySelector('.compare-check').classList.remove('text-primary');
                 } else {
@@ -196,12 +197,14 @@
                         const oldRow = document.querySelector('[data-id="' + oldId + '"]');
                         if (oldRow) {
                             oldRow.classList.remove('selected-row');
+                            oldRow.setAttribute('aria-pressed', 'false');
                             oldRow.querySelector('.compare-check').innerHTML = globalThis._iconSquare;
                             oldRow.querySelector('.compare-check').classList.remove('text-primary');
                         }
                     }
                     selected.push(id);
                     row.classList.add('selected-row');
+                    row.setAttribute('aria-pressed', 'true');
                     row.querySelector('.compare-check').innerHTML = globalThis._iconCheckSquare;
                     row.querySelector('.compare-check').classList.add('text-primary');
                 }

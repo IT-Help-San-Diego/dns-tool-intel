@@ -334,7 +334,7 @@
             <div class="cs-section">
                 <h2>Read the Record</h2>
                 <p>Here is the CIA&rsquo;s actual DMARC record, pulled from public DNS on March 19, 2026:</p>
-                <div class="dns-records">
+                <div class="dns-records" role="figure" aria-label="CIA DMARC record from public DNS, March 19, 2026">
                     <span class="rec-label">Host:</span> _dmarc.cia.gov<br>
                     <span class="rec-label">Record:</span> v=DMARC1; <span class="rec-watch">p=quarantine</span>; <span class="rec-watch">sp=quarantine</span>; pct=100;<br>
                     &nbsp;&nbsp;rua=mailto:demarcreports@uce.cia.gov;<br>
@@ -541,7 +541,7 @@
             <div class="cs-section">
                 <h2>Verify It Yourself</h2>
                 <p>Every observation in this case study is derived from public DNS records. You can reproduce every finding with standard tools:</p>
-                <div class="verify-block">
+                <div class="verify-block" role="figure" aria-label="DNS verification commands for reproducing findings">
                     <span class="comment"># CIA DMARC record</span><br>
                     <span class="cmd">dig TXT _dmarc.cia.gov +short</span><br><br>
                     <span class="comment"># ODNI DMARC record</span><br>
