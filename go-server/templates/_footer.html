@@ -72,18 +72,12 @@
         .ftr-node svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
         .ftr-vline { width: 1px; height: 12px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
         .ftr-hline { height: 1px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
-        .ftr-fork {
+        .ftr-reg-row {
             display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-        .ftr-fork > .ftr-hline { margin-top: 0; flex-shrink: 0; }
-        .ftr-fork-leg {
-            display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
-        .ftr-fork-leg .ftr-vline { height: 8px; }
         .ftr-reg-tag {
             font-size: 0.62rem;
             color: #6e7681;
@@ -95,11 +89,17 @@
         }
         .ftr-dept-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0;
             justify-content: center;
         }
-        .ftr-dept-row .ftr-hline { width: 2.5rem; }
+        .ftr-dept-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .ftr-dept-row > .ftr-hline { width: 2.5rem; margin-top: 0.65rem; }
+        .ftr-dept-row > a.ftr-node { margin-top: 0.25rem; }
         .ftr-grid-connector {
             display: flex;
             flex-direction: column;
@@ -111,7 +111,7 @@
             height: 1px;
             background: rgba(200, 149, 106, 0.18);
             align-self: stretch;
-            margin: 0 calc(12.5% + 0.375rem);
+            margin: 0;
         }
         .ftr-grid-drops {
             display: grid;
@@ -123,12 +123,9 @@
         .ftr-grid-drop .ftr-vline { height: 8px; }
         @media (max-width: 640px) {
             .ftr-copyright { flex-wrap: wrap; justify-content: center; font-size: 0.72rem; }
-            .ftr-fork { flex-direction: column; align-items: center; }
-            .ftr-fork > .ftr-hline { width: 1px !important; height: 4px; }
-            .ftr-fork-leg .ftr-vline { height: 4px; }
+            .ftr-reg-row { flex-direction: column; gap: 0.25rem; }
             .ftr-dept-row { flex-direction: column; }
             .ftr-dept-row .ftr-hline { width: 1px !important; height: 8px; }
-            .ftr-grid-bar { margin: 0 calc(25% + 0.375rem); }
             .ftr-grid-drops { grid-template-columns: repeat(2, 1fr); }
         }
         .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0 auto; text-align: left; }
@@ -197,25 +194,20 @@
             <span>All rights reserved.</span>
         </div>
         <div class="ftr-vline"></div>
-        <div class="ftr-fork">
-            <div class="ftr-fork-leg">
-                <div class="ftr-vline"></div>
-                <span class="ftr-reg-tag">Incorporated in Delaware</span>
-            </div>
-            <div class="ftr-hline" style="width:3rem;margin-top:0"></div>
-            <div class="ftr-fork-leg">
-                <div class="ftr-vline"></div>
-                <span class="ftr-reg-tag">Foreign Entity in California</span>
-            </div>
+        <div class="ftr-reg-row">
+            <span class="ftr-reg-tag">Incorporated in Delaware</span>
+            <span class="ftr-reg-tag">Foreign Entity in California</span>
         </div>
         <div class="ftr-vline"></div>
         <div class="ftr-dept-row">
-            <span class="ftr-node">{{icon "brain"}} Research Department</span>
+            <div class="ftr-dept-col">
+                <span class="ftr-node">{{icon "brain"}} Research Department</span>
+                <div class="ftr-vline"></div>
+                <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
+            </div>
             <div class="ftr-hline" style="width:2.5rem"></div>
             <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="ftr-node">{{icon "briefcase"}} Professional Consulting</a>
         </div>
-        <div class="ftr-vline"></div>
-        <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
     </nav>
     <div class="ftr-grid-connector">
         <div class="ftr-vline"></div>
