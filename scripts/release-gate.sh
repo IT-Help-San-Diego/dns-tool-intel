@@ -32,6 +32,8 @@ pass() { echo -e "${GREEN}PASS${NC} — $1"; }
 fail() { echo -e "${RED}FAIL${NC} — $1"; exit 1; }
 info() { echo -e "${YELLOW}INFO${NC} — $1"; }
 
+trap 'echo ""; echo -e "${RED}FAIL${NC} — Release gate crashed at line $LINENO: $BASH_COMMAND"; echo "  Fix the error and re-run: bash scripts/release-gate.sh $1"' ERR
+
 VERSION="${1:-}"
 if [ -z "$VERSION" ]; then
   echo "Usage: bash scripts/release-gate.sh X.Y.Z"
@@ -136,12 +138,44 @@ else
 fi
 
 info "Gate 9: Quality gates (R009/R010/R011)"
-R009=$(node scripts/audit-css-cohesion.js 2>&1 | grep -i "Result:")
-R010=$(node scripts/validate-scientific-colors.js 2>&1 | grep -i "Result:")
-R011=$(node scripts/feature-inventory.js 2>&1 | grep -i "Result:")
-echo "$R009" | grep -qi "pass" || fail "R009 (CSS cohesion) failed"
-echo "$R010" | grep -qi "pass" || fail "R010 (scientific colors) failed"
-echo "$R011" | grep -qi "pass" || fail "R011 (feature inventory) failed"
+GATE9_FAILED=0
+
+set +e
+R009_OUT=$(node scripts/audit-css-cohesion.js 2>&1)
+R009_RC=$?
+R010_OUT=$(node scripts/validate-scientific-colors.js 2>&1)
+R010_RC=$?
+R011_OUT=$(node scripts/feature-inventory.js 2>&1)
+R011_RC=$?
+set -e
+
+R009_RESULT=$(echo "$R009_OUT" | grep -i "Result:" || echo "Result: UNKNOWN (exit $R009_RC)")
+R010_RESULT=$(echo "$R010_OUT" | grep -i "Result:" || echo "Result: UNKNOWN (exit $R010_RC)")
+R011_RESULT=$(echo "$R011_OUT" | grep -i "Result:" || echo "Result: UNKNOWN (exit $R011_RC)")
+
+echo "  R009 (CSS cohesion):       $R009_RESULT"
+echo "  R010 (scientific colors):  $R010_RESULT"
+echo "  R011 (feature inventory):  $R011_RESULT"
+
+if ! echo "$R009_RESULT" | grep -qi "pass"; then
+  echo ""
+  echo "$R009_OUT" | grep -E "✗|FAIL|ERROR" | head -10 || true
+  GATE9_FAILED=1
+fi
+if ! echo "$R010_RESULT" | grep -qi "pass"; then
+  echo ""
+  echo "$R010_OUT" | grep -E "✗|FAIL|ERROR" | head -10 || true
+  GATE9_FAILED=1
+fi
+if ! echo "$R011_RESULT" | grep -qi "pass"; then
+  echo ""
+  echo "$R011_OUT" | grep -E "✗|FAIL|ERROR" | head -10 || true
+  GATE9_FAILED=1
+fi
+
+if [ "$GATE9_FAILED" -eq 1 ]; then
+  fail "Quality gates failed — fix the errors above before releasing"
+fi
 pass "R009/R010/R011 all pass"
 
 info "Gate 10: No stale BSL-1.1 in CITATION.cff"
