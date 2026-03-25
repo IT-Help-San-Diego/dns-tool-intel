@@ -97,6 +97,7 @@ const (
         dateNov23 = "Nov 5, 2023"
         date2019  = "2019"
 
+        ver263832 = "26.38.32"
         ver263830 = "26.38.30"
         ver263802 = "26.38.02"
         ver263732 = "26.37.32"
@@ -155,6 +156,14 @@ func GetRecentChangelog(n int) []ChangelogEntry {
 func GetChangelog() []ChangelogEntry {
         return []ChangelogEntry{
                 {
+                        Version:     ver263832,
+                        Date:        dateMar25,
+                        Category:    catBrand,
+                        Title:       "Footer Organizational Topology Tree",
+                        Description: "Footer redesigned with a visual corporate hierarchy tree showing IT Help San Diego Inc. at the root, Delaware and California state registrations branching left and right with OpenCorporates links, a T-junction connecting the Research Department and Professional Consulting divisions, and DNS Tool descending from Research. Per-link contextual icons across all 21 footer links. Grid cards reorganized into four categories: Research (Publications, Case Studies, Sources, References, Corpus, Cite), Platform (Approach, Architecture, Confidence, Topology, Roadmap, Changelog), Governance (Owl Semaphore, Manifesto, Standards, ROE), and Company (Origin Story, Contact, Security, Privacy).",
+                        Icon:        "sitemap",
+                },
+                {
                         Version:     ver263830,
                         Date:        dateMar25,
                         Category:    catUX,
@@ -191,7 +200,7 @@ func GetChangelog() []ChangelogEntry {
                         Date:        dateMar20,
                         Category:    catIntelligence,
                         Title:       "Publications & Research Index",
-                        Description: "New /publications page consolidating all scientific papers, case studies, governance documents, and technical documentation in a single, citable index. Includes format badges (PDF/HTML/Video), metadata, and DOI citation link. Footer redesigned with glassmorphism grid cards organized into Research, Platform, Governance, and Legal categories.",
+                        Description: "New /publications page consolidating all scientific papers, case studies, governance documents, and technical documentation in a single, citable index. Includes format badges (PDF/HTML/Video), metadata, and DOI citation link. Footer redesigned with glassmorphism grid cards organized into Research, Platform, Governance, and Company categories.",
                         Icon:        "book-open",
                 },
                 {
