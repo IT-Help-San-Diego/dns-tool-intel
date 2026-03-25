@@ -125,16 +125,15 @@
         .ftr-org-dept-left {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        .ftr-org-dept-left-row {
-            display: flex;
-            align-items: center;
+            justify-content: flex-end;
         }
         .ftr-org-dept-left-col {
             display: flex;
             flex-direction: column;
+            align-items: center;
+        }
+        .ftr-org-dept-left-top {
+            display: flex;
             align-items: center;
         }
         .ftr-org-dept-right {
@@ -268,13 +267,13 @@
             </div>
             <div class="ftr-org-dept">
                 <div class="ftr-org-dept-left">
-                    <div class="ftr-org-dept-left-row">
-                        <div class="ftr-org-dept-left-col">
+                    <div class="ftr-org-dept-left-col">
+                        <div class="ftr-org-dept-left-top">
                             <a href="/corpus" class="ftr-node">{{icon "brain"}} Research Department</a>
-                            <div class="ftr-vline"></div>
-                            <a href="https://github.com/IT-Help-San-Diego/dns-tool-web" target="_blank" rel="noopener" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
+                            <div class="ftr-org-dept-arm"></div>
                         </div>
-                        <div class="ftr-org-dept-arm"></div>
+                        <div class="ftr-vline"></div>
+                        <a href="https://github.com/IT-Help-San-Diego/dns-tool-web" target="_blank" rel="noopener" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
                     </div>
                 </div>
                 <div class="ftr-org-dept-right">
