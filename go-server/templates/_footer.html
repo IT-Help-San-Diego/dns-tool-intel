@@ -55,18 +55,21 @@
         }
         .ftr-link {
             display: flex;
-            font-size: 0.76rem;
+            font-size: 0.78rem;
             line-height: 1.4;
             padding: 0.4rem 0;
-            min-height: 44px;
+            min-height: 38px;
             align-items: center;
+            gap: 0.5rem;
             color: #8b949e;
             text-decoration: none;
             transition: color 0.2s;
-            border-bottom: 1px solid rgba(48, 54, 61, 0.45);
+            border-bottom: 1px solid rgba(48, 54, 61, 0.35);
         }
         .ftr-link:last-child { border-bottom: none; }
         .ftr-link:hover { color: #e6edf3; }
+        .ftr-link svg { width: 13px; min-width: 13px; height: 13px; color: rgba(212,168,83,0.55); transition: color 0.2s; }
+        .ftr-link:hover svg { color: #d4a853; }
         .ftr-blacksite {
             display: inline-flex;
             align-items: center;
@@ -89,35 +92,35 @@
     <div class="ftr-grid">
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "flask" "me-1"}}Research</span>
-            <a href="/publications" class="ftr-link">Publications</a>
-            <a href="/case-study/" class="ftr-link">Case Studies</a>
-            <a href="/sources" class="ftr-link">Sources</a>
-            <a href="/reference-library" class="ftr-link">Reference Library</a>
-            <a href="/corpus" class="ftr-link">Corpus</a>
-            <a href="/cite" class="ftr-link">Cite This Work</a>
+            <a href="/publications" class="ftr-link">{{icon "book-open"}} Publications</a>
+            <a href="/case-study/" class="ftr-link">{{icon "folder-open"}} Case Studies</a>
+            <a href="/sources" class="ftr-link">{{icon "database"}} Sources</a>
+            <a href="/reference-library" class="ftr-link">{{icon "book"}} Reference Library</a>
+            <a href="/corpus" class="ftr-link">{{icon "box-archive"}} Corpus</a>
+            <a href="/cite" class="ftr-link">{{icon "graduation-cap"}} Cite This Work</a>
         </div>
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "microchip" "me-1"}}Platform</span>
-            <a href="/approach" class="ftr-link">Approach</a>
-            <a href="/architecture" class="ftr-link">Architecture</a>
-            <a href="/confidence" class="ftr-link">Confidence</a>
-            <a href="/topology" class="ftr-link">Topology</a>
-            <a href="/roadmap" class="ftr-link">Roadmap</a>
+            <a href="/approach" class="ftr-link">{{icon "route"}} Approach</a>
+            <a href="/architecture" class="ftr-link">{{icon "diagram-project"}} Architecture</a>
+            <a href="/confidence" class="ftr-link">{{icon "shield"}} Confidence</a>
+            <a href="/topology" class="ftr-link">{{icon "sitemap"}} Topology</a>
+            <a href="/roadmap" class="ftr-link">{{icon "map"}} Roadmap</a>
         </div>
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "scroll" "me-1"}}Governance</span>
-            <a href="/owl-semaphore" class="ftr-link">Owl Semaphore</a>
-            <a href="/manifesto" class="ftr-link">Manifesto</a>
-            <a href="/communication-standards" class="ftr-link">Comm Standards</a>
-            <a href="/roe" class="ftr-link">Rules of Engagement</a>
+            <a href="/owl-semaphore" class="ftr-link">{{icon "eye"}} Owl Semaphore</a>
+            <a href="/manifesto" class="ftr-link">{{icon "scroll"}} Manifesto</a>
+            <a href="/communication-standards" class="ftr-link">{{icon "bullhorn"}} Comm Standards</a>
+            <a href="/roe" class="ftr-link">{{icon "scale-balanced"}} Rules of Engagement</a>
         </div>
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "shield-halved" "me-1"}}Legal &amp; About</span>
-            <a href="/security-policy" class="ftr-link">Security Policy</a>
-            <a href="/privacy" class="ftr-link">{{icon "shield-halved" "me-1"}}Privacy</a>
-            <a href="/about" class="ftr-link">Origin Story</a>
-            <a href="/contact" class="ftr-link">Contact</a>
-            <a href="/changelog" class="ftr-link">Changelog</a>
+            <a href="/security-policy" class="ftr-link">{{icon "shield-halved"}} Security Policy</a>
+            <a href="/privacy" class="ftr-link">{{icon "user-shield"}} Privacy</a>
+            <a href="/about" class="ftr-link">{{icon "landmark"}} Origin Story</a>
+            <a href="/contact" class="ftr-link">{{icon "envelope"}} Contact</a>
+            <a href="/changelog" class="ftr-link">{{icon "clock-rotate-left"}} Changelog</a>
         </div>
     </div>
     <div class="text-center mt-3">
