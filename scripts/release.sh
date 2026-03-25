@@ -118,16 +118,28 @@ for entry in old_tree['tree']:
 tracked = subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.strip().split('\n')
 tracked = [f for f in tracked if f]
 
+public_excludes = set()
+excludes_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public-excludes.txt')
+if not os.path.isfile(excludes_path):
+    excludes_path = os.path.join(os.getcwd(), 'scripts', 'public-excludes.txt')
+if os.path.isfile(excludes_path):
+    with open(excludes_path) as ef:
+        for line in ef:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                public_excludes.add(line)
+    print(f"Loaded {len(public_excludes)} path(s) from public-excludes.txt", file=sys.stderr)
+
 excluded = []
 included = []
 for fpath in tracked:
-    if '_intel.go' in fpath or '_intel_test.go' in fpath:
+    if '_intel.go' in fpath or '_intel_test.go' in fpath or fpath in public_excludes:
         excluded.append(fpath)
     else:
         included.append(fpath)
 
 if excluded:
-    print(f"EXCLUDED {len(excluded)} intel file(s)", file=sys.stderr)
+    print(f"EXCLUDED {len(excluded)} intel/proprietary file(s)", file=sys.stderr)
     for ef in excluded:
         print(f"  skip: {ef}", file=sys.stderr)
 
@@ -150,6 +162,11 @@ for rpath in remote_files:
     if rpath not in included:
         if '_intel.go' not in rpath and '_intel_test.go' not in rpath:
             deleted.append(rpath)
+
+for rpath in remote_files:
+    if rpath in public_excludes and rpath not in deleted:
+        deleted.append(rpath)
+        print(f"  purge (public-excludes): {rpath}", file=sys.stderr)
 
 if not changed and not deleted:
     print("UP_TO_DATE", file=sys.stderr)
