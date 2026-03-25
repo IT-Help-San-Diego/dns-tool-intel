@@ -600,7 +600,7 @@ DNS Tool embeds rich JSON-LD structured data on indexed pages, mapping the full 
 - **Design decisions**: RFCs use `CreativeWork` type (not `TechArticle`) because Schema.org defines TechArticle as instructional content — RFCs are specifications. `hasPart` entities include `@id` fragment identifiers for Google entity connection. Live `softwareVersion` injection via Go template variables.
 
 ### Open Graph Social Cards (Platform Compliance)
-All 33 public pages include full Open Graph and Twitter Card metadata for rich social sharing previews:
+All 35+ public pages include full Open Graph and Twitter Card metadata for rich social sharing previews:
 - **Image dimensions**: 1200x630px PNG (optimal for Facebook, LinkedIn, Twitter/X, Discord, Slack)
 - **Required tags on every page**: `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:image:width`, `og:image:height`, `og:image:type`, `og:image:alt`, `og:site_name`
 - **Twitter Cards**: `summary_large_image` with `twitter:title`, `twitter:description`, `twitter:image` (video page uses `player` card type)
