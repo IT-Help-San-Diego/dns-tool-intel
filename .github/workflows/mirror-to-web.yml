@@ -73,7 +73,7 @@ jobs:
 
           if [ -f "$CLONE_DIR/sonar-project.properties" ]; then
             sed -i 's/sonar.projectKey=dns-tool-full/sonar.projectKey=dns-tool-web/' "$CLONE_DIR/sonar-project.properties"
-            sed -i 's/sonar.projectName=DNS Tool (Full Product)/sonar.projectName=DNS Tool/' "$CLONE_DIR/sonar-project.properties"
+            sed -i 's/sonar.projectName=DNS Tool · Canonical Build (dns-tool-intel)/sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)/' "$CLONE_DIR/sonar-project.properties"
           fi
 
           cd "$CLONE_DIR"
