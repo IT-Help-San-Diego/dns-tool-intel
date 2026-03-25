@@ -28,9 +28,31 @@
     </a>
     <p class="mb-1 u-text-footer">We answer the BIG questions.</p>
     <p class="mb-1 text-muted u-footer-tagline">DNS. Open standard since 1983.</p>
-    <p class="mb-0">&copy; {{currentYear}} <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="text-info">IT Help San Diego Inc.</a> All rights reserved.</p>
     <style nonce="{{.CspNonce}}">
-        .ftr-tree { display: flex; flex-direction: column; align-items: center; max-width: 420px; margin: 1.1rem auto 0; padding: 0; }
+        .ftr-tree { display: flex; flex-direction: column; align-items: center; max-width: 740px; margin: 0.5rem auto 0; padding: 0; }
+        .ftr-copyright {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: #8b949e;
+            margin-bottom: 0;
+        }
+        .ftr-copyright a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.7rem;
+            font-weight: 600;
+            color: #c9d1d9;
+            background: rgba(22, 27, 34, 0.55);
+            border: 1px solid rgba(48, 54, 61, 0.4);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: border-color 0.25s, color 0.2s;
+        }
+        .ftr-copyright a:hover { border-color: rgba(200, 149, 106, 0.25); color: #e6edf3; }
+        .ftr-copyright a svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
         .ftr-node {
             position: relative;
             display: flex;
@@ -47,25 +69,91 @@
             transition: border-color 0.25s, color 0.2s;
         }
         a.ftr-node:hover { border-color: rgba(200, 149, 106, 0.25); color: #e6edf3; }
-        .ftr-node--org { font-weight: 600; color: #c9d1d9; font-size: 0.74rem; }
         .ftr-node--project { font-weight: 700; color: #d4a853; border-color: rgba(200, 149, 106, 0.2); font-size: 0.76rem; letter-spacing: 0.02em; }
         .ftr-node svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
-        .ftr-stem { width: 1px; height: 10px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
-        .ftr-stem--long { height: 14px; }
-        .ftr-reg { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .ftr-stem { width: 1px; height: 12px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
+        .ftr-branch {
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+            position: relative;
+        }
+        .ftr-branch-left, .ftr-branch-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .ftr-branch-left { padding-right: 1.5rem; }
+        .ftr-branch-right { padding-left: 1.5rem; }
+        .ftr-branch-arm {
+            width: 1.5rem;
+            height: 1px;
+            background: rgba(200, 149, 106, 0.18);
+            position: absolute;
+            top: 0;
+        }
+        .ftr-branch-arm--left { right: 50%; }
+        .ftr-branch-arm--right { left: 50%; }
+        .ftr-branch-stem-down {
+            width: 1px;
+            height: 8px;
+            background: rgba(200, 149, 106, 0.18);
+        }
         .ftr-reg-tag {
             font-size: 0.62rem;
             color: #6e7681;
-            padding: 0.15rem 0.5rem;
+            padding: 0.18rem 0.55rem;
             border: 1px solid rgba(48, 54, 61, 0.3);
             border-radius: 4px;
             letter-spacing: 0.03em;
+            white-space: nowrap;
         }
+        .ftr-grid-connect {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            height: 16px;
+            max-width: 740px;
+            margin: 0 auto;
+        }
+        .ftr-grid-connect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 1px;
+            height: 8px;
+            background: rgba(200, 149, 106, 0.18);
+        }
+        .ftr-grid-connect::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: calc(12.5% + 0.375rem);
+            right: calc(12.5% + 0.375rem);
+            height: 1px;
+            background: rgba(200, 149, 106, 0.18);
+        }
+        .ftr-grid-stems {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            max-width: 740px;
+            margin: 0 auto;
+        }
+        .ftr-grid-stem-cell { display: flex; justify-content: center; }
+        .ftr-grid-stem-cell > div { width: 1px; height: 8px; background: rgba(200, 149, 106, 0.18); }
         @media (max-width: 640px) {
-            .ftr-tree { max-width: 100%; }
-            .ftr-reg { flex-direction: column; gap: 0.25rem; }
+            .ftr-copyright { flex-wrap: wrap; justify-content: center; font-size: 0.72rem; }
+            .ftr-branch { flex-direction: column; align-items: center; }
+            .ftr-branch-left, .ftr-branch-right { padding: 0; }
+            .ftr-branch-left { padding-bottom: 0.15rem; }
+            .ftr-branch-arm { display: none; }
+            .ftr-branch-stem-down { display: none; }
+            .ftr-grid-connect::after { left: calc(25% + 0.375rem); right: calc(25% + 0.375rem); }
+            .ftr-grid-stems { grid-template-columns: repeat(2, 1fr); }
         }
-        .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0.75rem auto 0; text-align: left; }
+        .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0 auto; text-align: left; }
         @media (max-width: 640px) { .ftr-grid { grid-template-columns: repeat(2, 1fr); } }
         .ftr-cell {
             background: rgba(22, 27, 34, 0.55);
@@ -125,17 +213,36 @@
         .ftr-blacksite svg { opacity: 0.7; }
     </style>
     <nav class="ftr-tree" aria-label="Organizational structure">
-        <span class="ftr-node ftr-node--org">{{icon "building"}} IT Help San Diego Inc.</span>
+        <div class="ftr-copyright">
+            <span>&copy; {{currentYear}}</span>
+            <a href="https://www.it-help.tech" target="_blank" rel="noopener">{{icon "building"}} IT Help San Diego Inc.</a>
+            <span>All rights reserved.</span>
+        </div>
         <div class="ftr-stem"></div>
-        <div class="ftr-reg">
-            <span class="ftr-reg-tag">Incorporated in Delaware</span>
-            <span class="ftr-reg-tag">Foreign Entity in California</span>
+        <div class="ftr-branch">
+            <div class="ftr-branch-arm ftr-branch-arm--left"></div>
+            <div class="ftr-branch-arm ftr-branch-arm--right"></div>
+            <div class="ftr-branch-left">
+                <div class="ftr-branch-stem-down"></div>
+                <span class="ftr-reg-tag">Incorporated in Delaware</span>
+            </div>
+            <div class="ftr-branch-right">
+                <div class="ftr-branch-stem-down"></div>
+                <span class="ftr-reg-tag">Foreign Entity in California</span>
+            </div>
         </div>
         <div class="ftr-stem"></div>
         <span class="ftr-node">{{icon "brain"}} Research Department</span>
-        <div class="ftr-stem ftr-stem--long"></div>
+        <div class="ftr-stem"></div>
         <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
     </nav>
+    <div class="ftr-grid-connect"></div>
+    <div class="ftr-grid-stems">
+        <div class="ftr-grid-stem-cell"><div></div></div>
+        <div class="ftr-grid-stem-cell"><div></div></div>
+        <div class="ftr-grid-stem-cell"><div></div></div>
+        <div class="ftr-grid-stem-cell"><div></div></div>
+    </div>
     <div class="ftr-grid">
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "flask" "me-1"}}Research</span>
