@@ -2957,12 +2957,19 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <table class="table table-sm table-borderless mb-0">
+                                    <thead class="visually-hidden">
+                                        <tr>
+                                            <th scope="col">Property</th>
+                                            <th scope="col">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                                     <tr>
-                                        <td class="text-muted fw-semibold" style="width:140px">Input</td>
+                                        <th scope="row" class="text-muted fw-semibold" style="width:140px">Input</th>
                                         <td><code>{{mapGetStr "input_domain" $web3res}}</code></td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted fw-semibold">Input Kind</td>
+                                        <th scope="row" class="text-muted fw-semibold">Input Kind</th>
                                         <td>
                                             {{if eq (mapGetStr "input_kind" $web3res) "ens_name"}}
                                             <span class="badge bg-primary">ENS (Ethereum Name Service)</span>
@@ -2977,16 +2984,16 @@
                                     </tr>
                                     {{if mapGetStr "resolved_domain" $web3res}}
                                     <tr>
-                                        <td class="text-muted fw-semibold">Resolved To</td>
+                                        <th scope="row" class="text-muted fw-semibold">Resolved To</th>
                                         <td><code>{{mapGetStr "resolved_domain" $web3res}}</code></td>
                                     </tr>
                                     {{end}}
                                     <tr>
-                                        <td class="text-muted fw-semibold">Gateway</td>
+                                        <th scope="row" class="text-muted fw-semibold">Gateway</th>
                                         <td><code>{{mapGetStr "gateway" $web3res}}</code></td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted fw-semibold">Analysis Scope</td>
+                                        <th scope="row" class="text-muted fw-semibold">Analysis Scope</th>
                                         <td>
                                             {{if eq (mapGetStr "analysis_scope" $web3res) "gateway_derived"}}
                                             <span class="badge bg-warning text-dark">Gateway Derived</span>
@@ -3001,6 +3008,7 @@
                                             {{end}}
                                         </td>
                                     </tr>
+                                    </tbody>
                                 </table>
                             </div>
                             <div class="col-md-6">

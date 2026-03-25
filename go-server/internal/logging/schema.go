@@ -48,7 +48,7 @@ const (
 	AttrRemoteAddr      = "remote_addr"
 )
 
-func ScanStarted(domain string, traceID string, analysisID int) []slog.Attr {
+func ScanStarted(domain, traceID string, analysisID int) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventScanStarted),
 		slog.String(AttrCategory, CategoryScan),
@@ -58,7 +58,7 @@ func ScanStarted(domain string, traceID string, analysisID int) []slog.Attr {
 	}
 }
 
-func ScanCompleted(domain string, traceID string, analysisID int, elapsedMs int64) []slog.Attr {
+func ScanCompleted(domain, traceID string, analysisID int, elapsedMs int64) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventScanCompleted),
 		slog.String(AttrCategory, CategoryScan),
@@ -70,7 +70,7 @@ func ScanCompleted(domain string, traceID string, analysisID int, elapsedMs int6
 	}
 }
 
-func ScanFailed(domain string, traceID string, errChain string) []slog.Attr {
+func ScanFailed(domain, traceID, errChain string) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventScanFailed),
 		slog.String(AttrCategory, CategoryScan),
@@ -81,7 +81,7 @@ func ScanFailed(domain string, traceID string, errChain string) []slog.Attr {
 	}
 }
 
-func PhaseStarted(domain string, traceID string, group string, task string) []slog.Attr {
+func PhaseStarted(domain, traceID, group, task string) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventPhaseStarted),
 		slog.String(AttrCategory, CategoryScan),
@@ -92,7 +92,7 @@ func PhaseStarted(domain string, traceID string, group string, task string) []sl
 	}
 }
 
-func PhaseFinished(domain string, traceID string, group string, task string, elapsedMs int64, outcome string) []slog.Attr {
+func PhaseFinished(domain, traceID, group, task string, elapsedMs int64, outcome string) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventPhaseFinished),
 		slog.String(AttrCategory, CategoryScan),
@@ -105,7 +105,7 @@ func PhaseFinished(domain string, traceID string, group string, task string, ela
 	}
 }
 
-func SecurityEvent(event string, traceID string, remoteAddr string, extra ...slog.Attr) []slog.Attr {
+func SecurityEvent(event, traceID, remoteAddr string, extra ...slog.Attr) []slog.Attr {
 	attrs := []slog.Attr{
 		slog.String(AttrEvent, event),
 		slog.String(AttrCategory, CategorySecurity),
@@ -115,7 +115,7 @@ func SecurityEvent(event string, traceID string, remoteAddr string, extra ...slo
 	return append(attrs, extra...)
 }
 
-func ExternalCall(service string, traceID string, httpStatus int, elapsedMs int64, outcome string) []slog.Attr {
+func ExternalCall(service, traceID string, httpStatus int, elapsedMs int64, outcome string) []slog.Attr {
 	return []slog.Attr{
 		slog.String(AttrEvent, EventExternalCall),
 		slog.String(AttrCategory, CategoryExternalAPI),

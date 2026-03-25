@@ -214,7 +214,7 @@
 
     <main id="main-content" class="container mt-4 mb-5">
         <div class="video-page-wrap">
-            <div class="video-container">
+            <div class="video-container" role="group" aria-label="Video: Forgotten Domain — why dormant domains need published DNS policy">
                 {{if .YouTubeID}}
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden">
                     <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
@@ -234,7 +234,7 @@
                 <p style="font-size:0.82rem;color:#c8956a;font-style:italic;margin-bottom:0.75rem">Trigger Warning: If you disable security settings just to make things work, this video may not be for you. In other words, you may experience feelings of shame.</p>
                 <p>A domain registered for ten years with no published mail policy is not dormant &mdash; it is exposed. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
 
-                <div class="dns-records">
+                <div class="dns-records" role="figure" aria-label="Recommended DNS records for dormant domains">
                     <span class="rec-label">SPF:</span> v=spf1 -all<br>
                     <span class="rec-label">DMARC:</span> v=DMARC1; p=reject;<br>
                     <span class="rec-label">MX:</span> 0 .

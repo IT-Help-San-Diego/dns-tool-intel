@@ -484,6 +484,28 @@
             color: #8b949e;
             font-weight: 500;
         }
+        .bsi-collapse-toggle {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            font-family: ui-monospace, monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            line-height: inherit;
+        }
+        .bsi-collapse-toggle:focus-visible {
+            outline: 2px solid #58a6ff;
+            outline-offset: 2px;
+            border-radius: 3px;
+        }
         @media print {
             .bsi-page::before { display: none; }
             .bsi-page { background: #fff; }
@@ -498,7 +520,7 @@
 <body class="bsi-page">
     {{template "nav" .}}
     <a href="#main-content" class="u-skip-link">Skip to content</a>
-    <main id="main-content" class="bsi-content" role="main">
+    <main id="main-content" class="bsi-content">
 
     <header class="bsi-facility-header">
         <div class="container">
@@ -688,9 +710,11 @@
 
         {{if .S3Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title" role="button" tabindex="0" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings" style="cursor:pointer;">
-                {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span style="font-weight:400; color:#c8956a;">({{len .S3Findings}})</span>
-                <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+            <h2 class="bsi-section-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+                <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings">
+                    {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span style="font-weight:400; color:#c8956a;">({{len .S3Findings}})</span>
+                    <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+                </button>
             </h2>
             <div class="collapse" id="s3Findings">
             <div class="table-responsive">
@@ -716,9 +740,11 @@
 
         {{if .S4Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title" role="button" tabindex="0" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings" style="cursor:pointer;">
-                {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span style="font-weight:400; color:#8b949e;">({{len .S4Findings}})</span>
-                <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+            <h2 class="bsi-section-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+                <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings">
+                    {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span style="font-weight:400; color:#8b949e;">({{len .S4Findings}})</span>
+                    <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+                </button>
             </h2>
             <div class="collapse" id="s4Findings">
             <div class="table-responsive">
