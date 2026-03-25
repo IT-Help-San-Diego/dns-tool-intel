@@ -20,21 +20,32 @@ jobs:
         with:
           go-version: '1.25'
 
+      - name: Detect repo role
+        id: role
+        run: |
+          if [[ "${{ github.repository }}" == *"-intel" ]]; then
+            echo "tags=-tags intel" >> "$GITHUB_OUTPUT"
+            echo "role=intel" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=" >> "$GITHUB_OUTPUT"
+            echo "role=web" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build binary
         run: |
           cd go-server
-          CGO_ENABLED=0 go build -tags intel -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
+          CGO_ENABLED=0 go build ${{ steps.role.outputs.tags }} -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
         env:
-          DNS_TOOL_REPO_ROLE: intel
+          DNS_TOOL_REPO_ROLE: ${{ steps.role.outputs.role }}
 
       - name: Run tests
         run: |
-          go test ./go-server/... -tags intel \
+          go test ./go-server/... ${{ steps.role.outputs.tags }} \
             -skip 'NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory|BoundaryIntegrity_FullRepoScan|IsOriginVisible|EdgeCDNMapsEmpty|GoldenRuleStubBoundary|ScrutinyClassificationAllFiles' \
             -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
-          DNS_TOOL_REPO_ROLE: intel
+          DNS_TOOL_REPO_ROLE: ${{ steps.role.outputs.role }}
           GOGC: '50'
           GOMEMLIMIT: '6000MiB'
 
