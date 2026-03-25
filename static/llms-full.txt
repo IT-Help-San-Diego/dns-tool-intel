@@ -212,7 +212,7 @@ Privacy guards: Private analyses and scanner-flagged analyses are never sent to 
 This completes a three-layer evidence chain:
 1. **SHA-3-512 integrity hash** — cryptographic fingerprint binding domain, analysis ID, timestamp, version, and results
 2. **Posture hash** — canonical SHA-3-512 for longitudinal drift detection
-3. **Wayback Machine archive** — independent third-party snapshot for tamper-evident verification
+3. **Wayback Machine archive** — independent third-party snapshot for tamper-proof verification
 
 ---
 
@@ -309,9 +309,61 @@ Platform color palette with accessibility rationale, contrast ratios, and usage 
 URL: `https://dnstool.it-help.tech/badge`
 Embeddable security posture badges (SVG and Shields.io format) for displaying domain security status. Supports multiple badge styles and embed formats.
 
-### About
+### Origin Story
 URL: `https://dnstool.it-help.tech/about`
-Project background, team information, and mission statement.
+Project background, founding mission, team information, and the story behind DNS Tool's creation.
+
+### Publications
+URL: `https://dnstool.it-help.tech/publications`
+Consolidated index of all scientific papers, case studies, governance documents, and technical documentation. Includes format badges (PDF/HTML/Video), metadata, and DOI citation links.
+
+### Case Studies
+URL: `https://dnstool.it-help.tech/case-study/`
+Domain Confessions series analyzing real-world DNS security postures across organizations. Each case study provides detailed analysis with methodology, findings, and implications.
+
+### Research Corpus
+URL: `https://dnstool.it-help.tech/corpus`
+Inline PDF reading with split-pane layout for all published research documents. Provides direct access to the full text of DNS Tool's scientific output.
+
+### Cite
+URL: `https://dnstool.it-help.tech/cite`
+Citation information and DOI links for referencing DNS Tool research in academic and professional publications.
+
+### Reference Library
+URL: `https://dnstool.it-help.tech/reference-library`
+Curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology.
+
+### Topology
+URL: `https://dnstool.it-help.tech/topology`
+Canvas 2D visualization of DNS resolver PoPs (Points of Presence) and scan pipeline topology. Shows the geographic distribution and logical structure of DNS Tool's multi-resolver infrastructure.
+
+### Contact
+URL: `https://dnstool.it-help.tech/contact`
+Company contact information and communication channels for IT Help San Diego Inc.
+
+### Security Policy
+URL: `https://dnstool.it-help.tech/security-policy`
+Responsible disclosure policy and security contact information for reporting vulnerabilities.
+
+### Privacy Policy
+URL: `https://dnstool.it-help.tech/privacy`
+Data handling practices, account deletion procedures, and DNS record retention policies. Explains what data is collected, how it is used, and user rights.
+
+### Owl Semaphore
+URL: `https://dnstool.it-help.tech/owl-semaphore`
+Three-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT) for document classification. Visual signal system indicating the normative status of DNS Tool publications.
+
+### Manifesto
+URL: `https://dnstool.it-help.tech/manifesto`
+Founding principles and philosophical framework behind DNS Tool's approach to domain security. Articulates why rigorous DNS analysis matters and the values guiding development.
+
+### Communication Standards
+URL: `https://dnstool.it-help.tech/communication-standards`
+Editorial and communication guidelines governing all DNS Tool publications. Defines voice, tone, and accuracy standards for external communications.
+
+### Rules of Engagement
+URL: `https://dnstool.it-help.tech/roe`
+Operational boundaries and ethical guidelines for DNS Tool's analysis capabilities. Defines what DNS Tool will and will not do with the access and data it processes.
 
 ### Subdomain Discovery FAQ
 URL: `https://dnstool.it-help.tech/faq/subdomains`
@@ -435,7 +487,7 @@ A static, zero-JavaScript public overview of the system architecture, classified
 4. **Open-Core Architecture**: BUSL-1.1 license model with public web layer and private intelligence module, build-tag gated compilation
 5. **Intelligence Products**: Five outputs — Engineer's Report, Executive's Brief, Recon Report, Domain Dossier, Domain Comparison
 6. **Standards Foundation**: ICD 203, NIST SP 800-53 SI-7, ISO/IEC 25012, FIPS 202 (SHA-3)
-7. **Evidence Chain**: Three-layer tamper-evident evidence — SHA-3-512 integrity hash, posture drift hash, and Internet Archive Wayback Machine snapshot for independent third-party verification
+7. **Evidence Chain**: Three-layer tamper-proof evidence — SHA-3-512 integrity hash, posture drift hash, and Internet Archive Wayback Machine snapshot for independent third-party verification
 8. **Distributed Probe Mesh (Future)**: Volunteer browser-based DNS probes via DoH relay with Byzantine-resilient consensus (≥3 ASNs, ≥2 regions), reputation-weighted scoring, trusted anchor nodes, and "Good Net Citizens" community model
 9. **Encrypted DNS Transport Detection (Future)**: DoH (RFC 8484), DoT (RFC 7858), and DDR (RFC 9462) posture analysis for domain resolver infrastructure
 
