@@ -82,7 +82,18 @@ EXCLUDE_PREFIXES = (
     'artifacts/', '.github/workflows/'
 )
 
+PUBLIC_EXCLUDES = set()
+_pe_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public-excludes.txt')
+if os.path.isfile(_pe_path):
+    with open(_pe_path) as _pf:
+        for _line in _pf:
+            _line = _line.strip()
+            if _line and not _line.startswith('#'):
+                PUBLIC_EXCLUDES.add(_line)
+
 def is_excluded(path):
+    if path in PUBLIC_EXCLUDES:
+        return True
     parts = path.split('/')
     for p in parts:
         if p in EXCLUDE_DIRS:
