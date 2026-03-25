@@ -309,9 +309,61 @@ Platform color palette with accessibility rationale, contrast ratios, and usage 
 URL: `https://dnstool.it-help.tech/badge`
 Embeddable security posture badges (SVG and Shields.io format) for displaying domain security status. Supports multiple badge styles and embed formats.
 
-### About
+### Origin Story
 URL: `https://dnstool.it-help.tech/about`
-Project background, team information, and mission statement.
+Project background, founding mission, team information, and the story behind DNS Tool's creation.
+
+### Publications
+URL: `https://dnstool.it-help.tech/publications`
+Consolidated index of all scientific papers, case studies, governance documents, and technical documentation. Includes format badges (PDF/HTML/Video), metadata, and DOI citation links.
+
+### Case Studies
+URL: `https://dnstool.it-help.tech/case-study/`
+Domain Confessions series analyzing real-world DNS security postures across organizations. Each case study provides detailed analysis with methodology, findings, and implications.
+
+### Research Corpus
+URL: `https://dnstool.it-help.tech/corpus`
+Inline PDF reading with split-pane layout for all published research documents. Provides direct access to the full text of DNS Tool's scientific output.
+
+### Cite
+URL: `https://dnstool.it-help.tech/cite`
+Citation information and DOI links for referencing DNS Tool research in academic and professional publications.
+
+### Reference Library
+URL: `https://dnstool.it-help.tech/reference-library`
+Curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology.
+
+### Topology
+URL: `https://dnstool.it-help.tech/topology`
+Canvas 2D visualization of DNS resolver PoPs (Points of Presence) and scan pipeline topology. Shows the geographic distribution and logical structure of DNS Tool's multi-resolver infrastructure.
+
+### Contact
+URL: `https://dnstool.it-help.tech/contact`
+Company contact information and communication channels for IT Help San Diego Inc.
+
+### Security Policy
+URL: `https://dnstool.it-help.tech/security-policy`
+Responsible disclosure policy and security contact information for reporting vulnerabilities.
+
+### Privacy Policy
+URL: `https://dnstool.it-help.tech/privacy`
+Data handling practices, account deletion procedures, and DNS record retention policies. Explains what data is collected, how it is used, and user rights.
+
+### Owl Semaphore
+URL: `https://dnstool.it-help.tech/owl-semaphore`
+Three-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT) for document classification. Visual signal system indicating the normative status of DNS Tool publications.
+
+### Manifesto
+URL: `https://dnstool.it-help.tech/manifesto`
+Founding principles and philosophical framework behind DNS Tool's approach to domain security. Articulates why rigorous DNS analysis matters and the values guiding development.
+
+### Communication Standards
+URL: `https://dnstool.it-help.tech/communication-standards`
+Editorial and communication guidelines governing all DNS Tool publications. Defines voice, tone, and accuracy standards for external communications.
+
+### Rules of Engagement
+URL: `https://dnstool.it-help.tech/roe`
+Operational boundaries and ethical guidelines for DNS Tool's analysis capabilities. Defines what DNS Tool will and will not do with the access and data it processes.
 
 ### Subdomain Discovery FAQ
 URL: `https://dnstool.it-help.tech/faq/subdomains`
