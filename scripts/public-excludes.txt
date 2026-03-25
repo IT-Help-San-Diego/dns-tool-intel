@@ -1,3 +1,12 @@
+# Files that must NEVER reach dns-tool-web (public mirror).
+# One path per line. Checked by release.sh Step 4 and sync-to-web.sh.
+
+# Proprietary documentation
 docs/ARCHITECTURE_CLASSIFIED.md
 INTEL_METHODOLOGY.md
 FILELIST.md
+
+# Intel-only workflows (these run on dns-tool-intel, not dns-tool-web)
+.github/workflows/mirror-to-web.yml
+.github/workflows/mirror-codeberg.yml
+.github/workflows/backup-offsite.yml
