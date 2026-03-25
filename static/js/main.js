@@ -2,7 +2,7 @@
     if (document.documentElement.classList.contains('covert-mode')) {
         document.body.classList.add('covert-mode');
         try {
-            const env = localStorage.getItem('covertEnv') || 'tactical';
+            const env = localStorage.getItem('covertEnv') ?? 'tactical';
             document.body.classList.add('covert-' + env);
         } catch(_e) { /* localStorage unavailable — fall back to tactical */ // NOSONAR
             document.body.classList.add('covert-tactical');
@@ -22,7 +22,7 @@
 function parseIcon(html) {
     if (!html) return document.createTextNode('');
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.firstElementChild || document.createTextNode('');
+    return doc.body.firstElementChild ?? document.createTextNode('');
 }
 
 function setIconAndText(el, iconHtml, text) {
@@ -31,13 +31,25 @@ function setIconAndText(el, iconHtml, text) {
     if (text) el.appendChild(document.createTextNode(text));
 }
 
+function stripDots(s) {
+    let d = s;
+    while (d.charAt(0) === '.') d = d.slice(1);
+    while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
+    return d;
+}
+
+function isValidLabel(label) {
+    if (label.length === 0 || label.length > 63) return false;
+    return !(label.startsWith('-') || label.endsWith('-'));
+}
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
 }
 
 globalThis.addEventListener('pageshow', function(e) {
     if (e.persisted) {
-        document.querySelectorAll('.loading-overlay').forEach(function(overlay) {
+        for (const overlay of document.querySelectorAll('.loading-overlay')) {
             overlay.classList.remove('is-active');
             if (overlay.dataset.timerId) {
                 clearInterval(Number(overlay.dataset.timerId));
@@ -47,7 +59,7 @@ globalThis.addEventListener('pageshow', function(e) {
                 clearInterval(Number(overlay.dataset.pollId));
                 delete overlay.dataset.pollId;
             }
-        });
+        }
         resetTopologyNodes();
         document.body.classList.remove('loading');
         const reanalyzeBtn = document.getElementById('reanalyzeBtn');
@@ -57,13 +69,13 @@ globalThis.addEventListener('pageshow', function(e) {
         }
         const analyzeBtn = document.getElementById('analyzeBtn');
         if (analyzeBtn) {
-            setIconAndText(analyzeBtn, window._icons ? window._icons.search : null, ' Analyze');
+            setIconAndText(analyzeBtn, window._icons?.search ?? null, ' Analyze');
             analyzeBtn.disabled = false;
         }
-        document.querySelectorAll('.history-view-btn,.history-reanalyze-btn').forEach(function(b) {
+        for (const b of document.querySelectorAll('.history-view-btn,.history-reanalyze-btn')) {
             b.classList.remove('disabled');
             b.removeAttribute('aria-disabled');
-        });
+        }
     }
 });
 
@@ -101,15 +113,15 @@ function showOverlay(overlay) {
                 const anim = getComputedStyle(els[i]).animationName;
                 if (anim && anim !== 'none') animated.push(els[i]);
             }
-            for (let j = 0; j < animated.length; j++) animated[j].classList.add('anim-restart');
+            for (const el of animated) el.classList.add('anim-restart');
             if (animated.length) void animated[0].offsetWidth; // NOSONAR — single reflow to restart all animations (Safari)
-            for (let k = 0; k < animated.length; k++) animated[k].classList.remove('anim-restart');
+            for (const el of animated) el.classList.remove('anim-restart');
         });
     });
 }
 
 function startStatusCycle(overlayEl) {
-    const timerEl = document.getElementById('loadingTimer') || overlayEl.querySelector('.loading-elapsed span');
+    const timerEl = document.getElementById('loadingTimer') ?? overlayEl.querySelector('.loading-elapsed span');
     const noteEl = document.getElementById('loadingNote');
     const startTime = Date.now();
 
@@ -141,80 +153,88 @@ const CONN_ACTIVE_CLASSES = ['conn-active-dns','conn-active-email','conn-active-
 const RESOLVER_KEYS = ['cf','g','q9','od','eu'];
 const RES_DONE_CLASSES = ['res-done-cf','res-done-g','res-done-q9','res-done-od','res-done-eu'];
 
+function removeClasses(el, classes) {
+    for (const c of classes) el.classList.remove(c);
+}
+
 function updateResolverDots(topoEl, dnsStatus) {
-    RESOLVER_KEYS.forEach(function(rk) {
+    for (const rk of RESOLVER_KEYS) {
         const dots = topoEl.querySelectorAll('.topo-res-dot[data-resolver="' + rk + '"]');
         const lines = topoEl.querySelectorAll('.topo-res-line[data-resolver="' + rk + '"]');
         const labels = topoEl.querySelectorAll('.topo-res-label[data-resolver="' + rk + '"]');
-        dots.forEach(function(d) {
+        for (const d of dots) {
             d.classList.remove('res-running');
-            RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
-        });
-        lines.forEach(function(l) {
-            l.classList.remove('res-running');
-            RES_DONE_CLASSES.forEach(function(c) { l.classList.remove(c); });
-        });
-        labels.forEach(function(lb) { lb.classList.remove('res-label-done'); });
-        if (dnsStatus === 'running') {
-            dots.forEach(function(d) { d.classList.add('res-running'); });
-            lines.forEach(function(l) { l.classList.add('res-running'); });
-        } else if (dnsStatus === 'done') {
-            dots.forEach(function(d) { d.classList.add('res-done-' + rk); });
-            lines.forEach(function(l) { l.classList.add('res-done-' + rk); });
-            labels.forEach(function(lb) { lb.classList.add('res-label-done'); });
+            removeClasses(d, RES_DONE_CLASSES);
         }
-    });
+        for (const l of lines) {
+            l.classList.remove('res-running');
+            removeClasses(l, RES_DONE_CLASSES);
+        }
+        for (const lb of labels) lb.classList.remove('res-label-done');
+        if (dnsStatus === 'running') {
+            for (const d of dots) d.classList.add('res-running');
+            for (const l of lines) l.classList.add('res-running');
+        } else if (dnsStatus === 'done') {
+            for (const d of dots) d.classList.add('res-done-' + rk);
+            for (const l of lines) l.classList.add('res-done-' + rk);
+            for (const lb of labels) lb.classList.add('res-label-done');
+        }
+    }
+}
+
+function updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group) {
+    node.classList.remove('phase-running', 'phase-done');
+    removeClasses(node, PHASE_DONE_CLASSES);
+    removeClasses(node, PHASE_RUNNING_CLASSES);
+    if (taskEl) {
+        taskEl.classList.remove('sub-done');
+        removeClasses(taskEl, SUB_RUNNING_CLASSES);
+        if (info.tasks_total > 0) {
+            taskEl.textContent = (info.tasks_done ?? 0) + '/' + info.tasks_total;
+        }
+    }
+    if (info.status === 'done') {
+        node.classList.add('phase-done', 'phase-done-' + pkey);
+        if (taskEl) taskEl.classList.add('sub-done');
+        if (durEl && info.duration_ms > 0) {
+            durEl.textContent = (info.duration_ms / 1000).toFixed(1) + 's';
+            durEl.classList.add('visible');
+        }
+        for (const line of topoEl.querySelectorAll('.topo-connector')) {
+            if (line.getAttribute('data-from') === group) {
+                line.classList.remove('active');
+                removeClasses(line, CONN_ACTIVE_CLASSES);
+                line.classList.add('complete', 'conn-done-' + pkey);
+            }
+        }
+    } else if (info.status === 'running') {
+        node.classList.add('phase-running', 'phase-running-' + pkey);
+        if (taskEl) taskEl.classList.add('sub-running-' + pkey);
+        for (const line of topoEl.querySelectorAll('.topo-connector')) {
+            if (line.getAttribute('data-from') === group) {
+                line.classList.add('active', 'conn-active-' + pkey);
+            }
+        }
+    }
 }
 
 function updateTopologyFromProgress(data) {
     const topoEl = document.getElementById('scanTopology');
-    if (!topoEl || !data || !data.phases) return;
+    if (!topoEl || !data?.phases) return;
     const phases = data.phases;
     const dnsPhase = phases['dns_records'];
     if (dnsPhase) {
         updateResolverDots(topoEl, dnsPhase.status);
     }
-    Object.keys(phases).forEach(function(group) {
+    for (const group of Object.keys(phases)) {
         const info = phases[group];
         const node = topoEl.querySelector('[data-phase="' + group + '"]');
         const durEl = topoEl.querySelector('[data-dur="' + group + '"]');
         const taskEl = topoEl.querySelector('[data-tasks="' + group + '"]');
-        if (!node) return;
-        const pkey = node.getAttribute('data-pkey') || 'dns';
-        node.classList.remove('phase-running', 'phase-done');
-        PHASE_DONE_CLASSES.forEach(function(c) { node.classList.remove(c); });
-        PHASE_RUNNING_CLASSES.forEach(function(c) { node.classList.remove(c); });
-        if (taskEl) {
-            taskEl.classList.remove('sub-done');
-            SUB_RUNNING_CLASSES.forEach(function(c) { taskEl.classList.remove(c); });
-            if (info.tasks_total > 0) {
-                taskEl.textContent = (info.tasks_done || 0) + '/' + info.tasks_total;
-            }
-        }
-        if (info.status === 'done') {
-            node.classList.add('phase-done', 'phase-done-' + pkey);
-            if (taskEl) taskEl.classList.add('sub-done');
-            if (durEl && info.duration_ms > 0) {
-                durEl.textContent = (info.duration_ms / 1000).toFixed(1) + 's';
-                durEl.classList.add('visible');
-            }
-            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.getAttribute('data-from') === group) {
-                    line.classList.remove('active');
-                    CONN_ACTIVE_CLASSES.forEach(function(c) { line.classList.remove(c); });
-                    line.classList.add('complete', 'conn-done-' + pkey);
-                }
-            });
-        } else if (info.status === 'running') {
-            node.classList.add('phase-running', 'phase-running-' + pkey);
-            if (taskEl) taskEl.classList.add('sub-running-' + pkey);
-            topoEl.querySelectorAll('.topo-connector').forEach(function(line) {
-                if (line.getAttribute('data-from') === group) {
-                    line.classList.add('active', 'conn-active-' + pkey);
-                }
-            });
-        }
-    });
+        if (!node) continue;
+        const pkey = node.getAttribute('data-pkey') ?? 'dns';
+        updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group);
+    }
 }
 
 function startProgressPolling(token, overlay, analyzeBtn) {
@@ -288,7 +308,7 @@ function hideOverlayAndReset(overlay, btn) {
     resetTopologyNodes();
     document.body.classList.remove('loading');
     if (btn) {
-        setIconAndText(btn, window._icons ? window._icons.search : null, ' Analyze');
+        setIconAndText(btn, window._icons?.search ?? null, ' Analyze');
         btn.disabled = false;
     }
 }
@@ -303,9 +323,9 @@ function showFlashAlert(message, container) {
     closeBtn.className = 'btn-close';
     closeBtn.dataset.bsDismiss = 'alert';
     flash.appendChild(closeBtn);
-    const target = container || document.body;
+    const target = container ?? document.body;
     const form = target.querySelector('#domainForm');
-    if (form && form.parentNode) {
+    if (form?.parentNode) {
         form.parentNode.insertBefore(flash, form);
     } else {
         target.insertBefore(flash, target.firstChild);
@@ -316,35 +336,35 @@ function resetTopologyNodes() {
     const topoEl = document.getElementById('scanTopology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
-    topoEl.querySelectorAll('.topo-node').forEach(function(n) {
+    for (const n of topoEl.querySelectorAll('.topo-node')) {
         n.classList.remove('phase-running', 'phase-done');
-        PHASE_DONE_CLASSES.forEach(function(c) { n.classList.remove(c); });
-        PHASE_RUNNING_CLASSES.forEach(function(c) { n.classList.remove(c); });
-    });
-    topoEl.querySelectorAll('.topo-dur').forEach(function(d) {
+        removeClasses(n, PHASE_DONE_CLASSES);
+        removeClasses(n, PHASE_RUNNING_CLASSES);
+    }
+    for (const d of topoEl.querySelectorAll('.topo-dur')) {
         d.textContent = '';
         d.classList.remove('visible');
-    });
-    topoEl.querySelectorAll('.topo-sub[data-tasks]').forEach(function(t) {
+    }
+    for (const t of topoEl.querySelectorAll('.topo-sub[data-tasks]')) {
         t.classList.remove('sub-done');
-        SUB_RUNNING_CLASSES.forEach(function(c) { t.classList.remove(c); });
-    });
-    topoEl.querySelectorAll('.topo-connector').forEach(function(c) {
+        removeClasses(t, SUB_RUNNING_CLASSES);
+    }
+    for (const c of topoEl.querySelectorAll('.topo-connector')) {
         c.classList.remove('active', 'complete');
-        CONN_DONE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
-        CONN_ACTIVE_CLASSES.forEach(function(cls) { c.classList.remove(cls); });
-    });
-    topoEl.querySelectorAll('.topo-res-dot').forEach(function(d) {
+        removeClasses(c, CONN_DONE_CLASSES);
+        removeClasses(c, CONN_ACTIVE_CLASSES);
+    }
+    for (const d of topoEl.querySelectorAll('.topo-res-dot')) {
         d.classList.remove('res-running');
-        RES_DONE_CLASSES.forEach(function(c) { d.classList.remove(c); });
-    });
-    topoEl.querySelectorAll('.topo-res-line').forEach(function(l) {
+        removeClasses(d, RES_DONE_CLASSES);
+    }
+    for (const l of topoEl.querySelectorAll('.topo-res-line')) {
         l.classList.remove('res-running');
-        RES_DONE_CLASSES.forEach(function(c) { l.classList.remove(c); });
-    });
-    topoEl.querySelectorAll('.topo-res-label').forEach(function(lb) {
+        removeClasses(l, RES_DONE_CLASSES);
+    }
+    for (const lb of topoEl.querySelectorAll('.topo-res-label')) {
         lb.classList.remove('res-label-done');
-    });
+    }
 }
 
 function isBareTopLevelDomain(domain) {
@@ -372,13 +392,13 @@ function swapToTLDScanPhases(overlay) {
         { delay: 12000, normal: 'Classifying \u0026 Interpreting Intelligence', covert: 'Correlating attack surface\u2026' }
     ];
     checklist.textContent = '';
-    phases.forEach(function(p) {
+    for (const p of phases) {
         const div = document.createElement('div');
         div.className = 'scan-phase';
         div.dataset.delay = p.delay;
         const iconWrap = document.createElement('span');
         iconWrap.className = 'scan-icon scan-pending';
-        iconWrap.appendChild(parseIcon(window._icons ? window._icons.spinner : ''));
+        iconWrap.appendChild(parseIcon(window._icons?.spinner ?? ''));
         iconWrap.setAttribute('aria-hidden', 'true');
         const span = document.createElement('span');
         span.className = isCovert ? 'covert-show' : 'covert-hide';
@@ -386,7 +406,7 @@ function swapToTLDScanPhases(overlay) {
         div.appendChild(iconWrap);
         div.appendChild(span);
         checklist.appendChild(div);
-    });
+    }
 }
 
 function showCovertTLDToast(domain, callback) {
@@ -426,18 +446,6 @@ function showCovertTLDToast(domain, callback) {
             if (callback) callback();
         }, 300);
     }, 4000);
-}
-
-function stripDots(s) {
-    let d = s;
-    while (d.charAt(0) === '.') d = d.slice(1);
-    while (d.charAt(d.length - 1) === '.') d = d.slice(0, -1);
-    return d;
-}
-
-function isValidLabel(label) {
-    if (label.length === 0 || label.length > 63) return false;
-    return !(label.startsWith('-') || label.endsWith('-'));
 }
 
 function isValidDomain(domain) {
@@ -504,11 +512,11 @@ function createCopyHandler(codeBlock, btn) {
     return function(e) {
         e.stopPropagation();
         let copyText = '';
-        codeBlock.childNodes.forEach(function(node) {
+        for (const node of codeBlock.childNodes) {
             if (node !== btn && !node.classList?.contains('copy-btn')) {
                 copyText += node.textContent;
             }
-        });
+        }
         copyText = copyText.trim();
 
         navigator.clipboard.writeText(copyText).then(
@@ -522,11 +530,11 @@ function createCopyHandler(codeBlock, btn) {
 const covertEnvClasses = ['covert-submarine', 'covert-tactical', 'covert-basement'];
 
 function clearCovertEnv() {
-    covertEnvClasses.forEach(function(c) { document.body.classList.remove(c); });
+    for (const c of covertEnvClasses) document.body.classList.remove(c);
 }
 
 function getCovertEnv() {
-    try { return localStorage.getItem('covertEnv') || 'tactical'; } catch(_e) { return 'tactical'; } // NOSONAR
+    try { return localStorage.getItem('covertEnv') ?? 'tactical'; } catch(_e) { return 'tactical'; } // NOSONAR
 }
 
 function hasAcceptedROE() {
@@ -537,19 +545,33 @@ function markROEAccepted() {
     try { localStorage.setItem('roeAccepted', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
+let _morseAudio = null;
+function _ensureMorseAudio() {
+    if (!_morseAudio) {
+        try {
+            _morseAudio = new Audio('/static/audio/morse-hack-the-planet.m4a');
+            _morseAudio.volume = 0.4;
+            _morseAudio.preload = 'auto';
+        } catch(_e) { /* Audio API unavailable */ } // NOSONAR
+    }
+    return _morseAudio;
+}
 function playMorseEasterEgg() {
     try {
-        const a = new Audio('/static/audio/morse-hack-the-planet.m4a');
-        a.volume = 0.4;
-        a.play().catch(function() { /* intentionally empty — autoplay may be blocked by browser policy */ }); // NOSONAR
+        const a = _ensureMorseAudio();
+        if (a) {
+            a.currentTime = 0;
+            a.play().catch(function(err) {
+                console.warn('Morse audio blocked by autoplay policy:', err.message);
+            });
+        }
     } catch(_e) { /* intentionally empty — Audio API unavailable in some contexts */ } // NOSONAR
 }
 
 function updateEnvButtons(env) {
-    const btns = document.querySelectorAll('.covert-env-btn');
-    btns.forEach(function(b) {
+    for (const b of document.querySelectorAll('.covert-env-btn')) {
         b.classList.toggle('active', b.dataset.env === env);
-    });
+    }
 }
 
 const covertThemeColors = { submarine: '#0a0404', tactical: '#1a0808', basement: '#140606' };
@@ -558,15 +580,16 @@ const defaultThemeColors = [];
 function updateThemeColor(env) {
     const metas = document.querySelectorAll('meta[name="theme-color"]');
     if (!defaultThemeColors.length && metas.length) {
-        metas.forEach(function(m) { defaultThemeColors.push(m.getAttribute('content') || '#0d1117'); });
+        for (const m of metas) defaultThemeColors.push(m.getAttribute('content') ?? '#0d1117');
     }
-    const color = covertThemeColors[env] || covertThemeColors.tactical;
-    metas.forEach(function(m) { m.setAttribute('content', color); });
+    const color = covertThemeColors[env] ?? covertThemeColors.tactical;
+    for (const m of metas) m.setAttribute('content', color);
 }
 
 function restoreThemeColor() {
     const metas = document.querySelectorAll('meta[name="theme-color"]');
-    metas.forEach(function(m, i) { m.setAttribute('content', defaultThemeColors[i] || '#0d1117'); });
+    let i = 0;
+    for (const m of metas) { m.setAttribute('content', defaultThemeColors[i] ?? '#0d1117'); i++; }
 }
 
 function setCovertEnv(env) {
@@ -603,14 +626,19 @@ function setCovertMode(active) {
     try { localStorage.setItem('covertMode', active ? '1' : '0'); } catch(_e) { /* storage unavailable */ } // NOSONAR
 }
 
+function saveScrollPosition() {
+    try { sessionStorage.setItem('covert_scroll_y', String(globalThis.scrollY)); } catch(_e) { /* storage unavailable */ } // NOSONAR
+}
+
 function activateCovertOrSwitch() {
     const idEl = document.querySelector('[data-analysis-id]');
     const modeMeta = document.querySelector('meta[name="x-report-mode"]');
     if (idEl && modeMeta) {
         const aid = idEl.dataset.analysisId;
-        const cur = (modeMeta.getAttribute('content') || 'E').toUpperCase();
+        const cur = (modeMeta.getAttribute('content') ?? 'E').toUpperCase();
         if (aid && (cur === 'E' || cur === 'C')) {
             const target = cur === 'E' ? 'C' : 'E';
+            saveScrollPosition();
             globalThis.location.href = '/analysis/' + aid + '/view/' + target;
             return;
         }
@@ -624,7 +652,7 @@ function handleAnalyzeLinkClick(e) {
     const overlay = document.getElementById('loadingOverlay');
     const loadingDomain = document.getElementById('loadingDomain');
     const url = new URL(link.href, globalThis.location.origin);
-    const domain = url.searchParams.get('domain') || '';
+    const domain = url.searchParams.get('domain') ?? '';
     if (overlay) {
         if (loadingDomain) loadingDomain.textContent = domain;
         showOverlay(overlay);
@@ -641,13 +669,13 @@ function handleAnalyzeLinkClick(e) {
 }
 
 function privacyWasDismissed() {
-    try { if (localStorage.getItem('privacyAck') === '1') return true; } catch(_e) {}
-    try { if (document.cookie.indexOf('privacyAck=1') !== -1) return true; } catch(_e) {}
+    try { if (localStorage.getItem('privacyAck') === '1') return true; } catch(_e) { /* storage unavailable */ } // NOSONAR
+    try { if (document.cookie.indexOf('privacyAck=1') !== -1) return true; } catch(_e) { /* cookie unavailable */ } // NOSONAR
     return false;
 }
 function persistPrivacyDismiss() {
-    try { localStorage.setItem('privacyAck', '1'); } catch(_e) {}
-    try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) {}
+    try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
+    try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) { /* cookie unavailable */ } // NOSONAR
 }
 function initPrivacyBanner() {
     const banner = document.getElementById('privacyBanner');
@@ -664,7 +692,7 @@ function initPrivacyBanner() {
         acceptBtn.onclick = dismissBanner;
     }
     banner.addEventListener('click', function(e) {
-        if (e.target.closest && e.target.closest('#privacyAccept')) {
+        if (e.target.closest?.('#privacyAccept')) {
             dismissBanner(e);
         }
     });
@@ -677,6 +705,36 @@ function initPrivacyToggle() {
         function togglePrivacy() { privDetail.classList.toggle('d-none'); }
         privToggle.addEventListener('click', togglePrivacy);
         privToggle.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePrivacy(); } });
+    }
+}
+
+function initGlobeMotion() {
+    const rmq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function globeMotion() {
+        const at = document.querySelector('.globe-meridians animateTransform');
+        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    }
+    globeMotion();
+    rmq.addEventListener('change', globeMotion);
+}
+
+function initVideoFallback() {
+    const csvEl = document.getElementById('caseStudyVideo');
+    if (!csvEl) return;
+    csvEl.addEventListener('error', function() {
+        const w = csvEl.closest('.approach-video-wrapper');
+        if (w) {
+            const msg = document.createElement('div');
+            msg.style.cssText = 'text-align:center;padding:1.5rem;color:rgba(170,178,188,0.7);font-size:0.85rem';
+            msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download directly</a>.';
+            csvEl.replaceWith(msg);
+        }
+    }, true);
+    const src = csvEl.querySelector('source');
+    if (src) {
+        src.addEventListener('error', function() {
+            csvEl.dispatchEvent(new Event('error'));
+        });
     }
 }
 
@@ -727,11 +785,12 @@ function initCovertControls(roeModal) {
         covertBtn.addEventListener('click', function() {
             if (document.body.classList.contains('covert-mode')) {
                 const idEl = document.querySelector('[data-analysis-id]');
-                if (idEl && idEl.dataset.analysisId) {
+                if (idEl?.dataset.analysisId) {
                     const aid = idEl.dataset.analysisId;
                     setCovertMode(false);
                     const psMeta = document.querySelector('meta[name="x-public-suffix"]');
-                    const exitView = (psMeta && psMeta.getAttribute('content') === '1') ? 'Z' : 'E';
+                    const exitView = (psMeta?.getAttribute('content') === '1') ? 'Z' : 'E';
+                    saveScrollPosition();
                     globalThis.location.href = '/analysis/' + aid + '/view/' + exitView;
                     return;
                 }
@@ -763,7 +822,7 @@ function initCovertControls(roeModal) {
 function initFullscreenControls() {
     document.addEventListener('click', function(e) {
         const envBtn = e.target.closest('.covert-env-btn');
-        if (envBtn && envBtn.dataset && envBtn.dataset.env) {
+        if (envBtn?.dataset?.env) {
             setCovertEnv(envBtn.dataset.env);
         }
         const fsBtn = e.target.closest('.covert-fullscreen-btn');
@@ -781,8 +840,7 @@ function initFullscreenControls() {
     });
     function handleFullscreenChange() {
         const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-        const fsBtns = document.querySelectorAll('.covert-fullscreen-btn');
-        fsBtns.forEach(function(b) {
+        for (const b of document.querySelectorAll('.covert-fullscreen-btn')) {
             const ic = b.querySelector('.icon');
             if (fsEl) {
                 if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.compress)); }
@@ -791,141 +849,58 @@ function initFullscreenControls() {
                 if (ic && window._icons) { ic.replaceWith(parseIcon(window._icons.expand)); }
                 b.setAttribute('title', 'Focus Mode — hide browser chrome for full scotopic immersion');
             }
-        });
+        }
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     const fsSupported = document.fullscreenEnabled || document.webkitFullscreenEnabled || false;
     if (!fsSupported) {
-        document.querySelectorAll('.covert-fullscreen-btn').forEach(function(b) {
+        for (const b of document.querySelectorAll('.covert-fullscreen-btn')) {
             b.classList.add('d-none');
+        }
+    }
+}
+
+function restoreScrollPosition() {
+    try {
+        const savedY = sessionStorage.getItem('covert_scroll_y');
+        if (savedY !== null) {
+            sessionStorage.removeItem('covert_scroll_y');
+            const y = parseInt(savedY, 10);
+            if (!isNaN(y) && y > 0) { globalThis.scrollTo(0, y); }
+        }
+    } catch(_e) { /* storage unavailable */ } // NOSONAR
+}
+
+function initSmoothScroll() {
+    for (const anchor of document.querySelectorAll('a[href^="#"]')) {
+        anchor.addEventListener('click', function(e) {
+            if (this.hasAttribute('data-bs-toggle')) return;
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            if (!href || href === '#') return;
+            try {
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            } catch(_e) { /* invalid selector */ } // NOSONAR
         });
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    initPrivacyToggle();
-    const roeModal = initROEModal();
-    initCovertControls(roeModal);
-    initPrivacyBanner();
-
-    const domainForm = document.getElementById('domainForm');
-    const domainInput = document.getElementById('domain');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    
-    if (domainForm && domainInput && analyzeBtn) {
-        domainInput.addEventListener('input', function() {
-            const domain = this.value.trim();
-            const isValid = domain === '' || isValidDomain(domain);
-
-            if (domain && !isValid) {
-                this.classList.add('is-invalid');
-                analyzeBtn.disabled = true;
-            } else {
-                this.classList.remove('is-invalid');
-                analyzeBtn.disabled = false;
-            }
-        });
-
-        if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
-            domainInput.focus();
-        }
-
-        let analysisSubmitted = false;
-        domainForm.addEventListener('submit', function(e) {
-            if (analysisSubmitted) return;
-            e.preventDefault();
-            const covertField = document.getElementById('covertField');
-            if (covertField) {
-                const isCovert = document.body.classList.contains('covert-mode') ? '1' : '0';
-                covertField.value = isCovert;
-            }
-            const domain = domainInput.value.trim().toLowerCase().replace(/^\./, '');
-            domainInput.value = domain;
-            
-            if (!domain) {
-                domainInput.classList.add('is-invalid');
-                return;
-            }
-            
-            if (!isValidDomain(domain)) {
-                domainInput.classList.add('is-invalid');
-                return;
-            }
-
-            if (!domainForm.checkValidity()) {
-                domainForm.reportValidity();
-                return;
-            }
-
-            if (document.body.classList.contains('covert-mode') && isBareTopLevelDomain(domain)) {
-                showCovertTLDToast(domain);
-            }
-            
-            const overlay = document.getElementById('loadingOverlay');
-            const loadingDomain = document.getElementById('loadingDomain');
-            if (overlay) {
-                if (loadingDomain) {
-                    loadingDomain.textContent = domain;
-                }
-                if (isBareTopLevelDomain(domain)) {
-                    swapToTLDScanPhases(overlay);
-                }
-                showOverlay(overlay);
-                startStatusCycle(overlay);
-            }
-            setIconAndText(analyzeBtn, window._icons ? window._icons.spinner : null, ' Analyzing...');
-            analyzeBtn.disabled = true;
-            document.body.classList.add('loading');
-            analysisSubmitted = true;
-            const formData = new FormData(domainForm);
-            fetch(domainForm.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
-                redirect: 'follow'
-            }).then(function(resp) {
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                return resp.json();
-            }).then(function(data) {
-                if (data.token) {
-                    startProgressPolling(data.token, overlay, analyzeBtn);
-                }
-            }).catch(function() {
-                hideOverlayAndReset(overlay, analyzeBtn);
-                analysisSubmitted = false;
-                const flash = document.createElement('div');
-                flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                flash.role = 'alert';
-                flash.textContent = 'Network error \u2014 please check your connection and try again.';
-                const closeBtn = document.createElement('button');
-                closeBtn.type = 'button';
-                closeBtn.className = 'btn-close';
-                closeBtn.dataset.bsDismiss = 'alert';
-                flash.appendChild(closeBtn);
-                domainForm.parentNode.insertBefore(flash, domainForm);
-            });
-        });
-        
-        domainInput.addEventListener('focus', function() {
-            this.classList.remove('is-invalid');
-        });
-    }
-    
-    document.querySelectorAll('a[href^="/analyze?domain="]').forEach(function(link) {
-        if (link.id === 'reanalyzeBtn') return;
-        if (link.classList.contains('history-reanalyze-btn')) return;
-        link.addEventListener('click', handleAnalyzeLinkClick);
-    });
-
-    document.querySelectorAll('.alert-dismissible:not(.alert-persistent)').forEach(function(alert) {
+function initAlertDismissal() {
+    for (const alert of document.querySelectorAll('.alert-dismissible:not(.alert-persistent)')) {
         setTimeout(function() {
             const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
             bsAlert.close();
         }, 5000);
-    });
+    }
 
-    document.querySelectorAll('.alert-dismissible .btn-close').forEach(function(btn) {
+    for (const btn of document.querySelectorAll('.alert-dismissible .btn-close')) {
         btn.addEventListener('click', function() {
             const alertEl = btn.closest('.alert');
             if (alertEl) {
@@ -940,22 +915,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-    });
-    
-    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-    
-    document.querySelectorAll('.code-block').forEach(function(codeBlock) {
+    }
+}
+
+function initCodeBlocks() {
+    for (const codeBlock of document.querySelectorAll('.code-block')) {
         codeBlock.classList.add('u-pointer');
         codeBlock.title = 'Click to copy';
 
@@ -969,7 +933,134 @@ document.addEventListener('DOMContentLoaded', function() {
         const doCopy = createCopyHandler(codeBlock, btn);
         btn.addEventListener('click', doCopy);
         codeBlock.addEventListener('click', doCopy);
+    }
+}
+
+function initDomainForm() {
+    const domainForm = document.getElementById('domainForm');
+    const domainInput = document.getElementById('domain');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+
+    if (!domainForm || !domainInput || !analyzeBtn) return;
+
+    domainInput.addEventListener('input', function() {
+        const domain = this.value.trim();
+        const isValid = domain === '' || isValidDomain(domain);
+
+        if (domain && !isValid) {
+            this.classList.add('is-invalid');
+            analyzeBtn.disabled = true;
+        } else {
+            this.classList.remove('is-invalid');
+            analyzeBtn.disabled = false;
+        }
     });
+
+    if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
+        domainInput.focus();
+    }
+
+    let analysisSubmitted = false;
+    domainForm.addEventListener('submit', function(e) {
+        if (analysisSubmitted) return;
+        e.preventDefault();
+        const covertField = document.getElementById('covertField');
+        if (covertField) {
+            const isCovert = document.body.classList.contains('covert-mode') ? '1' : '0';
+            covertField.value = isCovert;
+        }
+        const domain = domainInput.value.trim().toLowerCase().replace(/^\./, '');
+        domainInput.value = domain;
+
+        if (!domain) {
+            domainInput.classList.add('is-invalid');
+            return;
+        }
+
+        if (!isValidDomain(domain)) {
+            domainInput.classList.add('is-invalid');
+            return;
+        }
+
+        if (!domainForm.checkValidity()) {
+            domainForm.reportValidity();
+            return;
+        }
+
+        if (document.body.classList.contains('covert-mode') && isBareTopLevelDomain(domain)) {
+            showCovertTLDToast(domain);
+        }
+
+        const overlay = document.getElementById('loadingOverlay');
+        const loadingDomain = document.getElementById('loadingDomain');
+        if (overlay) {
+            if (loadingDomain) {
+                loadingDomain.textContent = domain;
+            }
+            if (isBareTopLevelDomain(domain)) {
+                swapToTLDScanPhases(overlay);
+            }
+            showOverlay(overlay);
+            startStatusCycle(overlay);
+        }
+        setIconAndText(analyzeBtn, window._icons?.spinner ?? null, ' Analyzing...');
+        analyzeBtn.disabled = true;
+        document.body.classList.add('loading');
+        analysisSubmitted = true;
+        const formData = new FormData(domainForm);
+        fetch(domainForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'fetch', 'Accept': 'application/json' },
+            redirect: 'follow'
+        }).then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token) {
+                startProgressPolling(data.token, overlay, analyzeBtn);
+            }
+        }).catch(function() {
+            hideOverlayAndReset(overlay, analyzeBtn);
+            analysisSubmitted = false;
+            const flash = document.createElement('div');
+            flash.className = 'alert alert-danger alert-dismissible fade show mt-3';
+            flash.role = 'alert';
+            flash.textContent = 'Network error \u2014 please check your connection and try again.';
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.dataset.bsDismiss = 'alert';
+            flash.appendChild(closeBtn);
+            domainForm.parentNode.insertBefore(flash, domainForm);
+        });
+    });
+
+    domainInput.addEventListener('focus', function() {
+        this.classList.remove('is-invalid');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    restoreScrollPosition();
+    document.addEventListener('click', function() { _ensureMorseAudio(); }, { once: true });
+    initGlobeMotion();
+    initVideoFallback();
+    initPrivacyToggle();
+    const roeModal = initROEModal();
+    initCovertControls(roeModal);
+    initPrivacyBanner();
+    initDomainForm();
+
+    for (const link of document.querySelectorAll('a[href^="/analyze?domain="]')) {
+        if (link.id === 'reanalyzeBtn') continue;
+        if (link.classList.contains('history-reanalyze-btn')) continue;
+        link.addEventListener('click', handleAnalyzeLinkClick);
+    }
+
+    initAlertDismissal();
+    initSmoothScroll();
+    initCodeBlocks();
 });
 
 const allFixesCollapse = document.getElementById('allFixesCollapse');
@@ -980,13 +1071,13 @@ if (allFixesCollapse) {
             return node.cloneNode(true);
         });
         allFixesCollapse.addEventListener('shown.bs.collapse', function() {
-            setIconAndText(toggleBtn, window._icons ? window._icons.chevronUp : null, ' Show fewer');
+            setIconAndText(toggleBtn, window._icons?.chevronUp ?? null, ' Show fewer');
         });
         allFixesCollapse.addEventListener('hidden.bs.collapse', function() {
             toggleBtn.textContent = '';
-            originalNodes.forEach(function(node) {
+            for (const node of originalNodes) {
                 toggleBtn.appendChild(node.cloneNode(true));
-            });
+            }
         });
     }
 }
@@ -1022,13 +1113,12 @@ function createHistoryRow(ch) {
 
     const tdAction = document.createElement('td');
     const actionSpan = document.createElement('span');
-    const actionIcon = document.createElement('i');
     if (ch.action === 'added') {
         actionSpan.className = 'text-success';
-        setIconAndText(actionSpan, window._icons ? window._icons.plusCircle : null, ' Added');
+        setIconAndText(actionSpan, window._icons?.plusCircle ?? null, ' Added');
     } else {
         actionSpan.className = 'text-danger';
-        setIconAndText(actionSpan, window._icons ? window._icons.minusCircle : null, ' Removed');
+        setIconAndText(actionSpan, window._icons?.minusCircle ?? null, ' Removed');
     }
     tdAction.appendChild(actionSpan);
 
@@ -1063,7 +1153,7 @@ function loadDNSHistory(domain) {
     const btn = document.getElementById('dns-history-btn');
     if (!btn) return;
     btn.disabled = true;
-    setIconAndText(btn, window._icons ? window._icons.spinner : null, ' Loading history\u2026');
+    setIconAndText(btn, window._icons?.spinner ?? null, ' Loading history\u2026');
 
     fetch('/api/dns-history?domain=' + encodeURIComponent(domain))
         .then(function(r) { return r.json(); })
@@ -1084,7 +1174,7 @@ function loadDNSHistory(domain) {
             if (changes.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'text-muted mb-0';
-                setIconAndText(p, window._icons ? window._icons.checkCircle : null, ' No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.');
+                setIconAndText(p, window._icons?.checkCircle ?? null, ' No DNS record changes detected in available history. A, AAAA, MX, and NS records for this domain have remained stable.');
                 body.appendChild(p);
             } else {
                 const wrap = document.createElement('div');
@@ -1097,18 +1187,18 @@ function loadDNSHistory(domain) {
                     {text: 'Date', cls: 'u-w-80px'}, {text: 'Type', cls: 'u-w-60px'},
                     {text: 'Action', cls: 'u-w-70px'}, {text: 'Value'}, {text: 'Organization'}, {text: 'Timeline'}
                 ];
-                headers.forEach(function(h) {
+                for (const h of headers) {
                     const th = document.createElement('th');
                     if (h.cls) th.className = h.cls;
                     th.textContent = h.text;
                     headRow.appendChild(th);
-                });
+                }
                 thead.appendChild(headRow);
                 table.appendChild(thead);
                 const tbody = document.createElement('tbody');
-                changes.forEach(function(ch) {
+                for (const ch of changes) {
                     tbody.appendChild(createHistoryRow(ch));
-                });
+                }
                 table.appendChild(tbody);
                 wrap.appendChild(table);
                 body.appendChild(wrap);
