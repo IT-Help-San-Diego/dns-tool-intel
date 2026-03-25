@@ -24,16 +24,16 @@ const STATUS_TOKENS = {
   'status-success': { family: 'green',  hex: '#3fb950' },
   'status-warning': { family: 'amber',  hex: '#e3b341' },
   'status-danger':  { family: 'red',    hex: '#f85149' },
-  'status-info':    { family: 'blue',   hex: '#58a6ff' },
+  'status-info':    { family: 'warm',   hex: '#c8956a' },
   'status-neutral': { family: 'gray',   hex: '#8b949e' },
 };
 
 const ACCENT_TOKENS = {
-  'accent-steel':  { hex: '#7d8ea8' },
-  'accent-deep':   { hex: '#1e3a5f' },
-  'accent-violet': { hex: '#a78bfa' },
-  'accent-cyan':   { hex: '#0dcaf0' },
-  'accent-cobalt': { hex: '#4a8fe7' },
+  'accent-steel':  { hex: '#9a8f82' },
+  'accent-deep':   { hex: '#3d2e1f' },
+  'accent-violet': { hex: '#c8956a' },
+  'accent-cyan':   { hex: '#d4a853' },
+  'accent-cobalt': { hex: '#b8a089' },
   'accent-gold':   { hex: '#d4a853' },
   'accent-gold-muted': { hex: '#c9a84c' },
   'accent-amber':  { hex: '#e8b54a' },
@@ -53,15 +53,15 @@ const DT_QUESTION_TOKENS = [
 ];
 
 const DT_QUESTION_EXPECTED_VALUES = {
-  'dt-question-color':        { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.85,0.95], family: 'cyan' },
+  'dt-question-color':        { type: 'rgba', r: [200,220], g: [158,178], b: [73,93], a: [0.85,0.95], family: 'gold' },
   'dt-question-color-covert': { type: 'rgba', r: [190,200], g: [55,65], b: [55,65], a: [0.80,0.90], family: 'red' },
   'dt-question-weight':       { type: 'literal', value: '600' },
   'dt-question-spacing':      { type: 'literal', value: '0.015em' },
   'dt-question-size-section': { type: 'literal', value: '1.0em' },
   'dt-question-size-protocol':{ type: 'literal', value: '0.85em' },
-  'dt-question-border':       { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.30,0.40], family: 'cyan' },
+  'dt-question-border':       { type: 'rgba', r: [200,220], g: [158,178], b: [73,93], a: [0.30,0.40], family: 'gold' },
   'dt-question-border-covert':{ type: 'rgba', r: [135,145], g: [35,45], b: [35,45], a: [0.30,0.40], family: 'red' },
-  'dt-question-bg':           { type: 'rgba', r: [10,20], g: [195,210], b: [235,245], a: [0.02,0.08], family: 'cyan' },
+  'dt-question-bg':           { type: 'rgba', r: [200,220], g: [158,178], b: [73,93], a: [0.02,0.08], family: 'gold' },
   'dt-question-bg-covert':    { type: 'rgba', r: [135,145], g: [35,45], b: [35,45], a: [0.02,0.08], family: 'red' },
 };
 

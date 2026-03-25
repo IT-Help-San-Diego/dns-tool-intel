@@ -10,14 +10,21 @@
   "dateModified": "2026-03-25",
   "datePublished": "2026-03-25",
   "license": "https://spdx.org/licenses/BUSL-1.1.html",
+  "applicationCategory": "Security",
   "codeRepository": "https://github.com/IT-Help-San-Diego/dns-tool-web",
   "url": "https://dnstool.it-help.tech",
+  "downloadUrl": "https://github.com/IT-Help-San-Diego/dns-tool-web/releases",
   "author": [
     {
       "@type": "Person",
       "givenName": "Carey James",
       "familyName": "Balboa",
-      "@id": "https://orcid.org/0009-0000-5237-9065"
+      "@id": "https://orcid.org/0009-0000-5237-9065",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "IT Help San Diego Inc.",
+        "url": "https://it-help.tech"
+      }
     }
   ],
   "maintainer": [
@@ -31,7 +38,8 @@
   "copyrightHolder": [
     {
       "@type": "Organization",
-      "name": "IT Help San Diego Inc."
+      "name": "IT Help San Diego Inc.",
+      "url": "https://it-help.tech"
     }
   ],
   "funder": [],
@@ -50,7 +58,8 @@
     "TLS-RPT",
     "email authentication",
     "security audit",
-    "confidence scoring"
+    "confidence scoring",
+    "cybersecurity research"
   ],
   "programmingLanguage": [
     "Go",
@@ -64,8 +73,25 @@
   "continuousIntegration": "https://github.com/IT-Help-San-Diego/dns-tool-web/actions",
   "issueTracker": "https://github.com/IT-Help-San-Diego/dns-tool-web/issues",
   "readme": "https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/README.md",
+  "softwareRequirements": [
+    "Go >= 1.25"
+  ],
+  "buildInstructions": "https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/BUILD.md",
+  "referencePublication": [
+    {
+      "@type": "Report",
+      "name": "DNS Tool Methodology",
+      "url": "https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf"
+    },
+    {
+      "@type": "Report",
+      "name": "DNS Tool Philosophical Foundations",
+      "url": "https://dnstool.it-help.tech/docs/philosophical-foundations.pdf"
+    }
+  ],
   "relatedLink": [
     "https://dnstool.it-help.tech/methodology",
-    "https://dnstool.it-help.tech/confidence"
+    "https://dnstool.it-help.tech/confidence",
+    "https://dnstool.it-help.tech/publications"
   ]
 }

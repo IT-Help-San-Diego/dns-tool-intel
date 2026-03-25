@@ -94,7 +94,7 @@ if (css) {
   const glassElements = [
     { name: 'ICAE badge dot', pattern: /\.icae-badge-verified\s+\.icae-dot\s*\{[^}]*rgba/ },
     { name: 'ICuAE badge dot', pattern: /\.icuae-badge-adequate\s+\.icuae-dot\s*\{[^}]*rgba/ },
-    { name: 'Analyze button glass bg', pattern: /\.btn-analyze\s*\{[^}]*rgba\(108,\s*92,\s*231/ },
+    { name: 'Analyze button glass bg', pattern: /\.btn-analyze\s*\{[^}]*rgba\(201,\s*163,\s*102/ },
     { name: 'ICAE dot verified', pattern: /\.icae-dot-color-verified\s*\{[^}]*rgba/ },
     { name: 'Hero maturity dot', pattern: /\.icae-hero-maturity[^:]*::before\s*\{[^}]*rgba/ },
   ];

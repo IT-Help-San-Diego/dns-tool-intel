@@ -1,0 +1,35 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "scientific release workflow"
+          body: |
+            ## DNS Tool ${{ github.ref_name }}
+
+            All versioned artifacts bumped to ${{ steps.version.outputs.version }}.
+            PDFs regenerated. Quality gates passed.
+            Synced from dns-tool-intel via release pipeline.
+          generate_release_notes: true

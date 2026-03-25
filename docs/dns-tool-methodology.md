@@ -305,7 +305,7 @@ If DNS Tool contributes to research or analysis, please cite:
   author       = {Balboa, Carey James},
   title        = {{DNS Tool}: Domain Security Audit Platform},
   year         = {2026},
-  version      = {26.38.35},
+  version      = {10},
   doi          = {10.5281/zenodo.18854899},
   url          = {https://dnstool.it-help.tech},
   license      = {BUSL-1.1}
@@ -314,5 +314,5 @@ If DNS Tool contributes to research or analysis, please cite:
 
 ---
 
-DNS Tool v26.38.35 · IT Help San Diego Inc. · Licensed under BUSL-1.1
+DNS Tool v10 · IT Help San Diego Inc. · Licensed under BUSL-1.1
 DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899) · [dnstool.it-help.tech](https://dnstool.it-help.tech)
