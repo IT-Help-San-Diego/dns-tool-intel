@@ -2,12 +2,12 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     {{template "head" .}}
-    <title>Compare Analyses - {{.Domain}} - DNS Tool</title>
-    <meta name="description" content="Select two DNS security analyses for {{.Domain}} to compare side by side. Track how domain security posture has changed over time.">
-    <meta property="og:url" content="https://dnstool.it-help.tech/compare/select?domain={{.Domain}}">
+    <title>Compare Analyses{{if .Domain}} - {{.Domain}}{{end}} - DNS Tool</title>
+    <meta name="description" content="Select two DNS security analyses{{if .Domain}} for {{.Domain}}{{end}} to compare side by side. Track how domain security posture has changed over time.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/compare{{if .Domain}}/select?domain={{.Domain}}{{end}}">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Select Analyses to Compare — {{.Domain}} - DNS Tool">
-    <meta property="og:description" content="Select two DNS security analyses for {{.Domain}} to compare side by side. Track how domain security posture has changed over time.">
+    <meta property="og:title" content="Compare Analyses{{if .Domain}} — {{.Domain}}{{end}} - DNS Tool">
+    <meta property="og:description" content="Select two DNS security analyses{{if .Domain}} for {{.Domain}}{{end}} to compare side by side. Track how domain security posture has changed over time.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -16,9 +16,9 @@
     <meta property="og:site_name" content="DNS Tool">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="dnstool.it-help.tech">
-    <meta property="twitter:url" content="https://dnstool.it-help.tech/compare/select?domain={{.Domain}}">
-    <meta name="twitter:title" content="Select Analyses to Compare — {{.Domain}} - DNS Tool">
-    <meta name="twitter:description" content="Select two DNS security analyses for {{.Domain}} to compare side by side. Track how domain security posture has changed over time.">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/compare{{if .Domain}}/select?domain={{.Domain}}{{end}}">
+    <meta name="twitter:title" content="Compare Analyses{{if .Domain}} — {{.Domain}}{{end}} - DNS Tool">
+    <meta name="twitter:description" content="Select two DNS security analyses{{if .Domain}} for {{.Domain}}{{end}} to compare side by side. Track how domain security posture has changed over time.">
     <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta name="robots" content="noindex, nofollow">
     {{template "critical_css" .}}
