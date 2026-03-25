@@ -72,13 +72,30 @@
         .ftr-node svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
         .ftr-vline { width: 1px; height: 12px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
         .ftr-hline { height: 1px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
-        .ftr-reg-row {
+        .ftr-reg-right {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
+            gap: 0;
+            align-self: flex-start;
+            margin-left: 50%;
+            transform: translateX(-0.5px);
         }
-        .ftr-reg-tag {
+        .ftr-reg-left {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            align-self: flex-end;
+            margin-right: 50%;
+            transform: translateX(0.5px);
+            flex-direction: row-reverse;
+        }
+        .ftr-reg-arm {
+            width: 12px;
+            height: 1px;
+            background: rgba(200, 149, 106, 0.18);
+            flex-shrink: 0;
+        }
+        .ftr-reg-label {
             font-size: 0.62rem;
             color: #6e7681;
             padding: 0.18rem 0.55rem;
@@ -91,15 +108,14 @@
             display: flex;
             align-items: flex-start;
             gap: 0;
-            justify-content: center;
         }
+        .ftr-dept-row .ftr-hline { width: 2rem; margin-top: 0.55rem; }
+        .ftr-dept-row > a.ftr-node { margin-top: 0.15rem; }
         .ftr-dept-col {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .ftr-dept-row > .ftr-hline { width: 2.5rem; margin-top: 0.65rem; }
-        .ftr-dept-row > a.ftr-node { margin-top: 0.25rem; }
         .ftr-grid-connector {
             display: flex;
             flex-direction: column;
@@ -123,9 +139,6 @@
         .ftr-grid-drop .ftr-vline { height: 8px; }
         @media (max-width: 640px) {
             .ftr-copyright { flex-wrap: wrap; justify-content: center; font-size: 0.72rem; }
-            .ftr-reg-row { flex-direction: column; gap: 0.25rem; }
-            .ftr-dept-row { flex-direction: column; }
-            .ftr-dept-row .ftr-hline { width: 1px !important; height: 8px; }
             .ftr-grid-drops { grid-template-columns: repeat(2, 1fr); }
         }
         .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0 auto; text-align: left; }
@@ -194,10 +207,9 @@
             <span>All rights reserved.</span>
         </div>
         <div class="ftr-vline"></div>
-        <div class="ftr-reg-row">
-            <span class="ftr-reg-tag">Incorporated in Delaware</span>
-            <span class="ftr-reg-tag">Foreign Entity in California</span>
-        </div>
+        <div class="ftr-reg-left"><span class="ftr-reg-label">Incorporated in Delaware</span><div class="ftr-reg-arm"></div></div>
+        <div class="ftr-vline" style="height:4px"></div>
+        <div class="ftr-reg-right"><div class="ftr-reg-arm"></div><span class="ftr-reg-label">Foreign Entity in California</span></div>
         <div class="ftr-vline"></div>
         <div class="ftr-dept-row">
             <div class="ftr-dept-col">
@@ -205,7 +217,7 @@
                 <div class="ftr-vline"></div>
                 <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
             </div>
-            <div class="ftr-hline" style="width:2.5rem"></div>
+            <div class="ftr-hline"></div>
             <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="ftr-node">{{icon "briefcase"}} Professional Consulting</a>
         </div>
     </nav>
