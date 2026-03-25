@@ -30,7 +30,42 @@
     <p class="mb-1 text-muted u-footer-tagline">DNS. Open standard since 1983.</p>
     <p class="mb-0">&copy; {{currentYear}} <a href="https://www.it-help.tech" target="_blank" rel="noopener" class="text-info">IT Help San Diego Inc.</a> All rights reserved.</p>
     <style nonce="{{.CspNonce}}">
-        .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 1.25rem auto 0; text-align: left; }
+        .ftr-tree { display: flex; flex-direction: column; align-items: center; max-width: 420px; margin: 1.1rem auto 0; padding: 0; }
+        .ftr-node {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.72rem;
+            color: #8b949e;
+            background: rgba(22, 27, 34, 0.55);
+            border: 1px solid rgba(48, 54, 61, 0.4);
+            border-radius: 8px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: border-color 0.25s, color 0.2s;
+        }
+        a.ftr-node:hover { border-color: rgba(200, 149, 106, 0.25); color: #e6edf3; }
+        .ftr-node--org { font-weight: 600; color: #c9d1d9; font-size: 0.74rem; }
+        .ftr-node--project { font-weight: 700; color: #d4a853; border-color: rgba(200, 149, 106, 0.2); font-size: 0.76rem; letter-spacing: 0.02em; }
+        .ftr-node svg { width: 12px; min-width: 12px; height: 12px; color: rgba(212,168,83,0.5); }
+        .ftr-stem { width: 1px; height: 10px; background: rgba(200, 149, 106, 0.18); flex-shrink: 0; }
+        .ftr-stem--long { height: 14px; }
+        .ftr-reg { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .ftr-reg-tag {
+            font-size: 0.62rem;
+            color: #6e7681;
+            padding: 0.15rem 0.5rem;
+            border: 1px solid rgba(48, 54, 61, 0.3);
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+        }
+        @media (max-width: 640px) {
+            .ftr-tree { max-width: 100%; }
+            .ftr-reg { flex-direction: column; gap: 0.25rem; }
+        }
+        .ftr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 740px; margin: 0.75rem auto 0; text-align: left; }
         @media (max-width: 640px) { .ftr-grid { grid-template-columns: repeat(2, 1fr); } }
         .ftr-cell {
             background: rgba(22, 27, 34, 0.55);
@@ -89,6 +124,18 @@
         .ftr-blacksite:hover { border-color: rgba(248, 81, 73, 0.35); background: rgba(248, 81, 73, 0.08); color: #ff7b72; }
         .ftr-blacksite svg { opacity: 0.7; }
     </style>
+    <nav class="ftr-tree" aria-label="Organizational structure">
+        <span class="ftr-node ftr-node--org">{{icon "building"}} IT Help San Diego Inc.</span>
+        <div class="ftr-stem"></div>
+        <div class="ftr-reg">
+            <span class="ftr-reg-tag">Incorporated in Delaware</span>
+            <span class="ftr-reg-tag">Foreign Entity in California</span>
+        </div>
+        <div class="ftr-stem"></div>
+        <span class="ftr-node">{{icon "brain"}} Research Department</span>
+        <div class="ftr-stem ftr-stem--long"></div>
+        <a href="/" class="ftr-node ftr-node--project">{{icon "biohazard"}} DNS Tool</a>
+    </nav>
     <div class="ftr-grid">
         <div class="ftr-cell">
             <span class="ftr-heading">{{icon "flask" "me-1"}}Research</span>
