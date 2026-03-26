@@ -31,9 +31,13 @@ jobs:
           find "$CLONE_DIR" -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 
           rsync -a --exclude='.git' \
-            --exclude='providers/' \
-            --exclude='ai_surface/' \
-            --exclude='stubs/' \
+            --exclude='/providers/' \
+            --exclude='/ai_surface/' \
+            --exclude='/stubs/' \
+            --exclude='/commands/' \
+            --exclude='/golden_rules/' \
+            --exclude='/remediation/' \
+            --exclude='/scoring/' \
             --exclude='.local/' \
             --exclude='.agents/' \
             --exclude='attached_assets/' \
@@ -50,6 +54,7 @@ jobs:
             --exclude='.replit-artifact/' \
             --exclude='artifacts/' \
             --exclude='.github/workflows/' \
+            --exclude='logs/' \
             --exclude='.replit' \
             --exclude='replit.nix' \
             --exclude='replit_agent.toml' \
@@ -67,13 +72,20 @@ jobs:
             --exclude='.cursorrules' \
             ./ "$CLONE_DIR/"
 
-          find "$CLONE_DIR" -name '*.go' -exec grep -l '//go:build.*intel' {} + 2>/dev/null | while read f; do
-            rm -f "$f"
+          find "$CLONE_DIR" -name '*.go' -print0 | while IFS= read -r -d '' f; do
+            if head -5 "$f" | grep -q '//go:build.*intel' && ! head -5 "$f" | grep -q '!intel'; then
+              rm -f "$f"
+            fi
           done
+
+          if [ -d ".github/workflows-web" ]; then
+            mkdir -p "$CLONE_DIR/.github/workflows"
+            cp .github/workflows-web/* "$CLONE_DIR/.github/workflows/"
+          fi
 
           if [ -f "$CLONE_DIR/sonar-project.properties" ]; then
             sed -i 's/sonar.projectKey=dns-tool-full/sonar.projectKey=dns-tool-web/' "$CLONE_DIR/sonar-project.properties"
-            sed -i 's/sonar.projectName=DNS Tool · Canonical Build (dns-tool-intel)/sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)/' "$CLONE_DIR/sonar-project.properties"
+            sed -i "s/sonar\.projectName=.*/sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)/" "$CLONE_DIR/sonar-project.properties"
           fi
 
           cd "$CLONE_DIR"

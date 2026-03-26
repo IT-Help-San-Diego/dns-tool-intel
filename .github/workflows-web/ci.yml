@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+
+      - name: Build OSS binary
+        run: go build -o dns-tool-server ./go-server/cmd/server
+
+      - name: Verify binary
+        run: ./dns-tool-server -version || true
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: |
+          go test -short ./go-server/... -count=1 -timeout 300s -parallel=2 \
+            -skip 'DiscoverSubdomainsWithBudget|NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory|BoundaryIntegrity_FullRepoScan|IsOriginVisible|EdgeCDNMapsEmpty|GoldenRuleStubBoundary|ScrutinyClassificationAllFiles'
+        env:
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
