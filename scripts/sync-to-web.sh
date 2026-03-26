@@ -62,11 +62,12 @@ headers = {
 }
 
 EXCLUDE_DIRS = {
-    'providers', 'ai_surface', 'stubs', '.local', '.agents',
+    '.local', '.agents',
     'attached_assets', 'node_modules', '.git', '.cache', '.config',
     '.upm', '__pycache__', '.replit.nix', '.pythonlibs',
     'premium_templates', 'generated', 'premium_docs',
-    '.generated', '.replit-artifact', 'artifacts'
+    '.generated', '.replit-artifact', 'artifacts',
+    'logs'
 }
 EXCLUDE_FILES = {
     '.replit', 'replit.nix', '.replit.nix', 'replit_agent.toml',
@@ -77,19 +78,25 @@ EXCLUDE_FILES = {
     'PROPRIETARY.md'
 }
 EXCLUDE_PREFIXES = (
-    '.local/', '.agents/', 'attached_assets/', 'providers/',
-    'ai_surface/', 'stubs/', 'premium_', 'generated/',
-    'artifacts/', '.github/workflows/'
+    '.local/', '.agents/', 'attached_assets/',
+    'premium_', 'generated/',
+    'artifacts/', 'stubs/',
+    '.github/workflows/',
+    'providers/', 'ai_surface/',
+    'commands/', 'golden_rules/', 'remediation/', 'scoring/'
 )
 
 PUBLIC_EXCLUDES = set()
-_pe_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public-excludes.txt')
+_pe_path = os.path.join(src_dir, 'scripts', 'public-excludes.txt')
 if os.path.isfile(_pe_path):
     with open(_pe_path) as _pf:
         for _line in _pf:
             _line = _line.strip()
             if _line and not _line.startswith('#'):
                 PUBLIC_EXCLUDES.add(_line)
+    print(f"  Loaded {len(PUBLIC_EXCLUDES)} path(s) from public-excludes.txt", file=sys.stderr)
+else:
+    print(f"  WARNING: public-excludes.txt not found at {_pe_path}", file=sys.stderr)
 
 def is_excluded(path):
     if path in PUBLIC_EXCLUDES:
@@ -109,8 +116,11 @@ def has_intel_build_tag(filepath):
     try:
         with open(filepath, 'r', errors='ignore') as f:
             for line in f:
-                if line.startswith('//go:build') and 'intel' in line:
-                    return True
+                if line.startswith('//go:build'):
+                    tag = line.strip()
+                    if 'intel' in tag and '!intel' not in tag:
+                        return True
+                    return False
                 if line.strip() and not line.startswith('//') and not line.startswith('package'):
                     break
     except:
@@ -183,8 +193,25 @@ if os.path.exists(sonar_props):
     content = content.replace('sonar.projectKey=dns-tool-full', 'sonar.projectKey=dns-tool-web')
     import re
     content = re.sub(r'sonar\.projectName=.*', 'sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)', content)
+    content = re.sub(r'sonar\.issue\.ignore\.multicriteria\.\w+\.ruleKey=.*\n'
+                     r'sonar\.issue\.ignore\.multicriteria\.\w+\.resourceKey=.*_intel\.go\n?', '', content)
+    content = re.sub(r'(sonar\.cpd\.exclusions=)(.*)', lambda m: m.group(1) + ','.join(
+        p for p in m.group(2).split(',') if '_intel.go' not in p
+    ) if any(p for p in m.group(2).split(',') if '_intel.go' not in p) else '', content)
     with open(sonar_props, 'w') as f:
         f.write(content)
+    if 'dns-tool-web' in content and 'dns-tool-full' not in content:
+        print("  sonar-project.properties: key/name rewritten for dns-tool-web", file=sys.stderr)
+    else:
+        print("  WARNING: sonar rewrite may have failed", file=sys.stderr)
+
+web_wf_src = os.path.join(src_dir, '.github', 'workflows-web')
+web_wf_dst = os.path.join(clone_dir, '.github', 'workflows')
+if os.path.isdir(web_wf_src):
+    os.makedirs(web_wf_dst, exist_ok=True)
+    for wf in os.listdir(web_wf_src):
+        shutil.copy2(os.path.join(web_wf_src, wf), os.path.join(web_wf_dst, wf))
+    print(f"  Copied {len(os.listdir(web_wf_src))} web workflow(s) to .github/workflows/", file=sys.stderr)
 
 subprocess.run(['git', 'config', 'user.email', 'research@it-help.tech'], cwd=clone_dir, check=True)
 subprocess.run(['git', 'config', 'user.name', 'IT Help San Diego'], cwd=clone_dir, check=True)
