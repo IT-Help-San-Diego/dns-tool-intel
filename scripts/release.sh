@@ -238,6 +238,25 @@ for dpath in deleted:
         'sha': None
     })
 
+web_wf_dir = os.path.join(os.getcwd(), '.github', 'workflows-web')
+if os.path.isdir(web_wf_dir):
+    for wf_name in os.listdir(web_wf_dir):
+        wf_path = os.path.join(web_wf_dir, wf_name)
+        with open(wf_path, 'r') as wf:
+            wf_content = wf.read()
+        wf_blob = api('POST', f'/repos/{repo}/git/blobs', {
+            'content': wf_content,
+            'encoding': 'utf-8'
+        })
+        dest_path = f'.github/workflows/{wf_name}'
+        tree_entries.append({
+            'path': dest_path,
+            'mode': '100644',
+            'type': 'blob',
+            'sha': wf_blob['sha']
+        })
+    print(f"  Added {len(os.listdir(web_wf_dir))} web workflow(s) to tree", file=sys.stderr)
+
 new_tree = api('POST', f'/repos/{repo}/git/trees', {
     'base_tree': old_tree_sha,
     'tree': tree_entries
