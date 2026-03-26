@@ -81,7 +81,8 @@ EXCLUDE_PREFIXES = (
     'premium_', 'generated/',
     'artifacts/', 'stubs/',
     '.github/workflows/',
-    'providers/', 'ai_surface/'
+    'providers/', 'ai_surface/',
+    'commands/', 'golden_rules/', 'remediation/', 'scoring/'
 )
 
 PUBLIC_EXCLUDES = set()
