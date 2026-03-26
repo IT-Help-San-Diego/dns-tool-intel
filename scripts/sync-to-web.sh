@@ -181,7 +181,8 @@ if os.path.exists(sonar_props):
     with open(sonar_props, 'r') as f:
         content = f.read()
     content = content.replace('sonar.projectKey=dns-tool-full', 'sonar.projectKey=dns-tool-web')
-    content = content.replace('sonar.projectName=DNS Tool (Full Product)', 'sonar.projectName=DNS Tool')
+    import re
+    content = re.sub(r'sonar\.projectName=.*', 'sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)', content)
     with open(sonar_props, 'w') as f:
         f.write(content)
 
