@@ -66,7 +66,8 @@ EXCLUDE_DIRS = {
     'attached_assets', 'node_modules', '.git', '.cache', '.config',
     '.upm', '__pycache__', '.replit.nix', '.pythonlibs',
     'premium_templates', 'generated', 'premium_docs',
-    '.generated', '.replit-artifact', 'artifacts'
+    '.generated', '.replit-artifact', 'artifacts',
+    'logs'
 }
 EXCLUDE_FILES = {
     '.replit', 'replit.nix', '.replit.nix', 'replit_agent.toml',
