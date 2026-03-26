@@ -204,6 +204,11 @@ for i in range(0, len(changed), batch_size):
             text_content = content.decode('utf-8')
         except UnicodeDecodeError:
             is_text = False
+        if is_text and fpath == 'sonar-project.properties':
+            import re as _re
+            text_content = text_content.replace('sonar.projectKey=dns-tool-full', 'sonar.projectKey=dns-tool-web')
+            text_content = _re.sub(r'sonar\.projectName=.*', 'sonar.projectName=DNS Tool · Public Mirror (dns-tool-web)', text_content)
+            content = text_content.encode('utf-8')
         if is_text:
             blob = api('POST', f'/repos/{repo}/git/blobs', {
                 'content': text_content,
