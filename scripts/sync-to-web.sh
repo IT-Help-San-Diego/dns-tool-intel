@@ -114,8 +114,11 @@ def has_intel_build_tag(filepath):
     try:
         with open(filepath, 'r', errors='ignore') as f:
             for line in f:
-                if line.startswith('//go:build') and 'intel' in line:
-                    return True
+                if line.startswith('//go:build'):
+                    tag = line.strip()
+                    if 'intel' in tag and '!intel' not in tag:
+                        return True
+                    return False
                 if line.strip() and not line.startswith('//') and not line.startswith('package'):
                     break
     except:
