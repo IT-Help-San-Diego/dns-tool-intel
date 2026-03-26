@@ -6,6 +6,19 @@ docs/ARCHITECTURE_CLASSIFIED.md
 INTEL_METHODOLOGY.md
 FILELIST.md
 
+# Top-level proprietary modules (NOT the OSS copies under go-server/internal/)
+providers/dkim_providers.go
+providers/edge_cdn.go
+providers/email_providers.go
+providers/infrastructure.go
+providers/ip_investigation.go
+providers/providers.go
+ai_surface/http.go
+ai_surface/llms_txt.go
+ai_surface/poisoning.go
+ai_surface/robots_txt.go
+ai_surface/scanner.go
+
 # Intel-only workflows (these run on dns-tool-intel, not dns-tool-web)
 .github/workflows/mirror-to-web.yml
 .github/workflows/mirror-codeberg.yml
