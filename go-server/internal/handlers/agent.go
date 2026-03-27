@@ -54,10 +54,18 @@ func (h *AgentHandler) OpenSearchXML(c *gin.Context) {
 func extractAgentQuery(c *gin.Context) string {
         for _, key := range []string{"q", "domain", "query", "search", "searchTerms"} {
                 if v := strings.TrimSpace(c.Query(key)); v != "" {
-                        return strings.ToLower(v)
+                        return cleanAgentQuery(v)
                 }
         }
         return ""
+}
+
+func cleanAgentQuery(q string) string {
+        q = strings.ToLower(strings.TrimSpace(q))
+        q = strings.Trim(q, "_ \t")
+        q = strings.Trim(q, `"'`)
+        q = strings.Trim(q, "_ \t")
+        return q
 }
 
 func (h *AgentHandler) AgentSearch(c *gin.Context) {
