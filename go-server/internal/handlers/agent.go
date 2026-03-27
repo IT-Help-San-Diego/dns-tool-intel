@@ -19,12 +19,17 @@ import (
 )
 
 type AgentHandler struct {
-        Config   *config.Config
-        Analyzer *analyzer.Analyzer
+        Config      *config.Config
+        Analyzer    *analyzer.Analyzer
+        lookupStore LookupStore
 }
 
-func NewAgentHandler(cfg *config.Config, a *analyzer.Analyzer) *AgentHandler {
-        return &AgentHandler{Config: cfg, Analyzer: a}
+func NewAgentHandler(cfg *config.Config, a *analyzer.Analyzer, store ...LookupStore) *AgentHandler {
+        h := &AgentHandler{Config: cfg, Analyzer: a}
+        if len(store) > 0 {
+                h.lookupStore = store[0]
+        }
+        return h
 }
 
 func (h *AgentHandler) OpenSearchXML(c *gin.Context) {
@@ -327,6 +332,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                 },
                 "links": gin.H{
                         "report":          analyzeURL,
+                        "report_page":     fmt.Sprintf("%s/agent/report?domain=%s", base, domain),
                         "snapshot":        fmt.Sprintf("%s/snapshot/%s", base, domain),
                         "topology":        fmt.Sprintf("%s/topology?domain=%s", base, domain),
                         "wayback_archive": waybackURL,
@@ -446,6 +452,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
         topologyURL := esc(links["topology"].(string))
         apiURL := esc(links["api_json"].(string))
         waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
+        reportPageURL := esc(fmt.Sprintf("%s/agent/report?domain=%s", base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeFlat := esc(badges["flat_svg"].(string))
@@ -524,7 +531,8 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
 
 <h2>Downloads &amp; Archives</h2>
 <ul>
-  <li><a href="` + reportURL + `">Full Analysis Report</a> (HTML)</li>
+  <li><a href="` + reportPageURL + `">DNS Security Intelligence Report</a> (full engineer's report)</li>
+  <li><a href="` + reportURL + `">Interactive Analysis</a> (live analysis with charts)</li>
   <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> (TXT, SHA-3-512 integrity hash included)</li>
   <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> (DNS Tool methodology — signal flow, RFC sources, and scoring pipeline)</li>
   <li><a href="` + apiURL + `">Machine-Readable API Response</a> (JSON)</li>
@@ -751,4 +759,486 @@ func (h *AgentHandler) WaybackView(c *gin.Context) {
 </html>`)
 
         c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(sb.String()))
+}
+
+func (h *AgentHandler) ReportView(c *gin.Context) {
+        domain := strings.TrimSpace(c.Query("q"))
+        if domain == "" {
+                domain = strings.TrimSpace(c.Query("domain"))
+        }
+        if domain == "" {
+                c.String(http.StatusBadRequest, "missing domain parameter")
+                return
+        }
+        domain = cleanAgentQuery(domain)
+        if !dnsclient.ValidateDomain(domain) {
+                c.String(http.StatusBadRequest, "invalid domain")
+                return
+        }
+
+        ascii, err := dnsclient.DomainToASCII(domain)
+        if err != nil {
+                ascii = domain
+        }
+
+        var results map[string]any
+        var scanTime time.Time
+
+        if h.lookupStore != nil {
+                analysis, dbErr := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), ascii)
+                if dbErr == nil && !analysis.Private {
+                        results = unmarshalResults(analysis.FullResults, "AgentReport")
+                        if analysis.CreatedAt.Valid {
+                                scanTime = analysis.CreatedAt.Time
+                        }
+                }
+        }
+
+        if results == nil && h.Analyzer != nil {
+                results = h.Analyzer.AnalyzeDomain(c.Request.Context(), ascii, nil, analyzer.AnalysisOptions{})
+                scanTime = time.Now().UTC()
+        }
+        if results == nil {
+                results = map[string]any{"analysis_success": true}
+                scanTime = time.Now().UTC()
+        }
+
+        html := h.buildReportHTML(ascii, results, scanTime)
+        c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+}
+
+func extractRecordStrings(results map[string]any, section string) []string {
+        sec, ok := results[section].(map[string]any)
+        if !ok {
+                return nil
+        }
+        for _, key := range []string{"records", "txt_records", "values", "mechanisms"} {
+                if arr, ok := sec[key].([]any); ok {
+                        out := make([]string, 0, len(arr))
+                        for _, v := range arr {
+                                if s, ok := v.(string); ok && s != "" {
+                                        out = append(out, s)
+                                }
+                        }
+                        if len(out) > 0 {
+                                return out
+                        }
+                }
+        }
+        return nil
+}
+
+func extractMapField(results map[string]any, section, field string) string {
+        sec, ok := results[section].(map[string]any)
+        if !ok {
+                return ""
+        }
+        v, ok := sec[field].(string)
+        if ok {
+                return v
+        }
+        return ""
+}
+
+func extractDKIMSelectors(results map[string]any) []string {
+        sec, ok := results["dkim"].(map[string]any)
+        if !ok {
+                return nil
+        }
+        if sels, ok := sec["selectors"].([]any); ok {
+                out := make([]string, 0, len(sels))
+                for _, s := range sels {
+                        switch v := s.(type) {
+                        case string:
+                                out = append(out, v)
+                        case map[string]any:
+                                if name, ok := v["selector"].(string); ok {
+                                        out = append(out, name)
+                                }
+                        }
+                }
+                return out
+        }
+        return nil
+}
+
+func extractSubdomains(results map[string]any) []string {
+        sec, ok := results["subdomains"].(map[string]any)
+        if !ok {
+                return nil
+        }
+        if subs, ok := sec["subdomains"].([]any); ok {
+                out := make([]string, 0, len(subs))
+                for _, s := range subs {
+                        switch v := s.(type) {
+                        case string:
+                                out = append(out, v)
+                        case map[string]any:
+                                if name, ok := v["domain"].(string); ok {
+                                        out = append(out, name)
+                                } else if name, ok := v["name"].(string); ok {
+                                        out = append(out, name)
+                                }
+                        }
+                }
+                return out
+        }
+        return nil
+}
+
+func (h *AgentHandler) buildReportHTML(domain string, results map[string]any, scanTime time.Time) string {
+        base := h.Config.BaseURL
+        ed := esc(domain)
+        j := h.buildAgentJSON(domain, results)
+
+        riskLevel := "Unknown"
+        postureScore := 0
+        postureGrade := "N/A"
+        postureLabel := ""
+        if summary, ok := j["summary"].(gin.H); ok {
+                if rl, ok := summary["risk_level"].(string); ok && rl != "" {
+                        riskLevel = rl
+                }
+                if ps, ok := summary["posture_score"].(int); ok {
+                        postureScore = ps
+                }
+                if pg, ok := summary["posture_grade"].(string); ok {
+                        postureGrade = pg
+                }
+                if pl, ok := summary["posture_label"].(string); ok {
+                        postureLabel = pl
+                }
+        }
+
+        emailAuth := j["email_authentication"].(gin.H)
+        spfStatus := extractNestedStatus(emailAuth, "spf")
+        dkimStatus := extractNestedStatus(emailAuth, "dkim")
+        dmarcStatus := extractNestedStatus(emailAuth, "dmarc")
+        dmarcPolicy := "none"
+        if d, ok := emailAuth["dmarc"].(gin.H); ok {
+                if p, ok := d["policy"].(string); ok && p != "" {
+                        dmarcPolicy = p
+                }
+        }
+        bimiPresent := false
+        if b, ok := emailAuth["bimi"].(gin.H); ok {
+                bimiPresent, _ = b["present"].(bool)
+        }
+
+        transport := j["transport_security"].(gin.H)
+        dnssecStatus := extractNestedStatus(transport, "dnssec")
+        mtaSTSMode := "none"
+        if m, ok := transport["mta_sts"].(gin.H); ok {
+                if mode, ok := m["mode"].(string); ok && mode != "" {
+                        mtaSTSMode = mode
+                }
+        }
+        caaPresent := false
+        if ca, ok := transport["caa"].(gin.H); ok {
+                caaPresent, _ = ca["present"].(bool)
+        }
+
+        subCount := 0
+        if sd, ok := j["subdomain_discovery"].(gin.H); ok {
+                subCount, _ = sd["subdomains_found"].(int)
+        }
+
+        isoDate := scanTime.Format("2006-01-02")
+        isoTimestamp := scanTime.Format(time.RFC3339)
+
+        spfRecords := extractRecordStrings(results, "spf")
+        dmarcRaw := extractMapField(results, "dmarc", "record")
+        dkimSelectors := extractDKIMSelectors(results)
+        subdomainList := extractSubdomains(results)
+
+        mtaSTSPolicy := extractMapField(results, "mta_sts", "policy_body")
+        if mtaSTSPolicy == "" {
+                mtaSTSPolicy = extractMapField(results, "mta_sts", "record")
+        }
+
+        var nsRecords []string
+        if basic, ok := results["basic_records"].(map[string]any); ok {
+                if ns, ok := basic["ns"].([]any); ok {
+                        for _, v := range ns {
+                                if s, ok := v.(string); ok {
+                                        nsRecords = append(nsRecords, s)
+                                }
+                        }
+                }
+        }
+
+        var mxRecords []string
+        if basic, ok := results["basic_records"].(map[string]any); ok {
+                if mx, ok := basic["mx"].([]any); ok {
+                        for _, v := range mx {
+                                switch m := v.(type) {
+                                case string:
+                                        mxRecords = append(mxRecords, m)
+                                case map[string]any:
+                                        if host, ok := m["host"].(string); ok {
+                                                mxRecords = append(mxRecords, host)
+                                        }
+                                }
+                        }
+                }
+        }
+
+        var aRecords []string
+        if basic, ok := results["basic_records"].(map[string]any); ok {
+                if a, ok := basic["a"].([]any); ok {
+                        for _, v := range a {
+                                if s, ok := v.(string); ok {
+                                        aRecords = append(aRecords, s)
+                                }
+                        }
+                }
+        }
+
+        badgeDetailed := fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain)
+        analyzeURL := fmt.Sprintf("%s/analyze?domain=%s", base, domain)
+        snapshotURL := fmt.Sprintf("%s/snapshot/%s", base, domain)
+        topologyURL := fmt.Sprintf("%s/topology?domain=%s", base, domain)
+        waybackURL := fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain)
+        apiURL := fmt.Sprintf("%s/agent/api?q=%s", base, domain)
+
+        postureColor := "#3fb950"
+        if postureScore < 50 {
+                postureColor = "#f85149"
+        } else if postureScore < 75 {
+                postureColor = "#d29922"
+        }
+
+        bimiLabel := "Not configured"
+        if bimiPresent {
+                bimiLabel = "Present"
+        }
+        caaLabel := "Not configured"
+        if caaPresent {
+                caaLabel = "Present"
+        }
+
+        var sb strings.Builder
+        sb.WriteString(`<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# DC: http://purl.org/dc/elements/1.1/">
+<head>
+  <meta charset="UTF-8">
+  <title>DNS Security Intelligence Report — ` + ed + ` — DNS Tool</title>
+  <meta name="description" content="Full DNS security intelligence report for ` + ed + ` — Posture: ` + fmt.Sprintf("%d", postureScore) + `/100. SPF, DKIM, DMARC, DNSSEC, MTA-STS, CAA, subdomain discovery, and certificate transparency analysis.">
+  <meta name="robots" content="noindex, noarchive">
+  <meta name="generator" content="DNS Tool ` + esc(h.Config.AppVersion) + `">
+  <meta property="og:title" content="DNS Security Intelligence Report — ` + ed + `">
+  <meta property="og:description" content="Posture ` + fmt.Sprintf("%d", postureScore) + `/100 (` + esc(postureGrade) + `) — Email auth, transport security, subdomain discovery.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="` + esc(badgeDetailed) + `">
+  <meta property="og:site_name" content="DNS Tool">
+  <meta property="article:published_time" content="` + isoTimestamp + `">
+  <meta name="DC.title" content="DNS Security Intelligence Report: ` + ed + `">
+  <meta name="DC.creator" content="DNS Tool by IT Help San Diego Inc.">
+  <meta name="DC.date" content="` + isoDate + `">
+  <meta name="DC.type" content="Dataset">
+  <meta name="DC.identifier" content="` + esc(analyzeURL) + `">
+  <meta name="DC.relation" content="https://doi.org/10.5281/zenodo.18854899">
+  <meta name="citation_title" content="DNS Security Intelligence Report: ` + ed + `">
+  <meta name="citation_author" content="IT Help San Diego Inc.">
+  <meta name="citation_publication_date" content="` + isoDate + `">
+  <meta name="citation_doi" content="10.5281/zenodo.18854899">
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #c9d1d9; --dim: #8b949e; --link: #58a6ff; --accent: ` + postureColor + `; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; line-height: 1.6; }
+    .report { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin-bottom: .25rem; }
+    .subtitle { color: var(--dim); font-size: .9rem; margin-bottom: 2rem; }
+    .subtitle a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.15rem; color: var(--link); margin: 2rem 0 .75rem; padding-bottom: .25rem; border-bottom: 1px solid var(--border); }
+    .score-hero { display: flex; align-items: center; gap: 2rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1.5rem; }
+    .score-ring { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .score-ring .num { font-size: 2rem; font-weight: 700; color: var(--accent); }
+    .score-details { flex: 1; }
+    .score-details .grade { font-size: 1.2rem; font-weight: 600; }
+    .score-details .risk { color: var(--dim); font-size: .9rem; margin-top: .25rem; }
+    .badge-embed { text-align: center; margin: 1.5rem 0; }
+    .badge-embed object { max-width: 100%; height: auto; }
+    table { width: 100%; border-collapse: collapse; margin: .5rem 0 1rem; }
+    th, td { text-align: left; padding: .5rem .75rem; border: 1px solid var(--border); }
+    th { background: var(--surface); color: var(--dim); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; }
+    td { font-size: .9rem; }
+    .status-pass { color: #3fb950; font-weight: 600; }
+    .status-fail { color: #f85149; font-weight: 600; }
+    .status-warn { color: #d29922; font-weight: 600; }
+    .records-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: .5rem 0 1rem; font-family: "SF Mono", "Fira Code", monospace; font-size: .82rem; white-space: pre-wrap; word-break: break-all; color: var(--dim); overflow-x: auto; }
+    .subdomain-list { column-count: 2; column-gap: 1.5rem; list-style: none; padding: 0; }
+    .subdomain-list li { font-family: monospace; font-size: .85rem; padding: .2rem 0; border-bottom: 1px solid var(--border); }
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem; margin: .75rem 0; }
+    .links-grid a { display: block; padding: .75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--link); text-decoration: none; font-weight: 600; font-size: .9rem; }
+    .links-grid a:hover { border-color: var(--link); }
+    .links-grid .desc { color: var(--dim); font-size: .78rem; font-weight: 400; margin-top: .25rem; }
+    .provenance { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-size: .85rem; margin-top: 1rem; }
+    .provenance dt { color: var(--dim); font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; margin-top: .5rem; }
+    .provenance dd { margin: 0 0 .25rem; }
+    .provenance a { color: var(--link); text-decoration: none; }
+    @media (max-width: 600px) { .score-hero { flex-direction: column; text-align: center; } .subdomain-list { column-count: 1; } }
+  </style>
+</head>
+<body>
+<div class="report">
+
+<h1>DNS Security Intelligence Report</h1>
+<p class="subtitle">` + ed + ` · Scanned <time datetime="` + isoTimestamp + `">` + isoDate + `</time> · <a href="` + esc(base) + `">DNS Tool</a> by <a href="https://it-help.tech">IT Help San Diego Inc.</a></p>
+
+<div class="score-hero">
+  <div class="score-ring"><span class="num">` + fmt.Sprintf("%d", postureScore) + `</span></div>
+  <div class="score-details">
+    <div class="grade">` + esc(postureGrade) + `</div>
+    <div class="risk">` + esc(postureLabel) + ``)
+        if riskLevel != "" && riskLevel != "Unknown" {
+                sb.WriteString(` · Risk: ` + esc(riskLevel))
+        }
+        sb.WriteString(`</div>
+  </div>
+</div>
+
+<h2>Email Authentication</h2>
+<table>
+  <tr><th>Control</th><th>Status</th><th>Detail</th></tr>
+  <tr><td>SPF</td><td class="` + statusClass(spfStatus) + `">` + esc(spfStatus) + `</td><td>Sender Policy Framework — authorizes mail senders</td></tr>
+  <tr><td>DKIM</td><td class="` + statusClass(dkimStatus) + `">` + esc(dkimStatus) + `</td><td>DomainKeys Identified Mail — cryptographic message signing</td></tr>
+  <tr><td>DMARC</td><td class="` + statusClass(dmarcStatus) + `">` + esc(dmarcStatus) + `</td><td>Policy: <strong>` + esc(dmarcPolicy) + `</strong></td></tr>
+  <tr><td>BIMI</td><td class="` + boolStatusClass(bimiPresent) + `">` + esc(bimiLabel) + `</td><td>Brand Indicators for Message Identification</td></tr>
+</table>`)
+
+        if len(spfRecords) > 0 {
+                sb.WriteString(`
+<h3 style="font-size:.95rem;margin:.75rem 0 .25rem;color:var(--dim)">SPF Records</h3>
+<div class="records-block">`)
+                for _, r := range spfRecords {
+                        sb.WriteString(esc(r) + "\n")
+                }
+                sb.WriteString(`</div>`)
+        }
+
+        if dmarcRaw != "" {
+                sb.WriteString(`
+<h3 style="font-size:.95rem;margin:.75rem 0 .25rem;color:var(--dim)">DMARC Record</h3>
+<div class="records-block">` + esc(dmarcRaw) + `</div>`)
+        }
+
+        if len(dkimSelectors) > 0 {
+                sb.WriteString(`
+<h3 style="font-size:.95rem;margin:.75rem 0 .25rem;color:var(--dim)">DKIM Selectors Discovered</h3>
+<div class="records-block">`)
+                for _, s := range dkimSelectors {
+                        sb.WriteString(esc(s) + "\n")
+                }
+                sb.WriteString(`</div>`)
+        }
+
+        sb.WriteString(`
+
+<h2>Transport Security</h2>
+<table>
+  <tr><th>Control</th><th>Status</th><th>Detail</th></tr>
+  <tr><td>DNSSEC</td><td class="` + statusClass(dnssecStatus) + `">` + esc(dnssecStatus) + `</td><td>DNS Security Extensions — cryptographic record signing</td></tr>
+  <tr><td>MTA-STS</td><td class="` + statusClass(mtaSTSMode) + `">` + esc(mtaSTSMode) + `</td><td>Mail Transfer Agent Strict Transport Security</td></tr>
+  <tr><td>CAA</td><td class="` + boolStatusClass(caaPresent) + `">` + esc(caaLabel) + `</td><td>Certificate Authority Authorization — controls certificate issuance</td></tr>
+</table>`)
+
+        if mtaSTSPolicy != "" {
+                sb.WriteString(`
+<h3 style="font-size:.95rem;margin:.75rem 0 .25rem;color:var(--dim)">MTA-STS Policy</h3>
+<div class="records-block">` + esc(mtaSTSPolicy) + `</div>`)
+        }
+
+        sb.WriteString(`
+
+<h2>Infrastructure</h2>
+<table>
+  <tr><th>Record Type</th><th>Values</th></tr>`)
+
+        if len(aRecords) > 0 {
+                sb.WriteString(`
+  <tr><td>A Records</td><td>` + esc(strings.Join(aRecords, ", ")) + `</td></tr>`)
+        }
+        if len(mxRecords) > 0 {
+                sb.WriteString(`
+  <tr><td>MX Records</td><td>` + esc(strings.Join(mxRecords, ", ")) + `</td></tr>`)
+        }
+        if len(nsRecords) > 0 {
+                sb.WriteString(`
+  <tr><td>NS Records</td><td>` + esc(strings.Join(nsRecords, ", ")) + `</td></tr>`)
+        }
+
+        sb.WriteString(`
+</table>
+
+<h2>Subdomain Discovery</h2>
+<p style="color:var(--dim);font-size:.9rem">` + fmt.Sprintf("%d", subCount) + ` subdomain(s) discovered via Certificate Transparency logs.</p>`)
+
+        if len(subdomainList) > 0 {
+                sb.WriteString(`
+<ul class="subdomain-list">`)
+                limit := len(subdomainList)
+                if limit > 100 {
+                        limit = 100
+                }
+                for i := 0; i < limit; i++ {
+                        sb.WriteString(`<li>` + esc(subdomainList[i]) + `</li>`)
+                }
+                sb.WriteString(`</ul>`)
+                if len(subdomainList) > 100 {
+                        sb.WriteString(`<p style="color:var(--dim);font-size:.85rem;margin-top:.5rem">Showing 100 of ` + fmt.Sprintf("%d", len(subdomainList)) + ` subdomains. See the <a href="` + esc(analyzeURL) + `" style="color:var(--link)">full report</a> for all results.</p>`)
+                }
+        }
+
+        sb.WriteString(`
+
+<h2>Security Badge</h2>
+<div class="badge-embed">
+  <a href="` + esc(analyzeURL) + `"><object type="image/svg+xml" data="` + esc(badgeDetailed) + `" aria-label="DNS Tool detailed security badge for ` + ed + `">` + ed + ` security badge</object></a>
+</div>
+
+<h2>Related Resources</h2>
+<div class="links-grid">
+  <a href="` + esc(analyzeURL) + `">Full Interactive Report<div class="desc">Live analysis with charts, graphs, and deep-dive panels</div></a>
+  <a href="` + esc(snapshotURL) + `">Observed Records Snapshot<div class="desc">Raw DNS records with SHA-3-512 integrity hash</div></a>
+  <a href="` + esc(topologyURL) + `">Protocol Topology Map<div class="desc">Animated signal flow and RFC dependency graph</div></a>
+  <a href="` + esc(apiURL) + `">Machine-Readable JSON<div class="desc">Structured API response for automation</div></a>
+  <a href="` + esc(waybackURL) + `">Wayback Machine Archive<div class="desc">Third-party permanent record via Internet Archive</div></a>
+  <a href="https://doi.org/10.5281/zenodo.18854899">Zenodo DOI<div class="desc">Concept DOI for citation and reproducibility</div></a>
+</div>
+
+<h2>Provenance</h2>
+<dl class="provenance">
+  <dt>Tool</dt><dd>DNS Tool by <a href="https://it-help.tech">IT Help San Diego Inc.</a></dd>
+  <dt>Version</dt><dd>` + esc(h.Config.AppVersion) + `</dd>
+  <dt>Methodology</dt><dd>RFC-grounded analysis with Bayesian confidence scoring</dd>
+  <dt>Concept DOI</dt><dd><a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a></dd>
+  <dt>License</dt><dd>BUSL-1.1</dd>
+  <dt>Timestamp</dt><dd><time datetime="` + isoTimestamp + `">` + isoTimestamp + `</time></dd>
+</dl>
+
+</div>
+</body>
+</html>`)
+
+        return sb.String()
+}
+
+func statusClass(s string) string {
+        lower := strings.ToLower(s)
+        switch {
+        case lower == "success" || lower == "signed" || lower == "enforce" || lower == "present":
+                return "status-pass"
+        case lower == "missing" || lower == "not found" || lower == "unsigned" || lower == "none" || lower == "fail":
+                return "status-fail"
+        default:
+                return "status-warn"
+        }
+}
+
+func boolStatusClass(present bool) string {
+        if present {
+                return "status-pass"
+        }
+        return "status-fail"
 }
