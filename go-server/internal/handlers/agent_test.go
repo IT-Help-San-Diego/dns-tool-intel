@@ -236,7 +236,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "report":          "https://dnstool.it-help.tech/analyze?domain=example.com",
                 "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
-                "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
+                "wayback_archive": "https://web.archive.org/web/https://dnstool.it-help.tech/analyze?domain=example.com",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
         }
         for key, want := range checks {
@@ -309,11 +309,11 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         assetChecks := []string{
                 "/snapshot/example.com",
                 "/topology?domain=example.com",
-                "web.archive.org/web/*/",
+                "web.archive.org/web/",
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
-                "DNS Topology Map",
+                "Analysis Pipeline",
                 "Internet Archive",
         }
         for _, check := range assetChecks {
