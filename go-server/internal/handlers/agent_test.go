@@ -238,6 +238,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
                 "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
                 "wayback_page":    "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
+                "report_page":     "https://dnstool.it-help.tech/agent/report?domain=example.com",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
         }
         for key, want := range checks {
@@ -311,6 +312,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "/snapshot/example.com",
                 "/topology?domain=example.com",
                 "/agent/wayback?domain=example.com",
+                "/agent/report?domain=example.com",
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
@@ -535,6 +537,61 @@ func TestBuildAgentJSON_EmailAuthStatusMapping(t *testing.T) {
                         }
                         if got := dmarc["policy"]; got != tt.wantPolicy {
                                 t.Errorf("DMARC policy = %v, want %v", got, tt.wantPolicy)
+                        }
+                })
+        }
+}
+
+func TestReportViewHandler(t *testing.T) {
+        router, h := setupAgentRouter()
+        router.GET("/agent/report", h.ReportView)
+
+        tests := []struct {
+                name   string
+                url    string
+                status int
+                checks []string
+        }{
+                {"missing domain", "/agent/report", http.StatusBadRequest, nil},
+                {"invalid domain", "/agent/report?domain=not_valid!", http.StatusBadRequest, nil},
+                {"valid domain", "/agent/report?domain=example.com", http.StatusOK, []string{
+                        "<title>DNS Security Intelligence Report",
+                        "example.com",
+                        "Email Authentication",
+                        "Transport Security",
+                        "Infrastructure",
+                        "Subdomain Discovery",
+                        "Security Badge",
+                        "Related Resources",
+                        "Provenance",
+                        "score-hero",
+                        "status-pass",
+                        "IT Help San Diego",
+                        "/analyze?domain=example.com",
+                        "/snapshot/example.com",
+                        "/topology?domain=example.com",
+                        "/agent/wayback?domain=example.com",
+                        "10.5281/zenodo.18854899",
+                }},
+                {"q param", "/agent/report?q=example.com", http.StatusOK, []string{
+                        "example.com",
+                        "DNS Security Intelligence Report",
+                }},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        w := httptest.NewRecorder()
+                        req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+                        router.ServeHTTP(w, req)
+                        if w.Code != tt.status {
+                                t.Fatalf("status = %d, want %d; body: %s", w.Code, tt.status, w.Body.String())
+                        }
+                        body := w.Body.String()
+                        for _, check := range tt.checks {
+                                if !strings.Contains(body, check) {
+                                        t.Errorf("response missing %q", check)
+                                }
                         }
                 })
         }
