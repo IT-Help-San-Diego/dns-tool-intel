@@ -296,7 +296,7 @@ func parseSSHKey(b64Key, label string) (ssh.Signer, error) {
 
         var keyBytes []byte
         if strings.HasPrefix(raw, "-----BEGIN") {
-                keyBytes = []byte(raw)
+                keyBytes = []byte(normalizePEM(raw))
         } else {
                 decoded, err := base64.StdEncoding.DecodeString(raw)
                 if err != nil {
@@ -317,6 +317,60 @@ func parseSSHKey(b64Key, label string) (ssh.Signer, error) {
                 return nil, fmt.Errorf("failed to parse SSH key for %s: %w", label, err)
         }
         return signer, nil
+}
+
+func normalizePEM(s string) string {
+        s = strings.ReplaceAll(s, "\\n", "\n")
+
+        if !strings.Contains(s, "\n") || (strings.Contains(s, " ") && strings.Count(s, "\n") < 3) {
+                tokens := strings.Fields(s)
+                var header, footer string
+                var bodyTokens []string
+
+                i := 0
+                for i < len(tokens) && !strings.HasSuffix(tokens[i], "-----") {
+                        i++
+                }
+                if i < len(tokens) {
+                        header = strings.Join(tokens[:i+1], " ")
+                        i++
+                } else {
+                        return s
+                }
+
+                j := len(tokens) - 1
+                for j > i && !strings.HasPrefix(tokens[j], "-----") {
+                        j--
+                }
+                endStart := j
+                for endStart > i && !strings.HasPrefix(tokens[endStart], "-----") {
+                        endStart--
+                }
+                if endStart >= i {
+                        footer = strings.Join(tokens[endStart:], " ")
+                        bodyTokens = tokens[i:endStart]
+                } else {
+                        bodyTokens = tokens[i:]
+                }
+
+                body := strings.Join(bodyTokens, "")
+
+                var lines []string
+                lines = append(lines, header)
+                for k := 0; k < len(body); k += 70 {
+                        end := k + 70
+                        if end > len(body) {
+                                end = len(body)
+                        }
+                        lines = append(lines, body[k:end])
+                }
+                if footer != "" {
+                        lines = append(lines, footer)
+                }
+                return strings.Join(lines, "\n") + "\n"
+        }
+
+        return s
 }
 
 func executeSSH(ctx context.Context, target *sshTarget, script string) (string, error) {
