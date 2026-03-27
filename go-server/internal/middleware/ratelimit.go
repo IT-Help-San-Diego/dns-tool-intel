@@ -199,7 +199,13 @@ func AgentRateLimit(limiter RateLimiter) gin.HandlerFunc {
                         return
                 }
 
-                domain := strings.TrimSpace(c.Query("q"))
+                var domain string
+                for _, key := range []string{"q", "domain", "query", "search", "searchTerms"} {
+                        if v := strings.TrimSpace(c.Query(key)); v != "" {
+                                domain = v
+                                break
+                        }
+                }
                 if domain == "" {
                         c.Next()
                         return

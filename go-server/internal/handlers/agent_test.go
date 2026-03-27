@@ -59,11 +59,15 @@ func TestAgentSearchMissingQuery(t *testing.T) {
         w := httptest.NewRecorder()
         r.ServeHTTP(w, req)
 
-        if w.Code != http.StatusBadRequest {
-                t.Fatalf("expected 400, got %d", w.Code)
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200 help page, got %d", w.Code)
         }
-        if !strings.Contains(w.Body.String(), "Missing query parameter") {
-                t.Fatal("expected missing query error message")
+        body := w.Body.String()
+        if !strings.Contains(body, "Agent Search") {
+                t.Fatal("expected help page with Agent Search heading")
+        }
+        if !strings.Contains(body, "/agent/search?q=") {
+                t.Fatal("expected example links on help page")
         }
 }
 

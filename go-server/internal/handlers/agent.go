@@ -6,6 +6,7 @@ package handlers
 import (
         "fmt"
         "html/template"
+        "log/slog"
         "net/http"
         "strings"
         "time"
@@ -50,11 +51,37 @@ func (h *AgentHandler) OpenSearchXML(c *gin.Context) {
         c.Data(http.StatusOK, "application/opensearchdescription+xml; charset=utf-8", []byte(xml))
 }
 
+func extractAgentQuery(c *gin.Context) string {
+        for _, key := range []string{"q", "domain", "query", "search", "searchTerms"} {
+                if v := strings.TrimSpace(c.Query(key)); v != "" {
+                        return strings.ToLower(v)
+                }
+        }
+        return ""
+}
+
 func (h *AgentHandler) AgentSearch(c *gin.Context) {
-        domain := strings.TrimSpace(strings.ToLower(c.Query("q")))
+        slog.Info("Agent search request",
+                "raw_query", c.Request.URL.RawQuery,
+                "full_url", c.Request.URL.String(),
+                "remote_addr", c.ClientIP(),
+                "user_agent", c.Request.UserAgent())
+
+        domain := extractAgentQuery(c)
         if domain == "" {
-                c.Data(http.StatusBadRequest, "text/html; charset=utf-8",
-                        []byte(`<!DOCTYPE html><html><head><title>DNS Tool Agent — Error</title></head><body><h1>Error</h1><p>Missing query parameter: q (domain name required)</p></body></html>`))
+                base := h.Config.BaseURL
+                c.Data(http.StatusOK, "text/html; charset=utf-8",
+                        []byte(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>DNS Tool — Agent Search</title>`+
+                                `<link rel="search" type="application/opensearchdescription+xml" title="DNS Tool" href="`+base+`/agent/opensearch.xml">`+
+                                `</head><body><h1>DNS Tool — Agent Search</h1>`+
+                                `<p>Usage: <code>`+base+`/agent/search?q=example.com</code></p>`+
+                                `<ul>`+
+                                `<li><a href="`+base+`/agent/search?q=it-help.tech">Analyze it-help.tech</a></li>`+
+                                `<li><a href="`+base+`/agent/search?q=apple.com">Analyze apple.com</a></li>`+
+                                `<li><a href="`+base+`/agent/search?q=red.com">Analyze red.com</a></li>`+
+                                `<li><a href="`+base+`">DNS Tool Home</a></li>`+
+                                `<li><a href="`+base+`/agent/opensearch.xml">OpenSearch Descriptor</a></li>`+
+                                `</ul></body></html>`))
                 return
         }
 
@@ -95,7 +122,7 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
 }
 
 func (h *AgentHandler) AgentAPI(c *gin.Context) {
-        domain := strings.TrimSpace(strings.ToLower(c.Query("q")))
+        domain := extractAgentQuery(c)
         if domain == "" {
                 c.JSON(http.StatusBadRequest, gin.H{"error": "Missing query parameter: q (domain name required)"})
                 return
