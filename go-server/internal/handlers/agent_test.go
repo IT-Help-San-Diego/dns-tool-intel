@@ -237,6 +237,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
                 "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
+                "wayback_page":    "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
         }
         for key, want := range checks {
@@ -309,7 +310,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         assetChecks := []string{
                 "/snapshot/example.com",
                 "/topology?domain=example.com",
-                "web.archive.org/web/*/",
+                "/agent/wayback?domain=example.com",
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
@@ -534,6 +535,52 @@ func TestBuildAgentJSON_EmailAuthStatusMapping(t *testing.T) {
                         }
                         if got := dmarc["policy"]; got != tt.wantPolicy {
                                 t.Errorf("DMARC policy = %v, want %v", got, tt.wantPolicy)
+                        }
+                })
+        }
+}
+
+func TestWaybackViewHandler(t *testing.T) {
+        router, h := setupAgentRouter()
+        router.GET("/agent/wayback", h.WaybackView)
+
+        tests := []struct {
+                name   string
+                url    string
+                status int
+                checks []string
+        }{
+                {"missing domain", "/agent/wayback", http.StatusBadRequest, nil},
+                {"invalid domain", "/agent/wayback?domain=not_valid!", http.StatusBadRequest, nil},
+                {"valid domain", "/agent/wayback?domain=example.com", http.StatusOK, []string{
+                        "<title>Wayback Machine Archive",
+                        "example.com",
+                        "web.archive.org/web/*/",
+                        "web.archive.org/web/https://",
+                        "web.archive.org/save/",
+                        "Internet Archive",
+                        "Calendar View",
+                        "Latest Archived Snapshot",
+                }},
+                {"q param", "/agent/wayback?q=example.com", http.StatusOK, []string{
+                        "example.com",
+                        "web.archive.org",
+                }},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        w := httptest.NewRecorder()
+                        req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+                        router.ServeHTTP(w, req)
+                        if w.Code != tt.status {
+                                t.Fatalf("status = %d, want %d; body: %s", w.Code, tt.status, w.Body.String())
+                        }
+                        body := w.Body.String()
+                        for _, check := range tt.checks {
+                                if !strings.Contains(body, check) {
+                                        t.Errorf("response missing %q", check)
+                                }
                         }
                 })
         }

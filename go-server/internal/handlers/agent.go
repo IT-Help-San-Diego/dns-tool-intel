@@ -330,6 +330,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "snapshot":        fmt.Sprintf("%s/snapshot/%s", base, domain),
                         "topology":        fmt.Sprintf("%s/topology?domain=%s", base, domain),
                         "wayback_archive": waybackURL,
+                        "wayback_page":    fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain),
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
                 },
                 "badges": gin.H{
@@ -443,8 +444,8 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
         reportURL := esc(links["report"].(string))
         snapshotURL := esc(links["snapshot"].(string))
         topologyURL := esc(links["topology"].(string))
-        waybackURL := esc(links["wayback_archive"].(string))
         apiURL := esc(links["api_json"].(string))
+        waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeFlat := esc(badges["flat_svg"].(string))
@@ -527,7 +528,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
   <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> (TXT, SHA-3-512 integrity hash included)</li>
   <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> (DNS Tool methodology — signal flow, RFC sources, and scoring pipeline)</li>
   <li><a href="` + apiURL + `">Machine-Readable API Response</a> (JSON)</li>
-  <li><a href="` + waybackURL + `">Internet Archive — Wayback Machine</a> (third-party permanent record)</li>
+  <li><a href="` + waybackViewURL + `">Internet Archive — Wayback Machine</a> (third-party permanent record)</li>
 </ul>
 
 <h2>Email Authentication</h2>
@@ -664,6 +665,85 @@ func (h *AgentHandler) BadgeView(c *gin.Context) {
       <a href="` + reportURL + `">Full Analysis Report</a>
       <a href="` + eb + `">Direct Badge SVG</a>
       <a href="` + esc(fmt.Sprintf("%s/badge/embed", base)) + `">Badge Generator</a>
+    </div>
+  </div>
+</body>
+</html>`)
+
+        c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(sb.String()))
+}
+
+func (h *AgentHandler) WaybackView(c *gin.Context) {
+        domain := strings.TrimSpace(c.Query("q"))
+        if domain == "" {
+                domain = strings.TrimSpace(c.Query("domain"))
+        }
+        if domain == "" {
+                c.String(http.StatusBadRequest, "missing domain parameter")
+                return
+        }
+        domain = cleanAgentQuery(domain)
+        if !dnsclient.ValidateDomain(domain) {
+                c.String(http.StatusBadRequest, "invalid domain")
+                return
+        }
+
+        base := h.Config.BaseURL
+        ed := esc(domain)
+        analyzeURL := fmt.Sprintf("%s/analyze?domain=%s", base, domain)
+        calendarURL := fmt.Sprintf("https://web.archive.org/web/*/%s", analyzeURL)
+        latestURL := fmt.Sprintf("https://web.archive.org/web/%s", analyzeURL)
+        saveURL := fmt.Sprintf("https://web.archive.org/save/%s", analyzeURL)
+
+        var sb strings.Builder
+        sb.WriteString(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wayback Machine Archive — ` + ed + ` — DNS Tool</title>
+  <meta name="description" content="Internet Archive Wayback Machine snapshots for ` + ed + ` DNS security analysis by DNS Tool.">
+  <meta name="robots" content="noindex, noarchive">
+  <meta property="og:title" content="Wayback Machine Archive — ` + ed + `">
+  <meta property="og:description" content="Third-party permanent record of DNS security analysis for ` + ed + `.">
+  <meta property="og:type" content="article">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 2rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 1.4rem; margin-bottom: .5rem; }
+    .meta { color: #8b949e; font-size: .85rem; margin-bottom: 1.5rem; }
+    .meta a { color: #58a6ff; text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+    .archive-links { list-style: none; padding: 0; }
+    .archive-links li { margin-bottom: 1rem; padding: 1rem; background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+    .archive-links a { color: #58a6ff; text-decoration: none; font-weight: 600; }
+    .archive-links a:hover { text-decoration: underline; }
+    .archive-links .desc { color: #8b949e; font-size: .85rem; margin-top: .25rem; }
+    .footer-links { margin-top: 1.5rem; font-size: .9rem; }
+    .footer-links a { color: #58a6ff; text-decoration: none; margin-right: 1.5rem; }
+    .footer-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Wayback Machine Archive — ` + ed + `</h1>
+    <p class="meta">Third-party permanent record via the <a href="https://web.archive.org">Internet Archive</a> · Analysis by <a href="` + esc(base) + `">DNS Tool</a></p>
+    <ul class="archive-links">
+      <li>
+        <a href="` + esc(calendarURL) + `">All Archived Snapshots (Calendar View)</a>
+        <div class="desc">Browse every saved version of this analysis on the Wayback Machine timeline.</div>
+      </li>
+      <li>
+        <a href="` + esc(latestURL) + `">Latest Archived Snapshot</a>
+        <div class="desc">Jump directly to the most recent archived copy, if available.</div>
+      </li>
+      <li>
+        <a href="` + esc(saveURL) + `">Save Current Analysis to Wayback Machine</a>
+        <div class="desc">Request the Internet Archive to capture and preserve the current state of this report right now.</div>
+      </li>
+    </ul>
+    <div class="footer-links">
+      <a href="` + esc(analyzeURL) + `">Full Analysis Report</a>
+      <a href="` + esc(base) + `">DNS Tool Home</a>
     </div>
   </div>
 </body>
