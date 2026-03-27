@@ -184,6 +184,28 @@ func TestParseSSHKey_InvalidKey(t *testing.T) {
         }
 }
 
+func TestNormalizePEM_SpaceDelimited(t *testing.T) {
+        input := "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjE AAAA -----END OPENSSH PRIVATE KEY-----"
+        out := normalizePEM(input)
+        if !strings.HasPrefix(out, "-----BEGIN OPENSSH PRIVATE KEY-----\n") {
+                t.Errorf("expected header with newline, got: %q", out[:60])
+        }
+        if !strings.Contains(out, "-----END OPENSSH PRIVATE KEY-----") {
+                t.Error("expected footer in output")
+        }
+        if strings.Count(out, "\n") < 3 {
+                t.Errorf("expected at least 3 newlines, got %d", strings.Count(out, "\n"))
+        }
+}
+
+func TestNormalizePEM_AlreadyValid(t *testing.T) {
+        input := "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjE=\n-----END OPENSSH PRIVATE KEY-----\n"
+        out := normalizePEM(input)
+        if out != input {
+                t.Errorf("expected unchanged output for valid PEM")
+        }
+}
+
 func TestProbeScripts(t *testing.T) {
         tests := []struct {
                 name   string
