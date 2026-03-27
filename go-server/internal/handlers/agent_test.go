@@ -71,6 +71,28 @@ func TestAgentSearchMissingQuery(t *testing.T) {
         }
 }
 
+func TestCleanAgentQuery(t *testing.T) {
+        tests := []struct {
+                input, expect string
+        }{
+                {`_"it-help.tech"_`, "it-help.tech"},
+                {`_"apple.com"_`, "apple.com"},
+                {`_Test_`, "test"},
+                {"example.com", "example.com"},
+                {"  EXAMPLE.COM  ", "example.com"},
+                {`"example.com"`, "example.com"},
+                {`'example.com'`, "example.com"},
+                {"__example.com__", "example.com"},
+                {`_"_test_"_`, "test"},
+        }
+        for _, tt := range tests {
+                got := cleanAgentQuery(tt.input)
+                if got != tt.expect {
+                        t.Errorf("cleanAgentQuery(%q) = %q, want %q", tt.input, got, tt.expect)
+                }
+        }
+}
+
 func TestAgentSearchInvalidDomain(t *testing.T) {
         r, h := setupAgentRouter()
         r.GET("/agent/search", h.AgentSearch)
