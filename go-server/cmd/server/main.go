@@ -536,11 +536,12 @@ func main() {
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
         router.GET("/badge/animated", badgeHandler.BadgeAnimated)
 
-        agentHandler := handlers.NewAgentHandler(cfg, dnsAnalyzer)
+        agentHandler := handlers.NewAgentHandler(cfg, dnsAnalyzer, database.Queries)
         router.GET("/agent/search", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentSearch)
         router.GET("/agent/api", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentAPI)
         router.GET("/agent/badge-view", agentHandler.BadgeView)
         router.GET("/agent/wayback", agentHandler.WaybackView)
+        router.GET("/agent/report", agentHandler.ReportView)
         router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
 
         zoneHandler := handlers.NewZoneHandler(database, cfg)
