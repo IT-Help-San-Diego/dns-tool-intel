@@ -194,6 +194,11 @@ func AnalyzeRateLimit(limiter RateLimiter) gin.HandlerFunc {
 
 func AgentRateLimit(limiter RateLimiter) gin.HandlerFunc {
         return func(c *gin.Context) {
+                if c.Request.Method != http.MethodGet {
+                        c.Next()
+                        return
+                }
+
                 domain := strings.TrimSpace(c.Query("q"))
                 if domain == "" {
                         c.Next()

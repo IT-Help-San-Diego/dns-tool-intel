@@ -169,6 +169,134 @@ func TestEscHelper(t *testing.T) {
         }
 }
 
+func TestSafeFloat64(t *testing.T) {
+        m := map[string]any{
+                "f64":   float64(3.14),
+                "int":   42,
+                "int64": int64(99),
+                "str":   "nope",
+        }
+        if safeFloat64(m, "f64") != 3.14 {
+                t.Fatal("safeFloat64 failed for float64")
+        }
+        if safeFloat64(m, "int") != 42.0 {
+                t.Fatal("safeFloat64 failed for int")
+        }
+        if safeFloat64(m, "int64") != 99.0 {
+                t.Fatal("safeFloat64 failed for int64")
+        }
+        if safeFloat64(m, "str") != 0 {
+                t.Fatal("safeFloat64 should return 0 for non-numeric")
+        }
+        if safeFloat64(m, "missing") != 0 {
+                t.Fatal("safeFloat64 missing should return 0")
+        }
+}
+
+func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists": true,
+                "risk_level":    "low",
+                "posture":       map[string]any{"score": float64(85), "grade": "B+", "label": "Good"},
+        }
+        j := h.buildAgentJSON("example.com", results)
+
+        links, ok := j["links"].(gin.H)
+        if !ok {
+                t.Fatal("missing links section")
+        }
+        checks := map[string]string{
+                "report":          "https://dnstool.it-help.tech/analyze?domain=example.com",
+                "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
+                "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
+                "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
+                "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
+        }
+        for key, want := range checks {
+                got, ok := links[key].(string)
+                if !ok || got != want {
+                        t.Errorf("links[%q] = %q, want %q", key, got, want)
+                }
+        }
+
+        badges, ok := j["badges"].(gin.H)
+        if !ok {
+                t.Fatal("missing badges section")
+        }
+        badgeChecks := map[string]string{
+                "detailed_svg": "https://dnstool.it-help.tech/badge?domain=example.com&style=detailed",
+                "covert_svg":   "https://dnstool.it-help.tech/badge?domain=example.com&style=covert",
+                "flat_svg":     "https://dnstool.it-help.tech/badge?domain=example.com",
+        }
+        for key, want := range badgeChecks {
+                got, ok := badges[key].(string)
+                if !ok || got != want {
+                        t.Errorf("badges[%q] = %q, want %q", key, got, want)
+                }
+        }
+
+        summary, ok := j["summary"].(gin.H)
+        if !ok {
+                t.Fatal("missing summary")
+        }
+        if summary["posture_score"] != 85 {
+                t.Errorf("posture_score = %v, want 85", summary["posture_score"])
+        }
+        if summary["posture_grade"] != "B+" {
+                t.Errorf("posture_grade = %v, want B+", summary["posture_grade"])
+        }
+}
+
+func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists": true,
+                "risk_level":    "low",
+                "posture":       map[string]any{"score": float64(72), "grade": "C+", "label": "Fair"},
+                "spf_analysis":  map[string]any{"has_spf": true, "verdict": "pass"},
+                "dmarc_analysis": map[string]any{"has_dmarc": true, "verdict": "present", "policy": "reject"},
+                "dkim_analysis":  map[string]any{"has_dkim": true, "verdict": "present"},
+        }
+        html := h.buildAgentHTML("example.com", results)
+
+        zoteroChecks := []string{
+                `name="DC.title"`,
+                `name="DC.creator"`,
+                `name="DC.publisher"`,
+                `name="DC.date"`,
+                `name="DC.type" content="Dataset"`,
+                `name="citation_title"`,
+                `name="citation_author"`,
+                `name="citation_doi" content="10.5281/zenodo.18854899"`,
+                `class="Z3988"`,
+                `ctx_ver=Z39.88-2004`,
+                `property="og:title"`,
+                `property="og:image"`,
+        }
+        for _, check := range zoteroChecks {
+                if !strings.Contains(html, check) {
+                        t.Errorf("missing Zotero/citation metadata: %q", check)
+                }
+        }
+
+        assetChecks := []string{
+                "/snapshot/example.com",
+                "/topology?domain=example.com",
+                "web.archive.org/web/*/",
+                "style=detailed",
+                "style=covert",
+                "Observed Records Snapshot",
+                "DNS Topology Map",
+                "Internet Archive",
+        }
+        for _, check := range assetChecks {
+                if !strings.Contains(html, check) {
+                        t.Errorf("missing enrichment in HTML: %q", check)
+                }
+        }
+}
+
 func TestSafeHelpers(t *testing.T) {
         m := map[string]any{
                 "str":     "hello",
