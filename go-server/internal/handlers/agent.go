@@ -310,7 +310,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
 
         base := h.Config.BaseURL
         analyzeURL := fmt.Sprintf("%s/analyze?domain=%s", base, domain)
-        waybackURL := fmt.Sprintf("https://web.archive.org/web/*/%s", analyzeURL)
+        waybackURL := fmt.Sprintf("https://web.archive.org/web/%s", analyzeURL)
 
         return gin.H{
                 "tool":       "DNS Tool",
@@ -511,15 +511,15 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
 </table>
 
 <h2>Security Badges</h2>
-<p><strong>Detailed Badge:</strong><br><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `"></p>
-<p><strong>Covert Badge:</strong><br><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `"></p>
-<p><strong>Flat Badge:</strong><br><img src="` + badgeFlat + `" alt="DNS Tool Flat Security Badge for ` + ed + `"></p>
+<p><strong>Detailed Badge:</strong><br><a href="` + badgeDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `" width="400"></a></p>
+<p><strong>Covert Badge:</strong><br><a href="` + badgeCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `"><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `" width="300"></a></p>
+<p><strong>Flat Badge:</strong><br><a href="` + badgeFlat + `" title="DNS Tool Flat Security Badge for ` + ed + `"><img src="` + badgeFlat + `" alt="DNS Tool Flat Security Badge for ` + ed + `" width="200"></a></p>
 
 <h2>Downloads &amp; Archives</h2>
 <ul>
   <li><a href="` + reportURL + `">Full Analysis Report</a> (HTML)</li>
   <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> (TXT, SHA-3-512 integrity hash included)</li>
-  <li><a href="` + topologyURL + `">DNS Topology Map</a> (interactive network visualization)</li>
+  <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> (DNS Tool methodology — signal flow, RFC sources, and scoring pipeline)</li>
   <li><a href="` + apiURL + `">Machine-Readable API Response</a> (JSON)</li>
   <li><a href="` + waybackURL + `">Internet Archive — Wayback Machine</a> (third-party permanent record)</li>
 </ul>
