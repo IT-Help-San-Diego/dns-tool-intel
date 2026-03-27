@@ -310,7 +310,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
 
         base := h.Config.BaseURL
         analyzeURL := fmt.Sprintf("%s/analyze?domain=%s", base, domain)
-        waybackURL := fmt.Sprintf("https://web.archive.org/web/%s", analyzeURL)
+        waybackURL := fmt.Sprintf("https://web.archive.org/web/*/%s", analyzeURL)
 
         return gin.H{
                 "tool":       "DNS Tool",
@@ -333,12 +333,15 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
                 },
                 "badges": gin.H{
-                        "detailed_svg": fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain),
-                        "covert_svg":   fmt.Sprintf("%s/badge?domain=%s&style=covert", base, domain),
-                        "flat_svg":     fmt.Sprintf("%s/badge?domain=%s", base, domain),
-                        "shields_io":   fmt.Sprintf("%s/badge/shields?domain=%s", base, domain),
-                        "animated_svg": fmt.Sprintf("%s/badge/animated?domain=%s", base, domain),
-                        "embed_page":   fmt.Sprintf("%s/badge/embed", base),
+                        "detailed_svg":  fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain),
+                        "covert_svg":    fmt.Sprintf("%s/badge?domain=%s&style=covert", base, domain),
+                        "flat_svg":      fmt.Sprintf("%s/badge?domain=%s", base, domain),
+                        "shields_io":    fmt.Sprintf("%s/badge/shields?domain=%s", base, domain),
+                        "animated_svg":  fmt.Sprintf("%s/badge/animated?domain=%s", base, domain),
+                        "embed_page":    fmt.Sprintf("%s/badge/embed", base),
+                        "detailed_page": fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain),
+                        "covert_page":   fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain),
+                        "flat_page":     fmt.Sprintf("%s/agent/badge-view?domain=%s&style=flat", base, domain),
                 },
                 "email_authentication": gin.H{
                         "spf":   gin.H{"status": spfVerdict},
@@ -445,6 +448,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeFlat := esc(badges["flat_svg"].(string))
+        badgeViewDetailed := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain))
+        badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
+        badgeViewFlat := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=flat", base, domain))
 
         now := time.Now().UTC()
         isoDate := now.Format("2006-01-02")
@@ -511,9 +517,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
 </table>
 
 <h2>Security Badges</h2>
-<p><strong>Detailed Badge:</strong><br><a href="` + badgeDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `" width="400"></a></p>
-<p><strong>Covert Badge:</strong><br><a href="` + badgeCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `"><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `" width="300"></a></p>
-<p><strong>Flat Badge:</strong><br><a href="` + badgeFlat + `" title="DNS Tool Flat Security Badge for ` + ed + `"><img src="` + badgeFlat + `" alt="DNS Tool Flat Security Badge for ` + ed + `" width="200"></a></p>
+<p><strong>Detailed Badge:</strong><br><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `" width="400"></a></p>
+<p><strong>Covert Badge:</strong><br><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `"><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `" width="300"></a></p>
+<p><strong>Flat Badge:</strong><br><a href="` + badgeViewFlat + `" title="DNS Tool Flat Security Badge for ` + ed + `"><img src="` + badgeFlat + `" alt="DNS Tool Flat Security Badge for ` + ed + `" width="200"></a></p>
 
 <h2>Downloads &amp; Archives</h2>
 <ul>
@@ -578,4 +584,90 @@ func boolToPresence(b bool) string {
                 return "present"
         }
         return "not found"
+}
+
+func (h *AgentHandler) BadgeView(c *gin.Context) {
+        domain := strings.TrimSpace(c.Query("q"))
+        if domain == "" {
+                domain = strings.TrimSpace(c.Query("domain"))
+        }
+        if domain == "" {
+                c.String(http.StatusBadRequest, "missing domain parameter")
+                return
+        }
+        domain = cleanAgentQuery(domain)
+        if !dnsclient.ValidateDomain(domain) {
+                c.String(http.StatusBadRequest, "invalid domain")
+                return
+        }
+
+        style := strings.TrimSpace(c.Query("style"))
+        if style == "" {
+                style = "detailed"
+        }
+        switch style {
+        case "detailed", "covert", "flat":
+        default:
+                style = "detailed"
+        }
+
+        base := h.Config.BaseURL
+        ed := esc(domain)
+        es := esc(style)
+
+        badgeURL := fmt.Sprintf("%s/badge?domain=%s", base, domain)
+        if style != "flat" {
+                badgeURL += "&style=" + style
+        }
+        eb := esc(badgeURL)
+        reportURL := esc(fmt.Sprintf("%s/analyze?domain=%s", base, domain))
+
+        styleName := style
+        if style == "flat" {
+                styleName = "compact"
+        }
+
+        var sb strings.Builder
+        sb.WriteString(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DNS Security Badge (` + es + `) — ` + ed + ` — DNS Tool</title>
+  <meta name="description" content="` + es + ` DNS security posture badge for ` + ed + ` — generated by DNS Tool.">
+  <meta name="robots" content="noindex, noarchive">
+  <meta property="og:title" content="DNS Security Badge (` + es + `) — ` + ed + `">
+  <meta property="og:description" content="DNS security posture badge for ` + ed + `.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="` + eb + `">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 2rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 1.4rem; margin-bottom: .5rem; }
+    .meta { color: #8b949e; font-size: .85rem; margin-bottom: 1.5rem; }
+    .meta a { color: #58a6ff; text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+    .badge-frame { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; text-align: center; }
+    .badge-frame img { max-width: 100%%; height: auto; }
+    .links { margin-top: 1.5rem; font-size: .9rem; }
+    .links a { color: #58a6ff; text-decoration: none; margin-right: 1.5rem; }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>DNS Security Badge — ` + ed + `</h1>
+    <p class="meta">Style: <strong>` + esc(styleName) + `</strong> · Generated by <a href="` + esc(base) + `">DNS Tool</a> · <a href="` + reportURL + `">View full report →</a></p>
+    <div class="badge-frame">
+      <a href="` + reportURL + `"><img src="` + eb + `" alt="DNS Tool ` + es + ` security badge for ` + ed + `"></a>
+    </div>
+    <div class="links">
+      <a href="` + reportURL + `">Full Analysis Report</a>
+      <a href="` + eb + `">Direct Badge SVG</a>
+      <a href="` + esc(fmt.Sprintf("%s/badge/embed", base)) + `">Badge Generator</a>
+    </div>
+  </div>
+</body>
+</html>`)
+
+        c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(sb.String()))
 }

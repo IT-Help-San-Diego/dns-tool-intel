@@ -539,6 +539,7 @@ func main() {
         agentHandler := handlers.NewAgentHandler(cfg, dnsAnalyzer)
         router.GET("/agent/search", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentSearch)
         router.GET("/agent/api", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentAPI)
+        router.GET("/agent/badge-view", agentHandler.BadgeView)
         router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
 
         zoneHandler := handlers.NewZoneHandler(database, cfg)
