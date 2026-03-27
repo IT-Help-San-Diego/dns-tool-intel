@@ -280,9 +280,9 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "domain_exists": true,
                 "risk_level":    "low",
                 "posture":       map[string]any{"score": float64(72), "grade": "C+", "label": "Fair"},
-                "spf_analysis":  map[string]any{"has_spf": true, "verdict": "pass"},
-                "dmarc_analysis": map[string]any{"has_dmarc": true, "verdict": "present", "policy": "reject"},
-                "dkim_analysis":  map[string]any{"has_dkim": true, "verdict": "present"},
+                "spf_analysis":  map[string]any{"status": "success"},
+                "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
+                "dkim_analysis":  map[string]any{"status": "success"},
         }
         html := h.buildAgentHTML("example.com", results)
 
@@ -439,5 +439,102 @@ func TestBuildAgentJSONBadgePages(t *testing.T) {
                 if !ok || got != want {
                         t.Errorf("badges[%q] = %q, want %q", key, got, want)
                 }
+        }
+}
+
+func TestBuildAgentJSON_EmailAuthStatusMapping(t *testing.T) {
+        _, h := setupAgentRouter()
+
+        tests := []struct {
+                name     string
+                results  map[string]any
+                wantSPF  string
+                wantDMARC string
+                wantDKIM string
+                wantPolicy string
+        }{
+                {
+                        name: "analyzer status fields present",
+                        results: map[string]any{
+                                "domain_exists":  true,
+                                "risk_level":     "low",
+                                "posture":        map[string]any{"score": float64(90), "grade": "A", "label": "Low Risk"},
+                                "spf_analysis":   map[string]any{"status": "success"},
+                                "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
+                                "dkim_analysis":  map[string]any{"status": "warning"},
+                        },
+                        wantSPF:    "success",
+                        wantDMARC:  "success",
+                        wantDKIM:   "warning",
+                        wantPolicy: "reject",
+                },
+                {
+                        name: "analyzer status missing means missing",
+                        results: map[string]any{
+                                "domain_exists":  true,
+                                "risk_level":     "high",
+                                "posture":        map[string]any{"score": float64(30), "grade": "F", "label": "Critical"},
+                                "spf_analysis":   map[string]any{"status": "missing"},
+                                "dmarc_analysis": map[string]any{"status": "missing"},
+                                "dkim_analysis":  map[string]any{"status": "missing"},
+                        },
+                        wantSPF:    "missing",
+                        wantDMARC:  "missing",
+                        wantDKIM:   "missing",
+                        wantPolicy: "none",
+                },
+                {
+                        name: "no analysis sections",
+                        results: map[string]any{
+                                "domain_exists": true,
+                                "risk_level":    "unknown",
+                                "posture":       map[string]any{"score": float64(0), "grade": "?", "label": "Unknown"},
+                        },
+                        wantSPF:    "not found",
+                        wantDMARC:  "not found",
+                        wantDKIM:   "not found",
+                        wantPolicy: "none",
+                },
+                {
+                        name: "backward compat with verdict key",
+                        results: map[string]any{
+                                "domain_exists":  true,
+                                "risk_level":     "low",
+                                "posture":        map[string]any{"score": float64(80), "grade": "B", "label": "Good"},
+                                "spf_analysis":   map[string]any{"verdict": "pass"},
+                                "dmarc_analysis": map[string]any{"verdict": "present", "policy": "quarantine"},
+                                "dkim_analysis":  map[string]any{"verdict": "present"},
+                        },
+                        wantSPF:    "pass",
+                        wantDMARC:  "present",
+                        wantDKIM:   "present",
+                        wantPolicy: "quarantine",
+                },
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        j := h.buildAgentJSON("example.com", tt.results)
+                        ea, ok := j["email_authentication"].(gin.H)
+                        if !ok {
+                                t.Fatal("missing email_authentication")
+                        }
+                        spf, _ := ea["spf"].(gin.H)
+                        dmarc, _ := ea["dmarc"].(gin.H)
+                        dkim, _ := ea["dkim"].(gin.H)
+
+                        if got := spf["status"]; got != tt.wantSPF {
+                                t.Errorf("SPF status = %v, want %v", got, tt.wantSPF)
+                        }
+                        if got := dmarc["status"]; got != tt.wantDMARC {
+                                t.Errorf("DMARC status = %v, want %v", got, tt.wantDMARC)
+                        }
+                        if got := dkim["status"]; got != tt.wantDKIM {
+                                t.Errorf("DKIM status = %v, want %v", got, tt.wantDKIM)
+                        }
+                        if got := dmarc["policy"]; got != tt.wantPolicy {
+                                t.Errorf("DMARC policy = %v, want %v", got, tt.wantPolicy)
+                        }
+                })
         }
 }

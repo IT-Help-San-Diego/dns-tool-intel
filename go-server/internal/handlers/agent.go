@@ -223,39 +223,39 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
 
         spfVerdict := "not found"
         if spf != nil {
-                spfVerdict = safeString(spf, "verdict")
+                spfVerdict = safeString(spf, "status")
                 if spfVerdict == "" {
-                        if safeBool(spf, "has_spf") {
-                                spfVerdict = "present"
-                        } else {
-                                spfVerdict = "missing"
-                        }
+                        spfVerdict = safeString(spf, "verdict")
+                }
+                if spfVerdict == "" {
+                        spfVerdict = "missing"
                 }
         }
 
         dmarcVerdict := "not found"
         dmarcPolicy := "none"
         if dmarc != nil {
-                dmarcVerdict = safeString(dmarc, "verdict")
+                dmarcVerdict = safeString(dmarc, "status")
                 if dmarcVerdict == "" {
-                        if safeBool(dmarc, "has_dmarc") {
-                                dmarcVerdict = "present"
-                        } else {
-                                dmarcVerdict = "missing"
-                        }
+                        dmarcVerdict = safeString(dmarc, "verdict")
+                }
+                if dmarcVerdict == "" {
+                        dmarcVerdict = "missing"
                 }
                 dmarcPolicy = safeString(dmarc, "policy")
+                if dmarcPolicy == "" {
+                        dmarcPolicy = "none"
+                }
         }
 
         dkimVerdict := "not found"
         if dkim != nil {
-                dkimVerdict = safeString(dkim, "verdict")
+                dkimVerdict = safeString(dkim, "status")
                 if dkimVerdict == "" {
-                        if safeBool(dkim, "has_dkim") {
-                                dkimVerdict = "present"
-                        } else {
-                                dkimVerdict = "not detected"
-                        }
+                        dkimVerdict = safeString(dkim, "verdict")
+                }
+                if dkimVerdict == "" {
+                        dkimVerdict = "not detected"
                 }
         }
 
