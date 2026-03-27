@@ -166,44 +166,19 @@ func TestResolveProbeSSH_UnknownProbe(t *testing.T) {
         }
 }
 
-func TestWriteKeyFile_Base64(t *testing.T) {
-        key := "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KdGVzdAotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K"
-        path, err := writeKeyFile(key, "test")
+func TestParseSSHKey_Base64(t *testing.T) {
+        key := "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNEZEF2K25LK1FPSDBPMnFtNkI5YnFkNFNZS2lJaWFNV2dJTzhjbXkzSjYrUUFBQUppb1VISGNxRkJ4CjNBQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDRGRBdituSytRT0gwTzJxbTZCOWJxZDRTWUtpSWlhTVdnSU84Y215M0o2K1EKQUFBRUQ0Z1N5MHZBU3FHTzNqVTRUNS9zaGowMHBaMVFOQ3B3My95MzNFN0RkTzB0MEMvNmNyNUE0ZlE3YXFib0gxdXAzaApKZ3FJaUpveGFBZzd4eWJMY25yNUFBQUFFM0oxYm01bGNrQXhPRE0yWTJFMllUQXpZMk1CQWc9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K" //nolint:gosec // gitleaks:allow // test fixture: throwaway ed25519 key for parseSSHKey unit test
+        signer, err := parseSSHKey(key, "test")
         if err != nil {
                 t.Fatalf("unexpected error: %v", err)
         }
-        defer os.Remove(path)
-
-        info, err := os.Stat(path)
-        if err != nil {
-                t.Fatalf("stat failed: %v", err)
-        }
-        if info.Mode().Perm() != 0600 {
-                t.Errorf("expected 0600 permissions, got %o", info.Mode().Perm())
-        }
-
-        content, _ := os.ReadFile(path)
-        if !strings.Contains(string(content), "BEGIN OPENSSH PRIVATE KEY") {
-                t.Error("expected decoded key content")
+        if signer == nil {
+                t.Error("expected non-nil signer")
         }
 }
 
-func TestWriteKeyFile_RawPEM(t *testing.T) {
-        raw := "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----" //nolint:gosec // #nosec G101 -- test fixture: fake PEM key for writeKeyFile unit test // gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key // NOSONAR
-        path, err := writeKeyFile(raw, "test-raw")
-        if err != nil {
-                t.Fatalf("unexpected error: %v", err)
-        }
-        defer os.Remove(path)
-
-        content, _ := os.ReadFile(path)
-        if !strings.Contains(string(content), "BEGIN RSA PRIVATE KEY") {
-                t.Error("expected raw PEM content")
-        }
-}
-
-func TestWriteKeyFile_InvalidKey(t *testing.T) {
-        _, err := writeKeyFile("not-base64-and-not-pem!!!", "test-bad")
+func TestParseSSHKey_InvalidKey(t *testing.T) {
+        _, err := parseSSHKey("not-base64-and-not-pem!!!", "test-bad")
         if err == nil {
                 t.Error("expected error for invalid key data")
         }
@@ -250,7 +225,7 @@ func TestRunProbeSSH_MissingConfig(t *testing.T) {
 func TestRunProbeSSH_UnknownAction(t *testing.T) {
         t.Setenv("PROBE_SSH_HOST", "example.com")
         t.Setenv("PROBE_SSH_USER", "root")
-        t.Setenv("PROBE_SSH_PRIVATE_KEY", "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KdGVzdAotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K")
+        t.Setenv("PROBE_SSH_PRIVATE_KEY", "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNEZEF2K25LK1FPSDBPMnFtNkI5YnFkNFNZS2lJaWFNV2dJTzhjbXkzSjYrUUFBQUppb1VISGNxRkJ4CjNBQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDRGRBdituSytRT0gwTzJxbTZCOWJxZDRTWUtpSWlhTVdnSU84Y215M0o2K1EKQUFBRUQ0Z1N5MHZBU3FHTzNqVTRUNS9zaGowMHBaMVFOQ3B3My95MzNFN0RkTzB0MEMvNmNyNUE0ZlE3YXFib0gxdXAzaApKZ3FJaUpveGFBZzd4eWJMY25yNUFBQUFFM0oxYm01bGNrQXhPRE0yWTJFMllUQXpZMk1CQWc9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K") //nolint:gosec // gitleaks:allow // test fixture: throwaway ed25519 key
 
         p := probeInfo{ID: "probe-01", Label: "Test", URL: "https://example.com"}
         result := runProbeSSH(p, "unknown-action")
