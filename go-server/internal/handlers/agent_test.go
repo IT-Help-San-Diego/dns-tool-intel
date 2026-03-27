@@ -236,7 +236,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "report":          "https://dnstool.it-help.tech/analyze?domain=example.com",
                 "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
-                "wayback_archive": "https://web.archive.org/web/https://dnstool.it-help.tech/analyze?domain=example.com",
+                "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
         }
         for key, want := range checks {
@@ -309,12 +309,13 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         assetChecks := []string{
                 "/snapshot/example.com",
                 "/topology?domain=example.com",
-                "web.archive.org/web/",
+                "web.archive.org/web/*/",
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
                 "Analysis Pipeline",
                 "Internet Archive",
+                "/agent/badge-view?domain=example.com",
         }
         for _, check := range assetChecks {
                 if !strings.Contains(html, check) {
@@ -363,5 +364,80 @@ func TestSafeHelpers(t *testing.T) {
         }
         if safeMap(m, "invalid") != nil {
                 t.Fatal("safeMap should return nil for non-map")
+        }
+}
+
+func TestBadgeViewHandler(t *testing.T) {
+        router, h := setupAgentRouter()
+        router.GET("/agent/badge-view", h.BadgeView)
+
+        tests := []struct {
+                name   string
+                url    string
+                status int
+                checks []string
+        }{
+                {"missing domain", "/agent/badge-view", http.StatusBadRequest, nil},
+                {"invalid domain", "/agent/badge-view?domain=not_valid!", http.StatusBadRequest, nil},
+                {"detailed default", "/agent/badge-view?domain=example.com", http.StatusOK, []string{
+                        "<title>DNS Security Badge (detailed)",
+                        "example.com",
+                        "/badge?domain=example.com&amp;style=detailed",
+                        "/analyze?domain=example.com",
+                }},
+                {"covert style", "/agent/badge-view?domain=example.com&style=covert", http.StatusOK, []string{
+                        "<title>DNS Security Badge (covert)",
+                        "/badge?domain=example.com&amp;style=covert",
+                }},
+                {"flat style", "/agent/badge-view?domain=example.com&style=flat", http.StatusOK, []string{
+                        "<title>DNS Security Badge (flat)",
+                        "/badge?domain=example.com",
+                }},
+                {"q param", "/agent/badge-view?q=example.com", http.StatusOK, []string{
+                        "example.com",
+                }},
+        }
+
+        for _, tt := range tests {
+                t.Run(tt.name, func(t *testing.T) {
+                        w := httptest.NewRecorder()
+                        req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+                        router.ServeHTTP(w, req)
+                        if w.Code != tt.status {
+                                t.Fatalf("status = %d, want %d; body: %s", w.Code, tt.status, w.Body.String())
+                        }
+                        body := w.Body.String()
+                        for _, check := range tt.checks {
+                                if !strings.Contains(body, check) {
+                                        t.Errorf("response missing %q", check)
+                                }
+                        }
+                })
+        }
+}
+
+func TestBuildAgentJSONBadgePages(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists": true,
+                "risk_level":    "low",
+                "posture":       map[string]any{"score": float64(85), "grade": "B+", "label": "Good"},
+        }
+        j := h.buildAgentJSON("example.com", results)
+
+        badges, ok := j["badges"].(gin.H)
+        if !ok {
+                t.Fatal("missing badges section")
+        }
+        pageChecks := map[string]string{
+                "detailed_page": "https://dnstool.it-help.tech/agent/badge-view?domain=example.com&style=detailed",
+                "covert_page":   "https://dnstool.it-help.tech/agent/badge-view?domain=example.com&style=covert",
+                "flat_page":     "https://dnstool.it-help.tech/agent/badge-view?domain=example.com&style=flat",
+        }
+        for key, want := range pageChecks {
+                got, ok := badges[key].(string)
+                if !ok || got != want {
+                        t.Errorf("badges[%q] = %q, want %q", key, got, want)
+                }
         }
 }
