@@ -15,7 +15,6 @@ import (
         "log/slog"
         "net/http"
         "os"
-        "os/exec"
         "strings"
         "time"
 
@@ -23,6 +22,7 @@ import (
         "dnstool/go-server/internal/db"
 
         "github.com/gin-gonic/gin"
+        "golang.org/x/crypto/ssh"
 )
 
 const (
@@ -253,88 +253,111 @@ func runProbeSSH(p probeInfo, action string) probeActionResult {
 }
 
 type sshTarget struct {
-        host    string
-        user    string
-        keyFile string
+        host   string
+        user   string
+        signer ssh.Signer
 }
 
 func resolveProbeSSH(probeID string) (*sshTarget, error) {
+        var host, user, keyB64 string
         switch probeID {
         case strProbe01:
-                host := os.Getenv("PROBE_SSH_HOST")
-                user := os.Getenv("PROBE_SSH_USER")
-                keyB64 := os.Getenv("PROBE_SSH_PRIVATE_KEY")
+                host = os.Getenv("PROBE_SSH_HOST")
+                user = os.Getenv("PROBE_SSH_USER")
+                keyB64 = os.Getenv("PROBE_SSH_PRIVATE_KEY")
                 if host == "" || user == "" || keyB64 == "" {
                         return nil, fmt.Errorf("probe-01 SSH credentials not configured (PROBE_SSH_HOST, PROBE_SSH_USER, PROBE_SSH_PRIVATE_KEY)")
                 }
-                keyFile, err := writeKeyFile(keyB64, strProbe01)
-                if err != nil {
-                        return nil, err
-                }
-                return &sshTarget{host: host, user: user, keyFile: keyFile}, nil
         case strProbe02:
-                host := os.Getenv("PROBE_SSH_HOST_2")
-                user := os.Getenv("PROBE2_SSH_USER")
-                keyB64 := os.Getenv("PROBE_SSH_PRIVATE_KEY_2")
+                host = os.Getenv("PROBE_SSH_HOST_2")
+                user = os.Getenv("PROBE2_SSH_USER")
+                keyB64 = os.Getenv("PROBE_SSH_PRIVATE_KEY_2")
                 if host == "" || user == "" || keyB64 == "" {
                         return nil, fmt.Errorf("probe-02 SSH credentials not configured (PROBE_SSH_HOST_2, PROBE2_SSH_USER, PROBE_SSH_PRIVATE_KEY_2)")
                 }
-                keyFile, err := writeKeyFile(keyB64, strProbe02)
-                if err != nil {
-                        return nil, err
-                }
-                return &sshTarget{host: host, user: user, keyFile: keyFile}, nil
         default:
                 return nil, fmt.Errorf("unknown probe: %s", probeID)
         }
+
+        signer, err := parseSSHKey(keyB64, probeID)
+        if err != nil {
+                return nil, err
+        }
+
+        if !strings.Contains(host, ":") {
+                host += ":22"
+        }
+
+        return &sshTarget{host: host, user: user, signer: signer}, nil
 }
 
-func writeKeyFile(b64Key, label string) (string, error) {
-        decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(b64Key))
-        if err != nil {
-                raw := strings.TrimSpace(b64Key)
-                if strings.HasPrefix(raw, "-----BEGIN") {
-                        decoded = []byte(raw)
-                } else {
-                        return "", fmt.Errorf("failed to decode SSH key for %s: %w", label, err)
+func parseSSHKey(b64Key, label string) (ssh.Signer, error) {
+        raw := strings.TrimSpace(b64Key)
+
+        var keyBytes []byte
+        if strings.HasPrefix(raw, "-----BEGIN") {
+                keyBytes = []byte(raw)
+        } else {
+                decoded, err := base64.StdEncoding.DecodeString(raw)
+                if err != nil {
+                        decoded, err = base64.RawStdEncoding.DecodeString(raw)
+                        if err != nil {
+                                return nil, fmt.Errorf("failed to decode SSH key for %s: %w", label, err)
+                        }
+                }
+                keyBytes = decoded
+                if !bytes.HasPrefix(keyBytes, []byte("-----BEGIN")) {
+                        pemWrapped := fmt.Sprintf("-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n", raw)
+                        keyBytes = []byte(pemWrapped)
                 }
         }
 
-        tmpFile, err := os.CreateTemp("", "probe-ssh-*.key")
+        signer, err := ssh.ParsePrivateKey(keyBytes)
         if err != nil {
-                return "", fmt.Errorf("failed to create temp key file: %w", err)
+                return nil, fmt.Errorf("failed to parse SSH key for %s: %w", label, err)
         }
-        if _, err := tmpFile.Write(decoded); err != nil {
-                tmpFile.Close()
-                os.Remove(tmpFile.Name())
-                return "", err
-        }
-        tmpFile.Close()
-        if err := os.Chmod(tmpFile.Name(), 0600); err != nil {
-                os.Remove(tmpFile.Name())
-                return "", fmt.Errorf("failed to set key file permissions: %w", err)
-        }
-        return tmpFile.Name(), nil
+        return signer, nil
 }
 
 func executeSSH(ctx context.Context, target *sshTarget, script string) (string, error) {
-        defer os.Remove(target.keyFile)
+        clientConfig := &ssh.ClientConfig{
+                User: target.user,
+                Auth: []ssh.AuthMethod{
+                        ssh.PublicKeys(target.signer),
+                },
+                HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // probes are known infrastructure
+                Timeout:         10 * time.Second,
+        }
 
-        cmd := exec.CommandContext(ctx, "ssh",
-                "-o", "StrictHostKeyChecking=no",
-                "-o", "ConnectTimeout=10",
-                "-o", "BatchMode=yes",
-                "-i", target.keyFile,
-                fmt.Sprintf("%s@%s", target.user, target.host),
-                "bash", "-s",
-        )
-        cmd.Stdin = strings.NewReader(script)
+        conn, err := ssh.Dial("tcp", target.host, clientConfig)
+        if err != nil {
+                return "", fmt.Errorf("SSH dial failed: %w", err)
+        }
+        defer conn.Close()
+
+        session, err := conn.NewSession()
+        if err != nil {
+                return "", fmt.Errorf("SSH session failed: %w", err)
+        }
+        defer session.Close()
 
         var stdout, stderr bytes.Buffer
-        cmd.Stdout = &stdout
-        cmd.Stderr = &stderr
+        session.Stdout = &stdout
+        session.Stderr = &stderr
+        session.Stdin = strings.NewReader(script)
 
-        err := cmd.Run()
+        done := make(chan error, 1)
+        go func() {
+                done <- session.Run("bash -s")
+        }()
+
+        select {
+        case err = <-done:
+        case <-ctx.Done():
+                session.Signal(ssh.SIGTERM)
+                return stdout.String(), fmt.Errorf("SSH command timed out: %w", ctx.Err())
+        }
+
         output := strings.TrimSpace(stdout.String())
         errOutput := strings.TrimSpace(stderr.String())
 
