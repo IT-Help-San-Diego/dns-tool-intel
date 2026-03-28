@@ -114,7 +114,9 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
                 asciiDomain = domain
         }
 
-        results := h.Analyzer.AnalyzeDomain(c.Request.Context(), asciiDomain, nil, analyzer.AnalysisOptions{})
+        analysisCtx, analysisCancel := context.WithTimeout(context.Background(), 90*time.Second)
+        defer analysisCancel()
+        results := h.Analyzer.AnalyzeDomain(analysisCtx, asciiDomain, nil, analyzer.AnalysisOptions{})
 
         analysisSuccess := true
         if s, ok := results["analysis_success"].(bool); ok {
@@ -166,7 +168,9 @@ func (h *AgentHandler) AgentAPI(c *gin.Context) {
                 asciiDomain = domain
         }
 
-        results := h.Analyzer.AnalyzeDomain(c.Request.Context(), asciiDomain, nil, analyzer.AnalysisOptions{})
+        apiCtx, apiCancel := context.WithTimeout(context.Background(), 90*time.Second)
+        defer apiCancel()
+        results := h.Analyzer.AnalyzeDomain(apiCtx, asciiDomain, nil, analyzer.AnalysisOptions{})
 
         analysisSuccess := true
         if s, ok := results["analysis_success"].(bool); ok {
