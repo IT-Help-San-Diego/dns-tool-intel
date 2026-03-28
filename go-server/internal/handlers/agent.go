@@ -332,7 +332,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                 },
                 "links": gin.H{
                         "report":          analyzeURL,
-                        "report_page":     fmt.Sprintf("%s/analyze?domain=%s", base, domain),
+                        "report_page":     fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain),
                         "snapshot":        fmt.Sprintf("%s/snapshot/%s", base, domain),
                         "topology":        fmt.Sprintf("%s/topology?domain=%s", base, domain),
                         "wayback_archive": waybackURL,
@@ -452,7 +452,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
         topologyURL := esc(links["topology"].(string))
         apiURL := esc(links["api_json"].(string))
         waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
-        reportPageURL := esc(fmt.Sprintf("%s/analyze?domain=%s", base, domain))
+        reportPageURL := esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeFlat := esc(badges["flat_svg"].(string))
