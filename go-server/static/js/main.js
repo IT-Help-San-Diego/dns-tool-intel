@@ -266,7 +266,7 @@ function startProgressPolling(token, overlay, analyzeBtn) {
                     headers: { 'X-Requested-With': 'fetch' },
                     redirect: 'follow'
                 }).then(function(resp) {
-                    return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, analyzeBtn); });
+                    return resp.text().then(function(html) { hideOverlayAndReset(overlay, analyzeBtn); applyFetchedPage(html, resp.url); });
                 }).catch(function() {
                     hideOverlayAndReset(overlay, analyzeBtn);
                     globalThis.location.href = data.redirect_url;
@@ -471,19 +471,15 @@ function isValidDomain(domain) {
 
 function fetchAndApplyPage(url, options, overlay, btn) {
     return fetch(url, options).then(function(resp) {
-        return resp.text().then(function(html) { applyFetchedPage(html, resp.url, overlay, btn); });
+        return resp.text().then(function(html) { hideOverlayAndReset(overlay, btn); applyFetchedPage(html, resp.url); });
     });
 }
 
-function applyFetchedPage(html, respUrl, overlay, btn) {
-    hideOverlayAndReset(overlay, btn);
-    const parsed = new DOMParser().parseFromString(html, 'text/html');
-    document.replaceChild(
-        document.importNode(parsed.documentElement, true),
-        document.documentElement
-    );
+function applyFetchedPage(html, respUrl) {
+    document.open();
+    document.write(html);
+    document.close();
     globalThis.scrollTo(0, 0);
-    initPrivacyBanner();
     const modeMeta = document.querySelector('meta[name="x-report-mode"]');
     const idEl = document.querySelector('[data-analysis-id]');
     const mode = modeMeta ? modeMeta.getAttribute('content') : '';
