@@ -311,15 +311,21 @@ func isAnalysisFailure(results map[string]any) (bool, string) {
         return true, errMsg
 }
 
+func getContextValue(c *gin.Context, key string) any {
+        v, ok := c.Get(key)
+        if !ok {
+                return ""
+        }
+        return v
+}
+
+func isAgentCacheEligible(c *gin.Context, customSelectors []string, exposureChecks bool) bool {
+        return c.Request.Method == http.MethodGet && c.Query("src") == "agent" && len(customSelectors) == 0 && !exposureChecks
+}
+
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
-        nonce, ok := c.Get("csp_nonce")
-        if !ok {
-                nonce = ""
-        }
-        csrfToken, ok := c.Get("csrf_token")
-        if !ok {
-                csrfToken = ""
-        }
+        nonce := getContextValue(c, "csp_nonce")
+        csrfToken := getContextValue(c, "csrf_token")
 
         domain := extractDomainInput(c)
         if domain == "" {
@@ -352,7 +358,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
-        if c.Request.Method == http.MethodGet && c.Query("src") == "agent" && len(customSelectors) == 0 && !exposureChecks {
+        if isAgentCacheEligible(c, customSelectors, exposureChecks) {
                 if served := h.serveCachedAnalysis(c, domain, asciiDomain, nonce, csrfToken); served {
                         return
                 }
