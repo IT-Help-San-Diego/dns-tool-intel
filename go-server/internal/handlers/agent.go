@@ -345,6 +345,8 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "wayback_archive": waybackURL,
                         "wayback_page":    fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain),
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
+                        "csv_export":      fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain),
+                        "sources":         fmt.Sprintf("%s/sources", base),
                 },
                 "badges": gin.H{
                         "detailed_svg":  fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain),
