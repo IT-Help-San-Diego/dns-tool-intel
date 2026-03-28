@@ -10,7 +10,7 @@
     <meta property="og:url" content="https://dnstool.it-help.tech/agent/plugin">
     <meta property="og:type" content="website">
     <meta property="og:title" content="DEVONagent Pro Plugin — DNS Tool">
-    <meta property="og:description" content="Add DNS security intelligence to DEVONagent Pro. 14 enriched results per query — reports, badges, exports, and provenance data.">
+    <meta property="og:description" content="Add DNS security intelligence to DEVONagent Pro. 15 enriched results per query — reports, badges, exports, and provenance data.">
     <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -253,7 +253,7 @@
                         <a href="https://www.devontechnologies.com/apps/devonthink" target="_blank" rel="noopener"><img src="/static/images/icon-devonthink.png" alt="DEVONthink" width="56" height="56"></a>
                     </div>
                     <h1 class="h2 mb-3">DEVONagent Pro Plugin</h1>
-                    <p class="text-muted mb-0">Add intelligence-grade DNS security analysis to your <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">DEVONagent Pro</a> research workflows. Each query returns up to <strong>14 enriched results</strong> &mdash; security reports, reconnaissance data, integrity-verified snapshots, and provenance metadata.</p>
+                    <p class="text-muted mb-0">Add intelligence-grade DNS security analysis to your <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">DEVONagent Pro</a> research workflows. Each query returns up to <strong>15 enriched results</strong> &mdash; security reports, reconnaissance data, integrity-verified snapshots, and provenance metadata.</p>
                 </div>
 
                 <p>When a domain is analyzed through this plugin, you'll see a <span class="plugin-source-tag"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</span> tag next to the domain in your <a href="/history">analysis history</a>.</p>
@@ -274,6 +274,7 @@
                     <li><span class="result-num">12.</span> <strong>SHA-3 Integrity Checksum</strong> <span class="result-desc">&mdash; cryptographic verification of analysis data</span></li>
                     <li><span class="result-num">13.</span> <strong>Security Remediation Plan</strong> <span class="result-desc">&mdash; actionable remediation steps for the domain</span></li>
                     <li><span class="result-num">14.</span> <strong>Internet Archive (Wayback Machine)</strong> <span class="result-desc">&mdash; permanent archived record of the analysis</span></li>
+                    <li><span class="result-num">15.</span> <strong>Confidence Page</strong> <span class="result-desc">&mdash; SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</span></li>
                 </ul>
 
                 <h2 class="h4 mt-5 mb-3">Download &amp; Install</h2>
@@ -366,7 +367,7 @@
   <span class="xml-str">&lt;string&gt;</span>Intelligence-grade domain security analysis.
   RFC-compliant DNS auditing with ICD 203 confidence scoring,
   FAIR-principled data delivery, and Zenodo DOI-backed
-  reproducibility. Returns 14 enriched intelligence
+  reproducibility. Returns 15 enriched intelligence
   artifacts per query.<span class="xml-str">&lt;/string&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>EngineUrl<span class="xml-key">&lt;/key&gt;</span>
@@ -379,7 +380,7 @@
   <span class="xml-str">&lt;false/&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>ResultsPerPage<span class="xml-key">&lt;/key&gt;</span>
-  <span class="xml-str">&lt;integer&gt;</span>14<span class="xml-str">&lt;/integer&gt;</span>
+  <span class="xml-str">&lt;integer&gt;</span>15<span class="xml-str">&lt;/integer&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>Encoding<span class="xml-key">&lt;/key&gt;</span>
   <span class="xml-str">&lt;string&gt;</span>UTF-8<span class="xml-str">&lt;/string&gt;</span>
@@ -421,11 +422,11 @@
   <span class="json-key">"Description"</span> : <span class="json-str">"Intelligence-grade domain security analysis.
         RFC-compliant DNS auditing with ICD 203 confidence scoring,
         FAIR-principled data delivery, and Zenodo DOI-backed
-        reproducibility. Returns 14 enriched intelligence
+        reproducibility. Returns 15 enriched intelligence
         artifacts per query."</span>,
   <span class="json-key">"EngineUrl"</span> : <span class="json-str">"https://dnstool.it-help.tech/agent/search?q=__agentQuery__"</span>,
   <span class="json-key">"ParseLinks"</span> : <span class="json-bool">true</span>,
-  <span class="json-key">"ResultsPerPage"</span> : <span class="json-num">14</span>,
+  <span class="json-key">"ResultsPerPage"</span> : <span class="json-num">15</span>,
   <span class="json-key">"Start"</span> : <span class="json-num">0</span>,
   <span class="json-key">"OffsetPerPage"</span> : <span class="json-num">1</span>,
   <span class="json-key">"Operators"</span> : <span class="json-num">59</span>,
@@ -473,7 +474,7 @@
                     <dd class="col-sm-9 text-muted">When <code>false</code>, DEVONagent preserves the HTML structure of the response (<strong>plist only</strong>). Our plugin sets this to <code>false</code> to retain link context and result descriptions.</dd>
 
                     <dt class="col-sm-3"><code>ResultsPerPage</code></dt>
-                    <dd class="col-sm-9 text-muted">Expected number of results per page. Set to <code>14</code> to match the number of links our endpoint returns.</dd>
+                    <dd class="col-sm-9 text-muted">Expected number of results per page. Set to <code>15</code> to match the number of links our endpoint returns.</dd>
 
                     <dt class="col-sm-3"><code>Keyword</code></dt>
                     <dd class="col-sm-9 text-muted">Array of trigger words. DEVONagent may prioritize this plugin when user queries match these terms. We declare 13 terms covering DNS security protocols.</dd>
