@@ -854,3 +854,15 @@ func extractSubdomains(results map[string]any) []string {
         return nil
 }
 
+func (h *AgentHandler) PluginPage(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                keyCspNonce:        nonce,
+                keyActivePage:      "agent_plugin",
+        }
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "agent_plugin.html", data)
+}

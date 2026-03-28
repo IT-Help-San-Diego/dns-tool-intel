@@ -543,6 +543,7 @@ func main() {
         router.GET("/agent/wayback", agentHandler.WaybackView)
         router.GET("/agent/report", agentHandler.ReportView)
         router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
+        router.GET("/agent/plugin", agentHandler.PluginPage)
 
         zoneHandler := handlers.NewZoneHandler(database, cfg)
         router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
