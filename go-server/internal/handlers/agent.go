@@ -454,7 +454,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
         waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
         reportPageURL := esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
+        badgeCovert := esc(badges["covert_svg"].(string))
         badgeViewDetailed := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain))
+        badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
 
         now := time.Now().UTC()
         isoDate := now.Format("2006-01-02")
@@ -520,8 +522,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any) str
   <tr><td>Posture Label</td><td>` + esc(postureLabel) + `</td></tr>
 </table>
 
-<h2>Security Badge</h2>
-<p><a href="` + badgeViewDetailed + `" title="DNS Tool Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Security Badge for ` + ed + `" width="400"></a></p>
+<h2>Security Badges</h2>
+<p><strong>Detailed Badge:</strong><br><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `" width="400"></a></p>
+<p><strong>Covert Badge:</strong><br><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `"><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `" width="300"></a></p>
 
 <h2>Downloads &amp; Archives</h2>
 <ul>
