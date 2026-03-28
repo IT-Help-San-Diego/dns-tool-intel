@@ -10,7 +10,7 @@
         <string>dnstool.it-help.tech</string>
 
         <key>Version</key>
-        <string>1.1</string>
+        <string>1.2</string>
 
         <key>Category</key>
         <string>Security</string>
@@ -22,7 +22,7 @@
         <string>https://dnstool.it-help.tech/agent/plugin</string>
 
         <key>Description</key>
-        <string>Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring, FAIR-principled data delivery, and Zenodo DOI-backed reproducibility. Returns 13 enriched intelligence artifacts per query.</string>
+        <string>Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring, FAIR-principled data delivery, and Zenodo DOI-backed reproducibility. Returns 15 enriched intelligence artifacts per query.</string>
 
         <key>Info</key>
         <string>DNS Security Intelligence — RFC-grounded domain analysis with Bayesian confidence scoring. Returns enriched reports with security badges, observed-records snapshots (SHA-3-512), DNS topology maps, Wayback Machine archives, CSV exports, remediation playbooks, and Zotero-compatible citation metadata. Concept DOI: 10.5281/zenodo.18854899. Plugin homepage: https://dnstool.it-help.tech/agent/plugin</string>
@@ -37,7 +37,7 @@
         <false/>
 
         <key>ResultsPerPage</key>
-        <integer>13</integer>
+        <integer>15</integer>
 
         <key>Start</key>
         <integer>0</integer>
@@ -52,7 +52,7 @@
         <integer>59</integer>
 
         <key>UserAgent</key>
-        <string>DEVONagent/3 (dnstool-plugin/1.1; +https://dnstool.it-help.tech/agent/plugin)</string>
+        <string>DEVONagent/3 (dnstool-plugin/1.2; +https://dnstool.it-help.tech/agent/plugin)</string>
 
         <key>Keywords</key>
         <string>dns,security,spf,dkim,dmarc,dnssec,subdomain,certificate-transparency,email-security,posture,domain,intelligence</string>
