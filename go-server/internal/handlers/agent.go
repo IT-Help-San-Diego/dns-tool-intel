@@ -4,6 +4,7 @@
 package handlers
 
 import (
+        "context"
         "fmt"
         "html/template"
         "log/slog"
@@ -18,10 +19,13 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+type AgentSaveFn func(ctx context.Context, domain, asciiDomain string, results map[string]any) int32
+
 type AgentHandler struct {
         Config      *config.Config
         Analyzer    *analyzer.Analyzer
         lookupStore LookupStore
+        SaveFn      AgentSaveFn
 }
 
 func NewAgentHandler(cfg *config.Config, a *analyzer.Analyzer, store ...LookupStore) *AgentHandler {
@@ -131,7 +135,11 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
         }
 
         var analysisID int32
-        if h.lookupStore != nil {
+        if h.SaveFn != nil {
+                analysisID = h.SaveFn(c.Request.Context(), domain, asciiDomain, results)
+                slog.Info("Agent search: analysis saved", "domain", asciiDomain, "analysis_id", analysisID)
+        }
+        if analysisID == 0 && h.lookupStore != nil {
                 if recent, err := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), asciiDomain); err == nil {
                         analysisID = recent.ID
                 }
@@ -475,6 +483,11 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
                 remediationURL = esc(fmt.Sprintf("%s/remediation?analysis_id=%d", base, analysisID))
                 covertReportURL = esc(fmt.Sprintf("%s/analysis/%d/view/C", base, analysisID))
                 executiveReportURL = esc(fmt.Sprintf("%s/analysis/%d/executive", base, analysisID))
+        } else {
+                checksumURL = esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
+                remediationURL = esc(fmt.Sprintf("%s/remediation?domain=%s", base, domain))
+                covertReportURL = esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
+                executiveReportURL = esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
         }
 
         now := time.Now().UTC()
@@ -541,48 +554,22 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <tr><td>Posture Label</td><td>` + esc(postureLabel) + `</td></tr>
 </table>
 
-<h2>Reports</h2>
-<ul>
-  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> — full security analysis with live scanning</li>
+<h2>Reports &amp; Intelligence</h2>
+<ol>
+  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> — full security analysis with live scanning (the engineering report)</li>
   <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> — reconstructed zone file, SHA-3-512 verified</li>
-</ul>`)
-
-        if covertReportURL != "" {
-                sb.WriteString(`
-<ul>
-  <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
-  <li><a href="` + executiveReportURL + `">Executive Report</a> — board-ready executive summary</li>
-</ul>`)
-        }
-
-        sb.WriteString(`
-
-<h2>Security Badges</h2>
-<ul>
-  <li><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `">Covert Security Badge</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
   <li><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `">Detailed Security Badge</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
-</ul>
-
-<h2>Visualizations &amp; Provenance</h2>
-<ul>
-  <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> — DNS topology, signal flow, and RFC source mapping</li>
+  <li><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `">Covert Security Badge</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
+  <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
+  <li><a href="` + executiveReportURL + `">Executive Intelligence Brief</a> — board-ready executive summary</li>
+  <li><a href="` + topologyURL + `">DNS Topology</a> — topology visualization, signal flow, and RFC source mapping</li>
   <li><a href="https://doi.org/10.5281/zenodo.18854899">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.18854899)</li>
-</ul>
-
-<h2>Downloads &amp; Intelligence Data</h2>
-<ul>
-  <li><a href="` + apiURL + `">Download All Collected Intelligence Data</a> — JSON full analysis payload (the loot)</li>
-  <li><a href="` + csvExportURL + `">Export Recon — Subdomain Discovery</a> — CSV subdomain reconnaissance data</li>
+  <li><a href="` + apiURL + `">Full Intelligence Data (JSON)</a> — complete analysis payload with all collected intelligence</li>
+  <li><a href="` + csvExportURL + `">Discovered Domains &amp; Subdomains</a> — human-readable subdomain reconnaissance data (CSV)</li>
   <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
-</ul>`)
-
-        if checksumURL != "" {
-                sb.WriteString(`
-<ul>
   <li><a href="` + checksumURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
   <li><a href="` + remediationURL + `">Security Remediation Plan</a> — actionable remediation steps for this domain</li>
-</ul>`)
-        }
+</ol>`)
 
         sb.WriteString(`
 

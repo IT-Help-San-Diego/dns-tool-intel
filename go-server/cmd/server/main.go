@@ -537,6 +537,7 @@ func main() {
         router.GET("/badge/animated", badgeHandler.BadgeAnimated)
 
         agentHandler := handlers.NewAgentHandler(cfg, dnsAnalyzer, database.Queries)
+        agentHandler.SaveFn = analysisHandler.SaveForAgent
         router.GET("/agent/search", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentSearch)
         router.GET("/agent/api", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentAPI)
         router.GET("/agent/badge-view", agentHandler.BadgeView)
