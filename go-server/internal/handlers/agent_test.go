@@ -369,7 +369,7 @@ func TestBuildAgentHTMLWithAnalysisID(t *testing.T) {
         }
 }
 
-func TestBuildAgentHTMLAlways14Results(t *testing.T) {
+func TestBuildAgentHTMLAlways15Results(t *testing.T) {
         _, h := setupAgentRouter()
         results := map[string]any{
                 "domain_exists":  true,
@@ -382,14 +382,17 @@ func TestBuildAgentHTMLAlways14Results(t *testing.T) {
         for _, id := range []int32{0, 42} {
                 html := h.buildAgentHTML("example.com", results, id)
                 count := strings.Count(html, "<li>")
-                if count != 14 {
-                        t.Errorf("analysisID=%d: expected 14 <li> items, got %d", id, count)
+                if count != 15 {
+                        t.Errorf("analysisID=%d: expected 15 <li> items, got %d", id, count)
                 }
                 if !strings.Contains(html, "<ol>") {
                         t.Errorf("analysisID=%d: expected ordered list <ol>", id)
                 }
                 if !strings.Contains(html, "Internet Archive") {
                         t.Errorf("analysisID=%d: missing Internet Archive (Wayback Machine) result", id)
+                }
+                if !strings.Contains(html, "Confidence Page") {
+                        t.Errorf("analysisID=%d: missing Confidence Page result", id)
                 }
         }
 }
