@@ -476,6 +476,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
         csvExportURL := esc(fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain))
         sourcesURL := esc(fmt.Sprintf("%s/sources", base))
+        waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
 
         var checksumURL, remediationURL, covertReportURL, executiveReportURL string
         if analysisID > 0 {
@@ -569,6 +570,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
   <li><a href="` + checksumURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
   <li><a href="` + remediationURL + `">Security Remediation Plan</a> — actionable remediation steps for this domain</li>
+  <li><a href="` + waybackViewURL + `">Internet Archive (Wayback Machine)</a> — permanent archived record of the analysis</li>
 </ol>`)
 
         sb.WriteString(`
