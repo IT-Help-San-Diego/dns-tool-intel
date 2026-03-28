@@ -314,6 +314,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "/agent/wayback?domain=example.com",
                 "/analyze?domain=example.com",
                 "style=detailed",
+                "style=covert",
                 "Observed Records Snapshot",
                 "Analysis Pipeline",
                 "Internet Archive",
