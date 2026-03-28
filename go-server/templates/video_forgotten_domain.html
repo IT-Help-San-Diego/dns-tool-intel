@@ -266,10 +266,10 @@
     {{template "scripts" .}}
     <script nonce="{{.CspNonce}}">
     (function() {
-        var btn = document.getElementById('copyLinkBtn');
+        const btn = document.getElementById('copyLinkBtn');
         if (!btn) return;
         btn.addEventListener('click', function() {
-            var url = 'https://dnstool.it-help.tech/video/forgotten-domain';
+            const url = 'https://dnstool.it-help.tech/video/forgotten-domain';
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(function() {
                     btn.classList.add('share-copied');
