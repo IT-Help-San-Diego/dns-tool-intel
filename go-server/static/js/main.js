@@ -477,7 +477,7 @@ function fetchAndApplyPage(url, options, overlay, btn) {
 
 function applyFetchedPage(html, respUrl) {
     document.open();
-    document.write(html);
+    document.write(html); // nosemgrep: insecure-document-method — html is same-origin fetch response from our own server, not user input
     document.close();
     globalThis.scrollTo(0, 0);
     const modeMeta = document.querySelector('meta[name="x-report-mode"]');
