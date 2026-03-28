@@ -9,6 +9,7 @@ import (
         "html/template"
         "log/slog"
         "net/http"
+        "net/url"
         "strings"
         "time"
 
@@ -404,6 +405,20 @@ func esc(s string) string {
         return template.HTMLEscapeString(s)
 }
 
+func safeInternalURL(base, path string, params map[string]string) string {
+        u, err := url.Parse(base)
+        if err != nil {
+                u = &url.URL{Path: "/"}
+        }
+        u.Path = path
+        q := u.Query()
+        for k, v := range params {
+                q.Set(k, v)
+        }
+        u.RawQuery = q.Encode()
+        return u.String()
+}
+
 type agentHTMLData struct {
         riskLevel, postureGrade, postureLabel   string
         postureScore                            int
@@ -413,44 +428,62 @@ type agentHTMLData struct {
         subCount, certCountVal, cnameCountVal   int
 }
 
+func extractSummaryData(d *agentHTMLData, j gin.H) {
+        summary, ok := j["summary"].(gin.H)
+        if !ok {
+                return
+        }
+        if rl, ok := summary["risk_level"].(string); ok && rl != "" {
+                d.riskLevel = rl
+        }
+        d.postureScore, _ = summary["posture_score"].(int)
+        if pg, ok := summary["posture_grade"].(string); ok {
+                d.postureGrade = pg
+        }
+        if pl, ok := summary["posture_label"].(string); ok {
+                d.postureLabel = pl
+        }
+}
+
+func extractEmailAuthData(d *agentHTMLData, j gin.H) {
+        emailAuth, ok := j["email_authentication"].(gin.H)
+        if !ok {
+                return
+        }
+        d.spfStatus = extractNestedStatus(emailAuth, "spf")
+        d.dkimStatus = extractNestedStatus(emailAuth, "dkim")
+        d.dmarcStatus = extractNestedStatus(emailAuth, "dmarc")
+        if dm, ok := emailAuth["dmarc"].(gin.H); ok {
+                if p, ok := dm["policy"].(string); ok && p != "" {
+                        d.dmarcPolicy = p
+                }
+        }
+        if b, ok := emailAuth["bimi"].(gin.H); ok {
+                d.bimiPresent, _ = b["present"].(bool)
+        }
+}
+
+func extractTransportData(d *agentHTMLData, j gin.H) {
+        transport, ok := j["transport_security"].(gin.H)
+        if !ok {
+                return
+        }
+        d.dnssecStatus = extractNestedStatus(transport, "dnssec")
+        if m, ok := transport["mta_sts"].(gin.H); ok {
+                if mode, ok := m["mode"].(string); ok && mode != "" {
+                        d.mtaSTSMode = mode
+                }
+        }
+        if ca, ok := transport["caa"].(gin.H); ok {
+                d.caaPresent, _ = ca["present"].(bool)
+        }
+}
+
 func extractHTMLData(j gin.H) agentHTMLData {
         d := agentHTMLData{riskLevel: "Unknown", postureGrade: "N/A", dmarcPolicy: "none", mtaSTSMode: "none"}
-        if summary, ok := j["summary"].(gin.H); ok {
-                if rl, ok := summary["risk_level"].(string); ok && rl != "" {
-                        d.riskLevel = rl
-                }
-                d.postureScore, _ = summary["posture_score"].(int)
-                if pg, ok := summary["posture_grade"].(string); ok {
-                        d.postureGrade = pg
-                }
-                if pl, ok := summary["posture_label"].(string); ok {
-                        d.postureLabel = pl
-                }
-        }
-        if emailAuth, ok := j["email_authentication"].(gin.H); ok {
-                d.spfStatus = extractNestedStatus(emailAuth, "spf")
-                d.dkimStatus = extractNestedStatus(emailAuth, "dkim")
-                d.dmarcStatus = extractNestedStatus(emailAuth, "dmarc")
-                if dm, ok := emailAuth["dmarc"].(gin.H); ok {
-                        if p, ok := dm["policy"].(string); ok && p != "" {
-                                d.dmarcPolicy = p
-                        }
-                }
-                if b, ok := emailAuth["bimi"].(gin.H); ok {
-                        d.bimiPresent, _ = b["present"].(bool)
-                }
-        }
-        if transport, ok := j["transport_security"].(gin.H); ok {
-                d.dnssecStatus = extractNestedStatus(transport, "dnssec")
-                if m, ok := transport["mta_sts"].(gin.H); ok {
-                        if mode, ok := m["mode"].(string); ok && mode != "" {
-                                d.mtaSTSMode = mode
-                        }
-                }
-                if ca, ok := transport["caa"].(gin.H); ok {
-                        d.caaPresent, _ = ca["present"].(bool)
-                }
-        }
+        extractSummaryData(&d, j)
+        extractEmailAuthData(&d, j)
+        extractTransportData(&d, j)
         if sd, ok := j["subdomain_discovery"].(gin.H); ok {
                 d.subCount, _ = sd["subdomains_found"].(int)
                 d.certCountVal, _ = sd["certificates"].(int)
@@ -741,7 +774,7 @@ func (h *AgentHandler) WaybackView(c *gin.Context) {
                 }
         }
 
-        c.Redirect(http.StatusFound, fmt.Sprintf(agentFmtAnalyze, base, domain))
+        c.Redirect(http.StatusFound, safeInternalURL(base, "/analyze", map[string]string{"domain": domain}))
 }
 
 func (h *AgentHandler) ReportView(c *gin.Context) {
@@ -754,7 +787,7 @@ func (h *AgentHandler) ReportView(c *gin.Context) {
                 c.String(http.StatusBadRequest, agentErrInvalidDomain)
                 return
         }
-        c.Redirect(http.StatusMovedPermanently, "/analyze?domain="+domain)
+        c.Redirect(http.StatusMovedPermanently, safeInternalURL("", "/analyze", map[string]string{"domain": domain}))
 }
 
 func extractRecordStrings(results map[string]any, section string) []string {
