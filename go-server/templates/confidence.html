@@ -64,7 +64,8 @@
                     {{icon "shield-alt" "me-1"}}This attestation seals the confidence posture at the moment of rendering.
                     The hash covers: UTC timestamp, all protocol pass counts, maturity levels, hash audit results,
                     calibration scores, and app version &mdash; computed via SHA-3-256 (NIST FIPS 202) over a canonical
-                    pipe-delimited representation. Each page load produces a unique, tamper-evident fingerprint.
+                    pipe-delimited representation. The resulting digest is a time-bound, tamper-evident fingerprint
+                    of the intelligence state.
                 </p>
             </div>
         </div>
