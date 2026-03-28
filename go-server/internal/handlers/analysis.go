@@ -352,6 +352,17 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
+        if c.Request.Method == http.MethodGet && c.Query("src") == "agent" && len(customSelectors) == 0 && !exposureChecks {
+                if served := h.serveCachedAnalysis(c, domain, asciiDomain, nonce, csrfToken); served {
+                        return
+                }
+                if domain != asciiDomain {
+                        if served := h.serveCachedAnalysis(c, asciiDomain, asciiDomain, nonce, csrfToken); served {
+                                return
+                        }
+                }
+        }
+
         startTime := time.Now()
         ctx := c.Request.Context()
 
@@ -437,6 +448,68 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         mergeAuthData(c, h.Config, analyzeData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
+}
+
+const cachedAnalysisMaxAge = 1 * time.Hour
+
+func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, nonce, csrfToken any) bool {
+        s := h.store()
+        if s == nil {
+                return false
+        }
+        analysis, err := s.GetRecentAnalysisByDomain(c.Request.Context(), domain)
+        if err != nil || analysis.Private {
+                return false
+        }
+        if analysis.AnalysisSuccess != nil && !*analysis.AnalysisSuccess {
+                return false
+        }
+        if analysis.ScanFlag {
+                return false
+        }
+        if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > cachedAnalysisMaxAge {
+                return false
+        }
+        results := unmarshalResults(analysis.FullResults, "serveCachedAnalysis")
+        if results == nil {
+                return false
+        }
+
+        h.enrichResultsAsync(results)
+
+        var analysisID int32 = analysis.ID
+        var analysisDuration float64
+        if analysis.AnalysisDuration != nil {
+                analysisDuration = *analysis.AnalysisDuration
+        }
+        var timestamp string
+        if analysis.CreatedAt.Valid {
+                timestamp = analysis.CreatedAt.Time.UTC().Format(time.RFC3339)
+        }
+        var postureHash string
+        if analysis.PostureHash != nil {
+                postureHash = *analysis.PostureHash
+        }
+
+        analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, viewDataInput{
+                domain:       domain,
+                asciiDomain:  asciiDomain,
+                results:      results,
+                analysisID:   analysisID,
+                analysisDuration: analysisDuration,
+                timestamp:    timestamp,
+                postureHash:  postureHash,
+                drift:        driftInfo{},
+        })
+        analyzeData["FromCache"] = true
+
+        mode := resolveCovertMode(c, asciiDomain)
+        analyzeData["CovertMode"] = isCovertMode(mode)
+        analyzeData["ReportMode"] = mode
+
+        mergeAuthData(c, h.Config, analyzeData)
+        c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
+        return true
 }
 
 func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain string, customSelectors []string, exposureChecks, devNull, isAuthenticated bool, userID int32, hasNovelSelectors, ephemeral bool) {
