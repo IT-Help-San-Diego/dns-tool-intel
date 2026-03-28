@@ -281,7 +281,7 @@
                     <h3 class="h6 fw-bold mb-2">{{icon "chart-bar" "me-1 text-accent-gold"}}Reliability Diagram</h3>
                     <p class="text-muted small mb-2">Each bin shows how well stated confidence matches observed accuracy. A perfectly calibrated system would have predicted = observed in every bin.</p>
                     <div class="table-responsive">
-                        <table class="table table-dark table-sm mb-0">
+                        <table class="table table-dark table-sm mb-0" aria-label="Reliability diagram bins">
                             <thead>
                                 <tr>
                                     <th scope="col">Confidence Bin</th>
@@ -322,7 +322,7 @@
                     <h3 class="h6 fw-bold mb-2">{{icon "crosshairs" "me-1 text-accent-cobalt"}}Per-Protocol Calibration</h3>
                     <p class="text-muted small mb-2">Calibration gap by protocol &mdash; how far each protocol&rsquo;s stated confidence deviates from observed accuracy. Sorted from best to worst calibrated.</p>
                     <div class="table-responsive">
-                        <table class="table table-dark table-sm mb-0">
+                        <table class="table table-dark table-sm mb-0" aria-label="Per-protocol calibration gaps">
                             <thead>
                                 <tr>
                                     <th scope="col">Protocol</th>
@@ -367,7 +367,7 @@
                 <h2 class="h5 fw-bold mb-3">{{icon "exclamation-triangle" "me-2 text-warning"}}Confidence Degradation Log</h2>
                 <p class="text-muted small mb-3">Degradation events occur when a previously passing test case fails, resetting the consecutive pass counter. Each event is recorded with the protocol affected and recovery progress.</p>
                 <div class="table-responsive">
-                    <table class="table table-dark table-sm mb-0">
+                    <table class="table table-dark table-sm mb-0" aria-label="Confidence degradation log">
                         <thead>
                             <tr>
                                 <th scope="col">Protocol</th>
@@ -761,7 +761,7 @@
                 <h3 class="h6 fw-bold mt-4 mb-2">Per-Dimension Averages</h3>
                 <p class="text-muted small mb-2">Each of the five currency dimensions, averaged across all scans. Low-scoring dimensions indicate systemic patterns; tuning hints suggest how to improve collection fidelity.</p>
                 <div class="table-responsive">
-                    <table class="table table-dark table-sm table-bordered mb-0">
+                    <table class="table table-dark table-sm table-bordered mb-0" aria-label="Per-dimension average scores">
                         <thead>
                             <tr>
                                 <th scope="col">Dimension</th>
@@ -821,7 +821,7 @@
                 <h2 class="h5 fw-bold mb-3">{{icon "crosshairs" "me-2 text-accent-gold"}}Excellence Benchmarks</h2>
                 <p class="text-muted small mb-3">What does &ldquo;near-ideal&rdquo; DNS collection look like in the real world? These targets are derived from large-scale passive DNS observation networks and authoritative resolver operations that approach the theoretical ideal.</p>
                 <div class="table-responsive mb-3">
-                    <table class="table table-dark table-sm table-bordered mb-0">
+                    <table class="table table-dark table-sm table-bordered mb-0" aria-label="Excellence benchmarks by dimension">
                         <thead>
                             <tr>
                                 <th scope="col">Dimension</th>
@@ -949,7 +949,7 @@
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3" id="icuae-dimensions">{{icon "ruler-combined" "me-2 text-accent-gold"}}Five Measurement Dimensions</h2>
                 <div class="table-responsive">
-                    <table class="table table-sm table-dark mb-0">
+                    <table class="table table-sm table-dark mb-0" aria-label="Five measurement dimensions">
                         <thead>
                             <tr>
                                 <th scope="col">Dimension</th>
@@ -1022,7 +1022,7 @@
                 </p>
 
                 <div class="table-responsive mb-3">
-                    <table class="table table-dark table-sm table-bordered mb-0">
+                    <table class="table table-dark table-sm table-bordered mb-0" aria-label="Grade scale definitions">
                         <thead>
                             <tr>
                                 <th scope="col" class="text-center conf-col-grade">Grade</th>
