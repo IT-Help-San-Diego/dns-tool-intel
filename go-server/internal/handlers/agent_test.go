@@ -314,7 +314,6 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "/agent/wayback?domain=example.com",
                 "/analyze?domain=example.com",
                 "style=detailed",
-                "style=covert",
                 "Observed Records Snapshot",
                 "Analysis Pipeline",
                 "Internet Archive",
@@ -588,19 +587,11 @@ func TestWaybackViewHandler(t *testing.T) {
         }{
                 {"missing domain", "/agent/wayback", http.StatusBadRequest, nil},
                 {"invalid domain", "/agent/wayback?domain=not_valid!", http.StatusBadRequest, nil},
-                {"valid domain", "/agent/wayback?domain=example.com", http.StatusOK, []string{
-                        "<title>Wayback Machine Archive",
-                        "example.com",
-                        "web.archive.org/web/*/",
-                        "web.archive.org/web/https://",
-                        "web.archive.org/save/",
-                        "Internet Archive",
-                        "Calendar View",
-                        "Latest Archived Snapshot",
+                {"valid domain", "/agent/wayback?domain=example.com", http.StatusFound, []string{
+                        "/analyze?domain=example.com",
                 }},
-                {"q param", "/agent/wayback?q=example.com", http.StatusOK, []string{
-                        "example.com",
-                        "web.archive.org",
+                {"q param", "/agent/wayback?q=example.com", http.StatusFound, []string{
+                        "/analyze?domain=example.com",
                 }},
         }
 
