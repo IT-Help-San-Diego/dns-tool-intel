@@ -154,6 +154,23 @@
             padding: 2rem;
             margin-bottom: 2rem;
         }
+        .plugin-hero-logos {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .plugin-hero-logos img {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .plugin-hero-logos .logo-divider {
+            color: rgba(255,255,255,0.15);
+            font-size: 1.5rem;
+            font-weight: 200;
+        }
 
         .plugin-source-tag {
             display: inline-flex;
@@ -236,6 +253,11 @@
             <div class="col-lg-8">
 
                 <div class="plugin-hero">
+                    <div class="plugin-hero-logos">
+                        <img src="/static/images/devonagent-pro-logo.png" alt="DEVONagent Pro" width="56" height="56">
+                        <span class="logo-divider">&times;</span>
+                        <img src="/static/images/owl-of-athena.png" alt="DNS Tool" width="56" height="56">
+                    </div>
                     <h1 class="h2 mb-3">DEVONagent Pro Plugin</h1>
                     <p class="text-muted mb-0">Add intelligence-grade DNS security analysis to your <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">DEVONagent Pro</a> research workflows. Each query returns up to <strong>13 enriched results</strong> &mdash; security reports, reconnaissance data, integrity-verified snapshots, and provenance metadata.</p>
                 </div>
@@ -501,7 +523,7 @@
                     <li><strong>DEVONagent Pro Help</strong> &mdash; <em>Help &rarr; DEVONagent Pro Help &rarr; Appendix &rarr; Search Plugin Format</em>. In-app documentation describing all plugin configuration keys, placeholder syntax (<code>__agentQuery__</code>, <code>__agentOffset__</code>), and XPath extraction. Accessible from the DEVONagent Pro menu bar.</li>
                     <li><strong>Built-in plugin reference implementations</strong> &mdash; <code>/Applications/DEVONagent.app/Contents/Resources/Plugins/</code>. The shipping app bundle contains the plist source for every built-in search plugin (Google, Bing, arXiv, Wikipedia, etc.), providing working examples of all supported keys and pagination patterns.</li>
                     <li><strong>Apple Property List format</strong> &mdash; <a href="https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/AboutInformationPropertyListFiles.html" target="_blank" rel="noopener">Apple Developer Documentation: About Information Property List Files</a>. Defines the XML plist DTD and serialization format used by DEVONagent plugins.</li>
-                    <li><strong>DEVONtechnologies product page</strong> &mdash; <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">devontechnologies.com/apps/devonagent</a>. Official product information and download for DEVONagent Pro.</li>
+                    <li><strong>DEVONtechnologies product page</strong> &mdash; <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener"><img src="/static/images/icon-devonthink.png" alt="" width="16" height="16" style="border-radius:3px;vertical-align:text-bottom;margin-right:0.3rem">devontechnologies.com/apps/devonagent</a>. Official product information and download for DEVONagent Pro.</li>
                 </ol>
 
             </div>
