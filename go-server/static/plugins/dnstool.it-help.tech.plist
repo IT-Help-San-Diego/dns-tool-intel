@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Name</key>
+	<string>DNS Tool - Domain Security Intelligence</string>
+
+	<key>Identifier</key>
+	<string>dnstool.it-help.tech</string>
+
+	<key>Version</key>
+	<string>1.0</string>
+
+	<key>Category</key>
+	<string>Security</string>
+
+	<key>Description</key>
+	<string>Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring. Provides detailed and covert security badges, downloadable snapshots with integrity hashes, topology visualizations, and Internet Archive permanent records.</string>
+
+	<key>Info</key>
+	<string>DNS Security Intelligence — RFC-grounded domain analysis with Bayesian confidence scoring. Returns enriched reports with security badges, observed-records snapshots (SHA-3-512), DNS topology maps, Wayback Machine archives, and Zotero-compatible citation metadata. Concept DOI: 10.5281/zenodo.18854899</string>
+
+	<key>EngineUrl</key>
+	<string>https://dnstool.it-help.tech/agent/search?q=__agentQuery__</string>
+
+	<key>ParseLinks</key>
+	<true/>
+
+	<key>ResultsPerPage</key>
+	<integer>13</integer>
+
+	<key>Start</key>
+	<integer>0</integer>
+
+	<key>OffsetPerPage</key>
+	<integer>1</integer>
+
+	<key>Operators</key>
+	<integer>59</integer>
+
+	<key>Keywords</key>
+	<string>dns,security,spf,dkim,dmarc,dnssec,subdomain,certificate-transparency,email-security,posture</string>
+
+	<key>Keyword</key>
+	<array>
+		<string>dns</string>
+		<string>security</string>
+		<string>spf</string>
+		<string>dkim</string>
+		<string>dmarc</string>
+		<string>dnssec</string>
+		<string>subdomain</string>
+		<string>certificate</string>
+		<string>transparency</string>
+		<string>email</string>
+		<string>security</string>
+		<string>posture</string>
+	</array>
+</dict>
+</plist>

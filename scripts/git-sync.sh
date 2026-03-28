@@ -139,6 +139,16 @@ for f in intel_files:
         tracked.append(f)
         tracked_set.add(f)
 
+static_plugins = subprocess.run(
+    ['find', 'go-server/static/plugins', '-type', 'f'],
+    capture_output=True, text=True
+).stdout.strip().split('\n')
+static_plugins = [f for f in static_plugins if f]
+for f in static_plugins:
+    if f not in tracked_set and os.path.isfile(f):
+        tracked.append(f)
+        tracked_set.add(f)
+
 SKIP_FILES = {'.replit', 'replit.nix', 'replit_agent.toml', '.env'}
 SKIP_PATHS = {'.github/workflows/mirror-codeberg.yml'}
 
