@@ -63,6 +63,15 @@ jobs:
           echo "=== Per-package coverage ==="
           go tool cover -func=coverage.out | grep "^total:" || true
 
+      - name: Normalize coverage paths for SonarCloud
+        run: |
+          echo "=== Before normalization ==="
+          head -3 coverage.out
+          sed -i 's|^dnstool/||' coverage.out
+          echo "=== After normalization ==="
+          head -3 coverage.out
+          echo "Normalized $(wc -l < coverage.out) coverage lines"
+
       - name: SonarCloud Scan
         uses: sonarsource/sonarqube-scan-action@v7
         env:
