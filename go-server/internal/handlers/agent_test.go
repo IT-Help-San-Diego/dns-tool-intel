@@ -315,12 +315,12 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
-                "Analysis Pipeline",
+                "DNS Topology",
                 "/agent/badge-view?domain=example.com",
                 "/agent/api?q=example.com",
-                "Download All Collected Intelligence Data",
+                "Full Intelligence Data (JSON)",
                 "/export/subdomains?domain=example.com",
-                "Export Recon",
+                "Discovered Domains",
                 "/sources",
                 "Sources &amp; Methodology",
                 "Engineer's DNS Intelligence Report",
@@ -328,6 +328,10 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "Zenodo",
                 "Covert Security Badge",
                 "Detailed Security Badge",
+                "Covert Recon Report",
+                "Executive Intelligence Brief",
+                "SHA-3 Integrity Checksum",
+                "Security Remediation Plan",
         }
         for _, check := range assetChecks {
                 if !strings.Contains(html, check) {
@@ -352,7 +356,7 @@ func TestBuildAgentHTMLWithAnalysisID(t *testing.T) {
                 "/analysis/42/view/C",
                 "Covert Recon Report",
                 "/analysis/42/executive",
-                "Executive Report",
+                "Executive Intelligence Brief",
                 "/api/analysis/42/checksum",
                 "SHA-3 Integrity Checksum",
                 "/remediation?analysis_id=42",
@@ -361,6 +365,50 @@ func TestBuildAgentHTMLWithAnalysisID(t *testing.T) {
         for _, check := range idChecks {
                 if !strings.Contains(html, check) {
                         t.Errorf("missing analysis-ID-dependent link: %q", check)
+                }
+        }
+}
+
+func TestBuildAgentHTMLAlways13Results(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists":  true,
+                "risk_level":     "low",
+                "posture":        map[string]any{"score": float64(72), "grade": "C+", "label": "Fair"},
+                "spf_analysis":   map[string]any{"status": "success"},
+                "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
+                "dkim_analysis":  map[string]any{"status": "success"},
+        }
+        for _, id := range []int32{0, 42} {
+                html := h.buildAgentHTML("example.com", results, id)
+                count := strings.Count(html, "<li>")
+                if count != 13 {
+                        t.Errorf("analysisID=%d: expected 13 <li> items, got %d", id, count)
+                }
+                if !strings.Contains(html, "<ol>") {
+                        t.Errorf("analysisID=%d: expected ordered list <ol>", id)
+                }
+        }
+}
+
+func TestBuildAgentHTMLFallbackURLs(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists":  true,
+                "risk_level":     "low",
+                "posture":        map[string]any{"score": float64(72), "grade": "C+", "label": "Fair"},
+                "spf_analysis":   map[string]any{"status": "success"},
+                "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
+                "dkim_analysis":  map[string]any{"status": "success"},
+        }
+        html := h.buildAgentHTML("example.com", results, 0)
+        fallbacks := []string{
+                "/remediation?domain=example.com",
+                "/analyze?domain=example.com",
+        }
+        for _, fb := range fallbacks {
+                if !strings.Contains(html, fb) {
+                        t.Errorf("missing fallback URL: %q", fb)
                 }
         }
 }

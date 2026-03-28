@@ -1896,6 +1896,15 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
         return row.ID, timestamp
 }
 
+func (h *AnalysisHandler) SaveForAgent(ctx context.Context, domain, asciiDomain string, results map[string]any) int32 {
+        id, _ := h.saveAnalysis(ctx, saveAnalysisInput{
+                domain:      domain,
+                asciiDomain: asciiDomain,
+                results:     results,
+        })
+        return id
+}
+
 func analysisHasProtocol(results map[string]any, key string) bool {
         section, ok := results[key].(map[string]any)
         if !ok {
