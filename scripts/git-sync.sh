@@ -140,12 +140,15 @@ for f in intel_files:
         tracked_set.add(f)
 
 SKIP_FILES = {'.replit', 'replit.nix', 'replit_agent.toml', '.env'}
+SKIP_PATHS = {'.github/workflows/mirror-codeberg.yml'}
 
 changed = []
 for fpath in tracked:
     if not os.path.isfile(fpath):
         continue
     if os.path.basename(fpath) in SKIP_FILES:
+        continue
+    if fpath in SKIP_PATHS:
         continue
     try:
         with open(fpath, 'rb') as f:
