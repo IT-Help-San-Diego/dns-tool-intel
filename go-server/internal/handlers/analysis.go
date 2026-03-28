@@ -352,7 +352,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
-        if c.Request.Method == http.MethodGet && len(customSelectors) == 0 && !exposureChecks {
+        if c.Request.Method == http.MethodGet && c.Query("src") == "agent" && len(customSelectors) == 0 && !exposureChecks {
                 if served := h.serveCachedAnalysis(c, domain, asciiDomain, nonce, csrfToken); served {
                         return
                 }
@@ -450,7 +450,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
-const cachedAnalysisMaxAge = 30 * time.Minute
+const cachedAnalysisMaxAge = 1 * time.Hour
 
 func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, nonce, csrfToken any) bool {
         s := h.store()
@@ -459,6 +459,12 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
         }
         analysis, err := s.GetRecentAnalysisByDomain(c.Request.Context(), domain)
         if err != nil || analysis.Private {
+                return false
+        }
+        if analysis.AnalysisSuccess != nil && !*analysis.AnalysisSuccess {
+                return false
+        }
+        if analysis.ScanFlag {
                 return false
         }
         if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > cachedAnalysisMaxAge {
