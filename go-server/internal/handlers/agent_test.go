@@ -236,7 +236,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "report":          "https://dnstool.it-help.tech/analyze?domain=example.com",
                 "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
-                "wayback_archive": "https://web.archive.org/web/*/https://dnstool.it-help.tech/analyze?domain=example.com",
+                "wayback_archive": "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
                 "wayback_page":    "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
                 "report_page":     "https://dnstool.it-help.tech/analyze?domain=example.com&src=agent",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
