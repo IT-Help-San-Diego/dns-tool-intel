@@ -347,6 +347,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
                         "csv_export":      fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain),
                         "sources":         fmt.Sprintf("%s/sources", base),
+                        "zenodo_doi":      "https://doi.org/10.5281/zenodo.18854899",
                 },
                 "badges": gin.H{
                         "detailed_svg":  fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain),
@@ -460,7 +461,6 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         snapshotURL := esc(links["snapshot"].(string))
         topologyURL := esc(links["topology"].(string))
         apiURL := esc(links["api_json"].(string))
-        waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback?domain=%s", base, domain))
         reportPageURL := esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent", base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
@@ -469,10 +469,12 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         csvExportURL := esc(fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain))
         sourcesURL := esc(fmt.Sprintf("%s/sources", base))
 
-        var checksumURL, remediationURL string
+        var checksumURL, remediationURL, covertReportURL, executiveReportURL string
         if analysisID > 0 {
                 checksumURL = esc(fmt.Sprintf("%s/api/analysis/%d/checksum", base, analysisID))
                 remediationURL = esc(fmt.Sprintf("%s/remediation?analysis_id=%d", base, analysisID))
+                covertReportURL = esc(fmt.Sprintf("%s/analysis/%d/view/C", base, analysisID))
+                executiveReportURL = esc(fmt.Sprintf("%s/analysis/%d/executive", base, analysisID))
         }
 
         now := time.Now().UTC()
@@ -539,30 +541,46 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <tr><td>Posture Label</td><td>` + esc(postureLabel) + `</td></tr>
 </table>
 
-<h2>Security Badges</h2>
-<p><strong>Detailed Badge:</strong><br><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `"><img src="` + badgeDetailed + `" alt="DNS Tool Detailed Security Badge for ` + ed + `" width="400"></a></p>
-<p><strong>Covert Badge:</strong><br><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `"><img src="` + badgeCovert + `" alt="DNS Tool Covert Security Badge for ` + ed + `" width="300"></a></p>
-
-<h2>Report &amp; Analysis</h2>
+<h2>Reports</h2>
 <ul>
-  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> (full security analysis)</li>
-  <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> (reconstructed zone file, SHA-3-512 verified)</li>
-  <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> (DNS topology visualization)</li>
-  <li><a href="` + waybackViewURL + `">Internet Archive — Wayback Machine</a> (third-party permanent record)</li>
+  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> — full security analysis with live scanning</li>
+  <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> — reconstructed zone file, SHA-3-512 verified</li>
+</ul>`)
+
+        if covertReportURL != "" {
+                sb.WriteString(`
+<ul>
+  <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
+  <li><a href="` + executiveReportURL + `">Executive Report</a> — board-ready executive summary</li>
+</ul>`)
+        }
+
+        sb.WriteString(`
+
+<h2>Security Badges</h2>
+<ul>
+  <li><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `">Covert Security Badge</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
+  <li><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `">Detailed Security Badge</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
+</ul>
+
+<h2>Visualizations &amp; Provenance</h2>
+<ul>
+  <li><a href="` + topologyURL + `">Analysis Pipeline &amp; Protocol Map</a> — DNS topology, signal flow, and RFC source mapping</li>
+  <li><a href="https://doi.org/10.5281/zenodo.18854899">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.18854899)</li>
 </ul>
 
 <h2>Downloads &amp; Intelligence Data</h2>
 <ul>
-  <li><a href="` + apiURL + `">Download All Collected Intelligence Data</a> (JSON — full analysis payload)</li>
-  <li><a href="` + csvExportURL + `">Export Recon — Subdomain Discovery</a> (CSV — subdomain reconnaissance data)</li>
-  <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> (RFC citations, data sources, and scoring methodology)</li>
+  <li><a href="` + apiURL + `">Download All Collected Intelligence Data</a> — JSON full analysis payload (the loot)</li>
+  <li><a href="` + csvExportURL + `">Export Recon — Subdomain Discovery</a> — CSV subdomain reconnaissance data</li>
+  <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
 </ul>`)
 
         if checksumURL != "" {
                 sb.WriteString(`
 <ul>
-  <li><a href="` + checksumURL + `">SHA-3 Integrity Checksum</a> (cryptographic verification of analysis data)</li>
-  <li><a href="` + remediationURL + `">Security Remediation Plan</a> (actionable remediation steps for this analysis)</li>
+  <li><a href="` + checksumURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
+  <li><a href="` + remediationURL + `">Security Remediation Plan</a> — actionable remediation steps for this domain</li>
 </ul>`)
         }
 
