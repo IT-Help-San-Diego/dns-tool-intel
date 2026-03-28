@@ -18,6 +18,8 @@ const (
 	archivePrefix = "https://web.archive.org/"
 	userAgent     = "DNS-Tool-OSINT/1.0 (+https://dnstool.it-help.tech)"
 	httpTimeout   = 30 * time.Second
+	maxRetries    = 3
+	retryBaseWait = 10 * time.Second
 )
 
 type ArchiveResult struct {
@@ -26,7 +28,28 @@ type ArchiveResult struct {
 }
 
 func Archive(ctx context.Context, targetURL string) ArchiveResult {
-	return archiveWith(ctx, saveEndpoint, targetURL)
+	return archiveWithRetry(ctx, saveEndpoint, targetURL)
+}
+
+func archiveWithRetry(ctx context.Context, endpoint, targetURL string) ArchiveResult {
+	var lastResult ArchiveResult
+	for attempt := range maxRetries {
+		if attempt > 0 {
+			wait := retryBaseWait * time.Duration(attempt)
+			slog.Info("Wayback Machine retry", "attempt", attempt+1, "wait", wait, "target", targetURL)
+			select {
+			case <-ctx.Done():
+				return ArchiveResult{Err: fmt.Errorf("wayback: context cancelled during retry: %w", ctx.Err())}
+			case <-time.After(wait):
+			}
+		}
+		lastResult = archiveWith(ctx, endpoint, targetURL)
+		if lastResult.Err == nil {
+			return lastResult
+		}
+		slog.Warn("Wayback Machine attempt failed", "attempt", attempt+1, "target", targetURL, "error", lastResult.Err)
+	}
+	return lastResult
 }
 
 func archiveWith(ctx context.Context, endpoint, targetURL string) ArchiveResult {
