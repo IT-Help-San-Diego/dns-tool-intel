@@ -27,8 +27,6 @@
     "minimatch": "^10.2.1",
     "pa11y": "^9.1.1",
     "playwright-lighthouse": "^4.0.0",
-    "sonar-report": "^3.1.6",
-    "sonarqube-scanner": "^4.3.5",
     "tar-fs": "^3.1.2",
     "terser": "^5.46.1",
     "tsx": "^4.21.0",
