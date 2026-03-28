@@ -1072,8 +1072,10 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffectsAsync(ctx context.Context
 }
 
 func (h *AnalysisHandler) archiveToWayback(analysisID int32, domain string) {
+        ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+        defer cancel()
         analysisURL := fmt.Sprintf("%s/analysis/%d/view/E", h.Config.BaseURL, analysisID)
-        result := wayback.Archive(context.Background(), analysisURL)
+        result := wayback.Archive(ctx, analysisURL)
         if result.Err != nil {
                 slog.Warn("Wayback Machine archival failed", "analysis_id", analysisID, "domain", domain, mapKeyError, result.Err)
                 return
