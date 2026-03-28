@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_lcp_preload" .}}
+    {{template "head_css" .}}
+    <title>DEVONagent Pro Plugin — DNS Tool</title>
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Install the DNS Tool search plugin for DEVONagent Pro. Copy the JSON configuration to add intelligence-grade domain security analysis to your research workflows.">
+    <meta property="og:url" content="https://dnstool.it-help.tech/agent/plugin">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DEVONagent Pro Plugin — DNS Tool">
+    <meta property="og:description" content="Add DNS security intelligence to DEVONagent Pro. 13 enriched results per query — reports, badges, exports, and provenance data.">
+    <meta property="og:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="DNS Tool DEVONagent Pro Plugin">
+    <meta property="og:site_name" content="DNS Tool">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="dnstool.it-help.tech">
+    <meta property="twitter:url" content="https://dnstool.it-help.tech/agent/plugin">
+    <meta name="twitter:title" content="DEVONagent Pro Plugin — DNS Tool">
+    <meta name="twitter:description" content="Add DNS security intelligence to DEVONagent Pro.">
+    <meta name="twitter:image" content="https://dnstool.it-help.tech/static/images/og-image.png">
+    <link rel="canonical" href="https://dnstool.it-help.tech/agent/plugin">
+    <style nonce="{{.CspNonce}}">
+        .plugin-json-block {
+            background: #1a1d23;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            color: #e0e0e0;
+            position: relative;
+        }
+        .plugin-json-block .json-key { color: #79c0ff; }
+        .plugin-json-block .json-str { color: #a5d6ff; }
+        .plugin-json-block .json-num { color: #d2a8ff; }
+        .plugin-json-block .json-bool { color: #ff7b72; }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #ccc;
+            border-radius: 0.375rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        .copy-btn.copied {
+            background: rgba(34,197,94,0.2);
+            border-color: rgba(34,197,94,0.4);
+            color: #22c55e;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: #818cf8;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .results-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        .results-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: baseline;
+        }
+        .results-list li:last-child { border-bottom: none; }
+        .result-num {
+            display: inline-block;
+            width: 1.75rem;
+            color: #818cf8;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .result-desc { color: #9ca3af; font-size: 0.88rem; margin-left: 0.35rem; }
+
+        .plugin-hero {
+            background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%);
+            border: 1px solid rgba(99,102,241,0.12);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .plugin-source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.25);
+            color: #a5b4fc;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.15rem 0.45rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            vertical-align: middle;
+        }
+        .plugin-source-tag svg {
+            width: 0.75rem;
+            height: 0.75rem;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+    <main id="main-content" class="container mt-4 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="plugin-hero">
+                    <h1 class="h2 mb-3">DEVONagent Pro Plugin</h1>
+                    <p class="text-muted mb-0">Add intelligence-grade DNS security analysis to your <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">DEVONagent Pro</a> research workflows. Each query returns up to <strong>13 enriched results</strong> — security reports, reconnaissance data, integrity-verified snapshots, and provenance metadata.</p>
+                </div>
+
+                <p>When a domain is analyzed through this plugin, you'll see a <span class="plugin-source-tag"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</span> tag next to the domain in your <a href="/history">analysis history</a>.</p>
+
+                <h2 class="h4 mt-4 mb-3">What You Get</h2>
+                <ul class="results-list">
+                    <li><span class="result-num">1.</span> <strong>Engineer's DNS Intelligence Report</strong> <span class="result-desc">— full security analysis with live scanning</span></li>
+                    <li><span class="result-num">2.</span> <strong>Covert Recon Report</strong> <span class="result-desc">— full analysis in covert operations mode</span></li>
+                    <li><span class="result-num">3.</span> <strong>Observed Records Snapshot</strong> <span class="result-desc">— reconstructed zone file, SHA-3-512 verified</span></li>
+                    <li><span class="result-num">4.</span> <strong>Covert Security Badge</strong> <span class="result-desc">— scotopic-optimized embeddable badge</span></li>
+                    <li><span class="result-num">5.</span> <strong>Detailed Security Badge</strong> <span class="result-desc">— full posture score badge</span></li>
+                    <li><span class="result-num">6.</span> <strong>Analysis Pipeline &amp; Protocol Map</strong> <span class="result-desc">— DNS topology visualization</span></li>
+                    <li><span class="result-num">7.</span> <strong>Zenodo DOI</strong> <span class="result-desc">— permanent scientific record (Concept DOI: 10.5281/zenodo.18854899)</span></li>
+                    <li><span class="result-num">8.</span> <strong>Full JSON Intelligence Data</strong> <span class="result-desc">— complete analysis payload download</span></li>
+                    <li><span class="result-num">9.</span> <strong>SHA-3 Integrity Checksum</strong> <span class="result-desc">— cryptographic verification of analysis data</span></li>
+                    <li><span class="result-num">10.</span> <strong>Subdomain CSV Export</strong> <span class="result-desc">— reconnaissance data in spreadsheet format</span></li>
+                    <li><span class="result-num">11.</span> <strong>Security Remediation Plan</strong> <span class="result-desc">— actionable remediation steps</span></li>
+                    <li><span class="result-num">12.</span> <strong>Executive Report</strong> <span class="result-desc">— board-ready executive summary</span></li>
+                    <li><span class="result-num">13.</span> <strong>Sources &amp; Methodology</strong> <span class="result-desc">— RFC citations, data sources, and scoring methodology</span></li>
+                </ul>
+
+                <h2 class="h4 mt-5 mb-3">Installation</h2>
+
+                <div class="d-flex align-items-start mb-3">
+                    <span class="step-number">1</span>
+                    <div>
+                        <strong>Copy the plugin JSON</strong>
+                        <p class="text-muted mb-0 mt-1">Select and copy the entire JSON block below.</p>
+                    </div>
+                </div>
+
+                <div class="plugin-json-block" id="plugin-json">
+                    <button class="copy-btn" id="copy-btn" onclick="copyPluginJSON()">Copy</button>
+{
+  <span class="json-key">"Keyword"</span> : [ <span class="json-str">"dns"</span>, <span class="json-str">"security"</span>, <span class="json-str">"spf"</span>, <span class="json-str">"dkim"</span>, <span class="json-str">"dmarc"</span>, <span class="json-str">"dnssec"</span>,
+                <span class="json-str">"subdomain"</span>, <span class="json-str">"certificate"</span>, <span class="json-str">"transparency"</span>,
+                <span class="json-str">"email"</span>, <span class="json-str">"security"</span>, <span class="json-str">"posture"</span> ],
+  <span class="json-key">"Operators"</span> : <span class="json-num">59</span>,
+  <span class="json-key">"Info"</span> : <span class="json-str">"DNS Security Intelligence — RFC-grounded domain analysis with
+        Bayesian confidence scoring. Returns enriched reports with security
+        badges, observed-records snapshots (SHA-3-512), DNS topology maps,
+        Wayback Machine archives, and Zotero-compatible citation metadata.
+        Concept DOI: 10.5281/zenodo.18854899"</span>,
+  <span class="json-key">"EngineUrl"</span> : <span class="json-str">"https://dnstool.it-help.tech/agent/search?q=agentQuery"</span>,
+  <span class="json-key">"Version"</span> : <span class="json-str">"1.0"</span>,
+  <span class="json-key">"OffsetPerPage"</span> : <span class="json-num">1</span>,
+  <span class="json-key">"Start"</span> : <span class="json-num">0</span>,
+  <span class="json-key">"ParseLinks"</span> : <span class="json-bool">true</span>,
+  <span class="json-key">"ResultsPerPage"</span> : <span class="json-num">13</span>,
+  <span class="json-key">"Name"</span> : <span class="json-str">"DNS Tool - Domain Security Intelligence"</span>,
+  <span class="json-key">"Description"</span> : <span class="json-str">"Intelligence-grade domain security analysis. RFC-compliant
+        DNS auditing with ICD 203 confidence scoring. Provides detailed
+        and covert security badges, downloadable snapshots with integrity
+        hashes, topology visualizations, and Internet Archive permanent
+        records."</span>,
+  <span class="json-key">"Keywords"</span> : <span class="json-str">"dns,security,spf,dkim,dmarc,dnssec,subdomain,certificate-transparency,email-security,posture"</span>,
+  <span class="json-key">"Identifier"</span> : <span class="json-str">"dnstool.it-help.tech"</span>
+}</div>
+
+                <div class="d-flex align-items-start mb-3 mt-4">
+                    <span class="step-number">2</span>
+                    <div>
+                        <strong>Open DEVONagent Pro Preferences</strong>
+                        <p class="text-muted mb-0 mt-1">Go to <strong>DEVONagent Pro → Preferences → Search Plugins</strong> (or press <kbd>⌘</kbd><kbd>,</kbd>).</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start mb-3">
+                    <span class="step-number">3</span>
+                    <div>
+                        <strong>Add a new plugin</strong>
+                        <p class="text-muted mb-0 mt-1">Click the <strong>+</strong> button at the bottom of the plugin list and select <strong>New Plugin…</strong></p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start mb-3">
+                    <span class="step-number">4</span>
+                    <div>
+                        <strong>Paste the JSON</strong>
+                        <p class="text-muted mb-0 mt-1">In the plugin editor, paste the JSON configuration. DEVONagent will parse the fields automatically.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start mb-3">
+                    <span class="step-number">5</span>
+                    <div>
+                        <strong>Enable the plugin in your search set</strong>
+                        <p class="text-muted mb-0 mt-1">Open your preferred search set and check the box next to <strong>DNS Tool - Domain Security Intelligence</strong>. The plugin is now active — query any domain name to begin.</p>
+                    </div>
+                </div>
+
+                <h2 class="h4 mt-5 mb-3">How It Works</h2>
+                <p class="text-muted">When DEVONagent queries a domain through this plugin, it hits the <code>/agent/search</code> endpoint with <code>ParseLinks: true</code>. DNS Tool returns a single HTML page containing up to 13 hyperlinks. DEVONagent extracts each link as a separate search result, giving you direct access to every report, badge, export, and data artifact from one query.</p>
+                <p class="text-muted">The <code>agentQuery</code> placeholder in the engine URL is automatically replaced by DEVONagent with whatever domain you search for. Results are cached on first access and served fresh on subsequent requests through the standard analysis pipeline.</p>
+
+                <h2 class="h4 mt-5 mb-3">Building Your Own Plugin</h2>
+                <p class="text-muted">DEVONagent Pro search plugins are JSON objects with a specific schema. The key fields:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr><th>Field</th><th>Purpose</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>EngineUrl</code></td><td>The search endpoint. Use <code>agentQuery</code> as a placeholder — DEVONagent replaces it with the user's search term.</td></tr>
+                            <tr><td><code>ParseLinks</code></td><td>When <code>true</code>, DEVONagent extracts every <code>&lt;a href&gt;</code> from the response as a separate result.</td></tr>
+                            <tr><td><code>ResultsPerPage</code></td><td>How many results DEVONagent expects per page. Set this to match the number of links your endpoint returns.</td></tr>
+                            <tr><td><code>Keyword</code></td><td>Array of trigger words. DEVONagent may prioritize this plugin when queries contain these terms.</td></tr>
+                            <tr><td><code>Operators</code></td><td>Bitmask controlling which search operators the plugin supports (e.g., phrase search, Boolean).</td></tr>
+                            <tr><td><code>Start</code> / <code>OffsetPerPage</code></td><td>Pagination controls. For single-page results like DNS Tool, set <code>Start: 0</code> and <code>OffsetPerPage: 1</code>.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted">For full documentation, see <a href="https://www.devontechnologies.com/apps/devonagent" target="_blank" rel="noopener">DEVONtechnologies</a>.</p>
+
+            </div>
+        </div>
+    </main>
+    {{template "footer" .}}
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    function copyPluginJSON() {
+        var raw = {
+            "Keyword": ["dns","security","spf","dkim","dmarc","dnssec","subdomain","certificate","transparency","email","security","posture"],
+            "Operators": 59,
+            "Info": "DNS Security Intelligence \u2014 RFC-grounded domain analysis with Bayesian confidence scoring. Returns enriched reports with security badges, observed-records snapshots (SHA-3-512), DNS topology maps, Wayback Machine archives, and Zotero-compatible citation metadata. Concept DOI: 10.5281/zenodo.18854899",
+            "EngineUrl": "https://dnstool.it-help.tech/agent/search?q=agentQuery",
+            "Version": "1.0",
+            "OffsetPerPage": 1,
+            "Start": 0,
+            "ParseLinks": true,
+            "ResultsPerPage": 13,
+            "Name": "DNS Tool - Domain Security Intelligence",
+            "Description": "Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring. Provides detailed and covert security badges, downloadable snapshots with integrity hashes, topology visualizations, and Internet Archive permanent records.",
+            "Keywords": "dns,security,spf,dkim,dmarc,dnssec,subdomain,certificate-transparency,email-security,posture",
+            "Identifier": "dnstool.it-help.tech"
+        };
+        var text = JSON.stringify(raw, null, 2);
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('copy-btn');
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.textContent = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+    </script>
+</body>
+</html>
