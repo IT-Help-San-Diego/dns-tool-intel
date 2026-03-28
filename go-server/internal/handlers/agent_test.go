@@ -286,7 +286,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
                 "dkim_analysis":  map[string]any{"status": "success"},
         }
-        html := h.buildAgentHTML("example.com", results)
+        html := h.buildAgentHTML("example.com", results, 0)
 
         zoteroChecks := []string{
                 `name="DC.title"`,
@@ -319,6 +319,13 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "Analysis Pipeline",
                 "Internet Archive",
                 "/agent/badge-view?domain=example.com",
+                "/agent/api?q=example.com",
+                "Download All Collected Intelligence Data",
+                "/export/subdomains?domain=example.com",
+                "Export Recon",
+                "/sources",
+                "Sources &amp; Methodology",
+                "Engineer's DNS Intelligence Report",
         }
         for _, check := range assetChecks {
                 if !strings.Contains(html, check) {
