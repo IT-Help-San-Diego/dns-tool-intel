@@ -390,6 +390,10 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         h.snapshotICAEMetrics(ctx, results)
 
+        if c.Query("src") == "agent" {
+                results["_request_source"] = "agent"
+        }
+
         isPrivate := hasNovelSelectors && isAuthenticated
         analysisID, timestamp := h.persistOrLogEphemeral(c.Request.Context(), persistParams{
                 domain:            domain,
