@@ -311,13 +311,11 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         assetChecks := []string{
                 "/snapshot/example.com",
                 "/topology?domain=example.com",
-                "/agent/wayback?domain=example.com",
                 "/analyze?domain=example.com",
                 "style=detailed",
                 "style=covert",
                 "Observed Records Snapshot",
                 "Analysis Pipeline",
-                "Internet Archive",
                 "/agent/badge-view?domain=example.com",
                 "/agent/api?q=example.com",
                 "Download All Collected Intelligence Data",
@@ -326,10 +324,43 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "/sources",
                 "Sources &amp; Methodology",
                 "Engineer's DNS Intelligence Report",
+                "https://doi.org/10.5281/zenodo.18854899",
+                "Zenodo",
+                "Covert Security Badge",
+                "Detailed Security Badge",
         }
         for _, check := range assetChecks {
                 if !strings.Contains(html, check) {
                         t.Errorf("missing enrichment in HTML: %q", check)
+                }
+        }
+}
+
+func TestBuildAgentHTMLWithAnalysisID(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists": true,
+                "risk_level":    "high",
+                "posture":       map[string]any{"score": float64(35), "grade": "F", "label": "Poor"},
+                "spf_analysis":  map[string]any{"status": "fail"},
+                "dmarc_analysis": map[string]any{"status": "fail", "policy": "none"},
+                "dkim_analysis":  map[string]any{"status": "fail"},
+        }
+        html := h.buildAgentHTML("example.com", results, 42)
+
+        idChecks := []string{
+                "/analysis/42/view/C",
+                "Covert Recon Report",
+                "/analysis/42/executive",
+                "Executive Report",
+                "/api/analysis/42/checksum",
+                "SHA-3 Integrity Checksum",
+                "/remediation?analysis_id=42",
+                "Security Remediation Plan",
+        }
+        for _, check := range idChecks {
+                if !strings.Contains(html, check) {
+                        t.Errorf("missing analysis-ID-dependent link: %q", check)
                 }
         }
 }
