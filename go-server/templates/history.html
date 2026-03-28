@@ -91,7 +91,8 @@
         .page-item.disabled .page-link{color:#6c757d;pointer-events:none}
         .page-link{padding:.375rem .75rem;color:#6ea8fe;text-decoration:none;background-color:#2b3035;border:1px solid #495057;border-radius:.375rem}
         .h3{font-size:1.75rem;font-weight:500}
-        .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em}
+        .source-tag{display:inline-flex;align-items:center;gap:.3em;font-size:.6875rem;font-weight:600;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:.25rem;padding:.1em .45em;white-space:nowrap;vertical-align:middle;letter-spacing:.01em;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
+        .source-tag:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.4);color:#c4b5fd}
         .source-tag svg{width:.75em;height:.75em;fill:currentColor;flex-shrink:0}
         @media(min-width:768px){.d-md-none{display:none!important}.d-none.d-md-block{display:block!important}}
         @media(max-width:767.98px){.d-md-none{display:block}.d-none.d-md-block{display:none!important}}
@@ -179,7 +180,7 @@
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                             <div class="min-width-0">
-                                                <div class="fw-medium text-truncate" title="{{$a.Domain}}">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <span class="source-tag" title="Queried via DEVONagent Pro plugin"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</span>{{end}}</div>
+                                                <div class="fw-medium text-truncate" title="{{$a.Domain}}">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</a>{{end}}</div>
                                                 {{if ne $a.AsciiDomain $a.Domain}}
                                                     <small class="text-muted text-truncate d-block">{{$a.AsciiDomain}}</small>
                                                 {{end}}
@@ -257,7 +258,7 @@
                             <div class="d-flex align-items-center min-width-0">
                                 {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
-                                    <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <span class="source-tag" title="Queried via DEVONagent Pro plugin"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</span>{{end}}</div>
+                                    <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-3.5l-1.5 2-1.5-2H3a1 1 0 0 1-1-1V3zm2 1v1h8V4H4zm0 3v1h6V7H4zm0 3v1h4v-1H4z"/></svg>Plugin</a>{{end}}</div>
                                 </div>
                             </div>
                             <div class="btn-group flex-shrink-0 ms-2">
