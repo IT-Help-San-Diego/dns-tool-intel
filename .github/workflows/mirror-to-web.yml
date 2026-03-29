@@ -17,7 +17,7 @@ jobs:
 
       - name: Filter and push to dns-tool-web
         env:
-          WEB_REPO_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
+          WEB_REPO_TOKEN: ${{ secrets.ORG_PAT }}
         run: |
           set -euo pipefail
 
