@@ -23,7 +23,7 @@ jobs:
 
       - name: Clone web mirror
         env:
-          WEB_REPO_TOKEN: ${{ secrets.ORG_PAT }}
+          WEB_REPO_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
         run: |
           git clone --depth 1 --single-branch --branch main \
             "https://x-access-token:${WEB_REPO_TOKEN}@github.com/${WEB_REPO}.git" \
@@ -97,7 +97,7 @@ jobs:
 
       - name: Create PR and merge
         env:
-          WEB_REPO_TOKEN: ${{ secrets.ORG_PAT }}
+          WEB_REPO_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
         run: |
           cd "$CLONE_DIR"
           git config user.email "research@it-help.tech"
