@@ -331,7 +331,7 @@
                     <p class="corpus-index-subtitle">Published papers &amp; governance documents</p>
                 </div>
 
-                <div class="corpus-entry active" role="button" tabindex="0" aria-label="View Paper I — DNS Tool Methodology" data-pdf="/docs/dns-tool-methodology.pdf" data-title="DNS Tool Methodology" data-num="I">
+                <button type="button" class="corpus-entry active" tabindex="0" aria-label="View Paper I — DNS Tool Methodology" data-pdf="/docs/dns-tool-methodology.pdf" data-title="DNS Tool Methodology" data-num="I">
                     <div class="corpus-entry-num">Paper I</div>
                     <div class="corpus-entry-title">{{icon "flask" "me-1 text-warning"}}DNS Tool Methodology</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
@@ -342,9 +342,9 @@
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
                     <div class="corpus-entry-transform">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y)</div>
-                </div>
+                </button>
 
-                <div class="corpus-entry" role="button" tabindex="0" aria-label="View Paper II — Philosophical Foundations" data-pdf="/docs/philosophical-foundations.pdf" data-title="Philosophical Foundations" data-num="II">
+                <button type="button" class="corpus-entry" tabindex="0" aria-label="View Paper II — Philosophical Foundations" data-pdf="/docs/philosophical-foundations.pdf" data-title="Philosophical Foundations" data-num="II">
                     <div class="corpus-entry-num">Paper II</div>
                     <div class="corpus-entry-title">{{icon "landmark" "me-1 text-warning"}}Philosophical Foundations</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
@@ -355,9 +355,9 @@
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
                     <div class="corpus-entry-transform">T = &sigma;<sub>v</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (&minus;x, y)</div>
-                </div>
+                </button>
 
-                <div class="corpus-entry" role="button" tabindex="0" aria-label="View Paper III — Founder's Manifesto" data-pdf="/docs/founders-manifesto.pdf" data-title="Founder's Manifesto" data-num="III">
+                <button type="button" class="corpus-entry" tabindex="0" aria-label="View Paper III — Founder's Manifesto" data-pdf="/docs/founders-manifesto.pdf" data-title="Founder's Manifesto" data-num="III">
                     <div class="corpus-entry-num">Paper III</div>
                     <div class="corpus-entry-title">{{icon "scroll" "me-1 text-warning"}}Founder&rsquo;s Manifesto</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
@@ -368,9 +368,9 @@
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
                     <div class="corpus-entry-transform">T = &sigma;<sub>v</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (&minus;x, y)</div>
-                </div>
+                </button>
 
-                <div class="corpus-entry" role="button" tabindex="0" aria-label="View Paper IV — Communication Standards" data-pdf="/docs/communication-standards.pdf" data-title="Communication Standards" data-num="IV">
+                <button type="button" class="corpus-entry" tabindex="0" aria-label="View Paper IV — Communication Standards" data-pdf="/docs/communication-standards.pdf" data-title="Communication Standards" data-num="IV">
                     <div class="corpus-entry-num">Paper IV</div>
                     <div class="corpus-entry-title">{{icon "clipboard-check" "me-1 text-warning"}}Communication Standards</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
@@ -381,7 +381,7 @@
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
                     <div class="corpus-entry-transform">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y)</div>
-                </div>
+                </button>
 
                 <div class="corpus-legend">
                     <p class="corpus-legend-title">{{icon "eye" "me-1"}}Owl Semaphore Legend</p>
@@ -446,9 +446,9 @@
                 el.classList.remove('active');
             }
             entry.classList.add('active');
-            const pdf = entry.getAttribute('data-pdf');
-            const title = entry.getAttribute('data-title');
-            const num = entry.getAttribute('data-num');
+            const pdf = entry.dataset.pdf;
+            const title = entry.dataset.title;
+            const num = entry.dataset.num;
             document.getElementById('corpusViewerTitle').textContent = 'Paper ' + num + ' \u2014 ' + title;
             document.getElementById('corpusOpenTab').href = pdf;
             document.getElementById('corpusDownload').href = pdf;

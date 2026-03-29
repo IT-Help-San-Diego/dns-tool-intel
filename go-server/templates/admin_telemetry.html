@@ -56,7 +56,7 @@
                                         <td class="u-gantt-col">
                                             <div class="gantt-bar" data-analysis-id="{{.AnalysisID}}" data-total-ms="{{.TotalDurationMs}}">
                                                 <div class="progress u-gantt-progress">
-                                                    <div class="progress-bar u-gantt-bar-fill" role="progressbar" aria-valuenow="{{.TotalDurationMs}}" aria-valuemin="0" aria-valuemax="{{.TotalDurationMs}}"></div>
+                                                    <progress class="progress-bar u-gantt-bar-fill" value="{{.TotalDurationMs}}" max="{{.TotalDurationMs}}"></progress>
                                                 </div>
                                                 <div class="d-flex justify-content-between mt-0">
                                                     <span class="u-text-075 text-muted">0s</span>
