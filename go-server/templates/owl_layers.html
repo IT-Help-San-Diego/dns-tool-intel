@@ -215,7 +215,7 @@
     {{template "footer" .}}
     <script nonce="{{.CspNonce}}">
     function toggleLayer(btn) {
-        let id = btn.getAttribute('data-target');
+        let id = btn.dataset.target;
         let el = document.getElementById(id);
         if (el.classList.contains('layer-hidden')) {
             el.classList.remove('layer-hidden');
