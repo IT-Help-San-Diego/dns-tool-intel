@@ -244,12 +244,12 @@
 
                 <div class="share-bar">
                     <span class="share-bar-label">{{icon "share-alt"}} Share:</span>
-                    <button type="button" class="share-btn" id="copyLinkBtn" aria-label="Copy Link">{{icon "link"}} Copy Link</button>
-                    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain&text=Domain%20Confessions%3A%20If%20you%20disable%20security%20settings%20just%20to%20make%20things%20work%2C%20this%20video%20may%20not%20be%20for%20you." class="share-btn" target="_blank" rel="noopener noreferrer" aria-label="Post">{{icon "twitter"}} Post</a>
-                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn" target="_blank" rel="noopener noreferrer" aria-label="Share">{{icon "linkedin"}} Share</a>
-                    <a href="mailto:?subject=Domain%20Confessions%20%E2%80%94%20Forgotten%20Domain%20%E2%80%94%20DNS%20Tool&body=Domain%20Confessions%3A%20If%20you%20disable%20security%20settings%20just%20to%20make%20things%20work%2C%20this%20video%20may%20not%20be%20for%20you.%0A%0Ahttps%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn" aria-label="Email">{{icon "envelope"}} Email</a>
+                    <button type="button" class="share-btn" id="copyLinkBtn"><span aria-hidden="true">{{icon "link"}}</span> Copy Link</button>
+                    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain&text=Domain%20Confessions%3A%20If%20you%20disable%20security%20settings%20just%20to%20make%20things%20work%2C%20this%20video%20may%20not%20be%20for%20you." class="share-btn" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">{{icon "twitter"}}</span> Post</a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">{{icon "linkedin"}}</span> Share</a>
+                    <a href="mailto:?subject=Domain%20Confessions%20%E2%80%94%20Forgotten%20Domain%20%E2%80%94%20DNS%20Tool&body=Domain%20Confessions%3A%20If%20you%20disable%20security%20settings%20just%20to%20make%20things%20work%2C%20this%20video%20may%20not%20be%20for%20you.%0A%0Ahttps%3A%2F%2Fdnstool.it-help.tech%2Fvideo%2Fforgotten-domain" class="share-btn"><span aria-hidden="true">{{icon "envelope"}}</span> Email</a>
                     {{if .YouTubeID}}
-                    <a href="https://www.youtube.com/watch?v={{.YouTubeID}}" class="share-btn share-btn-yt" target="_blank" rel="noopener noreferrer" aria-label="Watch on YouTube">{{icon "play-circle"}} Watch on YouTube</a>
+                    <a href="https://www.youtube.com/watch?v={{.YouTubeID}}" class="share-btn share-btn-yt" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">{{icon "play-circle"}}</span> Watch on YouTube</a>
                     {{end}}
                 </div>
 
