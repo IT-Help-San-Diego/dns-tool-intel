@@ -1,5 +1,5 @@
 name: Mirror to dns-tool-web (OSS)
-
+# Syncs filtered codebase to the public OSS mirror repository.
 on:
   push:
     branches: [main]
