@@ -333,8 +333,8 @@
                 <p class="text-muted">Both formats contain the same configuration. View the source here, or use the download buttons above.</p>
 
                 <div class="format-tabs" role="tablist">
-                    <div class="format-tab active" role="tab" tabindex="0" id="tab-plist" aria-selected="true" aria-controls="panel-plist" onclick="switchTab('plist')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('plist')}">plist (native)</div>
-                    <div class="format-tab" role="tab" tabindex="-1" id="tab-json" aria-selected="false" aria-controls="panel-json" onclick="switchTab('json')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('json')}">JSON</div>
+                    <button type="button" class="format-tab active" role="tab" tabindex="0" id="tab-plist" aria-selected="true" aria-controls="panel-plist" onclick="switchTab('plist')">plist (native)</button>
+                    <button type="button" class="format-tab" role="tab" tabindex="-1" id="tab-json" aria-selected="false" aria-controls="panel-json" onclick="switchTab('json')">JSON</button>
                 </div>
 
                 <div id="panel-plist" class="format-panel active" role="tabpanel" aria-labelledby="tab-plist">
