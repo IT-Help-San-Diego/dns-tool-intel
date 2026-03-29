@@ -171,8 +171,8 @@
         document.addEventListener('click', function(e) {
             let btn = e.target.closest('.log-detail-btn');
             if (!btn) return;
-            let attrs = btn.getAttribute('data-attrs');
-            let msg = btn.getAttribute('data-msg');
+            let attrs = btn.dataset.attrs;
+            let msg = btn.dataset.msg;
             let msgEl = document.getElementById('logDetailMsg');
             let attrsEl = document.getElementById('logDetailAttrs');
             if (msgEl) msgEl.textContent = msg || '';
