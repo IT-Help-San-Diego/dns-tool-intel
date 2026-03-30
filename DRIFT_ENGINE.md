@@ -47,7 +47,7 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 The `posture_diff` boundary follows the open-core pattern:
 - `posture_diff.go` — Framework file (compiles unconditionally). Contains `ComputePostureDiff()` and extraction helpers.
 - `posture_diff_oss.go` — OSS stub (`//go:build !intel`). Contains `classifyDriftSeverity()`, `classifyPolicyChange()`, `classifyStatusChange()`.
-- `posture_diff_intel.go` — Private intel (exists only in dns-tool-intel repo). Enhanced severity classification with threat intelligence correlation.
+- `posture_diff_intel.go` — Private intel (requires -tags intel build). Enhanced severity classification with threat intelligence correlation.
 
 ### Roadmap
 

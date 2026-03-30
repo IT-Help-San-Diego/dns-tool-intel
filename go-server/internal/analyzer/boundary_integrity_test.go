@@ -172,14 +172,19 @@ func isIntelRepo() bool {
         return len(matches) > 0
 }
 
-func TestBoundaryIntegrity_NoIntelInPublicRepo(t *testing.T) {
-        if isIntelRepo() {
-                t.Skip("Skipping public-only check — running in intel repo context")
-        }
+func TestBoundaryIntegrity_IntelFilesBuildTagGated(t *testing.T) {
         for _, b := range analyzerBoundaries {
-                t.Run(b.Name+"_no_intel_file", func(t *testing.T) {
-                        if _, err := os.Stat(b.IntelFile); err == nil {
-                                t.Errorf("INTEL FILE %s FOUND IN PUBLIC REPO for boundary %s — must only exist in private dns-tool-intel repo", b.IntelFile, b.Name)
+                t.Run(b.Name+"_intel_build_tag", func(t *testing.T) {
+                        if _, err := os.Stat(b.IntelFile); err != nil {
+                                t.Skipf("Intel file %s not present — skipping build tag check", b.IntelFile)
+                                return
+                        }
+                        content, err := os.ReadFile(b.IntelFile)
+                        if err != nil {
+                                t.Fatalf("failed to read %s: %v", b.IntelFile, err)
+                        }
+                        if !strings.Contains(string(content), "//go:build intel") {
+                                t.Errorf("INTEL FILE %s MISSING BUILD TAG — must have //go:build intel", b.IntelFile)
                         }
                 })
         }
@@ -189,7 +194,14 @@ func TestBoundaryIntegrity_NoIntelInPublicRepo(t *testing.T) {
                         return nil
                 }
                 if strings.HasSuffix(path, "_intel.go") {
-                        t.Errorf("INTEL FILE %s FOUND IN PUBLIC REPO — all _intel.go files must only exist in private dns-tool-intel repo", path)
+                        content, readErr := os.ReadFile(path)
+                        if readErr != nil {
+                                t.Errorf("failed to read %s: %v", path, readErr)
+                                return nil
+                        }
+                        if !strings.Contains(string(content), "//go:build intel") {
+                                t.Errorf("INTEL FILE %s MISSING BUILD TAG — all _intel.go files must have //go:build intel", path)
+                        }
                 }
                 return nil
         })

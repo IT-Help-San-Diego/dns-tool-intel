@@ -2,7 +2,7 @@
 
 **Status:** Active
 **Version:** 1.0
-**Architecture:** Two-repo open-core (public `dns-tool-web` + private `dns-tool-intel`)
+**Architecture:** Single-repo open-core with Go build tags (`_oss.go` default + `_intel.go` via `-tags intel`)
 
 ---
 

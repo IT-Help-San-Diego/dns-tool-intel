@@ -1,6 +1,6 @@
 # Licensing Model (Open Core)
 
-`dns-tool-web` is licensed under **Business Source License 1.1 (BUSL-1.1)** with a rolling Change Date of **three years from the publication of each version**, after which it converts to **Apache-2.0**.
+DNS Tool is licensed under **Business Source License 1.1 (BUSL-1.1)** with a rolling Change Date of **three years from the publication of each version**, after which it converts to **Apache-2.0**.
 
 ## What this means
 
@@ -33,9 +33,11 @@ Using DNS Tool to audit client domains as part of professional services (consult
 ### After the Change Date:
 Each version automatically converts to **Apache-2.0** — fully permissive, no restrictions — three years after it is first publicly distributed. For versions published before 2026-02-14, the Change Date is 2029-02-14.
 
-## What is open here
+## What this repository contains
 
-This repository contains the public web application:
+This repository contains the complete DNS Tool platform:
+
+### Core platform (default build)
 - Go/Gin web server, routing, middleware, templates
 - DNS client (multi-resolver, DoH fallback, UDP fast-probe)
 - SMTP transport probes
@@ -49,13 +51,12 @@ This repository contains the public web application:
 - SaaS TXT footprint extraction and classification
 - Posture drift detection (canonical SHA-3-512 hashing)
 - Remediation engine with RFC-aligned Priority Actions
-- Analyzer stub interfaces (10 files — see replit.md for current registry)
+- OSS stub interfaces (`_oss.go` files providing safe defaults for the default build)
 - Golden rules test suite
 - Live integration test suite
 
-## What is in the private repo
-
-The private repository (`dns-tool-intel`) contains the proprietary intelligence that powers active features in the running product. Every item below is a feature users see today — the public repo provides the framework and safe defaults, while the private repo supplies the databases, patterns, and algorithms that produce real intelligence. Also licensed under **BUSL-1.1** with the same terms and Change Date.
+### Extended intelligence (intel build — `go build -tags intel`)
+The `_intel.go` files contain the extended intelligence modules that power active features in the running product. The default build provides the framework and safe defaults, while the intel build supplies the databases, patterns, and algorithms that produce full intelligence output.
 
 ### Provider Intelligence (providers.go)
 - DMARC monitoring provider detection databases (vendor identification from rua/ruf domains)
@@ -95,9 +96,9 @@ The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPa
 ### Feature Parity Manifest (manifest.go)
 - Build-time populated feature registry for internal quality assurance and coverage tracking
 
-## How they work together
+## How the build tags work
 
-The public repo runs standalone with full core functionality. Every section renders in the UI — stub interfaces return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the public build; the private repo's implementations produce the full intelligence output. In internal builds, the stub files are replaced with proprietary implementations at compile time. The two codebases share a Go package boundary and are both licensed under BUSL-1.1.
+The default build runs standalone with full core functionality. Every section renders in the UI — `_oss.go` stub files return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the default build; the `_intel.go` implementations produce the full intelligence output. Go's build tag system selects the appropriate implementation at compile time — `_oss.go` files are compiled by default, `_intel.go` files are compiled only with `-tags intel`.
 
 ## Contributing
 

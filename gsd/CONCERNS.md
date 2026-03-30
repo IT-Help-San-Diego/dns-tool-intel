@@ -27,6 +27,6 @@
 - **Go Version**: `go.mod` specifies `go 1.25.5` — ensure this aligns with target deployment environments.
 
 ## Documentation Gaps
-- **dns-tool-intel repo**: Internal breadcrumbs and private documentation "haven't been written to in weeks" (per user). Needs systematic update.
+- **Internal docs (gsd/)**: Internal breadcrumbs and documentation need systematic update.
 - **MISSION.md**: Strategic conversations should be documented as intel breadcrumbs per user preferences.
 - **Changelog**: Recent version bumps (26.34.15 → 26.34.18) need corresponding changelog entries for the public repo.
