@@ -109,4 +109,4 @@ Server binds to `:5000` with multi-resolver DNS client, PostgreSQL backend, and 
 
 [Business Source License 1.1](LICENSE) — IT Help San Diego Inc.
 
-The Licensed Work is © 2024–2026 Carey James Balboa / IT Help San Diego Inc. The Change Date is four years from each release. After the Change Date, the software converts to the GNU General Public License v2.0 or later.
+The Licensed Work is © 2024–2026 Carey James Balboa / IT Help San Diego Inc. The Change Date is three years from the date each version is first publicly distributed. For versions published before 2026-02-14, the Change Date is 2029-02-14. After the Change Date, the software converts to the Apache License, Version 2.0.
