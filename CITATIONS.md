@@ -270,17 +270,17 @@
   Pages: sources
 - https://forums.raspberrypi.com/viewtopic.php?t=358732
   Pages: about
-- https://github.com/IT-Help-San-Diego/dns-tool
+- https://github.com/IT-Help-San-Diego/dns-tool-intel
   Pages: approach
-- https://github.com/IT-Help-San-Diego/dns-tool-cli
+- https://github.com/IT-Help-San-Diego/dns-tool-intel-cli
   Pages: _footer, approach
-- https://github.com/IT-Help-San-Diego/dns-tool
+- https://github.com/IT-Help-San-Diego/dns-tool-intel
   Pages: _footer, approach, architecture, privacy, security_policy
-- https://github.com/IT-Help-San-Diego/dns-tool/blob/main/LICENSE
+- https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/LICENSE
   Pages: _footer, privacy, security_policy
-- https://github.com/IT-Help-San-Diego/dns-tool/blob/main/docs/BLACK-SITE-INTERROGATIONS.md
+- https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/BLACK-SITE-INTERROGATIONS.md
   Pages: black_site
-- https://github.com/IT-Help-San-Diego/dns-tool/issues/1
+- https://github.com/IT-Help-San-Diego/dns-tool-intel/issues/1
   Pages: about
 - https://github.com/silvia-odwyer
   Pages: about

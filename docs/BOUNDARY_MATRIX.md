@@ -7,4 +7,4 @@
 > the detailed classification reveals competitive architecture decisions.
 >
 > **Status:** ARCHIVED — Implementation complete (2026-02-17).
-> **Canonical version:** Git (`IT-Help-San-Diego/dns-tool`). Miro Blueprint board `uXjVG83d8PY=` (document A11) is a presentation mirror only.
+> **Canonical version:** Git (`IT-Help-San-Diego/dns-tool-intel`). Miro Blueprint board `uXjVG83d8PY=` (document A11) is a presentation mirror only.
