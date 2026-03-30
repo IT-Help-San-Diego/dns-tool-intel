@@ -68,7 +68,7 @@ intents:
     justification: >
       OSS stubs for proprietary intel code intentionally have empty function
       bodies that return safe defaults. The real implementations live in
-      dns-tool-intel (private repository).
+      the _intel.go counterparts (requires -tags intel build).
     sonar_rules: ["go:S1186"]
     owner: "architecture-team"
     approved_by: "carey-james"

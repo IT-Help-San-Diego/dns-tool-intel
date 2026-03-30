@@ -1,5 +1,5 @@
 #!/bin/bash
-# Direct push to GitHub via PAT — the agent's method for pushing dns-tool-web
+# Direct push to GitHub via PAT — the agent's method for pushing dns-tool
 # Usage: bash scripts/git-push.sh
 #
 # The user can also push via the Git panel after running git-panel-reset.sh.
@@ -17,7 +17,7 @@
 
 cd /home/runner/workspace
 
-REPO="IT-Help-San-Diego/dns-tool-web"
+REPO="IT-Help-San-Diego/dns-tool"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 PAT_URL="https://${GITHUB_MASTER_PAT}@github.com/${REPO}.git"
 
@@ -120,7 +120,7 @@ if [ -n "$INTEL_FILES" ]; then
   echo "  HARD STOP: Intel files found in public repo!"
   echo "$INTEL_FILES" | sed 's/^/    /'
   echo ""
-  echo "  Push these to dns-tool-intel via sync script and delete locally."
+  echo "  Push these to dns-tool via sync script and delete locally."
   exit 1
 fi
 echo "  PASS — no intel files"

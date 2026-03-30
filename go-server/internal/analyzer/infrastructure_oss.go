@@ -2,7 +2,7 @@
 
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
-// Stub implementations. See github.com/IT-Help-San-Diego/dns-tool-intel for the full version.
+// Stub implementations. See the corresponding _intel.go file (requires -tags intel build).
 // dns-tool:scrutiny science
 package analyzer
 
@@ -143,7 +143,7 @@ func (a *Analyzer) DetectEmailSecurityManagement(spf, dmarc, tlsrpt, mtasts map[
 }
 
 func enrichHostingFromEdgeCDN(results map[string]any) {
-        // OSS stub: CDN edge detection in dns-tool-intel repository
+        // OSS stub: CDN edge detection in _intel.go counterpart
 }
 
 func matchEnterpriseProvider(nsList []string) *infraMatch { return nil }
@@ -193,11 +193,11 @@ func detectProvider(records []string, providers map[string]string) string { retu
 func matchMonitoringProvider(domain string) *managementProviderInfo { return nil }
 
 func detectDMARCReportProviders(providers map[string]map[string]any, dmarc map[string]any) {
-        // OSS stub: DMARC report provider detection in dns-tool-intel repository
+        // OSS stub: DMARC report provider detection in _intel.go counterpart
 }
 
 func detectTLSRPTReportProviders(providers map[string]map[string]any, tlsrpt map[string]any) {
-        // OSS stub: TLS-RPT report provider detection in dns-tool-intel repository
+        // OSS stub: TLS-RPT report provider detection in _intel.go counterpart
 }
 
 func detectSPFFlatteningProvider(providers map[string]map[string]any, spf map[string]any) map[string]any {
@@ -205,11 +205,11 @@ func detectSPFFlatteningProvider(providers map[string]map[string]any, spf map[st
 }
 
 func detectMTASTSManagement(providers map[string]map[string]any, mtasts map[string]any) {
-        // OSS stub: MTA-STS management detection in dns-tool-intel repository
+        // OSS stub: MTA-STS management detection in _intel.go counterpart
 }
 
 func (a *Analyzer) detectHostedDKIMProviders(providers map[string]map[string]any, domain string, dkim map[string]any) {
-        // OSS stub: hosted DKIM provider detection in dns-tool-intel repository
+        // OSS stub: hosted DKIM provider detection in _intel.go counterpart
 }
 
 func matchDynamicServiceNS(nsLower string) (dynamicServiceInfo, bool) {
@@ -217,7 +217,7 @@ func matchDynamicServiceNS(nsLower string) (dynamicServiceInfo, bool) {
 }
 
 func addDSDetection(detections map[string]*dsDetection, dsInfo dynamicServiceInfo, cap string) {
-        // OSS stub: dynamic service detection accumulator in dns-tool-intel repository
+        // OSS stub: dynamic service detection accumulator in _intel.go counterpart
 }
 
 func (a *Analyzer) scanDynamicServiceZones(ctx context.Context, zones map[string]string) map[string]*dsDetection {
@@ -225,7 +225,7 @@ func (a *Analyzer) scanDynamicServiceZones(ctx context.Context, zones map[string
 }
 
 func (a *Analyzer) detectDynamicServices(providers map[string]map[string]any, domain string) {
-        // OSS stub: dynamic service detection in dns-tool-intel repository
+        // OSS stub: dynamic service detection in _intel.go counterpart
 }
 
 func identifyEmailProvider(mxRecords []string) string { return "" }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Intel Breadcrumbs Sync — pull key docs from private dns-tool-intel repo.
+# Intel Breadcrumbs Sync — pull key docs from private dns-tool repo.
 # Usage: bash scripts/intel-breadcrumbs-sync.sh
 #
 # Downloads PROJECT_CONTEXT.md, EVOLUTION.md, and EVOLUTION_APPEND_* files
@@ -19,13 +19,13 @@ NC='\033[0m'
 pass() { echo -e "  ${GREEN}✓${NC} $1"; }
 info() { echo -e "${YELLOW}▸${NC} $1"; }
 
-info "Syncing Intel breadcrumbs from IT-Help-San-Diego/dns-tool-intel..."
+info "Syncing Intel breadcrumbs from IT-Help-San-Diego/dns-tool..."
 
 node -e '
 const fs = require("fs");
 const path = require("path");
 
-const REPO = "IT-Help-San-Diego/dns-tool-intel";
+const REPO = "IT-Help-San-Diego/dns-tool";
 const BRANCH = "main";
 const DEST = process.argv[1];
 

@@ -1,6 +1,6 @@
 # DNS Tool — Master Copy (Approved Messaging)
 
-> **Classification**: Private — lives in `dns-tool-intel` repo only.
+> **Classification**: Internal — project-level reference document.
 > **Last updated**: 2026-02-20 (v26.21.26)
 > **Purpose**: Single source of truth for all marketing copy, SEO metadata, social tags, JSON-LD schema, and OG image specs. Update this document first, then propagate to code.
 
@@ -221,6 +221,6 @@ When scanning a `.co.uk` domain (e.g., `bbc.co.uk`):
 | Date | Change | By |
 |------|--------|----|
 | 2026-02-20 | Initial master copy created. Stars-aligned keywords defined. | Agent |
-| 2026-02-20 | Repos renamed: dns-tool-web, dns-tool-intel | Agent |
+| 2026-02-20 | Repos renamed to dns-tool (single-repo consolidation) | Agent |
 | 2026-02-20 | SEO keywords refined from 30+ to 15 focused terms | Agent |
 

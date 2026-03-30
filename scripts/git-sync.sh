@@ -1,5 +1,5 @@
 #!/bin/bash
-# Git sync — push local changes to dns-tool-intel main via GitHub API.
+# Git sync — push local changes to dns-tool main via GitHub API.
 # Usage: bash scripts/git-sync.sh
 #
 # Collects all tracked files, pushes them as a commit to main via the
@@ -13,7 +13,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REPO_OWNER="IT-Help-San-Diego"
-REPO_NAME="dns-tool-intel"
+REPO_NAME="dns-tool"
 API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
 
 RED='\033[0;31m'
@@ -82,7 +82,7 @@ RESULT=$(python3 << 'PYEOF'
 import os, sys, json, urllib.request, base64, subprocess, hashlib, time
 
 token = os.environ.get('GH_SYNC_TOKEN') or os.environ.get('ORG_PAT') or os.environ.get('GITHUB_MASTER_PAT', '')
-repo = "IT-Help-San-Diego/dns-tool-intel"
+repo = "IT-Help-San-Diego/dns-tool"
 api_base = f"https://api.github.com/repos/{repo}"
 headers = {
     'Authorization': f'Bearer {token}',

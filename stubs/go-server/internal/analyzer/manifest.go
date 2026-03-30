@@ -1,6 +1,6 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
-// This file contains stub implementations. See github.com/IT-Help-San-Diego/dns-tool-intel for the full version.
+// This file contains stub implementations. See the corresponding _intel.go file (requires -tags intel build).
 package analyzer
 
 type ManifestEntry struct {

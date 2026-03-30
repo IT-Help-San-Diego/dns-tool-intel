@@ -2,53 +2,53 @@
 
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
-// Stub implementations. See github.com/IT-Help-San-Diego/dns-tool-intel for the full version.
+// Stub implementations. See the corresponding _intel.go file (requires -tags intel build).
 // dns-tool:scrutiny science
 package ai_surface
 
 import (
-	"context"
-	"regexp"
+        "context"
+        "regexp"
 )
 
 var (
-	prefilledPromptRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
-	promptInjectionRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
-	hiddenTextSelectors = []string{}
+        prefilledPromptRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
+        promptInjectionRe   = regexp.MustCompile(`(?i)placeholder_will_not_match_anything_real`)
+        hiddenTextSelectors = []string{}
 )
 
 func (s *Scanner) DetectPoisoningIOCs(ctx context.Context, domain string) map[string]any {
-	return map[string]any{
-		"status":    "success",
-		"message":   "No AI recommendation poisoning indicators found",
-		"ioc_count": 0,
-		"iocs":      []map[string]any{},
-		"evidence":  []Evidence{},
-	}
+        return map[string]any{
+                "status":    "success",
+                "message":   "No AI recommendation poisoning indicators found",
+                "ioc_count": 0,
+                "iocs":      []map[string]any{},
+                "evidence":  []Evidence{},
+        }
 }
 
 func (s *Scanner) DetectHiddenPrompts(ctx context.Context, domain string) map[string]any {
-	return map[string]any{
-		"status":         "success",
-		"message":        "No hidden prompt-like artifacts found",
-		"artifact_count": 0,
-		"artifacts":      []map[string]any{},
-		"evidence":       []Evidence{},
-	}
+        return map[string]any{
+                "status":         "success",
+                "message":        "No hidden prompt-like artifacts found",
+                "artifact_count": 0,
+                "artifacts":      []map[string]any{},
+                "evidence":       []Evidence{},
+        }
 }
 
 func detectHiddenTextArtifacts(body, sourceURL string, artifacts []map[string]any, evidence []Evidence) ([]map[string]any, []Evidence) {
-	return artifacts, evidence
+        return artifacts, evidence
 }
 
 func buildHiddenBlockRegex() *regexp.Regexp {
-	return nil
+        return nil
 }
 
 func extractTextContent(html string) string {
-	return ""
+        return ""
 }
 
 func looksLikePromptInstruction(text string) bool {
-	return false
+        return false
 }
