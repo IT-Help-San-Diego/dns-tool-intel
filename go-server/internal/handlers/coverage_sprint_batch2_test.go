@@ -28,7 +28,7 @@ func TestBatch2_maskURL_exactly30(t *testing.T) {
 }
 
 func TestBatch2_maskURL_long(t *testing.T) {
-        url := "https://hooks.example.com/services/T00000/B00000/XXXXXXXXXXXXXXXXXXXX"
+        url := "https://hooks.example.com/callbacks/abc123def456/notifications/XXXXXXXXXXXXXXXXXXXX"
         got := maskURL(url)
         want := url[:20] + "..." + url[len(url)-10:]
         if got != want {

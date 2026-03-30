@@ -608,7 +608,7 @@ func TestMaskURL_B13(t *testing.T) {
         if got := maskURL(short); got != short {
                 t.Errorf("short URL: got %q want %q", got, short)
         }
-        long := "https://hooks.example.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+        long := "https://hooks.example.com/callbacks/abc123def456/notifications/XXXXXXXXXXXXXXXXXXXXXXXX"
         got := maskURL(long)
         if len(got) > 35 {
                 t.Errorf("long URL not masked: %q", got)

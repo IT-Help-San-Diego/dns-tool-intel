@@ -127,30 +127,11 @@ for entry in old_tree['tree']:
 
 tracked = subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.strip().split('\n')
 tracked = [f for f in tracked if f]
-
-intel_files = subprocess.run(
-    ['find', '.', '-name', '*_intel.go', '-not', '-path', './.git/*', '-not', '-path', './node_modules/*'],
-    capture_output=True, text=True
-).stdout.strip().split('\n')
-intel_files = [f.lstrip('./') for f in intel_files if f]
 tracked_set = set(tracked)
-for f in intel_files:
-    if f not in tracked_set and os.path.isfile(f):
-        tracked.append(f)
-        tracked_set.add(f)
-
-static_plugins = subprocess.run(
-    ['find', 'go-server/static/plugins', '-type', 'f'],
-    capture_output=True, text=True
-).stdout.strip().split('\n')
-static_plugins = [f for f in static_plugins if f]
-for f in static_plugins:
-    if f not in tracked_set and os.path.isfile(f):
-        tracked.append(f)
-        tracked_set.add(f)
 
 SKIP_FILES = {'.replit', 'replit.nix', 'replit_agent.toml', '.env'}
-SKIP_PATHS = {'.github/workflows/mirror-codeberg.yml'}
+SKIP_PATHS = {'.github/workflows/mirror-codeberg.yml', '.github/workflows/mirror-to-web.yml', '.github/workflows/mirror-to-web.yml.bak'}
+SKIP_PREFIXES = ('.github/workflows-web/',)
 
 changed = []
 for fpath in tracked:
@@ -159,6 +140,8 @@ for fpath in tracked:
     if os.path.basename(fpath) in SKIP_FILES:
         continue
     if fpath in SKIP_PATHS:
+        continue
+    if any(fpath.startswith(p) for p in SKIP_PREFIXES):
         continue
     try:
         with open(fpath, 'rb') as f:
