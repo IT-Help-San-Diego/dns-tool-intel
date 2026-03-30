@@ -9,13 +9,13 @@
 # What it does:
 #   1. Runs release-gate.sh (bumps all versioned artifacts, regenerates PDFs, validates)
 #   2. Commits the release locally
-#   3. Syncs to dns-tool (canonical repo) via git-sync.sh
+#   3. Syncs to dns-tool-intel (canonical repo) via git-sync.sh
 #   4. Creates annotated tag vX.Y.Z
 #   5. GitHub Actions creates the Release with SHA256SUMS (automatic)
 #   6. Zenodo auto-archives via GitHub integration (automatic)
 #
 # Architecture:
-#   Single-repo: IT-Help-San-Diego/dns-tool (BUSL-1.1 licensed).
+#   Single-repo: IT-Help-San-Diego/dns-tool-intel (BUSL-1.1 licensed).
 #   Build tags separate OSS stubs (_oss.go) from intel (_intel.go).
 #   Zenodo watches this repo for releases.
 
@@ -58,7 +58,7 @@ if ! git diff-index --quiet HEAD -- 2>/dev/null; then
   fail "Working tree is not clean. Commit or stash changes before releasing."
 fi
 
-REPO="IT-Help-San-Diego/dns-tool"
+REPO="IT-Help-San-Diego/dns-tool-intel"
 
 echo ""
 echo -e "${YELLOW}═══════════════════════════════════════════════════${NC}"

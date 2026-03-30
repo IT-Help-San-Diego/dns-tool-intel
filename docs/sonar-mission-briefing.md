@@ -37,7 +37,7 @@
 ### Canonical Projects
 | Project Key | Name | Repo |
 |---|---|---|
-| `dns-tool-full` | DNS Tool | IT-Help-San-Diego/dns-tool |
+| `dns-tool-full` | DNS Tool | IT-Help-San-Diego/dns-tool-intel |
 
 ### Redundant Projects (Delete from SonarCloud Admin)
 - `careyjames_dns-tool` — auto-imported duplicate

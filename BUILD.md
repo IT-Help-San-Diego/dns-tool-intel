@@ -8,7 +8,7 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/IT-Help-San-Diego/dns-tool.git
+git clone https://github.com/IT-Help-San-Diego/dns-tool-intel.git
 cd dns-tool
 go build ./go-server/cmd/server
 ```

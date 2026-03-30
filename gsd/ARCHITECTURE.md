@@ -126,8 +126,8 @@ go-server/templates/
 ## Repository Structure
 | Repository | Visibility | Purpose |
 |------------|-----------|---------|
-| `IT-Help-San-Diego/dns-tool` | **Public** | Single-repo: webapp + intel (BUSL-1.1 licensed) |
-| `IT-Help-San-Diego/dns-tool-cli` | **Public** | Future hacker CLI terminal app |
+| `IT-Help-San-Diego/dns-tool-intel` | **Public** | Single-repo: webapp + intel (BUSL-1.1 licensed) |
+| `IT-Help-San-Diego/dns-tool-intel-cli` | **Public** | Future hacker CLI terminal app |
 
 ## Open-Core Build Model
 - **OSS build** (`go build`): Uses `*_oss.go` stubs — return safe non-nil defaults, never errors

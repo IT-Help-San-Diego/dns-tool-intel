@@ -17,7 +17,7 @@
 
 cd /home/runner/workspace
 
-REPO="IT-Help-San-Diego/dns-tool"
+REPO="IT-Help-San-Diego/dns-tool-intel"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 PAT_URL="https://${GITHUB_MASTER_PAT}@github.com/${REPO}.git"
 
@@ -120,7 +120,7 @@ if [ -n "$INTEL_FILES" ]; then
   echo "  HARD STOP: Intel files found in public repo!"
   echo "$INTEL_FILES" | sed 's/^/    /'
   echo ""
-  echo "  Push these to dns-tool via sync script and delete locally."
+  echo "  Push these to dns-tool-intel via sync script and delete locally."
   exit 1
 fi
 echo "  PASS — no intel files"
