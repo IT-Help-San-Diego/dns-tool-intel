@@ -28,7 +28,7 @@ func TestBatch2_maskURL_exactly30(t *testing.T) {
 }
 
 func TestBatch2_maskURL_long(t *testing.T) {
-        url := "https://hooks.slack.com/services/T00000/B00000/XXXXXXXXXXXXXXXXXXXX" //nolint:gosec // #nosec G101 -- test fixture: dummy Slack webhook (all zeros/Xs) for maskURL unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.slack-webhook-url // NOSONAR
+        url := "https://hooks.example.com/callbacks/abc123def456/notifications/XXXXXXXXXXXXXXXXXXXX"
         got := maskURL(url)
         want := url[:20] + "..." + url[len(url)-10:]
         if got != want {

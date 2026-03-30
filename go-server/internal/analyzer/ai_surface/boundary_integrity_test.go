@@ -98,29 +98,21 @@ func TestAISurfaceBoundary_FilePresence(t *testing.T) {
         }
 }
 
-func TestAISurfaceBoundary_NoIntelInPublicRepo(t *testing.T) {
-        if os.Getenv("CI") == "" {
-                t.Skip("skipping boundary integrity check outside CI — intel files are expected in dev environments with intel sync enabled")
-        }
+func TestAISurfaceBoundary_IntelFilesBuildTagGated(t *testing.T) {
         for _, b := range aiSurfaceBoundaries {
-                t.Run(b.Name+"_no_intel_file", func(t *testing.T) {
-                        if _, err := os.Stat(b.IntelFile); err == nil {
-                                t.Errorf("INTEL FILE %s FOUND IN PUBLIC REPO for boundary %s — must only exist in private dns-tool-intel repo", b.IntelFile, b.Name)
+                t.Run(b.Name+"_intel_build_tag", func(t *testing.T) {
+                        if _, err := os.Stat(b.IntelFile); err != nil {
+                                t.Skipf("Intel file %s not present — skipping build tag check", b.IntelFile)
+                                return
+                        }
+                        content, err := os.ReadFile(b.IntelFile)
+                        if err != nil {
+                                t.Fatalf("failed to read %s: %v", b.IntelFile, err)
+                        }
+                        if !strings.Contains(string(content), "//go:build intel") {
+                                t.Errorf("INTEL FILE %s MISSING BUILD TAG — must have //go:build intel", b.IntelFile)
                         }
                 })
-        }
-
-        err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() {
-                        return nil
-                }
-                if strings.HasSuffix(path, "_intel.go") {
-                        t.Errorf("INTEL FILE %s FOUND IN PUBLIC ai_surface/ REPO", path)
-                }
-                return nil
-        })
-        if err != nil {
-                t.Fatalf("failed to walk directory: %v", err)
         }
 }
 

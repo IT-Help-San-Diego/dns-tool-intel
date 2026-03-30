@@ -1,5 +1,5 @@
 #!/bin/bash
-# Intel Breadcrumbs Sync — pull key docs from private dns-tool-intel repo.
+# Intel Breadcrumbs Sync — pull key docs from private dns-tool repo.
 # Usage: bash scripts/intel-breadcrumbs-sync.sh
 #
 # Downloads PROJECT_CONTEXT.md, EVOLUTION.md, and EVOLUTION_APPEND_* files

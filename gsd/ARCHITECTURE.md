@@ -123,15 +123,13 @@ go-server/templates/
 7. **ICIE/ICAE/ICuAE** — Post-analysis confidence scoring and currency validation
 8. **Template Rendering** — Results injected into Go template, HTML returned to client
 
-## Multi-Repository Architecture
+## Repository Structure
 | Repository | Visibility | Purpose |
 |------------|-----------|---------|
-| `IT-Help-San-Diego/dns-tool-web` | **Public** | Production webapp source, published by science |
-| `IT-Help-San-Diego/dns-tool-intel` | **Private** | IP modules (non-stub Go), internal docs, breadcrumbs |
-| `IT-Help-San-Diego/dns-tool` | **Public** (Archived) | Legacy CLI tool |
-| `IT-Help-San-Diego/dns-tool-cli` | **Public** | Future hacker CLI terminal app |
+| `IT-Help-San-Diego/dns-tool-intel` | **Public** | Single-repo: webapp + intel (BUSL-1.1 licensed) |
+| `IT-Help-San-Diego/dns-tool-intel-cli` | **Public** | Future hacker CLI terminal app |
 
 ## Open-Core Build Model
 - **OSS build** (`go build`): Uses `*_oss.go` stubs — return safe non-nil defaults, never errors
-- **Intel build** (`go build -tags intel`): Uses `*_intel.go` with proprietary logic from `dns-tool-intel` repo
-- Build tag: `//go:build !intel` (OSS) vs `//go:build intel` (private)
+- **Intel build** (`go build -tags intel`): Uses `*_intel.go` with proprietary logic
+- Build tag: `//go:build !intel` (OSS) vs `//go:build intel` (intel)

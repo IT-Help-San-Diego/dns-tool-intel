@@ -11,9 +11,9 @@
   "datePublished": "2026-03-25",
   "license": "https://spdx.org/licenses/BUSL-1.1.html",
   "applicationCategory": "Security",
-  "codeRepository": "https://github.com/IT-Help-San-Diego/dns-tool-web",
+  "codeRepository": "https://github.com/IT-Help-San-Diego/dns-tool-intel",
   "url": "https://dnstool.it-help.tech",
-  "downloadUrl": "https://github.com/IT-Help-San-Diego/dns-tool-web/releases",
+  "downloadUrl": "https://github.com/IT-Help-San-Diego/dns-tool-intel/releases",
   "author": [
     {
       "@type": "Person",
@@ -70,13 +70,13 @@
   "operatingSystem": "Linux",
   "runtimePlatform": "Go 1.25",
   "developmentStatus": "active",
-  "continuousIntegration": "https://github.com/IT-Help-San-Diego/dns-tool-web/actions",
-  "issueTracker": "https://github.com/IT-Help-San-Diego/dns-tool-web/issues",
-  "readme": "https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/README.md",
+  "continuousIntegration": "https://github.com/IT-Help-San-Diego/dns-tool-intel/actions",
+  "issueTracker": "https://github.com/IT-Help-San-Diego/dns-tool-intel/issues",
+  "readme": "https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/README.md",
   "softwareRequirements": [
     "Go >= 1.25"
   ],
-  "buildInstructions": "https://github.com/IT-Help-San-Diego/dns-tool-web/blob/main/BUILD.md",
+  "buildInstructions": "https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/BUILD.md",
   "referencePublication": [
     {
       "@type": "Report",

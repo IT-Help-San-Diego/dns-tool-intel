@@ -1,5 +1,5 @@
 #!/bin/bash
-# Direct push to GitHub via PAT — the agent's method for pushing dns-tool-web
+# Direct push to GitHub via PAT — the agent's method for pushing dns-tool
 # Usage: bash scripts/git-push.sh
 #
 # The user can also push via the Git panel after running git-panel-reset.sh.
@@ -17,7 +17,7 @@
 
 cd /home/runner/workspace
 
-REPO="IT-Help-San-Diego/dns-tool-web"
+REPO="IT-Help-San-Diego/dns-tool-intel"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 PAT_URL="https://${GITHUB_MASTER_PAT}@github.com/${REPO}.git"
 

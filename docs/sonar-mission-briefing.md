@@ -37,52 +37,35 @@
 ### Canonical Projects
 | Project Key | Name | Repo |
 |---|---|---|
-| `dns-tool-full` | DNS Tool · Full Product (dns-tool-intel) | IT-Help-San-Diego/dns-tool-intel |
-| `dns-tool-web` | DNS Tool · Public Mirror (dns-tool-web) | IT-Help-San-Diego/dns-tool-web |
+| `dns-tool-full` | DNS Tool | IT-Help-San-Diego/dns-tool-intel |
 
 ### Redundant Projects (Delete from SonarCloud Admin)
 - `careyjames_dns-tool` — auto-imported duplicate
-- `careyjames_dns-tool-intel` — auto-imported duplicate
+- `careyjames_dns-tool-intel` — auto-imported duplicate (retired)
+- `dns-tool-web` — retired (consolidated into dns-tool-full)
+- `careyjames_dns-tool-intel` — auto-imported duplicate (retired)
 
 ---
 
 ## Quality Gate Configuration
 
-### Intel Repo (`dns-tool-full`)
+### DNS Tool (`dns-tool-full`)
 - Full test suite with `-tags intel`
 - Coverage profile generated with `coverprofile=coverage.out`
 - All multicriteria suppressions documented in `sonar-project.properties`
 - Coverage exclusions: dbq, server main, probe binary, templates, tools, static assets
 
-### Web Repo (`dns-tool-web`)
-- OSS test suite (no `-tags intel`)
-- Tests skip intel-only and resource-intensive patterns
-- `sonar-project.properties` automatically transformed during sync:
-  - Project key/name updated
-  - Intel-only multicriteria rules (probe, admin_probes, `_intel.go`) stripped
-  - Coverage exclusions cleaned of probe references
-  - CPD exclusions cleaned of `_intel.go` references
-  - Multicriteria key list updated to match surviving rules
-
 ---
 
 ## Workflow Matrix
 
-### Intel Repo Workflows
+### Workflows
 | Workflow | Purpose | Status |
 |---|---|---|
-| `ci.yml` | Build & test (intel + web paths) | Active |
+| `ci.yml` | Build & test (intel + OSS paths) | Active |
 | `sonarcloud.yml` | Full SonarCloud analysis with coverage | Active |
 | `dependency-audit.yml` | govulncheck + npm audit | Active |
-| `mirror-to-web.yml` | Filtered sync to dns-tool-web | Active |
 | `backup-offsite.yml` | Mirror to off-site-backup | Active |
-
-### Web Repo Workflows (from `.github/workflows-web/`)
-| Workflow | Purpose | Status |
-|---|---|---|
-| `ci.yml` | Build, vet, test (OSS path) | Active |
-| `sonarcloud.yml` | SonarCloud analysis with coverage | Active |
-| `dependency-audit.yml` | govulncheck + npm audit | Active |
 
 ---
 

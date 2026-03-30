@@ -1,25 +1,5 @@
-# Files that must NEVER reach dns-tool-web (public mirror).
-# One path per line. Checked by release.sh Step 4 and sync-to-web.sh.
-
-# Proprietary documentation
-docs/ARCHITECTURE_CLASSIFIED.md
-INTEL_METHODOLOGY.md
-FILELIST.md
-
-# Top-level proprietary modules (NOT the OSS copies under go-server/internal/)
-providers/dkim_providers.go
-providers/edge_cdn.go
-providers/email_providers.go
-providers/infrastructure.go
-providers/ip_investigation.go
-providers/providers.go
-ai_surface/http.go
-ai_surface/llms_txt.go
-ai_surface/poisoning.go
-ai_surface/robots_txt.go
-ai_surface/scanner.go
-
-# Intel-only workflows (these run on dns-tool-intel, not dns-tool-web)
-.github/workflows/mirror-to-web.yml
-.github/workflows/mirror-codeberg.yml
-.github/workflows/backup-offsite.yml
+# DEPRECATED: This file was used for the two-repo (dns-tool-web mirror) architecture.
+# Single-repo consolidation (2026-03) eliminated the need for file exclusion lists.
+# All code now lives in IT-Help-San-Diego/dns-tool-intel under BUSL-1.1 license.
+# Build tags (//go:build intel) provide code separation instead of repo separation.
+# This file can be safely deleted.

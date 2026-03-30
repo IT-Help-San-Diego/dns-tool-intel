@@ -1,10 +1,8 @@
 # DNS Tool — Domain Security Intelligence Platform
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18854899.svg)](https://doi.org/10.5281/zenodo.18854899)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
-[![Quality Gate (Open-Core)](https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-web&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-web)
-[![AI Code Assurance (Open-Core)](https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-web)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-web)
-[![Quality Gate (Full Product)](https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-full&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)
-[![AI Code Assurance (Full Product)](https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-full)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-full&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)
+[![AI Code Assurance](https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-full)](https://sonarcloud.io/summary/new_code?id=ithelpsandiego_dns-tool-full)
 
 > **Decision-ready intelligence, not just DNS data.**
 
@@ -109,4 +107,4 @@ Server binds to `:5000` with multi-resolver DNS client, PostgreSQL backend, and 
 
 [Business Source License 1.1](LICENSE) — IT Help San Diego Inc.
 
-The Licensed Work is © 2024–2026 Carey James Balboa / IT Help San Diego Inc. The Change Date is four years from each release. After the Change Date, the software converts to the GNU General Public License v2.0 or later.
+The Licensed Work is © 2024–2026 Carey James Balboa / IT Help San Diego Inc. The Change Date is three years from the date each version is first publicly distributed. For versions published before 2026-02-14, the Change Date is 2029-02-14. After the Change Date, the software converts to the Apache License, Version 2.0.

@@ -6,80 +6,80 @@ package analyzer
 import "strings"
 
 const (
-	featDDoSProtection       = "DDoS protection"
-	featAnycast              = "Anycast"
-	featBrandProtection      = "Brand protection"
-	featEnterpriseManagement = "Enterprise management"
-	featEnterpriseSecurity   = "Enterprise security"
-	featGlobalAnycast        = "Global Anycast"
-	featGlobalInfra          = "Global infrastructure"
-	featSelfManagedInfra     = "Self-managed infrastructure"
-	featProtectedInfra       = "Protected infrastructure"
-	featGovSecurityStandards = "Government security standards"
-	detMTASTS                = "MTA-STS"
+        featDDoSProtection       = "DDoS protection"
+        featAnycast              = "Anycast"
+        featBrandProtection      = "Brand protection"
+        featEnterpriseManagement = "Enterprise management"
+        featEnterpriseSecurity   = "Enterprise security"
+        featGlobalAnycast        = "Global Anycast"
+        featGlobalInfra          = "Global infrastructure"
+        featSelfManagedInfra     = "Self-managed infrastructure"
+        featProtectedInfra       = "Protected infrastructure"
+        featGovSecurityStandards = "Government security standards"
+        detMTASTS                = "MTA-STS"
 
-	tierEnterprise = "enterprise"
-	tierManaged    = "managed"
+        tierEnterprise = "enterprise"
+        tierManaged    = "managed"
 
-	strUnknown = "Unknown"
+        strUnknown = "Unknown"
 )
 
 type providerInfo struct {
-	Name     string
-	Tier     string
-	Features []string
+        Name     string
+        Tier     string
+        Features []string
 }
 
 type infraMatch struct {
-	provider *providerInfo
-	tier     string
+        provider *providerInfo
+        tier     string
 }
 
 type dsDetection struct {
-	info         dynamicServiceInfo
-	capabilities []string
+        info         dynamicServiceInfo
+        capabilities []string
 }
 
 func parentZone(domain string) string {
-	parts := strings.Split(domain, ".")
-	if len(parts) <= 2 {
-		return ""
-	}
-	return strings.Join(parts[1:], ".")
+        parts := strings.Split(domain, ".")
+        if len(parts) <= 2 {
+                return ""
+        }
+        return strings.Join(parts[1:], ".")
 }
 
 func applyHostingDefaults(hosting, dnsHosting, emailHosting string, isNoMail bool) (string, string, string) {
-	if hosting == "" {
-		hosting = strUnknown
-	}
-	if dnsHosting == "" {
-		dnsHosting = strUnknown
-	}
-	if isNoMail && emailHosting == "" {
-		emailHosting = "No Mail Domain"
-	} else if emailHosting == "" {
-		emailHosting = strUnknown
-	}
-	return hosting, dnsHosting, emailHosting
+        if hosting == "" {
+                hosting = strUnknown
+        }
+        if dnsHosting == "" {
+                dnsHosting = strUnknown
+        }
+        if isNoMail && emailHosting == "" {
+                emailHosting = "No Mail Domain"
+        } else if emailHosting == "" {
+                emailHosting = strUnknown
+        }
+        return hosting, dnsHosting, emailHosting
 }
 
 func containsStr(ss []string, s string) bool {
-	for _, v := range ss {
-		if v == s {
-			return true
-		}
-	}
-	return false
+        for _, v := range ss {
+                if v == s {
+                        return true
+                }
+        }
+        return false
 }
 
 func zoneCapability(zoneKey string) string {
-	return zoneKey + " management"
+        return zoneKey + " management"
 }
 
 func addOrMergeProvider(providers map[string]map[string]any, info *managementProviderInfo, detectedFrom, source string) {
-	// OSS stub: full provider-merge logic in dns-tool-intel repository
+        // OSS stub: full provider-merge logic in _intel.go counterpart
 }
 
 func extractMailtoDomains(ruaStr string) []string {
-	return nil
+        return nil
 }

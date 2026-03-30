@@ -2,7 +2,7 @@
 
 **Status:** Active
 **Version:** 2.0
-**Applies to:** All AI-assisted code changes in `dns-tool-web` and `dns-tool-intel`
+**Applies to:** All AI-assisted code changes in `dns-tool`
 
 ---
 

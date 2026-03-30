@@ -8,25 +8,25 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/IT-Help-San-Diego/dns-tool-web.git
-cd dns-tool-web
+git clone https://github.com/IT-Help-San-Diego/dns-tool-intel.git
+cd dns-tool
 go build ./go-server/cmd/server
 ```
 
 The resulting `server` binary is the DNS Tool web server.
 
-## Open-Core Architecture
+## Build Variants
 
-DNS Tool uses Go build tags to separate open-source and proprietary modules:
+DNS Tool uses Go build tags to control feature tiers:
 
-- **OSS build** (default): `go build ./go-server/cmd/server`
-  - Uses `_oss.go` stub files that provide no-op implementations
+- **Default build**: `go build ./go-server/cmd/server`
+  - Uses `_oss.go` stub files that provide safe default implementations
   - All core DNS analysis functionality works
   - Confidence scoring, report generation, and web UI are fully functional
 
-- **Intel build** (proprietary): `go build -tags intel ./go-server/cmd/server`
-  - Requires access to the private `dns-tool-intel` repository
-  - Adds additional intelligence modules and data sources
+- **Intel build** (extended intelligence): `go build -tags intel ./go-server/cmd/server`
+  - Activates `_intel.go` files with additional intelligence modules
+  - Adds provider detection databases, infrastructure classification, and AI surface scanning
   - Not required for core functionality
 
 ## Running

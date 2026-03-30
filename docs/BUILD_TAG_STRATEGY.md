@@ -1,6 +1,6 @@
 # DNS Tool — Build Tag Strategy
 
-> **Moved to Intel repo:** `IT-Help-San-Diego/dns-tool-intel/docs/BUILD_TAG_STRATEGY.md`
+> **Canonical location:** `docs/BUILD_TAG_STRATEGY.md`
 >
 > This file contained the open-core build tag strategy research and implementation
 > details. It has been moved to the private Intel repository because the detailed

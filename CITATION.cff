@@ -23,7 +23,7 @@ contact:
   - name: "IT Help San Diego Inc."
     website: "https://it-help.tech"
 
-repository-code: "https://github.com/IT-Help-San-Diego/dns-tool-web"
+repository-code: "https://github.com/IT-Help-San-Diego/dns-tool-intel"
 repository-artifact: "https://zenodo.org/doi/10.5281/zenodo.18854899"
 url: "https://dnstool.it-help.tech"
 license: "BUSL-1.1"

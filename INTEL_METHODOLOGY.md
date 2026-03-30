@@ -1,8 +1,8 @@
 # Subdomain Discovery Pipeline — Implementation Details
 
-> **CLASSIFICATION: PROPRIETARY — Intel Repo Only**
-> This document contains implementation details that MUST NOT appear in the public DnsToolWeb repository.
-> Public-facing documentation should describe WHAT (CT + DNS + CNAME) at a high level, NEVER HOW.
+> **CLASSIFICATION: INTERNAL — Implementation Details**
+> This document contains implementation details of the subdomain discovery pipeline.
+> Public-facing documentation should describe WHAT (CT + DNS + CNAME) at a high level.
 
 ## Pipeline Overview
 
@@ -103,4 +103,4 @@ CT fetch → deduplication → processCTEntries() → DNS probing → CNAME trav
 ---
 
 *Last updated: February 18, 2026 — v26.19.42*
-*This document is PROPRIETARY. It belongs in the IT-Help-San-Diego/dns-tool-intel private repository ONLY.*
+*This document describes internal implementation details of the intel-tagged build.*

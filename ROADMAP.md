@@ -148,7 +148,7 @@
 | Personal Analysis History | Medium | Per-user session tracking and analysis library |
 | Drift Engine Alerts | Medium | Webhook/email notifications when domain security posture changes |
 | Saved Reports | Medium | Bookmark and revisit past analyses with snapshot storage |
-| Drift Engine Phases 3–4 | Medium | Timeline visualization and scheduled monitoring with baselines. Full roadmap in dns-tool-intel (private) |
+| Drift Engine Phases 3–4 | Medium | Timeline visualization and scheduled monitoring with baselines. Full roadmap in internal planning docs |
 | Probe Security.txt + Landing Pages | Medium | Transparency artifacts for probe VPS nodes |
 | Homebrew Distribution | Medium | macOS/Linux package distribution for CLI app |
 | Probe Network Expansion (Additional Nodes) | High | Additional OSINT verification nodes beyond current two-node deployment |
@@ -196,7 +196,7 @@ Items in "Next Up" and "Backlog" are documented and architected but not yet impl
 
 **API Access** and **CLI App** are strategically important for automation workflows and developer adoption. Both require authentication, rate limiting, and careful versioning.
 
-**Drift Engine Phases 3–4** are high-value commercial features (timeline visualization, scheduled monitoring). Full technical roadmap is confidential (in dns-tool-intel private repo).
+**Drift Engine Phases 3–4** are high-value commercial features (timeline visualization, scheduled monitoring). Full technical roadmap is confidential (internal planning docs).
 
 ### Concept Stage
 

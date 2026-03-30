@@ -1,6 +1,6 @@
 # DNS Tool — Boundary Matrix
 
-> **Moved to Intel repo:** `IT-Help-San-Diego/dns-tool-intel/docs/BOUNDARY_MATRIX.md`
+> **Canonical location:** `docs/BOUNDARY_MATRIX.md`
 >
 > This file contained the symbol-by-symbol classification of public vs private
 > code boundaries. It has been moved to the private Intel repository because

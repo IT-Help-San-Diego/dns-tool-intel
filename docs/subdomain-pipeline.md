@@ -8,7 +8,7 @@
 > **Date:** 2026-03-26  
 > **DOI:** 10.5281/zenodo.18854899  
 > **License:** BUSL-1.1  
-> **Repository:** https://github.com/IT-Help-San-Diego/dns-tool-web  
+> **Repository:** https://github.com/IT-Help-San-Diego/dns-tool-intel  
 > **Canonical location:** `docs/subdomain-pipeline.md`
 
 ---

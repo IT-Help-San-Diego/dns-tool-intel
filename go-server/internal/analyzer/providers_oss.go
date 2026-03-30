@@ -2,51 +2,51 @@
 
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
-// Stub implementations. See github.com/IT-Help-San-Diego/dns-tool-intel for the full version.
+// Stub implementations. See the corresponding _intel.go file (requires -tags intel build).
 // dns-tool:scrutiny science
 package analyzer
 
 const (
-	nameOnDMARC       = "OnDMARC"
-	nameDMARCReport   = "DMARC Report"
-	nameDMARCLY       = "DMARCLY"
-	nameDmarcian      = "Dmarcian"
-	nameSendmarc      = "Sendmarc"
-	nameProofpoint    = "Proofpoint"
-	nameValimailEnf   = "Valimail Enforce"
-	nameProofpointEFD = "Proofpoint EFD"
-	namePowerDMARC    = "PowerDMARC"
-	nameMailhardener  = "Mailhardener"
-	nameFraudmarc     = "Fraudmarc"
-	nameEasyDMARC     = "EasyDMARC"
-	nameDMARCAdvisor  = "DMARC Advisor"
-	nameRedSift       = "Red Sift"
+        nameOnDMARC       = "OnDMARC"
+        nameDMARCReport   = "DMARC Report"
+        nameDMARCLY       = "DMARCLY"
+        nameDmarcian      = "Dmarcian"
+        nameSendmarc      = "Sendmarc"
+        nameProofpoint    = "Proofpoint"
+        nameValimailEnf   = "Valimail Enforce"
+        nameProofpointEFD = "Proofpoint EFD"
+        namePowerDMARC    = "PowerDMARC"
+        nameMailhardener  = "Mailhardener"
+        nameFraudmarc     = "Fraudmarc"
+        nameEasyDMARC     = "EasyDMARC"
+        nameDMARCAdvisor  = "DMARC Advisor"
+        nameRedSift       = "Red Sift"
 
-	vendorRedSift    = "Red Sift"
-	vendorValimail   = "Valimail"
-	vendorDmarcian   = "Dmarcian"
-	vendorSendmarc   = "Sendmarc"
-	vendorProofpoint = "Proofpoint"
-	vendorDMARCLY    = "DMARCLY"
-	vendorPowerDMARC = "PowerDMARC"
-	vendorFraudmarc  = "Fraudmarc"
-	vendorEasyDMARC  = "EasyDMARC"
-	vendorDMARCAdv   = "DMARC Advisor"
-	vendorMailharden = "Mailhardener"
-	vendorDMARCRpt   = "DMARC Report"
-	vendorFortra     = "Fortra"
-	vendorMimecast   = "Mimecast"
-	vendorActiveCamp = "ActiveCampaign"
+        vendorRedSift    = "Red Sift"
+        vendorValimail   = "Valimail"
+        vendorDmarcian   = "Dmarcian"
+        vendorSendmarc   = "Sendmarc"
+        vendorProofpoint = "Proofpoint"
+        vendorDMARCLY    = "DMARCLY"
+        vendorPowerDMARC = "PowerDMARC"
+        vendorFraudmarc  = "Fraudmarc"
+        vendorEasyDMARC  = "EasyDMARC"
+        vendorDMARCAdv   = "DMARC Advisor"
+        vendorMailharden = "Mailhardener"
+        vendorDMARCRpt   = "DMARC Report"
+        vendorFortra     = "Fortra"
+        vendorMimecast   = "Mimecast"
+        vendorActiveCamp = "ActiveCampaign"
 
-	nameAkamai     = "Akamai"
-	nameSalesforce = "Salesforce"
-	nameHubSpot    = "HubSpot"
-	nameHeroku     = "Heroku"
+        nameAkamai     = "Akamai"
+        nameSalesforce = "Salesforce"
+        nameHubSpot    = "HubSpot"
+        nameHeroku     = "Heroku"
 
-	domainOndmarc  = "ondmarc.com"
-	domainRedsift  = "redsift.cloud"
-	domainDmarcian = "dmarcian.com"
-	domainSendmarc = "sendmarc.com"
+        domainOndmarc  = "ondmarc.com"
+        domainRedsift  = "redsift.cloud"
+        domainDmarcian = "dmarcian.com"
+        domainSendmarc = "sendmarc.com"
 )
 
 var dmarcMonitoringProviders = map[string]managementProviderInfo{}
@@ -62,13 +62,13 @@ var dynamicServicesZones = map[string]string{}
 var cnameProviderMap = map[string]cnameProviderInfo{}
 
 func isHostedEmailProvider(_ string) bool {
-	return true
+        return true
 }
 
 func isBIMICapableProvider(_ string) bool {
-	return false
+        return false
 }
 
 func isKnownDKIMProvider(_ interface{}) bool {
-	return false
+        return false
 }

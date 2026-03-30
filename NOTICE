@@ -1,6 +1,6 @@
 NOTICE — Third-Party Software Attribution
 
-This file lists third-party software included in or used by dns-tool-web,
+This file lists third-party software included in or used by dns-tool,
 along with their respective licenses.
 
 ================================================================================
@@ -264,5 +264,5 @@ This NOTICE file is provided for informational purposes. Each third-party
 component is governed by its own license terms. See the individual license
 links above for the full text of each license.
 
-The dns-tool-web project itself is licensed under BUSL-1.1.
+The dns-tool project itself is licensed under BUSL-1.1.
 See the LICENSE file in the project root for details.

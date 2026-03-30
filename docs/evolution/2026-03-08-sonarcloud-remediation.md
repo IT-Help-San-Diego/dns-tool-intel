@@ -43,7 +43,7 @@ Fixed in 6 files (each had the copyright block duplicated):
 **sonar-project.properties**
 - Commented out `sonar.go.coverage.reportPaths` and `sonar.go.tests.reportPaths`
 - Intel repo contains standalone source files without `go.mod`
-- Tests compile and run only within the main dns-tool-web Go module
+- Tests compile and run only within the main dns-tool Go module
 - Coverage analysis happens upstream, not in the Intel repo CI
 
 ### Golden Logic Artifacts

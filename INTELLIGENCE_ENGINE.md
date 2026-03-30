@@ -1,6 +1,6 @@
 # Intelligence Classification and Interpretation Engine (ICIE)
 
-> **Moved to Intel repo:** `IT-Help-San-Diego/dns-tool-intel/docs/INTELLIGENCE_ENGINE.md`
+> **Canonical location:** `docs/INTELLIGENCE_ENGINE.md`
 >
 > This file contained the ICIE architecture document including future design phases.
 > It has been moved to the private Intel repository because the [DESIGN] sections
