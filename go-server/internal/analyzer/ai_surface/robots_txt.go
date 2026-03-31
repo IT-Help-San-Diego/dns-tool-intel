@@ -2,12 +2,12 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // robots_txt.go — Framework only (types, constants). Always compiled.
-// Detection and parsing stubs live in robots_txt_oss.go / robots_txt_intel.go.
+// Detection and parsing functions live in robots_txt_intel.go.
 // dns-tool:scrutiny science
 package ai_surface
 
 type robotsDirective struct {
-	UserAgent string `json:"user_agent"`
-	Action    string `json:"action"`
-	Path      string `json:"path"`
+        UserAgent string `json:"user_agent"`
+        Action    string `json:"action"`
+        Path      string `json:"path"`
 }
