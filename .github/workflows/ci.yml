@@ -20,24 +20,25 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Detect repo role
+      - name: Detect build capability
         id: role
         run: |
-          if [[ "${{ github.repository }}" == *"-intel" ]]; then
+          INTEL_COUNT=$(find go-server -name '*_intel.go' -not -path '*/vendor/*' 2>/dev/null | wc -l)
+          if [ "$INTEL_COUNT" -gt 0 ]; then
             echo "is_intel=true" >> "$GITHUB_OUTPUT"
+            echo "Detected $INTEL_COUNT _intel.go files — full product build"
           else
             echo "is_intel=false" >> "$GITHUB_OUTPUT"
+            echo "No _intel.go files found — OSS-only build"
           fi
 
-      - name: Build binary (intel)
+      - name: Build binary
         if: steps.role.outputs.is_intel == 'true'
         run: |
           cd go-server
           CGO_ENABLED=0 go build -tags intel -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
-        env:
-          DNS_TOOL_REPO_ROLE: intel
 
-      - name: Run tests (intel)
+      - name: Run tests
         if: steps.role.outputs.is_intel == 'true'
         run: |
           go test ./go-server/... -tags intel \
@@ -45,20 +46,20 @@ jobs:
             -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
-          DNS_TOOL_REPO_ROLE: intel
           GOGC: '50'
           GOMEMLIMIT: '6000MiB'
 
-      - name: Run tests (web — stub boundary only)
+      - name: Build and vet (OSS fallback)
         if: steps.role.outputs.is_intel == 'false'
         run: |
-          go vet ./go-server/internal/config/...
-          echo "Web repo — full build requires intel packages. Vet + config passed."
+          cd go-server
+          CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
+          go vet ./...
+          echo "OSS build — intel modules not present. Build and vet passed."
         env:
           CGO_ENABLED: '0'
 
       - name: Verify binary
-        if: steps.role.outputs.is_intel == 'true'
         run: |
           ls -lh dns-tool-server
           file dns-tool-server
