@@ -18,14 +18,12 @@ on:
   schedule:
     - cron: '0 7 * * 1,4'
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   go-vuln-check:
     name: Go Vulnerability Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -42,6 +40,9 @@ jobs:
   npm-audit:
     name: npm Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v6
 
