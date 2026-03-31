@@ -1,195 +1,185 @@
 package analyzer
 
 import (
-	"testing"
+        "testing"
 )
 
 func TestDetectEdgeCDN(t *testing.T) {
-	result := DetectEdgeCDN(map[string]any{})
-	if result["status"] != "success" {
-		t.Errorf("status = %v, want success", result["status"])
-	}
-	if result["is_behind_cdn"] != false {
-		t.Error("expected is_behind_cdn=false for OSS stub")
-	}
-	if result["origin_visible"] != true {
-		t.Error("expected origin_visible=true for OSS stub")
-	}
+        result := DetectEdgeCDN(map[string]any{})
+        if result["status"] != "success" {
+                t.Errorf("status = %v, want success", result["status"])
+        }
 }
 
 func TestCheckASNForCDN(t *testing.T) {
-	provider, indicators := checkASNForCDN(map[string]any{}, nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty", provider)
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
+        provider, indicators := checkASNForCDN(map[string]any{}, nil)
+        if provider != "" {
+                t.Errorf("provider = %q, want empty for no ASN input", provider)
+        }
+        if len(indicators) != 0 {
+                t.Errorf("indicators = %v, want empty", indicators)
+        }
 }
 
 func TestCheckCNAMEForCDN(t *testing.T) {
-	provider, indicators := checkCNAMEForCDN(map[string]any{}, nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty", provider)
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
+        provider, indicators := checkCNAMEForCDN(map[string]any{}, nil)
+        if provider != "" {
+                t.Errorf("provider = %q, want empty for no CNAME input", provider)
+        }
+        if len(indicators) != 0 {
+                t.Errorf("indicators = %v, want empty", indicators)
+        }
 }
 
 func TestCheckPTRForCDN(t *testing.T) {
-	provider, indicators := checkPTRForCDN(map[string]any{}, nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty", provider)
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
+        provider, indicators := checkPTRForCDN(map[string]any{}, nil)
+        if provider != "" {
+                t.Errorf("provider = %q, want empty for no PTR input", provider)
+        }
+        if len(indicators) != 0 {
+                t.Errorf("indicators = %v, want empty", indicators)
+        }
 }
 
 func TestMatchASNEntries(t *testing.T) {
-	provider, indicators := matchASNEntries(map[string]any{}, "asn", nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty", provider)
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
+        provider, indicators := matchASNEntries(map[string]any{}, "asn", nil)
+        if provider != "" {
+                t.Errorf("provider = %q, want empty for no ASN input", provider)
+        }
+        if len(indicators) != 0 {
+                t.Errorf("indicators = %v, want empty", indicators)
+        }
 }
 
 func TestClassifyCloudIP(t *testing.T) {
-	provider, isCDN := classifyCloudIP("AS13335", nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty", provider)
-	}
-	if isCDN {
-		t.Error("expected isCDN=false for OSS stub")
-	}
+        provider, isCDN := classifyCloudIP("AS99999", nil)
+        if provider != "" {
+                t.Errorf("provider = %q, want empty for unknown ASN", provider)
+        }
+        if isCDN {
+                t.Error("expected isCDN=false for unknown ASN")
+        }
 }
 
-func TestIsOriginVisible(t *testing.T) {
-	if isOriginVisible("cloudflare") {
-		t.Error("expected false for OSS stub")
-	}
-}
-
-func TestEdgeCDNMapsEmpty(t *testing.T) {
-	if len(cdnASNs) != 0 {
-		t.Error("expected cdnASNs to be empty in OSS build")
-	}
-	if len(cloudASNs) != 0 {
-		t.Error("expected cloudASNs to be empty in OSS build")
-	}
-	if len(cloudCDNPTRPatterns) != 0 {
-		t.Error("expected cloudCDNPTRPatterns to be empty in OSS build")
-	}
-	if len(cdnCNAMEPatterns) != 0 {
-		t.Error("expected cdnCNAMEPatterns to be empty in OSS build")
-	}
+func TestEdgeCDNMapsPopulated(t *testing.T) {
+        if len(cdnASNs) == 0 {
+                t.Error("cdnASNs should be populated with CDN provider data")
+        }
+        if len(cloudASNs) == 0 {
+                t.Error("cloudASNs should be populated with cloud provider data")
+        }
+        if len(cloudCDNPTRPatterns) == 0 {
+                t.Error("cloudCDNPTRPatterns should be populated with PTR patterns")
+        }
+        if len(cdnCNAMEPatterns) == 0 {
+                t.Error("cdnCNAMEPatterns should be populated with CNAME patterns")
+        }
 }
 
 func TestDetectEdgeCDNResultFields(t *testing.T) {
-	result := DetectEdgeCDN(map[string]any{
-		"some_key": "some_value",
-	})
-	if result["status"] != "success" {
-		t.Errorf("status = %v, want success", result["status"])
-	}
-	if result["cdn_provider"] != "" {
-		t.Errorf("cdn_provider = %v, want empty", result["cdn_provider"])
-	}
-	indicators, ok := result["cdn_indicators"].([]string)
-	if !ok {
-		t.Fatal("cdn_indicators should be []string")
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
-	if result["message"] != "Domain appears to use direct origin hosting" {
-		t.Errorf("message = %v", result["message"])
-	}
-	issues, ok := result["issues"].([]string)
-	if !ok {
-		t.Fatal("issues should be []string")
-	}
-	if len(issues) != 0 {
-		t.Errorf("issues should be empty, got %v", issues)
-	}
+        result := DetectEdgeCDN(map[string]any{
+                "some_key": "some_value",
+        })
+        if result["status"] != "success" {
+                t.Errorf("status = %v, want success", result["status"])
+        }
+        if result["cdn_provider"] != "" {
+                t.Errorf("cdn_provider = %v, want empty for no matching input", result["cdn_provider"])
+        }
+        indicators, ok := result["cdn_indicators"].([]string)
+        if !ok {
+                t.Fatal("cdn_indicators should be []string")
+        }
+        if len(indicators) != 0 {
+                t.Errorf("indicators = %v, want empty", indicators)
+        }
+        issues, ok := result["issues"].([]string)
+        if !ok {
+                t.Fatal("issues should be []string")
+        }
+        if len(issues) != 0 {
+                t.Errorf("issues should be empty, got %v", issues)
+        }
 }
 
 func TestCheckASNForCDNWithData(t *testing.T) {
-	results := map[string]any{
-		"asn": map[string]any{
-			"number": "AS13335",
-		},
-	}
-	provider, indicators := checkASNForCDN(results, []string{"existing"})
-	if provider != "" {
-		t.Errorf("provider = %q, want empty for OSS stub", provider)
-	}
-	if len(indicators) != 1 || indicators[0] != "existing" {
-		t.Errorf("indicators = %v, want [existing]", indicators)
-	}
+        results := map[string]any{
+                "asn_info": map[string]any{
+                        "ipv4_asn": []map[string]any{
+                                {"asn": "13335"},
+                        },
+                },
+        }
+        provider, indicators := checkASNForCDN(results, []string{"existing"})
+        if provider == "" {
+                t.Error("expected provider detection for Cloudflare ASN 13335")
+        }
+        if len(indicators) < 2 {
+                t.Errorf("indicators should include existing + new, got %v", indicators)
+        }
 }
 
 func TestMatchASNEntriesWithData(t *testing.T) {
-	asnData := map[string]any{
-		"number": "AS13335",
-		"name":   "Cloudflare",
-	}
-	provider, indicators := matchASNEntries(asnData, "number", []string{"test"})
-	if provider != "" {
-		t.Errorf("provider = %q, want empty for OSS stub", provider)
-	}
-	if len(indicators) != 1 || indicators[0] != "test" {
-		t.Errorf("indicators = %v, want [test]", indicators)
-	}
+        asnData := map[string]any{
+                "ipv4_asn": []map[string]any{
+                        {"asn": "13335"},
+                },
+        }
+        provider, _ := matchASNEntries(asnData, "ipv4_asn", []string{"test"})
+        if provider == "" {
+                t.Error("expected provider detection for Cloudflare ASN data")
+        }
 }
 
 func TestCheckCNAMEForCDNWithData(t *testing.T) {
-	results := map[string]any{
-		"cname": "cdn.cloudflare.net",
-	}
-	provider, indicators := checkCNAMEForCDN(results, nil)
-	if provider != "" {
-		t.Errorf("provider = %q, want empty for OSS stub", provider)
-	}
-	if indicators != nil {
-		t.Errorf("indicators = %v, want nil", indicators)
-	}
+        results := map[string]any{
+                "basic_records": map[string]any{
+                        "CNAME": []string{"cdn.cloudflare.net"},
+                },
+        }
+        provider, indicators := checkCNAMEForCDN(results, nil)
+        if provider == "" {
+                t.Error("expected provider detection for cloudflare.net CNAME")
+        }
+        if len(indicators) == 0 {
+                t.Error("expected indicators for cloudflare.net CNAME")
+        }
 }
 
 func TestCheckPTRForCDNWithData(t *testing.T) {
-	results := map[string]any{
-		"ptr_records": []string{"server.cloudflare.com"},
-	}
-	provider, indicators := checkPTRForCDN(results, []string{})
-	if provider != "" {
-		t.Errorf("provider = %q, want empty for OSS stub", provider)
-	}
-	if len(indicators) != 0 {
-		t.Errorf("indicators = %v, want empty", indicators)
-	}
+        results := map[string]any{
+                "basic_records": map[string]any{
+                        "PTR": []string{"server-1.cdn.cloudflare.net"},
+                },
+        }
+        provider, indicators := checkPTRForCDN(results, []string{})
+        if provider == "" {
+                t.Error("expected provider detection for cloudflare PTR")
+        }
+        if len(indicators) == 0 {
+                t.Error("expected indicators for cloudflare PTR")
+        }
 }
 
 func TestClassifyCloudIPVariousASNs(t *testing.T) {
-	asns := []string{"AS16509", "AS15169", "AS8075", "AS14618"}
-	for _, asn := range asns {
-		provider, isCDN := classifyCloudIP(asn, []string{"server.example.com"})
-		if provider != "" {
-			t.Errorf("classifyCloudIP(%q) provider = %q, want empty for OSS stub", asn, provider)
-		}
-		if isCDN {
-			t.Errorf("classifyCloudIP(%q) isCDN = true, want false for OSS stub", asn)
-		}
-	}
+        knownCloudASNs := []string{"16509", "15169", "8075", "14618"}
+        for _, asn := range knownCloudASNs {
+                provider, _ := classifyCloudIP(asn, []string{"server.example.com"})
+                if provider == "" {
+                        t.Errorf("classifyCloudIP(%q) expected provider detection for known cloud ASN", asn)
+                }
+        }
 }
 
-func TestIsOriginVisibleVariousProviders(t *testing.T) {
-	providers := []string{"cloudflare", "akamai", "fastly", "aws", ""}
-	for _, p := range providers {
-		if isOriginVisible(p) {
-			t.Errorf("isOriginVisible(%q) = true, want false for OSS stub", p)
-		}
-	}
+func TestIsOriginVisible(t *testing.T) {
+        if isOriginVisible("Cloudflare") {
+                t.Error("origin should NOT be visible behind Cloudflare CDN")
+        }
+        if !isOriginVisible("") {
+                t.Error("origin should be visible when no CDN detected")
+        }
+        if !isOriginVisible("unknown-provider") {
+                t.Error("origin should be visible for unknown provider")
+        }
 }
+

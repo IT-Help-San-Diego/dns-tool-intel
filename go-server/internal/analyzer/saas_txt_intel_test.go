@@ -1,5 +1,3 @@
-//go:build intel
-
 package analyzer
 
 import (

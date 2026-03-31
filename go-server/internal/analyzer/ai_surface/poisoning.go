@@ -2,13 +2,13 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // poisoning.go — Framework only (types, utilities). Always compiled.
-// Detection stubs live in poisoning_oss.go / poisoning_intel.go.
+// Detection functions live in poisoning_intel.go.
 // dns-tool:scrutiny science
 package ai_surface
 
 func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen] + "..."
+        if len(s) <= maxLen {
+                return s
+        }
+        return s[:maxLen] + "..."
 }
