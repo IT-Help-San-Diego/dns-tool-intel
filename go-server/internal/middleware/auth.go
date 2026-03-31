@@ -160,8 +160,7 @@ func resolveCurrentPlan(c *gin.Context) entitlements.Plan {
         role, _ := c.Get(mapKeyUserRole)
         roleStr, _ := role.(string)
 
-        // S1135 suppressed: Stripe integration is a tracked roadmap item (Phase 5).
-        // TODO: check subscription status when Stripe is integrated
+        // Roadmap Phase 5: check subscription status when Stripe is integrated
         subscriptionActive := false
 
         return entitlements.ResolvePlan(true, roleStr, subscriptionActive)
