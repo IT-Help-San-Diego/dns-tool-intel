@@ -6,10 +6,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions: {}
+
 jobs:
   sonarcloud:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
