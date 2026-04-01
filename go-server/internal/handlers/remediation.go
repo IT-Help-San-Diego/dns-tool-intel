@@ -4,6 +4,7 @@
 package handlers
 
 import (
+        "context"
         "encoding/json"
         "fmt"
         "log/slog"
@@ -64,50 +65,66 @@ func (h *RemediationHandler) RemediationPage(c *gin.Context) {
                 return
         }
 
-        var analysis dbq.DomainAnalysis
-        var err error
+        analysis, ok := h.resolveAnalysis(c, analysisIDStr, domain, data)
+        if !ok {
+                return
+        }
+
+        if analysis.Private && !h.checkPrivateAccess(c, analysis.ID) {
+                data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "This analysis is private. Please sign in to access it."}}
+                c.HTML(http.StatusOK, remediationTemplate, data)
+                return
+        }
+
+        h.renderRemediationResults(c, analysis, data)
+}
+
+func (h *RemediationHandler) resolveAnalysis(c *gin.Context, analysisIDStr, domain string, data gin.H) (dbq.DomainAnalysis, bool) {
         ctx := c.Request.Context()
 
         if analysisIDStr != "" {
-                id, parseErr := strconv.ParseInt(analysisIDStr, 10, 32)
-                if parseErr != nil {
-                        data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Invalid analysis ID."}}
-                        c.HTML(http.StatusOK, remediationTemplate, data)
-                        return
-                }
-                analysis, err = h.store().GetAnalysisByID(ctx, int32(id))
-                if err != nil {
-                        data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Analysis not found. Please check the scan number and try again."}}
-                        c.HTML(http.StatusOK, remediationTemplate, data)
-                        return
-                }
-        } else {
-                domain = strings.TrimSpace(strings.ToLower(domain))
-                if domain == "" {
-                        data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Please enter a valid domain name."}}
-                        data["FormDomain"] = domain
-                        c.HTML(http.StatusOK, remediationTemplate, data)
-                        return
-                }
-                analysis, err = h.store().GetRecentAnalysisByDomain(ctx, domain)
-                if err != nil {
-                        data["FlashMessages"] = []FlashMessage{{Category: mapKeyWarning, Message: fmt.Sprintf("No analysis found for %s. Run a scan first, then come back here.", domain)}}
-                        data["FormDomain"] = domain
-                        data["SuggestScan"] = true
-                        data["SuggestDomain"] = domain
-                        c.HTML(http.StatusOK, remediationTemplate, data)
-                        return
-                }
+                return h.resolveByID(c, ctx, analysisIDStr, data)
         }
+        return h.resolveByDomain(c, ctx, domain, data)
+}
 
-        if analysis.Private {
-                if !h.checkPrivateAccess(c, analysis.ID) {
-                        data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "This analysis is private. Please sign in to access it."}}
-                        c.HTML(http.StatusOK, remediationTemplate, data)
-                        return
-                }
+func (h *RemediationHandler) resolveByID(c *gin.Context, ctx context.Context, idStr string, data gin.H) (dbq.DomainAnalysis, bool) {
+        id, parseErr := strconv.ParseInt(idStr, 10, 32)
+        if parseErr != nil {
+                data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Invalid analysis ID."}}
+                c.HTML(http.StatusOK, remediationTemplate, data)
+                return dbq.DomainAnalysis{}, false
         }
+        analysis, err := h.store().GetAnalysisByID(ctx, int32(id))
+        if err != nil {
+                data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Analysis not found. Please check the scan number and try again."}}
+                c.HTML(http.StatusOK, remediationTemplate, data)
+                return dbq.DomainAnalysis{}, false
+        }
+        return analysis, true
+}
 
+func (h *RemediationHandler) resolveByDomain(c *gin.Context, ctx context.Context, domain string, data gin.H) (dbq.DomainAnalysis, bool) {
+        domain = strings.TrimSpace(strings.ToLower(domain))
+        if domain == "" {
+                data["FlashMessages"] = []FlashMessage{{Category: mapKeyDanger, Message: "Please enter a valid domain name."}}
+                data["FormDomain"] = domain
+                c.HTML(http.StatusOK, remediationTemplate, data)
+                return dbq.DomainAnalysis{}, false
+        }
+        analysis, err := h.store().GetRecentAnalysisByDomain(ctx, domain)
+        if err != nil {
+                data["FlashMessages"] = []FlashMessage{{Category: mapKeyWarning, Message: fmt.Sprintf("No analysis found for %s. Run a scan first, then come back here.", domain)}}
+                data["FormDomain"] = domain
+                data["SuggestScan"] = true
+                data["SuggestDomain"] = domain
+                c.HTML(http.StatusOK, remediationTemplate, data)
+                return dbq.DomainAnalysis{}, false
+        }
+        return analysis, true
+}
+
+func (h *RemediationHandler) renderRemediationResults(c *gin.Context, analysis dbq.DomainAnalysis, data gin.H) {
         if analysis.AnalysisSuccess == nil || !*analysis.AnalysisSuccess || len(analysis.FullResults) == 0 || string(analysis.FullResults) == "null" {
                 data["FlashMessages"] = []FlashMessage{{Category: mapKeyWarning, Message: "This analysis did not complete successfully. No remediation data is available."}}
                 c.HTML(http.StatusOK, remediationTemplate, data)

@@ -141,7 +141,7 @@ func main() {
         slog.Info("Shutting down probe server...")
         ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
         defer cancel()
-        server.Shutdown(ctx)
+        _ = server.Shutdown(ctx)
 }
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -184,7 +184,7 @@ func resetRateLimits() {
 func writeJSON(w http.ResponseWriter, status int, v any) {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(status)
-        json.NewEncoder(w).Encode(v)
+        _ = json.NewEncoder(w).Encode(v)
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -306,7 +306,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
                 return result
         }
 
-        fmt.Fprintf(conn, strEhloSRN, ehloHostname)
+        _, _ = fmt.Fprintf(conn, strEhloSRN, ehloHostname)
         ehlo, err := readSMTPResponse(conn, smtpReadTimeout)
         if err != nil {
                 result[mapKeyError] = "EHLO response timeout"
@@ -319,7 +319,7 @@ func probeSMTPServer(ctx context.Context, host string) map[string]any {
         }
         result["starttls"] = true
 
-        fmt.Fprintf(conn, strStarttlsRN)
+        _, _ = fmt.Fprintf(conn, strStarttlsRN)
         startResp, err := readSMTPResponse(conn, smtpReadTimeout)
         if err != nil || !strings.HasPrefix(startResp, smtpBannerOK) {
                 result[mapKeyError] = "STARTTLS rejected"
@@ -365,12 +365,12 @@ func verifySMTPCert(ctx context.Context, host string, result map[string]any) {
         if !strings.HasPrefix(banner, smtpBannerOK) {
                 return
         }
-        fmt.Fprintf(conn, strEhloSRN, ehloHostname)
+        _, _ = fmt.Fprintf(conn, strEhloSRN, ehloHostname)
         _, ehloErr := readSMTPResponse(conn, 1*time.Second)
         if ehloErr != nil {
                 slog.Debug("verifySMTPCert: EHLO read error", mapKeyHost, host, mapKeyError, ehloErr)
         }
-        fmt.Fprintf(conn, strStarttlsRN)
+        _, _ = fmt.Fprintf(conn, strStarttlsRN)
         resp, respErr := readSMTPResponse(conn, 1*time.Second)
         if respErr != nil {
                 slog.Debug("verifySMTPCert: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
@@ -615,7 +615,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
                 return result
         }
 
-        fmt.Fprintf(conn, strEhloSRN, ehloHostname)
+        _, _ = fmt.Fprintf(conn, strEhloSRN, ehloHostname)
         ehlo, ehloErr := readSMTPResponse(conn, smtpReadTimeout)
         if ehloErr != nil {
                 slog.Debug("getCertViaSMTP: EHLO read error", mapKeyHost, host, mapKeyError, ehloErr)
@@ -625,7 +625,7 @@ func getCertViaSMTP(ctx context.Context, host string) map[string]any {
                 return result
         }
 
-        fmt.Fprintf(conn, strStarttlsRN)
+        _, _ = fmt.Fprintf(conn, strStarttlsRN)
         resp, respErr := readSMTPResponse(conn, smtpReadTimeout)
         if respErr != nil {
                 slog.Debug("getCertViaSMTP: STARTTLS read error", mapKeyHost, host, mapKeyError, respErr)
@@ -694,7 +694,7 @@ func extractCertInfo(conn net.Conn, host string) map[string]any {
 const maxSMTPResponseSize = 64 * 1024
 
 func readSMTPResponse(conn net.Conn, timeout time.Duration) (string, error) {
-        conn.SetReadDeadline(time.Now().Add(timeout))
+        _ = conn.SetReadDeadline(time.Now().Add(timeout))
         buf := make([]byte, 4096)
         var response strings.Builder
         for {
@@ -1274,7 +1274,7 @@ func probeOneIPFSGateway(ctx context.Context, cid, gateway string) ipfsGatewayRe
         }
         defer func() {
                 _, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, int64(ipfsProbeBodyLimit)))
-                resp.Body.Close()
+                _ = resp.Body.Close()
         }()
 
         gwResult.StatusCode = resp.StatusCode

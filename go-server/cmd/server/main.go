@@ -77,37 +77,12 @@ func init() {
 }
 
 func main() {
-        slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-                Level: slog.LevelInfo,
-                ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
-                        if a.Value.Kind() == slog.KindString {
-                                v := a.Value.String()
-                                if strings.Contains(v, "@") || strings.Contains(v, "webhook") || strings.Contains(v, "token=") {
-                                        return slog.Attr{Key: a.Key, Value: slog.StringValue("[REDACTED_EARLY]")}
-                                }
-                        }
-                        return a
-                },
-        })))
+        initLogger()
 
-        earlyPort := os.Getenv("PORT")
-        if earlyPort == "" {
-                earlyPort = "5000"
-        }
-        earlyAddr := fmt.Sprintf("0.0.0.0:%s", earlyPort)
+        earlyAddr := resolveListenAddr()
 
         var handler atomic.Value
-        handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-                if r.URL.Path == "/" || r.URL.Path == "/healthz" {
-                        w.Header().Set("Content-Type", "application/json")
-                        w.WriteHeader(http.StatusOK)
-                        w.Write([]byte(`{"status":"starting"}`))
-                        return
-                }
-                w.Header().Set("Content-Type", "application/json")
-                w.WriteHeader(http.StatusServiceUnavailable)
-                w.Write([]byte(`{"status":"starting"}`))
-        }))
+        handler.Store(startingHandler())
 
         srv := &http.Server{
                 Addr: earlyAddr,
@@ -119,19 +94,7 @@ func main() {
                 MaxHeaderBytes:    1 << 20,
         }
 
-        listenErr := make(chan error, 1)
-        go func() {
-                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-                        listenErr <- err
-                }
-        }()
-
-        select {
-        case err := <-listenErr:
-                slog.Error("Server failed to bind", mapKeyError, err)
-                os.Exit(1)
-        case <-time.After(100 * time.Millisecond):
-        }
+        waitForListener(srv)
         slog.Info("Early listener started — accepting healthchecks", "address", earlyAddr)
 
         cfg, err := config.Load()
@@ -145,36 +108,7 @@ func main() {
         database, err := db.Connect(cfg.DatabaseURL)
         if err != nil {
                 slog.Error("Failed to connect to database", mapKeyError, err)
-                handler.Store(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-                        if r.URL.Path == "/healthz" {
-                                w.Header().Set("Content-Type", "application/json")
-                                w.WriteHeader(http.StatusOK)
-                                w.Write([]byte(`{"status":"degraded","reason":"database_unavailable"}`))
-                                return
-                        }
-                        w.Header().Set("Content-Type", "text/html; charset=utf-8")
-                        w.Header().Set("Retry-After", "30")
-                        w.WriteHeader(http.StatusServiceUnavailable)
-                        w.Write([]byte(`<!DOCTYPE html><html><head><title>DNS Tool — Maintenance</title><meta http-equiv="refresh" content="30"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0d1117;color:#c9d1d9}div{text-align:center;max-width:480px;padding:2rem}.icon{font-size:3rem;margin-bottom:1rem}h1{color:#58a6ff;margin:0 0 .5rem}p{color:#8b949e;line-height:1.6}</style></head><body><div><div class="icon">🦉</div><h1>DNS Tool</h1><p>The service is temporarily unavailable while the database connection is being restored. This page will automatically refresh.</p></div></body></html>`))
-                }))
-                slog.Warn("Running in DEGRADED mode — serving maintenance page, waiting for database")
-                go func() {
-                        for {
-                                time.Sleep(15 * time.Second)
-                                slog.Info("Retrying database connection in degraded mode...")
-                                if retryDB, retryErr := db.Connect(cfg.DatabaseURL); retryErr == nil {
-                                        slog.Info("Database reconnected in degraded mode — full restart required")
-                                        retryDB.Close()
-                                }
-                        }
-                }()
-                quit := make(chan os.Signal, 1)
-                signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-                <-quit
-                slog.Info("Shutdown signal received in degraded mode")
-                shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
-                defer shutdownCancel()
-                srv.Shutdown(shutdownCtx)
+                runDegradedMode(&handler, cfg, srv)
                 return
         }
         defer database.Close()
@@ -193,6 +127,138 @@ func main() {
                 )
         }
 
+        router, analyticsCollector := buildRouter(cfg, database)
+
+        dnsAnalyzer, ctStore := initAnalyzer(cfg, database)
+
+        dnsHistoryCache := analyzer.NewDNSHistoryCache(24 * time.Hour)
+        slog.Info("DNS history cache initialized", "ttl", "24h")
+
+        rateLimiter := middleware.NewInMemoryRateLimiter()
+        slog.Info("Rate limiter initialized", "backend", "in-memory", "max_requests", middleware.RateLimitMaxRequests, "window_seconds", middleware.RateLimitWindow)
+
+        registerRoutes(routeDeps{
+                Router:       router,
+                Cfg:          cfg,
+                DB:           database,
+                Analyzer:     dnsAnalyzer,
+                HistoryCache: dnsHistoryCache,
+                RateLimiter:  rateLimiter,
+        })
+
+        handler.Store(http.HandlerFunc(router.Handler().ServeHTTP))
+        slog.Info("Full router ready — handler swapped",
+                "address", earlyAddr,
+                "version", cfg.AppVersion,
+                "commit", config.GitCommit,
+                "built", config.BuildTime,
+        )
+
+        syncCtx, syncCancel := context.WithCancel(context.Background())
+        defer syncCancel()
+        startScheduledSync(syncCtx)
+
+        ctEnrichment := analyzer.NewCTEnrichmentJob(database.Queries, ctStore)
+        ctEnrichment.Start(syncCtx)
+
+        driftNotifier := notifier.New(dbq.New(database.Pool))
+        startNotificationDelivery(syncCtx, driftNotifier)
+
+        awaitShutdown(srv, syncCancel, analyticsCollector)
+}
+
+func initLogger() {
+        slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+                Level: slog.LevelInfo,
+                ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
+                        if a.Value.Kind() == slog.KindString {
+                                v := a.Value.String()
+                                if strings.Contains(v, "@") || strings.Contains(v, "webhook") || strings.Contains(v, "token=") {
+                                        return slog.Attr{Key: a.Key, Value: slog.StringValue("[REDACTED_EARLY]")}
+                                }
+                        }
+                        return a
+                },
+        })))
+}
+
+func resolveListenAddr() string {
+        port := os.Getenv("PORT")
+        if port == "" {
+                port = "5000"
+        }
+        return fmt.Sprintf("0.0.0.0:%s", port)
+}
+
+func startingHandler() http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                if r.URL.Path == "/" || r.URL.Path == "/healthz" {
+                        w.Header().Set("Content-Type", "application/json")
+                        w.WriteHeader(http.StatusOK)
+                        _, _ = w.Write([]byte(`{"status":"starting"}`))
+                        return
+                }
+                w.Header().Set("Content-Type", "application/json")
+                w.WriteHeader(http.StatusServiceUnavailable)
+                _, _ = w.Write([]byte(`{"status":"starting"}`))
+        })
+}
+
+func waitForListener(srv *http.Server) {
+        listenErr := make(chan error, 1)
+        go func() {
+                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+                        listenErr <- err
+                }
+        }()
+        select {
+        case err := <-listenErr:
+                slog.Error("Server failed to bind", mapKeyError, err)
+                os.Exit(1)
+        case <-time.After(100 * time.Millisecond):
+        }
+}
+
+func runDegradedMode(handler *atomic.Value, cfg *config.Config, srv *http.Server) {
+        handler.Store(degradedHandler())
+        slog.Warn("Running in DEGRADED mode — serving maintenance page, waiting for database")
+        go retryDatabaseLoop(cfg.DatabaseURL)
+        quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+        <-quit
+        slog.Info("Shutdown signal received in degraded mode")
+        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer shutdownCancel()
+        _ = srv.Shutdown(shutdownCtx)
+}
+
+func degradedHandler() http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                if r.URL.Path == "/healthz" {
+                        w.Header().Set("Content-Type", "application/json")
+                        w.WriteHeader(http.StatusOK)
+                        _, _ = w.Write([]byte(`{"status":"degraded","reason":"database_unavailable"}`))
+                        return
+                }
+                w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                w.Header().Set("Retry-After", "30")
+                w.WriteHeader(http.StatusServiceUnavailable)
+                _, _ = w.Write([]byte(`<!DOCTYPE html><html><head><title>DNS Tool — Maintenance</title><meta http-equiv="refresh" content="30"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0d1117;color:#c9d1d9}div{text-align:center;max-width:480px;padding:2rem}.icon{font-size:3rem;margin-bottom:1rem}h1{color:#58a6ff;margin:0 0 .5rem}p{color:#8b949e;line-height:1.6}</style></head><body><div><div class="icon">🦉</div><h1>DNS Tool</h1><p>The service is temporarily unavailable while the database connection is being restored. This page will automatically refresh.</p></div></body></html>`))
+        })
+}
+
+func retryDatabaseLoop(dbURL string) {
+        for {
+                time.Sleep(15 * time.Second)
+                slog.Info("Retrying database connection in degraded mode...")
+                if retryDB, retryErr := db.Connect(dbURL); retryErr == nil {
+                        slog.Info("Database reconnected in degraded mode — full restart required")
+                        retryDB.Close()
+                }
+        }
+}
+
+func buildRouter(cfg *config.Config, database *db.Database) (*gin.Engine, *middleware.AnalyticsCollector) {
         gin.SetMode(gin.ReleaseMode)
         router := gin.New()
         router.SetTrustedProxies([]string{"127.0.0.1/8", "::1/128"})
@@ -200,11 +266,7 @@ func main() {
         router.RemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-Ip"}
         slog.Info("Trusted proxies configured — reading client IP from X-Forwarded-For via local proxy")
 
-        if cfg.IsDevEnvironment {
-                slog.Info("Security headers: dev mode — iframe embedding allowed for Replit preview")
-        } else {
-                slog.Info("Security headers: production mode — strict frame-ancestors, X-Frame-Options DENY")
-        }
+        logSecurityHeadersMode(cfg.IsDevEnvironment)
 
         router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
                 "MaintenanceNote": cfg.MaintenanceNote,
@@ -225,9 +287,21 @@ func main() {
         analyticsCollector := middleware.NewAnalyticsCollector(database.Pool, cfg.BaseURL)
         router.Use(analyticsCollector.Middleware())
 
-        rateLimiter := middleware.NewInMemoryRateLimiter()
-        slog.Info("Rate limiter initialized", "backend", "in-memory", "max_requests", middleware.RateLimitMaxRequests, "window_seconds", middleware.RateLimitWindow)
+        loadTemplates(router)
+        mountStaticFiles(router)
 
+        return router, analyticsCollector
+}
+
+func logSecurityHeadersMode(isDev bool) {
+        if isDev {
+                slog.Info("Security headers: dev mode — iframe embedding allowed for Replit preview")
+        } else {
+                slog.Info("Security headers: production mode — strict frame-ancestors, X-Frame-Options DENY")
+        }
+}
+
+func loadTemplates(router *gin.Engine) {
         templatesDir := findTemplatesDir()
         slog.Info("Templates directory resolved", "path", templatesDir)
         globPattern := filepath.Join(templatesDir, "*.html")
@@ -238,7 +312,9 @@ func main() {
                 os.Exit(1)
         }
         router.SetHTMLTemplate(tmpl)
+}
 
+func mountStaticFiles(router *gin.Engine) {
         staticDir := findStaticDir()
         slog.Info("Static directory resolved", "path", staticDir)
         tmplFuncs.InitSRI(staticDir)
@@ -257,12 +333,14 @@ func main() {
         }
         router.GET("/static/*filepath", serveStatic)
         router.HEAD("/static/*filepath", serveStatic)
+
         faviconHandler := func(c *gin.Context) {
                 c.Header(headerCacheControl, "public, max-age=86400")
                 c.File(filepath.Join(staticDir, "icons", "favicon-48x48.png"))
         }
         router.GET("/favicon.ico", faviconHandler)
         router.HEAD("/favicon.ico", faviconHandler)
+
         appleTouchHandler := func(c *gin.Context) {
                 c.Header(headerCacheControl, "public, max-age=86400")
                 c.File(filepath.Join(staticDir, "icons", "apple-touch-icon-180x180.png"))
@@ -271,6 +349,7 @@ func main() {
         router.HEAD("/apple-touch-icon.png", appleTouchHandler)
         router.GET("/apple-touch-icon-precomposed.png", appleTouchHandler)
         router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
+
         imagesHandler := func(c *gin.Context) {
                 fp := c.Param("filepath")
                 if fp == "" || strings.Contains(fp, "..") {
@@ -282,7 +361,9 @@ func main() {
         }
         router.GET("/images/*filepath", imagesHandler)
         router.HEAD("/images/*filepath", imagesHandler)
+}
 
+func initAnalyzer(cfg *config.Config, database *db.Database) (*analyzer.Analyzer, analyzer.CTStore) {
         ctStore := analyzer.NewPgCTStore(database.Queries)
         dnsAnalyzer := analyzer.New(analyzer.WithCTStore(ctStore))
         dnsAnalyzer.SMTPProbeMode = cfg.SMTPProbeMode
@@ -301,141 +382,147 @@ func main() {
 
         analyzer.InitIETFMetadata()
         analyzer.ScheduleRFCRefresh()
-
         scanner.StartCISARefresh()
 
-        dnsHistoryCache := analyzer.NewDNSHistoryCache(24 * time.Hour)
-        slog.Info("DNS history cache initialized", "ttl", "24h")
+        return dnsAnalyzer, ctStore
+}
 
-        homeHandler := handlers.NewHomeHandler(cfg, database)
-        healthHandler := handlers.NewHealthHandler(database, dnsAnalyzer)
-        historyHandler := handlers.NewHistoryHandler(database, cfg)
-        analysisHandler := handlers.NewAnalysisHandler(database, cfg, dnsAnalyzer, dnsHistoryCache)
-        statsHandler := handlers.NewStatsHandler(database, cfg)
-        compareHandler := handlers.NewCompareHandler(database, cfg)
-        exportHandler := handlers.NewExportHandler(database)
-        snapshotHandler := handlers.NewSnapshotHandler(database, cfg)
-        staticHandler := handlers.NewStaticHandler(staticDir, cfg.AppVersion, cfg.BaseURL)
+type routeDeps struct {
+        Router      *gin.Engine
+        Cfg         *config.Config
+        DB          *db.Database
+        Analyzer    *analyzer.Analyzer
+        HistoryCache *analyzer.DNSHistoryCache
+        RateLimiter *middleware.InMemoryRateLimiter
+}
+
+func registerRoutes(d routeDeps) {
+        staticDir := findStaticDir()
+
+        homeHandler := handlers.NewHomeHandler(d.Cfg, d.DB)
+        healthHandler := handlers.NewHealthHandler(d.DB, d.Analyzer)
+        historyHandler := handlers.NewHistoryHandler(d.DB, d.Cfg)
+        analysisHandler := handlers.NewAnalysisHandler(d.DB, d.Cfg, d.Analyzer, d.HistoryCache)
+        statsHandler := handlers.NewStatsHandler(d.DB, d.Cfg)
+        compareHandler := handlers.NewCompareHandler(d.DB, d.Cfg)
+        exportHandler := handlers.NewExportHandler(d.DB)
+        snapshotHandler := handlers.NewSnapshotHandler(d.DB, d.Cfg)
+        staticHandler := handlers.NewStaticHandler(staticDir, d.Cfg.AppVersion, d.Cfg.BaseURL)
         proxyHandler := handlers.NewProxyHandler()
 
-        router.GET("/", homeHandler.Index)
-        router.HEAD("/", homeHandler.Index)
-        router.GET("/healthz", healthHandler.Healthz)
-        router.HEAD("/healthz", healthHandler.Healthz)
-        router.GET("/api/capacity", healthHandler.Capacity)
-        router.GET("/go/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
+        registerCoreRoutes(d.Router, homeHandler, healthHandler, staticHandler)
+        registerAnalysisRoutes(d, analysisHandler, historyHandler, statsHandler, compareHandler, exportHandler, snapshotHandler)
+        registerFeatureRoutes(d, analysisHandler, proxyHandler, staticHandler)
+        registerAdminRoutes(d)
+        registerAuthRoutes(d)
+        registerNotFoundRoute(d.Router, d.Cfg)
+}
 
-        router.GET("/.well-known/security.txt", staticHandler.SecurityTxt)
-        router.GET("/security.txt", staticHandler.SecurityTxt)
-        router.GET("/robots.txt", staticHandler.RobotsTxt)
-        router.GET("/sitemap.xml", staticHandler.SitemapXML)
-        router.GET("/bimi-logo.svg", staticHandler.BIMILogoSVG)
-        router.GET("/llms.txt", staticHandler.LLMsTxt)
-        router.GET("/llms-full.txt", staticHandler.LLMsFullTxt)
-        router.GET("/.well-known/llms.txt", staticHandler.LLMsTxt)
-        router.GET("/.well-known/llms-full.txt", staticHandler.LLMsFullTxt)
-        router.GET("/manifest.json", staticHandler.ManifestJSON)
-        router.GET("/sw.js", staticHandler.ServiceWorker)
+func registerCoreRoutes(router *gin.Engine, home *handlers.HomeHandler, health *handlers.HealthHandler, static *handlers.StaticHandler) {
+        router.GET("/", home.Index)
+        router.HEAD("/", home.Index)
+        router.GET("/healthz", health.Healthz)
+        router.HEAD("/healthz", health.Healthz)
+        router.GET("/api/capacity", health.Capacity)
+        router.GET("/go/health", middleware.RequireAdmin(), health.HealthCheck)
 
-        router.GET("/analyze", analysisHandler.Analyze)
-        router.POST("/analyze", middleware.AnalyzeRateLimit(rateLimiter), analysisHandler.Analyze)
-        router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysisHandler.ProgressStore))
+        router.GET("/.well-known/security.txt", static.SecurityTxt)
+        router.GET("/security.txt", static.SecurityTxt)
+        router.GET("/robots.txt", static.RobotsTxt)
+        router.GET("/sitemap.xml", static.SitemapXML)
+        router.GET("/bimi-logo.svg", static.BIMILogoSVG)
+        router.GET("/llms.txt", static.LLMsTxt)
+        router.GET("/llms-full.txt", static.LLMsFullTxt)
+        router.GET("/.well-known/llms.txt", static.LLMsTxt)
+        router.GET("/.well-known/llms-full.txt", static.LLMsFullTxt)
+        router.GET("/manifest.json", static.ManifestJSON)
+        router.GET("/sw.js", static.ServiceWorker)
+}
 
-        router.GET("/history", historyHandler.History)
+func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, history *handlers.HistoryHandler, stats *handlers.StatsHandler, compare *handlers.CompareHandler, export *handlers.ExportHandler, snapshot *handlers.SnapshotHandler) {
+        d.Router.GET("/analyze", analysis.Analyze)
+        d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
+        d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
+        d.Router.GET("/history", history.History)
+        d.Router.GET("/analysis/:id", analysis.ViewAnalysis)
+        d.Router.GET("/analysis/:id/view", analysis.ViewAnalysisStatic)
+        d.Router.GET("/analysis/:id/view/:mode", analysis.ViewAnalysisStatic)
+        d.Router.GET("/analysis/:id/executive", analysis.ViewAnalysisExecutive)
+        d.Router.GET("/stats", stats.Stats)
+        d.Router.GET("/statistics", stats.StatisticsRedirect)
+        d.Router.GET("/compare", compare.Compare)
+        d.Router.GET("/snapshot/:domain", snapshot.Snapshot)
+        d.Router.GET("/export/json", middleware.RequireAdmin(), export.ExportJSON)
+        d.Router.GET("/export/subdomains", analysis.ExportSubdomainsCSV)
+        d.Router.GET("/api/analysis/:id", analysis.APIAnalysis)
+        d.Router.GET("/api/analysis/:id/checksum", analysis.APIAnalysisChecksum)
+        d.Router.GET("/api/subdomains/*domain", analysis.APISubdomains)
+        d.Router.GET("/api/dns-history", analysis.APIDNSHistory)
+}
 
-        dossierHandler := handlers.NewDossierHandler(database, cfg)
-        router.GET("/dossier", middleware.RequireFeature(entitlements.FeatureDossier), dossierHandler.Dossier)
+func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, proxy *handlers.ProxyHandler, static *handlers.StaticHandler) {
+        dossierHandler := handlers.NewDossierHandler(d.DB, d.Cfg)
+        d.Router.GET("/dossier", middleware.RequireFeature(entitlements.FeatureDossier), dossierHandler.Dossier)
 
-        driftHandler := handlers.NewDriftHandler(database, cfg)
-        router.GET("/drift", driftHandler.Timeline)
+        driftHandler := handlers.NewDriftHandler(d.DB, d.Cfg)
+        d.Router.GET("/drift", driftHandler.Timeline)
 
-        watchlistHandler := handlers.NewWatchlistHandler(database, cfg)
-        router.GET("/watchlist", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.Watchlist)
-        router.POST("/watchlist/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddDomain)
-        router.POST("/watchlist/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveDomain)
-        router.POST("/watchlist/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleDomain)
-        router.POST("/watchlist/endpoint/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddEndpoint)
-        router.POST("/watchlist/endpoint/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveEndpoint)
-        router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleEndpoint)
-        router.POST("/watchlist/webhook/test", middleware.RequireAdmin(), watchlistHandler.TestWebhook)
+        watchlistHandler := handlers.NewWatchlistHandler(d.DB, d.Cfg)
+        d.Router.GET("/watchlist", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.Watchlist)
+        d.Router.POST("/watchlist/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddDomain)
+        d.Router.POST("/watchlist/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveDomain)
+        d.Router.POST("/watchlist/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleDomain)
+        d.Router.POST("/watchlist/endpoint/add", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.AddEndpoint)
+        d.Router.POST("/watchlist/endpoint/:id/delete", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.RemoveEndpoint)
+        d.Router.POST("/watchlist/endpoint/:id/toggle", middleware.RequireFeature(entitlements.FeatureWatchlist), watchlistHandler.ToggleEndpoint)
+        d.Router.POST("/watchlist/webhook/test", middleware.RequireAdmin(), watchlistHandler.TestWebhook)
 
-        router.GET("/analysis/:id", analysisHandler.ViewAnalysis)
-        router.GET("/analysis/:id/view", analysisHandler.ViewAnalysisStatic)
-        router.GET("/analysis/:id/view/:mode", analysisHandler.ViewAnalysisStatic)
-        router.GET("/analysis/:id/executive", analysisHandler.ViewAnalysisExecutive)
+        failuresHandler := handlers.NewFailuresHandler(d.DB, d.Cfg)
+        d.Router.GET("/failures", failuresHandler.Failures)
 
-        router.GET("/stats", statsHandler.Stats)
-        router.GET("/statistics", statsHandler.StatisticsRedirect)
+        remediationHandler := handlers.NewRemediationHandler(d.DB, d.Cfg)
+        d.Router.GET("/remediation", remediationHandler.RemediationPage)
+        d.Router.POST("/remediation", remediationHandler.RemediationSubmit)
 
-        failuresHandler := handlers.NewFailuresHandler(database, cfg)
-        router.GET("/failures", failuresHandler.Failures)
+        investigateHandler := handlers.NewInvestigateHandler(d.Cfg, d.Analyzer)
+        d.Router.GET("/investigate", investigateHandler.InvestigatePage)
+        d.Router.POST("/investigate", middleware.AnalyzeRateLimit(d.RateLimiter), investigateHandler.Investigate)
 
-        router.GET("/compare", compareHandler.Compare)
+        emailHeaderHandler := handlers.NewEmailHeaderHandler(d.Cfg)
+        d.Router.GET("/email-header", emailHeaderHandler.EmailHeaderPage)
+        d.Router.POST("/email-header", middleware.AnalyzeRateLimit(d.RateLimiter), emailHeaderHandler.AnalyzeEmailHeader)
 
-        adminHandler := handlers.NewAdminHandler(database, cfg, dnsAnalyzer.BackpressureRejections)
-        router.GET("/ops", middleware.RequireAdmin(), adminHandler.Dashboard)
-        router.POST("/ops/user/:id/delete", middleware.RequireAdmin(), adminHandler.DeleteUser)
-        router.POST("/ops/user/:id/reset-sessions", middleware.RequireAdmin(), adminHandler.ResetUserSessions)
-        router.POST("/ops/sessions/purge-expired", middleware.RequireAdmin(), adminHandler.PurgeExpiredSessions)
-        router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
-        router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
+        toolkitHandler := handlers.NewToolkitHandler(d.Cfg)
+        d.Router.GET("/toolkit", toolkitHandler.ToolkitPage)
+        d.Router.POST("/toolkit/myip", toolkitHandler.MyIP)
+        d.Router.POST("/toolkit/portcheck", middleware.AnalyzeRateLimit(d.RateLimiter), toolkitHandler.PortCheck)
 
-        probeAdminHandler := handlers.NewProbeAdminHandler(database, cfg)
-        router.GET("/ops/probes", middleware.RequireAdmin(), probeAdminHandler.ProbeDashboard)
-        router.POST("/ops/probes/:id/:action", middleware.RequireAdmin(), probeAdminHandler.RunProbeAction)
+        ttlTunerHandler := handlers.NewTTLTunerHandler(d.Cfg, d.Analyzer)
+        d.Router.GET("/ttl-tuner", ttlTunerHandler.TTLTunerPage)
+        d.Router.GET("/ttl-tuner/analyze", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/ttl-tuner") })
+        d.Router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), ttlTunerHandler.AnalyzeTTL)
 
-        analyticsHandler := handlers.NewAnalyticsHandler(database, cfg)
-        router.GET("/ops/analytics", middleware.RequireAdmin(), analyticsHandler.Dashboard)
+        d.Router.GET("/proxy/bimi-logo", proxy.BIMILogo)
+        d.Router.GET("/proxy/sonar-badge/:key", proxy.SonarBadge)
 
-        telemetryHandler := handlers.NewTelemetryHandler(database, cfg)
-        router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
-        router.GET("/admin/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
-        router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
+        agentHandler := handlers.NewAgentHandler(d.Cfg, d.Analyzer, d.DB.Queries)
+        agentHandler.SaveFn = analysis.SaveForAgent
+        d.Router.GET("/agent/search", middleware.AgentRateLimit(d.RateLimiter), agentHandler.AgentSearch)
+        d.Router.GET("/agent/api", middleware.AgentRateLimit(d.RateLimiter), agentHandler.AgentAPI)
+        d.Router.GET("/agent/badge-view", agentHandler.BadgeView)
+        d.Router.GET("/agent/wayback", agentHandler.WaybackView)
+        d.Router.GET("/agent/report", agentHandler.ReportView)
+        d.Router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
+        d.Router.GET("/agent/plugin", agentHandler.PluginPage)
 
-        logsHandler := handlers.NewLogsHandler(database, cfg)
-        router.GET("/ops/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
-        router.GET("/admin/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
-        router.GET("/admin/logs/export", middleware.RequireAdmin(), logsHandler.ExportJSONL)
+        zoneHandler := handlers.NewZoneHandler(d.DB, d.Cfg)
+        d.Router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
+        d.Router.POST("/zone/upload", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.ProcessUpload)
 
-        pipelineHandler := handlers.NewPipelineHandler(database, cfg)
-        router.GET("/ops/pipeline", middleware.RequireAdmin(), pipelineHandler.Observatory)
+        registerContentRoutes(d.Router, d.Cfg, d.DB, static)
+}
 
-        router.GET("/snapshot/:domain", snapshotHandler.Snapshot)
-
-        router.GET("/export/json", middleware.RequireAdmin(), exportHandler.ExportJSON)
-        router.GET("/export/subdomains", analysisHandler.ExportSubdomainsCSV)
-
-        router.GET("/api/analysis/:id", analysisHandler.APIAnalysis)
-        router.GET("/api/analysis/:id/checksum", analysisHandler.APIAnalysisChecksum)
-        router.GET("/api/subdomains/*domain", analysisHandler.APISubdomains)
-        router.GET("/api/dns-history", analysisHandler.APIDNSHistory)
-        router.GET("/api/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
-
-        router.GET("/proxy/bimi-logo", proxyHandler.BIMILogo)
-        router.GET("/proxy/sonar-badge/:key", proxyHandler.SonarBadge)
-
-        toolkitHandler := handlers.NewToolkitHandler(cfg)
-        router.GET("/toolkit", toolkitHandler.ToolkitPage)
-        router.POST("/toolkit/myip", toolkitHandler.MyIP)
-        router.POST("/toolkit/portcheck", middleware.AnalyzeRateLimit(rateLimiter), toolkitHandler.PortCheck)
-
-        ttlTunerHandler := handlers.NewTTLTunerHandler(cfg, dnsAnalyzer)
-        router.GET("/ttl-tuner", ttlTunerHandler.TTLTunerPage)
-        router.GET("/ttl-tuner/analyze", func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, "/ttl-tuner") })
-        router.POST("/ttl-tuner/analyze", middleware.AnalyzeRateLimit(rateLimiter), ttlTunerHandler.AnalyzeTTL)
-
-        remediationHandler := handlers.NewRemediationHandler(database, cfg)
-        router.GET("/remediation", remediationHandler.RemediationPage)
-        router.POST("/remediation", remediationHandler.RemediationSubmit)
-
-        investigateHandler := handlers.NewInvestigateHandler(cfg, dnsAnalyzer)
-        router.GET("/investigate", investigateHandler.InvestigatePage)
-        router.POST("/investigate", middleware.AnalyzeRateLimit(rateLimiter), investigateHandler.Investigate)
-
-        emailHeaderHandler := handlers.NewEmailHeaderHandler(cfg)
-        router.GET("/email-header", emailHeaderHandler.EmailHeaderPage)
-        router.POST("/email-header", middleware.AnalyzeRateLimit(rateLimiter), emailHeaderHandler.AnalyzeEmailHeader)
-
+func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.Database, static *handlers.StaticHandler) {
         sourcesHandler := handlers.NewSourcesHandler(cfg)
         router.GET("/sources", sourcesHandler.Sources)
 
@@ -445,7 +532,6 @@ func main() {
         router.GET("/api/research", citationHandler.ResearchAPI)
         router.GET("/cite", citationHandler.CitePage)
         router.GET("/cite/software", citationHandler.SoftwareCitation)
-        router.GET("/analysis/:id/cite", citationHandler.AnalysisCitation)
 
         architectureHandler := handlers.NewArchitectureHandler(cfg)
         router.GET("/architecture", architectureHandler.Architecture)
@@ -500,14 +586,14 @@ func main() {
         commStdsHandler := handlers.NewCommunicationStandardsHandler(cfg)
         router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
 
-        router.GET("/methodology", staticHandler.MethodologyPDF)
-        router.GET("/docs/dns-tool-methodology.pdf", staticHandler.MethodologyPDF)
-        router.GET("/foundations", staticHandler.FoundationsPDF)
-        router.GET("/docs/philosophical-foundations.pdf", staticHandler.FoundationsPDF)
-        router.GET("/manifesto-pdf", staticHandler.ManifestoPDF)
-        router.GET("/docs/founders-manifesto.pdf", staticHandler.ManifestoPDF)
-        router.GET("/communication-standards-pdf", staticHandler.CommStandardsPDF)
-        router.GET("/docs/communication-standards.pdf", staticHandler.CommStandardsPDF)
+        router.GET("/methodology", static.MethodologyPDF)
+        router.GET("/docs/dns-tool-methodology.pdf", static.MethodologyPDF)
+        router.GET("/foundations", static.FoundationsPDF)
+        router.GET("/docs/philosophical-foundations.pdf", static.FoundationsPDF)
+        router.GET("/manifesto-pdf", static.ManifestoPDF)
+        router.GET("/docs/founders-manifesto.pdf", static.ManifestoPDF)
+        router.GET("/communication-standards-pdf", static.CommStandardsPDF)
+        router.GET("/docs/communication-standards.pdf", static.CommStandardsPDF)
 
         corpusHandler := handlers.NewCorpusHandler(cfg)
         router.GET("/corpus", corpusHandler.Corpus)
@@ -536,28 +622,53 @@ func main() {
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
         router.GET("/badge/animated", badgeHandler.BadgeAnimated)
 
-        agentHandler := handlers.NewAgentHandler(cfg, dnsAnalyzer, database.Queries)
-        agentHandler.SaveFn = analysisHandler.SaveForAgent
-        router.GET("/agent/search", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentSearch)
-        router.GET("/agent/api", middleware.AgentRateLimit(rateLimiter), agentHandler.AgentAPI)
-        router.GET("/agent/badge-view", agentHandler.BadgeView)
-        router.GET("/agent/wayback", agentHandler.WaybackView)
-        router.GET("/agent/report", agentHandler.ReportView)
-        router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
-        router.GET("/agent/plugin", agentHandler.PluginPage)
+        router.GET("/analysis/:id/cite", citationHandler.AnalysisCitation)
+}
 
-        zoneHandler := handlers.NewZoneHandler(database, cfg)
-        router.GET("/zone", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.UploadForm)
-        router.POST("/zone/upload", middleware.RequireFeature(entitlements.FeatureZoneUpload), zoneHandler.ProcessUpload)
+func registerAdminRoutes(d routeDeps) {
+        healthHandler := handlers.NewHealthHandler(d.DB, d.Analyzer)
+        d.Router.GET("/api/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
-        authHandler := handlers.NewAuthHandler(cfg, database.Pool)
-        if cfg.GoogleClientID != "" {
-                authRL := middleware.AuthRateLimit(rateLimiter)
-                router.GET("/auth/login", authRL, authHandler.Login)
-                router.GET("/auth/callback", authRL, authHandler.Callback)
-                router.POST("/auth/logout", authHandler.Logout)
+        adminHandler := handlers.NewAdminHandler(d.DB, d.Cfg, d.Analyzer.BackpressureRejections)
+        d.Router.GET("/ops", middleware.RequireAdmin(), adminHandler.Dashboard)
+        d.Router.POST("/ops/user/:id/delete", middleware.RequireAdmin(), adminHandler.DeleteUser)
+        d.Router.POST("/ops/user/:id/reset-sessions", middleware.RequireAdmin(), adminHandler.ResetUserSessions)
+        d.Router.POST("/ops/sessions/purge-expired", middleware.RequireAdmin(), adminHandler.PurgeExpiredSessions)
+        d.Router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
+        d.Router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
+
+        probeAdminHandler := handlers.NewProbeAdminHandler(d.DB, d.Cfg)
+        d.Router.GET("/ops/probes", middleware.RequireAdmin(), probeAdminHandler.ProbeDashboard)
+        d.Router.POST("/ops/probes/:id/:action", middleware.RequireAdmin(), probeAdminHandler.RunProbeAction)
+
+        analyticsHandler := handlers.NewAnalyticsHandler(d.DB, d.Cfg)
+        d.Router.GET("/ops/analytics", middleware.RequireAdmin(), analyticsHandler.Dashboard)
+
+        telemetryHandler := handlers.NewTelemetryHandler(d.DB, d.Cfg)
+        d.Router.GET("/ops/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
+        d.Router.GET("/admin/telemetry", middleware.RequireAdmin(), telemetryHandler.Dashboard)
+        d.Router.GET("/api/telemetry/verify/:id", middleware.RequireAdmin(), telemetryHandler.VerifyHash)
+
+        logsHandler := handlers.NewLogsHandler(d.DB, d.Cfg)
+        d.Router.GET("/ops/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
+        d.Router.GET("/admin/logs", middleware.RequireAdmin(), logsHandler.Dashboard)
+        d.Router.GET("/admin/logs/export", middleware.RequireAdmin(), logsHandler.ExportJSONL)
+
+        pipelineHandler := handlers.NewPipelineHandler(d.DB, d.Cfg)
+        d.Router.GET("/ops/pipeline", middleware.RequireAdmin(), pipelineHandler.Observatory)
+}
+
+func registerAuthRoutes(d routeDeps) {
+        authHandler := handlers.NewAuthHandler(d.Cfg, d.DB.Pool)
+        if d.Cfg.GoogleClientID != "" {
+                authRL := middleware.AuthRateLimit(d.RateLimiter)
+                d.Router.GET("/auth/login", authRL, authHandler.Login)
+                d.Router.GET("/auth/callback", authRL, authHandler.Callback)
+                d.Router.POST("/auth/logout", authHandler.Logout)
         }
+}
 
+func registerNotFoundRoute(router *gin.Engine, cfg *config.Config) {
         router.NoRoute(func(c *gin.Context) {
                 nonce, _ := c.Get("csp_nonce")
                 csrfToken, _ := c.Get("csrf_token")
@@ -577,25 +688,9 @@ func main() {
                 }
                 c.HTML(http.StatusNotFound, "index.html", data)
         })
+}
 
-        handler.Store(http.HandlerFunc(router.Handler().ServeHTTP))
-        slog.Info("Full router ready — handler swapped",
-                "address", earlyAddr,
-                "version", cfg.AppVersion,
-                "commit", config.GitCommit,
-                "built", config.BuildTime,
-        )
-
-        syncCtx, syncCancel := context.WithCancel(context.Background())
-        defer syncCancel()
-        startScheduledSync(syncCtx)
-
-        ctEnrichment := analyzer.NewCTEnrichmentJob(database.Queries, ctStore)
-        ctEnrichment.Start(syncCtx)
-
-        driftNotifier := notifier.New(dbq.New(database.Pool))
-        startNotificationDelivery(syncCtx, driftNotifier)
-
+func awaitShutdown(srv *http.Server, syncCancel context.CancelFunc, ac *middleware.AnalyticsCollector) {
         quit := make(chan os.Signal, 1)
         signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -603,7 +698,7 @@ func main() {
         slog.Info("Shutdown signal received, draining connections…")
 
         syncCancel()
-        analyticsCollector.Flush()
+        ac.Flush()
         slog.Info("Analytics flushed on shutdown")
 
         shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)

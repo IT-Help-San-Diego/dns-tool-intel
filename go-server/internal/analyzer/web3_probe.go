@@ -174,7 +174,7 @@ func dispatchIPFSProbe(ctx context.Context, ep ProbeEndpoint, cid string, gatewa
         }
         defer func() {
                 _, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, ipfsFleetResponseBodyMax))
-                resp.Body.Close()
+                _ = resp.Body.Close()
         }()
 
         if resp.StatusCode == http.StatusUnauthorized {

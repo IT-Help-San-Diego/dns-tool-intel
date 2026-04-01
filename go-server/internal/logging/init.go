@@ -63,7 +63,7 @@ func Setup(pool *pgxpool.Pool, discordWebhookURL string) (*Logger, error) {
 func (l *Logger) Close() {
         close(l.done)
         if l.FileWriter != nil {
-                l.FileWriter.Close()
+                _ = l.FileWriter.Close()
         }
         if l.DBSink != nil {
                 l.DBSink.Close()

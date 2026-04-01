@@ -14,7 +14,7 @@ import (
 )
 
 var stderrLog = func(msg string) {
-        fmt.Fprintf(os.Stderr, `{"time":"%s","level":"ERROR","msg":"%s","source":"dbsink"}`+"\n",
+        _, _ = fmt.Fprintf(os.Stderr, `{"time":"%s","level":"ERROR","msg":"%s","source":"dbsink"}`+"\n",
                 time.Now().UTC().Format(time.RFC3339), msg)
 }
 
