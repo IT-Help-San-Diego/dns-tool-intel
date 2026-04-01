@@ -754,6 +754,7 @@ func TestGoldenRuleNoProviderIntelligenceInPublicFiles(t *testing.T) {
                 "manifest_intel.go":               true,
                 "providers.go":                    true,
                 "providers_intel.go":              true,
+		"providers_oss.go":               true,
                 "saas_txt_intel.go":               true,
         }
 
