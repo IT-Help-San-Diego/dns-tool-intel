@@ -135,7 +135,7 @@ func fetchHackerTarget(ctx context.Context, domain string) []string {
                 slog.Warn("hackertarget request failed", mapKeyDomain, domain, mapKeyError, err)
                 return nil
         }
-        defer resp.Body.Close()
+        defer func() { _ = resp.Body.Close() }()
 
         body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
         if err != nil {

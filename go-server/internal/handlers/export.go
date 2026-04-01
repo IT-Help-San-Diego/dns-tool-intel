@@ -84,6 +84,6 @@ func writeExportRecord(w interface{ Write([]byte) (int, error) }, a dbq.DomainAn
         if err != nil {
                 return
         }
-        w.Write(line)
-        w.Write([]byte("\n"))
+        _, _ = w.Write(line)
+        _, _ = w.Write([]byte("\n"))
 }

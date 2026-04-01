@@ -223,7 +223,7 @@ func resolveViaGatewayRedirect(ctx context.Context, ensDomain, gateway string) (
         }
         defer func() {
                 _, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, web3ResolutionBodyMax))
-                resp.Body.Close()
+                _ = resp.Body.Close()
         }()
 
         if resp.StatusCode >= 300 && resp.StatusCode < 400 {

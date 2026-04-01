@@ -391,13 +391,13 @@ func executeSSH(ctx context.Context, target *sshTarget, script string) (string, 
         if err != nil {
                 return "", fmt.Errorf("SSH dial failed: %w", err)
         }
-        defer conn.Close()
+        defer func() { _ = conn.Close() }()
 
         session, err := conn.NewSession()
         if err != nil {
                 return "", fmt.Errorf("SSH session failed: %w", err)
         }
-        defer session.Close()
+        defer func() { _ = session.Close() }()
 
         var stdout, stderr bytes.Buffer
         session.Stdout = &stdout

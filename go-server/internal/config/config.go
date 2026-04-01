@@ -10,7 +10,7 @@ import (
 )
 
 var (
-        Version   = "26.40.29"
+        Version   = "26.40.30"
         GitCommit = "dev"
         BuildTime = "unknown"
 )

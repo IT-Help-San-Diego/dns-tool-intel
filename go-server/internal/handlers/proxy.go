@@ -161,29 +161,29 @@ func (h *ProxyHandler) followRedirects(c *gin.Context, client *http.Client, resp
                 redirectCount++
                 redirectURL := resp.Header.Get("Location")
                 if redirectURL == "" {
-                        resp.Body.Close()
+                        _ = resp.Body.Close()
                         c.String(http.StatusBadGateway, "Redirect without Location header")
                         return nil, fmt.Errorf("redirect without location")
                 }
 
                 rParsed, err := url.Parse(redirectURL)
                 if err != nil {
-                        resp.Body.Close()
+                        _ = resp.Body.Close()
                         c.String(http.StatusBadRequest, "Invalid redirect URL")
                         return nil, err
                 }
                 if err := validateParsedURL(rParsed); err != nil {
-                        resp.Body.Close()
+                        _ = resp.Body.Close()
                         c.String(http.StatusBadRequest, err.Error())
                         return nil, err
                 }
                 if err := checkSSRF(rParsed.Hostname()); err != nil {
-                        resp.Body.Close()
+                        _ = resp.Body.Close()
                         c.String(http.StatusBadRequest, err.Error())
                         return nil, err
                 }
 
-                resp.Body.Close()
+                _ = resp.Body.Close()
                 validatedRedirect := buildSafeURL(rParsed)
                 req, err := http.NewRequestWithContext(c.Request.Context(), "GET", validatedRedirect, nil)
                 if err != nil {
