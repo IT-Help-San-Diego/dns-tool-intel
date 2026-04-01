@@ -1,5 +1,7 @@
 package analyzer
 
+// dns-tool:scrutiny science
+
 import (
         "bufio"
         "context"

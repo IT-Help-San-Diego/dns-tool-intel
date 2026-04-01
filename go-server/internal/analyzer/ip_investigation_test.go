@@ -124,7 +124,7 @@ func TestFindFirstHostname_Empty(t *testing.T) {
 func TestExtractMXHost_Empty(t *testing.T) {
         got := extractMXHost("10 mail.example.com")
         if got != "" {
-                t.Logf("extractMXHost returned %q (OSS stub returns empty)", got)
+                t.Logf("extractMXHost returned %q for raw MX record", got)
         }
 }
 
