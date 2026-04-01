@@ -350,7 +350,7 @@ func probeIPFSGateway(ctx context.Context, url string) (bool, string) {
         }
         defer func() {
                 _, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, ipfsProbeBodyMax))
-                resp.Body.Close()
+                _ = resp.Body.Close()
         }()
 
         if resp.StatusCode >= 200 && resp.StatusCode < 400 {

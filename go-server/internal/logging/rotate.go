@@ -70,7 +70,7 @@ func (w *RotatingFileWriter) Close() error {
 
 func (w *RotatingFileWriter) rotate() error {
         if w.file != nil {
-                w.file.Close()
+                _ = w.file.Close()
         }
         name := filepath.Join(w.dir, fmt.Sprintf("%s-%s.jsonl", w.prefix, time.Now().UTC().Format("20060102-150405")))
         f, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o640)

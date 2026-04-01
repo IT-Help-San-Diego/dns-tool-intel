@@ -142,8 +142,8 @@ func (d *DiscordSink) Send(ctx context.Context, level slog.Level, msg string, at
                 return
         }
         defer func() {
-                io.Copy(io.Discard, resp.Body) //nolint:errcheck
-                resp.Body.Close()
+                _, _ = io.Copy(io.Discard, resp.Body)
+                _ = resp.Body.Close()
         }()
 }
 

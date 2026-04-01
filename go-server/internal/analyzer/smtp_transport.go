@@ -1018,9 +1018,9 @@ func verifyCert(ctx context.Context, host string, result map[string]any) {
         if !strings.HasPrefix(banner, smtpBannerPrefix) {
                 return
         }
-        fmt.Fprintf(verifyConn, "EHLO dnstool.local\r\n")
-        readSMTPResponse(verifyConn, 1*time.Second)
-        fmt.Fprintf(verifyConn, "STARTTLS\r\n")
+        _, _ = fmt.Fprintf(verifyConn, "EHLO dnstool.local\r\n")
+        _, _ = readSMTPResponse(verifyConn, 1*time.Second)
+        _, _ = fmt.Fprintf(verifyConn, "STARTTLS\r\n")
         resp, _ := readSMTPResponse(verifyConn, 1*time.Second)
         if !strings.HasPrefix(resp, smtpBannerPrefix) {
                 return
@@ -1061,7 +1061,7 @@ func dialSMTPWithDialer(ctx context.Context, dialer *net.Dialer, host string) (n
 }
 
 func readSMTPResponse(conn net.Conn, timeout time.Duration) (string, error) {
-        conn.SetReadDeadline(time.Now().Add(timeout))
+        _ = conn.SetReadDeadline(time.Now().Add(timeout))
         buf := make([]byte, 4096)
         var response strings.Builder
         for {
