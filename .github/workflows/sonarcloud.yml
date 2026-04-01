@@ -25,19 +25,9 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Verify intel sources present
-        run: |
-          INTEL_COUNT=$(find go-server -name '*_intel.go' -not -path '*/vendor/*' 2>/dev/null | wc -l)
-          if [ "$INTEL_COUNT" -eq 0 ]; then
-            echo "::error::No _intel.go files found. SonarCloud analysis requires full product source."
-            exit 1
-          fi
-          echo "Detected $INTEL_COUNT _intel.go files — proceeding with full coverage scan"
-
       - name: Run Go tests with coverage
         run: |
-          go test ./go-server/... -tags intel \
-            -skip 'NoIntelInPublicRepo|NoIntelLeakage|NoIntelStagingDirectory|BoundaryIntegrity_FullRepoScan|IsOriginVisible|EdgeCDNMapsEmpty|GoldenRuleStubBoundary|ScrutinyClassificationAllFiles' \
+          go test ./go-server/... \
             -coverprofile=coverage.out -covermode=atomic -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'

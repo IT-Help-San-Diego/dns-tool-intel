@@ -3,12 +3,11 @@ on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-
 jobs:
   redirect:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     if: contains(github.event.issue.labels.*.name, 'triage:security-redirect')
     steps:
       - name: Post private reporting instructions and close
@@ -31,7 +30,7 @@ jobs:
                 '',
                 '| Channel | Link |',
                 '| ------- | ---- |',
-                '| **GitHub Security Advisory** | [Create Private Advisory](https://github.com/IT-Help-San-Diego/dns-tool/security/advisories/new) |',
+                '| **GitHub Security Advisory** | [Create Private Advisory](https://github.com/IT-Help-San-Diego/dns-tool-intel/security/advisories/new) |',
                 '| **Email** | [security@it-help.tech](mailto:security@it-help.tech) |',
                 '| **security.txt** | [/.well-known/security.txt](https://dnstool.it-help.tech/.well-known/security.txt) |',
                 '',
