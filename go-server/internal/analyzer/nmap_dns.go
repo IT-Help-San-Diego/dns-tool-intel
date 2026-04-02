@@ -258,7 +258,11 @@ func runNmapScript(ctx context.Context, target, script, args string, timeout tim
 	}
 	cmdArgs = append(cmdArgs, target)
 
-	cmd := exec.CommandContext(cmdCtx, "nmap", cmdArgs...)
+	nmapPath, lookErr := exec.LookPath("nmap")
+if lookErr != nil {
+return "", fmt.Errorf("nmap binary not found in PATH: %w", lookErr)
+}
+cmd := exec.CommandContext(cmdCtx, nmapPath, cmdArgs...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if cmdCtx.Err() == context.DeadlineExceeded {
@@ -272,3 +276,4 @@ func runNmapScript(ctx context.Context, target, script, args string, timeout tim
 
 	return string(out), nil
 }
+

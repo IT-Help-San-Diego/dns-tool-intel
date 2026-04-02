@@ -561,9 +561,17 @@ func handleDANEVerify(w http.ResponseWriter, r *http.Request) {
         }
 
         tlsaName := fmt.Sprintf("_%d._tcp.%s", req.Port, req.Host)
+        digPath, err := exec.LookPath("dig")
+        if err != nil {
+                response[mapKeyStatus] = "error"
+                response["message"] = "dig binary not found in PATH"
+                response[mapKeyElapsedSeconds] = time.Since(start).Seconds()
+                writeJSON(w, http.StatusOK, response)
+                return
+        }
         digCtx, digCancel := context.WithTimeout(ctx, 8*time.Second)
         defer digCancel()
-        digCmd := exec.CommandContext(digCtx, "dig", "+short", "TLSA", tlsaName)
+        digCmd := exec.CommandContext(digCtx, digPath, "+short", "TLSA", tlsaName)
         tlsaOut, err := digCmd.Output()
         tlsaRecords := strings.TrimSpace(string(tlsaOut))
 
@@ -1328,3 +1336,4 @@ func classifyIPFSError(err error) string {
                 return "connection error"
         }
 }
+
