@@ -18,6 +18,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          persist-credentials: false
 
       - name: Mirror to off-site-backup
         env:
