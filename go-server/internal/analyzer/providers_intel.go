@@ -49,35 +49,35 @@ const (
 	domainSendmarc = "sendmarc.com"
 )
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var dmarcMonitoringProviders = map[string]managementProviderInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var spfFlatteningProviders = map[string]spfFlatteningInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var hostedDKIMProviders = map[string]hostedDKIMInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var dynamicServicesProviders = map[string]dynamicServiceInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var dynamicServicesZones = map[string]string{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
 var cnameProviderMap = map[string]cnameProviderInfo{}
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Stub: full intelligence implementation in dnstool-intel private repo.
 func isHostedEmailProvider(_ string) bool {
 	return true
 }
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Stub: full intelligence implementation in dnstool-intel private repo.
 func isBIMICapableProvider(_ string) bool {
 	return false
 }
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Stub: full intelligence implementation in dnstool-intel private repo.
 func isKnownDKIMProvider(_ interface{}) bool {
 	return false
 }
