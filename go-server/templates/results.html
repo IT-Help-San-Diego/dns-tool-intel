@@ -6755,7 +6755,62 @@
             document.documentElement.dataset.bsTheme = _printThemePrev;
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function setupProtocolLinks(sectionMap) {
+            for (const el of document.querySelectorAll('.protocol-link')) {
+                const proto = el.dataset.protocol;
+                const idx = proto.indexOf('(');
+                const cleaned = (idx >= 0 ? proto.substring(0, idx) : proto).trim();
+                const target = sectionMap[cleaned];
+                if (target) {
+                    el.classList.add('u-link-dotted');
+                    el.addEventListener('click', function() {
+                        const section = document.querySelector(target);
+                        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                }
+            }
+        }
+
+        function setupTlpSelector(tlpConfig, copyrightSuffix) {
+            for (const item of document.querySelectorAll('.tlp-option')) {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tlp = this.dataset.tlp;
+                    const cfg = tlpConfig[tlp];
+                    if (!cfg) return;
+                    const badge = document.getElementById('printTlpBadge');
+                    const note = document.getElementById('printTlpNote');
+                    const selectorLabel = document.getElementById('tlpSelectorLabel');
+                    const selectorBtn = document.getElementById('tlpSelectorBtn');
+                    const footerTlp = document.getElementById('printFooterTlp');
+                    if (badge) { badge.textContent = cfg.label; badge.className = 'print-tlp-badge ' + cfg.cls; }
+                    if (note) note.textContent = cfg.note;
+                    if (selectorLabel) selectorLabel.textContent = cfg.label;
+                    if (selectorBtn) { selectorBtn.className = 'btn dropdown-toggle ' + this.dataset.btnClass; }
+                    if (footerTlp) footerTlp.innerHTML = cfg.footer + copyrightSuffix;
+                    const dd = bootstrap.Dropdown.getInstance(selectorBtn);
+                    if (dd) dd.hide();
+                });
+            }
+        }
+
+        function setupReanalyzeButton() {
+            const reanalyzeBtn = document.getElementById('reanalyzeBtn');
+            if (!reanalyzeBtn) return;
+            const waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
+            if (waitSeconds > 0) {
+                startReanalyzeCountdown(reanalyzeBtn, waitSeconds);
+            }
+            reanalyzeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (this.classList.contains('disabled')) {
+                    return;
+                }
+                submitReanalyzeFetch(this);
+            });
+        }
+
+                document.addEventListener('DOMContentLoaded', function() {
             const printBtn = document.getElementById('engineerPrintBtn');
             if (printBtn) printBtn.addEventListener('click', function() { globalThis.print(); });
 
@@ -6783,18 +6838,7 @@
                 'BIMI': '#section-brand', 'CAA': '#section-brand',
                 'DNSSEC': '#section-dnssec'
             };
-            for (const el of document.querySelectorAll('.protocol-link')) {
-                const proto = el.dataset.protocol;
-                const idx = proto.indexOf('('); const cleaned = (idx >= 0 ? proto.substring(0, idx) : proto).trim();
-                const target = protocolSectionMap[cleaned];
-                if (target) {
-                    el.classList.add('u-link-dotted');
-                    el.addEventListener('click', function() {
-                        const section = document.querySelector(target);
-                        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    });
-                }
-            }
+            setupProtocolLinks(protocolSectionMap);
 
             const tlpConfig = {
                 red: { label: 'TLP:RED', note: 'Eyes only \u2014 not for disclosure, restricted to direct recipients', cls: 'tlp-red',
@@ -6808,27 +6852,7 @@
                 clear: { label: 'TLP:CLEAR', note: 'Unlimited distribution \u2014 no restrictions on sharing', cls: 'tlp-clear',
                     footer: '<strong>TLP:CLEAR</strong> \u2014 No restrictions on distribution. DNS records are public data queried via open-standard protocols.' }
             };
-            const copyrightSuffix = ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.';
-            for (const item of document.querySelectorAll('.tlp-option')) {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const tlp = this.dataset.tlp;
-                    const cfg = tlpConfig[tlp];
-                    if (!cfg) return;
-                    const badge = document.getElementById('printTlpBadge');
-                    const note = document.getElementById('printTlpNote');
-                    const selectorLabel = document.getElementById('tlpSelectorLabel');
-                    const selectorBtn = document.getElementById('tlpSelectorBtn');
-                    const footerTlp = document.getElementById('printFooterTlp');
-                    if (badge) { badge.textContent = cfg.label; badge.className = 'print-tlp-badge ' + cfg.cls; }
-                    if (note) note.textContent = cfg.note;
-                    if (selectorLabel) selectorLabel.textContent = cfg.label;
-                    if (selectorBtn) { selectorBtn.className = 'btn dropdown-toggle ' + this.dataset.btnClass; }
-                    if (footerTlp) footerTlp.innerHTML = cfg.footer + copyrightSuffix;
-                    const dd = bootstrap.Dropdown.getInstance(selectorBtn);
-                    if (dd) dd.hide();
-                });
-            }
+            setupTlpSelector(tlpConfig, ' DNS records are public data queried via open-standard protocols; analysis methodology, posture scoring, and remediation guidance \u00a9 DNS Tool. All conclusions independently verifiable \u2014 see Verification Commands appendix.');
 
             for (const img of document.querySelectorAll('.bimi-logo-img')) {
                 img.addEventListener('error', function() {
@@ -6852,22 +6876,7 @@
                 for (const t of tooltipInstances) { t.hide(); }
             }, { passive: true });
             
-            const reanalyzeBtn = document.getElementById('reanalyzeBtn');
-            if (reanalyzeBtn) {
-                const waitSeconds = Number.parseInt(reanalyzeBtn.dataset.waitSeconds) || 0;
-                
-                if (waitSeconds > 0) {
-                    startReanalyzeCountdown(reanalyzeBtn, waitSeconds);
-                }
-
-                reanalyzeBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (this.classList.contains('disabled')) {
-                        return;
-                    }
-                    submitReanalyzeFetch(this);
-                });
-            }
+            setupReanalyzeButton();
             setupSubdomainCollapse();
 
             setupCopyCommandButtons();
