@@ -49,35 +49,35 @@ const (
 	domainSendmarc = "sendmarc.com"
 )
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var dmarcMonitoringProviders = map[string]managementProviderInfo{}
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var spfFlatteningProviders = map[string]spfFlatteningInfo{}
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var hostedDKIMProviders = map[string]hostedDKIMInfo{}
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var dynamicServicesProviders = map[string]dynamicServiceInfo{}
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var dynamicServicesZones = map[string]string{}
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Provider Intelligence).
+// TODO: Populate with full provider intelligence from private repo.
 var cnameProviderMap = map[string]cnameProviderInfo{}
 
-// Stub: full intelligence implementation in dnstool-intel private repo.
+// TODO: Replace with full intelligence implementation from private repo.
 func isHostedEmailProvider(_ string) bool {
 	return true
 }
 
-// Stub: full intelligence implementation in dnstool-intel private repo.
+// TODO: Replace with full intelligence implementation from private repo.
 func isBIMICapableProvider(_ string) bool {
 	return false
 }
 
-// Stub: full intelligence implementation in dnstool-intel private repo.
+// TODO: Replace with full intelligence implementation from private repo.
 func isKnownDKIMProvider(_ interface{}) bool {
 	return false
 }

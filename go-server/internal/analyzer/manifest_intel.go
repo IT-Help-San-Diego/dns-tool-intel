@@ -5,11 +5,11 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 package analyzer
 
-// Stub: populated by dnstool-intel private repo at build time (see CONTRIBUTING.md §Feature Parity).
+// TODO: Populate from dnstool-intel private repo with full feature parity manifest.
 var FeatureParityManifest = []ManifestEntry{}
 
 var RequiredSchemaKeys []string
 
 func init() {
-	// RequiredSchemaKeys derived from FeatureParityManifest; populated by dnstool-intel private repo.
+// TODO: Populate RequiredSchemaKeys from FeatureParityManifest
 }
