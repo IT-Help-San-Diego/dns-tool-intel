@@ -701,6 +701,16 @@ func TestGoldenRuleStubRegistryComplete(t *testing.T) {
                 "ip_investigation.go":       true,
                 "manifest.go":               true,
                 "providers.go":              true,
+                "providers_oss.go":          true,
+                "ai_surface/http_oss.go":     true,
+                  "ai_surface/llms_txt_oss.go": true,
+                  "ai_surface/poisoning_oss.go": true,
+                  "ai_surface/robots_txt_oss.go": true,
+                  "edge_cdn_oss.go":           true,
+                  "infrastructure_oss.go":     true,
+                  "ip_investigation_oss.go":   true,
+                  "manifest_oss.go":           true,
+                  "saas_txt_oss.go":           true,
         }
 
         analyzerDir := "."
@@ -754,6 +764,7 @@ func TestGoldenRuleNoProviderIntelligenceInPublicFiles(t *testing.T) {
                 "manifest_intel.go":               true,
                 "providers.go":                    true,
                 "providers_intel.go":              true,
+                "providers_oss.go":               true,
                 "saas_txt_intel.go":               true,
         }
 
@@ -887,6 +898,7 @@ func TestGoldenRuleStubBoundaryFunctionsRegistered(t *testing.T) {
                 "manifest_intel.go":               true,
                 "providers.go":                    true,
                 "providers_intel.go":              true,
+                "providers_oss.go":               true,
                 "saas_txt_intel.go":               true,
         }
 

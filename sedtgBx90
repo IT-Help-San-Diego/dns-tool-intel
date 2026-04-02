@@ -1,0 +1,52 @@
+modules = ["python-3.11", "nodejs-20", "go-1.23", "web", "bash", "postgresql-16"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["cacert", "chromium", "dnsutils", "freetype", "imagemagick", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nmap", "nmap-formatter", "openjpeg", "openssl", "postgresql", "potrace", "python312Packages.nmapthon2", "sqlc", "tcl", "tk", "unzip", "whois", "zlib", "subfinder", "amass", "dnsx", "testssl", "httpx", "nuclei"]
+
+[deployment]
+deploymentTarget = "vm"
+run = ["sh", "-c", "./dns-tool-server"]
+build = ["bash", "build.sh"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./dns-tool-server"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+[userenv]
+
+[userenv.shared]
+SONAR_ORG = "careyjames"
+SONAR_PROJECT = "careyjames_DnsToolWeb"
+SMTP_PROBE_MODE = "remote"
+MAINTENANCE_NOTE = "Developing"
+
+[userenv.development]
+
+[agent]
+integrations = ["github:1.0.0", "notion:1.0.0"]
