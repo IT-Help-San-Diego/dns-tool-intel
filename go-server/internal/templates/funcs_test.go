@@ -1042,8 +1042,8 @@ func TestHtmlComment(t *testing.T) {
 }
 
 func TestMergeFuncs(t *testing.T) {
-        dst := template.FuncMap{"a": func() { /* placeholder func for merge test */ }}
-        src := template.FuncMap{"b": func() { /* placeholder func for merge test */ }}
+        dst := template.FuncMap{"a": func() {}}
+        src := template.FuncMap{"b": func() {}}
         mergeFuncs(dst, src)
         if _, ok := dst["b"]; !ok {
                 t.Error("mergeFuncs should copy keys")

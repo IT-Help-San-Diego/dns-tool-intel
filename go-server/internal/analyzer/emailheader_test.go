@@ -424,7 +424,7 @@ func TestGenerateVerdict(t *testing.T) {
         }{
                 {
                         "clean",
-                        func(r *EmailHeaderAnalysis) { /* no-op: verify default state yields clean verdict */ },
+                        func(r *EmailHeaderAnalysis) {},
                         "clean",
                 },
                 {
