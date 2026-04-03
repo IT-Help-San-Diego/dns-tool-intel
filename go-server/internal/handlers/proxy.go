@@ -229,10 +229,8 @@ func validateBIMIResponse(resp *http.Response) ([]byte, string, error) {
 }
 
 var sonarBadgeURLs = map[string]string{
-        "qg-full":  "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-full&metric=alert_status",
-        "ai-full":  "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-full",
-        "qg-cli":   "https://sonarcloud.io/api/project_badges/measure?project=ithelpsandiego_dns-tool-cli&metric=alert_status",
-        "ai-cli":   "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=ithelpsandiego_dns-tool-cli",
+        "qg-intel": "https://sonarcloud.io/api/project_badges/quality_gate?project=IT-Help-San-Diego_dns-tool-intel",
+        "ai-intel": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=IT-Help-San-Diego_dns-tool-intel",
 }
 
 func (h *ProxyHandler) SonarBadge(c *gin.Context) {
