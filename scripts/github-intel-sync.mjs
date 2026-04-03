@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 
 const INTEL_REPO_OWNER = 'IT-Help-San-Diego';
-const INTEL_REPO_NAME = 'dns-tool';
+const INTEL_REPO_NAME = 'dns-tool-intel';
 const INTEL_BRANCH = 'main';
 
 let connectionSettings = null;
