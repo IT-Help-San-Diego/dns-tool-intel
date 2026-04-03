@@ -5066,6 +5066,8 @@ body.covert-mode .dt-question {
 .u-fs-072em { font-size: 0.75em; }
 .u-fs-072rem { font-size: 0.75rem; }
 .u-fs-075em { font-size: 0.75em; }
+.u-logo-sm { border-radius: 3px; }
+.u-logo-md { border-radius: 4px; }
 .u-privacy-hint { font-size: 0.78em; opacity: 0.75; }
 .u-max-w-900 { max-width: 900px; }
 .u-max-w-640 { max-width: 640px; }

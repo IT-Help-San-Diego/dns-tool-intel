@@ -190,7 +190,7 @@ func TestBuildSafeURL_B5(t *testing.T) {
 }
 
 func TestSonarBadgeURLs_B5(t *testing.T) {
-        expected := []string{"qg-full", "ai-full", "qg-cli", "ai-cli"}
+        expected := []string{"qg-intel", "ai-intel"}
         for _, key := range expected {
                 if _, ok := sonarBadgeURLs[key]; !ok {
                         t.Errorf("sonarBadgeURLs missing key %q", key)
