@@ -303,5 +303,5 @@ func buildCountryStat(cs dbq.ListCountryDistributionRow) CountryStat {
 }
 
 func (h *StatsHandler) StatisticsRedirect(c *gin.Context) {
-        c.Redirect(http.StatusFound, "/stats")
+        c.Redirect(http.StatusMovedPermanently, "/stats")
 }

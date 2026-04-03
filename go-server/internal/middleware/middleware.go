@@ -240,7 +240,7 @@ func CanonicalHostRedirect(canonicalURL string) gin.HandlerFunc {
                 if strings.HasSuffix(host, ".replit.app") || strings.HasSuffix(host, ".replit.dev") {
                         target := canonicalScheme + "://" + canonicalHost + c.Request.URL.RequestURI()
                         c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-                        c.Redirect(http.StatusFound, target)
+                        c.Redirect(http.StatusMovedPermanently, target)
                         c.Abort()
                         return
                 }
