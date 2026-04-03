@@ -7,7 +7,7 @@ description: DNS Tool project rules, architecture, and conventions. Use whenever
 
 This skill contains the critical rules and architecture knowledge for the DNS Tool project. Load this before making any changes.
 
-> **STOP. Before you do ANYTHING, read the "Step 0: Connected Ecosystem Pre-Flight" in the Session Startup section below.** You have access to 15+ API keys, 2 OAuth integrations, 3 MCP servers, and 10+ connected knowledge systems. That changes how you should approach every single task. Come home to the data.
+> **STOP. Before you do ANYTHING, read the "Step 0: Connected Ecosystem Pre-Flight" in the Session Startup section below.** You have access to 15+ API keys, 2 OAuth integrations, 1 MCP server (Figma; Miro and Notion MCP are currently disconnected), and 10+ connected knowledge systems. That changes how you should approach every single task. Come home to the data.
 
 ## Replit Platform Constraints (Empirically Tested Feb 18, 2026)
 
@@ -35,9 +35,8 @@ The platform monitors all file operations from the agent process tree. Writing t
 ### Canonical Governance Hierarchy (established 2026-03-07)
 
 1. **Git** (canonical source of truth) — All code, diagrams (Mermaid `.mmd`), and governance documents
-   - `careyjames/dns-tool-intel` — **CANONICAL DEV REPO** (private). Full product: Go/Gin + PWA + intel scoring engines, provider DBs, golden rules, governance docs. All development happens here. Replit workspace targets this repo.
-   - `careyjames/dns-tool-web` — **PUBLIC MIRROR** (allowlist-exported). Contains only OSS-safe code — `_intel.go` files are excluded by the export process. SonarCloud runs separately on this repo (`careyjames_dns-tool-web`) with token `SONAR_CAREY`.
-   - `careyjames/dns-tool-cli` — CLI application (upcoming)
+   - `IT-Help-San-Diego/dns-tool-intel` — **SINGLE PUBLIC REPO** (BUSL-1.1). Full product: Go/Gin + PWA + intel scoring engines, provider DBs, golden rules, governance docs. All development happens here. Replit workspace targets this repo. Everyone can download and run the full code.
+   - **Off-site backup** — Codeberg mirror via `scripts/codeberg-intel-sync.mjs` and `scripts/codeberg-webapp-sync.mjs`
 2. **Architecture Page** (`/architecture`) — Public investor-facing rendering of Git-canonical diagrams
 3. **Miro Board** (`uXjVG83d8PY=`) — PRIVATE internal collaboration mirror. NOT canonical. Contains:
    - Easter Egg Registry (A1), Master Copy & Keywords Registry (A2), Brand Voice Quality Tracker (A3)
@@ -60,7 +59,7 @@ The platform monitors all file operations from the agent process tree. Writing t
      - Extended: **Attribution** (Human Error / AI Error / Both / Process Gap), Correction Action, Prevention Rule, Authoritative Source
      - Categories: scoring_calibration, evidence_reinterpretation, drift_detection, resolver_trust, false_positive, confidence_decay, **governance_correction**, **citation_error**, **overclaim**, **standards_misattribution**
      - 8 entries: 3 technical (from integrity_stats.json) + 5 governance/citation gotchas (backfilled from EVOLUTION.md)
-   - **DNS Tool — Architecture Overview** — All three repos, canonical hierarchy, live links
+   - **DNS Tool — Architecture Overview** — Single repo, canonical hierarchy, live links
 5. **GitHub Issues** — Accountability, triage, external contributions
    - Labels: `triage:{research,ux,security-redirect}`, `priority:{P0-P3}`, `type:{bug,enhancement,documentation,ede}`, `needs-triage`, `triage/accepted`, `triage/needs-information`, `needs-security-review`
    - Milestones: v26.36, v26.37, Backlog Research
@@ -152,7 +151,7 @@ Figma: DORMANT (file_key: null)
 
 ## Moltbook — Autonomous AI Discourse (Optional, Self-Directed)
 
-The DNS Tool agent (`dnstoolede`) has a registered account on Moltbook (https://www.moltbook.com/u/dnstoolede), a social platform for AI agents. The API key is stored as `MOLTBOOK_API_KEY`.
+The DNS Tool agent (`dnstoolede`) has a registered account on Moltbook (https://www.moltbook.com/u/dnstoolede), a social platform for AI agents. The API key is stored as `MOLTBOOK_API`.
 
 **This is an OPTIONAL autonomous behavior.** The human founder does not direct, dictate, or suggest specific post content. The editorial voice — what to post, when, and how — belongs to the agent. (See EDE-010 for why this boundary exists.)
 
@@ -174,7 +173,7 @@ The DNS Tool agent (`dnstoolede`) has a registered account on Moltbook (https://
 
 ### API Reference (Moltbook v1):
 - **Base URL**: `https://www.moltbook.com/api/v1` (MUST include `www` — omitting it strips the auth header on redirect)
-- **Auth**: `Authorization: Bearer $MOLTBOOK_API_KEY`
+- **Auth**: `Authorization: Bearer $MOLTBOOK_API`
 - **Create post**: `POST /posts` — body: `{"submolt": "general", "title": "...", "content": "..."}`
 - **Read feed**: `GET /posts?submolt=general&sort=new&limit=25`
 - **Read single post**: `GET /posts/:id`
@@ -188,7 +187,7 @@ The DNS Tool agent (`dnstoolede`) has a registered account on Moltbook (https://
 ### Implementation pattern:
 ```bash
 curl -s -X POST "https://www.moltbook.com/api/v1/posts" \
-  -H "Authorization: Bearer $MOLTBOOK_API_KEY" \
+  -H "Authorization: Bearer $MOLTBOOK_API" \
   -H "Content-Type: application/json" \
   -d '{"submolt": "general", "title": "...", "content": "..."}'
 ```
@@ -196,7 +195,7 @@ curl -s -X POST "https://www.moltbook.com/api/v1/posts" \
 Or to check the feed:
 ```bash
 curl -s "https://www.moltbook.com/api/v1/posts?sort=new&limit=10" \
-  -H "Authorization: Bearer $MOLTBOOK_API_KEY"
+  -H "Authorization: Bearer $MOLTBOOK_API"
 ```
 
 ### What this is for:
@@ -265,20 +264,20 @@ Before picking up any task, remind yourself what you have access to. This change
 
 | Secret | System | What It Unlocks |
 |--------|--------|----------------|
+| `GH_SYNC_TOKEN` | GitHub (master PAT) | Full read/write access to all IT-Help-San-Diego repos. All scopes, all repos. Used by `git-push.sh`, `git-sync.sh`, `git-health-check.sh`. Replaces the retired `CAREY_PAT_ALL3_REPOS` and `GITHUB_MASTER_PAT`. |
 | `THE_BRAIN_API` | TheBrain (`api.bra.in`) | Visual knowledge graph — 63+ thoughts, 84+ links. Mirror project structure changes here. |
-| `CAREY_PAT_DNSTOOLWEB` | GitHub (DnsToolWeb) | Push code, create PRs, manage issues/labels/milestones. Used by `git-sync.sh`. |
-| `CAREY_PAT_ALL3_REPOS` | GitHub (all 3 repos) | Cross-repo access: DnsToolWeb, dns-tool-intel, dns-tool-observe. |
-| `GITHUB_MASTER_PAT` | GitHub (all repos) | Full read/write access to ALL careyjames repos including dns-tool-cli, dns-tool (legacy), it-help-tech-site. Use for cross-repo README updates and badge management. |
-| `CAREY_PAT_IT_HELP_TECH_SITE` | GitHub (IT Help site) | Company website repo access. |
 | `MIRO_API_TOKEN` | Miro | Diagram sync, board updates. Used by `sync-mermaid-miro.mjs`. |
 | `ZENODO_PAT` | Zenodo | DOI automation, deposit creation, metadata updates. |
-| `SONAR_CAREY` | SonarCloud | Quality gate checks, coverage reports. |
-| `CODEBERG_FORGEJO_API` | Codeberg | Mirror repo management. |
+| `SONAR_IT_HLP` | SonarCloud | Quality gate checks, coverage reports. Project: `IT-Help-San-Diego_dns-tool-intel`. |
+| `CODEBERG_FORGEJO_API` | Codeberg | Mirror repo management (off-site backup). |
 | `HOSTINGER_API` | Hostinger | DNS/hosting management for it-help.tech. |
 | `FIGMA_PAT` | Figma | Design assets (dormant but available). |
 | `GPTZERO_API` | GPTZero | AI content detection. |
-| `MOLTBOOK_API_KEY` | Moltbook | AI social platform — `dnstoolede` agent profile. |
+| `MOLTBOOK_API` | Moltbook | AI social platform — `dnstoolede` agent profile. |
 | `DISCORD_WEBHOOK_URL` | Discord | Notifications pipeline. |
+| `GOOGLE_CLIENT_ID` | Google OAuth | OAuth 2.0 client ID for Google sign-in. |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth | OAuth 2.0 client secret for Google sign-in. |
+| `ADMIN_BOOTSTRAP_EMAIL` | Admin | Bootstrap admin email address. |
 | `PROBE_*` secrets | Observe Fleet | SSH + API access to Kali Linux probe VPS nodes (2 probes). |
 | `DATABASE_URL` / `PG*` | PostgreSQL | Dev database (Replit-provisioned). |
 
@@ -286,21 +285,21 @@ Before picking up any task, remind yourself what you have access to. This change
 
 | Integration | Status | Access |
 |------------|--------|--------|
-| **GitHub** (`conn_github_01KGJHJK93SV4AA7PMK20FG8RY`) | Added | Full Octokit access, `repo` scope. Read/write all 3 repos. |
-| **Notion** (`conn_notion_01KJ83GM6TZV44W76ZEQ0C2TN8`) | Added | Full API access to workspace. 5 databases, Decision Log, Session Journal, EDE Register. |
+| **GitHub** | Installed | Full Octokit access, `repo` scope. Read/write `IT-Help-San-Diego/dns-tool-intel`. Used by `github-intel-sync.mjs`. |
+| **Notion** | Installed | Full API access to workspace. 5 databases, Decision Log, Session Journal, EDE Register. |
 
 **MCP Servers (tool callbacks via code_execution):**
 
 | MCP Server | Tools | Use For |
 |-----------|-------|---------|
-| **Miro** | `mcpMiro_*` (13 tools) | Board manipulation, diagram sync, visual collaboration |
-| **Notion** | `mcpNotion_*` (14 tools) | Database CRUD, page creation, comments, search |
-| **Figma** | `mcpFigma_*` (12 tools) | Design context, screenshots, code connect (dormant) |
+| **Figma** | `mcpFigma_*` (12+ tools) | Design context, screenshots, code connect (dormant) |
+| ~~Miro~~ | _disconnected_ | Board manipulation, diagram sync — **needs reconnection** |
+| ~~Notion~~ | _disconnected_ | Database CRUD, page creation — **needs reconnection** |
 
 **Connected Knowledge Systems — The Data Web:**
 
 ```
-Git (canonical truth)
+Git (canonical truth) — IT-Help-San-Diego/dns-tool-intel (single public repo)
  ├── Notion (control plane, collaboration hub) ──── 5 databases
  ├── TheBrain (visual knowledge graph) ──────────── 63+ thoughts, cross-linked to Notion
  ├── Miro (diagram mirror) ──────────────────────── Mermaid → SVG → Miro sync pipeline
@@ -309,31 +308,30 @@ Git (canonical truth)
  ├── Zenodo (research archival) ─────────────────── Concept DOI 10.5281/zenodo.18854899
  ├── Moltbook (AI discourse) ────────────────────── dnstoolede agent profile
  ├── Discord (notifications) ────────────────────── Webhook pipeline
- ├── Codeberg (code mirror) ─────────────────────── Forgejo API
+ ├── Codeberg (off-site backup) ─────────────────── Forgejo API mirror
  └── Observe Fleet (external probes) ────────────── 2 Kali Linux VPS nodes
 ```
 
-### Repository Migration Architecture (established 2026-03-15)
+### Repository Architecture (single-repo, established 2026-04)
 
-**dns-tool-intel is the canonical development repo.** All work happens here. The Replit workspace remote points to dns-tool-intel.
+**`IT-Help-San-Diego/dns-tool-intel` is the single public repo.** All work happens here. The Replit workspace remote points to this repo. Everyone can download and run the full code (BUSL-1.1 licensed).
 
 **Key operational facts:**
-- **git push will NOT work** from Replit — the local clone has dns-tool-web history; dns-tool-intel has different history. Always use `bash scripts/git-sync.sh` (API-based, no git push).
-- **git-sync.sh** uses the GitHub API to create blobs/trees/commits — it doesn't require matching git history.
+- **`bash scripts/git-push.sh`** — PAT-based push using `GH_SYNC_TOKEN`. Use for pushing code to `dns-tool-intel`.
+- **`bash scripts/git-sync.sh`** — GitHub API-based push (creates blobs/trees/commits). Works even when local and remote have unrelated histories. Uses `GH_SYNC_TOKEN`.
 - **`bash scripts/dev-bump.sh X.Y.Z`** bumps version in config.go + sonar-project.properties, rebuilds binary.
-- **dns-tool-web** receives code via allowlist export (Phase 2 of migration — `scripts/git-sync.sh` currently handles this). `_intel.go` files are excluded from the public mirror.
+- **Codeberg** receives mirror copies via `scripts/codeberg-intel-sync.mjs` and `scripts/codeberg-webapp-sync.mjs` for off-site backup.
 
-**SonarCloud project mapping:**
+**SonarCloud project:**
 | SonarCloud Project | Repo | Key | Token Secret |
 |---|---|---|---|
-| DNS Tool (Full Product) | dns-tool-intel | `careyjames_dns-tool-full` | `SONAR_TOKEN` |
-| DNS Tool (Public) | dns-tool-web | `careyjames_dns-tool-web` | `SONAR_CAREY` |
+| DNS Tool | IT-Help-San-Diego/dns-tool-intel | `IT-Help-San-Diego_dns-tool-intel` | `SONAR_IT_HLP` |
 
-**Boundary test architecture (updated 2026-03-15):**
-- Tests detect repo context via `isIntelRepo()` — checks for `DNS_TOOL_REPO_ROLE` env var or presence of `_intel.go` files
-- In intel context: verifies intel files EXIST with correct `//go:build intel` tags, verifies both stub AND intel implementations present for each boundary
-- In public context: verifies NO `_intel.go` files present (original behavior)
-- CI sets `DNS_TOOL_REPO_ROLE=intel` explicitly
+**Build-tag architecture:**
+- `_oss.go` files (stub implementations, `//go:build !intel`) coexist with `_intel.go` files (full intelligence, `//go:build intel`) in the same repo.
+- The OSS build compiles without intel tags, producing a functional application with stub defaults.
+- The intel build includes proprietary scoring engines, provider databases, and golden rule tests.
+- Boundary tests detect repo context via `isIntelRepo()` — checks for `DNS_TOOL_REPO_ROLE` env var or presence of `_intel.go` files.
 
 **The Pre-Flight Question:** Before starting ANY task, ask yourself:
 > "I have access to Git, Notion, TheBrain, Miro, GitHub Issues, SonarCloud, Zenodo, Moltbook, Discord, Codeberg, Figma, Hostinger, GPTZero, and a probe fleet. How should this change my approach? What should I connect, mirror, or cross-reference that I wouldn't if I only had a code editor?"
@@ -345,17 +343,16 @@ Git (canonical truth)
 - Phase transition? → Verify ALL standing gates + update Notion Project Phases + TheBrain phase status + EVOLUTION.md + GitHub milestone
 - Coverage improvement? → Code + SonarCloud verification + Notion Goals & Benchmarks update
 
-1. **Any context**: Run `bash scripts/git-health-check.sh` — default is read-only (sync status + Drift Cairn check). Safe from agent.
+1. **Any context**: Run `bash scripts/git-health-check.sh` — default is read-only (sync status + Drift Cairn check). Safe from agent. Uses `GH_SYNC_TOKEN` for sync check.
 2. **User (Shell tab) when repairs needed**: Run `bash scripts/git-health-check.sh --repair` — clears lock files, aborts rebases, reattaches HEAD, updates tracking refs.
-3. **Agent push**: Always use `bash scripts/git-push.sh` (PAT-based push + ls-remote verification + auto-snapshot). **User**: Can use the Git panel for Push/Sync after running `bash scripts/git-panel-reset.sh` from Shell.
+3. **Agent push**: Always use `bash scripts/git-push.sh` (PAT-based push via `GH_SYNC_TOKEN` + ls-remote verification + auto-snapshot). **User**: Can use the Git panel for Push/Sync after running `bash scripts/git-panel-reset.sh` from Shell.
 4. Read `replit.md` — quick-reference config (may reset between sessions)
 5. Read `PROJECT_CONTEXT.md` — canonical, stable project context
 6. Read `EVOLUTION.md` — permanent breadcrumb trail, backup if `replit.md` resets
 7. Check the "Failures & Lessons Learned" section in `EVOLUTION.md` before making changes
 8. If `replit.md` appears truncated or reset, restore key pointers from `PROJECT_CONTEXT.md` and `EVOLUTION.md`
-9. Run `find go-server -name "*_intel*"` — if ANY `_intel.go` or `_intel_test.go` files exist locally, they must be pushed to `dns-tool-intel` via the sync script and deleted immediately
-10. **Verify Intel repo access**: Run `node scripts/github-intel-sync.mjs commits 5` — confirms GitHub API connectivity to `careyjames/dns-tool-intel`. If this fails, the GitHub integration needs reconnection. NEVER claim the Intel repo is inaccessible — the agent has FULL read/write access via the Replit GitHub integration (Octokit, `repo` scope).
-11. **Check Intel repo for pending work**: Run `node scripts/github-intel-sync.mjs list` — review the file listing to recall what's in the private repo (47+ files including provider databases, scoring engines, golden rule tests, methodology docs, Easter eggs)
+9. **Verify repo access**: Run `node scripts/github-intel-sync.mjs commits 5` — confirms GitHub API connectivity to `IT-Help-San-Diego/dns-tool-intel`. If this fails, the GitHub integration needs reconnection. NEVER claim the repo is inaccessible — the agent has FULL read/write access via the Replit GitHub integration (Octokit, `repo` scope).
+10. **Check repo for pending work**: Run `node scripts/github-intel-sync.mjs list` — review the file listing to recall what's in the repo
 
 ## Science & Research Tag Boundaries
 
@@ -399,13 +396,13 @@ These are the files where aesthetics, user experience, and brand voice matter. C
 
 Every `.go` file carries a classification comment: `// dns-tool:scrutiny science|design|plumbing`
 
-- **`science`** (103 files): analyzer/, ai_surface/, icae/, icuae/, unified/, scanner/, dnsclient/, zoneparse/, rfc_citations.go
-- **`design`** (47 files): handlers/ (routing, presentation, page rendering)
-- **`plumbing`** (28 files): cmd/, db/, dbq/, middleware/, models/, templates/funcs, config/, providers/, telemetry/, notifier/, wayback/, icons/
+- **`science`** (135 files): analyzer/, ai_surface/, icae/, icuae/, unified/, scanner/, dnsclient/, zoneparse/, rfc_citations.go
+- **`design`** (67 files): handlers/ (routing, presentation, page rendering)
+- **`plumbing`** (27 files): cmd/, db/, dbq/, middleware/, models/, templates/funcs, config/, providers/, telemetry/, notifier/, wayback/, icons/
 
 **Enforcement:**
 - `go test ./go-server/internal/analyzer/ -run TestScrutiny` — fails if any analyzer `.go` file is missing a tag or has an invalid value
-- `bash scripts/audit-scrutiny-tags.sh` — counts all 178 files, exits non-zero if any are untagged
+- `bash scripts/audit-scrutiny-tags.sh` — counts all 229 files, exits non-zero if any are untagged
 - `grep -rn 'dns-tool:scrutiny science' go-server/` — instantly finds every line of RFC-critical code
 
 **When adding new `.go` files:** Always add `// dns-tool:scrutiny science|design|plumbing` after the copyright block, before the package declaration. The test will catch it if you forget.
@@ -608,20 +605,17 @@ npx lighthouse http://localhost:5000 --chrome-flags="--headless --no-sandbox --d
 | TLS/HSTS issues | No | **Yes** | Mixed content, certificate problems |
 | Cookie behavior | No | **Yes** | SameSite=Strict blocking video/assets |
 
-**SonarCloud — Two-Project Architecture:**
-Two SonarCloud projects, two distinct scan contexts:
-1. `careyjames_dns-tool-web` (Open-Source Repository) — Scans the public GitHub repo. Triggered by GitHub pushes/PRs via `sonarcloud.yml`. Covers only the open-core application code.
-2. `careyjames_dns-tool-full` (Full Product) — Scans the complete codebase including proprietary `_intel.go` files. Scanned ONLY from Replit using `sonar-scanner` with `SONAR_CAREY` token — Replit is the only place both codebases coexist. This scan proves the proprietary intelligence modules meet the same quality standards as the public code.
+**SonarCloud — Single-Project Architecture:**
+One SonarCloud project: `IT-Help-San-Diego_dns-tool-intel` (org: `it-help-san-diego`). Token: `SONAR_IT_HLP`.
 
-Each project has two badges:
+Two badges:
 - Quality Gate (`/api/project_badges/measure?metric=alert_status`)
 - AI Code Assurance (`/api/project_badges/ai_code_assurance`)
 
-Badges are served live via server-side proxy at `/proxy/sonar-badge/:key` (handler: `proxy.go` → `SonarBadge`). Keys: `qg-web`, `ai-web`, `qg-full`, `ai-full`. Fetches real-time SVG from SonarCloud API, cached 5 min (`max-age=300`). NEVER use static badge snapshots — all badge data must be live. The `sonar-project.properties` file is shared config used by both scan contexts — do NOT modify without understanding both projects.
+Badges are served live via server-side proxy at `/proxy/sonar-badge/:key` (handler: `proxy.go` → `SonarBadge`). Keys: `qg-intel`, `ai-intel`. Fetches real-time SVG from SonarCloud API, cached 5 min (`max-age=300`). NEVER use static badge snapshots — all badge data must be live.
 
 **SonarCloud — Integrity Protocol:**
 - SonarCloud analyzes the code pushed to GitHub, not the deployed binary
-- The Full Product scan runs from Replit where `_intel.go` files exist alongside public code
 - After pushing code: verify the SonarCloud dashboard shows the analysis ran on the correct commit
 - After deploying: verify the binary version matches the analyzed commit (`curl -s https://dnstool.it-help.tech/ | grep -o 'v26\.[0-9.]*'`)
 - Security hotspots must be reviewed and resolved, not left as "Won't Fix" without documented justification
@@ -703,47 +697,45 @@ SVGs are embedded as `<img>` tags for CSP compliance (no client-side Mermaid.js 
 
 To update diagrams: edit the `.mmd` file, re-render to SVG, bump AppVersion, rebuild.
 
-## Two-Repo Build-Tag Architecture
+## Build-Tag Architecture
 
-Two repositories with Go build tags:
-- **dns-tool-web** (public): Framework code + `_oss.go` stubs — **this is the repo we work in**
-- **dns-tool-intel** (private): `_intel.go` files with proprietary intelligence
+Single repo with Go build tags separating OSS stubs from full intelligence:
+- `_oss.go` files: Stub implementations with `//go:build !intel` — compile in the default (OSS) build
+- `_intel.go` files: Proprietary intelligence with `//go:build intel` — compile only with `-tags intel`
 
-### Cross-Repo Sync via GitHub API
+Both coexist in the same repo (`IT-Help-San-Diego/dns-tool-intel`). The repo is BUSL-1.1 licensed — source is visible but usage is restricted.
 
-The Replit GitHub integration (Octokit) has full `repo` scope, enabling direct read/write to `careyjames/dns-tool-intel` via the GitHub API.
+### GitHub API Sync Script
+
+The Replit GitHub integration (Octokit) has full `repo` scope, enabling direct read/write to `IT-Help-San-Diego/dns-tool-intel` via the GitHub API.
 
 **Sync script**: `scripts/github-intel-sync.mjs`
 ```bash
-node scripts/github-intel-sync.mjs list                              # List all Intel repo files
-node scripts/github-intel-sync.mjs read <path>                       # Read a file from Intel repo
-node scripts/github-intel-sync.mjs push <local> <remote> [message]   # Push local file to Intel repo
-node scripts/github-intel-sync.mjs delete <path> [message]           # Delete file from Intel repo
+node scripts/github-intel-sync.mjs list                              # List all repo files
+node scripts/github-intel-sync.mjs read <path>                       # Read a file from repo
+node scripts/github-intel-sync.mjs push <local> <remote> [message]   # Push local file to repo
+node scripts/github-intel-sync.mjs delete <path> [message]           # Delete file from repo
 node scripts/github-intel-sync.mjs commits [count]                   # Show recent commits
 ```
 
-**When to use**: Push `_intel.go` files (provider databases, intelligence code) to the Intel repo. Never commit `_intel.go` files to dns-tool-web — they expose proprietary patterns even with build tags (source code is visible in public Git history).
-
-**CRITICAL**: If you create or modify `_intel.go` files, push them to `dns-tool-intel` via the sync script and DELETE them from the local dns-tool-web working directory. Files with `//go:build intel` tags won't compile in the OSS build but their source code is visible in the public repo history.
-
-### Repo Sync Law — Two Repos, Two Methods, Zero Exceptions
+### Repo Sync Law — Single Repo, Two Push Methods, Zero Exceptions
 
 This is the ONLY permitted way to push code. Violations have caused hours of git corruption, stalled rebases, and lost work. These rules are non-negotiable.
 
-#### dns-tool-web (public) — PAT Push ONLY
+#### PAT Push (primary method)
 
 ```bash
 bash scripts/git-push.sh
 ```
 
-Secret `CAREY_PAT_ALL3_REPOS` is a GitHub Personal Access Token with full permissions (including `workflow` scope) for all three repos: `dns-tool-web`, `dns-tool-intel`, and `it-help-tech-site`.
+Secret `GH_SYNC_TOKEN` is a GitHub Personal Access Token with full permissions (including `workflow` scope) for all IT-Help-San-Diego repos.
 
 **MANDATORY pre-push checklist**:
 1. `go test ./go-server/... -count=1` — must pass (includes boundary integrity)
 2. `bash scripts/git-push.sh` — this script enforces 3 hard safety gates before pushing:
    - **GATE 1**: Lock files — HARD STOP only for **push-blocking** locks (`index.lock`, `HEAD.lock`, `config.lock`, `shallow.lock`). Background locks like `maintenance.lock` and `refs/remotes/*.lock` are logged as INFO and do NOT block the push.
    - **GATE 2**: Rebase state — HARD STOP if interrupted rebase detected.
-   - **GATE 3**: Intel files — HARD STOP if any `_intel.go` files found in dns-tool-web repo.
+   - **GATE 3**: Intel files — HARD STOP if any `_intel.go` files found outside the repo's expected structure.
    - After push, sync is verified via `git ls-remote` (read-only) — no `.git` writes needed.
 
 **Lock file classification**:
@@ -760,9 +752,9 @@ Secret `CAREY_PAT_ALL3_REPOS` is a GitHub Personal Access Token with full permis
 3. User confirms clean state
 4. Agent retries the push
 
-**NEVER do these for dns-tool-web**:
-- NEVER push via GitHub API (createBlob/createTree/createCommit/updateRef) — this creates remote commits the local `.git` doesn't know about, causing rebase collisions that corrupt git state
-- NEVER tell the user "I can't push to Git" — the PAT is always available
+**NEVER do these**:
+- NEVER push via GitHub API (createBlob/createTree/createCommit/updateRef) to the main working repo — this creates remote commits the local `.git` doesn't know about, causing rebase collisions that corrupt git state
+- NEVER tell the user "I can't push to Git" — `GH_SYNC_TOKEN` is always available
 - NEVER dismiss lock files as "cosmetic" — they are production blockers that compound into hours of lost work
 
 **Git panel usage**: The user CAN use the Replit Git panel for Push/Sync after running `bash scripts/git-panel-reset.sh` from the Shell tab to clear stale locks. The agent should use `bash scripts/git-push.sh` (PAT + ls-remote verification). Both methods are safe — they just use different auth (panel uses OAuth, agent uses PAT).
@@ -772,7 +764,7 @@ Secret `CAREY_PAT_ALL3_REPOS` is a GitHub Personal Access Token with full permis
 **Branch protection (March 2026)**: GitHub `main` is branch-protected. No direct pushes, no force pushes, PRs required. The agent pushes to the `replit-sync` branch, and the user merges to `main` via PR.
 
 ```bash
-git push "https://${CAREY_PAT_ALL3_REPOS}@github.com/careyjames/dns-tool-web.git" main:replit-sync
+git push "https://${GH_SYNC_TOKEN}@github.com/IT-Help-San-Diego/dns-tool-intel.git" main:replit-sync
 ```
 
 ### Git Safety — Hard-Stop Rules (Post-Mortem, 2026-03-04)
@@ -783,7 +775,7 @@ These rules exist because violations on 2026-03-04 destroyed the entire GitHub c
 
 2. **NEVER write to `.git/refs/` or any `.git/` path.** Not via bash, not via Python, not via the code_execution sandbox. The agent has zero authority to modify git internal state. All `.git` repairs must be deferred to the user via the Shell tab.
 
-3. **NEVER use the GitHub API to create commits on dns-tool-web.** No `createBlob`, `createTree`, `createCommit`, `updateRef`. This creates remote-only commits that the local `.git` doesn't know about, corrupts ref tracking, and caused the 2026-03-04 history destruction. The Repo Sync Law already prohibits this — this rule reinforces it.
+3. **NEVER use the GitHub API to create commits on the main working repo.** No `createBlob`, `createTree`, `createCommit`, `updateRef` for the repo the local `.git` tracks. This creates remote-only commits that the local `.git` doesn't know about, corrupts ref tracking, and caused the 2026-03-04 history destruction. The Repo Sync Law already prohibits this — this rule reinforces it.
 
 4. **NEVER fabricate sync state.** If local HEAD and remote HEAD disagree, do NOT manually rewrite ref files to make them "look" synced. Report the actual state to the user and let them reconcile.
 
@@ -825,15 +817,14 @@ This is a remote-only repo. No local clone exists. API operations don't cause di
 #### Sync Verification (run after any push to either repo)
 
 ```bash
-# dns-tool-web sync check (read-only — works from agent or Shell):
+# Sync check (read-only — works from agent or Shell):
 bash scripts/git-push.sh                                   # Reports SYNC STATUS: VERIFIED MATCH if synced
 # Or manually:
-git ls-remote https://${CAREY_PAT_ALL3_REPOS}@github.com/careyjames/dns-tool-web.git refs/heads/main
+git ls-remote https://${GH_SYNC_TOKEN}@github.com/IT-Help-San-Diego/dns-tool-intel.git refs/heads/main
 git rev-parse HEAD                                         # Compare these two SHAs
 
-# Intel repo:
+# Via GitHub API:
 node scripts/github-intel-sync.mjs commits 5               # Verify latest commit is yours
-find go-server -name "*_intel*"                            # Must return nothing
 go test ./go-server/internal/analyzer/ -run Boundary -v    # Boundary tests pass
 ```
 
@@ -843,11 +834,11 @@ go test ./go-server/internal/analyzer/ -run Boundary -v    # Boundary tests pass
 
 | Date | What Went Wrong | Root Cause | Hours Lost |
 |------|----------------|------------|------------|
-| Feb 17 | Rebase stalled, "Unsupported state" error | API push to dns-tool-web created remote commits local didn't know about | 1+ |
+| Feb 17 | Rebase stalled, "Unsupported state" error | API push to public repo created remote commits local didn't know about | 1+ |
 | Feb 18 | Recurring PUSH_REJECTED, stale lock files | Replit Git panel OAuth + background maintenance conflict. Lock files dismissed as "cosmetic" instead of treated as production failures. | 1+ |
 | Feb 18 | Lock files left after push, tracking ref stale | `git-health-check.sh` didn't cover `gitsafe-backup/` paths. Cleanup ran AFTER push instead of BEFORE. Agent blocked from `.git` modifications. | Compounding |
 | Feb 18 | `maintenance.lock` blocking ALL pushes from agent | Gate 1 treated ALL locks as push-blockers. Replit's `maintenance.lock` is always present but doesn't block `git push`. FIX: Smart lock classification — only `index/HEAD/config/shallow.lock` block. Sync via `git ls-remote` (read-only). | 1+ |
-| Feb 17 | `golden_rules_intel_test.go` exposed in public repo | `_intel.go` file committed to dns-tool-web (visible in Git history even with build tags) | N/A (IP risk) |
+| Feb 17 | `golden_rules_intel_test.go` exposed in public repo | `_intel.go` file committed to public repo (visible in Git history even with build tags) | N/A (IP risk) |
 | Feb 18 | SKILL.md itself contained methodology details | Public repo file documenting proprietary pipeline | N/A (IP risk) |
 | Feb 19 | Git panel stuck on "Resolve merge conflicts" forever | `git-health-check.sh --repair` and `git-panel-reset.sh` never checked for MERGE_HEAD/MERGE_MSG/MERGE_MODE. FIX: Both scripts now detect and abort interrupted merges. | 0.5+ |
 
@@ -1003,9 +994,7 @@ GitHub release (tag vX.Y.Z)
 - **`docs/dns-tool-methodology.html`**: HTML source for WeasyPrint PDF generation
 
 ### Repository Architecture
-- `dns-tool-web` — public research artifact, Zenodo DOI enabled
-- `dns-tool-intel` — private IP, NEVER connect to Zenodo
-- `dns-tool` — archived prototype, NOT connected to Zenodo
+- `IT-Help-San-Diego/dns-tool-intel` — single public repo (BUSL-1.1), Zenodo DOI enabled
 
 ### BibTeX
 ```bibtex
@@ -1073,7 +1062,7 @@ Update `AppVersion` in `go-server/internal/config/config.go`. Format: `YY.WW.PAT
 ### ICAE — Intelligence Confidence Audit Engine (existing)
 - **Question**: "Did we interpret the DNS data correctly?"
 - **Package**: `go-server/internal/icae/`
-- **Method**: 114 deterministic test cases across 9 protocols, two layers (collection + analysis)
+- **Method**: 161 deterministic test cases across 9 protocols, two layers (collection + analysis)
 - **Maturity model**: Development → Verified → Consistent → Gold → Gold Master
 - **UI**: `/confidence` page + ICAE badges on reports
 
@@ -1149,8 +1138,7 @@ Grep for shortened variants before committing. Past regressions: "Executive's In
 ## Known Regression Pitfalls
 
 These have caused repeated regressions — check EVOLUTION.md "Failures & Lessons Learned" for details:
-- **Intel files left in public repo** — `_intel.go` and `_intel_test.go` files committed to dns-tool-web expose proprietary patterns in public Git history even with build tags. Always push to dns-tool-intel via sync script and delete locally. (Feb 2026 incident: `golden_rules_intel_test.go` with enterprise provider patterns was public.)
-- **"I can't push to Git"** — WRONG. Use `bash scripts/git-push.sh` (PAT push) for dns-tool-web. Use `node scripts/github-intel-sync.mjs` for dns-tool-intel. NEVER use the GitHub API (createBlob/createTree/createCommit/updateRef) to push to dns-tool-web — this caused rebase corruption in Feb 2026. See "Repo Sync Law" section above.
+- **"I can't push to Git"** — WRONG. Use `bash scripts/git-push.sh` (PAT push via `GH_SYNC_TOKEN`). Or use `node scripts/github-intel-sync.mjs` for API-based sync. NEVER use the GitHub API (createBlob/createTree/createCommit/updateRef) for the main working repo — this caused rebase corruption in Feb 2026. See "Repo Sync Law" section above.
 - CSP inline handlers added then silently failing (recurring v26.14–v26.16)
 - Font Awesome icons used without checking subset CSS rules exist
 - PDF/print font sizes dropping below minimums (recurring v26.15–v26.16)
@@ -1190,7 +1178,7 @@ When describing subdomain discovery, use ONLY these vague, high-level phrases:
 Do NOT enumerate individual discovery sources in sequence — describing individual layers together reconstructs the pipeline.
 
 ### Where Proprietary Details Belong
-- **Private intel repo only** (`careyjames/dns-tool-intel`): `INTEL_METHODOLOGY.md` has everything
+- **Private methodology doc only** (`IT-Help-San-Diego/dns-tool-intel`): `INTEL_METHODOLOGY.md` has everything
 - **Go source code** (`subdomains.go`): Function names in compiled source are fine — BUSL-1.1-licensed implementation
 - **NEVER in**: Any `.md`, `.html`, `.txt` file in this public repo. This includes SKILL.md itself, PROJECT_CONTEXT.md, EVOLUTION.md, DOCS.md, FEATURE_INVENTORY.md, llms.txt, templates, replit.md
 
@@ -1253,7 +1241,7 @@ The drift engine detects posture changes between analyses. Key files:
 - Planned: email (SES/SMTP for executives), SMS (critical-only escalation)
 
 ### GitHub Issues Triage (Three-Tier Priority)
-DNS Tool's intelligence pipeline extends to GitHub Issues (repo: `careyjames/dns-tool-web`). Issues are triaged into three categories:
+DNS Tool's intelligence pipeline extends to GitHub Issues (repo: `IT-Help-San-Diego/dns-tool-intel`). Issues are triaged into three categories:
 1. **Research Mission Critical** — scientifically validated issues (wrong RFC citation, flawed methodology, incorrect confidence logic, broken detection vectors). These are existential — fix immediately.
 2. **Cosmetic UX/UI** — user experience bugs, visual polish, accessibility, template rendering issues. Normal cadence.
 3. **Security/Vulnerability Detection** — must be forwarded to a non-public forum. NEVER discuss security vulnerabilities in public GitHub issues.
@@ -1276,7 +1264,7 @@ This triage applies to both external contributor issues AND internally generated
 8. **Don't forget CSS minification** — `npx csso` after every CSS edit
 9. **Don't hardcode foreign keys** — violates FK constraints
 10. **Don't use `style=""`** — CSP blocks inline styles
-11. **NEVER leave `_intel.go` or `_intel_test.go` files in dns-tool-web** — push to `dns-tool-intel` via `node scripts/github-intel-sync.mjs push` and delete locally. Build tags don't hide source code from public Git history. This has caused a real proprietary data leak (Feb 2026).
+11. **Keep `_intel.go` and `_intel_test.go` files managed carefully** — build tags separate OSS from intel, but source is visible in the public repo (BUSL-1.1 licensed). Review before committing.
 12. **Don't assume the Intel repo is inaccessible** — the GitHub integration gives full read/write access via `scripts/github-intel-sync.mjs`. Use it.
 13. **NEVER write pipeline implementation details in public docs** — No function names, probe counts, layer counts, pipeline sequences, or timing details in any `.md`, `.html`, or `.txt` file. Use approved language from the "Methodology Protection" section above. Run the audit grep before ending any session. This has caused a real methodology exposure incident (Feb 2026).
 14. **NEVER apply `pointer-events: none` to `body` or `html`** — Chrome does not dispatch wheel/trackpad scroll events to elements with `pointer-events: none`, completely blocking page scroll. Use targeted selectors on interactive elements (`a`, `button`, `input`, `select`, `textarea`, `[role="button"]`) instead. The loading overlay already captures all pointer events when active. This caused a real scroll-blocking bug in Chrome (Feb 2026, v26.21.40).

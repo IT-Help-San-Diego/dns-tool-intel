@@ -4,7 +4,7 @@
 #
 # Prerequisites:
 #   - Clean working tree (no uncommitted changes)
-#   - GITHUB_MASTER_PAT set with repo + workflow scope
+#   - GH_SYNC_TOKEN set with repo + workflow scope
 #
 # What it does:
 #   1. Runs release-gate.sh (bumps all versioned artifacts, regenerates PDFs, validates)

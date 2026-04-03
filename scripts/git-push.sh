@@ -19,15 +19,16 @@ cd /home/runner/workspace
 
 REPO="IT-Help-San-Diego/dns-tool-intel"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
-PAT_URL="https://${GITHUB_MASTER_PAT}@github.com/${REPO}.git"
+GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
+PAT_URL="https://${GIT_PAT}@github.com/${REPO}.git"
 
 export GIT_TERMINAL_PROMPT=0
 export GIT_ASKPASS=
 export GIT_CONFIG_NOSYSTEM=1
 export GIT_TRACE=0
 
-if [ -z "$GITHUB_MASTER_PAT" ]; then
-  echo "ABORT: GITHUB_MASTER_PAT secret not set"
+if [ -z "$GIT_PAT" ]; then
+  echo "ABORT: GH_SYNC_TOKEN secret not set"
   exit 1
 fi
 
@@ -178,7 +179,7 @@ if [ "$PUSH_OK" -eq 0 ]; then
   echo "PUSH FAILED after 2 attempts. Troubleshoot:"
   echo "  1. Run 'bash scripts/git-health-check.sh' from Shell tab"
   echo "  2. Check if branches diverged (may need force push — see SKILL.md)"
-  echo "  3. Verify PAT is valid: GITHUB_MASTER_PAT"
+  echo "  3. Verify PAT is valid: GH_SYNC_TOKEN"
   exit 1
 fi
 

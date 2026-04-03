@@ -71,9 +71,9 @@ GUARDRAILS = {
 
 
 def get_api_key():
-    key = os.environ.get("MOLTBOOK_API_KEY")
+    key = os.environ.get("MOLTBOOK_API") or os.environ.get("MOLTBOOK_API_KEY")
     if not key:
-        logger.error("MOLTBOOK_API_KEY environment variable is not set.")
+        logger.error("MOLTBOOK_API environment variable is not set (also checked MOLTBOOK_API_KEY).")
         logger.error("Set it as a Replit secret before running this script.")
         sys.exit(1)
     return key
