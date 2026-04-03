@@ -9,7 +9,7 @@ package ai_surface
 import "context"
 
 func (s *Scanner) CheckLLMSTxt(ctx context.Context, domain string) map[string]any {
-	// TODO: Implement full llms.txt detection and parsing
+	// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 	return map[string]any{
 		"found":      false,
 		"full_found": false,
@@ -21,15 +21,15 @@ func (s *Scanner) CheckLLMSTxt(ctx context.Context, domain string) map[string]an
 }
 
 func looksLikeLLMSTxt(body string) bool {
-	// TODO: Implement llms.txt format heuristic
+	// Intel-boundary: llms.txt format heuristic provided by dns-tool-intel at build time.
 	return false
 }
 
 func parseLLMSTxt(body string) map[string]any {
-	// TODO: Implement full llms.txt parser
+	// Intel-boundary: full parser provided by dns-tool-intel at build time.
 	return map[string]any{}
 }
 
 func parseLLMSTxtFieldLine(line, section string, fields map[string]any, docs *[]string) {
-	// TODO: Implement field-line parser
+	// Intel-boundary: field-line parser provided by dns-tool-intel at build time.
 }
