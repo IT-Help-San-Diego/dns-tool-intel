@@ -9,6 +9,6 @@ package ai_surface
 import "context"
 
 func (s *Scanner) fetchTextFile(ctx context.Context, url string) (string, error) {
-	// TODO: Implement full HTTP text file fetcher
-	return "", nil
+        // Intel-boundary: full implementation provided by dns-tool-intel at build time.
+        return "", nil
 }
