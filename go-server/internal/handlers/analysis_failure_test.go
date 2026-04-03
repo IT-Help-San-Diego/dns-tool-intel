@@ -292,7 +292,7 @@ func TestCoverageBoost16_marshalOrderedJSON(t *testing.T) {
         t.Run("unmarshalable value skipped gracefully", func(t *testing.T) {
                 entries := []orderedKV{
                         {Key: "good", Value: "ok"},
-                        {Key: "bad", Value: func() { /* intentionally unmarshalable value for graceful-skip test */ }},
+                        {Key: "bad", Value: func() {}},
                         {Key: "also_good", Value: 42},
                 }
                 buf := marshalOrderedJSON(entries)
