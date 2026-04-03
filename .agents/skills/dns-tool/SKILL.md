@@ -834,11 +834,11 @@ go test ./go-server/internal/analyzer/ -run Boundary -v    # Boundary tests pass
 
 | Date | What Went Wrong | Root Cause | Hours Lost |
 |------|----------------|------------|------------|
-| Feb 17 | Rebase stalled, "Unsupported state" error | API push to dns-tool-web created remote commits local didn't know about | 1+ |
+| Feb 17 | Rebase stalled, "Unsupported state" error | API push to public repo created remote commits local didn't know about | 1+ |
 | Feb 18 | Recurring PUSH_REJECTED, stale lock files | Replit Git panel OAuth + background maintenance conflict. Lock files dismissed as "cosmetic" instead of treated as production failures. | 1+ |
 | Feb 18 | Lock files left after push, tracking ref stale | `git-health-check.sh` didn't cover `gitsafe-backup/` paths. Cleanup ran AFTER push instead of BEFORE. Agent blocked from `.git` modifications. | Compounding |
 | Feb 18 | `maintenance.lock` blocking ALL pushes from agent | Gate 1 treated ALL locks as push-blockers. Replit's `maintenance.lock` is always present but doesn't block `git push`. FIX: Smart lock classification — only `index/HEAD/config/shallow.lock` block. Sync via `git ls-remote` (read-only). | 1+ |
-| Feb 17 | `golden_rules_intel_test.go` exposed in public repo | `_intel.go` file committed to dns-tool-web (visible in Git history even with build tags) | N/A (IP risk) |
+| Feb 17 | `golden_rules_intel_test.go` exposed in public repo | `_intel.go` file committed to public repo (visible in Git history even with build tags) | N/A (IP risk) |
 | Feb 18 | SKILL.md itself contained methodology details | Public repo file documenting proprietary pipeline | N/A (IP risk) |
 | Feb 19 | Git panel stuck on "Resolve merge conflicts" forever | `git-health-check.sh --repair` and `git-panel-reset.sh` never checked for MERGE_HEAD/MERGE_MSG/MERGE_MODE. FIX: Both scripts now detect and abort interrupted merges. | 0.5+ |
 
@@ -1062,7 +1062,7 @@ Update `AppVersion` in `go-server/internal/config/config.go`. Format: `YY.WW.PAT
 ### ICAE — Intelligence Confidence Audit Engine (existing)
 - **Question**: "Did we interpret the DNS data correctly?"
 - **Package**: `go-server/internal/icae/`
-- **Method**: 114 deterministic test cases across 9 protocols, two layers (collection + analysis)
+- **Method**: 161 deterministic test cases across 9 protocols, two layers (collection + analysis)
 - **Maturity model**: Development → Verified → Consistent → Gold → Gold Master
 - **UI**: `/confidence` page + ICAE badges on reports
 
