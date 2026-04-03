@@ -9,11 +9,11 @@ package ai_surface
 import "context"
 
 var knownAICrawlers = []string{
-	// TODO: Populate with full AI crawler list
+	// Intel-boundary: full AI crawler list populated by dns-tool-intel at build time.
 }
 
 func (s *Scanner) CheckRobotsTxtAI(ctx context.Context, domain string) map[string]any {
-	// TODO: Implement full robots.txt AI crawler analysis
+	// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 	return map[string]any{
 		"found":              false,
 		"url":                nil,
@@ -27,15 +27,15 @@ func (s *Scanner) CheckRobotsTxtAI(ctx context.Context, domain string) map[strin
 }
 
 func parseRobotsForAI(body string) (blocked []string, allowed []string, directives []robotsDirective) {
-	// TODO: Implement full robots.txt AI directive parser
+	// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 	return nil, nil, nil
 }
 
 func processRobotsLine(lower, line string, currentUA string, seenBlocked, seenAllowed map[string]bool, directives *[]robotsDirective) {
-	// TODO: Implement robots.txt line processor
+	// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 }
 
 func matchAICrawler(userAgent string) string {
-	// TODO: Implement AI crawler matching logic
+	// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 	return ""
 }

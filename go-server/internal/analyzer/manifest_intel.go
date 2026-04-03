@@ -5,11 +5,11 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 package analyzer
 
-// TODO: Populate from dnstool-intel private repo with full feature parity manifest.
+// Intel-boundary: populated from dns-tool-intel private repo with full feature parity manifest.
 var FeatureParityManifest = []ManifestEntry{}
 
 var RequiredSchemaKeys []string
 
 func init() {
-// TODO: Populate RequiredSchemaKeys from FeatureParityManifest
+	// Intel-boundary: RequiredSchemaKeys populated from FeatureParityManifest at build time.
 }

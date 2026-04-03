@@ -49,35 +49,35 @@ const (
 	domainSendmarc = "sendmarc.com"
 )
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var dmarcMonitoringProviders = map[string]managementProviderInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var spfFlatteningProviders = map[string]spfFlatteningInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var hostedDKIMProviders = map[string]hostedDKIMInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var dynamicServicesProviders = map[string]dynamicServiceInfo{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var dynamicServicesZones = map[string]string{}
 
-// TODO: Populate with full provider intelligence from private repo.
+// Intel-boundary: populated from dns-tool-intel private repo at build time.
 var cnameProviderMap = map[string]cnameProviderInfo{}
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 func isHostedEmailProvider(_ string) bool {
 	return true
 }
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 func isBIMICapableProvider(_ string) bool {
 	return false
 }
 
-// TODO: Replace with full intelligence implementation from private repo.
+// Intel-boundary: full implementation provided by dns-tool-intel at build time.
 func isKnownDKIMProvider(_ interface{}) bool {
 	return false
 }
