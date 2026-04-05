@@ -7292,6 +7292,271 @@ progress.bg-danger::-moz-progress-bar {
 .topo-legend-arrow-query { color: rgba(255,255,255,0.3); }
 .topo-legend-arrow-dep { color: rgba(255,255,255,0.2); }
 
+.scan-topology {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+}
+.topo-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+}
+
+.globe-meridians line {
+    stroke: rgba(100,160,220,0.12);
+    stroke-width: 0.6;
+}
+.globe-graticule {
+    fill: none;
+    stroke: rgba(100,160,220,0.10);
+    stroke-width: 0.5;
+}
+.globe-equator {
+    fill: none;
+    stroke: rgba(100,180,240,0.18);
+    stroke-width: 0.8;
+}
+.globe-continent {
+    fill: rgba(80,120,180,0.18);
+    stroke: rgba(100,160,220,0.22);
+    stroke-width: 0.5;
+}
+
+.topo-res-dot {
+    fill: rgba(120,120,140,0.4);
+    stroke: none;
+    -webkit-transition: fill 0.3s ease, filter 0.3s ease;
+    transition: fill 0.3s ease, filter 0.3s ease;
+}
+.topo-res-line {
+    fill: none;
+    stroke: rgba(100,120,160,0.08);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+    -webkit-transition: stroke 0.4s ease, stroke-opacity 0.4s ease;
+    transition: stroke 0.4s ease, stroke-opacity 0.4s ease;
+}
+.topo-res-label {
+    fill: rgba(180,190,210,0.3);
+    font-size: 6px;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+    -webkit-transition: fill 0.3s ease;
+    transition: fill 0.3s ease;
+}
+
+.topo-res-dot.res-running {
+    fill: rgba(110,168,254,0.7);
+    -webkit-animation: res-pulse 1.2s ease-in-out infinite;
+    animation: res-pulse 1.2s ease-in-out infinite;
+}
+.topo-res-line.res-running {
+    stroke: rgba(110,168,254,0.35);
+    stroke-dasharray: 4 3;
+    -webkit-animation: dash-flow 1s linear infinite;
+    animation: dash-flow 1s linear infinite;
+}
+
+.topo-res-dot.res-done-cf { fill: #f6821f; filter: url(#glow-res-cf); }
+.topo-res-dot.res-done-g  { fill: #4285f4; filter: url(#glow-res-g); }
+.topo-res-dot.res-done-q9 { fill: #0078d4; filter: url(#glow-res-q9); }
+.topo-res-dot.res-done-od { fill: #ff6a00; filter: url(#glow-res-od); }
+.topo-res-dot.res-done-eu { fill: #003399; filter: url(#glow-res-eu); }
+
+.topo-res-line.res-done-cf { stroke: rgba(246,130,31,0.45); stroke-dasharray: none; }
+.topo-res-line.res-done-g  { stroke: rgba(66,133,244,0.45); stroke-dasharray: none; }
+.topo-res-line.res-done-q9 { stroke: rgba(0,120,212,0.45); stroke-dasharray: none; }
+.topo-res-line.res-done-od { stroke: rgba(255,106,0,0.45); stroke-dasharray: none; }
+.topo-res-line.res-done-eu { stroke: rgba(0,51,153,0.45); stroke-dasharray: none; }
+
+.topo-res-label.res-label-done { fill: rgba(220,230,240,0.75); }
+
+.topo-connector {
+    stroke: rgba(100,120,160,0.10);
+    stroke-width: 1.2;
+    fill: none;
+    -webkit-transition: stroke 0.4s ease, stroke-width 0.3s ease;
+    transition: stroke 0.4s ease, stroke-width 0.3s ease;
+}
+.topo-connector.active {
+    stroke-width: 1.6;
+    stroke-dasharray: 6 4;
+    -webkit-animation: dash-flow 1.5s linear infinite;
+    animation: dash-flow 1.5s linear infinite;
+}
+.topo-connector.conn-active-dns { stroke: rgba(92,107,192,0.5); }
+.topo-connector.conn-active-email { stroke: rgba(79,195,247,0.5); }
+.topo-connector.conn-active-dnssec { stroke: rgba(129,199,132,0.5); }
+.topo-connector.conn-active-ct { stroke: rgba(120,144,156,0.5); }
+.topo-connector.conn-active-smtp { stroke: rgba(129,199,132,0.5); }
+.topo-connector.conn-active-policy { stroke: rgba(255,183,77,0.5); }
+.topo-connector.conn-active-registrar { stroke: rgba(206,147,216,0.5); }
+.topo-connector.conn-active-engine { stroke: rgba(224,224,224,0.5); }
+.topo-connector.conn-active-web3 { stroke: rgba(212,168,83,0.5); }
+.topo-connector.complete {
+    stroke-dasharray: none;
+}
+.topo-connector.conn-done-dns { stroke: rgba(92,107,192,0.35); }
+.topo-connector.conn-done-email { stroke: rgba(79,195,247,0.35); }
+.topo-connector.conn-done-dnssec { stroke: rgba(129,199,132,0.35); }
+.topo-connector.conn-done-ct { stroke: rgba(120,144,156,0.35); }
+.topo-connector.conn-done-smtp { stroke: rgba(129,199,132,0.35); }
+.topo-connector.conn-done-policy { stroke: rgba(255,183,77,0.35); }
+.topo-connector.conn-done-registrar { stroke: rgba(206,147,216,0.35); }
+.topo-connector.conn-done-engine { stroke: rgba(224,224,224,0.35); }
+.topo-connector.conn-done-web3 { stroke: rgba(212,168,83,0.35); }
+
+.topo-halo {
+    fill: none;
+    stroke: rgba(100,120,160,0.06);
+    stroke-width: 1;
+    -webkit-transition: stroke 0.4s ease, stroke-width 0.3s ease;
+    transition: stroke 0.4s ease, stroke-width 0.3s ease;
+}
+.topo-ring {
+    fill: none;
+    stroke: rgba(100,120,160,0.12);
+    stroke-width: 1.5;
+    -webkit-transition: stroke 0.4s ease, stroke-width 0.3s ease;
+    transition: stroke 0.4s ease, stroke-width 0.3s ease;
+}
+.topo-node {
+    fill: url(#node-glass);
+    stroke: rgba(120,140,180,0.18);
+    stroke-width: 1;
+    -webkit-transition: fill 0.4s ease, stroke 0.4s ease, filter 0.4s ease;
+    transition: fill 0.4s ease, stroke 0.4s ease, filter 0.4s ease;
+}
+.topo-label {
+    fill: rgba(200,210,230,0.55);
+    font-size: 9px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+    -webkit-transition: fill 0.3s ease;
+    transition: fill 0.3s ease;
+}
+.topo-label-sub {
+    font-size: 7px;
+    font-weight: 400;
+}
+.topo-sub {
+    fill: rgba(160,170,190,0.35);
+    font-size: 6.5px;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+    text-anchor: middle;
+    pointer-events: none;
+    -webkit-transition: fill 0.3s ease;
+    transition: fill 0.3s ease;
+}
+.topo-dur {
+    fill: rgba(160,170,190,0);
+    font-size: 6px;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+    text-anchor: middle;
+    pointer-events: none;
+    -webkit-transition: fill 0.5s ease;
+    transition: fill 0.5s ease;
+}
+.topo-dur.visible {
+    fill: rgba(160,200,220,0.6);
+}
+
+[data-phase].phase-running .topo-node {
+    -webkit-animation: node-pulse 1.8s ease-in-out infinite;
+    animation: node-pulse 1.8s ease-in-out infinite;
+}
+[data-phase].phase-running .topo-label { fill: rgba(220,230,245,0.85); }
+[data-phase].phase-running .topo-ring { stroke-width: 2; }
+[data-phase].phase-running .topo-halo { stroke-width: 1.5; }
+
+[data-phase].phase-running-dns .topo-node  { stroke: rgba(92,107,192,0.6); filter: url(#glow-dns); }
+[data-phase].phase-running-dns .topo-ring  { stroke: rgba(92,107,192,0.35); }
+[data-phase].phase-running-dns .topo-halo  { stroke: rgba(92,107,192,0.15); }
+[data-phase].phase-running-email .topo-node  { stroke: rgba(79,195,247,0.6); filter: url(#glow-email); }
+[data-phase].phase-running-email .topo-ring  { stroke: rgba(79,195,247,0.35); }
+[data-phase].phase-running-email .topo-halo  { stroke: rgba(79,195,247,0.15); }
+[data-phase].phase-running-dnssec .topo-node { stroke: rgba(129,199,132,0.6); filter: url(#glow-dnssec); }
+[data-phase].phase-running-dnssec .topo-ring { stroke: rgba(129,199,132,0.35); }
+[data-phase].phase-running-dnssec .topo-halo { stroke: rgba(129,199,132,0.15); }
+[data-phase].phase-running-ct .topo-node     { stroke: rgba(120,144,156,0.6); filter: url(#glow-ct); }
+[data-phase].phase-running-ct .topo-ring     { stroke: rgba(120,144,156,0.35); }
+[data-phase].phase-running-ct .topo-halo     { stroke: rgba(120,144,156,0.15); }
+[data-phase].phase-running-smtp .topo-node   { stroke: rgba(129,199,132,0.6); filter: url(#glow-smtp); }
+[data-phase].phase-running-smtp .topo-ring   { stroke: rgba(129,199,132,0.35); }
+[data-phase].phase-running-smtp .topo-halo   { stroke: rgba(129,199,132,0.15); }
+[data-phase].phase-running-policy .topo-node { stroke: rgba(255,183,77,0.6); filter: url(#glow-policy); }
+[data-phase].phase-running-policy .topo-ring { stroke: rgba(255,183,77,0.35); }
+[data-phase].phase-running-policy .topo-halo { stroke: rgba(255,183,77,0.15); }
+[data-phase].phase-running-registrar .topo-node { stroke: rgba(206,147,216,0.6); filter: url(#glow-registrar); }
+[data-phase].phase-running-registrar .topo-ring { stroke: rgba(206,147,216,0.35); }
+[data-phase].phase-running-registrar .topo-halo { stroke: rgba(206,147,216,0.15); }
+[data-phase].phase-running-engine .topo-node { stroke: rgba(224,224,224,0.6); filter: url(#glow-engine); }
+[data-phase].phase-running-engine .topo-ring { stroke: rgba(224,224,224,0.35); }
+[data-phase].phase-running-engine .topo-halo { stroke: rgba(224,224,224,0.15); }
+[data-phase].phase-running-web3 .topo-node   { stroke: rgba(212,168,83,0.6); filter: url(#glow-web3); }
+[data-phase].phase-running-web3 .topo-ring   { stroke: rgba(212,168,83,0.35); }
+[data-phase].phase-running-web3 .topo-halo   { stroke: rgba(212,168,83,0.15); }
+
+.sub-running-dns { fill: rgba(92,107,192,0.7); }
+.sub-running-email { fill: rgba(79,195,247,0.7); }
+.sub-running-dnssec { fill: rgba(129,199,132,0.7); }
+.sub-running-ct { fill: rgba(120,144,156,0.7); }
+.sub-running-smtp { fill: rgba(129,199,132,0.7); }
+.sub-running-policy { fill: rgba(255,183,77,0.7); }
+.sub-running-registrar { fill: rgba(206,147,216,0.7); }
+.sub-running-engine { fill: rgba(224,224,224,0.7); }
+.sub-running-web3 { fill: rgba(212,168,83,0.7); }
+
+[data-phase].phase-done .topo-label { fill: rgba(220,230,245,0.7); }
+[data-phase].phase-done .topo-ring  { stroke-width: 1.5; }
+
+[data-phase].phase-done-dns .topo-node     { fill: rgba(92,107,192,0.18); stroke: rgba(92,107,192,0.5); }
+[data-phase].phase-done-dns .topo-ring     { stroke: rgba(92,107,192,0.25); }
+[data-phase].phase-done-email .topo-node   { fill: rgba(79,195,247,0.18); stroke: rgba(79,195,247,0.5); }
+[data-phase].phase-done-email .topo-ring   { stroke: rgba(79,195,247,0.25); }
+[data-phase].phase-done-dnssec .topo-node  { fill: rgba(129,199,132,0.18); stroke: rgba(129,199,132,0.5); }
+[data-phase].phase-done-dnssec .topo-ring  { stroke: rgba(129,199,132,0.25); }
+[data-phase].phase-done-ct .topo-node      { fill: rgba(120,144,156,0.18); stroke: rgba(120,144,156,0.5); }
+[data-phase].phase-done-ct .topo-ring      { stroke: rgba(120,144,156,0.25); }
+[data-phase].phase-done-smtp .topo-node    { fill: rgba(129,199,132,0.18); stroke: rgba(129,199,132,0.5); }
+[data-phase].phase-done-smtp .topo-ring    { stroke: rgba(129,199,132,0.25); }
+[data-phase].phase-done-policy .topo-node  { fill: rgba(255,183,77,0.18); stroke: rgba(255,183,77,0.5); }
+[data-phase].phase-done-policy .topo-ring  { stroke: rgba(255,183,77,0.25); }
+[data-phase].phase-done-registrar .topo-node { fill: rgba(206,147,216,0.18); stroke: rgba(206,147,216,0.5); }
+[data-phase].phase-done-registrar .topo-ring { stroke: rgba(206,147,216,0.25); }
+[data-phase].phase-done-engine .topo-node  { fill: rgba(224,224,224,0.18); stroke: rgba(224,224,224,0.5); }
+[data-phase].phase-done-engine .topo-ring  { stroke: rgba(224,224,224,0.25); }
+[data-phase].phase-done-web3 .topo-node    { fill: rgba(212,168,83,0.18); stroke: rgba(212,168,83,0.5); }
+[data-phase].phase-done-web3 .topo-ring    { stroke: rgba(212,168,83,0.25); }
+
+.topo-sub.sub-done { fill: rgba(130,220,130,0.7); }
+
+@-webkit-keyframes node-pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+}
+@keyframes node-pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+}
+@-webkit-keyframes res-pulse {
+    0%, 100% { opacity: 0.5; -webkit-transform: scale(1); transform: scale(1); }
+    50% { opacity: 1; -webkit-transform: scale(1.4); transform: scale(1.4); }
+}
+@keyframes res-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.4); }
+}
+@-webkit-keyframes dash-flow {
+    to { stroke-dashoffset: -20; }
+}
+@keyframes dash-flow {
+    to { stroke-dashoffset: -20; }
+}
+
 .rfc-popup-body { max-height: 60vh; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; color: #c9d1d9; }
 .u-search-highlight { background: #ffd700; color: #1a1a2e; padding: 2px 4px; border-radius: 3px; }
 
