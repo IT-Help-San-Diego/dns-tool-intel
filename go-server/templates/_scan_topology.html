@@ -1,6 +1,6 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="-20 -40 500 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
+    <svg viewBox="-20 -40 500 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
         <desc>Golden-ratio layout: Row 2 span (320) / Row 3 span (198) = 1.616 ≈ φ. Earth axial tilt: 23.44° (IAU 2006 obliquity). Meridian scroll: eastward (right), 20s decorative period.</desc>
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -201,15 +201,15 @@
         <text x="329" y="325" class="topo-dur" data-dur="web3_analysis"></text>
 
         <g data-phase="analysis_engine" data-pkey="engine">
-            <circle cx="230" cy="351" r="38" class="topo-halo"/>
-            <circle cx="230" cy="351" r="34" class="topo-ring"/>
-            <circle cx="230" cy="351" r="28" class="topo-node"/>
-            <circle cx="230" cy="351" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="230" y="347" class="topo-label">ICIE</text>
-            <text x="230" y="356" class="topo-label topo-label-sub">Engine</text>
-            <text x="230" y="367" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+            <circle cx="230" cy="371" r="38" class="topo-halo"/>
+            <circle cx="230" cy="371" r="34" class="topo-ring"/>
+            <circle cx="230" cy="371" r="28" class="topo-node"/>
+            <circle cx="230" cy="371" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+            <text x="230" y="367" class="topo-label">ICIE</text>
+            <text x="230" y="376" class="topo-label topo-label-sub">Engine</text>
+            <text x="230" y="387" class="topo-sub" data-tasks="analysis_engine">0/10</text>
         </g>
-        <text x="230" y="395" class="topo-dur" data-dur="analysis_engine"></text>
+        <text x="230" y="415" class="topo-dur" data-dur="analysis_engine"></text>
     </svg>
 </div>
 {{end}}

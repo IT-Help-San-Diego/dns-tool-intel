@@ -44,7 +44,13 @@ function isValidLabel(label) {
 }
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
+    if (location.hostname === 'dnstool.it-help.tech') {
+        navigator.serviceWorker.register('/sw.js').catch(function() {}); // NOSONAR
+    } else {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+        });
+    }
 }
 
 function clearOverlayTimers(overlay) {
