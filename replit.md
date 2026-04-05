@@ -1,7 +1,7 @@
 # DNS Tool — Domain Security Audit
 
 ## Overview
-The DNS Tool is an OSINT platform designed for RFC-compliant domain security analysis. Its primary purpose is to identify and report vulnerabilities and misconfigurations across critical domain security standards including SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA. The project generates comprehensive technical and executive reports, adhering to standards like ODNI ICD 203, aiming to enhance global domain security, protect critical infrastructure, and combat cyber threats. It is envisioned as a scientifically rigorous, transparent, and scalable tool with significant market potential in the cybersecurity and threat intelligence sectors.
+The DNS Tool is an OSINT platform designed for RFC-compliant domain security analysis. Its primary purpose is to identify and report vulnerabilities and misconfigurations across various domain security protocols including SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA. The project aims to generate comprehensive technical and executive reports, adhering to standards like ODNI ICD 203, with the overarching goal of enhancing global domain security, protecting critical infrastructure, and combating cyber threats. It is envisioned as a scientifically rigorous, transparent, and scalable cybersecurity tool with significant market potential.
 
 ## User Preferences
 - **Connected Ecosystem Pre-Flight (MANDATORY)**: Before starting ANY task, check your full API/secret/integration inventory. You have 15+ API keys (TheBrain, GitHub×3, Miro, Zenodo, SonarCloud, Codeberg, Hostinger, Figma, GPTZero, Moltbook, Discord, Probe Fleet), 2 OAuth integrations (GitHub, Notion), and 3 MCP servers (Miro, Notion, Figma). This interconnected access should fundamentally change how you approach every task. Don't just write code — connect the data across every system that knows about it. See SKILL.md § "Step 0: Connected Ecosystem Pre-Flight" for the full inventory and connected thinking examples. Come home to the data.
@@ -70,58 +70,58 @@ The DNS Tool is an OSINT platform designed for RFC-compliant domain security ana
 The DNS Tool operates as an open-core Progressive Web App (PWA) with its backend implemented in Go/Gin and PostgreSQL for data persistence.
 
 ### UI/UX Decisions
-- **Theming**: "Covert Mode" dark theme with a four-layer color token system, "Emblem Gold" and "Accent Red" highlights, glass-styled SVG badges, and a "Covert Badge Scotopic Palette."
+- **Theming**: "Covert Mode" dark theme using a four-layer color token system, "Emblem Gold" and "Accent Red" highlights, glass-styled SVG badges, and a "Covert Badge Scotopic Palette."
 - **PWA Capabilities**: Service worker for caching, custom Apple splash screen, dynamic `theme-color`, and "Focus Mode."
-- **Structured Data & SEO**: Schema.org JSON-LD, Open Graph, and Twitter Cards for discoverability.
-- **Data Visualization**: Canvas 2D for "Topology Page" visualizing DNS resolver PoPs with glass/transparent circular nodes and concentric ring status indicators.
-- **Security Badge System**: Embeddable SVG badges, Shields.io JSON endpoint, and server-side animated badge exports.
-- **Collapsible Report Sections**: Analysis Confidence and Intelligence Currency sections are collapsible by default.
+- **Structured Data & SEO**: Implements Schema.org JSON-LD, Open Graph, and Twitter Cards.
+- **Data Visualization**: Utilizes Canvas 2D for the "Topology Page" to visualize DNS resolver PoPs with glass/transparent circular nodes and concentric ring status indicators.
+- **Security Badge System**: Provides embeddable SVG badges, a Shields.io JSON endpoint, and server-side animated badge exports.
+- **Collapsible Report Sections**: Analysis Confidence and Intelligence Currency sections are collapsible by default to prioritize key information.
 
 ### Technical Implementations & Design Choices
-- **Backend Framework**: Go using the Gin web framework.
+- **Backend Framework**: Go programming language with the Gin web framework.
 - **Authentication**: Google OAuth 2.0 with PKCE (S256).
-- **Admin Panel**: Secure administrative interface with session management and CSRF protection.
-- **Analytics**: Custom, privacy-preserving product analytics.
-- **AI Governance**: `Content-Usage:` detection in `robots.txt` and content capture from `llms.txt`/`llms-full.txt` guide AI model training.
-- **External Probing**: Multi-probe infrastructure for SMTP, DANE, and Nmap integration.
-- **Subdomain Discovery**: Multi-source enumeration system (CT logs, DNS brute-force, external tools, SecurityTrails).
+- **Admin Panel**: Secure administrative interface incorporating session management and CSRF protection.
+- **Analytics**: Custom, privacy-preserving product analytics solution.
+- **AI Governance**: Employs `Content-Usage:` detection in `robots.txt` and content capture from `llms.txt`/`llms-full.txt` to guide AI model training.
+- **External Probing**: Features a multi-probe infrastructure for SMTP, DANE, and Nmap integration.
+- **Subdomain Discovery**: Uses a multi-source enumeration system that includes CT logs, DNS brute-force, external tools, and SecurityTrails.
 - **Analysis Engines**: Integrates ICIE, ICAE, ICuAE, and ICSAE engines with CalibrationEngine and DimensionCharts for ICD 203 compliant confidence and currency scoring.
-- **Pipeline Observatory**: `/ops/pipeline` endpoint for real-time visualization.
-- **Data Handling**: SHA-3-512 hashing for JSON exports; supports JSON, NDJSON, CSV.
-- **Core Features**: DNS security analysis for multiple protocols, Scan History, Domain Dossier, Comparison, IP Intelligence, Email Header Analyzer, Zone File Upload, Domain Snapshot, Drift Engine, Drift Notification Pipeline.
-- **Intellectual Property Architecture**: Deterministic Verdict Logic, Cross-Protocol Dependencies, Provider-Aware Honesty, and The Confidence Engine.
-- **Testing**: Interface-based DB mocking with extensive test coverage.
-- **Performance**: Orchestrator for TLD analysis and parallel queries, DNS resolver fallback.
-- **Provider Intelligence**: Auto-detects DNS providers for enhanced TTL findings.
-- **Environment Detection**: Differentiates between development and production.
-- **Epistemic Disclosure Events (EDE)**: Ensures data immutability via verifiable git commit hashes, SHA-3-512 hashes, and specific amendment policies.
-- **Knowledge Management**: Project roadmap, decision logs, session journals, and EDE registers in Notion; visual graphs in TheBrain.
-- **Operational Security Model**: Three-concentric-layer model: Personal, Corporate, Product OpSec.
-- **Quality Assurance**: `go vet`, core tests, RFC attack vector tests, SonarCloud, dependency security audits.
-- **Golden Logic**: Traceable logic drift detection with deterministic IDs, SHA-3-512 hashes, and links to code/test references.
-- **Feature Tiers**: Three-tier product model (Open, Registered, Premium) via entitlements package and middleware.
-- **Hybrid Video Strategy**: YouTube for primary distribution, self-hosted for canonical page, `youtube-nocookie.com` for embeds.
-- **Web3 Domain Analysis**: Detects and analyzes Web3 domain infrastructure via TXT record scanning with integrated UI.
-- **Structured Logging**: Hybrid multi-sink structured logging (JSON to stdout, JSONL files, PostgreSQL, Discord webhooks) with sensitive data redaction.
+- **Pipeline Observatory**: Provides a `/ops/pipeline` endpoint for real-time visualization of operational pipelines.
+- **Data Handling**: Uses SHA-3-512 hashing for JSON exports and supports JSON, NDJSON, and CSV formats.
+- **Core Features**: Encompasses DNS security analysis for multiple protocols, Scan History, Domain Dossier, Comparison, IP Intelligence, Email Header Analyzer, Zone File Upload, Domain Snapshot, Drift Engine, and Drift Notification Pipeline.
+- **Intellectual Property Architecture**: Built upon Deterministic Verdict Logic, Cross-Protocol Dependencies, Provider-Aware Honesty, and The Confidence Engine.
+- **Testing**: Employs interface-based DB mocking with extensive test coverage.
+- **Performance**: Includes an Orchestrator for TLD analysis and parallel queries, along with DNS resolver fallback mechanisms.
+- **Provider Intelligence**: Automatically detects DNS providers for enhanced TTL findings.
+- **Environment Detection**: Differentiates between development and production environments.
+- **Epistemic Disclosure Events (EDE)**: Ensures data immutability through verifiable git commit hashes, SHA-3-512 hashes, and specific amendment policies.
+- **Knowledge Management**: Project roadmap, decision logs, session journals, and EDE registers are maintained in Notion, with visual graphs in TheBrain.
+- **Operational Security Model**: Follows a three-concentric-layer model: Personal, Corporate, and Product OpSec.
+- **Quality Assurance**: Implements `go vet`, core tests, RFC attack vector tests, SonarCloud, and dependency security audits.
+- **Golden Logic**: Provides a traceable logic drift detection system with deterministic IDs, SHA-3-512 hashes, and links to code/test references.
+- **Feature Tiers**: Implements a three-tier product model (Open, Registered, Premium) managed via an entitlements package and middleware.
+- **Hybrid Video Strategy**: Uses YouTube for primary distribution, self-hosting for canonical page content, and `youtube-nocookie.com` for embeds.
+- **Web3 Domain Analysis**: Detects and analyzes Web3 domain infrastructure via TXT record scanning with an integrated UI.
+- **Structured Logging**: Features hybrid multi-sink structured logging (JSON to stdout, JSONL files, PostgreSQL, Discord webhooks) with sensitive data redaction.
 
 ## External Dependencies
-- **PostgreSQL**: Primary database.
-- **Google OAuth 2.0**: User authentication and authorization.
-- **SecurityTrails**: Domain intelligence enrichment API.
-- **`codeberg.org/miekg/dns`**: Go library for DNS operations.
-- **Observe Probe Fleet**: Python and Go-based Kali Linux VPS probes for external analysis.
-- **Nmap**: DNS server security probing.
-- **Subfinder**: Passive subdomain enumeration.
-- **Amass**: Comprehensive DNS reconnaissance.
-- **HackerTarget API**: Passive host search for subdomain discovery.
-- **Dnsx**: Multi-purpose DNS toolkit.
-- **Testssl.sh**: TLS/SSL analysis tool.
-- **Httpx**: HTTP probing and technology detection.
-- **Nuclei**: Vulnerability scanning engine.
-- **Whois**: WHOIS lookups.
-- **`gonum.org/v1/gonum`**: Go library for scientific and numerical computation (EWMA sigma estimation).
-- **KaTeX**: Self-hosted library for rendering LaTeX math.
-- **Internet Archive**: Wayback Machine integration for historical data.
-- **Moltbook**: AI social platform for cross-platform AI safety discourse.
-- **librsvg** (`rsvg-convert`): System dependency for SVG rasterization.
-- **github.com/kettek/apng**: Go library for encoding Animated PNGs.
+- **PostgreSQL**: Primary relational database for data persistence.
+- **Google OAuth 2.0**: Used for user authentication and authorization.
+- **SecurityTrails**: Provides domain intelligence enrichment via its API.
+- **`codeberg.org/miekg/dns`**: A Go library essential for DNS operations.
+- **Observe Probe Fleet**: Python and Go-based Kali Linux VPS probes for external network analysis.
+- **Nmap**: Utilized for DNS server security probing.
+- **Subfinder**: Employed for passive subdomain enumeration.
+- **Amass**: A comprehensive tool for DNS reconnaissance.
+- **HackerTarget API**: Integrated for passive host search and subdomain discovery.
+- **Dnsx**: A multi-purpose DNS toolkit.
+- **Testssl.sh**: Used for TLS/SSL analysis.
+- **Httpx**: For HTTP probing and technology detection.
+- **Nuclei**: A vulnerability scanning engine.
+- **Whois**: For WHOIS lookups.
+- **`gonum.org/v1/gonum`**: A Go library for scientific and numerical computation, specifically for EWMA sigma estimation.
+- **KaTeX**: A self-hosted library for rendering LaTeX math expressions.
+- **Internet Archive**: Integrated for historical data retrieval via the Wayback Machine.
+- **Moltbook**: An AI social platform for cross-platform AI safety discourse.
+- **librsvg** (`rsvg-convert`): A system dependency used for SVG rasterization.
+- **github.com/kettek/apng**: A Go library for encoding Animated PNGs.
