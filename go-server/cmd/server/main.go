@@ -192,15 +192,17 @@ func resolveListenAddr() string {
 
 func startingHandler() http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-                if r.URL.Path == "/" || r.URL.Path == "/healthz" {
+                if r.URL.Path == "/healthz" {
                         w.Header().Set("Content-Type", "application/json")
                         w.WriteHeader(http.StatusOK)
                         _, _ = w.Write([]byte(`{"status":"starting"}`))
                         return
                 }
-                w.Header().Set("Content-Type", "application/json")
+                w.Header().Set("Content-Type", "text/html; charset=utf-8")
+                w.Header().Set("Cache-Control", "no-store")
+                w.Header().Set("Retry-After", "3")
                 w.WriteHeader(http.StatusServiceUnavailable)
-                _, _ = w.Write([]byte(`{"status":"starting"}`))
+                _, _ = w.Write([]byte(`<!DOCTYPE html><html lang="en" data-bs-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNS Tool — Starting</title><meta http-equiv="refresh" content="2"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}div{text-align:center}.spinner{width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}@keyframes spin{to{transform:rotate(360deg)}}h1{font-size:1.2rem;font-weight:500;margin-bottom:.5rem}p{color:#8b949e;font-size:.85rem}</style></head><body><div><div class="spinner"></div><h1>DNS Tool</h1><p>Initializing analysis engine…</p></div></body></html>`))
         })
 }
 
