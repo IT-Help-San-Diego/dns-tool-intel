@@ -7540,7 +7540,7 @@ a.ftr-node:hover {
     height: 1px;
     background: rgba(200, 149, 106, 0.18);
     align-self: stretch;
-    margin: 0 calc(12.5% + 0.375rem);
+    margin: 0 calc(12.5% - 0.375rem);
 }
 
 .ftr-grid-drops {
