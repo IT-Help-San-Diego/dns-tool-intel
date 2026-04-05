@@ -29,6 +29,7 @@ const (
         ginKeyTraceID      = "trace_id"
         ginKeyRequestStart = "request_start"
         ginKeyCSRFToken    = "csrf_token"
+        ginKeyDevMode      = "dns.dev_mode"
 )
 
 func generateNonce() string {
@@ -66,9 +67,19 @@ func RequestContext() gin.HandlerFunc {
         }
 }
 
+func CookieSameSite(c *gin.Context) http.SameSite {
+        if v, exists := c.Get(ginKeyDevMode); exists {
+                if dev, ok := v.(bool); ok && dev {
+                        return http.SameSiteLaxMode
+                }
+        }
+        return http.SameSiteStrictMode
+}
+
 func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
+                c.Set(ginKeyDevMode, devMode)
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
                         c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
@@ -104,7 +115,9 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                         c.Header("X-Frame-Options", "DENY")
                 }
         }
-        c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+        if !devMode {
+                c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+        }
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
         c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
         if devMode {
