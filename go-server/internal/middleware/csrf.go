@@ -138,7 +138,7 @@ func (m *CSRFMiddleware) ensureToken(c *gin.Context) string {
                 MaxAge:   csrfMaxAge,
                 HttpOnly: true,
                 Secure:   true,
-                SameSite: http.SameSiteStrictMode,
+                SameSite: CookieSameSite(c),
         })
 
         return token
