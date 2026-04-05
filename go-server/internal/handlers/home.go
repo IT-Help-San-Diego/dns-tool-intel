@@ -4,89 +4,144 @@
 package handlers
 
 import (
-	"net/http"
+        "context"
+        "net/http"
+        "sync"
+        "time"
 
-	"dnstool/go-server/internal/config"
-	"dnstool/go-server/internal/db"
-	"dnstool/go-server/internal/icae"
-	"dnstool/go-server/internal/icuae"
+        "dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/icae"
+        "dnstool/go-server/internal/icuae"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type HomeHandler struct {
-	Config *config.Config
-	DB     *db.Database
+        Config *config.Config
+        DB     *db.Database
+
+        mu          sync.RWMutex
+        icaeCache   *icae.ReportMetrics
+        icuaeCache  *icuae.RuntimeMetrics
+        cacheExpiry time.Time
 }
 
+const metricsCacheTTL = 60 * time.Second
+
 func NewHomeHandler(cfg *config.Config, database *db.Database) *HomeHandler {
-	return &HomeHandler{Config: cfg, DB: database}
+        return &HomeHandler{Config: cfg, DB: database}
+}
+
+func (h *HomeHandler) cachedMetrics(ctx context.Context) (*icae.ReportMetrics, *icuae.RuntimeMetrics) {
+        if h.DB == nil {
+                return nil, nil
+        }
+
+        h.mu.RLock()
+        if time.Now().Before(h.cacheExpiry) {
+                icaeM, icuaeM := h.icaeCache, h.icuaeCache
+                h.mu.RUnlock()
+                return icaeM, icuaeM
+        }
+        h.mu.RUnlock()
+
+        icaeM := icae.LoadReportMetrics(ctx, h.DB.Queries)
+        icuaeM := icuae.LoadRuntimeMetrics(ctx, h.DB.Queries)
+
+        h.mu.Lock()
+        h.icaeCache = icaeM
+        h.icuaeCache = icuaeM
+        h.cacheExpiry = time.Now().Add(metricsCacheTTL)
+        h.mu.Unlock()
+
+        return icaeM, icuaeM
 }
 
 func applyWelcomeOrFlash(c *gin.Context, data gin.H) {
-	if welcome := c.Query("welcome"); welcome != "" {
-		name := welcome
-		if len(name) > 100 {
-			name = name[:100]
-		}
-		data["WelcomeName"] = name
-		return
-	}
-	applyFlashFromQuery(c, data)
+        if welcome := c.Query("welcome"); welcome != "" {
+                name := welcome
+                if len(name) > 100 {
+                        name = name[:100]
+                }
+                data["WelcomeName"] = name
+                return
+        }
+        applyFlashFromQuery(c, data)
 }
 
 func applyFlashFromQuery(c *gin.Context, data gin.H) {
-	flash := c.Query("flash")
-	if flash == "" {
-		return
-	}
-	cat := c.DefaultQuery("flash_cat", "warning")
-	if cat != "success" && cat != "danger" {
-		cat = "warning"
-	}
-	msg := flash
-	if len(msg) > 200 {
-		msg = msg[:200]
-	}
-	data["FlashMessages"] = []FlashMessage{{Category: cat, Message: msg}}
-	if domain := c.Query("domain"); domain != "" {
-		d := domain
-		if len(d) > 253 {
-			d = d[:253]
-		}
-		data["PrefillDomain"] = d
-	}
+        flash := c.Query("flash")
+        if flash == "" {
+                return
+        }
+        cat := c.DefaultQuery("flash_cat", "warning")
+        if cat != "success" && cat != "danger" {
+                cat = "warning"
+        }
+        msg := flash
+        if len(msg) > 200 {
+                msg = msg[:200]
+        }
+        data["FlashMessages"] = []FlashMessage{{Category: cat, Message: msg}}
+        if domain := c.Query("domain"); domain != "" {
+                d := domain
+                if len(d) > 253 {
+                        d = d[:253]
+                }
+                data["PrefillDomain"] = d
+        }
 }
 
 func (h *HomeHandler) Index(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	csrfToken, _ := c.Get("csrf_token")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		"BaseURL":         h.Config.BaseURL,
-		keyCspNonce:        nonce,
-		keyActivePage:      "home",
-		"CsrfToken":       csrfToken,
-		"WaitDomain":      c.Query("wait_domain"),
-		"WaitSeconds":     c.Query("wait_seconds"),
-		"WaitReason":      c.DefaultQuery("wait_reason", "anti_repeat"),
-		"Changelog":       GetRecentChangelog(6),
-		"DKIMExpand":      c.Query("dkim") != "",
-	}
+        nonce, _ := c.Get("csp_nonce")
+        csrfToken, _ := c.Get("csrf_token")
+        data := gin.H{
+                keyAppVersion:      h.Config.AppVersion,
+                keyMaintenanceNote: h.Config.MaintenanceNote,
+                keyBetaPages:       h.Config.BetaPages,
+                "BaseURL":         h.Config.BaseURL,
+                keyCspNonce:        nonce,
+                keyActivePage:      "home",
+                "CsrfToken":       csrfToken,
+                "WaitDomain":      c.Query("wait_domain"),
+                "WaitSeconds":     c.Query("wait_seconds"),
+                "WaitReason":      c.DefaultQuery("wait_reason", "anti_repeat"),
+                "Changelog":       GetRecentChangelog(6),
+                "DKIMExpand":      c.Query("dkim") != "",
+        }
 
-	if h.DB != nil {
-		if metrics := icae.LoadReportMetrics(c.Request.Context(), h.DB.Queries); metrics != nil {
-			data["ICAEMetrics"] = metrics
-		}
-		if rm := icuae.LoadRuntimeMetrics(c.Request.Context(), h.DB.Queries); rm != nil && rm.HasData {
-			data["ICuAEMetrics"] = rm
-		}
-	}
+        icaeM, icuaeM := h.cachedMetrics(c.Request.Context())
+        if icaeM != nil {
+                data["ICAEMetrics"] = icaeM
+        }
+        if icuaeM != nil && icuaeM.HasData {
+                data["ICuAEMetrics"] = icuaeM
+        }
 
-	applyWelcomeOrFlash(c, data)
+        applyWelcomeOrFlash(c, data)
 
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "index.html", data)
+        mergeAuthData(c, h.Config, data)
+        c.HTML(http.StatusOK, "index.html", data)
+}
+
+func (h *HomeHandler) ScanTopologyFragment(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                keyAppVersion: h.Config.AppVersion,
+                keyCspNonce:   nonce,
+        }
+        c.Header("Cache-Control", "public, max-age=86400")
+        c.HTML(http.StatusOK, "scan_topology", data)
+}
+
+func (h *HomeHandler) IconsJS(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        data := gin.H{
+                keyAppVersion: h.Config.AppVersion,
+                keyCspNonce:   nonce,
+        }
+        c.Header("Content-Type", "application/javascript; charset=utf-8")
+        c.Header("Cache-Control", "public, max-age=86400")
+        c.HTML(http.StatusOK, "_icons_js.html", data)
 }

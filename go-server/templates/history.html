@@ -493,10 +493,29 @@
     function handleHistoryFetchResponse(resp){
         return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
     }
-    function fetchHistoryReanalyze(href){
-        fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
-            return handleHistoryFetchResponse(resp);
-        }).catch(function(){globalThis.location.href=href;});
+    function fetchHistoryReanalyze(href,overlay){
+        var u=new URL(href,globalThis.location.origin);
+        var domain=u.searchParams.get('domain')||'';
+        var csrf=(document.querySelector('meta[name="csrf-token"]')||{}).content||'';
+        var body=new URLSearchParams({domain:domain,csrf_token:csrf});
+        if(u.searchParams.get('covert')==='1')body.set('covert','1');
+        fetch('/analyze',{
+            method:'POST',
+            body:body,
+            headers:{'X-Requested-With':'fetch','Accept':'application/json','Content-Type':'application/x-www-form-urlencoded'},
+            redirect:'follow'
+        }).then(function(resp){
+            if(!resp.ok)throw new Error('HTTP '+resp.status);
+            return resp.json();
+        }).then(function(data){
+            if(data.token&&typeof startProgressPolling==='function'){
+                startProgressPolling(data.token,overlay,null);
+            }
+        }).catch(function(){
+            fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
+                return handleHistoryFetchResponse(resp);
+            }).catch(function(){globalThis.location.href=href;});
+        });
     }
     document.addEventListener('DOMContentLoaded',function(){
         for(const btn of document.querySelectorAll('.history-view-btn')){
@@ -526,7 +545,7 @@
                 }
                 disableAllActions();
                 btn.innerHTML='{{icon "spinner" "icon-spin"}}';
-                fetchHistoryReanalyze(covertUrl(btn.href));
+                fetchHistoryReanalyze(covertUrl(btn.href),overlay);
             });
         }
     });

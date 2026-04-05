@@ -275,7 +275,7 @@ func buildRouter(cfg *config.Config, database *db.Database) (*gin.Engine, *middl
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
         }
-        router.Use(gzip.Gzip(gzip.DefaultCompression))
+        router.Use(gzip.Gzip(gzip.BestSpeed))
         router.Use(middleware.RequestContext())
         router.Use(middleware.SecurityHeaders(cfg.IsDevEnvironment))
 
@@ -421,6 +421,8 @@ func registerRoutes(d routeDeps) {
 func registerCoreRoutes(router *gin.Engine, home *handlers.HomeHandler, health *handlers.HealthHandler, static *handlers.StaticHandler) {
         router.GET("/", home.Index)
         router.HEAD("/", home.Index)
+        router.GET("/fragment/topology", home.ScanTopologyFragment)
+        router.GET("/fragment/icons.js", home.IconsJS)
         router.GET("/healthz", health.Healthz)
         router.HEAD("/healthz", health.Healthz)
         router.GET("/api/capacity", health.Capacity)
