@@ -95,10 +95,7 @@ func extractNonceStr(c *gin.Context) string {
 }
 
 func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
-        c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-        if devMode {
-                c.Header("Clear-Site-Data", `"cache", "storage"`)
-        }
+        c.Header("Cache-Control", "no-cache")
         c.Header("X-Content-Type-Options", "nosniff")
         if !devMode {
                 if c.Request.URL.Path == "/signature" || strings.HasPrefix(c.Request.URL.Path, "/docs/") {
