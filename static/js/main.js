@@ -1227,6 +1227,8 @@ function loadDNSHistory(domain) {
 
 globalThis.showOverlay = showOverlay;
 globalThis.startStatusCycle = startStatusCycle;
+globalThis.startProgressPolling = startProgressPolling;
+globalThis.hideOverlayAndReset = hideOverlayAndReset;
 globalThis.escapeHtml = escapeHtml;
 globalThis.loadDNSHistory = loadDNSHistory;
 

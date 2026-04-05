@@ -3,7 +3,7 @@
 <nav class="navbar navbar-dark bg-dark" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand" href="/">
-            <img src="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" width="32" height="32" alt="DNS Tool" class="navbar-brand-owl rounded-circle" loading="eager" decoding="sync" fetchpriority="high">
+            <picture><source srcset="{{staticVersionURL "icons/icon-48x48.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "icons/icon-48x48.png" .AppVersion}}" width="32" height="32" alt="DNS Tool" class="navbar-brand-owl rounded-circle" loading="eager" decoding="sync" fetchpriority="high"></picture>
             <span class="navbar-brand-text">
                 <span class="navbar-brand-name">DNS Tool</span>
                 <span class="nav-version-badge">v{{.AppVersion}}</span>
@@ -113,7 +113,7 @@
             </div>
             <div class="modal-body">
                 <div class="text-center mb-3">
-                    <picture><source srcset="{{staticVersionURL "images/owl-of-athena-160.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/owl-of-athena-160.png" .AppVersion}}" alt="Owl of Athena" width="80" height="80" class="u-rounded-circle u-opacity-85"></picture>
+                    <picture><source srcset="{{staticVersionURL "images/owl-of-athena-160.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/owl-of-athena-160.png" .AppVersion}}" alt="Owl of Athena" width="80" height="80" class="u-rounded-circle u-opacity-85" loading="lazy" decoding="async"></picture>
                 </div>
                 <div class="mb-3 p-3 rounded u-roe-warning-box">
                     <p class="mb-2 fw-semibold">{{icon "biohazard" "text-danger me-2"}}Covert Recon Mode activates an adversarial lens.</p>

@@ -1568,14 +1568,30 @@
             }
         }
 
-        const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
-        fetch(url, {
-            headers: { 'X-Requested-With': 'fetch' },
+        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var body = new URLSearchParams({domain: domain, csrf_token: csrf, covert: '1'});
+        fetch('/analyze', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
             redirect: 'follow'
         }).then(function(resp) {
-            return handleCovertReanalyzeResponse(resp);
-        }).catch(function() { // NOSONAR — fallback to full navigation on fetch failure
-            globalThis.location.href = url;
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token && typeof startProgressPolling === 'function') {
+                startProgressPolling(data.token, overlay, btn);
+            }
+        }).catch(function() {
+            var url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                return handleCovertReanalyzeResponse(resp);
+            }).catch(function() { // NOSONAR — fallback to full navigation on fetch failure
+                globalThis.location.href = url;
+            });
         });
     }
 
