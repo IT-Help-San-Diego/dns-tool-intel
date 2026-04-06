@@ -1135,10 +1135,10 @@ function initGlobeMotion() {
             var vw = globalThis.innerWidth - 64;
             var vh = globalThis.innerHeight - 110;
             var svgW = vw;
-            var svgH = vw * 820 / 900;
-            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 820; }
+            var svgH = vw * 890 / 900;
+            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 890; }
             rw = svgW;
-            rh = svgW * 780 / 900;
+            rh = svgW * 850 / 900;
         }
         if (rw > 10 && rh > 10) {
             canvas.width = Math.round(rw * dpr);
