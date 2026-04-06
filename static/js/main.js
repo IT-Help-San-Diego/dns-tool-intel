@@ -1130,16 +1130,22 @@ function initGlobeMotion() {
     function sizeCanvasToScreen(canvas) {
         var rect = canvas.getBoundingClientRect();
         var dpr = globalThis.devicePixelRatio || 1;
-        if (rect.width > 10 && rect.height > 10) {
-            canvas.width = Math.round(rect.width * dpr);
-            canvas.height = Math.round(rect.height * dpr);
+        var rw = rect.width, rh = rect.height;
+        if (rw < 10 || rh < 10) {
+            var vw = globalThis.innerWidth - 64;
+            var vh = globalThis.innerHeight - 110;
+            var svgW = vw;
+            var svgH = vw * 820 / 900;
+            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 820; }
+            rw = svgW;
+            rh = svgW * 780 / 900;
+        }
+        if (rw > 10 && rh > 10) {
+            canvas.width = Math.round(rw * dpr);
+            canvas.height = Math.round(rh * dpr);
             canvas._dpr = dpr;
-            canvas._logW = rect.width;
-            canvas._logH = rect.height;
-        } else {
-            canvas._dpr = 1;
-            canvas._logW = canvas.width;
-            canvas._logH = canvas.height;
+            canvas._logW = rw;
+            canvas._logH = rh;
         }
     }
 
