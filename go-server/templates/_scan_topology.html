@@ -1,7 +1,7 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-3" id="scanTopology" aria-hidden="true">
-    <svg viewBox="-200 -240 900 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
-        <desc>Landscape viewBox 900×730 (1.23:1). Globe: canvas orthographic projection via foreignObject covering full width. Globe radius: min(W*0.18, H*0.35, 300). Signal arcs converge at DNS Records node. Pipeline nodes centered at x=230 within 900-unit viewBox.</desc>
+    <svg viewBox="-200 -300 900 820" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
+        <desc>ViewBox 900×820. Globe canvas dynamically sized to rendered pixels via JS (devicePixelRatio-aware). Globe fills 50%+ of viewport width. Signal arcs converge toward pipeline nodes. Pipeline overlaps lower canvas for layered depth.</desc>
         <defs>
             <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -23,8 +23,8 @@
             </radialGradient>
         </defs>
 
-        <foreignObject x="-200" y="-240" width="900" height="430">
-            <canvas xmlns="http://www.w3.org/1999/xhtml" class="topo-globe-canvas" width="1800" height="860"></canvas>
+        <foreignObject x="-200" y="-300" width="900" height="600">
+            <canvas xmlns="http://www.w3.org/1999/xhtml" class="topo-globe-canvas" width="900" height="600"></canvas>
         </foreignObject>
 
         <line x1="230" y1="131" x2="70" y2="201" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
