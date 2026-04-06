@@ -7310,58 +7310,6 @@ progress.bg-danger::-moz-progress-bar {
     display: block;
 }
 
-.topo-res-dot {
-    fill: rgba(120,120,140,0.4);
-    stroke: none;
-    -webkit-transition: fill 0.3s ease, filter 0.3s ease;
-    transition: fill 0.3s ease, filter 0.3s ease;
-}
-.topo-res-line {
-    fill: none;
-    stroke: rgba(100,120,160,0.08);
-    stroke-width: 1;
-    stroke-dasharray: 3 4;
-    -webkit-transition: stroke 0.4s ease, stroke-opacity 0.4s ease;
-    transition: stroke 0.4s ease, stroke-opacity 0.4s ease;
-}
-.topo-res-label {
-    fill: rgba(180,190,210,0.3);
-    font-size: 6px;
-    font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
-    -webkit-transition: fill 0.3s ease;
-    transition: fill 0.3s ease;
-}
-
-.topo-res-dot.res-running {
-    fill: rgba(110,168,254,0.7);
-    -webkit-transform-box: fill-box;
-    transform-box: fill-box;
-    -webkit-transform-origin: center;
-    transform-origin: center;
-    -webkit-animation: res-pulse 1.2s ease-in-out infinite;
-    animation: res-pulse 1.2s ease-in-out infinite;
-}
-.topo-res-line.res-running {
-    stroke: rgba(110,168,254,0.35);
-    stroke-dasharray: 4 3;
-    -webkit-animation: dash-flow 1s linear infinite;
-    animation: dash-flow 1s linear infinite;
-}
-
-.topo-res-dot.res-done-cf { fill: #f6821f; filter: url(#glow-res-cf); }
-.topo-res-dot.res-done-g  { fill: #4285f4; filter: url(#glow-res-g); }
-.topo-res-dot.res-done-q9 { fill: #0078d4; filter: url(#glow-res-q9); }
-.topo-res-dot.res-done-od { fill: #ff6a00; filter: url(#glow-res-od); }
-.topo-res-dot.res-done-eu { fill: #003399; filter: url(#glow-res-eu); }
-
-.topo-res-line.res-done-cf { stroke: rgba(246,130,31,0.45); stroke-dasharray: none; }
-.topo-res-line.res-done-g  { stroke: rgba(66,133,244,0.45); stroke-dasharray: none; }
-.topo-res-line.res-done-q9 { stroke: rgba(0,120,212,0.45); stroke-dasharray: none; }
-.topo-res-line.res-done-od { stroke: rgba(255,106,0,0.45); stroke-dasharray: none; }
-.topo-res-line.res-done-eu { stroke: rgba(0,51,153,0.45); stroke-dasharray: none; }
-
-.topo-res-label.res-label-done { fill: rgba(220,230,240,0.75); }
-
 .topo-connector {
     stroke: rgba(100,120,160,0.10);
     stroke-width: 1.2;
