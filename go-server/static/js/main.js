@@ -369,6 +369,7 @@ function resetTopologyNodes() {
     const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
+    if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
     delete topoEl.dataset.lastDnsStatus;
     for (const g of topoEl.querySelectorAll('[data-phase]')) {
         delete g.dataset.lastStatus;
@@ -740,14 +741,191 @@ function initPrivacyToggle() {
     }
 }
 
+var _globeAnim = null;
+
 function initGlobeMotion() {
-    const rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
-    function globeMotion() {
-        const at = document.querySelector('.globe-meridians animateTransform');
-        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    var DEG = Math.PI / 180;
+    var LAND = [
+        [[72,-78],[72,-100],[71,-152],[68,-165],[63,-167],[60,-140],[56,-132],[52,-127],[49,-124],[46,-124],[42,-124],[38,-123],[34,-120],[32,-117],[28,-115],[24,-110],[22,-106],[20,-97],[18,-96],[18,-88],[16,-87],[14,-84],[10,-84],[8,-81],[9,-78],[10,-76],[12,-72],[15,-76],[18,-77],[20,-76],[22,-80],[25,-80],[28,-82],[30,-82],[33,-80],[35,-76],[38,-75],[40,-74],[42,-70],[44,-66],[45,-61],[47,-53],[44,-60],[43,-66],[41,-71],[38,-70],[36,-76],[30,-82],[28,-77],[26,-80],[22,-88],[18,-88],[20,-90],[22,-97],[26,-110],[32,-117],[38,-123],[48,-124],[55,-130],[58,-136],[60,-140],[64,-162],[68,-165],[70,-152],[73,-94],[72,-78]],
+        [[12,-72],[11,-74],[10,-76],[8,-77],[5,-77],[2,-80],[-1,-80],[-3,-80],[-5,-81],[-8,-79],[-12,-77],[-14,-76],[-18,-70],[-20,-70],[-23,-68],[-23,-44],[-28,-49],[-33,-52],[-35,-57],[-38,-56],[-41,-64],[-46,-67],[-52,-69],[-55,-68],[-55,-64],[-52,-72],[-47,-76],[-42,-65],[-38,-57],[-34,-53],[-28,-48],[-23,-44],[-18,-40],[-13,-39],[-8,-35],[-5,-35],[-2,-50],[2,-55],[5,-60],[8,-63],[10,-68],[12,-72]],
+        [[36,-10],[38,-10],[40,-9],[42,-9],[43,-4],[44,-1],[46,0],[47,1],[48,2],[50,2],[51,4],[52,5],[54,9],[56,8],[56,10],[58,6],[60,5],[61,5],[63,10],[65,14],[68,16],[70,20],[71,28],[71,30],[70,32],[68,28],[66,26],[64,28],[62,18],[60,19],[58,18],[56,12],[54,10],[52,14],[50,14],[48,17],[46,16],[44,12],[42,24],[41,29],[40,26],[38,24],[37,23],[36,22],[36,14],[36,-6],[36,-10]],
+        [[37,10],[35,0],[34,-5],[32,-8],[30,-10],[28,-14],[25,-17],[22,-17],[20,-17],[15,-17],[12,-16],[8,-14],[5,-10],[5,-4],[5,1],[5,10],[2,10],[0,10],[-5,12],[-8,14],[-12,14],[-18,12],[-22,14],[-25,17],[-28,17],[-30,18],[-34,18],[-34,20],[-33,26],[-31,28],[-28,32],[-25,35],[-20,39],[-15,41],[-12,44],[-5,40],[0,42],[5,43],[10,44],[12,45],[15,42],[20,40],[25,37],[28,35],[30,32],[32,35],[35,35],[37,10]],
+        [[42,28],[44,30],[48,32],[52,36],[55,40],[57,42],[60,44],[62,50],[63,60],[65,70],[68,72],[70,80],[72,100],[72,125],[70,135],[68,140],[64,136],[62,140],[58,140],[55,135],[52,130],[48,132],[45,135],[42,132],[38,128],[35,129],[32,121],[30,120],[28,110],[25,100],[22,96],[20,93],[18,80],[15,80],[12,80],[10,78],[8,78],[6,100],[4,104],[2,104],[-1,104],[-5,106],[-7,106],[-8,110],[-7,115],[-2,118],[0,120],[1,104],[4,104],[6,100],[10,100],[15,100],[20,105],[22,107],[25,102],[28,97],[30,80],[32,60],[35,55],[37,50],[38,44],[40,40],[42,28]],
+        [[-14,129],[-12,131],[-12,136],[-14,137],[-16,137],[-19,144],[-21,149],[-25,153],[-29,153],[-33,152],[-35,148],[-38,146],[-38,140],[-36,137],[-34,135],[-32,133],[-30,130],[-28,115],[-25,114],[-22,114],[-19,117],[-16,123],[-14,129]],
+        [[60,-44],[63,-42],[65,-40],[68,-30],[72,-22],[76,-20],[78,-22],[80,-30],[82,-40],[83,-45],[82,-55],[80,-62],[78,-68],[76,-72],[73,-58],[70,-52],[68,-50],[64,-50],[60,-44]],
+        [[31,130],[33,132],[35,134],[37,137],[40,140],[42,144],[43,145],[42,143],[40,140],[37,137],[35,134],[33,131],[31,130]]
+    ];
+
+    var globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
+
+    function projectPt(lat, lon) {
+        var phi = lat * DEG;
+        var lam = (lon - globe.rotLon) * DEG;
+        var cosPhi = Math.cos(phi);
+        return {
+            x: globe.cx + globe.R * cosPhi * Math.sin(lam),
+            y: globe.cy - globe.R * Math.sin(phi),
+            vis: cosPhi * Math.cos(lam) > 0
+        };
     }
-    globeMotion();
-    rmq.addEventListener('change', globeMotion);
+
+    function drawGlobeSphere(ctx) {
+        var grd = ctx.createRadialGradient(globe.cx - globe.R * 0.25, globe.cy - globe.R * 0.25, globe.R * 0.05, globe.cx, globe.cy, globe.R * 1.4);
+        grd.addColorStop(0, 'rgba(30,40,70,0.15)');
+        grd.addColorStop(0.7, 'rgba(15,20,40,0.08)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R * 1.4, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(8,12,22,0.9)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(100,140,200,0.2)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+    }
+
+    function drawGraticule(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+
+        ctx.strokeStyle = 'rgba(100,140,200,0.07)';
+        ctx.lineWidth = 0.5;
+
+        var lats = [-60, -30, 0, 30, 60];
+        for (var li = 0; li < lats.length; li++) {
+            ctx.beginPath();
+            var started = false;
+            for (var lon = -180; lon <= 180; lon += 3) {
+                var p = projectPt(lats[li], lon);
+                if (p.vis) {
+                    if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                    else ctx.lineTo(p.x, p.y);
+                } else { started = false; }
+            }
+            ctx.stroke();
+        }
+
+        for (var mlon = -180; mlon < 180; mlon += 30) {
+            ctx.beginPath();
+            var started2 = false;
+            for (var lat = -90; lat <= 90; lat += 3) {
+                var p2 = projectPt(lat, mlon);
+                if (p2.vis) {
+                    if (!started2) { ctx.moveTo(p2.x, p2.y); started2 = true; }
+                    else ctx.lineTo(p2.x, p2.y);
+                } else { started2 = false; }
+            }
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(100,140,200,0.12)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        var started3 = false;
+        for (var elon = -180; elon <= 180; elon += 3) {
+            var ep = projectPt(0, elon);
+            if (ep.vis) {
+                if (!started3) { ctx.moveTo(ep.x, ep.y); started3 = true; }
+                else ctx.lineTo(ep.x, ep.y);
+            } else { started3 = false; }
+        }
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawContinents(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+
+        for (var ci = 0; ci < LAND.length; ci++) {
+            var coords = LAND[ci];
+            ctx.beginPath();
+            var started = false;
+            for (var pi = 0; pi < coords.length; pi++) {
+                var p = projectPt(coords[pi][0], coords[pi][1]);
+                if (p.vis) {
+                    if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                    else ctx.lineTo(p.x, p.y);
+                } else { started = false; }
+            }
+            if (started) {
+                ctx.fillStyle = 'rgba(80,120,180,0.04)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100,160,220,0.12)';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    function renderGlobe(canvas) {
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width;
+        var h = canvas.height;
+        globe.cx = w / 2;
+        globe.cy = h / 2;
+        globe.R = Math.min(w, h) * 0.35;
+        ctx.clearRect(0, 0, w, h);
+        drawGlobeSphere(ctx);
+        drawGraticule(ctx);
+        drawContinents(ctx);
+    }
+
+    var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function startGlobeAnimation() {
+        if (_globeAnim) cancelAnimationFrame(_globeAnim);
+        var canvas = document.querySelector('.topo-globe-canvas');
+        if (!canvas) return;
+        var reduced = rmq.matches;
+        renderGlobe(canvas);
+        if (reduced) return;
+        function tick() {
+            globe.rotLon -= 0.08;
+            renderGlobe(canvas);
+            _globeAnim = requestAnimationFrame(tick);
+        }
+        _globeAnim = requestAnimationFrame(tick);
+    }
+
+    function stopGlobeAnimation() {
+        if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
+    }
+
+    var observer = new MutationObserver(function() {
+        var topo = document.querySelector('.scan-topology');
+        if (topo && topo.getAttribute('aria-hidden') === 'false') {
+            startGlobeAnimation();
+        } else {
+            stopGlobeAnimation();
+        }
+    });
+
+    var topoEl = document.querySelector('.scan-topology');
+    if (topoEl) {
+        observer.observe(topoEl, { attributes: true, attributeFilter: ['aria-hidden'] });
+        if (topoEl.getAttribute('aria-hidden') === 'false') {
+            startGlobeAnimation();
+        }
+    }
+
+    rmq.addEventListener('change', function() {
+        var topo2 = document.querySelector('.scan-topology');
+        if (topo2 && topo2.getAttribute('aria-hidden') === 'false') {
+            startGlobeAnimation();
+        }
+    });
 }
 
 function initVideoFallback() {
