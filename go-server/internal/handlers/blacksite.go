@@ -98,7 +98,6 @@ var statusCSS = map[string]string{
 }
 
 func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
         ctx := c.Request.Context()
 
         findings, err := h.DB.Queries.ListFindings(ctx)
@@ -144,43 +143,31 @@ func (h *BlackSiteHandler) BlackSite(c *gin.Context) {
         recentEvents := allEvents[:recentCut]
         archiveEvents := allEvents[recentCut:]
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "black-site",
-
-                "S0Findings": sevBuckets[0],
-                "S1Findings": sevBuckets[1],
-                "S2Findings": sevBuckets[2],
-                "S3Findings": sevBuckets[3],
-                "S4Findings": sevBuckets[4],
-
-                "S0Count":    sevMap[0],
-                "S1Count":    sevMap[1],
-                "S2Count":    sevMap[2],
-                "S3Count":    sevMap[3],
-                "S4Count":    sevMap[4],
-                "TotalCount": totalRow,
-
-                "DefectCount":         kindMap["defect"],
-                "WeaknessCount":       kindMap["weakness"],
-                "ComplianceGapCount":  kindMap["compliance_gap"],
-                "ClaimIntegrityCount": kindMap["claim_integrity"],
-                "DesignDebtCount":     kindMap["design_debt"],
-                "IncidentCount":       kindMap["incident"],
-
-                "DetainedCount": stMap["DETAINED"],
-                "RenderedCount": stMap["RENDERED"],
-
-                "RecentEvents":      recentEvents,
-                "ArchiveEvents":     archiveEvents,
-                "ArchiveEventCount": len(archiveEvents),
-                "TotalEventCount":   len(allEvents),
-                "HasEvents":         len(allEvents) > 0,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "black-site")
+        data["S0Findings"] = sevBuckets[0]
+        data["S1Findings"] = sevBuckets[1]
+        data["S2Findings"] = sevBuckets[2]
+        data["S3Findings"] = sevBuckets[3]
+        data["S4Findings"] = sevBuckets[4]
+        data["S0Count"] = sevMap[0]
+        data["S1Count"] = sevMap[1]
+        data["S2Count"] = sevMap[2]
+        data["S3Count"] = sevMap[3]
+        data["S4Count"] = sevMap[4]
+        data["TotalCount"] = totalRow
+        data["DefectCount"] = kindMap["defect"]
+        data["WeaknessCount"] = kindMap["weakness"]
+        data["ComplianceGapCount"] = kindMap["compliance_gap"]
+        data["ClaimIntegrityCount"] = kindMap["claim_integrity"]
+        data["DesignDebtCount"] = kindMap["design_debt"]
+        data["IncidentCount"] = kindMap["incident"]
+        data["DetainedCount"] = stMap["DETAINED"]
+        data["RenderedCount"] = stMap["RENDERED"]
+        data["RecentEvents"] = recentEvents
+        data["ArchiveEvents"] = archiveEvents
+        data["ArchiveEventCount"] = len(archiveEvents)
+        data["TotalEventCount"] = len(allEvents)
+        data["HasEvents"] = len(allEvents) > 0
         c.HTML(http.StatusOK, "black_site.html", data)
 }
 

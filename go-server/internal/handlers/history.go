@@ -96,8 +96,6 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
 }
 
 func (h *HistoryHandler) History(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")      //nolint:errcheck // zero-value fallback for template rendering
-        csrfToken, _ := c.Get("csrf_token") //nolint:errcheck // zero-value fallback for template rendering
         page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
         if err != nil {
                 page = 1
@@ -112,16 +110,8 @@ func (h *HistoryHandler) History(c *gin.Context) {
 
         total, err := h.countAnalyses(ctx, searchDomain)
         if err != nil {
-                errData := gin.H{
-                        strAppversion:      h.Config.AppVersion,
-                        strMaintenancenote: h.Config.MaintenanceNote,
-                        strBetapages:       h.Config.BetaPages,
-                        strCspnonce:        nonce,
-                        strCsrftoken:       csrfToken,
-                        strActivepage:      mapKeyHistory,
-                        "FlashMessages":    []FlashMessage{{Category: "danger", Message: "Failed to count analyses"}},
-                }
-                mergeAuthData(c, h.Config, errData)
+                errData := NewTemplateData(c, h.Config, mapKeyHistory)
+                errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to count analyses"}}
                 c.HTML(http.StatusInternalServerError, templateHistory, errData)
                 return
         }
@@ -130,34 +120,23 @@ func (h *HistoryHandler) History(c *gin.Context) {
 
         items, err := h.fetchAnalyses(ctx, searchDomain, &pagination)
         if err != nil {
-                errData := gin.H{
-                        strAppversion:      h.Config.AppVersion,
-                        strMaintenancenote: h.Config.MaintenanceNote,
-                        strBetapages:       h.Config.BetaPages,
-                        strCspnonce:        nonce,
-                        strCsrftoken:       csrfToken,
-                        strActivepage:      mapKeyHistory,
-                        "FlashMessages":    []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}},
-                }
-                mergeAuthData(c, h.Config, errData)
+                errData := NewTemplateData(c, h.Config, mapKeyHistory)
+                errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to fetch analyses"}}
                 c.HTML(http.StatusInternalServerError, templateHistory, errData)
                 return
         }
 
         pd := BuildPagination(page, pagination.TotalPages, total)
 
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyHistory,
-                "Analyses":         items,
-                "Pagination":       pd,
-                "SearchDomain":     searchDomain,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, mapKeyHistory)
+        data["Analyses"] = items
+        data["Pagination"] = pd
+        data["SearchDomain"] = searchDomain
+        data["SearchAction"] = "/history"
+        data["SearchPlaceholder"] = "Search by domain name..."
+        data["SearchAriaLabel"] = "Search history by domain name"
+        data["PaginationLabel"] = "Analysis history pagination"
+        data["PaginationBase"] = "/history"
         c.HTML(http.StatusOK, templateHistory, data)
 }
 

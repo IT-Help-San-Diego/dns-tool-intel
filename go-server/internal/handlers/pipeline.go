@@ -129,27 +129,15 @@ func (h *PipelineHandler) Observatory(c *gin.Context) {
                 })
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-
-        data := gin.H{
-                "Title":            "Pipeline Observatory",
-                keyActivePage:       "pipeline",
-                keyAppVersion:       h.Config.AppVersion,
-                keyMaintenanceNote:  h.Config.MaintenanceNote,
-                keyBetaPages:        h.Config.BetaPages,
-                keyCspNonce:         nonce,
-                "CsrfToken":        csrfToken,
-                "Stages":           stages,
-                "EndToEnd":         endToEnd,
-                "Distribution":     distribution,
-                "DriftDistribution": driftDist,
-                "Slowest":          slowest,
-                "Trends":           trends,
-                "PhaseGroupLabels": analyzer.PhaseGroupLabels,
-                "PhaseGroupOrder":  analyzer.PhaseGroupOrder,
-        }
-
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "pipeline")
+        data["Title"] = "Pipeline Observatory"
+        data["Stages"] = stages
+        data["EndToEnd"] = endToEnd
+        data["Distribution"] = distribution
+        data["DriftDistribution"] = driftDist
+        data["Slowest"] = slowest
+        data["Trends"] = trends
+        data["PhaseGroupLabels"] = analyzer.PhaseGroupLabels
+        data["PhaseGroupOrder"] = analyzer.PhaseGroupOrder
         c.HTML(http.StatusOK, "admin_pipeline.html", data)
 }

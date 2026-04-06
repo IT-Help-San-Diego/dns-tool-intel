@@ -20,14 +20,6 @@ func NewContactHandler(cfg *config.Config) *ContactHandler {
 }
 
 func (h *ContactHandler) Contact(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "contact",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "contact")
         c.HTML(http.StatusOK, "contact.html", data)
 }

@@ -47,7 +47,6 @@ func NewRoadmapHandler(cfg *config.Config) *RoadmapHandler {
 }
 
 func (h *RoadmapHandler) Roadmap(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
 
         done := []RoadmapItem{
                 {Title: "Intelligence Confidence Audit Engine (ICAE)", Version: "129 Test Cases", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
@@ -186,21 +185,14 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "TLD Zone Health: Registry Identification", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Show registry operator + IANA metadata"},
         }
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "roadmap",
-                "Done":            done,
-                "DoneCount":       len(done),
-                "InProgress":      inProgress,
-                "InProgressCount": len(inProgress),
-                "NextUp":          nextUp,
-                "NextUpCount":     len(nextUp),
-                "Backlog":         backlog,
-                "BacklogCount":    len(backlog),
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "roadmap")
+        data["Done"] = done
+        data["DoneCount"] = len(done)
+        data["InProgress"] = inProgress
+        data["InProgressCount"] = len(inProgress)
+        data["NextUp"] = nextUp
+        data["NextUpCount"] = len(nextUp)
+        data["Backlog"] = backlog
+        data["BacklogCount"] = len(backlog)
         c.HTML(http.StatusOK, "roadmap.html", data)
 }

@@ -388,6 +388,8 @@ func TestIndexFlashData_CB8(t *testing.T) {
         c, _ := gin.CreateTestContext(httptest.NewRecorder())
         c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 
+        c.Set("csp_nonce", "nonce")
+        c.Set("csrf_token", "csrf")
         data := h.indexFlashData(c, "nonce", "csrf", "danger", "Something went wrong")
         if data["CspNonce"] != "nonce" {
                 t.Fatalf("expected nonce, got %v", data["CspNonce"])

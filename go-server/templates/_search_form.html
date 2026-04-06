@@ -1,0 +1,24 @@
+{{define "search_form"}}
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <search><form action="{{.SearchAction}}" method="GET" class="d-flex align-items-center gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-secondary">
+                    {{icon "search" "text-muted"}}
+                </span>
+                <input type="text" name="domain" class="form-control border-secondary" 
+                       placeholder="{{.SearchPlaceholder}}" 
+                       aria-label="{{.SearchAriaLabel}}"
+                       value="{{.SearchDomain}}"
+                       autocomplete="off" autocapitalize="none" spellcheck="false">
+            </div>
+            <button type="submit" class="btn btn-outline-primary flex-shrink-0">Search</button>
+            {{if .SearchDomain}}
+                <a href="{{.SearchAction}}" class="btn btn-outline-secondary flex-shrink-0" title="Clear search">
+                    {{icon "times"}}
+                </a>
+            {{end}}
+        </form></search>
+    </div>
+</div>
+{{end}}

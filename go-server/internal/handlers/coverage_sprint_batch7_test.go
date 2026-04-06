@@ -369,7 +369,7 @@ func TestBuildAnalyzeViewData_NilDB_B7(t *testing.T) {
         c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
 
         h := &AnalysisHandler{Config: &config.Config{AppVersion: "v1.0", BetaPages: map[string]bool{}}}
-        data := h.buildAnalyzeViewData(c, "nonce", "csrf", viewDataInput{
+        data := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:      "example.com",
                 asciiDomain: "example.com",
                 results:     map[string]any{},

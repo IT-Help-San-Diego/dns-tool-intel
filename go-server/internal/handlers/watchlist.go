@@ -89,18 +89,7 @@ func cadenceToNextRun(cadence string) pgtype.Timestamp {
 }
 
 func (h *WatchlistHandler) baseTmplData(c *gin.Context) gin.H {
-        nonce := c.MustGet("csp_nonce")
-        csrfToken := c.MustGet("csrf_token")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "watchlist",
-        }
-        mergeAuthData(c, h.Config, data)
-        return data
+        return NewTemplateData(c, h.Config, "watchlist")
 }
 
 func (h *WatchlistHandler) Watchlist(c *gin.Context) {

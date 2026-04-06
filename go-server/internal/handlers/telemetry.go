@@ -68,26 +68,14 @@ func (h *TelemetryHandler) Dashboard(c *gin.Context) {
                 trendsJSON = []byte("[]")
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-
-        data := gin.H{
-                "Title":            "Scan Telemetry",
-                keyActivePage:       "telemetry",
-                keyAppVersion:       h.Config.AppVersion,
-                keyMaintenanceNote:  h.Config.MaintenanceNote,
-                keyBetaPages:        h.Config.BetaPages,
-                keyCspNonce:         nonce,
-                "CsrfToken":        csrfToken,
-                "Summaries":        summaries,
-                "Slowest":          slowest,
-                "Trends":           trends,
-                "TrendsJSON":       template.JS(trendsJSON),
-                "PhaseGroupLabels": analyzer.PhaseGroupLabels,
-                "PhaseGroupOrder":  analyzer.PhaseGroupOrder,
-        }
-
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "telemetry")
+        data["Title"] = "Scan Telemetry"
+        data["Summaries"] = summaries
+        data["Slowest"] = slowest
+        data["Trends"] = trends
+        data["TrendsJSON"] = template.JS(trendsJSON)
+        data["PhaseGroupLabels"] = analyzer.PhaseGroupLabels
+        data["PhaseGroupOrder"] = analyzer.PhaseGroupOrder
         c.HTML(http.StatusOK, "admin_telemetry.html", data)
 }
 

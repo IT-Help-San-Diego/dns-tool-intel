@@ -20,14 +20,6 @@ func NewPrivacyHandler(cfg *config.Config) *PrivacyHandler {
 }
 
 func (h *PrivacyHandler) Privacy(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "privacy",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "privacy")
         c.HTML(http.StatusOK, "privacy.html", data)
 }

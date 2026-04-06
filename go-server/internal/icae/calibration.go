@@ -440,15 +440,15 @@ func RunDegradedCalibration(ce *CalibrationEngine) CalibrationResult {
 
 func mapProtocolToCalibrationKey(protocol string) string {
         keyMap := map[string]string{
-                "spf":     "SPF",
-                "dkim":    "DKIM",
-                "dmarc":   "DMARC",
-                "dane":    "DANE",
-                "dnssec":  "DNSSEC",
-                "bimi":    "BIMI",
-                "mta_sts": "MTA_STS",
-                "tlsrpt":  "TLS_RPT",
-                "caa":     "CAA",
+                ProtoSPF:    "SPF",
+                ProtoDKIM:   "DKIM",
+                ProtoDMARC:  "DMARC",
+                ProtoDANE:   "DANE",
+                ProtoDNSSEC: "DNSSEC",
+                ProtoBIMI:   "BIMI",
+                ProtoMTASTS: "MTA_STS",
+                ProtoTLSRPT: "TLS_RPT",
+                ProtoCAA:    "CAA",
         }
         if k, ok := keyMap[protocol]; ok {
                 return k

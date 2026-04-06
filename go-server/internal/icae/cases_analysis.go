@@ -22,8 +22,8 @@ const (
         mapKeyColor             = "color"
         mapKeyDanger            = "danger"
         mapKeyDedicated         = "dedicated"
-        mapKeyDmarc             = "dmarc"
-        mapKeyDnssec            = "dnssec"
+        mapKeyDmarc             = ProtoDMARC
+        mapKeyDnssec            = ProtoDNSSEC
         mapKeyEnterprisePattern = "enterprise_pattern"
         mapKeyError             = "error"
         mapKeyLabel             = "label"
@@ -34,7 +34,7 @@ const (
         strDangerous            = "DANGEROUS"
         strStrict               = "STRICT"
         strSoft                 = "SOFT"
-        protoSPF                = "spf"
+        protoSPF                = ProtoSPF
 )
 
 func AnalysisTestCases() []TestCase {

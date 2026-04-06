@@ -21,23 +21,14 @@ func NewSignatureHandler(cfg *config.Config) *SignatureHandler {
 }
 
 func (h *SignatureHandler) SignaturePage(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-
         mode := c.DefaultQuery("mode", "page")
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "signature",
-                "RawMode":         mode == "raw",
-                "BaseURL":         h.Config.BaseURL,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "signature")
+        data["RawMode"] = mode == "raw"
+        data["BaseURL"] = h.Config.BaseURL
 
         if mode == "raw" {
-                nonceStr, _ := nonce.(string)
+                nonceStr, _ := data[keyCspNonce].(string)
                 c.Header("Content-Security-Policy", fmt.Sprintf("default-src 'none'; style-src 'nonce-%s'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'", nonceStr))
                 c.HTML(http.StatusOK, "signature_raw.html", data)
                 return

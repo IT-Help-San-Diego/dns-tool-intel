@@ -39,12 +39,6 @@ const (
         mapKeyCsrfToken    = "csrf_token"
         mapKeyError        = "error"
         mapKeyUserId       = "user_id"
-        strActivepage      = "ActivePage"
-        strAppversion      = "AppVersion"
-        strBetapages       = "BetaPages"
-        strCspnonce        = "CspNonce"
-        strCsrftoken       = "CsrfToken"
-        strMaintenancenote = "MaintenanceNote"
 )
 
 type CmdRunResult struct {
@@ -134,8 +128,6 @@ type AdminICAERun struct {
 }
 
 func (h *AdminHandler) Dashboard(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
         ctx := c.Request.Context()
 
         users := h.fetchUsers(ctx)
@@ -151,22 +143,14 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
                 bpCount = h.BackpressureCountFunc()
         }
 
-        data := gin.H{
-                strAppversion:            h.Config.AppVersion,
-                strMaintenancenote:       h.Config.MaintenanceNote,
-                strBetapages:             h.Config.BetaPages,
-                strCspnonce:              nonce,
-                strCsrftoken:             csrfToken,
-                strActivepage:            mapKeyAdmin,
-                "Users":                  users,
-                "RecentAnalyses":         recentAnalyses,
-                "Stats":                  stats,
-                "ICAERuns":               icaeRuns,
-                "ScannerAlerts":          scannerAlerts,
-                "ICAEMetrics":            icaeMetrics,
-                "BackpressureRejections": bpCount,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, mapKeyAdmin)
+        data["Users"] = users
+        data["RecentAnalyses"] = recentAnalyses
+        data["Stats"] = stats
+        data["ICAERuns"] = icaeRuns
+        data["ScannerAlerts"] = scannerAlerts
+        data["ICAEMetrics"] = icaeMetrics
+        data["BackpressureRejections"] = bpCount
         c.HTML(http.StatusOK, "admin.html", data)
 }
 
@@ -542,41 +526,19 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
                 slog.Info("Admin: operation completed", mapKeyTask, task.ID)
         }
 
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyAdmin,
-                "OpResult": gin.H{
-                        "Task":    task,
-                        "Success": success,
-                        "Output":  combined,
-                },
-                "OpsTasks": opsTaskList(),
+        data := NewTemplateData(c, h.Config, mapKeyAdmin)
+        data["OpResult"] = gin.H{
+                "Task":    task,
+                "Success": success,
+                "Output":  combined,
         }
-        mergeAuthData(c, h.Config, data)
+        data["OpsTasks"] = opsTaskList()
         c.HTML(http.StatusOK, "admin_ops.html", data)
 }
 
 func (h *AdminHandler) OperationsPage(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyAdmin,
-                "OpsTasks":         opsTaskList(),
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, mapKeyAdmin)
+        data["OpsTasks"] = opsTaskList()
         c.HTML(http.StatusOK, "admin_ops.html", data)
 }
 

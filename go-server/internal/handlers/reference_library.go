@@ -20,14 +20,6 @@ func NewReferenceLibraryHandler(cfg *config.Config) *ReferenceLibraryHandler {
 }
 
 func (h *ReferenceLibraryHandler) ReferenceLibrary(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "reference-library",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "reference-library")
         c.HTML(http.StatusOK, "reference_library.html", data)
 }

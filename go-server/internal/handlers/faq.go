@@ -4,30 +4,22 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type FAQHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewFAQHandler(cfg *config.Config) *FAQHandler {
-	return &FAQHandler{Config: cfg}
+        return &FAQHandler{Config: cfg}
 }
 
 func (h *FAQHandler) SubdomainDiscovery(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		keyCspNonce:        nonce,
-		keyActivePage:      "faq",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "faq_subdomains.html", data)
+        data := NewTemplateData(c, h.Config, "faq")
+        c.HTML(http.StatusOK, "faq_subdomains.html", data)
 }

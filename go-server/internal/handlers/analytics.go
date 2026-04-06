@@ -58,24 +58,14 @@ type PageEntry struct {
 }
 
 func (h *AnalyticsHandler) Dashboard(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
         ctx := c.Request.Context()
 
         days := h.fetchDailyAnalytics(ctx, 30)
         summary := h.computeSummary(ctx, days)
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "admin",
-                "Days":            days,
-                "Summary":         summary,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "admin")
+        data["Days"] = days
+        data["Summary"] = summary
         c.HTML(http.StatusOK, "admin_analytics.html", data)
 }
 

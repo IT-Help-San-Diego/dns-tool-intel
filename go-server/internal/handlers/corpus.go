@@ -20,14 +20,6 @@ func NewCorpusHandler(cfg *config.Config) *CorpusHandler {
 }
 
 func (h *CorpusHandler) Corpus(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "corpus",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "corpus")
         c.HTML(http.StatusOK, "corpus.html", data)
 }
