@@ -1,7 +1,7 @@
 # DNS Tool — Domain Security Audit
 
 ## Overview
-The DNS Tool is an OSINT platform designed for RFC-compliant domain security analysis. Its primary purpose is to identify and report vulnerabilities and misconfigurations across various DNS-related protocols, including SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA. The project generates comprehensive technical and executive reports, adhering to standards like ODNI ICD 203, to enhance global domain security, protect critical infrastructure, and combat cyber threats. It aims to be a scientifically rigorous, transparent, and scalable cybersecurity tool with significant market potential.
+The DNS Tool is an OSINT platform designed for RFC-compliant domain security analysis. It identifies and reports vulnerabilities and misconfigurations across various DNS-related protocols (SPF, DKIM, DMARC, DANE/TLSA, DNSSEC, BIMI, MTA-STS, TLS-RPT, CAA). The project generates comprehensive technical and executive reports, adhering to standards like ODNI ICD 203, with the goal of enhancing global domain security, protecting critical infrastructure, and combating cyber threats. It aims to be a scientifically rigorous, transparent, and scalable cybersecurity tool with significant market potential.
 
 ## User Preferences
 - **Connected Ecosystem Pre-Flight (MANDATORY)**: Before starting ANY task, check your full API/secret/integration inventory. You have 15+ API keys (TheBrain, GitHub×3, Miro, Zenodo, SonarCloud, Codeberg, Hostinger, Figma, GPTZero, Moltbook, Discord, Probe Fleet), 2 OAuth integrations (GitHub, Notion), and 3 MCP servers (Miro, Notion, Figma). This interconnected access should fundamentally change how you approach every task. Don't just write code — connect the data across every system that knows about it. See SKILL.md § "Step 0: Connected Ecosystem Pre-Flight" for the full inventory and connected thinking examples. Come home to the data.
@@ -67,7 +67,7 @@ The DNS Tool is an OSINT platform designed for RFC-compliant domain security ana
 - **ICSAE — Intelligence Compliance & Standards Assessment Engine** (`dns-eval/`): Python-based standards evaluation engine mapping DNS observations to formal security controls. Schema v8 (`dns-eval/Mappings/dns-to-controls.json`) with 16 controls, full RFC/standard citations (ISO 27002, INCITS 585, NIST 800-177), ICD-203 calibrated confidence, ICIE source authority tiers (Tier 1-8), and Chicago-note bibliography output. Key design decisions: (1) SPF ~all + DMARC p=reject is ACCEPTABLE (not a failure) — `SPF_EFFECTIVE_POLICY` uses `requires_any: [SPF_HARD_FAIL, SPF_SOFTFAIL_WITH_DMARC]`; (2) DNSSEC "inherited" chain of trust is VALID for subdomains — `DNSSEC_CHAIN_TRUSTED` accepts both "complete" and "inherited" when AD=true; (3) CAA inheritance per RFC 8659 §3 tree-climbing is acknowledged but analyzer-level implementation is pending. Naming: ICSAE sits alongside ICAE, ICuAE, and ICIE in the engine family. Run: `cd dns-eval && python3 Mappings/normalize_input.py Inputs/<file>.json Mappings/normalized-from-dnstool.json && python3 Mappings/evaluate.py`.
 
 ## System Architecture
-The DNS Tool is an open-core Progressive Web App (PWA) with a Go/Gin backend and PostgreSQL for data persistence.
+The DNS Tool is an open-core Progressive Web App (PWA) built with a Go/Gin backend and PostgreSQL for data persistence.
 
 ### UI/UX Decisions
 - **Theming**: "Covert Mode" dark theme with a four-layer color token system, "Emblem Gold" and "Accent Red" highlights, glass-styled SVG badges, and a "Covert Badge Scotopic Palette."

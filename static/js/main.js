@@ -745,6 +745,28 @@ var _globeAnim = null;
 
 function initGlobeMotion() {
     var DEG = Math.PI / 180;
+
+    var RESOLVER_POPS = [
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
+    ];
+
     var LAND = [
         [[72,-78],[72,-100],[71,-152],[68,-165],[63,-167],[60,-140],[56,-132],[52,-127],[49,-124],[46,-124],[42,-124],[38,-123],[34,-120],[32,-117],[28,-115],[24,-110],[22,-106],[20,-97],[18,-96],[18,-88],[16,-87],[14,-84],[10,-84],[8,-81],[9,-78],[10,-76],[12,-72],[15,-76],[18,-77],[20,-76],[22,-80],[25,-80],[28,-82],[30,-82],[33,-80],[35,-76],[38,-75],[40,-74],[42,-70],[44,-66],[45,-61],[47,-53],[44,-60],[43,-66],[41,-71],[38,-70],[36,-76],[30,-82],[28,-77],[26,-80],[22,-88],[18,-88],[20,-90],[22,-97],[26,-110],[32,-117],[38,-123],[48,-124],[55,-130],[58,-136],[60,-140],[64,-162],[68,-165],[70,-152],[73,-94],[72,-78]],
         [[12,-72],[11,-74],[10,-76],[8,-77],[5,-77],[2,-80],[-1,-80],[-3,-80],[-5,-81],[-8,-79],[-12,-77],[-14,-76],[-18,-70],[-20,-70],[-23,-68],[-23,-44],[-28,-49],[-33,-52],[-35,-57],[-38,-56],[-41,-64],[-46,-67],[-52,-69],[-55,-68],[-55,-64],[-52,-72],[-47,-76],[-42,-65],[-38,-57],[-34,-53],[-28,-48],[-23,-44],[-18,-40],[-13,-39],[-8,-35],[-5,-35],[-2,-50],[2,-55],[5,-60],[8,-63],[10,-68],[12,-72]],
@@ -757,6 +779,16 @@ function initGlobeMotion() {
     ];
 
     var globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
+    var convergePt = { x: 0, y: 0 };
+    var signalParticles = [];
+    var particlesInitialized = false;
+
+    function hexToRgba(hex, a) {
+        var r = parseInt(hex.slice(1, 3), 16);
+        var g = parseInt(hex.slice(3, 5), 16);
+        var b = parseInt(hex.slice(5, 7), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
 
     function projectPt(lat, lon) {
         var phi = lat * DEG;
@@ -765,7 +797,8 @@ function initGlobeMotion() {
         return {
             x: globe.cx + globe.R * cosPhi * Math.sin(lam),
             y: globe.cy - globe.R * Math.sin(phi),
-            vis: cosPhi * Math.cos(lam) > 0
+            vis: cosPhi * Math.cos(lam) > 0,
+            depth: cosPhi * Math.cos(lam)
         };
     }
 
@@ -869,17 +902,189 @@ function initGlobeMotion() {
         ctx.restore();
     }
 
+    function initSignalParticles() {
+        signalParticles = [];
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            for (var j = 0; j < 3; j++) {
+                signalParticles.push({
+                    popIdx: i,
+                    t: Math.random(),
+                    speed: 0.003 + Math.random() * 0.004,
+                    size: 1.5 + Math.random() * 1.5
+                });
+            }
+        }
+    }
+
+    function drawSignalArcs(ctx) {
+        var tgtX = convergePt.x;
+        var tgtY = convergePt.y;
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            var pop = RESOLVER_POPS[i];
+            var p = projectPt(pop.lat, pop.lon);
+            if (!p.vis) continue;
+
+            var cpx = p.x + (tgtX - p.x) * 0.5 + (p.y - tgtY) * 0.12;
+            var cpy = p.y + (tgtY - p.y) * 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.quadraticCurveTo(cpx, cpy, tgtX, tgtY);
+            ctx.strokeStyle = hexToRgba(pop.color, 0.12 + p.depth * 0.06);
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+        }
+
+        for (var si = 0; si < signalParticles.length; si++) {
+            var sp = signalParticles[si];
+            var pop2 = RESOLVER_POPS[sp.popIdx];
+            var p2 = projectPt(pop2.lat, pop2.lon);
+            if (!p2.vis) continue;
+
+            var t = sp.t;
+            var cpx2 = p2.x + (tgtX - p2.x) * 0.5 + (p2.y - tgtY) * 0.12;
+            var cpy2 = p2.y + (tgtY - p2.y) * 0.5;
+            var mt = 1 - t;
+            var px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * tgtX;
+            var py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * tgtY;
+
+            ctx.beginPath();
+            ctx.arc(px, py, sp.size, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.5 + t * 0.3);
+            ctx.fill();
+
+            sp.t += sp.speed;
+            if (sp.t > 1) { sp.t = 0; sp.speed = 0.003 + Math.random() * 0.004; sp.size = 1.5 + Math.random() * 1.5; }
+        }
+    }
+
+    function drawResolverMarkers(ctx) {
+        var visiblePops = [];
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            var pop = RESOLVER_POPS[i];
+            var p = projectPt(pop.lat, pop.lon);
+            if (p.vis) {
+                visiblePops.push({ pop: pop, p: p, idx: i });
+            }
+        }
+
+        visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
+
+        var FONT_TAG = 9;
+        var placedBoxes = [];
+
+        for (var vi = 0; vi < visiblePops.length; vi++) {
+            var vp = visiblePops[vi];
+            var pop2 = vp.pop;
+            var p2 = vp.p;
+            var alpha = 0.4 + p2.depth * 0.6;
+
+            ctx.beginPath();
+            ctx.arc(p2.x, p2.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.15 * alpha);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p2.x, p2.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.85 * alpha);
+            ctx.fill();
+
+            var label = pop2.city;
+            ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            var tw = ctx.measureText(label).width;
+            var tagW = tw + 12;
+            var tagH = Math.round(FONT_TAG + 8);
+
+            var baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
+            var labelGap = 8;
+            var bestX = null, bestY = null, bestScore = Infinity;
+            var candidateAngles = [0, 20, -20, 40, -40, 60, -60, 90, -90, 120, -120, 150, -150, 180];
+            var candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.42 + labelGap];
+
+            for (var di = 0; di < candidateDists.length; di++) {
+                for (var ci = 0; ci < candidateAngles.length; ci++) {
+                    var ca = baseAngle + candidateAngles[ci] * DEG;
+                    var dist = candidateDists[di];
+                    var cx = p2.x + Math.cos(ca) * dist;
+                    var cy = p2.y + Math.sin(ca) * dist;
+
+                    if (Math.cos(ca) < 0) cx -= tagW;
+
+                    cx = Math.max(4, Math.min(cx, 800 - tagW - 4));
+                    cy = Math.max(4, Math.min(cy, 380 - tagH - 4));
+
+                    var hasCollision = false;
+                    for (var pi = 0; pi < placedBoxes.length; pi++) {
+                        var pb = placedBoxes[pi];
+                        if (cx < pb.x + pb.w + 2 && cx + tagW > pb.x - 2 &&
+                            cy < pb.y + pb.h + 2 && cy + tagH > pb.y - 2) {
+                            hasCollision = true;
+                            break;
+                        }
+                    }
+
+                    var distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
+                    var score = (hasCollision ? 10000 : 0) + distFromDot;
+
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestX = cx;
+                        bestY = cy;
+                    }
+                }
+            }
+
+            placedBoxes.push({ x: bestX, y: bestY, w: tagW, h: tagH });
+
+            ctx.beginPath();
+            var lineEndX = (bestX + tagW / 2 > p2.x) ? bestX : bestX + tagW;
+            ctx.moveTo(p2.x, p2.y);
+            ctx.lineTo(lineEndX, bestY + tagH / 2);
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.2 * alpha);
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            ctx.fillStyle = hexToRgba(pop2.color, 0.06 * alpha);
+            ctx.beginPath();
+            var rr = 3;
+            ctx.moveTo(bestX + rr, bestY);
+            ctx.lineTo(bestX + tagW - rr, bestY);
+            ctx.quadraticCurveTo(bestX + tagW, bestY, bestX + tagW, bestY + rr);
+            ctx.lineTo(bestX + tagW, bestY + tagH - rr);
+            ctx.quadraticCurveTo(bestX + tagW, bestY + tagH, bestX + tagW - rr, bestY + tagH);
+            ctx.lineTo(bestX + rr, bestY + tagH);
+            ctx.quadraticCurveTo(bestX, bestY + tagH, bestX, bestY + tagH - rr);
+            ctx.lineTo(bestX, bestY + rr);
+            ctx.quadraticCurveTo(bestX, bestY, bestX + rr, bestY);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.15 * alpha);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            ctx.fillStyle = hexToRgba('#ffffff', 0.7 * alpha);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, bestX + tagW / 2, bestY + tagH / 2);
+        }
+    }
+
     function renderGlobe(canvas) {
         var ctx = canvas.getContext('2d');
         var w = canvas.width;
         var h = canvas.height;
         globe.cx = w / 2;
-        globe.cy = h / 2;
-        globe.R = Math.min(w, h) * 0.35;
+        globe.cy = h * 0.39;
+        globe.R = Math.min(w * 0.24, h * 0.34);
+        convergePt.x = w / 2;
+        convergePt.y = h * 0.92;
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
         drawContinents(ctx);
+        drawSignalArcs(ctx);
+        drawResolverMarkers(ctx);
     }
 
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
@@ -888,6 +1093,7 @@ function initGlobeMotion() {
         if (_globeAnim) cancelAnimationFrame(_globeAnim);
         var canvas = document.querySelector('.topo-globe-canvas');
         if (!canvas) return;
+        if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
         var reduced = rmq.matches;
         renderGlobe(canvas);
         if (reduced) return;
