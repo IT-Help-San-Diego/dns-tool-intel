@@ -1111,7 +1111,7 @@ function initGlobeMotion() {
 
         globe.R = Math.min(w / (2 * PHI), h / (2 * PHI), 250);
         globe.cx = w / 2;
-        globe.cy = h / (PHI * PHI);
+        globe.cy = h / (PHI * PHI) - globe.R * 0.15;
         convergePt.x = w * 0.478;
         convergePt.y = globe.cy + globe.R;
 
