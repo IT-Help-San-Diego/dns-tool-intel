@@ -718,24 +718,7 @@
 
     <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
-            <output class="mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
-            <output class="mb-2 h4 covert-show">Initiating Recon Sweep</output>
-            <p class="text-muted mb-0" id="loadingDomain"></p>
-            <div class="loading-elapsed mt-2">
-                <span class="text-muted small" id="loadingTimer">0s</span>
-            </div>
-            <div class="loading-dots mt-2" aria-hidden="true">
-                <span></span><span></span><span></span>
-            </div>
-            {{template "scan_topology" .}}
-            <div class="scan-checklist mt-3 d-none" id="scanChecklist" aria-hidden="true">
-            </div>
-            <p class="text-muted small mt-3 mb-0 u-maxw-440-fadein covert-hide" id="loadingNote">
-                Every result includes terminal commands you can run to independently verify the underlying data. No proprietary magic.
-            </p>
-            <p class="small mt-3 mb-0 u-maxw-440-fadein covert-show u-color-covert-loading" id="loadingNoteCovert">
-                Optimized for low-light tactical environments. Easy on the eyes for all-night recon.
-            </p>
+            {{template "scan_overlay_content" .}}
         </div>
     </output>
     <script nonce="{{.CspNonce}}">

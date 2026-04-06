@@ -135,8 +135,8 @@ function showOverlay(overlay) {
 }
 
 function startStatusCycle(overlayEl) {
-    const timerEl = document.getElementById('loadingTimer') ?? overlayEl.querySelector('.loading-elapsed span');
-    const noteEl = document.getElementById('loadingNote');
+    const timerEl = overlayEl.querySelector('.scan-overlay-timer') ?? overlayEl.querySelector('.loading-elapsed span');
+    const noteEl = overlayEl.querySelector('.scan-overlay-note');
     const startTime = Date.now();
 
     if (timerEl) {
@@ -153,7 +153,7 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = overlayEl.querySelector('.scan-topology');
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
     }
@@ -245,7 +245,7 @@ function updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group) {
 }
 
 function updateTopologyFromProgress(data) {
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl || !data?.phases) return;
     const phases = data.phases;
     const dnsPhase = phases['dns_records'];
@@ -357,7 +357,7 @@ function showFlashAlert(message, container) {
 }
 
 function resetTopologyNodes() {
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
     for (const n of topoEl.querySelectorAll('.topo-node')) {
@@ -402,7 +402,7 @@ function isBareTopLevelDomain(domain) {
 }
 
 function swapToTLDScanPhases(overlay) {
-    const checklist = overlay.querySelector('#scanChecklist');
+    const checklist = overlay.querySelector('.scan-overlay-checklist') ?? overlay.querySelector('#scanChecklist');
     if (!checklist) return;
     const isCovert = document.body.classList.contains('covert-mode');
     const phases = [
@@ -669,11 +669,11 @@ function handleAnalyzeLinkClick(e) {
     e.preventDefault();
     const link = e.currentTarget;
     const overlay = document.getElementById('loadingOverlay');
-    const loadingDomain = document.getElementById('loadingDomain');
     const url = new URL(link.href, globalThis.location.origin);
     const domain = url.searchParams.get('domain') ?? '';
     if (overlay) {
-        if (loadingDomain) loadingDomain.textContent = domain;
+        const domainEl = overlay.querySelector('.scan-overlay-domain');
+        if (domainEl) domainEl.textContent = domain;
         showOverlay(overlay);
         startStatusCycle(overlay);
     }
@@ -1011,10 +1011,10 @@ function initDomainForm() {
         }
 
         const overlay = document.getElementById('loadingOverlay');
-        const loadingDomain = document.getElementById('loadingDomain');
         if (overlay) {
-            if (loadingDomain) {
-                loadingDomain.textContent = domain;
+            const domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) {
+                domainEl.textContent = domain;
             }
             if (isBareTopLevelDomain(domain)) {
                 swapToTLDScanPhases(overlay);

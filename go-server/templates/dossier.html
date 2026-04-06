@@ -417,17 +417,7 @@
 
     <output id="dossierAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain assessment">
         <div class="loading-content">
-            <div class="loading-spinner">
-                {{icon "globe" "icon-spin"}}
-            </div>
-            <output class="mt-4 mb-2 h4">Running Multi-Source Intelligence Audit</output>
-            <p class="text-muted mb-0" id="dossierAnalyzeDomain"></p>
-            <div class="loading-elapsed mt-2">
-                <span class="text-muted small" id="dossierLoadingTimer">0s</span>
-            </div>
-            <div class="loading-dots mt-2">
-                <span></span><span></span><span></span>
-            </div>
+            {{template "scan_overlay_content" .}}
         </div>
     </output>
 
@@ -446,13 +436,6 @@
         else if (respUrl && respUrl !== globalThis.location.href) {
             globalThis.history.replaceState(null, '', respUrl);
         }
-    }
-
-    function startDossierTimer(timerEl) {
-        const start = Date.now();
-        setInterval(function(){
-            timerEl.textContent = Math.floor((Date.now()-start)/1000) + 's';
-        }, 1000);
     }
 
     function handleDossierFetchResponse(resp, overlay) {
@@ -494,12 +477,13 @@
             e.preventDefault();
             const domain = btn.href.split('domain=')[1] || '';
             const overlay = document.getElementById('dossierAnalyzeOverlay');
-            const domainEl = document.getElementById('dossierAnalyzeDomain');
-            if(domainEl) domainEl.textContent = decodeURIComponent(domain);
-            if(overlay) overlay.classList.add('active');
-
-            const timerEl = document.getElementById('dossierLoadingTimer');
-            if(timerEl) startDossierTimer(timerEl);
+            if(overlay) {
+                const domainEl = overlay.querySelector('.scan-overlay-domain');
+                if(domainEl) domainEl.textContent = decodeURIComponent(domain);
+                overlay.classList.add('active');
+                if(typeof showOverlay==='function'){showOverlay(overlay);}
+                if(typeof startStatusCycle==='function'){startStatusCycle(overlay);}
+            }
 
             submitDossierReanalyze(btn.href, overlay);
         });
