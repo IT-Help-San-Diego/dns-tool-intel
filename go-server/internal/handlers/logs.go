@@ -9,7 +9,6 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
-        "dnstool/go-server/internal/middleware"
 
         "github.com/gin-gonic/gin"
         "github.com/jackc/pgx/v5/pgtype"
@@ -122,29 +121,17 @@ func (h *LogsHandler) Dashboard(c *gin.Context) {
                 })
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "ops",
-                "Logs":            entries,
-                "TotalCount":      totalCount,
-                "LevelCounts":     levelCounts,
-                "RecentEvents":    recentEvents,
-                "FilterLevel":     c.Query("level"),
-                "FilterCategory":  c.Query("category"),
-                "FilterDomain":    c.Query("domain"),
-                "FilterTraceID":   c.Query("trace_id"),
-                "FilterAfter":     c.Query("after"),
-                "FilterBefore":    c.Query("before"),
-        }
-        for k, v := range middleware.GetAuthTemplateData(c) {
-                data[k] = v
-        }
+        data := NewTemplateData(c, h.Config, "ops")
+        data["Logs"] = entries
+        data["TotalCount"] = totalCount
+        data["LevelCounts"] = levelCounts
+        data["RecentEvents"] = recentEvents
+        data["FilterLevel"] = c.Query("level")
+        data["FilterCategory"] = c.Query("category")
+        data["FilterDomain"] = c.Query("domain")
+        data["FilterTraceID"] = c.Query("trace_id")
+        data["FilterAfter"] = c.Query("after")
+        data["FilterBefore"] = c.Query("before")
         c.HTML(http.StatusOK, "admin_logs.html", data)
 }
 

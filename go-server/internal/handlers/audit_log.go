@@ -102,20 +102,10 @@ func convertAuditRows(rows []dbq.ListHashedAnalysesRow) []AuditLogEntry {
 }
 
 func (h *ConfidenceHandler) AuditLog(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
         page := parsePageParam(c)
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "confidence",
-        }
+        data := NewTemplateData(c, h.Config, "confidence")
         data["IsDev"] = h.Config.IsDevEnvironment
-        mergeAuthData(c, h.Config, data)
 
         auditData, _ := h.loadAuditData(c, page)
         data["AuditLog"] = auditData

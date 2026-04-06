@@ -86,20 +86,9 @@ func (h *ProbeAdminHandler) ProbeDashboard(c *gin.Context) {
                 healthResults = append(healthResults, result)
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "admin",
-                "Probes":          probes,
-                "HealthResults":   healthResults,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "admin")
+        data["Probes"] = probes
+        data["HealthResults"] = healthResults
 
         if actionResult, ok := c.Get("probeActionResult"); ok {
                 data["ActionResult"] = actionResult

@@ -8,7 +8,6 @@ import (
         "fmt"
         "log/slog"
         "net"
-        "os/exec"
         "regexp"
         "strings"
         "time"
@@ -50,7 +49,11 @@ func (a *Analyzer) AnalyzeNmapDNS(ctx context.Context, domain string) map[string
                 "scan_duration_ms": 0,
         }
 
-        if _, err := exec.LookPath("nmap"); err != nil {
+        if a.CmdExec == nil {
+                result[mapKeyMessage] = "Nmap not available"
+                return result
+        }
+        if _, err := a.CmdExec.LookPath("nmap"); err != nil {
                 result[mapKeyMessage] = "Nmap not available"
                 return result
         }
@@ -129,7 +132,7 @@ func (a *Analyzer) nmapZoneTransfer(ctx context.Context, domain, ns string) map[
                 result[mapKeyMessage] = msgTestInconclusive
                 return result
         }
-        output, err := runNmapScript(ctx, ns, "dns-zone-transfer", fmt.Sprintf("dns-zone-transfer.domain=%s", domain), 15*time.Second)
+        output, err := a.runNmapScript(ctx, ns, "dns-zone-transfer", fmt.Sprintf("dns-zone-transfer.domain=%s", domain), 15*time.Second)
         if err != nil {
                 result[mapKeyMessage] = msgTestInconclusive
                 return result
@@ -161,7 +164,7 @@ func (a *Analyzer) nmapRecursion(ctx context.Context, ns string) map[string]any 
                 mapKeyNameserver: ns,
         }
 
-        output, err := runNmapScript(ctx, ns, "dns-recursion", "", 10*time.Second)
+        output, err := a.runNmapScript(ctx, ns, "dns-recursion", "", 10*time.Second)
         if err != nil {
                 result[mapKeyMessage] = msgTestInconclusive
                 return result
@@ -184,7 +187,7 @@ func (a *Analyzer) nmapNSID(ctx context.Context, ns string) map[string]any {
                 "id":             "",
         }
 
-        output, err := runNmapScript(ctx, ns, "dns-nsid", "", 10*time.Second)
+        output, err := a.runNmapScript(ctx, ns, "dns-nsid", "", 10*time.Second)
         if err != nil {
                 result[mapKeyMessage] = msgTestInconclusive
                 return result
@@ -230,7 +233,7 @@ func (a *Analyzer) nmapCacheSnoop(ctx context.Context, ns string) map[string]any
                 mapKeyNameserver: ns,
         }
 
-        output, err := runNmapScript(ctx, ns, "dns-cache-snoop", "", 10*time.Second)
+        output, err := a.runNmapScript(ctx, ns, "dns-cache-snoop", "", 10*time.Second)
         if err != nil {
                 result[mapKeyMessage] = msgTestInconclusive
                 return result
@@ -244,7 +247,7 @@ func (a *Analyzer) nmapCacheSnoop(ctx context.Context, ns string) map[string]any
         return result
 }
 
-func runNmapScript(ctx context.Context, target, script, args string, timeout time.Duration) (string, error) {
+func (a *Analyzer) runNmapScript(ctx context.Context, target, script, args string, timeout time.Duration) (string, error) {
         if !isValidNmapTarget(target) {
                 return "", fmt.Errorf("nmap target %q failed hostname/IP validation", target)
         }
@@ -258,12 +261,11 @@ func runNmapScript(ctx context.Context, target, script, args string, timeout tim
         }
         cmdArgs = append(cmdArgs, target)
 
-        nmapPath, lookErr := exec.LookPath("nmap")
+        nmapPath, lookErr := a.CmdExec.LookPath("nmap")
         if lookErr != nil {
                 return "", fmt.Errorf("nmap binary not found in PATH: %w", lookErr)
         }
-        cmd := exec.CommandContext(cmdCtx, nmapPath, cmdArgs...)
-        out, err := cmd.CombinedOutput()
+        out, err := a.CmdExec.CombinedOutput(cmdCtx, nmapPath, cmdArgs...)
         if err != nil {
                 if cmdCtx.Err() == context.DeadlineExceeded {
                         return "", fmt.Errorf("nmap script %s timed out after %v", script, timeout)

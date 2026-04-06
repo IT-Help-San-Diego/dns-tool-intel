@@ -65,7 +65,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 		{
 			CaseID:     "fixture-wellcfg-003",
 			CaseName:   "Well-configured domain: DNSSEC signed + enterprise DNS = protected",
-			Protocol:   "dnssec",
+			Protocol:   ProtoDNSSEC,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eDNSSEC,
 			Expected:   "tampering=No, provider=Cloudflare",
@@ -87,7 +87,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 		{
 			CaseID:     "fixture-wellcfg-004",
 			CaseName:   "Well-configured domain: MTA-STS enforce + valid policy",
-			Protocol:   "mta_sts",
+			Protocol:   ProtoMTASTS,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eMTASTS,
 			Expected:   "mode=enforce, status=success, max_age valid",
@@ -119,7 +119,7 @@ func wellConfiguredDomainFixtures() []TestCase {
 		{
 			CaseID:     "fixture-wellcfg-005",
 			CaseName:   "Well-configured domain: DANE full MX coverage",
-			Protocol:   "dane",
+			Protocol:   ProtoDANE,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eDANE,
 			Expected:   "DANE verdict=success with full coverage",
@@ -178,7 +178,7 @@ func noMailDomainFixtures() []TestCase {
 		{
 			CaseID:     "fixture-nomail-002",
 			CaseName:   "No-mail domain: SPF -all standalone = success status",
-			Protocol:   "spf",
+			Protocol:   ProtoSPF,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eSPF,
 			Expected:   "SPF status=success for no-mail",
@@ -244,7 +244,7 @@ func edgeCaseFixtures() []TestCase {
 		{
 			CaseID:     "fixture-edge-001",
 			CaseName:   "Edge case: +all SPF = dangerous despite having DMARC reject",
-			Protocol:   "spf",
+			Protocol:   ProtoSPF,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eSPFS5,
 			Expected:   "SPF dangerous even with DMARC reject",
@@ -261,7 +261,7 @@ func edgeCaseFixtures() []TestCase {
 		{
 			CaseID:     "fixture-edge-002",
 			CaseName:   "Edge case: BIMI record with no VMC authority URL",
-			Protocol:   "bimi",
+			Protocol:   ProtoBIMI,
 			Layer:      LayerAnalysis,
 			RFCSection: "BIMI Spec §3 (end-to-end)",
 			Expected:   "logo URL present, authority nil",
@@ -283,7 +283,7 @@ func edgeCaseFixtures() []TestCase {
 		{
 			CaseID:     "fixture-edge-003",
 			CaseName:   "Edge case: CAA with only iodef (no issue/issuewild) = open issuance",
-			Protocol:   "caa",
+			Protocol:   ProtoCAA,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eCAASection,
 			Expected:   "0 issuers but has iodef",
@@ -298,7 +298,7 @@ func edgeCaseFixtures() []TestCase {
 		{
 			CaseID:     "fixture-edge-004",
 			CaseName:   "Edge case: DANE partial MX coverage = warning verdict",
-			Protocol:   "dane",
+			Protocol:   ProtoDANE,
 			Layer:      LayerAnalysis,
 			RFCSection: citFixtureE2eDANE,
 			Expected:   "DANE warning for partial coverage",
@@ -320,7 +320,7 @@ func edgeCaseFixtures() []TestCase {
 		{
 			CaseID:     "fixture-edge-005",
 			CaseName:   "Edge case: stub defaults prevent false BIMI capability",
-			Protocol:   "bimi",
+			Protocol:   ProtoBIMI,
 			Layer:      LayerAnalysis,
 			RFCSection: "Stub contract (end-to-end)",
 			Expected:   "hosted=true, bimi_capable=false",

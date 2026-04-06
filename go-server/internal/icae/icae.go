@@ -25,23 +25,33 @@ const (
         ConsistentDays = 30
         GoldDays       = 90
         GoldMasterDays = 180
+
+        ProtoSPF    = "spf"
+        ProtoDKIM   = "dkim"
+        ProtoDMARC  = "dmarc"
+        ProtoDANE   = "dane"
+        ProtoDNSSEC = "dnssec"
+        ProtoBIMI   = "bimi"
+        ProtoMTASTS = "mta_sts"
+        ProtoTLSRPT = "tlsrpt"
+        ProtoCAA    = "caa"
 )
 
 var Protocols = []string{
-        "spf", "dkim", "dmarc", "dane", "dnssec",
-        "bimi", "mta_sts", "tlsrpt", "caa",
+        ProtoSPF, ProtoDKIM, ProtoDMARC, ProtoDANE, ProtoDNSSEC,
+        ProtoBIMI, ProtoMTASTS, ProtoTLSRPT, ProtoCAA,
 }
 
 var ProtocolDisplayNames = map[string]string{
-        "spf":     "SPF",
-        "dkim":    "DKIM",
-        "dmarc":   "DMARC",
-        "dane":    "DANE/TLSA",
-        "dnssec":  "DNSSEC",
-        "bimi":    "BIMI",
-        "mta_sts": "MTA-STS",
-        "tlsrpt":  "TLS-RPT",
-        "caa":     "CAA",
+        ProtoSPF:    "SPF",
+        ProtoDKIM:   "DKIM",
+        ProtoDMARC:  "DMARC",
+        ProtoDANE:   "DANE/TLSA",
+        ProtoDNSSEC: "DNSSEC",
+        ProtoBIMI:   "BIMI",
+        ProtoMTASTS: "MTA-STS",
+        ProtoTLSRPT: "TLS-RPT",
+        ProtoCAA:    "CAA",
 }
 
 var MaturityDisplayNames = map[string]string{

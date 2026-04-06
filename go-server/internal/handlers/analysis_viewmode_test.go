@@ -336,6 +336,8 @@ func TestRenderRestrictedAccess_Authenticated(t *testing.T) {
 func TestIndexFlashData(t *testing.T) {
         h := newViewModeHandler(&mockAnalysisStore{})
         c := mockGinContext()
+        c.Set("csp_nonce", "nonce-val")
+        c.Set("csrf_token", "csrf-val")
         data := h.indexFlashData(c, "nonce-val", "csrf-val", "warning", "test message")
 
         if data["AppVersion"] != "test" {

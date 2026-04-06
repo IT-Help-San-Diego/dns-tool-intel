@@ -3,13 +3,59 @@
 // dns-tool:scrutiny design
 package handlers
 
+import (
+        "encoding/json"
+        "time"
+
+        "dnstool/go-server/internal/config"
+
+        "github.com/gin-gonic/gin"
+)
+
 const (
         keyAppVersion      = "AppVersion"
         keyMaintenanceNote = "MaintenanceNote"
         keyBetaPages       = "BetaPages"
         keyCspNonce        = "CspNonce"
+        keyCsrfToken       = "CsrfToken"
         keyActivePage      = "ActivePage"
 )
+
+func NewTemplateData(c *gin.Context, cfg *config.Config, activePage string) gin.H {
+        nonce, _ := c.Get("csp_nonce")
+        csrfToken, _ := c.Get("csrf_token")
+        data := gin.H{
+                keyAppVersion:      cfg.AppVersion,
+                keyMaintenanceNote: cfg.MaintenanceNote,
+                keyBetaPages:       cfg.BetaPages,
+                keyCspNonce:        nonce,
+                keyCsrfToken:      csrfToken,
+                keyActivePage:      activePage,
+        }
+        mergeAuthData(c, cfg, data)
+        return data
+}
+
+func FormatDate(t time.Time) string {
+        return t.UTC().Format("2 Jan 2006")
+}
+
+func FormatTime(t time.Time) string {
+        return t.UTC().Format("15:04 UTC")
+}
+
+func ExtractToolVersion(fullResults json.RawMessage) string {
+        if len(fullResults) == 0 {
+                return ""
+        }
+        var fr map[string]interface{}
+        if json.Unmarshal(fullResults, &fr) == nil {
+                if tv, ok := fr["_tool_version"].(string); ok {
+                        return tv
+                }
+        }
+        return ""
+}
 
 type FlashMessage struct {
         Category string

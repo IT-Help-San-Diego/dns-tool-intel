@@ -42,23 +42,12 @@ func NewRemediationHandler(database *db.Database, cfg *config.Config) *Remediati
 }
 
 func (h *RemediationHandler) RemediationPage(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-
         analysisIDStr := c.Query("analysis_id")
         domain := c.Query("domain")
 
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      "remediation",
-                strShowform:        true,
-                "BaseURL":          h.Config.BaseURL,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "remediation")
+        data[strShowform] = true
+        data["BaseURL"] = h.Config.BaseURL
 
         if analysisIDStr == "" && domain == "" {
                 c.HTML(http.StatusOK, remediationTemplate, data)

@@ -33,48 +33,24 @@ func NewToolkitHandler(cfg *config.Config) *ToolkitHandler {
 }
 
 func (h *ToolkitHandler) ToolkitPage(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyToolkit,
-                "ProbeLocations":   h.Config.Probes,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, mapKeyToolkit)
+        data["ProbeLocations"] = h.Config.Probes
         c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func (h *ToolkitHandler) MyIP(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-
         clientIP := c.ClientIP()
         userAgent := c.GetHeader("User-Agent")
         platform := detectPlatform(userAgent)
 
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyToolkit,
-                "ClientIP":         clientIP,
-                "Platform":         platform,
-                "ShowMyIP":         true,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, mapKeyToolkit)
+        data["ClientIP"] = clientIP
+        data["Platform"] = platform
+        data["ShowMyIP"] = true
         c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func (h *ToolkitHandler) PortCheck(c *gin.Context) {
-        nonce, _ := c.Get(mapKeyCspNonce)
-        csrfToken, _ := c.Get(mapKeyCsrfToken)
-
         targetHost := strings.TrimSpace(c.PostForm("target_host"))
         targetPort := strings.TrimSpace(c.PostForm("target_port"))
 
@@ -83,19 +59,12 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
                 selectedProbeID = h.Config.Probes[0].ID
         }
 
-        data := gin.H{
-                strAppversion:      h.Config.AppVersion,
-                strMaintenancenote: h.Config.MaintenanceNote,
-                strBetapages:       h.Config.BetaPages,
-                strCspnonce:        nonce,
-                strCsrftoken:       csrfToken,
-                strActivepage:      mapKeyToolkit,
-                "TargetHost":       targetHost,
-                "TargetPort":       targetPort,
-                "ShowPortCheck":    true,
-                "ProbeLocations":   h.Config.Probes,
-                "SelectedProbe":    selectedProbeID,
-        }
+        data := NewTemplateData(c, h.Config, mapKeyToolkit)
+        data["TargetHost"] = targetHost
+        data["TargetPort"] = targetPort
+        data["ShowPortCheck"] = true
+        data["ProbeLocations"] = h.Config.Probes
+        data["SelectedProbe"] = selectedProbeID
 
         if targetHost == "" {
                 h.renderToolkitWithError(c, data, "Please enter a target host (IP address or hostname).")
@@ -123,13 +92,11 @@ func (h *ToolkitHandler) PortCheck(c *gin.Context) {
         }
 
         data["ProbeResult"] = probeResult
-        mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplToolkit, data)
 }
 
 func (h *ToolkitHandler) renderToolkitWithError(c *gin.Context, data gin.H, msg string) {
         data["ProbeError"] = msg
-        mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, tplToolkit, data)
 }
 

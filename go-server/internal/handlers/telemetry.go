@@ -2,6 +2,7 @@ package handlers
 // dns-tool:scrutiny design
 
 import (
+        "context"
         "encoding/json"
         "fmt"
         "html/template"
@@ -10,13 +11,15 @@ import (
         "dnstool/go-server/internal/analyzer"
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/dbq"
 
         "github.com/gin-gonic/gin"
 )
 
 type TelemetryHandler struct {
-        DB     *db.Database
-        Config *config.Config
+        DB          *db.Database
+        Config      *config.Config
+        TimingsFunc func(ctx context.Context, analysisID int32) ([]dbq.ScanPhaseTelemetry, error)
 }
 
 func NewTelemetryHandler(database *db.Database, cfg *config.Config) *TelemetryHandler {
@@ -65,26 +68,14 @@ func (h *TelemetryHandler) Dashboard(c *gin.Context) {
                 trendsJSON = []byte("[]")
         }
 
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-
-        data := gin.H{
-                "Title":            "Scan Telemetry",
-                keyActivePage:       "telemetry",
-                keyAppVersion:       h.Config.AppVersion,
-                keyMaintenanceNote:  h.Config.MaintenanceNote,
-                keyBetaPages:        h.Config.BetaPages,
-                keyCspNonce:         nonce,
-                "CsrfToken":        csrfToken,
-                "Summaries":        summaries,
-                "Slowest":          slowest,
-                "Trends":           trends,
-                "TrendsJSON":       template.JS(trendsJSON),
-                "PhaseGroupLabels": analyzer.PhaseGroupLabels,
-                "PhaseGroupOrder":  analyzer.PhaseGroupOrder,
-        }
-
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "telemetry")
+        data["Title"] = "Scan Telemetry"
+        data["Summaries"] = summaries
+        data["Slowest"] = slowest
+        data["Trends"] = trends
+        data["TrendsJSON"] = template.JS(trendsJSON)
+        data["PhaseGroupLabels"] = analyzer.PhaseGroupLabels
+        data["PhaseGroupOrder"] = analyzer.PhaseGroupOrder
         c.HTML(http.StatusOK, "admin_telemetry.html", data)
 }
 
@@ -104,7 +95,11 @@ func (h *TelemetryHandler) VerifyHash(c *gin.Context) {
                 return
         }
 
-        timings, err := h.DB.Queries.GetTelemetryByAnalysis(ctx, analysisID)
+        timingsFunc := h.DB.Queries.GetTelemetryByAnalysis
+        if h.TimingsFunc != nil {
+                timingsFunc = h.TimingsFunc
+        }
+        timings, err := timingsFunc(ctx, analysisID)
         if err != nil {
                 c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load telemetry"})
                 return

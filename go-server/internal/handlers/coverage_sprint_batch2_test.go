@@ -241,7 +241,7 @@ func TestBatch2_buildDossierItem_nilFields(t *testing.T) {
                 Domain:      "nil.test.com",
                 AsciiDomain: "nil.test.com",
         }
-        item := buildDossierItem(a)
+        item := buildDossierItemFrom(listRow{a})
         if item.ID != 10 {
                 t.Errorf("ID = %d", item.ID)
         }
@@ -289,7 +289,7 @@ func TestBatch2_buildDossierItem_populated(t *testing.T) {
                 CreatedAt:        pgtype.Timestamp{Time: ts, Valid: true},
                 FullResults:      json.RawMessage(fr),
         }
-        item := buildDossierItem(a)
+        item := buildDossierItemFrom(listRow{a})
         if item.SpfStatus != "pass" {
                 t.Errorf("SpfStatus = %q", item.SpfStatus)
         }
@@ -322,7 +322,7 @@ func TestBatch2_buildDossierItemFromSearch_nilFields(t *testing.T) {
                 Domain:      "search-nil.test.com",
                 AsciiDomain: "search-nil.test.com",
         }
-        item := buildDossierItemFromSearch(a)
+        item := buildDossierItemFrom(searchRow{a})
         if item.ID != 50 {
                 t.Errorf("ID = %d", item.ID)
         }
@@ -361,7 +361,7 @@ func TestBatch2_buildDossierItemFromSearch_populated(t *testing.T) {
                 CreatedAt:        pgtype.Timestamp{Time: ts, Valid: true},
                 FullResults:      json.RawMessage(fr),
         }
-        item := buildDossierItemFromSearch(a)
+        item := buildDossierItemFrom(searchRow{a})
         if item.SpfStatus != "softfail" {
                 t.Errorf("SpfStatus = %q", item.SpfStatus)
         }

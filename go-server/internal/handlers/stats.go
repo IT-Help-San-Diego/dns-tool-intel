@@ -151,22 +151,12 @@ func NewStatsHandler(database *db.Database, cfg *config.Config) *StatsHandler {
 }
 
 func (h *StatsHandler) Stats(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
         ctx := c.Request.Context()
 
         recentStats, err := h.DB.Queries.ListRecentStats(ctx, 30)
         if err != nil {
-                errData := gin.H{
-                        keyAppVersion:      h.Config.AppVersion,
-                        keyMaintenanceNote: h.Config.MaintenanceNote,
-                        keyBetaPages:       h.Config.BetaPages,
-                        keyCspNonce:        nonce,
-                        "CsrfToken":       csrfToken,
-                        keyActivePage:      "stats",
-                        "FlashMessages":   []FlashMessage{{Category: "danger", Message: "Failed to fetch stats"}},
-                }
-                mergeAuthData(c, h.Config, errData)
+                errData := NewTemplateData(c, h.Config, "stats")
+                errData["FlashMessages"] = []FlashMessage{{Category: "danger", Message: "Failed to fetch stats"}}
                 c.HTML(http.StatusInternalServerError, "stats.html", errData)
                 return
         }
@@ -227,25 +217,17 @@ func (h *StatsHandler) Stats(c *gin.Context) {
 
         integrityData := loadIntegrityData()
 
-        data := gin.H{
-                keyAppVersion:         h.Config.AppVersion,
-                keyMaintenanceNote:    h.Config.MaintenanceNote,
-                keyBetaPages:          h.Config.BetaPages,
-                keyCspNonce:           nonce,
-                "CsrfToken":          csrfToken,
-                keyActivePage:         "stats",
-                "TotalAnalyses":      totalAnalyses,
-                "SuccessfulAnalyses": successfulAnalyses,
-                "FailedAnalyses":     failedAnalyses,
-                "UniqueDomains":      uniqueDomains,
-                "UniqueVisitors":     uniqueVisitors,
-                "CountryStats":       countryItems,
-                "PopularDomains":     popItems,
-                "RecentStats":        statItems,
-                "RemediatedDomains":  remediatedDomains,
-                "IntegrityData":      integrityData,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "stats")
+        data["TotalAnalyses"] = totalAnalyses
+        data["SuccessfulAnalyses"] = successfulAnalyses
+        data["FailedAnalyses"] = failedAnalyses
+        data["UniqueDomains"] = uniqueDomains
+        data["UniqueVisitors"] = uniqueVisitors
+        data["CountryStats"] = countryItems
+        data["PopularDomains"] = popItems
+        data["RecentStats"] = statItems
+        data["RemediatedDomains"] = remediatedDomains
+        data["IntegrityData"] = integrityData
         c.HTML(http.StatusOK, "stats.html", data)
 }
 

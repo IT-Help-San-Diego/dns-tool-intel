@@ -94,22 +94,13 @@ func applyFlashFromQuery(c *gin.Context, data gin.H) {
 }
 
 func (h *HomeHandler) Index(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                "BaseURL":         h.Config.BaseURL,
-                keyCspNonce:        nonce,
-                keyActivePage:      "home",
-                "CsrfToken":       csrfToken,
-                "WaitDomain":      c.Query("wait_domain"),
-                "WaitSeconds":     c.Query("wait_seconds"),
-                "WaitReason":      c.DefaultQuery("wait_reason", "anti_repeat"),
-                "Changelog":       GetRecentChangelog(6),
-                "DKIMExpand":      c.Query("dkim") != "",
-        }
+        data := NewTemplateData(c, h.Config, "home")
+        data["BaseURL"] = h.Config.BaseURL
+        data["WaitDomain"] = c.Query("wait_domain")
+        data["WaitSeconds"] = c.Query("wait_seconds")
+        data["WaitReason"] = c.DefaultQuery("wait_reason", "anti_repeat")
+        data["Changelog"] = GetRecentChangelog(6)
+        data["DKIMExpand"] = c.Query("dkim") != ""
 
         icaeM, icuaeM := h.cachedMetrics(c.Request.Context())
         if icaeM != nil {
@@ -121,26 +112,17 @@ func (h *HomeHandler) Index(c *gin.Context) {
 
         applyWelcomeOrFlash(c, data)
 
-        mergeAuthData(c, h.Config, data)
         c.HTML(http.StatusOK, "index.html", data)
 }
 
 func (h *HomeHandler) ScanTopologyFragment(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion: h.Config.AppVersion,
-                keyCspNonce:   nonce,
-        }
+        data := NewTemplateData(c, h.Config, "")
         c.Header("Cache-Control", "public, max-age=86400")
         c.HTML(http.StatusOK, "scan_topology", data)
 }
 
 func (h *HomeHandler) IconsJS(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion: h.Config.AppVersion,
-                keyCspNonce:   nonce,
-        }
+        data := NewTemplateData(c, h.Config, "")
         c.Header("Content-Type", "application/javascript; charset=utf-8")
         c.Header("Cache-Control", "public, max-age=86400")
         c.HTML(http.StatusOK, "_icons_js.html", data)

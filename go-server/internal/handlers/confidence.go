@@ -39,19 +39,8 @@ func NewConfidenceHandler(cfg *config.Config, database *db.Database) *Confidence
 }
 
 func (h *ConfidenceHandler) Confidence(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyActivePage:      "confidence",
-        }
-
-        isDev := h.Config.IsDevEnvironment
-        data["IsDev"] = isDev
+        data := NewTemplateData(c, h.Config, "confidence")
+        data["IsDev"] = h.Config.IsDevEnvironment
 
         if h.DB != nil {
                 if metrics := icae.LoadReportMetrics(c.Request.Context(), h.DB.Queries); metrics != nil {
@@ -74,7 +63,6 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
                 }
         }
 
-        mergeAuthData(c, h.Config, data)
         data["ICuAEInventory"] = icuae.GetTestInventory()
 
         now := time.Now().UTC()

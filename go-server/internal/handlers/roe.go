@@ -4,30 +4,22 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type ROEHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewROEHandler(cfg *config.Config) *ROEHandler {
-	return &ROEHandler{Config: cfg}
+        return &ROEHandler{Config: cfg}
 }
 
 func (h *ROEHandler) ROE(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		keyCspNonce:        nonce,
-		keyActivePage:      "roe",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "roe.html", data)
+        data := NewTemplateData(c, h.Config, "roe")
+        c.HTML(http.StatusOK, "roe.html", data)
 }

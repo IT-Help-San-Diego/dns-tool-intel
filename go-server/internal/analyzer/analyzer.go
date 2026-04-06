@@ -6,6 +6,7 @@ package analyzer
 import (
         "context"
         "log/slog"
+        "os/exec"
         "sync"
         "sync/atomic"
         "time"
@@ -13,6 +14,16 @@ import (
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/telemetry"
 )
+
+type execCommandExecutor struct{}
+
+func (execCommandExecutor) LookPath(file string) (string, error) {
+        return exec.LookPath(file)
+}
+
+func (execCommandExecutor) CombinedOutput(ctx context.Context, name string, args ...string) ([]byte, error) {
+        return exec.CommandContext(ctx, name, args...).CombinedOutput()
+}
 
 const (
         mapKeyError = "error"
@@ -30,6 +41,7 @@ type Analyzer struct {
         HTTP        HTTPClient
         SlowHTTP    HTTPClient
         RDAPHTTP    HTTPClient
+        CmdExec     CommandExecutor
         IANARDAPMap map[string][]string
         ianaMu      sync.RWMutex
         Telemetry   *telemetry.Registry
@@ -82,6 +94,7 @@ func New(opts ...Option) *Analyzer {
                 HTTP:          dnsclient.NewSafeHTTPClient(),
                 SlowHTTP:      ctHTTP,
                 RDAPHTTP:      dnsclient.NewRDAPHTTPClient(),
+                CmdExec:       execCommandExecutor{},
                 IANARDAPMap:   make(map[string][]string),
                 Telemetry:     telemetry.NewRegistry(),
                 RDAPCache:     telemetry.NewTTLCache[map[string]any]("rdap", 500, 24*time.Hour),
