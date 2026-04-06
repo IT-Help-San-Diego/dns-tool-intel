@@ -228,7 +228,15 @@ function applyPhaseConnectors(topoEl, group, pkey, isDone) {
 }
 
 function updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group) {
+    var prevStatus = node.dataset.lastStatus;
+    if (prevStatus === info.status) {
+        if (taskEl && info.tasks_total > 0) {
+            taskEl.textContent = (info.tasks_done ?? 0) + '/' + info.tasks_total;
+        }
+        return;
+    }
     resetPhaseNode(node, taskEl, info);
+    node.dataset.lastStatus = info.status;
     if (info.status === 'done') {
         node.classList.add('phase-done', 'phase-done-' + pkey);
         if (taskEl) taskEl.classList.add('sub-done');
@@ -249,7 +257,8 @@ function updateTopologyFromProgress(data) {
     if (!topoEl || !data?.phases) return;
     const phases = data.phases;
     const dnsPhase = phases['dns_records'];
-    if (dnsPhase) {
+    if (dnsPhase && topoEl.dataset.lastDnsStatus !== dnsPhase.status) {
+        topoEl.dataset.lastDnsStatus = dnsPhase.status;
         updateResolverDots(topoEl, dnsPhase.status);
     }
     for (const group of Object.keys(phases)) {
@@ -360,6 +369,10 @@ function resetTopologyNodes() {
     const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
+    delete topoEl.dataset.lastDnsStatus;
+    for (const g of topoEl.querySelectorAll('[data-phase]')) {
+        delete g.dataset.lastStatus;
+    }
     for (const n of topoEl.querySelectorAll('.topo-node')) {
         n.classList.remove('phase-running', 'phase-done');
         removeClasses(n, PHASE_DONE_CLASSES);
@@ -1076,6 +1089,53 @@ document.addEventListener('DOMContentLoaded', function() {
         if (link.classList.contains('history-reanalyze-btn')) continue;
         link.addEventListener('click', handleAnalyzeLinkClick);
     }
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#reanalyzeBtn');
+        if (!btn || btn.classList.contains('disabled')) return;
+        e.preventDefault();
+        var domain = btn.dataset.domain;
+        var overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            var domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) domainEl.textContent = domain;
+            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
+                swapToTLDScanPhases(overlay);
+            }
+            showOverlay(overlay);
+            startStatusCycle(overlay);
+        }
+        btn.innerHTML = '<i class="fa-solid fa-spinner icon-spin me-2"></i>Analyzing...';
+        btn.classList.add('disabled');
+        document.body.classList.add('loading');
+        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var isCovert = document.body.classList.contains('covert-mode');
+        var body = new URLSearchParams({domain: domain, csrf_token: csrf});
+        if (isCovert) body.append('covert', '1');
+        fetch('/analyze', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
+            redirect: 'follow'
+        }).then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token) {
+                startProgressPolling(data.token, overlay, btn);
+            }
+        }).catch(function() {
+            var url = '/analyze?domain=' + encodeURIComponent(domain) + (isCovert ? '&covert=1' : '') + '&refresh=' + Date.now();
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                return resp.text().then(function(html) { hideOverlayAndReset(overlay, btn); applyFetchedPage(html, resp.url); });
+            }).catch(function() {
+                globalThis.location.href = url;
+            });
+        });
+    });
 
     initAlertDismissal();
     initSmoothScroll();
