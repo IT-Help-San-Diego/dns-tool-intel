@@ -7294,12 +7294,13 @@ progress.bg-danger::-moz-progress-bar {
 
 .scan-topology {
     width: 100%;
-    max-width: 480px;
+    max-width: none;
     margin: 0 auto;
 }
 .topo-svg {
     width: 100%;
     height: auto;
+    max-height: calc(100dvh - 110px);
     display: block;
     overflow: visible;
 }

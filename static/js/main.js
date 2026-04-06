@@ -1104,11 +1104,11 @@ function initGlobeMotion() {
         var ctx = canvas.getContext('2d');
         var w = canvas.width;
         var h = canvas.height;
+        globe.R = Math.min(w * 0.18, h * 0.35, 300);
         globe.cx = w / 2;
-        globe.cy = h * 0.44;
-        globe.R = Math.min(w * 0.18, h * 0.35, 250);
+        globe.cy = globe.R * 1.42 + 8;
         convergePt.x = w / 2;
-        convergePt.y = h * 0.97;
+        convergePt.y = h - 20;
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
