@@ -7712,15 +7712,15 @@ a.ftr-node:hover {
     width: 100%;
     max-width: 740px;
     margin: 0 auto;
-    padding: 12px 0 0;
+    padding: 12px 0 12px;
 }
 
 .ftr-org::before {
     content: '';
     position: absolute;
     left: 50%;
-    top: -13px;
-    bottom: -13px;
+    top: 0;
+    bottom: 0;
     width: 1px;
     background: rgba(200, 149, 106, 0.18);
 }
@@ -7794,11 +7794,22 @@ a.ftr-node:hover {
 }
 
 .ftr-grid-connector {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     max-width: 740px;
     margin: 0 auto;
+    padding-top: 12px;
+}
+.ftr-grid-connector::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 12px;
+    width: 1px;
+    background: rgba(200, 149, 106, 0.18);
 }
 
 .ftr-grid-bar {
