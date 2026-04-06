@@ -1126,12 +1126,13 @@ function initGlobeMotion() {
         var FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
         ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
+        ctx.textBaseline = 'bottom';
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
+        var projY = Math.max(FONT_SUB + 2, globe.cy - globe.R * 1.4 - 4 * SCL);
+        ctx.fillText('Orthographic Projection', globe.cx, projY);
         var degLabel = ((globe.rotLon % 360) + 360) % 360;
         if (degLabel > 180) degLabel -= 360;
-        ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
+        ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, projY + FONT_SUB + 2);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
@@ -1158,6 +1159,10 @@ function initGlobeMotion() {
         var canvas = document.querySelector('.topo-globe-canvas');
         if (!canvas) return;
         sizeCanvasToScreen(canvas);
+        if (canvas._logW < 20 || canvas._logH < 20) {
+            setTimeout(function() { startGlobeAnimation(); }, 120);
+            return;
+        }
         if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
         var reduced = rmq.matches;
         renderGlobe(canvas);
