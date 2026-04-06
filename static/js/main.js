@@ -1108,7 +1108,7 @@ function initGlobeMotion() {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         globe.R = Math.min(w * 0.32, h * 0.38, 300);
         globe.cx = w / 2;
-        globe.cy = globe.R * 1.35 + 8;
+        globe.cy = globe.R * 1.12 + 8;
         convergePt.x = w / 2;
         convergePt.y = h - 10;
         ctx.clearRect(0, 0, w, h);
