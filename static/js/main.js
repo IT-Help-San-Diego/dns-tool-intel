@@ -158,6 +158,11 @@ function startStatusCycle(overlayEl) {
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
     }
+    if (globalThis._startGlobeAnimation) {
+        requestAnimationFrame(function() {
+            setTimeout(globalThis._startGlobeAnimation, 80);
+        });
+    }
 }
 
 const PHASE_DONE_CLASSES = ['phase-done-dns','phase-done-email','phase-done-dnssec','phase-done-ct','phase-done-smtp','phase-done-policy','phase-done-registrar','phase-done-engine','phase-done-web3'];
@@ -1205,6 +1210,9 @@ function initGlobeMotion() {
             startGlobeAnimation();
         }
     });
+
+    globalThis._startGlobeAnimation = startGlobeAnimation;
+    globalThis._stopGlobeAnimation = stopGlobeAnimation;
 }
 
 function initVideoFallback() {
