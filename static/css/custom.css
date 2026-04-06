@@ -7348,6 +7348,10 @@ progress.bg-danger::-moz-progress-bar {
 
 .topo-res-dot.res-running {
     fill: rgba(110,168,254,0.7);
+    -webkit-transform-box: fill-box;
+    transform-box: fill-box;
+    -webkit-transform-origin: center;
+    transform-origin: center;
     -webkit-animation: res-pulse 1.2s ease-in-out infinite;
     animation: res-pulse 1.2s ease-in-out infinite;
 }
@@ -7564,6 +7568,7 @@ progress.bg-danger::-moz-progress-bar {
 .ttl-scan-title { color: #e0e0e0; font-size: 1.1rem; font-weight: 500; }
 .ttl-scan-subtitle { color: #888; font-size: 0.85rem; margin-top: 0.5rem; }
 .u-offscreen-copy { position: fixed; opacity: 0; pointer-events: none; }
+.u-w140 { width: 140px; }
 .ttl-card-active { box-shadow: 0 0 20px rgba(212,168,83,0.25); opacity: 1; transform: scale(1.02); }
 .ttl-card-inactive { box-shadow: none; opacity: 0.45; transform: scale(1); }
 .ttl-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; display: flex; align-items: center; justify-content: center; }
