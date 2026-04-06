@@ -1509,6 +1509,11 @@
         document.body.classList.add('loading');
 
         if (overlay) {
+            var domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) domainEl.textContent = domain;
+            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
+                if (typeof swapToTLDScanPhases === 'function') swapToTLDScanPhases(overlay);
+            }
             if (typeof showOverlay === 'function') {
                 showOverlay(overlay);
             } else {
