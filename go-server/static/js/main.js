@@ -1100,17 +1100,21 @@ function initGlobeMotion() {
         }
     }
 
+    var PHI = 1.618033988749895;
+
     function renderGlobe(canvas) {
         var ctx = canvas.getContext('2d');
         var dpr = canvas._dpr || 1;
         var w = canvas._logW || canvas.width;
         var h = canvas._logH || canvas.height;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        globe.R = Math.min(w * 0.32, h * 0.38, 300);
+
+        globe.R = Math.min(w / (2 * PHI), h / (2 * PHI), 250);
         globe.cx = w / 2;
-        globe.cy = globe.R * 1.12 + 8;
-        convergePt.x = w / 2;
-        convergePt.y = h - 10;
+        globe.cy = h / (PHI * PHI);
+        convergePt.x = w * 0.478;
+        convergePt.y = globe.cy + globe.R;
+
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
@@ -1123,7 +1127,7 @@ function initGlobeMotion() {
         ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
         var degLabel = ((globe.rotLon % 360) + 360) % 360;
         if (degLabel > 180) degLabel -= 360;
