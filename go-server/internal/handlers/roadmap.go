@@ -14,7 +14,9 @@ import (
 const (
         roadmapDateFeb2026   = "Feb 2026"
         roadmapDateMar2026   = "Mar 2026"
+        roadmapDateApr2026   = "Apr 2026"
         strV263830           = "v26.38.30"
+        strV263835           = "v26.38.35"
         roadmapVersionV2620 = "v26.20.0+"
         roadmapTypeFeature  = "Feature"
 
@@ -146,12 +148,16 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
                 {Title: "SAST False-Positive Suppression (17 HIGH, 5-Scanner Tags)", Version: strV263830, Date: roadmapDateMar2026, Type: "Security"},
                 {Title: "Off-Site Backup Automation (Daily Cron)", Version: strV263830, Date: roadmapDateMar2026, Type: "Security"},
                 {Title: "Pre-Release Science Documentation Audit", Version: strV263830, Date: roadmapDateMar2026, Type: strQuality},
+                {Title: "SonarCloud Coverage Push (80%+ Target)", Version: strV263835, Date: roadmapDateMar2026, Type: strQuality},
+                {Title: "DebugBear Performance Optimization (Lighthouse 100)", Version: strV263835, Date: roadmapDateApr2026, Type: strQuality},
+                {Title: "Code Duplication Elimination (DRY Sweep)", Version: strV263835, Date: roadmapDateApr2026, Type: strQuality},
+                {Title: "Test Coverage Hardening", Version: strV263835, Date: roadmapDateApr2026, Type: strQuality},
+                {Title: "SKILL.md Agent Tooling Audit", Version: strV263835, Date: roadmapDateApr2026, Type: strQuality},
         }
 
         inProgress := []RoadmapItem{
                 {Title: "Non-Authenticated Zone Upload (One-Time View)", Type: roadmapTypeFeature, Priority: priorityHigh, Notes: "Open zone upload to non-auth users with 1 MB limit, IP rate limiting, no persistence — funnel to signup"},
-                {Title: "SonarCloud Coverage Push (80%+ Target)", Type: strQuality, Priority: priorityHigh, Notes: "Systematic coverage improvement across handlers, analyzer, dnsclient, and middleware packages"},
-                {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Glass treatment, question branding, and token system across all report modes"},
+                {Title: "Visual Cohesion — Top-to-Bottom Consistency", Type: roadmapTypeFeature, Priority: strMedium, Notes: "Glass treatment, question branding, and token system across all report modes — partially addressed by performance and DRY sweep tasks"},
                 {Title: "Morse Code Easter Egg", Type: roadmapTypeFeature, Priority: priorityLow, Notes: "Web Audio API Morse code on Covert Mode toggle — 'GONNA HACK THE PLANET BUT FIRST I NEED A SICK HANDLE'"},
         }
 

@@ -335,7 +335,11 @@ Curated collection of standards, RFCs, and foundational references used in DNS T
 
 ### Topology
 URL: `https://dnstool.it-help.tech/topology`
-Canvas 2D visualization of DNS resolver PoPs (Points of Presence) and scan pipeline topology. Shows the geographic distribution and logical structure of DNS Tool's multi-resolver infrastructure.
+Canvas 2D visualization of DNS resolver PoPs (Points of Presence) and scan pipeline topology. Shows the geographic distribution and logical structure of DNS Tool's multi-resolver infrastructure. Includes Web3 analysis node (ENS, HNS, IPFS) in the scan topology graph.
+
+### Fragment Endpoints (Lazy-Loaded Components)
+- `/fragment/topology` — Scan topology Canvas 2D fragment, lazy-loaded on the homepage for performance optimization
+- `/fragment/icons.js` — Icon sprite JavaScript fragment for client-side rendering
 
 ### Contact
 URL: `https://dnstool.it-help.tech/contact`

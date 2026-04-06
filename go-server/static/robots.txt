@@ -16,6 +16,8 @@
 
 User-agent: *
 Allow: /
+Allow: /.well-known/llms.txt
+Allow: /.well-known/llms-full.txt
 Disallow: /api/
 Disallow: /export/
 
