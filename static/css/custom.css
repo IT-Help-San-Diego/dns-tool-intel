@@ -7719,8 +7719,8 @@ a.ftr-node:hover {
     content: '';
     position: absolute;
     left: 50%;
-    top: 0;
-    bottom: 0;
+    top: -1px;
+    bottom: -1px;
     width: 1px;
     background: rgba(200, 149, 106, 0.18);
 }
