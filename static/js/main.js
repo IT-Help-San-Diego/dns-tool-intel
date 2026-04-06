@@ -958,7 +958,21 @@ function initGlobeMotion() {
         }
     }
 
-    function drawResolverMarkers(ctx) {
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function drawResolverMarkers(ctx, w, h) {
         var visiblePops = [];
         for (var i = 0; i < RESOLVER_POPS.length; i++) {
             var pop = RESOLVER_POPS[i];
@@ -970,7 +984,14 @@ function initGlobeMotion() {
 
         visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
 
-        var FONT_TAG = 9;
+        var SCL = Math.max(0.65, Math.min(1.15, w / 1400));
+        var FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+        var labelGap = 12 * SCL;
+        var labelBand = 120 * SCL;
+        var maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
+        var maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
+        var maxLabelTop = globe.cy - globe.R - labelBand;
+        var maxLabelBottom = globe.cy + globe.R + labelBand;
         var placedBoxes = [];
 
         for (var vi = 0; vi < visiblePops.length; vi++) {
@@ -980,26 +1001,25 @@ function initGlobeMotion() {
             var alpha = 0.4 + p2.depth * 0.6;
 
             ctx.beginPath();
-            ctx.arc(p2.x, p2.y, 5, 0, Math.PI * 2);
+            ctx.arc(p2.x, p2.y, 7, 0, Math.PI * 2);
             ctx.fillStyle = hexToRgba(pop2.color, 0.15 * alpha);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(p2.x, p2.y, 3, 0, Math.PI * 2);
+            ctx.arc(p2.x, p2.y, 4, 0, Math.PI * 2);
             ctx.fillStyle = hexToRgba(pop2.color, 0.85 * alpha);
             ctx.fill();
 
             var label = pop2.city;
             ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             var tw = ctx.measureText(label).width;
-            var tagW = tw + 12;
-            var tagH = Math.round(FONT_TAG + 8);
+            var tagW = tw + 18 * SCL;
+            var tagH = Math.round(20 * SCL + 2);
 
             var baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
-            var labelGap = 8;
             var bestX = null, bestY = null, bestScore = Infinity;
-            var candidateAngles = [0, 20, -20, 40, -40, 60, -60, 90, -90, 120, -120, 150, -150, 180];
-            var candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.42 + labelGap];
+            var candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
+            var candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
 
             for (var di = 0; di < candidateDists.length; di++) {
                 for (var ci = 0; ci < candidateAngles.length; ci++) {
@@ -1010,14 +1030,14 @@ function initGlobeMotion() {
 
                     if (Math.cos(ca) < 0) cx -= tagW;
 
-                    cx = Math.max(4, Math.min(cx, 800 - tagW - 4));
-                    cy = Math.max(4, Math.min(cy, 380 - tagH - 4));
+                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
+                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
 
                     var hasCollision = false;
                     for (var pi = 0; pi < placedBoxes.length; pi++) {
                         var pb = placedBoxes[pi];
-                        if (cx < pb.x + pb.w + 2 && cx + tagW > pb.x - 2 &&
-                            cy < pb.y + pb.h + 2 && cy + tagH > pb.y - 2) {
+                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
+                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
                             hasCollision = true;
                             break;
                         }
@@ -1034,39 +1054,49 @@ function initGlobeMotion() {
                 }
             }
 
+            if (bestScore >= 10000) {
+                for (var ri = 0; ri < 8; ri++) {
+                    var shifted = false;
+                    for (var pi2 = 0; pi2 < placedBoxes.length; pi2++) {
+                        var pb2 = placedBoxes[pi2];
+                        var ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
+                        var ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
+                        if (ovX > 0 && ovY > 0) {
+                            if (ovY < ovX) {
+                                bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
+                            } else {
+                                bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
+                            }
+                            shifted = true;
+                        }
+                    }
+                    if (!shifted) break;
+                }
+                bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
+                bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
+            }
+
             placedBoxes.push({ x: bestX, y: bestY, w: tagW, h: tagH });
 
-            ctx.beginPath();
             var lineEndX = (bestX + tagW / 2 > p2.x) ? bestX : bestX + tagW;
+            ctx.beginPath();
             ctx.moveTo(p2.x, p2.y);
             ctx.lineTo(lineEndX, bestY + tagH / 2);
-            ctx.strokeStyle = hexToRgba(pop2.color, 0.2 * alpha);
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.3 * alpha);
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+
+            roundRect(ctx, bestX, bestY, tagW, tagH, 4);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.12 * alpha);
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.4 * alpha);
             ctx.lineWidth = 0.6;
             ctx.stroke();
 
-            ctx.fillStyle = hexToRgba(pop2.color, 0.06 * alpha);
-            ctx.beginPath();
-            var rr = 3;
-            ctx.moveTo(bestX + rr, bestY);
-            ctx.lineTo(bestX + tagW - rr, bestY);
-            ctx.quadraticCurveTo(bestX + tagW, bestY, bestX + tagW, bestY + rr);
-            ctx.lineTo(bestX + tagW, bestY + tagH - rr);
-            ctx.quadraticCurveTo(bestX + tagW, bestY + tagH, bestX + tagW - rr, bestY + tagH);
-            ctx.lineTo(bestX + rr, bestY + tagH);
-            ctx.quadraticCurveTo(bestX, bestY + tagH, bestX, bestY + tagH - rr);
-            ctx.lineTo(bestX, bestY + rr);
-            ctx.quadraticCurveTo(bestX, bestY, bestX + rr, bestY);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = hexToRgba(pop2.color, 0.15 * alpha);
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            ctx.fillStyle = hexToRgba('#ffffff', 0.7 * alpha);
-            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * alpha) + ')';
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.fillText(label, bestX + tagW / 2, bestY + tagH / 2);
+            ctx.fillText(label, bestX + 9 * SCL, bestY + tagH / 2);
         }
     }
 
@@ -1075,16 +1105,27 @@ function initGlobeMotion() {
         var w = canvas.width;
         var h = canvas.height;
         globe.cx = w / 2;
-        globe.cy = h * 0.39;
-        globe.R = Math.min(w * 0.24, h * 0.34);
+        globe.cy = h * 0.44;
+        globe.R = Math.min(w * 0.18, h * 0.35, 250);
         convergePt.x = w / 2;
-        convergePt.y = h * 0.92;
+        convergePt.y = h * 0.97;
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
         drawContinents(ctx);
         drawSignalArcs(ctx);
-        drawResolverMarkers(ctx);
+        drawResolverMarkers(ctx, w, h);
+
+        var SCL = Math.max(0.65, Math.min(1.15, w / 1400));
+        var FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
+        ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
+        var degLabel = ((globe.rotLon % 360) + 360) % 360;
+        if (degLabel > 180) degLabel -= 360;
+        ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
     }
 
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
