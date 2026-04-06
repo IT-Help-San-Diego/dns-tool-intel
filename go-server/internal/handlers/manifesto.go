@@ -4,30 +4,22 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type ManifestoHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewManifestoHandler(cfg *config.Config) *ManifestoHandler {
-	return &ManifestoHandler{Config: cfg}
+        return &ManifestoHandler{Config: cfg}
 }
 
 func (h *ManifestoHandler) Manifesto(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		keyCspNonce:        nonce,
-		keyActivePage:      "manifesto",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "manifesto.html", data)
+        data := NewTemplateData(c, h.Config, "manifesto")
+        c.HTML(http.StatusOK, "manifesto.html", data)
 }

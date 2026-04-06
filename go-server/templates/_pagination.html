@@ -1,0 +1,41 @@
+{{define "pagination_nav"}}
+{{if gt .Pagination.TotalPages 1}}
+    <nav aria-label="{{.PaginationLabel}}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {{if .Pagination.HasPrev}}
+                <li class="page-item">
+                    <a class="page-link" href="{{.PaginationBase}}?page={{.Pagination.PrevPage}}{{if .SearchDomain}}&domain={{.SearchDomain}}{{end}}">
+                        {{icon "chevron-left"}} Previous
+                    </a>
+                </li>
+            {{end}}
+            
+            {{range $p := .Pagination.Pages}}
+                {{if $p.IsGap}}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {{else}}
+                    {{if $p.IsActive}}
+                        <li class="page-item active">
+                            <span class="page-link">{{$p.Number}}</span>
+                        </li>
+                    {{else}}
+                        <li class="page-item">
+                            <a class="page-link" href="{{$.PaginationBase}}?page={{$p.Number}}{{if $.SearchDomain}}&domain={{$.SearchDomain}}{{end}}">{{$p.Number}}</a>
+                        </li>
+                    {{end}}
+                {{end}}
+            {{end}}
+            
+            {{if .Pagination.HasNext}}
+                <li class="page-item">
+                    <a class="page-link" href="{{.PaginationBase}}?page={{.Pagination.NextPage}}{{if .SearchDomain}}&domain={{.SearchDomain}}{{end}}">
+                        Next {{icon "chevron-right"}}
+                    </a>
+                </li>
+            {{end}}
+        </ul>
+    </nav>
+{{end}}
+{{end}}

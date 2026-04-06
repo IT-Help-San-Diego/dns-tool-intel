@@ -450,6 +450,8 @@ func TestIndexFlashData_Structure_B10(t *testing.T) {
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+        c.Set("csp_nonce", "test-nonce")
+        c.Set("csrf_token", "test-csrf")
 
         h := &AnalysisHandler{
                 Config: &config.Config{
@@ -516,7 +518,7 @@ func TestBuildAnalyzeViewData_BasicStructure_B10(t *testing.T) {
                 "spf_analysis":     map[string]any{"status": "pass"},
         }
 
-        data := h.buildAnalyzeViewData(c, "nonce", "csrf", viewDataInput{
+        data := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:      "Example.com",
                 asciiDomain: "example.com",
                 results:     results,
@@ -570,7 +572,7 @@ func TestBuildAnalyzeViewData_Subdomain_B10(t *testing.T) {
                 "analysis_success": true,
         }
 
-        data := h.buildAnalyzeViewData(c, "nonce", "csrf", viewDataInput{
+        data := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:      "sub.example.com",
                 asciiDomain: "sub.example.com",
                 results:     results,
@@ -597,7 +599,7 @@ func TestBuildAnalyzeViewData_WithDrift_B10(t *testing.T) {
                 Analyzer: analyzer.New(analyzer.WithInitialIANAFetch(false)),
         }
 
-        data := h.buildAnalyzeViewData(c, "nonce", "csrf", viewDataInput{
+        data := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:      "example.com",
                 asciiDomain: "example.com",
                 results:     map[string]any{"domain_exists": true},
@@ -631,7 +633,7 @@ func TestBuildAnalyzeViewData_Ephemeral_B10(t *testing.T) {
                 Analyzer: analyzer.New(analyzer.WithInitialIANAFetch(false)),
         }
 
-        data := h.buildAnalyzeViewData(c, "nonce", "csrf", viewDataInput{
+        data := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:      "example.com",
                 asciiDomain: "example.com",
                 results:     map[string]any{"domain_exists": true},

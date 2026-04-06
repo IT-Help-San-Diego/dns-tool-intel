@@ -20,55 +20,22 @@ func NewVideoHandler(cfg *config.Config) *VideoHandler {
 }
 
 func (h *VideoHandler) ForgottenDomain(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        ytID := h.Config.YouTubeVideoIDs["forgotten-domain"]
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "approach",
-                "YouTubeID":       ytID,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "approach")
+        data["YouTubeID"] = h.Config.YouTubeVideoIDs["forgotten-domain"]
         c.HTML(http.StatusOK, "video_forgotten_domain.html", data)
 }
 
 func (h *VideoHandler) Publications(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "publications",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "publications")
         c.HTML(http.StatusOK, "publications.html", data)
 }
 
 func (h *VideoHandler) CaseStudyIndex(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "approach",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "approach")
         c.HTML(http.StatusOK, "case_study_index.html", data)
 }
 
 func (h *VideoHandler) IntelligenceDMARC(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "approach",
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "approach")
         c.HTML(http.StatusOK, "case_study_intelligence_dmarc.html", data)
 }

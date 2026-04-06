@@ -170,8 +170,6 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                         }()
                         renderCompareError(c, compareErrorParams{
                                 handler:    handler,
-                                nonce:      "test-nonce",
-                                csrfToken:  "test-csrf",
                                 tmpl:       templateCompareSelect,
                                 statusCode: http.StatusBadRequest,
                                 message:    "Test error message",
@@ -203,8 +201,6 @@ func TestCoverageBoost18_RenderCompareError(t *testing.T) {
                         }()
                         renderCompareError(c, compareErrorParams{
                                 handler:    handler,
-                                nonce:      nil,
-                                csrfToken:  nil,
                                 tmpl:       templateCompare,
                                 statusCode: http.StatusNotFound,
                                 message:    "Not found",

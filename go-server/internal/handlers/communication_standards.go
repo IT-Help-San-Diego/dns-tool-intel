@@ -4,30 +4,22 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type CommunicationStandardsHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewCommunicationStandardsHandler(cfg *config.Config) *CommunicationStandardsHandler {
-	return &CommunicationStandardsHandler{Config: cfg}
+        return &CommunicationStandardsHandler{Config: cfg}
 }
 
 func (h *CommunicationStandardsHandler) CommunicationStandards(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		keyCspNonce:        nonce,
-		keyActivePage:      "communication-standards",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "communication_standards.html", data)
+        data := NewTemplateData(c, h.Config, "communication-standards")
+        c.HTML(http.StatusOK, "communication_standards.html", data)
 }

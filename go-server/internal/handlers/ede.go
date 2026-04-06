@@ -26,19 +26,8 @@ func NewEDEHandler(database *db.Database, cfg *config.Config) *EDEHandler {
 }
 
 func (h *EDEHandler) EDE(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-
-        integrityData := h.resolveIntegrityData(c.Request.Context())
-
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "ede",
-                "IntegrityData":   integrityData,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "ede")
+        data["IntegrityData"] = h.resolveIntegrityData(c.Request.Context())
         c.HTML(http.StatusOK, "ede.html", data)
 }
 

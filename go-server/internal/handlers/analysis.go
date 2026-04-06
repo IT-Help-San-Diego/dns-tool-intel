@@ -247,47 +247,39 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         isSub, rootDom := extractRootDomain(analysis.AsciiDomain)
         emailScope := h.resolveEmailScope(ctx, isSub, rootDom, analysis.AsciiDomain, results)
 
-        viewData := gin.H{
-                strAppversion:          h.Config.AppVersion,
-                strCspnonce:            nonce,
-                strCsrftoken:           csrfToken,
-                strActivepage:          "",
-                "Domain":               analysis.Domain,
-                "AsciiDomain":          analysis.AsciiDomain,
-                "Results":              results,
-                "AnalysisID":           analysis.ID,
-                "AnalysisDuration":     dur,
-                "AnalysisTimestamp":    timestamp,
-                "FromHistory":          true,
-                "WaitSeconds":          waitSeconds,
-                "WaitReason":           waitReason,
-                "DomainExists":         resultsDomainExists(results),
-                "ToolVersion":          toolVersion,
-                "VerificationCommands": verifyCommands,
-                "IsSubdomain":          isSub,
-                "RootDomain":           rootDom,
-                "SecurityTrailsKey":    "",
-                "IntegrityHash":        integrityHash,
-                "RFCCount":             rfcCount,
-                "MaintenanceNote":      h.Config.MaintenanceNote,
-                "BetaPages":            h.Config.BetaPages,
-                "SectionTuning":        h.Config.SectionTuning,
-                "PostureHash":          currentHash,
-                "DriftDetected":        drift.Detected,
-                "DriftPrevHash":        drift.PrevHash,
-                "DriftPrevTime":        drift.PrevTime,
-                "DriftPrevID":          drift.PrevID,
-                "DriftFields":          drift.Fields,
-                "IsPublicSuffix":       isPublicSuffixDomain(analysis.AsciiDomain),
-                "IsTLD":                dnsclient.IsTLDInput(analysis.AsciiDomain),
-                "SubdomainEmailScope":  emailScope,
-                "ReportMode":           mode,
-                "WaybackURL":           derefString(analysis.WaybackUrl),
-        }
+        viewData := NewTemplateData(c, h.Config, "")
+        viewData["Domain"] = analysis.Domain
+        viewData["AsciiDomain"] = analysis.AsciiDomain
+        viewData["Results"] = results
+        viewData["AnalysisID"] = analysis.ID
+        viewData["AnalysisDuration"] = dur
+        viewData["AnalysisTimestamp"] = timestamp
+        viewData["FromHistory"] = true
+        viewData["WaitSeconds"] = waitSeconds
+        viewData["WaitReason"] = waitReason
+        viewData["DomainExists"] = resultsDomainExists(results)
+        viewData["ToolVersion"] = toolVersion
+        viewData["VerificationCommands"] = verifyCommands
+        viewData["IsSubdomain"] = isSub
+        viewData["RootDomain"] = rootDom
+        viewData["SecurityTrailsKey"] = ""
+        viewData["IntegrityHash"] = integrityHash
+        viewData["RFCCount"] = rfcCount
+        viewData["SectionTuning"] = h.Config.SectionTuning
+        viewData["PostureHash"] = currentHash
+        viewData["DriftDetected"] = drift.Detected
+        viewData["DriftPrevHash"] = drift.PrevHash
+        viewData["DriftPrevTime"] = drift.PrevTime
+        viewData["DriftPrevID"] = drift.PrevID
+        viewData["DriftFields"] = drift.Fields
+        viewData["IsPublicSuffix"] = isPublicSuffixDomain(analysis.AsciiDomain)
+        viewData["IsTLD"] = dnsclient.IsTLDInput(analysis.AsciiDomain)
+        viewData["SubdomainEmailScope"] = emailScope
+        viewData["ReportMode"] = mode
+        viewData["WaybackURL"] = derefString(analysis.WaybackUrl)
         h.enrichViewDataMetrics(ctx, viewData, results, analysis.Domain, analysis.ID)
         viewData["CovertMode"] = isCovertMode(mode)
 
-        mergeAuthData(c, h.Config, viewData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), viewData)
 }
 
@@ -460,7 +452,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         h.recordCurrencyIfEligible(inp.ephemeral, domainExists, inp.asciiDomain, results)
 
-        analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, viewDataInput{
+        analyzeData := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:           inp.domain,
                 asciiDomain:      inp.asciiDomain,
                 results:          results,
@@ -480,13 +472,12 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         analyzeData["CovertMode"] = isCovertMode(mode)
         analyzeData["ReportMode"] = mode
 
-        mergeAuthData(c, h.Config, analyzeData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
 const cachedAnalysisMaxAge = 1 * time.Hour
 
-func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, nonce, csrfToken any) bool {
+func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, _, _ any) bool {
         s := h.store()
         if s == nil {
                 return false
@@ -525,7 +516,7 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
                 postureHash = *analysis.PostureHash
         }
 
-        analyzeData := h.buildAnalyzeViewData(c, nonce, csrfToken, viewDataInput{
+        analyzeData := h.buildAnalyzeViewData(c, viewDataInput{
                 domain:       domain,
                 asciiDomain:  asciiDomain,
                 results:      results,
@@ -541,7 +532,6 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
         analyzeData["CovertMode"] = isCovertMode(mode)
         analyzeData["ReportMode"] = mode
 
-        mergeAuthData(c, h.Config, analyzeData)
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
         return true
 }
@@ -985,8 +975,9 @@ func extractAuthInfo(c *gin.Context) (bool, int32) {
 
 func (h *AnalysisHandler) detectDrift(ctx context.Context, devNull, domainExists bool, asciiDomain, postureHash string, results map[string]any) driftInfo {
         drift := driftInfo{}
-        if !devNull && domainExists {
-                prevRow, prevErr := h.store().GetPreviousAnalysisForDrift(ctx, asciiDomain)
+        s := h.store()
+        if !devNull && domainExists && s != nil {
+                prevRow, prevErr := s.GetPreviousAnalysisForDrift(ctx, asciiDomain)
                 if prevErr == nil {
                         drift = computeDriftFromPrev(postureHash, prevAnalysisSnapshot{
                                 Hash:           prevRow.PostureHash,
@@ -1020,6 +1011,10 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
         isSuccess, _ := extractAnalysisError(p.results) //nolint:errcheck // error message not needed here
         if persist, _ := shouldPersistResult(p.ephemeral, p.devNull, p.domainExists, isSuccess); !persist {
                 logEphemeralReason(p.asciiDomain, p.devNull, p.domainExists)
+                return 0, time.Now().UTC().Format(strUtc)
+        }
+        if h.store() == nil {
+                slog.Warn("No store configured, skipping persist", mapKeyDomain, p.asciiDomain)
                 return 0, time.Now().UTC().Format(strUtc)
         }
         return h.saveAnalysis(ctx, saveAnalysisInput{
@@ -1192,7 +1187,7 @@ type viewDataInput struct {
         isPrivate           bool
 }
 
-func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken any, v viewDataInput) gin.H {
+func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, v viewDataInput) gin.H {
         ctx := c.Request.Context()
         verifyCommands := analyzer.GenerateVerificationCommands(v.asciiDomain, v.results)
         integrityHash := analyzer.ReportIntegrityHash(v.asciiDomain, v.analysisID, v.timestamp, h.Config.AppVersion, v.results)
@@ -1201,45 +1196,38 @@ func (h *AnalysisHandler) buildAnalyzeViewData(c *gin.Context, nonce, csrfToken 
         isSub, rootDom := extractRootDomain(v.asciiDomain)
         emailScope := h.resolveEmailScope(ctx, isSub, rootDom, v.asciiDomain, v.results)
 
-        analyzeData := gin.H{
-                strAppversion:          h.Config.AppVersion,
-                strCspnonce:            nonce,
-                strCsrftoken:           csrfToken,
-                strActivepage:          "",
-                "Domain":               v.domain,
-                "AsciiDomain":          v.asciiDomain,
-                "Results":              v.results,
-                "AnalysisID":           v.analysisID,
-                "AnalysisDuration":     v.analysisDuration,
-                "AnalysisTimestamp":    v.timestamp,
-                "FromHistory":          false,
-                "FromCache":            false,
-                "DomainExists":         resultsDomainExists(v.results),
-                "ToolVersion":          h.Config.AppVersion,
-                "VerificationCommands": verifyCommands,
-                "IsSubdomain":          isSub,
-                "RootDomain":           rootDom,
-                "SecurityTrailsKey":    "",
-                "IntegrityHash":        integrityHash,
-                "RFCCount":             rfcCount,
-                "ExposureChecks":       v.exposureChecks,
-                "MaintenanceNote":      h.Config.MaintenanceNote,
-                "BetaPages":            h.Config.BetaPages,
-                "SectionTuning":        h.Config.SectionTuning,
-                "PostureHash":          v.postureHash,
-                "DriftDetected":        v.drift.Detected,
-                "DriftPrevHash":        v.drift.PrevHash,
-                "DriftPrevTime":        v.drift.PrevTime,
-                "DriftPrevID":          v.drift.PrevID,
-                "DriftFields":          v.drift.Fields,
-                "Ephemeral":            v.ephemeral,
-                "DevNull":              v.devNull,
-                "IsPrivateReport":      v.isPrivate,
-                "IsPublicSuffix":       isPublicSuffixDomain(v.asciiDomain),
-                "IsTLD":                dnsclient.IsTLDInput(v.asciiDomain),
-                "SubdomainEmailScope":  emailScope,
-                "WaybackURL":           "",
-        }
+        analyzeData := NewTemplateData(c, h.Config, "")
+        analyzeData["Domain"] = v.domain
+        analyzeData["AsciiDomain"] = v.asciiDomain
+        analyzeData["Results"] = v.results
+        analyzeData["AnalysisID"] = v.analysisID
+        analyzeData["AnalysisDuration"] = v.analysisDuration
+        analyzeData["AnalysisTimestamp"] = v.timestamp
+        analyzeData["FromHistory"] = false
+        analyzeData["FromCache"] = false
+        analyzeData["DomainExists"] = resultsDomainExists(v.results)
+        analyzeData["ToolVersion"] = h.Config.AppVersion
+        analyzeData["VerificationCommands"] = verifyCommands
+        analyzeData["IsSubdomain"] = isSub
+        analyzeData["RootDomain"] = rootDom
+        analyzeData["SecurityTrailsKey"] = ""
+        analyzeData["IntegrityHash"] = integrityHash
+        analyzeData["RFCCount"] = rfcCount
+        analyzeData["ExposureChecks"] = v.exposureChecks
+        analyzeData["SectionTuning"] = h.Config.SectionTuning
+        analyzeData["PostureHash"] = v.postureHash
+        analyzeData["DriftDetected"] = v.drift.Detected
+        analyzeData["DriftPrevHash"] = v.drift.PrevHash
+        analyzeData["DriftPrevTime"] = v.drift.PrevTime
+        analyzeData["DriftPrevID"] = v.drift.PrevID
+        analyzeData["DriftFields"] = v.drift.Fields
+        analyzeData["Ephemeral"] = v.ephemeral
+        analyzeData["DevNull"] = v.devNull
+        analyzeData["IsPrivateReport"] = v.isPrivate
+        analyzeData["IsPublicSuffix"] = isPublicSuffixDomain(v.asciiDomain)
+        analyzeData["IsTLD"] = dnsclient.IsTLDInput(v.asciiDomain)
+        analyzeData["SubdomainEmailScope"] = emailScope
+        analyzeData["WaybackURL"] = ""
         if q := h.rawQueries(); q != nil {
                 if icaeMetrics := icae.LoadReportMetrics(ctx, q); icaeMetrics != nil {
                         analyzeData["ICAEMetrics"] = icaeMetrics
@@ -1351,17 +1339,9 @@ func (h *AnalysisHandler) queueDriftNotifications(domain string, driftEventID in
 }
 
 func (h *AnalysisHandler) indexFlashData(c *gin.Context, nonce, csrfToken any, category, message string) gin.H {
-        data := gin.H{
-                strAppversion:     h.Config.AppVersion,
-                "BaseURL":         h.Config.BaseURL,
-                strCspnonce:       nonce,
-                strCsrftoken:      csrfToken,
-                strActivepage:     "home",
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "FlashMessages":   []FlashMessage{{Category: category, Message: message}},
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "home")
+        data["BaseURL"] = h.Config.BaseURL
+        data["FlashMessages"] = []FlashMessage{{Category: category, Message: message}}
         return data
 }
 

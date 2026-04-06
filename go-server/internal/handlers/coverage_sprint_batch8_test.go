@@ -209,8 +209,6 @@ func TestRenderCompareError_B8(t *testing.T) {
 
         renderCompareError(c, compareErrorParams{
                 handler:    h,
-                nonce:      "n",
-                csrfToken:  "t",
                 tmpl:       "compare.html",
                 statusCode: http.StatusBadRequest,
                 message:    "Bad request",
@@ -233,8 +231,6 @@ func TestRenderCompareError_NoDomain_B8(t *testing.T) {
 
         renderCompareError(c, compareErrorParams{
                 handler:    h,
-                nonce:      "n",
-                csrfToken:  "t",
                 tmpl:       "compare.html",
                 statusCode: http.StatusBadRequest,
                 message:    "Missing domain",

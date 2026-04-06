@@ -21,16 +21,16 @@ const (
 
         mapKeyEnforce      = "enforce"
         mapKeyMatchingType = "matching_type"
-        mapKeyMtaSts       = "mta_sts"
+        mapKeyMtaSts       = ProtoMTASTS
         mapKeyMxHost       = "mx_host"
-        mapKeyTlsrpt       = "tlsrpt"
+        mapKeyTlsrpt       = ProtoTLSRPT
         mapKeyUsage        = "usage"
         mapKeyWarning      = "warning"
         strAdequate        = "Adequate"
         strEd25519         = "ed25519"
-        protocolDKIM       = "dkim"
-        protocolBIMI       = "bimi"
-        protocolDANE       = "dane"
+        protocolDKIM       = ProtoDKIM
+        protocolBIMI       = ProtoBIMI
+        protocolDANE       = ProtoDANE
         expectedTrue       = "true"
 )
 
@@ -136,7 +136,7 @@ func caaAnalysisCases() []TestCase {
                 {
                         CaseID:     "caa-analysis-001",
                         CaseName:   "CAA issuer identified as Let's Encrypt",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerAnalysis,
                         RFCSection: citRFC8659S4,
                         Expected:   testProviderLetsEncrypt,
@@ -148,7 +148,7 @@ func caaAnalysisCases() []TestCase {
                 {
                         CaseID:     "caa-analysis-002",
                         CaseName:   "CAA issuer identified as DigiCert",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerAnalysis,
                         RFCSection: citRFC8659S4,
                         Expected:   "DigiCert",
@@ -160,7 +160,7 @@ func caaAnalysisCases() []TestCase {
                 {
                         CaseID:     "caa-analysis-003",
                         CaseName:   "CAA records parsed with issuewild detected",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerAnalysis,
                         RFCSection: citRFC8659S43,
                         Expected:   expectedTrue,
@@ -175,7 +175,7 @@ func caaAnalysisCases() []TestCase {
                 {
                         CaseID:     "caa-analysis-004",
                         CaseName:   "CAA iodef record detected",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerAnalysis,
                         RFCSection: citRFC8659S44,
                         Expected:   expectedTrue,
@@ -190,7 +190,7 @@ func caaAnalysisCases() []TestCase {
                 {
                         CaseID:     "caa-analysis-005",
                         CaseName:   "CAA message built correctly with issuers",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerAnalysis,
                         RFCSection: rfcCAA8659,
                         Expected:   "contains 'CAA configured'",

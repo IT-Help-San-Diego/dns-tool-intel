@@ -477,7 +477,7 @@ graph TB
     subgraph "internal"
         Config["config<br/>AppVersion · env vars"]
         Middleware["middleware<br/>CSP · rate limit · session<br/>analytics (privacy-preserving)"]
-        Handlers["handlers<br/>analysis · auth · history<br/>export · dossier · compare<br/>admin · analytics · about"]
+        Handlers["handlers<br/>analysis · auth · history<br/>export · dossier · compare<br/>admin · analytics · about<br/>NewTemplateData() centralized injection"]
         Analyzer["analyzer<br/>ICIE engine core<br/>posture · dkim · spf · dmarc<br/>remediation · brand · misplaced"]
         AISurface["analyzer/ai_surface<br/>robots.txt · llms.txt<br/>HTTP · poisoning · scanner"]
         ICAE2["icae<br/>ICAE engine · 129 cases<br/>calibration · runner · evaluator"]
@@ -488,7 +488,7 @@ graph TB
         Models["models<br/>Data structures"]
         Providers["providers<br/>ESP detection stubs"]
         Telemetry["telemetry<br/>Structured logging"]
-        Templates3["templates<br/>Template helpers"]
+        Templates3["templates<br/>Template helpers · partials<br/>_head · _nav · _footer · _search_form<br/>_protocol_badges · _pagination"]
     end
 
     Server --> Config & Middleware & Handlers

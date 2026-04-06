@@ -158,16 +158,9 @@ func (h *BadgeHandler) Badge(c *gin.Context) {
 }
 
 func (h *BadgeHandler) BadgeEmbed(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        csrfToken, _ := c.Get("csrf_token")
-        c.HTML(http.StatusOK, "badge_embed.html", gin.H{
-                keyCspNonce:        nonce,
-                "CsrfToken":       csrfToken,
-                keyAppVersion:      h.Config.AppVersion,
-                "BaseURL":         h.Config.BaseURL,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-        })
+        data := NewTemplateData(c, h.Config, "")
+        data["BaseURL"] = h.Config.BaseURL
+        c.HTML(http.StatusOK, "badge_embed.html", data)
 }
 
 func unmarshalResults(fullResults []byte, caller string) map[string]any {

@@ -4,30 +4,22 @@
 package handlers
 
 import (
-	"net/http"
+        "net/http"
 
-	"dnstool/go-server/internal/config"
+        "dnstool/go-server/internal/config"
 
-	"github.com/gin-gonic/gin"
+        "github.com/gin-gonic/gin"
 )
 
 type ColorScienceHandler struct {
-	Config *config.Config
+        Config *config.Config
 }
 
 func NewColorScienceHandler(cfg *config.Config) *ColorScienceHandler {
-	return &ColorScienceHandler{Config: cfg}
+        return &ColorScienceHandler{Config: cfg}
 }
 
 func (h *ColorScienceHandler) ColorScience(c *gin.Context) {
-	nonce, _ := c.Get("csp_nonce")
-	data := gin.H{
-		keyAppVersion:      h.Config.AppVersion,
-		keyMaintenanceNote: h.Config.MaintenanceNote,
-		keyBetaPages:       h.Config.BetaPages,
-		keyCspNonce:        nonce,
-		keyActivePage:      "color-science",
-	}
-	mergeAuthData(c, h.Config, data)
-	c.HTML(http.StatusOK, "color_science.html", data)
+        data := NewTemplateData(c, h.Config, "color-science")
+        c.HTML(http.StatusOK, "color_science.html", data)
 }

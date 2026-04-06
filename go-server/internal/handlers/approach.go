@@ -20,16 +20,7 @@ func NewApproachHandler(cfg *config.Config) *ApproachHandler {
 }
 
 func (h *ApproachHandler) Approach(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-        ytID := h.Config.YouTubeVideoIDs["forgotten-domain"]
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "approach",
-                "YouTubeID":       ytID,
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "approach")
+        data["YouTubeID"] = h.Config.YouTubeVideoIDs["forgotten-domain"]
         c.HTML(http.StatusOK, "approach.html", data)
 }

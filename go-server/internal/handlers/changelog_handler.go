@@ -20,26 +20,17 @@ func NewChangelogHandler(cfg *config.Config) *ChangelogHandler {
 }
 
 func (h *ChangelogHandler) Changelog(c *gin.Context) {
-        nonce, _ := c.Get("csp_nonce")
-
         all := GetChangelog()
         recentCut := 20
         if recentCut > len(all) {
                 recentCut = len(all)
         }
 
-        data := gin.H{
-                keyAppVersion:      h.Config.AppVersion,
-                keyMaintenanceNote: h.Config.MaintenanceNote,
-                keyBetaPages:       h.Config.BetaPages,
-                keyCspNonce:        nonce,
-                keyActivePage:      "changelog",
-                "RecentChangelog":  all[:recentCut],
-                "ArchiveChangelog": all[recentCut:],
-                "ArchiveCount":     len(all) - recentCut,
-                "TotalCount":       len(all),
-                "LegacyChangelog":  GetLegacyChangelog(),
-        }
-        mergeAuthData(c, h.Config, data)
+        data := NewTemplateData(c, h.Config, "changelog")
+        data["RecentChangelog"] = all[:recentCut]
+        data["ArchiveChangelog"] = all[recentCut:]
+        data["ArchiveCount"] = len(all) - recentCut
+        data["TotalCount"] = len(all)
+        data["LegacyChangelog"] = GetLegacyChangelog()
         c.HTML(http.StatusOK, "changelog.html", data)
 }

@@ -1,0 +1,59 @@
+{{define "protocol_badges"}}
+{{if eq .SpfStatus "success"}}
+    <span class="proto-badge proto-badge--success proto-spf" title="SPF configured">SPF</span>
+{{else if eq .SpfStatus "warning"}}
+    <span class="proto-badge proto-badge--warning proto-spf" title="SPF configured with warnings">SPF</span>
+{{else if or (eq .SpfStatus "error") (eq .SpfStatus "missing")}}
+    <span class="proto-badge proto-badge--danger proto-spf" title="SPF missing or misconfigured">SPF</span>
+{{else}}
+    <span class="proto-badge proto-badge--neutral proto-spf" title="SPF status unknown">SPF</span>
+{{end}}
+{{if eq .DmarcStatus "success"}}
+    <span class="proto-badge proto-badge--success proto-dmarc" title="DMARC configured">DMARC</span>
+{{else if eq .DmarcStatus "warning"}}
+    <span class="proto-badge proto-badge--warning proto-dmarc" title="DMARC configured in monitoring mode">DMARC</span>
+{{else if or (eq .DmarcStatus "error") (eq .DmarcStatus "missing")}}
+    <span class="proto-badge proto-badge--danger proto-dmarc" title="DMARC missing or misconfigured">DMARC</span>
+{{else}}
+    <span class="proto-badge proto-badge--neutral proto-dmarc" title="DMARC status unknown">DMARC</span>
+{{end}}
+{{if or (eq .DkimStatus "success") (eq .DkimStatus "partial")}}
+    <span class="proto-badge proto-badge--success proto-dkim" title="DKIM found">DKIM</span>
+{{else if eq .DkimStatus "info"}}
+    <span class="proto-badge proto-badge--info proto-dkim" title="DKIM not auto-discoverable (selectors unknown)">DKIM</span>
+{{else if or (eq .DkimStatus "error") (eq .DkimStatus "missing") (eq .DkimStatus "warning")}}
+    <span class="proto-badge proto-badge--danger proto-dkim" title="DKIM missing or misconfigured">DKIM</span>
+{{else}}
+    <span class="proto-badge proto-badge--neutral proto-dkim" title="DKIM status unknown">DKIM</span>
+{{end}}
+{{end}}
+
+{{define "protocol_badges_compact"}}
+{{if eq .SpfStatus "success"}}
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-spf">SPF</span>
+{{else if eq .SpfStatus "warning"}}
+    <span class="proto-badge proto-badge--compact proto-badge--warning proto-spf">SPF</span>
+{{else if or (eq .SpfStatus "error") (eq .SpfStatus "missing")}}
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-spf">SPF</span>
+{{else}}
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-spf">SPF</span>
+{{end}}
+{{if eq .DmarcStatus "success"}}
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-dmarc">DMARC</span>
+{{else if eq .DmarcStatus "warning"}}
+    <span class="proto-badge proto-badge--compact proto-badge--warning proto-dmarc">DMARC</span>
+{{else if or (eq .DmarcStatus "error") (eq .DmarcStatus "missing")}}
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dmarc">DMARC</span>
+{{else}}
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dmarc">DMARC</span>
+{{end}}
+{{if or (eq .DkimStatus "success") (eq .DkimStatus "partial")}}
+    <span class="proto-badge proto-badge--compact proto-badge--success proto-dkim">DKIM</span>
+{{else if eq .DkimStatus "info"}}
+    <span class="proto-badge proto-badge--compact proto-badge--info proto-dkim">DKIM</span>
+{{else if or (eq .DkimStatus "error") (eq .DkimStatus "missing") (eq .DkimStatus "warning")}}
+    <span class="proto-badge proto-badge--compact proto-badge--danger proto-dkim">DKIM</span>
+{{else}}
+    <span class="proto-badge proto-badge--compact proto-badge--neutral proto-dkim">DKIM</span>
+{{end}}
+{{end}}

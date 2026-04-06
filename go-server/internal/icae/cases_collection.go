@@ -101,7 +101,7 @@ func consensusCases() []TestCase {
                 {
                         CaseID:     "consensus-collection-004",
                         CaseName:   "Multi-record consensus preserves order",
-                        Protocol:   "spf",
+                        Protocol:   ProtoSPF,
                         Layer:      LayerCollection,
                         RFCSection: testConsensusRFC,
                         Expected:   "allSame=true, 2 records",
@@ -233,7 +233,7 @@ func recordFilteringCases() []TestCase {
                 {
                         CaseID:     "bimi-collection-001",
                         CaseName:   "BIMI record filtering accepts v=BIMI1",
-                        Protocol:   "bimi",
+                        Protocol:   ProtoBIMI,
                         Layer:      LayerCollection,
                         RFCSection: "BIMI Spec §3",
                         Expected:   "1 valid record",
@@ -249,7 +249,7 @@ func recordFilteringCases() []TestCase {
                 {
                         CaseID:     "bimi-collection-002",
                         CaseName:   "BIMI URL extraction separates logo and authority",
-                        Protocol:   "bimi",
+                        Protocol:   ProtoBIMI,
                         Layer:      LayerCollection,
                         RFCSection: "BIMI Spec §3",
                         Expected:   "logo and authority URLs extracted",
@@ -267,7 +267,7 @@ func recordFilteringCases() []TestCase {
                 {
                         CaseID:     "caa-collection-001",
                         CaseName:   "CAA record parsing extracts issuers and wildcards",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerCollection,
                         RFCSection: rfcCAASection4,
                         Expected:   "1 issuer, 1 wildcard, has iodef",
@@ -284,7 +284,7 @@ func recordFilteringCases() []TestCase {
                 {
                         CaseID:     "caa-collection-002",
                         CaseName:   "Empty CAA records return zero issuers",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerCollection,
                         RFCSection: rfcCAASection4,
                         Expected:   "0 issuers, 0 wildcards",
@@ -302,7 +302,7 @@ func recordParsingCases() []TestCase {
                 {
                         CaseID:     "dkim-collection-001",
                         CaseName:   "DKIM key analysis extracts key type and length",
-                        Protocol:   "dkim",
+                        Protocol:   ProtoDKIM,
                         Layer:      LayerCollection,
                         RFCSection: citRFC6376S361,
                         Expected:   "key parsed with type and length",
@@ -357,7 +357,7 @@ func recordParsingCases() []TestCase {
                 {
                         CaseID:     "ca-collection-001",
                         CaseName:   "CA issuer identification from CAA record",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerCollection,
                         RFCSection: rfcCAASection4,
                         Expected:   "Let's Encrypt identified",
@@ -369,7 +369,7 @@ func recordParsingCases() []TestCase {
                 {
                         CaseID:     "ca-collection-002",
                         CaseName:   "CA issuer identification for DigiCert",
-                        Protocol:   "caa",
+                        Protocol:   ProtoCAA,
                         Layer:      LayerCollection,
                         RFCSection: rfcCAASection4,
                         Expected:   "DigiCert identified",
@@ -446,7 +446,7 @@ func tlsrptCollectionCases() []TestCase {
                 {
                         CaseID:     "tlsrpt-collection-001",
                         CaseName:   "TLS-RPT URI extraction from rua field",
-                        Protocol:   "tlsrpt",
+                        Protocol:   ProtoTLSRPT,
                         Layer:      LayerCollection,
                         RFCSection: citRFC8460S3,
                         Expected:   "2 URIs extracted",
@@ -459,7 +459,7 @@ func tlsrptCollectionCases() []TestCase {
                 {
                         CaseID:     "tlsrpt-collection-002",
                         CaseName:   "TLS-RPT record without rua yields zero URIs",
-                        Protocol:   "tlsrpt",
+                        Protocol:   ProtoTLSRPT,
                         Layer:      LayerCollection,
                         RFCSection: citRFC8460S3,
                         Expected:   "0 URIs",
