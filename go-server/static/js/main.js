@@ -119,6 +119,7 @@ globalThis.addEventListener('pageshow', function(e) {
 function showOverlay(overlay) {
     if (!overlay) return;
     overlay.classList.add('is-active');
+    void overlay.offsetHeight;
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
             const els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
@@ -1113,7 +1114,7 @@ function initGlobeMotion() {
         globe.cx = w / 2;
         globe.cy = h / (PHI * PHI) - globe.R * 0.15;
         convergePt.x = w * 0.478;
-        convergePt.y = globe.cy + globe.R;
+        convergePt.y = h * 580 / 920;
 
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
@@ -1135,10 +1136,10 @@ function initGlobeMotion() {
             var vw = globalThis.innerWidth - 64;
             var vh = globalThis.innerHeight - 110;
             var svgW = vw;
-            var svgH = vw * 890 / 900;
-            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 890; }
+            var svgH = vw * 960 / 900;
+            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 960; }
             rw = svgW;
-            rh = svgW * 850 / 900;
+            rh = svgW * 920 / 900;
         }
         if (rw > 10 && rh > 10) {
             canvas.width = Math.round(rw * dpr);
@@ -1149,15 +1150,21 @@ function initGlobeMotion() {
         }
     }
 
+    var _sizeRetries = 0;
     function startGlobeAnimation() {
         if (_globeAnim) cancelAnimationFrame(_globeAnim);
         var canvas = document.querySelector('.topo-globe-canvas');
         if (!canvas) return;
         sizeCanvasToScreen(canvas);
-        if (canvas._logW < 20 || canvas._logH < 20) {
-            setTimeout(function() { startGlobeAnimation(); }, 120);
+        if (!canvas._logW || canvas._logW < 20 || !canvas._logH || canvas._logH < 20) {
+            _sizeRetries++;
+            if (_sizeRetries < 15) {
+                var delay = Math.min(200, 40 * _sizeRetries);
+                requestAnimationFrame(function() { setTimeout(startGlobeAnimation, delay); });
+            }
             return;
         }
+        _sizeRetries = 0;
         if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
         var reduced = rmq.matches;
         renderGlobe(canvas);
@@ -1174,11 +1181,16 @@ function initGlobeMotion() {
         if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
     }
 
+    var _globeStartTimer = null;
     var observer = new MutationObserver(function() {
         var topo = document.querySelector('.scan-topology');
         if (topo && topo.getAttribute('aria-hidden') === 'false') {
-            startGlobeAnimation();
+            if (_globeStartTimer) clearTimeout(_globeStartTimer);
+            requestAnimationFrame(function() {
+                _globeStartTimer = setTimeout(startGlobeAnimation, 80);
+            });
         } else {
+            if (_globeStartTimer) { clearTimeout(_globeStartTimer); _globeStartTimer = null; }
             stopGlobeAnimation();
         }
     });
