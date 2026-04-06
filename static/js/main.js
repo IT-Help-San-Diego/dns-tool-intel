@@ -1122,17 +1122,6 @@ function initGlobeMotion() {
         drawSignalArcs(ctx);
         drawResolverMarkers(ctx, w, h);
 
-        var SCL = Math.max(0.65, Math.min(1.15, w / 1400));
-        var FONT_SUB = Math.round(Math.max(8, Math.min(12, 10 * SCL)));
-        ctx.font = FONT_SUB + 'px -apple-system, BlinkMacSystemFont, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        var projY = Math.max(FONT_SUB + 2, globe.cy - globe.R * 1.4 - 4 * SCL);
-        ctx.fillText('Orthographic Projection', globe.cx, projY);
-        var degLabel = ((globe.rotLon % 360) + 360) % 360;
-        if (degLabel > 180) degLabel -= 360;
-        ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, projY + FONT_SUB + 2);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
