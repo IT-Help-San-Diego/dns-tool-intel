@@ -1102,13 +1102,15 @@ function initGlobeMotion() {
 
     function renderGlobe(canvas) {
         var ctx = canvas.getContext('2d');
-        var w = canvas.width;
-        var h = canvas.height;
-        globe.R = Math.min(w * 0.18, h * 0.35, 300);
+        var dpr = canvas._dpr || 1;
+        var w = canvas._logW || canvas.width;
+        var h = canvas._logH || canvas.height;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        globe.R = Math.min(w * 0.32, h * 0.38, 300);
         globe.cx = w / 2;
-        globe.cy = globe.R * 1.42 + 8;
+        globe.cy = globe.R * 1.35 + 8;
         convergePt.x = w / 2;
-        convergePt.y = h - 20;
+        convergePt.y = h - 10;
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
@@ -1126,14 +1128,32 @@ function initGlobeMotion() {
         var degLabel = ((globe.rotLon % 360) + 360) % 360;
         if (degLabel > 180) degLabel -= 360;
         ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function sizeCanvasToScreen(canvas) {
+        var rect = canvas.getBoundingClientRect();
+        var dpr = globalThis.devicePixelRatio || 1;
+        if (rect.width > 10 && rect.height > 10) {
+            canvas.width = Math.round(rect.width * dpr);
+            canvas.height = Math.round(rect.height * dpr);
+            canvas._dpr = dpr;
+            canvas._logW = rect.width;
+            canvas._logH = rect.height;
+        } else {
+            canvas._dpr = 1;
+            canvas._logW = canvas.width;
+            canvas._logH = canvas.height;
+        }
+    }
 
     function startGlobeAnimation() {
         if (_globeAnim) cancelAnimationFrame(_globeAnim);
         var canvas = document.querySelector('.topo-globe-canvas');
         if (!canvas) return;
+        sizeCanvasToScreen(canvas);
         if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
         var reduced = rmq.matches;
         renderGlobe(canvas);

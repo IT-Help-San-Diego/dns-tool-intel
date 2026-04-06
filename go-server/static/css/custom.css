@@ -1895,6 +1895,7 @@ html[data-bs-theme="dark"] .tooltip-inner {
 .loading-content {
     text-align: center;
     color: #fff;
+    width: 100%;
     padding: 2rem;
     max-height: 100vh;
     max-height: 100dvh;
