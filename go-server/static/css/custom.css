@@ -7450,27 +7450,37 @@ progress.bg-danger::-moz-progress-bar {
 .sub-running-engine { fill: rgba(224,224,224,0.7); }
 .sub-running-web3 { fill: rgba(212,168,83,0.7); }
 
-[data-phase].phase-done .topo-label { fill: rgba(220,230,245,0.7); }
-[data-phase].phase-done .topo-ring  { stroke-width: 1.5; }
+[data-phase].phase-done .topo-label { fill: rgba(235,240,255,0.92); }
+[data-phase].phase-done .topo-ring  { stroke-width: 2; }
+[data-phase].phase-done .topo-halo  { stroke-width: 2; }
 
-[data-phase].phase-done-dns .topo-node     { fill: rgba(92,107,192,0.18); stroke: rgba(92,107,192,0.5); }
-[data-phase].phase-done-dns .topo-ring     { stroke: rgba(92,107,192,0.25); }
-[data-phase].phase-done-email .topo-node   { fill: rgba(79,195,247,0.18); stroke: rgba(79,195,247,0.5); }
-[data-phase].phase-done-email .topo-ring   { stroke: rgba(79,195,247,0.25); }
-[data-phase].phase-done-dnssec .topo-node  { fill: rgba(129,199,132,0.18); stroke: rgba(129,199,132,0.5); }
-[data-phase].phase-done-dnssec .topo-ring  { stroke: rgba(129,199,132,0.25); }
-[data-phase].phase-done-ct .topo-node      { fill: rgba(120,144,156,0.18); stroke: rgba(120,144,156,0.5); }
-[data-phase].phase-done-ct .topo-ring      { stroke: rgba(120,144,156,0.25); }
-[data-phase].phase-done-smtp .topo-node    { fill: rgba(129,199,132,0.18); stroke: rgba(129,199,132,0.5); }
-[data-phase].phase-done-smtp .topo-ring    { stroke: rgba(129,199,132,0.25); }
-[data-phase].phase-done-policy .topo-node  { fill: rgba(255,183,77,0.18); stroke: rgba(255,183,77,0.5); }
-[data-phase].phase-done-policy .topo-ring  { stroke: rgba(255,183,77,0.25); }
-[data-phase].phase-done-registrar .topo-node { fill: rgba(206,147,216,0.18); stroke: rgba(206,147,216,0.5); }
-[data-phase].phase-done-registrar .topo-ring { stroke: rgba(206,147,216,0.25); }
-[data-phase].phase-done-engine .topo-node  { fill: rgba(224,224,224,0.18); stroke: rgba(224,224,224,0.5); }
-[data-phase].phase-done-engine .topo-ring  { stroke: rgba(224,224,224,0.25); }
-[data-phase].phase-done-web3 .topo-node    { fill: rgba(212,168,83,0.18); stroke: rgba(212,168,83,0.5); }
-[data-phase].phase-done-web3 .topo-ring    { stroke: rgba(212,168,83,0.25); }
+[data-phase].phase-done-dns .topo-node     { fill: rgba(92,107,192,0.38); stroke: rgba(92,107,192,0.85); filter: url(#glow-dns); }
+[data-phase].phase-done-dns .topo-ring     { stroke: rgba(92,107,192,0.45); }
+[data-phase].phase-done-dns .topo-halo     { stroke: rgba(92,107,192,0.2); }
+[data-phase].phase-done-email .topo-node   { fill: rgba(79,195,247,0.38); stroke: rgba(79,195,247,0.85); filter: url(#glow-email); }
+[data-phase].phase-done-email .topo-ring   { stroke: rgba(79,195,247,0.45); }
+[data-phase].phase-done-email .topo-halo   { stroke: rgba(79,195,247,0.2); }
+[data-phase].phase-done-dnssec .topo-node  { fill: rgba(129,199,132,0.38); stroke: rgba(129,199,132,0.85); filter: url(#glow-dnssec); }
+[data-phase].phase-done-dnssec .topo-ring  { stroke: rgba(129,199,132,0.45); }
+[data-phase].phase-done-dnssec .topo-halo  { stroke: rgba(129,199,132,0.2); }
+[data-phase].phase-done-ct .topo-node      { fill: rgba(120,144,156,0.38); stroke: rgba(120,144,156,0.85); filter: url(#glow-ct); }
+[data-phase].phase-done-ct .topo-ring      { stroke: rgba(120,144,156,0.45); }
+[data-phase].phase-done-ct .topo-halo      { stroke: rgba(120,144,156,0.2); }
+[data-phase].phase-done-smtp .topo-node    { fill: rgba(129,199,132,0.38); stroke: rgba(129,199,132,0.85); filter: url(#glow-smtp); }
+[data-phase].phase-done-smtp .topo-ring    { stroke: rgba(129,199,132,0.45); }
+[data-phase].phase-done-smtp .topo-halo    { stroke: rgba(129,199,132,0.2); }
+[data-phase].phase-done-policy .topo-node  { fill: rgba(255,183,77,0.38); stroke: rgba(255,183,77,0.85); filter: url(#glow-policy); }
+[data-phase].phase-done-policy .topo-ring  { stroke: rgba(255,183,77,0.45); }
+[data-phase].phase-done-policy .topo-halo  { stroke: rgba(255,183,77,0.2); }
+[data-phase].phase-done-registrar .topo-node { fill: rgba(206,147,216,0.38); stroke: rgba(206,147,216,0.85); filter: url(#glow-registrar); }
+[data-phase].phase-done-registrar .topo-ring { stroke: rgba(206,147,216,0.45); }
+[data-phase].phase-done-registrar .topo-halo { stroke: rgba(206,147,216,0.2); }
+[data-phase].phase-done-engine .topo-node  { fill: rgba(224,224,224,0.38); stroke: rgba(224,224,224,0.85); filter: url(#glow-engine); }
+[data-phase].phase-done-engine .topo-ring  { stroke: rgba(224,224,224,0.45); }
+[data-phase].phase-done-engine .topo-halo  { stroke: rgba(224,224,224,0.2); }
+[data-phase].phase-done-web3 .topo-node    { fill: rgba(212,168,83,0.38); stroke: rgba(212,168,83,0.85); filter: url(#glow-web3); }
+[data-phase].phase-done-web3 .topo-ring    { stroke: rgba(212,168,83,0.45); }
+[data-phase].phase-done-web3 .topo-halo    { stroke: rgba(212,168,83,0.2); }
 
 .topo-sub.sub-done { fill: rgba(130,220,130,0.7); }
 
