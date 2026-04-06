@@ -47,14 +47,36 @@ const (
         strMaintenancenote = "MaintenanceNote"
 )
 
+type CmdRunResult struct {
+        Stdout string
+        Stderr string
+        Err    error
+}
+
+type CmdRunner func(ctx context.Context, command string, args []string) CmdRunResult
+
+func defaultCmdRunner(ctx context.Context, command string, args []string) CmdRunResult {
+        cmd := exec.CommandContext(ctx, command, args...)
+        var stdout, stderr bytes.Buffer
+        cmd.Stdout = &stdout
+        cmd.Stderr = &stderr
+        err := cmd.Run()
+        return CmdRunResult{
+                Stdout: stdout.String(),
+                Stderr: stderr.String(),
+                Err:    err,
+        }
+}
+
 type AdminHandler struct {
         DB                    *db.Database
         Config                *config.Config
         BackpressureCountFunc func() int64
+        RunCmd                CmdRunner
 }
 
 func NewAdminHandler(database *db.Database, cfg *config.Config, bpFunc func() int64) *AdminHandler {
-        return &AdminHandler{DB: database, Config: cfg, BackpressureCountFunc: bpFunc}
+        return &AdminHandler{DB: database, Config: cfg, BackpressureCountFunc: bpFunc, RunCmd: defaultCmdRunner}
 }
 
 type AdminUser struct {
@@ -496,16 +518,15 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
         ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
         defer cancel()
 
-        cmd := exec.CommandContext(ctx, task.Command, task.Args...)
-        var stdout, stderr bytes.Buffer
-        cmd.Stdout = &stdout
-        cmd.Stderr = &stderr
+        runner := h.RunCmd
+        if runner == nil {
+                runner = defaultCmdRunner
+        }
+        result := runner(ctx, task.Command, task.Args)
+        output := strings.TrimSpace(result.Stdout)
+        errOutput := strings.TrimSpace(result.Stderr)
 
-        err := cmd.Run()
-        output := strings.TrimSpace(stdout.String())
-        errOutput := strings.TrimSpace(stderr.String())
-
-        success := err == nil
+        success := result.Err == nil
         combined := output
         if errOutput != "" {
                 if combined != "" {
@@ -516,7 +537,7 @@ func (h *AdminHandler) RunOperation(c *gin.Context) {
         }
 
         if !success {
-                slog.Warn("Admin: operation failed", mapKeyTask, task.ID, mapKeyError, err, "stderr", errOutput)
+                slog.Warn("Admin: operation failed", mapKeyTask, task.ID, mapKeyError, result.Err, "stderr", errOutput)
         } else {
                 slog.Info("Admin: operation completed", mapKeyTask, task.ID)
         }

@@ -2,6 +2,7 @@ package handlers
 // dns-tool:scrutiny design
 
 import (
+        "context"
         "encoding/json"
         "fmt"
         "html/template"
@@ -10,13 +11,15 @@ import (
         "dnstool/go-server/internal/analyzer"
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/dbq"
 
         "github.com/gin-gonic/gin"
 )
 
 type TelemetryHandler struct {
-        DB     *db.Database
-        Config *config.Config
+        DB          *db.Database
+        Config      *config.Config
+        TimingsFunc func(ctx context.Context, analysisID int32) ([]dbq.ScanPhaseTelemetry, error)
 }
 
 func NewTelemetryHandler(database *db.Database, cfg *config.Config) *TelemetryHandler {
@@ -104,7 +107,11 @@ func (h *TelemetryHandler) VerifyHash(c *gin.Context) {
                 return
         }
 
-        timings, err := h.DB.Queries.GetTelemetryByAnalysis(ctx, analysisID)
+        timingsFunc := h.DB.Queries.GetTelemetryByAnalysis
+        if h.TimingsFunc != nil {
+                timingsFunc = h.TimingsFunc
+        }
+        timings, err := timingsFunc(ctx, analysisID)
         if err != nil {
                 c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load telemetry"})
                 return

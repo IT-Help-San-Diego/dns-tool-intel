@@ -21,17 +21,29 @@ type Database struct {
         Queries *dbq.Queries
 }
 
+type ConnectorFunc func(databaseURL string) (*Database, error)
+
+var defaultConnector ConnectorFunc = func(databaseURL string) (*Database, error) {
+        return connectWithPoolSize(databaseURL, 10, 2)
+}
+
 func Connect(databaseURL string) (*Database, error) {
+        return connectWithRetry(databaseURL, defaultConnector, 5, 3*time.Second)
+}
+
+func ConnectWithRetry(databaseURL string, connector ConnectorFunc, maxRetries int, retryDelay time.Duration) (*Database, error) {
+        return connectWithRetry(databaseURL, connector, maxRetries, retryDelay)
+}
+
+func connectWithRetry(databaseURL string, connector ConnectorFunc, maxRetries int, retryDelay time.Duration) (*Database, error) {
         if os.Getenv("REPLIT_DEPLOYMENT") != "" {
                 if u, err := url.Parse(databaseURL); err == nil && u.Hostname() == "helium" {
                         return nil, fmt.Errorf("misconfiguration: production deployment is using development database host 'helium'; set DATABASE_URL in production app secrets to the production database connection string")
                 }
         }
-        const maxRetries = 5
-        const retryDelay = 3 * time.Second
         var lastErr error
         for attempt := 1; attempt <= maxRetries; attempt++ {
-                db, err := connectWithPoolSize(databaseURL, 10, 2)
+                db, err := connector(databaseURL)
                 if err == nil {
                         return db, nil
                 }

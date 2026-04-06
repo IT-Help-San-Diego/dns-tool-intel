@@ -10,8 +10,13 @@ import (
         "sync/atomic"
         "time"
 
+        "github.com/jackc/pgx/v5/pgconn"
         "github.com/jackc/pgx/v5/pgxpool"
 )
+
+type PoolExecer interface {
+        Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+}
 
 var stderrLog = func(msg string) {
         _, _ = fmt.Fprintf(os.Stderr, `{"time":"%s","level":"ERROR","msg":"%s","source":"dbsink"}`+"\n",
@@ -38,14 +43,23 @@ type DBLogEntry struct {
 }
 
 type DBSink struct {
-        pool   *pgxpool.Pool
-        ch     chan DBLogEntry
-        done   chan struct{}
-        wg     sync.WaitGroup
-        closed atomic.Bool
+        pool    PoolExecer
+        ch      chan DBLogEntry
+        done    chan struct{}
+        wg      sync.WaitGroup
+        closed  atomic.Bool
+        Dropped atomic.Int64
 }
 
 func NewDBSink(pool *pgxpool.Pool) *DBSink {
+        return newDBSink(pool)
+}
+
+func NewDBSinkFromPool(pool PoolExecer) *DBSink {
+        return newDBSink(pool)
+}
+
+func newDBSink(pool PoolExecer) *DBSink {
         s := &DBSink{
                 pool: pool,
                 ch:   make(chan DBLogEntry, dbChanSize),
@@ -64,6 +78,10 @@ func (s *DBSink) Write(entry DBLogEntry) {
         select {
         case s.ch <- entry:
         default:
+                n := s.Dropped.Add(1)
+                if n == 1 || n%100 == 0 {
+                        stderrLog(fmt.Sprintf("log entry dropped (total dropped: %d)", n))
+                }
         }
 }
 
