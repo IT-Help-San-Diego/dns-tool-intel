@@ -392,64 +392,7 @@
 
     <output id="historyAnalyzeOverlay" class="loading-overlay" aria-live="polite" aria-busy="true" aria-label="Running domain analysis">
         <div class="loading-content">
-            <output class="mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
-            <output class="mb-2 h4 covert-show">Initiating Recon Sweep</output>
-            <p class="text-muted mb-0" id="historyAnalyzeDomain"></p>
-            <div class="loading-elapsed mt-2">
-                <span class="text-muted small" id="loadingTimer">0s</span>
-            </div>
-            <div class="loading-dots mt-2" aria-hidden="true">
-                <span></span><span></span><span></span>
-            </div>
-            {{template "scan_topology" .}}
-            <div class="scan-checklist mt-3 d-none" id="scanChecklist" aria-hidden="true">
-                <div class="scan-phase" data-delay="0">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">DNS records &mdash; Cloudflare, Google, Quad9, OpenDNS, DNS4EU</span>
-                    <span class="covert-show">Enumerating DNS across 5 resolvers&hellip;</span>
-                </div>
-                <div class="scan-phase" data-delay="1200">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Email auth &mdash; SPF, DMARC, DKIM selectors</span>
-                    <span class="covert-show">Probing email spoofability &mdash; SPF, DMARC, DKIM</span>
-                </div>
-                <div class="scan-phase" data-delay="2500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">DNSSEC chain of trust &amp; DANE/TLSA</span>
-                    <span class="covert-show">Testing DNS poison resistance &mdash; DNSSEC, DANE</span>
-                </div>
-                <div class="scan-phase" data-delay="3500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Certificate Transparency &amp; subdomain discovery</span>
-                    <span class="covert-show">Harvesting subdomains from CT logs&hellip;</span>
-                </div>
-                <div class="scan-phase" data-delay="5000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">SMTP transport &amp; STARTTLS verification</span>
-                    <span class="covert-show">Fingerprinting SMTP &amp; checking downgrade paths</span>
-                </div>
-                <div class="scan-phase" data-delay="7000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">MTA-STS, TLS-RPT, BIMI, CAA</span>
-                    <span class="covert-show">Checking policy enforcement &mdash; MTA-STS, CAA, BIMI</span>
-                </div>
-                <div class="scan-phase" data-delay="9000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Registrar &amp; infrastructure analysis</span>
-                    <span class="covert-show">Mapping registrar &amp; infrastructure footprint</span>
-                </div>
-                <div class="scan-phase" data-delay="12000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span class="covert-hide">Classifying &amp; Interpreting Intelligence</span>
-                    <span class="covert-show">Correlating attack surface&hellip;</span>
-                </div>
-            </div>
-            <p class="text-muted small mt-3 mb-0 u-maxw-440-fadein covert-hide" id="loadingNote">
-                Every result includes terminal commands you can run to independently verify the underlying data. No proprietary magic.
-            </p>
-            <p class="small mt-3 mb-0 u-maxw-440-fadein covert-show u-color-covert-loading" id="loadingNoteCovert">
-                Optimized for low-light tactical environments. Easy on the eyes for all-night recon.
-            </p>
+            {{template "scan_overlay_content" .}}
             <p class="text-warning small mt-3 mb-0 d-none u-maxw-440-center" id="historyTimeoutMsg">
                 {{icon "exclamation-triangle" "me-1"}}Analysis is taking longer than expected. <a href="/" class="text-info">Try from the home page</a> or refresh to retry.
             </p>
@@ -493,10 +436,29 @@
     function handleHistoryFetchResponse(resp){
         return resp.text().then(function(html){ handleHistoryPage(html,resp.url); });
     }
-    function fetchHistoryReanalyze(href){
-        fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
-            return handleHistoryFetchResponse(resp);
-        }).catch(function(){globalThis.location.href=href;});
+    function fetchHistoryReanalyze(href,overlay){
+        var u=new URL(href,globalThis.location.origin);
+        var domain=u.searchParams.get('domain')||'';
+        var csrf=(document.querySelector('meta[name="csrf-token"]')||{}).content||'';
+        var body=new URLSearchParams({domain:domain,csrf_token:csrf});
+        if(u.searchParams.get('covert')==='1')body.set('covert','1');
+        fetch('/analyze',{
+            method:'POST',
+            body:body,
+            headers:{'X-Requested-With':'fetch','Accept':'application/json','Content-Type':'application/x-www-form-urlencoded'},
+            redirect:'follow'
+        }).then(function(resp){
+            if(!resp.ok)throw new Error('HTTP '+resp.status);
+            return resp.json();
+        }).then(function(data){
+            if(data.token&&typeof startProgressPolling==='function'){
+                startProgressPolling(data.token,overlay,null);
+            }
+        }).catch(function(){
+            fetch(href,{headers:{'X-Requested-With':'fetch'},redirect:'follow'}).then(function(resp){
+                return handleHistoryFetchResponse(resp);
+            }).catch(function(){globalThis.location.href=href;});
+        });
     }
     document.addEventListener('DOMContentLoaded',function(){
         for(const btn of document.querySelectorAll('.history-view-btn')){
@@ -517,7 +479,7 @@
                 e.preventDefault();
                 const name=getDomain(btn);
                 const overlay=document.getElementById('historyAnalyzeOverlay');
-                const domainEl=document.getElementById('historyAnalyzeDomain');
+                const domainEl=overlay?overlay.querySelector('.scan-overlay-domain'):null;
                 if(domainEl)domainEl.textContent=name;
                 if(overlay){
                     if(typeof showOverlay==='function'){showOverlay(overlay);}else{overlay.classList.add('is-active');}
@@ -526,7 +488,7 @@
                 }
                 disableAllActions();
                 btn.innerHTML='{{icon "spinner" "icon-spin"}}';
-                fetchHistoryReanalyze(covertUrl(btn.href));
+                fetchHistoryReanalyze(covertUrl(btn.href),overlay);
             });
         }
     });

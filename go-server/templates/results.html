@@ -2965,7 +2965,7 @@
                                     </thead>
                                     <tbody>
                                     <tr>
-                                        <th scope="row" class="text-muted fw-semibold" style="width:140px">Input</th>
+                                        <th scope="row" class="text-muted fw-semibold u-w140">Input</th>
                                         <td><code>{{mapGetStr "input_domain" $web3res}}</code></td>
                                     </tr>
                                     <tr>
@@ -6283,58 +6283,9 @@
 
     </main>
 
-    <!-- Loading Overlay -->
     <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
-            <div class="loading-spinner">
-                {{icon "globe" "icon-spin"}}
-            </div>
-            <output class="mt-4 mb-2 h4">Running Multi-Source Intelligence Audit</output>
-            <p class="text-muted mb-0" id="loadingDomain">{{.Domain}}</p>
-            <div class="loading-elapsed mt-2">
-                <span class="text-muted small" id="loadingTimer">0s</span>
-            </div>
-            <div class="loading-dots mt-2" aria-hidden="true">
-                <span></span><span></span><span></span>
-            </div>
-            {{template "scan_topology" .}}
-            <div class="scan-checklist mt-3 d-none" id="scanChecklist">
-                <div class="scan-phase" data-delay="0">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>DNS records &mdash; Cloudflare, Google, Quad9, OpenDNS, DNS4EU</span>
-                </div>
-                <div class="scan-phase" data-delay="1200">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Email auth &mdash; SPF, DMARC, DKIM selectors</span>
-                </div>
-                <div class="scan-phase" data-delay="2500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>DNSSEC chain of trust &amp; DANE/TLSA</span>
-                </div>
-                <div class="scan-phase" data-delay="3500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Certificate Transparency &amp; subdomain discovery</span>
-                </div>
-                <div class="scan-phase" data-delay="5000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>SMTP transport &amp; STARTTLS verification</span>
-                </div>
-                <div class="scan-phase" data-delay="7000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>MTA-STS, TLS-RPT, BIMI, CAA</span>
-                </div>
-                <div class="scan-phase" data-delay="9000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Registrar &amp; infrastructure analysis</span>
-                </div>
-                <div class="scan-phase" data-delay="12000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Intelligence Classification &amp; Interpretation</span>
-                </div>
-            </div>
-            <p class="text-muted small mt-3 mb-0 u-maxw-440-fadein" id="loadingNote">
-                Every result includes terminal commands you can run to independently verify the underlying data. No proprietary magic.
-            </p>
+            {{template "scan_overlay_content" .}}
         </div>
     </output>
 
@@ -6724,6 +6675,11 @@
         document.body.classList.add('loading');
 
         if (overlay) {
+            var domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) domainEl.textContent = domain;
+            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
+                if (typeof swapToTLDScanPhases === 'function') swapToTLDScanPhases(overlay);
+            }
             if (typeof showOverlay === 'function') {
                 showOverlay(overlay);
             } else {
@@ -6734,14 +6690,30 @@
             }
         }
 
-        const url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
-        fetch(url, {
-            headers: { 'X-Requested-With': 'fetch' },
+        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var body = new URLSearchParams({domain: domain, csrf_token: csrf});
+        fetch('/analyze', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
             redirect: 'follow'
         }).then(function(resp) {
-            return handleReanalyzeResponse(resp);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token && typeof startProgressPolling === 'function') {
+                startProgressPolling(data.token, overlay, btn);
+            }
         }).catch(function() {
-            globalThis.location.href = url;
+            var url = '/analyze?domain=' + encodeURIComponent(domain) + '&refresh=' + Date.now();
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                return handleReanalyzeResponse(resp);
+            }).catch(function() {
+                globalThis.location.href = url;
+            });
         });
     }
 

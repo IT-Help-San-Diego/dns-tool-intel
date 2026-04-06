@@ -3,6 +3,21 @@ var CACHE_NAME = 'dnstool-' + CACHE_VERSION;
 var PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
 var MAX_CACHED_PAGES = 20;
 
+if (self.location.hostname !== 'dnstool.it-help.tech') {
+  self.addEventListener('install', function() { self.skipWaiting(); });
+  self.addEventListener('activate', function(event) {
+    event.waitUntil(
+      caches.keys().then(function(names) {
+        return Promise.all(names.map(function(n) { return caches.delete(n); }));
+      }).then(function() {
+        return self.clients.claim();
+      }).then(function() {
+        return self.registration.unregister();
+      })
+    );
+  });
+} else {
+
 var IMMUTABLE_ASSETS = [
   '/static/css/foundation.min.css',
   '/static/css/custom.min.css',
@@ -141,16 +156,17 @@ globalThis.addEventListener('fetch', function(event) {
 
   if (isVersioned) {
     event.respondWith(
-      fetch(event.request).then(function(response) {
-        if (response.ok) {
-          var clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(event.request, clone);
-          });
-        }
-        return response;
-      }).catch(function() {
-        return caches.match(event.request);
+      caches.match(event.request).then(function(cached) {
+        if (cached) return cached;
+        return fetch(event.request).then(function(response) {
+          if (response.ok) {
+            var clone = response.clone();
+            caches.open(CACHE_NAME).then(function(cache) {
+              cache.put(event.request, clone);
+            });
+          }
+          return response;
+        });
       })
     );
   } else {
@@ -172,3 +188,5 @@ globalThis.addEventListener('fetch', function(event) {
     );
   }
 });
+
+}

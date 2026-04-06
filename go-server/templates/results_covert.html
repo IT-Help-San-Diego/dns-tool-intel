@@ -1420,56 +1420,7 @@
 
     <output id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-content">
-            <div class="loading-spinner">
-                {{icon "crosshairs" "icon-spin covert-show"}}
-                {{icon "globe" "icon-spin covert-hide"}}
-            </div>
-            <output class="mt-4 mb-2 h4 covert-show">Running Target Reconnaissance</output>
-            <output class="mt-4 mb-2 h4 covert-hide">Running Multi-Source Intelligence Audit</output>
-            <p class="text-muted mb-0" id="loadingDomain">{{.Domain}}</p>
-            <div class="loading-elapsed mt-2">
-                <span class="text-muted small" id="loadingTimer">0s</span>
-            </div>
-            <div class="loading-dots mt-2" aria-hidden="true">
-                <span></span><span></span><span></span>
-            </div>
-            <div class="scan-checklist mt-3" id="scanChecklist">
-                <div class="scan-phase" data-delay="0">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>DNS records &mdash; Cloudflare, Google, Quad9, OpenDNS, DNS4EU</span>
-                </div>
-                <div class="scan-phase" data-delay="1200">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Email auth &mdash; SPF, DMARC, DKIM selectors</span>
-                </div>
-                <div class="scan-phase" data-delay="2500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>DNSSEC chain of trust &amp; DANE/TLSA</span>
-                </div>
-                <div class="scan-phase" data-delay="3500">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Certificate Transparency &amp; subdomain discovery</span>
-                </div>
-                <div class="scan-phase" data-delay="5000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>SMTP transport &amp; STARTTLS verification</span>
-                </div>
-                <div class="scan-phase" data-delay="7000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>MTA-STS, TLS-RPT, BIMI, CAA</span>
-                </div>
-                <div class="scan-phase" data-delay="9000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Infrastructure &amp; attack surface mapping</span>
-                </div>
-                <div class="scan-phase" data-delay="12000">
-                    {{icon "circle-notch" "icon-spin scan-icon scan-pending"}}
-                    <span>Classification &amp; threat assessment</span>
-                </div>
-            </div>
-            <p class="text-muted small mt-3 mb-0 u-maxw-440-fadein font-monospace" id="loadingNote">
-                Every result includes terminal commands for independent verification. No proprietary magic. No black boxes.
-            </p>
+            {{template "scan_overlay_content" .}}
         </div>
     </output>
 
@@ -1558,6 +1509,11 @@
         document.body.classList.add('loading');
 
         if (overlay) {
+            var domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) domainEl.textContent = domain;
+            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
+                if (typeof swapToTLDScanPhases === 'function') swapToTLDScanPhases(overlay);
+            }
             if (typeof showOverlay === 'function') {
                 showOverlay(overlay);
             } else {
@@ -1568,14 +1524,30 @@
             }
         }
 
-        const url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
-        fetch(url, {
-            headers: { 'X-Requested-With': 'fetch' },
+        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var body = new URLSearchParams({domain: domain, csrf_token: csrf, covert: '1'});
+        fetch('/analyze', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
             redirect: 'follow'
         }).then(function(resp) {
-            return handleCovertReanalyzeResponse(resp);
-        }).catch(function() { // NOSONAR — fallback to full navigation on fetch failure
-            globalThis.location.href = url;
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token && typeof startProgressPolling === 'function') {
+                startProgressPolling(data.token, overlay, btn);
+            }
+        }).catch(function() {
+            var url = '/analyze?domain=' + encodeURIComponent(domain) + '&covert=1&refresh=' + Date.now();
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                return handleCovertReanalyzeResponse(resp);
+            }).catch(function() { // NOSONAR — fallback to full navigation on fetch failure
+                globalThis.location.href = url;
+            });
         });
     }
 

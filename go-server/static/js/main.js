@@ -44,7 +44,13 @@ function isValidLabel(label) {
 }
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function() { /* intentionally empty — SW optional */ }); // NOSONAR
+    if (location.hostname === 'dnstool.it-help.tech') {
+        navigator.serviceWorker.register('/sw.js').catch(function() {}); // NOSONAR
+    } else {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+        });
+    }
 }
 
 function clearOverlayTimers(overlay) {
@@ -113,6 +119,7 @@ globalThis.addEventListener('pageshow', function(e) {
 function showOverlay(overlay) {
     if (!overlay) return;
     overlay.classList.add('is-active');
+    void overlay.offsetHeight;
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
             const els = overlay.querySelectorAll('.loading-spinner, .loading-spinner i, .loading-dots span');
@@ -129,8 +136,8 @@ function showOverlay(overlay) {
 }
 
 function startStatusCycle(overlayEl) {
-    const timerEl = document.getElementById('loadingTimer') ?? overlayEl.querySelector('.loading-elapsed span');
-    const noteEl = document.getElementById('loadingNote');
+    const timerEl = overlayEl.querySelector('.scan-overlay-timer') ?? overlayEl.querySelector('.loading-elapsed span');
+    const noteEl = overlayEl.querySelector('.scan-overlay-note');
     const startTime = Date.now();
 
     if (timerEl) {
@@ -147,9 +154,14 @@ function startStatusCycle(overlayEl) {
         }, 6000);
     }
 
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = overlayEl.querySelector('.scan-topology');
     if (topoEl) {
         topoEl.setAttribute('aria-hidden', 'false');
+    }
+    if (globalThis._startGlobeAnimation) {
+        requestAnimationFrame(function() {
+            setTimeout(globalThis._startGlobeAnimation, 80);
+        });
     }
 }
 
@@ -222,7 +234,15 @@ function applyPhaseConnectors(topoEl, group, pkey, isDone) {
 }
 
 function updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group) {
+    var prevStatus = node.dataset.lastStatus;
+    if (prevStatus === info.status) {
+        if (taskEl && info.tasks_total > 0) {
+            taskEl.textContent = (info.tasks_done ?? 0) + '/' + info.tasks_total;
+        }
+        return;
+    }
     resetPhaseNode(node, taskEl, info);
+    node.dataset.lastStatus = info.status;
     if (info.status === 'done') {
         node.classList.add('phase-done', 'phase-done-' + pkey);
         if (taskEl) taskEl.classList.add('sub-done');
@@ -239,11 +259,12 @@ function updatePhaseNode(topoEl, node, info, pkey, taskEl, durEl, group) {
 }
 
 function updateTopologyFromProgress(data) {
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl || !data?.phases) return;
     const phases = data.phases;
     const dnsPhase = phases['dns_records'];
-    if (dnsPhase) {
+    if (dnsPhase && topoEl.dataset.lastDnsStatus !== dnsPhase.status) {
+        topoEl.dataset.lastDnsStatus = dnsPhase.status;
         updateResolverDots(topoEl, dnsPhase.status);
     }
     for (const group of Object.keys(phases)) {
@@ -351,9 +372,14 @@ function showFlashAlert(message, container) {
 }
 
 function resetTopologyNodes() {
-    const topoEl = document.getElementById('scanTopology');
+    const topoEl = document.getElementById('scanTopology') ?? document.querySelector('.scan-topology');
     if (!topoEl) return;
     topoEl.setAttribute('aria-hidden', 'true');
+    if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
+    delete topoEl.dataset.lastDnsStatus;
+    for (const g of topoEl.querySelectorAll('[data-phase]')) {
+        delete g.dataset.lastStatus;
+    }
     for (const n of topoEl.querySelectorAll('.topo-node')) {
         n.classList.remove('phase-running', 'phase-done');
         removeClasses(n, PHASE_DONE_CLASSES);
@@ -396,7 +422,7 @@ function isBareTopLevelDomain(domain) {
 }
 
 function swapToTLDScanPhases(overlay) {
-    const checklist = overlay.querySelector('#scanChecklist');
+    const checklist = overlay.querySelector('.scan-overlay-checklist') ?? overlay.querySelector('#scanChecklist');
     if (!checklist) return;
     const isCovert = document.body.classList.contains('covert-mode');
     const phases = [
@@ -663,11 +689,11 @@ function handleAnalyzeLinkClick(e) {
     e.preventDefault();
     const link = e.currentTarget;
     const overlay = document.getElementById('loadingOverlay');
-    const loadingDomain = document.getElementById('loadingDomain');
     const url = new URL(link.href, globalThis.location.origin);
     const domain = url.searchParams.get('domain') ?? '';
     if (overlay) {
-        if (loadingDomain) loadingDomain.textContent = domain;
+        const domainEl = overlay.querySelector('.scan-overlay-domain');
+        if (domainEl) domainEl.textContent = domain;
         showOverlay(overlay);
         startStatusCycle(overlay);
     }
@@ -721,14 +747,472 @@ function initPrivacyToggle() {
     }
 }
 
+var _globeAnim = null;
+
 function initGlobeMotion() {
-    const rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
-    function globeMotion() {
-        const at = document.querySelector('.globe-meridians animateTransform');
-        if (at) { at.setAttribute('repeatCount', rmq.matches ? '0' : 'indefinite'); }
+    var DEG = Math.PI / 180;
+
+    var RESOLVER_POPS = [
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore' },
+        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney' },
+        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt' },
+        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London' },
+        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris' },
+        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
+    ];
+
+    var LAND = [
+        [[72,-78],[72,-100],[71,-152],[68,-165],[63,-167],[60,-140],[56,-132],[52,-127],[49,-124],[46,-124],[42,-124],[38,-123],[34,-120],[32,-117],[28,-115],[24,-110],[22,-106],[20,-97],[18,-96],[18,-88],[16,-87],[14,-84],[10,-84],[8,-81],[9,-78],[10,-76],[12,-72],[15,-76],[18,-77],[20,-76],[22,-80],[25,-80],[28,-82],[30,-82],[33,-80],[35,-76],[38,-75],[40,-74],[42,-70],[44,-66],[45,-61],[47,-53],[44,-60],[43,-66],[41,-71],[38,-70],[36,-76],[30,-82],[28,-77],[26,-80],[22,-88],[18,-88],[20,-90],[22,-97],[26,-110],[32,-117],[38,-123],[48,-124],[55,-130],[58,-136],[60,-140],[64,-162],[68,-165],[70,-152],[73,-94],[72,-78]],
+        [[12,-72],[11,-74],[10,-76],[8,-77],[5,-77],[2,-80],[-1,-80],[-3,-80],[-5,-81],[-8,-79],[-12,-77],[-14,-76],[-18,-70],[-20,-70],[-23,-68],[-23,-44],[-28,-49],[-33,-52],[-35,-57],[-38,-56],[-41,-64],[-46,-67],[-52,-69],[-55,-68],[-55,-64],[-52,-72],[-47,-76],[-42,-65],[-38,-57],[-34,-53],[-28,-48],[-23,-44],[-18,-40],[-13,-39],[-8,-35],[-5,-35],[-2,-50],[2,-55],[5,-60],[8,-63],[10,-68],[12,-72]],
+        [[36,-10],[38,-10],[40,-9],[42,-9],[43,-4],[44,-1],[46,0],[47,1],[48,2],[50,2],[51,4],[52,5],[54,9],[56,8],[56,10],[58,6],[60,5],[61,5],[63,10],[65,14],[68,16],[70,20],[71,28],[71,30],[70,32],[68,28],[66,26],[64,28],[62,18],[60,19],[58,18],[56,12],[54,10],[52,14],[50,14],[48,17],[46,16],[44,12],[42,24],[41,29],[40,26],[38,24],[37,23],[36,22],[36,14],[36,-6],[36,-10]],
+        [[37,10],[35,0],[34,-5],[32,-8],[30,-10],[28,-14],[25,-17],[22,-17],[20,-17],[15,-17],[12,-16],[8,-14],[5,-10],[5,-4],[5,1],[5,10],[2,10],[0,10],[-5,12],[-8,14],[-12,14],[-18,12],[-22,14],[-25,17],[-28,17],[-30,18],[-34,18],[-34,20],[-33,26],[-31,28],[-28,32],[-25,35],[-20,39],[-15,41],[-12,44],[-5,40],[0,42],[5,43],[10,44],[12,45],[15,42],[20,40],[25,37],[28,35],[30,32],[32,35],[35,35],[37,10]],
+        [[42,28],[44,30],[48,32],[52,36],[55,40],[57,42],[60,44],[62,50],[63,60],[65,70],[68,72],[70,80],[72,100],[72,125],[70,135],[68,140],[64,136],[62,140],[58,140],[55,135],[52,130],[48,132],[45,135],[42,132],[38,128],[35,129],[32,121],[30,120],[28,110],[25,100],[22,96],[20,93],[18,80],[15,80],[12,80],[10,78],[8,78],[6,100],[4,104],[2,104],[-1,104],[-5,106],[-7,106],[-8,110],[-7,115],[-2,118],[0,120],[1,104],[4,104],[6,100],[10,100],[15,100],[20,105],[22,107],[25,102],[28,97],[30,80],[32,60],[35,55],[37,50],[38,44],[40,40],[42,28]],
+        [[-14,129],[-12,131],[-12,136],[-14,137],[-16,137],[-19,144],[-21,149],[-25,153],[-29,153],[-33,152],[-35,148],[-38,146],[-38,140],[-36,137],[-34,135],[-32,133],[-30,130],[-28,115],[-25,114],[-22,114],[-19,117],[-16,123],[-14,129]],
+        [[60,-44],[63,-42],[65,-40],[68,-30],[72,-22],[76,-20],[78,-22],[80,-30],[82,-40],[83,-45],[82,-55],[80,-62],[78,-68],[76,-72],[73,-58],[70,-52],[68,-50],[64,-50],[60,-44]],
+        [[31,130],[33,132],[35,134],[37,137],[40,140],[42,144],[43,145],[42,143],[40,140],[37,137],[35,134],[33,131],[31,130]]
+    ];
+
+    var globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
+    var convergePt = { x: 0, y: 0 };
+    var signalParticles = [];
+    var particlesInitialized = false;
+
+    function hexToRgba(hex, a) {
+        var r = parseInt(hex.slice(1, 3), 16);
+        var g = parseInt(hex.slice(3, 5), 16);
+        var b = parseInt(hex.slice(5, 7), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
-    globeMotion();
-    rmq.addEventListener('change', globeMotion);
+
+    function projectPt(lat, lon) {
+        var phi = lat * DEG;
+        var lam = (lon - globe.rotLon) * DEG;
+        var cosPhi = Math.cos(phi);
+        return {
+            x: globe.cx + globe.R * cosPhi * Math.sin(lam),
+            y: globe.cy - globe.R * Math.sin(phi),
+            vis: cosPhi * Math.cos(lam) > 0,
+            depth: cosPhi * Math.cos(lam)
+        };
+    }
+
+    function drawGlobeSphere(ctx) {
+        var grd = ctx.createRadialGradient(globe.cx - globe.R * 0.25, globe.cy - globe.R * 0.25, globe.R * 0.05, globe.cx, globe.cy, globe.R * 1.4);
+        grd.addColorStop(0, 'rgba(30,40,70,0.15)');
+        grd.addColorStop(0.7, 'rgba(15,20,40,0.08)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R * 1.4, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(8,12,22,0.9)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(100,140,200,0.2)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+    }
+
+    function drawGraticule(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+
+        ctx.strokeStyle = 'rgba(100,140,200,0.07)';
+        ctx.lineWidth = 0.5;
+
+        var lats = [-60, -30, 0, 30, 60];
+        for (var li = 0; li < lats.length; li++) {
+            ctx.beginPath();
+            var started = false;
+            for (var lon = -180; lon <= 180; lon += 3) {
+                var p = projectPt(lats[li], lon);
+                if (p.vis) {
+                    if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                    else ctx.lineTo(p.x, p.y);
+                } else { started = false; }
+            }
+            ctx.stroke();
+        }
+
+        for (var mlon = -180; mlon < 180; mlon += 30) {
+            ctx.beginPath();
+            var started2 = false;
+            for (var lat = -90; lat <= 90; lat += 3) {
+                var p2 = projectPt(lat, mlon);
+                if (p2.vis) {
+                    if (!started2) { ctx.moveTo(p2.x, p2.y); started2 = true; }
+                    else ctx.lineTo(p2.x, p2.y);
+                } else { started2 = false; }
+            }
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(100,140,200,0.12)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        var started3 = false;
+        for (var elon = -180; elon <= 180; elon += 3) {
+            var ep = projectPt(0, elon);
+            if (ep.vis) {
+                if (!started3) { ctx.moveTo(ep.x, ep.y); started3 = true; }
+                else ctx.lineTo(ep.x, ep.y);
+            } else { started3 = false; }
+        }
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawContinents(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+
+        for (var ci = 0; ci < LAND.length; ci++) {
+            var coords = LAND[ci];
+            ctx.beginPath();
+            var started = false;
+            for (var pi = 0; pi < coords.length; pi++) {
+                var p = projectPt(coords[pi][0], coords[pi][1]);
+                if (p.vis) {
+                    if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+                    else ctx.lineTo(p.x, p.y);
+                } else { started = false; }
+            }
+            if (started) {
+                ctx.fillStyle = 'rgba(80,120,180,0.04)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100,160,220,0.12)';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    function initSignalParticles() {
+        signalParticles = [];
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            for (var j = 0; j < 3; j++) {
+                signalParticles.push({
+                    popIdx: i,
+                    t: Math.random(),
+                    speed: 0.003 + Math.random() * 0.004,
+                    size: 1.5 + Math.random() * 1.5
+                });
+            }
+        }
+    }
+
+    function drawSignalArcs(ctx) {
+        var tgtX = convergePt.x;
+        var tgtY = convergePt.y;
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            var pop = RESOLVER_POPS[i];
+            var p = projectPt(pop.lat, pop.lon);
+            if (!p.vis) continue;
+
+            var cpx = p.x + (tgtX - p.x) * 0.5 + (p.y - tgtY) * 0.12;
+            var cpy = p.y + (tgtY - p.y) * 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.quadraticCurveTo(cpx, cpy, tgtX, tgtY);
+            ctx.strokeStyle = hexToRgba(pop.color, 0.12 + p.depth * 0.06);
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+        }
+
+        for (var si = 0; si < signalParticles.length; si++) {
+            var sp = signalParticles[si];
+            var pop2 = RESOLVER_POPS[sp.popIdx];
+            var p2 = projectPt(pop2.lat, pop2.lon);
+            if (!p2.vis) continue;
+
+            var t = sp.t;
+            var cpx2 = p2.x + (tgtX - p2.x) * 0.5 + (p2.y - tgtY) * 0.12;
+            var cpy2 = p2.y + (tgtY - p2.y) * 0.5;
+            var mt = 1 - t;
+            var px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * tgtX;
+            var py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * tgtY;
+
+            ctx.beginPath();
+            ctx.arc(px, py, sp.size, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.5 + t * 0.3);
+            ctx.fill();
+
+            sp.t += sp.speed;
+            if (sp.t > 1) { sp.t = 0; sp.speed = 0.003 + Math.random() * 0.004; sp.size = 1.5 + Math.random() * 1.5; }
+        }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function drawResolverMarkers(ctx, w, h) {
+        var visiblePops = [];
+        for (var i = 0; i < RESOLVER_POPS.length; i++) {
+            var pop = RESOLVER_POPS[i];
+            var p = projectPt(pop.lat, pop.lon);
+            if (p.vis) {
+                visiblePops.push({ pop: pop, p: p, idx: i });
+            }
+        }
+
+        visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
+
+        var SCL = Math.max(0.65, Math.min(1.15, w / 1400));
+        var FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
+        var labelGap = 12 * SCL;
+        var labelBand = 120 * SCL;
+        var maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
+        var maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
+        var maxLabelTop = globe.cy - globe.R - labelBand;
+        var maxLabelBottom = globe.cy + globe.R + labelBand;
+        var placedBoxes = [];
+
+        for (var vi = 0; vi < visiblePops.length; vi++) {
+            var vp = visiblePops[vi];
+            var pop2 = vp.pop;
+            var p2 = vp.p;
+            var alpha = 0.4 + p2.depth * 0.6;
+
+            ctx.beginPath();
+            ctx.arc(p2.x, p2.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.15 * alpha);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p2.x, p2.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.85 * alpha);
+            ctx.fill();
+
+            var label = pop2.city;
+            ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            var tw = ctx.measureText(label).width;
+            var tagW = tw + 18 * SCL;
+            var tagH = Math.round(20 * SCL + 2);
+
+            var baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
+            var bestX = null, bestY = null, bestScore = Infinity;
+            var candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
+            var candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+
+            for (var di = 0; di < candidateDists.length; di++) {
+                for (var ci = 0; ci < candidateAngles.length; ci++) {
+                    var ca = baseAngle + candidateAngles[ci] * DEG;
+                    var dist = candidateDists[di];
+                    var cx = p2.x + Math.cos(ca) * dist;
+                    var cy = p2.y + Math.sin(ca) * dist;
+
+                    if (Math.cos(ca) < 0) cx -= tagW;
+
+                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
+                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
+
+                    var hasCollision = false;
+                    for (var pi = 0; pi < placedBoxes.length; pi++) {
+                        var pb = placedBoxes[pi];
+                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
+                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
+                            hasCollision = true;
+                            break;
+                        }
+                    }
+
+                    var distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
+                    var score = (hasCollision ? 10000 : 0) + distFromDot;
+
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestX = cx;
+                        bestY = cy;
+                    }
+                }
+            }
+
+            if (bestScore >= 10000) {
+                for (var ri = 0; ri < 8; ri++) {
+                    var shifted = false;
+                    for (var pi2 = 0; pi2 < placedBoxes.length; pi2++) {
+                        var pb2 = placedBoxes[pi2];
+                        var ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
+                        var ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
+                        if (ovX > 0 && ovY > 0) {
+                            if (ovY < ovX) {
+                                bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
+                            } else {
+                                bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
+                            }
+                            shifted = true;
+                        }
+                    }
+                    if (!shifted) break;
+                }
+                bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
+                bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
+            }
+
+            placedBoxes.push({ x: bestX, y: bestY, w: tagW, h: tagH });
+
+            var lineEndX = (bestX + tagW / 2 > p2.x) ? bestX : bestX + tagW;
+            ctx.beginPath();
+            ctx.moveTo(p2.x, p2.y);
+            ctx.lineTo(lineEndX, bestY + tagH / 2);
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.3 * alpha);
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+
+            roundRect(ctx, bestX, bestY, tagW, tagH, 4);
+            ctx.fillStyle = hexToRgba(pop2.color, 0.12 * alpha);
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(pop2.color, 0.4 * alpha);
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * alpha) + ')';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, bestX + 9 * SCL, bestY + tagH / 2);
+        }
+    }
+
+    var PHI = 1.618033988749895;
+
+    function renderGlobe(canvas) {
+        var ctx = canvas.getContext('2d');
+        var dpr = canvas._dpr || 1;
+        var w = canvas._logW || canvas.width;
+        var h = canvas._logH || canvas.height;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        globe.R = Math.min(w / (2 * PHI), h / (2 * PHI), 250);
+        globe.cx = w / 2;
+        globe.cy = h / (PHI * PHI) - globe.R * 0.15;
+        convergePt.x = w * 0.478;
+        convergePt.y = h * 580 / 920;
+
+        ctx.clearRect(0, 0, w, h);
+        drawGlobeSphere(ctx);
+        drawGraticule(ctx);
+        drawContinents(ctx);
+        drawSignalArcs(ctx);
+        drawResolverMarkers(ctx, w, h);
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function sizeCanvasToScreen(canvas) {
+        var dpr = globalThis.devicePixelRatio || 1;
+        var vw = globalThis.innerWidth - 64;
+        var vh = globalThis.innerHeight - 110;
+        var svgW = vw;
+        var svgH = vw * 960 / 900;
+        if (svgH > vh) { svgH = vh; svgW = vh * 900 / 960; }
+        var rw = svgW;
+        var rh = svgW * 920 / 900;
+        if (rw > 10 && rh > 10) {
+            canvas.width = Math.round(rw * dpr);
+            canvas.height = Math.round(rh * dpr);
+            canvas._dpr = dpr;
+            canvas._logW = rw;
+            canvas._logH = rh;
+        }
+    }
+
+    var _sizeRetries = 0;
+    function startGlobeAnimation() {
+        if (_globeAnim) cancelAnimationFrame(_globeAnim);
+        var canvas = document.querySelector('.topo-globe-canvas');
+        if (!canvas) return;
+        sizeCanvasToScreen(canvas);
+        if (!canvas._logW || canvas._logW < 20 || !canvas._logH || canvas._logH < 20) {
+            _sizeRetries++;
+            if (_sizeRetries < 15) {
+                var delay = Math.min(200, 40 * _sizeRetries);
+                requestAnimationFrame(function() { setTimeout(startGlobeAnimation, delay); });
+            }
+            return;
+        }
+        _sizeRetries = 0;
+        if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
+        var reduced = rmq.matches;
+        renderGlobe(canvas);
+        if (reduced) return;
+        function tick() {
+            globe.rotLon -= 0.08;
+            renderGlobe(canvas);
+            _globeAnim = requestAnimationFrame(tick);
+        }
+        _globeAnim = requestAnimationFrame(tick);
+    }
+
+    function stopGlobeAnimation() {
+        if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
+    }
+
+    var _globeStartTimer = null;
+    var observer = new MutationObserver(function() {
+        var topo = document.querySelector('.scan-topology');
+        if (topo && topo.getAttribute('aria-hidden') === 'false') {
+            if (_globeStartTimer) clearTimeout(_globeStartTimer);
+            requestAnimationFrame(function() {
+                _globeStartTimer = setTimeout(startGlobeAnimation, 80);
+            });
+        } else {
+            if (_globeStartTimer) { clearTimeout(_globeStartTimer); _globeStartTimer = null; }
+            stopGlobeAnimation();
+        }
+    });
+
+    var topoEl = document.querySelector('.scan-topology');
+    if (topoEl) {
+        observer.observe(topoEl, { attributes: true, attributeFilter: ['aria-hidden'] });
+        if (topoEl.getAttribute('aria-hidden') === 'false') {
+            startGlobeAnimation();
+        }
+    }
+
+    rmq.addEventListener('change', function() {
+        var topo2 = document.querySelector('.scan-topology');
+        if (topo2 && topo2.getAttribute('aria-hidden') === 'false') {
+            startGlobeAnimation();
+        }
+    });
+
+    globalThis._startGlobeAnimation = startGlobeAnimation;
+    globalThis._stopGlobeAnimation = stopGlobeAnimation;
 }
 
 function initVideoFallback() {
@@ -738,8 +1222,8 @@ function initVideoFallback() {
         const w = csvEl.closest('.approach-video-wrapper');
         if (w) {
             const msg = document.createElement('div');
-            msg.style.cssText = 'text-align:center;padding:1.5rem;color:rgba(170,178,188,0.7);font-size:0.85rem';
-            msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain" style="color:rgba(88,166,255,0.85)">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download style="color:rgba(88,166,255,0.85)">download directly</a>.';
+            msg.className = 'video-fallback-msg';
+            msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download>download directly</a>.';
             csvEl.replaceWith(msg);
         }
     }, true);
@@ -1005,10 +1489,10 @@ function initDomainForm() {
         }
 
         const overlay = document.getElementById('loadingOverlay');
-        const loadingDomain = document.getElementById('loadingDomain');
         if (overlay) {
-            if (loadingDomain) {
-                loadingDomain.textContent = domain;
+            const domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) {
+                domainEl.textContent = domain;
             }
             if (isBareTopLevelDomain(domain)) {
                 swapToTLDScanPhases(overlay);
@@ -1070,6 +1554,53 @@ document.addEventListener('DOMContentLoaded', function() {
         if (link.classList.contains('history-reanalyze-btn')) continue;
         link.addEventListener('click', handleAnalyzeLinkClick);
     }
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#reanalyzeBtn');
+        if (!btn || btn.classList.contains('disabled')) return;
+        e.preventDefault();
+        var domain = btn.dataset.domain;
+        var overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            var domainEl = overlay.querySelector('.scan-overlay-domain');
+            if (domainEl) domainEl.textContent = domain;
+            if (typeof isBareTopLevelDomain === 'function' && isBareTopLevelDomain(domain)) {
+                swapToTLDScanPhases(overlay);
+            }
+            showOverlay(overlay);
+            startStatusCycle(overlay);
+        }
+        btn.innerHTML = '<i class="fa-solid fa-spinner icon-spin me-2"></i>Analyzing...';
+        btn.classList.add('disabled');
+        document.body.classList.add('loading');
+        var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var isCovert = document.body.classList.contains('covert-mode');
+        var body = new URLSearchParams({domain: domain, csrf_token: csrf});
+        if (isCovert) body.append('covert', '1');
+        fetch('/analyze', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'},
+            redirect: 'follow'
+        }).then(function(resp) {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+        }).then(function(data) {
+            if (data.token) {
+                startProgressPolling(data.token, overlay, btn);
+            }
+        }).catch(function() {
+            var url = '/analyze?domain=' + encodeURIComponent(domain) + (isCovert ? '&covert=1' : '') + '&refresh=' + Date.now();
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                redirect: 'follow'
+            }).then(function(resp) {
+                return resp.text().then(function(html) { hideOverlayAndReset(overlay, btn); applyFetchedPage(html, resp.url); });
+            }).catch(function() {
+                globalThis.location.href = url;
+            });
+        });
+    });
 
     initAlertDismissal();
     initSmoothScroll();
@@ -1227,6 +1758,8 @@ function loadDNSHistory(domain) {
 
 globalThis.showOverlay = showOverlay;
 globalThis.startStatusCycle = startStatusCycle;
+globalThis.startProgressPolling = startProgressPolling;
+globalThis.hideOverlayAndReset = hideOverlayAndReset;
 globalThis.escapeHtml = escapeHtml;
 globalThis.loadDNSHistory = loadDNSHistory;
 
