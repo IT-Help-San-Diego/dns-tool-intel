@@ -1,142 +1,141 @@
 {{define "scan_topology"}}
 <div class="scan-topology mt-1" id="scanTopology" aria-hidden="true">
-    <svg viewBox="-200 -300 900 960" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
-        <desc>ViewBox 900×960. Globe canvas dynamically sized to rendered pixels via JS (devicePixelRatio-aware). Globe fills 50%+ of viewport width. Signal arcs converge toward pipeline nodes below the globe.</desc>
-        <defs>
-            <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-dnssec" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-ct" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#78909c" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-smtp" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-policy" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ffb74d" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-registrar" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ce93d8" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-engine" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#e0e0e0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-web3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#d4a853" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <radialGradient id="node-glass" cx="38%" cy="32%" r="75%">
-                <stop offset="0" stop-color="rgba(50,60,80,0.22)"/>
-                <stop offset="0.6" stop-color="rgba(28,33,40,0.12)"/>
-                <stop offset="1" stop-color="rgba(18,22,28,0.28)"/>
-            </radialGradient>
-            <radialGradient id="node-highlight" cx="35%" cy="28%" r="55%">
-                <stop offset="0" stop-color="rgba(255,255,255,0.06)"/>
-                <stop offset="1" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-        </defs>
+    <div class="topo-stack">
+        <canvas class="topo-globe-canvas" width="900" height="960"></canvas>
+        <svg viewBox="-200 -300 900 960" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Live intelligence pipeline topology" class="topo-svg">
+            <desc>ViewBox 900×960. Globe canvas is a sibling layer sized to match the SVG viewport. Signal arcs converge toward pipeline nodes below the globe.</desc>
+            <defs>
+                <filter id="glow-dns" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#5c6bc0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-email" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#4fc3f7" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-dnssec" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-ct" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#78909c" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-smtp" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#81c784" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-policy" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ffb74d" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-registrar" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ce93d8" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-engine" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#e0e0e0" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-web3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#d4a853" flood-opacity="0.5" result="color"/><feComposite in="color" in2="blur" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <radialGradient id="node-glass" cx="38%" cy="32%" r="75%">
+                    <stop offset="0" stop-color="rgba(50,60,80,0.22)"/>
+                    <stop offset="0.6" stop-color="rgba(28,33,40,0.12)"/>
+                    <stop offset="1" stop-color="rgba(18,22,28,0.28)"/>
+                </radialGradient>
+                <radialGradient id="node-highlight" cx="35%" cy="28%" r="55%">
+                    <stop offset="0" stop-color="rgba(255,255,255,0.06)"/>
+                    <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+                </radialGradient>
+            </defs>
 
-        <foreignObject x="-200" y="-300" width="900" height="920">
-            <canvas xmlns="http://www.w3.org/1999/xhtml" class="topo-globe-canvas" width="900" height="920"></canvas>
-        </foreignObject>
+            <line x1="230" y1="280" x2="70" y2="350" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
+            <line x1="230" y1="280" x2="177" y2="350" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+            <line x1="230" y1="280" x2="283" y2="350" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+            <line x1="230" y1="280" x2="390" y2="350" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
+            <line x1="70" y1="350" x2="131" y2="430" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
+            <line x1="177" y1="350" x2="230" y2="430" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
+            <line x1="283" y1="350" x2="131" y2="430" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
+            <line x1="390" y1="350" x2="230" y2="430" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
+            <line x1="230" y1="280" x2="329" y2="430" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
+            <line x1="131" y1="430" x2="230" y2="520" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+            <line x1="230" y1="430" x2="230" y2="520" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+            <line x1="329" y1="430" x2="230" y2="520" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
 
-        <line x1="230" y1="280" x2="70" y2="350" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
-        <line x1="230" y1="280" x2="177" y2="350" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
-        <line x1="230" y1="280" x2="283" y2="350" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
-        <line x1="230" y1="280" x2="390" y2="350" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
-        <line x1="70" y1="350" x2="131" y2="430" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
-        <line x1="177" y1="350" x2="230" y2="430" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
-        <line x1="283" y1="350" x2="131" y2="430" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
-        <line x1="390" y1="350" x2="230" y2="430" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
-        <line x1="230" y1="280" x2="329" y2="430" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
-        <line x1="131" y1="430" x2="230" y2="520" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-        <line x1="230" y1="430" x2="230" y2="520" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-        <line x1="329" y1="430" x2="230" y2="520" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
+            <g data-phase="dns_records" data-pkey="dns">
+                <circle cx="230" cy="280" r="38" class="topo-halo"/>
+                <circle cx="230" cy="280" r="34" class="topo-ring"/>
+                <circle cx="230" cy="280" r="28" class="topo-node"/>
+                <circle cx="230" cy="280" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="230" y="276" class="topo-label">DNS</text>
+                <text x="230" y="285" class="topo-label topo-label-sub">Records</text>
+                <text x="230" y="296" class="topo-sub" data-tasks="dns_records">0/3</text>
+            </g>
+            <text x="230" y="324" class="topo-dur" data-dur="dns_records"></text>
 
-        <g data-phase="dns_records" data-pkey="dns">
-            <circle cx="230" cy="280" r="38" class="topo-halo"/>
-            <circle cx="230" cy="280" r="34" class="topo-ring"/>
-            <circle cx="230" cy="280" r="28" class="topo-node"/>
-            <circle cx="230" cy="280" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="230" y="276" class="topo-label">DNS</text>
-            <text x="230" y="285" class="topo-label topo-label-sub">Records</text>
-            <text x="230" y="296" class="topo-sub" data-tasks="dns_records">0/3</text>
-        </g>
-        <text x="230" y="324" class="topo-dur" data-dur="dns_records"></text>
+            <g data-phase="email_auth" data-pkey="email">
+                <circle cx="70" cy="350" r="38" class="topo-halo"/>
+                <circle cx="70" cy="350" r="34" class="topo-ring"/>
+                <circle cx="70" cy="350" r="28" class="topo-node"/>
+                <circle cx="70" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="70" y="346" class="topo-label">Email</text>
+                <text x="70" y="355" class="topo-label topo-label-sub">Auth</text>
+                <text x="70" y="366" class="topo-sub" data-tasks="email_auth">0/3</text>
+            </g>
+            <text x="70" y="394" class="topo-dur" data-dur="email_auth"></text>
 
-        <g data-phase="email_auth" data-pkey="email">
-            <circle cx="70" cy="350" r="38" class="topo-halo"/>
-            <circle cx="70" cy="350" r="34" class="topo-ring"/>
-            <circle cx="70" cy="350" r="28" class="topo-node"/>
-            <circle cx="70" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="70" y="346" class="topo-label">Email</text>
-            <text x="70" y="355" class="topo-label topo-label-sub">Auth</text>
-            <text x="70" y="366" class="topo-sub" data-tasks="email_auth">0/3</text>
-        </g>
-        <text x="70" y="394" class="topo-dur" data-dur="email_auth"></text>
+            <g data-phase="dnssec_dane" data-pkey="dnssec">
+                <circle cx="177" cy="350" r="38" class="topo-halo"/>
+                <circle cx="177" cy="350" r="34" class="topo-ring"/>
+                <circle cx="177" cy="350" r="28" class="topo-node"/>
+                <circle cx="177" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="177" y="346" class="topo-label">DNSSEC</text>
+                <text x="177" y="355" class="topo-label topo-label-sub">DANE</text>
+                <text x="177" y="366" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
+            </g>
+            <text x="177" y="394" class="topo-dur" data-dur="dnssec_dane"></text>
 
-        <g data-phase="dnssec_dane" data-pkey="dnssec">
-            <circle cx="177" cy="350" r="38" class="topo-halo"/>
-            <circle cx="177" cy="350" r="34" class="topo-ring"/>
-            <circle cx="177" cy="350" r="28" class="topo-node"/>
-            <circle cx="177" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="177" y="346" class="topo-label">DNSSEC</text>
-            <text x="177" y="355" class="topo-label topo-label-sub">DANE</text>
-            <text x="177" y="366" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
-        </g>
-        <text x="177" y="394" class="topo-dur" data-dur="dnssec_dane"></text>
+            <g data-phase="ct_subdomains" data-pkey="ct">
+                <circle cx="283" cy="350" r="38" class="topo-halo"/>
+                <circle cx="283" cy="350" r="34" class="topo-ring"/>
+                <circle cx="283" cy="350" r="28" class="topo-node"/>
+                <circle cx="283" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="283" y="346" class="topo-label">CT/Sub</text>
+                <text x="283" y="355" class="topo-label topo-label-sub">domains</text>
+                <text x="283" y="366" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
+            </g>
+            <text x="283" y="394" class="topo-dur" data-dur="ct_subdomains"></text>
 
-        <g data-phase="ct_subdomains" data-pkey="ct">
-            <circle cx="283" cy="350" r="38" class="topo-halo"/>
-            <circle cx="283" cy="350" r="34" class="topo-ring"/>
-            <circle cx="283" cy="350" r="28" class="topo-node"/>
-            <circle cx="283" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="283" y="346" class="topo-label">CT/Sub</text>
-            <text x="283" y="355" class="topo-label topo-label-sub">domains</text>
-            <text x="283" y="366" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
-        </g>
-        <text x="283" y="394" class="topo-dur" data-dur="ct_subdomains"></text>
+            <g data-phase="smtp_transport" data-pkey="smtp">
+                <circle cx="390" cy="350" r="38" class="topo-halo"/>
+                <circle cx="390" cy="350" r="34" class="topo-ring"/>
+                <circle cx="390" cy="350" r="28" class="topo-node"/>
+                <circle cx="390" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="390" y="346" class="topo-label">SMTP</text>
+                <text x="390" y="355" class="topo-label topo-label-sub">Transport</text>
+                <text x="390" y="366" class="topo-sub" data-tasks="smtp_transport">0/3</text>
+            </g>
+            <text x="390" y="394" class="topo-dur" data-dur="smtp_transport"></text>
 
-        <g data-phase="smtp_transport" data-pkey="smtp">
-            <circle cx="390" cy="350" r="38" class="topo-halo"/>
-            <circle cx="390" cy="350" r="34" class="topo-ring"/>
-            <circle cx="390" cy="350" r="28" class="topo-node"/>
-            <circle cx="390" cy="350" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="390" y="346" class="topo-label">SMTP</text>
-            <text x="390" y="355" class="topo-label topo-label-sub">Transport</text>
-            <text x="390" y="366" class="topo-sub" data-tasks="smtp_transport">0/3</text>
-        </g>
-        <text x="390" y="394" class="topo-dur" data-dur="smtp_transport"></text>
+            <g data-phase="policy_records" data-pkey="policy">
+                <circle cx="131" cy="430" r="38" class="topo-halo"/>
+                <circle cx="131" cy="430" r="34" class="topo-ring"/>
+                <circle cx="131" cy="430" r="28" class="topo-node"/>
+                <circle cx="131" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="131" y="426" class="topo-label">Policy</text>
+                <text x="131" y="435" class="topo-label topo-label-sub">Records</text>
+                <text x="131" y="446" class="topo-sub" data-tasks="policy_records">0/4</text>
+            </g>
+            <text x="131" y="474" class="topo-dur" data-dur="policy_records"></text>
 
-        <g data-phase="policy_records" data-pkey="policy">
-            <circle cx="131" cy="430" r="38" class="topo-halo"/>
-            <circle cx="131" cy="430" r="34" class="topo-ring"/>
-            <circle cx="131" cy="430" r="28" class="topo-node"/>
-            <circle cx="131" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="131" y="426" class="topo-label">Policy</text>
-            <text x="131" y="435" class="topo-label topo-label-sub">Records</text>
-            <text x="131" y="446" class="topo-sub" data-tasks="policy_records">0/4</text>
-        </g>
-        <text x="131" y="474" class="topo-dur" data-dur="policy_records"></text>
+            <g data-phase="registrar_infra" data-pkey="registrar">
+                <circle cx="230" cy="430" r="38" class="topo-halo"/>
+                <circle cx="230" cy="430" r="34" class="topo-ring"/>
+                <circle cx="230" cy="430" r="28" class="topo-node"/>
+                <circle cx="230" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="230" y="426" class="topo-label">Registrar</text>
+                <text x="230" y="435" class="topo-label topo-label-sub">Infra</text>
+                <text x="230" y="446" class="topo-sub" data-tasks="registrar_infra">0/5</text>
+            </g>
+            <text x="230" y="474" class="topo-dur" data-dur="registrar_infra"></text>
 
-        <g data-phase="registrar_infra" data-pkey="registrar">
-            <circle cx="230" cy="430" r="38" class="topo-halo"/>
-            <circle cx="230" cy="430" r="34" class="topo-ring"/>
-            <circle cx="230" cy="430" r="28" class="topo-node"/>
-            <circle cx="230" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="230" y="426" class="topo-label">Registrar</text>
-            <text x="230" y="435" class="topo-label topo-label-sub">Infra</text>
-            <text x="230" y="446" class="topo-sub" data-tasks="registrar_infra">0/5</text>
-        </g>
-        <text x="230" y="474" class="topo-dur" data-dur="registrar_infra"></text>
+            <g data-phase="web3_analysis" data-pkey="web3">
+                <circle cx="329" cy="430" r="38" class="topo-halo"/>
+                <circle cx="329" cy="430" r="34" class="topo-ring"/>
+                <circle cx="329" cy="430" r="28" class="topo-node"/>
+                <circle cx="329" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="329" y="427" class="topo-label">Web3</text>
+                <text x="329" y="439" class="topo-sub" data-tasks="web3_analysis">0/1</text>
+            </g>
+            <text x="329" y="474" class="topo-dur" data-dur="web3_analysis"></text>
 
-        <g data-phase="web3_analysis" data-pkey="web3">
-            <circle cx="329" cy="430" r="38" class="topo-halo"/>
-            <circle cx="329" cy="430" r="34" class="topo-ring"/>
-            <circle cx="329" cy="430" r="28" class="topo-node"/>
-            <circle cx="329" cy="430" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="329" y="427" class="topo-label">Web3</text>
-            <text x="329" y="439" class="topo-sub" data-tasks="web3_analysis">0/1</text>
-        </g>
-        <text x="329" y="474" class="topo-dur" data-dur="web3_analysis"></text>
-
-        <g data-phase="analysis_engine" data-pkey="engine">
-            <circle cx="230" cy="520" r="38" class="topo-halo"/>
-            <circle cx="230" cy="520" r="34" class="topo-ring"/>
-            <circle cx="230" cy="520" r="28" class="topo-node"/>
-            <circle cx="230" cy="520" r="28" fill="url(#node-highlight)" pointer-events="none"/>
-            <text x="230" y="516" class="topo-label">ICIE</text>
-            <text x="230" y="525" class="topo-label topo-label-sub">Engine</text>
-            <text x="230" y="536" class="topo-sub" data-tasks="analysis_engine">0/10</text>
-        </g>
-        <text x="230" y="564" class="topo-dur" data-dur="analysis_engine"></text>
-    </svg>
+            <g data-phase="analysis_engine" data-pkey="engine">
+                <circle cx="230" cy="520" r="38" class="topo-halo"/>
+                <circle cx="230" cy="520" r="34" class="topo-ring"/>
+                <circle cx="230" cy="520" r="28" class="topo-node"/>
+                <circle cx="230" cy="520" r="28" fill="url(#node-highlight)" pointer-events="none"/>
+                <text x="230" y="516" class="topo-label">ICIE</text>
+                <text x="230" y="525" class="topo-label topo-label-sub">Engine</text>
+                <text x="230" y="536" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+            </g>
+            <text x="230" y="564" class="topo-dur" data-dur="analysis_engine"></text>
+        </svg>
+    </div>
 </div>
 {{end}}
