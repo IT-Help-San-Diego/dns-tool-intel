@@ -1135,13 +1135,17 @@ function initGlobeMotion() {
 
     function sizeCanvasToScreen(canvas) {
         var dpr = globalThis.devicePixelRatio || 1;
-        var vw = globalThis.innerWidth - 64;
-        var vh = globalThis.innerHeight - 110;
-        var svgW = vw;
-        var svgH = vw * 960 / 900;
-        if (svgH > vh) { svgH = vh; svgW = vh * 900 / 960; }
-        var rw = svgW;
-        var rh = svgW * 920 / 900;
+        var rect = canvas.getBoundingClientRect();
+        var rw = rect.width, rh = rect.height;
+        if (rw < 10 || rh < 10) {
+            var vw = globalThis.innerWidth - 64;
+            var vh = globalThis.innerHeight - 110;
+            var svgW = vw;
+            var svgH = vw * 960 / 900;
+            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 960; }
+            rw = svgW;
+            rh = svgW * 920 / 900;
+        }
         if (rw > 10 && rh > 10) {
             canvas.width = Math.round(rw * dpr);
             canvas.height = Math.round(rh * dpr);
