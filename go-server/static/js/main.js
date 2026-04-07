@@ -118,6 +118,7 @@ globalThis.addEventListener('pageshow', function(e) {
  */
 function showOverlay(overlay) {
     if (!overlay) return;
+    resetTelemLog();
     overlay.classList.add('is-active');
     void overlay.offsetHeight;
     requestAnimationFrame(function() {
@@ -290,12 +291,105 @@ function followRedirect(url, overlay, analyzeBtn) {
     });
 }
 
+var TELEM_PHASE_NAMES = {
+    dns_records: 'DNS Records',
+    email_auth: 'Email Auth',
+    dnssec_dane: 'DNSSEC/DANE',
+    ct_subdomains: 'CT/Subdomains',
+    smtp_transport: 'SMTP Transport',
+    policy_records: 'Policy Records',
+    registrar_infra: 'Registrar/Infra',
+    web3_analysis: 'Web3',
+    analysis_engine: 'ICIE Engine'
+};
+var _telemPollN = 0;
+var _telemPrevPhases = {};
+var _telemStartT = 0;
+var _telemCompleteLogged = false;
+
+function resetTelemLog() {
+    _telemPollN = 0;
+    _telemPrevPhases = {};
+    _telemStartT = 0;
+    _telemCompleteLogged = false;
+    var body = document.getElementById('telemLogBody');
+    if (body) body.innerHTML = '';
+    var cnt = document.getElementById('telemPollCount');
+    if (cnt) cnt.textContent = '0 polls';
+}
+
+function appendTelemEntry(elapsed, phaseName, status, detail) {
+    var body = document.getElementById('telemLogBody');
+    if (!body) return;
+    var row = document.createElement('div');
+    row.className = 'telem-entry';
+    var ts = document.createElement('span');
+    ts.className = 'telem-ts';
+    ts.textContent = elapsed;
+    var ph = document.createElement('span');
+    ph.className = 'telem-phase';
+    ph.textContent = phaseName;
+    var st = document.createElement('span');
+    st.className = 'telem-status telem-status-' + status;
+    st.textContent = status;
+    row.appendChild(ts);
+    row.appendChild(ph);
+    row.appendChild(st);
+    if (detail) {
+        var dt = document.createElement('span');
+        dt.className = 'telem-detail';
+        dt.textContent = detail;
+        row.appendChild(dt);
+    }
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+}
+
+function fmtTelemElapsed(ms) {
+    var s = Math.floor(ms / 1000);
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    var frac = Math.floor((ms % 1000) / 100);
+    if (m > 0) return m + ':' + (sec < 10 ? '0' : '') + sec + '.' + frac;
+    return sec + '.' + frac + 's';
+}
+
+function updateTelemLog(data) {
+    if (!data || !data.phases) return;
+    if (!_telemStartT) _telemStartT = Date.now();
+    _telemPollN++;
+    var cnt = document.getElementById('telemPollCount');
+    if (cnt) cnt.textContent = _telemPollN + (_telemPollN === 1 ? ' poll' : ' polls');
+    var now = Date.now();
+    var elapsed = fmtTelemElapsed(now - _telemStartT);
+    for (var group in data.phases) {
+        if (!data.phases.hasOwnProperty(group)) continue;
+        var info = data.phases[group];
+        var prev = _telemPrevPhases[group];
+        if (prev === info.status) continue;
+        _telemPrevPhases[group] = info.status;
+        var name = TELEM_PHASE_NAMES[group] || group;
+        var detail = '';
+        if (info.status === 'done' && info.duration_ms) {
+            detail = info.duration_ms + 'ms';
+        } else if (info.status === 'running' && info.tasks_done !== undefined && info.tasks_total !== undefined) {
+            detail = info.tasks_done + '/' + info.tasks_total;
+        }
+        appendTelemEntry(elapsed, name, info.status, detail);
+    }
+    if (data.status === 'complete' && !_telemCompleteLogged) {
+        _telemCompleteLogged = true;
+        appendTelemEntry(elapsed, 'Scan', 'done', 'complete');
+    }
+}
+
 function handlePollData(data, ctx) {
     if (!data) {
         if (ctx.failures >= 3) { clearInterval(ctx.pollId); hideOverlayAndReset(ctx.overlay, ctx.btn); }
         return;
     }
     updateTopologyFromProgress(data);
+    updateTelemLog(data);
     if (data.status === 'failed') {
         clearInterval(ctx.pollId);
         hideOverlayAndReset(ctx.overlay, ctx.btn);
