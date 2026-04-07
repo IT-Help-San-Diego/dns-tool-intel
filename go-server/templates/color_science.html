@@ -99,7 +99,7 @@
                     <h3 class="h6 text-info">Why Red Light Preserves Dark Adaptation</h3>
                     <p class="text-muted mb-2">Human scotopic (dark-adapted) vision is mediated by rhodopsin, a photopigment in rod cells with peak sensitivity near 507 nm (blue-green). Red light in the 620&ndash;700 nm range falls at the extreme low end of rhodopsin&rsquo;s absorption curve, meaning rod cells are nearly insensitive to it. This allows operators to read instruments and displays without bleaching rhodopsin, preserving the ability to detect dim targets in peripheral vision.</p>
                     <h3 class="h6 text-info mt-3">MIL-STD-1472H &mdash; Human Engineering</h3>
-                    <p class="text-muted mb-2">Section 5.2.2.1 specifies that red lighting (620&ndash;700 nm) shall be used when preservation of dark adaptation is required. This is the primary standard governing human-system interface design for U.S. Department of Defense systems, last revised September 2020.</p>
+                    <p class="text-muted mb-2">Section 5.5.3.6 establishes requirements for dark adaptation and night vision conditions, specifying that ambient illumination shall be controllable and compatible with dark-adapted operations. Section 5.5.3.6.3 defers NVIS-compatible lighting requirements to MIL-STD-3009. This is the primary standard governing human-system interface design for U.S. Department of Defense systems (September 2020). The archived reference PDF (MIL-STD-1472G.pdf) contains the H revision.</p>
                     <h3 class="h6 text-info mt-3">MIL-STD-3009 &mdash; NVIS Compatibility</h3>
                     <p class="text-muted mb-2">MIL-STD-3009 governs lighting and display compatibility with Night Vision Imaging Systems (NVIS). It defines spectral radiance limits to prevent cockpit/vehicle lighting from overwhelming image intensifier tubes. While primarily an aviation and vehicle standard, its spectral requirements inform any display intended for use in light-controlled environments.</p>
                     <h3 class="h6 text-info mt-3">Honest Limitation</h3>
@@ -109,7 +109,7 @@
                 <h2 class="h5 mb-3 mt-5">{{icon "book" "me-2 text-info"}}Standards Citations</h2>
                 <div class="cs-section p-4 mb-4">
                     <ul class="list-unstyled mb-0 text-muted">
-                        <li class="mb-2"><strong class="text-info">MIL-STD-1472H</strong> &mdash; Department of Defense Design Criteria Standard: Human Engineering (September 2020). Section 5.2.2.1: Red lighting for dark adaptation preservation.</li>
+                        <li class="mb-2"><strong class="text-info">MIL-STD-1472H</strong> &mdash; Department of Defense Design Criteria Standard: Human Engineering (September 2020). Section 5.5.3.6: Dark adaptation and night vision conditions.</li>
                         <li class="mb-2"><strong class="text-info">MIL-STD-3009</strong> &mdash; Lighting, Aircraft, Night Vision Imaging System (NVIS) Compatible. Spectral radiance limits for NVIS-compatible displays.</li>
                         <li class="mb-2"><strong class="text-info">CIE 1951 Scotopic Luminosity Function V&prime;(&lambda;)</strong> &mdash; Commission Internationale de l&rsquo;&Eacute;clairage. Standard observer for scotopic (rod-mediated) vision, peak at 507 nm.</li>
                         <li class="mb-2"><strong class="text-info">WCAG 2.2 Contrast Requirements</strong> &mdash; W3C Web Content Accessibility Guidelines. Success Criteria 1.4.3 (AA) and 1.4.6 (AAA) for text contrast ratios.</li>
@@ -174,7 +174,7 @@
         };
 
         const photopicEfficiency = {
-            380: 0.0002, 400: 0.004, 420: 0.04, 440: 0.023,
+            380: 0.0002, 400: 0.004, 420: 0.004, 440: 0.023,
             460: 0.06, 480: 0.139, 500: 0.323, 520: 0.71,
             540: 0.954, 555: 1,
             560: 0.995, 580: 0.87, 600: 0.631, 620: 0.381,
