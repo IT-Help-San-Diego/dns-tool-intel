@@ -1,5 +1,5 @@
 #!/bin/sh
-# cache-bust: 2026-03-23T23:10Z — workspace cleaned from 7.7GB to 1.7GB
+# cache-bust: 2026-04-07T21:50Z — cleanup-first to reduce peak disk usage
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -11,27 +11,11 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
-export GOCACHE=/tmp/go-build-cache
-export GOMODCACHE=/tmp/go-mod-cache
-
-cd "$SCRIPT_DIR/go-server"
-CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
-  -buildvcs=false \
-  -trimpath \
-  -ldflags "$LDFLAGS" \
-  -tags netgo \
-  -o /tmp/dns-tool-new \
-  ./cmd/server/
-cd "$SCRIPT_DIR"
-mv /tmp/dns-tool-new dns-tool-server-new
-mv dns-tool-server-new dns-tool-server
-
-rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
-
 if [ "$1" = "--deploy" ]; then
-  echo "Deployment build — cleaning large non-runtime files"
+  echo "Deployment build — cleaning non-runtime files BEFORE compile"
   echo "Before cleanup:"
   du -sh . 2>/dev/null || true
+  df -h . 2>/dev/null || true
 
   rm -rf .git.backup* 2>/dev/null || true
 
@@ -41,13 +25,40 @@ if [ "$1" = "--deploy" ]; then
          docs/legacy docs/EVOLUTION_APPEND_*.md docs/dns-tool-methodology.pdf \
          EVOLUTION.md PROJECT_CONTEXT.md \
          sonar-project.properties \
+         node_modules .pythonlibs \
+         src stubs tests dns-eval security \
+         logs instance .agents \
+         .config/chromium .config/configstore .config/pulse \
          2>/dev/null || true
 
   find go-server/internal -name '*_test.go' -delete 2>/dev/null || true
+  find . -maxdepth 1 -name '*.md' ! -name 'replit.md' -delete 2>/dev/null || true
 
   echo "After cleanup:"
   du -sh . 2>/dev/null || true
-  echo "Deployment cleanup complete"
+  df -h . 2>/dev/null || true
+  echo "Pre-build cleanup complete"
+fi
+
+export GOCACHE="$SCRIPT_DIR/.go-build-cache"
+export GOMODCACHE="$SCRIPT_DIR/.go-mod-cache"
+
+echo "Building dns-tool-server..."
+cd "$SCRIPT_DIR/go-server"
+CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
+  -buildvcs=false \
+  -trimpath \
+  -ldflags "$LDFLAGS" \
+  -tags netgo \
+  -o "$SCRIPT_DIR/dns-tool-server-new" \
+  ./cmd/server/
+cd "$SCRIPT_DIR"
+mv dns-tool-server-new dns-tool-server
+
+if [ "$1" = "--deploy" ]; then
+  rm -rf .go-build-cache .go-mod-cache 2>/dev/null || true
+  echo "Final size:"
+  du -sh . 2>/dev/null || true
 fi
 
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
