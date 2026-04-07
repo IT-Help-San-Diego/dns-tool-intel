@@ -412,7 +412,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
 
         h.snapshotICAEMetrics(ctx, results)
 
-        if c.Query("src") == "agent" {
+        if c.Query("src") == "agent" || strings.Contains(c.Request.UserAgent(), "DEVONagent") {
                 results["_request_source"] = "agent"
         }
 
