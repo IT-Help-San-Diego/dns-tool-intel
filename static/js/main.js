@@ -1107,6 +1107,7 @@ function initGlobeMotion() {
     }
 
     var PHI = 1.618033988749895;
+    var VB_W = 900;
 
     function renderGlobe(canvas) {
         var ctx = canvas.getContext('2d');
@@ -1115,11 +1116,18 @@ function initGlobeMotion() {
         var h = canvas._logH || canvas.height;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        globe.R = Math.min(w / (2 * PHI), h / (2 * PHI), 250);
-        globe.cx = w / 2;
-        globe.cy = h / (PHI * PHI) - globe.R * 0.15;
-        convergePt.x = w * 0.478;
-        convergePt.y = h * 580 / 920;
+        var sc = Math.min(w / VB_W, h / 960);
+        var offX = (w - VB_W * sc) / 2;
+        var offY = (h - 960 * sc) / 2;
+
+        var maxR = 250 * sc;
+        var foW = 900 * sc;
+        var foH = 920 * sc;
+        globe.R = Math.min(foW / (2 * PHI), foH / (2 * PHI), maxR);
+        globe.cx = offX + 450 * sc;
+        globe.cy = offY + 314 * sc;
+        convergePt.x = offX + 430 * sc;
+        convergePt.y = offY + 580 * sc;
 
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
@@ -1134,15 +1142,17 @@ function initGlobeMotion() {
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
 
     function sizeCanvasToScreen(canvas) {
-        var w = canvas.getAttribute('width') | 0;
-        var h = canvas.getAttribute('height') | 0;
-        if (w < 10) w = 900;
-        if (h < 10) h = 920;
-        if (canvas.width !== w) canvas.width = w;
-        if (canvas.height !== h) canvas.height = h;
-        canvas._dpr = 1;
-        canvas._logW = w;
-        canvas._logH = h;
+        var svg = canvas.parentNode && canvas.parentNode.querySelector('.topo-svg');
+        if (!svg) return;
+        var rect = svg.getBoundingClientRect();
+        var rw = rect.width, rh = rect.height;
+        if (rw < 10 || rh < 10) return;
+        var dpr = globalThis.devicePixelRatio || 1;
+        canvas.width = Math.round(rw * dpr);
+        canvas.height = Math.round(rh * dpr);
+        canvas._dpr = dpr;
+        canvas._logW = rw;
+        canvas._logH = rh;
     }
 
     var _sizeRetries = 0;
