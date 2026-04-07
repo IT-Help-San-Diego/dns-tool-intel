@@ -1338,6 +1338,7 @@ function initGlobeMotion() {
         convergePt.x = offX + 430 * sc;
         convergePt.y = offY + 495 * sc;
 
+
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
         drawGraticule(ctx);
