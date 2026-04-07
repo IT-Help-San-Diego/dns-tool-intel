@@ -7298,17 +7298,26 @@ progress.bg-danger::-moz-progress-bar {
     max-width: none;
     margin: 0 auto;
 }
+.topo-stack {
+    position: relative;
+    width: 100%;
+}
 .topo-svg {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: auto;
     max-height: calc(100dvh - 110px);
     display: block;
     overflow: visible;
 }
-
 .topo-globe-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
     display: block;
 }
 
