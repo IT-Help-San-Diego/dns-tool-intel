@@ -1,9 +1,24 @@
-const CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
-const CACHE_NAME = 'dnstool-' + CACHE_VERSION;
-const PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
-const MAX_CACHED_PAGES = 20;
+var CACHE_VERSION = 'SW_VERSION_PLACEHOLDER';
+var CACHE_NAME = 'dnstool-' + CACHE_VERSION;
+var PAGES_CACHE = 'dnstool-pages-' + CACHE_VERSION;
+var MAX_CACHED_PAGES = 20;
 
-const IMMUTABLE_ASSETS = [
+if (self.location.hostname !== 'dnstool.it-help.tech') {
+  self.addEventListener('install', function() { self.skipWaiting(); });
+  self.addEventListener('activate', function(event) {
+    event.waitUntil(
+      caches.keys().then(function(names) {
+        return Promise.all(names.map(function(n) { return caches.delete(n); }));
+      }).then(function() {
+        return self.clients.claim();
+      }).then(function() {
+        return self.registration.unregister();
+      })
+    );
+  });
+} else {
+
+var IMMUTABLE_ASSETS = [
   '/static/css/foundation.min.css',
   '/static/css/custom.min.css',
   '/static/js/foundation.min.js',
@@ -11,7 +26,7 @@ const IMMUTABLE_ASSETS = [
   '/static/favicon.svg'
 ];
 
-const OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
+var OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
   '<meta charset="UTF-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<meta name="theme-color" content="#0d1117">' +
@@ -44,7 +59,7 @@ const OFFLINE_PAGE = '<!DOCTYPE html><html lang="en"><head>' +
   '<div class="brand">DNS Tool \u2014 Domain Security Intelligence</div>' +
   '</div></body></html>';
 
-const CACHEABLE_PAGES = [
+var CACHEABLE_PAGES = [
   /^\/analysis\/\d+/,
   /^\/stats$/,
   /^\/changelog$/,
@@ -53,8 +68,8 @@ const CACHEABLE_PAGES = [
 ];
 
 function isPageCacheable(pathname) {
-  for (const pattern of CACHEABLE_PAGES) {
-    if (pattern.test(pathname)) return true;
+  for (var i = 0; i < CACHEABLE_PAGES.length; i++) {
+    if (CACHEABLE_PAGES[i].test(pathname)) return true;
   }
   return false;
 }
@@ -63,7 +78,7 @@ function trimPageCache() {
   return caches.open(PAGES_CACHE).then(function(cache) {
     return cache.keys().then(function(keys) {
       if (keys.length <= MAX_CACHED_PAGES) return;
-      const toDelete = keys.slice(0, keys.length - MAX_CACHED_PAGES);
+      var toDelete = keys.slice(0, keys.length - MAX_CACHED_PAGES);
       return Promise.all(toDelete.map(function(key) { return cache.delete(key); }));
     });
   });
@@ -94,18 +109,20 @@ globalThis.addEventListener('activate', function(event) {
 });
 
 globalThis.addEventListener('fetch', function(event) {
-  const url = new URL(event.request.url);
+  var url = new URL(event.request.url);
 
   if (event.request.method !== 'GET') return;
 
   if (url.pathname === '/' || url.pathname === '') return;
+
+  if (url.pathname.startsWith('/case-study/') || url.pathname.startsWith('/video/')) return;
 
   if (!url.pathname.startsWith('/static/')) {
     if (event.request.mode === 'navigate') {
       event.respondWith(
         fetch(event.request).then(function(response) {
           if (response.ok && isPageCacheable(url.pathname)) {
-            const clone = response.clone();
+            var clone = response.clone();
             caches.open(PAGES_CACHE).then(function(cache) {
               cache.put(event.request, clone);
               trimPageCache();
@@ -135,13 +152,13 @@ globalThis.addEventListener('fetch', function(event) {
     return;
   }
 
-  const isVersioned = url.search.includes('v=');
+  var isVersioned = url.search.indexOf('v=') !== -1;
 
   if (isVersioned) {
     event.respondWith(
       fetch(event.request).then(function(response) {
         if (response.ok) {
-          const clone = response.clone();
+          var clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
             cache.put(event.request, clone);
           });
@@ -157,7 +174,7 @@ globalThis.addEventListener('fetch', function(event) {
         if (cached) return cached;
         return fetch(event.request).then(function(response) {
           if (response.ok) {
-            const clone = response.clone();
+            var clone = response.clone();
             caches.open(CACHE_NAME).then(function(cache) {
               cache.put(event.request, clone);
             });
@@ -170,3 +187,5 @@ globalThis.addEventListener('fetch', function(event) {
     );
   }
 });
+
+}
