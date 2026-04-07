@@ -7293,6 +7293,11 @@ progress.bg-danger::-moz-progress-bar {
 .topo-legend-arrow-query { color: rgba(255,255,255,0.3); }
 .topo-legend-arrow-dep { color: rgba(255,255,255,0.2); }
 
+.scan-overlay-note {
+    color: rgba(139,148,158,0.8);
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+}
 .scan-topology {
     width: 100%;
     max-width: none;
