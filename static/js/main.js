@@ -1133,26 +1133,14 @@ function initGlobeMotion() {
 
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
 
+    var FO_W = 900, FO_H = 920;
     function sizeCanvasToScreen(canvas) {
         var dpr = globalThis.devicePixelRatio || 1;
-        var rect = canvas.getBoundingClientRect();
-        var rw = rect.width, rh = rect.height;
-        if (rw < 10 || rh < 10) {
-            var vw = globalThis.innerWidth - 64;
-            var vh = globalThis.innerHeight - 110;
-            var svgW = vw;
-            var svgH = vw * 960 / 900;
-            if (svgH > vh) { svgH = vh; svgW = vh * 900 / 960; }
-            rw = svgW;
-            rh = svgW * 920 / 900;
-        }
-        if (rw > 10 && rh > 10) {
-            canvas.width = Math.round(rw * dpr);
-            canvas.height = Math.round(rh * dpr);
-            canvas._dpr = dpr;
-            canvas._logW = rw;
-            canvas._logH = rh;
-        }
+        canvas.width = Math.round(FO_W * dpr);
+        canvas.height = Math.round(FO_H * dpr);
+        canvas._dpr = dpr;
+        canvas._logW = FO_W;
+        canvas._logH = FO_H;
     }
 
     var _sizeRetries = 0;
