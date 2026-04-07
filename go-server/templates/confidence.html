@@ -272,6 +272,7 @@
             <div class="card-body">
                 <h2 class="h5 fw-bold mb-3">{{icon "flask" "me-2 text-accent-cobalt"}}Calibration Validation</h2>
                 <p class="text-muted small mb-3">Empirical accuracy of the confidence scoring system, measured by running {{.ICAEMetrics.Calibration.TotalCases}} golden test cases across {{.ICAEMetrics.Calibration.ResolverScenarios}} resolver agreement scenarios ({{.ICAEMetrics.Calibration.TotalPredictions}} total predictions). This answers: &ldquo;when we state a confidence level, how often are we actually correct?&rdquo;</p>
+                <p class="text-muted small mb-3" style="opacity:0.8;"><strong>Limitation:</strong> All {{.ICAEMetrics.Calibration.TotalCases}} golden test cases currently pass (outcome=1.0). These metrics are validated in the success regime only &mdash; they confirm the system is well-calibrated when findings are correct, but do not yet validate behavior when outcomes diverge from confident predictions. The calibration function uses fixed rawConfidence=1.0 and varies only resolver agreement to test shrinkage behavior under degraded measurement quality.</p>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
