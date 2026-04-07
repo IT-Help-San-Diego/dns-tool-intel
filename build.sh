@@ -35,11 +35,6 @@ if [ "$1" = "--deploy" ]; then
 
   rm -rf .git.backup* 2>/dev/null || true
 
-  if [ -d .git ]; then
-    echo "Removing .git directory — not needed at runtime"
-    rm -rf .git
-  fi
-
   rm -rf .local .cache .scannerwork .codex .drift .gitpanel \
          exports dnstool-intel-staging .intel \
          attached_assets .canvas artifacts \
