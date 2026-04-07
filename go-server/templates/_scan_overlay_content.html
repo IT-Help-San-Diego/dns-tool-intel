@@ -3,5 +3,8 @@
             <div class="loading-elapsed mt-1">
                 <span class="text-muted small scan-overlay-timer">0s</span>
             </div>
+            <p class="scan-overlay-note mt-2 mb-0">Most scans complete in less than one minute. Some may take longer.</p>
+            <p class="scan-overlay-note mt-1 mb-0">Markers represent known resolver locations. Anycast routing selects the nearest node&hairsp;&mdash;&hairsp;exact routing is internal to each provider.</p>
+            <p class="scan-overlay-note mt-1 mb-0">Pipeline nodes below reflect live data as it returns from each analysis phase.</p>
             {{template "scan_topology" .}}
 {{end}}
