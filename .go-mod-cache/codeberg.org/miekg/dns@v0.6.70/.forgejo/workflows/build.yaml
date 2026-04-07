@@ -1,0 +1,15 @@
+on: [push, pull_request]
+concurrency:
+  group: deploy-${{ forgejo.ref }}
+
+jobs:
+  test:
+    runs-on: atoom
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ vars.GOVERSION }}
+      - run: |
+          go build
+          go test -race -v ./...
