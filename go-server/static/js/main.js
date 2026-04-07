@@ -1133,14 +1133,16 @@ function initGlobeMotion() {
 
     var rmq = globalThis.matchMedia('(prefers-reduced-motion: reduce)');
 
-    var FO_W = 900, FO_H = 920;
     function sizeCanvasToScreen(canvas) {
-        var dpr = globalThis.devicePixelRatio || 1;
-        canvas.width = Math.round(FO_W * dpr);
-        canvas.height = Math.round(FO_H * dpr);
-        canvas._dpr = dpr;
-        canvas._logW = FO_W;
-        canvas._logH = FO_H;
+        var w = canvas.getAttribute('width') | 0;
+        var h = canvas.getAttribute('height') | 0;
+        if (w < 10) w = 900;
+        if (h < 10) h = 920;
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+        canvas._dpr = 1;
+        canvas._logW = w;
+        canvas._logH = h;
     }
 
     var _sizeRetries = 0;
