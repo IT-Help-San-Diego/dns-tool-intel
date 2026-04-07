@@ -11,7 +11,7 @@
 # ARCHIVAL STATUS (go-server/static/references/):
 #   ICD-203-Analytic-Standards.pdf (amended), ICD-203-Analytic-Standards-2015.pdf (original)
 #   2023-IC3-Annual-Report.pdf, 2024-IC3-Annual-Report.pdf, 2023-IC3-Cryptocurrency-Report.pdf
-#   MIL-STD-1472G.pdf (official, replaces third-party cvgstrategy.com link)
+#   MIL-STD-1472G.pdf (filename reads 1472G; document content is H revision, September 2020)
 #   Kwoun-Tradecraft-Standards-Military-Review-2021.pdf (ICD 203 supporting reference)
 #   zotero-bimi.rdf, zotero-dmarcbis.rdf, zotero-aipref-attach.rdf, zotero-pqc-dnssec-strategy.rdf
 
@@ -176,7 +176,7 @@
     (Lt. Col. Schmor & Maj. Kwoun, "Analytic Tradecraft Standards: An Opportunity to Provide
      Decision Advantage for Army Commanders," Military Review, Mar-Apr 2021)
 - https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf
-  Pages: approach (UPDATED from 2023 to 2024 report — $2.77B BEC in 2024, $16.6B total)
+  Pages: approach (UPDATED from 2023 to 2024 report — $2.77B BEC in 2024 p.10, $16.6B total p.3)
   ARCHIVED: go-server/static/references/2024-IC3-Annual-Report.pdf
   ARCHIVED: go-server/static/references/2023-IC3-Annual-Report.pdf (prior year, retained)
   ARCHIVED: go-server/static/references/2023-IC3-Cryptocurrency-Report.pdf (supplemental)
@@ -324,7 +324,8 @@
 
 - https://cvgstrategy.com/wp-content/uploads/2023/04/MIL-STD-1472G.pdf
   Pages: approach, index, results_covert
-  NOTE: Third-party PDF host for MIL-STD-1472G. Consider mirroring or finding official source.
+  NOTE: Third-party PDF host. Filename reads 1472G but document self-identifies as MIL-STD-1472H (September 2020).
+  ARCHIVED: go-server/static/references/MIL-STD-1472G.pdf (H revision despite G filename)
 - https://downdetector.com
   Pages: toolkit
 - https://fast.com
