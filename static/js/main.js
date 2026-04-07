@@ -1336,7 +1336,7 @@ function initGlobeMotion() {
         globe.cx = offX + 450 * sc;
         globe.cy = offY + 240 * sc;
         convergePt.x = offX + 430 * sc;
-        convergePt.y = offY + 495 * sc;
+        convergePt.y = offY + 476 * sc;
 
 
         ctx.clearRect(0, 0, w, h);

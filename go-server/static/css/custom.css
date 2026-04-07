@@ -7308,7 +7308,7 @@ progress.bg-danger::-moz-progress-bar {
 .telem-log {
     width: 100%;
     max-width: 560px;
-    margin: 0.75rem auto 0;
+    margin: 0.3rem auto 0;
     border: 1px solid rgba(92,107,194,0.2);
     border-radius: 6px;
     background: rgba(14,17,23,0.7);
@@ -7385,12 +7385,12 @@ progress.bg-danger::-moz-progress-bar {
 .scan-topology {
     width: 100%;
     max-width: none;
-    margin: 0 auto;
+    margin: 0 auto 0.2rem;
 }
 .topo-instruments {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: 2px;
     justify-content: center;
 }
 .topo-stack {
@@ -7400,7 +7400,7 @@ progress.bg-danger::-moz-progress-bar {
     max-width: 560px;
 }
 .topo-meter {
-    flex: 0 0 clamp(128px,14vw,164px);
+    flex: 0 0 clamp(112px,12vw,136px);
     border: 1px solid rgba(92,107,194,0.18);
     border-radius: 6px;
     background: rgba(10,13,18,0.65);
@@ -7411,7 +7411,13 @@ progress.bg-danger::-moz-progress-bar {
     min-height: 0;
     overflow: hidden;
     align-self: flex-start;
-    margin-top: clamp(70px,9vh,120px);
+    margin-top: clamp(116px,13.5vh,148px);
+}
+.topo-meter-left {
+    margin-right: -10px;
+}
+.topo-meter-right {
+    margin-left: -10px;
 }
 .meter-title {
     color: rgba(180,190,210,0.9);
@@ -7557,6 +7563,12 @@ progress.bg-danger::-moz-progress-bar {
         flex: 1 1 45%;
         order: 2;
         margin-top: 0;
+    }
+    .topo-meter-left {
+        margin-right: 0;
+    }
+    .topo-meter-right {
+        margin-left: 0;
     }
 }
 @media(max-width:575px) {
