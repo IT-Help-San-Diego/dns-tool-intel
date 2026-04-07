@@ -134,6 +134,8 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
                 analysisSuccess = s
         }
 
+        results["_request_source"] = "agent"
+
         if !analysisSuccess {
                 errMsg := "Analysis failed"
                 if e, ok := results["error"].(string); ok {
