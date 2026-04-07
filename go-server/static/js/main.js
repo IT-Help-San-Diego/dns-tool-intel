@@ -1316,6 +1316,7 @@ function initGlobeMotion() {
 
     var PHI = 1.618033988749895;
     var VB_W = 900;
+    var VB_H = 840;
 
     function renderGlobe(canvas) {
         var ctx = canvas.getContext('2d');
@@ -1324,18 +1325,19 @@ function initGlobeMotion() {
         var h = canvas._logH || canvas.height;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        var sc = Math.min(w / VB_W, h / 960);
+        var sc = Math.min(w / VB_W, h / VB_H);
         var offX = (w - VB_W * sc) / 2;
-        var offY = (h - 960 * sc) / 2;
+        var offY = (h - VB_H * sc) / 2;
 
-        var maxR = 250 * sc;
+        var maxR = 170 * sc;
         var foW = 900 * sc;
-        var foH = 920 * sc;
+        var foH = 800 * sc;
         globe.R = Math.min(foW / (2 * PHI), foH / (2 * PHI), maxR);
         globe.cx = offX + 450 * sc;
-        globe.cy = offY + 314 * sc;
+        globe.cy = offY + 240 * sc;
         convergePt.x = offX + 430 * sc;
-        convergePt.y = offY + 580 * sc;
+        convergePt.y = offY + 476 * sc;
+
 
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
