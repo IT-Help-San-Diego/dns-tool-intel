@@ -52,116 +52,116 @@
                     </radialGradient>
                 </defs>
 
-                <line x1="230" y1="255" x2="80" y2="325" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
-                <line x1="230" y1="255" x2="180" y2="325" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
-                <line x1="230" y1="255" x2="280" y2="325" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
-                <line x1="230" y1="255" x2="380" y2="325" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
-                <line x1="80" y1="325" x2="140" y2="395" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
-                <line x1="180" y1="325" x2="230" y2="395" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
-                <line x1="280" y1="325" x2="140" y2="395" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
-                <line x1="380" y1="325" x2="230" y2="395" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
-                <line x1="230" y1="255" x2="320" y2="395" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
-                <line x1="140" y1="395" x2="230" y2="470" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
-                <line x1="230" y1="395" x2="230" y2="470" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
-                <line x1="320" y1="395" x2="230" y2="470" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
+                <line x1="230" y1="255" x2="68" y2="330" class="topo-connector" data-from="dns_records" data-to="email_auth"/>
+                <line x1="230" y1="255" x2="176" y2="330" class="topo-connector" data-from="dns_records" data-to="dnssec_dane"/>
+                <line x1="230" y1="255" x2="284" y2="330" class="topo-connector" data-from="dns_records" data-to="ct_subdomains"/>
+                <line x1="230" y1="255" x2="392" y2="330" class="topo-connector" data-from="dns_records" data-to="smtp_transport"/>
+                <line x1="68" y1="330" x2="122" y2="405" class="topo-connector" data-from="email_auth" data-to="policy_records"/>
+                <line x1="176" y1="330" x2="230" y2="405" class="topo-connector" data-from="dnssec_dane" data-to="registrar_infra"/>
+                <line x1="284" y1="330" x2="122" y2="405" class="topo-connector" data-from="ct_subdomains" data-to="policy_records"/>
+                <line x1="392" y1="330" x2="230" y2="405" class="topo-connector" data-from="smtp_transport" data-to="registrar_infra"/>
+                <line x1="230" y1="255" x2="338" y2="405" class="topo-connector" data-from="dns_records" data-to="web3_analysis"/>
+                <line x1="122" y1="405" x2="230" y2="480" class="topo-connector" data-from="policy_records" data-to="analysis_engine"/>
+                <line x1="230" y1="405" x2="230" y2="480" class="topo-connector" data-from="registrar_infra" data-to="analysis_engine"/>
+                <line x1="338" y1="405" x2="230" y2="480" class="topo-connector" data-from="web3_analysis" data-to="analysis_engine"/>
 
                 <g data-phase="dns_records" data-pkey="dns">
-                    <circle cx="230" cy="255" r="46" class="topo-halo"/>
-                    <circle cx="230" cy="255" r="40" class="topo-ring"/>
-                    <circle cx="230" cy="255" r="34" class="topo-node"/>
-                    <circle cx="230" cy="255" r="34" fill="url(#node-highlight)" pointer-events="none"/>
+                    <circle cx="230" cy="255" r="44" class="topo-halo"/>
+                    <circle cx="230" cy="255" r="38" class="topo-ring"/>
+                    <circle cx="230" cy="255" r="32" class="topo-node"/>
+                    <circle cx="230" cy="255" r="32" fill="url(#node-highlight)" pointer-events="none"/>
                     <text x="230" y="251" class="topo-label">DNS</text>
                     <text x="230" y="260" class="topo-label topo-label-sub">Records</text>
                     <text x="230" y="271" class="topo-sub" data-tasks="dns_records">0/3</text>
                 </g>
-                <text x="230" y="307" class="topo-dur" data-dur="dns_records"></text>
+                <text x="230" y="305" class="topo-dur" data-dur="dns_records"></text>
 
                 <g data-phase="email_auth" data-pkey="email">
-                    <circle cx="80" cy="325" r="46" class="topo-halo"/>
-                    <circle cx="80" cy="325" r="40" class="topo-ring"/>
-                    <circle cx="80" cy="325" r="34" class="topo-node"/>
-                    <circle cx="80" cy="325" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="80" y="321" class="topo-label">Email</text>
-                    <text x="80" y="330" class="topo-label topo-label-sub">Auth</text>
-                    <text x="80" y="341" class="topo-sub" data-tasks="email_auth">0/3</text>
+                    <circle cx="68" cy="330" r="44" class="topo-halo"/>
+                    <circle cx="68" cy="330" r="38" class="topo-ring"/>
+                    <circle cx="68" cy="330" r="32" class="topo-node"/>
+                    <circle cx="68" cy="330" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="68" y="326" class="topo-label">Email</text>
+                    <text x="68" y="335" class="topo-label topo-label-sub">Auth</text>
+                    <text x="68" y="346" class="topo-sub" data-tasks="email_auth">0/3</text>
                 </g>
-                <text x="80" y="377" class="topo-dur" data-dur="email_auth"></text>
+                <text x="68" y="380" class="topo-dur" data-dur="email_auth"></text>
 
                 <g data-phase="dnssec_dane" data-pkey="dnssec">
-                    <circle cx="180" cy="325" r="46" class="topo-halo"/>
-                    <circle cx="180" cy="325" r="40" class="topo-ring"/>
-                    <circle cx="180" cy="325" r="34" class="topo-node"/>
-                    <circle cx="180" cy="325" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="180" y="321" class="topo-label">DNSSEC</text>
-                    <text x="180" y="330" class="topo-label topo-label-sub">DANE</text>
-                    <text x="180" y="341" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
+                    <circle cx="176" cy="330" r="44" class="topo-halo"/>
+                    <circle cx="176" cy="330" r="38" class="topo-ring"/>
+                    <circle cx="176" cy="330" r="32" class="topo-node"/>
+                    <circle cx="176" cy="330" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="176" y="326" class="topo-label">DNSSEC</text>
+                    <text x="176" y="335" class="topo-label topo-label-sub">DANE</text>
+                    <text x="176" y="346" class="topo-sub" data-tasks="dnssec_dane">0/4</text>
                 </g>
-                <text x="180" y="377" class="topo-dur" data-dur="dnssec_dane"></text>
+                <text x="176" y="380" class="topo-dur" data-dur="dnssec_dane"></text>
 
                 <g data-phase="ct_subdomains" data-pkey="ct">
-                    <circle cx="280" cy="325" r="46" class="topo-halo"/>
-                    <circle cx="280" cy="325" r="40" class="topo-ring"/>
-                    <circle cx="280" cy="325" r="34" class="topo-node"/>
-                    <circle cx="280" cy="325" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="280" y="321" class="topo-label">CT/Sub</text>
-                    <text x="280" y="330" class="topo-label topo-label-sub">domains</text>
-                    <text x="280" y="341" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
+                    <circle cx="284" cy="330" r="44" class="topo-halo"/>
+                    <circle cx="284" cy="330" r="38" class="topo-ring"/>
+                    <circle cx="284" cy="330" r="32" class="topo-node"/>
+                    <circle cx="284" cy="330" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="284" y="326" class="topo-label">CT/Sub</text>
+                    <text x="284" y="335" class="topo-label topo-label-sub">domains</text>
+                    <text x="284" y="346" class="topo-sub" data-tasks="ct_subdomains">0/4</text>
                 </g>
-                <text x="280" y="377" class="topo-dur" data-dur="ct_subdomains"></text>
+                <text x="284" y="380" class="topo-dur" data-dur="ct_subdomains"></text>
 
                 <g data-phase="smtp_transport" data-pkey="smtp">
-                    <circle cx="380" cy="325" r="46" class="topo-halo"/>
-                    <circle cx="380" cy="325" r="40" class="topo-ring"/>
-                    <circle cx="380" cy="325" r="34" class="topo-node"/>
-                    <circle cx="380" cy="325" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="380" y="321" class="topo-label">SMTP</text>
-                    <text x="380" y="330" class="topo-label topo-label-sub">Transport</text>
-                    <text x="380" y="341" class="topo-sub" data-tasks="smtp_transport">0/3</text>
+                    <circle cx="392" cy="330" r="44" class="topo-halo"/>
+                    <circle cx="392" cy="330" r="38" class="topo-ring"/>
+                    <circle cx="392" cy="330" r="32" class="topo-node"/>
+                    <circle cx="392" cy="330" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="392" y="326" class="topo-label">SMTP</text>
+                    <text x="392" y="335" class="topo-label topo-label-sub">Transport</text>
+                    <text x="392" y="346" class="topo-sub" data-tasks="smtp_transport">0/3</text>
                 </g>
-                <text x="380" y="377" class="topo-dur" data-dur="smtp_transport"></text>
+                <text x="392" y="380" class="topo-dur" data-dur="smtp_transport"></text>
 
                 <g data-phase="policy_records" data-pkey="policy">
-                    <circle cx="140" cy="395" r="46" class="topo-halo"/>
-                    <circle cx="140" cy="395" r="40" class="topo-ring"/>
-                    <circle cx="140" cy="395" r="34" class="topo-node"/>
-                    <circle cx="140" cy="395" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="140" y="391" class="topo-label">Policy</text>
-                    <text x="140" y="400" class="topo-label topo-label-sub">Records</text>
-                    <text x="140" y="411" class="topo-sub" data-tasks="policy_records">0/4</text>
+                    <circle cx="122" cy="405" r="44" class="topo-halo"/>
+                    <circle cx="122" cy="405" r="38" class="topo-ring"/>
+                    <circle cx="122" cy="405" r="32" class="topo-node"/>
+                    <circle cx="122" cy="405" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="122" y="401" class="topo-label">Policy</text>
+                    <text x="122" y="410" class="topo-label topo-label-sub">Records</text>
+                    <text x="122" y="421" class="topo-sub" data-tasks="policy_records">0/4</text>
                 </g>
-                <text x="140" y="447" class="topo-dur" data-dur="policy_records"></text>
+                <text x="122" y="455" class="topo-dur" data-dur="policy_records"></text>
 
                 <g data-phase="registrar_infra" data-pkey="registrar">
-                    <circle cx="230" cy="395" r="46" class="topo-halo"/>
-                    <circle cx="230" cy="395" r="40" class="topo-ring"/>
-                    <circle cx="230" cy="395" r="34" class="topo-node"/>
-                    <circle cx="230" cy="395" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="230" y="391" class="topo-label">Registrar</text>
-                    <text x="230" y="400" class="topo-label topo-label-sub">Infra</text>
-                    <text x="230" y="411" class="topo-sub" data-tasks="registrar_infra">0/5</text>
+                    <circle cx="230" cy="405" r="44" class="topo-halo"/>
+                    <circle cx="230" cy="405" r="38" class="topo-ring"/>
+                    <circle cx="230" cy="405" r="32" class="topo-node"/>
+                    <circle cx="230" cy="405" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="230" y="401" class="topo-label">Registrar</text>
+                    <text x="230" y="410" class="topo-label topo-label-sub">Infra</text>
+                    <text x="230" y="421" class="topo-sub" data-tasks="registrar_infra">0/5</text>
                 </g>
-                <text x="230" y="447" class="topo-dur" data-dur="registrar_infra"></text>
+                <text x="230" y="455" class="topo-dur" data-dur="registrar_infra"></text>
 
                 <g data-phase="web3_analysis" data-pkey="web3">
-                    <circle cx="320" cy="395" r="46" class="topo-halo"/>
-                    <circle cx="320" cy="395" r="40" class="topo-ring"/>
-                    <circle cx="320" cy="395" r="34" class="topo-node"/>
-                    <circle cx="320" cy="395" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="320" y="392" class="topo-label">Web3</text>
-                    <text x="320" y="404" class="topo-sub" data-tasks="web3_analysis">0/1</text>
+                    <circle cx="338" cy="405" r="44" class="topo-halo"/>
+                    <circle cx="338" cy="405" r="38" class="topo-ring"/>
+                    <circle cx="338" cy="405" r="32" class="topo-node"/>
+                    <circle cx="338" cy="405" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="338" y="402" class="topo-label">Web3</text>
+                    <text x="338" y="414" class="topo-sub" data-tasks="web3_analysis">0/1</text>
                 </g>
-                <text x="320" y="447" class="topo-dur" data-dur="web3_analysis"></text>
+                <text x="338" y="455" class="topo-dur" data-dur="web3_analysis"></text>
 
                 <g data-phase="analysis_engine" data-pkey="engine">
-                    <circle cx="230" cy="470" r="46" class="topo-halo"/>
-                    <circle cx="230" cy="470" r="40" class="topo-ring"/>
-                    <circle cx="230" cy="470" r="34" class="topo-node"/>
-                    <circle cx="230" cy="470" r="34" fill="url(#node-highlight)" pointer-events="none"/>
-                    <text x="230" y="466" class="topo-label">ICIE</text>
-                    <text x="230" y="475" class="topo-label topo-label-sub">Engine</text>
-                    <text x="230" y="486" class="topo-sub" data-tasks="analysis_engine">0/10</text>
+                    <circle cx="230" cy="480" r="44" class="topo-halo"/>
+                    <circle cx="230" cy="480" r="38" class="topo-ring"/>
+                    <circle cx="230" cy="480" r="32" class="topo-node"/>
+                    <circle cx="230" cy="480" r="32" fill="url(#node-highlight)" pointer-events="none"/>
+                    <text x="230" y="476" class="topo-label">ICIE</text>
+                    <text x="230" y="485" class="topo-label topo-label-sub">Engine</text>
+                    <text x="230" y="496" class="topo-sub" data-tasks="analysis_engine">0/10</text>
                 </g>
-                <text x="230" y="522" class="topo-dur" data-dur="analysis_engine"></text>
+                <text x="230" y="530" class="topo-dur" data-dur="analysis_engine"></text>
             </svg>
         </div>
         <div class="topo-meter topo-meter-right" id="meterRight">
