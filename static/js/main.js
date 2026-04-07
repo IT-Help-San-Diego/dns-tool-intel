@@ -118,6 +118,8 @@ globalThis.addEventListener('pageshow', function(e) {
  */
 function showOverlay(overlay) {
     if (!overlay) return;
+    resetTelemLog();
+    resetMeters();
     overlay.classList.add('is-active');
     void overlay.offsetHeight;
     requestAnimationFrame(function() {
@@ -290,12 +292,218 @@ function followRedirect(url, overlay, analyzeBtn) {
     });
 }
 
+var TELEM_PHASE_NAMES = {
+    dns_records: 'DNS Records',
+    email_auth: 'Email Auth',
+    dnssec_dane: 'DNSSEC/DANE',
+    ct_subdomains: 'CT/Subdomains',
+    smtp_transport: 'SMTP Transport',
+    policy_records: 'Policy Records',
+    registrar_infra: 'Registrar/Infra',
+    web3_analysis: 'Web3',
+    analysis_engine: 'ICIE Engine'
+};
+var _telemPollN = 0;
+var _telemPrevPhases = {};
+var _telemStartT = 0;
+var _telemCompleteLogged = false;
+
+function resetTelemLog() {
+    _telemPollN = 0;
+    _telemPrevPhases = {};
+    _telemStartT = 0;
+    _telemCompleteLogged = false;
+    var body = document.getElementById('telemLogBody');
+    if (body) body.innerHTML = '';
+    var cnt = document.getElementById('telemPollCount');
+    if (cnt) cnt.textContent = '0 polls';
+}
+
+function appendTelemEntry(elapsed, phaseName, status, detail) {
+    var body = document.getElementById('telemLogBody');
+    if (!body) return;
+    var row = document.createElement('div');
+    row.className = 'telem-entry';
+    var ts = document.createElement('span');
+    ts.className = 'telem-ts';
+    ts.textContent = elapsed;
+    var ph = document.createElement('span');
+    ph.className = 'telem-phase';
+    ph.textContent = phaseName;
+    var st = document.createElement('span');
+    st.className = 'telem-status telem-status-' + status;
+    st.textContent = status;
+    row.appendChild(ts);
+    row.appendChild(ph);
+    row.appendChild(st);
+    if (detail) {
+        var dt = document.createElement('span');
+        dt.className = 'telem-detail';
+        dt.textContent = detail;
+        row.appendChild(dt);
+    }
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+}
+
+function fmtTelemElapsed(ms) {
+    var s = Math.floor(ms / 1000);
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    var frac = Math.floor((ms % 1000) / 100);
+    if (m > 0) return m + ':' + (sec < 10 ? '0' : '') + sec + '.' + frac;
+    return sec + '.' + frac + 's';
+}
+
+function updateTelemLog(data) {
+    if (!data || !data.phases) return;
+    if (!_telemStartT) _telemStartT = Date.now();
+    _telemPollN++;
+    var cnt = document.getElementById('telemPollCount');
+    if (cnt) cnt.textContent = _telemPollN + (_telemPollN === 1 ? ' poll' : ' polls');
+    var now = Date.now();
+    var elapsed = fmtTelemElapsed(now - _telemStartT);
+    for (var group in data.phases) {
+        if (!data.phases.hasOwnProperty(group)) continue;
+        var info = data.phases[group];
+        var prev = _telemPrevPhases[group];
+        if (prev === info.status) continue;
+        _telemPrevPhases[group] = info.status;
+        var name = TELEM_PHASE_NAMES[group] || group;
+        var detail = '';
+        if (info.status === 'done' && info.duration_ms) {
+            detail = info.duration_ms + 'ms';
+        } else if (info.status === 'running' && info.tasks_done !== undefined && info.tasks_total !== undefined) {
+            detail = info.tasks_done + '/' + info.tasks_total;
+        }
+        appendTelemEntry(elapsed, name, info.status, detail);
+    }
+    if (data.status === 'complete' && !_telemCompleteLogged) {
+        _telemCompleteLogged = true;
+        appendTelemEntry(elapsed, 'Scan', 'done', 'complete');
+    }
+}
+
+var _meterDurations = {};
+var _meterStartT = 0;
+
+function resetMeters() {
+    _meterDurations = {};
+    _meterStartT = 0;
+    var phaseBar = document.getElementById('meterPhaseBar');
+    var taskBar = document.getElementById('meterTaskBar');
+    if (phaseBar) phaseBar.style.width = '0%';
+    if (taskBar) taskBar.style.width = '0%';
+    var phaseVal = document.getElementById('meterPhaseVal');
+    if (phaseVal) phaseVal.textContent = '0 / 9';
+    var taskVal = document.getElementById('meterTaskVal');
+    if (taskVal) taskVal.textContent = '0';
+    var pollVal = document.getElementById('meterPollVal');
+    if (pollVal) pollVal.textContent = '0';
+    var elVal = document.getElementById('meterElapsedVal');
+    if (elVal) elVal.textContent = '0.0s';
+    var bars = document.querySelectorAll('[data-mbar]');
+    for (var i = 0; i < bars.length; i++) bars[i].style.width = '0%';
+    var msEls = document.querySelectorAll('[data-mms]');
+    for (var j = 0; j < msEls.length; j++) msEls[j].textContent = '\u2014';
+    var rows = document.querySelectorAll('[data-mrow]');
+    for (var k = 0; k < rows.length; k++) {
+        rows[k].classList.remove('meter-row-done', 'meter-row-running');
+        var msEl = rows[k].querySelector('[data-mms]');
+        if (msEl) msEl.classList.remove('meter-ms-active');
+    }
+    var avgEl = document.getElementById('meterAvgMs');
+    var minEl = document.getElementById('meterMinMs');
+    var maxEl = document.getElementById('meterMaxMs');
+    if (avgEl) avgEl.textContent = '\u2014';
+    if (minEl) minEl.textContent = '\u2014';
+    if (maxEl) maxEl.textContent = '\u2014';
+}
+
+function updateMeters(data) {
+    if (!data || !data.phases) return;
+    if (!_meterStartT) _meterStartT = Date.now();
+    var phases = data.phases;
+    var doneCount = 0;
+    var totalTasks = 0;
+    var doneTasks = 0;
+    var durations = [];
+    var maxDur = 1;
+    for (var g in phases) {
+        if (!phases.hasOwnProperty(g)) continue;
+        var info = phases[g];
+        if (info.status === 'done') {
+            doneCount++;
+            if (info.duration_ms) {
+                _meterDurations[g] = info.duration_ms;
+                durations.push(info.duration_ms);
+            }
+        }
+        if (info.tasks_total) totalTasks += info.tasks_total;
+        if (info.tasks_done) doneTasks += info.tasks_done;
+    }
+    var phaseBar = document.getElementById('meterPhaseBar');
+    var phaseVal = document.getElementById('meterPhaseVal');
+    if (phaseBar) phaseBar.style.width = Math.round((doneCount / 9) * 100) + '%';
+    if (phaseVal) phaseVal.textContent = doneCount + ' / 9';
+    var taskBar = document.getElementById('meterTaskBar');
+    var taskVal = document.getElementById('meterTaskVal');
+    var taskPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    if (taskBar) taskBar.style.width = taskPct + '%';
+    if (taskVal) taskVal.textContent = doneTasks + (totalTasks > 0 ? ' / ' + totalTasks : '');
+    var pollVal = document.getElementById('meterPollVal');
+    if (pollVal) pollVal.textContent = '' + _telemPollN;
+    var elVal = document.getElementById('meterElapsedVal');
+    if (elVal) elVal.textContent = fmtTelemElapsed(Date.now() - _meterStartT);
+    for (var d = 0; d < durations.length; d++) {
+        if (durations[d] > maxDur) maxDur = durations[d];
+    }
+    for (var group in phases) {
+        if (!phases.hasOwnProperty(group)) continue;
+        var ph = phases[group];
+        var row = document.querySelector('[data-mrow="' + group + '"]');
+        if (!row) continue;
+        var bar = row.querySelector('[data-mbar]');
+        var msEl = row.querySelector('[data-mms]');
+        row.classList.remove('meter-row-done', 'meter-row-running');
+        if (ph.status === 'running') {
+            row.classList.add('meter-row-running');
+            if (bar) bar.style.width = '100%';
+        } else if (ph.status === 'done') {
+            row.classList.add('meter-row-done');
+            var dur = _meterDurations[group] || 0;
+            if (bar) bar.style.width = Math.round((dur / maxDur) * 100) + '%';
+            if (msEl) {
+                msEl.textContent = dur + 'ms';
+                msEl.classList.add('meter-ms-active');
+            }
+        }
+    }
+    if (durations.length > 0) {
+        var sum = 0, mn = durations[0], mx = durations[0];
+        for (var i = 0; i < durations.length; i++) {
+            sum += durations[i];
+            if (durations[i] < mn) mn = durations[i];
+            if (durations[i] > mx) mx = durations[i];
+        }
+        var avg = Math.round(sum / durations.length);
+        var avgEl = document.getElementById('meterAvgMs');
+        var minEl = document.getElementById('meterMinMs');
+        var maxEl = document.getElementById('meterMaxMs');
+        if (avgEl) avgEl.textContent = avg + 'ms';
+        if (minEl) minEl.textContent = mn + 'ms';
+        if (maxEl) maxEl.textContent = mx + 'ms';
+    }
+}
+
 function handlePollData(data, ctx) {
     if (!data) {
         if (ctx.failures >= 3) { clearInterval(ctx.pollId); hideOverlayAndReset(ctx.overlay, ctx.btn); }
         return;
     }
     updateTopologyFromProgress(data);
+    updateTelemLog(data);
+    updateMeters(data);
     if (data.status === 'failed') {
         clearInterval(ctx.pollId);
         hideOverlayAndReset(ctx.overlay, ctx.btn);

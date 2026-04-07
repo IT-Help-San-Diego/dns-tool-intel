@@ -5067,8 +5067,8 @@ body.covert-mode .dt-question {
 .u-fs-072em { font-size: 0.75em; }
 .u-fs-072rem { font-size: 0.75rem; }
 .u-fs-075em { font-size: 0.75em; }
-.u-logo-sm { border-radius: 3px; }
-.u-logo-md { border-radius: 4px; }
+.u-logo-sm { border-radius: 3px; max-width: 13px; max-height: 13px; }
+.u-logo-md { border-radius: 4px; max-width: 18px; max-height: 18px; }
 .u-privacy-hint { font-size: 0.78em; opacity: 0.75; }
 .u-max-w-900 { max-width: 900px; }
 .u-max-w-640 { max-width: 640px; }
@@ -7293,19 +7293,280 @@ progress.bg-danger::-moz-progress-bar {
 .topo-legend-arrow-query { color: rgba(255,255,255,0.3); }
 .topo-legend-arrow-dep { color: rgba(255,255,255,0.2); }
 
+.scan-telem-title {
+    color: rgba(200,210,220,0.92);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
 .scan-overlay-note {
     color: rgba(139,148,158,0.8);
     font-size: 0.82rem;
     letter-spacing: 0.01em;
+}
+.telem-log {
+    width: 100%;
+    max-width: 560px;
+    margin: 0.75rem auto 0;
+    border: 1px solid rgba(92,107,194,0.2);
+    border-radius: 6px;
+    background: rgba(14,17,23,0.7);
+    overflow: hidden;
+}
+.telem-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.65rem;
+    border-bottom: 1px solid rgba(92,107,194,0.15);
+    background: rgba(28,33,45,0.5);
+}
+.telem-log-heading {
+    color: rgba(160,170,185,0.85);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.telem-log-poll-count {
+    color: rgba(130,140,155,0.7);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}
+.telem-log-body {
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 0.35rem 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(92,107,194,0.3) transparent;
+}
+.telem-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.12rem 0;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+    color: rgba(160,170,185,0.85);
+}
+.telem-ts {
+    flex-shrink: 0;
+    width: 3.2rem;
+    color: rgba(120,130,145,0.7);
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.68rem;
+}
+.telem-phase {
+    flex-shrink: 0;
+    min-width: 5.5rem;
+    color: rgba(180,190,200,0.9);
+}
+.telem-status {
+    flex-shrink: 0;
+    min-width: 3rem;
+}
+.telem-status-running { color: #5c6bc0; }
+.telem-status-done { color: #66bb6a; }
+.telem-detail {
+    color: rgba(130,140,155,0.75);
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.66rem;
+    overflow-wrap: anywhere;
+}
+@media(max-width:575px) {
+    .telem-log { max-width: 100%; border-radius: 4px; }
+    .telem-log-body { max-height: 160px; }
+    .telem-entry { gap: 0.3rem; font-size: 0.68rem; flex-wrap: wrap; }
+    .telem-ts { width: 2.8rem; font-size: 0.64rem; }
+    .telem-phase { min-width: 4.2rem; }
 }
 .scan-topology {
     width: 100%;
     max-width: none;
     margin: 0 auto;
 }
+.topo-instruments {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
 .topo-stack {
+    flex: 1 1 auto;
     position: relative;
-    width: 100%;
+    min-width: 0;
+    max-width: 600px;
+}
+.topo-meter {
+    flex: 0 0 clamp(140px,16vw,176px);
+    border: 1px solid rgba(92,107,194,0.18);
+    border-radius: 6px;
+    background: rgba(10,13,18,0.65);
+    padding: 0.5rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: 0;
+    overflow: hidden;
+    align-self: center;
+}
+.meter-title {
+    color: rgba(180,190,210,0.9);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    padding-bottom: 0.2rem;
+    border-bottom: 1px solid rgba(92,107,194,0.15);
+}
+.meter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+.meter-label {
+    color: rgba(140,150,170,0.75);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.meter-bar-track {
+    height: 6px;
+    background: rgba(40,46,60,0.6);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+.meter-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: #5c6bc0;
+    transition: width 0.4s ease;
+}
+.meter-bar-fill-tasks {
+    background: #4fc3f7;
+}
+.meter-value {
+    color: rgba(200,210,225,0.9);
+    font-size: 0.68rem;
+    font-family: "SF Mono","Menlo","Consolas",monospace;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.meter-readout {
+    color: rgba(200,210,225,0.92);
+    font-size: 0.76rem;
+    font-family: "SF Mono","Menlo","Consolas",monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+.meter-rule {
+    height: 1px;
+    background: rgba(92,107,194,0.12);
+    margin: 0.1rem 0;
+}
+.meter-phase-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.meter-phase-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.meter-phase-row[data-mrow] .meter-bar-fill {
+    background: rgba(92,107,194,0.5);
+    transition: width 0.35s ease, background 0.35s ease;
+}
+.meter-phase-row.meter-row-done .meter-bar-fill {
+    background: #66bb6a;
+}
+.meter-phase-row.meter-row-running .meter-bar-fill {
+    background: #5c6bc0;
+    animation: meter-pulse 1.2s ease-in-out infinite;
+}
+@keyframes meter-pulse {
+    0%,100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+.meter-phase-name {
+    flex: 0 0 3.2rem;
+    color: rgba(160,170,185,0.85);
+    font-size: 0.6rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.meter-phase-row .meter-bar-track {
+    flex: 1;
+    height: 5px;
+}
+.meter-phase-ms {
+    flex: 0 0 2.4rem;
+    text-align: right;
+    color: rgba(130,140,155,0.8);
+    font-size: 0.58rem;
+    font-family: "SF Mono","Menlo","Consolas",monospace;
+    font-variant-numeric: tabular-nums;
+}
+.meter-phase-ms.meter-ms-active {
+    color: rgba(200,215,230,0.95);
+}
+.meter-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.meter-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+.meter-stat-label {
+    color: rgba(140,150,170,0.7);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+.meter-stat-value {
+    color: rgba(200,210,225,0.9);
+    font-size: 0.66rem;
+    font-family: "SF Mono","Menlo","Consolas",monospace;
+    font-variant-numeric: tabular-nums;
+}
+@media(max-width:1023px) {
+    .topo-instruments {
+        flex-wrap: wrap;
+    }
+    .topo-stack {
+        flex: 1 0 100%;
+        order: 1;
+        max-width: none;
+    }
+    .topo-meter {
+        flex: 1 1 45%;
+        order: 2;
+    }
+}
+@media(max-width:575px) {
+    .topo-meter {
+        flex: 1 0 100%;
+    }
+    .meter-phase-name { flex: 0 0 4rem; font-size: 0.66rem; }
+    .meter-phase-ms { flex: 0 0 3rem; font-size: 0.64rem; }
+    .meter-readout { font-size: 0.82rem; }
+    .meter-value { font-size: 0.72rem; }
+    .meter-phase-row .meter-bar-track { height: 7px; }
+    .meter-bar-track { height: 8px; }
 }
 .topo-svg {
     position: relative;

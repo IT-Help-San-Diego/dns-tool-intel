@@ -3,8 +3,16 @@
             <div class="loading-elapsed mt-1">
                 <span class="text-muted small scan-overlay-timer">0s</span>
             </div>
-            <p class="scan-overlay-note mt-2 mb-0">Most scans complete in less than one minute. Some may take longer.</p>
+            <p class="scan-telem-title mt-2 mb-0">Real-Time Scan Telemetry</p>
+            <p class="scan-overlay-note mt-1 mb-0">Most scans complete in less than one minute. Some may take longer.</p>
             <p class="scan-overlay-note mt-1 mb-0">Markers represent known resolver locations. Anycast routing selects the nearest node&hairsp;&mdash;&hairsp;exact routing is internal to each provider.</p>
-            <p class="scan-overlay-note mt-1 mb-0">Pipeline nodes below reflect live data as it returns from each analysis phase.</p>
+            <p class="scan-overlay-note mt-1 mb-2">Pipeline nodes reflect live data as each analysis phase completes.</p>
             {{template "scan_topology" .}}
+            <div class="telem-log" id="telemLog" aria-label="Scan telemetry log">
+                <div class="telem-log-header">
+                    <span class="telem-log-heading">Telemetry Log</span>
+                    <span class="telem-log-poll-count" id="telemPollCount">0 polls</span>
+                </div>
+                <div class="telem-log-body" id="telemLogBody"></div>
+            </div>
 {{end}}
