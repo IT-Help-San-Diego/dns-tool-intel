@@ -7389,7 +7389,7 @@ progress.bg-danger::-moz-progress-bar {
 }
 .topo-instruments {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     justify-content: center;
 }
@@ -7397,7 +7397,7 @@ progress.bg-danger::-moz-progress-bar {
     flex: 1 1 auto;
     position: relative;
     min-width: 0;
-    max-width: 600px;
+    max-width: 640px;
 }
 .topo-meter {
     flex: 0 0 clamp(140px,16vw,176px);
@@ -7410,7 +7410,8 @@ progress.bg-danger::-moz-progress-bar {
     gap: 0.35rem;
     min-height: 0;
     overflow: hidden;
-    align-self: center;
+    align-self: flex-start;
+    margin-top: clamp(84px,11vh,132px);
 }
 .meter-title {
     color: rgba(180,190,210,0.9);
@@ -7555,6 +7556,7 @@ progress.bg-danger::-moz-progress-bar {
     .topo-meter {
         flex: 1 1 45%;
         order: 2;
+        margin-top: 0;
     }
 }
 @media(max-width:575px) {
@@ -7573,7 +7575,7 @@ progress.bg-danger::-moz-progress-bar {
     z-index: 1;
     width: 100%;
     height: auto;
-    max-height: calc(100dvh - 110px);
+    max-height: calc(100dvh - 150px);
     display: block;
     overflow: visible;
 }
