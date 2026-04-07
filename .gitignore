@@ -101,6 +101,10 @@ go-server/dns-tool-server
 go-server/dns-tool
 go-server/probe
 
+# Go module/build caches (workspace-relative, never version)
+.go-mod-cache/
+.go-build-cache/
+
 # Compressed archives
 *.tar.gz
 
