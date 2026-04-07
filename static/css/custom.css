@@ -7388,20 +7388,19 @@ progress.bg-danger::-moz-progress-bar {
     margin: 0 auto;
 }
 .topo-instruments {
-    display: grid;
-    grid-template-columns: clamp(140px,16vw,176px) minmax(0,600px) clamp(140px,16vw,176px);
-    grid-template-rows: 56fr 34fr 10fr;
+    display: flex;
+    align-items: center;
     gap: 10px;
     justify-content: center;
 }
 .topo-stack {
-    grid-column: 2;
-    grid-row: 1 / 4;
+    flex: 1 1 auto;
     position: relative;
     min-width: 0;
+    max-width: 600px;
 }
 .topo-meter {
-    grid-row: 2;
+    flex: 0 0 clamp(140px,16vw,176px);
     border: 1px solid rgba(92,107,194,0.18);
     border-radius: 6px;
     background: rgba(10,13,18,0.65);
@@ -7411,10 +7410,8 @@ progress.bg-danger::-moz-progress-bar {
     gap: 0.35rem;
     min-height: 0;
     overflow: hidden;
-    align-self: start;
+    align-self: center;
 }
-.topo-meter-left { grid-column: 1; }
-.topo-meter-right { grid-column: 3; }
 .meter-title {
     color: rgba(180,190,210,0.9);
     font-size: 0.68rem;
@@ -7548,28 +7545,22 @@ progress.bg-danger::-moz-progress-bar {
 }
 @media(max-width:1023px) {
     .topo-instruments {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto;
-        gap: 10px;
+        flex-wrap: wrap;
     }
     .topo-stack {
-        grid-column: 1 / -1;
-        grid-row: 1;
+        flex: 1 0 100%;
+        order: 1;
+        max-width: none;
     }
     .topo-meter {
-        grid-row: 2;
+        flex: 1 1 45%;
+        order: 2;
     }
-    .topo-meter-left { grid-column: 1; }
-    .topo-meter-right { grid-column: 2; }
 }
 @media(max-width:575px) {
-    .topo-instruments {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+    .topo-meter {
+        flex: 1 0 100%;
     }
-    .topo-stack { grid-column: 1; grid-row: 1; }
-    .topo-meter-left { grid-column: 1; grid-row: 2; }
-    .topo-meter-right { grid-column: 1; grid-row: 3; }
     .meter-phase-name { flex: 0 0 4rem; font-size: 0.66rem; }
     .meter-phase-ms { flex: 0 0 3rem; font-size: 0.64rem; }
     .meter-readout { font-size: 0.82rem; }
