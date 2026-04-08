@@ -133,6 +133,7 @@
   .ledger-card.lc-norm { border-top: 1.5pt solid #9e7c38; }
   .ledger-card.lc-nonnorm { border-top: 1.5pt solid #316964; }
   .ledger-card.lc-crit { border-top: 1.5pt solid #990f1e; }
+  .ledger-card.lc-meta { border-top: 1.5pt solid #8C4191; }
   .ledger-card .lc-badge {
     width: 110px;
     height: 110px;
@@ -151,6 +152,7 @@
   .ledger-card.lc-norm .lc-name { color: #9e7c38; }
   .ledger-card.lc-nonnorm .lc-name { color: #316964; }
   .ledger-card.lc-crit .lc-name { color: #990f1e; }
+  .ledger-card.lc-meta .lc-name { color: #8C4191; }
   .ledger-card .lc-transform {
     font-family: "Courier New", monospace;
     font-size: 7.5pt;
@@ -224,10 +226,10 @@
     <p class="author-role">Independent DNS Security Researcher</p>
     <p>
       <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a>&emsp;
-      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.19468135">10.5281/zenodo.19468135</a><br>
       <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&emsp;
       <span class="meta-label">Source</span>&ensp;<a href="https://github.com/IT-Help-San-Diego/dns-tool-intel">github.com/IT-Help-San-Diego/dns-tool-intel</a><br>
-      <span class="meta-label">Version</span>&ensp;10&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+      <span class="meta-label">Version</span>&ensp;26.43.0&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
     </p>
     <p class="artifact-note">Companion to <a href="https://dnstool.it-help.tech/manifesto">Founder&rsquo;s Manifesto</a> and <a href="https://dnstool.it-help.tech/foundations">Philosophical Foundations</a></p>
   </div>
@@ -235,12 +237,12 @@
 
 <h2>The Owl Semaphore System</h2>
 
-<p>The Owl of Athena encodes document classification as semantic state through orientation and color. Each designation is a distance-preserving isometry drawn from the orthogonal group O(2). The system uses three transforms to classify every publication in the DNS Tool corpus.</p>
+<p>The Owl of Athena encodes document classification as semantic state through orientation and color. Each designation is a distance-preserving isometry drawn from the orthogonal group O(2). The system uses four transforms &mdash; the Klein four-group V&#x2084; &mdash; to classify every publication in the DNS Tool corpus.</p>
 
 <div style="break-inside:avoid;margin:12pt 0 16pt 0;">
 <table style="width:100%;border-collapse:collapse;font-size:9pt;">
   <tr>
-    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:33%;border:1pt solid #e0d8c8;border-top:3pt solid #d4a853;">
+    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:25%;border:1pt solid #e0d8c8;border-top:3pt solid #d4a853;">
       <img src="assets/owl-NORMATIVE-intro.png" alt="Normative Owl" width="110" height="110" style="margin-bottom:6pt;"><br>
       <strong style="color:#b8860b;font-size:11pt;letter-spacing:0.1em;">NORMATIVE</strong><br>
       <span style="font-family:monospace;font-size:8.5pt;color:#555;">T = I &ensp; det = +1</span><br>
@@ -248,7 +250,7 @@
       <em style="font-size:8.5pt;color:#888;display:block;margin:4pt 0;">&ldquo;This is the standard.&rdquo;</em>
       <span style="font-size:7.5pt;font-weight:600;color:#999;letter-spacing:0.06em;">RFC 2119 MUST / SHALL</span>
     </td>
-    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:33%;border:1pt solid #c8d8d6;border-top:3pt solid #316964;">
+    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:25%;border:1pt solid #c8d8d6;border-top:3pt solid #316964;">
       <img src="assets/owl-NONNORMATIVE-intro.png" alt="Non-Normative Owl" width="110" height="110" style="margin-bottom:6pt;"><br>
       <strong style="color:#316964;font-size:11pt;letter-spacing:0.1em;">NON-NORMATIVE</strong><br>
       <span style="font-family:monospace;font-size:8.5pt;color:#555;">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</span><br>
@@ -256,7 +258,7 @@
       <em style="font-size:8.5pt;color:#888;display:block;margin:4pt 0;">&ldquo;This reflects the standard.&rdquo;</em>
       <span style="font-size:7.5pt;font-weight:600;color:#999;letter-spacing:0.06em;">Informative / Advisory (NOTE)</span>
     </td>
-    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:33%;border:1pt solid #d8c8c8;border-top:3pt solid #990f1e;">
+    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:25%;border:1pt solid #d8c8c8;border-top:3pt solid #990f1e;">
       <img src="assets/owl-CRITICAL-intro.png" alt="Critical Owl" width="110" height="110" style="margin-bottom:6pt;"><br>
       <strong style="color:#990f1e;font-size:11pt;letter-spacing:0.1em;">CRITICAL</strong><br>
       <span style="font-family:monospace;font-size:8.5pt;color:#555;">T = C<sub>2</sub> &ensp; det = +1</span><br>
@@ -264,11 +266,19 @@
       <em style="font-size:8.5pt;color:#888;display:block;margin:4pt 0;">&ldquo;This inverts the standard.&rdquo;</em>
       <span style="font-size:7.5pt;font-weight:600;color:#999;letter-spacing:0.06em;">RFC 2119 MUST NOT / SHALL NOT</span>
     </td>
+    <td style="text-align:center;padding:10pt 6pt;vertical-align:top;width:25%;border:1pt solid #d8c8d8;border-top:3pt solid #8C4191;">
+      <img src="assets/owl-METACOGNITIVE-intro.png" alt="Metacognitive Owl" width="110" height="110" style="margin-bottom:6pt;"><br>
+      <strong style="color:#8C4191;font-size:11pt;letter-spacing:0.1em;">METACOGNITIVE</strong><br>
+      <span style="font-family:monospace;font-size:8.5pt;color:#555;">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</span><br>
+      <span style="font-family:monospace;font-size:8pt;color:#777;">(x, y) &rarr; (x, &minus;y)</span><br>
+      <em style="font-size:8.5pt;color:#888;display:block;margin:4pt 0;">&ldquo;This audits the standard.&rdquo;</em>
+      <span style="font-size:7.5pt;font-weight:600;color:#999;letter-spacing:0.06em;">Observer audit / Frame inversion</span>
+    </td>
   </tr>
 </table>
 </div>
 
-<p style="font-size:8.5pt;color:#666;margin-bottom:14pt;line-height:1.5;"><strong>Redundant encoding:</strong> Color, orientation, and context label provide three independent channels. The semaphore remains distinguishable at small render sizes and in degraded single-channel contexts. Each transform is a distance-preserving isometry in O(2). <strong>Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = RFC 2119 MUST NOT/SHALL NOT; CVE/Security advisory.</p>
+<p style="font-size:8.5pt;color:#666;margin-bottom:14pt;line-height:1.5;"><strong>Redundant encoding:</strong> Color, orientation, and context label provide three independent channels. The semaphore remains distinguishable at small render sizes and in degraded single-channel contexts. Each transform is a distance-preserving isometry in O(2). <strong>Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = RFC 2119 MUST NOT/SHALL NOT; CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.</p>
 
 <h2>1. Dual-Gate Requirement</h2>
 
@@ -405,10 +415,18 @@
       <p class="lc-quote">&ldquo;This inverts the standard.&rdquo;</p>
       <p class="lc-rfc">RFC 2119 MUST NOT / SHALL NOT</p>
     </div>
+    <div class="ledger-card lc-meta">
+      <img class="lc-badge" src="assets/owl-METACOGNITIVE-intro.png" alt="Metacognitive Owl">
+      <p class="lc-name">Metacognitive</p>
+      <p class="lc-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
+      <p class="lc-transform">(x, y) &rarr; (x, &minus;y)</p>
+      <p class="lc-quote">&ldquo;This audits the standard.&rdquo;</p>
+      <p class="lc-rfc">Observer audit / Frame inversion</p>
+    </div>
   </div>
   <div class="ledger-closure">
-    <p class="closure-title">Composition Identities in O(2)</p>
-    <p class="closure-math">&sigma; &#x2218; &sigma; = I &ensp;&middot;&ensp; R(&theta;<sub>1</sub>) &#x2218; R(&theta;<sub>2</sub>) = R(&theta;<sub>1</sub>+&theta;<sub>2</sub>) &ensp;&middot;&ensp; &sigma; &#x2218; R(&theta;) = &sigma;<sub>&theta;</sub></p>
+    <p class="closure-title">Klein Four-Group V&#x2084; &mdash; Closure in O(2)</p>
+    <p class="closure-math">I &middot; &sigma;<sub>v</sub> &middot; C<sub>2</sub> &middot; &sigma;<sub>h</sub> &ensp;|&ensp; &sigma; &#x2218; &sigma; = I &ensp;&middot;&ensp; C<sub>2</sub> = &sigma;<sub>v</sub> &#x2218; &sigma;<sub>h</sub> &ensp;&middot;&ensp; Every element is its own inverse</p>
   </div>
 </div>
 
