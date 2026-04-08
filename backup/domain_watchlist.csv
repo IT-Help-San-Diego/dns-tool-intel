@@ -1,3 +1,0 @@
-id,user_id,domain,cadence,enabled,last_run_at,next_run_at,created_at
-1,1,it-help.tech,daily,t,,2026-02-24 12:59:25.043412,2026-02-23 12:59:25.10354
-2,1,dnstool.it-help.tech,daily,t,,2026-02-24 12:59:25.134955,2026-02-23 12:59:25.152461
