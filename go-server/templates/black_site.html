@@ -515,6 +515,22 @@
             .bsi-detainee h3, .bsi-section-title { color: #333; }
             .bsi-detainee p, .bsi-detainee-meta { color: #555; }
         }
+
+        .bsi-epigraph-sub { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; }
+        .bsi-census-c-default { color: #c9d1d9; }
+        .bsi-census-c-red { color: #f85149; }
+        .bsi-census-c-green { color: #3fb950; }
+        .bsi-s0-border { border: 1px solid rgba(255,23,68,0.15); border-radius: 8px; background: rgba(255,23,68,0.02); }
+        .bsi-s0-title { color: #ff1744; }
+        .bsi-severity-desc { font-size: 0.82rem; color: #7d8590; font-style: italic; }
+        .bsi-collapse-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .bsi-count-s3 { font-weight: 400; color: #c8956a; }
+        .bsi-count-s4 { font-weight: 400; color: #8b949e; }
+        .bsi-chevron { float: right; font-size: 0.6rem; color: #7d8590; }
+        .bsi-rendition-event-count { color: #c9d1d9; }
+        .bsi-btn-mono { font-family: ui-monospace, monospace; font-size: 0.7rem; color: #7d8590; border: 1px solid rgba(125,142,168,0.15); letter-spacing: 0.1em; text-transform: uppercase; }
+        .bsi-audit-label { font-family: ui-monospace, monospace; font-size: 0.65rem; color: #7d8590; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem; }
+        .bsi-footer-note { font-size: 0.68rem; color: #484f58; }
     </style>
 </head>
 <body class="bsi-page">
@@ -530,7 +546,7 @@
             </p>
             <h1>{{icon "crosshairs" "me-2"}}Black Site</h1>
             <p class="bsi-epigraph">We don&rsquo;t just find bugs. We rendition them. Every defect in this codebase gets a hash, a severity, and a cell. They don&rsquo;t leave until we&rsquo;ve extracted everything they know and eliminated them from the system.</p>
-            <p class="bsi-epigraph mt-2" style="font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase;">We proudly use enhanced interrogation tactics.</p>
+            <p class="bsi-epigraph mt-2 bsi-epigraph-sub">We proudly use enhanced interrogation tactics.</p>
         </div>
     </header>
 
@@ -605,26 +621,26 @@
                     <div class="bsi-census-label">S4 Minor</div>
                 </li>
                 <li class="bsi-census-card">
-                    <div class="bsi-census-count" style="color:#c9d1d9">{{.TotalCount}}</div>
+                    <div class="bsi-census-count bsi-census-c-default">{{.TotalCount}}</div>
                     <div class="bsi-census-label">Total Detained</div>
                 </li>
             </ul>
             <ul class="bsi-census-grid mt-3" aria-label="Findings census by status">
                 <li class="bsi-census-card">
-                    <div class="bsi-census-count" style="color:#f85149">{{.DetainedCount}}</div>
+                    <div class="bsi-census-count bsi-census-c-red">{{.DetainedCount}}</div>
                     <div class="bsi-census-label">Detained</div>
                 </li>
                 <li class="bsi-census-card">
-                    <div class="bsi-census-count" style="color:#3fb950">{{.RenderedCount}}</div>
+                    <div class="bsi-census-count bsi-census-c-green">{{.RenderedCount}}</div>
                     <div class="bsi-census-label">Rendered</div>
                 </li>
             </ul>
         </div>
 
         {{if .S0Findings}}
-        <div class="bsi-section" style="border: 1px solid rgba(255,23,68,0.15); border-radius: 8px; background: rgba(255,23,68,0.02);">
-            <h2 class="bsi-section-title" style="color:#ff1744;">{{icon "exclamation-triangle" "me-1"}} S0 &mdash; Red Notice</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">Internal regressions. Findings that were rendered but came back &mdash; moles in the codebase. Something we fixed turned against us. Treated as betrayals, not bugs.</p>
+        <div class="bsi-section bsi-s0-border">
+            <h2 class="bsi-section-title bsi-s0-title">{{icon "exclamation-triangle" "me-1"}} S0 &mdash; Red Notice</h2>
+            <p class="mb-3 bsi-severity-desc">Internal regressions. Findings that were rendered but came back &mdash; moles in the codebase. Something we fixed turned against us. Treated as betrayals, not bugs.</p>
             {{range .S0Findings}}
             <div class="bsi-detainee bsi-sev-s0">
                 <h3>
@@ -653,7 +669,7 @@
         {{if .S1Findings}}
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "bug" "me-1"}} S1 &mdash; Critical Path Threats</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">These findings orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
+            <p class="mb-3 bsi-severity-desc">These findings orchestrated the whole operation against our codebase. They don&rsquo;t just cause one problem &mdash; they corrupt trust in the entire system.</p>
             {{range .S1Findings}}
             <div class="bsi-detainee bsi-sev-s1">
                 <h3>
@@ -682,7 +698,7 @@
         {{if .S2Findings}}
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "bolt" "me-1"}} S2 &mdash; Major Findings</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">Documented weaknesses actively causing damage. We know the impact. Patches pending.</p>
+            <p class="mb-3 bsi-severity-desc">Documented weaknesses actively causing damage. We know the impact. Patches pending.</p>
             {{range .S2Findings}}
             <div class="bsi-detainee bsi-sev-s2">
                 <h3>
@@ -710,10 +726,10 @@
 
         {{if .S3Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+            <h2 class="bsi-section-title bsi-collapse-title">
                 <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s3Findings" aria-expanded="false" aria-controls="s3Findings">
-                    {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span style="font-weight:400; color:#c8956a;">({{len .S3Findings}})</span>
-                    <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+                    {{icon "shield-alt" "me-1"}} S3 &mdash; Contained Findings <span class="bsi-count-s3">({{len .S3Findings}})</span>
+                    <span class="bsi-chevron">{{icon "chevron-down" ""}}</span>
                 </button>
             </h2>
             <div class="collapse" id="s3Findings">
@@ -740,10 +756,10 @@
 
         {{if .S4Findings}}
         <div class="bsi-section">
-            <h2 class="bsi-section-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+            <h2 class="bsi-section-title bsi-collapse-title">
                 <button type="button" class="bsi-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#s4Findings" aria-expanded="false" aria-controls="s4Findings">
-                    {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span style="font-weight:400; color:#8b949e;">({{len .S4Findings}})</span>
-                    <span style="float:right; font-size:0.6rem; color:#7d8590;">{{icon "chevron-down" ""}}</span>
+                    {{icon "eye" "me-1"}} S4 &mdash; Minor Indicators <span class="bsi-count-s4">({{len .S4Findings}})</span>
+                    <span class="bsi-chevron">{{icon "chevron-down" ""}}</span>
                 </button>
             </h2>
             <div class="collapse" id="s4Findings">
@@ -770,7 +786,7 @@
 
         <div class="bsi-section">
             <h2 class="bsi-section-title">{{icon "crosshairs" "me-1"}} Rendition Log</h2>
-            <p class="mb-3" style="font-size:0.82rem; color:#7d8590; font-style:italic;">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger. {{if .HasEvents}}<span style="color:#c9d1d9;">{{.TotalEventCount}} events recorded.</span>{{end}}</p>
+            <p class="mb-3 bsi-severity-desc">When a finding is eliminated, we record the kill. Date, commit hash, who pulled the trigger. {{if .HasEvents}}<span class="bsi-rendition-event-count">{{.TotalEventCount}} events recorded.</span>{{end}}</p>
             {{if .HasEvents}}
             <div class="table-responsive">
             <table class="bsi-compact-table" aria-label="Recent rendition log entries">
@@ -791,7 +807,7 @@
             </div>
             {{if .ArchiveEvents}}
             <div class="text-center mt-3">
-                <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#fullRenditionLog" aria-expanded="false" aria-controls="fullRenditionLog" style="font-family:ui-monospace,monospace; font-size:0.7rem; color:#7d8590; border:1px solid rgba(125,142,168,0.15); letter-spacing:0.1em; text-transform:uppercase;">
+                <button class="btn btn-sm bsi-btn-mono" type="button" data-bs-toggle="collapse" data-bs-target="#fullRenditionLog" aria-expanded="false" aria-controls="fullRenditionLog">
                     {{icon "chevron-down" "me-1"}} {{.ArchiveEventCount}} earlier events
                 </button>
             </div>
@@ -826,7 +842,7 @@
             <h2 class="bsi-section-title">{{icon "chart-bar" "me-1"}} Audit Scores</h2>
             <div class="row g-4">
                 <div class="col-md-6">
-                    <p style="font-family:ui-monospace,monospace; font-size:0.65rem; color:#7d8590; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.75rem;">External Audit &mdash; SquirrelScan</p>
+                    <p class="bsi-audit-label">External Audit &mdash; SquirrelScan</p>
                     <div class="bsi-scores-grid">
                         <div class="bsi-score-item"><span class="bsi-score-label">Overall</span><span class="bsi-score-value bsi-grade-c">72 C</span></div>
                         <div class="bsi-score-item"><span class="bsi-score-label">Core SEO</span><span class="bsi-score-value bsi-grade-a">97 A</span></div>
@@ -838,7 +854,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <p style="font-family:ui-monospace,monospace; font-size:0.65rem; color:#7d8590; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.75rem;">Internal Audit &mdash; Design Forensics</p>
+                    <p class="bsi-audit-label">Internal Audit &mdash; Design Forensics</p>
                     <div class="bsi-scores-grid">
                         <div class="bsi-score-item"><span class="bsi-score-label">Color Tokens</span><span class="bsi-score-value bsi-grade-a">A</span></div>
                         <div class="bsi-score-item"><span class="bsi-score-label">Glassmorphism</span><span class="bsi-score-value bsi-grade-a">A-</span></div>
@@ -855,7 +871,7 @@
         <div class="bsi-colophon">
             <p>This facility is a living operation. Every bug gets a hash. Every hash gets a cell. They enter as <span class="bsi-badge bsi-badge-detained">Detained</span> &mdash; they leave as <span class="bsi-badge bsi-badge-rendered">Rendered</span> &mdash; or they don&rsquo;t leave at all.</p>
             <p class="mt-2">This is what happens when you build software like you mean it.</p>
-            <p class="mt-3" style="font-size:0.68rem; color:#484f58;">This page queries PostgreSQL on every request. What you see is the live state of the operation &mdash; not a static report.</p>
+            <p class="mt-3 bsi-footer-note">This page queries PostgreSQL on every request. What you see is the live state of the operation &mdash; not a static report.</p>
             <a href="https://github.com/IT-Help-San-Diego/dns-tool-intel/blob/main/docs/BLACK-SITE-INTERROGATIONS.md" target="_blank" rel="noopener" class="bsi-github-link mt-2">
                 {{icon "file-alt" "me-1"}} Declassified Archive
             </a>

@@ -273,6 +273,45 @@
             font-style: italic;
             font-size: 0.88rem;
         }
+
+        .m-c-bright { color: #e6edf3; }
+        .m-c-muted { color: #8b949e; }
+        .m-c-dim { color: #aab2bc; }
+        .m-c-dimmer { color: rgba(170,178,188,0.7); }
+        .m-c-light { color: #c0c8d4; }
+        .m-c-link { color: #58a6ff; }
+        .m-c-norm { color: #d4a853; }
+        .m-c-nonnorm { color: #4A9D96; }
+        .m-c-crit { color: #f85149; }
+        .m-c-meta { color: #8C4191; }
+        .m-c-gold { color: #d2992a; }
+        .m-fs-sm { font-size: 0.68rem; }
+        .m-fs-spec { font-size: 0.72rem; }
+        .m-fs-ref { font-size: 0.75rem; }
+        .m-fs-cite { font-size: 0.78rem; }
+        .m-fs-body { font-size: 0.82rem; }
+        .m-fs-title { font-size: 0.85rem; }
+        .m-fs-sub { font-size: 0.8rem; }
+        .m-fs-h3 { font-size: 0.95rem; }
+        .m-intro-body { padding-top: 1rem; padding-bottom: 0.75rem; }
+        .m-nonnorm-bold { color: #4A9D96; font-weight: 700; }
+        .m-callout { background: rgba(13,17,23,0.4); border: 1px solid rgba(200,149,106,0.1); border-radius: 6px; }
+        .m-dim-label { font-size: 0.82rem; font-weight: 600; color: #aab2bc; }
+        .m-hr { border-color: rgba(125,142,168,0.1); margin: 1.5rem 0; }
+        .m-crit-label { font-size: 0.82rem; font-weight: 600; color: #f85149; }
+        .m-active-card { border-color: rgba(210,153,34,0.25); }
+        .m-owl-panel-norm { background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px; }
+        .m-owl-panel-nonnorm { background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.15); border-radius: 10px; }
+        .m-owl-panel-crit { background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.15); border-radius: 10px; }
+        .m-owl-panel-meta { background: rgba(140,65,145,0.06); border: 1px solid rgba(140,65,145,0.15); border-radius: 10px; }
+        .m-owl-thumb-norm { border-radius: 50%; background: #0d1117; padding: 2px; border: 2px solid rgba(212,168,83,0.3); }
+        .m-owl-thumb-nonnorm { border-radius: 50%; background: #0d1117; padding: 2px; border: 2px solid rgba(74,157,150,0.3); }
+        .m-owl-thumb-crit { border-radius: 50%; background: #0d1117; padding: 2px; border: 2px solid rgba(139,0,0,0.3); }
+        .m-owl-thumb-meta { border-radius: 50%; background: #0d1117; padding: 2px; border: 2px solid rgba(140,65,145,0.3); }
+        .m-state-name { font-size: 0.82rem; font-weight: 700; }
+        .m-state-xf { font-size: 0.72rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace; }
+        .m-state-map { font-size: 0.68rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace; }
+        .m-state-tagline { font-size: 0.78rem; font-style: italic; }
     </style>
 </head>
 <body>
@@ -282,15 +321,15 @@
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
-                    <h1 class="h4 mb-1" style="color: #e6edf3;">Founder's Manifesto</h1>
-                    <p class="text-muted mb-0" style="font-size: 0.82rem;">Carey James Balboa &middot; <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">ORCID 0009-0000-5237-9065</a></p>
+                    <h1 class="h4 mb-1 m-c-bright">Founder's Manifesto</h1>
+                    <p class="text-muted mb-0 m-fs-body">Carey James Balboa &middot; <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">ORCID 0009-0000-5237-9065</a></p>
                 </div>
                 <span class="manifesto-badge"><span class="manifesto-badge-dot"></span>Non-Normative</span>
             </div>
 
             <div class="manifesto-section">
-                <div class="manifesto-section-body" style="padding-top: 1rem; padding-bottom: 0.75rem;">
-                    <p class="mb-0" style="font-size: 0.82rem; color: rgba(170,178,188,0.7);">This document expresses the aspirational vision and design philosophy that motivates DNS Tool's architecture. It is distinct from the project's scientific claims, which are bounded, falsifiable, and documented separately in the <a href="/foundations" class="text-info text-decoration-none">Philosophical Foundations</a> paper and the <a href="/methodology" class="text-info text-decoration-none">methodology paper</a> (Balboa, 2026). Where this manifesto says "<span class="tag" style="color: #d2992a;">[MUST]</span>," it declares a design target, not a proven state. The <a href="/communication-standards" class="text-info text-decoration-none">Communication Standards</a> document enforces the measurable quality gate that ensures these aspirations translate into readable, accessible output.</p>
+                <div class="manifesto-section-body m-intro-body">
+                    <p class="mb-0 m-fs-body m-c-dimmer">This document expresses the aspirational vision and design philosophy that motivates DNS Tool's architecture. It is distinct from the project's scientific claims, which are bounded, falsifiable, and documented separately in the <a href="/foundations" class="text-info text-decoration-none">Philosophical Foundations</a> paper and the <a href="/methodology" class="text-info text-decoration-none">methodology paper</a> (Balboa, 2026). Where this manifesto says "<span class="tag m-c-gold">[MUST]</span>," it declares a design target, not a proven state. The <a href="/communication-standards" class="text-info text-decoration-none">Communication Standards</a> document enforces the measurable quality gate that ensures these aspirations translate into readable, accessible output.</p>
                 </div>
             </div>
 
@@ -299,49 +338,49 @@
                     <h2>{{icon "eye" "me-2"}}The Owl Semaphore</h2>
                 </div>
                 <div class="manifesto-section-body">
-                    <p class="mb-3" style="font-size: 0.85rem; color: #8b949e;">The Owl of Athena encodes semantic state through orientation and color. The four transforms form the Klein four-group V&#x2084; &mdash; a subgroup of the orthogonal group O(2). This document carries the <span style="color:#4A9D96;font-weight:700;">Non-Normative</span> designation.</p>
+                    <p class="mb-3 m-fs-title m-c-muted">The Owl of Athena encodes semantic state through orientation and color. The four transforms form the Klein four-group V&#x2084; &mdash; a subgroup of the orthogonal group O(2). This document carries the <span class="m-nonnorm-bold">Non-Normative</span> designation.</p>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 col-lg-3">
-                            <div class="text-center p-3" style="background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px;">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(212,168,83,0.3);">
-                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#d4a853;">NORMATIVE</p>
-                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = I &ensp; det = +1</p>
-                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (x, y)</p>
-                                <p class="mb-0" style="font-size:0.78rem;color:#d4a853;font-style:italic;">&ldquo;This is the standard.&rdquo;</p>
+                            <div class="text-center p-3 m-owl-panel-norm">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="72" height="72" class="mb-2 m-owl-thumb-norm">
+                                <p class="mb-1 m-state-name m-c-norm">NORMATIVE</p>
+                                <p class="mb-1 m-state-xf">T = I &ensp; det = +1</p>
+                                <p class="mb-1 m-state-map">(x, y) &rarr; (x, y)</p>
+                                <p class="mb-0 m-state-tagline m-c-norm">&ldquo;This is the standard.&rdquo;</p>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-3">
-                            <div class="text-center p-3" style="background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.15); border-radius: 10px;">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(74,157,150,0.3);">
-                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#4A9D96;">NON-NORMATIVE</p>
-                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</p>
-                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (&minus;x, y)</p>
-                                <p class="mb-0" style="font-size:0.78rem;color:#4A9D96;font-style:italic;">&ldquo;This reflects the standard.&rdquo;</p>
+                            <div class="text-center p-3 m-owl-panel-nonnorm">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="72" height="72" class="mb-2 m-owl-thumb-nonnorm">
+                                <p class="mb-1 m-state-name m-c-nonnorm">NON-NORMATIVE</p>
+                                <p class="mb-1 m-state-xf">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</p>
+                                <p class="mb-1 m-state-map">(x, y) &rarr; (&minus;x, y)</p>
+                                <p class="mb-0 m-state-tagline m-c-nonnorm">&ldquo;This reflects the standard.&rdquo;</p>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-3">
-                            <div class="text-center p-3" style="background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.15); border-radius: 10px;">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(139,0,0,0.3);">
-                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#f85149;">CRITICAL</p>
-                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = C<sub>2</sub> &ensp; det = +1</p>
-                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (&minus;x, &minus;y)</p>
-                                <p class="mb-0" style="font-size:0.78rem;color:#f85149;font-style:italic;">&ldquo;This inverts the standard.&rdquo;</p>
+                            <div class="text-center p-3 m-owl-panel-crit">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="72" height="72" class="mb-2 m-owl-thumb-crit">
+                                <p class="mb-1 m-state-name m-c-crit">CRITICAL</p>
+                                <p class="mb-1 m-state-xf">T = C<sub>2</sub> &ensp; det = +1</p>
+                                <p class="mb-1 m-state-map">(x, y) &rarr; (&minus;x, &minus;y)</p>
+                                <p class="mb-0 m-state-tagline m-c-crit">&ldquo;This inverts the standard.&rdquo;</p>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-3">
-                            <div class="text-center p-3" style="background: rgba(140,65,145,0.06); border: 1px solid rgba(140,65,145,0.15); border-radius: 10px;">
-                                <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black" width="72" height="72" class="mb-2" style="border-radius:50%;background:#0d1117;padding:2px;border:2px solid rgba(140,65,145,0.3);">
-                                <p class="mb-1" style="font-size:0.82rem;font-weight:700;color:#8C4191;">METACOGNITIVE</p>
-                                <p class="mb-1" style="font-size:0.72rem;color:#aab2bc;font-family:'SFMono-Regular',Consolas,monospace;">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
-                                <p class="mb-1" style="font-size:0.68rem;color:#8b949e;font-family:'SFMono-Regular',Consolas,monospace;">(x, y) &rarr; (x, &minus;y)</p>
-                                <p class="mb-0" style="font-size:0.78rem;color:#8C4191;font-style:italic;">&ldquo;This audits the standard.&rdquo;</p>
+                            <div class="text-center p-3 m-owl-panel-meta">
+                                <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black" width="72" height="72" class="mb-2 m-owl-thumb-meta">
+                                <p class="mb-1 m-state-name m-c-meta">METACOGNITIVE</p>
+                                <p class="mb-1 m-state-xf">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
+                                <p class="mb-1 m-state-map">(x, y) &rarr; (x, &minus;y)</p>
+                                <p class="mb-0 m-state-tagline m-c-meta">&ldquo;This audits the standard.&rdquo;</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-2" style="background:rgba(13,17,23,0.4);border:1px solid rgba(200,149,106,0.1);border-radius:6px;">
-                        <p class="mb-0" style="font-size:0.75rem;color:#8b949e;"><strong style="color:#58a6ff;">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and degraded single-channel contexts. <strong style="color:#d4a853;">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.</p>
+                    <div class="p-2 m-callout">
+                        <p class="mb-0 m-fs-ref m-c-muted"><strong class="m-c-link">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and degraded single-channel contexts. <strong class="m-c-norm">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.</p>
                     </div>
                 </div>
             </div>
@@ -415,31 +454,31 @@
                     <h2>{{icon "flask" "me-2"}}Scientific Grounding</h2>
                 </div>
                 <div class="manifesto-section-body">
-                    <h3 style="font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.75rem;">The 2000-Year Logic Argument</h3>
+                    <h3 class="m-fs-h3 fw-semibold m-c-bright mb-2">The 2000-Year Logic Argument</h3>
                     <p>The claim that modern software engineering underutilizes classical logical frameworks is supported by a growing body of research on software traceability and decision documentation gaps.</p>
-                    <p><strong style="color: #c0c8d4;">Formal logic</strong> (Aristotle, <em>Prior Analytics</em>, c. 350 BCE) established the syllogistic reasoning structures that inform the conditional logic at the heart of programming. <strong style="color: #c0c8d4;">Evidentiary standards</strong> (Roman law, <em>Corpus Juris Civilis</em>, 534 CE; English common law, 13th century onward) developed the concepts of burden of proof, chain of custody, and admissibility that DNS Tool's confidence engine draws from. <strong style="color: #c0c8d4;">Socratic method</strong> (<em>elenchus</em>, 5th century BCE) provides the falsification-through-questioning pattern that DNS Tool applies in its verification workflow.</p>
+                    <p><strong class="m-c-light">Formal logic</strong> (Aristotle, <em>Prior Analytics</em>, c. 350 BCE) established the syllogistic reasoning structures that inform the conditional logic at the heart of programming. <strong class="m-c-light">Evidentiary standards</strong> (Roman law, <em>Corpus Juris Civilis</em>, 534 CE; English common law, 13th century onward) developed the concepts of burden of proof, chain of custody, and admissibility that DNS Tool's confidence engine draws from. <strong class="m-c-light">Socratic method</strong> (<em>elenchus</em>, 5th century BCE) provides the falsification-through-questioning pattern that DNS Tool applies in its verification workflow.</p>
 
-                    <p class="mb-2" style="font-size: 0.82rem; font-weight: 600; color: #aab2bc;">Contemporary evidence for the traceability gap:</p>
+                    <p class="mb-2 m-dim-label">Contemporary evidence for the traceability gap:</p>
                     <div class="manifesto-citation">Jansen, A. &amp; Bosch, J. (2005). "Software Architecture as a Set of Architectural Design Decisions." <em>5th Working IEEE/IFIP Conference on Software Architecture (WICSA'05)</em>. <a href="https://doi.org/10.1109/WICSA.2005.61" target="_blank" rel="noopener" class="text-info text-decoration-none">DOI: 10.1109/WICSA.2005.61</a></div>
                     <div class="manifesto-citation">Lago, P. et al. (2009). "Visualizing Software Architecture Design Decisions." <em>Software Architecture Knowledge Management</em>. Springer.</div>
                     <div class="manifesto-citation mb-3">Bhat, M. et al. (2020). "Automatic Extraction of Design Decisions from Issue Management Systems." <em>European Conference on Software Architecture</em>.</div>
 
                     <p>The argument is not that computer science is ignorant of logic. It is that most software <em>systems</em> &mdash; the actual running code &mdash; do not preserve the reasoning behind their conclusions in a form that can be independently audited. They produce outputs. They rarely produce <em>epistemic trails</em>.</p>
 
-                    <hr style="border-color: rgba(125,142,168,0.1); margin: 1.5rem 0;">
+                    <hr class="m-hr">
 
-                    <h3 style="font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.75rem;">The "1000-Year Code" Thesis</h3>
+                    <h3 class="m-fs-h3 fw-semibold m-c-bright mb-2">The "1000-Year Code" Thesis</h3>
                     <p>No code written today will run unchanged for 1000 years. The aspiration is about <em>decision-preservation longevity</em>: building systems where the reasoning behind every architectural choice is preserved in a form that remains interpretable regardless of the technology stack.</p>
                     <p>Historical precedent suggests this is achievable in other domains. The Domesday Book (1086 CE) remains interpretable after nearly a millennium &mdash; not because its medium endured, but because its structure is self-documenting. The Rosetta Stone (196 BCE) is interpretable because it preserves the same content in multiple representation systems. These are analogies, not proofs &mdash; but they illustrate a principle worth testing.</p>
 
-                    <p class="mb-2" style="font-size: 0.82rem; font-weight: 600; color: #aab2bc;">DNS Tool's implementations of this principle:</p>
+                    <p class="mb-2 m-dim-label">DNS Tool's implementations of this principle:</p>
                     <ul class="manifesto-impl-list">
-                        <li><strong style="color: #c0c8d4;">Git history</strong> &mdash; Every change, with commit message and author attribution</li>
-                        <li><strong style="color: #c0c8d4;">EDE Amendment Chain</strong> &mdash; SHA-3-512 hashed corrections with explicit grounds</li>
-                        <li><strong style="color: #c0c8d4;">Golden Logic Registry</strong> &mdash; RFC-to-code-to-test traceability</li>
-                        <li><strong style="color: #c0c8d4;">Scrutiny tags</strong> &mdash; Every source file classified by analytical role</li>
-                        <li><strong style="color: #c0c8d4;">Citation registry</strong> &mdash; Machine-readable references to every authoritative standard cited</li>
-                        <li><strong style="color: #c0c8d4;">FULL_HISTORY constraint</strong> &mdash; Corrections are appended, not replaced</li>
+                        <li><strong class="m-c-light">Git history</strong> &mdash; Every change, with commit message and author attribution</li>
+                        <li><strong class="m-c-light">EDE Amendment Chain</strong> &mdash; SHA-3-512 hashed corrections with explicit grounds</li>
+                        <li><strong class="m-c-light">Golden Logic Registry</strong> &mdash; RFC-to-code-to-test traceability</li>
+                        <li><strong class="m-c-light">Scrutiny tags</strong> &mdash; Every source file classified by analytical role</li>
+                        <li><strong class="m-c-light">Citation registry</strong> &mdash; Machine-readable references to every authoritative standard cited</li>
+                        <li><strong class="m-c-light">FULL_HISTORY constraint</strong> &mdash; Corrections are appended, not replaced</li>
                     </ul>
                 </div>
             </div>
@@ -452,7 +491,7 @@
                     <p>DNS was chosen as the first domain because it provides the strongest possible ground truth: RFCs define correct behavior with mathematical precision, and the live DNS infrastructure provides an observable, auditable state at any moment.</p>
                     <p>The broader hypothesis: the confidence scoring, drift detection, evidentiary accountability, and epistemic transparency patterns developed for DNS can be extended to domains where ground truth is fuzzier.</p>
 
-                    <p class="mb-2" style="font-size: 0.82rem; font-weight: 600; color: #aab2bc;">Transfer criteria:</p>
+                    <p class="mb-2 m-dim-label">Transfer criteria:</p>
                     <ul class="manifesto-impl-list mb-3">
                         <li>The target domain must have a definable (even if imprecise) notion of "correct state"</li>
                         <li>The domain must have observable signals that can be measured repeatedly</li>
@@ -460,7 +499,7 @@
                         <li>The drift detection must distinguish true state changes from measurement noise</li>
                     </ul>
 
-                    <p class="mb-2" style="font-size: 0.82rem; font-weight: 600; color: #f85149;">Disconfirmation conditions:</p>
+                    <p class="mb-2 m-crit-label">Disconfirmation conditions:</p>
                     <div class="manifesto-disconfirm">
                         <div class="manifesto-disconfirm-label">Calibration Failure</div>
                         <p>If confidence scores exhibit Expected Calibration Error (ECE) &gt; 0.15 after a minimum of 200 scored events, the confidence model does not transfer without domain-specific recalibration. DNS Tool's current ECE target: &lt; 0.05.</p>
@@ -501,10 +540,10 @@
                             <p>The peer-review-grade scientific framework. Every claim is bounded, cited, and falsifiable. Socratic verification, Aristotelian rhetoric, and epistemic integrity &mdash; with full academic citations.</p>
                             <a href="/foundations" class="text-info text-decoration-none">{{icon "file-pdf" "me-1"}}Read the paper &rarr;</a>
                         </div>
-                        <div class="manifesto-family-card" style="border-color: rgba(210,153,34,0.25);">
+                        <div class="manifesto-family-card m-active-card">
                             <h3>{{icon "scroll" "me-1"}} Founder's Manifesto</h3>
                             <p>You are here. The aspirational vision &mdash; non-normative, passionate, the fire that started the whole thing. Tagged, grounded, but not constrained by the same evidentiary bar as the science.</p>
-                            <span class="manifesto-badge" style="font-size: 0.75rem;"><span class="manifesto-badge-dot"></span>Non-Normative</span>
+                            <span class="manifesto-badge m-fs-ref"><span class="manifesto-badge-dot"></span>Non-Normative</span>
                         </div>
                         <div class="manifesto-family-card">
                             <h3>{{icon "ruler-combined" "me-1"}} Communication Standards</h3>
@@ -517,7 +556,7 @@
 
             <div class="manifesto-closing">
                 <p class="mb-2">&ldquo;Go out and gather as many different redundant sources of intelligence as you can, and then classify and analyze.&rdquo;</p>
-                <p class="mb-0" style="font-size: 0.8rem;">&copy; 2024&ndash;2026 IT Help San Diego Inc. &mdash; DNS Security Intelligence</p>
+                <p class="mb-0 m-fs-sub">&copy; 2024&ndash;2026 IT Help San Diego Inc. &mdash; DNS Security Intelligence</p>
             </div>
 
         </div>

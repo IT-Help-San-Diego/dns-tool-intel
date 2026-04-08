@@ -546,6 +546,16 @@
             color: #c43c3c;
             border-color: rgba(196,60,60,0.2);
         }
+
+        .ap-video-link { display: block; position: relative; text-decoration: none; }
+        .ap-video-thumb { width: 100%; display: block; border-radius: 0; }
+        .ap-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 56px; height: 56px; background: rgba(0,0,0,0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .ap-fallback-link { font-size: 0.68rem; color: rgba(200,149,106,0.6); margin-left: 0.5rem; }
+        .ap-cs-wrapper { margin-top: 1.25rem; }
+        .ap-cs-link { display: block; text-decoration: none; padding: 1rem 1.25rem; background: rgba(0,0,0,0.25); border-radius: 0 0 8px 8px; border: 1px solid rgba(200,149,106,0.1); border-top: none; }
+        .ap-cs-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #d4a853; }
+        .ap-cs-title { display: block; font-size: 1.05rem; font-weight: 600; color: #c9d1d9; margin-top: 0.35rem; }
+        .ap-cs-desc { display: block; font-size: 0.82rem; color: #8b949e; margin-top: 0.35rem; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -569,20 +579,20 @@
                         <p>A domain registered for ten years with no published mail policy is not dormant — it is exposed. Without SPF, DMARC, and a Null MX record, any domain becomes a free spoofing vector. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
                         <div class="approach-video-wrapper">
                             <div class="approach-video-label">{{icon "bolt"}} Case Study</div>
-                            <a href="/video/forgotten-domain" style="display:block;position:relative;text-decoration:none">
-                                <img src="/static/images/og-forgotten-domain.png" alt="Forgotten Domain — why dormant domains need published DNS policy" class="approach-video" style="width:100%;display:block;border-radius:0">
-                                <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center">
+                            <a href="/video/forgotten-domain" class="ap-video-link">
+                                <img src="/static/images/og-forgotten-domain.png" alt="Forgotten Domain — why dormant domains need published DNS policy" class="approach-video ap-video-thumb">
+                                <span class="ap-play-btn">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><polygon points="8,5 19,12 8,19"/></svg>
                                 </span>
                             </a>
-                            <div class="approach-video-caption">A ten-year-old domain with no mail policy — exposed for a decade without anyone noticing. <a href="/video/forgotten-domain" class="approach-video-fallback" style="font-size:0.68rem;color:rgba(200,149,106,0.6);margin-left:0.5rem">{{icon "external-link" "me-1"}}Watch fullscreen</a></div>
+                            <div class="approach-video-caption">A ten-year-old domain with no mail policy — exposed for a decade without anyone noticing. <a href="/video/forgotten-domain" class="approach-video-fallback ap-fallback-link">{{icon "external-link" "me-1"}}Watch fullscreen</a></div>
                         </div>
-                        <div class="approach-video-wrapper" style="margin-top:1.25rem">
+                        <div class="approach-video-wrapper ap-cs-wrapper">
                             <div class="approach-video-label">{{icon "eye"}} Case Study #2</div>
-                            <a href="/case-study/intelligence-dmarc" style="display:block;text-decoration:none;padding:1rem 1.25rem;background:rgba(0,0,0,0.25);border-radius:0 0 8px 8px;border:1px solid rgba(200,149,106,0.1);border-top:none">
-                                <span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#d4a853">Domain Confessions #2</span>
-                                <span style="display:block;font-size:1.05rem;font-weight:600;color:#c9d1d9;margin-top:0.35rem">The Intelligence Agency That Chose to Watch</span>
-                                <span style="display:block;font-size:0.82rem;color:#8b949e;margin-top:0.35rem;line-height:1.5">Two intelligence agencies are the only federal agencies in our survey that have not upgraded to DMARC reject — eight years after the binding directive. Their DNS records suggest this may be deliberate.</span>
+                            <a href="/case-study/intelligence-dmarc" class="ap-cs-link">
+                                <span class="ap-cs-eyebrow">Domain Confessions #2</span>
+                                <span class="ap-cs-title">The Intelligence Agency That Chose to Watch</span>
+                                <span class="ap-cs-desc">Two intelligence agencies are the only federal agencies in our survey that have not upgraded to DMARC reject — eight years after the binding directive. Their DNS records suggest this may be deliberate.</span>
                             </a>
                         </div>
                     </div>

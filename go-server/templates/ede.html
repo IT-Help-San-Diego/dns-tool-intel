@@ -714,6 +714,10 @@
         @media (max-width: 480px) {
             .ede-summary-grid { grid-template-columns: 1fr; }
         }
+
+        .ede-amend-btn { cursor: pointer; width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; color: inherit; font: inherit; }
+        .ede-amend-count { font-weight: 400; opacity: 0.7; }
+        .ede-amend-chevron { float: right; font-size: 0.7rem; opacity: 0.5; }
     </style>
 </head>
 <body class="bg-dark text-light">
@@ -847,9 +851,9 @@
 
                     {{if .Amendments}}
                     <div class="ede-amendment-section" id="amendments-{{.ID}}">
-                        <button class="ede-amendment-header" type="button" data-bs-toggle="collapse" data-bs-target="#amendment-body-{{.ID}}" aria-expanded="false" aria-controls="amendment-body-{{.ID}}" style="cursor:pointer; width:100%; text-align:left; background:none; border:none; padding:0.75rem 1rem; color:inherit; font:inherit;">
-                            {{icon "gavel" "me-1"}}Amendment Record <span style="font-weight:400; opacity:0.7;">({{len .Amendments}} amendments)</span>
-                            <span style="float:right; font-size:0.7rem; opacity:0.5;">{{icon "chevron-down" ""}}</span>
+                        <button class="ede-amendment-header ede-amend-btn" type="button" data-bs-toggle="collapse" data-bs-target="#amendment-body-{{.ID}}" aria-expanded="false" aria-controls="amendment-body-{{.ID}}">
+                            {{icon "gavel" "me-1"}}Amendment Record <span class="ede-amend-count">({{len .Amendments}} amendments)</span>
+                            <span class="ede-amend-chevron">{{icon "chevron-down" ""}}</span>
                         </button>
                         <div class="collapse" id="amendment-body-{{.ID}}">
                         {{range .Amendments}}

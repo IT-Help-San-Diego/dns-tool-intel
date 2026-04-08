@@ -180,6 +180,20 @@
             position: fixed;
             opacity: 0;
         }
+
+        .bc-owl-card-norm { background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.2); border-radius: 10px; }
+        .bc-owl-card-nonnorm { background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.2); border-radius: 10px; }
+        .bc-owl-card-crit { background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.2); border-radius: 10px; }
+        .bc-owl-card-meta { background: rgba(140,65,145,0.06); border: 1px solid rgba(140,65,145,0.2); border-radius: 10px; }
+        .bc-owl-title { font-size: 0.85rem; font-weight: 700; }
+        .bc-owl-title-norm { color: #d4a853; }
+        .bc-owl-title-nonnorm { color: #4A9D96; }
+        .bc-owl-title-crit { color: #f85149; }
+        .bc-owl-title-meta { color: #8C4191; }
+        .bc-owl-formula { font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace; }
+        .bc-owl-coord { font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace; }
+        .bc-owl-quote { font-size: 0.78rem; font-style: italic; }
+        .bc-owl-note { color: #8b949e; }
     </style>
     <style nonce="{{.CspNonce}}">
         {{range $i, $c := .BrandPalette}}#swatch-bp-{{$i}} { background: {{$c.Value}}; }
@@ -424,45 +438,45 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6 col-lg-3">
-                        <div class="text-center p-3" style="background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.2); border-radius: 10px;">
+                        <div class="text-center p-3 bc-owl-card-norm">
                             <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="80" height="80" class="mb-2">
-                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #d4a853;">NORMATIVE</p>
-                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = I &nbsp; det = +1</p>
-                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x, y)</p>
-                            <p class="mb-0" style="font-size: 0.78rem; color: #d4a853; font-style: italic;">&ldquo;This is the standard.&rdquo;</p>
+                            <p class="mb-1 bc-owl-title bc-owl-title-norm">NORMATIVE</p>
+                            <p class="mb-1 bc-owl-formula">T = I &nbsp; det = +1</p>
+                            <p class="mb-1 bc-owl-coord">(x, y) &rarr; (x, y)</p>
+                            <p class="mb-0 bc-owl-quote bc-owl-title-norm">&ldquo;This is the standard.&rdquo;</p>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3">
-                        <div class="text-center p-3" style="background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.2); border-radius: 10px;">
+                        <div class="text-center p-3 bc-owl-card-nonnorm">
                             <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="80" height="80" class="mb-2">
-                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #4A9D96;">NON-NORMATIVE</p>
-                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = &sigma;<sub>v</sub> &nbsp; det = &minus;1</p>
-                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (&minus;x, y)</p>
-                            <p class="mb-0" style="font-size: 0.78rem; color: #4A9D96; font-style: italic;">&ldquo;This reflects the standard.&rdquo;</p>
+                            <p class="mb-1 bc-owl-title bc-owl-title-nonnorm">NON-NORMATIVE</p>
+                            <p class="mb-1 bc-owl-formula">T = &sigma;<sub>v</sub> &nbsp; det = &minus;1</p>
+                            <p class="mb-1 bc-owl-coord">(x, y) &rarr; (&minus;x, y)</p>
+                            <p class="mb-0 bc-owl-quote bc-owl-title-nonnorm">&ldquo;This reflects the standard.&rdquo;</p>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3">
-                        <div class="text-center p-3" style="background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.2); border-radius: 10px;">
+                        <div class="text-center p-3 bc-owl-card-crit">
                             <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="80" height="80" class="mb-2">
-                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #f85149;">CRITICAL</p>
-                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = C<sub>2</sub> &nbsp; det = +1</p>
-                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (&minus;x, &minus;y)</p>
-                            <p class="mb-0" style="font-size: 0.78rem; color: #f85149; font-style: italic;">&ldquo;This inverts the standard.&rdquo;</p>
+                            <p class="mb-1 bc-owl-title bc-owl-title-crit">CRITICAL</p>
+                            <p class="mb-1 bc-owl-formula">T = C<sub>2</sub> &nbsp; det = +1</p>
+                            <p class="mb-1 bc-owl-coord">(x, y) &rarr; (&minus;x, &minus;y)</p>
+                            <p class="mb-0 bc-owl-quote bc-owl-title-crit">&ldquo;This inverts the standard.&rdquo;</p>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3">
-                        <div class="text-center p-3" style="background: rgba(140,65,145,0.06); border: 1px solid rgba(140,65,145,0.2); border-radius: 10px;">
+                        <div class="text-center p-3 bc-owl-card-meta">
                             <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black" width="80" height="80" class="mb-2">
-                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #8C4191;">METACOGNITIVE</p>
-                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = &sigma;<sub>h</sub> &nbsp; det = &minus;1</p>
-                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x, &minus;y)</p>
-                            <p class="mb-0" style="font-size: 0.78rem; color: #8C4191; font-style: italic;">&ldquo;This audits the standard.&rdquo;</p>
+                            <p class="mb-1 bc-owl-title bc-owl-title-meta">METACOGNITIVE</p>
+                            <p class="mb-1 bc-owl-formula">T = &sigma;<sub>h</sub> &nbsp; det = &minus;1</p>
+                            <p class="mb-1 bc-owl-coord">(x, y) &rarr; (x, &minus;y)</p>
+                            <p class="mb-0 bc-owl-quote bc-owl-title-meta">&ldquo;This audits the standard.&rdquo;</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="card bg-dark border-secondary mb-3">
-                    <div class="card-body small" style="color: #8b949e;">
+                    <div class="card-body small bc-owl-note">
                         <p class="mb-2"><strong class="text-info">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and contexts where any single channel is degraded.</p>
                         <p class="mb-0"><strong class="u-color-amber">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.</p>
                     </div>

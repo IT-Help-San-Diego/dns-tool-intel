@@ -139,16 +139,21 @@
             color: #d4a853;
             border-color: #d4a853;
         }
+
+        .ol-page { max-width: 1200px; }
+        .ol-back-link { color: #d4a853; text-decoration: none; font-size: 13px; }
+        .ol-h1 { font-size: 1.4rem; color: #d4a853; margin-bottom: 4px; }
+        .ol-subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     {{template "nav" .}}
-    <div class="container-fluid py-4" style="max-width:1200px;">
+    <div class="container-fluid py-4 ol-page">
         <div class="mb-3">
-            <a href="/owl-semaphore" style="color:#d4a853;text-decoration:none;font-size:13px;">&larr; Back to Owl Semaphore</a>
+            <a href="/owl-semaphore" class="ol-back-link">&larr; Back to Owl Semaphore</a>
         </div>
-        <h1 style="font-size:1.4rem;color:#d4a853;margin-bottom:4px;">Layer Compositor</h1>
-        <p style="font-size:13px;color:#888;margin-bottom:20px;">NON-NORMATIVE owl — toggle each layer to inspect the composite stack.</p>
+        <h1 class="ol-h1">Layer Compositor</h1>
+        <p class="ol-subtitle">NON-NORMATIVE owl — toggle each layer to inspect the composite stack.</p>
 
         <div class="layer-workspace">
             <div class="layer-sidebar">

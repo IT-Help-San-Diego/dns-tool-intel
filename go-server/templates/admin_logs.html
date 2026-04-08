@@ -6,6 +6,18 @@
     <meta name="robots" content="noindex, nofollow">
     {{template "critical_css" .}}
     {{template "head_css" .}}
+    <style nonce="{{.CspNonce}}">
+        .al-stat-card { min-width: 100px; }
+        .al-th-ts { width: 150px; }
+        .al-th-level { width: 70px; }
+        .al-th-cat { width: 80px; }
+        .al-th-event { width: 120px; }
+        .al-th-domain { width: 140px; }
+        .al-th-trace { width: 80px; }
+        .al-th-action { width: 40px; }
+        .al-msg-cell { max-width: 300px; }
+        .al-detail-pre { max-height: 400px; overflow: auto; }
+    </style>
 </head>
 <body>
     {{template "nav" .}}
@@ -36,7 +48,7 @@
         <div class="row mb-4">
             {{range .LevelCounts}}
             <div class="col-auto mb-2">
-                <div class="card text-center" style="min-width:100px">
+                <div class="card text-center al-stat-card">
                     <div class="card-body py-2 px-3">
                         <div class="h5 mb-0 {{levelColor .Level}}">{{.Cnt}}</div>
                         <small class="text-muted">{{.Level}}</small>
@@ -97,14 +109,14 @@
                     <table class="table table-sm table-hover mb-0">
                         <thead>
                             <tr>
-                                <th style="width:150px">Timestamp</th>
-                                <th style="width:70px">Level</th>
-                                <th style="width:80px">Category</th>
-                                <th style="width:120px">Event</th>
+                                <th class="al-th-ts">Timestamp</th>
+                                <th class="al-th-level">Level</th>
+                                <th class="al-th-cat">Category</th>
+                                <th class="al-th-event">Event</th>
                                 <th>Message</th>
-                                <th style="width:140px">Domain</th>
-                                <th style="width:80px">Trace</th>
-                                <th style="width:40px"></th>
+                                <th class="al-th-domain">Domain</th>
+                                <th class="al-th-trace">Trace</th>
+                                <th class="al-th-action"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,7 +126,7 @@
                                 <td><span class="badge {{levelBadge .Level}}">{{.Level}}</span></td>
                                 <td class="small">{{.Category}}</td>
                                 <td class="small font-monospace">{{.Event}}</td>
-                                <td class="small text-truncate" style="max-width:300px" title="{{.Message}}">{{.Message}}</td>
+                                <td class="small text-truncate al-msg-cell" title="{{.Message}}">{{.Message}}</td>
                                 <td class="small font-monospace">{{.Domain}}</td>
                                 <td class="small font-monospace">
                                     {{if .TraceID}}<a href="/admin/logs?trace_id={{.TraceID}}">{{.TraceID}}</a>{{end}}
@@ -157,7 +169,7 @@
                 </div>
                 <div class="modal-body">
                     <p id="logDetailMsg" class="mb-3"></p>
-                    <pre id="logDetailAttrs" class="bg-dark p-3 rounded" style="max-height:400px;overflow:auto"></pre>
+                    <pre id="logDetailAttrs" class="bg-dark p-3 rounded al-detail-pre"></pre>
                 </div>
             </div>
         </div>

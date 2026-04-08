@@ -52,6 +52,9 @@
     </script>
     {{template "critical_css" .}}
     {{template "head_css" .}}
+    <style nonce="{{.CspNonce}}">
+        .cl-count { font-size: 0.78rem; }
+    </style>
 </head>
 <body>
     {{template "nav" .}}
@@ -64,7 +67,7 @@
                     <p class="text-muted lead">All improvements to analysis accuracy, transparency, and intelligence depth</p>
                 </div>
 
-                <p class="text-muted text-center mb-4" style="font-size:0.78rem;">{{.TotalCount}} releases tracked</p>
+                <p class="text-muted text-center mb-4 cl-count">{{.TotalCount}} releases tracked</p>
 
                 <div class="row g-3">
                     {{range .RecentChangelog}}
