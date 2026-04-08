@@ -416,14 +416,14 @@
                     </div>
                     <div>
                         <h2 class="h5 mb-0">The Owl Semaphore</h2>
-                        <span class="text-muted small">Three states of knowledge &mdash; a subset of O(2).</span>
+                        <span class="text-muted small">Four states of knowledge &mdash; the Klein four-group V&#x2084;, a subgroup of O(2).</span>
                     </div>
                 </div>
 
-                <p class="small text-muted mb-3">The Owl of Athena encodes semantic state through orientation and color. Each transform is a distance-preserving linear transformation of the plane.</p>
+                <p class="small text-muted mb-3">The Owl of Athena encodes semantic state through orientation and color. The four transforms form the Klein four-group V&#x2084; &mdash; the smallest non-cyclic group, where every non-identity element is its own inverse.</p>
 
                 <div class="row g-3 mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6 col-lg-3">
                         <div class="text-center p-3" style="background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.2); border-radius: 10px;">
                             <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="80" height="80" class="mb-2">
                             <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #d4a853;">NORMATIVE</p>
@@ -432,7 +432,7 @@
                             <p class="mb-0" style="font-size: 0.78rem; color: #d4a853; font-style: italic;">&ldquo;This is the standard.&rdquo;</p>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6 col-lg-3">
                         <div class="text-center p-3" style="background: rgba(74,157,150,0.06); border: 1px solid rgba(74,157,150,0.2); border-radius: 10px;">
                             <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="80" height="80" class="mb-2">
                             <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #4A9D96;">NON-NORMATIVE</p>
@@ -441,7 +441,7 @@
                             <p class="mb-0" style="font-size: 0.78rem; color: #4A9D96; font-style: italic;">&ldquo;This reflects the standard.&rdquo;</p>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6 col-lg-3">
                         <div class="text-center p-3" style="background: rgba(139,0,0,0.06); border: 1px solid rgba(139,0,0,0.2); border-radius: 10px;">
                             <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="80" height="80" class="mb-2">
                             <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #f85149;">CRITICAL</p>
@@ -450,12 +450,21 @@
                             <p class="mb-0" style="font-size: 0.78rem; color: #f85149; font-style: italic;">&ldquo;This inverts the standard.&rdquo;</p>
                         </div>
                     </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center p-3" style="background: rgba(140,65,145,0.06); border: 1px solid rgba(140,65,145,0.2); border-radius: 10px;">
+                            <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black" width="80" height="80" class="mb-2">
+                            <p class="mb-1" style="font-size: 0.85rem; font-weight: 700; color: #8C4191;">METACOGNITIVE</p>
+                            <p class="mb-1" style="font-size: 0.75rem; color: #aab2bc; font-family: 'SFMono-Regular', Consolas, monospace;">T = &sigma;<sub>h</sub> &nbsp; det = &minus;1</p>
+                            <p class="mb-1" style="font-size: 0.72rem; color: #8b949e; font-family: 'SFMono-Regular', Consolas, monospace;">(x, y) &rarr; (x, &minus;y)</p>
+                            <p class="mb-0" style="font-size: 0.78rem; color: #8C4191; font-style: italic;">&ldquo;This audits the standard.&rdquo;</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card bg-dark border-secondary mb-3">
                     <div class="card-body small" style="color: #8b949e;">
                         <p class="mb-2"><strong class="text-info">Redundant encoding:</strong> Color + orientation + context label. The semaphore remains readable under color vision deficiency, small render sizes, and contexts where any single channel is degraded.</p>
-                        <p class="mb-0"><strong class="u-color-amber">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory.</p>
+                        <p class="mb-0"><strong class="u-color-amber">Standards mapping:</strong> Normative = RFC 2119 MUST/SHALL. Non-normative = Informative/NOTE. Critical = CVE/Security advisory. Metacognitive = Observer audit/Frame inversion.</p>
                     </div>
                 </div>
 
