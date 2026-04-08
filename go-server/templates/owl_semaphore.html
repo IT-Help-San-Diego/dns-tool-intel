@@ -285,6 +285,108 @@
             justify-content: center;
             margin-top: 0.75rem;
         }
+        .dl-grid-flush { margin-top: 0; }
+
+        .c-norm { color: #d4a853; }
+        .c-nonnorm { color: #4A9D96; }
+        .c-crit { color: #f85149; }
+        .c-meta { color: #8C4191; }
+        .c-bright { color: #e6edf3; }
+        .c-muted { color: #8b949e; }
+        .c-dim { color: #aab2bc; }
+        .c-sage { color: #6e8b74; }
+        .c-link { color: #58a6ff; }
+        .c-dimmer { color: rgba(170,178,188,0.7); }
+        .c-dimmest { color: rgba(170,178,188,0.5); }
+        .c-ghost { color: rgba(170,178,188,0.4); }
+        .c-whisper { color: rgba(170,178,188,0.35); }
+        .c-faint { color: rgba(170,178,188,0.3); }
+        .c-crit-dark { color: #8B0000; }
+
+        .fs-xs { font-size: 0.62rem; }
+        .fs-sm { font-size: 0.68rem; }
+        .fs-spec { font-size: 0.72rem; }
+        .fs-ref { font-size: 0.75rem; }
+        .fs-cite { font-size: 0.78rem; }
+        .fs-body { font-size: 0.82rem; }
+        .fs-title { font-size: 0.85rem; }
+        .fs-h3 { font-size: 0.88rem; }
+        .fs-tbl { font-size: 0.8rem; }
+
+        .sem-intro-body { padding-top: 1rem; padding-bottom: 0.75rem; }
+
+        .sem-hr-norm { border-color: rgba(212,168,83,0.15); margin: 0.75rem 0; }
+        .sem-hr-nonnorm { border-color: rgba(74,157,150,0.15); margin: 0.75rem 0; }
+        .sem-hr-crit { border-color: rgba(139,0,0,0.15); margin: 0.75rem 0; }
+        .sem-hr-meta { border-color: rgba(140,65,145,0.15); margin: 0.75rem 0; }
+
+        .sem-panel-norm {
+            background: rgba(212,168,83,0.04);
+            border: 1px solid rgba(212,168,83,0.12);
+            border-radius: 8px;
+        }
+        .sem-panel-nonnorm {
+            background: rgba(74,157,150,0.04);
+            border: 1px solid rgba(74,157,150,0.12);
+            border-radius: 8px;
+        }
+        .sem-panel-crit {
+            background: rgba(139,0,0,0.04);
+            border: 1px solid rgba(139,0,0,0.12);
+            border-radius: 8px;
+        }
+        .sem-panel-meta {
+            background: rgba(140,65,145,0.04);
+            border: 1px solid rgba(140,65,145,0.12);
+            border-radius: 8px;
+        }
+        .sem-panel-info {
+            background: rgba(88,166,255,0.04);
+            border: 1px solid rgba(88,166,255,0.15);
+            border-radius: 8px;
+        }
+
+        .sem-callout {
+            background: rgba(13,17,23,0.4);
+            border: 1px solid rgba(200,149,106,0.1);
+            border-radius: 6px;
+        }
+        .sem-callout-crit {
+            background: rgba(139,0,0,0.03);
+            border: 1px solid rgba(139,0,0,0.1);
+            border-radius: 6px;
+        }
+
+        .sem-state-title {
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .sem-state-xf {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            font-size: 0.68rem;
+        }
+        .sem-state-xf-norm { color: rgba(212,168,83,0.6); }
+        .sem-state-xf-nonnorm { color: rgba(74,157,150,0.6); }
+        .sem-state-xf-crit { color: rgba(248,81,73,0.6); }
+        .sem-state-xf-meta { color: rgba(140,65,145,0.6); }
+
+        .sem-tbl { border-color: #30363d; }
+        .sem-tbl thead { background: rgba(13,17,23,0.6); }
+        .sem-tbl th { color: #e6edf3; border-color: #30363d; }
+        .sem-tbl td { border-color: #30363d; }
+        .sem-tbl-mono { color: #aab2bc; font-family: monospace; }
+        .sem-tbl-map { color: #8b949e; font-family: monospace; font-size: 0.72rem; }
+
+        .sem-dot-norm { color: #d4a853; }
+        .sem-dot-nonnorm { color: #4A9D96; }
+        .sem-dot-crit { color: #8B0000; }
+        .sem-dot-meta { color: #8C4191; }
+
+        .sem-surface-thumb { border-radius: 50%; }
+        .sem-list { padding-left: 1.2rem; }
+        .sem-ol { padding-left: 1.5rem; }
     </style>
 </head>
 <body>
@@ -294,20 +396,20 @@
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
-                    <h1 class="h4 mb-1" style="color: #e6edf3;">The Owl Semaphore</h1>
-                    <p class="mb-0" style="font-size: 0.82rem; color: #8b949e;">Four States of Knowledge &mdash; A Visual Epistemic Notation System</p>
+                    <h1 class="h4 mb-1 c-bright">The Owl Semaphore</h1>
+                    <p class="mb-0 fs-body c-muted">Four States of Knowledge &mdash; A Visual Epistemic Notation System</p>
                 </div>
                 <span class="sem-badge"><span class="sem-badge-dot"></span>Normative</span>
             </div>
 
             <div class="sem-section">
-                <div class="sem-section-body" style="padding-top: 1rem; padding-bottom: 0.75rem;">
-                    <p class="mb-0" style="font-size: 0.82rem; color: rgba(170,178,188,0.7);">The Owl of Athena has watched over rigorous thought since the silver tetradrachm of ancient Athens. The Owl Semaphore gives her a formal notation: four mathematical transforms forming the Klein four-group <strong style="color:#e6edf3;">V&#x2084; = {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>}</strong> encode the epistemic state of any document, dataset, claim, or finding. Color, orientation, and context label provide triple-redundant encoding &mdash; the meaning survives color vision deficiency, small render sizes, monochrome printing, and degraded single-channel contexts. The system is designed to work everywhere knowledge is communicated.</p>
-                    <p class="mb-0 mt-2" style="font-size: 0.78rem; color: rgba(170,178,188,0.5);">
-                        <strong style="color:#58a6ff;">Research project:</strong>
+                <div class="sem-section-body sem-intro-body">
+                    <p class="mb-0 fs-body c-dimmer">The Owl of Athena has watched over rigorous thought since the silver tetradrachm of ancient Athens. The Owl Semaphore gives her a formal notation: four mathematical transforms forming the Klein four-group <strong class="c-bright">V&#x2084; = {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>}</strong> encode the epistemic state of any document, dataset, claim, or finding. Color, orientation, and context label provide triple-redundant encoding &mdash; the meaning survives color vision deficiency, small render sizes, monochrome printing, and degraded single-channel contexts. The system is designed to work everywhere knowledge is communicated.</p>
+                    <p class="mb-0 mt-2 fs-cite c-dimmest">
+                        <strong class="c-link">Research project:</strong>
                         <a href="https://doi.org/10.5281/zenodo.19473697" target="_blank" rel="noopener" class="text-info text-decoration-none">DOI 10.5281/zenodo.19473697</a> &middot;
                         <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">ORCID 0009-0000-5237-9065</a> &middot;
-                        Carey James Balboa &middot; <strong style="color:#d4a853;">This page is Normative.</strong>
+                        Carey James Balboa &middot; <strong class="c-norm">This page is Normative.</strong>
                     </p>
                 </div>
             </div>
@@ -321,18 +423,18 @@
                         <div class="col-md-6">
                             <div class="owl-card owl-card-normative">
                                 <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="150" height="150" class="mb-3">
-                                <p class="owl-state-name" style="color:#d4a853;">NORMATIVE</p>
+                                <p class="owl-state-name c-norm">NORMATIVE</p>
                                 <p class="owl-transform">T = I &ensp; det = +1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (x, y)</p>
-                                <p class="owl-tagline" style="color:#d4a853;">&ldquo;This is the standard.&rdquo;</p>
+                                <p class="owl-tagline c-norm">&ldquo;This is the standard.&rdquo;</p>
                                 <p class="owl-standards">RFC 2119 MUST / SHALL</p>
                                 <div class="spec-label">
-                                    <p style="color:#d4a853;">Owl #d4a853 on #0f0f0f</p>
-                                    <p style="color:#d4a853;">Contrast 8.69:1</p>
-                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 gold | L4/L6 #0f0f0f</p>
+                                    <p class="c-norm">Owl #d4a853 on #0f0f0f</p>
+                                    <p class="c-norm">Contrast 8.69:1</p>
+                                    <p class="c-sage">L5 r&asymp;258&ndash;264 gold | L4/L6 #0f0f0f</p>
                                 </div>
-                                <hr style="border-color:rgba(212,168,83,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">The identity transform. The owl stands exactly as designed &mdash; no rotation, no reflection. What you see has been verified, tested against reality, and found to hold. This is the standard.</p>
+                                <hr class="sem-hr-norm">
+                                <p class="fs-spec c-muted mb-0">The identity transform. The owl stands exactly as designed &mdash; no rotation, no reflection. What you see has been verified, tested against reality, and found to hold. This is the standard.</p>
                                 <div class="dl-grid">
                                     <a href="/static/exports/owl-semaphore/NORM-composite-white-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/NORM-composite-dark-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Dark</a>
@@ -343,18 +445,18 @@
                         <div class="col-md-6">
                             <div class="owl-card owl-card-nonnormative">
                                 <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="150" height="150" class="mb-3">
-                                <p class="owl-state-name" style="color:#4A9D96;">NON-NORMATIVE</p>
+                                <p class="owl-state-name c-nonnorm">NON-NORMATIVE</p>
                                 <p class="owl-transform">T = &sigma;<sub>v</sub> &ensp; det = &minus;1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (&minus;x, y)</p>
-                                <p class="owl-tagline" style="color:#4A9D96;">&ldquo;This reflects the standard.&rdquo;</p>
+                                <p class="owl-tagline c-nonnorm">&ldquo;This reflects the standard.&rdquo;</p>
                                 <p class="owl-standards">Informative / Advisory (NOTE)</p>
                                 <div class="spec-label">
-                                    <p style="color:#4A9D96;">Owl #316964 on #d2d8d6</p>
-                                    <p style="color:#4A9D96;">Contrast 4.36:1</p>
-                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 teal | L4/L6 #0f0f0f</p>
+                                    <p class="c-nonnorm">Owl #316964 on #d2d8d6</p>
+                                    <p class="c-nonnorm">Contrast 4.36:1</p>
+                                    <p class="c-sage">L5 r&asymp;258&ndash;264 teal | L4/L6 #0f0f0f</p>
                                 </div>
-                                <hr style="border-color:rgba(74,157,150,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A vertical reflection &mdash; det&nbsp;=&nbsp;&minus;1, orientation reversed. The owl is mirrored across the vertical axis. This is the companion perspective &mdash; advisory, informative, exploratory. Not the standard itself, but rigorous guidance that stands alongside it.</p>
+                                <hr class="sem-hr-nonnorm">
+                                <p class="fs-spec c-muted mb-0">A vertical reflection &mdash; det&nbsp;=&nbsp;&minus;1, orientation reversed. The owl is mirrored across the vertical axis. This is the companion perspective &mdash; advisory, informative, exploratory. Not the standard itself, but rigorous guidance that stands alongside it.</p>
                                 <div class="dl-grid">
                                     <a href="/static/exports/owl-semaphore/NONNORM-composite-white-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/NONNORM-composite-dark-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Dark</a>
@@ -365,18 +467,18 @@
                         <div class="col-md-6">
                             <div class="owl-card owl-card-critical">
                                 <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="150" height="150" class="mb-3">
-                                <p class="owl-state-name" style="color:#f85149;">CRITICAL</p>
+                                <p class="owl-state-name c-crit">CRITICAL</p>
                                 <p class="owl-transform">T = C<sub>2</sub> &ensp; det = +1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (&minus;x, &minus;y)</p>
-                                <p class="owl-tagline" style="color:#f85149;">&ldquo;This inverts the standard.&rdquo;</p>
+                                <p class="owl-tagline c-crit">&ldquo;This inverts the standard.&rdquo;</p>
                                 <p class="owl-standards">RFC 2119 MUST NOT / SHALL NOT</p>
                                 <div class="spec-label">
-                                    <p style="color:#f85149;">Owl #990f1e on #8c121c</p>
-                                    <p style="color:#f85149;">Contrast 1.10:1</p>
-                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 red | L4/L6 #0f0f0f</p>
+                                    <p class="c-crit">Owl #990f1e on #8c121c</p>
+                                    <p class="c-crit">Contrast 1.10:1</p>
+                                    <p class="c-sage">L5 r&asymp;258&ndash;264 red | L4/L6 #0f0f0f</p>
                                 </div>
-                                <hr style="border-color:rgba(139,0,0,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A 180&deg; rotation &mdash; det&nbsp;=&nbsp;+1, but every coordinate inverted. The owl is turned completely around. Your own rigorous analysis reveals something dangerous. This inverts the standard.</p>
+                                <hr class="sem-hr-crit">
+                                <p class="fs-spec c-muted mb-0">A 180&deg; rotation &mdash; det&nbsp;=&nbsp;+1, but every coordinate inverted. The owl is turned completely around. Your own rigorous analysis reveals something dangerous. This inverts the standard.</p>
                                 <div class="dl-grid">
                                     <a href="/static/exports/owl-semaphore/CRIT-composite-white-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/CRIT-composite-dark-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Dark</a>
@@ -387,18 +489,18 @@
                         <div class="col-md-6">
                             <div class="owl-card owl-card-metacognitive">
                                 <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black, amethyst outer ring" width="150" height="150" class="mb-3">
-                                <p class="owl-state-name" style="color:#8C4191;">METACOGNITIVE</p>
+                                <p class="owl-state-name c-meta">METACOGNITIVE</p>
                                 <p class="owl-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
                                 <p class="owl-mapping">(x, y) &rarr; (x, &minus;y)</p>
-                                <p class="owl-tagline" style="color:#8C4191;">&ldquo;This audits the standard.&rdquo;</p>
+                                <p class="owl-tagline c-meta">&ldquo;This audits the standard.&rdquo;</p>
                                 <p class="owl-standards">Observer audit / Frame inversion</p>
                                 <div class="spec-label">
-                                    <p style="color:#8C4191;">Owl #8C4191 on #1A1020</p>
-                                    <p style="color:#8C4191;">Amethyst on deep violet-black</p>
-                                    <p style="color:#6e8b74;">L5 r&asymp;258&ndash;264 amethyst | L4/L6 #1A1020</p>
+                                    <p class="c-meta">Owl #8C4191 on #1A1020</p>
+                                    <p class="c-meta">Amethyst on deep violet-black</p>
+                                    <p class="c-sage">L5 r&asymp;258&ndash;264 amethyst | L4/L6 #1A1020</p>
                                 </div>
-                                <hr style="border-color:rgba(140,65,145,0.15);margin:0.75rem 0;">
-                                <p style="font-size:0.72rem;color:#8b949e;margin-bottom:0.5rem;">A horizontal reflection &mdash; det&nbsp;=&nbsp;&minus;1, the y-axis inverted. The owl is upside down but still faces right. This is thinking about your thinking &mdash; the observer who watches the watchers, the audit of the audit itself. Not a finding about the domain &mdash; a finding about the system that produced the finding.</p>
+                                <hr class="sem-hr-meta">
+                                <p class="fs-spec c-muted mb-0">A horizontal reflection &mdash; det&nbsp;=&nbsp;&minus;1, the y-axis inverted. The owl is upside down but still faces right. This is thinking about your thinking &mdash; the observer who watches the watchers, the audit of the audit itself. Not a finding about the domain &mdash; a finding about the system that produced the finding.</p>
                                 <div class="dl-grid">
                                     <a href="/static/exports/owl-semaphore/META-composite-white-540.png" download class="owl-download-btn dl-metacognitive">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/META-composite-dark-540.png" download class="owl-download-btn dl-metacognitive">{{icon "download" "me-1"}}Dark</a>
@@ -415,46 +517,46 @@
                     <h2>{{icon "eye" "me-2"}}The Owl in Human Experience</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:1rem;">The semaphore is not a filing system. It is a mirror of how human beings have always processed knowledge &mdash; from ancient Athens to modern laboratories. If it does not align with reality, psychology, psychiatry, the human spirit, human knowledge, computer science, data science, statistics, and 2,500 years of accumulated understanding, then it has failed. It must all align &mdash; not magically, but rigorously.</p>
+                    <p class="fs-body c-muted mb-3">The semaphore is not a filing system. It is a mirror of how human beings have always processed knowledge &mdash; from ancient Athens to modern laboratories. If it does not align with reality, psychology, psychiatry, the human spirit, human knowledge, computer science, data science, statistics, and 2,500 years of accumulated understanding, then it has failed. It must all align &mdash; not magically, but rigorously.</p>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.12);border-radius:8px;">
-                                <p class="mb-0" style="font-weight:700;color:#d4a853;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;">NORMATIVE</p>
-                                <p class="mb-1" style="font-family:'SFMono-Regular','Consolas','Liberation Mono',monospace;font-size:0.68rem;color:rgba(212,168,83,0.6);">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y)</p>
-                                <p class="mb-1" style="font-weight:700;color:#d4a853;font-size:0.85rem;">The Proven Ground</p>
-                                <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">Stand upright, feet planted, facing forward. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(x,&nbsp;y) &mdash; no transform. You see the room exactly as it is. Newton&rsquo;s laws of motion held for 200 years before Einstein showed where they break down. During those 200 years, they were Normative &mdash; tested, verified, operational. The owl stands upright when the work has been done and the foundation holds. Not because it is permanently true, but because <em>right now, the evidence supports it</em>.</p>
+                            <div class="p-3 sem-panel-norm">
+                                <p class="mb-0 sem-state-title c-norm">NORMATIVE</p>
+                                <p class="mb-1 sem-state-xf sem-state-xf-norm">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y)</p>
+                                <p class="mb-1 fs-title fw-bold c-norm">The Proven Ground</p>
+                                <p class="fs-cite c-muted mb-0">Stand upright, feet planted, facing forward. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(x,&nbsp;y) &mdash; no transform. You see the room exactly as it is. Newton&rsquo;s laws of motion held for 200 years before Einstein showed where they break down. During those 200 years, they were Normative &mdash; tested, verified, operational. The owl stands upright when the work has been done and the foundation holds. Not because it is permanently true, but because <em>right now, the evidence supports it</em>.</p>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(74,157,150,0.04);border:1px solid rgba(74,157,150,0.12);border-radius:8px;">
-                                <p class="mb-0" style="font-weight:700;color:#4A9D96;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;">NON-NORMATIVE</p>
-                                <p class="mb-1" style="font-family:'SFMono-Regular','Consolas','Liberation Mono',monospace;font-size:0.68rem;color:rgba(74,157,150,0.6);">&sigma;<sub>v</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (&minus;x, y)</p>
-                                <p class="mb-1" style="font-weight:700;color:#4A9D96;font-size:0.85rem;">Da Vinci&rsquo;s Wings</p>
-                                <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">Turn around 180&deg; on the spot. You are still standing upright &mdash; up is still up, down is still down &mdash; but you are now facing the opposite direction. Left and right have swapped. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(&minus;x,&nbsp;y). Looking back before moving forward. When Leonardo da Vinci spent years studying birds, sketching wing mechanics, and building machines that could not fly &mdash; he was a Non-Normative owl. Facing the other direction. Seeing what everyone else had their backs to. He failed, but he left the rest of the world a guideline for success. The Wright Brothers stood on his shoulders 400 years later. Non-normative work is the engine of progress: rigorous exploration that hasn&rsquo;t finished yet.</p>
+                            <div class="p-3 sem-panel-nonnorm">
+                                <p class="mb-0 sem-state-title c-nonnorm">NON-NORMATIVE</p>
+                                <p class="mb-1 sem-state-xf sem-state-xf-nonnorm">&sigma;<sub>v</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (&minus;x, y)</p>
+                                <p class="mb-1 fs-title fw-bold c-nonnorm">Da Vinci&rsquo;s Wings</p>
+                                <p class="fs-cite c-muted mb-0">Turn around 180&deg; on the spot. You are still standing upright &mdash; up is still up, down is still down &mdash; but you are now facing the opposite direction. Left and right have swapped. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(&minus;x,&nbsp;y). Looking back before moving forward. When Leonardo da Vinci spent years studying birds, sketching wing mechanics, and building machines that could not fly &mdash; he was a Non-Normative owl. Facing the other direction. Seeing what everyone else had their backs to. He failed, but he left the rest of the world a guideline for success. The Wright Brothers stood on his shoulders 400 years later. Non-normative work is the engine of progress: rigorous exploration that hasn&rsquo;t finished yet.</p>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(139,0,0,0.04);border:1px solid rgba(139,0,0,0.12);border-radius:8px;">
-                                <p class="mb-0" style="font-weight:700;color:#f85149;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;">CRITICAL</p>
-                                <p class="mb-1" style="font-family:'SFMono-Regular','Consolas','Liberation Mono',monospace;font-size:0.68rem;color:rgba(248,81,73,0.6);">C<sub>2</sub> &ensp; det = +1 &ensp; (x, y) &rarr; (&minus;x, &minus;y)</p>
-                                <p class="mb-1" style="font-weight:700;color:#f85149;font-size:0.85rem;">The Manhattan Moment</p>
-                                <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">Do a handstand. Both axes flip &mdash; left becomes right, up becomes down. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(&minus;x,&nbsp;&minus;y). The blood rushes to your head. You cannot hold it for long. That is the Critical state &mdash; total inversion under pressure. The physicists of the Manhattan Project knew this owl. Their what-if calculations stopped being academic and became existential. <em>&ldquo;What if the atmosphere ignites?&rdquo;</em> Your proof turns on you. Not because the analysis was wrong &mdash; because it was <em>right</em>, and the answer is terrifying. Psychiatry calls this ego-dystonic insight. Philosophy calls it aporia. Engineers call it a show-stopper. Cybersecurity calls it a 0-day. The owl is inverted because your own proof has reversed your position.</p>
+                            <div class="p-3 sem-panel-crit">
+                                <p class="mb-0 sem-state-title c-crit">CRITICAL</p>
+                                <p class="mb-1 sem-state-xf sem-state-xf-crit">C<sub>2</sub> &ensp; det = +1 &ensp; (x, y) &rarr; (&minus;x, &minus;y)</p>
+                                <p class="mb-1 fs-title fw-bold c-crit">The Manhattan Moment</p>
+                                <p class="fs-cite c-muted mb-0">Do a handstand. Both axes flip &mdash; left becomes right, up becomes down. (x,&nbsp;y)&nbsp;&rarr;&nbsp;(&minus;x,&nbsp;&minus;y). The blood rushes to your head. You cannot hold it for long. That is the Critical state &mdash; total inversion under pressure. The physicists of the Manhattan Project knew this owl. Their what-if calculations stopped being academic and became existential. <em>&ldquo;What if the atmosphere ignites?&rdquo;</em> Your proof turns on you. Not because the analysis was wrong &mdash; because it was <em>right</em>, and the answer is terrifying. Psychiatry calls this ego-dystonic insight. Philosophy calls it aporia. Engineers call it a show-stopper. Cybersecurity calls it a 0-day. The owl is inverted because your own proof has reversed your position.</p>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(140,65,145,0.04);border:1px solid rgba(140,65,145,0.12);border-radius:8px;">
-                                <p class="mb-0" style="font-weight:700;color:#8C4191;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;">METACOGNITIVE</p>
-                                <p class="mb-1" style="font-family:'SFMono-Regular','Consolas','Liberation Mono',monospace;font-size:0.68rem;color:rgba(140,65,145,0.6);">&sigma;<sub>h</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (x, &minus;y)</p>
-                                <p class="mb-1" style="font-weight:700;color:#8C4191;font-size:0.85rem;">The Observer&rsquo;s Mirror</p>
-                                <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">G&ouml;del proved that no sufficiently powerful formal system can prove its own consistency. The Metacognitive owl lives in that space &mdash; thinking about your thinking. A child drops a piece of gum on the floor and cannot find it. They have looked everywhere. Now they bend down, grab their ankles, and look between their legs. The room is the same room. Left is still left, right is still right &mdash; but up and down have inverted. That is &sigma;<sub>h</sub>: (x,&nbsp;y)&nbsp;&rarr;&nbsp;(x,&nbsp;&minus;y). The adults in the room would look at that child as if the kid were crazy. But the child was the only person in the room who performed both a physical and a cognitive act to attempt to solve the problem correctly. The horizontal reflection is not a metaphor &mdash; it is a physical act. A different angle reveals what the original frame could not. Robotics uses exactly the same principle: sensors invert and reverse their perspective to map environments that forward-facing orientation cannot resolve. The child and the robot perform the same mathematical transform. The owl is inverted because the frame of reference has flipped: not a finding about the subject, but a finding about the instrument. Calibration audits, methodology reviews, the moment a scientist questions whether the telescope itself is introducing the anomaly &mdash; all are &sigma;<sub>h</sub> in practice.</p>
+                            <div class="p-3 sem-panel-meta">
+                                <p class="mb-0 sem-state-title c-meta">METACOGNITIVE</p>
+                                <p class="mb-1 sem-state-xf sem-state-xf-meta">&sigma;<sub>h</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (x, &minus;y)</p>
+                                <p class="mb-1 fs-title fw-bold c-meta">The Observer&rsquo;s Mirror</p>
+                                <p class="fs-cite c-muted mb-0">G&ouml;del proved that no sufficiently powerful formal system can prove its own consistency. The Metacognitive owl lives in that space &mdash; thinking about your thinking. A child drops a piece of gum on the floor and cannot find it. They have looked everywhere. Now they bend down, grab their ankles, and look between their legs. The room is the same room. Left is still left, right is still right &mdash; but up and down have inverted. That is &sigma;<sub>h</sub>: (x,&nbsp;y)&nbsp;&rarr;&nbsp;(x,&nbsp;&minus;y). The adults in the room would look at that child as if the kid were crazy. But the child was the only person in the room who performed both a physical and a cognitive act to attempt to solve the problem correctly. The horizontal reflection is not a metaphor &mdash; it is a physical act. A different angle reveals what the original frame could not. Robotics uses exactly the same principle: sensors invert and reverse their perspective to map environments that forward-facing orientation cannot resolve. The child and the robot perform the same mathematical transform. The owl is inverted because the frame of reference has flipped: not a finding about the subject, but a finding about the instrument. Calibration audits, methodology reviews, the moment a scientist questions whether the telescope itself is introducing the anomaly &mdash; all are &sigma;<sub>h</sub> in practice.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-2 mt-2" style="background:rgba(13,17,23,0.4);border:1px solid rgba(200,149,106,0.1);border-radius:6px;">
-                        <p class="mb-0" style="font-size:0.75rem;color:#8b949e;">
-                            <strong style="color:#58a6ff;">Why does this matter?</strong> Every field of human knowledge already operates with these four states &mdash; they just lack a shared visual language. Peer review separates normative from non-normative. CVEs flag critical. Methodology audits are metacognitive. The Owl Semaphore gives 2,500 years of epistemology a notation system that works on a dashboard, a PDF, a slide deck, and a security advisory &mdash; all with the same four transforms from the Klein four-group.
+                    <div class="p-2 mt-2 sem-callout">
+                        <p class="mb-0 fs-ref c-muted">
+                            <strong class="c-link">Why does this matter?</strong> Every field of human knowledge already operates with these four states &mdash; they just lack a shared visual language. Peer review separates normative from non-normative. CVEs flag critical. Methodology audits are metacognitive. The Owl Semaphore gives 2,500 years of epistemology a notation system that works on a dashboard, a PDF, a slide deck, and a security advisory &mdash; all with the same four transforms from the Klein four-group.
                         </p>
                     </div>
                 </div>
@@ -465,29 +567,29 @@
                     <h2>{{icon "palette" "me-2"}}Surface Demonstration</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">The semaphore must function on both dark interfaces and light-background documents (PDFs, printed papers, slides). All assets ship with transparent backgrounds. Scientists should not hesitate to place these owls on a white page.</p>
+                    <p class="mb-3 fs-body c-muted">The semaphore must function on both dark interfaces and light-background documents (PDFs, printed papers, slides). All assets ship with transparent backgrounds. Scientists should not hesitate to place these owls on a white page.</p>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <div class="surface-demo surface-dark">
-                                <p class="surface-label" style="color:#e6edf3;">DARK SURFACE</p>
-                                <p style="font-size:0.68rem;color:#8b949e;margin-bottom:1rem;">Dashboards, terminals, dark-mode interfaces</p>
+                                <p class="surface-label c-bright">DARK SURFACE</p>
+                                <p class="fs-sm c-muted mb-3">Dashboards, terminals, dark-mode interfaces</p>
                                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-dark-540.png" .AppVersion}}" alt="Normative on dark" width="72" height="72" style="border-radius:50%;">
-                                        <p style="font-size:0.62rem;font-weight:700;color:#d4a853;margin-top:0.4rem;margin-bottom:0;">NORMATIVE</p>
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-dark-540.png" .AppVersion}}" alt="Normative on dark" width="72" height="72" class="sem-surface-thumb">
+                                        <p class="surface-state-label c-norm">NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-dark-540.png" .AppVersion}}" alt="Non-Normative on dark" width="72" height="72" style="border-radius:50%;">
-                                        <p style="font-size:0.62rem;font-weight:700;color:#4A9D96;margin-top:0.4rem;margin-bottom:0;">NON-NORMATIVE</p>
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-dark-540.png" .AppVersion}}" alt="Non-Normative on dark" width="72" height="72" class="sem-surface-thumb">
+                                        <p class="surface-state-label c-nonnorm">NON-NORMATIVE</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-dark-540.png" .AppVersion}}" alt="Critical on dark" width="72" height="72" style="border-radius:50%;">
-                                        <p style="font-size:0.62rem;font-weight:700;color:#f85149;margin-top:0.4rem;margin-bottom:0;">CRITICAL</p>
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-dark-540.png" .AppVersion}}" alt="Critical on dark" width="72" height="72" class="sem-surface-thumb">
+                                        <p class="surface-state-label c-crit">CRITICAL</p>
                                     </div>
                                     <div class="text-center">
-                                        <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-dark-540.png" .AppVersion}}" alt="Metacognitive on dark" width="72" height="72" style="border-radius:50%;">
-                                        <p style="font-size:0.62rem;font-weight:700;color:#8C4191;margin-top:0.4rem;margin-bottom:0;">METACOGNITIVE</p>
+                                        <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-dark-540.png" .AppVersion}}" alt="Metacognitive on dark" width="72" height="72" class="sem-surface-thumb">
+                                        <p class="surface-state-label c-meta">METACOGNITIVE</p>
                                     </div>
                                 </div>
                             </div>
@@ -517,7 +619,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="mb-0" style="font-size:0.72rem;color:rgba(170,178,188,0.5);text-align:center;">Each standard ships in three variants: white background (print), dark background (UI), and transparent (compositing).</p>
+                    <p class="mb-0 fs-spec c-dimmest text-center">Each standard ships in three variants: white background (print), dark background (UI), and transparent (compositing).</p>
                 </div>
             </div>
 
@@ -526,80 +628,80 @@
                     <h2>{{icon "ruler-combined" "me-2"}}Mathematical Foundation</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">The four semaphore states form the Klein four-group <strong style="color:#e6edf3;">V&#x2084; = {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>}</strong>, a subgroup of the orthogonal group O(2). Each is a distance-preserving linear transformation of the plane. The determinant separates proper rotations (det&nbsp;=&nbsp;+1) from improper reflections (det&nbsp;=&nbsp;&minus;1).</p>
+                    <p class="mb-3 fs-body c-muted">The four semaphore states form the Klein four-group <strong class="c-bright">V&#x2084; = {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>}</strong>, a subgroup of the orthogonal group O(2). Each is a distance-preserving linear transformation of the plane. The determinant separates proper rotations (det&nbsp;=&nbsp;+1) from improper reflections (det&nbsp;=&nbsp;&minus;1).</p>
 
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered" style="font-size:0.8rem;border-color:#30363d;">
-                            <thead style="background:rgba(13,17,23,0.6);">
+                        <table class="table table-sm table-bordered fs-tbl sem-tbl">
+                            <thead>
                                 <tr>
-                                    <th style="color:#e6edf3;border-color:#30363d;width:18%;">State</th>
-                                    <th style="color:#e6edf3;border-color:#30363d;width:15%;">Transform</th>
-                                    <th style="color:#e6edf3;border-color:#30363d;width:8%;">det</th>
-                                    <th style="color:#e6edf3;border-color:#30363d;width:22%;">Mapping</th>
-                                    <th style="color:#e6edf3;border-color:#30363d;width:12%;">Color</th>
-                                    <th style="color:#e6edf3;border-color:#30363d;">Semantics</th>
+                                    <th>State</th>
+                                    <th>Transform</th>
+                                    <th>det</th>
+                                    <th>Mapping</th>
+                                    <th>Color</th>
+                                    <th>Semantics</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="color:#d4a853;font-weight:700;border-color:#30363d;">NORMATIVE</td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = I</td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">+1</td>
-                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (x, y)</td>
-                                    <td style="border-color:#30363d;"><span style="color:#d4a853;">&#9679;</span> Gold</td>
-                                    <td style="color:#8b949e;border-color:#30363d;">Verified. Authoritative. The standard.</td>
+                                    <td class="c-norm fw-bold">NORMATIVE</td>
+                                    <td class="sem-tbl-mono">T = I</td>
+                                    <td class="sem-tbl-mono">+1</td>
+                                    <td class="sem-tbl-map">(x, y) &rarr; (x, y)</td>
+                                    <td><span class="sem-dot-norm">&#9679;</span> Gold</td>
+                                    <td class="c-muted">Verified. Authoritative. The standard.</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:#4A9D96;font-weight:700;border-color:#30363d;">NON-NORMATIVE</td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = &sigma;<sub>v</sub></td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">&minus;1</td>
-                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (&minus;x, y)</td>
-                                    <td style="border-color:#30363d;"><span style="color:#4A9D96;">&#9679;</span> Verdigris</td>
-                                    <td style="color:#8b949e;border-color:#30363d;">Exploratory. Informative. This reflects the standard.</td>
+                                    <td class="c-nonnorm fw-bold">NON-NORMATIVE</td>
+                                    <td class="sem-tbl-mono">T = &sigma;<sub>v</sub></td>
+                                    <td class="sem-tbl-mono">&minus;1</td>
+                                    <td class="sem-tbl-map">(x, y) &rarr; (&minus;x, y)</td>
+                                    <td><span class="sem-dot-nonnorm">&#9679;</span> Verdigris</td>
+                                    <td class="c-muted">Exploratory. Informative. This reflects the standard.</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:#f85149;font-weight:700;border-color:#30363d;">CRITICAL</td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = C<sub>2</sub></td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">+1</td>
-                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (&minus;x, &minus;y)</td>
-                                    <td style="border-color:#30363d;"><span style="color:#8B0000;">&#9679;</span> Crimson</td>
-                                    <td style="color:#8b949e;border-color:#30363d;">Your proof turns on you. This inverts the standard.</td>
+                                    <td class="c-crit fw-bold">CRITICAL</td>
+                                    <td class="sem-tbl-mono">T = C<sub>2</sub></td>
+                                    <td class="sem-tbl-mono">+1</td>
+                                    <td class="sem-tbl-map">(x, y) &rarr; (&minus;x, &minus;y)</td>
+                                    <td><span class="sem-dot-crit">&#9679;</span> Crimson</td>
+                                    <td class="c-muted">Your proof turns on you. This inverts the standard.</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:#8C4191;font-weight:700;border-color:#30363d;">METACOGNITIVE</td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">T = &sigma;<sub>h</sub></td>
-                                    <td style="color:#aab2bc;font-family:monospace;border-color:#30363d;">&minus;1</td>
-                                    <td style="color:#8b949e;font-family:monospace;font-size:0.72rem;border-color:#30363d;">(x, y) &rarr; (x, &minus;y)</td>
-                                    <td style="border-color:#30363d;"><span style="color:#8C4191;">&#9679;</span> Amethyst</td>
-                                    <td style="color:#8b949e;border-color:#30363d;">The observer audits the system. This audits the standard.</td>
+                                    <td class="c-meta fw-bold">METACOGNITIVE</td>
+                                    <td class="sem-tbl-mono">T = &sigma;<sub>h</sub></td>
+                                    <td class="sem-tbl-mono">&minus;1</td>
+                                    <td class="sem-tbl-map">(x, y) &rarr; (x, &minus;y)</td>
+                                    <td><span class="sem-dot-meta">&#9679;</span> Amethyst</td>
+                                    <td class="c-muted">The observer audits the system. This audits the standard.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="p-2 mt-2" style="background:rgba(13,17,23,0.4);border:1px solid rgba(200,149,106,0.1);border-radius:6px;">
-                        <p class="mb-0" style="font-size:0.75rem;color:#8b949e;">
-                            <strong style="color:#58a6ff;">Why the Klein four-group V&#x2084;?</strong> The four transforms {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>} form the Klein four-group &mdash; the smallest non-cyclic group, where every non-identity element is its own inverse. The determinant partitions the group: det = +1 (I, C<sub>2</sub>) preserves orientation; det = &minus;1 (&sigma;<sub>v</sub>, &sigma;<sub>h</sub>) reverses it. This maps directly to epistemology: Normative (I) and Critical (C<sub>2</sub>) are both orientation-preserving &mdash; the system knows where it stands, whether the answer is good or dangerous. Non-Normative (&sigma;<sub>v</sub>) and Metacognitive (&sigma;<sub>h</sub>) both reverse orientation &mdash; the frame of reference is shifting, whether through exploration or self-audit.
+                    <div class="p-2 mt-2 sem-callout">
+                        <p class="mb-0 fs-ref c-muted">
+                            <strong class="c-link">Why the Klein four-group V&#x2084;?</strong> The four transforms {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>} form the Klein four-group &mdash; the smallest non-cyclic group, where every non-identity element is its own inverse. The determinant partitions the group: det = +1 (I, C<sub>2</sub>) preserves orientation; det = &minus;1 (&sigma;<sub>v</sub>, &sigma;<sub>h</sub>) reverses it. This maps directly to epistemology: Normative (I) and Critical (C<sub>2</sub>) are both orientation-preserving &mdash; the system knows where it stands, whether the answer is good or dangerous. Non-Normative (&sigma;<sub>v</sub>) and Metacognitive (&sigma;<sub>h</sub>) both reverse orientation &mdash; the frame of reference is shifting, whether through exploration or self-audit.
                         </p>
                     </div>
 
-                    <div class="p-2 mt-2" style="background:rgba(139,0,0,0.03);border:1px solid rgba(139,0,0,0.1);border-radius:6px;">
-                        <p class="mb-1" style="font-size:0.72rem;color:#e6edf3;font-weight:600;">The CRITICAL and METACOGNITIVE states across disciplines:</p>
-                        <p class="mb-1" style="font-size:0.72rem;color:#8b949e;">
-                            <strong style="color:#f85149;">CRITICAL:</strong> &ensp;
-                            <strong style="color:#aab2bc;">Psychiatry:</strong> Ego-dystonic insight. &ensp;
-                            <strong style="color:#aab2bc;">Philosophy:</strong> Aporia. &ensp;
-                            <strong style="color:#aab2bc;">Statistics:</strong> Significance reversal. &ensp;
-                            <strong style="color:#aab2bc;">Cybersecurity:</strong> 0-day disclosure. &ensp;
-                            <strong style="color:#aab2bc;">Engineering:</strong> Show-stopper.
+                    <div class="p-2 mt-2 sem-callout-crit">
+                        <p class="mb-1 fs-spec c-bright fw-semibold">The CRITICAL and METACOGNITIVE states across disciplines:</p>
+                        <p class="mb-1 fs-spec c-muted">
+                            <strong class="c-crit">CRITICAL:</strong> &ensp;
+                            <strong class="c-dim">Psychiatry:</strong> Ego-dystonic insight. &ensp;
+                            <strong class="c-dim">Philosophy:</strong> Aporia. &ensp;
+                            <strong class="c-dim">Statistics:</strong> Significance reversal. &ensp;
+                            <strong class="c-dim">Cybersecurity:</strong> 0-day disclosure. &ensp;
+                            <strong class="c-dim">Engineering:</strong> Show-stopper.
                         </p>
-                        <p class="mb-0" style="font-size:0.72rem;color:#8b949e;">
-                            <strong style="color:#8C4191;">METACOGNITIVE:</strong> &ensp;
-                            <strong style="color:#aab2bc;">Science:</strong> Calibration audit &mdash; questioning the instrument, not the measurement. &ensp;
-                            <strong style="color:#aab2bc;">Philosophy:</strong> G&ouml;delian self-reference &mdash; the system examining its own consistency. &ensp;
-                            <strong style="color:#aab2bc;">Statistics:</strong> Model diagnostics &mdash; testing whether the test itself is valid. &ensp;
-                            <strong style="color:#aab2bc;">Cybersecurity:</strong> Red team of the red team &mdash; auditing the audit methodology. &ensp;
-                            <strong style="color:#aab2bc;">Quality:</strong> ISO 17025 measurement uncertainty &mdash; quantifying the limits of your own instruments.
+                        <p class="mb-0 fs-spec c-muted">
+                            <strong class="c-meta">METACOGNITIVE:</strong> &ensp;
+                            <strong class="c-dim">Science:</strong> Calibration audit &mdash; questioning the instrument, not the measurement. &ensp;
+                            <strong class="c-dim">Philosophy:</strong> G&ouml;delian self-reference &mdash; the system examining its own consistency. &ensp;
+                            <strong class="c-dim">Statistics:</strong> Model diagnostics &mdash; testing whether the test itself is valid. &ensp;
+                            <strong class="c-dim">Cybersecurity:</strong> Red team of the red team &mdash; auditing the audit methodology. &ensp;
+                            <strong class="c-dim">Quality:</strong> ISO 17025 measurement uncertainty &mdash; quantifying the limits of your own instruments.
                         </p>
                     </div>
                 </div>
@@ -612,46 +714,46 @@
                 <div class="sem-section-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.12);border-radius:8px;">
-                                <p class="mb-1" style="font-weight:700;color:#d4a853;font-size:0.85rem;">NORMATIVE</p>
-                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
-                                    <li><strong style="color:#aab2bc;">RFC 2119:</strong> MUST, SHALL, REQUIRED</li>
-                                    <li><strong style="color:#aab2bc;">ISO/IEC:</strong> Normative clauses</li>
-                                    <li><strong style="color:#aab2bc;">W3C:</strong> Normative sections</li>
-                                    <li><strong style="color:#aab2bc;">Science:</strong> Verified, peer-reviewed claims</li>
+                            <div class="p-3 sem-panel-norm">
+                                <p class="mb-1 fs-title fw-bold c-norm">NORMATIVE</p>
+                                <ul class="mb-0 fs-ref c-muted sem-list">
+                                    <li><strong class="c-dim">RFC 2119:</strong> MUST, SHALL, REQUIRED</li>
+                                    <li><strong class="c-dim">ISO/IEC:</strong> Normative clauses</li>
+                                    <li><strong class="c-dim">W3C:</strong> Normative sections</li>
+                                    <li><strong class="c-dim">Science:</strong> Verified, peer-reviewed claims</li>
                                 </ul>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(74,157,150,0.04);border:1px solid rgba(74,157,150,0.12);border-radius:8px;">
-                                <p class="mb-1" style="font-weight:700;color:#4A9D96;font-size:0.85rem;">NON-NORMATIVE</p>
-                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
-                                    <li><strong style="color:#aab2bc;">RFC:</strong> Informative, NOTE</li>
-                                    <li><strong style="color:#aab2bc;">ISO/IEC:</strong> Informative annexes</li>
-                                    <li><strong style="color:#aab2bc;">W3C:</strong> Non-normative notes</li>
-                                    <li><strong style="color:#aab2bc;">Science:</strong> Hypotheses, exploratory analysis</li>
+                            <div class="p-3 sem-panel-nonnorm">
+                                <p class="mb-1 fs-title fw-bold c-nonnorm">NON-NORMATIVE</p>
+                                <ul class="mb-0 fs-ref c-muted sem-list">
+                                    <li><strong class="c-dim">RFC:</strong> Informative, NOTE</li>
+                                    <li><strong class="c-dim">ISO/IEC:</strong> Informative annexes</li>
+                                    <li><strong class="c-dim">W3C:</strong> Non-normative notes</li>
+                                    <li><strong class="c-dim">Science:</strong> Hypotheses, exploratory analysis</li>
                                 </ul>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(139,0,0,0.04);border:1px solid rgba(139,0,0,0.12);border-radius:8px;">
-                                <p class="mb-1" style="font-weight:700;color:#f85149;font-size:0.85rem;">CRITICAL</p>
-                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
-                                    <li><strong style="color:#aab2bc;">CVE:</strong> Security vulnerability</li>
-                                    <li><strong style="color:#aab2bc;">CVSS:</strong> Critical severity (9.0&ndash;10.0)</li>
-                                    <li><strong style="color:#aab2bc;">CISA:</strong> Known Exploited Vulnerability</li>
-                                    <li><strong style="color:#aab2bc;">Science:</strong> Falsified claim, retraction</li>
+                            <div class="p-3 sem-panel-crit">
+                                <p class="mb-1 fs-title fw-bold c-crit">CRITICAL</p>
+                                <ul class="mb-0 fs-ref c-muted sem-list">
+                                    <li><strong class="c-dim">CVE:</strong> Security vulnerability</li>
+                                    <li><strong class="c-dim">CVSS:</strong> Critical severity (9.0&ndash;10.0)</li>
+                                    <li><strong class="c-dim">CISA:</strong> Known Exploited Vulnerability</li>
+                                    <li><strong class="c-dim">Science:</strong> Falsified claim, retraction</li>
                                 </ul>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3" style="background:rgba(140,65,145,0.04);border:1px solid rgba(140,65,145,0.12);border-radius:8px;">
-                                <p class="mb-1" style="font-weight:700;color:#8C4191;font-size:0.85rem;">METACOGNITIVE</p>
-                                <ul class="mb-0" style="font-size:0.75rem;color:#8b949e;padding-left:1.2rem;">
-                                    <li><strong style="color:#aab2bc;">ISO 17025:</strong> Measurement uncertainty</li>
-                                    <li><strong style="color:#aab2bc;">Audit:</strong> Internal audit of audit methodology</li>
-                                    <li><strong style="color:#aab2bc;">Science:</strong> Methodology review, instrument calibration</li>
-                                    <li><strong style="color:#aab2bc;">Logic:</strong> G&ouml;delian self-reference, frame inversion</li>
+                            <div class="p-3 sem-panel-meta">
+                                <p class="mb-1 fs-title fw-bold c-meta">METACOGNITIVE</p>
+                                <ul class="mb-0 fs-ref c-muted sem-list">
+                                    <li><strong class="c-dim">ISO 17025:</strong> Measurement uncertainty</li>
+                                    <li><strong class="c-dim">Audit:</strong> Internal audit of audit methodology</li>
+                                    <li><strong class="c-dim">Science:</strong> Methodology review, instrument calibration</li>
+                                    <li><strong class="c-dim">Logic:</strong> G&ouml;delian self-reference, frame inversion</li>
                                 </ul>
                             </div>
                         </div>
@@ -664,13 +766,13 @@
                     <h2>{{icon "download" "me-2"}}Download &amp; Cite</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p class="mb-3" style="font-size:0.82rem;color:#8b949e;">All assets are 540&times;540 PNG composites. Each standard ships in three background variants. Free to use in scientific publications, technical documentation, and research projects with attribution.</p>
+                    <p class="mb-3 fs-body c-muted">All assets are 540&times;540 PNG composites. Each standard ships in three background variants. Free to use in scientific publications, technical documentation, and research projects with attribution.</p>
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <div class="p-3 text-center" style="background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.12);border-radius:8px;">
-                                <p class="mb-2" style="font-weight:700;color:#d4a853;font-size:0.85rem;">NORMATIVE</p>
-                                <div class="dl-grid" style="margin-top:0;">
+                            <div class="p-3 text-center sem-panel-norm">
+                                <p class="mb-2 fs-title fw-bold c-norm">NORMATIVE</p>
+                                <div class="dl-grid dl-grid-flush">
                                     <a href="/static/exports/owl-semaphore/NORM-composite-white-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/NORM-composite-dark-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Dark</a>
                                     <a href="/static/exports/owl-semaphore/NORM-composite-transparent-540.png" download class="owl-download-btn dl-normative">{{icon "download" "me-1"}}Transparent</a>
@@ -678,9 +780,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 text-center" style="background:rgba(74,157,150,0.04);border:1px solid rgba(74,157,150,0.12);border-radius:8px;">
-                                <p class="mb-2" style="font-weight:700;color:#4A9D96;font-size:0.85rem;">NON-NORMATIVE</p>
-                                <div class="dl-grid" style="margin-top:0;">
+                            <div class="p-3 text-center sem-panel-nonnorm">
+                                <p class="mb-2 fs-title fw-bold c-nonnorm">NON-NORMATIVE</p>
+                                <div class="dl-grid dl-grid-flush">
                                     <a href="/static/exports/owl-semaphore/NONNORM-composite-white-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/NONNORM-composite-dark-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Dark</a>
                                     <a href="/static/exports/owl-semaphore/NONNORM-composite-transparent-540.png" download class="owl-download-btn dl-nonnormative">{{icon "download" "me-1"}}Transparent</a>
@@ -688,9 +790,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 text-center" style="background:rgba(139,0,0,0.04);border:1px solid rgba(139,0,0,0.12);border-radius:8px;">
-                                <p class="mb-2" style="font-weight:700;color:#f85149;font-size:0.85rem;">CRITICAL</p>
-                                <div class="dl-grid" style="margin-top:0;">
+                            <div class="p-3 text-center sem-panel-crit">
+                                <p class="mb-2 fs-title fw-bold c-crit">CRITICAL</p>
+                                <div class="dl-grid dl-grid-flush">
                                     <a href="/static/exports/owl-semaphore/CRIT-composite-white-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/CRIT-composite-dark-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Dark</a>
                                     <a href="/static/exports/owl-semaphore/CRIT-composite-transparent-540.png" download class="owl-download-btn dl-critical">{{icon "download" "me-1"}}Transparent</a>
@@ -698,9 +800,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 text-center" style="background:rgba(140,65,145,0.04);border:1px solid rgba(140,65,145,0.12);border-radius:8px;">
-                                <p class="mb-2" style="font-weight:700;color:#8C4191;font-size:0.85rem;">METACOGNITIVE</p>
-                                <div class="dl-grid" style="margin-top:0;">
+                            <div class="p-3 text-center sem-panel-meta">
+                                <p class="mb-2 fs-title fw-bold c-meta">METACOGNITIVE</p>
+                                <div class="dl-grid dl-grid-flush">
                                     <a href="/static/exports/owl-semaphore/META-composite-white-540.png" download class="owl-download-btn dl-metacognitive">{{icon "download" "me-1"}}White</a>
                                     <a href="/static/exports/owl-semaphore/META-composite-dark-540.png" download class="owl-download-btn dl-metacognitive">{{icon "download" "me-1"}}Dark</a>
                                     <a href="/static/exports/owl-semaphore/META-composite-transparent-540.png" download class="owl-download-btn dl-metacognitive">{{icon "download" "me-1"}}Transparent</a>
@@ -709,7 +811,7 @@
                         </div>
                     </div>
 
-                    <h3 style="font-size:0.88rem;color:#e6edf3;margin-bottom:0.75rem;">BibTeX</h3>
+                    <h3 class="fs-h3 c-bright mb-2">BibTeX</h3>
                     <div class="bibtex-block" id="bibtex-block">
                         <button class="bibtex-copy" id="bibtex-copy-btn">Copy</button>
 <code id="bibtex-text">@misc&#x7b;balboa2026owlsemaphore,
@@ -724,12 +826,12 @@
 &#x7d;</code>
                     </div>
 
-                    <h3 class="mt-3" style="font-size:0.88rem;color:#e6edf3;margin-bottom:0.75rem;">Zotero / Reference Managers</h3>
-                    <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0.5rem;">This page includes <strong style="color:#aab2bc;">Highwire Press</strong> metadata tags (<code style="color:#58a6ff;">citation_*</code>) and <strong style="color:#aab2bc;">Schema.org JSON-LD</strong> structured data. Zotero, Mendeley, and other reference managers will auto-detect and import this page&rsquo;s citation metadata directly from the browser toolbar.</p>
-                    <p style="font-size:0.78rem;color:#8b949e;margin-bottom:0;">
-                        <strong style="color:#aab2bc;">DOI:</strong> <a href="https://doi.org/10.5281/zenodo.19473697" target="_blank" rel="noopener" class="text-info text-decoration-none">10.5281/zenodo.19473697</a> &middot;
-                        <strong style="color:#aab2bc;">ORCID:</strong> <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">0009-0000-5237-9065</a> &middot;
-                        <strong style="color:#aab2bc;">License:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-info text-decoration-none">CC BY 4.0</a>
+                    <h3 class="mt-3 fs-h3 c-bright mb-2">Zotero / Reference Managers</h3>
+                    <p class="fs-cite c-muted mb-1">This page includes <strong class="c-dim">Highwire Press</strong> metadata tags (<code class="c-link">citation_*</code>) and <strong class="c-dim">Schema.org JSON-LD</strong> structured data. Zotero, Mendeley, and other reference managers will auto-detect and import this page&rsquo;s citation metadata directly from the browser toolbar.</p>
+                    <p class="fs-cite c-muted mb-0">
+                        <strong class="c-dim">DOI:</strong> <a href="https://doi.org/10.5281/zenodo.19473697" target="_blank" rel="noopener" class="text-info text-decoration-none">10.5281/zenodo.19473697</a> &middot;
+                        <strong class="c-dim">ORCID:</strong> <a href="https://orcid.org/0009-0000-5237-9065" target="_blank" rel="noopener" class="text-info text-decoration-none">0009-0000-5237-9065</a> &middot;
+                        <strong class="c-dim">License:</strong> <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-info text-decoration-none">CC BY 4.0</a>
                     </p>
                 </div>
             </div>
@@ -739,13 +841,13 @@
                     <h2>{{icon "flask" "me-2"}}For Scientists</h2>
                 </div>
                 <div class="sem-section-body">
-                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">This system was created by one researcher who kept pushing on a single question: <em>How much better would every field be if its practitioners thought about their thinking as they did their work?</em> The answer is the Owl Semaphore &mdash; born at the intersection of DNS security, epistemology, and the analytical philosophy that Athena&rsquo;s owl has symbolized since the Athenian drachma.</p>
-                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">That question did not come from an academic exercise. It came from a lifetime of metacognitive work &mdash; the kind that happens when an autistic mind navigates a world it was never given instructions for. Hypervigilance becomes pattern-matching. Misunderstanding becomes a laboratory. Every social interaction, every misread signal, every correction becomes data in a decades-long experiment about how human beings process knowledge, make errors, and fail to notice when their own logic has turned on them. The Owl Semaphore is the formal notation for what was already happening: a compatibility mechanism between one mind&rsquo;s relentless self-examination and the broader structures of human reasoning.</p>
-                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">The system must align with reality. Not with one discipline &mdash; with all of them. Psychology, psychiatry, computer science, data science, statistics, the human spirit, and 2,500 years of accumulated knowledge. If a critical finding in cybersecurity triggers the same epistemic state as a retracted paper in medicine, as a structural failure in engineering, as a philosophical aporia in ethics &mdash; then the notation is doing its job. If it doesn&rsquo;t, it has failed.</p>
-                    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:0.75rem;">The semaphore is designed to be improved. If you find a better transform, a clearer color, or a more precise mapping to your field&rsquo;s standards, that is exactly the point. The Owl of Athena has watched over rigorous thinking for 2,500 years. This is one attempt to give her a formal notation.</p>
-                    <div class="p-3" style="background:rgba(88,166,255,0.04);border:1px solid rgba(88,166,255,0.15);border-radius:8px;">
-                        <p class="mb-1" style="font-size:0.82rem;color:#e6edf3;font-weight:600;">How to use in your project:</p>
-                        <ol style="font-size:0.78rem;color:#8b949e;padding-left:1.5rem;margin-bottom:0;">
+                    <p class="fs-body c-muted mb-2">This system was created by one researcher who kept pushing on a single question: <em>How much better would every field be if its practitioners thought about their thinking as they did their work?</em> The answer is the Owl Semaphore &mdash; born at the intersection of DNS security, epistemology, and the analytical philosophy that Athena&rsquo;s owl has symbolized since the Athenian drachma.</p>
+                    <p class="fs-body c-muted mb-2">That question did not come from an academic exercise. It came from a lifetime of metacognitive work &mdash; the kind that happens when an autistic mind navigates a world it was never given instructions for. Hypervigilance becomes pattern-matching. Misunderstanding becomes a laboratory. Every social interaction, every misread signal, every correction becomes data in a decades-long experiment about how human beings process knowledge, make errors, and fail to notice when their own logic has turned on them. The Owl Semaphore is the formal notation for what was already happening: a compatibility mechanism between one mind&rsquo;s relentless self-examination and the broader structures of human reasoning.</p>
+                    <p class="fs-body c-muted mb-2">The system must align with reality. Not with one discipline &mdash; with all of them. Psychology, psychiatry, computer science, data science, statistics, the human spirit, and 2,500 years of accumulated knowledge. If a critical finding in cybersecurity triggers the same epistemic state as a retracted paper in medicine, as a structural failure in engineering, as a philosophical aporia in ethics &mdash; then the notation is doing its job. If it doesn&rsquo;t, it has failed.</p>
+                    <p class="fs-body c-muted mb-2">The semaphore is designed to be improved. If you find a better transform, a clearer color, or a more precise mapping to your field&rsquo;s standards, that is exactly the point. The Owl of Athena has watched over rigorous thinking for 2,500 years. This is one attempt to give her a formal notation.</p>
+                    <div class="p-3 sem-panel-info">
+                        <p class="mb-1 fs-body c-bright fw-semibold">How to use in your project:</p>
+                        <ol class="fs-cite c-muted sem-ol mb-0">
                             <li>Download the PNG composites above (540&times;540, available in white, dark, and transparent backgrounds).</li>
                             <li>Place the appropriate owl on your document header, slide, or page to indicate its epistemic state.</li>
                             <li>Include the BibTeX citation if referencing the system formally.</li>
@@ -757,21 +859,21 @@
 
             <div class="sem-section">
                 <div class="sem-section-body">
-                    <p class="mb-1 text-center" style="font-size:0.75rem;color:rgba(170,178,188,0.4);font-style:italic;">
+                    <p class="mb-1 text-center fs-ref c-ghost fst-italic">
                         &ldquo;How much better would science be if every scientist thought about their thinking as they did their science?&rdquo;
                     </p>
-                    <p class="mb-0 text-center" style="font-size:0.68rem;color:rgba(170,178,188,0.3);">&mdash; Carey James Balboa</p>
+                    <p class="mb-0 text-center fs-sm c-faint">&mdash; Carey James Balboa</p>
                 </div>
             </div>
 
             <div class="text-center py-3">
-                <p class="mb-1" style="font-size:0.72rem;color:#8b949e;">
+                <p class="mb-1 fs-spec c-muted">
                     <a href="/manifesto" class="text-info text-decoration-none">Founder&rsquo;s Manifesto</a> &middot;
                     <a href="/publications" class="text-info text-decoration-none">Publications</a> &middot;
                     <a href="/foundations" class="text-info text-decoration-none">Philosophical Foundations</a> &middot;
                     <a href="/methodology" class="text-info text-decoration-none">Methodology</a>
                 </p>
-                <p class="mb-0" style="font-size:0.68rem;color:rgba(170,178,188,0.35);">DNS Tool v{{.AppVersion}} &middot; IT Help San Diego Inc.</p>
+                <p class="mb-0 fs-sm c-whisper">DNS Tool v{{.AppVersion}} &middot; IT Help San Diego Inc.</p>
             </div>
 
         </div>

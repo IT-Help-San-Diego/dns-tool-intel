@@ -132,6 +132,11 @@
             border-color: rgba(255,68,68,0.35);
             color: #ff6666;
         }
+
+        .vfd-aspect-ratio { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .vfd-iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .vfd-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #d4a853; }
+        .vfd-trigger { font-size: 0.82rem; color: #c8956a; font-style: italic; margin-bottom: 0.75rem; }
     </style>
 </head>
 <body>
@@ -141,8 +146,8 @@
         <div class="video-page-wrap">
             <section class="video-container" aria-label="Video: Forgotten Domain — why dormant domains need published DNS policy">
                 {{if .YouTubeID}}
-                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden">
-                    <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
+                <div class="vfd-aspect-ratio">
+                    <iframe src="https://www.youtube-nocookie.com/embed/{{.YouTubeID}}?rel=0&modestbranding=1" class="vfd-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Forgotten Domain — why dormant domains need published DNS policy"></iframe>
                 </div>
                 {{else}}
                 <video controls preload="metadata" playsinline poster="/static/images/og-forgotten-domain.png" aria-label="Forgotten Domain — why dormant domains need published DNS policy">
@@ -154,9 +159,9 @@
             </section>
 
             <div class="video-meta">
-                <p class="mb-1" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#d4a853">Domain Confessions</p>
+                <p class="mb-1 vfd-eyebrow">Domain Confessions</p>
                 <h1>{{icon "shield-alt" "me-2 text-warning"}}Forgotten Domain</h1>
-                <p style="font-size:0.82rem;color:#c8956a;font-style:italic;margin-bottom:0.75rem">Trigger Warning: If you disable security settings just to make things work, this video may not be for you. In other words, you may experience feelings of shame.</p>
+                <p class="vfd-trigger">Trigger Warning: If you disable security settings just to make things work, this video may not be for you. In other words, you may experience feelings of shame.</p>
                 <p>A domain registered for ten years with no published mail policy is not dormant &mdash; it is exposed. Reputation systems do not distinguish between negligence and compromise. They only see the absence of published policy.</p>
 
                 <figure class="dns-records" aria-label="Recommended DNS records for dormant domains">

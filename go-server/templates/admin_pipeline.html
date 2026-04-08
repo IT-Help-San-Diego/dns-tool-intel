@@ -18,9 +18,14 @@
         .stat-card { border-left: 3px solid var(--bs-info); }
         .stat-card .stat-value { font-size: 1.75rem; font-weight: 700; }
         .stat-card .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bs-secondary); }
-        .dist-bar { height: 24px; border-radius: 4px; min-width: 2px; transition: width 0.3s; }
+        .dist-bar { height: 24px; border-radius: 4px; min-width: 2px; transition: width 0.3s; max-width: 100%; }
         .percentile-badge { font-size: 0.7rem; padding: 2px 6px; }
         .stage-metric { font-size: 0.75rem; line-height: 1.4; }
+
+        .ap-dist-label { min-width: 60px; }
+        .ap-dist-label-wide { min-width: 70px; }
+        .ap-dist-count { min-width: 40px; }
+        .ap-meta-key { font-size: 0.7rem; }
     </style>
 </head>
 <body>
@@ -132,13 +137,13 @@
                     <div class="card-body">
                         {{range .Distribution}}
                         <div class="d-flex align-items-center mb-2">
-                            <div class="text-end me-2" style="min-width: 60px;">
+                            <div class="text-end me-2 ap-dist-label">
                                 <code class="small">{{.Bucket}}</code>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="dist-bar bg-info" style="width: {{.Count}}%; max-width: 100%;" title="{{.Count}} scans"></div>
+                                <div class="dist-bar bg-info" style="width: {{.Count}}%;" title="{{.Count}} scans"></div>
                             </div>
-                            <div class="ms-2 small text-muted" style="min-width: 40px;">{{.Count}}</div>
+                            <div class="ms-2 small text-muted ap-dist-count">{{.Count}}</div>
                         </div>
                         {{else}}
                         <div class="text-center text-muted py-3">No distribution data yet.</div>
@@ -154,13 +159,13 @@
                     <div class="card-body">
                         {{range .DriftDistribution}}
                         <div class="d-flex align-items-center mb-2">
-                            <div class="text-end me-2" style="min-width: 70px;">
+                            <div class="text-end me-2 ap-dist-label-wide">
                                 <span class="badge bg-{{if eq .Severity "critical"}}danger{{else if eq .Severity "warning"}}warning{{else if eq .Severity "danger"}}danger{{else}}info{{end}}">{{.Severity}}</span>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="dist-bar bg-{{if eq .Severity "critical"}}danger{{else if eq .Severity "warning"}}warning{{else if eq .Severity "danger"}}danger{{else}}info{{end}}" style="width: {{.Count}}%; max-width: 100%;" title="{{.Count}} events"></div>
+                                <div class="dist-bar bg-{{if eq .Severity "critical"}}danger{{else if eq .Severity "warning"}}warning{{else if eq .Severity "danger"}}danger{{else}}info{{end}}" style="width: {{.Count}}%;" title="{{.Count}} events"></div>
                             </div>
-                            <div class="ms-2 small text-muted" style="min-width: 40px;">{{.Count}}</div>
+                            <div class="ms-2 small text-muted ap-dist-count">{{.Count}}</div>
                         </div>
                         {{else}}
                         <div class="text-center text-muted py-3">No drift events in the last 30 days.</div>
@@ -198,7 +203,7 @@
                             <tr>
                                 <td>
                                     <div class="fw-bold small">{{.Label}}</div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">{{.Key}}</div>
+                                    <div class="text-muted ap-meta-key">{{.Key}}</div>
                                 </td>
                                 <td>{{.ScanCount}}</td>
                                 <td>{{.AvgMs}}ms</td>

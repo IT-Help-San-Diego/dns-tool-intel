@@ -232,6 +232,15 @@
         .bib-section a {
             color: #c8956a;
         }
+
+        .cs-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #d4a853; }
+        .cs-h1 { font-size: 1.5rem; font-weight: 700; }
+        .cs-date { font-size: 0.78rem; color: #8b949e; }
+        .cs-callout-text { margin-bottom: 0; }
+        .cs-overflow-x { overflow-x: auto; }
+        .cs-caption { caption-side: top; text-align: left; font-size: 0.78rem; color: #8b949e; padding-bottom: 0.5rem; }
+        .cs-methodology { font-size: 0.82rem; color: #8b949e; }
+        .cs-share-flat { border-top: none; padding-top: 0; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -240,15 +249,15 @@
     <main id="main-content" class="container mt-4 mb-5">
         <div class="case-study-wrap">
 
-            <p class="mb-1" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#d4a853">Domain Confessions #2</p>
-            <h1 style="font-size:1.5rem;font-weight:700">{{icon "eye" "me-2 text-warning"}}The Intelligence Agency That Chose to Watch</h1>
-            <p style="font-size:0.78rem;color:#8b949e">Published March 19, 2026 &middot; All data from public DNS records &middot; Independently verifiable</p>
+            <p class="mb-1 cs-eyebrow">Domain Confessions #2</p>
+            <h1 class="cs-h1">{{icon "eye" "me-2 text-warning"}}The Intelligence Agency That Chose to Watch</h1>
+            <p class="cs-date">Published March 19, 2026 &middot; All data from public DNS records &middot; Independently verifiable</p>
 
             <div class="cs-hook">
                 <p>In October 2017, the Department of Homeland Security issued <strong>Binding Operational Directive 18-01</strong>, requiring every federal executive branch agency to implement DMARC with a policy of <code>p=reject</code> within 90 days.</p>
                 <p>Eight years later, in a survey of 13 major federal agencies and intelligence organizations, every agency has complied. The NSA, the FBI, the State Department, the Secret Service, CISA itself &mdash; all at <code>p=reject</code>.</p>
                 <p>Every agency in our survey except two: <span class="emphasis">the Central Intelligence Agency</span> and the <span class="emphasis">Office of the Director of National Intelligence</span>.</p>
-                <p style="margin-bottom:0">Before you conclude they failed, look at what they <em>are</em> doing.</p>
+                <p class="cs-callout-text">Before you conclude they failed, look at what they <em>are</em> doing.</p>
             </div>
 
             <div class="cs-section">
@@ -283,9 +292,9 @@
             <div class="cs-section">
                 <h2>They Are Not Alone</h2>
                 <p>We surveyed DMARC records across 13 federal agencies and intelligence organizations. Here is what we found:</p>
-                <div style="overflow-x:auto">
+                <div class="cs-overflow-x">
                 <table class="agency-table">
-                    <caption style="caption-side:top;text-align:left;font-size:0.78rem;color:#8b949e;padding-bottom:0.5rem">DMARC posture survey of 13 federal agencies and intelligence organizations, March 19, 2026. Highlighted rows indicate agencies at quarantine.</caption>
+                    <caption class="cs-caption">DMARC posture survey of 13 federal agencies and intelligence organizations, March 19, 2026. Highlighted rows indicate agencies at quarantine.</caption>
                     <thead>
                         <tr>
                             <th scope="col">Agency</th>
@@ -481,7 +490,7 @@
                     <span class="comment"># Compare any agency</span><br>
                     <span class="cmd">dig TXT _dmarc.[agency].gov +short</span>
                 </figure>
-                <p class="mt-2" style="font-size:0.82rem;color:#8b949e">DNS records are public by design. The Domain Name System is an open, distributed, queryable database. That is not an accident. It is the architecture.</p>
+                <p class="mt-2 cs-methodology">DNS records are public by design. The Domain Name System is an open, distributed, queryable database. That is not an accident. It is the architecture.</p>
             </div>
 
             <div class="cs-section bib-section">
@@ -497,7 +506,7 @@
             </div>
 
             <div class="cs-section">
-                <div class="share-bar" style="border-top:none;padding-top:0;margin-top:0">
+                <div class="share-bar cs-share-flat">
                     <span class="share-bar-label">{{icon "share-alt"}} Share:</span>
                     <button type="button" class="share-btn" id="copyLinkBtn"><span aria-hidden="true">{{icon "link"}}</span> Copy Link</button>
                     <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdnstool.it-help.tech%2Fcase-study%2Fintelligence-dmarc&text=Domain%20Confessions%20%232%3A%20Two%20intelligence%20agencies%20are%20the%20only%20federal%20agencies%20that%20haven%27t%20upgraded%20to%20DMARC%20reject.%20Their%20DNS%20records%20suggest%20why." class="share-btn" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">{{icon "twitter"}}</span> Post</a>

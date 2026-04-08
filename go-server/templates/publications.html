@@ -266,6 +266,20 @@
         }
         .pub-doi a { color: #58a6ff; }
         .pub-section { margin-bottom: 2.5rem; }
+
+        .pub-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #d4a853; }
+        .pub-h1 { font-size: 1.5rem; font-weight: 700; }
+        .pub-intro { font-size: 0.92rem; color: #8b949e; line-height: 1.6; max-width: 660px; }
+        .pub-owl-banner { background: rgba(45,43,44,0.6); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px; }
+        .pub-owl-text-wrap { margin-left: 0.5rem; }
+        .pub-owl-title { font-size: 0.82rem; font-weight: 700; color: #d4a853; }
+        .pub-owl-desc { font-size: 0.72rem; color: #8b949e; }
+        .pub-c-norm { color: #d4a853; }
+        .pub-c-nonnorm { color: #4A9D96; }
+        .pub-c-crit { color: #8B0000; }
+        .pub-c-meta { color: #8C4191; }
+        .pub-c-link { color: #58a6ff; }
+        .pub-owl-inline { vertical-align: middle; margin-right: 0.25rem; }
     </style>
 </head>
 <body>
@@ -273,19 +287,19 @@
 
     <main id="main-content" class="container mt-4 mb-5">
         <div class="pub-wrap">
-            <p class="mb-1" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#d4a853">DNS Tool Research</p>
-            <h1 style="font-size:1.5rem;font-weight:700">{{icon "book-open" "me-2 text-warning"}}Publications &amp; Research</h1>
-            <p style="font-size:0.92rem;color:#8b949e;line-height:1.6;max-width:660px">Scientific papers, case studies, and governance documents. Every claim is backed by data you can verify with standard tools. Every paper is independently citable.</p>
+            <p class="mb-1 pub-eyebrow">DNS Tool Research</p>
+            <h1 class="pub-h1">{{icon "book-open" "me-2 text-warning"}}Publications &amp; Research</h1>
+            <p class="pub-intro">Scientific papers, case studies, and governance documents. Every claim is backed by data you can verify with standard tools. Every paper is independently citable.</p>
 
             <div class="pub-section">
-                <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(45,43,44,0.6); border: 1px solid rgba(212,168,83,0.15); border-radius: 10px;">
+                <div class="d-flex align-items-center gap-3 mb-3 p-3 pub-owl-banner">
                     <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Normative Standard — gold owl on dark, gold outer ring" width="48" height="48">
                     <img src="{{staticVersionURL "exports/owl-semaphore/NONNORM-composite-transparent-540.png" .AppVersion}}" alt="Non-Normative Standard — teal owl on cool gray, teal outer ring" width="48" height="48">
                     <img src="{{staticVersionURL "exports/owl-semaphore/CRIT-composite-transparent-540.png" .AppVersion}}" alt="Critical Standard — red owl on warm red, red outer ring" width="48" height="48">
                     <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive Standard — amethyst owl on deep violet-black" width="48" height="48">
-                    <div style="margin-left: 0.5rem;">
-                        <p class="mb-0" style="font-size: 0.82rem; font-weight: 700; color: #d4a853;">The Owl Semaphore</p>
-                        <p class="mb-0" style="font-size: 0.72rem; color: #8b949e;">Four states of knowledge. <span style="color:#d4a853">Normative</span> &mdash; <span style="color:#4A9D96">Non-Normative</span> &mdash; <span style="color:#8B0000">Critical</span> &mdash; <span style="color:#8C4191">Metacognitive</span>. See <a href="/owl-semaphore" style="color:#58a6ff">Owl Semaphore</a> for full specification.</p>
+                    <div class="pub-owl-text-wrap">
+                        <p class="mb-0 pub-owl-title">The Owl Semaphore</p>
+                        <p class="mb-0 pub-owl-desc">Four states of knowledge. <span class="pub-c-norm">Normative</span> &mdash; <span class="pub-c-nonnorm">Non-Normative</span> &mdash; <span class="pub-c-crit">Critical</span> &mdash; <span class="pub-c-meta">Metacognitive</span>. See <a href="/owl-semaphore" class="pub-c-link">Owl Semaphore</a> for full specification.</p>
                     </div>
                 </div>
             </div>
@@ -315,13 +329,13 @@
 
                 <a href="/owl-semaphore" class="pub-card">
                     <span class="pub-title">{{icon "eye" "me-2"}}
-                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Owl Semaphore" width="20" height="20" style="vertical-align:middle;margin-right:0.25rem;">The Owl Semaphore: Four States of Knowledge</span>
+                        <img src="{{staticVersionURL "exports/owl-semaphore/NORM-composite-transparent-540.png" .AppVersion}}" alt="Owl Semaphore" width="20" height="20" class="pub-owl-inline">The Owl Semaphore: Four States of Knowledge</span>
                     <span class="pub-desc">A finite algebra of epistemic states in visual form. Four mathematical transforms from the Klein four-group V&#x2084; encode knowledge state: Normative (I), Non-Normative (&sigma;&#x1d65;), Critical (C&#x2082;), and Metacognitive (&sigma;&#x2095;). Separate research project with its own DOI.</span>
                     <span class="pub-meta">
                         <span class="pub-badge badge-html">{{icon "globe" "me-1"}}HTML</span>
                         <span class="pub-badge badge-pdf">{{icon "file-pdf" "me-1"}}PDFs</span>
                         <span>Balboa, 2026</span>
-                        <span>DOI <a href="https://doi.org/10.5281/zenodo.19473697" target="_blank" rel="noopener" style="color:#58a6ff;">10.5281/zenodo.19473697</a></span>
+                        <span>DOI <a href="https://doi.org/10.5281/zenodo.19473697" target="_blank" rel="noopener" class="pub-c-link">10.5281/zenodo.19473697</a></span>
                         <span>CC BY 4.0</span>
                         <span>v1.2.0</span>
                     </span>
