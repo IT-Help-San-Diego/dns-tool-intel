@@ -172,6 +172,7 @@
   .ledger-card.lc-norm { border-top: 1.5pt solid #9e7c38; }
   .ledger-card.lc-nonnorm { border-top: 1.5pt solid #316964; }
   .ledger-card.lc-crit { border-top: 1.5pt solid #990f1e; }
+  .ledger-card.lc-meta { border-top: 1.5pt solid #8C4191; }
   .ledger-card .lc-badge {
     width: 110px;
     height: 110px;
@@ -190,6 +191,7 @@
   .ledger-card.lc-norm .lc-name { color: #9e7c38; }
   .ledger-card.lc-nonnorm .lc-name { color: #316964; }
   .ledger-card.lc-crit .lc-name { color: #990f1e; }
+  .ledger-card.lc-meta .lc-name { color: #8C4191; }
   .ledger-card .lc-transform {
     font-family: "Courier New", monospace;
     font-size: 7.5pt;
@@ -263,10 +265,10 @@
     <p class="author-role">Independent DNS Security Researcher</p>
     <p>
       <span class="meta-label">ORCID</span>&ensp;<a href="https://orcid.org/0009-0000-5237-9065">0009-0000-5237-9065</a>&emsp;
-      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+      <span class="meta-label">DOI</span>&ensp;<a href="https://doi.org/10.5281/zenodo.19468135">10.5281/zenodo.19468135</a><br>
       <span class="meta-label">Project</span>&ensp;<a href="https://dnstool.it-help.tech">dnstool.it-help.tech</a>&emsp;
       <span class="meta-label">Source</span>&ensp;<a href="https://github.com/IT-Help-San-Diego/dns-tool-intel">github.com/IT-Help-San-Diego/dns-tool-intel</a><br>
-      <span class="meta-label">Version</span>&ensp;10&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
+      <span class="meta-label">Version</span>&ensp;26.43.0&emsp;&middot;&emsp;<span class="meta-label">License</span>&ensp;BUSL-1.1
     </p>
   </div>
 </div>
@@ -447,10 +449,18 @@ Maybe build upon that <span class="tag">[CODE_FOUNDATION]</span> first.<br><br>
       <p class="lc-quote">&ldquo;This inverts the standard.&rdquo;</p>
       <p class="lc-rfc">RFC 2119 MUST NOT / SHALL NOT</p>
     </div>
+    <div class="ledger-card lc-meta">
+      <img class="lc-badge" src="assets/owl-METACOGNITIVE-intro.png" alt="Metacognitive Owl">
+      <p class="lc-name">Metacognitive</p>
+      <p class="lc-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1</p>
+      <p class="lc-transform">(x, y) &rarr; (x, &minus;y)</p>
+      <p class="lc-quote">&ldquo;This audits the standard.&rdquo;</p>
+      <p class="lc-rfc">Observer audit / Frame inversion</p>
+    </div>
   </div>
   <div class="ledger-closure">
-    <p class="closure-title">Composition Identities in O(2)</p>
-    <p class="closure-math">&sigma; &#x2218; &sigma; = I &ensp;&middot;&ensp; R(&theta;<sub>1</sub>) &#x2218; R(&theta;<sub>2</sub>) = R(&theta;<sub>1</sub>+&theta;<sub>2</sub>) &ensp;&middot;&ensp; &sigma; &#x2218; R(&theta;) = &sigma;<sub>&theta;</sub></p>
+    <p class="closure-title">Klein Four-Group V&#x2084; &mdash; Closure in O(2)</p>
+    <p class="closure-math">I &middot; &sigma;<sub>v</sub> &middot; C<sub>2</sub> &middot; &sigma;<sub>h</sub> &ensp;|&ensp; &sigma; &#x2218; &sigma; = I &ensp;&middot;&ensp; C<sub>2</sub> = &sigma;<sub>v</sub> &#x2218; &sigma;<sub>h</sub> &ensp;&middot;&ensp; Every element is its own inverse</p>
   </div>
 </div>
 
