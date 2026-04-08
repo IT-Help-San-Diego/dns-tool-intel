@@ -68,7 +68,7 @@ To get fresh data for the same domain, click the "Re-Analyze" button on any resu
 - `/contact` — Contact: company contact information and communication channels
 - `/security-policy` — Security Policy: responsible disclosure policy and security contact information
 - `/privacy` — Privacy Policy: data handling, account deletion, and DNS record retention policies
-- `/owl-semaphore` — Owl Semaphore: three-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT) for document classification
+- `/owl-semaphore` — Owl Semaphore: four-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT, META) for document classification using the Klein four-group V₄
 - `/manifesto` — Manifesto: founding principles and philosophical framework behind DNS Tool's approach to domain security
 - `/communication-standards` — Communication Standards: editorial and communication guidelines governing all DNS Tool publications
 - `/roe` — Rules of Engagement: operational boundaries and ethical guidelines for DNS Tool's analysis capabilities
