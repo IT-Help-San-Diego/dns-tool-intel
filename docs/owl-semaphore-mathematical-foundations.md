@@ -2,7 +2,7 @@
 
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
-DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
+DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/IT-Help-San-Diego/dns-tool-intel](https://github.com/IT-Help-San-Diego/dns-tool-intel)
 
@@ -618,9 +618,9 @@ The deeper insight: the connection between O(2)'s continuous rotation group and 
 - Kuhn, T. S. (1962). *The Structure of Scientific Revolutions*. University of Chicago Press.
 - Serre, J.-P. (1977). *Linear Representations of Finite Groups*. Springer. (Representation theory of V₄.)
 - Vlastos, G. (1983). "The Socratic Elenchus." *Oxford Studies in Ancient Philosophy*, 1, 27–58.
-- Balboa, C. J. (2026). "The Owl Semaphore: Three States of Knowledge." DOI: 10.5281/zenodo.18854899.
-- Balboa, C. J. (2026). "Confidence-Scored Analysis of Domain Security Infrastructure." DOI: 10.5281/zenodo.18854899.
-- Balboa, C. J. (2026). "Philosophical Foundations for Security Analysis Communication." DOI: 10.5281/zenodo.18854899.
+- Balboa, C. J. (2026). "The Owl Semaphore: Three States of Knowledge." DOI: 10.5281/zenodo.19468134.
+- Balboa, C. J. (2026). "Confidence-Scored Analysis of Domain Security Infrastructure." DOI: 10.5281/zenodo.19468134.
+- Balboa, C. J. (2026). "Philosophical Foundations for Security Analysis Communication." DOI: 10.5281/zenodo.19468134.
 
 ---
 

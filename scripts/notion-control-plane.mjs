@@ -359,7 +359,7 @@ async function createArchitecturePage(notion, parentId) {
       {
         object: "block",
         type: "paragraph",
-        paragraph: { rich_text: [{ text: { content: "Current: 26.35.08 | License: BUSL-1.1 | DOI: 10.5281/zenodo.18854899" } }] },
+        paragraph: { rich_text: [{ text: { content: "Current: 26.35.08 | License: BUSL-1.1 | DOI: 10.5281/zenodo.19468134" } }] },
       },
     ],
   });

@@ -59,7 +59,7 @@ func (h *AgentHandler) OpenSearchXML(c *gin.Context) {
   <Url type="application/json" method="get" template="` + baseURL + `/agent/api?q={searchTerms}"/>
   <Image height="48" width="48" type="image/png">` + baseURL + `/static/icons/favicon-48x48.png</Image>
   <LongName>DNS Tool — Engineer's DNS Intelligence Report</LongName>
-  <Attribution>Copyright (c) 2024-2026 IT Help San Diego Inc. Concept DOI: 10.5281/zenodo.18854899</Attribution>
+  <Attribution>Copyright (c) 2024-2026 IT Help San Diego Inc. Concept DOI: 10.5281/zenodo.19468134</Attribution>
   <SyndicationRight>open</SyndicationRight>
   <AdultContent>false</AdultContent>
   <Language>en-us</Language>
@@ -361,7 +361,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
                         "csv_export":      fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain),
                         "sources":         fmt.Sprintf("%s/sources", base),
-                        "zenodo_doi":      "https://doi.org/10.5281/zenodo.18854899",
+                        "zenodo_doi":      "https://doi.org/10.5281/zenodo.19468134",
                 },
                 "badges": gin.H{
                         "detailed_svg":  fmt.Sprintf("%s/badge?domain=%s&style=detailed", base, domain),
@@ -393,8 +393,8 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                 "provenance": gin.H{
                         "tool":           "DNS Tool by IT Help San Diego Inc.",
                         "methodology":    "RFC-grounded analysis with Bayesian confidence scoring",
-                        "concept_doi":    "10.5281/zenodo.18854899",
-                        "doi_url":        "https://doi.org/10.5281/zenodo.18854899",
+                        "concept_doi":    "10.5281/zenodo.19468134",
+                        "doi_url":        "https://doi.org/10.5281/zenodo.19468134",
                         "license":        "BUSL-1.1",
                         "publisher":      "IT Help San Diego Inc.",
                         "publisher_url":  "https://it-help.tech",
@@ -553,7 +553,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <meta name="DC.type" content="Dataset">
   <meta name="DC.format" content="text/html">
   <meta name="DC.identifier" content="` + reportURL + `">
-  <meta name="DC.relation" content="https://doi.org/10.5281/zenodo.18854899">
+  <meta name="DC.relation" content="https://doi.org/10.5281/zenodo.19468134">
   <meta name="DC.rights" content="BUSL-1.1">
   <meta name="DC.subject" content="DNS; email security; SPF; DKIM; DMARC; DNSSEC; subdomain discovery; certificate transparency">
   <meta name="DC.language" content="en">
@@ -564,7 +564,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <meta name="citation_author" content="IT Help San Diego Inc.">
   <meta name="citation_publication_date" content="` + isoDate + `">
   <meta name="citation_online_date" content="` + isoDate + `">
-  <meta name="citation_doi" content="10.5281/zenodo.18854899">
+  <meta name="citation_doi" content="10.5281/zenodo.19468134">
   <meta name="citation_publisher" content="IT Help San Diego Inc.">
   <meta name="citation_technical_report_institution" content="IT Help San Diego Inc.">
   <meta name="citation_public_url" content="` + reportURL + `">
@@ -581,7 +581,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
 <body>
 
 <!-- COinS span for Zotero one-click capture -->
-<span class="Z3988" title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Adc&amp;rft.type=Dataset&amp;rft.title=DNS+Security+Intelligence+Report%3A+` + esc(domain) + `&amp;rft.creator=IT+Help+San+Diego+Inc.&amp;rft.date=` + isoDate + `&amp;rft.identifier=` + esc(reportURL) + `&amp;rft.relation=https%3A%2F%2Fdoi.org%2F10.5281%2Fzenodo.18854899&amp;rft.publisher=IT+Help+San+Diego+Inc.&amp;rft.rights=BUSL-1.1&amp;rft.subject=DNS+security&amp;rft.format=text%2Fhtml"></span>
+<span class="Z3988" title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Adc&amp;rft.type=Dataset&amp;rft.title=DNS+Security+Intelligence+Report%3A+` + esc(domain) + `&amp;rft.creator=IT+Help+San+Diego+Inc.&amp;rft.date=` + isoDate + `&amp;rft.identifier=` + esc(reportURL) + `&amp;rft.relation=https%3A%2F%2Fdoi.org%2F10.5281%2Fzenodo.19468134&amp;rft.publisher=IT+Help+San+Diego+Inc.&amp;rft.rights=BUSL-1.1&amp;rft.subject=DNS+security&amp;rft.format=text%2Fhtml"></span>
 
 <h1>DNS Tool — ` + ed + `</h1>
 
@@ -603,7 +603,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
   <li><a href="` + executiveReportURL + `">Executive Intelligence Brief</a> — board-ready executive summary</li>
   <li><a href="` + topologyURL + `">DNS Topology</a> — topology visualization, signal flow, and RFC source mapping</li>
-  <li><a href="https://doi.org/10.5281/zenodo.18854899">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.18854899)</li>
+  <li><a href="https://doi.org/10.5281/zenodo.19468134">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.19468134)</li>
   <li><a href="` + apiURL + `">Full Intelligence Data (JSON)</a> — complete analysis payload with all collected intelligence</li>
   <li><a href="` + csvExportURL + `">Discovered Domains &amp; Subdomains</a> — human-readable subdomain reconnaissance data (CSV)</li>
   <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
@@ -644,7 +644,7 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
 <p>
   <strong>Tool:</strong> DNS Tool by <a href="https://it-help.tech">IT Help San Diego Inc.</a><br>
   <strong>Methodology:</strong> RFC-grounded analysis with Bayesian confidence scoring<br>
-  <strong>Concept DOI:</strong> <a href="https://doi.org/10.5281/zenodo.18854899">10.5281/zenodo.18854899</a><br>
+  <strong>Concept DOI:</strong> <a href="https://doi.org/10.5281/zenodo.19468134">10.5281/zenodo.19468134</a><br>
   <strong>Version:</strong> ` + esc(h.Config.AppVersion) + `<br>
   <strong>License:</strong> BUSL-1.1<br>
   <strong>Timestamp:</strong> <time datetime="` + isoTimestamp + `">` + isoTimestamp + `</time>

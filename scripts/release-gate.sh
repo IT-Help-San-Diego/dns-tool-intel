@@ -17,7 +17,7 @@
 #
 # Fails loudly on any error. Do NOT tag until this passes.
 #
-# NOTE: The concept DOI (10.5281/zenodo.18854899) in CITATION.cff
+# NOTE: The concept DOI (10.5281/zenodo.19468134) in CITATION.cff
 # is PERMANENT and must NEVER be changed by this or any script.
 
 set -euo pipefail
