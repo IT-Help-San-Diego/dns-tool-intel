@@ -1,2 +1,0 @@
-dns-tool-backup.sql filter=lfs diff=lfs merge=lfs -text
-backup/domain_analyses.csv filter=lfs diff=lfs merge=lfs -text
