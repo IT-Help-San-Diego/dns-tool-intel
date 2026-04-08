@@ -4,7 +4,7 @@ title: "DNS Tool: Domain Security Audit Platform"
 type: software
 version: "26.42.23"
 date-released: 2026-04-08
-doi: 10.5281/zenodo.19468135
+doi: 10.5281/zenodo.18854899
 
 abstract: >-
   DNS Tool is an open-core OSINT platform for RFC-compliant domain
@@ -24,7 +24,7 @@ contact:
     website: "https://it-help.tech"
 
 repository-code: "https://github.com/IT-Help-San-Diego/dns-tool-intel"
-repository-artifact: "https://zenodo.org/doi/10.5281/zenodo.19468135"
+repository-artifact: "https://zenodo.org/doi/10.5281/zenodo.18854899"
 url: "https://dnstool.it-help.tech"
 license: "BUSL-1.1"
 license-url: "https://spdx.org/licenses/BUSL-1.1.html"
