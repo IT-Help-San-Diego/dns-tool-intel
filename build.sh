@@ -4,17 +4,33 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
+GIT_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+LDFLAGS="-s -w \
+  -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
+  -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
+
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
   echo "Before cleanup:"
   du -sh . 2>/dev/null || true
 
-  if [ ! -f "$SCRIPT_DIR/dns-tool-server" ]; then
-    echo "ERROR: dns-tool-server binary not found — build locally first"
-    exit 1
-  fi
+  echo "Compiling dns-tool-server for deployment..."
+  export GOCACHE=/tmp/go-build-cache
+  export GOMODCACHE=/tmp/go-mod-cache
+  cd "$SCRIPT_DIR/go-server"
+  CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
+    -buildvcs=false \
+    -trimpath \
+    -ldflags "$LDFLAGS" \
+    -tags netgo \
+    -o "$SCRIPT_DIR/dns-tool-server" \
+    ./cmd/server/
+  cd "$SCRIPT_DIR"
+  rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
-  echo "Binary exists — skipping Go compilation (pre-built static binary)"
+  echo "Binary built:"
   ls -la "$SCRIPT_DIR/dns-tool-server"
   file "$SCRIPT_DIR/dns-tool-server"
 
@@ -42,16 +58,9 @@ if [ "$1" = "--deploy" ]; then
 
   echo "After cleanup:"
   du -sh . 2>/dev/null || true
-  echo "Deployment cleanup complete — using pre-built binary"
+  echo "Deployment build complete — v${VERSION} ${GIT_COMMIT} ${BUILD_TIME}"
   exit 0
 fi
-
-GIT_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
-BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-LDFLAGS="-s -w \
-  -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
-  -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
 export GOCACHE=/tmp/go-build-cache
 export GOMODCACHE=/tmp/go-mod-cache
