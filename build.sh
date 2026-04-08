@@ -27,7 +27,6 @@ if [ "$1" = "--deploy" ]; then
          src stubs tests dns-eval security \
          logs instance .agents \
          .go-build-cache .go-mod-cache \
-         sonar-project.properties \
          EVOLUTION.md PROJECT_CONTEXT.md \
          static/references \
          go-server/cmd go-server/tools go-server/exports go-server/scripts \
