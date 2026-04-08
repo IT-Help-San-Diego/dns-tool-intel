@@ -1,8 +1,8 @@
 {
   "title": "DNS Tool: Domain Security Audit Platform",
   "upload_type": "software",
-  "version": "26.38.35",
-  "publication_date": "2026-03-25",
+  "version": "26.42.23",
+  "publication_date": "2026-04-08",
   "access_right": "open",
   "license": "BUSL-1.1",
   "creators": [
@@ -41,6 +41,11 @@
       "identifier": "https://github.com/IT-Help-San-Diego/dns-tool-intel",
       "relation": "isSupplementTo",
       "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.19217071",
+      "relation": "isNewVersionOf",
+      "scheme": "doi"
     },
     {
       "identifier": "https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf",
