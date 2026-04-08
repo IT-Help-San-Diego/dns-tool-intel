@@ -19,10 +19,10 @@ import (
 )
 
 const (
-        mapKeyDossier = "dossier"
+        mapKeyDossier  = "dossier"
+        templateDossier = "dossier.html"
+        pathDossier     = "/dossier"
 )
-
-const templateDossier = "dossier.html"
 
 type DossierHandler struct {
         DB     *db.Database
@@ -129,11 +129,11 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
                 data["Analyses"] = []dossierItem{}
                 data["Pagination"] = BuildPagination(1, 1, 0)
                 data["SearchDomain"] = ""
-                data["SearchAction"] = "/dossier"
+                data["SearchAction"] = pathDossier
                 data["SearchPlaceholder"] = "Search your assessed domains..."
                 data["SearchAriaLabel"] = "Search dossier by domain name"
                 data["PaginationLabel"] = "Intelligence reports pagination"
-                data["PaginationBase"] = "/dossier"
+                data["PaginationBase"] = pathDossier
                 c.HTML(http.StatusOK, templateDossier, data)
                 return
         }
@@ -175,11 +175,11 @@ func (h *DossierHandler) Dossier(c *gin.Context) {
         data["Pagination"] = pd
         data["SearchDomain"] = searchDomain
         data["TotalReports"] = total
-        data["SearchAction"] = "/dossier"
+        data["SearchAction"] = pathDossier
         data["SearchPlaceholder"] = "Search your assessed domains..."
         data["SearchAriaLabel"] = "Search dossier by domain name"
         data["PaginationLabel"] = "Intelligence reports pagination"
-        data["PaginationBase"] = "/dossier"
+        data["PaginationBase"] = pathDossier
         c.HTML(http.StatusOK, templateDossier, data)
 }
 
