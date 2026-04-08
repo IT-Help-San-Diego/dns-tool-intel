@@ -37,7 +37,7 @@
         },
         "mainEntity": {
             "@type": "ItemList",
-            "numberOfItems": 4,
+            "numberOfItems": 5,
             "itemListElement": [
                 {
                     "@type": "ListItem",
@@ -81,6 +81,18 @@
                         "url": "https://dnstool.it-help.tech/docs/communication-standards.pdf",
                         "datePublished": "2026-03-08",
                         "author": {"@type": "Person", "name": "Carey James Balboa"}
+                    }
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 5,
+                    "item": {
+                        "@type": "ScholarlyArticle",
+                        "name": "The Owl Semaphore: Mathematical and Philosophical Foundations",
+                        "url": "https://dnstool.it-help.tech/docs/owl-semaphore-mathematical-foundations.pdf",
+                        "datePublished": "2026-04-08",
+                        "author": {"@type": "Person", "name": "Carey James Balboa"},
+                        "identifier": {"@type": "PropertyValue", "propertyID": "DOI", "value": "10.5281/zenodo.19473697"}
                     }
                 }
             ]
@@ -185,6 +197,11 @@
             color: #4A9D96;
             background: rgba(74,157,150,0.08);
             border: 1px solid rgba(74,157,150,0.2);
+        }
+        .corpus-semaphore-meta {
+            color: #8C4191;
+            background: rgba(140,65,145,0.08);
+            border: 1px solid rgba(140,65,145,0.2);
         }
         .corpus-semaphore-owl {
             width: 16px;
@@ -389,6 +406,19 @@
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
                     <div class="corpus-entry-transform">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y)</div>
+                </button>
+
+                <button type="button" class="corpus-entry" tabindex="0" aria-label="View Paper V — The Owl Semaphore" data-pdf="/docs/owl-semaphore-mathematical-foundations.pdf" data-title="The Owl Semaphore: Mathematical Foundations" data-num="V">
+                    <div class="corpus-entry-num">Paper V</div>
+                    <div class="corpus-entry-title">{{icon "eye" "me-1"}}<img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive" width="16" height="16" class="corpus-semaphore-owl me-1">The Owl Semaphore</div>
+                    <div class="d-flex align-items-center justify-content-between mt-1">
+                        <span class="corpus-semaphore corpus-semaphore-meta">
+                            <img src="{{staticVersionURL "exports/owl-semaphore/META-composite-transparent-540.png" .AppVersion}}" alt="Metacognitive" class="corpus-semaphore-owl">
+                            Metacognitive
+                        </span>
+                        <span class="corpus-entry-meta">Balboa, 2026</span>
+                    </div>
+                    <div class="corpus-entry-transform">T = &sigma;<sub>h</sub> &ensp; det = &minus;1 &ensp; (x, y) &rarr; (x, &minus;y)</div>
                 </button>
 
                 <div class="corpus-legend">
