@@ -599,6 +599,12 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/communication-standards-pdf", static.CommStandardsPDF)
         router.GET("/docs/communication-standards.pdf", static.CommStandardsPDF)
 
+        router.GET("/docs/owl-semaphore-system.pdf", static.OwlSemaphoreSystemPDF)
+        router.GET("/docs/owl-1-normative.pdf", static.Owl1NormativePDF)
+        router.GET("/docs/owl-2-non-normative.pdf", static.Owl2NonNormativePDF)
+        router.GET("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
+        router.GET("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
+
         corpusHandler := handlers.NewCorpusHandler(cfg)
         router.GET("/corpus", corpusHandler.Corpus)
 

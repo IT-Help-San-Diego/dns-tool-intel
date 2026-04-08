@@ -107,6 +107,26 @@ func (h *StaticHandler) CommStandardsPDF(c *gin.Context) {
         h.servePDF(c, "communication-standards.pdf")
 }
 
+func (h *StaticHandler) OwlSemaphoreSystemPDF(c *gin.Context) {
+        h.servePDF(c, "owl-semaphore-system.pdf")
+}
+
+func (h *StaticHandler) Owl1NormativePDF(c *gin.Context) {
+        h.servePDF(c, "owl-1-normative.pdf")
+}
+
+func (h *StaticHandler) Owl2NonNormativePDF(c *gin.Context) {
+        h.servePDF(c, "owl-2-non-normative.pdf")
+}
+
+func (h *StaticHandler) Owl3CriticalPDF(c *gin.Context) {
+        h.servePDF(c, "owl-3-critical.pdf")
+}
+
+func (h *StaticHandler) Owl4MetacognitivePDF(c *gin.Context) {
+        h.servePDF(c, "owl-4-metacognitive.pdf")
+}
+
 func (h *StaticHandler) SitemapXML(c *gin.Context) {
         today := time.Now().Format("2006-01-02")
 
