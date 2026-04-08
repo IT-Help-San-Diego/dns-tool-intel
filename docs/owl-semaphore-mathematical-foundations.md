@@ -1,8 +1,10 @@
 # The Owl Semaphore: Mathematical and Philosophical Foundations
 
+> **SUPERSEDED** — This document is an agent-generated exploratory draft. The authoritative Owl Semaphore specifications are the five documents published from the [owl-semaphore](https://github.com/IT-Help-San-Diego/owl-semaphore) repository (DOI: [10.5281/zenodo.19473697](https://doi.org/10.5281/zenodo.19473697)). This file is retained for reference only and is not served or linked from any page.
+
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
-DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
+DOI: [10.5281/zenodo.19473697](https://doi.org/10.5281/zenodo.19473697)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/IT-Help-San-Diego/dns-tool-intel](https://github.com/IT-Help-San-Diego/dns-tool-intel)
 
