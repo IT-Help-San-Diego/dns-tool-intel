@@ -6,7 +6,7 @@
 > **Authors:** Carey James Balboa (ORCID: 0009-0000-5237-9065), IT Help San Diego Inc.  
 > **Version:** v26.38.39  
 > **Date:** 2026-03-26  
-> **DOI:** 10.5281/zenodo.18854899  
+> **DOI:** 10.5281/zenodo.19468134  
 > **License:** BUSL-1.1  
 > **Repository:** https://github.com/IT-Help-San-Diego/dns-tool-intel  
 > **Canonical location:** `docs/subdomain-pipeline.md`

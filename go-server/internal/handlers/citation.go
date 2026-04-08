@@ -129,7 +129,7 @@ func (h *CitationHandler) SoftwareCitation(c *gin.Context) {
 func (h *CitationHandler) resolveSoftwareMeta() (title, version, doi, url, authorFamily, authorGiven, date string) {
         title = "DNS Tool: Domain Security Audit Platform"
         version = h.Config.AppVersion
-        doi = "10.5281/zenodo.18854899"
+        doi = "10.5281/zenodo.19468134"
         url = "https://dnstool.it-help.tech"
         authorFamily = "Balboa"
         authorGiven = "Carey James"
@@ -205,7 +205,7 @@ func (h *CitationHandler) ResearchAPI(c *gin.Context) {
                 "label":       "Published Research Software",
                 "title":       title,
                 "version":     version,
-                "concept_doi": "10.5281/zenodo.18854899",
+                "concept_doi": "10.5281/zenodo.19468134",
                 "latest_doi":  doi,
                 "orcid":       orcid,
                 "author":      authorGiven + " " + authorFamily,

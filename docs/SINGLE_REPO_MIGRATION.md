@@ -59,7 +59,7 @@ This pushes all the migration changes (updated references, rewritten release.sh,
 
 1. Go to **zenodo.org** → Your uploads → DNS Tool record
 2. Update the "Related identifiers" URL to `https://github.com/IT-Help-San-Diego/dns-tool-intel`
-3. The DOI (10.5281/zenodo.18854899) remains valid — it points to the Zenodo record, not the GitHub URL directly
+3. The DOI (10.5281/zenodo.19468134) remains valid — it points to the Zenodo record, not the GitHub URL directly
 4. Future releases via `scripts/release.sh` will create tags on `dns-tool-intel` (Zenodo webhook may need re-linking)
 
 ---

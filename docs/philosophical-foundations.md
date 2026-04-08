@@ -2,7 +2,7 @@
 
 **Carey James Balboa**
 ORCID: [0009-0000-5237-9065](https://orcid.org/0009-0000-5237-9065)
-DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899)
+DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134)
 Project: [dnstool.it-help.tech](https://dnstool.it-help.tech)
 Source: [github.com/IT-Help-San-Diego/dns-tool-intel](https://github.com/IT-Help-San-Diego/dns-tool-intel)
 Version 26.38.35 · License BUSL-1.1
@@ -303,7 +303,7 @@ Neither document modifies the other. Protocol science findings are determined by
   author       = {Balboa, Carey James},
   title        = {Philosophical Foundations for Security Analysis Communication},
   year         = {2026},
-  note         = {Companion to DNS Tool Methodology (DOI: 10.5281/zenodo.18854899)},
+  note         = {Companion to DNS Tool Methodology (DOI: 10.5281/zenodo.19468134)},
   url          = {https://dnstool.it-help.tech/approach}
 }
 ```
@@ -315,4 +315,4 @@ Neither document modifies the other. Protocol science findings are determined by
 - [Communication Standards](COMMUNICATION_STANDARDS.md) — Measurable Clarity + Vision dual-gate quality enforcement
 
 DNS Tool · IT Help San Diego Inc. · Licensed under BUSL-1.1
-DOI: [10.5281/zenodo.18854899](https://doi.org/10.5281/zenodo.18854899) · [dnstool.it-help.tech](https://dnstool.it-help.tech)
+DOI: [10.5281/zenodo.19468134](https://doi.org/10.5281/zenodo.19468134) · [dnstool.it-help.tech](https://dnstool.it-help.tech)
