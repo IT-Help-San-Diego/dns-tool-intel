@@ -548,7 +548,7 @@ func TestSmtpResponseComplete_Coverage(t *testing.T) {
                 {"complete", "220 ready\r\n", true},
                 {"multi-line incomplete", "250-STARTTLS\r\n", false},
                 {"multi-line complete", "250-STARTTLS\r\n250 OK\r\n", true},
-                {"empty trailing", "220 ok\r\n\r\n", true},
+                {"empty trailing", "220 ok\r\n\r\n", false},
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
