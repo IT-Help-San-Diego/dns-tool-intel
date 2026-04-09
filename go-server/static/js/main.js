@@ -724,6 +724,23 @@ function fetchAndApplyPage(url, options, overlay, btn) {
     });
 }
 
+function performFallbackAnalysis(domain, isCovert, overlay, btn) {
+    const url = '/analyze?domain=' + encodeURIComponent(domain) + (isCovert ? '&covert=1' : '') + '&refresh=' + Date.now();
+    let respUrl;
+    fetch(url, {
+        headers: { 'X-Requested-With': 'fetch' },
+        redirect: 'follow'
+    }).then(function(resp) {
+        respUrl = resp.url;
+        return resp.text();
+    }).then(function(html) {
+        hideOverlayAndReset(overlay, btn);
+        applyFetchedPage(html, respUrl);
+    }).catch(function() {
+        globalThis.location.href = url;
+    });
+}
+
 function applyFetchedPage(html, respUrl) {
     const parsed = new DOMParser().parseFromString(html, 'text/html');
     document.documentElement.replaceWith(parsed.documentElement);
@@ -954,6 +971,31 @@ function initPrivacyToggle() {
 
 let _globeAnim = null;
 
+function hexToRgba(hex, a) {
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
+function stopGlobeAnimation() {
+    if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
+}
+
 function initGlobeMotion() {
     const DEG = Math.PI / 180;
 
@@ -993,13 +1035,6 @@ function initGlobeMotion() {
     const convergePt = { x: 0, y: 0 };
     let signalParticles = [];
     let particlesInitialized = false;
-
-    function hexToRgba(hex, a) {
-        const r = Number.parseInt(hex.slice(1, 3), 16);
-        const g = Number.parseInt(hex.slice(3, 5), 16);
-        const b = Number.parseInt(hex.slice(5, 7), 16);
-        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
-    }
 
     function projectPt(lat, lon) {
         const phi = lat * DEG;
@@ -1166,20 +1201,6 @@ function initGlobeMotion() {
         }
     }
 
-    function roundRect(ctx, x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
-    }
-
     function drawResolverMarkers(ctx, w, h) { // NOSONAR — rendering function, complexity is inherent
         const visiblePops = [];
         for (const [idx, pop] of RESOLVER_POPS.entries()) {
@@ -1201,8 +1222,7 @@ function initGlobeMotion() {
         const maxLabelBottom = globe.cy + globe.R + labelBand;
         const placedBoxes = [];
 
-        for (let vi = 0; vi < visiblePops.length; vi++) {
-            const vp = visiblePops[vi];
+        for (const vp of visiblePops) {
             const pop2 = vp.pop;
             const p2 = vp.p;
             const alpha = 0.4 + p2.depth * 0.6;
@@ -1228,10 +1248,9 @@ function initGlobeMotion() {
             const candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
             const candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
 
-            for (let di = 0; di < candidateDists.length; di++) {
-                for (let ci = 0; ci < candidateAngles.length; ci++) {
-                    const ca = baseAngle + candidateAngles[ci] * DEG;
-                    const dist = candidateDists[di];
+            for (const dist of candidateDists) {
+                for (const angleOffset of candidateAngles) {
+                    const ca = baseAngle + angleOffset * DEG;
                     let cx = p2.x + Math.cos(ca) * dist;
                     let cy = p2.y + Math.sin(ca) * dist;
 
@@ -1241,8 +1260,7 @@ function initGlobeMotion() {
                     cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
 
                     let hasCollision = false;
-                    for (let pi = 0; pi < placedBoxes.length; pi++) {
-                        const pb = placedBoxes[pi];
+                    for (const pb of placedBoxes) {
                         if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
                             cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
                             hasCollision = true;
@@ -1264,8 +1282,7 @@ function initGlobeMotion() {
             if (bestScore >= 10000) {
                 for (let ri = 0; ri < 8; ri++) {
                     let shifted = false;
-                    for (let pi2 = 0; pi2 < placedBoxes.length; pi2++) {
-                        const pb2 = placedBoxes[pi2];
+                    for (const pb2 of placedBoxes) {
                         const ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
                         const ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
                         if (ovX > 0 && ovY > 0) {
@@ -1383,10 +1400,6 @@ function initGlobeMotion() {
             _globeAnim = requestAnimationFrame(tick);
         }
         _globeAnim = requestAnimationFrame(tick);
-    }
-
-    function stopGlobeAnimation() {
-        if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
     }
 
     let _globeStartTimer = null;
@@ -1797,15 +1810,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 startProgressPolling(data.token, overlay, btn);
             }
         }).catch(function() {
-            const url = '/analyze?domain=' + encodeURIComponent(domain) + (isCovert ? '&covert=1' : '') + '&refresh=' + Date.now();
-            fetch(url, {
-                headers: { 'X-Requested-With': 'fetch' },
-                redirect: 'follow'
-            }).then(function(resp) {
-                return resp.text().then(function(html) { hideOverlayAndReset(overlay, btn); applyFetchedPage(html, resp.url); });
-            }).catch(function() {
-                globalThis.location.href = url;
-            });
+            performFallbackAnalysis(domain, isCovert, overlay, btn);
         });
     });
 
