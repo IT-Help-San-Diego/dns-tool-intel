@@ -45,7 +45,7 @@ if [ "$1" = "--deploy" ]; then
          .go-build-cache .go-mod-cache \
          EVOLUTION.md PROJECT_CONTEXT.md \
          static/references \
-         go-server/cmd go-server/tools go-server/exports go-server/scripts \
+         go-server/tools go-server/exports go-server/scripts \
          2>/dev/null || true
   rm -rf docs 2>/dev/null || true
   rm -rf .cache/uv .cache/pip .cache/go-build .cache/node \
