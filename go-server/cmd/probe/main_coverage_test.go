@@ -85,70 +85,130 @@ func TestIsValidPortSpec_Coverage(t *testing.T) {
 func TestFilterNmapScripts_AllowedCov(t *testing.T) {
         valid, rejected := filterNmapScripts([]string{"ssl-cert", "smtp-commands"})
         if len(valid) != 2 {
-                t.Errorf("expected 2 valid scripts, got %d", len(valid))
+                t.Errorf("expected 2 valid scripts, got %d: %v", len(valid), valid)
+        }
+        for _, s := range valid {
+                if s != "ssl-cert" && s != "smtp-commands" {
+                        t.Errorf("unexpected valid script: %q", s)
+                }
         }
         if len(rejected) != 0 {
-                t.Errorf("expected 0 rejected scripts, got %d", len(rejected))
+                t.Errorf("expected 0 rejected scripts, got %d: %v", len(rejected), rejected)
         }
 }
 
 func TestFilterNmapScripts_RejectedCov(t *testing.T) {
         valid, rejected := filterNmapScripts([]string{"ssl-cert", "malicious-script"})
-        if len(valid) != 1 {
-                t.Errorf("expected 1 valid script, got %d", len(valid))
+        if len(valid) != 1 || valid[0] != "ssl-cert" {
+                t.Errorf("expected [ssl-cert], got %v", valid)
         }
-        if len(rejected) != 1 {
-                t.Errorf("expected 1 rejected script, got %d", len(rejected))
+        if len(rejected) != 1 || rejected[0] != "malicious-script" {
+                t.Errorf("expected [malicious-script] rejected, got %v", rejected)
         }
 }
 
 func TestFilterNmapScripts_EmptyCov(t *testing.T) {
         valid, rejected := filterNmapScripts(nil)
         if len(valid) != 3 {
-                t.Errorf("expected 3 default valid scripts, got %d", len(valid))
+                t.Errorf("expected 3 default valid scripts, got %d: %v", len(valid), valid)
+        }
+        defaults := map[string]bool{"ssl-cert": false, "http-title": false, "banner": false}
+        for _, s := range valid {
+                if _, ok := defaults[s]; !ok {
+                        t.Errorf("unexpected default script: %q", s)
+                }
+                defaults[s] = true
+        }
+        for name, found := range defaults {
+                if !found {
+                        t.Errorf("missing default script: %q", name)
+                }
         }
         if len(rejected) != 0 {
-                t.Errorf("expected 0 rejected scripts, got %d", len(rejected))
+                t.Errorf("expected 0 rejected scripts, got %d: %v", len(rejected), rejected)
         }
 }
 
 func TestClassifyError_TimeoutCov(t *testing.T) {
-        err := errString("connection timed out")
+        err := errString("connection timeout reached")
         result := classifyError(err)
-        if result == "" {
-                t.Error("expected non-empty classification for timeout")
+        if result != "Connection timeout" {
+                t.Errorf("classifyError(timeout) = %q, want %q", result, "Connection timeout")
+        }
+}
+
+func TestClassifyError_DeadlineCov(t *testing.T) {
+        err := errString("context deadline exceeded")
+        result := classifyError(err)
+        if result != "Connection timeout" {
+                t.Errorf("classifyError(deadline) = %q, want %q", result, "Connection timeout")
         }
 }
 
 func TestClassifyError_RefusedCov(t *testing.T) {
         err := errString("connection refused")
         result := classifyError(err)
-        if result == "" {
-                t.Error("expected non-empty classification for refused")
+        if result != "Connection refused" {
+                t.Errorf("classifyError(refused) = %q, want %q", result, "Connection refused")
+        }
+}
+
+func TestClassifyError_UnreachableCov(t *testing.T) {
+        err := errString("network unreachable")
+        result := classifyError(err)
+        if result != "Network unreachable" {
+                t.Errorf("classifyError(unreachable) = %q, want %q", result, "Network unreachable")
+        }
+}
+
+func TestClassifyError_DNSFailCov(t *testing.T) {
+        err := errString("no such host")
+        result := classifyError(err)
+        if result != "DNS resolution failed" {
+                t.Errorf("classifyError(no such host) = %q, want %q", result, "DNS resolution failed")
         }
 }
 
 func TestClassifyError_UnknownCov(t *testing.T) {
         err := errString("some random error")
         result := classifyError(err)
-        if result == "" {
-                t.Error("expected non-empty classification")
+        if result != "some random error" {
+                t.Errorf("classifyError(unknown) = %q, want %q", result, "some random error")
         }
 }
 
 func TestClassifyIPFSError_TimeoutCov(t *testing.T) {
-        err := errString("context deadline exceeded")
-        result := classifyIPFSError(err)
-        if result == "" {
-                t.Error("expected non-empty classification")
+        result := classifyIPFSError(errString("connection timeout"))
+        if result != "timeout" {
+                t.Errorf("classifyIPFSError(timeout) = %q, want %q", result, "timeout")
+        }
+}
+
+func TestClassifyIPFSError_RefusedCov(t *testing.T) {
+        result := classifyIPFSError(errString("connection refused"))
+        if result != "connection refused" {
+                t.Errorf("classifyIPFSError(refused) = %q, want %q", result, "connection refused")
         }
 }
 
 func TestClassifyIPFSError_DNSCov(t *testing.T) {
-        err := errString("no such host")
-        result := classifyIPFSError(err)
-        if result == "" {
-                t.Error("expected non-empty classification")
+        result := classifyIPFSError(errString("no such host"))
+        if result != "DNS resolution failed" {
+                t.Errorf("classifyIPFSError(DNS) = %q, want %q", result, "DNS resolution failed")
+        }
+}
+
+func TestClassifyIPFSError_TLSCov(t *testing.T) {
+        result := classifyIPFSError(errString("certificate has expired"))
+        if result != "TLS certificate error" {
+                t.Errorf("classifyIPFSError(TLS) = %q, want %q", result, "TLS certificate error")
+        }
+}
+
+func TestClassifyIPFSError_DefaultCov(t *testing.T) {
+        result := classifyIPFSError(errString("something weird"))
+        if result != "connection error" {
+                t.Errorf("classifyIPFSError(default) = %q, want %q", result, "connection error")
         }
 }
 
@@ -265,8 +325,17 @@ func TestHandleIPFSProbe_UnallowlistedGatewayCov(t *testing.T) {
         req.Header.Set("Content-Type", "application/json")
         w := httptest.NewRecorder()
         handleIPFSProbe(w, req)
+        if w.Code != http.StatusBadRequest {
+                t.Errorf("expected 400 (all gateways filtered out), got %d", w.Code)
+        }
         var resp map[string]any
-        json.NewDecoder(w.Body).Decode(&resp)
+        if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+                t.Fatalf("failed to decode response: %v", err)
+        }
+        errMsg, ok := resp["error"].(string)
+        if !ok || errMsg == "" {
+                t.Error("expected error message about no allowlisted gateways")
+        }
 }
 
 func TestBuildNmapErrorResponse_Coverage(t *testing.T) {
