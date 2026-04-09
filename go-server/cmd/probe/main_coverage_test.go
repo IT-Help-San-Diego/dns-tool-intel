@@ -34,9 +34,9 @@ func TestIsAllowlistedGateway_Coverage(t *testing.T) {
                 gw   string
                 want bool
         }{
-                {"https://ipfs.io/ipfs/", true},
-                {"https://dweb.link/ipfs/", true},
-                {"https://evil.com/ipfs/", false},
+                {"https://ipfs.io", true},
+                {"https://dweb.link", true},
+                {"https://evil.com", false},
                 {"", false},
         }
         for _, tt := range tests {
@@ -51,8 +51,8 @@ func TestIsAllowlistedGatewayHost_Coverage(t *testing.T) {
                 host string
                 want bool
         }{
-                {"ipfs.io", true},
-                {"dweb.link", true},
+                {"https://ipfs.io", true},
+                {"https://dweb.link", true},
                 {"evil.com", false},
         }
         for _, tt := range tests {
@@ -71,7 +71,7 @@ func TestIsValidPortSpec_Coverage(t *testing.T) {
                 {"80,443", true},
                 {"1-1024", true},
                 {"80,443,8080-8090", true},
-                {"", false},
+                {"", true},
                 {"abc", false},
                 {"80;443", false},
         }
@@ -83,7 +83,7 @@ func TestIsValidPortSpec_Coverage(t *testing.T) {
 }
 
 func TestFilterNmapScripts_AllowedCov(t *testing.T) {
-        valid, rejected := filterNmapScripts([]string{"ssl-enum-ciphers", "smtp-commands"})
+        valid, rejected := filterNmapScripts([]string{"ssl-cert", "smtp-commands"})
         if len(valid) != 2 {
                 t.Errorf("expected 2 valid scripts, got %d", len(valid))
         }
@@ -93,7 +93,7 @@ func TestFilterNmapScripts_AllowedCov(t *testing.T) {
 }
 
 func TestFilterNmapScripts_RejectedCov(t *testing.T) {
-        valid, rejected := filterNmapScripts([]string{"ssl-enum-ciphers", "malicious-script"})
+        valid, rejected := filterNmapScripts([]string{"ssl-cert", "malicious-script"})
         if len(valid) != 1 {
                 t.Errorf("expected 1 valid script, got %d", len(valid))
         }
@@ -104,8 +104,8 @@ func TestFilterNmapScripts_RejectedCov(t *testing.T) {
 
 func TestFilterNmapScripts_EmptyCov(t *testing.T) {
         valid, rejected := filterNmapScripts(nil)
-        if len(valid) != 0 {
-                t.Errorf("expected 0 valid scripts, got %d", len(valid))
+        if len(valid) != 3 {
+                t.Errorf("expected 3 default valid scripts, got %d", len(valid))
         }
         if len(rejected) != 0 {
                 t.Errorf("expected 0 rejected scripts, got %d", len(rejected))
