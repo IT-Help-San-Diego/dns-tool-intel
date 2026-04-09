@@ -1,10 +1,13 @@
 package handlers
 
 import (
+        "html/template"
         "net/http"
         "net/http/httptest"
         "strings"
         "testing"
+
+        "dnstool/go-server/internal/config"
 
         "github.com/gin-gonic/gin"
 )
@@ -76,20 +79,56 @@ func TestShouldServeAsyncWait_CustomSelectorsNotAgent(t *testing.T) {
         }
 }
 
-func TestRenderWaitingPage_Headers(t *testing.T) {
+func waitPageRouter() *gin.Engine {
         gin.SetMode(gin.TestMode)
+        r := gin.New()
+        tmpl := template.New("")
+        template.Must(tmpl.New("head").Parse(``))
+        template.Must(tmpl.New("head_css").Parse(``))
+        template.Must(tmpl.New("scan_overlay_content").Parse(`<div class="scan-overlay-domain"></div>`))
+        template.Must(tmpl.New("scan_topology").Parse(`<div id="scanTopology"></div>`))
+        template.Must(tmpl.New("scripts").Parse(``))
+        template.Must(tmpl.New("scan_wait.html").Parse(
+                `<!DOCTYPE html><html><head>{{template "head" .}}{{template "head_css" .}}</head>` +
+                        `<body><output id="loadingOverlay">{{template "scan_overlay_content" .}}</output>` +
+                        `<div data-token="{{.ScanToken}}" data-domain="{{.AsciiDomain}}"></div>` +
+                        `{{template "scripts" .}}</body></html>`))
+        r.SetHTMLTemplate(tmpl)
+        return r
+}
+
+func TestRenderWaitingPage_HeadersAndContent(t *testing.T) {
+        router := waitPageRouter()
+        cfg := &config.Config{AppVersion: "test", BaseURL: "https://test.example"}
+        h := &AnalysisHandler{Config: cfg, ProgressStore: NewProgressStore()}
+        defer h.ProgressStore.Close()
+
+        router.GET("/analyze", func(c *gin.Context) {
+                h.renderWaitingPage(c, "tok-abc123", "example.com", "example.com")
+        })
+
         w := httptest.NewRecorder()
-        c, _ := gin.CreateTestContext(w)
-        c.Request = httptest.NewRequest(http.MethodGet, "/analyze?domain=example.com", nil)
+        req := httptest.NewRequest(http.MethodGet, "/analyze?domain=example.com", nil)
+        router.ServeHTTP(w, req)
 
-        c.Header("Cache-Control", "no-store, private, max-age=0")
-        c.Header("X-Robots-Tag", "noindex, nofollow")
-
+        if w.Code != http.StatusOK {
+                t.Fatalf("expected 200, got %d", w.Code)
+        }
         if cc := w.Header().Get("Cache-Control"); cc != "no-store, private, max-age=0" {
                 t.Errorf("expected no-store Cache-Control, got %q", cc)
         }
         if xr := w.Header().Get("X-Robots-Tag"); xr != "noindex, nofollow" {
                 t.Errorf("expected noindex X-Robots-Tag, got %q", xr)
+        }
+        body := w.Body.String()
+        if !strings.Contains(body, "tok-abc123") {
+                t.Error("response body should contain the scan token")
+        }
+        if !strings.Contains(body, "example.com") {
+                t.Error("response body should contain the domain")
+        }
+        if !strings.Contains(body, "loadingOverlay") {
+                t.Error("response body should contain loadingOverlay element")
         }
 }
 
