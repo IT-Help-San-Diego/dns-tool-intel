@@ -26,11 +26,16 @@
         var overlay = document.getElementById('loadingOverlay');
         var domainEl = overlay ? overlay.querySelector('.scan-overlay-domain') : null;
         if (domainEl) domainEl.textContent = domain;
-        if (typeof startProgressPolling === 'function') {
-            var pollId = startProgressPolling(token, overlay, null);
+        if (overlay && typeof showOverlay === 'function') {
+            showOverlay(overlay);
         }
-        var origFollow = (typeof followRedirect === 'function') ? followRedirect : null;
-        if (origFollow) {
+        if (overlay && typeof startStatusCycle === 'function') {
+            startStatusCycle(overlay);
+        }
+        if (typeof startProgressPolling === 'function') {
+            startProgressPolling(token, overlay, null);
+        }
+        if (typeof followRedirect === 'function') {
             globalThis.followRedirect = function(url) {
                 globalThis.location.replace(url);
             };
