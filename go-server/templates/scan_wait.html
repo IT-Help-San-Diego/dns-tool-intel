@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    <title>Scanning {{.Domain}} — DNS Tool</title>
+    <meta name="robots" content="noindex, nofollow">
+    {{template "head_css" .}}
+</head>
+<body class="loading">
+    <output id="loadingOverlay" class="loading-overlay is-active" aria-live="polite" aria-busy="true" style="min-height:100vh">
+        <div class="loading-content">
+            {{template "scan_overlay_content" .}}
+        </div>
+    </output>
+    <noscript>
+        <div style="text-align:center;padding:2rem">
+            <p>JavaScript is required for the live scan overlay.</p>
+            <p><a href="/analyze?domain={{.AsciiDomain}}&amp;sync=1">Click here to run the analysis without JavaScript</a>.</p>
+        </div>
+    </noscript>
+    {{template "scripts" .}}
+    <script nonce="{{.CspNonce}}">
+    document.addEventListener('DOMContentLoaded', function() {
+        var token = '{{.ScanToken}}';
+        var domain = '{{.AsciiDomain}}';
+        var overlay = document.getElementById('loadingOverlay');
+        var domainEl = overlay ? overlay.querySelector('.scan-overlay-domain') : null;
+        if (domainEl) domainEl.textContent = domain;
+        if (typeof startProgressPolling === 'function') {
+            var pollId = startProgressPolling(token, overlay, null);
+        }
+        var origFollow = (typeof followRedirect === 'function') ? followRedirect : null;
+        if (origFollow) {
+            globalThis.followRedirect = function(url) {
+                globalThis.location.replace(url);
+            };
+        }
+    });
+    </script>
+</body>
+</html>

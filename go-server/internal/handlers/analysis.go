@@ -385,6 +385,12 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
+        if shouldServeAsyncWait(c, inp.customSelectors, inp.exposureChecks) {
+                token := h.startDirectAsyncAnalysis(c, inp)
+                h.renderWaitingPage(c, token, inp.domain, inp.asciiDomain)
+                return
+        }
+
         startTime := time.Now()
         ctx := c.Request.Context()
 
@@ -536,6 +542,128 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
         return true
 }
 
+func shouldServeAsyncWait(c *gin.Context, customSelectors []string, exposureChecks bool) bool {
+        if c.Request.Method != http.MethodGet {
+                return false
+        }
+        if c.Query("sync") == "1" {
+                return false
+        }
+        if c.GetHeader("X-Requested-With") == "fetch" {
+                return false
+        }
+        if isAgentCacheEligible(c, customSelectors, exposureChecks) {
+                return false
+        }
+        return true
+}
+
+func (h *AnalysisHandler) startDirectAsyncAnalysis(c *gin.Context, inp analyzeInput) string {
+        token, sp := h.ProgressStore.NewToken()
+        clientIP := c.ClientIP()
+        countryCode, countryName := lookupCountry(clientIP)
+        traceID := token
+
+        go h.runAsyncScan(token, traceID, sp, inp, clientIP, countryCode, countryName)
+
+        return token
+}
+
+func (h *AnalysisHandler) renderWaitingPage(c *gin.Context, token, domain, asciiDomain string) {
+        c.Header("Cache-Control", "no-store, private, max-age=0")
+        c.Header("X-Robots-Tag", "noindex, nofollow")
+        data := NewTemplateData(c, h.Config, "scan")
+        data["Domain"] = domain
+        data["AsciiDomain"] = asciiDomain
+        data["ScanToken"] = token
+        data["BaseURL"] = h.Config.BaseURL
+        c.HTML(http.StatusOK, "scan_wait.html", data)
+}
+
+func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, inp analyzeInput, clientIP, countryCode, countryName string) {
+        ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+        defer cancel()
+
+        slog.LogAttrs(ctx, slog.LevelInfo, "scan started",
+                logging.ScanStarted(inp.asciiDomain, traceID, 0)...)
+
+        scanStart := time.Now()
+
+        results := h.Analyzer.AnalyzeDomain(ctx, inp.asciiDomain, inp.customSelectors, analyzer.AnalysisOptions{
+                ExposureChecks:  inp.exposureChecks,
+                OnPhaseProgress: sp.MakeInstrumentedProgressCallback(inp.asciiDomain, traceID),
+        })
+        analysisDuration := time.Since(sp.startTime).Seconds()
+        scanElapsedMs := time.Since(scanStart).Milliseconds()
+
+        h.applyConfidenceEngines(results)
+        h.enrichResultsAsync(results)
+
+        if failed, _ := isAnalysisFailure(results); failed {
+                go h.recordDailyStats(false, analysisDuration)
+                slog.LogAttrs(ctx, slog.LevelError, "scan failed",
+                        logging.ScanFailed(inp.asciiDomain, traceID, "analysis returned failure")...)
+                sp.MarkFailed("analysis failed")
+                return
+        }
+
+        domainExists := resultsDomainExists(results)
+        scanClass := scanner.Classify(inp.asciiDomain, clientIP)
+        postureHash := analyzer.CanonicalPostureHash(results)
+        drift := h.detectDrift(ctx, inp.devNull, domainExists, inp.asciiDomain, postureHash, results)
+
+        h.snapshotICAEMetrics(ctx, results)
+
+        telRaw := results["_scan_telemetry"]
+        delete(results, "_scan_telemetry")
+
+        isPrivate := inp.hasNovelSelectors && inp.isAuthenticated
+        analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
+                domain:            inp.domain,
+                asciiDomain:       inp.asciiDomain,
+                results:           results,
+                analysisDuration:  analysisDuration,
+                countryCode:       countryCode,
+                countryName:       countryName,
+                isPrivate:         isPrivate,
+                hasNovelSelectors: inp.hasNovelSelectors,
+                scanClass:         scanClass,
+                ephemeral:         inp.ephemeral,
+                domainExists:      domainExists,
+                devNull:           inp.devNull,
+        })
+
+        h.storeTelemetryFromRaw(ctx, analysisID, telRaw, inp.ephemeral)
+
+        analysisSuccess, _ := extractAnalysisError(results)
+        h.handlePostAnalysisSideEffectsAsync(ctx, sideEffectsParams{
+                asciiDomain:      inp.asciiDomain,
+                analysisID:       analysisID,
+                isAuthenticated:  inp.isAuthenticated,
+                userID:           inp.userID,
+                ephemeral:        inp.ephemeral,
+                domainExists:     domainExists,
+                drift:            drift,
+                postureHash:      postureHash,
+                analysisSuccess:  analysisSuccess,
+                analysisDuration: analysisDuration,
+                isPrivate:        isPrivate,
+                isScanFlagged:    scanClass.IsScan,
+        })
+
+        h.recordCurrencyIfEligible(inp.ephemeral, domainExists, inp.asciiDomain, results)
+
+        slog.LogAttrs(ctx, slog.LevelInfo, "scan completed",
+                logging.ScanCompleted(inp.asciiDomain, traceID, int(analysisID), scanElapsedMs)...)
+
+        if analysisID > 0 {
+                redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
+                sp.MarkComplete(analysisID, redirectURL)
+        } else {
+                sp.MarkComplete(0, "")
+        }
+}
+
 func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain string, customSelectors []string, exposureChecks, devNull, isAuthenticated bool, userID int32, hasNovelSelectors, ephemeral bool) {
         token, sp := h.ProgressStore.NewToken()
 
@@ -550,89 +678,18 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 "analysis_id": nil,
         })
 
-        go func() {
-                ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
-                defer cancel()
-
-                slog.LogAttrs(ctx, slog.LevelInfo, "scan started",
-                        logging.ScanStarted(asciiDomain, traceID, 0)...)
-
-                scanStart := time.Now()
-
-                results := h.Analyzer.AnalyzeDomain(ctx, asciiDomain, customSelectors, analyzer.AnalysisOptions{
-                        ExposureChecks:  exposureChecks,
-                        OnPhaseProgress: sp.MakeInstrumentedProgressCallback(asciiDomain, traceID),
-                })
-                analysisDuration := time.Since(sp.startTime).Seconds()
-                scanElapsedMs := time.Since(scanStart).Milliseconds()
-
-                h.applyConfidenceEngines(results)
-                h.enrichResultsAsync(results)
-
-                if failed, _ := isAnalysisFailure(results); failed {
-                        go h.recordDailyStats(false, analysisDuration)
-                        slog.LogAttrs(ctx, slog.LevelError, "scan failed",
-                                logging.ScanFailed(asciiDomain, traceID, "analysis returned failure")...)
-                        sp.MarkFailed("analysis failed")
-                        return
-                }
-
-                domainExists := resultsDomainExists(results)
-                scanClass := scanner.Classify(asciiDomain, clientIP)
-                postureHash := analyzer.CanonicalPostureHash(results)
-                drift := h.detectDrift(ctx, devNull, domainExists, asciiDomain, postureHash, results)
-
-                h.snapshotICAEMetrics(ctx, results)
-
-                telRaw := results["_scan_telemetry"]
-                delete(results, "_scan_telemetry")
-
-                isPrivate := hasNovelSelectors && isAuthenticated
-                analysisID, _ := h.persistOrLogEphemeral(ctx, persistParams{
-                        domain:            domain,
-                        asciiDomain:       asciiDomain,
-                        results:           results,
-                        analysisDuration:  analysisDuration,
-                        countryCode:       countryCode,
-                        countryName:       countryName,
-                        isPrivate:         isPrivate,
-                        hasNovelSelectors: hasNovelSelectors,
-                        scanClass:         scanClass,
-                        ephemeral:         ephemeral,
-                        domainExists:      domainExists,
-                        devNull:           devNull,
-                })
-
-                h.storeTelemetryFromRaw(ctx, analysisID, telRaw, ephemeral)
-
-                analysisSuccess, _ := extractAnalysisError(results)
-                h.handlePostAnalysisSideEffectsAsync(ctx, sideEffectsParams{
-                        asciiDomain:      asciiDomain,
-                        analysisID:       analysisID,
-                        isAuthenticated:  isAuthenticated,
-                        userID:           userID,
-                        ephemeral:        ephemeral,
-                        domainExists:     domainExists,
-                        drift:            drift,
-                        postureHash:      postureHash,
-                        analysisSuccess:  analysisSuccess,
-                        analysisDuration: analysisDuration,
-                        isPrivate:        isPrivate,
-                        isScanFlagged:    scanClass.IsScan,
-                })
-
-                h.recordCurrencyIfEligible(ephemeral, domainExists, asciiDomain, results)
-
-                slog.LogAttrs(ctx, slog.LevelInfo, "scan completed",
-                        logging.ScanCompleted(asciiDomain, traceID, int(analysisID), scanElapsedMs)...)
-
-                if analysisID > 0 {
-                        redirectURL := fmt.Sprintf("/analysis/%d", analysisID)
-                        sp.MarkComplete(analysisID, redirectURL)
-                } else {
-                        sp.MarkComplete(0, "")
-                }
-        }()
+        inp := analyzeInput{
+                domain:           domain,
+                asciiDomain:      asciiDomain,
+                customSelectors:  customSelectors,
+                exposureChecks:   exposureChecks,
+                devNull:          devNull,
+                isAuthenticated:  isAuthenticated,
+                userID:           userID,
+                hasNovelSelectors: hasNovelSelectors,
+                ephemeral:        ephemeral,
+        }
+        go h.runAsyncScan(token, traceID, sp, inp, clientIP, countryCode, countryName)
 }
 
 func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
