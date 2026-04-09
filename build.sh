@@ -16,8 +16,6 @@ export GOMODCACHE=/tmp/go-mod-cache
 
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
-  echo "Before cleanup:"
-  du -sh . 2>/dev/null || true
 
   echo "Compiling dns-tool-server for deployment..."
   cd "$SCRIPT_DIR"
@@ -34,29 +32,6 @@ if [ "$1" = "--deploy" ]; then
   ls -la "$SCRIPT_DIR/dns-tool-server"
   file "$SCRIPT_DIR/dns-tool-server"
 
-  echo "Cleaning non-runtime files..."
-  rm -rf .git.backup* 2>/dev/null || true
-  rm -rf .scannerwork .codex .drift .gitpanel \
-         exports dnstool-intel-staging .intel \
-         attached_assets .canvas artifacts \
-         node_modules .pythonlibs \
-         src stubs tests dns-eval security \
-         logs instance .agents \
-         .go-build-cache .go-mod-cache \
-         EVOLUTION.md PROJECT_CONTEXT.md \
-         static/references \
-         go-server/tools go-server/exports go-server/scripts \
-         2>/dev/null || true
-  rm -rf docs 2>/dev/null || true
-  rm -rf .cache/uv .cache/pip .cache/go-build .cache/node \
-         .config/chromium .config/configstore .config/pulse \
-         2>/dev/null || true
-
-  find go-server/internal -name '*_test.go' -delete 2>/dev/null || true
-  find . -maxdepth 1 -name '*.md' ! -name 'replit.md' -delete 2>/dev/null || true
-
-  echo "After cleanup:"
-  du -sh . 2>/dev/null || true
   echo "Deployment build complete — v${VERSION} ${GIT_COMMIT} ${BUILD_TIME}"
   exit 0
 fi
