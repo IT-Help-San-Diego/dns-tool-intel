@@ -11,23 +11,23 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
+export GOCACHE=/tmp/go-build-cache
+export GOMODCACHE=/tmp/go-mod-cache
+
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
   echo "Before cleanup:"
   du -sh . 2>/dev/null || true
 
   echo "Compiling dns-tool-server for deployment..."
-  export GOCACHE=/tmp/go-build-cache
-  export GOMODCACHE=/tmp/go-mod-cache
-  cd "$SCRIPT_DIR/go-server"
-  CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
+  cd "$SCRIPT_DIR"
+  CGO_ENABLED=0 GONOSUMCHECK=1 go build \
     -buildvcs=false \
     -trimpath \
     -ldflags "$LDFLAGS" \
     -tags netgo \
     -o "$SCRIPT_DIR/dns-tool-server" \
-    ./cmd/server/
-  cd "$SCRIPT_DIR"
+    ./go-server/cmd/server/
   rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
   echo "Binary built:"
@@ -46,7 +46,6 @@ if [ "$1" = "--deploy" ]; then
          EVOLUTION.md PROJECT_CONTEXT.md \
          static/references \
          go-server/cmd go-server/tools go-server/exports go-server/scripts \
-         go.mod go.sum \
          2>/dev/null || true
   rm -rf docs 2>/dev/null || true
   rm -rf .cache/uv .cache/pip .cache/go-build .cache/node \
@@ -62,19 +61,15 @@ if [ "$1" = "--deploy" ]; then
   exit 0
 fi
 
-export GOCACHE=/tmp/go-build-cache
-export GOMODCACHE=/tmp/go-mod-cache
-
 echo "Building dns-tool-server..."
-cd "$SCRIPT_DIR/go-server"
-CGO_ENABLED=0 GONOSUMCHECK=1 GIT_DIR=/dev/null go build \
+cd "$SCRIPT_DIR"
+CGO_ENABLED=0 GONOSUMCHECK=1 go build \
   -buildvcs=false \
   -trimpath \
   -ldflags "$LDFLAGS" \
   -tags netgo \
   -o /tmp/dns-tool-new \
-  ./cmd/server/
-cd "$SCRIPT_DIR"
+  ./go-server/cmd/server/
 mv /tmp/dns-tool-new dns-tool-server-new
 mv dns-tool-server-new dns-tool-server
 
