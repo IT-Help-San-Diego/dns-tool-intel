@@ -4,6 +4,15 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$SCRIPT_DIR/.."
 
+if command -v magick >/dev/null 2>&1; then
+  IM_CMD="magick"
+elif command -v convert >/dev/null 2>&1; then
+  IM_CMD="convert"
+else
+  echo "ERROR: Neither magick (IM7) nor convert (IM6) found" >&2
+  exit 1
+fi
+
 SIZES="40 96 160 300"
 STATES="NORM NONNORM CRIT META"
 BACKGROUNDS="transparent dark white"
@@ -34,7 +43,7 @@ for dir in $DIRS; do
         webp_out="$OUT_DIR/${base}.webp"
 
         if [ ! -f "$png_out" ]; then
-          magick "$src" -resize "${size}x${size}" -strip "$png_out"
+          $IM_CMD "$src" -resize "${size}x${size}" -strip "$png_out"
         fi
 
         if [ ! -f "$webp_out" ]; then

@@ -2,11 +2,11 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if command -v magick >/dev/null 2>&1 && command -v cwebp >/dev/null 2>&1; then
+if (command -v magick >/dev/null 2>&1 || command -v convert >/dev/null 2>&1) && command -v cwebp >/dev/null 2>&1; then
   echo "Generating Owl Semaphore derived assets..."
   sh "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
 else
-  echo "SKIP derived asset generation (magick/cwebp not found)"
+  echo "SKIP derived asset generation (ImageMagick/cwebp not found)"
 fi
 
 VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
