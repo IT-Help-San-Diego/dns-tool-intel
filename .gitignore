@@ -55,6 +55,8 @@ EVOLUTION.md
 PROJECT_CONTEXT.md
 
 # Figma asset bundle exports — generated, not versioned
+# Exception: Owl Semaphore derived display assets are force-tracked (git add -f)
+# so they deploy with the repo despite this rule.
 exports/
 
 # Private repo staging — never push to public

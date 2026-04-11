@@ -2,6 +2,13 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+if command -v magick >/dev/null 2>&1 && command -v cwebp >/dev/null 2>&1; then
+  echo "Generating Owl Semaphore derived assets..."
+  sh "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
+else
+  echo "SKIP derived asset generation (magick/cwebp not found)"
+fi
+
 VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
 GIT_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
