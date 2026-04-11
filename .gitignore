@@ -55,12 +55,17 @@ EVOLUTION.md
 PROJECT_CONTEXT.md
 
 # Figma asset bundle exports — generated, not versioned
-exports/
+static/exports/*
+go-server/static/exports/*
 # Exception: Owl Semaphore derived display assets must deploy with the repo.
-# Git requires un-ignoring each parent directory in the chain.
-!**/exports/owl-semaphore/
-**/exports/owl-semaphore/*
-!**/exports/owl-semaphore/derived/
+!static/exports/owl-semaphore/
+!go-server/static/exports/owl-semaphore/
+static/exports/owl-semaphore/*
+go-server/static/exports/owl-semaphore/*
+!static/exports/owl-semaphore/derived/
+!go-server/static/exports/owl-semaphore/derived/
+!static/exports/owl-semaphore/derived/*
+!go-server/static/exports/owl-semaphore/derived/*
 
 # Private repo staging — never push to public
 dnstool-intel-staging/
