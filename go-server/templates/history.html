@@ -96,7 +96,7 @@
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                             <div class="min-width-0">
-                                                <div class="fw-medium text-truncate" title="{{$a.Domain}}">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy">Plugin</a>{{end}}</div>
+                                                <div class="fw-medium text-truncate" title="{{$a.Domain}}">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" $.AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy"></picture>Plugin</a>{{end}}</div>
                                                 {{if ne $a.AsciiDomain $a.Domain}}
                                                     <small class="text-muted text-truncate d-block">{{$a.AsciiDomain}}</small>
                                                 {{end}}
@@ -110,7 +110,7 @@
                                     </td>
                                     <td class="col-date">
                                         <span class="text-muted">{{$a.CreatedDate}} {{$a.CreatedTime}}</span>
-                                        <br><small class="text-muted u-opacity-60">{{if $a.ToolVersion}}v{{$a.ToolVersion}}{{end}}{{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}</small>
+                                        <br><small class="text-muted">{{if $a.ToolVersion}}v{{$a.ToolVersion}}{{end}}{{if $a.AnalysisDuration}} &middot; {{formatFloat 1 $a.AnalysisDuration}}s{{end}}</small>
                                     </td>
                                     <td>
                                         <div class="btn-group">
@@ -148,7 +148,7 @@
                             <div class="d-flex align-items-center min-width-0">
                                 {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
-                                    <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy">Plugin</a>{{end}}</div>
+                                    <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" $.AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy"></picture>Plugin</a>{{end}}</div>
                                 </div>
                             </div>
                             <div class="btn-group flex-shrink-0 ms-2">
