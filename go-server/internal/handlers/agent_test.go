@@ -237,7 +237,7 @@ func TestBuildAgentJSONEnrichedLinks(t *testing.T) {
                 "snapshot":        "https://dnstool.it-help.tech/snapshot/example.com",
                 "topology":       "https://dnstool.it-help.tech/topology?domain=example.com",
                 "wayback_archive": "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
-                "wayback_page":    "https://dnstool.it-help.tech/agent/wayback?domain=example.com",
+                "wayback_page":    "https://dnstool.it-help.tech/agent/wayback-view?domain=example.com",
                 "report_page":     "https://dnstool.it-help.tech/analyze?domain=example.com&src=agent",
                 "api_json":        "https://dnstool.it-help.tech/agent/api?q=example.com",
         }
@@ -309,7 +309,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         }
 
         assetChecks := []string{
-                "/snapshot/example.com",
+                "/agent/snapshot-view?domain=example.com",
                 "/topology?domain=example.com",
                 "/analyze?domain=example.com",
                 "style=detailed",
@@ -317,9 +317,9 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "Observed Records Snapshot",
                 "DNS Topology",
                 "/agent/badge-view?domain=example.com",
-                "/agent/api?q=example.com",
+                "/agent/json-view?domain=example.com",
                 "Full Intelligence Data (JSON)",
-                "/export/subdomains?domain=example.com",
+                "/agent/csv-view?domain=example.com",
                 "Discovered Domains",
                 "/sources",
                 "Sources &amp; Methodology",
@@ -357,7 +357,7 @@ func TestBuildAgentHTMLWithAnalysisID(t *testing.T) {
                 "Covert Recon Report",
                 "/analysis/42/executive",
                 "Executive Intelligence Brief",
-                "/api/analysis/42/checksum",
+                "/agent/checksum-view?domain=example.com",
                 "SHA-3 Integrity Checksum",
                 "/remediation?analysis_id=42",
                 "Security Remediation Plan",
