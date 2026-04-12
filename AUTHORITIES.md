@@ -104,6 +104,9 @@
 | RFC | Title | Status | Our Use |
 |-----|-------|--------|---------|
 | 1034/1035 | DNS Core Protocol | Internet Standard | Native packet construction, enterprise DNS classification |
+| 1912 | Common DNS Operational and Configuration Errors | Informational | DNS misconfiguration detection, operational best practices |
+| 2181 | Clarifications to the DNS Specification | Standards Track | DNS protocol clarifications, TTL semantics, response handling |
+| 2308 | Negative Caching of DNS Queries (DNS NCACHE) | Standards Track | NXDOMAIN caching behavior, SOA MINIMUM field interpretation |
 | 4033/4034/4035 | DNSSEC | Standards Track | Chain validation, AD flag verification |
 | 8624 | DNSSEC Algorithm Guidance | Standards Track (obsoleted by 9904) | Legacy algorithm recommendations |
 | 9904 | DNSSEC Algorithm Recommendation Update Process | Standards Track (Nov 2025) | Moves algorithm guidance to IANA registries; obsoletes RFC 8624 |
