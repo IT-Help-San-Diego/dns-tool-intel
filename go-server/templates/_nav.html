@@ -71,6 +71,11 @@
                         {{icon "diagram-project" "me-1"}}Sources
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "topology"}} active{{end}}" href="/topology" title="DNS Analysis Topology — how we build your report">
+                        {{icon "project-diagram" "me-1"}}Topology
+                    </a>
+                </li>
                 {{if .GoogleAuthEnabled}}
                 <li class="nav-item">
                     {{if .Authenticated}}
