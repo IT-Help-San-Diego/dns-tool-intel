@@ -32,6 +32,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{{if eq .ActivePage "topology"}} active{{end}}" href="/topology" title="DNS Analysis Topology — how we build your report">
+                        {{icon "project-diagram" "me-1"}}Topology
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "ttl-tuner"}} active{{end}}" href="/ttl-tuner" title="TTL Tuner — optimize DNS TTL values for speed and reliability">
                         {{icon "sliders-h" "me-1"}}TTL Tuner{{if index .BetaPages "ttl-tuner"}} <span class="u-beta-tag ms-1">Beta</span>{{end}}
                     </a>
@@ -68,12 +73,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{{if eq .ActivePage "sources"}} active{{end}}" href="/sources">
-                        {{icon "diagram-project" "me-1"}}Sources
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{{if eq .ActivePage "topology"}} active{{end}}" href="/topology" title="DNS Analysis Topology — how we build your report">
-                        {{icon "project-diagram" "me-1"}}Topology
+                        {{icon "book" "me-1"}}Sources
                     </a>
                 </li>
                 {{if .GoogleAuthEnabled}}
