@@ -1,3 +1,4 @@
+// dns-tool:scrutiny design
 package handlers
 
 import (
