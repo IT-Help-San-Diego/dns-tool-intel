@@ -42,7 +42,7 @@ citations:
     publisher: IETF
     date: "2015-03"
     text_fragments:
-      "6.1": "text=DMARC%20relies%20on%20the%20results%20of%20SPF%20and/or%20DKIM"
+      "6.1": "text=DMARC%20policy%20is%20published,_dmarc"
       "6.3": "text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax"
       "6.6.3": "text=the%20remaining%20set%20contains%20multiple%20records%20or%20no%20records,DMARC%20processing%20is%20not%20applied"
       "7": "text=Aggregate%20reports%20are%20reports%20that%20are,that%20did%20not"
@@ -251,8 +251,8 @@ citations:
     publisher: IETF
     date: "2017-03"
     text_fragments:
-      "4": "text=Automating%20the%20DS%20change,parental%20agent"
       "3": "text=The%20CDS%20and%20CDNSKEY%20resource%20records"
+      "4": "text=algorithm%200,delete%20the%20DS,at%20the%20parent"
 
   - id: "rfc:8659"
     type: rfc
@@ -264,7 +264,8 @@ citations:
     date: "2019-11"
     text_fragments:
       "4": "text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild"
-      "4.3": "text=the%20%22iodef%22%20property,incident%20description"
+      "4.2": "text=issuewild,authorization%20to%20issue%20wildcard%20certificates"
+      "4.3": "text=iodef,report%20certificate%20issue%20requests"
       "4.4": "text=Property%20tags%20with,SHALL%20be%20silently%20ignored"
 
   - id: "rfc:8162"

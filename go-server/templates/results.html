@@ -1853,7 +1853,7 @@
                                     <div class="mt-2 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded small">
                                         {{icon "exclamation-circle" "text-danger me-1"}}
                                         <strong class="text-danger">Misplaced DMARC Record Detected</strong>
-                                        <span class="text-muted d-block mt-1">A <code>v=DMARC1</code> record was found in the root domain TXT records instead of at <code>_dmarc.{{.Domain}}</code>. Per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.1:~:text=DMARC%20relies%20on%20the%20results%20of%20SPF%20and/or%20DKIM" target="_blank" rel="noopener" class="text-danger">RFC 7489 §6.1</a>, DMARC records must be published at the <code>_dmarc</code> subdomain. Mail receivers (Gmail, Outlook, Yahoo) will ignore this record.</span>
+                                        <span class="text-muted d-block mt-1">A <code>v=DMARC1</code> record was found in the root domain TXT records instead of at <code>_dmarc.{{.Domain}}</code>. Per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.1:~:text=DMARC%20policy%20is%20published,_dmarc" target="_blank" rel="noopener" class="text-danger">RFC 7489 §6.1</a>, DMARC records must be published at the <code>_dmarc</code> subdomain. Mail receivers (Gmail, Outlook, Yahoo) will ignore this record.</span>
                                         {{$policyHint := mapGetStr "policy_hint" $misplacedDMARC}}
                                         {{$activePolicy := mapGetStr "policy" $dmarc}}
                                         {{if and $policyHint $activePolicy}}
