@@ -249,13 +249,13 @@
             </div>
             <div class="results-header-actions">
                 <div class="btn-group me-2">
-                    <button type="button" id="engineerPrintBtn" class="btn btn-outline-info active" title="Print this Engineer's DNS Intelligence Report">
+                    <button type="button" id="engineerPrintBtn" class="btn btn-report-action active" title="Print this Engineer's DNS Intelligence Report">
                         {{icon "print" "me-1"}}Print
                     </button>
-                    <a href="/analysis/{{.AnalysisID}}/view/B" id="executiveNavBtn" class="btn btn-outline-executive" title="View Executive's DNS Intelligence Brief">
+                    <a href="/analysis/{{.AnalysisID}}/view/B" id="executiveNavBtn" class="btn btn-report-action" title="View Executive's DNS Intelligence Brief">
                         {{icon "file-alt" "me-1"}}Executive
                     </a>
-                    <a href="/topology?domain={{.Domain}}" class="btn btn-outline-secondary" title="View DNS Topology Map">
+                    <a href="/topology?domain={{.Domain}}" class="btn btn-report-action" title="View DNS Topology Map">
                         {{icon "project-diagram" "me-1"}}Topology
                     </a>
                 </div>
@@ -277,14 +277,14 @@
                 <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}CZ{{else}}C{{end}}" class="btn btn-outline-danger me-2 u-badge-recon-btn no-print" title="Switch to Recon Mode — red team perspective">
                     {{icon "crosshairs" "me-1"}}<span class="d-none d-lg-inline">Recon Mode</span><span class="visually-hidden d-lg-none">Recon Mode</span>
                 </a>
-                <a href="/snapshot/{{.AsciiDomain}}" class="btn btn-outline-info me-2" title="Download Observed Records Snapshot">
+                <a href="/snapshot/{{.AsciiDomain}}" class="btn btn-report-action me-2" title="Download Observed Records Snapshot">
                     {{icon "file-lines" "me-1"}}Snapshot
                 </a>
-                <a href="/analyze?domain={{.AsciiDomain}}" id="reanalyzeBtn" class="btn btn-analyze" data-domain="{{.AsciiDomain}}"
+                <a href="/analyze?domain={{.AsciiDomain}}" id="reanalyzeBtn" class="btn btn-report-action btn-report-action--accent" data-domain="{{.AsciiDomain}}"
                     {{if gt .WaitSeconds 0}}data-wait-seconds="{{.WaitSeconds}}" data-wait-reason="{{.WaitReason}}"{{end}}>
                     {{icon "sync-alt" "me-2"}}Re-analyze
                 </a>
-                <a href="/" class="btn btn-outline-primary">
+                <a href="/" class="btn btn-report-action">
                     {{icon "search" "me-2"}}New Domain
                 </a>
             </div>
