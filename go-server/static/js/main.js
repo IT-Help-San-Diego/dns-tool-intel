@@ -1968,6 +1968,32 @@ function loadDNSHistory(domain) {
         });
 }
 
+function rfcFallbackOverlay(url) {
+    var existing = document.getElementById('rfcFallbackOverlay');
+    if (existing) existing.remove();
+    var rfcMatch = url.match(/rfc(\d+)\.html/);
+    var rfcNum = rfcMatch ? rfcMatch[1] : '';
+    var sectionMatch = url.match(/#section-([\d.]+)/);
+    var sectionLabel = sectionMatch ? ' \u00a7' + sectionMatch[1] : '';
+    var backdrop = document.createElement('div');
+    backdrop.id = 'rfcFallbackOverlay';
+    backdrop.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center';
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#1a1a2e;color:#e0e0e0;border-radius:12px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.5);text-align:center;font-family:system-ui,sans-serif';
+    card.innerHTML = '<div style="font-size:1.5rem;font-weight:700;margin-bottom:8px">RFC ' + escapeHtml(rfcNum) + escapeHtml(sectionLabel) + '</div>' +
+        '<p style="margin:12px 0;color:#aaa;font-size:.9rem">Your browser blocked the popup window. Open this RFC directly:</p>' +
+        '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:12px 0;padding:10px 28px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Open RFC' + (rfcNum ? ' ' + escapeHtml(rfcNum) : '') + '</a>' +
+        '<div style="margin-top:16px"><button style="background:none;border:1px solid #555;color:#aaa;padding:6px 18px;border-radius:6px;cursor:pointer;font-size:.85rem" id="rfcFallbackClose">Close</button></div>';
+    backdrop.appendChild(card);
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', function(ev) {
+        if (ev.target === backdrop || ev.target.id === 'rfcFallbackClose') backdrop.remove();
+    });
+    document.addEventListener('keydown', function onEsc(ev) {
+        if (ev.key === 'Escape') { backdrop.remove(); document.removeEventListener('keydown', onEsc); }
+    });
+}
+
 function openRFCPopup(url, evt) {
     if (evt) { evt.preventDefault(); evt.stopPropagation(); }
     var w = 720, h = 520;
@@ -1976,7 +2002,7 @@ function openRFCPopup(url, evt) {
     var win = window.open(url, 'rfcPopup',
         'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
         ',scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=yes,status=no,noopener,noreferrer');
-    if (win) win.opener = null;
+    if (win) { win.opener = null; } else { rfcFallbackOverlay(url); }
 }
 
 document.addEventListener('click', function(e) {

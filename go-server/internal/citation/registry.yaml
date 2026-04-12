@@ -47,6 +47,7 @@ citations:
       "6.6.3": "text=the%20remaining%20set%20contains%20multiple%20records%20or%20no%20records,DMARC%20processing%20is%20not%20applied"
       "7": "text=Aggregate%20reports%20are%20reports%20that%20are,that%20did%20not"
       "7.1": "text=A%20Mail%20Receiver%20is%20able%20to,aggregate%20report"
+      "7.3": "text=Forensic%20reports,personally%20identifiable%20information"
       "10.1": "text=some%20implementations%20short-circuit,reject%20messages"
 
   - id: "rfc:8301"
@@ -68,6 +69,8 @@ citations:
     functional_area: email-authentication
     publisher: IETF
     date: "2018-09"
+    text_fragments:
+      "3": "text=Ed25519-SHA256,a%3Ded25519-sha256"
 
   - id: "rfc:8461"
     type: rfc
@@ -162,6 +165,9 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "1987-11"
+    text_fragments:
+      "3.1": "text=The%20domain%20name%20space%20is%20a%20tree%20structure"
+      "3.6": "text=Each%20node%20has%20a%20set%20of%20resource%20information"
 
   - id: "rfc:1035"
     type: rfc
@@ -194,6 +200,9 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2005-03"
+    text_fragments:
+      "2": "text=The%20DNSKEY%20resource%20record,zone%20signing%20key"
+      "5": "text=The%20DS%20Resource%20Record%20refers%20to%20a%20DNSKEY%20RR"
 
   - id: "rfc:4035"
     type: rfc
@@ -230,6 +239,8 @@ citations:
     publisher: IETF
     date: "2025-11"
     obsoletes: "rfc:8624"
+    text_fragments:
+      "3": "text=algorithm%20implementation%20requirements,MUST%20implement"
 
   - id: "rfc:8078"
     type: rfc
@@ -239,6 +250,9 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2017-03"
+    text_fragments:
+      "4": "text=Automating%20the%20DS%20change,parental%20agent"
+      "3": "text=The%20CDS%20and%20CDNSKEY%20resource%20records"
 
   - id: "rfc:8659"
     type: rfc
@@ -261,6 +275,8 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2017-05"
+    text_fragments:
+      "2": "text=The%20SMIMEA%20RR,associate%20a%20certificate"
 
   - id: "rfc:7929"
     type: rfc
@@ -270,6 +286,8 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2016-08"
+    text_fragments:
+      "2": "text=The%20OPENPGPKEY%20DNS%20resource%20record"
 
   - id: "rfc:9460"
     type: rfc
@@ -279,6 +297,9 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2023-11"
+    text_fragments:
+      "2": "text=The%20SVCB%20DNS%20RR%20type,service%20binding"
+      "9": "text=The%20HTTPS%20RR,SVCB-compatible%20RR%20type"
 
   - id: "rfc:9461"
     type: rfc
@@ -288,6 +309,8 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2023-11"
+    text_fragments:
+      "2": "text=DNS%20server%20operators,SVCB%20records"
 
   - id: "rfc:6962"
     type: rfc
@@ -308,6 +331,8 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2015-03"
+    text_fragments:
+      "3": "text=JSON%20data%20structures,Registration%20Data"
 
   - id: "rfc:1912"
     type: rfc
@@ -352,6 +377,8 @@ citations:
     functional_area: web-governance
     publisher: IETF
     date: "2022-09"
+    text_fragments:
+      "2": "text=A%20robots.txt%20file,crawlers%20and%20other%20automated%20agents"
 
   - id: "rfc:8615"
     type: rfc
@@ -361,6 +388,8 @@ citations:
     functional_area: web-governance
     publisher: IETF
     date: "2019-05"
+    text_fragments:
+      "3": "text=well-known%20URIs,/.well-known/"
 
   # ── Miscellaneous RFCs ──
   - id: "rfc:9116"
@@ -371,6 +400,8 @@ citations:
     functional_area: miscellaneous
     publisher: IETF
     date: "2022-04"
+    text_fragments:
+      "2": "text=security.txt,well-known%20URI"
 
   - id: "rfc:1392"
     type: rfc
@@ -380,6 +411,8 @@ citations:
     functional_area: miscellaneous
     publisher: IETF
     date: "1993-01"
+    text_fragments:
+      "": "text=Internet%20Users%27%20Glossary"
 
   - id: "rfc:8767"
     type: rfc
@@ -389,6 +422,8 @@ citations:
     functional_area: dns-infrastructure
     publisher: IETF
     date: "2020-03"
+    text_fragments:
+      "4": "text=serve%20stale%20data,improve%20DNS%20resiliency"
 
   # ── IETF Active Drafts ──
   - id: "draft:dmarcbis"
