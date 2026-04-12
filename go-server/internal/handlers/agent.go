@@ -357,9 +357,13 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                         "snapshot":        fmt.Sprintf("%s/snapshot/%s", base, domain),
                         "topology":        fmt.Sprintf("%s/topology?domain=%s", base, domain),
                         "wayback_archive": waybackURL,
-                        "wayback_page":    fmt.Sprintf(agentFmtWayback, base, domain),
+                        "wayback_page":    fmt.Sprintf("%s/agent/wayback-view?domain=%s", base, domain),
                         "api_json":        fmt.Sprintf("%s/agent/api?q=%s", base, domain),
+                        "api_json_page":   fmt.Sprintf("%s/agent/json-view?domain=%s", base, domain),
                         "csv_export":      fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain),
+                        "csv_export_page": fmt.Sprintf("%s/agent/csv-view?domain=%s", base, domain),
+                        "snapshot_page":   fmt.Sprintf("%s/agent/snapshot-view?domain=%s", base, domain),
+                        "checksum_page":   fmt.Sprintf("%s/agent/checksum-view?domain=%s", base, domain),
                         "sources":         fmt.Sprintf("%s/sources", base),
                         "zenodo_doi":      "https://doi.org/10.5281/zenodo.19468134",
                 },
@@ -504,27 +508,27 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         ed := esc(domain)
         base := h.Config.BaseURL
         reportURL := esc(links["report"].(string))
-        snapshotURL := esc(links["snapshot"].(string))
         topologyURL := esc(links["topology"].(string))
-        apiURL := esc(links["api_json"].(string))
         reportPageURL := esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeViewDetailed := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain))
         badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
-        csvExportURL := esc(fmt.Sprintf("%s/export/subdomains?domain=%s&format=csv", base, domain))
         sourcesURL := esc(fmt.Sprintf("%s/sources", base))
-        waybackViewURL := esc(fmt.Sprintf(agentFmtWayback, base, domain))
         confidenceURL := esc(fmt.Sprintf("%s/confidence", base))
 
-        var checksumURL, remediationURL, covertReportURL, executiveReportURL string
+        snapshotViewURL := esc(fmt.Sprintf("%s/agent/snapshot-view?domain=%s", base, domain))
+        jsonViewURL := esc(fmt.Sprintf("%s/agent/json-view?domain=%s", base, domain))
+        csvViewURL := esc(fmt.Sprintf("%s/agent/csv-view?domain=%s", base, domain))
+        checksumViewURL := esc(fmt.Sprintf("%s/agent/checksum-view?domain=%s", base, domain))
+        waybackViewURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s", base, domain))
+
+        var remediationURL, covertReportURL, executiveReportURL string
         if analysisID > 0 {
-                checksumURL = esc(fmt.Sprintf("%s/api/analysis/%d/checksum", base, analysisID))
                 remediationURL = esc(fmt.Sprintf("%s/remediation?analysis_id=%d", base, analysisID))
                 covertReportURL = esc(fmt.Sprintf("%s/analysis/%d/view/C", base, analysisID))
                 executiveReportURL = esc(fmt.Sprintf("%s/analysis/%d/executive", base, analysisID))
         } else {
-                checksumURL = esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
                 remediationURL = esc(fmt.Sprintf("%s/remediation?domain=%s", base, domain))
                 covertReportURL = esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
                 executiveReportURL = esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
@@ -597,17 +601,17 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
 <h2>Reports &amp; Intelligence</h2>
 <ol>
   <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> — full security analysis with live scanning (the engineering report)</li>
-  <li><a href="` + snapshotURL + `">Observed Records Snapshot</a> — reconstructed zone file, SHA-3-512 verified</li>
+  <li><a href="` + snapshotViewURL + `">Observed Records Snapshot</a> — reconstructed zone file, SHA-3-512 verified</li>
   <li><a href="` + badgeViewDetailed + `" title="DNS Tool Detailed Security Badge for ` + ed + `">Detailed Security Badge</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
   <li><a href="` + badgeViewCovert + `" title="DNS Tool Covert Security Badge for ` + ed + `">Covert Security Badge</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
   <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
   <li><a href="` + executiveReportURL + `">Executive Intelligence Brief</a> — board-ready executive summary</li>
   <li><a href="` + topologyURL + `">DNS Topology</a> — topology visualization, signal flow, and RFC source mapping</li>
   <li><a href="https://doi.org/10.5281/zenodo.19468134">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.19468134)</li>
-  <li><a href="` + apiURL + `">Full Intelligence Data (JSON)</a> — complete analysis payload with all collected intelligence</li>
-  <li><a href="` + csvExportURL + `">Discovered Domains &amp; Subdomains</a> — human-readable subdomain reconnaissance data (CSV)</li>
+  <li><a href="` + jsonViewURL + `">Full Intelligence Data (JSON)</a> — complete analysis payload with all collected intelligence</li>
+  <li><a href="` + csvViewURL + `">Discovered Domains &amp; Subdomains</a> — human-readable subdomain reconnaissance data (CSV)</li>
   <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
-  <li><a href="` + checksumURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
+  <li><a href="` + checksumViewURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
   <li><a href="` + remediationURL + `">Security Remediation Plan</a> — actionable remediation steps for this domain</li>
   <li><a href="` + waybackViewURL + `">Internet Archive (Wayback Machine)</a> — permanent archived record of the analysis</li>
   <li><a href="` + confidenceURL + `">Confidence Page</a> — SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</li>
