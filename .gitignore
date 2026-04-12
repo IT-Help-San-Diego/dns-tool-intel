@@ -12,7 +12,7 @@ dns-tool-server-new
 logs/
 go-server/server
 go-server/dnstool
-server
+/server
 replit.md
 docs/legacy/src/
 docs/legacy/tests/
