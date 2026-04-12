@@ -150,18 +150,18 @@
             </div>
             <div class="results-header-actions">
                 {{if .AnalysisID}}
-                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-outline-info me-2" title="{{if .IsPublicSuffix}}View the Zone Health Report{{else}}View the full Engineer's DNS Intelligence Report{{end}}">
+                <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}Z{{else}}E{{end}}" class="btn btn-report-action me-2" title="{{if .IsPublicSuffix}}View the Zone Health Report{{else}}View the full Engineer's DNS Intelligence Report{{end}}">
                     {{icon "file-alt" "me-1"}}{{if .IsPublicSuffix}}Zone Health{{else}}Engineer's{{end}}
                 </a>
                 {{end}}
-                <button type="button" class="btn btn-outline-info me-2" id="printReportBtn" title="Print this Recon Report">
+                <button type="button" class="btn btn-report-action me-2" id="printReportBtn" title="Print this Recon Report">
                     {{icon "print" "me-1"}}Print
                 </button>
-                <a href="/analyze?domain={{.AsciiDomain}}" id="reanalyzeBtn" class="btn btn-analyze" data-domain="{{.AsciiDomain}}"
+                <a href="/analyze?domain={{.AsciiDomain}}" id="reanalyzeBtn" class="btn btn-report-action btn-report-action--accent" data-domain="{{.AsciiDomain}}"
                     {{if gt .WaitSeconds 0}}data-wait-seconds="{{.WaitSeconds}}" data-wait-reason="{{.WaitReason}}"{{end}}>
                     {{icon "sync-alt" "me-2"}}Re-scan
                 </a>
-                <a href="/" class="btn btn-outline-primary">
+                <a href="/" class="btn btn-report-action">
                     {{icon "search" "me-2"}}New Target
                 </a>
             </div>
