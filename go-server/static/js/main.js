@@ -1968,11 +1968,30 @@ function loadDNSHistory(domain) {
         });
 }
 
+function openRFCPopup(url, evt) {
+    if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+    var w = 720, h = 520;
+    var left = (screen.width - w) / 2;
+    var top = (screen.height - h) / 2;
+    var win = window.open(url, 'rfcPopup',
+        'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+        ',scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=yes,status=no,noopener,noreferrer');
+    if (win) win.opener = null;
+}
+
+document.addEventListener('click', function(e) {
+    if (e.defaultPrevented) return;
+    var link = e.target.closest('a[href*="rfc-editor.org/rfc/rfc"]');
+    if (!link) return;
+    openRFCPopup(link.href, e);
+});
+
 globalThis.showOverlay = showOverlay;
 globalThis.startStatusCycle = startStatusCycle;
 globalThis.startProgressPolling = startProgressPolling;
 globalThis.hideOverlayAndReset = hideOverlayAndReset;
 globalThis.escapeHtml = escapeHtml;
 globalThis.loadDNSHistory = loadDNSHistory;
+globalThis.openRFCPopup = openRFCPopup;
 
 })();

@@ -20,7 +20,7 @@ const (
         colorLow      = "secondary"
 
         rfcDMARCPolicy    = "RFC 7489 §6.3"
-        rfcDMARCPolicyURL = "https://datatracker.ietf.org/doc/html/rfc7489#section-6.3"
+        rfcDMARCPolicyURL = "https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax"
 
         dkimRecordExampleGeneric = "selector1._domainkey.%s TXT \"v=DKIM1; k=rsa; p=<public_key>\""
 
@@ -28,8 +28,8 @@ const (
         tlsrptDescDANE    = "Your domain has DNSSEC + DANE — the strongest email transport security available. TLS-RPT adds operational visibility by reporting when sending servers fail DANE validation or encounter STARTTLS issues delivering to your MX hosts. It does not add security — it monitors the security you already have."
         tlsrptDescMTASTS  = "Your domain has MTA-STS configured for transport encryption. TLS-RPT complements MTA-STS by reporting when sending servers fail to establish TLS or encounter policy mismatches delivering to your domain. Essential for monitoring MTA-STS enforcement."
 
-	helpRootDomain = "@ means the root domain itself \u2014 some providers show this as the domain name or leave it blank"
-	helpDMARCHost  = "Enter _dmarc as the hostname \u2014 your provider will append the domain automatically"
+        helpRootDomain = "@ means the root domain itself \u2014 some providers show this as the domain name or leave it blank"
+        helpDMARCHost  = "Enter _dmarc as the hostname \u2014 your provider will append the domain automatically"
 )
 
 func dkimRecordExample(domain, provider string) string {
@@ -220,7 +220,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSPurpose:    "Replaces the dangerous +all with ~all to restrict unauthorized senders",
                         DNSHostHelp:   helpRootDomain,
                         RFC:           "RFC 7208 §5.1",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.1",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc7208.html#section-5.1:~:text=The%20%22all%22%20mechanism%20is%20a%20test%20that%20always%20matches",
                         Severity:      severityCritical,
                         SeverityColor: colorCritical,
                         SeverityOrder: 1,
@@ -239,7 +239,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                         DNSPurpose:    "Replaces ?all (neutral) with ~all to restrict unauthorized senders",
                         DNSHostHelp:   helpRootDomain,
                         RFC:           "RFC 7208 §5.2",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-5.2",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc7208.html#section-5.2:~:text=the%20check_host()%20function%20is%20evaluated%20with%20the%20given%20arguments",
                         Severity:      severityHigh,
                         SeverityColor: colorHigh,
                         SeverityOrder: 2,
@@ -257,7 +257,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                                 Title:         "Reduce SPF DNS lookups",
                                 Description:   fmt.Sprintf("Your SPF record uses %d DNS lookups (limit is 10). Exceeding 10 lookups causes SPF to permanently fail (PermError), meaning receivers treat it as if you have no SPF at all. Consolidate include mechanisms or use SPF flattening.", ps.spfLookupCount),
                                 RFC:           "RFC 7208 §4.6.4",
-                                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4.6.4",
+                                RFCURL:        "https://www.rfc-editor.org/rfc/rfc7208.html#section-4.6.4:~:text=SPF%0A%20%20%20implementations%20MUST%20limit%20the%20total%20number%20of%20those%20terms%20to%2010,the%20implementation%20MUST%20return%20%22permerror%22.",
                                 Severity:      severityMedium,
                                 SeverityColor: colorMedium,
                                 SeverityOrder: 3,
@@ -276,7 +276,7 @@ func appendSPFFixes(fixes []fix, ps protocolState, ds DKIMState, results map[str
                 DNSPurpose:    "Defines which servers are authorized to send email for this domain",
                 DNSHostHelp:   helpRootDomain,
                 RFC:           "RFC 7208 §4",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc7208.html#section-4:~:text=After%20receiving%20the%20MAIL%20FROM,check_host()%20function",
                 Severity:      severityCritical,
                 SeverityColor: colorCritical,
                 SeverityOrder: 1,
@@ -292,7 +292,7 @@ func appendSPFLookupFix(fixes []fix, ps protocolState) []fix {
                 Title:         "Reduce SPF DNS lookups",
                 Description:   fmt.Sprintf("Your SPF record uses %d DNS lookups (limit is 10). Exceeding 10 lookups causes SPF to permanently fail (PermError), meaning receivers treat it as if you have no SPF at all. Consolidate include mechanisms or use SPF flattening to stay within the limit.", ps.spfLookupCount),
                 RFC:           "RFC 7208 §4.6.4",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7208#section-4.6.4",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc7208.html#section-4.6.4:~:text=SPF%0A%20%20%20implementations%20MUST%20limit%20the%20total%20number%20of%20those%20terms%20to%2010,the%20implementation%20MUST%20return%20%22permerror%22.",
                 Severity:      severityMedium,
                 SeverityColor: colorMedium,
                 SeverityOrder: 3,
@@ -309,7 +309,7 @@ func appendSPFUpgradeFix(fixes []fix, ps protocolState, ds DKIMState, domain str
                 Description: "Your SPF record uses ~all (softfail) and no DKIM signing was detected. Without DKIM, SPF is your only line of defense — upgrading to -all (hardfail) instructs receivers to reject unauthorized senders outright. Verify all legitimate sending sources are included before switching. If you configure DKIM, ~all becomes the industry-standard best practice because DMARC evaluates both SPF and DKIM alignment (RFC 7489 §10.1).",
                 DNSRecord:   buildSPFRecordExample(domain, includes, "-all"),
                 RFC:         "RFC 7208 §5",
-                RFCURL:      "https://datatracker.ietf.org/doc/html/rfc7208#section-5",
+                RFCURL:      "https://www.rfc-editor.org/rfc/rfc7208.html#section-5:~:text=This%20section%20defines%20two%20types%20of%20mechanisms",
                 Severity:    severityLow,
                 SeverityColor: colorLow,
                 SeverityOrder: 4,
@@ -390,7 +390,7 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         DNSPurpose:    "Enables aggregate reports so you can see who sends email as your domain",
                         DNSHostHelp:   helpDMARCHost,
                         RFC:           "RFC 7489 §7.1",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7489#section-7.1",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc7489.html#section-7.1:~:text=A%20Mail%20Receiver%20is%20able%20to,aggregate%20report",
                         Severity:      severityMedium,
                         SeverityColor: colorMedium,
                         SeverityOrder: 3,
@@ -422,7 +422,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                                 Description:   fmt.Sprintf("DKIM is only configured for third-party services, not your primary mail platform (%s). Enable DKIM signing in %s settings to cover all outbound mail. Note: large organizations may already have DKIM configured with custom or rotating selectors not discoverable through standard checks — try re-scanning with a custom DKIM selector, or verify in your %s admin console.", provider, provider, provider),
                                 DNSRecord:     dkimRecordExample(domain, provider),
                                 RFC:           "RFC 6376 §3.6",
-                                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc6376#section-3.6",
+                                RFCURL:        "https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6:~:text=DKIM%20key%20records%20are%20stored%20as%20DNS%20TXT%20records",
                                 Severity:      severityMedium,
                                 SeverityColor: colorMedium,
                                 SeverityOrder: 3,
@@ -440,7 +440,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         Description:   "DKIM selectors were not discoverable via common selector names. This does not confirm DKIM is absent — your provider may use custom or rotating selectors that cannot be enumerated through DNS (RFC 6376 §3.6.2.1). Check your email provider's DKIM settings to confirm signing is enabled.",
                         DNSRecord:     dkimRecordExample(domain, provider),
                         RFC:           "RFC 6376 §3.6.2.1",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc6376#section-3.6.2.1",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6.2.1:~:text=Signers%20MUST%20use%20RSA%20keys%20of%20at%20least%201024%20bits",
                         Severity:      severityLow,
                         SeverityColor: colorLow,
                         SeverityOrder: 4,
@@ -453,7 +453,7 @@ func appendDKIMFixes(fixes []fix, ps protocolState, ds DKIMState, results map[st
                         Description:   "DKIM (DomainKeys Identified Mail) adds a cryptographic signature to outgoing emails, proving they haven't been tampered with. Enable DKIM in your email provider's settings.",
                         DNSRecord:     dkimRecordExample(domain, provider),
                         RFC:           "RFC 6376 §3.6",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc6376#section-3.6",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6:~:text=DKIM%20key%20records%20are%20stored%20as%20DNS%20TXT%20records",
                         Severity:      severityHigh,
                         SeverityColor: colorHigh,
                         SeverityOrder: 2,
@@ -470,7 +470,7 @@ func weakKeysFix(domain string) fix {
                 Description:   "One or more DKIM selectors use 1024-bit RSA keys which are considered weak by modern standards. Upgrade to 2048-bit keys for stronger cryptographic protection.",
                 DNSRecord:     fmt.Sprintf(dkimRecordExampleGeneric, domain),
                 RFC:           "RFC 8301 §3.2",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8301#section-3.2",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc8301.html#section-3.2:~:text=Signers%20MUST%20use%20RSA%20keys%20of%20at%20least%202048%20bits",
                 Severity:      severityMedium,
                 SeverityColor: colorMedium,
                 SeverityOrder: 3,
@@ -496,7 +496,7 @@ func appendCAAFixes(fixes []fix, ps protocolState, domain string) []fix {
                 DNSPurpose:    "Controls which certificate authorities can issue SSL certificates for this domain",
                 DNSHostHelp:   helpRootDomain,
                 RFC:           "RFC 8659 §4",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8659#section-4",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc8659.html#section-4:~:text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild",
                 Severity:      severityLow,
                 SeverityColor: colorLow,
                 SeverityOrder: 4,
@@ -518,7 +518,7 @@ func appendMTASTSFixes(fixes []fix, ps protocolState, domain string) []fix {
                 DNSPurpose:    "Enables strict transport security for incoming email connections",
                 DNSHostHelp:   "Enter _mta-sts as the hostname — your provider will append the domain automatically",
                 RFC:           "RFC 8461 §3",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8461#section-3",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc8461.html#section-3:~:text=MTA-STS%20is%20a%20mechanism%20enabling%20mail%20service%20providers",
                 Severity:      severityMedium,
                 SeverityColor: colorMedium,
                 SeverityOrder: 3,
@@ -546,7 +546,7 @@ func appendTLSRPTFixes(fixes []fix, ps protocolState, domain string) []fix {
                 DNSPurpose:    "Enables reports about TLS connection failures with your mail servers",
                 DNSHostHelp:   "Enter _smtp._tls as the hostname — your provider will append the domain automatically",
                 RFC:           "RFC 8460 §3",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc8460#section-3",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc8460.html#section-3:~:text=A%20domain%20that%20wishes%20to%20receive%20TLS%20reports",
                 Severity:      severityLow,
                 SeverityColor: colorLow,
                 SeverityOrder: 4,
@@ -564,7 +564,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                         Description:   "DNSSEC is partially configured — DNSKEY records exist but the DS record is missing at the parent zone (registrar). This means DNS responses are signed but receivers cannot validate the signatures, causing validation failures. Publish the correct DS record at your registrar.",
                         DNSRecord:     "",
                         RFC:           "RFC 4035 §2.4",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc4035#section-2.4",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc4035.html#section-2.4:~:text=A%20DS%20RR%20SHOULD%20be%20present",
                         Severity:      severityCritical,
                         SeverityColor: colorCritical,
                         SeverityOrder: 1,
@@ -576,7 +576,7 @@ func appendDNSSECFixes(fixes []fix, ps protocolState) []fix {
                 Description:   "DNSSEC (DNS Security Extensions) cryptographically signs DNS responses, preventing attackers from forging DNS answers. Contact your DNS hosting provider to enable DNSSEC signing.",
                 DNSRecord:     "",
                 RFC:           "RFC 4033 §2",
-                RFCURL:        "https://datatracker.ietf.org/doc/html/rfc4033#section-2",
+                RFCURL:        "https://www.rfc-editor.org/rfc/rfc4033.html#section-2:~:text=DNSSEC%20provides%20origin%20authentication%20and%20integrity%20protection",
                 Severity:      severityLow,
                 SeverityColor: colorLow,
                 SeverityOrder: 4,
@@ -591,7 +591,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         Description:   "DANE/TLSA records are published but DNSSEC is not enabled. DANE requires DNSSEC to work — without it, TLSA records cannot be authenticated and are ignored by validating resolvers (RFC 7672 §2.2). Enable DNSSEC first.",
                         DNSRecord:     "",
                         RFC:           "RFC 7672 §2.2",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7672#section-2.2",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc7672.html#section-2.2:~:text=a%20client%20MUST%20use%20the%20TLSA%20records",
                         Severity:      severityHigh,
                         SeverityColor: colorHigh,
                         SeverityOrder: 2,
@@ -610,7 +610,7 @@ func appendDANEFixes(fixes []fix, ps protocolState, results map[string]any, doma
                         Description:   "DNSSEC is already enabled — you can strengthen email transport security by publishing DANE TLSA records. DANE binds your mail server's TLS certificate to DNS, preventing man-in-the-middle attacks on SMTP connections.",
                         DNSRecord:     fmt.Sprintf("_25._tcp.mail.%s TLSA 3 1 1 <certificate_hash>", domain),
                         RFC:           "RFC 7672 §3",
-                        RFCURL:        "https://datatracker.ietf.org/doc/html/rfc7672#section-3",
+                        RFCURL:        "https://www.rfc-editor.org/rfc/rfc7672.html#section-3:~:text=DANE%20TLS%20is%20a%20channel%20security%20protocol",
                         Severity:      severityLow,
                         SeverityColor: colorLow,
                         SeverityOrder: 4,
@@ -879,15 +879,15 @@ type missingStepDef struct {
 func buildMissingSteps(mf mailFlags) []map[string]any {
         defs := []missingStepDef{
                 {!mf.hasNullMX, "Null MX", "RFC 7505",
-                        "https://datatracker.ietf.org/doc/html/rfc7505",
+                        "https://www.rfc-editor.org/rfc/rfc7505.html#:~:text=When%20a%20sending%20MTA,SHOULD%20NOT%20attempt%20to%20deliver",
                         "Publish a null MX record: 0 .",
                         "Without null MX, senders may still attempt delivery."},
                 {!mf.spfDenyAll, "SPF -all", "RFC 7208",
-                        "https://datatracker.ietf.org/doc/html/rfc7208",
+                        "https://www.rfc-editor.org/rfc/rfc7208.html#:~:text=An%20SPF%20record%20is%20published%20as%20a%20DNS%20TXT",
                         "Publish SPF with -all to reject all senders.",
                         "Without SPF -all, mail servers may accept forged messages."},
                 {!mf.dmarcReject, "DMARC reject", "RFC 7489",
-                        "https://datatracker.ietf.org/doc/html/rfc7489",
+                        "https://www.rfc-editor.org/rfc/rfc7489.html#:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax",
                         "Publish DMARC with p=reject to discard unauthenticated mail.",
                         "Without DMARC reject, spoofed messages may still be delivered."},
         }

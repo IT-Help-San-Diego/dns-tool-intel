@@ -57,7 +57,7 @@ const (
 
 	mapKeyWarning                                     = "warning"
 	severityInfo                                      = "info"
-	refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22 = "https://datatracker.ietf.org/doc/html/rfc1912#section-2.2"
+	refHttpsDatatrackerIetfOrgDocHtmlRfc1912Section22 = "https://www.rfc-editor.org/rfc/rfc1912.html#section-2.2:~:text=The%20SOA%20record,expire%20interval"
 	refRfc191222                                      = "RFC 1912 §2.2"
 )
 
@@ -83,7 +83,7 @@ var providerProfiles = map[string]ProviderProfile{
 			{
 				Title:   "Proxied record TTLs fixed at 300s",
 				RFC:     "RFC 2181 §5.2",
-				RFCLink: "https://datatracker.ietf.org/doc/html/rfc2181#section-5.2",
+				RFCLink: "https://www.rfc-editor.org/rfc/rfc2181.html#section-5.2:~:text=It%20is%20however%20possible,multiple%20RRsets",
 				Detail:  "Cloudflare overrides the zone administrator's TTL to 300 seconds for all proxied (orange-cloud) records. RFC 2181 §5.2 requires TTL uniformity within an RRset but does not mandate a specific value. As the authoritative server, Cloudflare is technically within its rights, but the administrator loses TTL control. This can affect ACME DNS-01 challenges and automation workflows that depend on rapid propagation.",
 				Verdict: "Technically compliant, but overrides administrator intent",
 			},
@@ -97,14 +97,14 @@ var providerProfiles = map[string]ProviderProfile{
 			{
 				Title:   "Negative cache TTL delays new records",
 				RFC:     "RFC 2308 §5",
-				RFCLink: "https://datatracker.ietf.org/doc/html/rfc2308#section-5",
+				RFCLink: "https://www.rfc-editor.org/rfc/rfc2308.html#section-5:~:text=negative%20caching,reduce%20the%20DNS%20traffic",
 				Detail:  "Cloudflare's SOA MINIMUM (negative cache TTL) is 1,800–3,600 seconds (30–60 minutes). This controls how long resolvers cache NXDOMAIN responses. Newly created DNS records — including ACME DNS-01 challenge TXT records for Let's Encrypt — may be invisible for up to 1 hour even after creation. This causes certificate issuance failures for automation tools like cert-manager and Traefik. Workaround: pre-create placeholder records before they're needed. This is RFC-compliant but aggressive compared to the 300–900 seconds common at other providers.",
 				Verdict: "RFC-compliant, but causes real-world automation failures",
 			},
 			{
 				Title:   "Historical RFC 2181 §5.2 violation: TTL mismatch in CNAME RRsets",
 				RFC:     "RFC 2181 §5.2",
-				RFCLink: "https://datatracker.ietf.org/doc/html/rfc2181#section-5.2",
+				RFCLink: "https://www.rfc-editor.org/rfc/rfc2181.html#section-5.2:~:text=It%20is%20however%20possible,multiple%20RRsets",
 				Detail:  "In February 2022, Cloudflare's resolver (1.1.1.1) returned CNAME responses with mismatched TTLs within the same RRset — including cases where one TTL was zero and another was non-zero. RFC 2181 §5.2 explicitly states: 'the TTLs of all RRs in an RRSet must be the same.' systemd-resolved (used by Arch Linux, Ubuntu, Fedora, and most modern Linux distributions) correctly rejected these responses per the RFC, causing widespread DNS resolution failures. Cloudflare acknowledged the issue and it appears to have been fixed, but it demonstrated that Cloudflare's DNS infrastructure can deviate from RFC requirements in ways that break compliant resolver implementations.",
 				Verdict: "Was a documented RFC violation — appears resolved",
 			},
@@ -120,7 +120,7 @@ var providerProfiles = map[string]ProviderProfile{
 			{
 				Title:   "Alias record TTLs fixed at 60s",
 				RFC:     "RFC 1035 §3.2.1",
-				RFCLink: "https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1",
+				RFCLink: "https://www.rfc-editor.org/rfc/rfc1035.html#section-3.2.1:~:text=TTL%20is%20the%20time%20to%20live%20of%20the%20RR",
 				Detail:  "AWS Route 53 alias records pointing to AWS resources (ELB, CloudFront, S3, API Gateway) have a fixed TTL of 60 seconds that cannot be modified. Route 53 alias records are an AWS-specific extension — not part of standard DNS RFCs. They solve the CNAME-at-apex problem (RFC prohibits CNAME at zone apex) by appearing as A/AAAA records to resolvers. The 60-second TTL ensures fast failover but removes administrator TTL control.",
 				Verdict: "Proprietary extension — not covered by DNS RFCs",
 			},
@@ -135,7 +135,7 @@ var providerProfiles = map[string]ProviderProfile{
 			{
 				Title:   "Minimum TTL enforced at 600s",
 				RFC:     "RFC 1035 §3.2.1",
-				RFCLink: "https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1",
+				RFCLink: "https://www.rfc-editor.org/rfc/rfc1035.html#section-3.2.1:~:text=TTL%20is%20the%20time%20to%20live%20of%20the%20RR",
 				Detail:  "GoDaddy enforces a minimum TTL of 600 seconds (10 minutes). RFC 1035 defines TTL as a value between 0 and 2^31−1 seconds, with no mandated minimum. The 600-second floor prevents administrators from setting shorter TTLs that may be needed for ACME challenges or rapid failover scenarios.",
 				Verdict: "Imposes restriction not required by RFCs",
 			},
@@ -416,7 +416,7 @@ func AnalyzeSOACompliance(soaRaw, providerName string) SOAComplianceReport {
 			Observed:    formatTTLDuration(minTTL),
 			RFCRange:    "300–86,400s (5 min – 1 day)",
 			RFC:         "RFC 2308 §5",
-			RFCLink:     "https://datatracker.ietf.org/doc/html/rfc2308#section-5",
+			RFCLink:     "https://www.rfc-editor.org/rfc/rfc2308.html#section-5:~:text=negative%20caching,reduce%20the%20DNS%20traffic",
 			Severity:    mapKeyWarning,
 			Explanation: fmt.Sprintf("SOA MINIMUM (negative cache TTL) is %s. High values cause NXDOMAIN responses to be cached for extended periods, delaying visibility of newly created records.", formatTTLDuration(minTTL)),
 		})

@@ -286,7 +286,7 @@
                         </ol>
                         <p class="small text-muted mb-0">
                             {{icon "book" "me-1"}}
-                            This is standard practice per <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a> (TTL semantics) and <a href="https://datatracker.ietf.org/doc/html/rfc2181#section-8" class="text-info" target="_blank" rel="noopener">RFC 2181 &sect;8</a> (TTL handling by resolvers).
+                            This is standard practice per <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-3.2.1:~:text=TTL%20is%20the%20time%20to%20live%20of%20the%20RR" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a> (TTL semantics) and <a href="https://www.rfc-editor.org/rfc/rfc2181.html#section-8:~:text=TTLs%20of%20all%20RRs%20in%20an%20RRSet%20must%20be%20the%20same" class="text-info" target="_blank" rel="noopener">RFC 2181 &sect;8</a> (TTL handling by resolvers).
                             Failing to lower TTL before migration is one of the most common causes of extended downtime during DNS changes.
                         </p>
                     </div>
@@ -320,7 +320,7 @@
                             <p class="small mb-3">
                                 TTL (Time to Live) is a value in seconds attached to every DNS record. It tells DNS resolvers how long to cache the record before asking the authoritative nameserver again.
                                 A TTL of 3600 means &ldquo;cache this answer for 1 hour.&rdquo; After that hour, the resolver discards it and fetches a fresh copy.
-                                Defined in <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a>.
+                                Defined in <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-3.2.1:~:text=TTL%20is%20the%20time%20to%20live%20of%20the%20RR" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a>.
                             </p>
                             <h3 class="h6 text-info mb-2">{{icon "tachometer-alt" "me-1"}}How TTLs Affect Page Load Speed</h3>
                             <p class="small mb-0">
@@ -361,7 +361,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.1" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a></h3>
+                                <h3 class="h6 mb-1"><a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-3.2.1:~:text=TTL%20is%20the%20time%20to%20live%20of%20the%20RR" class="text-info" target="_blank" rel="noopener">RFC 1035 &sect;3.2.1</a></h3>
                                 <p class="small text-muted mb-0">Defines TTL as a 32-bit unsigned integer specifying the maximum time a resource record may be cached.</p>
                             </div>
                         </div>
@@ -369,7 +369,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc2181#section-8" class="text-info" target="_blank" rel="noopener">RFC 2181 &sect;8</a></h3>
+                                <h3 class="h6 mb-1"><a href="https://www.rfc-editor.org/rfc/rfc2181.html#section-8:~:text=TTLs%20of%20all%20RRs%20in%20an%20RRSet%20must%20be%20the%20same" class="text-info" target="_blank" rel="noopener">RFC 2181 &sect;8</a></h3>
                                 <p class="small text-muted mb-0">Clarifies TTL handling: resolvers must count down the TTL and discard records when it reaches zero.</p>
                             </div>
                         </div>
@@ -377,7 +377,7 @@
                     <div class="col-md-4">
                         <div class="card bg-dark border-secondary h-100 tk-triage-card">
                             <div class="card-body py-2 px-3">
-                                <h3 class="h6 mb-1"><a href="https://datatracker.ietf.org/doc/html/rfc8767" class="text-info" target="_blank" rel="noopener">RFC 8767</a></h3>
+                                <h3 class="h6 mb-1"><a href="https://www.rfc-editor.org/rfc/rfc8767.html" class="text-info" target="_blank" rel="noopener">RFC 8767</a></h3>
                                 <p class="small text-muted mb-0">Serving Stale Data to Improve DNS Resiliency &mdash; defines behavior when TTLs expire during resolver failures.</p>
                             </div>
                         </div>

@@ -85,7 +85,7 @@
                                         <p class="mb-0 small">We probe common service names (e.g., <code>www</code>, <code>mail</code>, <code>api</code>, <code>admin</code>, <code>vpn</code>, <code>sso</code>) using standard DNS lookups and follow CNAME chains to show where each hostname actually points.</p>
                                     </div>
                                 </div>
-                                <p class="mb-0 text-muted small">In your report output, we explicitly disclose this: subdomains are discovered via CT logs (<a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="text-info">RFC 6962</a>), DNS probing, and CNAME traversal.</p>
+                                <p class="mb-0 text-muted small">In your report output, we explicitly disclose this: subdomains are discovered via CT logs (<a href="https://www.rfc-editor.org/rfc/rfc6962.html" target="_blank" rel="noopener" class="text-info">RFC 6962</a>), DNS probing, and CNAME traversal.</p>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                         </h2>
                         <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                <p>Certificate Transparency (<a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="text-info">RFC 6962</a>) describes publicly auditable, append-only logs of certificates so domain owners and auditors can detect misissuance.</p>
+                                <p>Certificate Transparency (<a href="https://www.rfc-editor.org/rfc/rfc6962.html" target="_blank" rel="noopener" class="text-info">RFC 6962</a>) describes publicly auditable, append-only logs of certificates so domain owners and auditors can detect misissuance.</p>
                                 <p>In practice, modern ecosystems enforce CT: for example, Apple requires publicly trusted TLS server certificates to comply with their CT policy (including SCT requirements).</p>
                                 <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 mb-0">
                                     {{icon "lightbulb" "me-1"}}<strong>Translation:</strong> if you put a hostname on a public certificate, you should assume that hostname will be visible in CT logs.
