@@ -104,13 +104,13 @@
                         {{if and (ne .SPFScope "local") (ne .DMARCScope "local")}}
                             <div class="text-warning-emphasis u-opacity-75 mt-1">
                                 This subdomain has no locally configured email security records.
-                                {{if eq .DMARCScope "inherited"}}DMARC protection is inherited from the organizational domain ({{.ParentDomain}}) per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a>.{{end}}
+                                {{if eq .DMARCScope "inherited"}}DMARC protection is inherited from the organizational domain ({{.ParentDomain}}) per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.6.3:~:text=the%20remaining%20set%20contains%20multiple%20records%20or%20no%20records,DMARC%20processing%20is%20not%20applied" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a>.{{end}}
                                 {{if .HasLocalEmail}}Since this subdomain has MX records, consider publishing subdomain-specific SPF and DMARC records for explicit protection.{{end}}
                                 Analyzing <a href="/analyze?domain={{.ParentDomain}}" class="text-info">{{.ParentDomain}}</a> shows the organizational domain&rsquo;s full email security posture.
                             </div>
                         {{else if and (eq .SPFScope "local") (eq .DMARCScope "inherited")}}
                             <div class="text-info-emphasis u-opacity-75 mt-1">
-                                SPF is configured locally. DMARC policy is inherited from <strong>{{.ParentDomain}}</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a> &mdash; this is standard behavior.
+                                SPF is configured locally. DMARC policy is inherited from <strong>{{.ParentDomain}}</strong> per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.6.3:~:text=the%20remaining%20set%20contains%20multiple%20records%20or%20no%20records,DMARC%20processing%20is%20not%20applied" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.6.3</a> &mdash; this is standard behavior.
                             </div>
                         {{end}}
                     </div>
@@ -1419,7 +1419,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-info bg-opacity-75 me-2">1</span>
                                                 <strong>Null MX Record</strong>
-                                                <a href="https://datatracker.ietf.org/doc/html/rfc7505" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7505)</a>
+                                                <a href="https://www.rfc-editor.org/rfc/rfc7505.html" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7505)</a>
                                             </div>
                                             <div class="text-muted mt-1">Publish <code class="text-info">{{.Domain}} MX 0 .</code> to formally declare this domain does not accept inbound email. This is the definitive signal to mail servers.</div>
                                         </div>
@@ -1427,7 +1427,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-info bg-opacity-75 me-2">2</span>
                                                 <strong>SPF Hard Fail</strong>
-                                                <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7208)</a>
+                                                <a href="https://www.rfc-editor.org/rfc/rfc7208.html" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7208)</a>
                                             </div>
                                             <div class="text-muted mt-1">Publish <code class="text-info">{{.Domain}} TXT "v=spf1 -all"</code> to declare no servers are authorized to send email from this domain.</div>
                                         </div>
@@ -1435,7 +1435,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-info bg-opacity-75 me-2">3</span>
                                                 <strong>DMARC Reject Policy</strong>
-                                                <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7489)</a>
+                                                <a href="https://www.rfc-editor.org/rfc/rfc7489.html" target="_blank" rel="noopener" class="text-muted text-decoration-none ms-2">(RFC 7489)</a>
                                             </div>
                                             <div class="text-muted mt-1">Publish <code class="text-info">_dmarc.{{.Domain}} TXT "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;"</code> to instruct receivers to reject any email claiming to be from this domain.</div>
                                         </div>
@@ -1550,7 +1550,7 @@
                             <div class="col-md-4 mb-3 mb-md-0 section-col-divider">
                                 <p class="d-flex align-items-center mb-1">
                                     {{icon "envelope" "me-2"}}SPF Record
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Sender Policy Framework</strong><br>Specifies which mail servers can send email for your domain. §4 defines SPF record syntax.">{{icon "info-circle"}}<span class="rfc-label">RFC 7208 §4</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc7208.html#section-4:~:text=After%20receiving%20the%20MAIL%20FROM,check_host()%20function" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Sender Policy Framework</strong><br>Specifies which mail servers can send email for your domain. §4 defines SPF record syntax.">{{icon "info-circle"}}<span class="rfc-label">RFC 7208 §4</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "spf"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                 </p>
                                 {{$spfStatus := mapGetStr "status" $spf}}
@@ -1632,14 +1632,14 @@
                                     <div class="collapse" id="spfRFCContext">
                                         <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
                                             {{if eq $spfStatus "success"}}
-                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7208 Conformant</strong> &mdash; This SPF record conforms to the syntax and semantics defined in <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4</a>.</div>
+                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7208 Conformant</strong> &mdash; This SPF record conforms to the syntax and semantics defined in <a href="https://www.rfc-editor.org/rfc/rfc7208.html#section-4:~:text=After%20receiving%20the%20MAIL%20FROM,check_host()%20function" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4</a>.</div>
                                             {{else if eq $spfStatus "missing"}}
-                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> defines the SPF mechanism for domains that choose to publish sender authorization. The standard does not mandate SPF publication &mdash; it is a voluntary security control.</div>
+                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://www.rfc-editor.org/rfc/rfc7208.html" target="_blank" rel="noopener" class="text-info">RFC 7208</a> defines the SPF mechanism for domains that choose to publish sender authorization. The standard does not mandate SPF publication &mdash; it is a voluntary security control.</div>
                                             <div class="mb-2"><strong class="text-danger">Operational Security:</strong> We flag its absence because any server on the internet can send email claiming to be this domain. Attackers send <em>from</em> a domain &mdash; they do not need the domain to have email infrastructure.</div>
                                             {{else}}
-                                            <div class="mb-2">{{icon "exclamation-circle" "text-warning me-1"}}<strong class="text-warning">RFC 7208 Deviation:</strong> This SPF record deviates from <a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener" class="text-info">RFC 7208</a> requirements.</div>
+                                            <div class="mb-2">{{icon "exclamation-circle" "text-warning me-1"}}<strong class="text-warning">RFC 7208 Deviation:</strong> This SPF record deviates from <a href="https://www.rfc-editor.org/rfc/rfc7208.html" target="_blank" rel="noopener" class="text-info">RFC 7208</a> requirements.</div>
                                             {{end}}
-                                            <div class="text-muted mb-2"><strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4.6" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
+                                            <div class="text-muted mb-2"><strong>RFC Failure Mode:</strong> Unlike DMARC (where unknown tags are silently ignored per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>), SPF with unrecognized mechanisms produces a <strong>PermError</strong> per <a href="https://www.rfc-editor.org/rfc/rfc7208.html#section-4.6:~:text=If%20the%20resultant%20record%20is%20not%20syntactically%20valid,the%20check_host()%20returns%20%22permerror%22" target="_blank" rel="noopener" class="text-info">RFC 7208 &sect;4.6</a> &mdash; the record fails loudly rather than silently.</div>
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Related CVEs:</strong>
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7208" target="_blank" rel="noopener" class="text-info">CVE-2024-7208</a> (multi-tenant domain spoofing),
                                                 <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-7209" target="_blank" rel="noopener" class="text-info">CVE-2024-7209</a> (shared SPF exploitation),
@@ -1691,7 +1691,7 @@
                                             {{icon "exclamation-triangle" "me-1"}}
                                             Legacy Record — Safe to Delete
                                         </small>
-                                        <small class="text-muted d-block">This is a <strong>Sender ID</strong> record (<code>spf2.0/pra</code>) from a Microsoft experiment circa 2006 that was never standardized. <a href="https://datatracker.ietf.org/doc/html/rfc7208#appendix-A" target="_blank" rel="noopener" class="text-info rfc-link" data-bs-toggle="tooltip" title="RFC 7208 Appendix A — SPF/Sender ID history">RFC 7208 §A</a> explicitly deprecates it. No modern mail receiver processes this record. It is safe to delete.</small>
+                                        <small class="text-muted d-block">This is a <strong>Sender ID</strong> record (<code>spf2.0/pra</code>) from a Microsoft experiment circa 2006 that was never standardized. <a href="https://www.rfc-editor.org/rfc/rfc7208.html#appendix-A:~:text=Sender%20ID%20experiment,not%20deploy%20its%20use" target="_blank" rel="noopener" class="text-info rfc-link" data-bs-toggle="tooltip" title="RFC 7208 Appendix A — SPF/Sender ID history">RFC 7208 §A</a> explicitly deprecates it. No modern mail receiver processes this record. It is safe to delete.</small>
                                         {{range $record := $spfLike}}
                                             <div class="code-block small mt-1 border-warning text-warning">{{$record}}</div>
                                         {{end}}
@@ -1744,7 +1744,7 @@
                             <div class="col-md-4 mb-3 mb-md-0 section-col-divider">
                                 <p class="d-flex align-items-center mb-1">
                                     {{icon "lock" "me-2"}}DMARC Policy
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Domain-based Message Authentication</strong><br>Tells receivers how to handle SPF/DKIM failures and where to send reports. §6.3 covers policy enforcement.">{{icon "info-circle"}}<span class="rfc-label">RFC 7489 §6.3</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Domain-based Message Authentication</strong><br>Tells receivers how to handle SPF/DKIM failures and where to send reports. §6.3 covers policy enforcement.">{{icon "info-circle"}}<span class="rfc-label">RFC 7489 §6.3</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dmarc"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                 </p>
                                 {{$dmarcStatus := mapGetStr "status" $dmarc}}
@@ -1834,7 +1834,7 @@
                                     <div class="mt-2 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded small">
                                         {{icon "ghost" "text-danger me-1"}}
                                         <strong class="text-danger">Unrecognized DMARC Tags Detected</strong>
-                                        <span class="text-muted d-block mt-1">Per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-danger">RFC 7489 &sect;6.3</a>, mail receivers <strong>silently ignore</strong> unknown tags. If these are typos, your intended policy is not being enforced.</span>
+                                        <span class="text-muted d-block mt-1">Per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="text-danger">RFC 7489 &sect;6.3</a>, mail receivers <strong>silently ignore</strong> unknown tags. If these are typos, your intended policy is not being enforced.</span>
                                         {{range $tag := $unknownTags}}
                                             <div class="mt-1 font-monospace u-fs-075rem text-danger"><code>{{$tag}}</code></div>
                                         {{end}}
@@ -1853,7 +1853,7 @@
                                     <div class="mt-2 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded small">
                                         {{icon "exclamation-circle" "text-danger me-1"}}
                                         <strong class="text-danger">Misplaced DMARC Record Detected</strong>
-                                        <span class="text-muted d-block mt-1">A <code>v=DMARC1</code> record was found in the root domain TXT records instead of at <code>_dmarc.{{.Domain}}</code>. Per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.1" target="_blank" rel="noopener" class="text-danger">RFC 7489 §6.1</a>, DMARC records must be published at the <code>_dmarc</code> subdomain. Mail receivers (Gmail, Outlook, Yahoo) will ignore this record.</span>
+                                        <span class="text-muted d-block mt-1">A <code>v=DMARC1</code> record was found in the root domain TXT records instead of at <code>_dmarc.{{.Domain}}</code>. Per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.1:~:text=DMARC%20relies%20on%20the%20results%20of%20SPF%20and/or%20DKIM" target="_blank" rel="noopener" class="text-danger">RFC 7489 §6.1</a>, DMARC records must be published at the <code>_dmarc</code> subdomain. Mail receivers (Gmail, Outlook, Yahoo) will ignore this record.</span>
                                         {{$policyHint := mapGetStr "policy_hint" $misplacedDMARC}}
                                         {{$activePolicy := mapGetStr "policy" $dmarc}}
                                         {{if and $policyHint $activePolicy}}
@@ -1879,7 +1879,7 @@
                                             <strong class="text-info">{{mapGetStr "summary" $rufNote}}</strong>
                                         {{end}}
                                         <span class="text-muted d-block mt-1">{{mapGetStr "detail" $rufNote}}</span>
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7.3" target="_blank" rel="noopener" class="text-info mt-1 d-inline-block">RFC 7489 §7.3 — Forensic Reports</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-7.3:~:text=forensic%20reporting,privacy%20considerations" target="_blank" rel="noopener" class="text-info mt-1 d-inline-block">RFC 7489 §7.3 — Forensic Reports</a>
                                     </div>
                                 {{end}}
                                 {{if and $posture (mapGetBool "deliberate_monitoring" $posture)}}
@@ -1949,15 +1949,15 @@
                                     <div class="collapse" id="dmarcRFCContext">
                                         <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
                                             {{if and (eq $dmarcStatus "success") (eq $dmarcPolicy "reject")}}
-                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7489 Conformant</strong> &mdash; DMARC record conforms to <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a> with full enforcement.</div>
+                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 7489 Conformant</strong> &mdash; DMARC record conforms to <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a> with full enforcement.</div>
                                             {{else if eq $dmarcStatus "missing"}}
-                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener" class="text-info">RFC 7489</a> is classified as <strong>Informational</strong> (not Standards Track). DMARC is a widely adopted industry practice but is not an IETF-mandated standard.</div>
+                                            <div class="mb-2"><strong class="text-warning">RFC Stance:</strong> <a href="https://www.rfc-editor.org/rfc/rfc7489.html" target="_blank" rel="noopener" class="text-info">RFC 7489</a> is classified as <strong>Informational</strong> (not Standards Track). DMARC is a widely adopted industry practice but is not an IETF-mandated standard.</div>
                                             <div class="mb-2"><strong class="text-danger">Operational Security:</strong> Without DMARC, receiving mail servers have no policy for handling SPF/DKIM failures. Spoofed messages may be delivered to recipients.</div>
                                             {{else}}
-                                            <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 7489 Present</strong> &mdash; DMARC record published per <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>.</div>
+                                            <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 7489 Present</strong> &mdash; DMARC record published per <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;6.3</a>.</div>
                                             {{end}}
                                             {{if eq $dmarcPolicy "quarantine"}}
-                                            <div class="mb-2"><strong class="text-warning">Monitoring Posture Note:</strong> Quarantine sequesters authentication failures while preserving full DMARC forensic telemetry (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain quarantine rather than reject as a deliberate monitoring strategy &mdash; failed messages are processed and reported but sequestered from the inbox. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177 Rev. 1</a> for enforcement tradeoffs.</div>
+                                            <div class="mb-2"><strong class="text-warning">Monitoring Posture Note:</strong> Quarantine sequesters authentication failures while preserving full DMARC forensic telemetry (<a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-7:~:text=Aggregate%20reports%20are%20reports%20that%20are,that%20did%20not" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain quarantine rather than reject as a deliberate monitoring strategy &mdash; failed messages are processed and reported but sequestered from the inbox. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177 Rev. 1</a> for enforcement tradeoffs.</div>
                                             {{end}}
                                             <div class="mb-2"><strong class="text-info">DMARCbis (Pending):</strong> <a href="https://datatracker.ietf.org/doc/draft-ietf-dmarc-dmarcbis/" target="_blank" rel="noopener" class="text-info">draft-ietf-dmarc-dmarcbis</a> will elevate DMARC to <strong>Standards Track</strong>, obsolete RFC 7489, replace <code>pct=</code> with <code>t=</code> (testing flag), add <code>np=</code> (non-existent subdomain policy), and mandate DNS tree walk for policy discovery instead of the Public Suffix List.</div>
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Related CVEs:</strong>
@@ -1973,7 +1973,7 @@
                             <div class="col-md-4 section-col-divider">
                                 <p class="d-flex align-items-center mb-1">
                                     {{icon "key" "me-2"}}DKIM Records
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc6376#section-3.6" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DomainKeys Identified Mail</strong><br>Cryptographic signatures that verify email hasn't been altered in transit. §3.6 covers key records.">{{icon "info-circle"}}<span class="rfc-label">RFC 6376 §3.6</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6:~:text=DKIM%20key%20records%20are%20stored%20as%20DNS%20TXT%20records" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DomainKeys Identified Mail</strong><br>Cryptographic signatures that verify email hasn't been altered in transit. §3.6 covers key records.">{{icon "info-circle"}}<span class="rfc-label">RFC 6376 §3.6</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dkim"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                 </p>
                                 {{$dkimStatus := mapGetStr "status" $dkim}}
@@ -2106,11 +2106,11 @@
                                     <div class="collapse" id="dkimRFCContext">
                                         <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 small">
                                             {{if eq $dkimStatus "success"}}
-                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 6376 Conformant</strong> &mdash; DKIM keys and signatures conform to <a href="https://datatracker.ietf.org/doc/html/rfc6376#section-3.6" target="_blank" rel="noopener" class="text-info">RFC 6376 &sect;3.6</a> (Internet Standard).</div>
+                                            <div class="mb-2">{{icon "check-circle" "text-success me-1"}}<strong class="text-success">RFC 6376 Conformant</strong> &mdash; DKIM keys and signatures conform to <a href="https://www.rfc-editor.org/rfc/rfc6376.html#section-3.6:~:text=DKIM%20key%20records%20are%20stored%20as%20DNS%20TXT%20records" target="_blank" rel="noopener" class="text-info">RFC 6376 &sect;3.6</a> (Internet Standard).</div>
                                             {{else if or (eq $dkimStatus "info") $dkimIsKnownProviderQ}}
-                                            <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 6376 (Provider-Managed)</strong> &mdash; DKIM signing managed by the detected mail provider per <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a>.</div>
+                                            <div class="mb-2">{{icon "check-circle" "text-info me-1"}}<strong class="text-info">RFC 6376 (Provider-Managed)</strong> &mdash; DKIM signing managed by the detected mail provider per <a href="https://www.rfc-editor.org/rfc/rfc6376.html" target="_blank" rel="noopener" class="text-info">RFC 6376</a>.</div>
                                             {{else}}
-                                            <div class="mb-2"><strong class="text-muted">RFC Stance:</strong> <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener" class="text-info">RFC 6376</a> (Internet Standard) defines the DKIM mechanism. DKIM selectors are not publicly enumerable &mdash; absence in a scan does not prove absence of signing.</div>
+                                            <div class="mb-2"><strong class="text-muted">RFC Stance:</strong> <a href="https://www.rfc-editor.org/rfc/rfc6376.html" target="_blank" rel="noopener" class="text-info">RFC 6376</a> (Internet Standard) defines the DKIM mechanism. DKIM selectors are not publicly enumerable &mdash; absence in a scan does not prove absence of signing.</div>
                                             {{end}}
                                             <div class="text-muted">{{icon "bug" "me-1"}}<strong>Known Vulnerabilities:</strong>
                                                 DKIM <code>l=</code> tag body length vulnerability (attacker appends unsigned content to signed mail),
@@ -2130,7 +2130,7 @@
                             <div class="col-md-6 mb-3 mb-md-0 section-col-divider">
                                 <p class="d-flex align-items-center flex-wrap">
                                     {{icon "shield-alt" "me-2"}}MTA-STS
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc8461#section-3" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>SMTP MTA Strict Transport Security</strong><br>Forces TLS encryption between mail servers to prevent downgrade attacks. §3 covers the DNS record.">{{icon "info-circle"}}<span class="rfc-label">RFC 8461 §3</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-3:~:text=MTA-STS%20is%20a%20mechanism%20enabling%20mail%20service%20providers" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>SMTP MTA Strict Transport Security</strong><br>Forces TLS encryption between mail servers to prevent downgrade attacks. §3 covers the DNS record.">{{icon "info-circle"}}<span class="rfc-label">RFC 8461 §3</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "mta_sts"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                     {{$mtaStsStatus := mapGetStr "status" $mta_sts}}
                                 </p>
@@ -2207,7 +2207,7 @@
                             <div class="col-md-6">
                                 <p class="d-flex align-items-center">
                                     {{icon "file-alt" "me-2"}}TLS-RPT
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc8460#section-3" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>TLS Reporting</strong><br>Sends reports about TLS connection failures to help diagnose delivery issues. §3 covers the reporting record.">{{icon "info-circle"}}<span class="rfc-label">RFC 8460 §3</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc8460.html#section-3:~:text=A%20domain%20that%20wishes%20to%20receive%20TLS%20reports" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>TLS Reporting</strong><br>Sends reports about TLS connection failures to help diagnose delivery issues. §3 covers the reporting record.">{{icon "info-circle"}}<span class="rfc-label">RFC 8460 §3</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "tlsrpt"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                 </p>
                                 {{$tlsrptStatus := mapGetStr "status" $tlsrpt}}
@@ -2308,7 +2308,7 @@
                                 {{$draStatus := mapGetStr "status" $dmarc_report_auth}}
                                 <p class="d-flex align-items-center">
                                     {{icon "paper-plane" "me-2"}}DMARC External Reporting Authorization
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7.1" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DMARC External Reporting</strong><br>Verifies that external domains listed in rua/ruf tags have authorized this domain to send them reports. §7.1 covers the verification mechanism.">{{icon "info-circle"}}<span class="rfc-label">RFC 7489 §7.1</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-7.1:~:text=A%20Mail%20Receiver%20is%20able%20to,aggregate%20report" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DMARC External Reporting</strong><br>Verifies that external domains listed in rua/ruf tags have authorized this domain to send them reports. §7.1 covers the verification mechanism.">{{icon "info-circle"}}<span class="rfc-label">RFC 7489 §7.1</span></a>
                                 </p>
                                 <div class="protocol-question mb-2">
                                     <span class="protocol-question-text dt-question dt-question--protocol">Are external report receivers authorized?</span>
@@ -2408,8 +2408,8 @@
                             </span>
                         </h5>
                         <div class="mt-1">
-                                <a href="https://datatracker.ietf.org/doc/html/rfc7672#section-3" target="_blank" rel="noopener" class="me-1 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DANE for SMTP</strong><br>Publishes TLS certificate information in DNS (TLSA records), enabling mail servers to verify certificates without relying solely on certificate authorities. §3 covers SMTP with DANE.">{{icon "info-circle"}}<span class="rfc-label">RFC 7672 §3</span></a>
-                                <a href="https://datatracker.ietf.org/doc/html/rfc6698#section-2" target="_blank" rel="noopener" class="me-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DANE Protocol</strong><br>DNS-based Authentication of Named Entities — binds TLS certificates to DNS names via TLSA records. §2 covers the TLSA RR."><span class="rfc-label">RFC 6698 §2</span></a>
+                                <a href="https://www.rfc-editor.org/rfc/rfc7672.html#section-3:~:text=DANE%20TLS%20is%20a%20channel%20security%20protocol" target="_blank" rel="noopener" class="me-1 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DANE for SMTP</strong><br>Publishes TLS certificate information in DNS (TLSA records), enabling mail servers to verify certificates without relying solely on certificate authorities. §3 covers SMTP with DANE.">{{icon "info-circle"}}<span class="rfc-label">RFC 7672 §3</span></a>
+                                <a href="https://www.rfc-editor.org/rfc/rfc6698.html#section-2:~:text=The%20TLSA%20resource%20record,certificate%20association" target="_blank" rel="noopener" class="me-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DANE Protocol</strong><br>DNS-based Authentication of Named Entities — binds TLS certificates to DNS names via TLSA records. §2 covers the TLSA RR."><span class="rfc-label">RFC 6698 §2</span></a>
                                 <span class="badge bg-{{if eq $daneStatus "success"}}success{{else if eq $daneStatus "warning"}}warning{{else}}secondary{{end}}">
                                     {{if $hasDane}}
                                         {{mapGetStr "mx_hosts_with_dane" $dane}}/{{mapGetStr "mx_hosts_checked" $dane}} MX
@@ -2426,7 +2426,7 @@
                         <div class="alert alert-warning py-2 mb-3 d-flex align-items-center" role="alert">
                             {{icon "link-slash" "me-2 fs-5"}}
                             <div>
-                                <strong>DNSSEC dependency not met.</strong> DANE requires DNSSEC validation to provide authenticated TLS binding (<a href="https://datatracker.ietf.org/doc/html/rfc7672#section-1.3" target="_blank" rel="noopener" class="alert-link">RFC 7672 §1.3</a>). Without DNSSEC, these TLSA records cannot be trusted and DANE is not security-effective.
+                                <strong>DNSSEC dependency not met.</strong> DANE requires DNSSEC validation to provide authenticated TLS binding (<a href="https://www.rfc-editor.org/rfc/rfc7672.html#section-1.3:~:text=DANE%20is%20designed%20to%20leverage,DNSSEC" target="_blank" rel="noopener" class="alert-link">RFC 7672 §1.3</a>). Without DNSSEC, these TLSA records cannot be trusted and DANE is not security-effective.
                             </div>
                         </div>
                         {{end}}
@@ -2499,7 +2499,7 @@
                             </div>
                             {{else}}
                             <div class="small text-muted mt-1">
-                                DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) binds TLS certificates to DNSSEC-signed DNS records, protecting email transport against man-in-the-middle attacks and rogue CAs. It is the primary transport security standard &mdash; MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461#section-2" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) was created as the alternative for domains that cannot deploy DNSSEC. Over 1 million domains use DANE globally, including Microsoft Exchange Online, Proton Mail, and Fastmail. Best practice: deploy both for defense in depth.
+                                DANE (<a href="https://www.rfc-editor.org/rfc/rfc7672.html" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) binds TLS certificates to DNSSEC-signed DNS records, protecting email transport against man-in-the-middle attacks and rogue CAs. It is the primary transport security standard &mdash; MTA-STS (<a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-2:~:text=deploying%20DNSSEC%20is%20undesirable%20or%20impractical" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) was created as the alternative for domains that cannot deploy DNSSEC. Over 1 million domains use DANE globally, including Microsoft Exchange Online, Proton Mail, and Fastmail. Best practice: deploy both for defense in depth.
                             </div>
                             {{end}}
                         {{end}}
@@ -2511,37 +2511,37 @@
                             <strong>{{icon "balance-scale" "me-1"}}Email Transport Security</strong>
                             <p class="mb-1 mt-1">Two mechanisms protect email in transit. DANE is the primary standard; MTA-STS is the alternative for domains that cannot deploy DNSSEC:</p>
                             <ul class="mb-1 ps-3">
-                                <li><strong>DNSSEC + DANE</strong> (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) &mdash; Cryptographic chain of trust from DNS root to mail server certificate. Eliminates reliance on certificate authorities. No trust-on-first-use weakness. Requires DNSSEC.</li>
-                                <li><strong>MTA-STS</strong> (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) &mdash; HTTPS-based policy requiring TLS for mail delivery. Works without DNSSEC but relies on CA trust and is vulnerable on first use (<a href="https://datatracker.ietf.org/doc/html/rfc8461#section-10" target="_blank" rel="noopener" class="text-info">&sect;10</a>). Created for domains where &ldquo;deploying DNSSEC is undesirable or impractical&rdquo; (<a href="https://datatracker.ietf.org/doc/html/rfc8461#section-2" target="_blank" rel="noopener" class="text-info">&sect;2</a>).</li>
+                                <li><strong>DNSSEC + DANE</strong> (<a href="https://www.rfc-editor.org/rfc/rfc7672.html" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) &mdash; Cryptographic chain of trust from DNS root to mail server certificate. Eliminates reliance on certificate authorities. No trust-on-first-use weakness. Requires DNSSEC.</li>
+                                <li><strong>MTA-STS</strong> (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) &mdash; HTTPS-based policy requiring TLS for mail delivery. Works without DNSSEC but relies on CA trust and is vulnerable on first use (<a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-10:~:text=Security%20Considerations" target="_blank" rel="noopener" class="text-info">&sect;10</a>). Created for domains where &ldquo;deploying DNSSEC is undesirable or impractical&rdquo; (<a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-2:~:text=deploying%20DNSSEC%20is%20undesirable%20or%20impractical" target="_blank" rel="noopener" class="text-info">&sect;2</a>).</li>
                             </ul>
                             {{if and $hasDane $hasMtaSts}}
-                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain deploys both DANE and MTA-STS &mdash; defense in depth.</strong></span> DANE provides cryptographic certificate binding via DNSSEC, while MTA-STS provides compatibility with senders that don't validate DNSSEC. Per <a href="https://datatracker.ietf.org/doc/html/rfc8461#section-2" target="_blank" rel="noopener" class="text-info">RFC 8461</a>, DANE takes precedence &mdash; MTA-STS must not override a failing DANE validation.
+                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain deploys both DANE and MTA-STS &mdash; defense in depth.</strong></span> DANE provides cryptographic certificate binding via DNSSEC, while MTA-STS provides compatibility with senders that don't validate DNSSEC. Per <a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-2:~:text=deploying%20DNSSEC%20is%20undesirable%20or%20impractical" target="_blank" rel="noopener" class="text-info">RFC 8461</a>, DANE takes precedence &mdash; MTA-STS must not override a failing DANE validation.
                             {{else if and $hasDane (not $hasMtaSts)}}
-                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses DNSSEC + DANE &mdash; the strongest cryptographic transport security.</strong></span> DANE binds TLS certificates to DNSSEC-signed DNS records, creating a verifiable chain of trust from root to mail server (<a href="https://datatracker.ietf.org/doc/html/rfc7672#section-1.3" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>). MTA-STS could complement this for senders that don't validate DNSSEC, but DANE alone provides the highest level of protection available.
+                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses DNSSEC + DANE &mdash; the strongest cryptographic transport security.</strong></span> DANE binds TLS certificates to DNSSEC-signed DNS records, creating a verifiable chain of trust from root to mail server (<a href="https://www.rfc-editor.org/rfc/rfc7672.html#section-1.3:~:text=DANE%20is%20designed%20to%20leverage,DNSSEC" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>). MTA-STS could complement this for senders that don't validate DNSSEC, but DANE alone provides the highest level of protection available.
                             {{else if and $hasMtaSts (not $hasDane)}}
                                 {{$mx_prov := mapGetMap "mx_provider" $dane}}
                                 {{if and $mx_prov (eq $daneDeployable "false")}}
                                 {{if mapGetBool "dane_migration_available" $mx_prov}}
-                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses MTA-STS &mdash; good, but DANE is also available.</strong></span> {{mapGetStr "provider_name" $mx_prov}} supports inbound DANE on its newer MX endpoints. This domain's current MX records use legacy endpoints without DANE. Migrating MX records would enable DANE alongside MTA-STS for defense in depth. MTA-STS enforces TLS via HTTPS-based policy (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>).
+                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses MTA-STS &mdash; good, but DANE is also available.</strong></span> {{mapGetStr "provider_name" $mx_prov}} supports inbound DANE on its newer MX endpoints. This domain's current MX records use legacy endpoints without DANE. Migrating MX records would enable DANE alongside MTA-STS for defense in depth. MTA-STS enforces TLS via HTTPS-based policy (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>).
                                 {{else}}
-                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses MTA-STS &mdash; the best available option for {{mapGetStr "provider_name" $mx_prov}}.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, MTA-STS is the strongest transport security this domain can deploy. MTA-STS enforces TLS via HTTPS-based policy, protecting against downgrade attacks (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>).
+                                <span class="text-success">{{icon "check-circle" "me-1"}}<strong>This domain uses MTA-STS &mdash; the best available option for {{mapGetStr "provider_name" $mx_prov}}.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, MTA-STS is the strongest transport security this domain can deploy. MTA-STS enforces TLS via HTTPS-based policy, protecting against downgrade attacks (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>).
                                 {{end}}
                                 {{else}}
-                                <span class="text-info"><strong>This domain uses MTA-STS without DANE.</strong></span> MTA-STS provides transport security through HTTPS-based policy (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>), but relies on CA trust and is vulnerable on first use. Adding DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) would provide cryptographic certificate pinning independent of certificate authorities{{if not $hasDnssec}} &mdash; this domain would first need to enable DNSSEC{{end}}.
+                                <span class="text-info"><strong>This domain uses MTA-STS without DANE.</strong></span> MTA-STS provides transport security through HTTPS-based policy (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>), but relies on CA trust and is vulnerable on first use. Adding DANE (<a href="https://www.rfc-editor.org/rfc/rfc7672.html" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) would provide cryptographic certificate pinning independent of certificate authorities{{if not $hasDnssec}} &mdash; this domain would first need to enable DNSSEC{{end}}.
                                 {{end}}
                             {{else}}
                                 {{$mx_prov := mapGetMap "mx_provider" $dane}}
                                 {{if and $mx_prov (eq $daneDeployable "false")}}
                                 {{if mapGetBool "dane_migration_available" $mx_prov}}
-                                <span class="text-warning">{{icon "exclamation-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> {{mapGetStr "provider_name" $mx_prov}} supports inbound DANE on its newer MX endpoints, but this domain uses legacy endpoints. Migrate MX records to enable DANE, or deploy MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) to enforce TLS and protect against downgrade attacks.
+                                <span class="text-warning">{{icon "exclamation-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> {{mapGetStr "provider_name" $mx_prov}} supports inbound DANE on its newer MX endpoints, but this domain uses legacy endpoints. Migrate MX records to enable DANE, or deploy MTA-STS (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) to enforce TLS and protect against downgrade attacks.
                                 {{else}}
-                                <span class="text-warning">{{icon "exclamation-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, deploy MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) to enforce TLS and protect against downgrade attacks.
+                                <span class="text-warning">{{icon "exclamation-circle" "me-1"}}<strong>This domain has neither DANE nor MTA-STS.</strong></span> Since {{mapGetStr "provider_name" $mx_prov}} does not support inbound DANE, deploy MTA-STS (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) to enforce TLS and protect against downgrade attacks.
                                 {{end}}
                                 {{else}}
-                                <span class="text-muted"><strong>This domain has neither DANE nor MTA-STS.</strong></span> Mail transport relies on opportunistic TLS without policy enforcement, leaving it vulnerable to downgrade attacks. Deploy DANE (<a href="https://datatracker.ietf.org/doc/html/rfc7672" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) with DNSSEC for the strongest protection, or MTA-STS (<a href="https://datatracker.ietf.org/doc/html/rfc8461" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) if DNSSEC is not feasible.
+                                <span class="text-muted"><strong>This domain has neither DANE nor MTA-STS.</strong></span> Mail transport relies on opportunistic TLS without policy enforcement, leaving it vulnerable to downgrade attacks. Deploy DANE (<a href="https://www.rfc-editor.org/rfc/rfc7672.html" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) with DNSSEC for the strongest protection, or MTA-STS (<a href="https://www.rfc-editor.org/rfc/rfc8461.html" target="_blank" rel="noopener" class="text-info">RFC 8461</a>) if DNSSEC is not feasible.
                                 {{end}}
                             {{end}}
-                            <p class="mb-0 mt-1 text-muted u-fs-080em"><strong>Industry trend:</strong> Microsoft Exchange Online enforces inbound DANE with DNSSEC (GA October 2024), and providers like Proton Mail and Fastmail also support DANE. Google Workspace does not support DANE and relies on MTA-STS. Both mechanisms coexist because DANE is backward-compatible &mdash; senders skip the check if the domain isn't DNSSEC-signed (<a href="https://datatracker.ietf.org/doc/html/rfc7672#section-1.3" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>).</p>
+                            <p class="mb-0 mt-1 text-muted u-fs-080em"><strong>Industry trend:</strong> Microsoft Exchange Online enforces inbound DANE with DNSSEC (GA October 2024), and providers like Proton Mail and Fastmail also support DANE. Google Workspace does not support DANE and relies on MTA-STS. Both mechanisms coexist because DANE is backward-compatible &mdash; senders skip the check if the domain isn't DNSSEC-signed (<a href="https://www.rfc-editor.org/rfc/rfc7672.html#section-1.3:~:text=DANE%20is%20designed%20to%20leverage,DNSSEC" target="_blank" rel="noopener" class="text-info">RFC 7672 &sect;1.3</a>).</p>
                         </div>
                     </div>
                 </div>
@@ -2687,7 +2687,7 @@
                                 {{if .IsTLD}}
                                 <p class="d-flex align-items-center">
                                     {{icon "lock" "me-2"}}CAA
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc8659#section-4" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Certificate Authority Authorization</strong><br>Controls which CAs can issue SSL certificates for your domain. §4 covers record processing.">{{icon "info-circle"}}<span class="rfc-label">RFC 8659 §4</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc8659.html#section-4:~:text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Certificate Authority Authorization</strong><br>Controls which CAs can issue SSL certificates for your domain. §4 covers record processing.">{{icon "info-circle"}}<span class="rfc-label">RFC 8659 §4</span></a>
                                     <span class="badge bg-secondary ms-2">N/A</span>
                                 </p>
                                 <p class="text-muted mb-0 small">CAA records on a TLD zone do not constrain certificate issuance for domains registered under this suffix. Per RFC 8659 &sect;3, CAs process CAA by climbing the DNS tree from the requested FQDN &mdash; a CAA record on the TLD itself would only affect certificates for the bare TLD, not for child domains like <code>example.{{.Domain}}</code>. No major TLD publishes CAA records.</p>
@@ -2695,7 +2695,7 @@
                                 {{$caaStatus := mapGetStr "status" $caa}}
                                 <p class="d-flex align-items-center">
                                     {{icon "lock" "me-2"}}CAA
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc8659#section-4" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Certificate Authority Authorization</strong><br>Controls which CAs can issue SSL certificates for your domain. §4 covers record processing.">{{icon "info-circle"}}<span class="rfc-label">RFC 8659 §4</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc8659.html#section-4:~:text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Certificate Authority Authorization</strong><br>Controls which CAs can issue SSL certificates for your domain. §4 covers record processing.">{{icon "info-circle"}}<span class="rfc-label">RFC 8659 §4</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "caa"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                     <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}} ms-2">
                                         {{title $caaStatus}}
@@ -2745,7 +2745,7 @@
                                 {{$smimeaStatus := mapGetStr "status" $smimea}}
                                 <p class="d-flex align-items-center">
                                     {{icon "user-shield" "me-2"}}S/MIME &amp; OpenPGP (SMIMEA / OPENPGPKEY)
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc8162" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 8162</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc8162.html" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 8162</span></a>
                                     <span class="badge bg-{{if eq $smimeaStatus "success"}}success{{else}}info{{end}} ms-2">{{title $smimeaStatus}}</span>
                                     {{if mapGetBool "has_smimea" $smimea}}<span class="badge bg-info ms-1">SMIMEA</span>{{end}}
                                     {{if mapGetBool "has_openpgpkey" $smimea}}<span class="badge bg-info ms-1">OPENPGPKEY</span>{{end}}
@@ -2817,7 +2817,7 @@
                                 <span class="badge bg-{{if eq $secTxtStatus "success"}}success{{else if eq $secTxtStatus "warning"}}warning{{else}}secondary{{end}} ms-2">
                                     {{if eq $secTxtStatus "success"}}Yes{{else if eq $secTxtStatus "warning"}}Partial{{else}}No{{end}}
                                 </span>
-                                <a href="https://datatracker.ietf.org/doc/html/rfc9116" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 9116</span></a>
+                                <a href="https://www.rfc-editor.org/rfc/rfc9116.html" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 9116</span></a>
                             </span>
                         </h5>
                     </div>
@@ -3285,7 +3285,7 @@
                         {{if $aiRobots}}
                         <div class="mb-3">
                             <h6 class="text-accent-gold">AI Crawler Governance (robots.txt)
-                                <a href="https://datatracker.ietf.org/doc/html/rfc9309" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Robots Exclusion Protocol</strong><br>Formalizes robots.txt as the standard mechanism for controlling crawler access. AI-specific User-agent directives use this same protocol.">{{icon "info-circle"}}<span class="rfc-label">RFC 9309</span></a>
+                                <a href="https://www.rfc-editor.org/rfc/rfc9309.html" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Robots Exclusion Protocol</strong><br>Formalizes robots.txt as the standard mechanism for controlling crawler access. AI-specific User-agent directives use this same protocol.">{{icon "info-circle"}}<span class="rfc-label">RFC 9309</span></a>
                                 <a href="https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/" target="_blank" rel="noopener" class="text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>IETF AI Preferences — Active Draft</strong><br>IETF working group draft (not yet ratified) defining Content-Usage directives for robots.txt and HTTP headers, enabling sites to express AI training and inference preferences.">{{icon "info-circle"}}<span class="rfc-label">IETF Draft</span></a>
                             </h6>
                             <div class="protocol-question mb-2">
@@ -4704,7 +4704,7 @@
                                 {{$chainOfTrust := mapGetStr "chain_of_trust" $dnssec}}
                                 <p class="d-flex align-items-center flex-wrap">
                                     {{icon "key" "me-2"}}DNSSEC
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc4033#section-2" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DNS Security Extensions</strong><br>Cryptographic signatures designed to authenticate DNS responses and detect tampering. §2 covers DNSSEC concepts.">{{icon "info-circle"}}<span class="rfc-label">RFC 4033 §2</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc4033.html#section-2:~:text=DNSSEC%20provides%20origin%20authentication%20and%20integrity%20protection" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>DNS Security Extensions</strong><br>Cryptographic signatures designed to authenticate DNS responses and detect tampering. §2 covers DNSSEC concepts.">{{icon "info-circle"}}<span class="rfc-label">RFC 4033 §2</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "dnssec"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
                                     <span class="badge bg-{{if eq $dnssecStatus "success"}}success{{else}}warning{{end}} ms-2">
                                         {{if and (eq $dnssecStatus "success") (eq $chainOfTrust "inherited")}}Inherited{{else if eq $dnssecStatus "success"}}Signed{{else}}Unsigned{{end}}
@@ -4785,7 +4785,7 @@
                                     {{else if or (eq $enterpriseDNSPattern "dedicated") (eq $enterpriseDNSPattern "managed") (eq $enterpriseDNSPattern "multi-provider")}}
                                     <div class="small text-info mb-2">
                                         {{icon "building" "me-1"}}
-                                        <strong>Enterprise DNS Context:</strong> DNSSEC is the only standardized, DNS-verifiable mechanism that cryptographically authenticates responses between authoritative servers and resolvers (<a href="https://datatracker.ietf.org/doc/html/rfc4033#section-2" target="_blank" rel="noopener" class="text-info">RFC 4033 &sect;2</a>, <a href="https://datatracker.ietf.org/doc/html/rfc4035" target="_blank" rel="noopener" class="text-info">RFC 4035</a>). Without it, DNS responses are technically vulnerable to in-transit tampering. Enterprise operators may employ compensating controls (anycast, DDoS mitigation, private peering, TSIG) &mdash; however, these do not provide DNS-layer data authentication to third-party resolvers and are not verifiable via DNS alone.
+                                        <strong>Enterprise DNS Context:</strong> DNSSEC is the only standardized, DNS-verifiable mechanism that cryptographically authenticates responses between authoritative servers and resolvers (<a href="https://www.rfc-editor.org/rfc/rfc4033.html#section-2:~:text=DNSSEC%20provides%20origin%20authentication%20and%20integrity%20protection" target="_blank" rel="noopener" class="text-info">RFC 4033 &sect;2</a>, <a href="https://www.rfc-editor.org/rfc/rfc4035.html" target="_blank" rel="noopener" class="text-info">RFC 4035</a>). Without it, DNS responses are technically vulnerable to in-transit tampering. Enterprise operators may employ compensating controls (anycast, DDoS mitigation, private peering, TSIG) &mdash; however, these do not provide DNS-layer data authentication to third-party resolvers and are not verifiable via DNS alone.
                                     </div>
                                     <div class="small text-muted mb-2">
                                         {{icon "eye" "me-1"}}
@@ -4956,7 +4956,7 @@
                                 {{$httpsSvcbStatus := mapGetStr "status" $https_svcb}}
                                 <p class="d-flex align-items-center">
                                     {{icon "bolt" "me-2"}}HTTPS / SVCB Records
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc9460" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 9460</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc9460.html" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 9460</span></a>
                                     <span class="badge bg-{{if eq $httpsSvcbStatus "success"}}success{{else}}info{{end}} ms-2">{{title $httpsSvcbStatus}}</span>
                                     {{if mapGetBool "has_https" $https_svcb}}<span class="badge bg-info ms-1">HTTPS</span>{{end}}
                                     {{if mapGetBool "has_svcb" $https_svcb}}<span class="badge bg-info ms-1">SVCB</span>{{end}}
@@ -5016,7 +5016,7 @@
                                 {{$cdsStatus := mapGetStr "status" $cds_cdnskey}}
                                 <p class="d-flex align-items-center">
                                     {{icon "sync" "me-2"}}CDS / CDNSKEY (DNSSEC Automation)
-                                    <a href="https://datatracker.ietf.org/doc/html/rfc7344" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 7344</span></a>
+                                    <a href="https://www.rfc-editor.org/rfc/rfc7344.html" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link">{{icon "info-circle"}}<span class="rfc-label">RFC 7344</span></a>
                                     <span class="badge bg-{{if eq $cdsStatus "success"}}success{{else}}info{{end}} ms-2">{{title $cdsStatus}}</span>
                                     {{if mapGetBool "has_cds" $cds_cdnskey}}<span class="badge bg-info ms-1">CDS</span>{{end}}
                                     {{if mapGetBool "has_cdnskey" $cds_cdnskey}}<span class="badge bg-info ms-1">CDNSKEY</span>{{end}}
@@ -5147,7 +5147,7 @@
                                         {{end}}
                                         <div class="mt-1">
                                             <span class="badge bg-info bg-opacity-75">{{icon "ban" "me-1"}}Null MX</span>
-                                            <a href="https://datatracker.ietf.org/doc/html/rfc7505" target="_blank" rel="noopener" class="ms-1 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Null MX</strong><br>An explicit declaration that this domain does not accept email. Priority 0 with a dot (.) as the mail server.">{{icon "info-circle"}}<span class="rfc-label">RFC 7505</span></a>
+                                            <a href="https://www.rfc-editor.org/rfc/rfc7505.html" target="_blank" rel="noopener" class="ms-1 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Null MX</strong><br>An explicit declaration that this domain does not accept email. Priority 0 with a dot (.) as the mail server.">{{icon "info-circle"}}<span class="rfc-label">RFC 7505</span></a>
                                         </div>
                                         <small class="text-info">Domain explicitly does not accept email</small>
                                     {{else}}
@@ -5247,7 +5247,7 @@
                     <h5 class="mb-0 flex-grow-1 d-flex align-items-center justify-content-between flex-wrap">
                         <span>
                             {{icon "sitemap" "me-2"}}Subdomain Discovery
-                            <a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal ms-2 u-fs-060rem" title="Certificate Transparency">RFC 6962</a>
+                            <a href="https://www.rfc-editor.org/rfc/rfc6962.html" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal ms-2 u-fs-060rem" title="Certificate Transparency">RFC 6962</a>
                             <a href="/analysis/{{.AnalysisID}}/view/{{if .IsPublicSuffix}}CZ{{else}}C{{end}}#section-infra" class="badge u-badge-recon ms-2 no-print text-decoration-none" data-bs-toggle="tooltip" title="Recon Advantage — Multi-layer discovery using CT logs, DNS probing, and CNAME chain traversal. Click for Recon View.">{{icon "terminal" "me-1"}}Recon</a>
                             {{$ctFreshness := mapGetMap "ct_subdomains" $data_freshness}}
                         {{if or (eq (mapGetStr "status" $ct) "error") (eq (mapGetStr "status" $ct) "timeout")}}<span class="badge bg-warning bg-opacity-25 border border-warning border-opacity-25 text-warning ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="Certificate Transparency lookup encountered an issue">UNAVAILABLE</span>{{else if and $ctFreshness (eq (mapGetStr "source" $ctFreshness) "cache")}}<span class="badge bg-secondary bg-opacity-50 border border-secondary border-opacity-25 ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="CT log data cached for 1 hour — certificate records change infrequently">CACHED</span>{{else}}<span class="badge bg-success bg-opacity-25 border border-success border-opacity-25 ms-1 u-fs-055rem" data-bs-toggle="tooltip" title="Live Certificate Transparency query">LIVE</span>{{end}}
@@ -5511,7 +5511,7 @@
                     {{if mapGetBool "was_truncated" $ct}}
                     <div class="text-muted small mt-2 mb-0 p-2 rounded u-bg-soft">
                         {{icon "filter" "me-1"}}<strong>Showing {{len $ctSubdomains}} of {{formatFloat 0 $ctUnique}} discovered subdomains, curated by security relevance.</strong>
-                        Multiple cooperative discovery methods — including CT logs (<a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="text-info">RFC 6962</a>), DNS probing, and CNAME chain traversal — feed into a unified view.
+                        Multiple cooperative discovery methods — including CT logs (<a href="https://www.rfc-editor.org/rfc/rfc6962.html" target="_blank" rel="noopener" class="text-info">RFC 6962</a>), DNS probing, and CNAME chain traversal — feed into a unified view.
                         Well-known service names (mail, vpn, api, sso, admin, etc.), DNS-resolving hosts, and subdomains with the most certificate activity are prioritized.
                         {{$expiredCount := mapGetFloat "expired_count" $ct}}
                         {{if gt $expiredCount 0}}
@@ -5532,9 +5532,9 @@
                         </div>
                         <p class="mb-2">
                             Certificate Transparency logs record certificates by fully qualified domain name
-                            (<a href="https://datatracker.ietf.org/doc/html/rfc8499#section-2" target="_blank" rel="noopener" class="text-info">RFC 8499</a>).
+                            (<a href="https://www.rfc-editor.org/rfc/rfc8499.html#section-2:~:text=Names%20and%20Nodes" target="_blank" rel="noopener" class="text-info">RFC 8499</a>).
                             This search queried for names beneath <code>{{.Domain}}</code> in the DNS hierarchy
-                            (<a href="https://datatracker.ietf.org/doc/html/rfc1034#section-3.1" target="_blank" rel="noopener" class="text-info">RFC 1034 §3.1</a>),
+                            (<a href="https://www.rfc-editor.org/rfc/rfc1034.html#section-3.1:~:text=The%20domain%20name%20space%20is%20a%20tree%20structure" target="_blank" rel="noopener" class="text-info">RFC 1034 §3.1</a>),
                             which found no issued certificates.
                         </p>
                         <p class="mb-2">
@@ -5742,21 +5742,21 @@
                                 <div class="dns-diff-type-header">
                                     <span class="badge bg-secondary me-2">{{$record_type}}</span>
                                     {{if eq $record_type "DMARC"}}<small class="text-muted me-1">_dmarc.{{$.Domain}}</small>
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc7489#section-6.3" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Domain-based Message Authentication, Reporting, and Conformance — §6.3 Policy">RFC 7489 §6.3</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3:~:text=DMARC%20records%20follow%20the%20extensible%20%22tag-value%22%20syntax" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Domain-based Message Authentication, Reporting, and Conformance — §6.3 Policy">RFC 7489 §6.3</a>
                                     {{else if eq $record_type "MTA-STS"}}<small class="text-muted me-1">_mta-sts.{{$.Domain}}</small>
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc8461#section-3" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="SMTP MTA Strict Transport Security — §3 DNS Record">RFC 8461 §3</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-3:~:text=MTA-STS%20is%20a%20mechanism%20enabling%20mail%20service%20providers" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="SMTP MTA Strict Transport Security — §3 DNS Record">RFC 8461 §3</a>
                                     {{else if eq $record_type "TLS-RPT"}}<small class="text-muted me-1">_smtp._tls.{{$.Domain}}</small>
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc8460#section-3" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="SMTP TLS Reporting — §3 DNS Record">RFC 8460 §3</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc8460.html#section-3:~:text=A%20domain%20that%20wishes%20to%20receive%20TLS%20reports" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="SMTP TLS Reporting — §3 DNS Record">RFC 8460 §3</a>
                                     {{else if eq $record_type "CAA"}}
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc8659#section-4" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="DNS Certification Authority Authorization — §4 Processing">RFC 8659 §4</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc8659.html#section-4:~:text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="DNS Certification Authority Authorization — §4 Processing">RFC 8659 §4</a>
                                     {{else if eq $record_type "SOA"}}
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.3.13" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Start of Authority record">RFC 1035</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-3.3.13:~:text=SOA%20RDATA%20format" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Start of Authority record">RFC 1035</a>
                                     {{else if eq $record_type "MX"}}
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc5321#section-5" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Mail Exchange record">RFC 5321</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc5321.html#section-5:~:text=The%20lookup%20first%20attempts%20to%20locate%20an%20MX%20record" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Mail Exchange record">RFC 5321</a>
                                     {{else if eq $record_type "TXT"}}
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc7208#section-4" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Sender Policy Framework — §4 Record Syntax">RFC 7208 §4</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc7208.html#section-4:~:text=After%20receiving%20the%20MAIL%20FROM,check_host()%20function" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Sender Policy Framework — §4 Record Syntax">RFC 7208 §4</a>
                                     {{else if eq $record_type "NS"}}
-                                        <a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.3.11" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Name Server record">RFC 1035</a>
+                                        <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-3.3.11:~:text=NS%20RDATA%20format" target="_blank" rel="noopener" class="badge bg-dark bg-opacity-25 text-muted text-decoration-none fw-normal u-fs-060rem" title="Name Server record">RFC 1035</a>
                                     {{end}}
                                     {{if $propagation}}
                                     {{$p_info := toMap (mapGet $record_type $propagation)}}
@@ -5948,7 +5948,7 @@
                     All security-critical records (SPF, DMARC, DKIM, DANE/TLSA, DNSSEC, MTA-STS, TLS-RPT, BIMI, CAA) are queried <strong>live</strong> from authoritative nameservers and cross-referenced against 5 independent public DNS resolvers (Cloudflare, Google, Quad9, OpenDNS, DNS4EU) at the time of each analysis. No security verdict uses cached data.
                 </p>
                 <p class="text-muted mb-2 u-fs-075rem-lh16">
-                    <strong>Registrar data</strong> (RDAP) is cached for up to 24 hours because domain ownership and registration details change infrequently. <strong>Certificate Transparency logs</strong> (subdomain discovery via <a href="https://datatracker.ietf.org/doc/html/rfc6962" target="_blank" rel="noopener" class="text-info">RFC 6962</a>) are cached for 1 hour because CT entries are append-only historical records. Sections using cached data are marked with a <span class="badge bg-secondary bg-opacity-50 border border-secondary border-opacity-25 u-fs-055rem">CACHED</span> badge; live queries show <span class="badge bg-success bg-opacity-25 border border-success border-opacity-25 u-fs-055rem">LIVE</span>.
+                    <strong>Registrar data</strong> (RDAP) is cached for up to 24 hours because domain ownership and registration details change infrequently. <strong>Certificate Transparency logs</strong> (subdomain discovery via <a href="https://www.rfc-editor.org/rfc/rfc6962.html" target="_blank" rel="noopener" class="text-info">RFC 6962</a>) are cached for 1 hour because CT entries are append-only historical records. Sections using cached data are marked with a <span class="badge bg-secondary bg-opacity-50 border border-secondary border-opacity-25 u-fs-055rem">CACHED</span> badge; live queries show <span class="badge bg-success bg-opacity-25 border border-success border-opacity-25 u-fs-055rem">LIVE</span>.
                 </p>
                 {{if $ct}}
                 {{if mapGetBool "was_truncated" $ct}}
@@ -6436,7 +6436,7 @@
         titleEl.textContent = rfc.title + (section ? ' — ' + section.heading : '');
         subtitleEl.textContent = rfc.subtitle;
 
-        let fullUrl = 'https://datatracker.ietf.org/doc/html/' + rfcId;
+        let fullUrl = 'https://www.rfc-editor.org/rfc/' + rfcId + '.html';
         if (sectionId) fullUrl += '#section-' + sectionId;
         linkEl.href = fullUrl;
 
@@ -6475,8 +6475,8 @@
     }
 
     function setupRfcPopups() {
-        let rfcLinkPattern = /datatracker\.ietf\.org\/doc\/html\/(rfc\d+)(?:#section-([\d.]+))?/;
-        let links = document.querySelectorAll('a[href*="datatracker.ietf.org/doc/html/rfc"]');
+        let rfcLinkPattern = /rfc-editor\.org\/rfc\/(rfc\d+)\.html(?:#section-([\d.]+))?/;
+        let links = document.querySelectorAll('a[href*="rfc-editor.org/rfc/rfc"]');
         for (const link of links) {
             let m = link.href.match(rfcLinkPattern);
             if (!m) continue;

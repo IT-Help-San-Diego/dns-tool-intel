@@ -396,7 +396,7 @@
                                 {{if eq $dmarcPolicy "reject"}}
                                 {{icon "shield-alt" "me-1"}}DMARC p=reject &mdash; hard enforcement. Spoofing will be rejected.
                                 {{else if eq $dmarcPolicy "quarantine"}}
-                                {{icon "exclamation-triangle" "me-1"}}DMARC p=quarantine &mdash; authentication failures are sequestered, not rejected. Forensic telemetry is preserved (<a href="https://datatracker.ietf.org/doc/html/rfc7489#section-7" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain this posture as a deliberate monitoring strategy. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177</a>
+                                {{icon "exclamation-triangle" "me-1"}}DMARC p=quarantine &mdash; authentication failures are sequestered, not rejected. Forensic telemetry is preserved (<a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-7:~:text=Aggregate%20reports%20are%20reports%20that%20are,that%20did%20not" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain this posture as a deliberate monitoring strategy. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177</a>
                                 {{else if eq $dmarcPolicy "none"}}
                                 {{icon "bug" "me-1"}}DMARC p=none &mdash; monitoring only, no enforcement. Spoofing is trivial.
                                 {{else}}
