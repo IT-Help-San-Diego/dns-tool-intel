@@ -568,7 +568,7 @@ func TestBuildAgentHTML_WithBimiAndCAA(t *testing.T) {
         if !strings.Contains(html, "secure.example.com") {
                 t.Error("expected domain in HTML")
         }
-        if !strings.Contains(html, "/api/analysis/100/checksum") {
+        if !strings.Contains(html, "/agent/checksum-view?domain=secure.example.com") {
                 t.Error("expected checksum URL with analysis ID")
         }
 }
