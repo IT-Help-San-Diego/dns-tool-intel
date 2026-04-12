@@ -4015,6 +4015,26 @@ body.covert-mode .btn-outline-executive:hover {
     border-color: rgba(140, 40, 40, 0.5) !important;
     color: rgba(220, 90, 90, 0.82) !important;
 }
+body.covert-mode .btn-report-action {
+    --bs-btn-bg: rgba(140, 40, 40, 0.08);
+    --bs-btn-border-color: rgba(140, 40, 40, 0.3);
+    --bs-btn-color: rgba(170, 178, 188, 0.75);
+    --bs-btn-hover-bg: rgba(140, 40, 40, 0.12);
+    --bs-btn-hover-border-color: rgba(140, 40, 40, 0.5);
+    --bs-btn-hover-color: rgba(220, 90, 90, 0.82);
+    box-shadow: none;
+}
+body.covert-mode .btn-report-action.active {
+    background-color: rgba(140, 40, 40, 0.15) !important;
+    border-color: rgba(140, 40, 40, 0.4) !important;
+    color: rgba(220, 90, 90, 0.82) !important;
+}
+body.covert-mode .btn-report-action--accent {
+    --bs-btn-border-color: rgba(196, 60, 60, 0.35);
+    --bs-btn-color: rgba(196, 60, 60, 0.65);
+    --bs-btn-hover-border-color: rgba(220, 90, 90, 0.75);
+    --bs-btn-hover-color: rgba(211, 93, 93, 0.8);
+}
 body.covert-mode .u-badge-recon-btn {
     border-color: rgba(140, 40, 40, 0.35) !important;
     color: rgba(220, 90, 90, 0.75) !important;
@@ -5800,6 +5820,83 @@ footer a.text-muted:hover { text-decoration-color: rgba(173, 181, 189, 0.8); }
 @media print {
     .u-section-tuning, .u-status-beta, .u-status-active,
     .u-status-maintenance, .u-status-experimental, .u-status-deprecated { display: none; }
+}
+
+/* ============================================
+   REPORT ACTION BUTTONS — Uniform Steel Outline
+   Used for Print, Executive, Topology, Snapshot,
+   New Domain, and Re-analyze (accent variant).
+   Same design language as btn-analyze but neutral.
+   ============================================ */
+.btn-report-action {
+    --bs-btn-bg: rgba(125, 142, 168, 0.08);
+    --bs-btn-border-color: rgba(125, 142, 168, 0.4);
+    --bs-btn-color: #a8b8cc;
+    --bs-btn-hover-bg: rgba(125, 142, 168, 0.15);
+    --bs-btn-hover-border-color: rgba(125, 142, 168, 0.6);
+    --bs-btn-hover-color: #c0cfe0;
+    --bs-btn-active-bg: rgba(125, 142, 168, 0.22);
+    --bs-btn-active-border-color: rgba(125, 142, 168, 0.7);
+    --bs-btn-active-color: #fff;
+    --bs-btn-disabled-bg: rgba(125, 142, 168, 0.04);
+    --bs-btn-disabled-border-color: rgba(125, 142, 168, 0.18);
+    --bs-btn-disabled-color: rgba(168, 184, 204, 0.45);
+    background-color: var(--bs-btn-bg) !important;
+    border: 1px solid var(--bs-btn-border-color) !important;
+    color: var(--bs-btn-color) !important;
+    box-shadow: 0 0 6px rgba(125, 142, 168, 0.08);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+    .btn-report-action:hover,
+    .btn-report-action:focus {
+        background-color: var(--bs-btn-hover-bg) !important;
+        border-color: var(--bs-btn-hover-border-color) !important;
+        color: var(--bs-btn-hover-color) !important;
+        box-shadow: 0 0 10px rgba(125, 142, 168, 0.18), 0 0 4px rgba(125, 142, 168, 0.1);
+        transform: translateY(-1px);
+    }
+}
+
+.btn-report-action:focus-visible {
+    background-color: var(--bs-btn-hover-bg) !important;
+    border-color: var(--bs-btn-hover-border-color) !important;
+    color: var(--bs-btn-hover-color) !important;
+    box-shadow: 0 0 10px rgba(125, 142, 168, 0.18), 0 0 4px rgba(125, 142, 168, 0.1);
+}
+
+.btn-report-action:active {
+    background-color: var(--bs-btn-active-bg) !important;
+    border-color: var(--bs-btn-active-border-color) !important;
+    color: var(--bs-btn-active-color) !important;
+    box-shadow: 0 0 14px rgba(125, 142, 168, 0.28);
+    transform: translateY(0);
+}
+
+.btn-report-action.active {
+    background-color: rgba(125, 142, 168, 0.18) !important;
+    border-color: rgba(125, 142, 168, 0.55) !important;
+    color: #c0cfe0 !important;
+}
+
+.btn-report-action--accent {
+    --bs-btn-border-color: rgba(201, 163, 102, 0.45);
+    --bs-btn-color: #d4c4a0;
+    --bs-btn-hover-border-color: rgba(201, 163, 102, 0.65);
+    --bs-btn-hover-color: #e8dcc4;
+    --bs-btn-active-border-color: rgba(201, 163, 102, 0.75);
+    box-shadow: 0 0 6px rgba(201, 163, 102, 0.1);
+}
+
+@media (hover: hover) {
+    .btn-report-action--accent:hover,
+    .btn-report-action--accent:focus {
+        box-shadow: 0 0 10px rgba(201, 163, 102, 0.2), 0 0 4px rgba(201, 163, 102, 0.12);
+    }
 }
 
 /* ============================================
