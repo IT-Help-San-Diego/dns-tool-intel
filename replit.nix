@@ -1,5 +1,7 @@
 {pkgs}: {
   deps = [
+    pkgs.xcodebuild
+    pkgs.python312Packages.nmapthon2
     pkgs.zlib
     pkgs.whois
     pkgs.unzip
