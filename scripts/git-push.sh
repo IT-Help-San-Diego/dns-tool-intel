@@ -38,14 +38,26 @@ echo "=== Token auth check ==="
 AUTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${GIT_PAT}" https://api.github.com/user 2>/dev/null || echo "000")
 if [ "$AUTH_CHECK" = "200" ]; then
   echo "  PASS — token authenticated"
-elif [ "$AUTH_CHECK" = "401" ]; then
+  REPO_CHECK=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${GIT_PAT}" "https://api.github.com/repos/${REPO}" 2>/dev/null || echo "000")
+  if [ "$REPO_CHECK" = "200" ]; then
+    echo "  PASS — repo ${REPO} accessible"
+  elif [ "$REPO_CHECK" = "000" ] || [ "${REPO_CHECK:0:1}" = "5" ]; then
+    echo "  WARN — repo check returned HTTP ${REPO_CHECK} (transient/network issue, continuing)"
+  else
+    echo ""
+    echo "  HARD STOP: Token cannot access ${REPO} (HTTP ${REPO_CHECK})."
+    echo "  The token needs 'repo' and 'workflow' scopes for this repository."
+    echo "  Generate a new PAT on GitHub and update GH_SYNC_TOKEN in Replit."
+    exit 1
+  fi
+elif [ "$AUTH_CHECK" = "000" ] || [ "${AUTH_CHECK:0:1}" = "5" ]; then
+  echo "  WARN — auth check returned HTTP ${AUTH_CHECK} (transient/network issue, continuing)"
+else
   echo ""
-  echo "  HARD STOP: GH_SYNC_TOKEN returns 401 (Bad Credentials)."
-  echo "  The token is expired or revoked. Generate a new PAT on GitHub"
+  echo "  HARD STOP: GH_SYNC_TOKEN returns ${AUTH_CHECK} (authentication failed)."
+  echo "  The token is expired, revoked, or invalid. Generate a new PAT on GitHub"
   echo "  and update the GH_SYNC_TOKEN secret in Replit."
   exit 1
-else
-  echo "  WARN — auth check returned HTTP ${AUTH_CHECK} (may be network issue, continuing)"
 fi
 
 # ── GATE 1: Lock files — distinguish push-blocking from harmless ──
