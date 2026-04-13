@@ -320,7 +320,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "/agent/json-view?domain=example.com",
                 "Full Intelligence Data (JSON)",
                 "/agent/csv-view?domain=example.com",
-                "Discovered Domains",
+                "Discovered Subdomains",
                 "/sources",
                 "Sources &amp; Methodology",
                 "Engineer's DNS Intelligence Report",
@@ -388,8 +388,8 @@ func TestBuildAgentHTMLAlways15Results(t *testing.T) {
                 if !strings.Contains(html, "<ol>") {
                         t.Errorf("analysisID=%d: expected ordered list <ol>", id)
                 }
-                if !strings.Contains(html, "Internet Archive") {
-                        t.Errorf("analysisID=%d: missing Internet Archive (Wayback Machine) result", id)
+                if !strings.Contains(html, "Wayback Archive") {
+                        t.Errorf("analysisID=%d: missing Wayback Archive result", id)
                 }
                 if !strings.Contains(html, "Confidence Page") {
                         t.Errorf("analysisID=%d: missing Confidence Page result", id)
