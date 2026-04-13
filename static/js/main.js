@@ -1443,7 +1443,18 @@ function initVideoFallback() {
         if (w) {
             const msg = document.createElement('div');
             msg.className = 'video-fallback-msg';
-            msg.innerHTML = 'Video could not load. <a href="/video/forgotten-domain">Watch on dedicated page</a> or <a href="/static/video/forgotten-domain.mp4" download>download directly</a>.';
+            msg.appendChild(document.createTextNode('Video could not load. '));
+            var watchLink = document.createElement('a');
+            watchLink.href = '/video/forgotten-domain';
+            watchLink.textContent = 'Watch on dedicated page';
+            msg.appendChild(watchLink);
+            msg.appendChild(document.createTextNode(' or '));
+            var dlLink = document.createElement('a');
+            dlLink.href = '/static/video/forgotten-domain.mp4';
+            dlLink.download = '';
+            dlLink.textContent = 'download directly';
+            msg.appendChild(dlLink);
+            msg.appendChild(document.createTextNode('.'));
             csvEl.replaceWith(msg);
         }
     }, true);
@@ -1790,7 +1801,11 @@ document.addEventListener('DOMContentLoaded', function() {
             showOverlay(overlay);
             startStatusCycle(overlay);
         }
-        btn.innerHTML = '<i class="fa-solid fa-spinner icon-spin me-2"></i>Analyzing...';
+        while (btn.firstChild) btn.removeChild(btn.firstChild);
+        var spinIcon = document.createElement('i');
+        spinIcon.className = 'fa-solid fa-spinner icon-spin me-2';
+        btn.appendChild(spinIcon);
+        btn.appendChild(document.createTextNode('Analyzing...'));
         btn.classList.add('disabled');
         document.body.classList.add('loading');
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
@@ -1969,6 +1984,7 @@ function loadDNSHistory(domain) {
 }
 
 function rfcFallbackOverlay(url) {
+    try { var u = new URL(url, location.href); if (u.protocol !== 'https:' && u.protocol !== 'http:') return; } catch(e) { return; }
     var existing = document.getElementById('rfcFallbackOverlay');
     if (existing) existing.remove();
     var rfcMatch = url.match(/rfc(\d+)\.html/);
@@ -1980,10 +1996,29 @@ function rfcFallbackOverlay(url) {
     backdrop.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center';
     var card = document.createElement('div');
     card.style.cssText = 'background:#1a1a2e;color:#e0e0e0;border-radius:12px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.5);text-align:center;font-family:system-ui,sans-serif';
-    card.innerHTML = '<div style="font-size:1.5rem;font-weight:700;margin-bottom:8px">RFC ' + escapeHtml(rfcNum) + escapeHtml(sectionLabel) + '</div>' +
-        '<p style="margin:12px 0;color:#aaa;font-size:.9rem">Your browser blocked the popup window. Open this RFC directly:</p>' +
-        '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:12px 0;padding:10px 28px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Open RFC' + (rfcNum ? ' ' + escapeHtml(rfcNum) : '') + '</a>' +
-        '<div style="margin-top:16px"><button style="background:none;border:1px solid #555;color:#aaa;padding:6px 18px;border-radius:6px;cursor:pointer;font-size:.85rem" id="rfcFallbackClose">Close</button></div>';
+    var titleDiv = document.createElement('div');
+    titleDiv.style.cssText = 'font-size:1.5rem;font-weight:700;margin-bottom:8px';
+    titleDiv.textContent = 'RFC ' + rfcNum + sectionLabel;
+    var desc = document.createElement('p');
+    desc.style.cssText = 'margin:12px 0;color:#aaa;font-size:.9rem';
+    desc.textContent = 'Your browser blocked the popup window. Open this RFC directly:';
+    var link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.style.cssText = 'display:inline-block;margin:12px 0;padding:10px 28px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600';
+    link.textContent = 'Open RFC' + (rfcNum ? ' ' + rfcNum : '');
+    var closeDiv = document.createElement('div');
+    closeDiv.style.cssText = 'margin-top:16px';
+    var closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'background:none;border:1px solid #555;color:#aaa;padding:6px 18px;border-radius:6px;cursor:pointer;font-size:.85rem';
+    closeBtn.id = 'rfcFallbackClose';
+    closeBtn.textContent = 'Close';
+    closeDiv.appendChild(closeBtn);
+    card.appendChild(titleDiv);
+    card.appendChild(desc);
+    card.appendChild(link);
+    card.appendChild(closeDiv);
     backdrop.appendChild(card);
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', function(ev) {
