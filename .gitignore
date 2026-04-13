@@ -88,8 +88,7 @@ dnstool-intel-staging/
 # Codex agent files (local tooling, not versioned)
 .codex/
 
-# Replit environment files — never commit
-.replit
+# Replit environment files
 replit_agent.toml
 .config/
 .upm/

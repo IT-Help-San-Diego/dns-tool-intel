@@ -51,7 +51,7 @@ From the Replit workspace, run:
 bash scripts/git-push.sh
 ```
 
-This pushes all the migration changes (updated references, rewritten release.sh, deprecated mirror scripts) to the `replit-sync` branch on `dns-tool-intel`. Create a PR to merge into `main`.
+This pushes all the migration changes (updated references, rewritten release.sh, deprecated mirror scripts) to `dns-tool-intel` main.
 
 ---
 
