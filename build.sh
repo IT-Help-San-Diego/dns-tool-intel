@@ -1,12 +1,21 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if (command -v magick >/dev/null 2>&1 || command -v convert >/dev/null 2>&1) && command -v cwebp >/dev/null 2>&1; then
+if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
+CONVERT=$(command -v magick 2>/dev/null || command -v convert 2>/dev/null || true)
+CWEBP=$(command -v cwebp 2>/dev/null || true)
+
+if [ -n "$CONVERT" ] && [ -n "$CWEBP" ]; then
   echo "Generating Owl Semaphore derived assets..."
-  sh "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
+  bash "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
 else
   echo "SKIP derived asset generation (ImageMagick/cwebp not found)"
+  echo "  convert: ${CONVERT:-(not found)}"
+  echo "  cwebp:   ${CWEBP:-(not found)}"
 fi
 
 VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
