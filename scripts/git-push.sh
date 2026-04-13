@@ -33,6 +33,21 @@ if [ -z "$GIT_PAT" ]; then
   exit 1
 fi
 
+# ── Pre-flight: verify token is valid ──
+echo "=== Token auth check ==="
+AUTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${GIT_PAT}" https://api.github.com/user 2>/dev/null || echo "000")
+if [ "$AUTH_CHECK" = "200" ]; then
+  echo "  PASS — token authenticated"
+elif [ "$AUTH_CHECK" = "401" ]; then
+  echo ""
+  echo "  HARD STOP: GH_SYNC_TOKEN returns 401 (Bad Credentials)."
+  echo "  The token is expired or revoked. Generate a new PAT on GitHub"
+  echo "  and update the GH_SYNC_TOKEN secret in Replit."
+  exit 1
+else
+  echo "  WARN — auth check returned HTTP ${AUTH_CHECK} (may be network issue, continuing)"
+fi
+
 # ── GATE 1: Lock files — distinguish push-blocking from harmless ──
 # Push-blocking locks: index.lock, HEAD.lock, config.lock, shallow.lock
 # Harmless for push: maintenance.lock (Replit background), refs/remotes/* (tracking refs)
