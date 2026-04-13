@@ -18,7 +18,8 @@
 cd /home/runner/workspace
 
 REPO="IT-Help-San-Diego/dns-tool-intel"
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
+LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
+REMOTE_BRANCH="replit-sync"
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
 PAT_URL="https://${GIT_PAT}@github.com/${REPO}.git"
 
@@ -137,7 +138,7 @@ echo ""
 
 # ── Pre-push: check what GitHub has vs what we have ──
 LOCAL_SHA=$(git rev-parse HEAD 2>/dev/null)
-REMOTE_SHA=$(git ls-remote "$PAT_URL" refs/heads/${BRANCH} 2>/dev/null | awk '{print $1}')
+REMOTE_SHA=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
 
 if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
   echo "Already synced — local HEAD ($LOCAL_SHA) matches GitHub."
@@ -165,10 +166,10 @@ git log --oneline "${REMOTE_SHA}..HEAD" 2>/dev/null || git log --oneline -5
 
 # ── Push via PAT (with retry for checkpoint race conditions) ──
 echo ""
-echo "Pushing to github.com/${REPO} ${BRANCH}..."
+echo "Pushing to github.com/${REPO} ${LOCAL_BRANCH}:${REMOTE_BRANCH}..."
 PUSH_OK=0
 for ATTEMPT in 1 2; do
-  if git push "${PAT_URL}" ${BRANCH} 2>&1; then
+  if git push "${PAT_URL}" ${LOCAL_BRANCH}:${REMOTE_BRANCH} 2>&1; then
     PUSH_OK=1
     break
   fi
@@ -190,7 +191,7 @@ fi
 # ── Verify sync via ls-remote (read-only — no .git writes) ──
 echo ""
 echo "=== Verifying sync (read-only) ==="
-POST_PUSH_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${BRANCH} 2>/dev/null | awk '{print $1}')
+POST_PUSH_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
 
 # Write marker file (non-.git) so staleness is always detectable
 mkdir -p .gitpanel 2>/dev/null
@@ -209,11 +210,11 @@ else
   echo "  Re-checking in 10s..."
   sleep 10
   NEW_LOCAL=$(git rev-parse HEAD 2>/dev/null)
-  NEW_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${BRANCH} 2>/dev/null | awk '{print $1}')
+  NEW_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
   if [ "$NEW_LOCAL" != "$NEW_REMOTE" ]; then
     echo "  Still mismatched — pushing new checkpoint..."
-    git push "${PAT_URL}" ${BRANCH} 2>&1 || true
-    FINAL_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${BRANCH} 2>/dev/null | awk '{print $1}')
+    git push "${PAT_URL}" ${LOCAL_BRANCH}:${REMOTE_BRANCH} 2>&1 || true
+    FINAL_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
     FINAL_LOCAL=$(git rev-parse HEAD 2>/dev/null)
     if [ "$FINAL_LOCAL" = "$FINAL_REMOTE" ]; then
       echo "  VERIFIED after retry: Local matches GitHub."
