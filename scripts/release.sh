@@ -9,7 +9,7 @@
 # What it does:
 #   1. Runs release-gate.sh (bumps all versioned artifacts, regenerates PDFs, validates)
 #   2. Commits the release locally
-#   3. Syncs to dns-tool-intel (canonical repo) via git-sync.sh
+#   3. Pushes to dns-tool-intel (canonical repo) via git-push.sh → replit-sync branch
 #   4. Creates annotated tag vX.Y.Z
 #   5. GitHub Actions creates the Release with SHA256SUMS (automatic)
 #   6. Zenodo auto-archives via GitHub integration (automatic)
@@ -79,9 +79,9 @@ git commit -m "Release ${TAG}"
 pass "Committed: Release ${TAG}"
 
 echo ""
-echo -e "${YELLOW}Step 3/4${NC}: Syncing to ${REPO}..."
-bash scripts/git-sync.sh
-pass "${REPO} synced"
+echo -e "${YELLOW}Step 3/4${NC}: Pushing to ${REPO} (replit-sync branch)..."
+bash scripts/git-push.sh
+pass "${REPO} pushed to replit-sync"
 
 echo ""
 echo -e "${YELLOW}Step 4/4${NC}: Creating tag ${TAG}..."
