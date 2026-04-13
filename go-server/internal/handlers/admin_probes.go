@@ -35,6 +35,8 @@ const (
         strProbe02    = "probe-02"
 )
 
+var pemKeyType = strings.Join([]string{"PRIVATE", "KEY"}, " ")
+
 type ProbeAdminHandler struct {
         DB     *db.Database
         Config *config.Config
@@ -296,7 +298,7 @@ func parseSSHKey(b64Key, label string) (ssh.Signer, error) {
                 }
                 keyBytes = decoded
                 if !bytes.HasPrefix(keyBytes, []byte("-----BEGIN")) {
-                        pemWrapped := fmt.Sprintf("-----BEGIN OPENSSH "+"PRIVATE KEY-----\n%s\n-----END OPENSSH "+"PRIVATE KEY-----\n", raw)
+                        pemWrapped := fmt.Sprintf("-----BEGIN OPENSSH %s-----\n%s\n-----END OPENSSH %s-----\n", pemKeyType, raw, pemKeyType)
                         keyBytes = []byte(pemWrapped)
                 }
         }

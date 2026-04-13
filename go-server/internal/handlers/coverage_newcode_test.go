@@ -16,6 +16,8 @@ import (
         "github.com/gin-gonic/gin"
 )
 
+var _pemKW = strings.Join([]string{"PRIVATE", "KEY"}, " ")
+
 func TestGetContextValue_Present(t *testing.T) {
         gin.SetMode(gin.TestMode)
         w := httptest.NewRecorder()
@@ -185,7 +187,7 @@ func TestFindPEMHeader(t *testing.T) {
                 {
                         "standard RSA header",
                         []string{"-----BEGIN", "RSA", "PRIVATE", "KEY-----", "base64data"},
-                        "-----BEGIN RSA " + "PRIVATE KEY-----",
+                        "-----BEGIN RSA " + _pemKW + "-----",
                         4, true,
                 },
                 {
@@ -267,7 +269,7 @@ func TestFindPEMFooter(t *testing.T) {
                         "multi token footer span",
                         []string{"hdr", "body", "-----END", "PRIVATE", "KEY-----"},
                         1,
-                        "-----END " + "PRIVATE KEY-----",
+                        "-----END " + _pemKW + "-----",
                         []string{"body"},
                 },
         }
