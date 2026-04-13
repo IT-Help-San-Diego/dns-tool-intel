@@ -72,15 +72,18 @@ if [ "$REPAIR" = true ]; then
   echo "Updating tracking refs..."
   git fetch 2>/dev/null || true
 
-  GITHUB_SHA=$(git ls-remote origin main 2>/dev/null | awk '{print $1}')
+  GITHUB_SHA_MAIN=$(git ls-remote origin main 2>/dev/null | awk '{print $1}')
+  GITHUB_SHA_SYNC=$(git ls-remote origin replit-sync 2>/dev/null | awk '{print $1}')
   CURRENT_REF=$(cat .git/refs/remotes/origin/main 2>/dev/null)
-  if [ -n "$GITHUB_SHA" ] && [ "$CURRENT_REF" != "$GITHUB_SHA" ]; then
-    git update-ref refs/remotes/origin/main "$GITHUB_SHA" 2>/dev/null \
-      || echo "$GITHUB_SHA" > .git/refs/remotes/origin/main 2>/dev/null \
+  echo "  Remote main:        ${GITHUB_SHA_MAIN:-(not found)}"
+  echo "  Remote replit-sync: ${GITHUB_SHA_SYNC:-(not found)}"
+  if [ -n "$GITHUB_SHA_MAIN" ] && [ "$CURRENT_REF" != "$GITHUB_SHA_MAIN" ]; then
+    git update-ref refs/remotes/origin/main "$GITHUB_SHA_MAIN" 2>/dev/null \
+      || echo "$GITHUB_SHA_MAIN" > .git/refs/remotes/origin/main 2>/dev/null \
       || echo "  Tracking ref update failed"
-    echo "  Tracking ref updated to ${GITHUB_SHA:0:7}"
-  elif [ -n "$GITHUB_SHA" ]; then
-    echo "  Tracking ref already current"
+    echo "  Tracking ref origin/main updated to ${GITHUB_SHA_MAIN:0:7}"
+  elif [ -n "$GITHUB_SHA_MAIN" ]; then
+    echo "  Tracking ref origin/main already current"
   fi
 
   # 6. Report status
@@ -102,14 +105,23 @@ git branch --show-current 2>/dev/null || true
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
 if [ -n "$GIT_PAT" ]; then
   LOCAL_SHA=$(git rev-parse HEAD 2>/dev/null)
-  REMOTE_SHA=$(git ls-remote "https://${GIT_PAT}@github.com/IT-Help-San-Diego/dns-tool-intel.git" refs/heads/main 2>/dev/null | awk '{print $1}')
+  REMOTE_SHA_SYNC=$(git ls-remote "https://${GIT_PAT}@github.com/IT-Help-San-Diego/dns-tool-intel.git" refs/heads/replit-sync 2>/dev/null | awk '{print $1}')
+  REMOTE_SHA_MAIN=$(git ls-remote "https://${GIT_PAT}@github.com/IT-Help-San-Diego/dns-tool-intel.git" refs/heads/main 2>/dev/null | awk '{print $1}')
+  REMOTE_SHA="${REMOTE_SHA_SYNC:-$REMOTE_SHA_MAIN}"
   if [ -n "$REMOTE_SHA" ]; then
-    if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
-      echo "Sync status: MATCHED — local HEAD = GitHub HEAD ($LOCAL_SHA)"
+    MATCHED_BRANCH=""
+    if [ -n "$REMOTE_SHA_SYNC" ] && [ "$LOCAL_SHA" = "$REMOTE_SHA_SYNC" ]; then
+      MATCHED_BRANCH="replit-sync"
+    elif [ -n "$REMOTE_SHA_MAIN" ] && [ "$LOCAL_SHA" = "$REMOTE_SHA_MAIN" ]; then
+      MATCHED_BRANCH="main"
+    fi
+    if [ -n "$MATCHED_BRANCH" ]; then
+      echo "Sync status: MATCHED — local HEAD = GitHub ${MATCHED_BRANCH} ($LOCAL_SHA)"
     else
       echo "Sync status: MISMATCH"
-      echo "  Local:  $LOCAL_SHA"
-      echo "  GitHub: $REMOTE_SHA"
+      echo "  Local:        $LOCAL_SHA"
+      echo "  replit-sync:  ${REMOTE_SHA_SYNC:-(not found)}"
+      echo "  main:         ${REMOTE_SHA_MAIN:-(not found)}"
     fi
   fi
 fi
