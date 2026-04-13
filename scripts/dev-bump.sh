@@ -72,4 +72,4 @@ else
   echo "  If preview doesn't update, click the ▶ restart button in the Console tab."
 fi
 echo ""
-echo "Ready. Run: bash scripts/git-sync.sh"
+echo "Ready. Run: bash scripts/git-push.sh"
