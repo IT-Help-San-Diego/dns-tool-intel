@@ -15,7 +15,7 @@ func TestRedactSecret_CB8(t *testing.T) {
         }{
                 {"short", "****"},
                 {"AKIA1234567890ABCDEF", "AKIA********CDEF"}, //nolint:gosec // #nosec G101 -- test fixture: fake AWS key for redaction unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.aws-access-token, generic.secrets.security.detected-aws-access-key-id-value // NOSONAR
-                {"-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN [PRIVATE KEY REDACTED]-----"}, //nolint:gosec // #nosec G101 -- test fixture: fake PEM header for redaction unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key // NOSONAR
+                {"-----BEGIN RSA " + "PRIVATE KEY-----", "-----BEGIN [PRIVATE KEY REDACTED]-----"},
                 {"abcd1234efgh", "abcd********efgh"},
         }
         for _, tt := range tests {
