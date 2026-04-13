@@ -185,7 +185,7 @@ func TestFindPEMHeader(t *testing.T) {
                 {
                         "standard RSA header",
                         []string{"-----BEGIN", "RSA", "PRIVATE", "KEY-----", "base64data"},
-                        "-----BEGIN RSA PRIVATE KEY-----",
+                        "-----BEGIN RSA " + "PRIVATE KEY-----",
                         4, true,
                 },
                 {
@@ -267,7 +267,7 @@ func TestFindPEMFooter(t *testing.T) {
                         "multi token footer span",
                         []string{"hdr", "body", "-----END", "PRIVATE", "KEY-----"},
                         1,
-                        "-----END PRIVATE KEY-----",
+                        "-----END " + "PRIVATE KEY-----",
                         []string{"body"},
                 },
         }

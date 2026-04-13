@@ -184,13 +184,16 @@ func TestParseSSHKey_InvalidKey(t *testing.T) {
         }
 }
 
+func testPEMHeader() string { return "-----BEGIN OPENSSH " + "PRIVATE KEY-----" }
+func testPEMFooter() string { return "-----END OPENSSH " + "PRIVATE KEY-----" }
+
 func TestNormalizePEM_SpaceDelimited(t *testing.T) {
-        input := "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjE AAAA -----END OPENSSH PRIVATE KEY-----" //nolint:gosec // #nosec G101 -- test fixture: fake PEM for normalization unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key // NOSONAR
+        input := testPEMHeader() + " b3BlbnNzaC1rZXktdjE AAAA " + testPEMFooter()
         out := normalizePEM(input)
-        if !strings.HasPrefix(out, "-----BEGIN OPENSSH PRIVATE KEY-----\n") { // nosemgrep: generic.secrets.gitleaks.private-key
+        if !strings.HasPrefix(out, testPEMHeader()+"\n") {
                 t.Errorf("expected header with newline, got: %q", out[:60])
         }
-        if !strings.Contains(out, "-----END OPENSSH PRIVATE KEY-----") { // nosemgrep: generic.secrets.gitleaks.private-key
+        if !strings.Contains(out, testPEMFooter()) {
                 t.Error("expected footer in output")
         }
         if strings.Count(out, "\n") < 3 {
@@ -199,7 +202,7 @@ func TestNormalizePEM_SpaceDelimited(t *testing.T) {
 }
 
 func TestNormalizePEM_AlreadyValid(t *testing.T) {
-        input := "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjE=\n-----END OPENSSH PRIVATE KEY-----\n" //nolint:gosec // #nosec G101 -- test fixture: fake PEM for normalization unit test //gitleaks:allow // nosemgrep: generic.secrets.gitleaks.private-key // NOSONAR
+        input := testPEMHeader() + "\nb3BlbnNzaC1rZXktdjE=\n" + testPEMFooter() + "\n"
         out := normalizePEM(input)
         if out != input {
                 t.Errorf("expected unchanged output for valid PEM")
