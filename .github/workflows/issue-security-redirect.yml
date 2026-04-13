@@ -11,7 +11,7 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'triage:security-redirect')
     steps:
       - name: Post private reporting instructions and close
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const issueNumber = context.issue.number;
