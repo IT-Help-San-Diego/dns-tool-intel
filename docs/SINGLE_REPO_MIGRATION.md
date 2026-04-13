@@ -48,10 +48,10 @@ All codebase changes are complete. This document covers the GitHub-side actions.
 From the Replit workspace, run:
 
 ```bash
-bash scripts/git-sync.sh
+bash scripts/git-push.sh
 ```
 
-This pushes all the migration changes (updated references, rewritten release.sh, deprecated mirror scripts) to the now-public `dns-tool-intel` repo.
+This pushes all the migration changes (updated references, rewritten release.sh, deprecated mirror scripts) to the `replit-sync` branch on `dns-tool-intel`. Create a PR to merge into `main`.
 
 ---
 
@@ -102,7 +102,7 @@ All these changes are already committed and ready to push:
 6. **Release pipeline** — `release.sh` rewritten for single-repo (no more two-repo push/filter logic)
 7. **Mirror artifacts deprecated** — `sync-to-web.sh`, `fix-sonar-web.py`, `public-excludes.txt` contain deprecation notices
 8. **GitHub config** — issue templates, security redirect workflow, `.zenodo.json` all reference `dns-tool-intel`
-9. **Scripts** — `git-sync.sh`, `git-push.sh`, `git-health-check.sh` all target `dns-tool-intel`
+9. **Scripts** — `git-push.sh` (primary), `git-health-check.sh`, `git-panel-reset.sh` all target `dns-tool-intel`; `git-sync.sh` is deprecated
 
 ---
 

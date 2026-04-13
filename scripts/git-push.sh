@@ -60,9 +60,9 @@ else
   exit 1
 fi
 
-# ── GATE 1: Lock files — distinguish push-blocking from harmless ──
-# Push-blocking locks: index.lock, HEAD.lock, config.lock, shallow.lock
-# Harmless for push: maintenance.lock (Replit background), refs/remotes/* (tracking refs)
+# ── GATE 1: Lock files — fail-closed allowlist ──
+# Known harmless (allowlisted): maintenance.lock (Replit background), refs/remotes/* (tracking refs)
+# Everything else: treated as push-blocking until proven otherwise
 echo "=== GATE 1: Lock file check ==="
 ALL_LOCKS=$(find .git -name "*.lock" -type f 2>/dev/null || true)
 PUSH_BLOCKERS=""
@@ -71,11 +71,11 @@ HARMLESS=""
 if [ -n "$ALL_LOCKS" ]; then
   while IFS= read -r lockfile; do
     case "$lockfile" in
-      .git/index.lock|.git/HEAD.lock|.git/config.lock|.git/shallow.lock)
-        PUSH_BLOCKERS="${PUSH_BLOCKERS}${lockfile}\n"
+      .git/objects/maintenance.lock|.git/refs/remotes/*)
+        HARMLESS="${HARMLESS}${lockfile}\n"
         ;;
       *)
-        HARMLESS="${HARMLESS}${lockfile}\n"
+        PUSH_BLOCKERS="${PUSH_BLOCKERS}${lockfile}\n"
         ;;
     esac
   done <<< "$ALL_LOCKS"
