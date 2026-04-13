@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev version bump — routine development only.
 # Usage: bash scripts/dev-bump.sh X.Y.Z
 #
