@@ -61,24 +61,20 @@ echo ""
 echo "Fetching latest from GitHub..."
 git fetch 2>/dev/null
 
-GITHUB_MAIN=$(git ls-remote origin main 2>/dev/null | awk '{print $1}')
-GITHUB_SYNC=$(git ls-remote origin replit-sync 2>/dev/null | awk '{print $1}')
+GITHUB_SHA=$(git ls-remote origin main 2>/dev/null | awk '{print $1}')
 CURRENT_REF=$(cat .git/refs/remotes/origin/main 2>/dev/null)
 
-echo "  GitHub main:        ${GITHUB_MAIN:-(not found)}"
-echo "  GitHub replit-sync: ${GITHUB_SYNC:-(not found)}"
-
-if [ -n "$GITHUB_MAIN" ] && [ "$CURRENT_REF" != "$GITHUB_MAIN" ]; then
-  git update-ref refs/remotes/origin/main "$GITHUB_MAIN" 2>/dev/null
+if [ -n "$GITHUB_SHA" ] && [ "$CURRENT_REF" != "$GITHUB_SHA" ]; then
+  git update-ref refs/remotes/origin/main "$GITHUB_SHA" 2>/dev/null
   if [ $? -eq 0 ]; then
-    echo "  Tracking ref updated to match GitHub main: ${GITHUB_MAIN:0:7}"
+    echo "  Tracking ref updated to match GitHub: ${GITHUB_SHA:0:7}"
   else
     echo "  update-ref failed — writing ref file directly..."
-    echo "$GITHUB_MAIN" > .git/refs/remotes/origin/main 2>/dev/null
-    echo "  Ref file written: ${GITHUB_MAIN:0:7}"
+    echo "$GITHUB_SHA" > .git/refs/remotes/origin/main 2>/dev/null
+    echo "  Ref file written: ${GITHUB_SHA:0:7}"
   fi
-elif [ -n "$GITHUB_MAIN" ]; then
-  echo "  Tracking ref already current: ${GITHUB_MAIN:0:7}"
+elif [ -n "$GITHUB_SHA" ]; then
+  echo "  Tracking ref already current: ${GITHUB_SHA:0:7}"
 else
   echo "  Could not reach GitHub to verify"
 fi

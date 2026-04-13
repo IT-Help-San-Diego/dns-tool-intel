@@ -19,8 +19,17 @@ cd /home/runner/workspace
 
 REPO="IT-Help-San-Diego/dns-tool-intel"
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
-REMOTE_BRANCH="replit-sync"
+REMOTE_BRANCH="main"
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --branch) REMOTE_BRANCH="${2:-main}"; shift 2 ;;
+    --branch=*) REMOTE_BRANCH="${1#*=}"; shift ;;
+    *) shift ;;
+  esac
+done
+
 PAT_URL="https://${GIT_PAT}@github.com/${REPO}.git"
 
 export GIT_TERMINAL_PROMPT=0
