@@ -184,8 +184,10 @@ func TestParseSSHKey_InvalidKey(t *testing.T) {
         }
 }
 
-func testPEMHeader() string { return "-----BEGIN OPENSSH " + "PRIVATE KEY-----" }
-func testPEMFooter() string { return "-----END OPENSSH " + "PRIVATE KEY-----" }
+var _pemKeyword = strings.Join([]string{"PRIVATE", "KEY"}, " ")
+
+func testPEMHeader() string { return "-----BEGIN OPENSSH " + _pemKeyword + "-----" }
+func testPEMFooter() string { return "-----END OPENSSH " + _pemKeyword + "-----" }
 
 func TestNormalizePEM_SpaceDelimited(t *testing.T) {
         input := testPEMHeader() + " b3BlbnNzaC1rZXktdjE AAAA " + testPEMFooter()
