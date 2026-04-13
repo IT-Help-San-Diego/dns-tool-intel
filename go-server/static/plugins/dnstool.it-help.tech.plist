@@ -25,7 +25,7 @@
         <string>Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring, FAIR-principled data delivery, and Zenodo DOI-backed reproducibility. Returns 15 enriched intelligence artifacts per query.</string>
 
         <key>Info</key>
-        <string>DNS Security Intelligence — RFC-grounded domain analysis with Bayesian confidence scoring. Returns enriched reports with security badges, observed-records snapshots (SHA-3-512), DNS topology maps, Wayback Machine archives, CSV exports, remediation playbooks, and Zotero-compatible citation metadata. Concept DOI: 10.5281/zenodo.19468134. Plugin homepage: https://dnstool.it-help.tech/agent/plugin</string>
+        <string>Domain Intelligence — DNS Intelligence Reports — RFC-grounded domain analysis with Bayesian confidence scoring. Returns enriched reports with security badges, observed-records snapshots (SHA-3-512), DNS topology maps, Wayback Machine archives, CSV exports, remediation playbooks, and Zotero-compatible citation metadata. Concept DOI: 10.5281/zenodo.19468134. Plugin homepage: https://dnstool.it-help.tech/agent/plugin</string>
 
         <key>EngineUrl</key>
         <string>https://dnstool.it-help.tech/agent/search?q=__agentQuery__</string>
