@@ -1,5 +1,5 @@
 {
-  "Name" : "DNS Tool - Domain Security Intelligence",
+  "Name" : "DNS Tool",
   "Identifier" : "dnstool.it-help.tech",
   "Version" : "1.2",
   "Description" : "Intelligence-grade domain security analysis. RFC-compliant DNS auditing with ICD 203 confidence scoring, FAIR-principled data delivery, and Zenodo DOI-backed reproducibility. Returns 15 enriched intelligence artifacts per query.",
