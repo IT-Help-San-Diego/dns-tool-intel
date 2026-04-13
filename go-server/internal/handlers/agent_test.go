@@ -475,17 +475,17 @@ func TestBadgeViewHandler(t *testing.T) {
                 {"missing domain", "/agent/badge-view", http.StatusBadRequest, nil},
                 {"invalid domain", "/agent/badge-view?domain=not_valid!", http.StatusBadRequest, nil},
                 {"detailed default", "/agent/badge-view?domain=example.com", http.StatusOK, []string{
-                        "<title>DNS Security Badge (detailed)",
+                        "<title>Detailed Security Badge",
                         "example.com",
                         "/badge?domain=example.com&amp;style=detailed",
                         "/analyze?domain=example.com",
                 }},
                 {"covert style", "/agent/badge-view?domain=example.com&style=covert", http.StatusOK, []string{
-                        "<title>DNS Security Badge (covert)",
+                        "<title>Covert Security Badge",
                         "/badge?domain=example.com&amp;style=covert",
                 }},
                 {"flat style", "/agent/badge-view?domain=example.com&style=flat", http.StatusOK, []string{
-                        "<title>DNS Security Badge (flat)",
+                        "<title>Compact Security Badge",
                         "/badge?domain=example.com",
                 }},
                 {"q param", "/agent/badge-view?q=example.com", http.StatusOK, []string{
