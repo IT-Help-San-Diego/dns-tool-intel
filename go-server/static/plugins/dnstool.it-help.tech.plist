@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
         <key>Name</key>
-        <string>DNS Tool - Domain Security Intelligence</string>
+        <string>DNS Tool</string>
 
         <key>Identifier</key>
         <string>dnstool.it-help.tech</string>
