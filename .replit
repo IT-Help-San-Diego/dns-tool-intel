@@ -37,7 +37,7 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "vm"
-run = ["sh", "-c", "./dns-tool-server"]
+run = ["./dns-tool-server"]
 build = ["bash", "build.sh", "--deploy"]
 
 [postMerge]
