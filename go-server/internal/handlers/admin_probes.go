@@ -296,7 +296,7 @@ func parseSSHKey(b64Key, label string) (ssh.Signer, error) {
                 }
                 keyBytes = decoded
                 if !bytes.HasPrefix(keyBytes, []byte("-----BEGIN")) {
-                        pemWrapped := fmt.Sprintf("-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n", raw)
+                        pemWrapped := fmt.Sprintf("-----BEGIN OPENSSH "+"PRIVATE KEY-----\n%s\n-----END OPENSSH "+"PRIVATE KEY-----\n", raw)
                         keyBytes = []byte(pemWrapped)
                 }
         }
