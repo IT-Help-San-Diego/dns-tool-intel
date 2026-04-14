@@ -1437,7 +1437,7 @@ function initGlobeMotion() {
             return;
         }
         function tick() {
-            globe.rotLon -= 0.08;
+            globe.rotLon += 0.08;
             renderGlobe(canvas);
             _globeAnim = requestAnimationFrame(tick);
         }
