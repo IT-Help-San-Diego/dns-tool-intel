@@ -600,21 +600,21 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
 
 <h2>Reports &amp; Intelligence</h2>
 <ol>
-  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report</a> — full security analysis with live scanning (the engineering report)</li>
-  <li><a href="` + snapshotViewURL + `">Observed Records Snapshot</a> — reconstructed zone file, SHA-3-512 verified</li>
-  <li><a href="` + badgeViewDetailed + `">Detailed Security Badge</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
-  <li><a href="` + badgeViewCovert + `">Covert Security Badge</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
-  <li><a href="` + covertReportURL + `">Covert Recon Report</a> — full analysis in covert operations mode</li>
-  <li><a href="` + executiveReportURL + `">Executive Intelligence Brief</a> — board-ready executive summary</li>
-  <li><a href="` + topologyURL + `">DNS Topology</a> — topology visualization, signal flow, and RFC source mapping</li>
-  <li><a href="https://doi.org/10.5281/zenodo.19468134">Zenodo — Concept DOI</a> — permanent scientific record (10.5281/zenodo.19468134)</li>
-  <li><a href="` + jsonViewURL + `">Full Intelligence Data (JSON)</a> — complete analysis payload with all collected intelligence</li>
-  <li><a href="` + csvViewURL + `">Discovered Subdomains</a> — subdomain reconnaissance data (CSV)</li>
-  <li><a href="` + sourcesURL + `">Sources &amp; Methodology</a> — RFC citations, data sources, and scoring methodology</li>
-  <li><a href="` + checksumViewURL + `">SHA-3 Integrity Checksum</a> — cryptographic verification of analysis data</li>
-  <li><a href="` + remediationURL + `">Security Remediation Plan</a> — actionable remediation steps for this domain</li>
-  <li><a href="` + waybackViewURL + `">Wayback Archive</a> — permanent archived record of the analysis</li>
-  <li><a href="` + confidenceURL + `">Confidence Page</a> — SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</li>
+  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report — ` + ed + `</a> — full security analysis with live scanning</li>
+  <li><a href="` + snapshotViewURL + `">Observed Records Snapshot — ` + ed + `</a> — reconstructed zone file, SHA-3-512 verified</li>
+  <li><a href="` + badgeViewDetailed + `">Detailed Security Badge — ` + ed + `</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
+  <li><a href="` + badgeViewCovert + `">Covert Security Badge — ` + ed + `</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
+  <li><a href="` + covertReportURL + `">Covert Recon Report — ` + ed + `</a> — full analysis in covert operations mode</li>
+  <li><a href="` + executiveReportURL + `">Executive Intelligence Brief — ` + ed + `</a> — board-ready executive summary</li>
+  <li><a href="` + topologyURL + `">DNS Topology — ` + ed + `</a> — topology visualization, signal flow, and RFC source mapping</li>
+  <li><a href="https://doi.org/10.5281/zenodo.19468134">Zenodo — Concept DOI — ` + ed + `</a> — permanent scientific record (10.5281/zenodo.19468134)</li>
+  <li><a href="` + jsonViewURL + `">Full Intelligence Data (JSON) — ` + ed + `</a> — complete analysis payload with all collected intelligence</li>
+  <li><a href="` + csvViewURL + `">Discovered Subdomains — ` + ed + `</a> — subdomain reconnaissance data (CSV)</li>
+  <li><a href="` + sourcesURL + `">Sources &amp; Methodology — ` + ed + `</a> — RFC citations, data sources, and scoring methodology</li>
+  <li><a href="` + checksumViewURL + `">SHA-3 Integrity Checksum — ` + ed + `</a> — cryptographic verification of analysis data</li>
+  <li><a href="` + remediationURL + `">Security Remediation Plan — ` + ed + `</a> — actionable remediation steps for this domain</li>
+  <li><a href="` + waybackViewURL + `">Wayback Archive — ` + ed + `</a> — permanent archived record of the analysis</li>
+  <li><a href="` + confidenceURL + `">Confidence Page — ` + ed + `</a> — SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</li>
 </ol>`)
 
         sb.WriteString(`
