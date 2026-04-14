@@ -127,7 +127,13 @@ func (sp *scanProgress) UpdatePhase(group, status string, durationMs int) {
                 if startedAt < 0 {
                         startedAt = 0
                 }
-                sp.phases[group] = &phaseStatus{Status: status, DurationMs: durationMs, CompletedAtMs: elapsedMs, StartedAtMs: startedAt, expectedTasks: 1, completedTasks: 1}
+                completed := 0
+                completedAt := 0
+                if status == "done" {
+                        completed = 1
+                        completedAt = elapsedMs
+                }
+                sp.phases[group] = &phaseStatus{Status: status, DurationMs: durationMs, CompletedAtMs: completedAt, StartedAtMs: startedAt, expectedTasks: 1, completedTasks: completed}
                 return
         }
         if ps.Status == "done" {

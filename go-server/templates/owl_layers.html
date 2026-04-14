@@ -4,7 +4,7 @@
     {{template "head" .}}
     {{template "head_css" .}}
     <title>Owl Semaphore — Layer Compositor — DNS Tool</title>
-    <style>
+    <style nonce="{{.CspNonce}}">
         .layer-workspace {
             display: flex;
             gap: 0;
@@ -159,7 +159,7 @@
             <div class="layer-sidebar">
                 <h3>Layers — Bottom &rarr; Top</h3>
 
-                <button class="layer-btn" data-target="layer-L0" onclick="toggleLayer(this)">
+                <button class="layer-btn" data-target="layer-L0">
                     <div class="layer-check">&check;</div>
                     <div>
                         <div class="layer-label">L0 — Background</div>
@@ -167,7 +167,7 @@
                     </div>
                 </button>
 
-                <button class="layer-btn" data-target="layer-L1" onclick="toggleLayer(this)">
+                <button class="layer-btn" data-target="layer-L1">
                     <div class="layer-check">&check;</div>
                     <div>
                         <div class="layer-label">L1 — Emerald Circle <span class="layer-lock">LOCKED</span></div>
@@ -175,7 +175,7 @@
                     </div>
                 </button>
 
-                <button class="layer-btn" data-target="layer-L4" onclick="toggleLayer(this)">
+                <button class="layer-btn" data-target="layer-L4">
                     <div class="layer-check">&check;</div>
                     <div>
                         <div class="layer-label">L4 — Outer Ring</div>
@@ -183,7 +183,7 @@
                     </div>
                 </button>
 
-                <button class="layer-btn" data-target="layer-L2" onclick="toggleLayer(this)">
+                <button class="layer-btn" data-target="layer-L2">
                     <div class="layer-check">&check;</div>
                     <div>
                         <div class="layer-label">L2 — Meander Ring <span class="layer-lock">LOCKED</span></div>
@@ -191,7 +191,7 @@
                     </div>
                 </button>
 
-                <button class="layer-btn" data-target="layer-L3" onclick="toggleLayer(this)">
+                <button class="layer-btn" data-target="layer-L3">
                     <div class="layer-check">&check;</div>
                     <div>
                         <div class="layer-label">L3 — Owl Figure <span class="layer-lock">LOCKED</span></div>
@@ -200,9 +200,9 @@
                 </button>
 
                 <div class="layer-actions">
-                    <button onclick="showAll()">Show All</button>
-                    <button onclick="hideAll()">Hide All</button>
-                    <button onclick="soloMode()">Solo L4</button>
+                    <button id="owl-show-all">Show All</button>
+                    <button id="owl-hide-all">Hide All</button>
+                    <button id="owl-solo-l4">Solo L4</button>
                 </div>
             </div>
 
@@ -219,42 +219,50 @@
     </div>
     {{template "footer" .}}
     <script nonce="{{.CspNonce}}">
-    function toggleLayer(btn) {
-        let id = btn.dataset.target;
-        let el = document.getElementById(id);
-        if (el.classList.contains('layer-hidden')) {
-            el.classList.remove('layer-hidden');
-            btn.classList.remove('off');
-        } else {
-            el.classList.add('layer-hidden');
-            btn.classList.add('off');
+    (function() {
+        function toggleLayer(btn) {
+            var id = btn.dataset.target;
+            var el = document.getElementById(id);
+            if (el.classList.contains('layer-hidden')) {
+                el.classList.remove('layer-hidden');
+                btn.classList.remove('off');
+            } else {
+                el.classList.add('layer-hidden');
+                btn.classList.add('off');
+            }
         }
-    }
-    function showAll() {
+        function showAll() {
+            document.querySelectorAll('.layer-btn').forEach(function(b) {
+                b.classList.remove('off');
+            });
+            document.querySelectorAll('[id^="layer-"]').forEach(function(el) {
+                el.classList.remove('layer-hidden');
+            });
+        }
+        function hideAll() {
+            document.querySelectorAll('.layer-btn').forEach(function(b) {
+                b.classList.add('off');
+            });
+            document.querySelectorAll('[id^="layer-"]').forEach(function(el) {
+                el.classList.add('layer-hidden');
+            });
+        }
+        function soloMode() {
+            hideAll();
+            var btn0 = document.querySelector('[data-target="layer-L0"]');
+            var btn4 = document.querySelector('[data-target="layer-L4"]');
+            document.getElementById('layer-L0').classList.remove('layer-hidden');
+            document.getElementById('layer-L4').classList.remove('layer-hidden');
+            btn0.classList.remove('off');
+            btn4.classList.remove('off');
+        }
         document.querySelectorAll('.layer-btn').forEach(function(btn) {
-            btn.classList.remove('off');
+            btn.addEventListener('click', function() { toggleLayer(btn); });
         });
-        document.querySelectorAll('[id^="layer-"]').forEach(function(el) {
-            el.classList.remove('layer-hidden');
-        });
-    }
-    function hideAll() {
-        document.querySelectorAll('.layer-btn').forEach(function(btn) {
-            btn.classList.add('off');
-        });
-        document.querySelectorAll('[id^="layer-"]').forEach(function(el) {
-            el.classList.add('layer-hidden');
-        });
-    }
-    function soloMode() {
-        hideAll();
-        let btn = document.querySelector('[data-target="layer-L0"]');
-        let btn4 = document.querySelector('[data-target="layer-L4"]');
-        document.getElementById('layer-L0').classList.remove('layer-hidden');
-        document.getElementById('layer-L4').classList.remove('layer-hidden');
-        btn.classList.remove('off');
-        btn4.classList.remove('off');
-    }
+        document.getElementById('owl-show-all').addEventListener('click', showAll);
+        document.getElementById('owl-hide-all').addEventListener('click', hideAll);
+        document.getElementById('owl-solo-l4').addEventListener('click', soloMode);
+    })();
     </script>
 </body>
 </html>

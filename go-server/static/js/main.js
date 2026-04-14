@@ -971,311 +971,80 @@ function initPrivacyToggle() {
 
 let _globeAnim = null;
 
-function hexToRgba(hex, a) {
-    const r = Number.parseInt(hex.slice(1, 3), 16);
-    const g = Number.parseInt(hex.slice(3, 5), 16);
-    const b = Number.parseInt(hex.slice(5, 7), 16);
-    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-}
-
 function stopGlobeAnimation() {
     if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
 }
 
 function initGlobeMotion() {
-    const DEG = Math.PI / 180;
+    const GC = globalThis.GlobeCore;
+    if (!GC) return;
+    const DEG = GC.DEG;
+    const RESOLVER_POPS = GC.RESOLVER_POPS;
+    const OWN_PROBES = GC.OWN_PROBES;
 
-    const RESOLVER_POPS = [
-        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 37.77, lon: -122.42, city: 'San Francisco' },
-        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 51.51, lon: -0.13, city: 'London' },
-        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 35.68, lon: 139.69, city: 'Tokyo' },
-        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: 1.35, lon: 103.82, city: 'Singapore' },
-        { resolver: 'Cloudflare', tag: 'CF', color: '#f6821f', lat: -23.55, lon: -46.63, city: 'S\u00e3o Paulo' },
-        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 41.26, lon: -95.86, city: 'Council Bluffs' },
-        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 53.35, lon: -6.26, city: 'Dublin' },
-        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: -33.87, lon: 151.21, city: 'Sydney' },
-        { resolver: 'Google', tag: 'G', color: '#4285f4', lat: 25.03, lon: 121.57, city: 'Taipei' },
-        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 47.38, lon: 8.54, city: 'Zurich' },
-        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 50.11, lon: 8.68, city: 'Frankfurt' },
-        { resolver: 'Quad9', tag: 'Q9', color: '#0078d4', lat: 1.35, lon: 103.82, city: 'Singapore' },
-        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 37.34, lon: -121.89, city: 'San Jose' },
-        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 51.51, lon: -0.13, city: 'London' },
-        { resolver: 'OpenDNS', tag: 'OD', color: '#ff6a00', lat: 22.32, lon: 114.17, city: 'Hong Kong' },
-        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 50.85, lon: 4.35, city: 'Brussels' },
-        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 48.86, lon: 2.35, city: 'Paris' },
-        { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
-    ];
+    const globe = GC.createGlobeState();
+    GC.loadTexture(globe);
 
-    const OWN_PROBES = [
-        { id: 'probe-01', label: 'Probe 01 — US-East', color: '#4ade80', lat: 42.36, lon: -71.06, city: 'Boston' },
-        { id: 'probe-02', label: 'Probe 02 — France', color: '#4ade80', lat: 48.57, lon: 2.82, city: 'France' }
-    ];
-
-    const globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
     const convergePt = { x: 0, y: 0 };
     let signalParticles = [];
     let particlesInitialized = false;
-
-    let _earthTex = null;
-    let _earthTexData = null;
-    let _earthTexW = 0;
-    let _earthTexH = 0;
-    let _texLoaded = false;
-    let _offGlobe = null;
-    let _offGlobeCtx = null;
-    let _cachedRotLon = null;
-    let _cachedR = null;
-    const GLOBE_RES = 360;
-    const LIGHT_DIR = { x: 0.42, y: 0.28, z: 0.86 };
-
-    (function loadEarthTexture() {
-        const img = new Image();
-        img.onload = function() {
-            const tc = document.createElement('canvas');
-            tc.width = img.naturalWidth;
-            tc.height = img.naturalHeight;
-            const tctx = tc.getContext('2d');
-            tctx.drawImage(img, 0, 0);
-            _earthTexData = tctx.getImageData(0, 0, tc.width, tc.height);
-            _earthTexW = tc.width;
-            _earthTexH = tc.height;
-            _texLoaded = true;
-        };
-        img.src = '/static/img/earth-blue-marble.jpg';
-    })();
-
-    function projectPt(lat, lon) {
-        const phi = lat * DEG;
-        const lam = (lon - globe.rotLon) * DEG;
-        const cosPhi = Math.cos(phi);
-        return {
-            x: globe.cx + globe.R * cosPhi * Math.sin(lam),
-            y: globe.cy - globe.R * Math.sin(phi),
-            vis: cosPhi * Math.cos(lam) > 0,
-            depth: cosPhi * Math.cos(lam)
-        };
-    }
-
-    function renderTexturedGlobe() { // NOSONAR — rendering function, complexity is inherent
-        if (!_texLoaded) return null;
-        const snapR = Math.round(globe.R);
-        const snapLon = Math.round(globe.rotLon * 2) / 2;
-        if (_cachedRotLon === snapLon && _cachedR === snapR && _offGlobe) return _offGlobe;
-        _cachedRotLon = snapLon;
-        _cachedR = snapR;
-        const sz = GLOBE_RES;
-        if (!_offGlobe) {
-            _offGlobe = document.createElement('canvas');
-            _offGlobe.width = sz;
-            _offGlobe.height = sz;
-            _offGlobeCtx = _offGlobe.getContext('2d');
-        }
-        const octx = _offGlobeCtx;
-        const id = octx.createImageData(sz, sz);
-        const px = id.data;
-        const half = sz / 2;
-        const invHalf = 1.0 / half;
-        const td = _earthTexData.data;
-        const tw = _earthTexW;
-        const th = _earthTexH;
-        const rotRad = snapLon * DEG;
-        const PI = Math.PI;
-        const TWO_PI = PI * 2;
-        const lx = LIGHT_DIR.x, ly = LIGHT_DIR.y, lz = LIGHT_DIR.z;
-
-        for (let py = 0; py < sz; py++) {
-            const ny = (half - py) * invHalf;
-            const ny2 = ny * ny;
-            if (ny2 > 1) continue;
-            for (let pxx = 0; pxx < sz; pxx++) {
-                const nx = (pxx - half) * invHalf;
-                const r2 = nx * nx + ny2;
-                if (r2 > 1) continue;
-                const nz = Math.sqrt(1 - r2);
-
-                const lat = Math.asin(ny);
-                let lon = Math.atan2(nx, nz) - rotRad;
-                if (lon < -PI) lon += TWO_PI;
-                else if (lon > PI) lon -= TWO_PI;
-
-                const u = (lon + PI) / TWO_PI;
-                const v = (PI / 2 - lat) / PI;
-                const tx = Math.min(tw - 1, Math.max(0, (u * tw) | 0));
-                const ty = Math.min(th - 1, Math.max(0, (v * th) | 0));
-                const ti = (ty * tw + tx) * 4;
-
-                let tr = td[ti], tg = td[ti + 1], tb = td[ti + 2];
-
-                const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
-                const ambient = 0.08;
-                const lit = ambient + diffuse * 0.92;
-
-                const fresnel = 1.0 - nz;
-                const fr4 = fresnel * fresnel * fresnel * fresnel;
-                const rimR = 60, rimG = 120, rimB = 220;
-                const rimStr = fr4 * 0.45;
-
-                const idx = (py * sz + pxx) * 4;
-                px[idx] = Math.min(255, (tr * lit + rimR * rimStr) | 0);
-                px[idx + 1] = Math.min(255, (tg * lit + rimG * rimStr) | 0);
-                px[idx + 2] = Math.min(255, (tb * lit + rimB * rimStr) | 0);
-                px[idx + 3] = 255;
-            }
-        }
-        octx.putImageData(id, 0, 0);
-        return _offGlobe;
-    }
-
-    function drawGlobeSphere(ctx) {
-        const R = globe.R;
-        const cx = globe.cx;
-        const cy = globe.cy;
-
-        const grd = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 1.55);
-        grd.addColorStop(0, 'rgba(60,130,240,0.18)');
-        grd.addColorStop(0.3, 'rgba(40,100,200,0.10)');
-        grd.addColorStop(0.65, 'rgba(20,60,160,0.04)');
-        grd.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.beginPath();
-        ctx.arc(cx, cy, R * 1.55, 0, Math.PI * 2);
-        ctx.fillStyle = grd;
-        ctx.fill();
-
-        const texCanvas = renderTexturedGlobe();
-        if (texCanvas) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, R, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.drawImage(texCanvas, cx - R, cy - R, R * 2, R * 2);
-            ctx.restore();
-        } else {
-            ctx.beginPath();
-            ctx.arc(cx, cy, R, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(8,15,35,0.95)';
-            ctx.fill();
-        }
-
-        const edgeGrd = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R);
-        edgeGrd.addColorStop(0, 'rgba(0,0,0,0)');
-        edgeGrd.addColorStop(0.6, 'rgba(0,0,0,0)');
-        edgeGrd.addColorStop(0.85, 'rgba(30,80,180,0.06)');
-        edgeGrd.addColorStop(1, 'rgba(60,140,255,0.15)');
-        ctx.beginPath();
-        ctx.arc(cx, cy, R, 0, Math.PI * 2);
-        ctx.fillStyle = edgeGrd;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, R, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(80,150,255,0.18)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-    }
-
-    function initSignalParticles() {
-        signalParticles = [];
-        for (const [i, _pop] of RESOLVER_POPS.entries()) { // NOSONAR
-            for (let j = 0; j < 3; j++) {
-                signalParticles.push({
-                    popIdx: i,
-                    t: Math.random(),
-                    speed: 0.003 + Math.random() * 0.004,
-                    size: 1.5 + Math.random() * 1.5
-                });
-            }
-        }
-    }
 
     function drawSignalArcs(ctx) {
         const tgtX = convergePt.x;
         const tgtY = convergePt.y;
         for (const pop of RESOLVER_POPS) {
-            const p = projectPt(pop.lat, pop.lon);
+            const p = GC.projectPt(globe, pop.lat, pop.lon);
             if (!p.vis) continue;
-
             const cpx = p.x + (tgtX - p.x) * 0.5 + (p.y - tgtY) * 0.12;
             const cpy = p.y + (tgtY - p.y) * 0.5;
-
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.quadraticCurveTo(cpx, cpy, tgtX, tgtY);
-            ctx.strokeStyle = hexToRgba(pop.color, 0.12 + p.depth * 0.06);
+            ctx.strokeStyle = GC.hexToRgba(pop.color, 0.12 + p.depth * 0.06);
             ctx.lineWidth = 0.8;
             ctx.stroke();
         }
-
         for (const sp of signalParticles) {
             const pop2 = RESOLVER_POPS[sp.popIdx];
-            const p2 = projectPt(pop2.lat, pop2.lon);
+            const p2 = GC.projectPt(globe, pop2.lat, pop2.lon);
             if (!p2.vis) continue;
-
             const t = sp.t;
             const cpx2 = p2.x + (tgtX - p2.x) * 0.5 + (p2.y - tgtY) * 0.12;
             const cpy2 = p2.y + (tgtY - p2.y) * 0.5;
             const mt = 1 - t;
             const px = mt * mt * p2.x + 2 * mt * t * cpx2 + t * t * tgtX;
             const py = mt * mt * p2.y + 2 * mt * t * cpy2 + t * t * tgtY;
-
             ctx.beginPath();
             ctx.arc(px, py, sp.size, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(pop2.color, 0.5 + t * 0.3);
+            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.5 + t * 0.3);
             ctx.fill();
-
             sp.t += sp.speed;
             if (sp.t > 1) { sp.t = 0; sp.speed = 0.003 + Math.random() * 0.004; sp.size = 1.5 + Math.random() * 1.5; }
         }
     }
 
-    function drawResolverMarkers(ctx, w, h) { // NOSONAR — rendering function, complexity is inherent
+    function drawResolverMarkers(ctx, w) { // NOSONAR
         const visiblePops = [];
         for (const [idx, pop] of RESOLVER_POPS.entries()) {
-            const p = projectPt(pop.lat, pop.lon);
-            if (p.vis) {
-                visiblePops.push({ pop: pop, p: p, idx: idx });
-            }
+            const p = GC.projectPt(globe, pop.lat, pop.lon);
+            if (p.vis) visiblePops.push({ pop: pop, p: p, idx: idx });
         }
-
         visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
 
         const SCL = Math.max(0.65, Math.min(1.15, w / 1400));
         const FONT_TAG = Math.round(Math.max(10, Math.min(15, 13 * SCL)));
         const labelGap = 12 * SCL;
         const labelBand = 120 * SCL;
-        const maxLabelRight = globe.cx + globe.R + labelBand + labelGap;
-        const maxLabelLeft = globe.cx - globe.R - labelBand - labelGap;
-        const maxLabelTop = globe.cy - globe.R - labelBand;
-        const maxLabelBottom = globe.cy + globe.R + labelBand;
         const placedBoxes = [];
 
         for (const vp of visiblePops) {
             const pop2 = vp.pop;
             const p2 = vp.p;
             const alpha = 0.4 + p2.depth * 0.6;
-
-            ctx.beginPath();
-            ctx.arc(p2.x, p2.y, 7, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(pop2.color, 0.15 * alpha);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(p2.x, p2.y, 4, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(pop2.color, 0.85 * alpha);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(p2.x, p2.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.15 * alpha); ctx.fill();
+            ctx.beginPath(); ctx.arc(p2.x, p2.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.85 * alpha); ctx.fill();
 
             const label = pop2.city;
             ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
@@ -1283,185 +1052,54 @@ function initGlobeMotion() {
             const tagW = tw + 18 * SCL;
             const tagH = Math.round(20 * SCL + 2);
 
-            const baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
-            let bestX = null, bestY = null, bestScore = Infinity;
-            const candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
-            const candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+            const pos = GC.placeLabel({ dotX: p2.x, dotY: p2.y, tagW: tagW, tagH: tagH, globeCx: globe.cx, globeCy: globe.cy, globeR: globe.R, placedBoxes: placedBoxes, labelGap: labelGap, labelBand: labelBand });
+            placedBoxes.push({ x: pos.x, y: pos.y, w: tagW, h: tagH });
 
-            for (const dist of candidateDists) {
-                for (const angleOffset of candidateAngles) {
-                    const ca = baseAngle + angleOffset * DEG;
-                    let cx = p2.x + Math.cos(ca) * dist;
-                    let cy = p2.y + Math.sin(ca) * dist;
-
-                    if (Math.cos(ca) < 0) cx -= tagW;
-
-                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
-                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
-
-                    let hasCollision = false;
-                    for (const pb of placedBoxes) {
-                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
-                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
-                            hasCollision = true;
-                            break;
-                        }
-                    }
-
-                    const distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
-                    const score = (hasCollision ? 10000 : 0) + distFromDot;
-
-                    if (score < bestScore) {
-                        bestScore = score;
-                        bestX = cx;
-                        bestY = cy;
-                    }
-                }
-            }
-
-            if (bestScore >= 10000) {
-                for (let ri = 0; ri < 8; ri++) {
-                    let shifted = false;
-                    for (const pb2 of placedBoxes) {
-                        const ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
-                        const ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
-                        if (ovX > 0 && ovY > 0) {
-                            if (ovY < ovX) {
-                                bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
-                            } else {
-                                bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
-                            }
-                            shifted = true;
-                        }
-                    }
-                    if (!shifted) break;
-                }
-                bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
-                bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
-            }
-
-            placedBoxes.push({ x: bestX, y: bestY, w: tagW, h: tagH });
-
-            const lineEndX = (bestX + tagW / 2 > p2.x) ? bestX : bestX + tagW;
-            ctx.beginPath();
-            ctx.moveTo(p2.x, p2.y);
-            ctx.lineTo(lineEndX, bestY + tagH / 2);
-            ctx.strokeStyle = hexToRgba(pop2.color, 0.3 * alpha);
-            ctx.lineWidth = 0.7;
-            ctx.stroke();
-
-            roundRect(ctx, bestX, bestY, tagW, tagH, 4);
-            ctx.fillStyle = hexToRgba(pop2.color, 0.12 * alpha);
-            ctx.fill();
-            ctx.strokeStyle = hexToRgba(pop2.color, 0.4 * alpha);
-            ctx.lineWidth = 0.6;
-            ctx.stroke();
-
+            const lineEndX = (pos.x + tagW / 2 > p2.x) ? pos.x : pos.x + tagW;
+            ctx.beginPath(); ctx.moveTo(p2.x, p2.y); ctx.lineTo(lineEndX, pos.y + tagH / 2);
+            ctx.strokeStyle = GC.hexToRgba(pop2.color, 0.3 * alpha); ctx.lineWidth = 0.7; ctx.stroke();
+            GC.roundRect(ctx, pos.x, pos.y, tagW, tagH, 4);
+            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.12 * alpha); ctx.fill();
+            ctx.strokeStyle = GC.hexToRgba(pop2.color, 0.4 * alpha); ctx.lineWidth = 0.6; ctx.stroke();
             ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * alpha) + ')';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(label, bestX + 9 * SCL, bestY + tagH / 2);
+            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText(label, pos.x + 9 * SCL, pos.y + tagH / 2);
         }
 
         for (const probe of OWN_PROBES) {
-            const pp = projectPt(probe.lat, probe.lon);
+            const pp = GC.projectPt(globe, probe.lat, probe.lon);
             if (!pp.vis) continue;
             const pAlpha = 0.4 + pp.depth * 0.6;
             const now = performance.now();
             const pulse = 0.5 + 0.5 * Math.sin(now / 600);
-
-            ctx.beginPath();
-            ctx.arc(pp.x, pp.y, 12, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(probe.color, 0.08 * pAlpha * pulse);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(pp.x, pp.y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = hexToRgba(probe.color, 0.15 * pAlpha);
-            ctx.fill();
-            ctx.strokeStyle = hexToRgba(probe.color, 0.5 * pAlpha);
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-
-            ctx.save();
-            ctx.translate(pp.x, pp.y);
-            ctx.rotate(Math.PI / 4);
-            ctx.fillStyle = hexToRgba(probe.color, 0.95 * pAlpha);
-            ctx.fillRect(-3.5, -3.5, 7, 7);
-            ctx.restore();
+            ctx.beginPath(); ctx.arc(pp.x, pp.y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = GC.hexToRgba(probe.color, 0.08 * pAlpha * pulse); ctx.fill();
+            ctx.beginPath(); ctx.arc(pp.x, pp.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = GC.hexToRgba(probe.color, 0.15 * pAlpha); ctx.fill();
+            ctx.strokeStyle = GC.hexToRgba(probe.color, 0.5 * pAlpha); ctx.lineWidth = 1.2; ctx.stroke();
+            ctx.save(); ctx.translate(pp.x, pp.y); ctx.rotate(Math.PI / 4);
+            ctx.fillStyle = GC.hexToRgba(probe.color, 0.95 * pAlpha); ctx.fillRect(-3.5, -3.5, 7, 7); ctx.restore();
 
             const pLabel = probe.label;
             ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
             const ptw = ctx.measureText(pLabel).width;
             const pTagW = ptw + 18 * SCL;
             const pTagH = Math.round(20 * SCL + 2);
-
-            const pBaseAngle = Math.atan2(pp.y - globe.cy, pp.x - globe.cx);
-            let pBestX = null, pBestY = null, pBestScore = Infinity;
             const pCandidateAngles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
             const pCandidateDists = [globe.R * 0.18 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.38 + labelGap];
 
-            for (const dist of pCandidateDists) {
-                for (const angleOffset of pCandidateAngles) {
-                    const ca = pBaseAngle + angleOffset * DEG;
-                    let pcx = pp.x + Math.cos(ca) * dist;
-                    let pcy = pp.y + Math.sin(ca) * dist;
-                    if (Math.cos(ca) < 0) pcx -= pTagW;
-                    pcx = Math.max(Math.max(4, maxLabelLeft), Math.min(pcx, maxLabelRight - pTagW));
-                    pcy = Math.max(Math.max(4, maxLabelTop), Math.min(pcy, maxLabelBottom - pTagH));
-                    let hasCollision = false;
-                    for (const pb of placedBoxes) {
-                        if (pcx < pb.x + pb.w + 3 && pcx + pTagW > pb.x - 3 &&
-                            pcy < pb.y + pb.h + 3 && pcy + pTagH > pb.y - 3) {
-                            hasCollision = true;
-                            break;
-                        }
-                    }
-                    const distFromDot = Math.sqrt((pcx + pTagW / 2 - pp.x) ** 2 + (pcy + pTagH / 2 - pp.y) ** 2);
-                    const score = (hasCollision ? 10000 : 0) + distFromDot;
-                    if (score < pBestScore) { pBestScore = score; pBestX = pcx; pBestY = pcy; }
-                }
-            }
+            const pPos = GC.placeLabel({ dotX: pp.x, dotY: pp.y, tagW: pTagW, tagH: pTagH, globeCx: globe.cx, globeCy: globe.cy, globeR: globe.R, placedBoxes: placedBoxes, labelGap: labelGap, labelBand: labelBand, candidateAngles: pCandidateAngles, candidateDists: pCandidateDists });
+            placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
-            if (pBestScore >= 10000) {
-                for (let ri = 0; ri < 8; ri++) {
-                    let shifted = false;
-                    for (const pb2 of placedBoxes) {
-                        const ovX = Math.min(pBestX + pTagW, pb2.x + pb2.w) - Math.max(pBestX, pb2.x);
-                        const ovY = Math.min(pBestY + pTagH, pb2.y + pb2.h) - Math.max(pBestY, pb2.y);
-                        if (ovX > 0 && ovY > 0) {
-                            if (ovY < ovX) { pBestY += (pBestY < pb2.y ? -(ovY + 4) : (ovY + 4)); }
-                            else { pBestX += (pBestX < pb2.x ? -(ovX + 4) : (ovX + 4)); }
-                            shifted = true;
-                        }
-                    }
-                    if (!shifted) break;
-                }
-                pBestX = Math.max(4, Math.min(pBestX, maxLabelRight - pTagW));
-                pBestY = Math.max(4, Math.min(pBestY, maxLabelBottom - pTagH));
-            }
-
-            placedBoxes.push({ x: pBestX, y: pBestY, w: pTagW, h: pTagH });
-
-            const pLineEndX = (pBestX + pTagW / 2 > pp.x) ? pBestX : pBestX + pTagW;
-            ctx.beginPath();
-            ctx.moveTo(pp.x, pp.y);
-            ctx.lineTo(pLineEndX, pBestY + pTagH / 2);
-            ctx.strokeStyle = hexToRgba(probe.color, 0.4 * pAlpha);
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-
-            roundRect(ctx, pBestX, pBestY, pTagW, pTagH, 4);
-            ctx.fillStyle = hexToRgba(probe.color, 0.18 * pAlpha);
-            ctx.fill();
-            ctx.strokeStyle = hexToRgba(probe.color, 0.6 * pAlpha);
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-
+            const pLineEndX = (pPos.x + pTagW / 2 > pp.x) ? pPos.x : pPos.x + pTagW;
+            ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(pLineEndX, pPos.y + pTagH / 2);
+            ctx.strokeStyle = GC.hexToRgba(probe.color, 0.4 * pAlpha); ctx.lineWidth = 0.8; ctx.stroke();
+            GC.roundRect(ctx, pPos.x, pPos.y, pTagW, pTagH, 4);
+            ctx.fillStyle = GC.hexToRgba(probe.color, 0.18 * pAlpha); ctx.fill();
+            ctx.strokeStyle = GC.hexToRgba(probe.color, 0.6 * pAlpha); ctx.lineWidth = 0.8; ctx.stroke();
             ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * pAlpha) + ')';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(pLabel, pBestX + 9 * SCL, pBestY + pTagH / 2);
+            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText(pLabel, pPos.x + 9 * SCL, pPos.y + pTagH / 2);
         }
     }
 
@@ -1475,11 +1113,9 @@ function initGlobeMotion() {
         let w = canvas._logW || canvas.width;
         const h = canvas._logH || canvas.height;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
         const sc = Math.min(w / VB_W, h / VB_H);
         const offX = (w - VB_W * sc) / 2;
         const offY = (h - VB_H * sc) / 2;
-
         const maxR = 170 * sc;
         const foW = 900 * sc;
         const foH = 800 * sc;
@@ -1488,13 +1124,10 @@ function initGlobeMotion() {
         globe.cy = offY + 240 * sc;
         convergePt.x = offX + 430 * sc;
         convergePt.y = offY + 476 * sc;
-
-
         ctx.clearRect(0, 0, w, h);
-        drawGlobeSphere(ctx);
+        GC.drawGlobeSphere(ctx, globe);
         drawSignalArcs(ctx);
-        drawResolverMarkers(ctx, w, h);
-
+        drawResolverMarkers(ctx, w);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
@@ -1529,13 +1162,13 @@ function initGlobeMotion() {
             return;
         }
         _sizeRetries = 0;
-        if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
+        if (!particlesInitialized) { signalParticles = GC.initSignalParticles(RESOLVER_POPS); particlesInitialized = true; }
         const reduced = rmq.matches;
         renderGlobe(canvas);
         if (reduced) {
-            if (!_texLoaded) {
+            if (!globe._texLoaded) {
                 const waitTex = function() {
-                    if (_texLoaded) { renderGlobe(canvas); return; }
+                    if (globe._texLoaded) { renderGlobe(canvas); return; }
                     setTimeout(waitTex, 200);
                 };
                 setTimeout(waitTex, 200);
