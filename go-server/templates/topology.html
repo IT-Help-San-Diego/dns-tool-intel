@@ -198,8 +198,7 @@
     </main>
     {{template "footer" .}}
     {{template "scripts" .}}
-    <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/globe-core.min.js" .AppVersion}}" {{staticSRI "js/globe-core.min.js"}}></script>
     <script nonce="{{.CspNonce}}">window.__TOPO_SOLVER={{.SolverLayouts}};</script>
-    <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" {{staticSRI "js/topology.min.js"}}></script>
+    <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/topology.min.js" .AppVersion}}" defer {{staticSRI "js/topology.min.js"}}></script>
 </body>
 </html>
