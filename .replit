@@ -34,6 +34,7 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+packages = ["fontconfig", "freetype", "ghostscript", "glib", "glibcLocales", "harfbuzz", "lcms2", "libimagequant", "libjpeg", "libsodium", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pango", "tcl", "tk", "xcodebuild", "zlib"]
 
 [deployment]
 deploymentTarget = "vm"

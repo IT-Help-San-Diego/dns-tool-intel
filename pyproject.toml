@@ -15,7 +15,7 @@ dependencies = [
     "git-filter-repo>=2.47.0",
     "lxml>=6.0.2",
     "netaddr>=1.3.0",
-    "pillow>=12.1.1",
+    "pillow==12.2.0",
     "pykwalify>=1.8.0",
     "pynacl>=1.6.2",
     "retrying>=1.4.2",
