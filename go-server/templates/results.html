@@ -244,6 +244,7 @@
                     {{if .WaybackURL}}
                         <span class="mx-1">&middot;</span><a href="{{.WaybackURL}}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none" title="View Internet Archive snapshot">{{icon "landmark" "me-1"}}Archived</a>
                     {{end}}
+                    <span class="mx-1">&middot;</span><a href="/analysis/{{.AnalysisID}}/crossref" class="text-info text-decoration-none" title="View cross-reference verification against Google and Cloudflare public DNS">{{icon "balance-scale" "me-1"}}Cross-Referenced</a>
                 </div>
                 {{end}}
             </div>
@@ -6076,6 +6077,7 @@
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <a href="/api/analysis/{{.AnalysisID}}?download=1" class="btn btn-sm btn-outline-danger no-print" title="Download all collected intelligence data (JSON)">{{icon "download" "me-1"}}Download Raw Intelligence</a>
                     <a href="/api/analysis/{{.AnalysisID}}/checksum?format=sha3" class="btn btn-sm btn-outline-info no-print" title="Download SHA-3-512 checksum file">{{icon "fingerprint" "me-1"}}Download Checksum (.sha3)</a>
+                    <a href="/analysis/{{.AnalysisID}}/crossref" class="btn btn-sm btn-outline-info no-print" title="View cross-reference verification against public DNS resolvers">{{icon "balance-scale" "me-1"}}Cross-Reference Verification</a>
                 </div>
                 <button type="button" class="small mt-2 mb-0 text-muted u-row-clickable btn btn-link p-0 border-0 text-start" data-bs-toggle="collapse" data-bs-target="#downloadVerificationBody">{{icon "terminal" "me-1 text-danger opacity-75"}}Show verification commands {{icon "chevron-down" "ms-1 small"}}</button>
             </div>

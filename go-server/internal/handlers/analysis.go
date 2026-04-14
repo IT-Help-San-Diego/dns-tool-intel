@@ -1865,6 +1865,72 @@ func (h *AnalysisHandler) APIAnalysisChecksum(c *gin.Context) {
         c.JSON(http.StatusOK, checksumResponse)
 }
 
+func (h *AnalysisHandler) ViewCrossReference(c *gin.Context) {
+        nonce, _ := c.Get("csp_nonce")
+        csrfToken, _ := c.Get("csrf_token")
+
+        idStr := c.Param("id")
+        analysisID, err := strconv.ParseInt(idStr, 10, 32)
+        if err != nil {
+                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, "Invalid analysis ID")
+                return
+        }
+
+        ctx := c.Request.Context()
+        analysis, err := h.store().GetAnalysisByID(ctx, int32(analysisID))
+        if err != nil {
+                h.renderErrorPage(c, http.StatusNotFound, nonce, csrfToken, mapKeyDanger, strAnalysisNotFound)
+                return
+        }
+
+        if !h.checkPrivateAccess(c, analysis.ID, analysis.Private) {
+                h.renderRestrictedAccess(c, nonce, csrfToken)
+                return
+        }
+
+        results := NormalizeResults(analysis.FullResults)
+        if results == nil {
+                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, "Failed to parse results")
+                return
+        }
+
+        crossRef, _ := results["cross_reference"].(map[string]any)
+
+        viewData := NewTemplateData(c, h.Config, "")
+        viewData["Domain"] = analysis.Domain
+        viewData["AsciiDomain"] = analysis.AsciiDomain
+        viewData["AnalysisID"] = analysis.ID
+        viewData["CrossRef"] = crossRef
+        viewData["HasCrossRef"] = crossRef != nil && len(crossRef) > 0
+
+        c.HTML(http.StatusOK, "analysis_crossref.html", viewData)
+}
+
+func (h *AnalysisHandler) APICrossReference(c *gin.Context) {
+        analysis, ok := h.loadAnalysisForAPI(c)
+        if !ok {
+                return
+        }
+
+        results := NormalizeResults(analysis.FullResults)
+        if results == nil {
+                c.JSON(http.StatusInternalServerError, gin.H{mapKeyError: "Failed to parse results"})
+                return
+        }
+
+        crossRef, _ := results["cross_reference"].(map[string]any)
+        if crossRef == nil {
+                c.JSON(http.StatusNotFound, gin.H{mapKeyError: "Cross-reference data not available for this analysis. The domain may have been analyzed before this feature was introduced."})
+                return
+        }
+
+        c.JSON(http.StatusOK, gin.H{
+                "analysis_id":     analysis.ID,
+                "domain":          analysis.Domain,
+                "cross_reference": crossRef,
+        })
+}
+
 type saveAnalysisInput struct {
         domain           string
         asciiDomain      string

@@ -52,6 +52,7 @@ var phaseGroupMap = map[string]string{
         "ns_fleet":                 "registrar_infra",
         "delegation_consistency":   "registrar_infra",
         "https_svcb":               "registrar_infra",
+        "cross_reference":          "dns_records",
         "posture":                  "analysis_engine",
         "remediation":              "analysis_engine",
         "currency":                 "analysis_engine",
