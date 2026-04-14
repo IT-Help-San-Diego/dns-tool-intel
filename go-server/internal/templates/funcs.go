@@ -34,6 +34,7 @@ func InitSRI(staticDir string) {
                 "css/custom.min.css",
                 "css/print.min.css",
                 "js/globe-core.min.js",
+                "js/topology.min.js",
                 "js/main.min.js",
                 "js/foundation.min.js",
                 "vendor/katex/katex.min.css",
