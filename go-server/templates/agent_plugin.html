@@ -325,7 +325,7 @@
                 </div>
 
                 <h3 class="h5 mt-5 mb-3">Step 2 &mdash; Install the Search Set <span class="badge bg-secondary bg-opacity-25 text-secondary ms-2" style="font-size: 0.7rem;">Recommended</span></h3>
-                <p class="text-muted">A search set is a saved configuration that bundles the plugin with optimal settings &mdash; follow-link depth, result handling, auto-archive, and DEVONthink integration. You can use the plugin on its own, but the search set gives you the best out-of-box experience.</p>
+                <p class="text-muted">A search set is a saved configuration that bundles the plugin with optimal settings &mdash; no follow-link crawling (the plugin already returns all results), auto-archive, and DEVONthink integration. You can use the plugin on its own, but the search set gives you the best out-of-box experience.</p>
 
                 <div class="d-flex flex-wrap gap-2 mb-4">
                     <a href="/static/plugins/DNS_Tool.agentSet" download="DNS_Tool.agentSet" class="download-btn download-btn-primary">
@@ -354,12 +354,12 @@
                     <span class="step-number">3</span>
                     <div>
                         <strong>Search any domain</strong>
-                        <p class="text-muted mb-0 mt-1">Select <strong>DNS Tool</strong> from the Search Sets dropdown, type a domain name, and press Enter. DEVONagent will return all 15 intelligence artifacts and automatically follow links to fetch the underlying data (CSV exports, archived snapshots, etc.).</p>
+                        <p class="text-muted mb-0 mt-1">Select <strong>DNS Tool</strong> from the Search Sets dropdown, type a domain name, and press Enter. DEVONagent will return all 15 intelligence artifacts directly from the plugin &mdash; no external crawling.</p>
                     </div>
                 </div>
 
                 <div class="format-note">
-                    <strong>Plugin vs Search Set &mdash; what's the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: follow links one level deep within our domain, skip crawling, accept all file types, and auto-archive results. Think of it as the plugin plus a tuned configuration. You need both for the best experience, but the plugin alone works for quick searches.
+                    <strong>Plugin vs Search Set &mdash; what's the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: no follow-link crawling (prevents DEVONagent from spidering into the analyzed domain), skip crawling, accept all file types, and auto-archive results. Think of it as the plugin plus a tuned configuration. You need both for the best experience, but the plugin alone works for quick searches.
                 </div>
 
                 <h2 class="h4 mt-5 mb-3">Search Set Settings</h2>
@@ -381,13 +381,13 @@
                         </tr>
                         <tr>
                             <td><code>followLevels</code></td>
-                            <td><code>1</code></td>
-                            <td>Follows links one level deep, so DEVONagent fetches the actual data behind each result (CSV files, archived snapshots, badge images, etc.).</td>
+                            <td><code>0</code></td>
+                            <td>No follow-link crawling. The plugin returns all 15 result URLs directly via <code>ParseLinks</code> &mdash; following links would cause DEVONagent to spider into the analyzed domain&rsquo;s pages.</td>
                         </tr>
                         <tr>
                             <td><code>followMode</code></td>
-                            <td><code>1</code> (On Same Host)</td>
-                            <td>Only follows links within <code>dnstool.it-help.tech</code> &mdash; prevents DEVONagent from crawling external sites.</td>
+                            <td><code>0</code> (None)</td>
+                            <td>Disabled &mdash; not needed when <code>followLevels</code> is 0.</td>
                         </tr>
                         <tr>
                             <td><code>filterDuplicates</code></td>
@@ -416,6 +416,10 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <div class="format-note mt-3">
+                    <strong>Tip: Increase Max Download Size.</strong> DNS Tool intelligence reports can be up to 2 MB. In DEVONagent Preferences &rarr; Search, increase <em>Max. Download Size</em> to at least <strong>4096 KB</strong> to ensure full reports are captured. The default 2048 KB may truncate large analyses.
+                </div>
 
                 <h2 class="h4 mt-5 mb-3">Plugin Source Code</h2>
                 <p class="text-muted">View the plugin configuration below, or use the download button above.</p>
@@ -496,7 +500,7 @@
                 <h2 class="h4 mt-5 mb-3">How It Works</h2>
                 <p class="text-muted">When DEVONagent queries a domain through this plugin, it sends a GET request to the <code>/agent/search</code> endpoint. Because <code>ParseLinks</code> is enabled, DEVONagent extracts every <code>&lt;a href&gt;</code> from the returned HTML as a separate search result &mdash; giving you direct access to every report, badge, export, and data artifact from a single query.</p>
                 <p class="text-muted">The <code>__agentQuery__</code> placeholder in the engine URL is automatically replaced by DEVONagent with whatever domain you search for.</p>
-                <p class="text-muted">With the search set installed and <code>followLevels: 1</code> / <code>followMode: 1</code> (On Same Host), DEVONagent will automatically follow links one level deep within our domain after fetching the search results. This means it downloads the actual CSV export, fetches the Wayback Machine archived snapshot, and retrieves badge SVGs &mdash; not just the landing pages.</p>
+                <p class="text-muted">With the search set installed, <code>followLevels</code> is set to <code>0</code> &mdash; DEVONagent does <strong>not</strong> follow links beyond the initial result set. This is intentional: since <code>ParseLinks</code> already extracts all 15 intelligence artifacts as separate results, following links would cause DEVONagent to spider into pages on the <em>analyzed</em> domain (the target you&rsquo;re scanning), polluting results with unrelated content.</p>
 
                 <h2 class="h4 mt-5 mb-3">Plugin Anatomy</h2>
                 <p class="text-muted">DEVONagent plugins are defined by a small set of configuration keys. Every key below is documented in DEVONagent&rsquo;s built-in Help (<strong>Help &rarr; DEVONagent Pro Help &rarr; Appendix &rarr; Search Plugin Format</strong>) and observable in the built-in plugins shipped at <code>/Applications/DEVONagent.app/Contents/Resources/Plugins/</code>.</p>

@@ -46,9 +46,9 @@
                         <key>filterDuplicates</key>
                         <false/>
                         <key>followLevels</key>
-                        <integer>1</integer>
+                        <integer>0</integer>
                         <key>followMode</key>
-                        <integer>1</integer>
+                        <integer>0</integer>
                         <key>language</key>
                         <string>EN</string>
                         <key>skipCrawling</key>
