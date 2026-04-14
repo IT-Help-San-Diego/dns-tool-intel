@@ -113,6 +113,7 @@ func (a *Analyzer) CrossReferenceRecords(ctx context.Context, domain string, bas
         if deadline, ok := ctx.Deadline(); ok {
                 remaining := time.Until(deadline)
                 if remaining < 500*time.Millisecond {
+                        slog.Warn("CrossRef skipped: parent context budget exhausted", "domain", domain, "remaining_ms", remaining.Milliseconds())
                         return buildUnavailableResult(domain, "parent context budget exhausted")
                 }
                 if remaining < budget {
