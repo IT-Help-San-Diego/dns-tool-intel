@@ -3,16 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Queue</key>
-	<array>
-		<dict>
-			<key>Object</key>
-			<true/>
-			<key>State</key>
-			<integer>256</integer>
-			<key>URL</key>
-			<string>https://dnstool.it-help.tech</string>
-		</dict>
-	</array>
+	<array/>
 	<key>RepresentedObject</key>
 	<dict>
 		<key>Customized</key>
