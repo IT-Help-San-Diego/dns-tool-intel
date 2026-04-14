@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    {{template "head" .}}
+    {{template "head_lcp_preload" .}}
+    {{template "head_css" .}}
+    <title>Cross-Reference Verification — {{.Domain}} - DNS Tool</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Independent cross-reference verification of DNS records for {{.Domain}} against Google Public DNS and Cloudflare DNS.">
+    <style nonce="{{.CspNonce}}">
+        .xref-hero {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 2.5rem 0 2rem;
+        }
+        .xref-hero h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .xref-hero .text-muted {
+            font-size: 0.92rem;
+            max-width: 680px;
+        }
+        .xref-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .xref-table th {
+            background: rgba(255,255,255,0.04);
+            padding: 0.6rem 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .xref-table td {
+            padding: 0.55rem 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: top;
+        }
+        .xref-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+        .xref-records {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.82rem;
+            word-break: break-all;
+        }
+        .xref-records li {
+            list-style: none;
+            padding: 0.15rem 0;
+        }
+        .xref-records ul {
+            margin: 0;
+            padding: 0;
+        }
+        .xref-match { color: #22c55e; }
+        .xref-partial { color: #f59e0b; }
+        .xref-mismatch { color: #ef4444; }
+        .xref-unavailable { color: #6b7280; }
+        .xref-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .xref-badge-match { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .xref-badge-partial { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .xref-badge-mismatch { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .xref-badge-unavailable { background: rgba(107,114,128,0.15); color: #6b7280; }
+        .xref-summary-card {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .xref-summary-stat {
+            text-align: center;
+        }
+        .xref-summary-stat .num {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .xref-summary-stat .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+            margin-top: 0.2rem;
+        }
+        .xref-provider-card {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .xref-provider-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .xref-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .xref-section {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        .xref-section h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .xref-verify-links a {
+            font-size: 0.85rem;
+        }
+        .xref-methodology {
+            font-size: 0.88rem;
+            color: #d1d5db;
+            max-width: 720px;
+        }
+        .xref-methodology p {
+            margin-bottom: 0.6rem;
+        }
+        .xref-empty-cell {
+            color: #6b7280;
+            font-style: italic;
+        }
+        .back-link {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    {{template "nav" .}}
+
+    <main class="container" style="max-width: 960px;">
+        <div class="xref-hero">
+            <a href="/analysis/{{.AnalysisID}}" class="back-link text-decoration-none text-muted d-inline-block mb-2">{{icon "arrow-left" "me-1"}} Back to analysis</a>
+            <h1>{{icon "balance-scale" "me-2"}}Cross-Reference Verification</h1>
+            <div class="domain-display mb-2">
+                <span class="h4 text-white">{{.Domain}}</span>
+            </div>
+            <p class="text-muted mb-0">Independent verification of core DNS records against public resolvers. DNS Tool queries Google Public DNS and Cloudflare DNS at scan time and compares their responses to our own results.</p>
+        </div>
+
+        {{if .HasCrossRef}}
+        {{$crossRef := .CrossRef}}
+        {{$providers := index $crossRef "providers"}}
+        {{$comparisons := index $crossRef "comparisons"}}
+        {{$summary := index $crossRef "summary"}}
+        {{$manualVerify := index $crossRef "manual_verify"}}
+
+        <div class="xref-section">
+            <h2>{{icon "chart-bar" "me-2"}}Verification Summary</h2>
+        </div>
+
+        {{if $summary}}
+        <div class="xref-summary-card">
+            <div class="row text-center">
+                <div class="col-3 xref-summary-stat">
+                    <div class="num">{{index $summary "total_checks"}}</div>
+                    <div class="label">Total Checks</div>
+                </div>
+                <div class="col-3 xref-summary-stat">
+                    <div class="num xref-match">{{index $summary "matched"}}</div>
+                    <div class="label">Matched</div>
+                </div>
+                <div class="col-3 xref-summary-stat">
+                    <div class="num xref-mismatch">{{index $summary "mismatched"}}</div>
+                    <div class="label">Mismatched</div>
+                </div>
+                <div class="col-3 xref-summary-stat">
+                    <div class="num xref-unavailable">{{index $summary "unavailable"}}</div>
+                    <div class="label">Unavailable</div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        {{if $providers}}
+        <div class="xref-section">
+            <h2>{{icon "server" "me-2"}}Providers Queried</h2>
+        </div>
+        <div class="row">
+            {{range $name, $prov := $providers}}
+            <div class="col-md-6">
+                <div class="xref-provider-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="xref-provider-name">
+                            {{if eq $name "google"}}Google Public DNS{{else if eq $name "cloudflare"}}Cloudflare DNS{{else}}{{$name}}{{end}}
+                        </span>
+                        {{$status := index $prov "status"}}
+                        <span class="xref-badge {{if eq $status "ok"}}xref-badge-match{{else if eq $status "partial"}}xref-badge-partial{{else}}xref-badge-unavailable{{end}}">{{$status}}</span>
+                    </div>
+                    <div class="xref-meta mt-1">
+                        Endpoint: <code>{{index $prov "endpoint"}}</code><br>
+                        Latency: {{index $prov "latency_ms"}}ms
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+
+        {{if $comparisons}}
+        {{range $provName, $comps := $comparisons}}
+        <div class="xref-section">
+            <h2>
+                {{icon "exchange-alt" "me-2"}}Our Records vs
+                {{if eq $provName "google"}}Google Public DNS{{else if eq $provName "cloudflare"}}Cloudflare DNS{{else}}{{$provName}}{{end}}
+            </h2>
+        </div>
+
+        <div class="table-responsive">
+            <table class="xref-table">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Type</th>
+                        <th>DNS Tool</th>
+                        <th>{{if eq $provName "google"}}Google{{else if eq $provName "cloudflare"}}Cloudflare{{else}}{{$provName}}{{end}}</th>
+                        <th style="width: 100px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range $comps}}
+                    <tr>
+                        <td><strong>{{.record_type}}</strong></td>
+                        <td class="xref-records">
+                            {{$ours := .our_records}}
+                            {{if $ours}}
+                            <ul>{{range $ours}}<li>{{.}}</li>{{end}}</ul>
+                            {{else}}
+                            <span class="xref-empty-cell">No records</span>
+                            {{end}}
+                        </td>
+                        <td class="xref-records">
+                            {{$theirs := .their_records}}
+                            {{if $theirs}}
+                            <ul>{{range $theirs}}<li>{{.}}</li>{{end}}</ul>
+                            {{else}}
+                            <span class="xref-empty-cell">No records</span>
+                            {{end}}
+                        </td>
+                        <td>
+                            {{$match := .match}}
+                            <span class="xref-badge {{if eq $match "match"}}xref-badge-match{{else if eq $match "partial"}}xref-badge-partial{{else if eq $match "mismatch"}}xref-badge-mismatch{{else}}xref-badge-unavailable{{end}}">{{$match}}</span>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{end}}
+        {{end}}
+
+        {{if $manualVerify}}
+        <div class="xref-section">
+            <h2>{{icon "external-link-alt" "me-2"}}Verify It Yourself</h2>
+            <p class="text-muted">You do not have to trust us. Use these links to run the same queries yourself.</p>
+        </div>
+        <div class="xref-verify-links">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase" style="font-size:0.75rem; letter-spacing:0.04em;">Google Admin Toolbox</h6>
+                    <ul class="list-unstyled">
+                        {{range $key, $url := $manualVerify}}
+                        {{if hasPrefix $key "google_dig"}}
+                        <li class="mb-1"><a href="{{$url}}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none">{{icon "external-link-alt" "me-1"}}{{$key}}</a></li>
+                        {{end}}
+                        {{end}}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase" style="font-size:0.75rem; letter-spacing:0.04em;">DNS-over-HTTPS APIs</h6>
+                    <ul class="list-unstyled">
+                        {{range $key, $url := $manualVerify}}
+                        {{if hasPrefix $key "google_doh"}}
+                        <li class="mb-1"><a href="{{$url}}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none">{{icon "external-link-alt" "me-1"}}Google DoH — {{$.AsciiDomain}}</a></li>
+                        {{end}}
+                        {{if hasPrefix $key "cloudflare_doh"}}
+                        <li class="mb-1"><a href="{{$url}}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none">{{icon "external-link-alt" "me-1"}}Cloudflare DoH — {{$.AsciiDomain}}</a></li>
+                        {{end}}
+                        {{end}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        <div class="xref-section">
+            <h2>{{icon "book" "me-2"}}Methodology</h2>
+        </div>
+        <div class="xref-methodology mb-4">
+            <p>At scan time, DNS Tool resolves the target domain's core records (A, AAAA, MX, NS, TXT, CNAME) using its own resolvers. Simultaneously, it queries two independent public DNS services &mdash; <a href="https://dns.google/" target="_blank" rel="noopener" class="text-info">Google Public DNS</a> (via DNS-over-HTTPS) and <a href="https://developers.cloudflare.com/1.1.1.1/" target="_blank" rel="noopener" class="text-info">Cloudflare DNS</a> (via DNS-over-HTTPS) &mdash; for the same record types.</p>
+            <p>Records are normalized (trailing dots removed, case-folded, sorted) and compared set-to-set. A <span class="xref-match">match</span> means identical record sets. <span class="xref-partial">Partial</span> means overlapping but not identical (common during DNS propagation). A <span class="xref-mismatch">mismatch</span> means no overlap &mdash; which may indicate a configuration error, propagation delay, or split-horizon DNS.</p>
+            <p>This cross-referencing is not a guarantee of correctness &mdash; it is corroboration. Multiple independent sources observing the same records increases confidence in the data. This is standard practice in intelligence analysis (per <a href="https://www.dni.gov/files/documents/ICD/ICD%20203%20Analytic%20Standards.pdf" target="_blank" rel="noopener" class="text-info">ICD 203</a>) and scientific methodology.</p>
+            <p class="text-muted" style="font-size:0.82rem;">Cross-reference schema version: {{if $crossRef}}{{index $crossRef "schema_version"}}{{else}}n/a{{end}} &middot; Generated: {{if $crossRef}}{{index $crossRef "generated_at"}}{{else}}n/a{{end}}</p>
+        </div>
+
+        <div class="xref-section">
+            <h2>{{icon "code" "me-2"}}Machine-Readable Data</h2>
+            <p class="text-muted">This cross-reference verification data is available as structured JSON for other tools, researchers, and investigators to consume.</p>
+            <a href="/api/analysis/{{.AnalysisID}}/crossref" target="_blank" class="btn btn-outline-info btn-sm">{{icon "download" "me-1"}}View JSON</a>
+        </div>
+
+        {{else}}
+        <div class="xref-section text-center py-5">
+            <p class="text-muted h5">Cross-reference data is not available for this analysis.</p>
+            <p class="text-muted">This domain may have been analyzed before cross-reference verification was introduced, or the public DNS queries could not complete in time.</p>
+            <a href="/analyze?domain={{.AsciiDomain}}" class="btn btn-outline-info mt-3">{{icon "sync-alt" "me-1"}}Re-analyze to generate cross-reference data</a>
+        </div>
+        {{end}}
+    </main>
+
+    {{template "footer" .}}
+    {{template "scripts" .}}
+</body>
+</html>

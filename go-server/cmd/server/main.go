@@ -458,8 +458,10 @@ func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, his
         d.Router.GET("/snapshot/:domain", snapshot.Snapshot)
         d.Router.GET("/export/json", middleware.RequireAdmin(), export.ExportJSON)
         d.Router.GET("/export/subdomains", analysis.ExportSubdomainsCSV)
+        d.Router.GET("/analysis/:id/crossref", analysis.ViewCrossReference)
         d.Router.GET("/api/analysis/:id", analysis.APIAnalysis)
         d.Router.GET("/api/analysis/:id/checksum", analysis.APIAnalysisChecksum)
+        d.Router.GET("/api/analysis/:id/crossref", analysis.APICrossReference)
         d.Router.GET("/api/subdomains/*domain", analysis.APISubdomains)
         d.Router.GET("/api/dns-history", analysis.APIDNSHistory)
 }

@@ -274,9 +274,23 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
                 enrichMisplacedDMARC(basic, resultsMap)
         }
 
+        crossRefStart := time.Now()
+        if progressCb != nil {
+                progressCb("dns_records", "running", 0)
+        }
+        crossRefResult := a.CrossReferenceRecords(ctx, domain, basic)
+        crossRefDur := time.Since(crossRefStart)
+        crossRefDurMs := int(crossRefDur.Milliseconds())
+        slog.Info(logTaskCompleted, mapKeyTaskOrch, mapKeyCrossRef, mapKeyDomain, domain, mapKeyElapsedMs, fmt.Sprintf(fmtElapsedMs, float64(crossRefDurMs)))
+        seqTimings = append(seqTimings, PhaseTiming{PhaseGroup: "dns_records", PhaseTask: mapKeyCrossRef, StartedAtMs: int(crossRefStart.Sub(analysisStart).Milliseconds()), DurationMs: crossRefDurMs})
+        if progressCb != nil {
+                progressCb("dns_records", "done", crossRefDurMs)
+        }
+
         spfAnalysis := getMapResult(resultsMap, mapKeySpfOrch)
 
         results := buildCoreResults(domain, domainStatus, domainStatusMessage, basic, auth, resolverTTL, authTTL, authQueryStatus, resultsMap, spfAnalysis)
+        results[mapKeyCrossRef] = crossRefResult
         results[mapKeySmtpTransport] = smtpResult
 
         engineStart := time.Now()
