@@ -530,8 +530,8 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
                 executiveReportURL = esc(fmt.Sprintf("%s/analysis/%d/executive", base, analysisID))
         } else {
                 remediationURL = esc(fmt.Sprintf("%s/remediation?domain=%s", base, domain))
-                covertReportURL = esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
-                executiveReportURL = esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
+                covertReportURL = esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent&view=covert", base, domain))
+                executiveReportURL = esc(fmt.Sprintf("%s/analyze?domain=%s&src=agent&view=executive", base, domain))
         }
 
         now := time.Now().UTC()
