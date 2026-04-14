@@ -1059,9 +1059,11 @@ function initGlobeMotion() {
             ctx.beginPath(); ctx.moveTo(p2.x, p2.y); ctx.lineTo(lineEndX, pos.y + tagH / 2);
             ctx.strokeStyle = GC.hexToRgba(pop2.color, 0.3 * alpha); ctx.lineWidth = 0.7; ctx.stroke();
             GC.roundRect(ctx, pos.x, pos.y, tagW, tagH, 4);
-            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.12 * alpha); ctx.fill();
-            ctx.strokeStyle = GC.hexToRgba(pop2.color, 0.4 * alpha); ctx.lineWidth = 0.6; ctx.stroke();
-            ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * alpha) + ')';
+            ctx.fillStyle = 'rgba(0,0,0,' + (0.5 * alpha) + ')'; ctx.fill();
+            GC.roundRect(ctx, pos.x, pos.y, tagW, tagH, 4);
+            ctx.fillStyle = GC.hexToRgba(pop2.color, 0.55 * alpha); ctx.fill();
+            ctx.strokeStyle = GC.hexToRgba(pop2.color, 0.7 * alpha); ctx.lineWidth = 0.8; ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.95 * alpha) + ')';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
             ctx.fillText(label, pos.x + 9 * SCL, pos.y + tagH / 2);
         }
@@ -1095,9 +1097,11 @@ function initGlobeMotion() {
             ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(pLineEndX, pPos.y + pTagH / 2);
             ctx.strokeStyle = GC.hexToRgba(probe.color, 0.4 * pAlpha); ctx.lineWidth = 0.8; ctx.stroke();
             GC.roundRect(ctx, pPos.x, pPos.y, pTagW, pTagH, 4);
-            ctx.fillStyle = GC.hexToRgba(probe.color, 0.18 * pAlpha); ctx.fill();
-            ctx.strokeStyle = GC.hexToRgba(probe.color, 0.6 * pAlpha); ctx.lineWidth = 0.8; ctx.stroke();
-            ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * pAlpha) + ')';
+            ctx.fillStyle = 'rgba(0,0,0,' + (0.5 * pAlpha) + ')'; ctx.fill();
+            GC.roundRect(ctx, pPos.x, pPos.y, pTagW, pTagH, 4);
+            ctx.fillStyle = GC.hexToRgba(probe.color, 0.6 * pAlpha); ctx.fill();
+            ctx.strokeStyle = GC.hexToRgba(probe.color, 0.8 * pAlpha); ctx.lineWidth = 1.0; ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.95 * pAlpha) + ')';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
             ctx.fillText(pLabel, pPos.x + 9 * SCL, pPos.y + pTagH / 2);
         }
