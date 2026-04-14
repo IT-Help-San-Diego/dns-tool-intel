@@ -1020,21 +1020,38 @@ function initGlobeMotion() {
         { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
     ];
 
-    const LAND = [
-        [[72,-78],[72,-100],[71,-152],[68,-165],[63,-167],[60,-140],[56,-132],[52,-127],[49,-124],[46,-124],[42,-124],[38,-123],[34,-120],[32,-117],[28,-115],[24,-110],[22,-106],[20,-97],[18,-96],[18,-88],[16,-87],[14,-84],[10,-84],[8,-81],[9,-78],[10,-76],[12,-72],[15,-76],[18,-77],[20,-76],[22,-80],[25,-80],[28,-82],[30,-82],[33,-80],[35,-76],[38,-75],[40,-74],[42,-70],[44,-66],[45,-61],[47,-53],[44,-60],[43,-66],[41,-71],[38,-70],[36,-76],[30,-82],[28,-77],[26,-80],[22,-88],[18,-88],[20,-90],[22,-97],[26,-110],[32,-117],[38,-123],[48,-124],[55,-130],[58,-136],[60,-140],[64,-162],[68,-165],[70,-152],[73,-94],[72,-78]],
-        [[12,-72],[11,-74],[10,-76],[8,-77],[5,-77],[2,-80],[-1,-80],[-3,-80],[-5,-81],[-8,-79],[-12,-77],[-14,-76],[-18,-70],[-20,-70],[-23,-68],[-23,-44],[-28,-49],[-33,-52],[-35,-57],[-38,-56],[-41,-64],[-46,-67],[-52,-69],[-55,-68],[-55,-64],[-52,-72],[-47,-76],[-42,-65],[-38,-57],[-34,-53],[-28,-48],[-23,-44],[-18,-40],[-13,-39],[-8,-35],[-5,-35],[-2,-50],[2,-55],[5,-60],[8,-63],[10,-68],[12,-72]],
-        [[36,-10],[38,-10],[40,-9],[42,-9],[43,-4],[44,-1],[46,0],[47,1],[48,2],[50,2],[51,4],[52,5],[54,9],[56,8],[56,10],[58,6],[60,5],[61,5],[63,10],[65,14],[68,16],[70,20],[71,28],[71,30],[70,32],[68,28],[66,26],[64,28],[62,18],[60,19],[58,18],[56,12],[54,10],[52,14],[50,14],[48,17],[46,16],[44,12],[42,24],[41,29],[40,26],[38,24],[37,23],[36,22],[36,14],[36,-6],[36,-10]],
-        [[37,10],[35,0],[34,-5],[32,-8],[30,-10],[28,-14],[25,-17],[22,-17],[20,-17],[15,-17],[12,-16],[8,-14],[5,-10],[5,-4],[5,1],[5,10],[2,10],[0,10],[-5,12],[-8,14],[-12,14],[-18,12],[-22,14],[-25,17],[-28,17],[-30,18],[-34,18],[-34,20],[-33,26],[-31,28],[-28,32],[-25,35],[-20,39],[-15,41],[-12,44],[-5,40],[0,42],[5,43],[10,44],[12,45],[15,42],[20,40],[25,37],[28,35],[30,32],[32,35],[35,35],[37,10]],
-        [[42,28],[44,30],[48,32],[52,36],[55,40],[57,42],[60,44],[62,50],[63,60],[65,70],[68,72],[70,80],[72,100],[72,125],[70,135],[68,140],[64,136],[62,140],[58,140],[55,135],[52,130],[48,132],[45,135],[42,132],[38,128],[35,129],[32,121],[30,120],[28,110],[25,100],[22,96],[20,93],[18,80],[15,80],[12,80],[10,78],[8,78],[6,100],[4,104],[2,104],[-1,104],[-5,106],[-7,106],[-8,110],[-7,115],[-2,118],[0,120],[1,104],[4,104],[6,100],[10,100],[15,100],[20,105],[22,107],[25,102],[28,97],[30,80],[32,60],[35,55],[37,50],[38,44],[40,40],[42,28]],
-        [[-14,129],[-12,131],[-12,136],[-14,137],[-16,137],[-19,144],[-21,149],[-25,153],[-29,153],[-33,152],[-35,148],[-38,146],[-38,140],[-36,137],[-34,135],[-32,133],[-30,130],[-28,115],[-25,114],[-22,114],[-19,117],[-16,123],[-14,129]],
-        [[60,-44],[63,-42],[65,-40],[68,-30],[72,-22],[76,-20],[78,-22],[80,-30],[82,-40],[83,-45],[82,-55],[80,-62],[78,-68],[76,-72],[73,-58],[70,-52],[68,-50],[64,-50],[60,-44]],
-        [[31,130],[33,132],[35,134],[37,137],[40,140],[42,144],[43,145],[42,143],[40,140],[37,137],[35,134],[33,131],[31,130]]
-    ];
-
     const globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
     const convergePt = { x: 0, y: 0 };
     let signalParticles = [];
     let particlesInitialized = false;
+
+    let _earthTex = null;
+    let _earthTexData = null;
+    let _earthTexW = 0;
+    let _earthTexH = 0;
+    let _texLoaded = false;
+    let _offGlobe = null;
+    let _offGlobeCtx = null;
+    let _cachedRotLon = null;
+    let _cachedR = null;
+    const GLOBE_RES = 360;
+    const LIGHT_DIR = { x: 0.42, y: 0.28, z: 0.86 };
+
+    (function loadEarthTexture() {
+        const img = new Image();
+        img.onload = function() {
+            const tc = document.createElement('canvas');
+            tc.width = img.naturalWidth;
+            tc.height = img.naturalHeight;
+            const tctx = tc.getContext('2d');
+            tctx.drawImage(img, 0, 0);
+            _earthTexData = tctx.getImageData(0, 0, tc.width, tc.height);
+            _earthTexW = tc.width;
+            _earthTexH = tc.height;
+            _texLoaded = true;
+        };
+        img.src = '/static/img/earth-blue-marble.jpg';
+    })();
 
     function projectPt(lat, lon) {
         const phi = lat * DEG;
@@ -1048,103 +1065,121 @@ function initGlobeMotion() {
         };
     }
 
+    function renderTexturedGlobe() { // NOSONAR — rendering function, complexity is inherent
+        if (!_texLoaded) return null;
+        const snapR = Math.round(globe.R);
+        const snapLon = Math.round(globe.rotLon * 2) / 2;
+        if (_cachedRotLon === snapLon && _cachedR === snapR && _offGlobe) return _offGlobe;
+        _cachedRotLon = snapLon;
+        _cachedR = snapR;
+        const sz = GLOBE_RES;
+        if (!_offGlobe) {
+            _offGlobe = document.createElement('canvas');
+            _offGlobe.width = sz;
+            _offGlobe.height = sz;
+            _offGlobeCtx = _offGlobe.getContext('2d');
+        }
+        const octx = _offGlobeCtx;
+        const id = octx.createImageData(sz, sz);
+        const px = id.data;
+        const half = sz / 2;
+        const invHalf = 1.0 / half;
+        const td = _earthTexData.data;
+        const tw = _earthTexW;
+        const th = _earthTexH;
+        const rotRad = snapLon * DEG;
+        const PI = Math.PI;
+        const TWO_PI = PI * 2;
+        const lx = LIGHT_DIR.x, ly = LIGHT_DIR.y, lz = LIGHT_DIR.z;
+
+        for (let py = 0; py < sz; py++) {
+            const ny = (half - py) * invHalf;
+            const ny2 = ny * ny;
+            if (ny2 > 1) continue;
+            for (let pxx = 0; pxx < sz; pxx++) {
+                const nx = (pxx - half) * invHalf;
+                const r2 = nx * nx + ny2;
+                if (r2 > 1) continue;
+                const nz = Math.sqrt(1 - r2);
+
+                const lat = Math.asin(ny);
+                let lon = Math.atan2(nx, nz) - rotRad;
+                if (lon < -PI) lon += TWO_PI;
+                else if (lon > PI) lon -= TWO_PI;
+
+                const u = (lon + PI) / TWO_PI;
+                const v = (PI / 2 - lat) / PI;
+                const tx = Math.min(tw - 1, Math.max(0, (u * tw) | 0));
+                const ty = Math.min(th - 1, Math.max(0, (v * th) | 0));
+                const ti = (ty * tw + tx) * 4;
+
+                let tr = td[ti], tg = td[ti + 1], tb = td[ti + 2];
+
+                const diffuse = Math.max(0, nx * lx + ny * ly + nz * lz);
+                const ambient = 0.08;
+                const lit = ambient + diffuse * 0.92;
+
+                const fresnel = 1.0 - nz;
+                const fr4 = fresnel * fresnel * fresnel * fresnel;
+                const rimR = 60, rimG = 120, rimB = 220;
+                const rimStr = fr4 * 0.45;
+
+                const idx = (py * sz + pxx) * 4;
+                px[idx] = Math.min(255, (tr * lit + rimR * rimStr) | 0);
+                px[idx + 1] = Math.min(255, (tg * lit + rimG * rimStr) | 0);
+                px[idx + 2] = Math.min(255, (tb * lit + rimB * rimStr) | 0);
+                px[idx + 3] = 255;
+            }
+        }
+        octx.putImageData(id, 0, 0);
+        return _offGlobe;
+    }
+
     function drawGlobeSphere(ctx) {
-        const grd = ctx.createRadialGradient(globe.cx - globe.R * 0.25, globe.cy - globe.R * 0.25, globe.R * 0.05, globe.cx, globe.cy, globe.R * 1.4);
-        grd.addColorStop(0, 'rgba(30,40,70,0.15)');
-        grd.addColorStop(0.7, 'rgba(15,20,40,0.08)');
+        const R = globe.R;
+        const cx = globe.cx;
+        const cy = globe.cy;
+
+        const grd = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 1.55);
+        grd.addColorStop(0, 'rgba(60,130,240,0.18)');
+        grd.addColorStop(0.3, 'rgba(40,100,200,0.10)');
+        grd.addColorStop(0.65, 'rgba(20,60,160,0.04)');
         grd.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.beginPath();
-        ctx.arc(globe.cx, globe.cy, globe.R * 1.4, 0, Math.PI * 2);
+        ctx.arc(cx, cy, R * 1.55, 0, Math.PI * 2);
         ctx.fillStyle = grd;
         ctx.fill();
 
+        const texCanvas = renderTexturedGlobe();
+        if (texCanvas) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(texCanvas, cx - R, cy - R, R * 2, R * 2);
+            ctx.restore();
+        } else {
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(8,15,35,0.95)';
+            ctx.fill();
+        }
+
+        const edgeGrd = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R);
+        edgeGrd.addColorStop(0, 'rgba(0,0,0,0)');
+        edgeGrd.addColorStop(0.6, 'rgba(0,0,0,0)');
+        edgeGrd.addColorStop(0.85, 'rgba(30,80,180,0.06)');
+        edgeGrd.addColorStop(1, 'rgba(60,140,255,0.15)');
         ctx.beginPath();
-        ctx.arc(globe.cx, globe.cy, globe.R, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(8,12,22,0.9)';
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = edgeGrd;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(100,140,200,0.2)';
-        ctx.lineWidth = 1.2;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(80,150,255,0.18)';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
-    }
-
-    function drawGraticule(ctx) { // NOSONAR — rendering function, complexity is inherent
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
-        ctx.clip();
-
-        ctx.strokeStyle = 'rgba(100,140,200,0.07)';
-        ctx.lineWidth = 0.5;
-
-        const lats = [-60, -30, 0, 30, 60];
-        for (const latVal of lats) {
-            ctx.beginPath();
-            let started = false;
-            for (let lon = -180; lon <= 180; lon += 3) {
-                const p = projectPt(latVal, lon);
-                if (p.vis) {
-                    if (started) { ctx.lineTo(p.x, p.y); }
-                    else { ctx.moveTo(p.x, p.y); started = true; }
-                } else { started = false; }
-            }
-            ctx.stroke();
-        }
-
-        for (let mlon = -180; mlon < 180; mlon += 30) {
-            ctx.beginPath();
-            let started2 = false;
-            for (let lat = -90; lat <= 90; lat += 3) {
-                let p2 = projectPt(lat, mlon);
-                if (p2.vis) {
-                    if (started2) { ctx.lineTo(p2.x, p2.y); }
-                    else { ctx.moveTo(p2.x, p2.y); started2 = true; }
-                } else { started2 = false; }
-            }
-            ctx.stroke();
-        }
-
-        ctx.strokeStyle = 'rgba(100,140,200,0.12)';
-        ctx.lineWidth = 0.7;
-        ctx.beginPath();
-        let started3 = false;
-        for (let elon = -180; elon <= 180; elon += 3) {
-            const ep = projectPt(0, elon);
-            if (ep.vis) {
-                if (started3) { ctx.lineTo(ep.x, ep.y); }
-                else { ctx.moveTo(ep.x, ep.y); started3 = true; }
-            } else { started3 = false; }
-        }
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    function drawContinents(ctx) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(globe.cx, globe.cy, globe.R - 0.5, 0, Math.PI * 2);
-        ctx.clip();
-
-        for (const coords of LAND) {
-            ctx.beginPath();
-            let started = false;
-            for (const coord of coords) {
-                const p = projectPt(coord[0], coord[1]);
-                if (p.vis) {
-                    if (started) { ctx.lineTo(p.x, p.y); }
-                    else { ctx.moveTo(p.x, p.y); started = true; }
-                } else { started = false; }
-            }
-            if (started) {
-                ctx.fillStyle = 'rgba(80,120,180,0.04)';
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(100,160,220,0.12)';
-                ctx.lineWidth = 0.8;
-                ctx.stroke();
-            }
-        }
-
-        ctx.restore();
     }
 
     function initSignalParticles() {
@@ -1351,8 +1386,6 @@ function initGlobeMotion() {
 
         ctx.clearRect(0, 0, w, h);
         drawGlobeSphere(ctx);
-        drawGraticule(ctx);
-        drawContinents(ctx);
         drawSignalArcs(ctx);
         drawResolverMarkers(ctx, w, h);
 
@@ -1393,7 +1426,16 @@ function initGlobeMotion() {
         if (!particlesInitialized) { initSignalParticles(); particlesInitialized = true; }
         const reduced = rmq.matches;
         renderGlobe(canvas);
-        if (reduced) return;
+        if (reduced) {
+            if (!_texLoaded) {
+                const waitTex = function() {
+                    if (_texLoaded) { renderGlobe(canvas); return; }
+                    setTimeout(waitTex, 200);
+                };
+                setTimeout(waitTex, 200);
+            }
+            return;
+        }
         function tick() {
             globe.rotLon -= 0.08;
             renderGlobe(canvas);
