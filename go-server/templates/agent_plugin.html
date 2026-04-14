@@ -414,6 +414,11 @@
                             <td>Automatically sends results to DEVONthink&rsquo;s Global Inbox when the search completes (requires DEVONthink to be installed).</td>
                         </tr>
                         <tr>
+                            <td><code>expressSearch</code></td>
+                            <td><code>false</code></td>
+                            <td>Ensures Agent mode is active (not Express Search), so DEVONagent downloads and indexes each result page.</td>
+                        </tr>
+                        <tr>
                             <td><code>engines</code></td>
                             <td><code>["dnstool.it-help.tech"]</code></td>
                             <td>Uses only the DNS Tool plugin &mdash; no other search engines are queried.</td>
@@ -442,7 +447,7 @@
   <span class="xml-str">&lt;string&gt;</span>dnstool.it-help.tech<span class="xml-str">&lt;/string&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>Version<span class="xml-key">&lt;/key&gt;</span>
-  <span class="xml-str">&lt;string&gt;</span>1.2<span class="xml-str">&lt;/string&gt;</span>
+  <span class="xml-str">&lt;string&gt;</span>2.0<span class="xml-str">&lt;/string&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>Category<span class="xml-key">&lt;/key&gt;</span>
   <span class="xml-str">&lt;string&gt;</span>Security<span class="xml-str">&lt;/string&gt;</span>
@@ -469,6 +474,24 @@
   <span class="xml-key">&lt;key&gt;</span>StripHTML<span class="xml-key">&lt;/key&gt;</span>
   <span class="xml-str">&lt;false/&gt;</span>
 
+  <span class="xml-key">&lt;key&gt;</span>PostScan<span class="xml-key">&lt;/key&gt;</span>
+  <span class="xml-str">&lt;false/&gt;</span>
+
+  <span class="xml-key">&lt;key&gt;</span>FilterSimilarPages<span class="xml-key">&lt;/key&gt;</span>
+  <span class="xml-str">&lt;false/&gt;</span>
+
+  <span class="xml-key">&lt;key&gt;</span>FollowLinks<span class="xml-key">&lt;/key&gt;</span>
+  <span class="xml-str">&lt;false/&gt;</span>
+
+  <span class="xml-key">&lt;key&gt;</span>SkipsCrawling<span class="xml-key">&lt;/key&gt;</span>
+  <span class="xml-str">&lt;true/&gt;</span>
+
+  <span class="xml-key">&lt;key&gt;</span>LinksMatching<span class="xml-key">&lt;/key&gt;</span>
+  <span class="xml-tag">&lt;array&gt;</span>
+    <span class="xml-str">&lt;string&gt;</span>*dnstool.it-help.tech*<span class="xml-str">&lt;/string&gt;</span>
+    <span class="xml-str">&lt;string&gt;</span>*doi.org*<span class="xml-str">&lt;/string&gt;</span>
+  <span class="xml-tag">&lt;/array&gt;</span>
+
   <span class="xml-key">&lt;key&gt;</span>ResultsPerPage<span class="xml-key">&lt;/key&gt;</span>
   <span class="xml-str">&lt;integer&gt;</span>15<span class="xml-str">&lt;/integer&gt;</span>
 
@@ -479,7 +502,7 @@
   <span class="xml-str">&lt;integer&gt;</span>59<span class="xml-str">&lt;/integer&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>UserAgent<span class="xml-key">&lt;/key&gt;</span>
-  <span class="xml-str">&lt;string&gt;</span>DEVONagent/3 (dnstool-plugin/1.2;
+  <span class="xml-str">&lt;string&gt;</span>DEVONagent/3 (dnstool-plugin/2.0;
   +https://dnstool.it-help.tech/agent/plugin)<span class="xml-str">&lt;/string&gt;</span>
 
   <span class="xml-key">&lt;key&gt;</span>Keyword<span class="xml-key">&lt;/key&gt;</span>
@@ -543,8 +566,23 @@
                     <dt class="col-sm-3"><code>Operators</code></dt>
                     <dd class="col-sm-9 text-muted">Bitmask for supported search operators (phrase, Boolean, wildcards, etc.). Value <code>59</code> enables the standard operator set.</dd>
 
+                    <dt class="col-sm-3"><code>PostScan</code></dt>
+                    <dd class="col-sm-9 text-muted">When <code>false</code>, DEVONagent accepts all pages returned by the plugin without checking if they match the search term. Essential for curated result sets like ours where every result is intentionally selected. Default is <code>true</code>.</dd>
+
+                    <dt class="col-sm-3"><code>FilterSimilarPages</code></dt>
+                    <dd class="col-sm-9 text-muted">When <code>false</code>, DEVONagent keeps all results even if they have similar page structure. Our 15 artifacts intentionally share a common layout &mdash; without this set to <code>false</code>, DEVONagent&rsquo;s AI would classify them as near-duplicates and discard most of them. Default is <code>true</code>.</dd>
+
+                    <dt class="col-sm-3"><code>FollowLinks</code></dt>
+                    <dd class="col-sm-9 text-muted">When <code>false</code>, DEVONagent does not follow links from result pages. Prevents spidering into the analyzed domain. Reinforces the search set&rsquo;s <code>followLevels=0</code>. Default is <code>true</code>.</dd>
+
+                    <dt class="col-sm-3"><code>SkipsCrawling</code></dt>
+                    <dd class="col-sm-9 text-muted">When <code>true</code>, marks this plugin as skipping crawling. Our server returns complete HTML pages &mdash; DEVONagent does not need to crawl them.</dd>
+
+                    <dt class="col-sm-3"><code>LinksMatching</code></dt>
+                    <dd class="col-sm-9 text-muted">Array of wildcard patterns that restrict which links DEVONagent extracts. Ours whitelist <code>*dnstool.it-help.tech*</code> and <code>*doi.org*</code> to prevent accidental extraction of unrelated anchors.</dd>
+
                     <dt class="col-sm-3"><code>UserAgent</code></dt>
-                    <dd class="col-sm-9 text-muted">Custom User-Agent header sent with requests. Ours identifies the plugin version in server logs: <code>DEVONagent/3 (dnstool-plugin/1.2)</code>.</dd>
+                    <dd class="col-sm-9 text-muted">Custom User-Agent header sent with requests. Ours identifies the plugin version in server logs: <code>DEVONagent/3 (dnstool-plugin/2.0)</code>.</dd>
 
                     <dt class="col-sm-3"><code>Encoding</code></dt>
                     <dd class="col-sm-9 text-muted">Declares the character encoding for response parsing. Set to <code>UTF-8</code>.</dd>
