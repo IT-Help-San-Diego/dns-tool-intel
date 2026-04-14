@@ -311,8 +311,8 @@
                     <span class="step-number">2</span>
                     <div>
                         <strong>Move it to the Plugins folder</strong>
-                        <p class="text-muted mb-0 mt-1">Place the downloaded file in:<br><span class="path-highlight">~/Library/Application Support/DEVONagent/Plugins/</span></p>
-                        <p class="text-muted mb-0 mt-1 ap-hint-text">To open this folder: in Finder, press <kbd>&#x21E7;</kbd><kbd>&#x2318;</kbd><kbd>G</kbd> and paste the path above.</p>
+                        <p class="text-muted mb-0 mt-1">Place the downloaded file in:<br><span class="path-highlight">~/Library/Application Support/DEVONagent Pro/Plugins/</span></p>
+                        <p class="text-muted mb-0 mt-1 ap-hint-text">To open this folder: in Finder, press <kbd>&#x21E7;</kbd><kbd>&#x2318;</kbd><kbd>G</kbd> and paste the path above. The plugin file must remain in this folder &mdash; DEVONagent loads it from here each time it launches.</p>
                     </div>
                 </div>
 
@@ -320,7 +320,7 @@
                     <span class="step-number">3</span>
                     <div>
                         <strong>Restart DEVONagent</strong>
-                        <p class="text-muted mb-0 mt-1">Quit and relaunch DEVONagent. The plugin will appear under <strong>Plugins</strong> in the search dropdown.</p>
+                        <p class="text-muted mb-0 mt-1">Quit and relaunch DEVONagent Pro. The plugin will appear under <strong>Window &rarr; Plugins &amp; Scanners</strong> in the <em>Security</em> category.</p>
                     </div>
                 </div>
 
@@ -346,7 +346,7 @@
                     <span class="step-number">2</span>
                     <div>
                         <strong>Double-click to install</strong>
-                        <p class="text-muted mb-0 mt-1">Double-clicking the <code>.agentSet</code> file will open DEVONagent and import the search set automatically. It will appear under <strong>Search Sets</strong> in the search dropdown as &ldquo;DNS Tool&rdquo;.</p>
+                        <p class="text-muted mb-0 mt-1">Double-click the <code>.agentSet</code> file in Finder. DEVONagent Pro will open and import the search set automatically. It will appear under <strong>Search Sets</strong> in the search dropdown as &ldquo;DNS Tool&rdquo;. You can delete the downloaded file afterward &mdash; DEVONagent stores the set internally.</p>
                     </div>
                 </div>
 
@@ -359,7 +359,11 @@
                 </div>
 
                 <div class="format-note">
-                    <strong>Plugin vs Search Set &mdash; what's the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: no follow-link crawling (prevents DEVONagent from spidering into the analyzed domain), skip crawling, accept all file types, and auto-archive results. Think of it as the plugin plus a tuned configuration. You need both for the best experience, but the plugin alone works for quick searches.
+                    <strong>Upgrading?</strong> DEVONagent does not overwrite an existing search set with the same name. To install an updated version, first delete the old &ldquo;DNS Tool&rdquo; set in <strong>File &rarr; Edit Search Sets</strong>, then double-click the new <code>.agentSet</code> file.
+                </div>
+
+                <div class="format-note">
+                    <strong>Plugin vs Search Set &mdash; what&rsquo;s the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. You install it by placing the file in the Plugins folder (it must stay there). The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: no follow-link crawling, skip crawling, accept all file types, and auto-archive results. You install it by double-clicking &mdash; DEVONagent imports it internally. You need both for the best experience, but the plugin alone works for quick searches.
                 </div>
 
                 <h2 class="h4 mt-5 mb-3">Search Set Settings</h2>
