@@ -1020,6 +1020,11 @@ function initGlobeMotion() {
         { resolver: 'DNS4EU', tag: 'EU', color: '#003399', lat: 52.52, lon: 13.41, city: 'Berlin' }
     ];
 
+    const OWN_PROBES = [
+        { id: 'probe-01', label: 'Probe 01 — US-East', color: '#4ade80', lat: 42.36, lon: -71.06, city: 'Boston' },
+        { id: 'probe-02', label: 'Probe 02 — France', color: '#4ade80', lat: 48.57, lon: 2.82, city: 'France' }
+    ];
+
     const globe = { cx: 0, cy: 0, R: 0, rotLon: -58 };
     const convergePt = { x: 0, y: 0 };
     let signalParticles = [];
@@ -1356,6 +1361,107 @@ function initGlobeMotion() {
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillText(label, bestX + 9 * SCL, bestY + tagH / 2);
+        }
+
+        for (const probe of OWN_PROBES) {
+            const pp = projectPt(probe.lat, probe.lon);
+            if (!pp.vis) continue;
+            const pAlpha = 0.4 + pp.depth * 0.6;
+            const now = performance.now();
+            const pulse = 0.5 + 0.5 * Math.sin(now / 600);
+
+            ctx.beginPath();
+            ctx.arc(pp.x, pp.y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(probe.color, 0.08 * pAlpha * pulse);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(pp.x, pp.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(probe.color, 0.15 * pAlpha);
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(probe.color, 0.5 * pAlpha);
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(pp.x, pp.y);
+            ctx.rotate(Math.PI / 4);
+            ctx.fillStyle = hexToRgba(probe.color, 0.95 * pAlpha);
+            ctx.fillRect(-3.5, -3.5, 7, 7);
+            ctx.restore();
+
+            const pLabel = probe.label;
+            ctx.font = FONT_TAG + 'px -apple-system, BlinkMacSystemFont, sans-serif';
+            const ptw = ctx.measureText(pLabel).width;
+            const pTagW = ptw + 18 * SCL;
+            const pTagH = Math.round(20 * SCL + 2);
+
+            const pBaseAngle = Math.atan2(pp.y - globe.cy, pp.x - globe.cx);
+            let pBestX = null, pBestY = null, pBestScore = Infinity;
+            const pCandidateAngles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
+            const pCandidateDists = [globe.R * 0.18 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.38 + labelGap];
+
+            for (const dist of pCandidateDists) {
+                for (const angleOffset of pCandidateAngles) {
+                    const ca = pBaseAngle + angleOffset * DEG;
+                    let pcx = pp.x + Math.cos(ca) * dist;
+                    let pcy = pp.y + Math.sin(ca) * dist;
+                    if (Math.cos(ca) < 0) pcx -= pTagW;
+                    pcx = Math.max(Math.max(4, maxLabelLeft), Math.min(pcx, maxLabelRight - pTagW));
+                    pcy = Math.max(Math.max(4, maxLabelTop), Math.min(pcy, maxLabelBottom - pTagH));
+                    let hasCollision = false;
+                    for (const pb of placedBoxes) {
+                        if (pcx < pb.x + pb.w + 3 && pcx + pTagW > pb.x - 3 &&
+                            pcy < pb.y + pb.h + 3 && pcy + pTagH > pb.y - 3) {
+                            hasCollision = true;
+                            break;
+                        }
+                    }
+                    const distFromDot = Math.sqrt((pcx + pTagW / 2 - pp.x) ** 2 + (pcy + pTagH / 2 - pp.y) ** 2);
+                    const score = (hasCollision ? 10000 : 0) + distFromDot;
+                    if (score < pBestScore) { pBestScore = score; pBestX = pcx; pBestY = pcy; }
+                }
+            }
+
+            if (pBestScore >= 10000) {
+                for (let ri = 0; ri < 8; ri++) {
+                    let shifted = false;
+                    for (const pb2 of placedBoxes) {
+                        const ovX = Math.min(pBestX + pTagW, pb2.x + pb2.w) - Math.max(pBestX, pb2.x);
+                        const ovY = Math.min(pBestY + pTagH, pb2.y + pb2.h) - Math.max(pBestY, pb2.y);
+                        if (ovX > 0 && ovY > 0) {
+                            if (ovY < ovX) { pBestY += (pBestY < pb2.y ? -(ovY + 4) : (ovY + 4)); }
+                            else { pBestX += (pBestX < pb2.x ? -(ovX + 4) : (ovX + 4)); }
+                            shifted = true;
+                        }
+                    }
+                    if (!shifted) break;
+                }
+                pBestX = Math.max(4, Math.min(pBestX, maxLabelRight - pTagW));
+                pBestY = Math.max(4, Math.min(pBestY, maxLabelBottom - pTagH));
+            }
+
+            placedBoxes.push({ x: pBestX, y: pBestY, w: pTagW, h: pTagH });
+
+            const pLineEndX = (pBestX + pTagW / 2 > pp.x) ? pBestX : pBestX + pTagW;
+            ctx.beginPath();
+            ctx.moveTo(pp.x, pp.y);
+            ctx.lineTo(pLineEndX, pBestY + pTagH / 2);
+            ctx.strokeStyle = hexToRgba(probe.color, 0.4 * pAlpha);
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            roundRect(ctx, pBestX, pBestY, pTagW, pTagH, 4);
+            ctx.fillStyle = hexToRgba(probe.color, 0.18 * pAlpha);
+            ctx.fill();
+            ctx.strokeStyle = hexToRgba(probe.color, 0.6 * pAlpha);
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * pAlpha) + ')';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pLabel, pBestX + 9 * SCL, pBestY + pTagH / 2);
         }
     }
 
