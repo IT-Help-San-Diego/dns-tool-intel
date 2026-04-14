@@ -310,7 +310,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
 
         assetChecks := []string{
                 "/agent/snapshot-view?domain=example.com",
-                "/topology?domain=example.com",
+                "/agent/topology-view?domain=example.com",
                 "/analyze?domain=example.com",
                 "style=detailed",
                 "style=covert",
@@ -321,7 +321,7 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "Full Intelligence Data (JSON)",
                 "/agent/csv-view?domain=example.com",
                 "Discovered Subdomains",
-                "/sources",
+                "/agent/sources-view?domain=example.com",
                 "Sources &amp; Methodology",
                 "Engineer's DNS Intelligence Report",
                 "https://doi.org/10.5281/zenodo.19468134",
