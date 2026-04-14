@@ -261,13 +261,16 @@
                 ctx.stroke();
 
                 roundRect(rawTagX, rawTagY, tagW, tagH, 4);
-                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 0.25 : 0.12 * alpha);
+                ctx.fillStyle = 'rgba(0,0,0,' + (isHovered ? 0.6 : 0.5 * alpha) + ')';
                 ctx.fill();
-                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.8 : 0.4 * alpha);
-                ctx.lineWidth = isHovered ? 1.2 : 0.6;
+                roundRect(rawTagX, rawTagY, tagW, tagH, 4);
+                ctx.fillStyle = hexToRgba(pop2.color, isHovered ? 0.4 : 0.55 * alpha);
+                ctx.fill();
+                ctx.strokeStyle = hexToRgba(pop2.color, isHovered ? 0.9 : 0.7 * alpha);
+                ctx.lineWidth = isHovered ? 1.2 : 0.8;
                 ctx.stroke();
 
-                ctx.fillStyle = 'rgba(255,255,255,' + (isHovered ? 0.95 : 0.8 * alpha) + ')';
+                ctx.fillStyle = 'rgba(255,255,255,' + (isHovered ? 0.98 : 0.95 * alpha) + ')';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(label, rawTagX + 9 * SCL, rawTagY + tagH / 2);
