@@ -110,16 +110,6 @@ var crossRefHTTPClient = &http.Client{
 
 func (a *Analyzer) CrossReferenceRecords(ctx context.Context, domain string, basicRecords map[string]any) map[string]any {
         budget := 6 * time.Second
-        if deadline, ok := ctx.Deadline(); ok {
-                remaining := time.Until(deadline)
-                if remaining < 500*time.Millisecond {
-                        slog.Warn("CrossRef skipped: parent context budget exhausted", "domain", domain, "remaining_ms", remaining.Milliseconds())
-                        return buildUnavailableResult(domain, "parent context budget exhausted")
-                }
-                if remaining < budget {
-                        budget = remaining
-                }
-        }
         xrefCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), budget)
         defer cancel()
 
