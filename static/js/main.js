@@ -1361,7 +1361,7 @@ function initGlobeMotion() {
 
     const PHI = 1.618033988749895;
     const VB_W = 900;
-    const VB_H = 840;
+    const VB_H = 870;
 
     function renderGlobe(canvas) {
         const ctx = canvas.getContext('2d');
@@ -1378,7 +1378,7 @@ function initGlobeMotion() {
         const foW = 900 * sc;
         const foH = 800 * sc;
         globe.R = Math.min(foW / (2 * PHI), foH / (2 * PHI), maxR);
-        globe.cx = offX + 450 * sc;
+        globe.cx = offX + 430 * sc;
         globe.cy = offY + 240 * sc;
         convergePt.x = offX + 430 * sc;
         convergePt.y = offY + 476 * sc;
