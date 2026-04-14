@@ -82,7 +82,11 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                 c.Set(ginKeyDevMode, devMode)
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
-                        c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                        if strings.HasSuffix(c.Request.URL.Path, ".svg") {
+                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                        } else {
+                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                        }
                         c.Next()
                         return
                 }

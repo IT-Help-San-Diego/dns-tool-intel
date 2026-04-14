@@ -40,11 +40,32 @@ func TestSecurityHeadersStaticPath(t *testing.T) {
         if !strings.Contains(csp, "script-src 'none'") {
                 t.Error("static CSP should contain script-src 'none'")
         }
-        if !strings.Contains(csp, "style-src 'unsafe-inline'") {
-                t.Error("static CSP should allow unsafe-inline styles for SVG compatibility")
+        if !strings.Contains(csp, "style-src 'none'") {
+                t.Error("non-SVG static CSP should contain style-src 'none'")
         }
         if w.Header().Get("X-Frame-Options") != "" {
                 t.Error("static paths should not have X-Frame-Options")
+        }
+}
+
+func TestSecurityHeadersStaticSVGPath(t *testing.T) {
+        router := gin.New()
+        router.Use(RequestContext())
+        router.Use(SecurityHeaders())
+        router.GET("/static/images/diagram.svg", func(c *gin.Context) {
+                c.String(http.StatusOK, "ok")
+        })
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/static/images/diagram.svg", nil)
+        router.ServeHTTP(w, req)
+
+        csp := w.Header().Get("Content-Security-Policy")
+        if !strings.Contains(csp, "style-src 'unsafe-inline'") {
+                t.Error("SVG static CSP should allow unsafe-inline styles for SVG compatibility")
+        }
+        if !strings.Contains(csp, "script-src 'none'") {
+                t.Error("SVG static CSP should still block scripts")
         }
 }
 
