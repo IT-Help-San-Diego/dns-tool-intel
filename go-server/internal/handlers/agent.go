@@ -508,14 +508,14 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         ed := esc(domain)
         base := h.Config.BaseURL
         reportURL := esc(links["report"].(string))
-        topologyURL := esc(links["topology"].(string))
+        topologyURL := esc(fmt.Sprintf("%s/agent/topology-view?domain=%s", base, domain))
         reportPageURL := esc(fmt.Sprintf(agentFmtAnalyzeSrc, base, domain))
         badgeDetailed := esc(badges["detailed_svg"].(string))
         badgeCovert := esc(badges["covert_svg"].(string))
         badgeViewDetailed := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain))
         badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
-        sourcesURL := esc(fmt.Sprintf("%s/sources", base))
-        confidenceURL := esc(fmt.Sprintf("%s/confidence", base))
+        sourcesURL := esc(fmt.Sprintf("%s/agent/sources-view?domain=%s", base, domain))
+        confidenceURL := esc(fmt.Sprintf("%s/agent/confidence-view?domain=%s", base, domain))
 
         snapshotViewURL := esc(fmt.Sprintf("%s/agent/snapshot-view?domain=%s", base, domain))
         jsonViewURL := esc(fmt.Sprintf("%s/agent/json-view?domain=%s", base, domain))
@@ -750,7 +750,7 @@ func (h *AgentHandler) BadgeView(c *gin.Context) {
       <a href="` + reportURL + `">Full Analysis Report</a>
       <a href="` + eb + `">Direct Badge SVG</a>
       <a href="` + esc(fmt.Sprintf("%s/badge/embed", base)) + `">Badge Generator</a>
-    </div>
+    </div>` + domainContext(domain) + `
   </div>
 </body>
 </html>`)
