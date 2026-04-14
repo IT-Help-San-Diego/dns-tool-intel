@@ -116,5 +116,6 @@
 {{define "scripts"}}
 <script nonce="{{.CspNonce}}">window._icons={check:'{{icon "check"}}',copy:'{{icon "copy"}}',search:'{{icon "search"}}',times:'{{icon "times"}}',expand:'{{icon "expand"}}',compress:'{{icon "compress-arrows-alt"}}',spinner:'{{icon "circle-notch" "icon-spin"}}',sync:'{{icon "sync-alt"}}',globe:'{{icon "globe-americas"}}',satellite:'{{icon "satellite-dish"}}',checkCircle:'{{icon "check-circle"}}',circleNotch:'{{icon "circle-notch"}}',chevronUp:'{{icon "chevron-up"}}',plusCircle:'{{icon "plus-circle"}}',minusCircle:'{{icon "minus-circle"}}'};</script>
 <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/foundation.min.js" .AppVersion}}" defer {{staticSRI "js/foundation.min.js"}}></script>
+<script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/globe-core.min.js" .AppVersion}}" defer {{staticSRI "js/globe-core.min.js"}}></script>
 <script nonce="{{.CspNonce}}" src="{{staticVersionURL "js/main.min.js" .AppVersion}}" defer {{staticSRI "js/main.min.js"}}></script>
 {{end}}

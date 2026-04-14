@@ -10,6 +10,7 @@ import (
         "testing"
         "time"
 
+        "dnstool/go-server/internal/analyzer"
         "dnstool/go-server/internal/citation"
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/dbq"
@@ -121,9 +122,10 @@ func TestProgressStore_LifecyclePendingRunningDone(t *testing.T) {
         }
 
         time.Sleep(2 * time.Millisecond)
-        progress.UpdatePhase("dns_records", "done", 100)
-        progress.UpdatePhase("dns_records", "done", 200)
-        progress.UpdatePhase("dns_records", "done", 150)
+        expectedDone := analyzer.PhaseGroupCallbackCounts()["dns_records"]
+        for i := 0; i < expectedDone; i++ {
+                progress.UpdatePhase("dns_records", "done", 100+i*50)
+        }
         data = progress.toJSON()
         phases = data["phases"].(map[string]any)
         dns = phases["dns_records"].(map[string]any)
@@ -153,9 +155,10 @@ func TestProgressStore_MakeProgressCallback(t *testing.T) {
                 t.Errorf("callback running: dns_records status = %v, want running", dns["status"])
         }
 
-        cb("dns_records", "done", 200)
-        cb("dns_records", "done", 300)
-        cb("dns_records", "done", 100)
+        expectedDone := analyzer.PhaseGroupCallbackCounts()["dns_records"]
+        for i := 0; i < expectedDone; i++ {
+                cb("dns_records", "done", 100+i*100)
+        }
 
         data = progress.toJSON()
         phases = data["phases"].(map[string]any)
