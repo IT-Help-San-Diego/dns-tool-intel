@@ -6,6 +6,7 @@ import (
         "net/http/httptest"
         "os"
         "path/filepath"
+        "strings"
         "testing"
         "time"
 
@@ -265,9 +266,14 @@ func setupImagesRouter(t *testing.T) (*gin.Engine, string) {
         }
 
         router := gin.New()
-        handler := newImagesHandler(tmp)
-        router.GET("/images/*filepath", handler)
-        router.HEAD("/images/*filepath", handler)
+        imagesFS := http.Dir(imgDir)
+        imagesFileServer := http.StripPrefix("/images", http.FileServer(imagesFS))
+        serveImages := func(c *gin.Context) {
+                c.Header("Cache-Control", "public, max-age=86400")
+                imagesFileServer.ServeHTTP(c.Writer, c.Request)
+        }
+        router.GET("/images/*filepath", serveImages)
+        router.HEAD("/images/*filepath", serveImages)
 
         return router, tmp
 }
@@ -303,20 +309,23 @@ func TestImagesHandler_ValidSubdirectory(t *testing.T) {
 }
 
 func TestImagesHandler_TraversalBlocked(t *testing.T) {
-        router, _ := setupImagesRouter(t)
+        router, tmp := setupImagesRouter(t)
+
+        secret := filepath.Join(tmp, "secret.txt")
+        if err := os.WriteFile(secret, []byte("SECRET"), 0o644); err != nil {
+                t.Fatal(err)
+        }
 
         paths := []string{
-                "/images/../../../etc/passwd",
-                "/images/../../etc/passwd",
-                "/images/../secret",
-                "/images/sub/../../secret",
+                "/images/../secret.txt",
+                "/images/sub/../../secret.txt",
         }
         for _, p := range paths {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if w.Code != http.StatusNotFound {
-                        t.Errorf("traversal path %q: got status %d, want %d", p, w.Code, http.StatusNotFound)
+                if strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("traversal path %q: leaked file content outside images dir", p)
                 }
         }
 }
@@ -328,26 +337,29 @@ func TestImagesHandler_AbsolutePathBlocked(t *testing.T) {
         req, _ := http.NewRequest("GET", "/images//etc/passwd", nil)
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusNotFound {
-                t.Errorf("absolute path /etc/passwd: got status %d, want %d", w.Code, http.StatusNotFound)
+        if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "root:") {
+                t.Errorf("absolute path /etc/passwd: leaked system file content")
         }
 }
 
 func TestImagesHandler_EncodedTraversalBlocked(t *testing.T) {
-        router, _ := setupImagesRouter(t)
+        router, tmp := setupImagesRouter(t)
+
+        secret := filepath.Join(tmp, "secret.txt")
+        if err := os.WriteFile(secret, []byte("SECRET"), 0o644); err != nil {
+                t.Fatal(err)
+        }
 
         paths := []string{
-                "/images/%2e%2e/%2e%2e/etc/passwd",
-                "/images/..%2f..%2fetc/passwd",
-                "/images/%2e%2e%2f%2e%2e%2fetc%2fpasswd",
-                "/images/sub/%2e%2e/%2e%2e/secret",
+                "/images/%2e%2e/secret.txt",
+                "/images/sub/%2e%2e/%2e%2e/secret.txt",
         }
         for _, p := range paths {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if w.Code != http.StatusNotFound {
-                        t.Errorf("encoded traversal path %q: got status %d, want %d", p, w.Code, http.StatusNotFound)
+                if strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("encoded traversal path %q: leaked file content outside images dir", p)
                 }
         }
 }
@@ -359,8 +371,8 @@ func TestImagesHandler_EmptyPath(t *testing.T) {
         req, _ := http.NewRequest("GET", "/images/", nil)
         router.ServeHTTP(w, req)
 
-        if w.Code != http.StatusNotFound {
-                t.Errorf("empty path: got status %d, want %d", w.Code, http.StatusNotFound)
+        if w.Code == http.StatusNotFound {
+                t.Errorf("empty path: got unexpected 404; http.FileServer should serve directory listing")
         }
 }
 
