@@ -133,8 +133,7 @@
 
                 var lat = Math.asin(ny);
                 var lon = Math.atan2(nx, nz) - rotRad;
-                if (lon < -PI) lon += TWO_PI;
-                else if (lon > PI) lon -= TWO_PI;
+                lon = lon - TWO_PI * Math.floor((lon + PI) / TWO_PI);
 
                 var u = (lon + PI) / TWO_PI;
                 var v = (PI / 2 - lat) / PI;
