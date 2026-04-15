@@ -1616,7 +1616,7 @@
         function update() {
             time += 0.016;
 
-            globe.rotLon += 0.08;
+            globe.rotLon = (globe.rotLon + 0.08) % 360;
 
             let allArr = SOURCES.concat(CONFIDENCE, STORAGE, OUTPUTS, PROTOCOLS, [ENGINE, HUB]);
             for (let i = 0; i < allArr.length; i++) {
