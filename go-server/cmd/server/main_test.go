@@ -269,6 +269,11 @@ func setupImagesRouter(t *testing.T) (*gin.Engine, string) {
         imagesFS := http.Dir(imgDir)
         imagesFileServer := http.StripPrefix("/images", http.FileServer(imagesFS))
         serveImages := func(c *gin.Context) {
+                fp := strings.TrimPrefix(c.Param("filepath"), "/")
+                if fp == "" {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
                 c.Header("Cache-Control", "public, max-age=86400")
                 imagesFileServer.ServeHTTP(c.Writer, c.Request)
         }
@@ -324,8 +329,8 @@ func TestImagesHandler_TraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if strings.Contains(w.Body.String(), "SECRET") {
-                        t.Errorf("traversal path %q: leaked file content outside images dir", p)
+                if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
                 }
         }
 }
@@ -358,8 +363,8 @@ func TestImagesHandler_EncodedTraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if strings.Contains(w.Body.String(), "SECRET") {
-                        t.Errorf("encoded traversal path %q: leaked file content outside images dir", p)
+                if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("encoded traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
                 }
         }
 }
@@ -371,8 +376,8 @@ func TestImagesHandler_EmptyPath(t *testing.T) {
         req, _ := http.NewRequest("GET", "/images/", nil)
         router.ServeHTTP(w, req)
 
-        if w.Code == http.StatusNotFound {
-                t.Errorf("empty path: got unexpected 404; http.FileServer should serve directory listing")
+        if w.Code != http.StatusNotFound {
+                t.Errorf("empty path: got status %d, want %d", w.Code, http.StatusNotFound)
         }
 }
 

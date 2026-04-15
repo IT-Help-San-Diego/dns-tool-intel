@@ -355,6 +355,11 @@ func mountStaticFiles(router *gin.Engine) {
         imagesFS := http.Dir(filepath.Join(staticDir, "images"))
         imagesFileServer := http.StripPrefix("/images", http.FileServer(imagesFS))
         serveImages := func(c *gin.Context) {
+                fp := strings.TrimPrefix(c.Param("filepath"), "/")
+                if fp == "" {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
                 c.Header(headerCacheControl, "public, max-age=86400")
                 imagesFileServer.ServeHTTP(c.Writer, c.Request)
         }
