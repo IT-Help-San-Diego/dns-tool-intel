@@ -125,6 +125,14 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
                 asciiDomain = domain
         }
 
+        if cached, id := h.agentCacheLookup(c, asciiDomain); cached != nil {
+                slog.Info("Agent search: serving from cache", "domain", asciiDomain, "analysis_id", id)
+                cached["_request_source"] = "agent"
+                html := h.buildAgentHTML(asciiDomain, cached, id)
+                c.Data(http.StatusOK, agentContentTypeHTML, []byte(html))
+                return
+        }
+
         analysisCtx, analysisCancel := context.WithTimeout(context.Background(), 90*time.Second)
         defer analysisCancel()
         results := h.Analyzer.AnalyzeDomain(analysisCtx, asciiDomain, nil, analyzer.AnalysisOptions{})
@@ -150,18 +158,46 @@ func (h *AgentHandler) AgentSearch(c *gin.Context) {
         }
 
         var analysisID int32
+        saveCtx, saveCancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer saveCancel()
         if h.SaveFn != nil {
-                analysisID = h.SaveFn(c.Request.Context(), domain, asciiDomain, results)
+                analysisID = h.SaveFn(saveCtx, domain, asciiDomain, results)
                 slog.Info("Agent search: analysis saved", "domain", asciiDomain, "analysis_id", analysisID)
         }
         if analysisID == 0 && h.lookupStore != nil {
-                if recent, err := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), asciiDomain); err == nil {
+                if recent, err := h.lookupStore.GetRecentAnalysisByDomain(saveCtx, asciiDomain); err == nil {
                         analysisID = recent.ID
                 }
         }
 
         html := h.buildAgentHTML(asciiDomain, results, analysisID)
         c.Data(http.StatusOK, agentContentTypeHTML, []byte(html))
+}
+
+const agentCacheMaxAge = 1 * time.Hour
+
+func (h *AgentHandler) agentCacheLookup(c *gin.Context, asciiDomain string) (map[string]any, int32) {
+        if h.lookupStore == nil {
+                return nil, 0
+        }
+        analysis, err := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), asciiDomain)
+        if err != nil {
+                return nil, 0
+        }
+        if analysis.Private || analysis.ScanFlag {
+                return nil, 0
+        }
+        if analysis.AnalysisSuccess != nil && !*analysis.AnalysisSuccess {
+                return nil, 0
+        }
+        if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > agentCacheMaxAge {
+                return nil, 0
+        }
+        results := unmarshalResults(analysis.FullResults, "agentCacheLookup")
+        if results == nil {
+                return nil, 0
+        }
+        return results, analysis.ID
 }
 
 func (h *AgentHandler) AgentAPI(c *gin.Context) {
@@ -179,6 +215,14 @@ func (h *AgentHandler) AgentAPI(c *gin.Context) {
         asciiDomain, err := dnsclient.DomainToASCII(domain)
         if err != nil {
                 asciiDomain = domain
+        }
+
+        if cached, _ := h.agentCacheLookup(c, asciiDomain); cached != nil {
+                slog.Info("Agent API: serving from cache", "domain", asciiDomain)
+                cached["_request_source"] = "agent"
+                response := h.buildAgentJSON(asciiDomain, cached)
+                c.JSON(http.StatusOK, response)
+                return
         }
 
         apiCtx, apiCancel := context.WithTimeout(context.Background(), 90*time.Second)
@@ -201,6 +245,12 @@ func (h *AgentHandler) AgentAPI(c *gin.Context) {
                         "status": "failed",
                 })
                 return
+        }
+
+        if h.SaveFn != nil {
+                apiSaveCtx, apiSaveCancel := context.WithTimeout(context.Background(), 10*time.Second)
+                defer apiSaveCancel()
+                h.SaveFn(apiSaveCtx, domain, asciiDomain, results)
         }
 
         response := h.buildAgentJSON(asciiDomain, results)
