@@ -65,9 +65,9 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Attribute | Value |
 |-----------|-------|
 | Template | `topology.html` |
-| Sensitive Areas | Canvas 2D rendering, hybrid solver layout integration, FR fallback path, orthographic globe projection, signal arc convergence, PoP label crowding, legend accuracy |
+| Sensitive Areas | Canvas 2D rendering, hybrid solver layout integration, FR fallback path, orthographic globe projection, signal arc convergence, PoP label crowding, legend accuracy, SVG globe with geographical features |
 | Known Issues | Tablet/mobile viewports have residual overlaps (5/4 respectively) due to tight zone bounds — desktop is zero-overlap (Mar 2026) |
-| Resolved | Hybrid constrained layered-stress solver replaces FR as primary layout (v26.34.40, Mar 2026); Signal arcs now target HUB live position (v26.34.40, Mar 2026); Internet Archive node added (v26.34.40); PoP labels show city-only with resolver tag on hover (v26.34.40); globe initial rotation shifted to -58° (v26.34.39) |
+| Resolved | Hybrid constrained layered-stress solver replaces FR as primary layout (v26.34.40, Mar 2026); Signal arcs now target HUB live position (v26.34.40, Mar 2026); Internet Archive node added (v26.34.40); PoP labels show city-only with resolver tag on hover (v26.34.40); globe initial rotation shifted to -58° (v26.34.39); SVG globe replaced canvas-based globe with detailed geographical features (v26.37.30, Mar 2026); Protocol badges redesigned with frosted glass + status indicator rings (v26.37.31, Mar 2026); Web3 node labeling and status representation improved (v26.37.30, Apr 2026); Layout balanced and connection errors fixed (v26.37.31, Apr 2026) |
 
 ### Domain Dossier (`/dossier/:domain`)
 | Attribute | Value |
@@ -164,6 +164,14 @@ Per-page issue tracking for DNS Tool. When fixing one page breaks another, this 
 | Sensitive Areas | Guided wizard flow, triage matrix, port check, IP detection, command preflight |
 | Known Issues | None |
 | Resolved | — |
+
+### DEVONagent Plugin (`/agent/plugin`)
+| Attribute | Value |
+|-----------|-------|
+| Template | `agent_plugin.html` |
+| Sensitive Areas | CSP compliance (all styles in nonce'd `<style>` block — no inline `style=""` attributes), download buttons for `.plist` plugin and `.agentSet` search set, plugin source code block with copy button, DEVONagent/DEVONthink logo images, step-by-step installation instructions, settings reference table, two static directories must stay in sync (`go-server/static/plugins/` and `static/plugins/`) |
+| Known Issues | None |
+| Resolved | Inline `style="font-size: 0.7rem;"` and `style="font-size: .9rem;"` violated CSP `style-src` — replaced with CSS classes `ap-badge-sm` and `ap-list-sm` in nonce'd style block, v26.44.33 (Apr 2026) |
 
 ### Zone File Upload (`/zone`)
 | Attribute | Value |
