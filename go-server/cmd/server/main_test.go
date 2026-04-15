@@ -6,7 +6,6 @@ import (
         "net/http/httptest"
         "os"
         "path/filepath"
-        "strings"
         "testing"
         "time"
 
@@ -265,27 +264,10 @@ func setupImagesRouter(t *testing.T) (*gin.Engine, string) {
                 t.Fatal(err)
         }
 
-        staticDir := tmp
         router := gin.New()
-
-        imagesHandler := func(c *gin.Context) {
-                fp := strings.TrimPrefix(c.Param("filepath"), "/")
-                if fp == "" {
-                        c.Status(http.StatusNotFound)
-                        return
-                }
-                baseDir := filepath.Clean(filepath.Join(staticDir, "images"))
-                candidate := filepath.Clean(filepath.Join(baseDir, fp))
-                rel, err := filepath.Rel(baseDir, candidate)
-                if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
-                        c.Status(http.StatusNotFound)
-                        return
-                }
-                c.Header(headerCacheControl, "public, max-age=86400")
-                c.File(candidate)
-        }
-        router.GET("/images/*filepath", imagesHandler)
-        router.HEAD("/images/*filepath", imagesHandler)
+        handler := newImagesHandler(tmp)
+        router.GET("/images/*filepath", handler)
+        router.HEAD("/images/*filepath", handler)
 
         return router, tmp
 }
