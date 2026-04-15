@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Research Mission Critical — validate and escalate
         if: contains(github.event.issue.labels.*.name, 'triage:research')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const MARKER = '<!-- dns-tool-triage-bot -->';
@@ -122,7 +122,7 @@ jobs:
 
       - name: Cosmetic UX/UI — acknowledge
         if: contains(github.event.issue.labels.*.name, 'triage:ux')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const MARKER = '<!-- dns-tool-triage-bot -->';
@@ -171,7 +171,7 @@ jobs:
 
       - name: Security keyword scanner — catch misrouted vulnerability reports
         if: "!contains(github.event.issue.labels.*.name, 'triage:security-redirect')"
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const MARKER = '<!-- dns-tool-security-scanner -->';
