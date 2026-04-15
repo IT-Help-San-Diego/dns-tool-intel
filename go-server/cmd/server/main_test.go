@@ -2,10 +2,15 @@ package main
 
 import (
         "context"
+        "net/http"
+        "net/http/httptest"
         "os"
         "path/filepath"
+        "strings"
         "testing"
         "time"
+
+        "github.com/gin-gonic/gin"
 )
 
 func TestIsStaticAsset(t *testing.T) {
@@ -241,5 +246,162 @@ func TestFindTemplatesDirGoServer(t *testing.T) {
         got := findTemplatesDir()
         if got != "go-server/templates" {
                 t.Errorf("findTemplatesDir() with go-server/templates = %q, want %q", got, "go-server/templates")
+        }
+}
+
+func setupImagesRouter(t *testing.T) (*gin.Engine, string) {
+        t.Helper()
+        gin.SetMode(gin.TestMode)
+
+        tmp := t.TempDir()
+        imgDir := filepath.Join(tmp, "images")
+        if err := os.MkdirAll(filepath.Join(imgDir, "sub"), 0o755); err != nil {
+                t.Fatal(err)
+        }
+        if err := os.WriteFile(filepath.Join(imgDir, "logo.png"), []byte("PNG"), 0o644); err != nil {
+                t.Fatal(err)
+        }
+        if err := os.WriteFile(filepath.Join(imgDir, "sub", "icon.png"), []byte("ICON"), 0o644); err != nil {
+                t.Fatal(err)
+        }
+
+        staticDir := tmp
+        router := gin.New()
+
+        imagesHandler := func(c *gin.Context) {
+                fp := strings.TrimPrefix(c.Param("filepath"), "/")
+                if fp == "" {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
+                baseDir := filepath.Clean(filepath.Join(staticDir, "images"))
+                candidate := filepath.Clean(filepath.Join(baseDir, fp))
+                rel, err := filepath.Rel(baseDir, candidate)
+                if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
+                c.Header(headerCacheControl, "public, max-age=86400")
+                c.File(candidate)
+        }
+        router.GET("/images/*filepath", imagesHandler)
+        router.HEAD("/images/*filepath", imagesHandler)
+
+        return router, tmp
+}
+
+func TestImagesHandler_ValidPath(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/images/logo.png", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("valid image path: got status %d, want %d", w.Code, http.StatusOK)
+        }
+        if w.Body.String() != "PNG" {
+                t.Errorf("valid image path: got body %q, want %q", w.Body.String(), "PNG")
+        }
+}
+
+func TestImagesHandler_ValidSubdirectory(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/images/sub/icon.png", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("valid subdirectory path: got status %d, want %d", w.Code, http.StatusOK)
+        }
+        if w.Body.String() != "ICON" {
+                t.Errorf("valid subdirectory path: got body %q, want %q", w.Body.String(), "ICON")
+        }
+}
+
+func TestImagesHandler_TraversalBlocked(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        paths := []string{
+                "/images/../../../etc/passwd",
+                "/images/../../etc/passwd",
+                "/images/../secret",
+                "/images/sub/../../secret",
+        }
+        for _, p := range paths {
+                w := httptest.NewRecorder()
+                req, _ := http.NewRequest("GET", p, nil)
+                router.ServeHTTP(w, req)
+                if w.Code != http.StatusNotFound {
+                        t.Errorf("traversal path %q: got status %d, want %d", p, w.Code, http.StatusNotFound)
+                }
+        }
+}
+
+func TestImagesHandler_AbsolutePathBlocked(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/images//etc/passwd", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("absolute path /etc/passwd: got status %d, want %d", w.Code, http.StatusNotFound)
+        }
+}
+
+func TestImagesHandler_EncodedTraversalBlocked(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        paths := []string{
+                "/images/%2e%2e/%2e%2e/etc/passwd",
+                "/images/..%2f..%2fetc/passwd",
+                "/images/%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+                "/images/sub/%2e%2e/%2e%2e/secret",
+        }
+        for _, p := range paths {
+                w := httptest.NewRecorder()
+                req, _ := http.NewRequest("GET", p, nil)
+                router.ServeHTTP(w, req)
+                if w.Code == http.StatusOK {
+                        t.Errorf("encoded traversal path %q: got status %d, want non-200", p, w.Code)
+                }
+        }
+}
+
+func TestImagesHandler_EmptyPath(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/images/", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("empty path: got status %d, want %d", w.Code, http.StatusNotFound)
+        }
+}
+
+func TestImagesHandler_HeadRequest(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("HEAD", "/images/logo.png", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("HEAD valid image: got status %d, want %d", w.Code, http.StatusOK)
+        }
+}
+
+func TestImagesHandler_NonexistentFile(t *testing.T) {
+        router, _ := setupImagesRouter(t)
+
+        w := httptest.NewRecorder()
+        req, _ := http.NewRequest("GET", "/images/does-not-exist.png", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code == http.StatusOK {
+                t.Errorf("nonexistent file: got status %d, want non-200", w.Code)
         }
 }

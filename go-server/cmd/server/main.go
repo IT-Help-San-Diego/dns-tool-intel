@@ -353,13 +353,20 @@ func mountStaticFiles(router *gin.Engine) {
         router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
 
         imagesHandler := func(c *gin.Context) {
-                fp := c.Param("filepath")
-                if fp == "" || strings.Contains(fp, "..") {
+                fp := strings.TrimPrefix(c.Param("filepath"), "/")
+                if fp == "" {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
+                baseDir := filepath.Clean(filepath.Join(staticDir, "images"))
+                candidate := filepath.Clean(filepath.Join(baseDir, fp))
+                rel, err := filepath.Rel(baseDir, candidate)
+                if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
                         c.Status(http.StatusNotFound)
                         return
                 }
                 c.Header(headerCacheControl, "public, max-age=86400")
-                c.File(filepath.Join(staticDir, "images", fp))
+                c.File(candidate)
         }
         router.GET("/images/*filepath", imagesHandler)
         router.HEAD("/images/*filepath", imagesHandler)
