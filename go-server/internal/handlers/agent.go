@@ -187,7 +187,7 @@ func (h *AgentHandler) agentCacheLookup(c *gin.Context, asciiDomain string) (map
         if analysis.Private || analysis.ScanFlag {
                 return nil, 0
         }
-        if analysis.AnalysisSuccess != nil && !*analysis.AnalysisSuccess {
+        if analysis.AnalysisSuccess == nil || !*analysis.AnalysisSuccess {
                 return nil, 0
         }
         if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > agentCacheMaxAge {
