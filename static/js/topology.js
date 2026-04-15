@@ -259,10 +259,10 @@
                 } else {
                     let offsetX = p2.x - (cached._lastDotX || p2.x);
                     let offsetY = p2.y - (cached._lastDotY || p2.y);
-                    idealX = cached.idealX + offsetX;
-                    idealY = cached.idealY + offsetY;
-                    cached.idealX = idealX;
-                    cached.idealY = idealY;
+                    cached.idealX += offsetX;
+                    cached.idealY += offsetY;
+                    cached.curX += offsetX;
+                    cached.curY += offsetY;
                 }
                 cached._lastDotX = p2.x;
                 cached._lastDotY = p2.y;
@@ -432,6 +432,8 @@
                     let pOffY = pp.y - (pCached._lastDotY || pp.y);
                     pCached.idealX += pOffX;
                     pCached.idealY += pOffY;
+                    pCached.curX += pOffX;
+                    pCached.curY += pOffY;
                 }
                 pCached._lastDotX = pp.x;
                 pCached._lastDotY = pp.y;
