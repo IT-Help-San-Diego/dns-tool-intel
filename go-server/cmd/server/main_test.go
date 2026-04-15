@@ -329,11 +329,11 @@ func TestImagesHandler_TraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if strings.Contains(w.Body.String(), "SECRET") {
-                        t.Errorf("traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
+                if w.Code != http.StatusNotFound {
+                        t.Errorf("traversal path %q: got status %d, want %d", p, w.Code, http.StatusNotFound)
                 }
-                if w.Code == http.StatusOK {
-                        t.Errorf("traversal path %q: got status 200, want non-200", p)
+                if strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("traversal path %q: leaked file content outside images dir", p)
                 }
         }
 }
@@ -345,11 +345,11 @@ func TestImagesHandler_AbsolutePathBlocked(t *testing.T) {
         req, _ := http.NewRequest("GET", "/images//etc/passwd", nil)
         router.ServeHTTP(w, req)
 
+        if w.Code != http.StatusNotFound {
+                t.Errorf("absolute path /etc/passwd: got status %d, want %d", w.Code, http.StatusNotFound)
+        }
         if strings.Contains(w.Body.String(), "root:") {
                 t.Errorf("absolute path /etc/passwd: leaked system file content")
-        }
-        if w.Code == http.StatusOK {
-                t.Errorf("absolute path: got status 200, want non-200")
         }
 }
 
@@ -369,11 +369,11 @@ func TestImagesHandler_EncodedTraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if strings.Contains(w.Body.String(), "SECRET") {
-                        t.Errorf("encoded traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
+                if w.Code != http.StatusNotFound {
+                        t.Errorf("encoded traversal path %q: got status %d, want %d", p, w.Code, http.StatusNotFound)
                 }
-                if w.Code == http.StatusOK {
-                        t.Errorf("encoded traversal path %q: got status 200, want non-200", p)
+                if strings.Contains(w.Body.String(), "SECRET") {
+                        t.Errorf("encoded traversal path %q: leaked file content outside images dir", p)
                 }
         }
 }
