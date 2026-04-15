@@ -353,6 +353,19 @@
                 <div class="d-flex align-items-start mb-3">
                     <span class="step-number">3</span>
                     <div>
+                        <strong>Configure the search set</strong>
+                        <p class="text-muted mb-0 mt-1">Open the search set editor (<strong>File &rarr; Edit Search Sets</strong>), select <strong>DNS Tool</strong>, and verify these settings:</p>
+                        <ul class="text-muted mt-2 mb-0" style="font-size: .9rem;">
+                            <li><strong>General tab:</strong> Check <em>Express Search</em>. Under Filter, uncheck both <em>Similar Pages</em> and <em>Archived Pages</em>.</li>
+                            <li><strong>Sites tab:</strong> Should be empty &mdash; no URLs listed.</li>
+                            <li><strong>Plugins tab:</strong> Only <em>DNS Tool</em> should be checked. Uncheck all other plugins (Web, Bing, DuckDuckGo, etc.).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start mb-3">
+                    <span class="step-number">4</span>
+                    <div>
                         <strong>Search any domain</strong>
                         <p class="text-muted mb-0 mt-1">Select <strong>DNS Tool</strong> from the Search Sets dropdown, type a domain name, and press Enter. DEVONagent will return all 15 intelligence artifacts directly from the plugin &mdash; no external crawling.</p>
                     </div>
@@ -363,7 +376,15 @@
                 </div>
 
                 <div class="format-note">
-                    <strong>Plugin vs Search Set &mdash; what&rsquo;s the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. You install it by placing the file in the Plugins folder (it must stay there). The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: no follow-link crawling, skip crawling, accept all file types, and auto-archive results. You install it by double-clicking &mdash; DEVONagent imports it internally. You need both for the best experience, but the plugin alone works for quick searches.
+                    <strong>Why Express Search?</strong> DNS Tool returns curated intelligence artifacts &mdash; every result is intentionally selected. DEVONagent&rsquo;s Agent mode downloads and filters results, which can incorrectly discard our pre-curated artifacts (especially if <em>Archived Pages</em> filtering hides results from previous searches). Express Search accepts all results from the plugin without re-filtering, which is the correct behavior for a curated source. Results are still archived and sent to DEVONthink.
+                </div>
+
+                <div class="format-note">
+                    <strong>Two ways to search.</strong> You can use DNS Tool from the <strong>Search window</strong> (with the search set and Express Search enabled) or from the <strong>Menu Extra</strong> (the menu bar icon). In the Menu Extra, select DNS Tool as the plugin and search directly &mdash; both methods return all 15 artifacts.
+                </div>
+
+                <div class="format-note">
+                    <strong>Plugin vs Search Set &mdash; what&rsquo;s the difference?</strong> The <strong>plugin</strong> (<code>.plist</code>) is the search engine connector &mdash; it tells DEVONagent how to query DNS Tool. You install it by placing the file in the Plugins folder (it must stay there). The <strong>search set</strong> (<code>.agentSet</code>) is a saved configuration that wraps the plugin with optimized settings: no follow-link crawling, skip crawling, accept all file types, and auto-archive results. You install it by double-clicking &mdash; DEVONagent imports it internally. You need both for the best experience, but the plugin alone works for quick searches via the Menu Extra.
                 </div>
 
                 <h2 class="h4 mt-5 mb-3">Search Set Settings</h2>
