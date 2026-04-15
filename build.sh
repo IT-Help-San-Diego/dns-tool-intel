@@ -29,6 +29,7 @@ LDFLAGS="-s -w \
 
 export GOCACHE=/tmp/go-build-cache
 export GOMODCACHE=/tmp/go-mod-cache
+rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
