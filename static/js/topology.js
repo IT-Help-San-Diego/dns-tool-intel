@@ -257,8 +257,8 @@
                     _resolverLabelCache[cacheKey] = { idealX: idealX, idealY: idealY, curX: cached ? cached.curX : idealX, curY: cached ? cached.curY : idealY };
                     cached = _resolverLabelCache[cacheKey];
                 } else {
-                    let offsetX = p2.x - (cached._lastDotX || p2.x);
-                    let offsetY = p2.y - (cached._lastDotY || p2.y);
+                    let offsetX = p2.x - cached._lastDotX;
+                    let offsetY = p2.y - cached._lastDotY;
                     cached.idealX += offsetX;
                     cached.idealY += offsetY;
                     cached.curX += offsetX;
@@ -428,8 +428,8 @@
                     _probeLabelCache[pCacheKey] = { idealX: pIdealPos.x, idealY: pIdealPos.y, curX: pCached ? pCached.curX : pIdealPos.x, curY: pCached ? pCached.curY : pIdealPos.y, _lastDotX: pp.x, _lastDotY: pp.y };
                     pCached = _probeLabelCache[pCacheKey];
                 } else {
-                    let pOffX = pp.x - (pCached._lastDotX || pp.x);
-                    let pOffY = pp.y - (pCached._lastDotY || pp.y);
+                    let pOffX = pp.x - pCached._lastDotX;
+                    let pOffY = pp.y - pCached._lastDotY;
                     pCached.idealX += pOffX;
                     pCached.idealY += pOffY;
                     pCached.curX += pOffX;
