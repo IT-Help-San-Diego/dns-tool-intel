@@ -245,6 +245,8 @@
 
         .ap-hint-text { font-size: 0.82rem; }
         .ap-icon-inline { border-radius: 3px; vertical-align: text-bottom; margin-right: 0.3rem; }
+        .ap-badge-sm { font-size: 0.7rem; }
+        .ap-list-sm { font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -324,7 +326,7 @@
                     </div>
                 </div>
 
-                <h3 class="h5 mt-5 mb-3">Step 2 &mdash; Install the Search Set <span class="badge bg-secondary bg-opacity-25 text-secondary ms-2" style="font-size: 0.7rem;">Recommended</span></h3>
+                <h3 class="h5 mt-5 mb-3">Step 2 &mdash; Install the Search Set <span class="badge bg-secondary bg-opacity-25 text-secondary ms-2 ap-badge-sm">Recommended</span></h3>
                 <p class="text-muted">A search set is a saved configuration that bundles the plugin with optimal settings &mdash; no follow-link crawling (the plugin already returns all results), auto-archive, and DEVONthink integration. You can use the plugin on its own, but the search set gives you the best out-of-box experience.</p>
 
                 <div class="d-flex flex-wrap gap-2 mb-4">
@@ -355,7 +357,7 @@
                     <div>
                         <strong>Configure the search set</strong>
                         <p class="text-muted mb-0 mt-1">Open the search set editor (<strong>File &rarr; Edit Search Sets</strong>), select <strong>DNS Intelligence</strong>, and verify these settings:</p>
-                        <ul class="text-muted mt-2 mb-0" style="font-size: .9rem;">
+                        <ul class="text-muted mt-2 mb-0 ap-list-sm">
                             <li><strong>General tab:</strong> Under Filter, uncheck both <em>Similar Pages</em> and <em>Archived Pages</em>.</li>
                             <li><strong>Sites tab:</strong> Should be empty &mdash; no URLs listed.</li>
                             <li><strong>Plugins tab:</strong> Only <em>DNS Tool</em> should be checked. Uncheck all other plugins (Web, Bing, DuckDuckGo, etc.).</li>
