@@ -84,7 +84,8 @@
 
     function projectPt(gs, lat, lon) {
         var phi = lat * DEG;
-        var lam = (lon + gs.rotLon) * DEG;
+        var snapLon = Math.round(gs.rotLon * 2) / 2;
+        var lam = (lon + snapLon) * DEG;
         var cosPhi = Math.cos(phi);
         return {
             x: gs.cx + gs.R * cosPhi * Math.sin(lam),

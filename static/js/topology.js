@@ -476,7 +476,8 @@
             ctx.textBaseline = 'top';
             ctx.fillStyle = 'rgba(255,255,255,0.2)';
             ctx.fillText('Orthographic Projection', globe.cx, globe.cy + globe.R + 8 * SCL);
-            let degLabel = ((-globe.rotLon % 360) + 360) % 360;
+            let snapLon = Math.round(globe.rotLon * 2) / 2;
+            let degLabel = ((-snapLon % 360) + 360) % 360;
             if (degLabel > 180) degLabel -= 360;
             ctx.fillText(degLabel.toFixed(0) + '\u00b0 longitude center', globe.cx, globe.cy + globe.R + 20 * SCL);
         }
