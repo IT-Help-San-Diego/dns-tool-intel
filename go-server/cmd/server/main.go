@@ -352,28 +352,14 @@ func mountStaticFiles(router *gin.Engine) {
         router.GET("/apple-touch-icon-precomposed.png", appleTouchHandler)
         router.HEAD("/apple-touch-icon-precomposed.png", appleTouchHandler)
 
-        imagesHandler := newImagesHandler(staticDir)
-        router.GET("/images/*filepath", imagesHandler)
-        router.HEAD("/images/*filepath", imagesHandler)
-}
-
-func newImagesHandler(staticDir string) gin.HandlerFunc {
-        return func(c *gin.Context) {
-                fp := strings.TrimPrefix(c.Param("filepath"), "/")
-                if fp == "" {
-                        c.Status(http.StatusNotFound)
-                        return
-                }
-                baseDir := filepath.Clean(filepath.Join(staticDir, "images"))
-                candidate := filepath.Clean(filepath.Join(baseDir, fp))
-                rel, err := filepath.Rel(baseDir, candidate)
-                if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
-                        c.Status(http.StatusNotFound)
-                        return
-                }
+        imagesFS := http.Dir(filepath.Join(staticDir, "images"))
+        imagesFileServer := http.StripPrefix("/images", http.FileServer(imagesFS))
+        serveImages := func(c *gin.Context) {
                 c.Header(headerCacheControl, "public, max-age=86400")
-                c.File(candidate)
+                imagesFileServer.ServeHTTP(c.Writer, c.Request)
         }
+        router.GET("/images/*filepath", serveImages)
+        router.HEAD("/images/*filepath", serveImages)
 }
 
 func initAnalyzer(cfg *config.Config, database *db.Database) (*analyzer.Analyzer, analyzer.CTStore) {
