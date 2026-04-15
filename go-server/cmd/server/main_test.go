@@ -329,8 +329,11 @@ func TestImagesHandler_TraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "SECRET") {
+                if strings.Contains(w.Body.String(), "SECRET") {
                         t.Errorf("traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
+                }
+                if w.Code == http.StatusOK {
+                        t.Errorf("traversal path %q: got status 200, want non-200", p)
                 }
         }
 }
@@ -342,8 +345,11 @@ func TestImagesHandler_AbsolutePathBlocked(t *testing.T) {
         req, _ := http.NewRequest("GET", "/images//etc/passwd", nil)
         router.ServeHTTP(w, req)
 
-        if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "root:") {
+        if strings.Contains(w.Body.String(), "root:") {
                 t.Errorf("absolute path /etc/passwd: leaked system file content")
+        }
+        if w.Code == http.StatusOK {
+                t.Errorf("absolute path: got status 200, want non-200")
         }
 }
 
@@ -363,8 +369,11 @@ func TestImagesHandler_EncodedTraversalBlocked(t *testing.T) {
                 w := httptest.NewRecorder()
                 req, _ := http.NewRequest("GET", p, nil)
                 router.ServeHTTP(w, req)
-                if w.Code == http.StatusOK && strings.Contains(w.Body.String(), "SECRET") {
+                if strings.Contains(w.Body.String(), "SECRET") {
                         t.Errorf("encoded traversal path %q: leaked file content outside images dir (status %d)", p, w.Code)
+                }
+                if w.Code == http.StatusOK {
+                        t.Errorf("encoded traversal path %q: got status 200, want non-200", p)
                 }
         }
 }
