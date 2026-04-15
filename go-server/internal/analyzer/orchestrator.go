@@ -477,18 +477,31 @@ func enrichMisplacedDMARC(basic, resultsMap map[string]any) {
 }
 
 func (a *Analyzer) checkDomainExists(ctx context.Context, domain string) (bool, string, *string) {
+        if found, status, msg := a.probeExistence(ctx, domain); found {
+                return found, status, msg
+        }
+
+        retryCtx, cancel := context.WithTimeout(ctx, 12*time.Second)
+        defer cancel()
+        slog.Debug("Domain existence retry", "domain", domain)
+        if found, status, msg := a.probeExistence(retryCtx, domain); found {
+                return found, status, msg
+        }
+
+        msg := "Domain is not delegated or has no DNS records. This may be an unused subdomain or unregistered domain."
+        return false, "undelegated", &msg
+}
+
+func (a *Analyzer) probeExistence(ctx context.Context, domain string) (bool, string, *string) {
         for _, rtype := range []string{"A", "TXT", "MX"} {
                 if len(a.DNS.QueryDNS(ctx, rtype, domain)) > 0 {
                         return true, "active", nil
                 }
         }
-
         if len(a.DNS.QueryDNS(ctx, "NS", domain)) > 0 {
                 return true, "active", nil
         }
-
-        msg := "Domain is not delegated or has no DNS records. This may be an unused subdomain or unregistered domain."
-        return false, "undelegated", &msg
+        return false, "", nil
 }
 
 func timedTask(ch chan<- namedResult, key string, analysisStart time.Time, fn func() any) func() {

@@ -127,7 +127,7 @@ func New(opts ...Option) *Client {
                         Timeout: 10 * time.Second,
                         Transport: &http.Transport{
                                 MaxIdleConns:        20,
-                                IdleConnTimeout:     30 * time.Second,
+                                IdleConnTimeout:     120 * time.Second,
                                 DisableKeepAlives:   false,
                                 MaxIdleConnsPerHost: 5,
                         },
@@ -142,6 +142,28 @@ func New(opts ...Option) *Client {
                 o(c)
         }
         return c
+}
+
+func (c *Client) Warmup() {
+        ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+        defer cancel()
+        req, err := http.NewRequestWithContext(ctx, "GET", dohGoogleURL, nil)
+        if err != nil {
+                return
+        }
+        q := url.Values{}
+        q.Set("name", "example.com")
+        q.Set("type", "A")
+        req.URL.RawQuery = q.Encode()
+        req.Header.Set("Accept", "application/dns-json")
+        req.Header.Set("User-Agent", UserAgent)
+        resp, err := c.httpClient.Do(req)
+        if err != nil {
+                slog.Debug("DoH warmup failed", mapKeyError, err)
+                return
+        }
+        safeClose(resp.Body, "doh-warmup")
+        slog.Info("DoH connection pool warmed up")
 }
 
 func (c *Client) cacheGet(key string) ([]string, bool) {

@@ -107,6 +107,10 @@ func New(opts ...Option) *Analyzer {
                 o(a)
         }
 
+        if dc, ok := a.DNS.(*dnsclient.Client); ok {
+                go dc.Warmup()
+        }
+
         if !a.skipIANAFetch {
                 go a.fetchIANARDAPData()
         }
