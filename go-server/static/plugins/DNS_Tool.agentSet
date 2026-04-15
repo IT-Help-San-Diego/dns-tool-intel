@@ -35,13 +35,19 @@
 				<string>dnstool.it-help.tech</string>
 			</array>
 			<key>expressSearch</key>
-			<false/>
+			<true/>
 			<key>filterDuplicates</key>
+			<false/>
+			<key>filterSimilarPages</key>
+			<false/>
+			<key>filterArchivedPages</key>
 			<false/>
 			<key>followLevels</key>
 			<integer>0</integer>
 			<key>followMode</key>
 			<integer>0</integer>
+			<key>ignoreDiacritics</key>
+			<true/>
 			<key>language</key>
 			<string>EN</string>
 			<key>skipCrawling</key>
