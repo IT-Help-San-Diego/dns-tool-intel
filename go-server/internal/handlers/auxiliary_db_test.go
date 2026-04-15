@@ -979,3 +979,27 @@ func TestAgentCacheLookup_SkipExpired(t *testing.T) {
                 t.Error("expected nil for expired analysis")
         }
 }
+
+func TestAgentCacheLookup_SkipNilSuccess(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
+        c.Request = httptest.NewRequest("GET", "/agent/search?q=incomplete.com", nil)
+
+        mock := &mockLookupStore{
+                GetRecentAnalysisByDomainFn: func(_ context.Context, domain string) (dbq.DomainAnalysis, error) {
+                        return dbq.DomainAnalysis{
+                                ID:              102,
+                                Domain:          domain,
+                                FullResults:     json.RawMessage(`{"domain":"incomplete.com"}`),
+                                AnalysisSuccess: nil,
+                                CreatedAt:       pgtype.Timestamp{Time: time.Now().Add(-5 * time.Minute), Valid: true},
+                        }, nil
+                },
+        }
+        h := &AgentHandler{lookupStore: mock}
+        results, _ := h.agentCacheLookup(c, "incomplete.com")
+        if results != nil {
+                t.Error("expected nil for nil AnalysisSuccess (legacy/incomplete row)")
+        }
+}
