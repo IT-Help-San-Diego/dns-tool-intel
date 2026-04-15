@@ -136,6 +136,14 @@
         let allLayoutNodes = [];
         let popHitAreas = [];
 
+        let _resolverLabelCache = {};
+        let _probeLabelCache = {};
+        let _prevVisibleSet = '';
+        let _prevProbeVisSet = '';
+        let _labelFrameCount = 0;
+        let LABEL_LERP = 0.12;
+        let RELAYOUT_INTERVAL = 120;
+
         function drawResolverMarkers(returnBoxes) {
             let visiblePops = [];
             for (let i = 0; i < RESOLVER_POPS.length; i++) {
@@ -147,6 +155,13 @@
             }
 
             visiblePops.sort(function(a, b) { return a.p.depth - b.p.depth; });
+
+            _labelFrameCount++;
+            let visIds = visiblePops.map(function(v) { return v.idx; }).slice().sort(function(a,b){ return a-b; });
+            let visKey = visIds.join(',');
+            let periodicRelayout = (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+            let visChanged = visKey !== _prevVisibleSet || periodicRelayout;
+            _prevVisibleSet = visKey;
 
             let placedBoxes = [];
             allLayoutNodes.forEach(function(nd) {
@@ -187,68 +202,75 @@
                 let tagW = tw + 18 * SCL;
                 let tagH = Math.round(20 * SCL + 2);
 
-                let baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
-                let bestX = null, bestY = null, bestScore = Infinity;
-                let candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
+                let cacheKey = 'r' + vp.idx;
+                let cached = _resolverLabelCache[cacheKey];
+                let idealX, idealY;
 
-                let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
-                for (let di = 0; di < candidateDists.length; di++) {
-                for (let ci = 0; ci < candidateAngles.length; ci++) {
-                    let ca = baseAngle + candidateAngles[ci] * DEG;
-                    let dist = candidateDists[di];
-                    let cx = p2.x + Math.cos(ca) * dist;
-                    let cy = p2.y + Math.sin(ca) * dist;
-
-                    if (Math.cos(ca) < 0) cx -= tagW;
-
-                    cx = Math.max(Math.max(4, maxLabelLeft), Math.min(cx, maxLabelRight - tagW));
-                    cy = Math.max(Math.max(4, maxLabelTop), Math.min(cy, maxLabelBottom - tagH));
-
-                    let hasCollision = false;
-                    for (let pi = 0; pi < placedBoxes.length; pi++) {
-                        let pb = placedBoxes[pi];
-                        if (cx < pb.x + pb.w + 3 && cx + tagW > pb.x - 3 &&
-                            cy < pb.y + pb.h + 3 && cy + tagH > pb.y - 3) {
-                            hasCollision = true;
-                            break;
-                        }
-                    }
-
-                    let distFromDot = Math.sqrt((cx + tagW / 2 - p2.x) * (cx + tagW / 2 - p2.x) + (cy + tagH / 2 - p2.y) * (cy + tagH / 2 - p2.y));
-                    let score = (hasCollision ? 10000 : 0) + distFromDot;
-
-                    if (score < bestScore) {
-                        bestScore = score;
-                        bestX = cx;
-                        bestY = cy;
-                    }
-                }
-                }
-
-                if (bestScore >= 10000) {
-                    for (let ri = 0; ri < 8; ri++) {
-                        let shifted = false;
-                        for (let pi2 = 0; pi2 < placedBoxes.length; pi2++) {
-                            let pb2 = placedBoxes[pi2];
-                            let ovX = Math.min(bestX + tagW, pb2.x + pb2.w) - Math.max(bestX, pb2.x);
-                            let ovY = Math.min(bestY + tagH, pb2.y + pb2.h) - Math.max(bestY, pb2.y);
-                            if (ovX > 0 && ovY > 0) {
-                                if (ovY < ovX) {
-                                    bestY += (bestY < pb2.y ? -(ovY + 4) : (ovY + 4));
-                                } else {
-                                    bestX += (bestX < pb2.x ? -(ovX + 4) : (ovX + 4));
-                                }
-                                shifted = true;
+                if (!cached || visChanged) {
+                    let baseAngle = Math.atan2(p2.y - globe.cy, p2.x - globe.cx);
+                    let bestX2 = null, bestY2 = null, bestScore = Infinity;
+                    let candidateAngles = [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90, 105, -105, 120, -120, 135, -135, 150, -150, 165, -165, 180];
+                    let candidateDists = [globe.R * 0.15 + labelGap, globe.R * 0.25 + labelGap, globe.R * 0.35 + labelGap];
+                    for (let di = 0; di < candidateDists.length; di++) {
+                    for (let ci = 0; ci < candidateAngles.length; ci++) {
+                        let ca = baseAngle + candidateAngles[ci] * DEG;
+                        let dist = candidateDists[di];
+                        let cx2 = p2.x + Math.cos(ca) * dist;
+                        let cy2 = p2.y + Math.sin(ca) * dist;
+                        if (Math.cos(ca) < 0) cx2 -= tagW;
+                        cx2 = Math.max(Math.max(4, maxLabelLeft), Math.min(cx2, maxLabelRight - tagW));
+                        cy2 = Math.max(Math.max(4, maxLabelTop), Math.min(cy2, maxLabelBottom - tagH));
+                        let hasCollision = false;
+                        for (let pi = 0; pi < placedBoxes.length; pi++) {
+                            let pb = placedBoxes[pi];
+                            if (cx2 < pb.x + pb.w + 3 && cx2 + tagW > pb.x - 3 &&
+                                cy2 < pb.y + pb.h + 3 && cy2 + tagH > pb.y - 3) {
+                                hasCollision = true;
+                                break;
                             }
                         }
-                        if (!shifted) break;
+                        let distFromDot = Math.sqrt((cx2 + tagW / 2 - p2.x) * (cx2 + tagW / 2 - p2.x) + (cy2 + tagH / 2 - p2.y) * (cy2 + tagH / 2 - p2.y));
+                        let score = (hasCollision ? 10000 : 0) + distFromDot;
+                        if (score < bestScore) { bestScore = score; bestX2 = cx2; bestY2 = cy2; }
                     }
-                    bestX = Math.max(4, Math.min(bestX, maxLabelRight - tagW));
-                    bestY = Math.max(4, Math.min(bestY, maxLabelBottom - tagH));
+                    }
+                    if (bestScore >= 10000) {
+                        for (let ri = 0; ri < 8; ri++) {
+                            let shifted = false;
+                            for (let pi2 = 0; pi2 < placedBoxes.length; pi2++) {
+                                let pb2 = placedBoxes[pi2];
+                                let ovX = Math.min(bestX2 + tagW, pb2.x + pb2.w) - Math.max(bestX2, pb2.x);
+                                let ovY = Math.min(bestY2 + tagH, pb2.y + pb2.h) - Math.max(bestY2, pb2.y);
+                                if (ovX > 0 && ovY > 0) {
+                                    if (ovY < ovX) { bestY2 += (bestY2 < pb2.y ? -(ovY + 4) : (ovY + 4)); }
+                                    else { bestX2 += (bestX2 < pb2.x ? -(ovX + 4) : (ovX + 4)); }
+                                    shifted = true;
+                                }
+                            }
+                            if (!shifted) break;
+                        }
+                        bestX2 = Math.max(4, Math.min(bestX2, maxLabelRight - tagW));
+                        bestY2 = Math.max(4, Math.min(bestY2, maxLabelBottom - tagH));
+                    }
+                    idealX = bestX2;
+                    idealY = bestY2;
+                    _resolverLabelCache[cacheKey] = { idealX: idealX, idealY: idealY, curX: cached ? cached.curX : idealX, curY: cached ? cached.curY : idealY };
+                    cached = _resolverLabelCache[cacheKey];
+                } else {
+                    let offsetX = p2.x - (cached._lastDotX || p2.x);
+                    let offsetY = p2.y - (cached._lastDotY || p2.y);
+                    idealX = cached.idealX + offsetX;
+                    idealY = cached.idealY + offsetY;
+                    cached.idealX = idealX;
+                    cached.idealY = idealY;
                 }
+                cached._lastDotX = p2.x;
+                cached._lastDotY = p2.y;
+                cached.curX += (cached.idealX - cached.curX) * LABEL_LERP;
+                cached.curY += (cached.idealY - cached.curY) * LABEL_LERP;
 
-                let rawTagX = bestX;
-                let rawTagY = bestY;
+                let rawTagX = cached.curX;
+                let rawTagY = cached.curY;
                 placedBoxes.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH });
                 popHitAreas.push({ x: rawTagX, y: rawTagY, w: tagW, h: tagH, dotX: p2.x, dotY: p2.y, idx: vp.idx });
 
@@ -353,6 +375,16 @@
             let pCandidateAngles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
             let pCandidateDists = [globe.R * 0.18 + labelGap, globe.R * 0.28 + labelGap, globe.R * 0.38 + labelGap];
 
+            let probeVisIds = [];
+            for (let pvi = 0; pvi < OWN_PROBES.length; pvi++) {
+                let pvp = projectPt(OWN_PROBES[pvi].lat, OWN_PROBES[pvi].lon);
+                if (pvp.vis) probeVisIds.push(pvi);
+            }
+            let probeVisKey = probeVisIds.join(',');
+            let probeVisChanged = probeVisKey !== _prevProbeVisSet;
+            _prevProbeVisSet = probeVisKey;
+            let visChanged = probeVisChanged || (_labelFrameCount % RELAYOUT_INTERVAL === 0);
+
             for (let pi = 0; pi < OWN_PROBES.length; pi++) {
                 let probe = OWN_PROBES[pi];
                 let pp = projectPt(probe.lat, probe.lon);
@@ -387,7 +419,26 @@
                 let pTagW = ptw + 18 * SCL;
                 let pTagH = Math.round(20 * SCL + 2);
 
-                let pPos = GC.placeLabel({ dotX: pp.x, dotY: pp.y, tagW: pTagW, tagH: pTagH, globeCx: globe.cx, globeCy: globe.cy, globeR: globe.R, placedBoxes: placedBoxes, labelGap: labelGap, labelBand: labelBand, candidateAngles: pCandidateAngles, candidateDists: pCandidateDists });
+                let pCacheKey = 'p' + pi;
+                let pCached = _probeLabelCache[pCacheKey];
+
+                let pIdealPos;
+                if (!pCached || visChanged) {
+                    pIdealPos = GC.placeLabel({ dotX: pp.x, dotY: pp.y, tagW: pTagW, tagH: pTagH, globeCx: globe.cx, globeCy: globe.cy, globeR: globe.R, placedBoxes: placedBoxes, labelGap: labelGap, labelBand: labelBand, candidateAngles: pCandidateAngles, candidateDists: pCandidateDists });
+                    _probeLabelCache[pCacheKey] = { idealX: pIdealPos.x, idealY: pIdealPos.y, curX: pCached ? pCached.curX : pIdealPos.x, curY: pCached ? pCached.curY : pIdealPos.y, _lastDotX: pp.x, _lastDotY: pp.y };
+                    pCached = _probeLabelCache[pCacheKey];
+                } else {
+                    let pOffX = pp.x - (pCached._lastDotX || pp.x);
+                    let pOffY = pp.y - (pCached._lastDotY || pp.y);
+                    pCached.idealX += pOffX;
+                    pCached.idealY += pOffY;
+                }
+                pCached._lastDotX = pp.x;
+                pCached._lastDotY = pp.y;
+                pCached.curX += (pCached.idealX - pCached.curX) * LABEL_LERP;
+                pCached.curY += (pCached.idealY - pCached.curY) * LABEL_LERP;
+
+                let pPos = { x: pCached.curX, y: pCached.curY };
                 placedBoxes.push({ x: pPos.x, y: pPos.y, w: pTagW, h: pTagH });
 
                 let pLineEndX = (pPos.x + pTagW / 2 > pp.x) ? pPos.x : pPos.x + pTagW;
