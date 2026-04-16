@@ -937,20 +937,42 @@ func TestGoldenRuleStubBoundaryFunctionsRegistered(t *testing.T) {
                 t.Fatalf("failed to walk analyzer directory: %v", err)
         }
 
-        intelFiles := []string{"providers.go", "providers_intel.go"}
+        // Boundary contract:
+        //   providers.go is REQUIRED (always present in both OSS and intel builds).
+        //   At least ONE of {providers_oss.go, providers_intel.go} must be present —
+        //   they are the build-tag-gated stub/intel pair. providers_oss.go ships in
+        //   the public repo; providers_intel.go is gitignored (intel build only).
+        // CI sees only providers_oss.go; local dev may see both. Either satisfies the boundary.
+        requiredFile := "providers.go"
+        requiredData, err := os.ReadFile(requiredFile)
+        if err != nil {
+                t.Fatalf("REQUIRED boundary file %s missing or unreadable: %v", requiredFile, err)
+        }
+
         var combinedContent strings.Builder
-        for _, sf := range intelFiles {
-                data, err := os.ReadFile(sf)
+        combinedContent.Write(requiredData)
+        combinedContent.WriteByte('\n')
+
+        candidateFiles := []string{"providers_oss.go", "providers_intel.go"}
+        candidatesPresent := 0
+        for _, cf := range candidateFiles {
+                data, err := os.ReadFile(cf)
                 if err != nil {
-                        continue
+                        continue // intel/oss is build-tag-gated; absence of one is expected
                 }
+                candidatesPresent++
                 combinedContent.Write(data)
                 combinedContent.WriteByte('\n')
         }
+        if candidatesPresent == 0 {
+                t.Fatalf("boundary contract violated: NEITHER %v present alongside %s — at least one stub/intel file is required",
+                        candidateFiles, requiredFile)
+        }
+
         content := combinedContent.String()
         for _, fn := range knownBoundaryFunctions {
                 if !strings.Contains(content, fn) {
-                        t.Errorf("providers boundary missing function %s — must define all intelligence boundary functions", fn)
+                        t.Errorf("providers boundary missing function %s — must be defined in providers.go or one of %v", fn, candidateFiles)
                 }
         }
 }
