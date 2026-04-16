@@ -1,6 +1,6 @@
 //go:build coverage
 
-package handlers
+package agentpkg
 
 import (
         "strings"
@@ -307,7 +307,7 @@ func TestBuildAgentHTML_Produces_HTML(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":    "warning",
@@ -349,7 +349,7 @@ func TestBuildAgentHTML_NoAnalysisID(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":    "success",
@@ -371,7 +371,7 @@ func TestBuildAgentJSON_Complete(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":    "warning",
@@ -437,7 +437,7 @@ func TestBuildAgentJSON_NilSubsections(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":    "success",
@@ -459,7 +459,7 @@ func TestBuildAgentJSON_BimiCaaPresent(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":    "success",
@@ -516,7 +516,7 @@ func TestBuildAgentJSON_DmarcPolicyEmpty(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "dmarc_analysis": map[string]any{"status": "pass", "policy": ""},
@@ -536,7 +536,7 @@ func TestBuildAgentHTML_WithBimiAndCAA(t *testing.T) {
                 AppVersion: "26.40.19",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
 
         results := map[string]any{
                 "risk_level":       "success",

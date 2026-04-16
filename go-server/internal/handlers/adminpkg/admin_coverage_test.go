@@ -1,6 +1,6 @@
 //go:build coverage
 
-package handlers
+package adminpkg
 
 import (
         "context"
@@ -62,7 +62,7 @@ func TestDefaultCmdRunner_Echo(t *testing.T) {
 
 func TestNewAdminHandler_Coverage(t *testing.T) {
         bpFunc := func() int64 { return 42 }
-        h := NewAdminHandler(nil, nil, bpFunc)
+        h := NewAdminHandler(nil, nil, nil, bpFunc)
         if h == nil {
                 t.Fatal("expected handler")
         }
@@ -90,3 +90,15 @@ func TestCmdRunResult_FieldAccess(t *testing.T) {
         }
 }
 
+
+func TestOpsTaskList_CB4(t *testing.T) {
+	tasks := opsTaskList()
+	if len(tasks) == 0 {
+		t.Fatal("opsTaskList should return at least one task")
+	}
+	for _, task := range tasks {
+		if task.ID == "" || task.Label == "" {
+			t.Errorf("task missing ID or Label: %+v", task)
+		}
+	}
+}

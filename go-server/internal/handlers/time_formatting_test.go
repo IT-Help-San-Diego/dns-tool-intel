@@ -456,19 +456,6 @@ func TestBuildCountryStat_CB4(t *testing.T) {
                 }
         })
 }
-
-func TestOpsTaskList_CB4(t *testing.T) {
-        tasks := opsTaskList()
-        if len(tasks) == 0 {
-                t.Fatal("opsTaskList should return at least one task")
-        }
-        for _, task := range tasks {
-                if task.ID == "" || task.Label == "" {
-                        t.Errorf("task missing ID or Label: %+v", task)
-                }
-        }
-}
-
 func TestNewBrandColorsHandler_CB4(t *testing.T) {
         cfg := &config.Config{AppVersion: "test"}
         h := NewBrandColorsHandler(cfg)

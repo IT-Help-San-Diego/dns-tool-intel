@@ -1,6 +1,6 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc.
 // Licensed under BUSL-1.1 — See LICENSE for terms.
-package handlers
+package agentpkg
 
 import (
         "fmt"
@@ -21,7 +21,7 @@ func setupAgentRouter() (*gin.Engine, *AgentHandler) {
                 AppVersion: "26.38.39",
                 BaseURL:    "https://dnstool.it-help.tech",
         }
-        h := NewAgentHandler(cfg, nil)
+        h := NewAgentHandler(cfg, nil, nil)
         return r, h
 }
 
