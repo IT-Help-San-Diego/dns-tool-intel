@@ -23,6 +23,30 @@ func isConstantDef(rel, trimmed string) bool {
 		strings.Contains(trimmed, "= ")
 }
 
+var icd203TemplateFiles = map[string]bool{
+	"templates/admin.html":             true,
+	"templates/agent_plugin.html":      true,
+	"templates/analysis_crossref.html": true,
+	"templates/approach.html":          true,
+	"templates/architecture.html":      true,
+	"templates/confidence.html":        true,
+	"templates/ede.html":               true,
+	"templates/index.html":             true,
+	"templates/publications.html":      true,
+	"templates/reference_library.html": true,
+	"templates/results.html":           true,
+	"templates/stats.html":             true,
+}
+
+var confidenceScoringTemplateFiles = map[string]bool{
+	"templates/agent_plugin.html":      true,
+	"templates/approach.html":          true,
+	"templates/confidence.html":        true,
+	"templates/manifesto.html":         true,
+	"templates/reference_library.html": true,
+	"templates/stats.html":             true,
+}
+
 var forbiddenPhrases = []forbiddenEntry{
 	{
 		phrase: "geometric-mean",
@@ -40,6 +64,9 @@ var forbiddenPhrases = []forbiddenEntry{
 		phrase: "ICD 203",
 		allowFunc: func(rel, trimmed string) bool {
 			if isConstantDef(rel, trimmed) {
+				return true
+			}
+			if icd203TemplateFiles[rel] {
 				return true
 			}
 			if rel == "internal/handlers/analysis.go" &&
@@ -78,6 +105,9 @@ var forbiddenPhrases = []forbiddenEntry{
 			if isConstantDef(rel, trimmed) {
 				return true
 			}
+			if confidenceScoringTemplateFiles[rel] {
+				return true
+			}
 			if rel == "internal/icae/calibration.go" &&
 				strings.HasPrefix(trimmed, "//") &&
 				strings.Contains(trimmed, "Calibration Validation") {
@@ -104,7 +134,12 @@ func TestNoHardcodedMethodologyStrings(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+		if info.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") &&
+			!strings.HasSuffix(path, ".html") &&
+			!strings.HasSuffix(path, ".tmpl") {
 			return nil
 		}
 
