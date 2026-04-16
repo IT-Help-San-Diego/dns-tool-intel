@@ -52,6 +52,9 @@ const (
         mapKeyWarning        = "warning"
         strAnalysisNotFound  = "Analysis not found"
         strUtc               = "2006-01-02 15:04:05 UTC"
+        // Sonar S1192: deduplicate string literals (added 2026-04-16)
+        errMsgInvalidAnalysisID    = "Invalid analysis ID"
+        errMsgFailedToParseResults = "Failed to parse results"
 )
 
 type AnalysisHandler struct {
@@ -196,7 +199,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
-                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, "Invalid analysis ID")
+                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, errMsgInvalidAnalysisID)
                 return
         }
 
@@ -219,7 +222,7 @@ func (h *AnalysisHandler) viewAnalysisWithMode(c *gin.Context, mode string) {
 
         results := NormalizeResults(analysis.FullResults)
         if results == nil {
-                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, "Failed to parse results")
+                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, errMsgFailedToParseResults)
                 return
         }
 
@@ -1757,7 +1760,7 @@ func (h *AnalysisHandler) loadAnalysisForAPI(c *gin.Context) (dbq.DomainAnalysis
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
-                c.JSON(http.StatusBadRequest, gin.H{mapKeyError: "Invalid analysis ID"})
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyError: errMsgInvalidAnalysisID})
                 return dbq.DomainAnalysis{}, false
         }
 
@@ -1873,7 +1876,7 @@ func (h *AnalysisHandler) ViewCrossReference(c *gin.Context) {
         idStr := c.Param("id")
         analysisID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
-                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, "Invalid analysis ID")
+                h.renderErrorPage(c, http.StatusBadRequest, nonce, csrfToken, mapKeyDanger, errMsgInvalidAnalysisID)
                 return
         }
 
@@ -1891,7 +1894,7 @@ func (h *AnalysisHandler) ViewCrossReference(c *gin.Context) {
 
         results := NormalizeResults(analysis.FullResults)
         if results == nil {
-                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, "Failed to parse results")
+                h.renderErrorPage(c, http.StatusInternalServerError, nonce, csrfToken, mapKeyDanger, errMsgFailedToParseResults)
                 return
         }
 
@@ -1915,7 +1918,7 @@ func (h *AnalysisHandler) APICrossReference(c *gin.Context) {
 
         results := NormalizeResults(analysis.FullResults)
         if results == nil {
-                c.JSON(http.StatusInternalServerError, gin.H{mapKeyError: "Failed to parse results"})
+                c.JSON(http.StatusInternalServerError, gin.H{mapKeyError: errMsgFailedToParseResults})
                 return
         }
 

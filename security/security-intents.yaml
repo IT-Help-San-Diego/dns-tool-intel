@@ -108,3 +108,32 @@ intents:
     approved_date: "2025-01-15"
     expires: "2027-01-15"
     review_interval_days: 365
+
+  - id: SECINTENT-007
+    title: "Static /images file server uses stdlib root-confined path"
+    file: "go-server/cmd/server/main.go"
+    pattern: 'http\.StripPrefix\("/images",\s*http\.FileServer\(imagesFS\)\)'
+    category: stdlib-safe-pattern
+    severity: info
+    justification: >
+      go-server/cmd/server/main.go:360-361 constructs an http.FileServer
+      rooted at filepath.Join(staticDir, "images"). Go's http.Dir +
+      http.FileServer normalize the URL path and refuse to serve any path
+      that escapes the configured root (".." traversal, absolute paths,
+      and percent-encoded variants are all blocked by net/http).
+      Containment is asserted by three regression tests in
+      go-server/cmd/server/main_test.go:
+        - TestImagesHandler_TraversalBlocked      (line 316)
+        - TestImagesHandler_AbsolutePathBlocked   (line 341)
+        - TestImagesHandler_EncodedTraversalBlocked (line 356)
+      staticDir is server-controlled (set via config), not user-controlled.
+      Sonar's gosecurity:S2083 flags the filepath.Join + http.Dir composition
+      as a generic "path from user-controlled data" pattern but does not
+      model the stdlib root-confinement guarantees that make this pattern
+      safe.
+    sonar_rules: ["gosecurity:S2083"]
+    owner: "platform-team"
+    approved_by: "carey-james"
+    approved_date: "2026-04-16"
+    expires: "2027-04-16"
+    review_interval_days: 365
