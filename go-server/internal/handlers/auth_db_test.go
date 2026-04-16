@@ -1,3 +1,5 @@
+//go:build dbtest
+
 package handlers
 
 import (
