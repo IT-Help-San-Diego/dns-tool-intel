@@ -846,11 +846,11 @@ func TestWaybackViewHandler(t *testing.T) {
                 {"invalid domain", "/agent/wayback?domain=not_valid!", http.StatusBadRequest, nil},
                 {"valid domain fallback", "/agent/wayback?domain=example.com", http.StatusOK, []string{
                         "Wayback Archive",
-                        "The Wayback Machine archive is not yet available",
+                        "No analysis has been run for this domain yet",
                 }},
                 {"q param fallback", "/agent/wayback?q=example.com", http.StatusOK, []string{
                         "Wayback Archive",
-                        "The Wayback Machine archive is not yet available",
+                        "No analysis has been run for this domain yet",
                 }},
         }
 

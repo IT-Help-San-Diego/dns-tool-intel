@@ -4,7 +4,6 @@ package handlers
 import (
         "fmt"
         "net/http"
-        "strconv"
         "strings"
 
         "dnstool/go-server/internal/analyzer"
@@ -257,8 +256,6 @@ func (h *AgentHandler) ChecksumView(c *gin.Context) {
         c.Data(http.StatusOK, agentContentTypeHTML, []byte(sb.String()))
 }
 
-const waybackMaxRetries = 8
-
 func (h *AgentHandler) WaybackHTMLView(c *gin.Context) {
         domain := extractAgentQuery(c)
         if domain == "" {
@@ -273,12 +270,6 @@ func (h *AgentHandler) WaybackHTMLView(c *gin.Context) {
         base := h.Config.BaseURL
         ed := esc(domain)
 
-        retryStr := c.DefaultQuery("retry", "0")
-        retry, _ := strconv.Atoi(retryStr)
-        if retry < 0 {
-                retry = 0
-        }
-
         var waybackURL string
         var hasRecentAnalysis bool
         if h.lookupStore != nil {
@@ -290,38 +281,32 @@ func (h *AgentHandler) WaybackHTMLView(c *gin.Context) {
                 }
         }
 
-        var autoRefreshMeta string
         var waybackAction string
+        refreshURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s", base, domain))
+        reportURL := esc(fmt.Sprintf(agentFmtAnalyze, base, domain))
 
         if waybackURL != "" {
                 waybackAction = `<div style="text-align:center"><a href="` + waybackURL + `" style="` + iwDlBtn + `">View Archived Snapshot</a></div>`
-        } else if hasRecentAnalysis && retry < waybackMaxRetries {
-                nextRetry := retry + 1
-                refreshURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s&retry=%d", base, domain, nextRetry))
-                autoRefreshMeta = `
-  <meta http-equiv="refresh" content="15;url=` + refreshURL + `">`
-                waybackAction = `<p style="` + iwCardP + `">The Wayback Machine archive is being created — this page will automatically check again in 15 seconds (attempt ` + strconv.Itoa(nextRetry) + `/` + strconv.Itoa(waybackMaxRetries) + `).</p>
+        } else if hasRecentAnalysis {
+                waybackAction = `<p style="` + iwCardP + `">The Wayback Machine archive is being created. If this is the first time this domain has been scanned, the Internet Archive may need a minute or two to build the initial snapshot.</p>
+      <p style="` + iwCardP + `">Click <strong>Check Again</strong> below, or use the <strong>refresh button</strong> in your browser to check whether the archive is ready.</p>
       <div style="text-align:center;margin-top:1rem">
-        <span style="display:inline-block;width:20px;height:20px;border:3px solid #30363d;border-top:3px solid #58a6ff;border-radius:50%;animation:spin 1s linear infinite"></span>
-      </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`
-        } else {
-                manualURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s&retry=0", base, domain))
-                reportURL := esc(fmt.Sprintf(agentFmtAnalyze, base, domain))
-                waybackAction = `<p style="` + iwCardP + `">The Wayback Machine archive is not yet available. The Internet Archive may still be processing the submission.</p>
-      <div style="text-align:center;margin-top:1rem">
-        <a href="` + manualURL + `" style="` + iwDlBtn + `">Check Again</a>
+        <a href="` + refreshURL + `" style="` + iwDlBtn + `">Check Again</a>
         <a href="` + reportURL + `" style="` + iwSecBtn + `">View Analysis Report</a>
+      </div>`
+        } else {
+                waybackAction = `<p style="` + iwCardP + `">No analysis has been run for this domain yet. Run an analysis first — the Wayback Machine archive is created automatically after each scan completes.</p>
+      <div style="text-align:center;margin-top:1rem">
+        <a href="` + reportURL + `" style="` + iwDlBtn + `">Run Analysis</a>
       </div>`
         }
 
         var sb strings.Builder
-        sb.WriteString(inlineHeadExtra(
+        sb.WriteString(inlineHead(
                 "Wayback Archive — "+ed,
                 "Permanent Internet Archive (Wayback Machine) record of the DNS security analysis for "+ed+". Provides an immutable third-party archive of the analysis at the time it was generated.",
                 "Wayback Archive — "+ed,
                 "Permanent Wayback Machine archive of the DNS security analysis for "+ed+".",
-                autoRefreshMeta,
         ))
         sb.WriteString(`
     <h1 style="` + iwH1 + `">Wayback Archive — ` + ed + `</h1>`)
