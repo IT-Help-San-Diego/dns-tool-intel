@@ -20,15 +20,27 @@ cd /home/runner/workspace
 REPO="IT-Help-San-Diego/dns-tool-intel"
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "replit-agent")
 REMOTE_BRANCH="$LOCAL_BRANCH"
+SHIP_BRANCH="main"   # The branch that drives CI/SonarCloud/deployments
+PUSH_MAIN=1          # Default ON: a successful push must also fast-forward main
 GIT_PAT="${GH_SYNC_TOKEN:-${GITHUB_MASTER_PAT:-}}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --branch) REMOTE_BRANCH="${2:-$LOCAL_BRANCH}"; shift 2 ;;
     --branch=*) REMOTE_BRANCH="${1#*=}"; shift ;;
+    --no-main) PUSH_MAIN=0; shift ;;   # Escape hatch: agent-branch only, do NOT touch main
     *) shift ;;
   esac
 done
+
+# If user explicitly redirected to a non-default branch, do not also bump main.
+if [ "$REMOTE_BRANCH" != "$LOCAL_BRANCH" ]; then
+  PUSH_MAIN=0
+fi
+# If we're already pushing to main as the primary, no second push needed.
+if [ "$REMOTE_BRANCH" = "$SHIP_BRANCH" ]; then
+  PUSH_MAIN=0
+fi
 
 PAT_URL="https://${GIT_PAT}@github.com/${REPO}.git"
 
@@ -268,6 +280,61 @@ else
     echo "SYNC STATUS: FULLY SYNCED"
   fi
 fi
+# ── Ship to main (the branch CI/SonarCloud/deployments actually use) ──
+# Branch protection rule on main allows our bypass actor to fast-forward
+# directly. Without this step the agent-branch advances but main lags,
+# which is the exact bug that caused dev-bump v26.46.02 to be missed.
+if [ "$PUSH_MAIN" -eq 1 ]; then
+  echo ""
+  echo "=== Shipping to ${SHIP_BRANCH} (CI/deployment branch) ==="
+  SHIP_REMOTE_BEFORE=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
+  SHIP_LOCAL=$(git rev-parse HEAD 2>/dev/null)
+
+  if [ "$SHIP_LOCAL" = "$SHIP_REMOTE_BEFORE" ]; then
+    echo "  Already at ${SHIP_BRANCH}: $SHIP_LOCAL"
+    echo "SHIP STATUS: ALREADY CURRENT"
+  else
+    echo "  Local:        $SHIP_LOCAL"
+    echo "  ${SHIP_BRANCH} before: ${SHIP_REMOTE_BEFORE:-"(unable to read)"}"
+    SHIP_OK=0
+    for ATTEMPT in 1 2; do
+      if git push "${PAT_URL}" ${LOCAL_BRANCH}:${SHIP_BRANCH} 2>&1; then
+        SHIP_OK=1
+        break
+      fi
+      if [ "$ATTEMPT" -eq 1 ]; then
+        echo "  Ship attempt 1 failed — retrying in 10s..."
+        sleep 10
+      fi
+    done
+
+    if [ "$SHIP_OK" -eq 0 ]; then
+      echo ""
+      echo "SHIP FAILED: agent-branch is on GitHub but ${SHIP_BRANCH} was NOT updated."
+      echo "  Possible causes: non-fast-forward (someone else pushed), token bypass"
+      echo "  expired, or branch protection changed. Recover with:"
+      echo "    git push origin ${LOCAL_BRANCH}:${SHIP_BRANCH}"
+      echo "  Or open a PR. Use --no-main on this script to skip this step."
+      exit 1
+    fi
+
+    SHIP_REMOTE_AFTER=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
+    if [ "$SHIP_LOCAL" = "$SHIP_REMOTE_AFTER" ]; then
+      echo "  VERIFIED: ${SHIP_BRANCH} now at $SHIP_LOCAL"
+      echo "SHIP STATUS: FULLY SYNCED"
+    else
+      echo "  WARNING: ${SHIP_BRANCH} did not advance to expected SHA."
+      echo "  Local:  $SHIP_LOCAL"
+      echo "  GitHub: ${SHIP_REMOTE_AFTER:-"(unable to read)"}"
+      echo "SHIP STATUS: PENDING — re-run script."
+      exit 1
+    fi
+  fi
+else
+  echo ""
+  echo "=== Skipping ${SHIP_BRANCH} ship (--no-main or non-default --branch) ==="
+fi
+
 # ── Git panel staleness check ──
 if [ -f ".git/refs/remotes/origin/main.lock" ]; then
   echo ""
