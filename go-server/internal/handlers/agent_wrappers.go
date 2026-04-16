@@ -474,11 +474,9 @@ func (h *AgentHandler) GuideView(c *gin.Context) {
                 "DNS Intelligence Guide — "+ed,
                 "What this analysis contains and how to use it.",
         ))
-        owlURL := esc(base + "/static/exports/owl-semaphore/derived/NORM-composite-dark-w160.png")
-
         sb.WriteString(`
     <div style="text-align:center;margin-bottom:1.5rem">
-      <img src="` + owlURL + `" alt="DNS Tool — Owl Semaphore" width="160" height="160" style="border-radius:12px">
+      <img src="` + owlNormDarkW160 + `" alt="DNS Tool — Owl Semaphore" width="160" height="160" style="display:inline-block;border-radius:12px">
     </div>
     <h1 style="` + iwH1 + `;text-align:center">DNS Intelligence Guide — ` + ed + `</h1>`)
         sb.WriteString(inlineMeta(base))
