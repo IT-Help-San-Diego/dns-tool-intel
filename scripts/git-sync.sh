@@ -17,6 +17,46 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# ── BREAK-GLASS GUARD ──
+# This script previously caused production damage by overwriting refs with a
+# half-applied refactor. It must never run as a routine push. Required flag:
+#   bash scripts/git-sync.sh --break-glass [commit-msg]
+# For routine pushes, use:
+#   bash scripts/git-push.sh
+BREAK_GLASS=false
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --break-glass) BREAK_GLASS=true ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+set -- "${ARGS[@]:-}"
+
+if [ "$BREAK_GLASS" != true ]; then
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════════"
+  echo "  REFUSED: scripts/git-sync.sh is BREAK-GLASS ONLY."
+  echo ""
+  echo "  This script pushes via the GitHub Trees/Commits API and force-updates"
+  echo "  refs (replit-agent + main). On 2026-04-16 it overwrote the canonical"
+  echo "  branch with a half-applied refactor and broke CI for all consumers."
+  echo ""
+  echo "  For ROUTINE pushes use:"
+  echo "      bash scripts/git-push.sh"
+  echo ""
+  echo "  Only use this script when local .git is corrupted AND a normal push"
+  echo "  cannot recover, AND you have read scripts/git-sync.sh in full."
+  echo "  Re-run with: bash scripts/git-sync.sh --break-glass [\"commit msg\"]"
+  echo "═══════════════════════════════════════════════════════════════════"
+  echo ""
+  exit 2
+fi
+
+echo ""
+echo "  ⚠  BREAK-GLASS MODE active — proceeding with API-based push."
+echo ""
+
 REPO_OWNER="IT-Help-San-Diego"
 REPO_NAME="dns-tool-intel"
 API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"

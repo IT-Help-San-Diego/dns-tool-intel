@@ -20,6 +20,9 @@ jobs:
         with:
           go-version: '1.25.9'
 
+      - name: Drift guard — handlers/ shim files
+        run: bash scripts/check-handlers-no-shims.sh
+
       - name: Build binary
         run: |
           cd go-server
