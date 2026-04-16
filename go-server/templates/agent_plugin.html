@@ -271,23 +271,25 @@
                 <p>When a domain is analyzed through this plugin, you'll see a <span class="plugin-source-tag"><picture><source srcset="/static/images/devonagent-pro-logo.webp" type="image/webp"><img src="/static/images/devonagent-pro-logo.png" alt="" width="12" height="12" loading="lazy"></picture>Plugin</span> tag next to the domain in your <a href="/history">analysis history</a>.</p>
 
                 <h2 class="h4 mt-4 mb-3">What You Get</h2>
+                <p class="text-muted small mb-3">Every scan delivers a 15-file intelligence bundle. File 01 is an orientation guide; the remaining 14 files are listed below in the exact order DEVONagent downloads them.</p>
                 <ul class="results-list">
-                    <li><span class="result-num">1.</span> <strong>Engineer's DNS Intelligence Report</strong> <span class="result-desc">&mdash; full security analysis with live scanning (the engineering report)</span></li>
-                    <li><span class="result-num">2.</span> <strong>Observed Records Snapshot</strong> <span class="result-desc">&mdash; reconstructed zone file, SHA-3-512 verified</span></li>
-                    <li><span class="result-num">3.</span> <strong>Detailed Security Badge</strong> <span class="result-desc">&mdash; full posture score badge</span></li>
-                    <li><span class="result-num">4.</span> <strong>Covert Security Badge</strong> <span class="result-desc">&mdash; scotopic-optimized embeddable badge</span></li>
-                    <li><span class="result-num">5.</span> <strong>Covert Recon Report</strong> <span class="result-desc">&mdash; full analysis in covert operations mode</span></li>
-                    <li><span class="result-num">6.</span> <strong>Executive Intelligence Brief</strong> <span class="result-desc">&mdash; board-ready executive summary</span></li>
-                    <li><span class="result-num">7.</span> <strong>DNS Topology</strong> <span class="result-desc">&mdash; topology visualization, signal flow, and RFC source mapping</span></li>
-                    <li><span class="result-num">8.</span> <strong>Zenodo &mdash; Concept DOI</strong> <span class="result-desc">&mdash; permanent scientific record (10.5281/zenodo.19468134)</span></li>
-                    <li><span class="result-num">9.</span> <strong>Full Intelligence Data (JSON)</strong> <span class="result-desc">&mdash; complete analysis payload with all collected intelligence</span></li>
-                    <li><span class="result-num">10.</span> <strong>Discovered Domains &amp; Subdomains</strong> <span class="result-desc">&mdash; human-readable subdomain reconnaissance data (CSV)</span></li>
-                    <li><span class="result-num">11.</span> <strong>Sources &amp; Methodology</strong> <span class="result-desc">&mdash; RFC citations, data sources, and scoring methodology</span></li>
-                    <li><span class="result-num">12.</span> <strong>SHA-3 Integrity Checksum</strong> <span class="result-desc">&mdash; cryptographic verification of analysis data</span></li>
-                    <li><span class="result-num">13.</span> <strong>Security Remediation Plan</strong> <span class="result-desc">&mdash; actionable remediation steps for the domain</span></li>
-                    <li><span class="result-num">14.</span> <strong>Internet Archive (Wayback Machine)</strong> <span class="result-desc">&mdash; permanent archived record of the analysis</span></li>
-                    <li><span class="result-num">15.</span> <strong>Confidence Page</strong> <span class="result-desc">&mdash; SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</span></li>
+                    <li><span class="result-num">01.</span> <strong>Intelligence Guide</strong> <span class="result-desc">&mdash; orientation: what this analysis contains and how to use it</span></li>
+                    <li><span class="result-num">02.</span> <strong>Engineer's DNS Intelligence Report</strong> <span class="result-desc">&mdash; full security analysis with live scanning (the engineering report)</span></li>
+                    <li><span class="result-num">03.</span> <strong>Analysis History</strong> <span class="result-desc">&mdash; previous scans of this domain and security posture changes over time</span></li>
+                    <li><span class="result-num">04.</span> <strong>Observed Records Snapshot</strong> <span class="result-desc">&mdash; reconstructed zone file from live resolver responses, SHA-3-512 verified</span></li>
+                    <li><span class="result-num">05.</span> <strong>Detailed Security Badge</strong> <span class="result-desc">&mdash; full posture score badge (SVG, embeddable)</span></li>
+                    <li><span class="result-num">06.</span> <strong>Covert Security Badge</strong> <span class="result-desc">&mdash; scotopic-optimized embeddable badge for dark environments</span></li>
+                    <li><span class="result-num">07.</span> <strong>Covert Recon Report</strong> <span class="result-desc">&mdash; full analysis rendered in low-visibility covert operations mode</span></li>
+                    <li><span class="result-num">08.</span> <strong>Executive Intelligence Brief</strong> <span class="result-desc">&mdash; board-ready executive summary</span></li>
+                    <li><span class="result-num">09.</span> <strong>DNS Topology</strong> <span class="result-desc">&mdash; interactive topology visualization, signal flow, and RFC source mapping</span></li>
+                    <li><span class="result-num">10.</span> <strong>Full Intelligence Data (JSON)</strong> <span class="result-desc">&mdash; complete machine-readable payload including the full subdomain inventory</span></li>
+                    <li><span class="result-num">11.</span> <strong>Discovered Subdomains (CSV)</strong> <span class="result-desc">&mdash; every subdomain found via Certificate Transparency logs and DNS reconnaissance</span></li>
+                    <li><span class="result-num">12.</span> <strong>SHA-3 Integrity Checksum</strong> <span class="result-desc">&mdash; cryptographic verification that the analysis data has not been tampered with</span></li>
+                    <li><span class="result-num">13.</span> <strong>Security Remediation Plan</strong> <span class="result-desc">&mdash; prioritized, actionable remediation steps for the domain</span></li>
+                    <li><span class="result-num">14.</span> <strong>Wayback Archive</strong> <span class="result-desc">&mdash; permanent third-party record via the Internet Archive</span></li>
+                    <li><span class="result-num">15.</span> <strong>Sources &amp; Methodology</strong> <span class="result-desc">&mdash; RFC citations, data sources, and the scoring methodology behind every verdict</span></li>
                 </ul>
+                <p class="text-muted small mt-3 mb-0">Posture scoring uses multi-factor geometric-mean confidence scoring aligned with ICD 203. The permanent scientific record for the methodology itself lives at <a href="https://doi.org/10.5281/zenodo.19468134" rel="noopener">doi.org/10.5281/zenodo.19468134</a>.</p>
 
                 <h2 class="h4 mt-5 mb-3">Download &amp; Install</h2>
 
