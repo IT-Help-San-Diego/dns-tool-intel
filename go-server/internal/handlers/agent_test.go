@@ -407,6 +407,50 @@ func TestBuildAgentHTMLAlways15Results(t *testing.T) {
         }
 }
 
+func TestBuildAgentHTMLOrderingStability(t *testing.T) {
+        _, h := setupAgentRouter()
+        results := map[string]any{
+                "domain_exists":  true,
+                "risk_level":     "low",
+                "posture":        map[string]any{"score": float64(72), "grade": "C+", "label": "Fair"},
+                "spf_analysis":   map[string]any{"status": "success"},
+                "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
+                "dkim_analysis":  map[string]any{"status": "success"},
+        }
+        html := h.buildAgentHTML("example.com", results, 42)
+
+        expectedOrder := []string{
+                "01. Intelligence Guide",
+                "02. Engineer's DNS Intelligence Report",
+                "03. Analysis History",
+                "04. Observed Records Snapshot",
+                "05. Detailed Security Badge",
+                "06. Covert Security Badge",
+                "07. Covert Recon Report",
+                "08. Executive Intelligence Brief",
+                "09. DNS Topology",
+                "10. Full Intelligence Data (JSON)",
+                "11. Discovered Subdomains",
+                "12. SHA-3 Integrity Checksum",
+                "13. Security Remediation Plan",
+                "14. Wayback Archive",
+                "15. Sources &amp; Methodology",
+        }
+
+        lastIdx := -1
+        for i, title := range expectedOrder {
+                idx := strings.Index(html, title)
+                if idx < 0 {
+                        t.Fatalf("item %d (%q) not found in HTML", i+1, title)
+                }
+                if idx <= lastIdx {
+                        t.Fatalf("item %d (%q) at index %d is not after item %d (index %d) — ordering broken",
+                                i+1, title, idx, i, lastIdx)
+                }
+                lastIdx = idx
+        }
+}
+
 func TestBuildAgentHTMLFallbackURLs(t *testing.T) {
         _, h := setupAgentRouter()
         results := map[string]any{
@@ -802,11 +846,11 @@ func TestWaybackViewHandler(t *testing.T) {
                 {"invalid domain", "/agent/wayback?domain=not_valid!", http.StatusBadRequest, nil},
                 {"valid domain fallback", "/agent/wayback?domain=example.com", http.StatusOK, []string{
                         "Wayback Archive",
-                        "No archived snapshot is available yet",
+                        "The Wayback Machine archive is not yet available",
                 }},
                 {"q param fallback", "/agent/wayback?q=example.com", http.StatusOK, []string{
                         "Wayback Archive",
-                        "No archived snapshot is available yet",
+                        "The Wayback Machine archive is not yet available",
                 }},
         }
 

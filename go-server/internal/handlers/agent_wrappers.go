@@ -4,6 +4,7 @@ package handlers
 import (
         "fmt"
         "net/http"
+        "strconv"
         "strings"
 
         "dnstool/go-server/internal/analyzer"
@@ -46,6 +47,10 @@ const agentWrapperStyle = `
 `
 
 func inlineHead(title, desc, ogTitle, ogDesc string) string {
+        return inlineHeadExtra(title, desc, ogTitle, ogDesc, "")
+}
+
+func inlineHeadExtra(title, desc, ogTitle, ogDesc, extraHead string) string {
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,7 +61,7 @@ func inlineHead(title, desc, ogTitle, ogDesc string) string {
   <meta property="og:title" content="` + ogTitle + `">
   <meta property="og:description" content="` + ogDesc + `">
   <meta property="og:type" content="article">
-  <meta property="og:site_name" content="DNS Tool">
+  <meta property="og:site_name" content="DNS Tool">` + extraHead + `
   <style>` + agentWrapperStyle + `</style>
 </head>
 <body style="` + iwBody + `">
@@ -252,6 +257,8 @@ func (h *AgentHandler) ChecksumView(c *gin.Context) {
         c.Data(http.StatusOK, agentContentTypeHTML, []byte(sb.String()))
 }
 
+const waybackMaxRetries = 8
+
 func (h *AgentHandler) WaybackHTMLView(c *gin.Context) {
         domain := extractAgentQuery(c)
         if domain == "" {
@@ -266,26 +273,55 @@ func (h *AgentHandler) WaybackHTMLView(c *gin.Context) {
         base := h.Config.BaseURL
         ed := esc(domain)
 
+        retryStr := c.DefaultQuery("retry", "0")
+        retry, _ := strconv.Atoi(retryStr)
+        if retry < 0 {
+                retry = 0
+        }
+
         var waybackURL string
+        var hasRecentAnalysis bool
         if h.lookupStore != nil {
                 if recent, err := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), domain); err == nil {
+                        hasRecentAnalysis = true
                         if recent.WaybackUrl != nil && *recent.WaybackUrl != "" && strings.HasPrefix(*recent.WaybackUrl, "https://web.archive.org/") {
                                 waybackURL = esc(*recent.WaybackUrl)
                         }
                 }
         }
 
-        waybackAction := `<p style="` + iwCardP + `">No archived snapshot is available yet for this domain. The Wayback Machine archive is created asynchronously after analysis completes.</p>`
+        var autoRefreshMeta string
+        var waybackAction string
+
         if waybackURL != "" {
                 waybackAction = `<div style="text-align:center"><a href="` + waybackURL + `" style="` + iwDlBtn + `">View Archived Snapshot</a></div>`
+        } else if hasRecentAnalysis && retry < waybackMaxRetries {
+                nextRetry := retry + 1
+                refreshURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s&retry=%d", base, domain, nextRetry))
+                autoRefreshMeta = `
+  <meta http-equiv="refresh" content="15;url=` + refreshURL + `">`
+                waybackAction = `<p style="` + iwCardP + `">The Wayback Machine archive is being created — this page will automatically check again in 15 seconds (attempt ` + strconv.Itoa(nextRetry) + `/` + strconv.Itoa(waybackMaxRetries) + `).</p>
+      <div style="text-align:center;margin-top:1rem">
+        <span style="display:inline-block;width:20px;height:20px;border:3px solid #30363d;border-top:3px solid #58a6ff;border-radius:50%;animation:spin 1s linear infinite"></span>
+      </div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`
+        } else {
+                manualURL := esc(fmt.Sprintf("%s/agent/wayback-view?domain=%s&retry=0", base, domain))
+                reportURL := esc(fmt.Sprintf(agentFmtAnalyze, base, domain))
+                waybackAction = `<p style="` + iwCardP + `">The Wayback Machine archive is not yet available. The Internet Archive may still be processing the submission.</p>
+      <div style="text-align:center;margin-top:1rem">
+        <a href="` + manualURL + `" style="` + iwDlBtn + `">Check Again</a>
+        <a href="` + reportURL + `" style="` + iwSecBtn + `">View Analysis Report</a>
+      </div>`
         }
 
         var sb strings.Builder
-        sb.WriteString(inlineHead(
+        sb.WriteString(inlineHeadExtra(
                 "Wayback Archive — "+ed,
                 "Permanent Internet Archive (Wayback Machine) record of the DNS security analysis for "+ed+". Provides an immutable third-party archive of the analysis at the time it was generated.",
                 "Wayback Archive — "+ed,
                 "Permanent Wayback Machine archive of the DNS security analysis for "+ed+".",
+                autoRefreshMeta,
         ))
         sb.WriteString(`
     <h1 style="` + iwH1 + `">Wayback Archive — ` + ed + `</h1>`)
@@ -453,8 +489,13 @@ func (h *AgentHandler) GuideView(c *gin.Context) {
                 "DNS Intelligence Guide — "+ed,
                 "What this analysis contains and how to use it.",
         ))
+        owlURL := esc(base + "/static/exports/owl-semaphore/derived/NORM-composite-dark-w160.png")
+
         sb.WriteString(`
-    <h1 style="` + iwH1 + `">DNS Intelligence Guide — ` + ed + `</h1>`)
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <img src="` + owlURL + `" alt="DNS Tool — Owl Semaphore" width="160" height="160" style="border-radius:12px">
+    </div>
+    <h1 style="` + iwH1 + `;text-align:center">DNS Intelligence Guide — ` + ed + `</h1>`)
         sb.WriteString(inlineMeta(base))
         sb.WriteString(`
     <div style="` + iwCard + `">
