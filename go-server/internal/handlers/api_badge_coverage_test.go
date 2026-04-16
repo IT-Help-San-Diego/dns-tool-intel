@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "context"
         "encoding/json"
         "errors"
@@ -320,7 +321,7 @@ func TestAPIDNSHistory_NoAPIKey(t *testing.T) {
 }
 
 func TestExtractPostureRisk_NilResults(t *testing.T) {
-        label, color := extractPostureRisk(nil)
+        label, color := badgepkg.ExtractPostureRisk(nil)
         if label != "Unknown" {
                 t.Errorf("expected Unknown, got %s", label)
         }
@@ -330,7 +331,7 @@ func TestExtractPostureRisk_NilResults(t *testing.T) {
 }
 
 func TestExtractPostureRisk_NoPosture(t *testing.T) {
-        label, _ := extractPostureRisk(map[string]any{})
+        label, _ := badgepkg.ExtractPostureRisk(map[string]any{})
         if label != "Unknown" {
                 t.Errorf("expected Unknown, got %s", label)
         }
@@ -343,7 +344,7 @@ func TestExtractPostureRisk_WithPosture(t *testing.T) {
                         "color": "success",
                 },
         }
-        label, color := extractPostureRisk(results)
+        label, color := badgepkg.ExtractPostureRisk(results)
         if label != "Low Risk" {
                 t.Errorf("expected Low Risk, got %s", label)
         }
@@ -358,7 +359,7 @@ func TestExtractPostureRisk_GradeFallback(t *testing.T) {
                         "grade": "A+",
                 },
         }
-        label, _ := extractPostureRisk(results)
+        label, _ := badgepkg.ExtractPostureRisk(results)
         if label != "A+" {
                 t.Errorf("expected A+, got %s", label)
         }
@@ -369,17 +370,17 @@ func TestRiskColorToHex_Extended(t *testing.T) {
                 color    string
                 expected string
         }{
-                {"success", hexGreen},
-                {"warning", hexYellow},
-                {"danger", colorDanger},
-                {"unknown", colorGrey},
-                {"", colorGrey},
+                {"success", badgepkg.HexGreen},
+                {"warning", badgepkg.HexYellow},
+                {"danger", badgepkg.ColorDanger},
+                {"unknown", badgepkg.ColorGrey},
+                {"", badgepkg.ColorGrey},
         }
         for _, tt := range tests {
                 t.Run(tt.color, func(t *testing.T) {
-                        got := riskColorToHex(tt.color)
+                        got := badgepkg.RiskColorToHex(tt.color)
                         if got != tt.expected {
-                                t.Errorf("riskColorToHex(%q) = %q, want %q", tt.color, got, tt.expected)
+                                t.Errorf("badgepkg.RiskColorToHex(%q) = %q, want %q", tt.color, got, tt.expected)
                         }
                 })
         }
@@ -402,16 +403,16 @@ func TestNormalizeRiskColor(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.label+"_"+tt.color, func(t *testing.T) {
-                        got := normalizeRiskColor(tt.label, tt.color)
+                        got := badgepkg.NormalizeRiskColor(tt.label, tt.color)
                         if got != tt.expected {
-                                t.Errorf("normalizeRiskColor(%q, %q) = %q, want %q", tt.label, tt.color, got, tt.expected)
+                                t.Errorf("badgepkg.NormalizeRiskColor(%q, %q) = %q, want %q", tt.label, tt.color, got, tt.expected)
                         }
                 })
         }
 }
 
 func TestUnmarshalResults_Empty(t *testing.T) {
-        r := unmarshalResults(nil, "test")
+        r := badgepkg.UnmarshalResults(nil, "test")
         if r != nil {
                 t.Error("expected nil for empty input")
         }
@@ -419,7 +420,7 @@ func TestUnmarshalResults_Empty(t *testing.T) {
 
 func TestUnmarshalResults_Valid(t *testing.T) {
         data := []byte(`{"domain": "example.com"}`)
-        r := unmarshalResults(data, "test")
+        r := badgepkg.UnmarshalResults(data, "test")
         if r == nil {
                 t.Fatal("expected non-nil result")
         }
@@ -430,7 +431,7 @@ func TestUnmarshalResults_Valid(t *testing.T) {
 
 func TestUnmarshalResults_Invalid(t *testing.T) {
         data := []byte(`{invalid json}`)
-        r := unmarshalResults(data, "test")
+        r := badgepkg.UnmarshalResults(data, "test")
         if r != nil {
                 t.Error("expected nil for invalid JSON")
         }
@@ -438,7 +439,7 @@ func TestUnmarshalResults_Invalid(t *testing.T) {
 
 func TestExtractPostureRisk_PostureNotMap(t *testing.T) {
         results := map[string]any{"posture": "not-a-map"}
-        label, _ := extractPostureRisk(results)
+        label, _ := badgepkg.ExtractPostureRisk(results)
         if label != "Unknown" {
                 t.Errorf("expected Unknown for non-map posture, got %s", label)
         }

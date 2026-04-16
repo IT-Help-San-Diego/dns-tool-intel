@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
         "context"
         "errors"
         "net/http"
@@ -27,7 +28,7 @@ func TestDetermineRole_AdminBootstrap(t *testing.T) {
                         return 0, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
         role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "admin" {
@@ -39,7 +40,7 @@ func TestDetermineRole_AdminBootstrap(t *testing.T) {
 }
 
 func TestDetermineRole_NoMatch(t *testing.T) {
-        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, &mockAuthStore{})
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, &mockAuthStore{})
 
         role, shouldBootstrap := h.DetermineRole(context.Background(), "user@example.com")
         if role != "user" {
@@ -56,7 +57,7 @@ func TestDetermineRole_CaseInsensitive(t *testing.T) {
                         return 0, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "Admin@Example.COM"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "Admin@Example.COM"}, nil, mock)
 
         role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "admin" {
@@ -73,7 +74,7 @@ func TestDetermineRole_AdminsExist(t *testing.T) {
                         return 2, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
         role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "user" {
@@ -92,7 +93,7 @@ func TestBootstrapAdminIfNeeded_Success(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         result := h.BootstrapAdminIfNeeded(context.Background(), 1, "user", true, "admin@example.com")
         if result != "admin" {
@@ -111,7 +112,7 @@ func TestBootstrapAdminIfNeeded_AlreadyAdmin(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         result := h.BootstrapAdminIfNeeded(context.Background(), 1, "admin", true, "admin@example.com")
         if result != "admin" {
@@ -130,7 +131,7 @@ func TestBootstrapAdminIfNeeded_NoBootstrap(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         result := h.BootstrapAdminIfNeeded(context.Background(), 1, "user", false, "user@example.com")
         if result != "user" {
@@ -155,11 +156,11 @@ func TestSeedAdminWatchlist_EmptyExisting(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{BaseURL: "https://app.example.com"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{BaseURL: "https://app.example.com"}, nil, mock)
 
         h.SeedAdminWatchlist(context.Background(), 1)
 
-        expectedDomains := missionCriticalDomainsFromBaseURL("https://app.example.com")
+        expectedDomains := authpkg.MissionCriticalDomainsFromBaseURL("https://app.example.com")
         if len(insertedDomains) != len(expectedDomains) {
                 t.Errorf("inserted %d domains, want %d", len(insertedDomains), len(expectedDomains))
         }
@@ -184,7 +185,7 @@ func TestSeedDiscordEndpoint_NoExisting(t *testing.T) {
                         return dbq.InsertNotificationEndpointRow{ID: 1}, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: "https://discord.com/api/webhooks/test"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: "https://discord.com/api/webhooks/test"}, nil, mock)
 
         h.SeedDiscordEndpoint(context.Background(), 1)
 
@@ -207,7 +208,7 @@ func TestSeedDiscordEndpoint_AlreadyExists(t *testing.T) {
                         return dbq.InsertNotificationEndpointRow{}, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: webhookURL}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: webhookURL}, nil, mock)
 
         h.SeedDiscordEndpoint(context.Background(), 1)
 
@@ -233,7 +234,7 @@ func TestCreateUserSession_Success(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         sessionID, err := h.CreateUserSession(context.Background(), 42)
         if err != nil {
@@ -253,7 +254,7 @@ func TestCreateUserSession_DBError(t *testing.T) {
                         return errors.New("db connection refused")
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         sessionID, err := h.CreateUserSession(context.Background(), 42)
         if err == nil {
@@ -280,7 +281,7 @@ func TestFinalizeLogin_AdminSeedsWatchlist(t *testing.T) {
                         return dbq.InsertWatchlistEntryRow{}, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{BaseURL: "https://dnstool.it-help.tech"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{BaseURL: "https://dnstool.it-help.tech"}, nil, mock)
 
         user := dbq.User{
                 ID:   1,
@@ -320,7 +321,7 @@ func TestFinalizeLogin_NonAdmin(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         user := dbq.User{
                 ID:   2,
@@ -353,7 +354,7 @@ func TestFinalizeLogin_FirstLogin(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/auth/callback", nil)
 
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, &mockAuthStore{})
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, &mockAuthStore{})
 
         now := time.Now()
         user := dbq.User{
@@ -384,7 +385,7 @@ func TestSeedDiscordEndpoint_EmptyWebhookURL(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: ""}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: ""}, nil, mock)
 
         h.SeedDiscordEndpoint(context.Background(), 1)
 

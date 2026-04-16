@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
         "context"
         "errors"
         "net/http"
@@ -21,7 +22,7 @@ func TestBatch3_LoginRedirect(t *testing.T) {
                 GoogleClientSecret: "test-secret",
                 GoogleRedirectURL:  "https://test.example.com/auth/callback",
         }
-        h := NewAuthHandlerWithStore(cfg, nil, &mockAuthStore{})
+        h := authpkg.NewAuthHandlerWithStore(cfg, nil, &mockAuthStore{})
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
@@ -51,13 +52,13 @@ func TestBatch3_LoginRedirect(t *testing.T) {
         for _, ck := range cookies {
                 cookieNames[ck.Name] = true
         }
-        if !cookieNames[oauthStateCookie] {
+        if !cookieNames[authpkg.OauthStateCookie] {
                 t.Error("expected state cookie to be set")
         }
-        if !cookieNames[oauthCVCookie] {
+        if !cookieNames[authpkg.OauthCVCookie] {
                 t.Error("expected code verifier cookie to be set")
         }
-        if !cookieNames[oauthNonceCookie] {
+        if !cookieNames[authpkg.OauthNonceCookie] {
                 t.Error("expected nonce cookie to be set")
         }
 }
@@ -73,12 +74,12 @@ func TestBatch3_LogoutDeletesSessionAndRedirects(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest(http.MethodGet, "/auth/logout", nil)
-        c.Request.AddCookie(&http.Cookie{Name: sessionCookieName, Value: "test-session-123"})
+        c.Request.AddCookie(&http.Cookie{Name: authpkg.SessionCookieName, Value: "test-session-123"})
 
         h.Logout(c)
 
@@ -94,7 +95,7 @@ func TestBatch3_LogoutDeletesSessionAndRedirects(t *testing.T) {
         }
 
         for _, ck := range w.Result().Cookies() {
-                if ck.Name == sessionCookieName && ck.MaxAge < 0 {
+                if ck.Name == authpkg.SessionCookieName && ck.MaxAge < 0 {
                         return
                 }
         }
@@ -109,7 +110,7 @@ func TestBatch3_LogoutNoCookie(t *testing.T) {
                         return nil
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
@@ -131,7 +132,7 @@ func TestBatch3_DetermineRole_CountAdminError(t *testing.T) {
                         return 0, errors.New("database unreachable")
                 },
         }
-        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
+        h := authpkg.NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
         role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "user" {

@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/adminpkg"
         "encoding/json"
         "testing"
         "time"
@@ -388,9 +389,9 @@ func TestBatch2_buildDossierItemFromSearch_populated(t *testing.T) {
 }
 
 func TestBatch2_opsTaskList_coversWhitelist(t *testing.T) {
-        tasks := opsTaskList()
-        if len(tasks) != len(opsWhitelist) {
-                t.Errorf("opsTaskList returned %d tasks, opsWhitelist has %d entries", len(tasks), len(opsWhitelist))
+        tasks := adminpkg.OpsTaskList()
+        if len(tasks) != len(adminpkg.OpsWhitelist) {
+                t.Errorf("adminpkg.OpsTaskList returned %d tasks, adminpkg.OpsWhitelist has %d entries", len(tasks), len(adminpkg.OpsWhitelist))
         }
         seen := make(map[string]bool)
         for _, task := range tasks {
@@ -405,9 +406,9 @@ func TestBatch2_opsTaskList_coversWhitelist(t *testing.T) {
                         t.Errorf("task %q has no Args", task.ID)
                 }
         }
-        for id := range opsWhitelist {
+        for id := range adminpkg.OpsWhitelist {
                 if !seen[id] {
-                        t.Errorf("opsWhitelist key %q not in opsTaskList output", id)
+                        t.Errorf("adminpkg.OpsWhitelist key %q not in adminpkg.OpsTaskList output", id)
                 }
         }
 }
@@ -419,8 +420,8 @@ func TestBatch2_opsWhitelist_allKeys(t *testing.T) {
                 "miro-sync", "full-pipeline",
         }
         for _, key := range expectedKeys {
-                if _, ok := opsWhitelist[key]; !ok {
-                        t.Errorf("opsWhitelist missing key %q", key)
+                if _, ok := adminpkg.OpsWhitelist[key]; !ok {
+                        t.Errorf("adminpkg.OpsWhitelist missing key %q", key)
                 }
         }
 }

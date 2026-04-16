@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -10,32 +11,32 @@ import (
 
 func TestComputeCodeChallenge(t *testing.T) {
 	verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	challenge := computeCodeChallenge(verifier)
+	challenge := authpkg.ComputeCodeChallenge(verifier)
 	if challenge == "" {
 		t.Fatal("expected non-empty challenge")
 	}
 	if len(challenge) == 0 {
 		t.Error("challenge should not be empty")
 	}
-	challenge2 := computeCodeChallenge(verifier)
+	challenge2 := authpkg.ComputeCodeChallenge(verifier)
 	if challenge != challenge2 {
 		t.Error("same verifier should produce same challenge")
 	}
-	different := computeCodeChallenge("different-verifier")
+	different := authpkg.ComputeCodeChallenge("different-verifier")
 	if different == challenge {
 		t.Error("different verifiers should produce different challenges")
 	}
 }
 
 func TestGenerateRandomBase64URL(t *testing.T) {
-	result, err := generateRandomBase64URL(32)
+	result, err := authpkg.GenerateRandomBase64URL(32)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if result == "" {
 		t.Error("expected non-empty result")
 	}
-	result2, err := generateRandomBase64URL(32)
+	result2, err := authpkg.GenerateRandomBase64URL(32)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -45,14 +46,14 @@ func TestGenerateRandomBase64URL(t *testing.T) {
 }
 
 func TestGenerateSessionID(t *testing.T) {
-	id, err := generateSessionID()
+	id, err := authpkg.GenerateSessionID()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if len(id) != 64 {
 		t.Errorf("expected 64 hex chars, got %d", len(id))
 	}
-	id2, err := generateSessionID()
+	id2, err := authpkg.GenerateSessionID()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -93,7 +94,7 @@ func TestExtractUserClaims(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sub, email, name, verified := extractUserClaims(tt.userInfo)
+			sub, email, name, verified := authpkg.ExtractUserClaims(tt.userInfo)
 			if sub != tt.wantSub {
 				t.Errorf("sub = %q, want %q", sub, tt.wantSub)
 			}
@@ -117,7 +118,7 @@ func TestParseIDTokenPayload(t *testing.T) {
 		encoded := base64.RawURLEncoding.EncodeToString(payloadBytes)
 		token := "header." + encoded + ".signature"
 
-		claims, err := parseIDTokenPayload(token)
+		claims, err := authpkg.ParseIDTokenPayload(token)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -130,14 +131,14 @@ func TestParseIDTokenPayload(t *testing.T) {
 	})
 
 	t.Run("malformed token - too few parts", func(t *testing.T) {
-		_, err := parseIDTokenPayload("only.two")
+		_, err := authpkg.ParseIDTokenPayload("only.two")
 		if err == nil {
 			t.Error("expected error for malformed token")
 		}
 	})
 
 	t.Run("invalid base64", func(t *testing.T) {
-		_, err := parseIDTokenPayload("header.!!!invalid!!!.sig")
+		_, err := authpkg.ParseIDTokenPayload("header.!!!invalid!!!.sig")
 		if err == nil {
 			t.Error("expected error for invalid base64")
 		}
@@ -145,7 +146,7 @@ func TestParseIDTokenPayload(t *testing.T) {
 
 	t.Run("invalid json", func(t *testing.T) {
 		encoded := base64.RawURLEncoding.EncodeToString([]byte("not json"))
-		_, err := parseIDTokenPayload("header." + encoded + ".sig")
+		_, err := authpkg.ParseIDTokenPayload("header." + encoded + ".sig")
 		if err == nil {
 			t.Error("expected error for invalid JSON")
 		}
@@ -168,7 +169,7 @@ func TestValidateIDTokenIssuerAndAudience(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateIDTokenIssuerAndAudience(tt.claims, tt.clientID)
+			err := authpkg.ValidateIDTokenIssuerAndAudience(tt.claims, tt.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("err = %v, wantErr = %v", err, tt.wantErr)
 			}
@@ -191,7 +192,7 @@ func TestValidateIDTokenNonce(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateIDTokenNonce(tt.claims, tt.expectedNonce)
+			err := authpkg.ValidateIDTokenNonce(tt.claims, tt.expectedNonce)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("err = %v, wantErr = %v", err, tt.wantErr)
 			}
@@ -205,7 +206,7 @@ func TestValidateIDTokenTiming(t *testing.T) {
 			"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
 			"iat": float64(time.Now().Add(-1 * time.Minute).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -215,7 +216,7 @@ func TestValidateIDTokenTiming(t *testing.T) {
 		claims := map[string]any{
 			"exp": float64(time.Now().Add(-1 * time.Hour).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err == nil {
 			t.Error("expected error for expired token")
 		}
@@ -226,7 +227,7 @@ func TestValidateIDTokenTiming(t *testing.T) {
 			"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
 			"iat": float64(time.Now().Add(10 * time.Minute).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err == nil {
 			t.Error("expected error for future iat")
 		}
@@ -234,7 +235,7 @@ func TestValidateIDTokenTiming(t *testing.T) {
 
 	t.Run("no timing claims", func(t *testing.T) {
 		claims := map[string]any{}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -256,7 +257,7 @@ func TestMissionCriticalDomainsFromBaseURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := missionCriticalDomainsFromBaseURL(tt.baseURL)
+			got := authpkg.MissionCriticalDomainsFromBaseURL(tt.baseURL)
 			if len(got) != len(tt.want) {
 				t.Fatalf("got %v, want %v", got, tt.want)
 			}
@@ -271,11 +272,11 @@ func TestMissionCriticalDomainsFromBaseURL(t *testing.T) {
 
 func TestComputeCodeChallengeDeterministic(t *testing.T) {
 	v1 := "test-verifier-value"
-	c1 := computeCodeChallenge(v1)
-	c2 := computeCodeChallenge(v1)
-	c3 := computeCodeChallenge(v1)
+	c1 := authpkg.ComputeCodeChallenge(v1)
+	c2 := authpkg.ComputeCodeChallenge(v1)
+	c3 := authpkg.ComputeCodeChallenge(v1)
 	if c1 != c2 || c2 != c3 {
-		t.Error("computeCodeChallenge must be deterministic")
+		t.Error("authpkg.ComputeCodeChallenge must be deterministic")
 	}
 
 	if len(c1) != 43 {
@@ -285,7 +286,7 @@ func TestComputeCodeChallengeDeterministic(t *testing.T) {
 
 func TestGenerateRandomBase64URLLengths(t *testing.T) {
 	for _, n := range []int{1, 16, 32, 48, 64} {
-		result, err := generateRandomBase64URL(n)
+		result, err := authpkg.GenerateRandomBase64URL(n)
 		if err != nil {
 			t.Fatalf("n=%d: unexpected error: %v", n, err)
 		}
@@ -308,7 +309,7 @@ func TestMissionCriticalDomainsFromBaseURLEdgeCases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := missionCriticalDomainsFromBaseURL(tt.baseURL)
+			got := authpkg.MissionCriticalDomainsFromBaseURL(tt.baseURL)
 			if len(got) != len(tt.want) {
 				t.Fatalf("got %v, want %v", got, tt.want)
 			}
@@ -348,7 +349,7 @@ func TestExtractUserClaimsPartialFields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sub, email, name, verified := extractUserClaims(tt.userInfo)
+			sub, email, name, verified := authpkg.ExtractUserClaims(tt.userInfo)
 			if sub != tt.wantSub {
 				t.Errorf("sub = %q, want %q", sub, tt.wantSub)
 			}
@@ -371,7 +372,7 @@ func TestValidateIDTokenTimingEdgeCases(t *testing.T) {
 			"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
 			"iat": float64(time.Now().Add(2 * time.Minute).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("iat within 5min skew should pass: %v", err)
 		}
@@ -381,7 +382,7 @@ func TestValidateIDTokenTimingEdgeCases(t *testing.T) {
 		claims := map[string]any{
 			"exp": float64(0),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("zero exp should be ignored: %v", err)
 		}
@@ -391,7 +392,7 @@ func TestValidateIDTokenTimingEdgeCases(t *testing.T) {
 func TestParseIDTokenPayloadEdgeCases(t *testing.T) {
 	t.Run("empty payload", func(t *testing.T) {
 		encoded := base64.RawURLEncoding.EncodeToString([]byte("{}"))
-		claims, err := parseIDTokenPayload("h." + encoded + ".s")
+		claims, err := authpkg.ParseIDTokenPayload("h." + encoded + ".s")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -402,7 +403,7 @@ func TestParseIDTokenPayloadEdgeCases(t *testing.T) {
 
 	t.Run("four parts still works", func(t *testing.T) {
 		encoded := base64.RawURLEncoding.EncodeToString([]byte(`{"a":"b"}`))
-		claims, err := parseIDTokenPayload("h." + encoded + ".s.extra")
+		claims, err := authpkg.ParseIDTokenPayload("h." + encoded + ".s.extra")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -425,7 +426,7 @@ func TestValidateIDTokenIssuerAndAudienceEdgeCases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateIDTokenIssuerAndAudience(tt.claims, tt.clientID)
+			err := authpkg.ValidateIDTokenIssuerAndAudience(tt.claims, tt.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("err = %v, wantErr = %v", err, tt.wantErr)
 			}
@@ -434,23 +435,23 @@ func TestValidateIDTokenIssuerAndAudienceEdgeCases(t *testing.T) {
 }
 
 func TestAuthConstants(t *testing.T) {
-	if googleAuthURL != "https://accounts.google.com/o/oauth2/v2/auth" {
-		t.Errorf("unexpected googleAuthURL: %q", googleAuthURL)
+	if authpkg.GoogleAuthURL != "https://accounts.google.com/o/oauth2/v2/auth" {
+		t.Errorf("unexpected authpkg.GoogleAuthURL: %q", authpkg.GoogleAuthURL)
 	}
-	if googleTokenURL != "https://oauth2.googleapis.com/token" {
-		t.Errorf("unexpected googleTokenURL: %q", googleTokenURL)
+	if authpkg.GoogleTokenURL != "https://oauth2.googleapis.com/token" {
+		t.Errorf("unexpected authpkg.GoogleTokenURL: %q", authpkg.GoogleTokenURL)
 	}
-	if sessionCookieName != "_dns_session" {
-		t.Errorf("unexpected sessionCookieName: %q", sessionCookieName)
+	if authpkg.SessionCookieName != "_dns_session" {
+		t.Errorf("unexpected authpkg.SessionCookieName: %q", authpkg.SessionCookieName)
 	}
-	if sessionMaxAge != 30*24*60*60 {
-		t.Errorf("unexpected sessionMaxAge: %d", sessionMaxAge)
+	if authpkg.SessionMaxAge != 30*24*60*60 {
+		t.Errorf("unexpected authpkg.SessionMaxAge: %d", authpkg.SessionMaxAge)
 	}
-	if oauthHTTPTimeout != 10*time.Second {
-		t.Errorf("unexpected oauthHTTPTimeout: %v", oauthHTTPTimeout)
+	if authpkg.OauthHTTPTimeout != 10*time.Second {
+		t.Errorf("unexpected authpkg.OauthHTTPTimeout: %v", authpkg.OauthHTTPTimeout)
 	}
-	if iatMaxSkew != 5*time.Minute {
-		t.Errorf("unexpected iatMaxSkew: %v", iatMaxSkew)
+	if authpkg.IatMaxSkew != 5*time.Minute {
+		t.Errorf("unexpected authpkg.IatMaxSkew: %v", authpkg.IatMaxSkew)
 	}
 }
 

@@ -1,6 +1,8 @@
 package handlers_test
 
 import (
+        "dnstool/go-server/internal/handlers/adminpkg"
+        "dnstool/go-server/internal/handlers/badgepkg"
         "html/template"
         "net/http"
         "net/http/httptest"
@@ -57,7 +59,7 @@ func TestAdminDashboardIntegration_CB7(t *testing.T) {
 
         cfg := testConfig()
         router := allTemplates()
-        handler := handlers.NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := adminpkg.NewAdminHandler(database, cfg, handlers.NewTemplateData, func() int64 { return 0 })
         router.GET("/admin", handler.Dashboard)
         w := httptest.NewRecorder()
         req := httptest.NewRequest(http.MethodGet, "/admin", nil)
@@ -73,7 +75,7 @@ func TestAdminOpsPageIntegration_CB7(t *testing.T) {
 
         cfg := testConfig()
         router := allTemplates()
-        handler := handlers.NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := adminpkg.NewAdminHandler(database, cfg, handlers.NewTemplateData, func() int64 { return 0 })
         router.GET("/admin/ops", handler.OperationsPage)
         w := httptest.NewRecorder()
         req := httptest.NewRequest(http.MethodGet, "/admin/ops", nil)
@@ -188,7 +190,7 @@ func TestBadgeHandlerIntegration_CB7(t *testing.T) {
 
         cfg := testConfig()
         router := allTemplates()
-        handler := handlers.NewBadgeHandler(database, cfg)
+        handler := badgepkg.NewBadgeHandler(database, cfg, nil)
         router.GET("/badge/:domain", handler.Badge)
         w := httptest.NewRecorder()
         req := httptest.NewRequest(http.MethodGet, "/badge/example.com", nil)
@@ -204,7 +206,7 @@ func TestBadgeEmbedIntegration_CB7(t *testing.T) {
 
         cfg := testConfig()
         router := allTemplates()
-        handler := handlers.NewBadgeHandler(database, cfg)
+        handler := badgepkg.NewBadgeHandler(database, cfg, nil)
         router.GET("/badge/:domain/embed", handler.BadgeEmbed)
         w := httptest.NewRecorder()
         req := httptest.NewRequest(http.MethodGet, "/badge/example.com/embed", nil)
@@ -546,7 +548,7 @@ func TestProbeAdminDashboard_CB7(t *testing.T) {
 
         cfg := testConfig()
         router := allTemplates()
-        handler := handlers.NewProbeAdminHandler(database, cfg)
+        handler := adminpkg.NewProbeAdminHandler(database, cfg, handlers.NewTemplateData)
         router.GET("/admin/probes", handler.ProbeDashboard)
         w := httptest.NewRecorder()
         req := httptest.NewRequest(http.MethodGet, "/admin/probes", nil)

@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "context"
         "encoding/json"
         "net/http"
@@ -388,7 +389,7 @@ func TestBadgeResolveAnalysis_MissingParams(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge", nil)
 
-        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -405,7 +406,7 @@ func TestBadgeResolveAnalysis_InvalidID(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?id=abc", nil)
 
-        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -422,7 +423,7 @@ func TestBadgeResolveAnalysis_ByIDNotFound(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?id=999", nil)
 
-        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -444,7 +445,7 @@ func TestBadgeResolveAnalysis_ByIDPrivate(t *testing.T) {
                         return dbq.DomainAnalysis{ID: 1, Private: true}, nil
                 },
         }
-        h := NewBadgeHandlerWithStore(mock, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(mock, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -468,7 +469,7 @@ func TestBadgeResolveAnalysis_ByIDSuccess(t *testing.T) {
                         }, nil
                 },
         }
-        h := NewBadgeHandlerWithStore(mock, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(mock, &config.Config{}, nil)
 
         domain, results, _, scanID, _, ok := h.ResolveAnalysis(c)
         if !ok {
@@ -491,7 +492,7 @@ func TestBadgeResolveAnalysis_ByDomainInvalid(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?domain=not..valid", nil)
 
-        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -505,7 +506,7 @@ func TestBadgeResolveAnalysis_ByDomainNotScanned(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?domain=example.com", nil)
 
-        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{}, nil)
 
         _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
@@ -529,7 +530,7 @@ func TestBadgeResolveAnalysis_ByDomainSuccess(t *testing.T) {
                         }, nil
                 },
         }
-        h := NewBadgeHandlerWithStore(mock, &config.Config{})
+        h := badgepkg.NewBadgeHandlerWithStore(mock, &config.Config{}, nil)
 
         domain, results, _, scanID, _, ok := h.ResolveAnalysis(c)
         if !ok {

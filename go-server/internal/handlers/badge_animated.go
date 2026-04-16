@@ -22,6 +22,8 @@ import (
         "sync"
         "time"
 
+        "dnstool/go-server/internal/handlers/badgepkg"
+
         "github.com/gin-gonic/gin"
         "github.com/kettek/apng"
 )
@@ -53,13 +55,13 @@ func init() {
         }
 }
 
-func BadgeAnimated(h *BadgeHandler, c *gin.Context) {
+func BadgeAnimated(h *badgepkg.BadgeHandler, c *gin.Context) {
         domain, results, scanTime, scanID, postureHash, ok := h.ResolveAnalysis(c)
         if !ok {
                 return
         }
         if results == nil {
-                c.Data(http.StatusOK, "image/svg+xml; charset=utf-8", badgeSVG("DNS Tool", "no data", "#9f9f9f"))
+                c.Data(http.StatusOK, "image/svg+xml; charset=utf-8", badgepkg.BadgeSVG("DNS Tool", "no data", "#9f9f9f"))
                 return
         }
 
@@ -84,9 +86,9 @@ func BadgeAnimated(h *BadgeHandler, c *gin.Context) {
         var svgGen func(string, map[string]any, time.Time, int32, string, string) []byte
         switch style {
         case "covert":
-                svgGen = badgeSVGCovert
+                svgGen = badgepkg.BadgeSVGCovert
         default:
-                svgGen = badgeSVGDetailed
+                svgGen = badgepkg.BadgeSVGDetailed
         }
 
         baseSVG := svgGen(domain, results, scanTime, scanID, postureHash, h.Config.BaseURL)

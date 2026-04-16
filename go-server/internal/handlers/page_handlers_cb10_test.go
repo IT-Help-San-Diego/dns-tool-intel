@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "net/http"
         "net/http/httptest"
         "strings"
@@ -230,7 +231,7 @@ func badgeEmbedRouter_CB10(t *testing.T) *gin.Engine {
         database := setupTestDB(t)
         t.Cleanup(func() { cleanupTestDB(t, database) })
         cfg := testConfig()
-        h := handlers.NewBadgeHandler(database, cfg)
+        h := badgepkg.NewBadgeHandler(database, cfg, nil)
         r.GET("/badge/embed/:domain", h.BadgeEmbed)
         r.GET("/badge/:domain", h.Badge)
         r.GET("/badge/shields/:domain", h.BadgeShieldsIO)

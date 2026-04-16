@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "encoding/json"
         "fmt"
         "net/http"
@@ -1126,7 +1127,7 @@ func TestCleanDomainInputCB3(t *testing.T) {
 func TestUnmarshalResultsCB3(t *testing.T) {
         t.Run("valid JSON", func(t *testing.T) {
                 data := []byte(`{"status": "pass"}`)
-                got := unmarshalResults(data, "Test")
+                got := badgepkg.UnmarshalResults(data, "Test")
                 if got == nil {
                         t.Fatal("expected non-nil")
                 }
@@ -1136,14 +1137,14 @@ func TestUnmarshalResultsCB3(t *testing.T) {
         })
 
         t.Run("empty", func(t *testing.T) {
-                got := unmarshalResults(nil, "Test")
+                got := badgepkg.UnmarshalResults(nil, "Test")
                 if got != nil {
                         t.Error("expected nil for empty input")
                 }
         })
 
         t.Run("invalid JSON", func(t *testing.T) {
-                got := unmarshalResults([]byte("not json"), "Test")
+                got := badgepkg.UnmarshalResults([]byte("not json"), "Test")
                 if got != nil {
                         t.Error("expected nil for invalid JSON")
                 }
@@ -1158,7 +1159,7 @@ func TestExtractPostureRiskCB3(t *testing.T) {
                                 "color": "success",
                         },
                 }
-                label, color := extractPostureRisk(results)
+                label, color := badgepkg.ExtractPostureRisk(results)
                 if label != "Low Risk" {
                         t.Errorf("label = %q", label)
                 }
@@ -1173,21 +1174,21 @@ func TestExtractPostureRiskCB3(t *testing.T) {
                                 "grade": "A+",
                         },
                 }
-                label, _ := extractPostureRisk(results)
+                label, _ := badgepkg.ExtractPostureRisk(results)
                 if label != "A+" {
                         t.Errorf("label = %q", label)
                 }
         })
 
         t.Run("nil results", func(t *testing.T) {
-                label, _ := extractPostureRisk(nil)
+                label, _ := badgepkg.ExtractPostureRisk(nil)
                 if label != "Unknown" {
                         t.Errorf("label = %q", label)
                 }
         })
 
         t.Run("no posture", func(t *testing.T) {
-                label, _ := extractPostureRisk(map[string]any{})
+                label, _ := badgepkg.ExtractPostureRisk(map[string]any{})
                 if label != "Unknown" {
                         t.Errorf("label = %q", label)
                 }
@@ -1195,37 +1196,37 @@ func TestExtractPostureRiskCB3(t *testing.T) {
 }
 
 func TestRiskColorToHexCB3(t *testing.T) {
-        if got := riskColorToHex("success"); got != "#3fb950" {
+        if got := badgepkg.RiskColorToHex("success"); got != "#3fb950" {
                 t.Errorf("success = %q", got)
         }
-        if got := riskColorToHex("warning"); got != "#d29922" {
+        if got := badgepkg.RiskColorToHex("warning"); got != "#d29922" {
                 t.Errorf("warning = %q", got)
         }
-        if got := riskColorToHex("danger"); got != "#e05d44" {
+        if got := badgepkg.RiskColorToHex("danger"); got != "#e05d44" {
                 t.Errorf("danger = %q", got)
         }
-        if got := riskColorToHex("unknown"); got != "#9f9f9f" {
+        if got := badgepkg.RiskColorToHex("unknown"); got != "#9f9f9f" {
                 t.Errorf("unknown = %q", got)
         }
 }
 
 func TestRiskColorToShieldsCB3(t *testing.T) {
-        if got := riskColorToShields("success"); got != "brightgreen" {
+        if got := badgepkg.RiskColorToShields("success"); got != "brightgreen" {
                 t.Errorf("success = %q", got)
         }
-        if got := riskColorToShields("warning"); got != "yellow" {
+        if got := badgepkg.RiskColorToShields("warning"); got != "yellow" {
                 t.Errorf("warning = %q", got)
         }
-        if got := riskColorToShields("danger"); got != "red" {
+        if got := badgepkg.RiskColorToShields("danger"); got != "red" {
                 t.Errorf("danger = %q", got)
         }
-        if got := riskColorToShields("other"); got != "lightgrey" {
+        if got := badgepkg.RiskColorToShields("other"); got != "lightgrey" {
                 t.Errorf("other = %q", got)
         }
 }
 
 func TestBadgeSVGCB3(t *testing.T) {
-        svg := badgeSVG("example.com", "Low Risk (90/100)", "#3fb950")
+        svg := badgepkg.BadgeSVG("example.com", "Low Risk (90/100)", "#3fb950")
         if len(svg) == 0 {
                 t.Error("expected non-empty SVG")
         }
@@ -1251,7 +1252,7 @@ func TestBadgeSVGCovertCB3(t *testing.T) {
                 "spf_analysis":  map[string]any{"status": "success"},
                 "dkim_analysis": map[string]any{"status": "success"},
         }
-        svg := badgeSVGCovert("example.com", results, time.Now(), 1, "testhashtesttest", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGCovert("example.com", results, time.Now(), 1, "testhashtesttest", "https://dnstool.it-help.tech")
         if len(svg) == 0 {
                 t.Error("expected non-empty SVG")
         }

@@ -29,6 +29,8 @@ import (
         "dnstool/go-server/internal/handlers"
         "dnstool/go-server/internal/handlers/adminpkg"
         "dnstool/go-server/internal/handlers/agentpkg"
+        "dnstool/go-server/internal/handlers/authpkg"
+        "dnstool/go-server/internal/handlers/badgepkg"
         "dnstool/go-server/internal/handlers/contentpkg"
         "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/middleware"
@@ -643,7 +645,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         colorScienceHandler := contentpkg.NewColorScienceHandler(cfg, tdf)
         router.GET("/color-science", colorScienceHandler.ColorScience)
 
-        badgeHandler := handlers.NewBadgeHandler(database, cfg)
+        badgeHandler := badgepkg.NewBadgeHandler(database, cfg, handlers.NewTemplateData)
         router.GET("/badge", badgeHandler.Badge)
         router.GET("/badge/shields", badgeHandler.BadgeShieldsIO)
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
@@ -686,7 +688,7 @@ func registerAdminRoutes(d routeDeps) {
 }
 
 func registerAuthRoutes(d routeDeps) {
-        authHandler := handlers.NewAuthHandler(d.Cfg, d.DB.Pool)
+        authHandler := authpkg.NewAuthHandler(d.Cfg, d.DB.Pool)
         if d.Cfg.GoogleClientID != "" {
                 authRL := middleware.AuthRateLimit(d.RateLimiter)
                 d.Router.GET("/auth/login", authRL, authHandler.Login)
