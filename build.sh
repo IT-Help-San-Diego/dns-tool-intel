@@ -57,10 +57,9 @@ CGO_ENABLED=0 GONOSUMCHECK=1 go build \
   -trimpath \
   -ldflags "$LDFLAGS" \
   -tags netgo \
-  -o /tmp/dns-tool-new \
+  -o "$SCRIPT_DIR/dns-tool-server-new" \
   ./go-server/cmd/server/
-mv /tmp/dns-tool-new dns-tool-server-new
-mv dns-tool-server-new dns-tool-server
+mv "$SCRIPT_DIR/dns-tool-server-new" "$SCRIPT_DIR/dns-tool-server"
 
 rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
 
