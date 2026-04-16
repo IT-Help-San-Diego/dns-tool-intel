@@ -47,6 +47,7 @@ const (
 )
 
 const headerCacheControl = "Cache-Control"
+const contentTypeJSON = "application/json"
 
 var staticMIME = map[string]string{
         ".mp4":   "video/mp4",
@@ -55,7 +56,7 @@ var staticMIME = map[string]string{
         ".m4a":   "audio/mp4",
         ".css":   "text/css; charset=utf-8",
         ".js":    "application/javascript",
-        ".json":  "application/json",
+        ".json":  contentTypeJSON,
         ".html":  "text/html; charset=utf-8",
         ".xml":   "application/xml",
         ".svg":   "image/svg+xml",
@@ -71,7 +72,7 @@ var staticMIME = map[string]string{
         ".ttf":   "font/ttf",
         ".pdf":   "application/pdf",
         ".txt":   "text/plain; charset=utf-8",
-        ".map":   "application/json",
+        ".map":   contentTypeJSON,
         ".zip":   "application/zip",
 }
 
@@ -199,7 +200,7 @@ func startingHandler() http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                 slog.Info("Starting handler serving request", "path", r.URL.Path, "method", r.Method)
                 if r.URL.Path == "/healthz" {
-                        w.Header().Set("Content-Type", "application/json")
+                        w.Header().Set("Content-Type", contentTypeJSON)
                         w.WriteHeader(http.StatusOK)
                         _, _ = w.Write([]byte(`{"status":"starting"}`))
                         return
@@ -242,7 +243,7 @@ func runDegradedMode(handler *atomic.Value, cfg *config.Config, srv *http.Server
 func degradedHandler() http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                 if r.URL.Path == "/healthz" {
-                        w.Header().Set("Content-Type", "application/json")
+                        w.Header().Set("Content-Type", contentTypeJSON)
                         w.WriteHeader(http.StatusOK)
                         _, _ = w.Write([]byte(`{"status":"degraded","reason":"database_unavailable"}`))
                         return
