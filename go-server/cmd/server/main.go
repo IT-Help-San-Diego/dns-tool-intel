@@ -527,6 +527,7 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
         d.Router.GET("/agent/topology-view", agentHandler.TopologyView)
         d.Router.GET("/agent/sources-view", agentHandler.SourcesView)
         d.Router.GET("/agent/confidence-view", agentHandler.ConfidenceView)
+        d.Router.GET("/agent/guide-view", agentHandler.GuideView)
         d.Router.GET("/agent/report", agentHandler.ReportView)
         d.Router.GET("/agent/opensearch.xml", agentHandler.OpenSearchXML)
         d.Router.GET("/agent/plugin", agentHandler.PluginPage)

@@ -73,8 +73,7 @@ func domainContext(domain string) string {
         return `
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">DNS Security Intelligence Context — ` + ed + `</h2>
-      <p style="` + iwCardP + `">This artifact is part of the comprehensive DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by DNS Tool. The analysis evaluates the complete DNS security posture of ` + ed + ` across all major Internet security protocols: SPF (Sender Policy Framework), DKIM (DomainKeys Identified Mail), DMARC (Domain-based Message Authentication, Reporting and Conformance), BIMI (Brand Indicators for Message Identification), DNSSEC (DNS Security Extensions), DANE/TLSA (DNS-based Authentication of Named Entities), MTA-STS (Mail Transfer Agent Strict Transport Security), TLS-RPT (TLS Reporting), and CAA (Certificate Authority Authorization).</p>
-      <p style="` + iwCardP + `">The security posture of ` + ed + ` is evaluated using Bayesian confidence scoring aligned with ICD 203 (Intelligence Community Directive 203). DNS Tool produces 15 enriched intelligence artifacts for ` + ed + ` per analysis query. All collected data for ` + ed + ` is integrity-verified with SHA-3-512 (Keccak) checksums and archived to the Internet Archive Wayback Machine for reproducibility. Provenance for the ` + ed + ` analysis is recorded via Zenodo DOI. This artifact is one component of the full intelligence output for ` + ed + `.</p>
+      <p style="` + iwCardP + `">This artifact is part of the DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by DNS Tool — IT Research in Motion. The analysis evaluates the complete DNS security posture of ` + ed + ` across SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Posture scoring uses Bayesian confidence intervals aligned with ICD 203. All collected data is integrity-verified with SHA-3-512 checksums.</p>
     </div>`
 }
 
@@ -426,6 +425,69 @@ func (h *AgentHandler) ConfidenceView(c *gin.Context) {
         <a href="` + reportURL + `" style="` + iwSecBtn + `">Full Analysis Report</a>
       </div>
     </div>` + domainContext(domain) + `
+  </div>
+</body>
+</html>`)
+
+        c.Data(http.StatusOK, agentContentTypeHTML, []byte(sb.String()))
+}
+
+func (h *AgentHandler) GuideView(c *gin.Context) {
+        domain := extractAgentQuery(c)
+        if domain == "" {
+                c.String(http.StatusBadRequest, agentErrMissingDomain)
+                return
+        }
+        if !validateAgentDomain(domain) {
+                c.String(http.StatusBadRequest, agentErrInvalidDomain)
+                return
+        }
+
+        base := h.Config.BaseURL
+        ed := esc(domain)
+
+        var sb strings.Builder
+        sb.WriteString(inlineHead(
+                "DNS Intelligence Guide — "+ed,
+                "Orientation guide for the DNS security intelligence analysis of "+ed+". Produced by DNS Tool — IT Research in Motion.",
+                "DNS Intelligence Guide — "+ed,
+                "What this analysis contains and how to use it.",
+        ))
+        sb.WriteString(`
+    <h1 style="` + iwH1 + `">DNS Intelligence Guide — ` + ed + `</h1>`)
+        sb.WriteString(inlineMeta(base))
+        sb.WriteString(`
+    <div style="` + iwCard + `">
+      <h2 style="` + iwCardH2 + `">What You're Looking At</h2>
+      <p style="` + iwCardP + `">This is a complete DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by <a href="` + esc(base) + `" style="` + iwMetaLink + `">DNS Tool</a> — a project of IT Help San Diego Inc.</p>
+      <p style="` + iwCardP + `">The analysis covers every major DNS security protocol: SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Each protocol check traces to an authoritative RFC. Posture scoring uses Bayesian confidence intervals aligned with ICD 203.</p>
+    </div>
+
+    <div style="` + iwCard + `">
+      <h2 style="` + iwCardH2 + `">What Each Section Does</h2>
+      <p style="` + iwCardP + `"><strong>Engineer's Report</strong> — The primary analysis. Risk level, posture score, and detailed findings for every protocol.</p>
+      <p style="` + iwCardP + `"><strong>Analysis History</strong> — Previous scans of this domain, if any. Useful for tracking security posture changes over time.</p>
+      <p style="` + iwCardP + `"><strong>Security Badges</strong> — Visual posture indicators. The detailed badge shows the full breakdown; the covert badge is scotopic-optimized for dark environments.</p>
+      <p style="` + iwCardP + `"><strong>Executive Brief</strong> — Board-ready summary. The covert report provides the same data in a low-visibility format.</p>
+      <p style="` + iwCardP + `"><strong>Topology</strong> — Interactive visualization of DNS infrastructure: resolver paths, nameserver delegation, and mail routing.</p>
+      <p style="` + iwCardP + `"><strong>Data Exports</strong> — Full JSON payload and CSV subdomain data for import into SIEM platforms, spreadsheets, or threat intelligence tools.</p>
+      <p style="` + iwCardP + `"><strong>Integrity</strong> — SHA-3-512 checksums verify the analysis data has not been tampered with.</p>
+      <p style="` + iwCardP + `"><strong>Remediation</strong> — Actionable steps to improve the domain's security posture based on the findings.</p>
+      <p style="` + iwCardP + `"><strong>Wayback Archive</strong> — Permanent third-party record via the Internet Archive. Created asynchronously after analysis completes.</p>
+      <p style="` + iwCardP + `"><strong>Sources &amp; Methodology</strong> — RFC citations, data sources, and the scoring methodology behind every verdict.</p>
+    </div>
+
+    <div style="` + iwCard + `">
+      <h2 style="` + iwCardH2 + `">Freshness</h2>
+      <p style="` + iwCardP + `">Every analysis delivers fresh data. DNS Tool queries live resolvers, Certificate Transparency logs, and WHOIS/RDAP databases in real time. Re-run a search after one hour to get a completely fresh scan.</p>
+    </div>
+
+    <div style="` + iwCard + `">
+      <h2 style="` + iwCardH2 + `">Provenance</h2>
+      <p style="` + iwCardP + `"><strong>Concept DOI:</strong> <a href="https://doi.org/10.5281/zenodo.19468134" style="` + iwMetaLink + `">10.5281/zenodo.19468134</a><br>
+      <strong>License:</strong> BUSL-1.1<br>
+      <strong>Publisher:</strong> IT Help San Diego Inc. — IT Research in Motion</p>
+    </div>
   </div>
 </body>
 </html>`)

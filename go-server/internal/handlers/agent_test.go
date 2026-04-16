@@ -309,6 +309,8 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
         }
 
         assetChecks := []string{
+                "/agent/guide-view?domain=example.com",
+                "/history?domain=example.com",
                 "/agent/snapshot-view?domain=example.com",
                 "/agent/topology-view?domain=example.com",
                 "/analyze?domain=example.com",
@@ -325,7 +327,6 @@ func TestBuildAgentHTMLZoteroMetadata(t *testing.T) {
                 "Sources &amp; Methodology",
                 "Engineer's DNS Intelligence Report",
                 "https://doi.org/10.5281/zenodo.19468134",
-                "Zenodo",
                 "Covert Security Badge",
                 "Detailed Security Badge",
                 "Covert Recon Report",
@@ -391,8 +392,17 @@ func TestBuildAgentHTMLAlways15Results(t *testing.T) {
                 if !strings.Contains(html, "Wayback Archive") {
                         t.Errorf("analysisID=%d: missing Wayback Archive result", id)
                 }
-                if !strings.Contains(html, "Confidence Page") {
-                        t.Errorf("analysisID=%d: missing Confidence Page result", id)
+                if !strings.Contains(html, "Intelligence Guide") {
+                        t.Errorf("analysisID=%d: missing Intelligence Guide result", id)
+                }
+                if !strings.Contains(html, "Analysis History") {
+                        t.Errorf("analysisID=%d: missing Analysis History result", id)
+                }
+                if strings.Contains(html, "Confidence Page") {
+                        t.Errorf("analysisID=%d: Confidence Page should be removed", id)
+                }
+                if strings.Contains(html, "Zenodo — Concept DOI") {
+                        t.Errorf("analysisID=%d: Zenodo DOI link should be removed from list", id)
                 }
         }
 }
@@ -790,11 +800,13 @@ func TestWaybackViewHandler(t *testing.T) {
         }{
                 {"missing domain", "/agent/wayback", http.StatusBadRequest, nil},
                 {"invalid domain", "/agent/wayback?domain=not_valid!", http.StatusBadRequest, nil},
-                {"valid domain", "/agent/wayback?domain=example.com", http.StatusFound, []string{
-                        "/analyze?domain=example.com",
+                {"valid domain fallback", "/agent/wayback?domain=example.com", http.StatusOK, []string{
+                        "Wayback Archive",
+                        "No archived snapshot is available yet",
                 }},
-                {"q param", "/agent/wayback?q=example.com", http.StatusFound, []string{
-                        "/analyze?domain=example.com",
+                {"q param fallback", "/agent/wayback?q=example.com", http.StatusOK, []string{
+                        "Wayback Archive",
+                        "No archived snapshot is available yet",
                 }},
         }
 
