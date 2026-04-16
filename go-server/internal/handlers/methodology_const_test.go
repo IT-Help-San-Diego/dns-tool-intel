@@ -11,30 +11,39 @@ import (
 
 func TestNoHardcodedMethodologyStrings(t *testing.T) {
         const forbiddenPhrase = "geometric-mean"
-        const constantFile = "agent_wrappers.go"
-        const thisFile = "methodology_const_test.go"
+        const constantDefFile = "internal/handlers/agent_wrappers.go"
+        const thisTestFile = "internal/handlers/methodology_const_test.go"
 
-        dir := "."
-        entries, err := os.ReadDir(dir)
+        goServerRoot := filepath.Join("..", "..")
+
+        absRoot, err := filepath.Abs(goServerRoot)
         if err != nil {
-                t.Fatalf("failed to read handlers directory: %v", err)
+                t.Fatalf("failed to resolve go-server root: %v", err)
         }
 
         var violations []string
 
-        for _, entry := range entries {
-                name := entry.Name()
-                if entry.IsDir() || !strings.HasSuffix(name, ".go") {
-                        continue
+        err = filepath.Walk(absRoot, func(path string, info os.FileInfo, err error) error {
+                if err != nil {
+                        return err
                 }
-                if name == thisFile {
-                        continue
+                if info.IsDir() || !strings.HasSuffix(path, ".go") {
+                        return nil
                 }
 
-                path := filepath.Join(dir, name)
+                rel, err := filepath.Rel(absRoot, path)
+                if err != nil {
+                        return err
+                }
+                rel = filepath.ToSlash(rel)
+
+                if rel == thisTestFile {
+                        return nil
+                }
+
                 f, err := os.Open(path)
                 if err != nil {
-                        t.Fatalf("failed to open %s: %v", name, err)
+                        return fmt.Errorf("failed to open %s: %w", rel, err)
                 }
 
                 scanner := bufio.NewScanner(f)
@@ -48,18 +57,24 @@ func TestNoHardcodedMethodologyStrings(t *testing.T) {
                         }
 
                         trimmed := strings.TrimSpace(line)
-                        if name == constantFile && strings.HasPrefix(trimmed, "confidenceMethodology") &&
+                        if rel == constantDefFile &&
+                                strings.HasPrefix(trimmed, "confidenceMethodology") &&
                                 strings.Contains(trimmed, `= "`) {
                                 continue
                         }
 
-                        violations = append(violations, fmt.Sprintf("  %s:%d: %s", name, lineNum, strings.TrimSpace(line)))
+                        violations = append(violations,
+                                fmt.Sprintf("  %s:%d: %s", rel, lineNum, trimmed))
                 }
+                scanErr := scanner.Err()
                 f.Close()
-
-                if err := scanner.Err(); err != nil {
-                        t.Fatalf("error scanning %s: %v", name, err)
+                if scanErr != nil {
+                        return fmt.Errorf("error scanning %s: %w", rel, scanErr)
                 }
+                return nil
+        })
+        if err != nil {
+                t.Fatalf("failed to walk go-server tree: %v", err)
         }
 
         if len(violations) > 0 {
