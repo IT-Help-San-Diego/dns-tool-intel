@@ -138,8 +138,8 @@
 
                 var u = (lon + PI) / TWO_PI;
                 var v = (PI / 2 - lat) / PI;
-                var tx = Math.min(tw - 1, Math.max(0, (u * tw) | 0));
-                var ty = Math.min(th - 1, Math.max(0, (v * th) | 0));
+                var tx = Math.min(tw - 1, Math.max(0, Math.trunc(u * tw)));
+                var ty = Math.min(th - 1, Math.max(0, Math.trunc(v * th)));
                 var ti = (ty * tw + tx) * 4;
 
                 var tr = td[ti], tg = td[ti + 1], tb = td[ti + 2];
@@ -154,9 +154,9 @@
                 var rimStr = fr4 * 0.45;
 
                 var idx = (py * sz + pxx) * 4;
-                px[idx] = Math.min(255, (tr * lit + rimR * rimStr) | 0);
-                px[idx + 1] = Math.min(255, (tg * lit + rimG * rimStr) | 0);
-                px[idx + 2] = Math.min(255, (tb * lit + rimB * rimStr) | 0);
+                px[idx] = Math.min(255, Math.trunc(tr * lit + rimR * rimStr));
+                px[idx + 1] = Math.min(255, Math.trunc(tg * lit + rimG * rimStr));
+                px[idx + 2] = Math.min(255, Math.trunc(tb * lit + rimB * rimStr));
                 px[idx + 3] = 255;
             }
         }
