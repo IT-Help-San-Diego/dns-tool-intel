@@ -27,6 +27,7 @@ import (
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/handlers"
+        "dnstool/go-server/internal/handlers/contentpkg"
         "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/middleware"
         "dnstool/go-server/internal/notifier"
@@ -550,7 +551,8 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/cite", citationHandler.CitePage)
         router.GET("/cite/software", citationHandler.SoftwareCitation)
 
-        architectureHandler := handlers.NewArchitectureHandler(cfg)
+        tdf := handlers.NewTemplateData
+        architectureHandler := contentpkg.NewArchitectureHandler(cfg, tdf)
         router.GET("/architecture", architectureHandler.Architecture)
 
         signatureHandler := handlers.NewSignatureHandler(cfg)
@@ -562,45 +564,45 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         changelogHandler := handlers.NewChangelogHandler(cfg)
         router.GET("/changelog", changelogHandler.Changelog)
 
-        faqHandler := handlers.NewFAQHandler(cfg)
+        faqHandler := contentpkg.NewFAQHandler(cfg, tdf)
         router.GET("/faq/subdomains", faqHandler.SubdomainDiscovery)
 
         confidenceHandler := handlers.NewConfidenceHandler(cfg, database)
         router.GET("/confidence", confidenceHandler.Confidence)
         router.GET("/confidence/audit-log", confidenceHandler.AuditLog)
 
-        securityPolicyHandler := handlers.NewSecurityPolicyHandler(cfg)
+        securityPolicyHandler := contentpkg.NewSecurityPolicyHandler(cfg, tdf)
         router.GET("/security-policy", securityPolicyHandler.SecurityPolicy)
 
-        privacyHandler := handlers.NewPrivacyHandler(cfg)
+        privacyHandler := contentpkg.NewPrivacyHandler(cfg, tdf)
         router.GET("/privacy", privacyHandler.Privacy)
 
-        aboutHandler := handlers.NewAboutHandler(cfg)
+        aboutHandler := contentpkg.NewAboutHandler(cfg, tdf)
         router.GET("/about", aboutHandler.About)
 
-        contactHandler := handlers.NewContactHandler(cfg)
+        contactHandler := contentpkg.NewContactHandler(cfg, tdf)
         router.GET("/contact", contactHandler.Contact)
 
-        refLibHandler := handlers.NewReferenceLibraryHandler(cfg)
+        refLibHandler := contentpkg.NewReferenceLibraryHandler(cfg, tdf)
         router.GET("/reference-library", refLibHandler.ReferenceLibrary)
 
         roadmapHandler := handlers.NewRoadmapHandler(cfg)
         router.GET("/roadmap", roadmapHandler.Roadmap)
 
-        approachHandler := handlers.NewApproachHandler(cfg)
+        approachHandler := contentpkg.NewApproachHandler(cfg, tdf)
         router.GET("/approach", approachHandler.Approach)
 
         edeHandler := handlers.NewEDEHandler(database, cfg)
         router.GET("/ede", edeHandler.EDE)
 
-        manifestoHandler := handlers.NewManifestoHandler(cfg)
+        manifestoHandler := contentpkg.NewManifestoHandler(cfg, tdf)
         router.GET("/manifesto", manifestoHandler.Manifesto)
 
         owlSemaphoreHandler := handlers.NewOwlSemaphoreHandler(cfg)
         router.GET("/owl-semaphore", owlSemaphoreHandler.OwlSemaphore)
         router.GET("/owl-layers", owlSemaphoreHandler.OwlLayers)
 
-        commStdsHandler := handlers.NewCommunicationStandardsHandler(cfg)
+        commStdsHandler := contentpkg.NewCommunicationStandardsHandler(cfg, tdf)
         router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
 
         router.GET("/methodology", static.MethodologyPDF)
@@ -618,7 +620,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
         router.GET("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
 
-        corpusHandler := handlers.NewCorpusHandler(cfg)
+        corpusHandler := contentpkg.NewCorpusHandler(cfg, tdf)
         router.GET("/corpus", corpusHandler.Corpus)
 
         videoHandler := handlers.NewVideoHandler(cfg)
@@ -627,7 +629,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/case-study/", videoHandler.CaseStudyIndex)
         router.GET("/case-study/intelligence-dmarc", videoHandler.IntelligenceDMARC)
 
-        roeHandler := handlers.NewROEHandler(cfg)
+        roeHandler := contentpkg.NewROEHandler(cfg, tdf)
         router.GET("/roe", roeHandler.ROE)
 
         blackSiteHandler := handlers.NewBlackSiteHandler(database, cfg)
@@ -636,7 +638,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         brandColorsHandler := handlers.NewBrandColorsHandler(cfg)
         router.GET("/brand-colors", brandColorsHandler.BrandColors)
 
-        colorScienceHandler := handlers.NewColorScienceHandler(cfg)
+        colorScienceHandler := contentpkg.NewColorScienceHandler(cfg, tdf)
         router.GET("/color-science", colorScienceHandler.ColorScience)
 
         badgeHandler := handlers.NewBadgeHandler(database, cfg)
