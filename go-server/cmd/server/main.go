@@ -27,6 +27,7 @@ import (
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/handlers"
+        "dnstool/go-server/internal/handlers/adminpkg"
         "dnstool/go-server/internal/handlers/agentpkg"
         "dnstool/go-server/internal/handlers/contentpkg"
         "dnstool/go-server/internal/logging"
@@ -655,7 +656,7 @@ func registerAdminRoutes(d routeDeps) {
         healthHandler := handlers.NewHealthHandler(d.DB, d.Analyzer)
         d.Router.GET("/api/health", middleware.RequireAdmin(), healthHandler.HealthCheck)
 
-        adminHandler := handlers.NewAdminHandler(d.DB, d.Cfg, d.Analyzer.BackpressureRejections)
+        adminHandler := adminpkg.NewAdminHandler(d.DB, d.Cfg, handlers.NewTemplateData, d.Analyzer.BackpressureRejections)
         d.Router.GET("/ops", middleware.RequireAdmin(), adminHandler.Dashboard)
         d.Router.POST("/ops/user/:id/delete", middleware.RequireAdmin(), adminHandler.DeleteUser)
         d.Router.POST("/ops/user/:id/reset-sessions", middleware.RequireAdmin(), adminHandler.ResetUserSessions)
@@ -663,7 +664,7 @@ func registerAdminRoutes(d routeDeps) {
         d.Router.GET("/ops/operations", middleware.RequireAdmin(), adminHandler.OperationsPage)
         d.Router.POST("/ops/run/:task", middleware.RequireAdmin(), adminHandler.RunOperation)
 
-        probeAdminHandler := handlers.NewProbeAdminHandler(d.DB, d.Cfg)
+        probeAdminHandler := adminpkg.NewProbeAdminHandler(d.DB, d.Cfg, handlers.NewTemplateData)
         d.Router.GET("/ops/probes", middleware.RequireAdmin(), probeAdminHandler.ProbeDashboard)
         d.Router.POST("/ops/probes/:id/:action", middleware.RequireAdmin(), probeAdminHandler.RunProbeAction)
 
