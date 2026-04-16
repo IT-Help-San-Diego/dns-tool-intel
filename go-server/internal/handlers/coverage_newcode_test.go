@@ -493,10 +493,10 @@ func TestExtractPostureScore_NewCode(t *testing.T) {
 
 func TestCovertSummaryLines(t *testing.T) {
         base := covertSummaryParams{
-                locked:    "#3fb950",
-                dimLocked: "#30363d",
-                sRed:      "#f85149",
-                alt:       "#9f9f9f",
+                Locked:    "#3fb950",
+                DimLocked: "#30363d",
+                SRed:      "#f85149",
+                Alt:       "#9f9f9f",
         }
         tests := []struct {
                 name         string
@@ -517,16 +517,16 @@ func TestCovertSummaryLines(t *testing.T) {
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
                         p := base
-                        p.vulnerable = tc.vulnerable
-                        p.findingCount = tc.findingCount
-                        p.tagline = tc.tagline
+                        p.Vulnerable = tc.vulnerable
+                        p.FindingCount = tc.findingCount
+                        p.Tagline = tc.tagline
                         lines := covertSummaryLines(p)
                         if len(lines) != tc.wantLen {
                                 t.Errorf("got %d lines, want %d", len(lines), tc.wantLen)
                         }
                         found := false
                         for _, l := range lines {
-                                if strings.Contains(l.text, tc.wantContains) {
+                                if strings.Contains(l.Text, tc.wantContains) {
                                         found = true
                                         break
                                 }
@@ -534,7 +534,7 @@ func TestCovertSummaryLines(t *testing.T) {
                         if !found {
                                 var texts []string
                                 for _, l := range lines {
-                                        texts = append(texts, l.text)
+                                        texts = append(texts, l.Text)
                                 }
                                 t.Errorf("no line contains %q; got %v", tc.wantContains, texts)
                         }
@@ -664,20 +664,20 @@ func TestTryServeFromCache_ExposureChecksNotEligible(t *testing.T) {
 
 func TestCovertSummaryLines_SingleVector_NoTagline(t *testing.T) {
         p := covertSummaryParams{
-                vulnerable:   1,
-                findingCount: 0,
-                tagline:      "",
-                locked:       "#3fb950",
-                dimLocked:    "#30363d",
-                sRed:         "#f85149",
-                alt:          "#9f9f9f",
+                Vulnerable:   1,
+                FindingCount: 0,
+                Tagline:      "",
+                Locked:       "#3fb950",
+                DimLocked:    "#30363d",
+                SRed:         "#f85149",
+                Alt:          "#9f9f9f",
         }
         lines := covertSummaryLines(p)
         if len(lines) != 1 {
                 t.Errorf("expected 1 line for single vector without tagline, got %d", len(lines))
         }
-        if len(lines) > 0 && !strings.Contains(lines[0].text, "attack vector") {
-                t.Errorf("expected attack vector text, got %q", lines[0].text)
+        if len(lines) > 0 && !strings.Contains(lines[0].Text, "attack vector") {
+                t.Errorf("expected attack vector text, got %q", lines[0].Text)
         }
 }
 

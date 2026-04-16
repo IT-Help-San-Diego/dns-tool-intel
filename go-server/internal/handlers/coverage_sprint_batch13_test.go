@@ -135,10 +135,10 @@ func TestRiskBorderColor_B13(t *testing.T) {
 
 func TestCountMissing_B13(t *testing.T) {
         nodes := []protocolNode{
-                {status: "success"},
-                {status: "missing"},
-                {status: "error"},
-                {status: "warning"},
+                {Status: "success"},
+                {Status: "missing"},
+                {Status: "error"},
+                {Status: "warning"},
         }
         if got := countMissing(nodes); got != 2 {
                 t.Errorf("countMissing got %d want 2", got)
@@ -150,10 +150,10 @@ func TestCountMissing_B13(t *testing.T) {
 
 func TestCountVulnerable_B13(t *testing.T) {
         nodes := []protocolNode{
-                {status: "success"},
-                {status: "warning"},
-                {status: "missing"},
-                {status: "error"},
+                {Status: "success"},
+                {Status: "warning"},
+                {Status: "missing"},
+                {Status: "error"},
         }
         if got := countVulnerable(nodes); got != 2 {
                 t.Errorf("countVulnerable got %d want 2", got)
@@ -210,29 +210,29 @@ func TestCovertPrefixColor_B13(t *testing.T) {
 
 func TestCovertProtocolLine_B13(t *testing.T) {
         line := covertProtocolLine("SPF", "success")
-        if line.prefix != "[+]" {
-                t.Errorf("expected [+] prefix, got %q", line.prefix)
+        if line.Prefix != "[+]" {
+                t.Errorf("expected [+] prefix, got %q", line.Prefix)
         }
-        if line.desc != "can't forge sender envelope" {
-                t.Errorf("unexpected desc: %q", line.desc)
+        if line.Desc != "can't forge sender envelope" {
+                t.Errorf("unexpected desc: %q", line.Desc)
         }
 
         line = covertProtocolLine("DKIM", "warning")
-        if line.prefix != "[~]" {
-                t.Errorf("expected [~] prefix, got %q", line.prefix)
+        if line.Prefix != "[~]" {
+                t.Errorf("expected [~] prefix, got %q", line.Prefix)
         }
-        if line.desc != "weak key — forgery harder" {
-                t.Errorf("unexpected desc: %q", line.desc)
+        if line.Desc != "weak key — forgery harder" {
+                t.Errorf("unexpected desc: %q", line.Desc)
         }
 
         line = covertProtocolLine("UNKNOWN_PROTO", "error")
-        if line.prefix != "[?]" {
-                t.Errorf("expected [?] for unknown proto, got %q", line.prefix)
+        if line.Prefix != "[?]" {
+                t.Errorf("expected [?] for unknown proto, got %q", line.Prefix)
         }
 }
 
 func TestCovertExposureLines_Nil_B13(t *testing.T) {
-        e := exposureData{status: "clear", findingCount: 0}
+        e := exposureData{Status: "clear", FindingCount: 0}
         if lines := covertExposureLines(e, "", "", "", 0); lines != nil {
                 t.Errorf("expected nil for clear exposure, got %d lines", len(lines))
         }
@@ -240,11 +240,11 @@ func TestCovertExposureLines_Nil_B13(t *testing.T) {
 
 func TestCovertExposureLines_Exposed_B13(t *testing.T) {
         e := exposureData{
-                status:       "exposed",
-                findingCount: 2,
-                findings: []exposureFinding{
-                        {findingType: "AWS Key", severity: "critical", redacted: "AKIA...1234"},
-                        {findingType: "Token", severity: "high", redacted: "ghp_abcdef0123456789abcdef0"},
+                Status:       "exposed",
+                FindingCount: 2,
+                Findings: []exposureFinding{
+                        {FindingType: "AWS Key", Severity: "critical", Redacted: "AKIA...1234"},
+                        {FindingType: "Token", Severity: "high", Redacted: "ghp_abcdef0123456789abcdef0"},
                 },
         }
         lines := covertExposureLines(e, "#f00", "#aaa", "https://dns.example.com", 42)
@@ -253,7 +253,7 @@ func TestCovertExposureLines_Exposed_B13(t *testing.T) {
         }
         found := false
         for _, l := range lines {
-                if strings.Contains(l.text, "2 credentials found") {
+                if strings.Contains(l.Text, "2 credentials found") {
                         found = true
                 }
         }
@@ -263,42 +263,42 @@ func TestCovertExposureLines_Exposed_B13(t *testing.T) {
 }
 
 func TestCovertSummaryLines_AllHardened_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{vulnerable: 0, findingCount: 0, tagline: "Good luck.", locked: "#aaa", dimLocked: "#bbb", sRed: "#ccc", alt: "#ddd"})
+        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 0, FindingCount: 0, Tagline: "Good luck.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) != 2 {
                 t.Fatalf("expected 2 lines, got %d", len(lines))
         }
-        if !strings.Contains(lines[0].text, "hardened") {
-                t.Errorf("expected hardened, got %q", lines[0].text)
+        if !strings.Contains(lines[0].Text, "hardened") {
+                t.Errorf("expected hardened, got %q", lines[0].Text)
         }
 }
 
 func TestCovertSummaryLines_SecretsLeaking_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{vulnerable: 0, findingCount: 3, tagline: "", locked: "#aaa", dimLocked: "#bbb", sRed: "#ccc", alt: "#ddd"})
+        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 0, FindingCount: 3, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) != 2 {
                 t.Fatalf("expected 2 lines, got %d", len(lines))
         }
-        if !strings.Contains(lines[0].text, "secrets") {
-                t.Errorf("expected secrets reference, got %q", lines[0].text)
+        if !strings.Contains(lines[0].Text, "secrets") {
+                t.Errorf("expected secrets reference, got %q", lines[0].Text)
         }
 }
 
 func TestCovertSummaryLines_Vulnerable_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{vulnerable: 5, findingCount: 0, tagline: "Door's open.", locked: "#aaa", dimLocked: "#bbb", sRed: "#ccc", alt: "#ddd"})
+        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 5, FindingCount: 0, Tagline: "Door's open.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) < 1 {
                 t.Fatal("expected at least 1 line")
         }
-        if !strings.Contains(lines[0].text, "5 of 10") {
-                t.Errorf("expected 5 of 10, got %q", lines[0].text)
+        if !strings.Contains(lines[0].Text, "5 of 10") {
+                t.Errorf("expected 5 of 10, got %q", lines[0].Text)
         }
 }
 
 func TestCovertSummaryLines_FewVectors_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{vulnerable: 1, findingCount: 1, tagline: "", locked: "#aaa", dimLocked: "#bbb", sRed: "#ccc", alt: "#ddd"})
+        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 1, FindingCount: 1, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) < 1 {
                 t.Fatal("expected at least 1 line")
         }
-        if !strings.Contains(lines[0].text, "2 attack vectors") {
-                t.Errorf("expected 2 attack vectors, got %q", lines[0].text)
+        if !strings.Contains(lines[0].Text, "2 attack vectors") {
+                t.Errorf("expected 2 attack vectors, got %q", lines[0].Text)
         }
 }
 
@@ -400,21 +400,21 @@ func TestExtractProtocolIndicators_B13(t *testing.T) {
         if len(nodes) != 10 {
                 t.Fatalf("expected 10 nodes, got %d", len(nodes))
         }
-        if nodes[0].status != "success" {
-                t.Errorf("SPF status: got %q", nodes[0].status)
+        if nodes[0].Status != "success" {
+                t.Errorf("SPF status: got %q", nodes[0].Status)
         }
-        if nodes[1].status != "warning" {
-                t.Errorf("DKIM status: got %q", nodes[1].status)
+        if nodes[1].Status != "warning" {
+                t.Errorf("DKIM status: got %q", nodes[1].Status)
         }
-        if nodes[2].status != "missing" {
-                t.Errorf("DMARC status: got %q", nodes[2].status)
+        if nodes[2].Status != "missing" {
+                t.Errorf("DMARC status: got %q", nodes[2].Status)
         }
 }
 
 func TestExtractExposure_B13(t *testing.T) {
         e := extractExposure(map[string]any{})
-        if e.status != "clear" {
-                t.Errorf("no key: got %q", e.status)
+        if e.Status != "clear" {
+                t.Errorf("no key: got %q", e.Status)
         }
 
         e = extractExposure(map[string]any{
@@ -422,14 +422,14 @@ func TestExtractExposure_B13(t *testing.T) {
                         map[string]any{"type": "AWS_KEY", "severity": "critical", "redacted": "AKIA..."},
                 }},
         })
-        if e.status != "exposed" {
-                t.Errorf("exposed: got %q", e.status)
+        if e.Status != "exposed" {
+                t.Errorf("exposed: got %q", e.Status)
         }
-        if e.findingCount != 2 {
-                t.Errorf("findingCount: %d want 2", e.findingCount)
+        if e.FindingCount != 2 {
+                t.Errorf("FindingCount: %d want 2", e.FindingCount)
         }
-        if len(e.findings) != 1 {
-                t.Errorf("findings len: %d want 1", len(e.findings))
+        if len(e.Findings) != 1 {
+                t.Errorf("findings len: %d want 1", len(e.Findings))
         }
 }
 
@@ -503,7 +503,7 @@ func TestDetermineTunerStatus_B13(t *testing.T) {
 
         status, class, _ = determineTunerStatus(300, 300, true, "locked reason", "stability")
         if status != "Provider-Locked" || class != "secondary" {
-                t.Errorf("locked: got %q/%q", status, class)
+                t.Errorf("Locked: got %q/%q", status, class)
         }
 
         status, class, _ = determineTunerStatus(0, 3600, false, "", "stability")

@@ -647,7 +647,7 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/badge", badgeHandler.Badge)
         router.GET("/badge/shields", badgeHandler.BadgeShieldsIO)
         router.GET("/badge/embed", badgeHandler.BadgeEmbed)
-        router.GET("/badge/animated", badgeHandler.BadgeAnimated)
+        router.GET("/badge/animated", func(c *gin.Context) { handlers.BadgeAnimated(badgeHandler, c) })
 
         router.GET("/analysis/:id/cite", citationHandler.AnalysisCitation)
 }

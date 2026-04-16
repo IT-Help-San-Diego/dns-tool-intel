@@ -385,11 +385,11 @@ func TestRiskBorderColor(t *testing.T) {
 
 func TestCountMissing(t *testing.T) {
         nodes := []protocolNode{
-                {status: "success"},
-                {status: "success"},
-                {status: "missing"},
-                {status: "error"},
-                {status: "success"},
+                {Status: "success"},
+                {Status: "success"},
+                {Status: "missing"},
+                {Status: "error"},
+                {Status: "success"},
         }
         got := countMissing(nodes)
         if got != 2 {
