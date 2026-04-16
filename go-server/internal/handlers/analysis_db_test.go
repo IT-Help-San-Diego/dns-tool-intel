@@ -18,6 +18,7 @@ import (
         "dnstool/go-server/internal/dbq"
 
         "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v5/pgconn"
         "github.com/jackc/pgx/v5/pgtype"
 )
 

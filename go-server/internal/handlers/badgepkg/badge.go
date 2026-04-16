@@ -84,11 +84,23 @@ func (h *BadgeHandler) store() LookupStore {
         return nil
 }
 
+func defaultBadgeTemplateData() TemplateDataFunc {
+        return func(c *gin.Context, cfg *config.Config, activePage string) gin.H {
+                return gin.H{}
+        }
+}
+
 func NewBadgeHandler(database *db.Database, cfg *config.Config, tdFn TemplateDataFunc) *BadgeHandler {
+        if tdFn == nil {
+                tdFn = defaultBadgeTemplateData()
+        }
         return &BadgeHandler{DB: database, Config: cfg, templateDataFn: tdFn}
 }
 
 func NewBadgeHandlerWithStore(s LookupStore, cfg *config.Config, tdFn TemplateDataFunc) *BadgeHandler {
+        if tdFn == nil {
+                tdFn = defaultBadgeTemplateData()
+        }
         return &BadgeHandler{Config: cfg, lookupStore: s, templateDataFn: tdFn}
 }
 

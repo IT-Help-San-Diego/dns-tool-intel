@@ -36,8 +36,8 @@ var icd203TemplateFiles = map[string]bool{
         "templates/reference_library.html": true,
         "templates/results.html":           true,
         "templates/stats.html":             true,
-	"static/manifest.json":              true,
-	"static/data/integrity_stats.json":   true,
+        "static/manifest.json":              true,
+        "static/data/integrity_stats.json":   true,
 }
 
 var confidenceScoringTemplateFiles = map[string]bool{
@@ -47,7 +47,7 @@ var confidenceScoringTemplateFiles = map[string]bool{
         "templates/manifesto.html":         true,
         "templates/reference_library.html": true,
         "templates/stats.html":             true,
-	"static/manifest.json":              true,
+        "static/manifest.json":              true,
 }
 
 var forbiddenPhrases = []forbiddenEntry{
@@ -99,6 +99,13 @@ var forbiddenPhrases = []forbiddenEntry{
                                 strings.Contains(trimmed, "Timeliness") {
                                 return true
                         }
+                        // integrity_stats.json is an audit-finding ledger; "ICD 203"
+                        // appears in narrative confidence_impact / bayesian_note text,
+                        // not as a methodology declaration.
+                        if rel == "static/data/integrity_stats.json" ||
+                                rel == "data/integrity_stats.json" {
+                                return true
+                        }
                         return false
                 },
         },
@@ -131,66 +138,91 @@ func TestNoHardcodedMethodologyStrings(t *testing.T) {
                 t.Fatalf("failed to resolve go-server root: %v", err)
         }
 
+        // Also walk the top-level repo static/ tree if present. findStaticDir() in
+        // cmd/server/main.go prefers top-level "static" over "go-server/static",
+        // so guarding only the go-server tree leaves served assets unchecked.
+        absRepoStatic, err := filepath.Abs(filepath.Join("..", "..", "..", "static"))
+        if err != nil {
+                t.Fatalf("failed to resolve repo static dir: %v", err)
+        }
+
+        scanRoots := []string{absRoot}
+        if info, statErr := os.Stat(absRepoStatic); statErr == nil && info.IsDir() {
+                scanRoots = append(scanRoots, absRepoStatic)
+        }
+
         var violations []string
 
-        err = filepath.Walk(absRoot, func(path string, info os.FileInfo, err error) error {
-                if err != nil {
-                        return err
-                }
-                if info.IsDir() {
-                        return nil
-                }
-                if !strings.HasSuffix(path, ".go") &&
-                        !strings.HasSuffix(path, ".html") &&
-                        !strings.HasSuffix(path, ".tmpl") &&
-                        !strings.HasSuffix(path, ".js") &&
-                        !strings.HasSuffix(path, ".json") {
-                        return nil
-                }
-
-                rel, err := filepath.Rel(absRoot, path)
-                if err != nil {
-                        return err
-                }
-                rel = filepath.ToSlash(rel)
-
-                if rel == thisTestFile {
-                        return nil
-                }
-
-                f, err := os.Open(path)
-                if err != nil {
-                        return fmt.Errorf("failed to open %s: %w", rel, err)
-                }
-
-                scanner := bufio.NewScanner(f)
-                scanner.Buffer(make([]byte, 0, 1024*1024), 1024*1024)
-                lineNum := 0
-                for scanner.Scan() {
-                        lineNum++
-                        line := scanner.Text()
-                        trimmed := strings.TrimSpace(line)
-
-                        for _, entry := range forbiddenPhrases {
-                                if !strings.Contains(line, entry.phrase) {
-                                        continue
-                                }
-                                if entry.allowFunc(rel, trimmed) {
-                                        continue
-                                }
-                                violations = append(violations,
-                                        fmt.Sprintf("  %s:%d [%s]: %s", rel, lineNum, entry.phrase, trimmed))
+        walkFn := func(scanRoot string) filepath.WalkFunc {
+                return func(path string, info os.FileInfo, err error) error {
+                        if err != nil {
+                                return err
                         }
+                        if info.IsDir() {
+                                return nil
+                        }
+                        if !strings.HasSuffix(path, ".go") &&
+                                !strings.HasSuffix(path, ".html") &&
+                                !strings.HasSuffix(path, ".tmpl") &&
+                                !strings.HasSuffix(path, ".js") &&
+                                !strings.HasSuffix(path, ".json") {
+                                return nil
+                        }
+
+                        rel, err := filepath.Rel(scanRoot, path)
+                        if err != nil {
+                                return err
+                        }
+                        rel = filepath.ToSlash(rel)
+
+                        // Skip self when scanning the go-server tree.
+                        if scanRoot == absRoot && rel == thisTestFile {
+                                return nil
+                        }
+
+                        // Tag external (repo-static) paths so allowFunc/messages stay readable.
+                        displayRel := rel
+                        if scanRoot != absRoot {
+                                displayRel = "../static/" + rel
+                        }
+
+                        f, err := os.Open(path)
+                        if err != nil {
+                                return fmt.Errorf("failed to open %s: %w", displayRel, err)
+                        }
+
+                        scanner := bufio.NewScanner(f)
+                        scanner.Buffer(make([]byte, 0, 1024*1024), 1024*1024)
+                        lineNum := 0
+                        for scanner.Scan() {
+                                lineNum++
+                                line := scanner.Text()
+                                trimmed := strings.TrimSpace(line)
+
+                                for _, entry := range forbiddenPhrases {
+                                        if !strings.Contains(line, entry.phrase) {
+                                                continue
+                                        }
+                                        if entry.allowFunc(rel, trimmed) {
+                                                continue
+                                        }
+                                        violations = append(violations,
+                                                fmt.Sprintf("  %s:%d [%s]: %s", displayRel, lineNum, entry.phrase, trimmed))
+                                }
+                        }
+                        scanErr := scanner.Err()
+                        f.Close()
+                        if scanErr != nil {
+                                return fmt.Errorf("error scanning %s: %w", displayRel, scanErr)
+                        }
+                        return nil
                 }
-                scanErr := scanner.Err()
-                f.Close()
-                if scanErr != nil {
-                        return fmt.Errorf("error scanning %s: %w", rel, scanErr)
+        }
+
+        for _, scanRoot := range scanRoots {
+                if err := filepath.Walk(scanRoot, walkFn(scanRoot)); err != nil {
+                        t.Fatalf("failed to walk %s: %v", scanRoot, err)
                 }
-                return nil
-        })
-        if err != nil {
-                t.Fatalf("failed to walk go-server tree: %v", err)
         }
 
         if len(violations) > 0 {
