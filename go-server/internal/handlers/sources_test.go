@@ -2,9 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"dnstool/go-server/internal/config"
+	"dnstool/go-server/internal/icae"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestGetDNSSources(t *testing.T) {
@@ -1289,5 +1294,139 @@ func TestCompareAnalysisStruct(t *testing.T) {
 	}
 	if ca.ToolVersion != "1.0.0" {
 		t.Errorf("ToolVersion = %q, want %q", ca.ToolVersion, "1.0.0")
+	}
+}
+
+func TestGetHistorySourcesContainsCertspotter(t *testing.T) {
+	sources := getHistorySources()
+
+	found := false
+	for _, s := range sources {
+		if s.Name == "Certspotter (SSLMate)" {
+			found = true
+			if s.Category != "Public Log" {
+				t.Errorf("expected Certspotter category 'Public Log', got %s", s.Category)
+			}
+			if s.Method != methodHTTPSREST {
+				t.Errorf("expected Certspotter method %q, got %s", methodHTTPSREST, s.Method)
+			}
+			if !s.Free {
+				t.Error("expected Certspotter to be free")
+			}
+			if !strings.Contains(s.URL, "sslmate.com") {
+				t.Errorf("expected Certspotter URL to contain 'sslmate.com', got %s", s.URL)
+			}
+		}
+	}
+	if !found {
+		t.Error("expected Certspotter (SSLMate) in history sources")
+	}
+}
+
+func TestICAEProtocolTableCoversAllNineFamilies(t *testing.T) {
+	expectedFamilies := []string{
+		"SPF", "DMARC", "DNSSEC", "DKIM", "CAA",
+		"MTA-STS", "TLS-RPT", "BIMI", "DANE/TLSA",
+	}
+
+	displayNames := icae.ProtocolDisplayNames
+	if len(displayNames) != 9 {
+		t.Fatalf("expected 9 protocol display names, got %d", len(displayNames))
+	}
+
+	for _, family := range expectedFamilies {
+		found := false
+		for _, dn := range displayNames {
+			if dn == family {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected protocol family %q in ProtocolDisplayNames", family)
+		}
+	}
+
+	protocols := icae.Protocols
+	if len(protocols) != 9 {
+		t.Fatalf("expected 9 protocols, got %d", len(protocols))
+	}
+}
+
+func TestICAETotalCaseCount129(t *testing.T) {
+	analysis := icae.AnalysisTestCases()
+	collection := icae.CollectionTestCases()
+	total := len(analysis) + len(collection)
+
+	if total != 129 {
+		t.Errorf("expected 129 total ICAE test cases, got %d (analysis=%d, collection=%d)",
+			total, len(analysis), len(collection))
+	}
+
+	countsByProto := icae.CountCasesByProtocol()
+
+	expectedProtoCases := map[string]int{
+		"spf": 17, "dmarc": 11, "dnssec": 17, "dkim": 7,
+		"caa": 5, "mta_sts": 5, "tlsrpt": 5, "bimi": 4, "dane": 5,
+	}
+
+	for proto, expected := range expectedProtoCases {
+		counts, ok := countsByProto[proto]
+		if !ok {
+			t.Errorf("protocol %q not found in case counts", proto)
+			continue
+		}
+		if counts.Total < expected {
+			t.Errorf("protocol %q: expected at least %d total cases, got %d (analysis=%d, collection=%d)",
+				proto, expected, counts.Total, counts.Analysis, counts.Collection)
+		}
+	}
+}
+
+func TestSourcesTemplateRendersICAETable(t *testing.T) {
+	tmpl := mustLoadRealTemplates(t)
+
+	data := gin.H{
+		"Title":            "Sources & Methodology",
+		"ActivePage":       "sources",
+		"AppVersion":       "test",
+		"MaintenanceNote":  "",
+		"BetaPages":        map[string]bool{},
+		"CspNonce":         "test",
+		"CsrfToken":        "test",
+		"DNSSources":       getDNSSources(),
+		"InfraSources":     getInfraSources(),
+		"SubdomainSources": getSubdomainSources(),
+		"ThreatSources":    getThreatSources(),
+		"HistorySources":   getHistorySources(),
+		"MetaSources":      getMetaSources(),
+		"TLPColors":        getTLPColors(),
+		"CVSSColors":       getCVSSColors(),
+		"IsAuthenticated":  false,
+		"IsAdmin":          false,
+	}
+
+	var buf strings.Builder
+	err := tmpl.ExecuteTemplate(&buf, "sources.html", data)
+	if err != nil {
+		t.Fatalf("failed to render sources.html: %v", err)
+	}
+	body := buf.String()
+
+	protocolLabels := []string{"SPF", "DMARC", "DNSSEC", "DKIM", "CAA", "MTA-STS", "TLS-RPT", "BIMI", "DANE"}
+	for _, label := range protocolLabels {
+		if !strings.Contains(body, ">"+label+"<") {
+			t.Errorf("sources.html does not contain protocol family %q in table", label)
+		}
+	}
+
+	totalCases := len(icae.AnalysisTestCases()) + len(icae.CollectionTestCases())
+	totalStr := fmt.Sprintf("%d deterministic test cases", totalCases)
+	if !strings.Contains(body, totalStr) {
+		t.Errorf("sources.html does not contain %q — page content and actual case count may be out of sync", totalStr)
+	}
+
+	if !strings.Contains(body, "Certspotter") {
+		t.Error("sources.html does not mention Certspotter in rendered output")
 	}
 }
