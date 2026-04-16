@@ -178,13 +178,19 @@ if [ "$GATE9_FAILED" -eq 1 ]; then
 fi
 pass "R009/R010/R011 all pass"
 
-info "Gate 10: No stale BSL-1.1 in CITATION.cff"
+info "Gate 10: handlers/ shim drift guard"
+if ! bash scripts/check-handlers-no-shims.sh; then
+  fail "handlers/ shim drift detected — see message above"
+fi
+pass "handlers/ shim guard clean"
+
+info "Gate 11: No stale BSL-1.1 in CITATION.cff"
 if grep -q '"BSL-1.1"' CITATION.cff 2>/dev/null; then
   fail "CITATION.cff still contains BSL-1.1 (must be BUSL-1.1)"
 fi
 pass "No invalid SPDX in CITATION.cff"
 
-info "Gate 11: CITATION.cff schema validation (cffconvert)"
+info "Gate 12: CITATION.cff schema validation (cffconvert)"
 CFF_BIN=$(command -v cffconvert 2>/dev/null || true)
 if [ -z "$CFF_BIN" ]; then
   echo -e "  ${YELLOW}SKIP${NC} — cffconvert not installed (install with: pip install cffconvert)"
