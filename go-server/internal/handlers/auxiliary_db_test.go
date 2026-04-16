@@ -1,3 +1,5 @@
+//go:build dbtest
+
 package handlers
 
 import (
@@ -313,25 +315,6 @@ func TestConvertAuditRows_WithData(t *testing.T) {
         }
 }
 
-type mockAuditStore struct {
-        countHashedAnalysesFn func(ctx context.Context) (int64, error)
-        listHashedAnalysesFn  func(ctx context.Context, arg dbq.ListHashedAnalysesParams) ([]dbq.ListHashedAnalysesRow, error)
-}
-
-func (m *mockAuditStore) CountHashedAnalyses(ctx context.Context) (int64, error) {
-        if m.countHashedAnalysesFn != nil {
-                return m.countHashedAnalysesFn(ctx)
-        }
-        return 0, nil
-}
-
-func (m *mockAuditStore) ListHashedAnalyses(ctx context.Context, arg dbq.ListHashedAnalysesParams) ([]dbq.ListHashedAnalysesRow, error) {
-        if m.listHashedAnalysesFn != nil {
-                return m.listHashedAnalysesFn(ctx, arg)
-        }
-        return nil, nil
-}
-
 func TestLoadAuditData_NilDB(t *testing.T) {
         h := &ConfidenceHandler{
                 Config: &config.Config{},
@@ -398,33 +381,6 @@ func TestLoadAuditData_WithData(t *testing.T) {
         if data.HasPrev {
                 t.Error("expected HasPrev = false for page 1")
         }
-}
-
-type mockLookupStore struct {
-        GetAnalysisByIDFn          func(ctx context.Context, id int32) (dbq.DomainAnalysis, error)
-        CheckAnalysisOwnershipFn   func(ctx context.Context, arg dbq.CheckAnalysisOwnershipParams) (bool, error)
-        GetRecentAnalysisByDomainFn func(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
-}
-
-func (m *mockLookupStore) GetAnalysisByID(ctx context.Context, id int32) (dbq.DomainAnalysis, error) {
-        if m.GetAnalysisByIDFn != nil {
-                return m.GetAnalysisByIDFn(ctx, id)
-        }
-        return dbq.DomainAnalysis{}, errors.New("not found")
-}
-
-func (m *mockLookupStore) CheckAnalysisOwnership(ctx context.Context, arg dbq.CheckAnalysisOwnershipParams) (bool, error) {
-        if m.CheckAnalysisOwnershipFn != nil {
-                return m.CheckAnalysisOwnershipFn(ctx, arg)
-        }
-        return false, nil
-}
-
-func (m *mockLookupStore) GetRecentAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error) {
-        if m.GetRecentAnalysisByDomainFn != nil {
-                return m.GetRecentAnalysisByDomainFn(ctx, domain)
-        }
-        return dbq.DomainAnalysis{}, errors.New("not found")
 }
 
 func TestBadgeResolveAnalysis_MissingParams(t *testing.T) {

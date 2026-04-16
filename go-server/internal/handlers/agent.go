@@ -446,7 +446,7 @@ func (h *AgentHandler) buildAgentJSON(domain string, results map[string]any) gin
                 },
                 "provenance": gin.H{
                         "tool":           "DNS Tool by IT Help San Diego Inc.",
-                        "methodology":    "RFC-grounded analysis with Bayesian confidence scoring",
+                        "methodology":    "RFC-grounded analysis with multi-factor geometric-mean confidence scoring",
                         "concept_doi":    "10.5281/zenodo.19468134",
                         "doi_url":        "https://doi.org/10.5281/zenodo.19468134",
                         "license":        "BUSL-1.1",

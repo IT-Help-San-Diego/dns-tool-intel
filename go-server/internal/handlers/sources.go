@@ -43,6 +43,7 @@ func (h *SourcesHandler) Sources(c *gin.Context) {
         data := NewTemplateData(c, h.Config, "sources")
         data["DNSSources"] = getDNSSources()
         data["InfraSources"] = getInfraSources()
+        data["SubdomainSources"] = getSubdomainSources()
         data["ThreatSources"] = getThreatSources()
         data["HistorySources"] = getHistorySources()
         data["MetaSources"] = getMetaSources()
@@ -168,6 +169,44 @@ func getInfraSources() []IntelSource {
         }
 }
 
+func getSubdomainSources() []IntelSource {
+        return []IntelSource{
+                {
+                        Name:       "HackerTarget Host Search",
+                        Icon:       "search",
+                        Category:   "Community",
+                        Purpose:    "Supplemental subdomain discovery via the HackerTarget host search API. Results are merged with Certificate Transparency data for broader subdomain coverage.",
+                        Method:     methodHTTPSREST,
+                        RateLimits: "Rate-limited on free tier. Honest messaging when API count is exceeded.",
+                        VerifyCmd:  "curl -s 'https://api.hackertarget.com/hostsearch/?q=example.com'",
+                        URL:        "https://hackertarget.com/",
+                        Free:       true,
+                },
+                {
+                        Name:       "Subfinder (ProjectDiscovery)",
+                        Icon:       "search",
+                        Category:   "Optional Tool",
+                        Purpose:    "Passive subdomain enumeration tool. Only invoked when the binary is installed on the server. Aggregates results from multiple passive sources. Degrades gracefully when unavailable.",
+                        Method:     "Local binary execution (exec.LookPath check, 45s timeout)",
+                        RateLimits: "Depends on upstream passive sources queried by subfinder.",
+                        VerifyCmd:  "subfinder -d example.com -silent",
+                        URL:        "https://github.com/projectdiscovery/subfinder",
+                        Free:       true,
+                },
+                {
+                        Name:       "Amass (OWASP)",
+                        Icon:       "search",
+                        Category:   "Optional Tool",
+                        Purpose:    "Passive subdomain enumeration tool. Only invoked when the binary is installed on the server. Performs passive reconnaissance across multiple data sources. Degrades gracefully when unavailable.",
+                        Method:     "Local binary execution (exec.LookPath check, 45s timeout, passive mode only)",
+                        RateLimits: "Depends on upstream passive sources queried by amass.",
+                        VerifyCmd:  "amass enum -passive -d example.com",
+                        URL:        "https://github.com/owasp-amass/amass",
+                        Free:       true,
+                },
+        }
+}
+
 func getThreatSources() []IntelSource {
         return []IntelSource{
                 {
@@ -190,11 +229,22 @@ func getHistorySources() []IntelSource {
                         Name:       "Certificate Transparency (crt.sh)",
                         Icon:       "certificate",
                         Category:   "Public Log",
-                        Purpose:    "Discovers subdomains by searching Certificate Transparency logs for all SSL/TLS certificates ever issued for a domain. Reveals infrastructure that may not be publicly linked.",
+                        Purpose:    "Primary CT source. Discovers subdomains by searching Certificate Transparency logs for all SSL/TLS certificates ever issued for a domain. Reveals infrastructure that may not be publicly linked.",
                         Method:     "HTTPS query to crt.sh PostgreSQL interface",
                         RateLimits: "Community service with telemetry-based cooldown. Honest timeout/error messaging when unavailable.",
                         VerifyCmd:  "curl -s 'https://crt.sh/?q=%.example.com&output=json' | jq '.[].name_value'",
                         URL:        "https://crt.sh/",
+                        Free:       true,
+                },
+                {
+                        Name:       "Certspotter (SSLMate)",
+                        Icon:       "certificate",
+                        Category:   "Public Log",
+                        Purpose:    "Fallback CT source. Queries the Certspotter API when crt.sh is in cooldown or unavailable. Provides overlapping public Certificate Transparency log coverage with paginated results for large domains.",
+                        Method:     methodHTTPSREST,
+                        RateLimits: "100 queries/hour on free tier. Paginated responses with cursor-based navigation.",
+                        VerifyCmd:  "curl -s 'https://api.certspotter.com/v1/issuances?domain=example.com&include_subdomains=true&expand=dns_names' | jq '.[].dns_names'",
+                        URL:        "https://sslmate.com/certspotter/",
                         Free:       true,
                 },
         }
@@ -206,11 +256,22 @@ func getMetaSources() []IntelSource {
                         Name:       "IANA RDAP",
                         Icon:       "building",
                         Category:   "Registry",
-                        Purpose:    "Registration Data Access Protocol — the modern successor to WHOIS. Retrieves domain registrar, registration dates, status codes, and nameserver delegation from the authoritative registry.",
+                        Purpose:    "Primary registrar source. Registration Data Access Protocol — the modern successor to WHOIS. Retrieves domain registrar, registration dates, status codes, and nameserver delegation from the authoritative registry.",
                         Method:     methodHTTPSREST,
                         RateLimits: "Varies by registry. Telemetry-based cooldown with honest unavailability messaging.",
                         VerifyCmd:  "curl -s 'https://rdap.verisign.com/com/v1/domain/example.com' | jq '.entities[0].vcardArray'",
                         URL:        "https://www.iana.org/domains/rdap",
+                        Free:       true,
+                },
+                {
+                        Name:       "WHOIS (Port 43)",
+                        Icon:       "building",
+                        Category:   "Registry",
+                        Purpose:    "Fallback registrar source. Traditional WHOIS protocol used when RDAP is unavailable or fails. Queries TLD-specific WHOIS servers (30+ TLDs mapped) for registrar identification. Detects restricted registries that limit public access and reports honestly when data is unavailable.",
+                        Method:     "TCP connection to port 43 of TLD-specific WHOIS servers",
+                        RateLimits: "Varies by registry. Some TLDs restrict public WHOIS access entirely.",
+                        VerifyCmd:  "whois example.com",
+                        URL:        "https://www.iana.org/whois",
                         Free:       true,
                 },
                 {

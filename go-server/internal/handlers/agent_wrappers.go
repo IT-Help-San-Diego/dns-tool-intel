@@ -77,7 +77,7 @@ func domainContext(domain string) string {
         return `
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">DNS Security Intelligence Context — ` + ed + `</h2>
-      <p style="` + iwCardP + `">This artifact is part of the DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by DNS Tool — IT Research in Motion. The analysis evaluates the complete DNS security posture of ` + ed + ` across SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Posture scoring uses Bayesian confidence intervals aligned with ICD 203. All collected data is integrity-verified with SHA-3-512 checksums.</p>
+      <p style="` + iwCardP + `">This artifact is part of the DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by DNS Tool — IT Research in Motion. The analysis evaluates the complete DNS security posture of ` + ed + ` across SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Posture scoring uses multi-factor geometric-mean confidence scoring aligned with ICD 203. All collected data is integrity-verified with SHA-3-512 checksums.</p>
     </div>`
 }
 
@@ -152,7 +152,7 @@ func (h *AgentHandler) JSONView(c *gin.Context) {
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">JSON Intelligence Payload</h2>
       <p style="` + iwCardP + `">The complete DNS security intelligence dataset for <strong>` + ed + `</strong> in structured JSON format. This payload contains every data point collected during analysis:</p>
-      <p style="` + iwCardP + `">Email authentication (SPF, DKIM, DMARC, BIMI), transport security (DNSSEC, MTA-STS, DANE, TLS-RPT, CAA), subdomain discovery via Certificate Transparency, registrar and WHOIS intelligence, posture scoring with Bayesian confidence intervals, and RFC citation provenance.</p>
+      <p style="` + iwCardP + `">Email authentication (SPF, DKIM, DMARC, BIMI), transport security (DNSSEC, MTA-STS, DANE, TLS-RPT, CAA), subdomain discovery via Certificate Transparency, registrar and WHOIS intelligence, posture scoring with multi-factor geometric-mean confidence scoring, and RFC citation provenance.</p>
       <a href="` + apiURL + `" style="` + iwDlBtn + `">View JSON Data</a>
       <a href="` + reportURL + `" style="` + iwSecBtn + `">Full Analysis Report</a>
     </div>` + domainContext(domain) + `
@@ -397,7 +397,7 @@ func (h *AgentHandler) SourcesView(c *gin.Context) {
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">Intelligence Sources</h2>
       <p style="` + iwCardP + `">The DNS security analysis of <strong>` + ed + `</strong> is grounded in authoritative RFC specifications and open-source intelligence. Every protocol check performed on ` + ed + ` traces back to a specific RFC: SPF (RFC 7208), DKIM (RFC 6376), DMARC (RFC 7489), DANE (RFC 6698), MTA-STS (RFC 8461), TLS-RPT (RFC 8460), DNSSEC (RFC 4033-4035), and CAA (RFC 8659).</p>
-      <p style="` + iwCardP + `">Data for ` + ed + ` is collected from public DNS resolvers, Certificate Transparency logs, WHOIS/RDAP databases, and the Internet Archive. Posture scoring for ` + ed + ` uses Bayesian confidence intervals aligned with ICD 203 standards. All findings for ` + ed + ` are cross-referenced against current best practices from M3AAWG, NIST, and CISA guidelines.</p>
+      <p style="` + iwCardP + `">Data for ` + ed + ` is collected from public DNS resolvers, Certificate Transparency logs, WHOIS/RDAP databases, and the Internet Archive. Posture scoring for ` + ed + ` uses multi-factor geometric-mean confidence scoring aligned with ICD 203 standards. All findings for ` + ed + ` are cross-referenced against current best practices from M3AAWG, NIST, and CISA guidelines.</p>
       <div style="text-align:center">
         <a href="` + sourcesURL + `" style="` + iwDlBtn + `">View Full Sources</a>
         <a href="` + reportURL + `" style="` + iwSecBtn + `">Full Analysis Report</a>
@@ -439,7 +439,7 @@ func (h *AgentHandler) ConfidenceView(c *gin.Context) {
         sb.WriteString(`
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">Analysis Confidence Metrics</h2>
-      <p style="` + iwCardP + `">DNS Tool assigns confidence levels to every verdict in the analysis of <strong>` + ed + `</strong> using Bayesian scoring aligned with ICD 203 (Intelligence Community Directive 203). Each protocol assessment for ` + ed + ` — SPF, DKIM, DMARC, DNSSEC, DANE, MTA-STS, TLS-RPT, CAA — carries an individual confidence rating based on data quality, resolver agreement, and temporal consistency.</p>
+      <p style="` + iwCardP + `">DNS Tool assigns confidence levels to every verdict in the analysis of <strong>` + ed + `</strong> using multi-factor geometric-mean scoring aligned with ICD 203 (Intelligence Community Directive 203). Each protocol assessment for ` + ed + ` — SPF, DKIM, DMARC, DNSSEC, DANE, MTA-STS, TLS-RPT, CAA — carries an individual confidence rating derived from accuracy, currency, and maturity factors.</p>
       <p style="` + iwCardP + `">The integrity of all analysis data for ` + ed + ` is verified using SHA-3-512 (Keccak) cryptographic checksums. Timestamps record when each data point for ` + ed + ` was collected, and the complete analysis is archived to the Internet Archive Wayback Machine and registered with a Zenodo DOI for permanent provenance.</p>
       <div style="text-align:center">
         <a href="` + confURL + `" style="` + iwDlBtn + `">View Confidence Levels</a>
@@ -474,11 +474,9 @@ func (h *AgentHandler) GuideView(c *gin.Context) {
                 "DNS Intelligence Guide — "+ed,
                 "What this analysis contains and how to use it.",
         ))
-        owlURL := esc(base + "/static/exports/owl-semaphore/derived/NORM-composite-dark-w160.png")
-
         sb.WriteString(`
     <div style="text-align:center;margin-bottom:1.5rem">
-      <img src="` + owlURL + `" alt="DNS Tool — Owl Semaphore" width="160" height="160" style="border-radius:12px">
+      <img src="` + owlNormDarkW160 + `" alt="DNS Tool — Owl Semaphore" width="160" height="160" style="display:inline-block;border-radius:12px">
     </div>
     <h1 style="` + iwH1 + `;text-align:center">DNS Intelligence Guide — ` + ed + `</h1>`)
         sb.WriteString(inlineMeta(base))
@@ -486,7 +484,7 @@ func (h *AgentHandler) GuideView(c *gin.Context) {
     <div style="` + iwCard + `">
       <h2 style="` + iwCardH2 + `">What You're Looking At</h2>
       <p style="` + iwCardP + `">This is a complete DNS security intelligence analysis for <strong>` + ed + `</strong>, produced by <a href="` + esc(base) + `" style="` + iwMetaLink + `">DNS Tool</a> — a project of IT Help San Diego Inc.</p>
-      <p style="` + iwCardP + `">The analysis covers every major DNS security protocol: SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Each protocol check traces to an authoritative RFC. Posture scoring uses Bayesian confidence intervals aligned with ICD 203.</p>
+      <p style="` + iwCardP + `">The analysis covers every major DNS security protocol: SPF, DKIM, DMARC, BIMI, DNSSEC, DANE/TLSA, MTA-STS, TLS-RPT, and CAA. Each protocol check traces to an authoritative RFC. Posture scoring uses multi-factor geometric-mean confidence scoring aligned with ICD 203.</p>
     </div>
 
     <div style="` + iwCard + `">

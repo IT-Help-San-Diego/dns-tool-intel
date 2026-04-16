@@ -3,6 +3,7 @@
 package handlers
 
 import (
+        "fmt"
         "net/http"
         "net/http/httptest"
         "strings"
@@ -417,37 +418,55 @@ func TestBuildAgentHTMLOrderingStability(t *testing.T) {
                 "dmarc_analysis": map[string]any{"status": "success", "policy": "reject"},
                 "dkim_analysis":  map[string]any{"status": "success"},
         }
-        html := h.buildAgentHTML("example.com", results, 42)
 
-        expectedOrder := []string{
-                "01. Intelligence Guide",
-                "02. Engineer's DNS Intelligence Report",
-                "03. Analysis History",
-                "04. Observed Records Snapshot",
-                "05. Detailed Security Badge",
-                "06. Covert Security Badge",
-                "07. Covert Recon Report",
-                "08. Executive Intelligence Brief",
-                "09. DNS Topology",
-                "10. Full Intelligence Data (JSON)",
-                "11. Discovered Subdomains",
-                "12. SHA-3 Integrity Checksum",
-                "13. Security Remediation Plan",
-                "14. Wayback Archive",
-                "15. Sources &amp; Methodology",
+        expectedOrder := []struct {
+                prefix string
+                label  string
+        }{
+                {"01", "Intelligence Guide"},
+                {"02", "Engineer's DNS Intelligence Report"},
+                {"03", "Analysis History"},
+                {"04", "Observed Records Snapshot"},
+                {"05", "Detailed Security Badge"},
+                {"06", "Covert Security Badge"},
+                {"07", "Covert Recon Report"},
+                {"08", "Executive Intelligence Brief"},
+                {"09", "DNS Topology"},
+                {"10", "Full Intelligence Data (JSON)"},
+                {"11", "Discovered Subdomains"},
+                {"12", "SHA-3 Integrity Checksum"},
+                {"13", "Security Remediation Plan"},
+                {"14", "Wayback Archive"},
+                {"15", "Sources &amp; Methodology"},
         }
 
-        lastIdx := -1
-        for i, title := range expectedOrder {
-                idx := strings.Index(html, title)
-                if idx < 0 {
-                        t.Fatalf("item %d (%q) not found in HTML", i+1, title)
+        for _, id := range []int32{0, 42} {
+                html := h.buildAgentHTML("example.com", results, id)
+
+                searchStart := 0
+                for i, item := range expectedOrder {
+                        marker := item.prefix + ". " + item.label
+                        idx := strings.Index(html[searchStart:], marker)
+                        if idx < 0 {
+                                t.Fatalf("analysisID=%d: item %d (%s) not found after position %d",
+                                        id, i+1, marker, searchStart)
+                        }
+                        searchStart += idx + len(marker)
                 }
-                if idx <= lastIdx {
-                        t.Fatalf("item %d (%q) at index %d is not after item %d (index %d) — ordering broken",
-                                i+1, title, idx, i, lastIdx)
+
+                for i := 1; i <= 15; i++ {
+                        prefix := fmt.Sprintf("%02d. ", i)
+                        if !strings.Contains(html, prefix) {
+                                t.Errorf("analysisID=%d: missing numbered prefix %q", id, prefix)
+                        }
                 }
-                lastIdx = idx
+
+                for i := 16; i <= 20; i++ {
+                        prefix := fmt.Sprintf("%02d. ", i)
+                        if strings.Contains(html, prefix) {
+                                t.Errorf("analysisID=%d: unexpected prefix %q found — item count may have grown without updating this test", id, prefix)
+                        }
+                }
         }
 }
 
