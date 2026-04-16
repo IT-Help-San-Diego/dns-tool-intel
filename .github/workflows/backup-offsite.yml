@@ -1,5 +1,21 @@
 name: Off-site Backup
 
+# Strategy (post-2026-04-16 redesign):
+#   1. Mirror 'main' to off-site-backup WITHOUT --force.
+#      If main's history is ever rewritten, this push fails loudly with a
+#      non-fast-forward error and the backup keeps the older history. That
+#      is the desired behavior: a backup that mirrors destruction is not a
+#      backup. A failed mirror is a smoke alarm.
+#   2. Always create a timestamped immutable snapshot branch on every run.
+#      Branches are named snapshot/YYYY-MM-DD-HHMMSS-<short-sha>. The
+#      workflow never deletes or overwrites these branches, so every run
+#      leaves an append-only point-in-time record regardless of what
+#      happens to main upstream.
+#   3. Tags are pushed without --force — preserves any tag positions the
+#      backup already has that may have been moved on the source.
+#   4. continue-on-error is OFF for both push steps. Silent failures are
+#      what masked the dual-write problems earlier. Loud failures get fixed.
+
 on:
   push:
     branches: [main]
@@ -7,23 +23,109 @@ on:
     - cron: '15 6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   backup:
     name: Push to off-site-backup
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout full history + tags
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
+          # CRITICAL: actions/checkout installs a credential helper that
+          # intercepts auth for github.com and substitutes its own token
+          # (the github-actions[bot] token). That bot has no write access
+          # to off-site-backup, so the URL-embedded BACKUP_TOKEN is
+          # silently ignored and the push 403s. persist-credentials:false
+          # disables the helper so our embedded token is actually used.
+          persist-credentials: false
 
-      - name: Mirror to off-site-backup
+      - name: Pre-flight — verify backup token
         env:
           BACKUP_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
         run: |
-          git remote add backup "https://x-access-token:${BACKUP_TOKEN}@github.com/IT-Help-San-Diego/off-site-backup.git"
-          git push --force --all backup
-          git push --force --tags backup
-          echo "Off-site backup complete."
+          set -euo pipefail
+          if [ -z "${BACKUP_TOKEN:-}" ]; then
+            echo "::error::GH_SYNC_TOKEN secret is not set"
+            exit 1
+          fi
+          AUTH=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${BACKUP_TOKEN}" \
+            https://api.github.com/repos/IT-Help-San-Diego/off-site-backup)
+          if [ "$AUTH" != "200" ]; then
+            echo "::error::Cannot reach off-site-backup repo (HTTP $AUTH)"
+            exit 1
+          fi
+          echo "Token OK; off-site-backup repo reachable."
+
+      - name: Configure backup remote (idempotent)
+        env:
+          BACKUP_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          git remote remove backup 2>/dev/null || true
+          git remote add backup \
+            "https://x-access-token:${BACKUP_TOKEN}@github.com/IT-Help-San-Diego/off-site-backup.git"
+          git remote -v | grep backup
+
+      - name: Mirror main → backup/mirror/main (no --force)
+        run: |
+          set -euo pipefail
+          # Why mirror/main and not main:
+          # off-site-backup's 'main' branch was populated long ago with
+          # bootstrap commits ("Sync to canonical", "Complete workspace
+          # backup") that are NOT in source history. We deliberately do
+          # NOT touch backup's 'main' — it's preserved permanently as
+          # the as-was record. Live mirror lives on 'mirror/main'.
+          echo "Pushing source main → backup mirror/main (fast-forward only)..."
+          if git push backup HEAD:refs/heads/mirror/main; then
+            echo "::notice::mirror/main updated successfully"
+          else
+            EXIT=$?
+            echo "::error::Mirror of main FAILED (exit $EXIT)."
+            echo "::error::Most likely cause: source main's history was rewritten upstream."
+            echo "::error::backup mirror/main was NOT modified — older history is preserved."
+            echo "::error::Investigate before allowing the next force-push to land."
+            exit $EXIT
+          fi
+
+      - name: Push tags (no --force; preserves existing backup tag positions)
+        run: |
+          set -euo pipefail
+          echo "Pushing new tags → backup (existing tags will be skipped)..."
+          # --no-force means tags already on backup at a different SHA will be
+          # rejected; that's intentional — backup keeps the original.
+          git push backup --tags || {
+            echo "::warning::Some tags were rejected (likely moved upstream)."
+            echo "::warning::Backup keeps the original tag positions. Continuing."
+          }
+
+      - name: Create immutable snapshot branch
+        run: |
+          set -euo pipefail
+          TS=$(date -u +%Y-%m-%d-%H%M%S)
+          SHA=$(git rev-parse --short=12 HEAD)
+          SNAP="snapshot/${TS}-${SHA}"
+          echo "Creating snapshot branch: ${SNAP}"
+          # Push current HEAD as a brand-new branch. If a branch with this
+          # name somehow already exists (cron + push race), we DO NOT
+          # overwrite — we add a -2 suffix and try once more.
+          if ! git push backup "HEAD:refs/heads/${SNAP}"; then
+            echo "::warning::Snapshot name collision; retrying with -2 suffix"
+            git push backup "HEAD:refs/heads/${SNAP}-2"
+          fi
+          echo "::notice::Immutable snapshot recorded: ${SNAP}"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "=== Off-site backup run summary ==="
+          echo "Source SHA:  $(git rev-parse HEAD)"
+          echo "Source ref:  ${GITHUB_REF}"
+          echo "Trigger:     ${GITHUB_EVENT_NAME}"
+          echo "Result:      see step statuses above"

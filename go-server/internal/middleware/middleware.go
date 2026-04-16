@@ -80,12 +80,13 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
         devMode := len(isDev) > 0 && isDev[0]
         return func(c *gin.Context) {
                 c.Set(ginKeyDevMode, devMode)
+                const cspHeader = "Content-Security-Policy"
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
                         if strings.HasSuffix(c.Request.URL.Path, ".svg") {
-                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                                c.Header(cspHeader, "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
                         } else {
-                                c.Header("Content-Security-Policy", "default-src 'none'; style-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                                c.Header(cspHeader, "default-src 'none'; style-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'")
                         }
                         c.Next()
                         return
@@ -93,7 +94,7 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
 
                 nonceStr := extractNonceStr(c)
                 setCommonSecurityHeaders(c, devMode)
-                c.Header("Content-Security-Policy", buildCSP(c, nonceStr, devMode))
+                c.Header(cspHeader, buildCSP(c, nonceStr, devMode))
                 c.Next()
         }
 }

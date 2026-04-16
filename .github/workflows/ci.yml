@@ -20,6 +20,26 @@ jobs:
         with:
           go-version: '1.25.9'
 
+      - name: Drift guard — handlers/ shim files
+        run: bash scripts/check-handlers-no-shims.sh
+
+      - name: Drift guard — single-write-path enforcement
+        run: |
+          # Enforces architect retrospective decision (2026-04-16):
+          # scripts/git-sync.sh was the dual-write path that caused
+          # repeated branch-overwrite incidents during the v26.45.x
+          # refactor sprint. It must not return.
+          # If you need a break-glass push, use scripts/git-push.sh.
+          if [ -f "scripts/git-sync.sh" ]; then
+            echo "::error::scripts/git-sync.sh has reappeared. This file was deleted on 2026-04-16 after causing repeated branch-overwrite incidents. Use scripts/git-push.sh as the single canonical write path."
+            exit 1
+          fi
+          if grep -rEln "git[-_]?sync\.sh" scripts/ .github/ 2>/dev/null | grep -v "^.github/workflows/ci.yml$"; then
+            echo "::error::A reference to git-sync.sh appeared in scripts/ or .github/. The single-write-path policy forbids reintroducing this dual write path."
+            exit 1
+          fi
+          echo "✓ Single-write-path policy intact"
+
       - name: Build binary
         run: |
           cd go-server
