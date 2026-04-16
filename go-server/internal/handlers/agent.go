@@ -565,8 +565,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
         badgeViewDetailed := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=detailed", base, domain))
         badgeViewCovert := esc(fmt.Sprintf("%s/agent/badge-view?domain=%s&style=covert", base, domain))
         sourcesURL := esc(fmt.Sprintf("%s/agent/sources-view?domain=%s", base, domain))
-        confidenceURL := esc(fmt.Sprintf("%s/agent/confidence-view?domain=%s", base, domain))
 
+        guideViewURL := esc(fmt.Sprintf("%s/agent/guide-view?domain=%s", base, domain))
+        historyURL := esc(fmt.Sprintf("%s/history?domain=%s", base, domain))
         snapshotViewURL := esc(fmt.Sprintf("%s/agent/snapshot-view?domain=%s", base, domain))
         jsonViewURL := esc(fmt.Sprintf("%s/agent/json-view?domain=%s", base, domain))
         csvViewURL := esc(fmt.Sprintf("%s/agent/csv-view?domain=%s", base, domain))
@@ -598,6 +599,20 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <meta name="generator" content="DNS Tool ` + esc(h.Config.AppVersion) + `">
   <meta name="robots" content="noindex">
   <link rel="search" type="application/opensearchdescription+xml" title="DNS Tool" href="` + esc(base) + `/agent/opensearch.xml">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; padding: 2rem; }
+    h1, h2 { color: #e6edf3; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { border-collapse: collapse; width: 100%; max-width: 700px; margin: 1rem 0; }
+    th, td { border: 1px solid #30363d; padding: .5rem .75rem; text-align: left; }
+    th { background: #161b22; color: #e6edf3; }
+    td { background: #0d1117; }
+    ol { padding-left: 1.5rem; }
+    li { margin-bottom: .5rem; line-height: 1.5; }
+    img { vertical-align: middle; }
+    p { line-height: 1.5; }
+  </style>
 
   <!-- Dublin Core metadata (Zotero, Mendeley, citation managers) -->
   <meta name="DC.title" content="DNS Security Intelligence Report: ` + ed + `">
@@ -650,21 +665,21 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
 
 <h2>Reports &amp; Intelligence</h2>
 <ol>
-  <li><a href="` + reportPageURL + `">Engineer's DNS Intelligence Report — ` + ed + `</a> — full security analysis with live scanning</li>
-  <li><a href="` + snapshotViewURL + `">Observed Records Snapshot — ` + ed + `</a> — reconstructed zone file, SHA-3-512 verified</li>
-  <li><a href="` + badgeViewDetailed + `">Detailed Security Badge — ` + ed + `</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
-  <li><a href="` + badgeViewCovert + `">Covert Security Badge — ` + ed + `</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
-  <li><a href="` + covertReportURL + `">Covert Recon Report — ` + ed + `</a> — full analysis in covert operations mode</li>
-  <li><a href="` + executiveReportURL + `">Executive Intelligence Brief — ` + ed + `</a> — board-ready executive summary</li>
-  <li><a href="` + topologyURL + `">DNS Topology — ` + ed + `</a> — topology visualization, signal flow, and RFC source mapping</li>
-  <li><a href="https://doi.org/10.5281/zenodo.19468134">Zenodo — Concept DOI — ` + ed + `</a> — permanent scientific record (10.5281/zenodo.19468134)</li>
-  <li><a href="` + jsonViewURL + `">Full Intelligence Data (JSON) — ` + ed + `</a> — complete analysis payload with all collected intelligence</li>
-  <li><a href="` + csvViewURL + `">Discovered Subdomains — ` + ed + `</a> — subdomain reconnaissance data (CSV)</li>
-  <li><a href="` + sourcesURL + `">Sources &amp; Methodology — ` + ed + `</a> — RFC citations, data sources, and scoring methodology</li>
-  <li><a href="` + checksumViewURL + `">SHA-3 Integrity Checksum — ` + ed + `</a> — cryptographic verification of analysis data</li>
-  <li><a href="` + remediationURL + `">Security Remediation Plan — ` + ed + `</a> — actionable remediation steps for this domain</li>
-  <li><a href="` + waybackViewURL + `">Wayback Archive — ` + ed + `</a> — permanent archived record of the analysis</li>
-  <li><a href="` + confidenceURL + `">Confidence Page — ` + ed + `</a> — SHA-3 hash audit, integrity timestamps, and analysis confidence metrics</li>
+  <li><a href="` + guideViewURL + `">01. Intelligence Guide — ` + ed + `</a> — orientation: what this analysis contains and how to use it</li>
+  <li><a href="` + reportPageURL + `">02. Engineer's DNS Intelligence Report — ` + ed + `</a> — full security analysis with live scanning</li>
+  <li><a href="` + historyURL + `">03. Analysis History — ` + ed + `</a> — previous scans and security posture changes over time</li>
+  <li><a href="` + snapshotViewURL + `">04. Observed Records Snapshot — ` + ed + `</a> — reconstructed zone file, SHA-3-512 verified</li>
+  <li><a href="` + badgeViewDetailed + `">05. Detailed Security Badge — ` + ed + `</a> — full posture badge (<img src="` + badgeDetailed + `" alt="Detailed Badge" width="300">)</li>
+  <li><a href="` + badgeViewCovert + `">06. Covert Security Badge — ` + ed + `</a> — scotopic-optimized badge (<img src="` + badgeCovert + `" alt="Covert Badge" width="200">)</li>
+  <li><a href="` + covertReportURL + `">07. Covert Recon Report — ` + ed + `</a> — full analysis in covert operations mode</li>
+  <li><a href="` + executiveReportURL + `">08. Executive Intelligence Brief — ` + ed + `</a> — board-ready executive summary</li>
+  <li><a href="` + topologyURL + `">09. DNS Topology — ` + ed + `</a> — topology visualization, signal flow, and RFC source mapping</li>
+  <li><a href="` + jsonViewURL + `">10. Full Intelligence Data (JSON) — ` + ed + `</a> — complete analysis payload with all collected intelligence</li>
+  <li><a href="` + csvViewURL + `">11. Discovered Subdomains — ` + ed + `</a> — subdomain reconnaissance data (CSV)</li>
+  <li><a href="` + checksumViewURL + `">12. SHA-3 Integrity Checksum — ` + ed + `</a> — cryptographic verification of analysis data</li>
+  <li><a href="` + remediationURL + `">13. Security Remediation Plan — ` + ed + `</a> — actionable remediation steps for this domain</li>
+  <li><a href="` + waybackViewURL + `">14. Wayback Archive — ` + ed + `</a> — permanent archived record of the analysis</li>
+  <li><a href="` + sourcesURL + `">15. Sources &amp; Methodology — ` + ed + `</a> — RFC citations, data sources, and scoring methodology</li>
 </ol>`)
 
         sb.WriteString(`
@@ -694,11 +709,9 @@ func (h *AgentHandler) buildAgentHTML(domain string, results map[string]any, ana
   <tr><td>CNAME Records</td><td>` + fmt.Sprintf("%d", d.cnameCountVal) + `</td></tr>
 </table>
 
-<h2>Provenance &amp; Citation</h2>
+<h2>Provenance</h2>
 <p>
-  <strong>Tool:</strong> DNS Tool by IT Help San Diego Inc.<br>
-  <strong>Methodology:</strong> RFC-grounded analysis with Bayesian confidence scoring<br>
-  <strong>Concept DOI:</strong> <a href="https://doi.org/10.5281/zenodo.19468134">10.5281/zenodo.19468134</a><br>
+  <strong>Tool:</strong> DNS Tool by IT Help San Diego Inc. — IT Research in Motion<br>
   <strong>Version:</strong> ` + esc(h.Config.AppVersion) + `<br>
   <strong>License:</strong> BUSL-1.1<br>
   <strong>Timestamp:</strong> <time datetime="` + isoTimestamp + `">` + isoTimestamp + `</time>
@@ -819,8 +832,6 @@ func (h *AgentHandler) WaybackView(c *gin.Context) {
                 return
         }
 
-        base := h.Config.BaseURL
-
         if h.lookupStore != nil {
                 if recent, err := h.lookupStore.GetRecentAnalysisByDomain(c.Request.Context(), domain); err == nil {
                         if recent.WaybackUrl != nil && *recent.WaybackUrl != "" && strings.HasPrefix(*recent.WaybackUrl, "https://web.archive.org/") {
@@ -830,7 +841,7 @@ func (h *AgentHandler) WaybackView(c *gin.Context) {
                 }
         }
 
-        c.Redirect(http.StatusFound, safeInternalURL(base, "/analyze", map[string]string{"domain": domain}))
+        h.WaybackHTMLView(c)
 }
 
 func (h *AgentHandler) ReportView(c *gin.Context) {
