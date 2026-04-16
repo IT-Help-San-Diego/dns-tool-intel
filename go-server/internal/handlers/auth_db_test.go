@@ -19,80 +19,7 @@ import (
         "github.com/jackc/pgx/v5/pgtype"
 )
 
-type mockAuthStore struct {
-        upsertUserFn                    func(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error)
-        promoteUserToAdminFn            func(ctx context.Context, id int32) error
-        countAdminUsersFn               func(ctx context.Context) (int64, error)
-        createSessionFn                 func(ctx context.Context, arg dbq.CreateSessionParams) error
-        deleteSessionFn                 func(ctx context.Context, id string) error
-        listWatchlistByUserFn           func(ctx context.Context, userID int32) ([]dbq.DomainWatchlist, error)
-        insertWatchlistEntryFn          func(ctx context.Context, arg dbq.InsertWatchlistEntryParams) (dbq.InsertWatchlistEntryRow, error)
-        listNotificationEndpointsByUserFn func(ctx context.Context, userID int32) ([]dbq.NotificationEndpoint, error)
-        insertNotificationEndpointFn    func(ctx context.Context, arg dbq.InsertNotificationEndpointParams) (dbq.InsertNotificationEndpointRow, error)
-}
 
-func (m *mockAuthStore) UpsertUser(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error) {
-        if m.upsertUserFn != nil {
-                return m.upsertUserFn(ctx, arg)
-        }
-        return dbq.User{}, nil
-}
-
-func (m *mockAuthStore) PromoteUserToAdmin(ctx context.Context, id int32) error {
-        if m.promoteUserToAdminFn != nil {
-                return m.promoteUserToAdminFn(ctx, id)
-        }
-        return nil
-}
-
-func (m *mockAuthStore) CountAdminUsers(ctx context.Context) (int64, error) {
-        if m.countAdminUsersFn != nil {
-                return m.countAdminUsersFn(ctx)
-        }
-        return 0, nil
-}
-
-func (m *mockAuthStore) CreateSession(ctx context.Context, arg dbq.CreateSessionParams) error {
-        if m.createSessionFn != nil {
-                return m.createSessionFn(ctx, arg)
-        }
-        return nil
-}
-
-func (m *mockAuthStore) DeleteSession(ctx context.Context, id string) error {
-        if m.deleteSessionFn != nil {
-                return m.deleteSessionFn(ctx, id)
-        }
-        return nil
-}
-
-func (m *mockAuthStore) ListWatchlistByUser(ctx context.Context, userID int32) ([]dbq.DomainWatchlist, error) {
-        if m.listWatchlistByUserFn != nil {
-                return m.listWatchlistByUserFn(ctx, userID)
-        }
-        return nil, nil
-}
-
-func (m *mockAuthStore) InsertWatchlistEntry(ctx context.Context, arg dbq.InsertWatchlistEntryParams) (dbq.InsertWatchlistEntryRow, error) {
-        if m.insertWatchlistEntryFn != nil {
-                return m.insertWatchlistEntryFn(ctx, arg)
-        }
-        return dbq.InsertWatchlistEntryRow{}, nil
-}
-
-func (m *mockAuthStore) ListNotificationEndpointsByUser(ctx context.Context, userID int32) ([]dbq.NotificationEndpoint, error) {
-        if m.listNotificationEndpointsByUserFn != nil {
-                return m.listNotificationEndpointsByUserFn(ctx, userID)
-        }
-        return nil, nil
-}
-
-func (m *mockAuthStore) InsertNotificationEndpoint(ctx context.Context, arg dbq.InsertNotificationEndpointParams) (dbq.InsertNotificationEndpointRow, error) {
-        if m.insertNotificationEndpointFn != nil {
-                return m.insertNotificationEndpointFn(ctx, arg)
-        }
-        return dbq.InsertNotificationEndpointRow{}, nil
-}
 
 func TestDetermineRole_AdminBootstrap(t *testing.T) {
         mock := &mockAuthStore{
@@ -100,12 +27,9 @@ func TestDetermineRole_AdminBootstrap(t *testing.T) {
                         return 0, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{InitialAdminEmail: "admin@example.com"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
-        role, shouldBootstrap := h.determineRole(context.Background(), "admin@example.com")
+        role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "admin" {
                 t.Errorf("role = %q, want %q", role, "admin")
         }
@@ -115,12 +39,9 @@ func TestDetermineRole_AdminBootstrap(t *testing.T) {
 }
 
 func TestDetermineRole_NoMatch(t *testing.T) {
-        h := &AuthHandler{
-                Config:    &config.Config{InitialAdminEmail: "admin@example.com"},
-                authStore: &mockAuthStore{},
-        }
+        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, &mockAuthStore{})
 
-        role, shouldBootstrap := h.determineRole(context.Background(), "user@example.com")
+        role, shouldBootstrap := h.DetermineRole(context.Background(), "user@example.com")
         if role != "user" {
                 t.Errorf("role = %q, want %q", role, "user")
         }
@@ -135,12 +56,9 @@ func TestDetermineRole_CaseInsensitive(t *testing.T) {
                         return 0, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{InitialAdminEmail: "Admin@Example.COM"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "Admin@Example.COM"}, nil, mock)
 
-        role, shouldBootstrap := h.determineRole(context.Background(), "admin@example.com")
+        role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "admin" {
                 t.Errorf("role = %q, want %q", role, "admin")
         }
@@ -155,12 +73,9 @@ func TestDetermineRole_AdminsExist(t *testing.T) {
                         return 2, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{InitialAdminEmail: "admin@example.com"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
-        role, shouldBootstrap := h.determineRole(context.Background(), "admin@example.com")
+        role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "user" {
                 t.Errorf("role = %q, want %q", role, "user")
         }
@@ -177,12 +92,9 @@ func TestBootstrapAdminIfNeeded_Success(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
-        result := h.bootstrapAdminIfNeeded(context.Background(), 1, "user", true, "admin@example.com")
+        result := h.BootstrapAdminIfNeeded(context.Background(), 1, "user", true, "admin@example.com")
         if result != "admin" {
                 t.Errorf("result = %q, want %q", result, "admin")
         }
@@ -199,12 +111,9 @@ func TestBootstrapAdminIfNeeded_AlreadyAdmin(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
-        result := h.bootstrapAdminIfNeeded(context.Background(), 1, "admin", true, "admin@example.com")
+        result := h.BootstrapAdminIfNeeded(context.Background(), 1, "admin", true, "admin@example.com")
         if result != "admin" {
                 t.Errorf("result = %q, want %q", result, "admin")
         }
@@ -221,12 +130,9 @@ func TestBootstrapAdminIfNeeded_NoBootstrap(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
-        result := h.bootstrapAdminIfNeeded(context.Background(), 1, "user", false, "user@example.com")
+        result := h.BootstrapAdminIfNeeded(context.Background(), 1, "user", false, "user@example.com")
         if result != "user" {
                 t.Errorf("result = %q, want %q", result, "user")
         }
@@ -249,12 +155,9 @@ func TestSeedAdminWatchlist_EmptyExisting(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{BaseURL: "https://app.example.com"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{BaseURL: "https://app.example.com"}, nil, mock)
 
-        h.seedAdminWatchlist(context.Background(), 1)
+        h.SeedAdminWatchlist(context.Background(), 1)
 
         expectedDomains := missionCriticalDomainsFromBaseURL("https://app.example.com")
         if len(insertedDomains) != len(expectedDomains) {
@@ -281,12 +184,9 @@ func TestSeedDiscordEndpoint_NoExisting(t *testing.T) {
                         return dbq.InsertNotificationEndpointRow{ID: 1}, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{DiscordWebhookURL: "https://discord.com/api/webhooks/test"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: "https://discord.com/api/webhooks/test"}, nil, mock)
 
-        h.seedDiscordEndpoint(context.Background(), 1)
+        h.SeedDiscordEndpoint(context.Background(), 1)
 
         if !inserted {
                 t.Error("InsertNotificationEndpoint was not called")
@@ -307,12 +207,9 @@ func TestSeedDiscordEndpoint_AlreadyExists(t *testing.T) {
                         return dbq.InsertNotificationEndpointRow{}, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{DiscordWebhookURL: webhookURL},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: webhookURL}, nil, mock)
 
-        h.seedDiscordEndpoint(context.Background(), 1)
+        h.SeedDiscordEndpoint(context.Background(), 1)
 
         if inserted {
                 t.Error("InsertNotificationEndpoint should not be called when endpoint already exists")
@@ -336,12 +233,9 @@ func TestCreateUserSession_Success(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
-        sessionID, err := h.createUserSession(context.Background(), 42)
+        sessionID, err := h.CreateUserSession(context.Background(), 42)
         if err != nil {
                 t.Fatalf("createUserSession returned error: %v", err)
         }
@@ -359,12 +253,9 @@ func TestCreateUserSession_DBError(t *testing.T) {
                         return errors.New("db connection refused")
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
-        sessionID, err := h.createUserSession(context.Background(), 42)
+        sessionID, err := h.CreateUserSession(context.Background(), 42)
         if err == nil {
                 t.Fatal("expected error from createUserSession")
         }
@@ -389,10 +280,7 @@ func TestFinalizeLogin_AdminSeedsWatchlist(t *testing.T) {
                         return dbq.InsertWatchlistEntryRow{}, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{BaseURL: "https://dnstool.it-help.tech"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{BaseURL: "https://dnstool.it-help.tech"}, nil, mock)
 
         user := dbq.User{
                 ID:   1,
@@ -406,7 +294,7 @@ func TestFinalizeLogin_AdminSeedsWatchlist(t *testing.T) {
                         Valid: true,
                 },
         }
-        h.finalizeLogin(c, "test-session-id", user, "Admin", "admin@example.com")
+        h.FinalizeLogin(c, "test-session-id", user, "Admin", "admin@example.com")
 
         time.Sleep(100 * time.Millisecond)
 
@@ -432,10 +320,7 @@ func TestFinalizeLogin_NonAdmin(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         user := dbq.User{
                 ID:   2,
@@ -449,7 +334,7 @@ func TestFinalizeLogin_NonAdmin(t *testing.T) {
                         Valid: true,
                 },
         }
-        h.finalizeLogin(c, "test-session-id", user, "User", "user@example.com")
+        h.FinalizeLogin(c, "test-session-id", user, "User", "user@example.com")
 
         time.Sleep(50 * time.Millisecond)
 
@@ -468,10 +353,7 @@ func TestFinalizeLogin_FirstLogin(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/auth/callback", nil)
 
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: &mockAuthStore{},
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, &mockAuthStore{})
 
         now := time.Now()
         user := dbq.User{
@@ -486,7 +368,7 @@ func TestFinalizeLogin_FirstLogin(t *testing.T) {
                         Valid: true,
                 },
         }
-        h.finalizeLogin(c, "test-session-id", user, "New User", "new@example.com")
+        h.FinalizeLogin(c, "test-session-id", user, "New User", "new@example.com")
 
         location := w.Header().Get("Location")
         if !strings.Contains(location, "welcome=") {
@@ -502,12 +384,9 @@ func TestSeedDiscordEndpoint_EmptyWebhookURL(t *testing.T) {
                         return nil, nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{DiscordWebhookURL: ""},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{DiscordWebhookURL: ""}, nil, mock)
 
-        h.seedDiscordEndpoint(context.Background(), 1)
+        h.SeedDiscordEndpoint(context.Background(), 1)
 
         if listCalled {
                 t.Error("ListNotificationEndpointsByUser should not be called when DiscordWebhookURL is empty")

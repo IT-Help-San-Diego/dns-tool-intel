@@ -196,3 +196,78 @@ func (m *mockLookupStore) GetRecentAnalysisByDomain(ctx context.Context, domain 
         }
         return dbq.DomainAnalysis{}, errors.New("not found")
 }
+
+type mockAuthStore struct {
+        upsertUserFn                      func(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error)
+        promoteUserToAdminFn              func(ctx context.Context, id int32) error
+        countAdminUsersFn                 func(ctx context.Context) (int64, error)
+        createSessionFn                   func(ctx context.Context, arg dbq.CreateSessionParams) error
+        deleteSessionFn                   func(ctx context.Context, id string) error
+        listWatchlistByUserFn             func(ctx context.Context, userID int32) ([]dbq.DomainWatchlist, error)
+        insertWatchlistEntryFn            func(ctx context.Context, arg dbq.InsertWatchlistEntryParams) (dbq.InsertWatchlistEntryRow, error)
+        listNotificationEndpointsByUserFn func(ctx context.Context, userID int32) ([]dbq.NotificationEndpoint, error)
+        insertNotificationEndpointFn      func(ctx context.Context, arg dbq.InsertNotificationEndpointParams) (dbq.InsertNotificationEndpointRow, error)
+}
+
+func (m *mockAuthStore) UpsertUser(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error) {
+        if m.upsertUserFn != nil {
+                return m.upsertUserFn(ctx, arg)
+        }
+        return dbq.User{}, nil
+}
+
+func (m *mockAuthStore) PromoteUserToAdmin(ctx context.Context, id int32) error {
+        if m.promoteUserToAdminFn != nil {
+                return m.promoteUserToAdminFn(ctx, id)
+        }
+        return nil
+}
+
+func (m *mockAuthStore) CountAdminUsers(ctx context.Context) (int64, error) {
+        if m.countAdminUsersFn != nil {
+                return m.countAdminUsersFn(ctx)
+        }
+        return 0, nil
+}
+
+func (m *mockAuthStore) CreateSession(ctx context.Context, arg dbq.CreateSessionParams) error {
+        if m.createSessionFn != nil {
+                return m.createSessionFn(ctx, arg)
+        }
+        return nil
+}
+
+func (m *mockAuthStore) DeleteSession(ctx context.Context, id string) error {
+        if m.deleteSessionFn != nil {
+                return m.deleteSessionFn(ctx, id)
+        }
+        return nil
+}
+
+func (m *mockAuthStore) ListWatchlistByUser(ctx context.Context, userID int32) ([]dbq.DomainWatchlist, error) {
+        if m.listWatchlistByUserFn != nil {
+                return m.listWatchlistByUserFn(ctx, userID)
+        }
+        return nil, nil
+}
+
+func (m *mockAuthStore) InsertWatchlistEntry(ctx context.Context, arg dbq.InsertWatchlistEntryParams) (dbq.InsertWatchlistEntryRow, error) {
+        if m.insertWatchlistEntryFn != nil {
+                return m.insertWatchlistEntryFn(ctx, arg)
+        }
+        return dbq.InsertWatchlistEntryRow{}, nil
+}
+
+func (m *mockAuthStore) ListNotificationEndpointsByUser(ctx context.Context, userID int32) ([]dbq.NotificationEndpoint, error) {
+        if m.listNotificationEndpointsByUserFn != nil {
+                return m.listNotificationEndpointsByUserFn(ctx, userID)
+        }
+        return nil, nil
+}
+
+func (m *mockAuthStore) InsertNotificationEndpoint(ctx context.Context, arg dbq.InsertNotificationEndpointParams) (dbq.InsertNotificationEndpointRow, error) {
+        if m.insertNotificationEndpointFn != nil {
+                return m.insertNotificationEndpointFn(ctx, arg)
+        }
+        return dbq.InsertNotificationEndpointRow{}, nil
+}

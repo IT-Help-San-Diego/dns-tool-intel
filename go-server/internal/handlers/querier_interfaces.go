@@ -29,17 +29,6 @@ type AnalysisStore interface {
         GetRecentAnalysisByDomain(ctx context.Context, domain string) (dbq.DomainAnalysis, error)
 }
 
-type AuthStore interface {
-        UpsertUser(ctx context.Context, arg dbq.UpsertUserParams) (dbq.User, error)
-        PromoteUserToAdmin(ctx context.Context, id int32) error
-        CountAdminUsers(ctx context.Context) (int64, error)
-        CreateSession(ctx context.Context, arg dbq.CreateSessionParams) error
-        DeleteSession(ctx context.Context, id string) error
-        ListWatchlistByUser(ctx context.Context, userID int32) ([]dbq.DomainWatchlist, error)
-        InsertWatchlistEntry(ctx context.Context, arg dbq.InsertWatchlistEntryParams) (dbq.InsertWatchlistEntryRow, error)
-        ListNotificationEndpointsByUser(ctx context.Context, userID int32) ([]dbq.NotificationEndpoint, error)
-        InsertNotificationEndpoint(ctx context.Context, arg dbq.InsertNotificationEndpointParams) (dbq.InsertNotificationEndpointRow, error)
-}
 
 type PipelineStore interface {
         GetPipelineStageStats(ctx context.Context) ([]dbq.GetPipelineStageStatsRow, error)

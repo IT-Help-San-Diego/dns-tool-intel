@@ -21,10 +21,7 @@ func TestBatch3_LoginRedirect(t *testing.T) {
                 GoogleClientSecret: "test-secret",
                 GoogleRedirectURL:  "https://test.example.com/auth/callback",
         }
-        h := &AuthHandler{
-                Config:    cfg,
-                authStore: &mockAuthStore{},
-        }
+        h := NewAuthHandlerWithStore(cfg, nil, &mockAuthStore{})
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
@@ -76,10 +73,7 @@ func TestBatch3_LogoutDeletesSessionAndRedirects(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
@@ -115,10 +109,7 @@ func TestBatch3_LogoutNoCookie(t *testing.T) {
                         return nil
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{}, nil, mock)
 
         w := httptest.NewRecorder()
         c, _ := gin.CreateTestContext(w)
@@ -140,12 +131,9 @@ func TestBatch3_DetermineRole_CountAdminError(t *testing.T) {
                         return 0, errors.New("database unreachable")
                 },
         }
-        h := &AuthHandler{
-                Config:    &config.Config{InitialAdminEmail: "admin@example.com"},
-                authStore: mock,
-        }
+        h := NewAuthHandlerWithStore(&config.Config{InitialAdminEmail: "admin@example.com"}, nil, mock)
 
-        role, shouldBootstrap := h.determineRole(context.Background(), "admin@example.com")
+        role, shouldBootstrap := h.DetermineRole(context.Background(), "admin@example.com")
         if role != "user" {
                 t.Errorf("expected role %q on error, got %q", "user", role)
         }
