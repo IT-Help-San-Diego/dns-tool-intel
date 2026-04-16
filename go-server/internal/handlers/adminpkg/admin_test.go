@@ -1,4 +1,4 @@
-package handlers
+package adminpkg
 
 import (
         "context"
@@ -159,7 +159,7 @@ func TestDeleteUser_AdminRoleBlocked(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.DELETE("/admin/user/:id", handler.DeleteUser)
 
         ctx := context.Background()
@@ -192,7 +192,7 @@ func TestRunOperation_UnknownTask(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.POST("/admin/ops/:task", handler.RunOperation)
 
         w := httptest.NewRecorder()
@@ -226,7 +226,7 @@ func TestRunOperation_CmdRunner_Success(t *testing.T) {
 
         var capturedCmd string
         var capturedArgs []string
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         handler.RunCmd = func(ctx context.Context, command string, args []string) CmdRunResult {
                 capturedCmd = command
                 capturedArgs = args
@@ -275,7 +275,7 @@ func TestRunOperation_CmdRunner_Failure_CapturesOutput(t *testing.T) {
         })
         router.SetHTMLTemplate(tmpl)
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         handler.RunCmd = func(ctx context.Context, command string, args []string) CmdRunResult {
                 return CmdRunResult{
                         Stdout: "partial output before crash",
@@ -320,7 +320,7 @@ func TestRunOperation_CmdRunner_StderrOnlyFailure(t *testing.T) {
         })
         router.SetHTMLTemplate(tmpl)
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         handler.RunCmd = func(ctx context.Context, command string, args []string) CmdRunResult {
                 return CmdRunResult{Stdout: "", Stderr: "permission denied", Err: fmt.Errorf("exit status 1")}
         }
@@ -358,7 +358,7 @@ func TestRunOperation_CmdRunner_ContextTimeout(t *testing.T) {
         })
         router.SetHTMLTemplate(tmpl)
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         handler.RunCmd = func(ctx context.Context, command string, args []string) CmdRunResult {
                 return CmdRunResult{
                         Stdout: "",
@@ -384,7 +384,7 @@ func TestDeleteUser_BadID(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.DELETE("/admin/user/:id", handler.DeleteUser)
 
         w := httptest.NewRecorder()
@@ -399,7 +399,7 @@ func TestDeleteUser_NotFound(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.DELETE("/admin/user/:id", handler.DeleteUser)
 
         w := httptest.NewRecorder()
@@ -414,7 +414,7 @@ func TestResetUserSessions_BadID(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.POST("/admin/reset-sessions/:id", handler.ResetUserSessions)
 
         w := httptest.NewRecorder()
@@ -429,7 +429,7 @@ func TestResetUserSessions_NotFound(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.POST("/admin/reset-sessions/:id", handler.ResetUserSessions)
 
         w := httptest.NewRecorder()
@@ -444,7 +444,7 @@ func TestPurgeExpiredSessions_Runs(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.POST("/admin/purge-sessions", handler.PurgeExpiredSessions)
 
         w := httptest.NewRecorder()
@@ -459,7 +459,7 @@ func TestAdminDashboard_Renders(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 42 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 42 })
         router.GET("/admin", handler.Dashboard)
 
         w := httptest.NewRecorder()
@@ -474,7 +474,7 @@ func TestOperationsPage_Renders(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.GET("/admin/ops", handler.OperationsPage)
 
         w := httptest.NewRecorder()
@@ -525,7 +525,7 @@ func TestDeleteUser_CanceledContext_UserSurvives(t *testing.T) {
                 c.Next()
         })
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.DELETE("/admin/user/:id", handler.DeleteUser)
 
         w := httptest.NewRecorder()
@@ -572,7 +572,7 @@ func TestDeleteUser_MidTransaction_ShortDeadline_RollbackVerified(t *testing.T) 
                 c.Next()
         })
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.DELETE("/admin/user/:id", handler.DeleteUser)
 
         w := httptest.NewRecorder()
@@ -615,7 +615,7 @@ func TestAdminDashboard_FetchersReturnNilOnDBFailure_StillRenders(t *testing.T) 
                 c.Next()
         })
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.GET("/admin", handler.Dashboard)
 
         w := httptest.NewRecorder()
@@ -644,7 +644,7 @@ func TestBackpressureCountFunc_Nil(t *testing.T) {
         database := adminTestDB(t)
         cfg := adminConfig()
         router := adminRouter()
-        handler := NewAdminHandler(database, cfg, nil)
+        handler := NewAdminHandler(database, cfg, nil, nil)
         router.GET("/admin", handler.Dashboard)
 
         w := httptest.NewRecorder()
@@ -674,7 +674,7 @@ func TestAdminDashboard_CanceledContext_FetchersReturnNil(t *testing.T) {
                 `Users={{len .Users}} Analyses={{len .RecentAnalyses}}`))
         router.SetHTMLTemplate(tmpl)
 
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         router.GET("/admin", handler.Dashboard)
 
         w := httptest.NewRecorder()
@@ -711,7 +711,7 @@ func TestRunOperation_CmdRunner_ReceivesContext(t *testing.T) {
         router.SetHTMLTemplate(tmpl)
 
         var receivedCtx context.Context
-        handler := NewAdminHandler(database, cfg, func() int64 { return 0 })
+        handler := NewAdminHandler(database, cfg, nil, func() int64 { return 0 })
         handler.RunCmd = func(ctx context.Context, command string, args []string) CmdRunResult {
                 receivedCtx = ctx
                 return CmdRunResult{Stdout: "ok", Err: nil}

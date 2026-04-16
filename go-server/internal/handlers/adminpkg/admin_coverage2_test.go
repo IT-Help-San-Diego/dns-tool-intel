@@ -1,6 +1,6 @@
 //go:build coverage
 
-package handlers
+package adminpkg
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func adminRouter2() *gin.Engine {
 }
 
 func TestAdminHandler_RunOperation_UnknownTask_C2(t *testing.T) {
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 0 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 0 })
 	router := adminRouter2()
 	router.POST("/ops/run/:task", h.RunOperation)
 
@@ -54,7 +54,7 @@ func TestAdminHandler_RunOperation_ValidTask_C2(t *testing.T) {
 	mockRunner := func(ctx context.Context, command string, args []string) CmdRunResult {
 		return CmdRunResult{Stdout: "output from mock", Stderr: "", Err: nil}
 	}
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 0 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 0 })
 	h.RunCmd = mockRunner
 	router := adminRouter2()
 	router.POST("/ops/run/:task", h.RunOperation)
@@ -75,7 +75,7 @@ func TestAdminHandler_RunOperation_FailedTask_C2(t *testing.T) {
 			Err:    context.DeadlineExceeded,
 		}
 	}
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 0 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 0 })
 	h.RunCmd = mockRunner
 	router := adminRouter2()
 	router.POST("/ops/run/:task", h.RunOperation)
@@ -89,7 +89,7 @@ func TestAdminHandler_RunOperation_FailedTask_C2(t *testing.T) {
 }
 
 func TestAdminHandler_RunOperation_NilRunCmd_C2(t *testing.T) {
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 0 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 0 })
 	h.RunCmd = nil
 	router := adminRouter2()
 	router.POST("/ops/run/:task", h.RunOperation)
@@ -103,7 +103,7 @@ func TestAdminHandler_RunOperation_NilRunCmd_C2(t *testing.T) {
 }
 
 func TestAdminHandler_OperationsPage_C2(t *testing.T) {
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 5 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 5 })
 	router := adminRouter2()
 	router.GET("/ops", h.OperationsPage)
 
@@ -119,7 +119,7 @@ func TestAdminHandler_RunOperation_StderrOnly_C2(t *testing.T) {
 	mockRunner := func(ctx context.Context, command string, args []string) CmdRunResult {
 		return CmdRunResult{Stdout: "", Stderr: "only error", Err: context.DeadlineExceeded}
 	}
-	h := NewAdminHandler(nil, adminConfig2(), func() int64 { return 0 })
+	h := NewAdminHandler(nil, adminConfig2(), nil, func() int64 { return 0 })
 	h.RunCmd = mockRunner
 	router := adminRouter2()
 	router.POST("/ops/run/:task", h.RunOperation)
