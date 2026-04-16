@@ -19,17 +19,17 @@ BACKGROUNDS="transparent dark white"
 
 DIRS="go-server/static/exports/owl-semaphore static/exports/owl-semaphore"
 
+generated=0
+
 for dir in $DIRS; do
   SRC_DIR="$ROOT/$dir"
   OUT_DIR="$SRC_DIR/derived"
 
   if [ ! -d "$SRC_DIR" ]; then
-    echo "SKIP (dir not found): $SRC_DIR"
     continue
   fi
 
   mkdir -p "$OUT_DIR"
-  count=0
 
   for state in $STATES; do
     for bg in $BACKGROUNDS; do
@@ -44,17 +44,20 @@ for dir in $DIRS; do
 
         if [ ! -f "$png_out" ]; then
           $IM_CMD "$src" -resize "${size}x${size}" -strip "$png_out"
+          generated=$((generated + 1))
         fi
 
         if [ ! -f "$webp_out" ]; then
           cwebp -q 90 -m 6 -resize "$size" "$size" "$png_out" -o "$webp_out" 2>/dev/null
+          generated=$((generated + 1))
         fi
-
-        count=$((count + 2))
       done
     done
   done
-
-  echo "Processed $count derived assets in $OUT_DIR"
-  echo "Total files: $(ls "$OUT_DIR" | wc -l)"
 done
+
+if [ "$generated" -gt 0 ]; then
+  echo "Generated $generated new owl derived assets"
+else
+  echo "Owl derived assets up to date"
+fi

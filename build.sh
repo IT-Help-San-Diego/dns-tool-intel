@@ -10,12 +10,9 @@ CONVERT=$(command -v magick 2>/dev/null || command -v convert 2>/dev/null || tru
 CWEBP=$(command -v cwebp 2>/dev/null || true)
 
 if [ -n "$CONVERT" ] && [ -n "$CWEBP" ]; then
-  echo "Generating Owl Semaphore derived assets..."
   bash "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
 else
   echo "SKIP derived asset generation (ImageMagick/cwebp not found)"
-  echo "  convert: ${CONVERT:-(not found)}"
-  echo "  cwebp:   ${CWEBP:-(not found)}"
 fi
 
 VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
