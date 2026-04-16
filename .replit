@@ -64,5 +64,9 @@ GOMODCACHE = "/tmp/go-mod-cache"
 [userenv.development]
 BASE_URL = "https://f2c73519-b3f3-4c33-90b1-699f833acae8-00-2qa7mtebx8ii8.picard.replit.dev"
 
+[userenv.production]
+PROBE_SSH_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKYn6Mf4gNB565fuTsQVBwvOI47Sxag9SCZpvZurNs1"
+PROBE_SSH_HOST_KEY_2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJd2nTCLPqmHfMbJLcQ3OU3eqMr8jNyuu4bAivIi7SB2"
+
 [agent]
 integrations = ["github:1.0.0", "notion:1.0.0"]
