@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "context"
         "image"
         "image/color"
@@ -264,13 +265,13 @@ func TestIsCovertMode_B7(t *testing.T) {
 }
 
 func TestPluralS_B7(t *testing.T) {
-        if pluralS(1) != "" {
+        if badgepkg.PluralS(1) != "" {
                 t.Error("1 should return empty")
         }
-        if pluralS(0) != "s" {
+        if badgepkg.PluralS(0) != "s" {
                 t.Error("0 should return s")
         }
-        if pluralS(5) != "s" {
+        if badgepkg.PluralS(5) != "s" {
                 t.Error("5 should return s")
         }
 }

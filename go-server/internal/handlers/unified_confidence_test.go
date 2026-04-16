@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -101,7 +102,7 @@ func TestMissionCriticalDomainsFromBaseURL_CB13(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			domains := missionCriticalDomainsFromBaseURL(tt.baseURL)
+			domains := authpkg.MissionCriticalDomainsFromBaseURL(tt.baseURL)
 			if len(domains) != tt.wantLen {
 				t.Errorf("len = %d, want %d, domains = %v", len(domains), tt.wantLen, domains)
 			}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
         "testing"
 )
 
@@ -10,8 +11,8 @@ func TestAnalysisStoreInterfaceCompiles(t *testing.T) {
 }
 
 func TestAuthStoreInterfaceCompiles(t *testing.T) {
-        var _ AuthStore = nil
-        t.Log("AuthStore interface compiles")
+        var _ authpkg.AuthStore = nil
+        t.Log("authpkg.AuthStore interface compiles")
 }
 
 func TestPipelineStoreInterfaceCompiles(t *testing.T) {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "strings"
         "testing"
         "time"
@@ -24,7 +25,7 @@ func TestExtractPostureRisk(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        label, color := extractPostureRisk(tt.results)
+                        label, color := badgepkg.ExtractPostureRisk(tt.results)
                         if label != tt.wantLabel {
                                 t.Errorf("label = %q, want %q", label, tt.wantLabel)
                         }
@@ -48,9 +49,9 @@ func TestRiskColorToHex(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.input, func(t *testing.T) {
-                        got := riskColorToHex(tt.input)
+                        got := badgepkg.RiskColorToHex(tt.input)
                         if got != tt.want {
-                                t.Errorf("riskColorToHex(%q) = %q, want %q", tt.input, got, tt.want)
+                                t.Errorf("badgepkg.RiskColorToHex(%q) = %q, want %q", tt.input, got, tt.want)
                         }
                 })
         }
@@ -69,16 +70,16 @@ func TestRiskColorToShields(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.input, func(t *testing.T) {
-                        got := riskColorToShields(tt.input)
+                        got := badgepkg.RiskColorToShields(tt.input)
                         if got != tt.want {
-                                t.Errorf("riskColorToShields(%q) = %q, want %q", tt.input, got, tt.want)
+                                t.Errorf("badgepkg.RiskColorToShields(%q) = %q, want %q", tt.input, got, tt.want)
                         }
                 })
         }
 }
 
 func TestBadgeSVG(t *testing.T) {
-        svg := badgeSVG("example.com", "Low Risk (90/100)", "#3fb950")
+        svg := badgepkg.BadgeSVG("example.com", "Low Risk (90/100)", "#3fb950")
         s := string(svg)
         if !strings.Contains(s, "<svg") {
                 t.Error("expected SVG element")
@@ -115,7 +116,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "caa_analysis":     map[string]any{"status": "success"},
         }
 
-        svg := badgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abcd1234efgh5678", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGCovert("example.com", lowRiskResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abcd1234efgh5678", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "<svg") {
@@ -148,7 +149,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 },
         }
 
-        svgCrit := badgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "deadbeef12345678", "https://dnstool.it-help.tech")
+        svgCrit := badgepkg.BadgeSVGCovert("failing.com", critResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "deadbeef12345678", "https://dnstool.it-help.tech")
         sc := string(svgCrit)
 
         if !strings.Contains(sc, "Wide Open") {
@@ -177,7 +178,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                 "bimi_analysis":    map[string]any{"status": "warning"},
                 "caa_analysis":     map[string]any{"status": "success"},
         }
-        svgWarn := badgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 77, "face0ff0babe1234", "https://dnstool.it-help.tech")
+        svgWarn := badgepkg.BadgeSVGCovert("mixed.com", warnResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 77, "face0ff0babe1234", "https://dnstool.it-help.tech")
         sw := string(svgWarn)
 
         if !strings.Contains(sw, "[~]") {
@@ -223,7 +224,7 @@ func TestBadgeSVGCovert(t *testing.T) {
                         },
                 },
         }
-        svgExp := badgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 55, "cafebabe90ab1234", "https://dnstool.it-help.tech")
+        svgExp := badgepkg.BadgeSVGCovert("exposed.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 55, "cafebabe90ab1234", "https://dnstool.it-help.tech")
         se := string(svgExp)
 
         if !strings.Contains(se, "[!!]") {
@@ -261,7 +262,7 @@ func TestBadgeSVGDetailedExposure(t *testing.T) {
                         },
                 },
         }
-        svg := badgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abc12345", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGDetailed("leaky.com", exposedResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 42, "abc12345", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "secrets exposed") {
@@ -291,7 +292,7 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 "web3_analysis":    map[string]any{"detected": false},
         }
 
-        svg := badgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "f2c73519", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGDetailed("it-help.tech", successResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 99, "f2c73519", "https://dnstool.it-help.tech")
         s := string(svg)
 
         if !strings.Contains(s, "it-help.tech") {
@@ -345,7 +346,7 @@ func TestBadgeSVGDetailed(t *testing.T) {
                 },
         }
 
-        svgFail := badgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 1, "deadbeef", "https://dnstool.it-help.tech")
+        svgFail := badgepkg.BadgeSVGDetailed("failing-domain.com", failResults, time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC), 1, "deadbeef", "https://dnstool.it-help.tech")
         sf := string(svgFail)
 
         if !strings.Contains(sf, "failing-domain.com") {
@@ -375,25 +376,25 @@ func TestRiskBorderColor(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.input, func(t *testing.T) {
-                        got := riskBorderColor(tt.input)
+                        got := badgepkg.RiskBorderColor(tt.input)
                         if got != tt.want {
-                                t.Errorf("riskBorderColor(%q) = %q, want %q", tt.input, got, tt.want)
+                                t.Errorf("badgepkg.RiskBorderColor(%q) = %q, want %q", tt.input, got, tt.want)
                         }
                 })
         }
 }
 
 func TestCountMissing(t *testing.T) {
-        nodes := []protocolNode{
+        nodes := []badgepkg.ProtocolNode{
                 {Status: "success"},
                 {Status: "success"},
                 {Status: "missing"},
                 {Status: "error"},
                 {Status: "success"},
         }
-        got := countMissing(nodes)
+        got := badgepkg.CountMissing(nodes)
         if got != 2 {
-                t.Errorf("countMissing() = %d, want 2", got)
+                t.Errorf("badgepkg.CountMissing() = %d, want 2", got)
         }
 }
 
@@ -410,11 +411,11 @@ func TestCovertLabels(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.risk, func(t *testing.T) {
-                        if got := covertRiskLabel(tt.risk); got != tt.wantLabel {
-                                t.Errorf("covertRiskLabel(%q) = %q, want %q", tt.risk, got, tt.wantLabel)
+                        if got := badgepkg.CovertRiskLabel(tt.risk); got != tt.wantLabel {
+                                t.Errorf("badgepkg.CovertRiskLabel(%q) = %q, want %q", tt.risk, got, tt.wantLabel)
                         }
-                        if got := covertTagline(tt.risk); got != tt.wantTag {
-                                t.Errorf("covertTagline(%q) = %q, want %q", tt.risk, got, tt.wantTag)
+                        if got := badgepkg.CovertTagline(tt.risk); got != tt.wantTag {
+                                t.Errorf("badgepkg.CovertTagline(%q) = %q, want %q", tt.risk, got, tt.wantTag)
                         }
                 })
         }
@@ -434,7 +435,7 @@ func TestUnmarshalResults(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := unmarshalResults(tt.input, "Test")
+                        got := badgepkg.UnmarshalResults(tt.input, "Test")
                         if tt.isNil && got != nil {
                                 t.Error("expected nil")
                         }
@@ -446,7 +447,7 @@ func TestUnmarshalResults(t *testing.T) {
 }
 
 func TestNewBadgeHandler(t *testing.T) {
-        h := NewBadgeHandler(nil, nil)
+        h := badgepkg.NewBadgeHandler(nil, nil, nil)
         if h == nil {
                 t.Fatal("expected non-nil handler")
         }
@@ -473,9 +474,9 @@ func TestScoreColor(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(strings.Join([]string{"score", strings.TrimSpace(strings.Replace(string(rune(tt.score+'0')), "\x00", "", -1))}, "_"), func(t *testing.T) {
-                        got := scoreColor(tt.score)
+                        got := badgepkg.ScoreColor(tt.score)
                         if got != tt.want {
-                                t.Errorf("scoreColor(%d) = %q, want %q", tt.score, got, tt.want)
+                                t.Errorf("badgepkg.ScoreColor(%d) = %q, want %q", tt.score, got, tt.want)
                         }
                 })
         }
@@ -495,9 +496,9 @@ func TestExtractPostureScore(t *testing.T) {
         }
         for _, tt := range tests {
                 t.Run(tt.name, func(t *testing.T) {
-                        got := extractPostureScore(tt.results)
+                        got := badgepkg.ExtractPostureScore(tt.results)
                         if got != tt.want {
-                                t.Errorf("extractPostureScore() = %d, want %d", got, tt.want)
+                                t.Errorf("badgepkg.ExtractPostureScore() = %d, want %d", got, tt.want)
                         }
                 })
         }

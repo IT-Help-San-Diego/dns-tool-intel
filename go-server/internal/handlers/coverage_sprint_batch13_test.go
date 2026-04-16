@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/badgepkg"
         "strings"
         "testing"
         "time"
@@ -15,15 +16,15 @@ import (
 
 func TestRiskColorToHex_B13(t *testing.T) {
         cases := []struct{ in, want string }{
-                {"success", hexGreen},
-                {"warning", hexYellow},
-                {"danger", colorDanger},
-                {"unknown", colorGrey},
-                {"", colorGrey},
+                {"success", badgepkg.HexGreen},
+                {"warning", badgepkg.HexYellow},
+                {"danger", badgepkg.ColorDanger},
+                {"unknown", badgepkg.ColorGrey},
+                {"", badgepkg.ColorGrey},
         }
         for _, tc := range cases {
-                if got := riskColorToHex(tc.in); got != tc.want {
-                        t.Errorf("riskColorToHex(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.RiskColorToHex(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.RiskColorToHex(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -41,8 +42,8 @@ func TestNormalizeRiskColor_B13(t *testing.T) {
                 {"Unknown", "custom", "custom"},
         }
         for _, tc := range cases {
-                if got := normalizeRiskColor(tc.label, tc.color); got != tc.want {
-                        t.Errorf("normalizeRiskColor(%q,%q)=%q want %q", tc.label, tc.color, got, tc.want)
+                if got := badgepkg.NormalizeRiskColor(tc.label, tc.color); got != tc.want {
+                        t.Errorf("badgepkg.NormalizeRiskColor(%q,%q)=%q want %q", tc.label, tc.color, got, tc.want)
                 }
         }
 }
@@ -52,25 +53,25 @@ func TestReportRiskColor_B13(t *testing.T) {
                 {"success", "#198754"},
                 {"warning", "#ffc107"},
                 {"danger", "#dc3545"},
-                {"other", colorGrey},
+                {"other", badgepkg.ColorGrey},
         }
         for _, tc := range cases {
-                if got := reportRiskColor(tc.in); got != tc.want {
-                        t.Errorf("reportRiskColor(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.ReportRiskColor(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.ReportRiskColor(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
 
 func TestScotopicRiskColor_B13(t *testing.T) {
         cases := []struct{ in, want string }{
-                {"success", hexScGreen},
-                {"warning", hexScYellow},
-                {"danger", hexScRed},
+                {"success", badgepkg.HexScGreen},
+                {"warning", badgepkg.HexScYellow},
+                {"danger", badgepkg.HexScRed},
                 {"other", "#9C7645"},
         }
         for _, tc := range cases {
-                if got := scotopicRiskColor(tc.in); got != tc.want {
-                        t.Errorf("scotopicRiskColor(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.ScotopicRiskColor(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.ScotopicRiskColor(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -80,11 +81,11 @@ func TestRiskColorToShields_B13(t *testing.T) {
                 {"success", "brightgreen"},
                 {"warning", "yellow"},
                 {"danger", "red"},
-                {"other", mapKeyLightgrey},
+                {"other", badgepkg.MapKeyLightgrey},
         }
         for _, tc := range cases {
-                if got := riskColorToShields(tc.in); got != tc.want {
-                        t.Errorf("riskColorToShields(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.RiskColorToShields(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.RiskColorToShields(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -98,8 +99,8 @@ func TestCovertRiskLabel_B13(t *testing.T) {
                 {"Unknown", "Unknown"},
         }
         for _, tc := range cases {
-                if got := covertRiskLabel(tc.in); got != tc.want {
-                        t.Errorf("covertRiskLabel(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertRiskLabel(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.CovertRiskLabel(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -113,8 +114,8 @@ func TestCovertTagline_B13(t *testing.T) {
                 {"Unknown", ""},
         }
         for _, tc := range cases {
-                if got := covertTagline(tc.in); got != tc.want {
-                        t.Errorf("covertTagline(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertTagline(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.CovertTagline(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -124,39 +125,39 @@ func TestRiskBorderColor_B13(t *testing.T) {
                 {"success", "#238636"},
                 {"warning", "#9e6a03"},
                 {"danger", "#da3633"},
-                {"other", hexDimGrey},
+                {"other", badgepkg.HexDimGrey},
         }
         for _, tc := range cases {
-                if got := riskBorderColor(tc.in); got != tc.want {
-                        t.Errorf("riskBorderColor(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.RiskBorderColor(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.RiskBorderColor(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
 
 func TestCountMissing_B13(t *testing.T) {
-        nodes := []protocolNode{
+        nodes := []badgepkg.ProtocolNode{
                 {Status: "success"},
                 {Status: "missing"},
                 {Status: "error"},
                 {Status: "warning"},
         }
-        if got := countMissing(nodes); got != 2 {
-                t.Errorf("countMissing got %d want 2", got)
+        if got := badgepkg.CountMissing(nodes); got != 2 {
+                t.Errorf("badgepkg.CountMissing got %d want 2", got)
         }
-        if got := countMissing(nil); got != 0 {
-                t.Errorf("countMissing(nil) got %d want 0", got)
+        if got := badgepkg.CountMissing(nil); got != 0 {
+                t.Errorf("badgepkg.CountMissing(nil) got %d want 0", got)
         }
 }
 
 func TestCountVulnerable_B13(t *testing.T) {
-        nodes := []protocolNode{
+        nodes := []badgepkg.ProtocolNode{
                 {Status: "success"},
                 {Status: "warning"},
                 {Status: "missing"},
                 {Status: "error"},
         }
-        if got := countVulnerable(nodes); got != 2 {
-                t.Errorf("countVulnerable got %d want 2", got)
+        if got := badgepkg.CountVulnerable(nodes); got != 2 {
+                t.Errorf("badgepkg.CountVulnerable got %d want 2", got)
         }
 }
 
@@ -169,8 +170,8 @@ func TestCovertStatusPrefix_B13(t *testing.T) {
                 {"", "[-]"},
         }
         for _, tc := range cases {
-                if got := covertStatusPrefix(tc.in); got != tc.want {
-                        t.Errorf("covertStatusPrefix(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertStatusPrefix(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.CovertStatusPrefix(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -183,8 +184,8 @@ func TestCovertSeverityTag_B13(t *testing.T) {
                 {"", ""},
         }
         for _, tc := range cases {
-                if got := covertSeverityTag(tc.in); got != tc.want {
-                        t.Errorf("covertSeverityTag(%q)=%q want %q", tc.in, got, tc.want)
+                if got := badgepkg.CovertSeverityTag(tc.in); got != tc.want {
+                        t.Errorf("badgepkg.CovertSeverityTag(%q)=%q want %q", tc.in, got, tc.want)
                 }
         }
 }
@@ -202,14 +203,14 @@ func TestCovertPrefixColor_B13(t *testing.T) {
                 {"", alt},
         }
         for _, tc := range cases {
-                if got := covertPrefixColor(tc.prefix, dim, sRed, alt); got != tc.want {
-                        t.Errorf("covertPrefixColor(%q)=%q want %q", tc.prefix, got, tc.want)
+                if got := badgepkg.CovertPrefixColor(tc.prefix, dim, sRed, alt); got != tc.want {
+                        t.Errorf("badgepkg.CovertPrefixColor(%q)=%q want %q", tc.prefix, got, tc.want)
                 }
         }
 }
 
 func TestCovertProtocolLine_B13(t *testing.T) {
-        line := covertProtocolLine("SPF", "success")
+        line := badgepkg.CovertProtocolLine("SPF", "success")
         if line.Prefix != "[+]" {
                 t.Errorf("expected [+] prefix, got %q", line.Prefix)
         }
@@ -217,7 +218,7 @@ func TestCovertProtocolLine_B13(t *testing.T) {
                 t.Errorf("unexpected desc: %q", line.Desc)
         }
 
-        line = covertProtocolLine("DKIM", "warning")
+        line = badgepkg.CovertProtocolLine("DKIM", "warning")
         if line.Prefix != "[~]" {
                 t.Errorf("expected [~] prefix, got %q", line.Prefix)
         }
@@ -225,29 +226,29 @@ func TestCovertProtocolLine_B13(t *testing.T) {
                 t.Errorf("unexpected desc: %q", line.Desc)
         }
 
-        line = covertProtocolLine("UNKNOWN_PROTO", "error")
+        line = badgepkg.CovertProtocolLine("UNKNOWN_PROTO", "error")
         if line.Prefix != "[?]" {
                 t.Errorf("expected [?] for unknown proto, got %q", line.Prefix)
         }
 }
 
 func TestCovertExposureLines_Nil_B13(t *testing.T) {
-        e := exposureData{Status: "clear", FindingCount: 0}
-        if lines := covertExposureLines(e, "", "", "", 0); lines != nil {
+        e := badgepkg.ExposureData{Status: "clear", FindingCount: 0}
+        if lines := badgepkg.CovertExposureLines(e, "", "", "", 0); lines != nil {
                 t.Errorf("expected nil for clear exposure, got %d lines", len(lines))
         }
 }
 
 func TestCovertExposureLines_Exposed_B13(t *testing.T) {
-        e := exposureData{
+        e := badgepkg.ExposureData{
                 Status:       "exposed",
                 FindingCount: 2,
-                Findings: []exposureFinding{
+                Findings: []badgepkg.ExposureFinding{
                         {FindingType: "AWS Key", Severity: "critical", Redacted: "AKIA...1234"},
                         {FindingType: "Token", Severity: "high", Redacted: "ghp_abcdef0123456789abcdef0"},
                 },
         }
-        lines := covertExposureLines(e, "#f00", "#aaa", "https://dns.example.com", 42)
+        lines := badgepkg.CovertExposureLines(e, "#f00", "#aaa", "https://dns.example.com", 42)
         if len(lines) < 5 {
                 t.Fatalf("expected >= 5 lines, got %d", len(lines))
         }
@@ -263,7 +264,7 @@ func TestCovertExposureLines_Exposed_B13(t *testing.T) {
 }
 
 func TestCovertSummaryLines_AllHardened_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 0, FindingCount: 0, Tagline: "Good luck.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
+        lines := badgepkg.CovertSummaryLines(badgepkg.CovertSummaryParams{Vulnerable: 0, FindingCount: 0, Tagline: "Good luck.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) != 2 {
                 t.Fatalf("expected 2 lines, got %d", len(lines))
         }
@@ -273,7 +274,7 @@ func TestCovertSummaryLines_AllHardened_B13(t *testing.T) {
 }
 
 func TestCovertSummaryLines_SecretsLeaking_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 0, FindingCount: 3, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
+        lines := badgepkg.CovertSummaryLines(badgepkg.CovertSummaryParams{Vulnerable: 0, FindingCount: 3, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) != 2 {
                 t.Fatalf("expected 2 lines, got %d", len(lines))
         }
@@ -283,7 +284,7 @@ func TestCovertSummaryLines_SecretsLeaking_B13(t *testing.T) {
 }
 
 func TestCovertSummaryLines_Vulnerable_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 5, FindingCount: 0, Tagline: "Door's open.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
+        lines := badgepkg.CovertSummaryLines(badgepkg.CovertSummaryParams{Vulnerable: 5, FindingCount: 0, Tagline: "Door's open.", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) < 1 {
                 t.Fatal("expected at least 1 line")
         }
@@ -293,7 +294,7 @@ func TestCovertSummaryLines_Vulnerable_B13(t *testing.T) {
 }
 
 func TestCovertSummaryLines_FewVectors_B13(t *testing.T) {
-        lines := covertSummaryLines(covertSummaryParams{Vulnerable: 1, FindingCount: 1, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
+        lines := badgepkg.CovertSummaryLines(badgepkg.CovertSummaryParams{Vulnerable: 1, FindingCount: 1, Tagline: "", Locked: "#aaa", DimLocked: "#bbb", SRed: "#ccc", Alt: "#ddd"})
         if len(lines) < 1 {
                 t.Fatal("expected at least 1 line")
         }
@@ -303,24 +304,24 @@ func TestCovertSummaryLines_FewVectors_B13(t *testing.T) {
 }
 
 func TestExtractPostureRisk_B13(t *testing.T) {
-        label, color := extractPostureRisk(nil)
+        label, color := badgepkg.ExtractPostureRisk(nil)
         if label != "Unknown" || color != "" {
                 t.Errorf("nil: got %q,%q", label, color)
         }
 
-        label, color = extractPostureRisk(map[string]any{})
+        label, color = badgepkg.ExtractPostureRisk(map[string]any{})
         if label != "Unknown" {
                 t.Errorf("empty: got %q", label)
         }
 
-        label, color = extractPostureRisk(map[string]any{
+        label, color = badgepkg.ExtractPostureRisk(map[string]any{
                 "posture": map[string]any{"label": "Low Risk", "color": "success"},
         })
         if label != "Low Risk" || color != "success" {
                 t.Errorf("posture: got %q,%q", label, color)
         }
 
-        label, _ = extractPostureRisk(map[string]any{
+        label, _ = badgepkg.ExtractPostureRisk(map[string]any{
                 "posture": map[string]any{"grade": "A+"},
         })
         if label != "A+" {
@@ -329,20 +330,20 @@ func TestExtractPostureRisk_B13(t *testing.T) {
 }
 
 func TestUnmarshalResults_B13(t *testing.T) {
-        if got := unmarshalResults(nil, "test"); got != nil {
+        if got := badgepkg.UnmarshalResults(nil, "test"); got != nil {
                 t.Error("expected nil for empty input")
         }
-        if got := unmarshalResults([]byte("not json"), "test"); got != nil {
+        if got := badgepkg.UnmarshalResults([]byte("not json"), "test"); got != nil {
                 t.Error("expected nil for invalid json")
         }
-        got := unmarshalResults([]byte(`{"key":"val"}`), "test")
+        got := badgepkg.UnmarshalResults([]byte(`{"key":"val"}`), "test")
         if got == nil || got["key"] != "val" {
                 t.Error("expected parsed result")
         }
 }
 
 func TestBadgeSVG_B13(t *testing.T) {
-        svg := badgeSVG("DNS Tool", "Low Risk", "#4c1")
+        svg := badgepkg.BadgeSVG("DNS Tool", "Low Risk", "#4c1")
         s := string(svg)
         if !strings.Contains(s, "<svg") {
                 t.Error("expected SVG output")
@@ -359,35 +360,35 @@ func TestProtocolGroupColor_B13(t *testing.T) {
         cases := []struct{ abbrev, want string }{
                 {"SPF", "#4fc3f7"},
                 {"DKIM", "#4fc3f7"},
-                {protoDMARC, "#4fc3f7"},
-                {protoDNSSEC, "#ffb74d"},
+                {badgepkg.ProtoDMARC, "#4fc3f7"},
+                {badgepkg.ProtoDNSSEC, "#ffb74d"},
                 {"CAA", "#ffb74d"},
                 {"DANE", "#81c784"},
-                {protoMTASTS, "#81c784"},
-                {protoTLSRPT, "#81c784"},
+                {badgepkg.ProtoMTASTS, "#81c784"},
+                {badgepkg.ProtoTLSRPT, "#81c784"},
                 {"BIMI", "#ce93d8"},
                 {"OTHER", "#484f58"},
         }
         for _, tc := range cases {
-                if got := protocolGroupColor(tc.abbrev); got != tc.want {
-                        t.Errorf("protocolGroupColor(%q)=%q want %q", tc.abbrev, got, tc.want)
+                if got := badgepkg.ProtocolGroupColor(tc.abbrev); got != tc.want {
+                        t.Errorf("badgepkg.ProtocolGroupColor(%q)=%q want %q", tc.abbrev, got, tc.want)
                 }
         }
 }
 
 func TestProtocolStatusToNodeColor_B13(t *testing.T) {
         gc := "#4fc3f7"
-        if got := protocolStatusToNodeColor("success", gc); got != gc {
+        if got := badgepkg.ProtocolStatusToNodeColor("success", gc); got != gc {
                 t.Errorf("success: got %q want %q", got, gc)
         }
-        if got := protocolStatusToNodeColor("warning", gc); got != hexYellow {
-                t.Errorf("warning: got %q want %q", got, hexYellow)
+        if got := badgepkg.ProtocolStatusToNodeColor("warning", gc); got != badgepkg.HexYellow {
+                t.Errorf("warning: got %q want %q", got, badgepkg.HexYellow)
         }
-        if got := protocolStatusToNodeColor("error", gc); got != hexRed {
-                t.Errorf("error: got %q want %q", got, hexRed)
+        if got := badgepkg.ProtocolStatusToNodeColor("error", gc); got != badgepkg.HexRed {
+                t.Errorf("error: got %q want %q", got, badgepkg.HexRed)
         }
-        if got := protocolStatusToNodeColor("missing", gc); got != hexDimGrey {
-                t.Errorf("missing: got %q want %q", got, hexDimGrey)
+        if got := badgepkg.ProtocolStatusToNodeColor("missing", gc); got != badgepkg.HexDimGrey {
+                t.Errorf("missing: got %q want %q", got, badgepkg.HexDimGrey)
         }
 }
 
@@ -396,7 +397,7 @@ func TestExtractProtocolIndicators_B13(t *testing.T) {
                 "spf_analysis":  map[string]any{"status": "success"},
                 "dkim_analysis": map[string]any{"status": "warning"},
         }
-        nodes := extractProtocolIndicators(results)
+        nodes := badgepkg.ExtractProtocolIndicators(results)
         if len(nodes) != 10 {
                 t.Fatalf("expected 10 nodes, got %d", len(nodes))
         }
@@ -412,12 +413,12 @@ func TestExtractProtocolIndicators_B13(t *testing.T) {
 }
 
 func TestExtractExposure_B13(t *testing.T) {
-        e := extractExposure(map[string]any{})
+        e := badgepkg.ExtractExposure(map[string]any{})
         if e.Status != "clear" {
                 t.Errorf("no key: got %q", e.Status)
         }
 
-        e = extractExposure(map[string]any{
+        e = badgepkg.ExtractExposure(map[string]any{
                 "secret_exposure": map[string]any{"status": "exposed", "finding_count": float64(2), "findings": []any{
                         map[string]any{"type": "AWS_KEY", "severity": "critical", "redacted": "AKIA..."},
                 }},
@@ -434,14 +435,14 @@ func TestExtractExposure_B13(t *testing.T) {
 }
 
 func TestPluralS_B13(t *testing.T) {
-        if got := pluralS(1); got != "" {
-                t.Errorf("pluralS(1)=%q want empty", got)
+        if got := badgepkg.PluralS(1); got != "" {
+                t.Errorf("badgepkg.PluralS(1)=%q want empty", got)
         }
-        if got := pluralS(0); got != "s" {
-                t.Errorf("pluralS(0)=%q want s", got)
+        if got := badgepkg.PluralS(0); got != "s" {
+                t.Errorf("badgepkg.PluralS(0)=%q want s", got)
         }
-        if got := pluralS(5); got != "s" {
-                t.Errorf("pluralS(5)=%q want s", got)
+        if got := badgepkg.PluralS(5); got != "s" {
+                t.Errorf("badgepkg.PluralS(5)=%q want s", got)
         }
 }
 

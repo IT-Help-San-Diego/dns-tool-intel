@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
         "encoding/base64"
         "encoding/json"
         "fmt"
@@ -18,28 +19,28 @@ import (
 )
 
 func TestGenerateRandomBase64URL_CB8(t *testing.T) {
-        s, err := generateRandomBase64URL(32)
+        s, err := authpkg.GenerateRandomBase64URL(32)
         if err != nil {
                 t.Fatal(err)
         }
         if len(s) == 0 {
                 t.Fatal("expected non-empty string")
         }
-        s2, _ := generateRandomBase64URL(32)
+        s2, _ := authpkg.GenerateRandomBase64URL(32)
         if s == s2 {
                 t.Fatal("expected unique values")
         }
 }
 
 func TestGenerateSessionID_CB8(t *testing.T) {
-        sid, err := generateSessionID()
+        sid, err := authpkg.GenerateSessionID()
         if err != nil {
                 t.Fatal(err)
         }
         if len(sid) != 64 {
                 t.Fatalf("expected 64 hex chars, got %d", len(sid))
         }
-        sid2, _ := generateSessionID()
+        sid2, _ := authpkg.GenerateSessionID()
         if sid == sid2 {
                 t.Fatal("expected unique session IDs")
         }
@@ -47,14 +48,14 @@ func TestGenerateSessionID_CB8(t *testing.T) {
 
 func TestComputeCodeChallenge_CB8(t *testing.T) {
         verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-        challenge := computeCodeChallenge(verifier)
+        challenge := authpkg.ComputeCodeChallenge(verifier)
         if challenge == "" {
                 t.Fatal("expected non-empty challenge")
         }
         if challenge == verifier {
                 t.Fatal("challenge should differ from verifier")
         }
-        challenge2 := computeCodeChallenge(verifier)
+        challenge2 := authpkg.ComputeCodeChallenge(verifier)
         if challenge != challenge2 {
                 t.Fatal("same verifier should produce same challenge")
         }
@@ -68,13 +69,13 @@ func TestExtractUserClaims_CB8(t *testing.T) {
                         "name":           "Test User",
                         "email_verified": true,
                 }
-                sub, email, name, verified := extractUserClaims(info)
+                sub, email, name, verified := authpkg.ExtractUserClaims(info)
                 if sub != "12345" || email != "user@example.com" || name != "Test User" || !verified {
                         t.Fatalf("unexpected: sub=%q email=%q name=%q verified=%v", sub, email, name, verified)
                 }
         })
         t.Run("empty map", func(t *testing.T) {
-                sub, email, name, verified := extractUserClaims(map[string]any{})
+                sub, email, name, verified := authpkg.ExtractUserClaims(map[string]any{})
                 if sub != "" || email != "" || name != "" || verified {
                         t.Fatalf("expected empty strings and false, got sub=%q email=%q name=%q verified=%v", sub, email, name, verified)
                 }
@@ -84,7 +85,7 @@ func TestExtractUserClaims_CB8(t *testing.T) {
                         "sub":            123,
                         "email_verified": "true",
                 }
-                sub, _, _, verified := extractUserClaims(info)
+                sub, _, _, verified := authpkg.ExtractUserClaims(info)
                 if sub != "" || verified {
                         t.Fatal("expected defaults for wrong types")
                 }
@@ -104,7 +105,7 @@ func TestParseIDTokenPayload_CB8(t *testing.T) {
                 sig := base64.RawURLEncoding.EncodeToString([]byte("fake-sig"))
                 token := header + "." + body + "." + sig
 
-                result, err := parseIDTokenPayload(token)
+                result, err := authpkg.ParseIDTokenPayload(token)
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -113,26 +114,26 @@ func TestParseIDTokenPayload_CB8(t *testing.T) {
                 }
         })
         t.Run("malformed token", func(t *testing.T) {
-                _, err := parseIDTokenPayload("not.a.valid.token.with.dots")
+                _, err := authpkg.ParseIDTokenPayload("not.a.valid.token.with.dots")
                 if err == nil {
                         t.Error("expected error for malformed token with too many dots")
                 }
         })
         t.Run("two parts only", func(t *testing.T) {
-                _, err := parseIDTokenPayload("header.body")
+                _, err := authpkg.ParseIDTokenPayload("header.body")
                 if err == nil {
                         t.Fatal("expected error for 2-part token")
                 }
         })
         t.Run("invalid base64", func(t *testing.T) {
-                _, err := parseIDTokenPayload("header.!!!invalid!!!.sig")
+                _, err := authpkg.ParseIDTokenPayload("header.!!!invalid!!!.sig")
                 if err == nil {
                         t.Fatal("expected error for invalid base64")
                 }
         })
         t.Run("invalid json", func(t *testing.T) {
                 body := base64.RawURLEncoding.EncodeToString([]byte("not-json"))
-                _, err := parseIDTokenPayload("header." + body + ".sig")
+                _, err := authpkg.ParseIDTokenPayload("header." + body + ".sig")
                 if err == nil {
                         t.Fatal("expected error for invalid json")
                 }
@@ -145,7 +146,7 @@ func TestValidateIDTokenIssuerAndAudience_CB8(t *testing.T) {
                         "iss": "https://accounts.google.com",
                         "aud": "my-client-id",
                 }
-                err := validateIDTokenIssuerAndAudience(claims, "my-client-id")
+                err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "my-client-id")
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -155,7 +156,7 @@ func TestValidateIDTokenIssuerAndAudience_CB8(t *testing.T) {
                         "iss": "accounts.google.com",
                         "aud": "client123",
                 }
-                err := validateIDTokenIssuerAndAudience(claims, "client123")
+                err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "client123")
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -165,7 +166,7 @@ func TestValidateIDTokenIssuerAndAudience_CB8(t *testing.T) {
                         "iss": "https://evil.example.com",
                         "aud": "client123",
                 }
-                err := validateIDTokenIssuerAndAudience(claims, "client123")
+                err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "client123")
                 if err == nil {
                         t.Fatal("expected error for invalid issuer")
                 }
@@ -175,7 +176,7 @@ func TestValidateIDTokenIssuerAndAudience_CB8(t *testing.T) {
                         "iss": "https://accounts.google.com",
                         "aud": "wrong-client",
                 }
-                err := validateIDTokenIssuerAndAudience(claims, "correct-client")
+                err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "correct-client")
                 if err == nil {
                         t.Fatal("expected error for wrong audience")
                 }
@@ -188,7 +189,7 @@ func TestValidateIDTokenTiming_CB8(t *testing.T) {
                         "exp": float64(time.Now().Add(1 * time.Hour).Unix()),
                         "iat": float64(time.Now().Add(-1 * time.Minute).Unix()),
                 }
-                err := validateIDTokenTiming(claims)
+                err := authpkg.ValidateIDTokenTiming(claims)
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -197,13 +198,13 @@ func TestValidateIDTokenTiming_CB8(t *testing.T) {
                 claims := map[string]any{
                         "exp": float64(time.Now().Add(-1 * time.Hour).Unix()),
                 }
-                err := validateIDTokenTiming(claims)
+                err := authpkg.ValidateIDTokenTiming(claims)
                 if err == nil {
                         t.Fatal("expected error for expired token")
                 }
         })
         t.Run("no timing claims", func(t *testing.T) {
-                err := validateIDTokenTiming(map[string]any{})
+                err := authpkg.ValidateIDTokenTiming(map[string]any{})
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -212,7 +213,7 @@ func TestValidateIDTokenTiming_CB8(t *testing.T) {
                 claims := map[string]any{
                         "iat": float64(time.Now().Add(1 * time.Hour).Unix()),
                 }
-                err := validateIDTokenTiming(claims)
+                err := authpkg.ValidateIDTokenTiming(claims)
                 if err == nil {
                         t.Fatal("expected error for future iat")
                 }
@@ -222,26 +223,26 @@ func TestValidateIDTokenTiming_CB8(t *testing.T) {
 func TestValidateIDTokenNonce_CB8(t *testing.T) {
         t.Run("matching nonce", func(t *testing.T) {
                 claims := map[string]any{"nonce": "abc123"}
-                err := validateIDTokenNonce(claims, "abc123")
+                err := authpkg.ValidateIDTokenNonce(claims, "abc123")
                 if err != nil {
                         t.Fatal(err)
                 }
         })
         t.Run("mismatched nonce", func(t *testing.T) {
                 claims := map[string]any{"nonce": "abc123"}
-                err := validateIDTokenNonce(claims, "xyz789")
+                err := authpkg.ValidateIDTokenNonce(claims, "xyz789")
                 if err == nil {
                         t.Fatal("expected error for nonce mismatch")
                 }
         })
         t.Run("missing nonce in token", func(t *testing.T) {
-                err := validateIDTokenNonce(map[string]any{}, "expected-nonce")
+                err := authpkg.ValidateIDTokenNonce(map[string]any{}, "expected-nonce")
                 if err == nil {
                         t.Fatal("expected error for missing nonce")
                 }
         })
         t.Run("empty expected nonce", func(t *testing.T) {
-                err := validateIDTokenNonce(map[string]any{}, "")
+                err := authpkg.ValidateIDTokenNonce(map[string]any{}, "")
                 if err != nil {
                         t.Fatal(err)
                 }
@@ -260,14 +261,14 @@ func TestMissionCriticalDomainsFromBaseURL_CB8(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.input, func(t *testing.T) {
-                        domains := missionCriticalDomainsFromBaseURL(tc.input)
+                        domains := authpkg.MissionCriticalDomainsFromBaseURL(tc.input)
                         if len(domains) < 1 {
                                 t.Fatalf("expected at least 1 domain, got %d", len(domains))
                         }
                 })
         }
         t.Run("contains host", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://dnstool.it-help.tech")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://dnstool.it-help.tech")
                 found := false
                 for _, d := range domains {
                         if d == "dnstool.it-help.tech" {

@@ -3,6 +3,9 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/agentpkg"
+	"dnstool/go-server/internal/handlers/adminpkg"
+	"dnstool/go-server/internal/handlers/badgepkg"
         "html/template"
         "net/http"
         "net/http/httptest"
@@ -217,7 +220,7 @@ func TestFindPEMHeader(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        hdr, idx, ok := findPEMHeader(tc.tokens)
+                        hdr, idx, ok := adminpkg.FindPEMHeader(tc.tokens)
                         if ok != tc.wantOk {
                                 t.Errorf("ok = %v, want %v", ok, tc.wantOk)
                         }
@@ -277,7 +280,7 @@ func TestFindPEMFooter(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        footer, body := findPEMFooter(tc.tokens, tc.start)
+                        footer, body := adminpkg.FindPEMFooter(tc.tokens, tc.start)
                         if footer != tc.wantFooter {
                                 t.Errorf("footer = %q, want %q", footer, tc.wantFooter)
                         }
@@ -308,7 +311,7 @@ func TestExtractDNSSECStatus(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        got := extractDNSSECStatus(tc.results)
+                        got := agentpkg.ExtractDNSSECStatus(tc.results)
                         if got != tc.want {
                                 t.Errorf("got %q, want %q", got, tc.want)
                         }
@@ -348,7 +351,7 @@ func TestExtractPosture(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        score, grade, label := extractPosture(tc.results)
+                        score, grade, label := agentpkg.ExtractPosture(tc.results)
                         if score != tc.wantScore {
                                 t.Errorf("score = %d, want %d", score, tc.wantScore)
                         }
@@ -401,7 +404,7 @@ func TestSafeInternalURL(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        got := safeInternalURL(tc.base, tc.path, tc.params)
+                        got := agentpkg.SafeInternalURL(tc.base, tc.path, tc.params)
                         if tc.want != "" && got != tc.want {
                                 t.Errorf("got %q, want %q", got, tc.want)
                         }
@@ -456,7 +459,7 @@ func TestExtractPostureRisk_NewCode(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        label, color := extractPostureRisk(tc.results)
+                        label, color := badgepkg.ExtractPostureRisk(tc.results)
                         if label != tc.wantLabel {
                                 t.Errorf("label = %q, want %q", label, tc.wantLabel)
                         }
@@ -483,7 +486,7 @@ func TestExtractPostureScore_NewCode(t *testing.T) {
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
-                        got := extractPostureScore(tc.results)
+                        got := badgepkg.ExtractPostureScore(tc.results)
                         if got != tc.want {
                                 t.Errorf("got %d, want %d", got, tc.want)
                         }
@@ -492,7 +495,7 @@ func TestExtractPostureScore_NewCode(t *testing.T) {
 }
 
 func TestCovertSummaryLines(t *testing.T) {
-        base := covertSummaryParams{
+        base := badgepkg.CovertSummaryParams{
                 Locked:    "#3fb950",
                 DimLocked: "#30363d",
                 SRed:      "#f85149",
@@ -520,7 +523,7 @@ func TestCovertSummaryLines(t *testing.T) {
                         p.Vulnerable = tc.vulnerable
                         p.FindingCount = tc.findingCount
                         p.Tagline = tc.tagline
-                        lines := covertSummaryLines(p)
+                        lines := badgepkg.CovertSummaryLines(p)
                         if len(lines) != tc.wantLen {
                                 t.Errorf("got %d lines, want %d", len(lines), tc.wantLen)
                         }
@@ -552,7 +555,7 @@ func TestBadgeSVGCovert_Produces_SVG(t *testing.T) {
                 },
                 "risk_level": "warning",
         }
-        svg := badgeSVGCovert("example.com", results, time.Now(), 1, "abc123", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGCovert("example.com", results, time.Now(), 1, "abc123", "https://dnstool.it-help.tech")
         if len(svg) == 0 {
                 t.Fatal("expected non-empty SVG output")
         }
@@ -566,7 +569,7 @@ func TestBadgeSVGCovert_Produces_SVG(t *testing.T) {
 }
 
 func TestBadgeSVGCovert_NilResults(t *testing.T) {
-        svg := badgeSVGCovert("test.com", map[string]any{}, time.Now(), 0, "", "https://example.com")
+        svg := badgepkg.BadgeSVGCovert("test.com", map[string]any{}, time.Now(), 0, "", "https://example.com")
         if len(svg) == 0 {
                 t.Fatal("expected non-empty SVG even for empty results")
         }
@@ -585,7 +588,7 @@ func TestBadgeSVGCovert_LongDomain(t *testing.T) {
                         "color": "danger",
                 },
         }
-        svg := badgeSVGCovert(longDomain, results, time.Now(), 42, "hash", "https://dnstool.it-help.tech")
+        svg := badgepkg.BadgeSVGCovert(longDomain, results, time.Now(), 42, "hash", "https://dnstool.it-help.tech")
         if len(svg) == 0 {
                 t.Fatal("expected non-empty SVG")
         }
@@ -663,7 +666,7 @@ func TestTryServeFromCache_ExposureChecksNotEligible(t *testing.T) {
 }
 
 func TestCovertSummaryLines_SingleVector_NoTagline(t *testing.T) {
-        p := covertSummaryParams{
+        p := badgepkg.CovertSummaryParams{
                 Vulnerable:   1,
                 FindingCount: 0,
                 Tagline:      "",
@@ -672,7 +675,7 @@ func TestCovertSummaryLines_SingleVector_NoTagline(t *testing.T) {
                 SRed:         "#f85149",
                 Alt:          "#9f9f9f",
         }
-        lines := covertSummaryLines(p)
+        lines := badgepkg.CovertSummaryLines(p)
         if len(lines) != 1 {
                 t.Errorf("expected 1 line for single vector without tagline, got %d", len(lines))
         }
@@ -789,7 +792,7 @@ func TestAnalyze_InvalidDomain(t *testing.T) {
 }
 
 func TestNormalizePEM_NoPEMHeader(t *testing.T) {
-        got := normalizePEM("this is just some random text without pem markers")
+        got := adminpkg.NormalizePEM("this is just some random text without pem markers")
         if got != "this is just some random text without pem markers" {
                 t.Errorf("expected passthrough, got %q", got)
         }
@@ -797,7 +800,7 @@ func TestNormalizePEM_NoPEMHeader(t *testing.T) {
 
 func TestFindPEMFooter_NoFooterTokens(t *testing.T) {
         tokens := []string{"bodydata"}
-        footer, body := findPEMFooter(tokens, 0)
+        footer, body := adminpkg.FindPEMFooter(tokens, 0)
         if footer != "bodydata" {
                 t.Errorf("footer = %q", footer)
         }
@@ -805,7 +808,7 @@ func TestFindPEMFooter_NoFooterTokens(t *testing.T) {
 }
 
 func TestFindPEMFooter_EmptyBody(t *testing.T) {
-        footer, body := findPEMFooter([]string{}, 0)
+        footer, body := adminpkg.FindPEMFooter([]string{}, 0)
         if footer != "" {
                 t.Errorf("expected empty footer, got %q", footer)
         }
@@ -815,7 +818,7 @@ func TestFindPEMFooter_EmptyBody(t *testing.T) {
 }
 
 func TestSafeInternalURL_ParamEscaping(t *testing.T) {
-        got := safeInternalURL("https://example.com", "/search", map[string]string{
+        got := agentpkg.SafeInternalURL("https://example.com", "/search", map[string]string{
                 "q": "hello world&foo=bar",
         })
         if strings.Contains(got, " ") {

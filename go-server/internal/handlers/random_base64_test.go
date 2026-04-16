@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -19,21 +20,21 @@ func init() {
 }
 
 func TestGenerateRandomBase64URL_CB5(t *testing.T) {
-	s, err := generateRandomBase64URL(32)
+	s, err := authpkg.GenerateRandomBase64URL(32)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if len(s) == 0 {
 		t.Error("expected non-empty string")
 	}
-	s2, _ := generateRandomBase64URL(32)
+	s2, _ := authpkg.GenerateRandomBase64URL(32)
 	if s == s2 {
 		t.Error("expected different random values")
 	}
 }
 
 func TestGenerateSessionID_CB5(t *testing.T) {
-	id, err := generateSessionID()
+	id, err := authpkg.GenerateSessionID()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -43,15 +44,15 @@ func TestGenerateSessionID_CB5(t *testing.T) {
 }
 
 func TestComputeCodeChallenge_CB5(t *testing.T) {
-	challenge := computeCodeChallenge("test-verifier")
+	challenge := authpkg.ComputeCodeChallenge("test-verifier")
 	if challenge == "" {
 		t.Error("expected non-empty challenge")
 	}
-	challenge2 := computeCodeChallenge("test-verifier")
+	challenge2 := authpkg.ComputeCodeChallenge("test-verifier")
 	if challenge != challenge2 {
 		t.Error("same input should produce same challenge")
 	}
-	challenge3 := computeCodeChallenge("different-verifier")
+	challenge3 := authpkg.ComputeCodeChallenge("different-verifier")
 	if challenge == challenge3 {
 		t.Error("different inputs should produce different challenges")
 	}
@@ -65,14 +66,14 @@ func TestExtractUserClaims_CB5(t *testing.T) {
 			"name":           "Test User",
 			"email_verified": true,
 		}
-		sub, email, name, verified := extractUserClaims(info)
+		sub, email, name, verified := authpkg.ExtractUserClaims(info)
 		if sub != "12345" || email != "user@example.com" || name != "Test User" || !verified {
 			t.Errorf("unexpected claims: sub=%q email=%q name=%q verified=%v", sub, email, name, verified)
 		}
 	})
 	t.Run("missing claims", func(t *testing.T) {
 		info := map[string]any{}
-		sub, email, name, verified := extractUserClaims(info)
+		sub, email, name, verified := authpkg.ExtractUserClaims(info)
 		if sub != "" || email != "" || name != "" || verified {
 			t.Error("expected empty values for missing claims")
 		}
@@ -85,7 +86,7 @@ func TestParseIDTokenPayload_CB5(t *testing.T) {
 		payload, _ := json.Marshal(claims)
 		encoded := base64.RawURLEncoding.EncodeToString(payload)
 		token := fmt.Sprintf("header.%s.signature", encoded)
-		result, err := parseIDTokenPayload(token)
+		result, err := authpkg.ParseIDTokenPayload(token)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -94,19 +95,19 @@ func TestParseIDTokenPayload_CB5(t *testing.T) {
 		}
 	})
 	t.Run("malformed token", func(t *testing.T) {
-		_, err := parseIDTokenPayload("not.a.valid.token.too.many.parts")
+		_, err := authpkg.ParseIDTokenPayload("not.a.valid.token.too.many.parts")
 		if err == nil {
 			t.Error("expected error for malformed token")
 		}
 	})
 	t.Run("two parts only", func(t *testing.T) {
-		_, err := parseIDTokenPayload("only.two")
+		_, err := authpkg.ParseIDTokenPayload("only.two")
 		if err == nil {
 			t.Error("expected error for two-part token")
 		}
 	})
 	t.Run("invalid base64", func(t *testing.T) {
-		_, err := parseIDTokenPayload("header.!!!invalid!!!.sig")
+		_, err := authpkg.ParseIDTokenPayload("header.!!!invalid!!!.sig")
 		if err == nil {
 			t.Error("expected error for invalid base64")
 		}
@@ -114,7 +115,7 @@ func TestParseIDTokenPayload_CB5(t *testing.T) {
 	t.Run("invalid JSON", func(t *testing.T) {
 		encoded := base64.RawURLEncoding.EncodeToString([]byte("not json"))
 		token := fmt.Sprintf("header.%s.signature", encoded)
-		_, err := parseIDTokenPayload(token)
+		_, err := authpkg.ParseIDTokenPayload(token)
 		if err == nil {
 			t.Error("expected error for invalid JSON")
 		}
@@ -127,7 +128,7 @@ func TestValidateIDTokenIssuerAndAudience_CB5(t *testing.T) {
 			"iss": "https://accounts.google.com",
 			"aud": "my-client-id",
 		}
-		err := validateIDTokenIssuerAndAudience(claims, "my-client-id")
+		err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "my-client-id")
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -137,7 +138,7 @@ func TestValidateIDTokenIssuerAndAudience_CB5(t *testing.T) {
 			"iss": "accounts.google.com",
 			"aud": "my-client-id",
 		}
-		err := validateIDTokenIssuerAndAudience(claims, "my-client-id")
+		err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "my-client-id")
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -147,7 +148,7 @@ func TestValidateIDTokenIssuerAndAudience_CB5(t *testing.T) {
 			"iss": "https://evil.com",
 			"aud": "my-client-id",
 		}
-		err := validateIDTokenIssuerAndAudience(claims, "my-client-id")
+		err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "my-client-id")
 		if err == nil {
 			t.Error("expected error for invalid issuer")
 		}
@@ -157,7 +158,7 @@ func TestValidateIDTokenIssuerAndAudience_CB5(t *testing.T) {
 			"iss": "https://accounts.google.com",
 			"aud": "wrong-client-id",
 		}
-		err := validateIDTokenIssuerAndAudience(claims, "my-client-id")
+		err := authpkg.ValidateIDTokenIssuerAndAudience(claims, "my-client-id")
 		if err == nil {
 			t.Error("expected error for invalid audience")
 		}
@@ -170,7 +171,7 @@ func TestValidateIDTokenTiming_CB5(t *testing.T) {
 			"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
 			"iat": float64(time.Now().Add(-1 * time.Minute).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -179,7 +180,7 @@ func TestValidateIDTokenTiming_CB5(t *testing.T) {
 		claims := map[string]any{
 			"exp": float64(time.Now().Add(-1 * time.Hour).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err == nil {
 			t.Error("expected error for expired token")
 		}
@@ -189,14 +190,14 @@ func TestValidateIDTokenTiming_CB5(t *testing.T) {
 			"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
 			"iat": float64(time.Now().Add(1 * time.Hour).Unix()),
 		}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err == nil {
 			t.Error("expected error for future iat")
 		}
 	})
 	t.Run("no timing claims", func(t *testing.T) {
 		claims := map[string]any{}
-		err := validateIDTokenTiming(claims)
+		err := authpkg.ValidateIDTokenTiming(claims)
 		if err != nil {
 			t.Errorf("unexpected error with no timing: %v", err)
 		}
@@ -206,28 +207,28 @@ func TestValidateIDTokenTiming_CB5(t *testing.T) {
 func TestValidateIDTokenNonce_CB5(t *testing.T) {
 	t.Run("matching nonce", func(t *testing.T) {
 		claims := map[string]any{"nonce": "abc123"}
-		err := validateIDTokenNonce(claims, "abc123")
+		err := authpkg.ValidateIDTokenNonce(claims, "abc123")
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 	})
 	t.Run("mismatched nonce", func(t *testing.T) {
 		claims := map[string]any{"nonce": "abc123"}
-		err := validateIDTokenNonce(claims, "different")
+		err := authpkg.ValidateIDTokenNonce(claims, "different")
 		if err == nil {
 			t.Error("expected error for mismatched nonce")
 		}
 	})
 	t.Run("missing nonce in token", func(t *testing.T) {
 		claims := map[string]any{}
-		err := validateIDTokenNonce(claims, "expected")
+		err := authpkg.ValidateIDTokenNonce(claims, "expected")
 		if err == nil {
 			t.Error("expected error for missing nonce")
 		}
 	})
 	t.Run("empty expected nonce", func(t *testing.T) {
 		claims := map[string]any{"nonce": "abc123"}
-		err := validateIDTokenNonce(claims, "")
+		err := authpkg.ValidateIDTokenNonce(claims, "")
 		if err != nil {
 			t.Errorf("unexpected error with empty expected: %v", err)
 		}
@@ -239,7 +240,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest(http.MethodGet, "/callback?state=abc&code=xyz", nil)
-		_, _, _, _, ok := extractOAuthCallbackParams(c)
+		_, _, _, _, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if ok {
 			t.Error("expected false with missing state cookie")
 		}
@@ -249,7 +250,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest(http.MethodGet, "/callback?state=wrong&code=xyz", nil)
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_state", Value: "correct"})
-		_, _, _, _, ok := extractOAuthCallbackParams(c)
+		_, _, _, _, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if ok {
 			t.Error("expected false with state mismatch")
 		}
@@ -259,7 +260,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest(http.MethodGet, "/callback?state=abc&code=xyz", nil)
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_state", Value: "abc"})
-		_, _, _, _, ok := extractOAuthCallbackParams(c)
+		_, _, _, _, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if ok {
 			t.Error("expected false with missing code verifier")
 		}
@@ -270,7 +271,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		c.Request = httptest.NewRequest(http.MethodGet, "/callback?state=abc&code=xyz", nil)
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_state", Value: "abc"})
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_cv", Value: "verifier123"})
-		_, _, _, _, ok := extractOAuthCallbackParams(c)
+		_, _, _, _, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if ok {
 			t.Error("expected false with missing nonce")
 		}
@@ -282,7 +283,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_state", Value: "abc"})
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_cv", Value: "verifier123"})
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_nonce", Value: "nonce123"})
-		_, _, _, _, ok := extractOAuthCallbackParams(c)
+		_, _, _, _, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if ok {
 			t.Error("expected false with missing code param")
 		}
@@ -294,7 +295,7 @@ func TestExtractOAuthCallbackParams_CB5(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_state", Value: "abc"})
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_cv", Value: "verifier123"})
 		c.Request.AddCookie(&http.Cookie{Name: "_oauth_nonce", Value: "nonce123"})
-		state, cv, nonce, code, ok := extractOAuthCallbackParams(c)
+		state, cv, nonce, code, ok := authpkg.ExtractOAuthCallbackParams(c)
 		if !ok {
 			t.Error("expected true with all params present")
 		}

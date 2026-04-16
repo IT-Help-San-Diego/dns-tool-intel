@@ -1,6 +1,9 @@
 package handlers_test
 
 import (
+        "dnstool/go-server/internal/handlers/adminpkg"
+        "dnstool/go-server/internal/handlers/authpkg"
+        "dnstool/go-server/internal/handlers/badgepkg"
         "net/http"
         "net/http/httptest"
         "net/url"
@@ -195,7 +198,7 @@ func badgeRouter_CB10(t *testing.T) *gin.Engine {
         database := setupTestDB(t)
         t.Cleanup(func() { cleanupTestDB(t, database) })
         cfg := testConfig()
-        h := handlers.NewBadgeHandler(database, cfg)
+        h := badgepkg.NewBadgeHandler(database, cfg, nil)
         r.GET("/badge/shields/:domain", h.BadgeShieldsIO)
         return r
 }
@@ -218,14 +221,14 @@ func adminRouter_CB10(t *testing.T) *gin.Engine {
         database := setupTestDB(t)
         t.Cleanup(func() { cleanupTestDB(t, database) })
         cfg := testConfig()
-        h := handlers.NewAdminHandler(database, cfg, nil)
+        h := adminpkg.NewAdminHandler(database, cfg, handlers.NewTemplateData, nil)
         r.GET("/admin/delete-user", h.DeleteUser)
         r.GET("/admin/reset-sessions", h.ResetUserSessions)
         r.GET("/admin/purge-sessions", h.PurgeExpiredSessions)
         r.GET("/admin/ops", h.OperationsPage)
         r.POST("/admin/ops/run", h.RunOperation)
 
-        ph := handlers.NewProbeAdminHandler(database, cfg)
+        ph := adminpkg.NewProbeAdminHandler(database, cfg, handlers.NewTemplateData)
         r.GET("/admin/probes", ph.ProbeDashboard)
         r.POST("/admin/probes/run", ph.RunProbeAction)
 
@@ -670,7 +673,7 @@ func authRouter_CB10(t *testing.T) *gin.Engine {
         database := setupTestDB(t)
         t.Cleanup(func() { cleanupTestDB(t, database) })
         cfg := testConfig()
-        h := handlers.NewAuthHandler(cfg, database.Pool)
+        h := authpkg.NewAuthHandler(cfg, database.Pool)
         r.GET("/auth/login", h.Login)
         r.GET("/auth/callback", h.Callback)
         r.GET("/auth/logout", h.Logout)

@@ -395,13 +395,8 @@ func TestDerefString_B6(t *testing.T) {
         }
 }
 
-func TestConfiguredProbes_NoEnv_B6(t *testing.T) {
-        h := &ProbeAdminHandler{Config: &config.Config{}}
-        probes := h.configuredProbes()
-        if len(probes) > 2 {
-                t.Errorf("unexpected probes count: %d", len(probes))
-        }
-}
+// TestConfiguredProbes_NoEnv_B6 was moved to adminpkg/admin_probes_test.go
+// because configuredProbes is unexported in adminpkg.
 
 func TestEnrichViewDataMetrics_NilDB_B6(t *testing.T) {
         h := &AnalysisHandler{Config: &config.Config{}}
@@ -504,10 +499,5 @@ func TestNewRemediationHandler_B6(t *testing.T) {
         }
 }
 
-func TestNewProbeAdminHandler_B6(t *testing.T) {
-        cfg := &config.Config{AppVersion: "1.0"}
-        h := NewProbeAdminHandler(nil, cfg)
-        if h == nil {
-                t.Fatal("should not be nil")
-        }
-}
+// TestNewProbeAdminHandler_B6 was moved to adminpkg/admin_probes_test.go
+// because the constructor lives in adminpkg now.

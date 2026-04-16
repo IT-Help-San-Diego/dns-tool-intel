@@ -21,6 +21,7 @@ import (
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
+        "dnstool/go-server/internal/handlers/badgepkg"
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
         "dnstool/go-server/internal/logging"
@@ -501,7 +502,7 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
         if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > cachedAnalysisMaxAge {
                 return false
         }
-        results := unmarshalResults(analysis.FullResults, "serveCachedAnalysis")
+        results := badgepkg.UnmarshalResults(analysis.FullResults, "serveCachedAnalysis")
         if results == nil {
                 return false
         }

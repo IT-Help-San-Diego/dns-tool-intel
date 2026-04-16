@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"dnstool/go-server/internal/handlers/authpkg"
         "context"
         "encoding/json"
         "net/http"
@@ -253,21 +254,21 @@ func TestNormalizeEmailAnswer_CB15(t *testing.T) {
 
 func TestMissionCriticalDomainsFromBaseURL_CB15(t *testing.T) {
         t.Run("empty string", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("")
                 if len(domains) != 1 || domains[0] != "" {
                         t.Errorf("expected [''], got %v", domains)
                 }
         })
 
         t.Run("just scheme", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://")
                 if len(domains) != 1 {
                         t.Errorf("expected 1, got %d: %v", len(domains), domains)
                 }
         })
 
         t.Run("IP address", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://192.168.1.1:8080")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://192.168.1.1:8080")
                 if len(domains) != 2 {
                         t.Errorf("expected 2 entries for IP (splits on first dot), got %d: %v", len(domains), domains)
                 }
@@ -277,7 +278,7 @@ func TestMissionCriticalDomainsFromBaseURL_CB15(t *testing.T) {
         })
 
         t.Run("deep subdomain", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://a.b.c.d.example.com")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://a.b.c.d.example.com")
                 if len(domains) != 2 {
                         t.Errorf("expected 2 domains, got %d: %v", len(domains), domains)
                 }
@@ -290,7 +291,7 @@ func TestMissionCriticalDomainsFromBaseURL_CB15(t *testing.T) {
         })
 
         t.Run("two-part domain", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://example.com")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://example.com")
                 if len(domains) != 1 {
                         t.Errorf("expected 1, got %d: %v", len(domains), domains)
                 }
@@ -300,7 +301,7 @@ func TestMissionCriticalDomainsFromBaseURL_CB15(t *testing.T) {
         })
 
         t.Run("path included in host", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("https://app.example.com/some/path")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("https://app.example.com/some/path")
                 if len(domains) < 1 {
                         t.Fatal("expected at least 1 domain")
                 }
@@ -324,7 +325,7 @@ func TestMissionCriticalDomainsFromBaseURL_CB15(t *testing.T) {
         })
 
         t.Run("http scheme", func(t *testing.T) {
-                domains := missionCriticalDomainsFromBaseURL("http://dns.example.org")
+                domains := authpkg.MissionCriticalDomainsFromBaseURL("http://dns.example.org")
                 if len(domains) != 2 {
                         t.Errorf("expected 2, got %d: %v", len(domains), domains)
                 }
