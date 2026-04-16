@@ -1201,10 +1201,10 @@ func TestRiskColorToHexCB3(t *testing.T) {
         if got := riskColorToHex("warning"); got != "#d29922" {
                 t.Errorf("warning = %q", got)
         }
-        if got := riskColorToHex("danger"); got != colorDanger {
+        if got := riskColorToHex("danger"); got != "#e05d44" {
                 t.Errorf("danger = %q", got)
         }
-        if got := riskColorToHex("unknown"); got != colorGrey {
+        if got := riskColorToHex("unknown"); got != "#9f9f9f" {
                 t.Errorf("unknown = %q", got)
         }
 }

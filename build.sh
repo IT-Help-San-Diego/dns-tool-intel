@@ -26,7 +26,9 @@ LDFLAGS="-s -w \
 
 export GOCACHE=/tmp/go-build-cache
 export GOMODCACHE=/tmp/go-mod-cache
-rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
+export GOTMPDIR=/tmp/go-tmp
+rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
+mkdir -p /tmp/go-build-cache /tmp/go-tmp
 
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
@@ -40,7 +42,7 @@ if [ "$1" = "--deploy" ]; then
     -tags netgo \
     -o "$SCRIPT_DIR/dns-tool-server" \
     ./go-server/cmd/server/
-  rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
+  rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
   echo "Binary built:"
   ls -la "$SCRIPT_DIR/dns-tool-server"
@@ -61,7 +63,7 @@ CGO_ENABLED=0 GONOSUMCHECK=1 go build \
   ./go-server/cmd/server/
 mv "$SCRIPT_DIR/dns-tool-server-new" "$SCRIPT_DIR/dns-tool-server"
 
-rm -rf /tmp/go-build-cache /tmp/go-mod-cache 2>/dev/null || true
+rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server

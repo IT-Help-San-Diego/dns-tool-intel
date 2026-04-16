@@ -389,12 +389,9 @@ func TestBadgeResolveAnalysis_MissingParams(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge", nil)
 
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: &mockLookupStore{},
-        }
+        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false when no domain or id param")
         }
@@ -409,12 +406,9 @@ func TestBadgeResolveAnalysis_InvalidID(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?id=abc", nil)
 
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: &mockLookupStore{},
-        }
+        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false for invalid id")
         }
@@ -429,12 +423,9 @@ func TestBadgeResolveAnalysis_ByIDNotFound(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?id=999", nil)
 
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: &mockLookupStore{},
-        }
+        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false for not-found id")
         }
@@ -454,12 +445,9 @@ func TestBadgeResolveAnalysis_ByIDPrivate(t *testing.T) {
                         return dbq.DomainAnalysis{ID: 1, Private: true}, nil
                 },
         }
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: mock,
-        }
+        h := NewBadgeHandlerWithStore(mock, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false for private analysis badge")
         }
@@ -481,12 +469,9 @@ func TestBadgeResolveAnalysis_ByIDSuccess(t *testing.T) {
                         }, nil
                 },
         }
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: mock,
-        }
+        h := NewBadgeHandlerWithStore(mock, &config.Config{})
 
-        domain, results, _, scanID, _, ok := h.resolveAnalysis(c)
+        domain, results, _, scanID, _, ok := h.ResolveAnalysis(c)
         if !ok {
                 t.Error("expected ok=true for valid analysis")
         }
@@ -507,12 +492,9 @@ func TestBadgeResolveAnalysis_ByDomainInvalid(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?domain=not..valid", nil)
 
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: &mockLookupStore{},
-        }
+        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false for invalid domain")
         }
@@ -524,12 +506,9 @@ func TestBadgeResolveAnalysis_ByDomainNotScanned(t *testing.T) {
         c, _ := gin.CreateTestContext(w)
         c.Request = httptest.NewRequest("GET", "/badge?domain=example.com", nil)
 
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: &mockLookupStore{},
-        }
+        h := NewBadgeHandlerWithStore(&mockLookupStore{}, &config.Config{})
 
-        _, _, _, _, _, ok := h.resolveAnalysis(c)
+        _, _, _, _, _, ok := h.ResolveAnalysis(c)
         if ok {
                 t.Error("expected ok=false for not-scanned domain")
         }
@@ -551,12 +530,9 @@ func TestBadgeResolveAnalysis_ByDomainSuccess(t *testing.T) {
                         }, nil
                 },
         }
-        h := &BadgeHandler{
-                Config:      &config.Config{},
-                lookupStore: mock,
-        }
+        h := NewBadgeHandlerWithStore(mock, &config.Config{})
 
-        domain, results, _, scanID, _, ok := h.resolveAnalysis(c)
+        domain, results, _, scanID, _, ok := h.ResolveAnalysis(c)
         if !ok {
                 t.Error("expected ok=true")
         }

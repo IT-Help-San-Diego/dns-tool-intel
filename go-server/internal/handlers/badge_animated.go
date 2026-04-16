@@ -53,13 +53,13 @@ func init() {
         }
 }
 
-func (h *BadgeHandler) BadgeAnimated(c *gin.Context) {
-        domain, results, scanTime, scanID, postureHash, ok := h.resolveAnalysis(c)
+func BadgeAnimated(h *BadgeHandler, c *gin.Context) {
+        domain, results, scanTime, scanID, postureHash, ok := h.ResolveAnalysis(c)
         if !ok {
                 return
         }
         if results == nil {
-                c.Data(http.StatusOK, contentTypeSVG, badgeSVG(labelDNSTool, "no data", colorGrey))
+                c.Data(http.StatusOK, "image/svg+xml; charset=utf-8", badgeSVG("DNS Tool", "no data", "#9f9f9f"))
                 return
         }
 

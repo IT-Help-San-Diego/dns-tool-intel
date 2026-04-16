@@ -19,6 +19,7 @@ import (
 
 const (
         mapKeyAnswer    = "answer"
+        mapKeyColor     = "color"
         mapKeyPosture   = "posture"
         mapKeyReason    = "reason"
         mapKeySecondary = "secondary"
