@@ -27,6 +27,7 @@ import (
         "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/dnsclient"
         "dnstool/go-server/internal/handlers"
+        "dnstool/go-server/internal/handlers/agentpkg"
         "dnstool/go-server/internal/handlers/contentpkg"
         "dnstool/go-server/internal/logging"
         "dnstool/go-server/internal/middleware"
@@ -514,7 +515,7 @@ func registerFeatureRoutes(d routeDeps, analysis *handlers.AnalysisHandler, prox
         d.Router.GET("/proxy/bimi-logo", proxy.BIMILogo)
         d.Router.GET("/proxy/sonar-badge/:key", proxy.SonarBadge)
 
-        agentHandler := handlers.NewAgentHandler(d.Cfg, d.Analyzer, d.DB.Queries)
+        agentHandler := agentpkg.NewAgentHandler(d.Cfg, d.Analyzer, handlers.NewTemplateData, d.DB.Queries)
         agentHandler.SaveFn = analysis.SaveForAgent
         d.Router.GET("/agent/search", middleware.AgentRateLimit(d.RateLimiter), agentHandler.AgentSearch)
         d.Router.GET("/agent/api", middleware.AgentRateLimit(d.RateLimiter), agentHandler.AgentAPI)
