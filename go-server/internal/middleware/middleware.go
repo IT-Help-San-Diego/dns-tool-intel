@@ -171,10 +171,15 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                 upgradeDirective = "upgrade-insecure-requests;"
         }
 
+        styleSrc := fmt.Sprintf("style-src 'self' 'nonce-%s'; ", nonceStr)
+        if strings.HasPrefix(c.Request.URL.Path, "/agent/") {
+                styleSrc = "style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; "
+        }
+
         return fmt.Sprintf(
                 "default-src 'none'; "+
                         "%s"+
-                        "style-src 'self' 'nonce-%s'; "+
+                        "%s"+
                         "font-src 'self'; "+
                         "img-src 'self' data: blob:; "+
                         "%s"+
@@ -187,7 +192,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                         "media-src 'self'; "+
                         "worker-src 'self'; "+
                         "%s",
-                scriptSrc, nonceStr, connectSrc, frameAncestors, frameSrc, upgradeDirective,
+                scriptSrc, styleSrc, connectSrc, frameAncestors, frameSrc, upgradeDirective,
         )
 }
 
