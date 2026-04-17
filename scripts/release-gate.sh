@@ -81,6 +81,15 @@ if [ -f codemeta.json ]; then
   pass "codemeta.json version → ${VERSION}"
 fi
 
+info "Gate 4b: Version bump — .zenodo.json"
+if [ -f .zenodo.json ]; then
+  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" .zenodo.json
+  sed -i "s/\"publication_date\": \"[^\"]*\"/\"publication_date\": \"${DATE_TODAY}\"/" .zenodo.json
+  grep -q "\"version\": \"${VERSION}\"" .zenodo.json \
+    || fail ".zenodo.json version was not updated (sed did not match)"
+  pass ".zenodo.json version → ${VERSION}, publication_date → ${DATE_TODAY}"
+fi
+
 info "Gate 5: Version bump — config.go"
 sed -i -E "s/(Version\s*=\s*)\"[^\"]*\"/\1\"${VERSION}\"/" go-server/internal/config/config.go
 grep -q "\"${VERSION}\"" go-server/internal/config/config.go \
