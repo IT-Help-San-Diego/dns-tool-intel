@@ -19,7 +19,9 @@ if [ -n "$VERSION" ]; then
   echo "Updating foundations version to ${VERSION}..."
 
   sed -i -E "s/Version<\/span>\&ensp;[0-9]+\.[0-9]+\.[0-9]+/Version<\/span>\&ensp;${VERSION}/" docs/philosophical-foundations.html
+  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.html
   sed -i -E "s/Version [0-9]+\.[0-9]+\.[0-9]+/Version ${VERSION}/" docs/philosophical-foundations.md
+  sed -i -E "s/DNS Tool v[0-9]+\.[0-9]+\.[0-9]+/DNS Tool v${VERSION}/" docs/philosophical-foundations.md
 
   echo "Version updated in .html and .md"
 fi
