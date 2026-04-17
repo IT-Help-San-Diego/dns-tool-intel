@@ -25,7 +25,7 @@ if [ -n "$VERSION" ]; then
 fi
 
 echo "Generating philosophical foundations PDF..."
-python -c "
+uv run python -c "
 import weasyprint
 html = weasyprint.HTML(filename='docs/philosophical-foundations.html', base_url='docs/')
 html.write_pdf('docs/philosophical-foundations.pdf')

@@ -25,7 +25,7 @@ if [ -n "$VERSION" ]; then
 fi
 
 echo "Generating Founder's Manifesto PDF..."
-python -c "
+uv run python -c "
 import weasyprint
 html = weasyprint.HTML(filename='docs/founders-manifesto.html', base_url='docs/')
 html.write_pdf('docs/founders-manifesto.pdf')

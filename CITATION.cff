@@ -10,8 +10,15 @@ abstract: >-
   DNS Tool is an open-core OSINT platform for RFC-compliant domain
   security analysis. It evaluates SPF, DKIM, DMARC, DANE/TLSA,
   DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA configurations using
-  confidence-scored interpretation derived from ICD 203 taxonomy
-  to produce structured security intelligence outputs.
+  multi-factor geometric-mean confidence scoring aligned with
+  ICD 203 to produce structured security intelligence outputs.
+  Each scan emits a 15-file deliverable bundle (engineer report,
+  executive brief, observed-records snapshot, analysis history,
+  discovered-subdomain inventory, integrity checksum, remediation
+  plan, sources & methodology, and more), suitable for direct
+  ingestion by retrieval agents such as DEVONagent. Independent
+  scientific provenance is established by automated submission
+  of every analysis to the Internet Archive (Wayback Machine).
 
 authors:
   - family-names: Balboa
@@ -45,6 +52,14 @@ keywords:
   - cybersecurity research
   - domain security posture
   - confidence scoring
+  - ICD 203
+  - geometric mean
+  - subdomain enumeration
+  - certificate transparency
+  - Wayback Machine
+  - Internet Archive
+  - DEVONagent
+  - retrieval agents
 
 references:
   - type: report
