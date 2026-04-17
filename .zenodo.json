@@ -12,7 +12,7 @@
       "orcid": "0009-0000-5237-9065"
     }
   ],
-  "description": "![Owl of Athena](https://dnstool.it-help.tech/static/images/owl-of-athena.png)\n\n# DNS Tool — Domain Security Audit Platform\n\n**DNS Tool** is an open-core OSINT platform for RFC-compliant domain security analysis using confidence-scored interpretation derived from ICD 203 taxonomy.\n\n## Protocols / signals evaluated\n- SPF, DKIM, DMARC, BIMI\n- DNSSEC, DANE\n- MTA-STS, TLS-RPT\n- CAA\n- HTTPS/SVCB records\n\n## Outputs\n- Engineer-level DNS Intelligence Reports\n- Executive-level DNS Intelligence Briefs\n- Confidence-scored security posture assessments\n- Domain Confessions case study series\n\n## Open-core architecture\nThis archive contains the complete public (OSS) source code.\nAll build-tag stubs (`_oss.go`) are included so the project\nbuilds from source with `go build ./go-server/cmd/server`.\nProprietary intelligence modules (the `-tags intel` build) are\nnot included — they are closed-source and not required for\nthe core analysis functionality.\n\n## Research publications\n- Methodology paper: https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\n- Philosophical Foundations: https://dnstool.it-help.tech/docs/philosophical-foundations.pdf\n- Publications index: https://dnstool.it-help.tech/publications\n\n## Research artifact\n- Live system: https://dnstool.it-help.tech\n- Source: https://github.com/IT-Help-San-Diego/dns-tool-intel\n",
+  "description": "![Owl of Athena](https://dnstool.it-help.tech/static/images/owl-of-athena.png)\n\n# DNS Tool — Domain Security Audit Platform\n\n**DNS Tool** is an open-core OSINT platform for RFC-compliant domain security analysis using multi-factor geometric-mean confidence scoring aligned with ICD 203.\n\n## Protocols / signals evaluated\n- SPF, DKIM, DMARC, BIMI\n- DNSSEC, DANE\n- MTA-STS, TLS-RPT\n- CAA\n- HTTPS/SVCB records\n\n## Per-scan deliverable bundle (15 files)\nEvery analysis produces a self-describing 15-file intelligence bundle:\n\n1. Intelligence Guide — orientation\n2. Engineer's DNS Intelligence Report — full security analysis\n3. Analysis History — prior scans, posture changes over time\n4. Observed Records Snapshot — reconstructed zone file, SHA-3-512 verified\n5. Detailed Security Badge — full posture badge (SVG)\n6. Covert Security Badge — scotopic-optimized embeddable badge\n7. Covert Recon Report — analysis in low-visibility mode\n8. Executive Intelligence Brief — board-ready summary\n9. DNS Topology — interactive resolver/delegation visualization\n10. Full Intelligence Data (JSON) — complete machine-readable payload\n11. Discovered Subdomains (CSV) — Certificate Transparency + DNS recon\n12. SHA-3 Integrity Checksum — cryptographic verification block\n13. Security Remediation Plan — prioritized actionable steps\n14. Wayback Archive — permanent third-party record submitted to the Internet Archive\n15. Sources & Methodology — RFC citations, scoring weights, ICD 203 alignment\n\n## Independent scientific provenance\nEvery analysis is automatically submitted to the **Internet Archive (Wayback Machine)** as a third-party permanent record, providing tamper-evident provenance independent of the publisher.\n\n## Retrieval-agent integration\nThe per-scan bundle is delivered in a format directly consumable by retrieval agents such as **DEVONagent**, with HTML wrappers for each artifact and a stable orientation guide as file 01.\n\n## Open-core architecture\nThis archive contains the complete public (OSS) source code.\nAll build-tag stubs (`_oss.go`) are included so the project\nbuilds from source with `go build ./go-server/cmd/server`.\nProprietary intelligence modules (the `-tags intel` build) are\nnot included — they are closed-source and not required for\nthe core analysis functionality.\n\n## Research publications\n- Methodology paper: https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf\n- Philosophical Foundations: https://dnstool.it-help.tech/docs/philosophical-foundations.pdf\n- Publications index: https://dnstool.it-help.tech/publications\n\n## Research artifact\n- Live system: https://dnstool.it-help.tech\n- Source: https://github.com/IT-Help-San-Diego/dns-tool-intel\n",
   "keywords": [
     "DNS security",
     "SPF",
@@ -33,7 +33,16 @@
     "federal agency compliance",
     "domain security posture",
     "confidence scoring",
-    "open-core"
+    "ICD 203",
+    "geometric mean",
+    "open-core",
+    "subdomain enumeration",
+    "Certificate Transparency",
+    "Wayback Machine",
+    "Internet Archive",
+    "DEVONagent",
+    "retrieval agents",
+    "SHA-3 integrity"
   ],
   "notes": "Open-core project: this archive contains the complete OSS subset including all build-tag stubs required for compilation. Build with: go build ./go-server/cmd/server",
   "related_identifiers": [

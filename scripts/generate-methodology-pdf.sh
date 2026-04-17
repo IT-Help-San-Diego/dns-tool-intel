@@ -31,7 +31,7 @@ if [ -n "$VERSION" ]; then
 fi
 
 echo "Generating methodology PDF..."
-python -c "
+uv run python -c "
 import weasyprint
 html = weasyprint.HTML(filename='docs/dns-tool-methodology.html', base_url='docs/')
 html.write_pdf('docs/dns-tool-methodology.pdf')

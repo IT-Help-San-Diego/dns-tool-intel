@@ -25,7 +25,7 @@ if [ -n "$VERSION" ]; then
 fi
 
 echo "Generating Communication Standards PDF..."
-python -c "
+uv run python -c "
 import weasyprint
 html = weasyprint.HTML(filename='docs/communication-standards.html', base_url='docs/')
 html.write_pdf('docs/communication-standards.pdf')
