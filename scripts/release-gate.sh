@@ -117,7 +117,10 @@ bash scripts/generate-comm-standards-pdf.sh "$VERSION"
 pass "Communication Standards PDF regenerated"
 
 info "Gate 8: Go tests"
-TEST_OUTPUT=$(go test ./go-server/... -count=1 -short -timeout 120s 2>&1) || true
+# REQUIRE_PDF_AUDIT=1 forces TestCorpusPDFIntegrity to FAIL (not skip) if
+# pdftotext is missing on the runner — guarantees the corpus PDF banner
+# audit ran for every release.
+TEST_OUTPUT=$(REQUIRE_PDF_AUDIT=1 go test ./go-server/... -count=1 -short -timeout 120s 2>&1) || true
 FAILED_TESTS=$(echo "$TEST_OUTPUT" | grep -E "^--- FAIL:" || true)
 FAILED_PKGS=$(echo "$TEST_OUTPUT" | grep -E "^FAIL\s" || true)
 BOUNDARY_FAILS=$(echo "$FAILED_TESTS" | grep -c "Boundary\|NoIntel\|FullRepoScan\|StubBoundary\|ScrutinyClassification" || true)
