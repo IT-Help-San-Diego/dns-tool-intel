@@ -627,6 +627,14 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.GET("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
         router.GET("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
 
+        // Versioned PDF route: /docs/v<AppVersion>/<filename>.pdf
+        // Used by the corpus UI to bypass any prior edge-cache poisoning of
+        // legacy /docs/<file>.pdf paths. Filename allowlist is enforced inside
+        // the handler. Legacy routes above remain canonical for external
+        // citations (Zenodo DOI 10.5281/zenodo.19468134) and JSON-LD.
+        router.GET("/docs/:appver/:filename", static.VersionedPDF)
+        router.HEAD("/docs/:appver/:filename", static.VersionedPDF)
+
         corpusHandler := contentpkg.NewCorpusHandler(cfg, tdf)
         router.GET("/corpus", corpusHandler.Corpus)
 
