@@ -228,50 +228,23 @@ func validateBIMIResponse(resp *http.Response) ([]byte, string, error) {
         return body, safeCT, nil
 }
 
+// sonarBadgeURLs is preserved as institutional knowledge for the dormant
+// SonarCloud integration. The route in main.go is unregistered (April
+// 2026 SaaS decouple); SonarBadge below is a 410-Gone stub. To revive,
+// re-register `GET /proxy/sonar-badge/:key` in main.go and restore the
+// fetch implementation from git history.
 var sonarBadgeURLs = map[string]string{
         "qg-intel": "https://sonarcloud.io/api/project_badges/quality_gate?project=IT-Help-San-Diego_dns-tool-intel",
         "ai-intel": "https://sonarcloud.io/api/project_badges/ai_code_assurance?project=IT-Help-San-Diego_dns-tool-intel",
 }
 
+// SonarBadge returns 410 Gone. The route is currently unregistered in
+// main.go; this stub remains so the symbol is exported for any test or
+// future revival without re-implementing the network plumbing from
+// scratch. See git history for the prior fetch implementation.
 func (h *ProxyHandler) SonarBadge(c *gin.Context) {
-        key := c.Param("key")
-        badgeURL, ok := sonarBadgeURLs[key]
-        if !ok {
-                c.String(http.StatusNotFound, "Unknown badge")
-                return
-        }
-
-        client := &http.Client{Timeout: 10 * time.Second}
-        req, err := http.NewRequestWithContext(c.Request.Context(), "GET", badgeURL, nil)
-        if err != nil {
-                slog.Error("Failed to create SonarCloud badge request", "key", key, "error", err)
-                c.String(http.StatusInternalServerError, msgInternalError)
-                return
-        }
-        req.Header.Set(hdrUserAgent, "DNS-Tool/1.0 Badge-Proxy")
-
-        resp, err := client.Do(req)
-        if err != nil {
-                slog.Error("Failed to fetch SonarCloud badge", "key", key, "error", err)
-                c.String(http.StatusBadGateway, "Failed to fetch badge")
-                return
-        }
-        defer safeClose(resp.Body, "SonarCloud badge response body")
-
-        if resp.StatusCode != http.StatusOK {
-                c.String(http.StatusBadGateway, "Badge service returned %d", resp.StatusCode)
-                return
-        }
-
-        body, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
-        if err != nil {
-                c.String(http.StatusInternalServerError, "Error reading badge")
-                return
-        }
-
-        c.Header("Cache-Control", "public, max-age=300, stale-while-revalidate=60")
-        c.Header("X-Content-Type-Options", "nosniff")
-        c.Data(http.StatusOK, ctSVGXML, body)
+        c.Header("Cache-Control", "no-store")
+        c.String(http.StatusGone, "SonarCloud badge proxy disabled (April 2026 SaaS decouple)")
 }
 
 type validationError struct {
