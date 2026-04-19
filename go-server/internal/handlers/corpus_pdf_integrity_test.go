@@ -4,6 +4,7 @@ import (
         "os"
         "os/exec"
         "path/filepath"
+        "sort"
         "strings"
         "testing"
 )
@@ -118,33 +119,33 @@ var corpusPDFExpectations = []corpusPDFExpectation{
         },
 }
 
-// nonCorpusDocsPDFs are dev/test scratch artifacts that live in
-// static/docs/ but are NOT part of the published research corpus. They
-// are explicitly listed here so the completeness check stays sharp on
-// genuine corpus additions.
-var nonCorpusDocsPDFs = map[string]bool{
-        "dns-tool-methodology-NEW-BADGE.pdf":            true,
-        "dns-tool-methodology-transparent-test.pdf":     true,
-        "founders-manifesto-nonnorm-opaque-test.pdf":    true,
-        "founders-manifesto-nonnorm-transparent-test.pdf": true,
-        "nonnorm-palette.pdf":                           true,
-        "nonnorm-palette-v2.pdf":                        true,
-        "nonnorm-palette-v3.pdf":                        true,
-        "nonnorm-palette-v4.pdf":                        true,
-        "nonnorm-palette-v5.pdf":                        true,
-        "nonnorm-palette-v6.pdf":                        true,
-        "nonnorm-palette-v7.pdf":                        true,
-        "owl-seal-comparison.pdf":                       true,
-        "owl-seal-layers-test.pdf":                      true,
-}
+// nonCorpusDocsPDFs WAS the allowlist for dev/test scratch PDFs that
+// shipped in static/docs/ alongside the published corpus. As of
+// v26.46.22 those 13 artifacts (palette swatches, transparent-test
+// variants, NEW-BADGE drafts, owl-seal layer tests) were deleted from
+// both static trees. The map is intentionally kept empty so the
+// completeness subtest below stays a strict whitelist: any *.pdf in
+// static/docs/ that is not in corpusPDFExpectations now fails the
+// audit.
+var nonCorpusDocsPDFs = map[string]bool{}
 
+// findCorpusStaticDocsDir resolves the canonical static/docs directory
+// in the same priority order as the runtime's findStaticDir() in
+// cmd/server/main.go: prefer the repo-root "static/" tree (which is
+// where the PDF generators write and what findStaticDir() returns
+// first), then fall back to "go-server/static/" for non-standard CWDs.
+//
+// Tests run with CWD set to the package directory (go-server/internal/
+// handlers/), so the "../../../static/docs" candidate is what normally
+// resolves; it points to the repo-root tree, matching production.
 func findCorpusStaticDocsDir(t *testing.T) string {
         t.Helper()
         candidates := []string{
-                "static/docs",
-                "go-server/static/docs",
-                "../../static/docs",
-                "../../../go-server/static/docs",
+                "static/docs",                    // CWD = repo root
+                "go-server/static/docs",          // CWD = repo root, repo-static missing
+                "../../../static/docs",           // CWD = go-server/internal/handlers (live tree)
+                "../../static/docs",              // CWD = go-server/internal (live tree)
+                "../../../go-server/static/docs", // CWD = go-server/internal/handlers (fallback)
         }
         for _, c := range candidates {
                 if info, err := os.Stat(c); err == nil && info.IsDir() {
@@ -154,6 +155,42 @@ func findCorpusStaticDocsDir(t *testing.T) string {
         }
         t.Fatalf("could not locate static/docs/; tried: %v", candidates)
         return ""
+}
+
+// findAllStaticDocsDirs returns absolute paths to every static/docs
+// tree that exists in this repo (typically two: repo-root static/docs
+// and go-server/static/docs). Used by the drift-guard subtest to
+// enforce byte-identity across both trees so the live-served copy and
+// the in-package copy can never silently diverge again.
+//
+// The candidate order is intentionally aligned with
+// findCorpusStaticDocsDir / runtime findStaticDir so that dirs[0] is
+// reliably the canonical repo-root tree regardless of test CWD. This
+// matters for the drift-guard error messages which call out one tree
+// as canonical when reporting asymmetric presence.
+func findAllStaticDocsDirs(t *testing.T) []string {
+        t.Helper()
+        candidates := []string{
+                // Canonical (repo-root static/docs) first, matching runtime priority.
+                "static/docs",            // CWD = repo root
+                "../../../static/docs",   // CWD = go-server/internal/handlers
+                "../../static/docs",      // CWD = go-server/internal
+                // Fallback (go-server/static/docs duplicate tree).
+                "go-server/static/docs",          // CWD = repo root
+                "../../../go-server/static/docs", // CWD = go-server/internal/handlers
+        }
+        seen := map[string]bool{}
+        var out []string
+        for _, c := range candidates {
+                if info, err := os.Stat(c); err == nil && info.IsDir() {
+                        abs, _ := filepath.Abs(c)
+                        if !seen[abs] {
+                                seen[abs] = true
+                                out = append(out, abs)
+                        }
+                }
+        }
+        return out
 }
 
 // stripBannerNoise removes whitespace and hyphens from a banner line so
@@ -203,13 +240,106 @@ func TestCorpusPDFIntegrity(t *testing.T) {
         }
         docsDir := findCorpusStaticDocsDir(t)
 
-        // Completeness: every *.pdf in static/docs/ MUST either have an
-        // expectation row or appear in nonCorpusDocsPDFs (dev/test scratch).
+        // Drift guard: when both static trees exist (repo-root static/docs
+        // AND go-server/static/docs), every *.pdf present in BOTH must be
+        // byte-identical. This is the test-side companion to the v26.46.22
+        // remediation that resync'd two corpus PDFs after a silent ~100-byte
+        // metadata drift between trees. The runtime's findStaticDir() picks
+        // "static" first then "go-server/static", so any future drift would
+        // once again cause the integrity audit to verify a different copy
+        // than what users are served. This subtest closes that loop by
+        // failing if the two trees ever disagree.
+        t.Run("no_drift_between_static_trees", func(t *testing.T) {
+                dirs := findAllStaticDocsDirs(t)
+                if len(dirs) < 2 {
+                        t.Skipf("only one static/docs tree present (%v); drift guard not applicable", dirs)
+                        return
+                }
+                // Use the first two distinct trees discovered (typically the
+                // canonical repo-root static/docs and the go-server/static/docs
+                // duplicate). Sweep is symmetric: build the UNION of PDF
+                // basenames across both trees so a file added only to the
+                // fallback tree is still caught (per architect review of the
+                // v26.46.22 cleanup — asymmetric presence is itself drift).
+                a, b := dirs[0], dirs[1]
+                listPDFs := func(dir string) (map[string]bool, error) {
+                        out := map[string]bool{}
+                        entries, err := os.ReadDir(dir)
+                        if err != nil {
+                                return nil, err
+                        }
+                        for _, ent := range entries {
+                                if ent.IsDir() {
+                                        continue
+                                }
+                                name := ent.Name()
+                                if strings.HasSuffix(strings.ToLower(name), ".pdf") {
+                                        out[name] = true
+                                }
+                        }
+                        return out, nil
+                }
+                setA, err := listPDFs(a)
+                if err != nil {
+                        t.Fatalf("read %s: %v", a, err)
+                }
+                setB, err := listPDFs(b)
+                if err != nil {
+                        t.Fatalf("read %s: %v", b, err)
+                }
+                union := map[string]bool{}
+                for n := range setA {
+                        union[n] = true
+                }
+                for n := range setB {
+                        union[n] = true
+                }
+                // Sort the union for deterministic test output ordering.
+                names := make([]string, 0, len(union))
+                for n := range union {
+                        names = append(names, n)
+                }
+                sort.Strings(names)
+                for _, name := range names {
+                        inA, inB := setA[name], setB[name]
+                        switch {
+                        case inA && !inB:
+                                t.Errorf("PDF %q present in %s but MISSING from %s — asymmetric drift; sync the canonical repo-root static/docs/ to go-server/static/docs/ (or remove from both)",
+                                        name, a, b)
+                        case !inA && inB:
+                                t.Errorf("PDF %q present in %s but MISSING from canonical %s — asymmetric drift; either copy back into the canonical tree or delete the stale duplicate from %s",
+                                        name, b, a, b)
+                        case inA && inB:
+                                pa := filepath.Join(a, name)
+                                pb := filepath.Join(b, name)
+                                ba, errA := os.ReadFile(pa)
+                                bb, errB := os.ReadFile(pb)
+                                if errA != nil || errB != nil {
+                                        t.Errorf("read failed for %s: errA=%v errB=%v", name, errA, errB)
+                                        continue
+                                }
+                                if len(ba) != len(bb) {
+                                        t.Errorf("PDF %q has BYTE DRIFT between static trees: %s=%d bytes vs %s=%d bytes — re-sync from canonical (PDF generators write to repo-root static/docs/)",
+                                                name, a, len(ba), b, len(bb))
+                                        continue
+                                }
+                                // Byte compare without computing a hash; cheap
+                                // enough for the ~9 corpus PDFs.
+                                for i := range ba {
+                                        if ba[i] != bb[i] {
+                                                t.Errorf("PDF %q is same length but DIFFERS at byte %d between static trees (%s vs %s) — re-sync from canonical",
+                                                        name, i, a, b)
+                                                break
+                                        }
+                                }
+                        }
+                }
+        })
+
+        // Completeness: every *.pdf in static/docs/ MUST have an
+        // expectation row in corpusPDFExpectations (or, historically, an
+        // entry in nonCorpusDocsPDFs — now empty post-v26.46.22 cleanup).
         // Prevents a new corpus paper from being added without a guard.
-        //
-        // TODO(cleanup): the files in nonCorpusDocsPDFs are palette/badge/seal
-        // dev artifacts that shouldn't ship in the production static/docs/
-        // directory. Move them under static/dev/ or delete them when convenient.
         t.Run("completeness", func(t *testing.T) {
                 entries, err := os.ReadDir(docsDir)
                 if err != nil {
