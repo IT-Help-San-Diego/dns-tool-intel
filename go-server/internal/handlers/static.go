@@ -91,6 +91,39 @@ func (h *StaticHandler) servePDF(c *gin.Context, filename string) {
         c.File(filepath.Join(h.StaticDir, "docs", filename))
 }
 
+// versionedPDFAllowlist maps the canonical PDF filenames the corpus page may
+// request via the /docs/v:appver/:filename versioned route. Filenames not in
+// this set return 404. This narrow allowlist prevents arbitrary path access
+// and keeps the route explicit for audit.
+var versionedPDFAllowlist = map[string]bool{
+        "dns-tool-methodology.pdf":      true,
+        "philosophical-foundations.pdf": true,
+        "founders-manifesto.pdf":        true,
+        "communication-standards.pdf":   true,
+        "owl-semaphore-system.pdf":      true,
+        "owl-1-normative.pdf":           true,
+        "owl-2-non-normative.pdf":       true,
+        "owl-3-critical.pdf":            true,
+        "owl-4-metacognitive.pdf":       true,
+}
+
+// VersionedPDF serves a PDF under a version-namespaced URL with immutable
+// cache headers. Path: /docs/v:appver/:filename. The :appver segment is
+// informational only — content addressing is by filename — but it gives the
+// edge cache a fresh key per release, sidestepping any prior cache poisoning
+// of legacy /docs/<file>.pdf entries.
+func (h *StaticHandler) VersionedPDF(c *gin.Context) {
+        filename := c.Param("filename")
+        if !versionedPDFAllowlist[filename] {
+                c.Status(http.StatusNotFound)
+                return
+        }
+        c.Header(headerContentType, "application/pdf")
+        c.Header(headerCacheControl, "public, max-age=31536000, immutable")
+        c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%q", filename))
+        c.File(filepath.Join(h.StaticDir, "docs", filename))
+}
+
 func (h *StaticHandler) MethodologyPDF(c *gin.Context) {
         h.servePDF(c, "dns-tool-methodology.pdf")
 }
