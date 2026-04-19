@@ -247,9 +247,13 @@
             border: 1px solid rgba(74,157,150,0.2);
         }
         .corpus-semaphore-meta {
-            color: #8C4191;
-            background: rgba(140,65,145,0.08);
-            border: 1px solid rgba(140,65,145,0.2);
+            /* Badge TEXT lifted to brighter amethyst for WCAG AA contrast on
+               the dark theme (#0d1117 background). The owl artifact PNG/SVG
+               keeps the canonical #8C4191 amethyst per Owl 4 §10.1 — this
+               is a render adaptation for small-text editorial chrome only. */
+            color: #C078C8;
+            background: rgba(140,65,145,0.10);
+            border: 1px solid rgba(140,65,145,0.25);
         }
         .corpus-semaphore-crit {
             color: #f85149;
@@ -465,13 +469,13 @@
                     <div class="corpus-entry-num">Paper V</div>
                     <div class="corpus-entry-title">{{icon "eye" "me-1"}}Owl Semaphore &mdash; System Specification</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
-                        <span class="corpus-semaphore corpus-semaphore-meta">
-                            <picture><source srcset="{{staticVersionURL "exports/owl-semaphore/derived/META-composite-transparent-w40.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "exports/owl-semaphore/derived/META-composite-transparent-w40.png" .AppVersion}}" alt="Metacognitive" class="corpus-semaphore-owl" loading="lazy" decoding="async"></picture>
-                            Metacognitive
+                        <span class="corpus-semaphore corpus-semaphore-norm">
+                            <picture><source srcset="{{staticVersionURL "exports/owl-semaphore/derived/NORM-composite-transparent-w40.webp" .AppVersion}}" type="image/webp"><img src="{{staticVersionURL "exports/owl-semaphore/derived/NORM-composite-transparent-w40.png" .AppVersion}}" alt="Normative" class="corpus-semaphore-owl" loading="lazy" decoding="async"></picture>
+                            Normative
                         </span>
                         <span class="corpus-entry-meta">Balboa, 2026</span>
                     </div>
-                    <div class="corpus-entry-transform">V&#x2084; = {I, &sigma;<sub>v</sub>, C<sub>2</sub>, &sigma;<sub>h</sub>} &ensp; Klein four-group</div>
+                    <div class="corpus-entry-transform">T = I &ensp; det = +1 &ensp; (x, y) &rarr; (x, y) &ensp;&middot;&ensp; defines V&#x2084;</div>
                 </button>
 
                 <button type="button" class="corpus-entry" tabindex="0" aria-label="View Paper VI — Owl 1: Normative Standard" data-pdf="/docs/v{{.AppVersion}}/owl-1-normative.pdf" data-title="Owl 1 — Normative Standard Specification" data-num="VI">
