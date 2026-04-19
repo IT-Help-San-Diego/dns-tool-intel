@@ -96,9 +96,12 @@ grep -q "\"${VERSION}\"" go-server/internal/config/config.go \
   || fail "config.go version was not updated (sed did not match)"
 pass "config.go version → ${VERSION}"
 
-info "Gate 6: Version bump — sonar-project.properties"
+info "Gate 6: Version bump — sonar-project.properties (DORMANT)"
+# SonarCloud SaaS decoupled April 2026; properties file is dormant but
+# we still bump the version field so it stays accurate when local
+# SonarQube CE is brought online and reads the file as-is.
 sed -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
-pass "sonar-project.properties → ${VERSION}"
+pass "sonar-project.properties → ${VERSION} (dormant, no upload)"
 
 info "Gate 7: Methodology PDF regeneration"
 bash scripts/generate-methodology-pdf.sh "$VERSION"
@@ -148,6 +151,17 @@ else
   fi
   fail "Go tests failed — ${REAL_FAILS} real failure(s), ${BOUNDARY_FAILS} boundary-only"
 fi
+
+info "Gate 8b: go vet (compensating control for dormant SonarCloud)"
+# Added April 2026 alongside SonarCloud SaaS decouple. Catches the
+# common static-analysis smells (unreachable code, format mismatches,
+# struct tag errors, lock copies, etc.) that Sonar used to flag.
+if go vet ./go-server/... 2>&1 | tee /tmp/go-vet.log | grep -qE '\.go:[0-9]+'; then
+  echo "  go vet findings:"
+  cat /tmp/go-vet.log | sed 's/^/    /'
+  fail "go vet reported findings — fix before tagging"
+fi
+pass "go vet clean across go-server/..."
 
 info "Gate 9: Quality gates (R009/R010/R011)"
 GATE9_FAILED=0
