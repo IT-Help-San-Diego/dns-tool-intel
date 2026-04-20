@@ -83,10 +83,11 @@ func SecurityHeaders(isDev ...bool) gin.HandlerFunc {
                 const cspHeader = "Content-Security-Policy"
                 if strings.HasPrefix(c.Request.URL.Path, "/static/") {
                         c.Header("X-Content-Type-Options", "nosniff")
+                        c.Header("X-Frame-Options", "DENY")
                         if strings.HasSuffix(c.Request.URL.Path, ".svg") {
-                                c.Header(cspHeader, "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                                c.Header(cspHeader, "default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
                         } else {
-                                c.Header(cspHeader, "default-src 'none'; style-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'")
+                                c.Header(cspHeader, "default-src 'none'; style-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
                         }
                         c.Next()
                         return
@@ -121,7 +122,16 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                 }
         }
         if !devMode {
+                // HSTS is also emitted by the Replit edge proxy in production.
+                // Keeping the app-side header makes the policy explicit and survives
+                // any edge change. Browsers de-duplicate identical HSTS values; we
+                // align both to the preload variant so duplicates collapse.
                 c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+                // CSP / NEL violation reporting endpoint group. The legacy Report-To
+                // header is required for Reporting API v0 (Chrome <94), and the
+                // modern Reporting-Endpoints header for v1 (Chrome ≥94, Firefox).
+                c.Header("Reporting-Endpoints", `csp="/api/csp-report"`)
+                c.Header("Report-To", `{"group":"csp","max_age":10886400,"endpoints":[{"url":"/api/csp-report"}],"include_subdomains":true}`)
         }
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
         c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
@@ -168,7 +178,11 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
 
         upgradeDirective := ""
         if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
-                upgradeDirective = "upgrade-insecure-requests;"
+                upgradeDirective = "upgrade-insecure-requests; "
+        }
+        reportDirective := ""
+        if !devMode {
+                reportDirective = "report-to csp; report-uri /api/csp-report;"
         }
 
         styleSrc := fmt.Sprintf("style-src 'self' 'nonce-%s'; ", nonceStr)
@@ -191,13 +205,20 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
                         "%s"+
                         "media-src 'self'; "+
                         "worker-src 'self'; "+
-                        "%s",
-                scriptSrc, styleSrc, connectSrc, frameAncestors, frameSrc, upgradeDirective,
+                        "%s%s",
+                scriptSrc, styleSrc, connectSrc, frameAncestors, frameSrc, upgradeDirective, reportDirective,
         )
 }
 
+// replitWidgetCSP gates the Replit dev-banner allowlist
+// (https://replit.com / https://*.replit.com) in script-src, connect-src, and
+// frame-src. Historically this was tied to REPLIT_DEPLOYMENT, but that env
+// var is set in BOTH dev and the published deployment, leaking the wildcard
+// into production where no Replit script actually loads in the rendered HTML.
+// Now gated explicitly: only when REPLIT_DEV_BANNER=1 (set in the dev
+// workflow, NOT in the published deployment) does the allowlist appear.
 func replitWidgetCSP() bool {
-        return os.Getenv("REPLIT_DEPLOYMENT") != ""
+        return os.Getenv("REPLIT_DEV_BANNER") == "1"
 }
 
 func Recovery(appVersion string, opts ...map[string]any) gin.HandlerFunc {

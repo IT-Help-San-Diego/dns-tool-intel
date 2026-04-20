@@ -139,7 +139,53 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
                 options.OnPhaseProgress("analysis_engine", "done", engineDurMs)
         }
 
+        annotatePrivateIPWarning(results)
+
         return results
+}
+
+// annotatePrivateIPWarning surfaces a compensating-control signal when the
+// analyzed domain resolves to RFC1918 / loopback / link-local / cloud-metadata
+// IP space. A hostile or misconfigured zone could publish such records and
+// trick downstream tooling into probing internal infrastructure (Qualys WAS
+// QID 150258 — "Possible Server Side Request Forgery (SSRF)" raised once per
+// analysis endpoint). We do NOT block the analysis — refusing to audit
+// private-IP zones would cripple the tool's stated purpose for users running
+// internal DNS — but we do attach a structured warning so the UI / API
+// consumers can render it and so audit reviewers see the control exists.
+func annotatePrivateIPWarning(results map[string]any) {
+        ips := extractIPsFromResults(results)
+        if len(ips) == 0 {
+                return
+        }
+        var private []string
+        for _, ip := range ips {
+                if IsPrivateIP(ip) || isCloudMetadataIP(ip) {
+                        private = append(private, ip)
+                }
+        }
+        if len(private) == 0 {
+                return
+        }
+        results["private_ip_warning"] = map[string]any{
+                "status":    "warning",
+                "category":  "ssrf_compensating_control",
+                "ips":       private,
+                "message":   "Domain resolves to private, loopback, link-local, or cloud-metadata IP space. This is unusual on the public internet and may indicate split-horizon DNS leakage or an attempt to coerce downstream tooling into probing internal infrastructure.",
+                "reference": "RFC 1918, RFC 6890; cloud metadata: 169.254.169.254 (AWS/GCP/Azure IMDS).",
+        }
+}
+
+// isCloudMetadataIP returns true for the link-local addresses used by major
+// cloud providers' instance-metadata services. IsPrivateIP already covers the
+// 169.254.0.0/16 range via IsLinkLocalUnicast, but we keep this helper as a
+// named, citable check that survives any future refactor of IsPrivateIP.
+func isCloudMetadataIP(ip string) bool {
+        switch ip {
+        case "169.254.169.254", "fd00:ec2::254":
+                return true
+        }
+        return false
 }
 
 func (a *Analyzer) acquireSlot(domain string) map[string]any {

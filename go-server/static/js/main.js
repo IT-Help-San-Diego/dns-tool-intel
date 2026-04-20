@@ -931,12 +931,13 @@ function handleAnalyzeLinkClick(e) {
 
 function privacyWasDismissed() {
     try { if (localStorage.getItem('privacyAck') === '1') return true; } catch(_e) { /* storage unavailable */ } // NOSONAR
-    try { if (document.cookie.indexOf('privacyAck=1') !== -1) return true; } catch(_e) { /* cookie unavailable */ } // NOSONAR
     return false;
 }
 function persistPrivacyDismiss() {
     try { localStorage.setItem('privacyAck', '1'); } catch(_e) { /* storage unavailable */ } // NOSONAR
-    try { document.cookie = 'privacyAck=1;path=/;max-age=31536000;SameSite=Lax'; } catch(_e) { /* cookie unavailable */ } // NOSONAR
+    // Cookie fallback removed (Qualys QID 150122/150123): the JS-set cookie
+    // could not carry HttpOnly/Secure attributes. localStorage is universally
+    // available in supported browsers; no fallback needed.
 }
 function initPrivacyBanner() {
     const banner = document.getElementById('privacyBanner');
@@ -978,6 +979,7 @@ function stopGlobeAnimation() {
 function initGlobeMotion() {
     const GC = globalThis.GlobeCore;
     if (!GC) return;
+    const DEG = GC.DEG;
     const RESOLVER_POPS = GC.RESOLVER_POPS;
     const OWN_PROBES = GC.OWN_PROBES;
 

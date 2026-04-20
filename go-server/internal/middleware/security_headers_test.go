@@ -43,8 +43,13 @@ func TestSecurityHeadersStaticPath(t *testing.T) {
         if !strings.Contains(csp, "style-src 'none'") {
                 t.Error("non-SVG static CSP should contain style-src 'none'")
         }
-        if w.Header().Get("X-Frame-Options") != "" {
-                t.Error("static paths should not have X-Frame-Options")
+        // Static paths now emit X-Frame-Options: DENY and frame-ancestors 'none'
+        // (Qualys QID 150124 — Clickjacking on framable static asset paths).
+        if got := w.Header().Get("X-Frame-Options"); got != "DENY" {
+                t.Errorf("static paths should have X-Frame-Options: DENY, got %q", got)
+        }
+        if !strings.Contains(csp, "frame-ancestors 'none'") {
+                t.Error("static CSP should contain frame-ancestors 'none'")
         }
 }
 

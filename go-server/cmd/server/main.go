@@ -7,6 +7,7 @@ import (
         "context"
         "fmt"
         "html/template"
+        "io"
         "log/slog"
         "mime"
         "net/http"
@@ -332,11 +333,32 @@ func mountStaticFiles(router *gin.Engine) {
         fileServer := http.StripPrefix("/static", http.FileServer(staticFS))
         serveStatic := func(c *gin.Context) {
                 fp := c.Param("filepath")
+                // Block directory listing. http.FileServer would otherwise render
+                // an HTML index for trailing-slash paths and any directory whose
+                // name has no extension, leaking the file tree structure (Qualys
+                // QID 150124, CWE-451/829/1021 — "Clickjacking — Framable Page"
+                // fired on /static/, /static/css/, /static/js/, etc.). Files
+                // themselves still serve normally.
+                if fp == "" || fp == "/" || strings.HasSuffix(fp, "/") {
+                        c.Status(http.StatusNotFound)
+                        return
+                }
                 if isStaticAsset(fp) {
                         if strings.Contains(c.Request.URL.RawQuery, "v=") {
                                 c.Header(headerCacheControl, "public, max-age=31536000, immutable")
                         } else {
                                 c.Header(headerCacheControl, "public, max-age=86400")
+                        }
+                } else if filepath.Ext(fp) == "" {
+                        // Path has no file extension — treat as directory and refuse.
+                        // Real extensionless files we want to serve (robots.txt,
+                        // llms.txt, sw.js, manifest.json) all have extensions, so this
+                        // is safe. The /.well-known/ tree is exposed via dedicated
+                        // routes, not via the static catch-all.
+                        absPath := filepath.Join(staticDir, filepath.Clean("/"+fp))
+                        if info, err := os.Stat(absPath); err == nil && info.IsDir() {
+                                c.Status(http.StatusNotFound)
+                                return
                         }
                 }
                 fileServer.ServeHTTP(c.Writer, c.Request)
@@ -439,6 +461,7 @@ func registerCoreRoutes(router *gin.Engine, home *handlers.HomeHandler, health *
         router.HEAD("/healthz", health.Healthz)
         router.GET("/api/capacity", health.Capacity)
         router.GET("/go/health", middleware.RequireAdmin(), health.HealthCheck)
+        router.POST("/api/csp-report", cspReportHandler)
 
         router.GET("/.well-known/security.txt", static.SecurityTxt)
         router.GET("/security.txt", static.SecurityTxt)
@@ -794,6 +817,33 @@ func findStaticDir() string {
         }
         slog.Warn("Static directory not found, using default")
         return "static"
+}
+
+// cspReportHandler receives CSP / NEL violation reports from browsers.
+// Wired to the Reporting-Endpoints + Report-To headers and the CSP
+// `report-to` / `report-uri` directives set in the security middleware.
+// CSP report bodies are bounded (the browser will not send anything huge),
+// but cap the read at 32 KiB to be defensive. Already CSRF-exempt via the
+// /api/ prefix in middleware/csrf.go. Returns 204 unconditionally — failure
+// to log a CSP report must never break the violating page.
+func cspReportHandler(c *gin.Context) {
+        const maxReportBytes = 32 * 1024
+        body, err := io.ReadAll(io.LimitReader(c.Request.Body, maxReportBytes))
+        if err != nil {
+                slog.Warn("csp-report read error", "error", err, "remote", c.ClientIP())
+                c.Status(http.StatusNoContent)
+                return
+        }
+        if len(body) > 0 {
+                slog.Info("csp-report",
+                        "size", len(body),
+                        "ua", c.Request.UserAgent(),
+                        "remote", c.ClientIP(),
+                        "content_type", c.GetHeader("Content-Type"),
+                        "body", string(body),
+                )
+        }
+        c.Status(http.StatusNoContent)
 }
 
 func startScheduledSync(ctx context.Context) {
