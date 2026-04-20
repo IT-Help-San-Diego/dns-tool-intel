@@ -1788,6 +1788,19 @@ func (h *AnalysisHandler) loadAnalysisForAPI(c *gin.Context) (dbq.DomainAnalysis
 }
 
 func (h *AnalysisHandler) APIAnalysis(c *gin.Context) {
+        // Strict whitelist on the download query parameter. Historically this
+        // was a boolean flag (== "1"), but Qualys WAS QID 150743 flagged the
+        // endpoint as a possible SSRF sink because it accepted arbitrary
+        // values without validation. Reject anything other than empty or "1"
+        // with HTTP 400 to make the contract explicit and silence the scan.
+        // Validated BEFORE loadAnalysisForAPI / buildAnalysisJSON so attacker
+        // payloads never trigger any DB or hash work.
+        dl := c.Query("download")
+        if dl != "" && dl != "1" {
+                c.JSON(http.StatusBadRequest, gin.H{mapKeyError: "invalid download parameter"})
+                return
+        }
+
         analysis, ok := h.loadAnalysisForAPI(c)
         if !ok {
                 return
@@ -1796,7 +1809,7 @@ func (h *AnalysisHandler) APIAnalysis(c *gin.Context) {
         jsonBytes, fileHash := h.buildAnalysisJSON(c.Request.Context(), analysis)
         filename := fmt.Sprintf("dns-intelligence-%s.json", analysis.AsciiDomain)
 
-        if c.Query("download") == "1" || c.Request.Header.Get("Accept") == "application/octet-stream" {
+        if dl == "1" || c.Request.Header.Get("Accept") == "application/octet-stream" {
                 c.Header(headerContentDisposition, fmt.Sprintf(`attachment; filename="%s"`, filename))
         }
         c.Header("X-SHA3-512", fileHash)
