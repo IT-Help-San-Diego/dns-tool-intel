@@ -979,7 +979,6 @@ function stopGlobeAnimation() {
 function initGlobeMotion() {
     const GC = globalThis.GlobeCore;
     if (!GC) return;
-    const DEG = GC.DEG;
     const RESOLVER_POPS = GC.RESOLVER_POPS;
     const OWN_PROBES = GC.OWN_PROBES;
 
