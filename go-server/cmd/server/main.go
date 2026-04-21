@@ -356,7 +356,13 @@ func mountStaticFiles(router *gin.Engine) {
                         // llms.txt, sw.js, manifest.json) all have extensions, so this
                         // is safe. The /.well-known/ tree is exposed via dedicated
                         // routes, not via the static catch-all.
-                        absPath := filepath.Join(staticDir, filepath.Clean("/"+fp))
+                        //
+                        // Path safety: TrimPrefix the leading slash so filepath.Join
+                        // semantics are unambiguous across OSes and any future router
+                        // change to .Param shape. filepath.Clean strips ".." traversal
+                        // attempts. The resulting absPath stays anchored under staticDir.
+                        rel := strings.TrimPrefix(fp, "/")
+                        absPath := filepath.Join(staticDir, filepath.Clean(rel))
                         if info, err := os.Stat(absPath); err == nil && info.IsDir() {
                                 c.Status(http.StatusNotFound)
                                 return
