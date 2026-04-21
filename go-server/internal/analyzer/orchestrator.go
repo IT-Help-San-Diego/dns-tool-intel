@@ -153,13 +153,19 @@ func (a *Analyzer) AnalyzeDomain(ctx context.Context, domain string, customDKIMS
 // private-IP zones would cripple the tool's stated purpose for users running
 // internal DNS — but we do attach a structured warning so the UI / API
 // consumers can render it and so audit reviewers see the control exists.
+//
+// Coverage: ALL A and AAAA records on the apex are evaluated (no cap), so a
+// zone that publishes one public + one private address still trips the
+// warning. The dedicated walk avoids the 2-IP cap in extractIPsFromResults
+// (which exists for IP-investigation neighborhood limits, unrelated to SSRF).
 func annotatePrivateIPWarning(results map[string]any) {
-        ips := extractIPsFromResults(results)
-        if len(ips) == 0 {
-                return
-        }
         var private []string
-        for _, ip := range ips {
+        seen := map[string]bool{}
+        for _, ip := range collectAllResolvedIPs(results) {
+                if seen[ip] {
+                        continue
+                }
+                seen[ip] = true
                 if IsPrivateIP(ip) || isCloudMetadataIP(ip) {
                         private = append(private, ip)
                 }
@@ -174,6 +180,33 @@ func annotatePrivateIPWarning(results map[string]any) {
                 "message":   "Domain resolves to private, loopback, link-local, or cloud-metadata IP space. This is unusual on the public internet and may indicate split-horizon DNS leakage or an attempt to coerce downstream tooling into probing internal infrastructure.",
                 "reference": "RFC 1918, RFC 6890; cloud metadata: 169.254.169.254 (AWS/GCP/Azure IMDS).",
         }
+}
+
+// collectAllResolvedIPs walks results["basic_records"] and pulls every A and
+// AAAA address (no cap). Returns nil-safe on missing/typed-otherwise data.
+func collectAllResolvedIPs(results map[string]any) []string {
+        basic, ok := results["basic_records"].(map[string]any)
+        if !ok {
+                return nil
+        }
+        var out []string
+        for _, key := range []string{"A", "a", "AAAA", "aaaa"} {
+                rec, ok := basic[key]
+                if !ok {
+                        continue
+                }
+                switch v := rec.(type) {
+                case []string:
+                        out = append(out, v...)
+                case []any:
+                        for _, item := range v {
+                                if s, ok := item.(string); ok {
+                                        out = append(out, s)
+                                }
+                        }
+                }
+        }
+        return out
 }
 
 // isCloudMetadataIP returns true for the link-local addresses used by major

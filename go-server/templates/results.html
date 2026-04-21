@@ -220,6 +220,24 @@
             </div>
         </div>
 
+        {{/* Private-IP / SSRF compensating-control warning. Surfaces when
+             the analyzed apex resolves to RFC1918, loopback, link-local, or
+             cloud-metadata space (Qualys WAS QID 150258 audit-reviewer
+             control). Source: analyzer/orchestrator.go annotatePrivateIPWarning. */}}
+        {{$privIPWarn := mapGetMap "private_ip_warning" $results}}
+        {{if $privIPWarn}}
+        <div class="alert alert-warning d-flex align-items-start mb-4 screen-only" role="alert" aria-live="polite">
+            <div class="me-2 mt-1">{{icon "exclamation-triangle"}}</div>
+            <div>
+                <div class="fw-semibold mb-1">Private / Internal IP Resolution Detected</div>
+                <div class="small mb-1">{{mapGetStr "message" $privIPWarn}}</div>
+                {{$privIPs := mapGetSlice "ips" $privIPWarn}}
+                {{if $privIPs}}<div class="small font-monospace mb-1">Addresses: {{range $i, $ip := $privIPs}}{{if $i}}, {{end}}{{$ip}}{{end}}</div>{{end}}
+                <div class="small text-muted">{{mapGetStr "reference" $privIPWarn}}</div>
+            </div>
+        </div>
+        {{end}}
+
         <!-- Screen Header -->
         <div class="results-header mb-4 screen-only">
             <div class="results-header-info">

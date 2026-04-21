@@ -339,9 +339,8 @@ func TestSecurityHeadersPresent(t *testing.T) {
         }
 
         checks := map[string]string{
-                "X-Content-Type-Options":    "nosniff",
-                "X-Frame-Options":           "DENY",
-                "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+                "X-Content-Type-Options": "nosniff",
+                "X-Frame-Options":        "DENY",
         }
 
         for header, expected := range checks {
@@ -349,6 +348,13 @@ func TestSecurityHeadersPresent(t *testing.T) {
                 if got != expected {
                         t.Errorf("expected %s: %s, got: %s", header, expected, got)
                 }
+        }
+
+        // HSTS is intentionally NOT emitted by app middleware — the Replit
+        // edge is the sole authority to avoid duplicate Strict-Transport-Security
+        // headers. See middleware.go for the restore path on non-Replit hosting.
+        if hsts := w.Header().Get("Strict-Transport-Security"); hsts != "" {
+                t.Errorf("Strict-Transport-Security must not be set by app (edge-only); got: %s", hsts)
         }
 
         csp := w.Header().Get("Content-Security-Policy")

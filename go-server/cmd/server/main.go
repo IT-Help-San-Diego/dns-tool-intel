@@ -5,6 +5,7 @@ package main
 
 import (
         "context"
+        "encoding/json"
         "fmt"
         "html/template"
         "io"
@@ -826,6 +827,13 @@ func findStaticDir() string {
 // but cap the read at 32 KiB to be defensive. Already CSRF-exempt via the
 // /api/ prefix in middleware/csrf.go. Returns 204 unconditionally — failure
 // to log a CSP report must never break the violating page.
+//
+// Body shapes accepted (browser dependent):
+//   - report-uri legacy:  { "csp-report": { "violated-directive": ..., ... } }
+//   - Reporting API v1:   [ { "type": "csp-violation", "body": { ... } }, ... ]
+//
+// We try to extract the most useful structured fields for slog and fall back
+// to the raw payload if neither shape parses.
 func cspReportHandler(c *gin.Context) {
         const maxReportBytes = 32 * 1024
         body, err := io.ReadAll(io.LimitReader(c.Request.Body, maxReportBytes))
@@ -834,16 +842,76 @@ func cspReportHandler(c *gin.Context) {
                 c.Status(http.StatusNoContent)
                 return
         }
-        if len(body) > 0 {
-                slog.Info("csp-report",
-                        "size", len(body),
-                        "ua", c.Request.UserAgent(),
-                        "remote", c.ClientIP(),
-                        "content_type", c.GetHeader("Content-Type"),
-                        "body", string(body),
-                )
+        if len(body) == 0 {
+                c.Status(http.StatusNoContent)
+                return
         }
+        logCSPReport(body, c.Request.UserAgent(), c.ClientIP(), c.GetHeader("Content-Type"))
         c.Status(http.StatusNoContent)
+}
+
+func logCSPReport(body []byte, ua, remote, ct string) {
+        base := []any{
+                "event", "csp_report",
+                "category", "security",
+                "size", len(body),
+                "ua", ua,
+                "remote", remote,
+                "content_type", ct,
+        }
+        // Try Reporting API v1 first: top-level JSON array.
+        var arr []map[string]any
+        if err := json.Unmarshal(body, &arr); err == nil {
+                for _, rep := range arr {
+                        repBody, _ := rep["body"].(map[string]any)
+                        slog.Info("csp-report",
+                                append(base,
+                                        "report_type", rep["type"],
+                                        "url", rep["url"],
+                                        "violated_directive", csprStr(repBody, "effectiveDirective", "violatedDirective"),
+                                        "blocked_uri", csprStr(repBody, "blockedURL", "blockedURI"),
+                                        "document_uri", csprStr(repBody, "documentURL", "documentURI"),
+                                        "source_file", csprStr(repBody, "sourceFile"),
+                                        "line", repBody["lineNumber"],
+                                        "disposition", csprStr(repBody, "disposition"),
+                                )...,
+                        )
+                }
+                return
+        }
+        // Fall back to legacy report-uri envelope: { "csp-report": {...} }.
+        var legacy map[string]any
+        if err := json.Unmarshal(body, &legacy); err == nil {
+                rep, _ := legacy["csp-report"].(map[string]any)
+                if rep != nil {
+                        slog.Info("csp-report",
+                                append(base,
+                                        "report_type", "csp-violation",
+                                        "violated_directive", csprStr(rep, "effective-directive", "violated-directive"),
+                                        "blocked_uri", csprStr(rep, "blocked-uri"),
+                                        "document_uri", csprStr(rep, "document-uri"),
+                                        "source_file", csprStr(rep, "source-file"),
+                                        "line", rep["line-number"],
+                                        "disposition", csprStr(rep, "disposition"),
+                                )...,
+                        )
+                        return
+                }
+        }
+        // Unknown shape — log raw body bounded by the read cap above.
+        slog.Info("csp-report", append(base, "report_type", "unknown", "body", string(body))...)
+}
+
+// csprStr returns the first non-empty string value for any of the candidate
+// keys. CSP report payloads use slightly different field names across browser
+// versions and report formats.
+func csprStr(m map[string]any, keys ...string) string {
+        for _, k := range keys {
+                if v, ok := m[k].(string); ok && v != "" {
+                        return v
+                }
+        }
+        return ""
 }
 
 func startScheduledSync(ctx context.Context) {

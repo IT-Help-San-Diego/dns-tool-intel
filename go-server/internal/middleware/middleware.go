@@ -122,11 +122,15 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                 }
         }
         if !devMode {
-                // HSTS is also emitted by the Replit edge proxy in production.
-                // Keeping the app-side header makes the policy explicit and survives
-                // any edge change. Browsers de-duplicate identical HSTS values; we
-                // align both to the preload variant so duplicates collapse.
-                c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+                // HSTS is intentionally NOT emitted here. The Replit edge proxy
+                // already injects `Strict-Transport-Security: max-age=63072000;
+                // includeSubDomains; preload` on every TLS response. Emitting it
+                // twice causes Mozilla Observatory and some scanners to flag a
+                // duplicate header; deferring entirely to the edge keeps a single
+                // authoritative source. If the deployment ever moves off the
+                // Replit edge, restore the line below.
+                // c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+
                 // CSP / NEL violation reporting endpoint group. The legacy Report-To
                 // header is required for Reporting API v0 (Chrome <94), and the
                 // modern Reporting-Endpoints header for v1 (Chrome ≥94, Firefox).
