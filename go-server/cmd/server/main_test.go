@@ -1,6 +1,7 @@
 package main
 
 import (
+        "bytes"
         "context"
         "net/http"
         "net/http/httptest"
@@ -10,8 +11,119 @@ import (
         "testing"
         "time"
 
+        "dnstool/go-server/internal/middleware"
+
         "github.com/gin-gonic/gin"
 )
+
+// setupStaticRouter chdirs to a fresh tempdir, creates a `static` tree
+// containing the assets the tests expect, mounts the production static
+// handlers, and applies SecurityHeaders so X-Frame-Options behavior can be
+// asserted end-to-end.
+func setupStaticRouter(t *testing.T) *gin.Engine {
+        t.Helper()
+        gin.SetMode(gin.TestMode)
+
+        origDir, err := os.Getwd()
+        if err != nil {
+                t.Fatal(err)
+        }
+        t.Cleanup(func() { _ = os.Chdir(origDir) })
+
+        tmp := t.TempDir()
+        for _, sub := range []string{"static/css", "static/js", "static/icons", "static/images"} {
+                if err := os.MkdirAll(filepath.Join(tmp, sub), 0o755); err != nil {
+                        t.Fatal(err)
+                }
+        }
+        if err := os.WriteFile(filepath.Join(tmp, "static", "js", "main.js"), []byte("/*main*/"), 0o644); err != nil {
+                t.Fatal(err)
+        }
+        if err := os.WriteFile(filepath.Join(tmp, "static", "css", "custom.css"), []byte("body{}"), 0o644); err != nil {
+                t.Fatal(err)
+        }
+        if err := os.Chdir(tmp); err != nil {
+                t.Fatal(err)
+        }
+
+        router := gin.New()
+        router.Use(middleware.SecurityHeaders(false))
+        mountStaticFiles(router)
+        return router
+}
+
+func TestMountStaticFiles_RootDirectoryReturns404(t *testing.T) {
+        router := setupStaticRouter(t)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/static/", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("GET /static/ = %d, want 404", w.Code)
+        }
+}
+
+func TestMountStaticFiles_SubDirectoryReturns404(t *testing.T) {
+        router := setupStaticRouter(t)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/static/css/", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNotFound {
+                t.Errorf("GET /static/css/ = %d, want 404", w.Code)
+        }
+}
+
+func TestMountStaticFiles_FileServesWithFrameDeny(t *testing.T) {
+        router := setupStaticRouter(t)
+
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("GET", "/static/js/main.js", nil)
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusOK {
+                t.Errorf("GET /static/js/main.js = %d, want 200", w.Code)
+        }
+        if got := w.Header().Get("X-Frame-Options"); got != "DENY" {
+                t.Errorf("X-Frame-Options = %q, want DENY", got)
+        }
+}
+
+func TestCSPReportHandler_ValidBody(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        router := gin.New()
+        router.POST("/api/csp-report", cspReportHandler)
+
+        body := []byte(`{"csp-report":{"violated-directive":"script-src","blocked-uri":"https://evil.example/"}}`)
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("POST", "/api/csp-report", bytes.NewReader(body))
+        req.Header.Set("Content-Type", "application/csp-report")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNoContent {
+                t.Errorf("POST /api/csp-report (valid) = %d, want 204", w.Code)
+        }
+}
+
+func TestCSPReportHandler_OversizedBodyCapped(t *testing.T) {
+        gin.SetMode(gin.TestMode)
+        router := gin.New()
+        router.POST("/api/csp-report", cspReportHandler)
+
+        // 64 KiB of payload — must still return 204; the handler caps the
+        // read at 32 KiB and never propagates an error to the browser.
+        big := bytes.Repeat([]byte("A"), 64*1024)
+        w := httptest.NewRecorder()
+        req := httptest.NewRequest("POST", "/api/csp-report", bytes.NewReader(big))
+        req.Header.Set("Content-Type", "application/csp-report")
+        router.ServeHTTP(w, req)
+
+        if w.Code != http.StatusNoContent {
+                t.Errorf("POST /api/csp-report (oversized) = %d, want 204", w.Code)
+        }
+}
 
 func TestIsStaticAsset(t *testing.T) {
         trueTests := []string{
