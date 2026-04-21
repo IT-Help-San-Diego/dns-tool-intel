@@ -223,19 +223,36 @@
         {{/* Private-IP / SSRF compensating-control warning. Surfaces when
              the analyzed apex resolves to RFC1918, loopback, link-local, or
              cloud-metadata space (Qualys WAS QID 150258 audit-reviewer
-             control). Source: analyzer/orchestrator.go annotatePrivateIPWarning. */}}
+             control). Source: analyzer/orchestrator.go annotatePrivateIPWarning.
+             Renders in BOTH screen and print so audit reviewers see the control
+             in exported PDFs. Custom callout (private-ip-callout) instead of a
+             generic Bootstrap alert to make the compensating control visually
+             unmissable. */}}
         {{$privIPWarn := mapGetMap "private_ip_warning" $results}}
         {{if $privIPWarn}}
-        <div class="alert alert-warning d-flex align-items-start mb-4 screen-only" role="alert" aria-live="polite">
-            <div class="me-2 mt-1">{{icon "exclamation-triangle"}}</div>
-            <div>
-                <div class="fw-semibold mb-1">Private / Internal IP Resolution Detected</div>
-                <div class="small mb-1">{{mapGetStr "message" $privIPWarn}}</div>
+        <aside class="private-ip-callout mb-4" role="alert" aria-live="polite" aria-labelledby="privIpCalloutTitle">
+            <div class="private-ip-callout-icon" aria-hidden="true">{{icon "exclamation-triangle"}}</div>
+            <div class="private-ip-callout-body">
+                <div class="private-ip-callout-header">
+                    <span class="private-ip-callout-badge">SSRF Compensating Control</span>
+                    <h2 id="privIpCalloutTitle" class="private-ip-callout-title">Private / Internal IP Resolution Detected</h2>
+                </div>
+                <p class="private-ip-callout-message">{{mapGetStr "message" $privIPWarn}}</p>
                 {{$privIPs := mapGetSlice "ips" $privIPWarn}}
-                {{if $privIPs}}<div class="small font-monospace mb-1">Addresses: {{range $i, $ip := $privIPs}}{{if $i}}, {{end}}{{$ip}}{{end}}</div>{{end}}
-                <div class="small text-muted">{{mapGetStr "reference" $privIPWarn}}</div>
+                {{if $privIPs}}
+                <div class="private-ip-callout-addresses">
+                    <span class="private-ip-callout-addresses-label">Addresses:</span>
+                    <span class="private-ip-callout-addresses-list">{{range $i, $ip := $privIPs}}{{if $i}}, {{end}}{{$ip}}{{end}}</span>
+                </div>
+                {{end}}
+                <div class="private-ip-callout-refs">
+                    <span class="private-ip-callout-ref-chip">RFC 1918</span>
+                    <span class="private-ip-callout-ref-chip">RFC 6890</span>
+                    <span class="private-ip-callout-ref-chip">Cloud Metadata 169.254.169.254</span>
+                </div>
+                <p class="private-ip-callout-citation">{{mapGetStr "reference" $privIPWarn}}</p>
             </div>
-        </div>
+        </aside>
         {{end}}
 
         <!-- Screen Header -->
