@@ -13,7 +13,7 @@ dependencies = [
     "cffconvert>=2.0.0",
     "fonttools>=4.62.1",
     "git-filter-repo>=2.47.0",
-    "lxml>=6.0.4",
+    "lxml>=6.1.0",
     "netaddr>=1.3.0",
     "pillow==12.2.0",
     "pykwalify>=1.8.0",
