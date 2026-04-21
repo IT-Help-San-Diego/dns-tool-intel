@@ -7,6 +7,7 @@ import (
         "context"
         "fmt"
         "log/slog"
+        "net"
         "strings"
         "sync"
         "time"
@@ -166,7 +167,7 @@ func annotatePrivateIPWarning(results map[string]any) {
                         continue
                 }
                 seen[ip] = true
-                if IsPrivateIP(ip) || isCloudMetadataIP(ip) {
+                if IsPrivateIP(ip) || isCloudMetadataIP(ip) || isCGNATIP(ip) {
                         private = append(private, ip)
                 }
         }
@@ -219,6 +220,24 @@ func isCloudMetadataIP(ip string) bool {
                 return true
         }
         return false
+}
+
+// isCGNATIP returns true for addresses in 100.64.0.0/10 (RFC 6598, Carrier-Grade
+// NAT shared address space). net.IP.IsPrivate() does NOT include this range, so
+// we check it explicitly for the SSRF compensating-control surface — a domain
+// resolving into CGNAT is just as anomalous on the public internet as one in
+// RFC1918 space and should trigger the same warning. Per Task #78 spec.
+func isCGNATIP(ip string) bool {
+        parsed := net.ParseIP(ip)
+        if parsed == nil {
+                return false
+        }
+        v4 := parsed.To4()
+        if v4 == nil {
+                return false
+        }
+        // 100.64.0.0/10 → first octet 100, second octet in [64, 127].
+        return v4[0] == 100 && v4[1] >= 64 && v4[1] <= 127
 }
 
 func (a *Analyzer) acquireSlot(domain string) map[string]any {
