@@ -264,7 +264,7 @@ CREATE TABLE drift_notifications (
 CREATE INDEX ix_drift_notifications_event ON drift_notifications (drift_event_id);
 CREATE INDEX ix_drift_notifications_status ON drift_notifications (status) WHERE status = 'pending';
 
--- ICuAE (Intelligence Currency Assurance Engine) tables
+-- ICuAE (Intelligence Currency Audit Engine) tables
 CREATE TABLE icuae_scan_scores (
     id SERIAL PRIMARY KEY,
     domain VARCHAR(255) NOT NULL,

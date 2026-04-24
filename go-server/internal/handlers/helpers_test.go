@@ -354,7 +354,7 @@ func TestRoadmapDataIntegrity(t *testing.T) {
 func TestRoadmapItemsNonEmpty(t *testing.T) {
         done := []RoadmapItem{
                 {Title: "Intelligence Confidence Audit Engine (ICAE)", Version: "129 Test Cases", Date: "Feb 2026", Type: "Feature"},
-                {Title: "Intelligence Currency Assurance Engine (ICuAE)", Version: "29 Test Cases", Date: "Feb 2026", Type: "Feature"},
+                {Title: "Intelligence Currency Audit Engine (ICuAE)", Version: "29 Test Cases", Date: "Feb 2026", Type: "Feature"},
         }
 
         for i, item := range done {

@@ -283,7 +283,7 @@ Five analytic perspectives encoded as a precision algorithm — the Intelligence
 
 ### Confidence Engine
 URL: `https://dnstool.it-help.tech/confidence`
-Dashboard for the dual confidence engines: ICAE (Intelligence Confidence Audit Engine — 129 deterministic tests across 9 protocols, five-tier maturity model) and ICuAE (Intelligence Currency Assurance Engine — 29 tests across 5 timeliness dimensions). Displays maturity levels, protocol-by-protocol results, statistical calibration parameters, and trend analysis. Audit log at `/confidence/audit-log`.
+Dashboard for the dual confidence engines: ICAE (Intelligence Confidence Audit Engine — 129 deterministic tests across 9 protocols, five-tier maturity model) and ICuAE (Intelligence Currency Audit Engine — 29 tests across 5 timeliness dimensions). Displays maturity levels, protocol-by-protocol results, statistical calibration parameters, and trend analysis. Audit log at `/confidence/audit-log`.
 
 ### Domain Dossier
 URL: `https://dnstool.it-help.tech/dossier`
@@ -598,7 +598,7 @@ DNS Tool's own domain (`dnstool.it-help.tech`) implements every protocol it audi
 When 99% of DNS checkers are simple scripts wrapped in marketing, anything deeper looks like it is trying too hard. That is the heuristic trap — pattern-matching against a low bar and treating the outlier as suspicious rather than serious. The criticism reveals the actual problem: DNS security has historically been under-engineered relative to what it actually requires. DNS Tool can be used as a simple checker — and it will give accurate results. The depth is there for when a simple check is not enough.
 
 ### On the Intelligence Community Framing
-The IC-style naming (ICAE — Intelligence Confidence Audit Engine, ICuAE — Intelligence Currency Assurance Engine, TLP classification) has been called "theatrical" when applied to DNS analysis. We address this directly.
+The IC-style naming (ICAE — Intelligence Confidence Audit Engine, ICuAE — Intelligence Currency Audit Engine, TLP classification) has been called "theatrical" when applied to DNS analysis. We address this directly.
 
 ICD 203 was designed for operators making high-stakes decisions on incomplete, potentially ambiguous data. Business Email Compromise is a $2.9 billion/year problem driven by SPF/DKIM/DMARC misconfiguration. When an engineer evaluates an SPF finding, they need structured confidence: was it observed directly or inferred? Confirmed across multiple resolvers or seen by one? Degraded by caching artifacts? ICD 203 provides that structure. The alternative — presenting every finding as equally certain — is what causes the alert fatigue that makes security tools useless.
 

@@ -29,9 +29,9 @@ Gin Router (go-server/cmd/server/main.go)
   │   └─ Provider Intelligence, IP Intel            │
   │                                                 │
   ├─ Intelligence Engines ──────────────────────────┤
-  │   ├─ ICIE (Integrated Confidence in Ingested Evidence) │
+  │   ├─ ICIE (Intelligence Classification & Interpretation Engine) │
   │   ├─ ICAE (Intelligence Confidence Audit Engine) │
-  │   └─ ICuAE (Intelligence Currency Assurance Engine) │
+  │   └─ ICuAE (Intelligence Currency Audit Engine) │
   │                                                 │
   └─ PostgreSQL ────────────────────────────────────┘
 ```

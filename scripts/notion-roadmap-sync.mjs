@@ -34,7 +34,7 @@ async function getNotionClient() {
 
 const ROADMAP_ITEMS = [
   { title: "Intelligence Confidence Audit Engine (ICAE)", status: "Done", type: "Feature", priority: "High", version: "129 Test Cases" },
-  { title: "Intelligence Currency Assurance Engine (ICuAE)", status: "Done", type: "Feature", priority: "High", version: "29 Test Cases" },
+  { title: "Intelligence Currency Audit Engine (ICuAE)", status: "Done", type: "Feature", priority: "High", version: "29 Test Cases" },
   { title: "Email Header Analyzer", status: "Done", type: "Feature", priority: "High", version: "v26.20.0+" },
   { title: "Drift Engine Phases 1–2", status: "Done", type: "Feature", priority: "High", version: "v26.19.40" },
   { title: "Architecture Page", status: "Done", type: "Feature", priority: "Medium", version: "v26.20.77–83" },
