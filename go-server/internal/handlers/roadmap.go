@@ -52,7 +52,7 @@ func (h *RoadmapHandler) Roadmap(c *gin.Context) {
 
         done := []RoadmapItem{
                 {Title: "Intelligence Confidence Audit Engine (ICAE)", Version: "129 Test Cases", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
-                {Title: "Intelligence Currency Assurance Engine (ICuAE)", Version: "29 Test Cases", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
+                {Title: "Intelligence Currency Audit Engine (ICuAE)", Version: "29 Test Cases", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Email Header Analyzer", Version: roadmapVersionV2620, Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Drift Engine Phases 1–2", Version: "v26.19.40", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},
                 {Title: "Architecture Page", Version: "v26.20.77–83", Date: roadmapDateFeb2026, Type: roadmapTypeFeature},

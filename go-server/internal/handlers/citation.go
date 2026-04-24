@@ -223,7 +223,7 @@ func (h *CitationHandler) ResearchAPI(c *gin.Context) {
                                 "protocols":        protocols,
                         },
                         "icuae": gin.H{
-                                "name":             "Intelligence Currency Assurance Engine",
+                                "name":             "Intelligence Currency Audit Engine",
                                 "total_cases":      icuaeInv.TotalCases,
                                 "total_dimensions": icuaeInv.TotalDimensions,
                                 "categories":       icuaeCategories,

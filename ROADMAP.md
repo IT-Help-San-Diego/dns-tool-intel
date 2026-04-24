@@ -9,7 +9,7 @@
 | Feature | Version | Completion Date |
 |---------|---------|-----------------|
 | Intelligence Confidence Audit Engine (ICAE) | 129 Test Cases | Feb 2026 |
-| Intelligence Currency Assurance Engine (ICuAE) | 29 Test Cases | Feb 2026 |
+| Intelligence Currency Audit Engine (ICuAE) | 29 Test Cases | Feb 2026 |
 | Email Header Analyzer (Multi-Format, Spoofing Detection, Scam Analysis) | v26.20.0+ | Feb 2026 |
 | Drift Engine Phases 1–2 (Posture Hashing, Structured Diff, Drift Alert UX) | v26.19.40 | Feb 2026 |
 | Architecture Page with Mermaid Diagrams | v26.20.77–83 | Feb 2026 |
