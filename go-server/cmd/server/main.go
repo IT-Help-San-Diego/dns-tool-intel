@@ -644,20 +644,39 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         commStdsHandler := contentpkg.NewCommunicationStandardsHandler(cfg, tdf)
         router.GET("/communication-standards", commStdsHandler.CommunicationStandards)
 
+        // Legacy named PDF routes — canonical citation URLs (Zenodo DOI
+        // 10.5281/zenodo.19468134, JSON-LD on /corpus). Each registers GET + HEAD
+        // so that link checkers, social-card preview bots, and curl -I (which
+        // issues HEAD by default) get a 200 instead of falling through to NoRoute
+        // and rendering a 404. The handlers themselves are method-agnostic —
+        // http.ServeFile honors HEAD by writing only headers.
         router.GET("/methodology", static.MethodologyPDF)
+        router.HEAD("/methodology", static.MethodologyPDF)
         router.GET("/docs/dns-tool-methodology.pdf", static.MethodologyPDF)
+        router.HEAD("/docs/dns-tool-methodology.pdf", static.MethodologyPDF)
         router.GET("/foundations", static.FoundationsPDF)
+        router.HEAD("/foundations", static.FoundationsPDF)
         router.GET("/docs/philosophical-foundations.pdf", static.FoundationsPDF)
+        router.HEAD("/docs/philosophical-foundations.pdf", static.FoundationsPDF)
         router.GET("/manifesto-pdf", static.ManifestoPDF)
+        router.HEAD("/manifesto-pdf", static.ManifestoPDF)
         router.GET("/docs/founders-manifesto.pdf", static.ManifestoPDF)
+        router.HEAD("/docs/founders-manifesto.pdf", static.ManifestoPDF)
         router.GET("/communication-standards-pdf", static.CommStandardsPDF)
+        router.HEAD("/communication-standards-pdf", static.CommStandardsPDF)
         router.GET("/docs/communication-standards.pdf", static.CommStandardsPDF)
+        router.HEAD("/docs/communication-standards.pdf", static.CommStandardsPDF)
 
         router.GET("/docs/owl-semaphore-system.pdf", static.OwlSemaphoreSystemPDF)
+        router.HEAD("/docs/owl-semaphore-system.pdf", static.OwlSemaphoreSystemPDF)
         router.GET("/docs/owl-1-normative.pdf", static.Owl1NormativePDF)
+        router.HEAD("/docs/owl-1-normative.pdf", static.Owl1NormativePDF)
         router.GET("/docs/owl-2-non-normative.pdf", static.Owl2NonNormativePDF)
+        router.HEAD("/docs/owl-2-non-normative.pdf", static.Owl2NonNormativePDF)
         router.GET("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
+        router.HEAD("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
         router.GET("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
+        router.HEAD("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
 
         // Versioned PDF route: /docs/v<AppVersion>/<filename>.pdf
         // Used by the corpus UI to bypass any prior edge-cache poisoning of
