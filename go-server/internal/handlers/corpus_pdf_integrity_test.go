@@ -119,15 +119,22 @@ var corpusPDFExpectations = []corpusPDFExpectation{
         },
 }
 
-// nonCorpusDocsPDFs WAS the allowlist for dev/test scratch PDFs that
-// shipped in static/docs/ alongside the published corpus. As of
-// v26.46.22 those 13 artifacts (palette swatches, transparent-test
-// variants, NEW-BADGE drafts, owl-seal layer tests) were deleted from
-// both static trees. The map is intentionally kept empty so the
-// completeness subtest below stays a strict whitelist: any *.pdf in
-// static/docs/ that is not in corpusPDFExpectations now fails the
-// audit.
-var nonCorpusDocsPDFs = map[string]bool{}
+// nonCorpusDocsPDFs is the allowlist for *.pdf files in static/docs/
+// that are part of the published corpus UI but do NOT carry the
+// standard Owl Semaphore classification banner block on page 1
+// (classification token + T = … + det = … + (x,y) → … + DOI family).
+// The completeness subtest treats these as known-and-allowed so a PDF
+// without the banner cannot silently slip past the audit, while the
+// banner-tuple subtest correctly skips them (no banner to drift from).
+//
+// History: pre-v26.46.22 this map held dev/test scratch PDFs (palette
+// swatches, NEW-BADGE drafts, owl-seal layer tests) which were then
+// deleted from both static trees, leaving the map empty. v26.47.08
+// re-introduced one entry (the-real-bot-manifesto.pdf — an essay-format
+// public manifesto without the scientific-paper banner template).
+var nonCorpusDocsPDFs = map[string]bool{
+        "the-real-bot-manifesto.pdf": true,
+}
 
 // findCorpusStaticDocsDir resolves the canonical static/docs directory
 // in the same priority order as the runtime's findStaticDir() in
