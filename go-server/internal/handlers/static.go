@@ -105,6 +105,7 @@ var versionedPDFAllowlist = map[string]bool{
         "owl-2-non-normative.pdf":       true,
         "owl-3-critical.pdf":            true,
         "owl-4-metacognitive.pdf":       true,
+        "the-real-bot-manifesto.pdf":    true,
 }
 
 // VersionedPDF serves a PDF under a version-namespaced URL with immutable
@@ -158,6 +159,10 @@ func (h *StaticHandler) Owl3CriticalPDF(c *gin.Context) {
 
 func (h *StaticHandler) Owl4MetacognitivePDF(c *gin.Context) {
         h.servePDF(c, "owl-4-metacognitive.pdf")
+}
+
+func (h *StaticHandler) RealBotManifestoPDF(c *gin.Context) {
+        h.servePDF(c, "the-real-bot-manifesto.pdf")
 }
 
 func (h *StaticHandler) SitemapXML(c *gin.Context) {

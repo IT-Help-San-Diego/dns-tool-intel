@@ -677,6 +677,8 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.HEAD("/docs/owl-3-critical.pdf", static.Owl3CriticalPDF)
         router.GET("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
         router.HEAD("/docs/owl-4-metacognitive.pdf", static.Owl4MetacognitivePDF)
+        router.GET("/docs/the-real-bot-manifesto.pdf", static.RealBotManifestoPDF)
+        router.HEAD("/docs/the-real-bot-manifesto.pdf", static.RealBotManifestoPDF)
 
         // Versioned PDF route: /docs/v<AppVersion>/<filename>.pdf
         // Used by the corpus UI to bypass any prior edge-cache poisoning of
