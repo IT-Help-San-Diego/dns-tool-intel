@@ -1,11 +1,5 @@
 # Stub-to-Private-Repo Audit
 
-> **Status:** ARCHIVED (v26.48 — intel/oss build-tag split removed)
->
-> This document mapped former `_oss.go` stubs to their `_intel.go` counterparts.
-> The codebase was unified under BUSL-1.1 in v26.48; all implementations now
-> live in `_impl.go` files. Retained as historical record.
-
 Generated: 2026-02-14
 Purpose: Maps every public repo stub file to the real implementation needed in dnstool-intel.
 

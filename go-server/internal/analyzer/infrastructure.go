@@ -77,7 +77,7 @@ func zoneCapability(zoneKey string) string {
 }
 
 func addOrMergeProvider(providers map[string]map[string]any, info *managementProviderInfo, detectedFrom, source string) {
-        // Provider-merge logic in infrastructure_intel.go
+        // Provider-merge logic in infrastructure_impl.go
 }
 
 func extractMailtoDomains(ruaStr string) []string {

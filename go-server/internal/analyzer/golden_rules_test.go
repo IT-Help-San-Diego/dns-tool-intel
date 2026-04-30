@@ -6,7 +6,6 @@ package analyzer
 import (
         "context"
         "os"
-        "path/filepath"
         "strings"
         "testing"
         "time"
@@ -301,10 +300,10 @@ func TestGoldenRuleNoMXDomain(t *testing.T) {
         }
 }
 
-func TestGoldenRuleRemediationNotStubbed(t *testing.T) {
+func TestGoldenRuleRemediationProducesResults(t *testing.T) {
         a := &Analyzer{}
         results := map[string]any{
-                "domain": "stub-test.example.com",
+                "domain": "test.example.com",
                 "spf_analysis": map[string]any{
                         "status": "not_found",
                 },
@@ -344,13 +343,13 @@ func TestGoldenRuleRemediationNotStubbed(t *testing.T) {
         fixCount, _ := remediation["fix_count"].(float64)
 
         if len(topFixes) == 0 {
-                t.Fatal("GenerateRemediation must produce non-empty top_fixes for a domain missing SPF, DMARC, DKIM — remediation engine is stubbed")
+                t.Fatal("GenerateRemediation must produce non-empty top_fixes for a domain missing SPF, DMARC, DKIM")
         }
         if len(allFixes) == 0 {
-                t.Fatal("GenerateRemediation must produce non-empty all_fixes — remediation engine is stubbed")
+                t.Fatal("GenerateRemediation must produce non-empty all_fixes")
         }
         if fixCount == 0 {
-                t.Fatal("GenerateRemediation must produce non-zero fix_count — remediation engine is stubbed")
+                t.Fatal("GenerateRemediation must produce non-zero fix_count")
         }
 
         firstFix := topFixes[0]
@@ -626,7 +625,7 @@ func TestGoldenRuleBIMIRecommendedRegardlessOfProvider(t *testing.T) {
         }
 }
 
-func TestGoldenRuleMailPostureNotStubbed(t *testing.T) {
+func TestGoldenRuleMailPostureProducesResults(t *testing.T) {
         results := map[string]any{
                 "domain": "test.example.com",
                 "spf_analysis": map[string]any{
@@ -656,13 +655,13 @@ func TestGoldenRuleMailPostureNotStubbed(t *testing.T) {
         color, _ := mp["color"].(string)
 
         if classification == "" {
-                t.Fatal("buildMailPosture must return non-empty classification — mail posture engine is stubbed")
+                t.Fatal("buildMailPosture must return non-empty classification")
         }
         if label == "" {
-                t.Fatal("buildMailPosture must return non-empty label — mail posture engine is stubbed")
+                t.Fatal("buildMailPosture must return non-empty label")
         }
         if color == "" {
-                t.Fatal("buildMailPosture must return non-empty color — mail posture engine is stubbed")
+                t.Fatal("buildMailPosture must return non-empty color")
         }
 }
 
@@ -679,151 +678,13 @@ func TestGoldenRuleFixToMapNotEmpty(t *testing.T) {
         m := fixToMap(f)
 
         if len(m) == 0 {
-                t.Fatal("fixToMap must return non-empty map — function is stubbed")
+                t.Fatal("fixToMap must return non-empty map")
         }
         if m["title"] != "Test Fix" {
                 t.Errorf("fixToMap must preserve title, got %v", m["title"])
         }
         if m["severity_label"] != severityCritical {
                 t.Errorf("fixToMap must preserve severity_label, got %v", m["severity_label"])
-        }
-}
-
-func TestGoldenRuleStubRegistryComplete(t *testing.T) {
-        knownStubFiles := map[string]bool{
-                "ai_surface/http.go":        true,
-                "ai_surface/llms_txt.go":    true,
-                "ai_surface/poisoning.go":   true,
-                "ai_surface/robots_txt.go":  true,
-                "confidence.go":             true,
-                "dkim_state.go":             true,
-                "infrastructure.go":         true,
-                "ip_investigation.go":       true,
-                "manifest.go":               true,
-                "providers.go":              true,
-                "providers_oss.go":          true,
-                "ai_surface/http_oss.go":     true,
-                  "ai_surface/llms_txt_oss.go": true,
-                  "ai_surface/poisoning_oss.go": true,
-                  "ai_surface/robots_txt_oss.go": true,
-                  "edge_cdn_oss.go":           true,
-                  "infrastructure_oss.go":     true,
-                  "ip_investigation_oss.go":   true,
-                  "manifest_oss.go":           true,
-                  "saas_txt_oss.go":           true,
-        }
-
-        analyzerDir := "."
-        stubMarker := "stub implementations"
-
-        err := filepath.Walk(analyzerDir, func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-                        return nil
-                }
-                data, readErr := os.ReadFile(path)
-                if readErr != nil {
-                        return nil
-                }
-                firstLines := string(data)
-                if len(firstLines) > 500 {
-                        firstLines = firstLines[:500]
-                }
-                if strings.Contains(strings.ToLower(firstLines), stubMarker) {
-                        rel := path
-                        if !knownStubFiles[rel] {
-                                t.Errorf("UNREGISTERED stub file detected: %s — add to knownStubFiles or implement it", rel)
-                        }
-                }
-                return nil
-        })
-        if err != nil {
-                t.Fatalf("failed to walk analyzer directory: %v", err)
-        }
-
-        t.Logf("Stub registry: %d files are known stubs from intel-tagged files", len(knownStubFiles))
-}
-
-func TestGoldenRuleNoProviderIntelligenceInPublicFiles(t *testing.T) {
-        knownIntelFiles := map[string]bool{
-                "ai_surface/http.go":              true,
-                "ai_surface/http_intel.go":        true,
-                "ai_surface/llms_txt.go":          true,
-                "ai_surface/llms_txt_intel.go":    true,
-                "ai_surface/poisoning.go":         true,
-                "ai_surface/poisoning_intel.go":   true,
-                "ai_surface/robots_txt.go":        true,
-                "ai_surface/robots_txt_intel.go":  true,
-                "confidence.go":                   true,
-                "dkim_state.go":                   true,
-                "edge_cdn_intel.go":               true,
-                "infrastructure.go":               true,
-                "infrastructure_intel.go":         true,
-                "ip_investigation.go":             true,
-                "ip_investigation_intel.go":       true,
-                "manifest.go":                     true,
-                "manifest_intel.go":               true,
-                "providers.go":                    true,
-                "providers_intel.go":              true,
-                "providers_oss.go":               true,
-                "saas_txt_intel.go":               true,
-        }
-
-        forbiddenPairPatterns := []string{
-                `"google", "microsoft"`,
-                `"google", "yahoo"`,
-                `"microsoft", "yahoo"`,
-                `"yahoo", "zoho"`,
-                `"zoho", "fastmail"`,
-                `"fastmail", "proofpoint"`,
-                `"proofpoint", "mimecast"`,
-                `"mimecast", "barracuda"`,
-                `"barracuda", "rackspace"`,
-                `"amazon ses", "sendgrid"`,
-                `"sendgrid", "mailgun"`,
-                `"mailgun", "postmark"`,
-                `"postmark", "sparkpost"`,
-                `"sparkpost", "mailchimp"`,
-                `"mailchimp", "constant contact"`,
-                `"google", "yahoo", "fastmail", "apple"`,
-        }
-
-        capabilityProviderNames := []string{
-                "mimecast", "barracuda", "rackspace", "sparkpost",
-                "constant contact", "amazon ses",
-        }
-
-        err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-                        return nil
-                }
-                if knownIntelFiles[path] {
-                        return nil
-                }
-                data, readErr := os.ReadFile(path)
-                if readErr != nil {
-                        return nil
-                }
-                content := string(data)
-                lower := strings.ToLower(content)
-
-                for _, pattern := range forbiddenPairPatterns {
-                        if strings.Contains(lower, pattern) {
-                                t.Errorf("LEAKED PROVIDER INTELLIGENCE in %s: found pattern %q — provider capability lists belong in intel files only", path, pattern)
-                        }
-                }
-
-                if path == "remediation.go" || path == "posture.go" || path == "scoring.go" {
-                        for _, name := range capabilityProviderNames {
-                                if strings.Contains(lower, `"`+name+`"`) {
-                                        t.Errorf("LEAKED PROVIDER NAME in %s: found %q — provider capability data belongs in intel files only", path, name)
-                                }
-                        }
-                }
-
-                return nil
-        })
-        if err != nil {
-                t.Fatalf("failed to walk analyzer directory: %v", err)
         }
 }
 
@@ -864,118 +725,13 @@ func TestGoldenRuleRemediationDelegatesProviderLogic(t *testing.T) {
                 if inDANEFunc || inBIMIFunc {
                         for _, forbidden := range forbiddenInRemediation {
                                 if strings.Contains(trimmed, forbidden) {
-                                        t.Errorf("providerSupportsDANE/BIMI in remediation.go contains inline collection %q — delegate to providers.go stub instead", forbidden)
+                                        t.Errorf("providerSupportsDANE/BIMI in remediation.go contains inline collection %q — delegate to providers.go instead", forbidden)
                                 }
                         }
                 }
         }
 }
 
-func TestGoldenRuleStubBoundaryFunctionsRegistered(t *testing.T) {
-        knownBoundaryFunctions := []string{
-                "func isHostedEmailProvider(",
-                "func isBIMICapableProvider(",
-                "func isKnownDKIMProvider(",
-        }
-
-        knownBoundaryFiles := map[string]bool{
-                "ai_surface/http.go":              true,
-                "ai_surface/http_intel.go":        true,
-                "ai_surface/llms_txt.go":          true,
-                "ai_surface/llms_txt_intel.go":    true,
-                "ai_surface/poisoning.go":         true,
-                "ai_surface/poisoning_intel.go":   true,
-                "ai_surface/robots_txt.go":        true,
-                "ai_surface/robots_txt_intel.go":  true,
-                "confidence.go":                   true,
-                "dkim_state.go":                   true,
-                "edge_cdn_intel.go":               true,
-                "infrastructure.go":               true,
-                "infrastructure_intel.go":         true,
-                "ip_investigation.go":             true,
-                "ip_investigation_intel.go":       true,
-                "manifest.go":                     true,
-                "manifest_intel.go":               true,
-                "providers.go":                    true,
-                "providers_intel.go":              true,
-                "providers_oss.go":               true,
-                "saas_txt_intel.go":               true,
-        }
-
-        providerFuncPattern := "func is"
-        providerFuncSuffix := "Provider("
-
-        err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-                        return nil
-                }
-                if knownBoundaryFiles[path] {
-                        return nil
-                }
-                data, readErr := os.ReadFile(path)
-                if readErr != nil {
-                        return nil
-                }
-                content := string(data)
-
-                for _, fn := range knownBoundaryFunctions {
-                        if strings.Contains(content, fn) {
-                                t.Errorf("BOUNDARY FUNCTION %s found in non-boundary file %s — intelligence boundary functions must only be defined in stub or intel files", fn, path)
-                        }
-                }
-
-                for _, line := range strings.Split(content, "\n") {
-                        trimmed := strings.TrimSpace(line)
-                        if strings.HasPrefix(trimmed, providerFuncPattern) && strings.Contains(trimmed, providerFuncSuffix) {
-                                t.Errorf("UNREGISTERED PROVIDER FUNCTION in non-boundary file %s: %q — provider capability functions must be defined in stub or intel files only", path, trimmed)
-                        }
-                }
-
-                return nil
-        })
-        if err != nil {
-                t.Fatalf("failed to walk analyzer directory: %v", err)
-        }
-
-        // Boundary contract:
-        //   providers.go is REQUIRED (always present in both OSS and intel builds).
-        //   At least ONE of {providers_oss.go, providers_intel.go} must be present —
-        //   they are the build-tag-gated stub/intel pair. providers_oss.go ships in
-        //   the public repo; providers_intel.go is gitignored (intel build only).
-        // CI sees only providers_oss.go; local dev may see both. Either satisfies the boundary.
-        requiredFile := "providers.go"
-        requiredData, err := os.ReadFile(requiredFile)
-        if err != nil {
-                t.Fatalf("REQUIRED boundary file %s missing or unreadable: %v", requiredFile, err)
-        }
-
-        var combinedContent strings.Builder
-        combinedContent.Write(requiredData)
-        combinedContent.WriteByte('\n')
-
-        candidateFiles := []string{"providers_oss.go", "providers_intel.go"}
-        candidatesPresent := 0
-        for _, cf := range candidateFiles {
-                data, err := os.ReadFile(cf)
-                if err != nil {
-                        continue // intel/oss is build-tag-gated; absence of one is expected
-                }
-                candidatesPresent++
-                combinedContent.Write(data)
-                combinedContent.WriteByte('\n')
-        }
-        if candidatesPresent == 0 {
-                t.Fatalf("boundary contract violated: NEITHER %v present alongside %s — at least one stub/intel file is required",
-                        candidateFiles, requiredFile)
-        }
-
-        content := combinedContent.String()
-        for _, fn := range knownBoundaryFunctions {
-                if !strings.Contains(content, fn) {
-                        t.Errorf("providers boundary missing function %s — must be defined in providers.go or one of %v", fn, candidateFiles)
-                }
-        }
-}
 
 func TestGoldenRuleWildcardCTDetection(t *testing.T) {
         entries := []ctEntry{

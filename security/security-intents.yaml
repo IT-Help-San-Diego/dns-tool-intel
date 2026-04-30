@@ -66,9 +66,9 @@ intents:
     category: intentional-behavior
     severity: info
     justification: >
-      OSS stubs for proprietary intel code intentionally have empty function
-      bodies that return safe defaults. The real implementations live in
-      the _intel.go counterparts (requires -tags intel build).
+      Analyzer _impl.go files contain minimal-default implementations for
+      subsystems where full logic has not yet been built out. Empty function
+      bodies return safe defaults by design.
     sonar_rules: ["go:S1186"]
     owner: "architecture-team"
     approved_by: "carey-james"

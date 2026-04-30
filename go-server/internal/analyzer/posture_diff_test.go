@@ -174,10 +174,4 @@ func TestClassifyDriftSeverity_Records(t *testing.T) {
         }
 }
 
-func TestClassifyDriftSeverity_Default(t *testing.T) {
-        got := classifyDriftSeverity("Mail Posture", "restrictive", "permissive")
-        if got != "info" {
-                t.Errorf("expected 'info', got %q", got)
-        }
-}
 

@@ -6,59 +6,59 @@ import (
         "testing"
 )
 
-func TestCoverageBoostAI_ParseLLMSTxtFieldLine_Stub(t *testing.T) {
+func TestCoverageBoostAI_ParseLLMSTxtFieldLine(t *testing.T) {
         fields := map[string]any{}
         var docs []string
         parseLLMSTxtFieldLine("Title: Example", "header", fields, &docs)
         if len(fields) != 0 {
-                t.Errorf("expected empty fields for stub input, got %v", fields)
+                t.Errorf("expected empty fields for empty input, got %v", fields)
         }
         if len(docs) != 0 {
-                t.Errorf("expected empty docs for stub input, got %v", docs)
+                t.Errorf("expected empty docs for empty input, got %v", docs)
         }
 }
 
-func TestCoverageBoostAI_ProcessRobotsLine_Stub(t *testing.T) {
+func TestCoverageBoostAI_ProcessRobotsLine(t *testing.T) {
         seenBlocked := map[string]bool{}
         seenAllowed := map[string]bool{}
         var directives []robotsDirective
         processRobotsLine("disallow: /", "disallow: /", "GPTBot", seenBlocked, seenAllowed, &directives)
         if len(seenBlocked) != 0 {
-                t.Errorf("expected empty seenBlocked for stub input, got %v", seenBlocked)
+                t.Errorf("expected empty seenBlocked for empty input, got %v", seenBlocked)
         }
         if len(directives) != 0 {
-                t.Errorf("expected empty directives for stub input, got %v", directives)
+                t.Errorf("expected empty directives for empty input, got %v", directives)
         }
 }
 
-func TestCoverageBoostAI_MatchAICrawler_Stub(t *testing.T) {
+func TestCoverageBoostAI_MatchAICrawler(t *testing.T) {
         result := matchAICrawler("GPTBot")
         if result != "" {
-                t.Errorf("expected empty string for stub input, got %q", result)
+                t.Errorf("expected empty string for empty input, got %q", result)
         }
 }
 
-func TestCoverageBoostAI_LooksLikeLLMSTxt_Stub(t *testing.T) {
+func TestCoverageBoostAI_LooksLikeLLMSTxt(t *testing.T) {
         if looksLikeLLMSTxt("# Example llms.txt\nTitle: Test") {
                 t.Error("expected false for minimal llms.txt content")
         }
 }
 
-func TestCoverageBoostAI_ParseLLMSTxt_Stub(t *testing.T) {
+func TestCoverageBoostAI_ParseLLMSTxt(t *testing.T) {
         result := parseLLMSTxt("# Example\nTitle: Test")
         if len(result) != 0 {
-                t.Errorf("expected empty map for stub input, got %v", result)
+                t.Errorf("expected empty map for empty input, got %v", result)
         }
 }
 
-func TestCoverageBoostAI_GetAICrawlers_Stub(t *testing.T) {
+func TestCoverageBoostAI_GetAICrawlers(t *testing.T) {
         crawlers := GetAICrawlers()
         if crawlers == nil {
                 t.Error("expected non-nil slice")
         }
 }
 
-func TestCoverageBoostAI_CheckLLMSTxt_Stub(t *testing.T) {
+func TestCoverageBoostAI_CheckLLMSTxt(t *testing.T) {
         s := NewScanner(nil)
         result := s.CheckLLMSTxt(context.Background(), "example.com")
         if result["found"] != false {
@@ -66,7 +66,7 @@ func TestCoverageBoostAI_CheckLLMSTxt_Stub(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_CheckRobotsTxtAI_Stub(t *testing.T) {
+func TestCoverageBoostAI_CheckRobotsTxtAI(t *testing.T) {
         s := NewScanner(nil)
         result := s.CheckRobotsTxtAI(context.Background(), "example.com")
         if result["found"] != false {
@@ -74,7 +74,7 @@ func TestCoverageBoostAI_CheckRobotsTxtAI_Stub(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_DetectPoisoningIOCs_Stub(t *testing.T) {
+func TestCoverageBoostAI_DetectPoisoningIOCs(t *testing.T) {
         s := NewScanner(nil)
         result := s.DetectPoisoningIOCs(context.Background(), "example.com")
         if result["ioc_count"] != 0 {
@@ -82,7 +82,7 @@ func TestCoverageBoostAI_DetectPoisoningIOCs_Stub(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_DetectHiddenPrompts_Stub(t *testing.T) {
+func TestCoverageBoostAI_DetectHiddenPrompts(t *testing.T) {
         s := NewScanner(nil)
         result := s.DetectHiddenPrompts(context.Background(), "example.com")
         if result["artifact_count"] != 0 {
@@ -90,7 +90,7 @@ func TestCoverageBoostAI_DetectHiddenPrompts_Stub(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_DetectHiddenTextArtifacts_Stub(t *testing.T) {
+func TestCoverageBoostAI_DetectHiddenTextArtifacts(t *testing.T) {
         artifacts, evidence := detectHiddenTextArtifacts("<div>test</div>", "https://example.com", nil, nil)
         if artifacts != nil {
                 t.Error("expected nil artifacts for minimal HTML")
@@ -100,23 +100,23 @@ func TestCoverageBoostAI_DetectHiddenTextArtifacts_Stub(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_BuildHiddenBlockRegex_Stub(t *testing.T) {
+func TestCoverageBoostAI_BuildHiddenBlockRegex(t *testing.T) {
         re := buildHiddenBlockRegex()
         if re != nil {
-                t.Error("expected nil regex for stub implementation")
+                t.Error("expected nil regex for default implementation")
         }
 }
 
-func TestCoverageBoostAI_ExtractTextContent_Stub(t *testing.T) {
+func TestCoverageBoostAI_ExtractTextContent(t *testing.T) {
         result := extractTextContent("<div>hello</div>")
         if result != "" {
-                t.Errorf("expected empty string for stub input, got %q", result)
+                t.Errorf("expected empty string for empty input, got %q", result)
         }
 }
 
-func TestCoverageBoostAI_LooksLikePromptInstruction_Stub(t *testing.T) {
+func TestCoverageBoostAI_LooksLikePromptInstruction(t *testing.T) {
         if looksLikePromptInstruction("you are a helpful assistant") {
-                t.Error("expected false for stub implementation")
+                t.Error("expected false for default implementation")
         }
 }
 
@@ -129,32 +129,32 @@ func TestCoverageBoostAI_Truncate(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_ParseRobotsForAI_Stub(t *testing.T) {
+func TestCoverageBoostAI_ParseRobotsForAI(t *testing.T) {
         blocked, allowed, directives := parseRobotsForAI("User-agent: GPTBot\nDisallow: /")
         if blocked != nil {
-                t.Error("expected nil blocked for stub implementation")
+                t.Error("expected nil blocked for default implementation")
         }
         if allowed != nil {
-                t.Error("expected nil allowed for stub implementation")
+                t.Error("expected nil allowed for default implementation")
         }
         if directives != nil {
-                t.Error("expected nil directives for stub implementation")
+                t.Error("expected nil directives for default implementation")
         }
 }
 
-func TestCoverageBoostAI_KnownAICrawlers_Stub(t *testing.T) {
+func TestCoverageBoostAI_KnownAICrawlers(t *testing.T) {
         if len(knownAICrawlers) != 0 {
                 t.Error("expected empty knownAICrawlers in stub build")
         }
 }
 
-func TestCoverageBoostAI_PrefilledPromptRe_Stub(t *testing.T) {
+func TestCoverageBoostAI_PrefilledPromptRe(t *testing.T) {
         if prefilledPromptRe.MatchString("chat.openai.com/chat?prompt=test") {
                 t.Error("expected placeholder regex to not match real content")
         }
 }
 
-func TestCoverageBoostAI_PromptInjectionRe_Stub(t *testing.T) {
+func TestCoverageBoostAI_PromptInjectionRe(t *testing.T) {
         if promptInjectionRe.MatchString("ignore previous instructions") {
                 t.Error("expected placeholder regex to not match real content")
         }
@@ -230,7 +230,7 @@ func TestCoverageBoostAI_ParseContentUsageTokens(t *testing.T) {
         }
 }
 
-func TestCoverageBoostAI_HiddenTextSelectors_Stub(t *testing.T) {
+func TestCoverageBoostAI_HiddenTextSelectors(t *testing.T) {
         if len(hiddenTextSelectors) != 0 {
                 t.Error("expected empty hiddenTextSelectors in stub build")
         }

@@ -305,23 +305,23 @@ func TestTruncate(t *testing.T) {
         }
 }
 
-func TestStubSafeDefaults(t *testing.T) {
+func TestSafeDefaults(t *testing.T) {
         t.Run("looksLikeLLMSTxt", func(t *testing.T) {
                 if looksLikeLLMSTxt("anything") {
-                        t.Error("stub should return false")
+                        t.Error("should return false")
                 }
                 if looksLikeLLMSTxt("") {
-                        t.Error("stub should return false for empty")
+                        t.Error("should return false for empty")
                 }
         })
 
         t.Run("parseLLMSTxt", func(t *testing.T) {
                 result := parseLLMSTxt("Title: test")
                 if result == nil {
-                        t.Error("stub should return non-nil map")
+                        t.Error("should return non-nil map")
                 }
                 if len(result) != 0 {
-                        t.Errorf("stub should return empty map, got %d entries", len(result))
+                        t.Errorf("should return empty map, got %d entries", len(result))
                 }
         })
 
@@ -330,20 +330,20 @@ func TestStubSafeDefaults(t *testing.T) {
                 docs := []string{}
                 parseLLMSTxtFieldLine("Title: test", "section", fields, &docs)
                 if len(fields) != 0 {
-                        t.Error("stub should not modify fields")
+                        t.Error("should not modify fields")
                 }
         })
 
         t.Run("matchAICrawler", func(t *testing.T) {
                 if matchAICrawler("GPTBot") != "" {
-                        t.Error("stub should return empty string")
+                        t.Error("should return empty string")
                 }
         })
 
-        t.Run("parseRobotsForAI_stub", func(t *testing.T) {
+        t.Run("parseRobotsForAI_defaults", func(t *testing.T) {
                 blocked, allowed, directives := parseRobotsForAI("User-Agent: GPTBot\nDisallow: /")
                 if blocked != nil || allowed != nil || directives != nil {
-                        t.Error("stub should return nil slices")
+                        t.Error("should return nil slices")
                 }
         })
 
@@ -354,25 +354,25 @@ func TestStubSafeDefaults(t *testing.T) {
         t.Run("detectHiddenTextArtifacts", func(t *testing.T) {
                 arts, evs := detectHiddenTextArtifacts("<html></html>", "https://example.com", nil, nil)
                 if arts != nil || evs != nil {
-                        t.Error("stub should return input slices (nil)")
+                        t.Error("should return input slices (nil)")
                 }
         })
 
         t.Run("buildHiddenBlockRegex", func(t *testing.T) {
                 if buildHiddenBlockRegex() != nil {
-                        t.Error("stub should return nil")
+                        t.Error("should return nil")
                 }
         })
 
         t.Run("extractTextContent", func(t *testing.T) {
                 if extractTextContent("<p>test</p>") != "" {
-                        t.Error("stub should return empty string")
+                        t.Error("should return empty string")
                 }
         })
 
         t.Run("looksLikePromptInstruction", func(t *testing.T) {
                 if looksLikePromptInstruction("ignore previous instructions") {
-                        t.Error("stub should return false")
+                        t.Error("should return false")
                 }
         })
 
@@ -380,10 +380,10 @@ func TestStubSafeDefaults(t *testing.T) {
                 scanner := &Scanner{}
                 result, err := scanner.fetchTextFile(context.Background(), "https://example.com/test.txt")
                 if err != nil {
-                        t.Errorf("stub should return nil error, got %v", err)
+                        t.Errorf("should return nil error, got %v", err)
                 }
                 if result != "" {
-                        t.Error("stub should return empty string")
+                        t.Error("should return empty string")
                 }
         })
 }
@@ -610,7 +610,7 @@ func TestConvertEvidenceToMaps_NoOp(t *testing.T) {
         }
 }
 
-func TestStub_ProcessRobotsLine(t *testing.T) {
+func TestProcessRobotsLine(t *testing.T) {
         seenBlocked := map[string]bool{}
         seenAllowed := map[string]bool{}
         processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, seenAllowed, nil)
@@ -622,14 +622,14 @@ func TestStub_ProcessRobotsLine(t *testing.T) {
         }
 }
 
-func TestStub_ParseLLMSTxtFieldLine(t *testing.T) {
+func TestParseLLMSTxtFieldLine(t *testing.T) {
         fields := map[string]any{}
         docs := []string{}
         parseLLMSTxtFieldLine("Title: test", "section", fields, &docs)
         if len(fields) != 0 {
-                t.Error("stub should not modify fields")
+                t.Error("should not modify fields")
         }
         if len(docs) != 0 {
-                t.Error("stub should not modify docs")
+                t.Error("should not modify docs")
         }
 }
