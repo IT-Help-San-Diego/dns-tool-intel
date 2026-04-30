@@ -808,18 +808,32 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 "analysis_id": nil,
         })
 
-        inp := analyzeInput{
-                domain:           domain,
-                asciiDomain:      asciiDomain,
-                customSelectors:  customSelectors,
-                exposureChecks:   exposureChecks,
-                devNull:          devNull,
-                isAuthenticated:  isAuthenticated,
-                userID:           userID,
-                hasNovelSelectors: hasNovelSelectors,
-                ephemeral:        ephemeral,
-        }
+        inp := buildAsyncInput(c, domain, asciiDomain, customSelectors,
+                exposureChecks, devNull, isAuthenticated, userID, hasNovelSelectors, ephemeral)
         go h.runAsyncScan(token, traceID, sp, inp, clientIP, countryCode, countryName)
+}
+
+// buildAsyncInput captures request-time data (notably userAgent) into an
+// analyzeInput before the *gin.Context is recycled. The goroutine started by
+// analyzeAsync needs userAgent to call botverify.Classify; if userAgent is
+// empty the classifier returns "investigate", which previously caused all
+// browser-initiated async scans to be tagged as investigate (v26.48.04 bug).
+func buildAsyncInput(c *gin.Context, domain, asciiDomain string, customSelectors []string,
+        exposureChecks, devNull, isAuthenticated bool, userID int32,
+        hasNovelSelectors, ephemeral bool) analyzeInput {
+        return analyzeInput{
+                domain:            domain,
+                asciiDomain:       asciiDomain,
+                customSelectors:   customSelectors,
+                exposureChecks:    exposureChecks,
+                devNull:           devNull,
+                isAuthenticated:   isAuthenticated,
+                userID:            userID,
+                hasNovelSelectors: hasNovelSelectors,
+                ephemeral:         ephemeral,
+                userAgent:         c.Request.UserAgent(),
+                clientIP:          c.ClientIP(),
+        }
 }
 
 func (h *AnalysisHandler) storeTelemetry(ctx context.Context, analysisID int32, results map[string]any, ephemeral bool) {
