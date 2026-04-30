@@ -524,8 +524,23 @@
                 </div>
                 <div class="stats-kpi kpi-visitors">
                     <div class="stats-kpi-icon">{{icon "users"}}</div>
-                    <div class="stats-kpi-value">{{.UniqueVisitors}}</div>
-                    <div class="stats-kpi-label">Unique Visitors</div>
+                    <div class="stats-kpi-value">{{if .UniqueVisitorsAvailable}}{{.UniqueVisitors}}{{else}}&mdash;{{end}}</div>
+                    <div class="stats-kpi-label">
+                        Unique Visitors
+                        {{if .UniqueVisitorsAvailable}}
+                            <span class="badge bg-secondary text-uppercase ms-1"
+                                  style="font-size: 0.55rem; letter-spacing: 0.05em;"
+                                  title="True distinct count via HyperLogLog++ union across {{.UniqueVisitorsDays}} day(s) of sketches. Theoretical relative standard error ≈ {{printf "%.2f" .UniqueVisitorsErrPct}}%. Reference: Flajolet et al. 2007; Heule et al. 2013.">
+                                HLL ±{{printf "%.2f" .UniqueVisitorsErrPct}}%
+                            </span>
+                        {{else}}
+                            <span class="badge bg-warning text-dark text-uppercase ms-1"
+                                  style="font-size: 0.55rem; letter-spacing: 0.05em;"
+                                  title="HyperLogLog sketches are still being collected. SUM(daily uniques) is mathematically incorrect and is not displayed.">
+                                Collecting
+                            </span>
+                        {{end}}
+                    </div>
                 </div>
                 <div class="stats-kpi kpi-rate">
                     <div class="stats-kpi-icon">{{icon "gauge-high"}}</div>

@@ -12,6 +12,7 @@ import (
 
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/middleware"
 
         "github.com/gin-gonic/gin"
 )
@@ -37,7 +38,7 @@ type AnalyticsDay struct {
 
 type AnalyticsSummary struct {
         TotalPageviews      int64
-        TotalUniqueVisitors int64
+        TotalUniqueVisitors int64 // True distinct visitors over the window via HLL union (0 + HasTrueUnique=false if HLL data unavailable)
         TotalAnalyses       int64
         TotalUniqueDomains  int64
         DaysTracked         int
@@ -45,6 +46,12 @@ type AnalyticsSummary struct {
         AvgDailyVisitors    int
         TopReferrers        []ReferrerEntry
         TopPages            []PageEntry
+
+        // HLL provenance metadata so the dashboard can render an honest UI:
+        //   HasTrueUnique=false → no HLL sketches available in the window
+        //   StdErrorPct → theoretical relative standard error of the estimator
+        HasTrueUnique bool
+        StdErrorPct   float64
 }
 
 type ReferrerEntry struct {
@@ -117,7 +124,6 @@ func (h *AnalyticsHandler) computeSummary(ctx context.Context, days []AnalyticsD
 
         for _, d := range days {
                 s.TotalPageviews += int64(d.Pageviews)
-                s.TotalUniqueVisitors += int64(d.UniqueVisitors)
                 s.TotalAnalyses += int64(d.AnalysesRun)
                 s.TotalUniqueDomains += int64(d.UniqueDomainsAnalyzed)
                 for k, v := range d.ReferrerSources {
@@ -126,6 +132,26 @@ func (h *AnalyticsHandler) computeSummary(ctx context.Context, days []AnalyticsD
                 for k, v := range d.TopPages {
                         pageTotals[k] += v
                 }
+        }
+
+        // True unique visitors via HLL union over the window. We never sum
+        // per-day unique_visitors counts: a visitor seen on N days produces N
+        // distinct daily pseudoIDs (the per-day salt rotates for forward
+        // secrecy), so summing double-counts every returning visitor. HLL
+        // sketches built with a stable salt are mergeable across days and
+        // give a true distinct count with bounded error (~0.81% at p=14).
+        // See migration 014_site_analytics_hll.sql for full citations.
+        var since time.Time
+        if len(days) > 0 {
+                if t, err := time.Parse("2006-01-02", days[len(days)-1].Date); err == nil {
+                        since = t
+                }
+        }
+        trueUnique := middleware.ComputeTrueUniqueVisitors(ctx, h.DB.Pool, since, time.Time{})
+        s.HasTrueUnique = trueUnique.OK
+        s.StdErrorPct = trueUnique.StdErrorPct
+        if trueUnique.OK {
+                s.TotalUniqueVisitors = int64(trueUnique.Estimate)
         }
 
         if s.DaysTracked > 0 {
