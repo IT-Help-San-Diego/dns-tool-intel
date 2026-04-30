@@ -1,8 +1,14 @@
 # DNS Tool — Boundary Manifest
 
-**Status:** Active
+> **Status:** ARCHIVED (v26.48 — intel/oss build-tag split removed)
+>
+> This document described the former open-core boundary between `_oss.go` stubs
+> and `_intel.go` implementations. The codebase was unified under BUSL-1.1 in
+> v26.48; all implementations now live in `_impl.go` files with no build-tag
+> separation. Retained as historical record.
+
 **Version:** 1.0
-**Architecture:** Single-repo open-core with Go build tags (`_oss.go` default + `_intel.go` via `-tags intel`)
+**Architecture:** ~~Single-repo open-core with Go build tags~~ — Unified single-repo (BUSL-1.1)
 
 ---
 

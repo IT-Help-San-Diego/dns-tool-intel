@@ -2,7 +2,7 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // poisoning.go — Framework only (types, utilities). Always compiled.
-// Detection functions live in poisoning_intel.go.
+// Detection functions live in poisoning_impl.go.
 // dns-tool:scrutiny science
 package ai_surface
 

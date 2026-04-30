@@ -2,7 +2,7 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // robots_txt.go — Framework only (types, constants). Always compiled.
-// Detection and parsing functions live in robots_txt_intel.go.
+// Detection and parsing functions live in robots_txt_impl.go.
 // dns-tool:scrutiny science
 package ai_surface
 

@@ -2,7 +2,7 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // saas_txt.go — Framework: types, constants, commodity patterns. Always compiled.
-// saas_txt_intel.go adds proprietary/rare patterns on top of these.
+// saas_txt_impl.go adds proprietary/rare patterns on top of these.
 // dns-tool:scrutiny science
 package analyzer
 
@@ -19,7 +19,7 @@ type saasPattern struct {
 
 // commoditySaaSPatterns — well-known SaaS TXT verification patterns.
 // These are public knowledge with no competitive advantage in keeping private.
-// saas_txt_intel.go adds deeper/rarer patterns via saasPatterns.
+// saas_txt_impl.go adds deeper/rarer patterns via saasPatterns.
 var commoditySaaSPatterns = []saasPattern{
         {Name: "Google Workspace", Pattern: regexp.MustCompile(`^google-site-verification=`)},
         {Name: "Microsoft 365", Pattern: regexp.MustCompile(`^MS=`)},

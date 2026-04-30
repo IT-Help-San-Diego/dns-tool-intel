@@ -51,12 +51,8 @@ This repository contains the complete DNS Tool platform:
 - SaaS TXT footprint extraction and classification
 - Posture drift detection (canonical SHA-3-512 hashing)
 - Remediation engine with RFC-aligned Priority Actions
-- OSS stub interfaces (`_oss.go` files providing safe defaults for the default build)
 - Golden rules test suite
 - Live integration test suite
-
-### Extended intelligence (intel build — `go build -tags intel`)
-The `_intel.go` files contain the extended intelligence modules that power active features in the running product. The default build provides the framework and safe defaults, while the intel build supplies the databases, patterns, and algorithms that produce full intelligence output.
 
 ### Provider Intelligence (providers.go)
 - DMARC monitoring provider detection databases (vendor identification from rua/ruf domains)
@@ -95,10 +91,6 @@ The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPa
 
 ### Feature Parity Manifest (manifest.go)
 - Build-time populated feature registry for internal quality assurance and coverage tracking
-
-## How the build tags work
-
-The default build runs standalone with full core functionality. Every section renders in the UI — `_oss.go` stub files return safe, non-nil defaults so the application works end-to-end. Some sections return baseline results in the default build; the `_intel.go` implementations produce the full intelligence output. Go's build tag system selects the appropriate implementation at compile time — `_oss.go` files are compiled by default, `_intel.go` files are compiled only with `-tags intel`.
 
 ## Contributing
 

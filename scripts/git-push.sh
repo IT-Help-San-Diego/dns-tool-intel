@@ -162,23 +162,6 @@ if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
 fi
 echo "  PASS — no interrupted rebase"
 
-# ── GATE 3: Intel file safety check ──
-echo "=== GATE 3: Intel file safety check ==="
-if [ "$REPO" = "IT-Help-San-Diego/dns-tool-intel" ]; then
-  echo "  SKIP — pushing to dns-tool-intel (intel files belong here)"
-else
-  INTEL_FILES=$(find go-server -name "*_intel.go" -o -name "*_intel_test.go" 2>/dev/null || true)
-  if [ -n "$INTEL_FILES" ]; then
-    echo ""
-    echo "  HARD STOP: Intel files found in public repo!"
-    echo "$INTEL_FILES" | sed 's/^/    /'
-    echo ""
-    echo "  Push these to dns-tool-intel via sync script and delete locally."
-    exit 1
-  fi
-  echo "  PASS — no intel files"
-fi
-
 # ── All gates passed ──
 echo ""
 echo "=== All safety gates passed ==="

@@ -10,7 +10,7 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 - **Database persistence**: `posture_hash VARCHAR(64)` column on `domain_analyses`. Every successful analysis stores its posture hash.
 - **Drift comparison**: Live analysis and history views compare current vs. previous posture hash. Drift detected when hashes differ.
 - **Drift alert UI**: "Posture Drift Detected" banner on results page when drift is found, with hash previews and link to previous report.
-- **Posture diff engine** (`posture_diff.go` / `posture_diff_oss.go`): Field-level comparison of previous vs. current security posture across 12 status fields and 6 sorted record sets. Severity classification (danger/warning/success/info) per field using policy-aware ranking (DMARC policy regression = danger, DNSSEC loss = danger, etc.).
+- **Posture diff engine** (`posture_diff.go` / `posture_diff_impl.go`): Field-level comparison of previous vs. current security posture across 12 status fields and 6 sorted record sets. Severity classification (danger/warning/success/info) per field using policy-aware ranking (DMARC policy regression = danger, DNSSEC loss = danger, etc.).
 
 ### Implemented (Phase 3): Timeline & Visualization
 
@@ -42,12 +42,10 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 6. **Watchlist is user-scoped.** Each authenticated user manages their own monitored domains and notification preferences.
 7. **Third-party evidence is privacy-gated.** Only non-private, non-scan-flagged analyses are submitted to external archives. The Wayback Machine URL is validated before storage.
 
-### Build Tag Boundary
+### File Structure
 
-The `posture_diff` boundary follows the open-core pattern:
-- `posture_diff.go` — Framework file (compiles unconditionally). Contains `ComputePostureDiff()` and extraction helpers.
-- `posture_diff_oss.go` — OSS stub (`//go:build !intel`). Contains `classifyDriftSeverity()`, `classifyPolicyChange()`, `classifyStatusChange()`.
-- `posture_diff_intel.go` — Private intel (requires -tags intel build). Enhanced severity classification with threat intelligence correlation.
+- `posture_diff.go` — Framework: `ComputePostureDiff()` and extraction helpers.
+- `posture_diff_impl.go` — Implementation: `classifyDriftSeverity()`, `classifyPolicyChange()`, `classifyStatusChange()`.
 
 ### Roadmap
 

@@ -2,7 +2,7 @@
 // Licensed under BUSL-1.1 — See LICENSE for terms.
 
 // ip_investigation.go — Framework only (types, constants, utilities). Always compiled.
-// Intelligence functions live in ip_investigation_intel.go.
+// Intelligence functions live in ip_investigation_impl.go.
 // dns-tool:scrutiny science
 package analyzer
 

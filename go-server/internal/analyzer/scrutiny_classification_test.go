@@ -166,7 +166,7 @@ func TestScrutinyClassificationConsistency(t *testing.T) {
 
                 if scienceDirectories[dir] && tag != "science" && !plumbingFiles[relPath] {
                         base := filepath.Base(path)
-                        if !strings.Contains(base, "_oss") && base != "scrutiny_classification.go" {
+                        if !strings.Contains(base, "_impl") && base != "scrutiny_classification.go" {
                                 t.Errorf("%s is in science directory %s but tagged '%s'", relPath, dir, tag)
                         }
                 }
