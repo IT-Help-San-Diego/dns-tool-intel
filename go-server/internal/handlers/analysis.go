@@ -808,7 +808,7 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
                 "analysis_id": nil,
         })
 
-        inp := buildAsyncInput(c, domain, asciiDomain, customSelectors,
+        inp := buildAsyncInput(c.Request.UserAgent(), clientIP, domain, asciiDomain, customSelectors,
                 exposureChecks, devNull, isAuthenticated, userID, hasNovelSelectors, ephemeral)
         go h.runAsyncScan(token, traceID, sp, inp, clientIP, countryCode, countryName)
 }
@@ -818,7 +818,9 @@ func (h *AnalysisHandler) analyzeAsync(c *gin.Context, domain, asciiDomain strin
 // analyzeAsync needs userAgent to call botverify.Classify; if userAgent is
 // empty the classifier returns "investigate", which previously caused all
 // browser-initiated async scans to be tagged as investigate (v26.48.04 bug).
-func buildAsyncInput(c *gin.Context, domain, asciiDomain string, customSelectors []string,
+// Takes primitives (not *gin.Context) so callers cannot accidentally invoke
+// it after the context has been recycled.
+func buildAsyncInput(userAgent, clientIP, domain, asciiDomain string, customSelectors []string,
         exposureChecks, devNull, isAuthenticated bool, userID int32,
         hasNovelSelectors, ephemeral bool) analyzeInput {
         return analyzeInput{
@@ -831,8 +833,8 @@ func buildAsyncInput(c *gin.Context, domain, asciiDomain string, customSelectors
                 userID:            userID,
                 hasNovelSelectors: hasNovelSelectors,
                 ephemeral:         ephemeral,
-                userAgent:         c.Request.UserAgent(),
-                clientIP:          c.ClientIP(),
+                userAgent:         userAgent,
+                clientIP:          clientIP,
         }
 }
 
