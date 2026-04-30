@@ -171,11 +171,26 @@ CREATE TABLE site_analytics (
     unique_domains_analyzed INTEGER NOT NULL DEFAULT 0,
     referrer_sources JSONB NOT NULL DEFAULT '{}',
     top_pages JSONB NOT NULL DEFAULT '{}',
+    -- HyperLogLog++ sketch of stable-salted visitor hashes (precision=14, m=16384).
+    -- Mergeable across days for true unique-visitor counting; ~0.81% relative std error.
+    -- See migration 014 for full citations (Flajolet 2007; Heule 2013).
+    hll_visitors BYTEA,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX ix_site_analytics_date ON site_analytics (date);
+
+-- Singleton key/value store for server-side analytics config.
+-- Currently used to persist the stable HLL salt (key='hll_salt_v1', 32 random bytes,
+-- generated once at first server start and never rotated — rotation would break
+-- HLL union mergeability across the rotation boundary).
+CREATE TABLE IF NOT EXISTS analytics_meta (
+    key         TEXT PRIMARY KEY,
+    value       BYTEA NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 CREATE TABLE user_analyses (
     id SERIAL PRIMARY KEY,

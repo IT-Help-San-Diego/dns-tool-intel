@@ -37,8 +37,21 @@
             <div class="col-md-3 mb-3">
                 <div class="card text-center">
                     <div class="card-body py-3">
-                        <div class="h4 mb-1 text-success">{{.Summary.TotalUniqueVisitors}}</div>
-                        <small class="text-muted">Unique Visitors (30d)</small>
+                        <div class="h4 mb-1 text-success">{{if .Summary.HasTrueUnique}}{{.Summary.TotalUniqueVisitors}}{{else}}&mdash;{{end}}</div>
+                        <small class="text-muted">
+                            Unique Visitors (30d)
+                            {{if .Summary.HasTrueUnique}}
+                                <span class="badge bg-secondary ms-1"
+                                      title="HyperLogLog++ union over the 30-day window. Theoretical relative standard error ≈ {{printf "%.2f" .Summary.StdErrorPct}}%. Reference: Flajolet et al. 2007; Heule et al. 2013.">
+                                    HLL ±{{printf "%.2f" .Summary.StdErrorPct}}%
+                                </span>
+                            {{else}}
+                                <span class="badge bg-warning text-dark ms-1"
+                                      title="HyperLogLog sketches are still being collected. SUM(daily uniques) is mathematically incorrect (a returning visitor is double-counted on every day they visit) and is intentionally not displayed.">
+                                    Collecting
+                                </span>
+                            {{end}}
+                        </small>
                     </div>
                 </div>
             </div>

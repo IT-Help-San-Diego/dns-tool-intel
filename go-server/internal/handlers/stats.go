@@ -16,6 +16,7 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
+        "dnstool/go-server/internal/middleware"
 
         "github.com/gin-gonic/gin"
         "golang.org/x/crypto/sha3"
@@ -236,11 +237,17 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 slog.Warn("Stats: failed to count remediated domains", mapKeyError, err)
         }
 
+        // True unique visitors via HyperLogLog++ union across every persisted
+        // daily sketch. SUM(unique_visitors) is mathematically wrong (it
+        // double-counts every returning visitor because the per-day pseudoID
+        // salt rotates daily); HLL with a stable salt is mergeable across
+        // days and yields a true distinct count with bounded relative error
+        // (~0.81% at p=14). See go-server/db/migrations/014_site_analytics_hll.sql
+        // for full citations (Flajolet 2007; Heule 2013).
+        trueUnique := middleware.ComputeTrueUniqueVisitors(ctx, h.DB.Pool, time.Time{}, time.Time{})
         var uniqueVisitors int64
-        err = h.DB.Pool.QueryRow(ctx,
-                `SELECT COALESCE(SUM(unique_visitors), 0) FROM site_analytics`).Scan(&uniqueVisitors)
-        if err != nil {
-                slog.Warn("Stats: failed to sum unique visitors", mapKeyError, err)
+        if trueUnique.OK {
+                uniqueVisitors = int64(trueUnique.Estimate)
         }
 
         integrityData := loadIntegrityData()
@@ -251,6 +258,9 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         data["FailedAnalyses"] = failedAnalyses
         data["UniqueDomains"] = uniqueDomains
         data["UniqueVisitors"] = uniqueVisitors
+        data["UniqueVisitorsAvailable"] = trueUnique.OK
+        data["UniqueVisitorsDays"] = trueUnique.DaysCovered
+        data["UniqueVisitorsErrPct"] = trueUnique.StdErrorPct
         data["CountryStats"] = countryItems
         data["PopularDomains"] = popItems
         data["PopularDomainsHuman"] = popItemsHuman
