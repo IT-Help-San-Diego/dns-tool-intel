@@ -799,7 +799,7 @@ func TestResolveCovertMode_Scientific(t *testing.T) {
 func TestExtractScanFields_Classification(t *testing.T) {
         t.Run("CISA scan classification", func(t *testing.T) {
                 sc := scanner.Classification{IsScan: true, Source: "cisa", IP: "192.168.1.1"}
-                src, ip := extractScanFields(sc)
+                src, ip := extractScanFields(sc, "")
                 if src == nil || *src != "cisa" {
                         t.Errorf("CISA scan source = %v", src)
                 }
@@ -811,9 +811,9 @@ func TestExtractScanFields_Classification(t *testing.T) {
 
         t.Run("non-scan classification", func(t *testing.T) {
                 sc := scanner.Classification{IsScan: false, Source: "", IP: "10.0.0.1"}
-                src, ip := extractScanFields(sc)
+                src, ip := extractScanFields(sc, "")
                 if src != nil {
-                        t.Error("non-scan should have nil source")
+                        t.Error("non-scan with empty botClass should have nil source")
                 }
                 if ip == nil || *ip != "10.0.0.1" {
                         t.Error("IP should still be captured for non-scan requests")

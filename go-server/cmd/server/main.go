@@ -485,6 +485,10 @@ func registerCoreRoutes(router *gin.Engine, home *handlers.HomeHandler, health *
 
 func registerAnalysisRoutes(d routeDeps, analysis *handlers.AnalysisHandler, history *handlers.HistoryHandler, stats *handlers.StatsHandler, compare *handlers.CompareHandler, export *handlers.ExportHandler, snapshot *handlers.SnapshotHandler) {
         d.Router.GET("/analyze", analysis.Analyze)
+        // HEAD must mirror GET semantics (RFC 9110 §9.3.2): same status, same headers,
+        // no body. CDNs and link-validators use HEAD to revalidate cached responses;
+        // returning 404 on HEAD makes them treat the URL as dead.
+        d.Router.HEAD("/analyze", analysis.Analyze)
         d.Router.POST("/analyze", middleware.AnalyzeRateLimit(d.RateLimiter), analysis.Analyze)
         d.Router.GET("/api/scan/progress/:token", handlers.ScanProgressHandler(analysis.ProgressStore))
         d.Router.GET("/history", history.History)

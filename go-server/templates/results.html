@@ -36,6 +36,28 @@
     <main id="main-content" class="container my-4" data-analysis-id="{{.AnalysisID}}">
         {{template "flash_messages" .}}
 
+        {{if .FromCache}}
+        <div class="alert alert-info border-0 mb-3 u-bg-info-soft" data-testid="cached-banner">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-start">
+                    {{icon "clock" "me-2 mt-1 text-info"}}
+                    <div>
+                        <strong>Cached Result</strong>
+                        <span class="ms-1">— Showing the most recent stored analysis for <code>{{.FromCacheDomain}}</code>{{if .FromCacheAt}} (originally scanned <strong>{{.FromCacheAt}}</strong>){{end}}.</span>
+                        <p class="mb-0 small text-muted mt-1">This page is served from cache so crawlers, bookmarks and shared links don't re-trigger a fresh scan. Click <strong>Re-scan</strong> to run a new analysis right now.</p>
+                    </div>
+                </div>
+                <form method="POST" action="/analyze" class="ms-auto">
+                    <input type="hidden" name="csrf_token" value="{{.csrf_token}}">
+                    <input type="hidden" name="domain" value="{{.FromCacheDomain}}">
+                    <button type="submit" class="btn btn-sm btn-outline-info" data-testid="rescan-button">
+                        {{icon "redo" "me-1"}}Re-scan
+                    </button>
+                </form>
+            </div>
+        </div>
+        {{end}}
+
         {{if .Ephemeral}}
         {{if .DevNull}}
         <div class="alert alert-dark border-0 mb-3 u-devnull-banner">

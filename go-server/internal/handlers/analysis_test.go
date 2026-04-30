@@ -14,7 +14,7 @@ import (
 func TestExtractScanFields(t *testing.T) {
         t.Run("scan with source and IP", func(t *testing.T) {
                 sc := scanner.Classification{IsScan: true, Source: "cisa", IP: "1.2.3.4"}
-                src, ip := extractScanFields(sc)
+                src, ip := extractScanFields(sc, "")
                 if src == nil || *src != "cisa" {
                         t.Errorf("expected source 'cisa', got %v", src)
                 }
@@ -23,11 +23,11 @@ func TestExtractScanFields(t *testing.T) {
                 }
         })
 
-        t.Run("not a scan", func(t *testing.T) {
+        t.Run("not a scan, no botClass", func(t *testing.T) {
                 sc := scanner.Classification{IsScan: false, Source: "", IP: ""}
-                src, ip := extractScanFields(sc)
+                src, ip := extractScanFields(sc, "")
                 if src != nil {
-                        t.Error("expected nil source for non-scan")
+                        t.Error("expected nil source for non-scan with empty botClass")
                 }
                 if ip != nil {
                         t.Error("expected nil ip for empty IP")
@@ -36,12 +36,41 @@ func TestExtractScanFields(t *testing.T) {
 
         t.Run("scan without IP", func(t *testing.T) {
                 sc := scanner.Classification{IsScan: true, Source: "qualys", IP: ""}
-                src, ip := extractScanFields(sc)
+                src, ip := extractScanFields(sc, "")
                 if src == nil || *src != "qualys" {
                         t.Errorf("expected source 'qualys', got %v", src)
                 }
                 if ip != nil {
                         t.Error("expected nil ip for empty IP")
+                }
+        })
+
+        t.Run("non-scan with botClass=human", func(t *testing.T) {
+                sc := scanner.Classification{IsScan: false, IP: ""}
+                src, _ := extractScanFields(sc, "human")
+                if src == nil || *src != "human" {
+                        t.Errorf("expected source 'human' from botClass, got %v", src)
+                }
+        })
+
+        t.Run("non-scan with botClass=verified_bot:Googlebot", func(t *testing.T) {
+                sc := scanner.Classification{IsScan: false, IP: "66.249.66.1"}
+                src, ip := extractScanFields(sc, "verified_bot:Googlebot")
+                if src == nil || *src != "verified_bot:Googlebot" {
+                        t.Errorf("expected source 'verified_bot:Googlebot' from botClass, got %v", src)
+                }
+                if ip == nil || *ip != "66.249.66.1" {
+                        t.Errorf("expected ip '66.249.66.1', got %v", ip)
+                }
+        })
+
+        t.Run("scan classification beats botClass", func(t *testing.T) {
+                // When the security-tool scanner flags the request, its Source must
+                // win over botClass — preserves the existing scanner-alerts pipeline.
+                sc := scanner.Classification{IsScan: true, Source: "cisa", IP: "1.2.3.4"}
+                src, _ := extractScanFields(sc, "human")
+                if src == nil || *src != "cisa" {
+                        t.Errorf("expected scan_source to remain 'cisa', got %v", src)
                 }
         })
 }
