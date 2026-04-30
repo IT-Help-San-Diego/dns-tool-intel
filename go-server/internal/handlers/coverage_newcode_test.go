@@ -3,9 +3,9 @@
 package handlers
 
 import (
-	"dnstool/go-server/internal/handlers/agentpkg"
-	"dnstool/go-server/internal/handlers/adminpkg"
-	"dnstool/go-server/internal/handlers/badgepkg"
+        "dnstool/go-server/internal/handlers/agentpkg"
+        "dnstool/go-server/internal/handlers/adminpkg"
+        "dnstool/go-server/internal/handlers/badgepkg"
         "html/template"
         "net/http"
         "net/http/httptest"
@@ -163,7 +163,7 @@ func TestTryServeFromCache_NotEligible(t *testing.T) {
         h := &AnalysisHandler{}
         inp := analyzeInput{domain: "example.com", asciiDomain: "example.com"}
         got := h.tryServeFromCache(c, inp, "nonce", "csrf")
-        if got {
+        if got == cacheServed {
                 t.Error("POST should not be cache eligible")
         }
 }
@@ -176,8 +176,14 @@ func TestTryServeFromCache_EligibleButNoStore(t *testing.T) {
         h := &AnalysisHandler{}
         inp := analyzeInput{domain: "example.com", asciiDomain: "example.com"}
         got := h.tryServeFromCache(c, inp, "nonce", "csrf")
-        if got {
-                t.Error("no store configured, should return false")
+        // No store configured is now classified as cacheTransient (not cacheMiss)
+        // so the caller renders an honest "unavailable" message rather than
+        // lying that the domain has not been analyzed.
+        if got == cacheServed {
+                t.Error("no store configured, should not serve")
+        }
+        if got != cacheTransient {
+                t.Errorf("no store configured, expected cacheTransient, got %d", got)
         }
 }
 
@@ -643,7 +649,7 @@ func TestTryServeFromCache_CustomSelectorsNotEligible(t *testing.T) {
                 customSelectors: []string{"custom1"},
         }
         got := h.tryServeFromCache(c, inp, "nonce", "csrf")
-        if got {
+        if got == cacheServed {
                 t.Error("custom selectors should prevent cache eligibility")
         }
 }

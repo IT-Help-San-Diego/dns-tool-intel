@@ -596,6 +596,84 @@
 
                 <div class="stats-section">
                     <div class="stats-section-header">
+                        {{icon "user" "stats-section-icon"}}
+                        <h2 class="stats-section-title">Top Domains — Human</h2>
+                    </div>
+                    <div class="stats-section-body u-pad-half-0">
+                        <p class="small text-muted px-3 mb-2">Browser-driven sessions only. Excludes verified bots, investigate traffic, and security-tool scans.</p>
+                        {{if .PopularDomainsHuman}}
+                        <ul class="stats-domain-list" data-testid="popular-human">
+                            {{range $i, $d := .PopularDomainsHuman}}
+                            <li class="stats-domain-item">
+                                <span class="stats-domain-rank">{{add $i 1}}.</span>
+                                <span class="stats-domain-name">{{$d.Domain}}</span>
+                                <span class="stats-domain-count">{{$d.Count}}</span>
+                            </li>
+                            {{end}}
+                        </ul>
+                        {{else}}
+                        <div class="stats-empty">
+                            {{icon "user"}}
+                            <p>No human-tagged scans yet</p>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stats-section-header">
+                        {{icon "robot" "stats-section-icon"}}
+                        <h2 class="stats-section-title">Top Domains — Verified Bots</h2>
+                    </div>
+                    <div class="stats-section-body u-pad-half-0">
+                        <p class="small text-muted px-3 mb-2">UA + reverse-DNS verified operators (Googlebot, GPTBot, ClaudeBot, etc.).</p>
+                        {{if .PopularDomainsVerifiedBot}}
+                        <ul class="stats-domain-list" data-testid="popular-verified-bot">
+                            {{range $i, $d := .PopularDomainsVerifiedBot}}
+                            <li class="stats-domain-item">
+                                <span class="stats-domain-rank">{{add $i 1}}.</span>
+                                <span class="stats-domain-name">{{$d.Domain}}</span>
+                                <span class="stats-domain-count">{{$d.Count}}</span>
+                            </li>
+                            {{end}}
+                        </ul>
+                        {{else}}
+                        <div class="stats-empty">
+                            {{icon "robot"}}
+                            <p>No verified-bot scans yet</p>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stats-section-header">
+                        {{icon "search" "stats-section-icon"}}
+                        <h2 class="stats-section-title">Top Domains — Investigate</h2>
+                    </div>
+                    <div class="stats-section-body u-pad-half-0">
+                        <p class="small text-muted px-3 mb-2">Claimed-bot UAs that failed verification, plus generic non-browser clients (curl, python-requests, headless).</p>
+                        {{if .PopularDomainsInvestigate}}
+                        <ul class="stats-domain-list" data-testid="popular-investigate">
+                            {{range $i, $d := .PopularDomainsInvestigate}}
+                            <li class="stats-domain-item">
+                                <span class="stats-domain-rank">{{add $i 1}}.</span>
+                                <span class="stats-domain-name">{{$d.Domain}}</span>
+                                <span class="stats-domain-count">{{$d.Count}}</span>
+                            </li>
+                            {{end}}
+                        </ul>
+                        {{else}}
+                        <div class="stats-empty">
+                            {{icon "search"}}
+                            <p>No investigate-bucket scans yet</p>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stats-section-header">
                         {{icon "wave-square" "stats-section-icon"}}
                         <h2 class="stats-section-title">Recent Daily Activity</h2>
                     </div>

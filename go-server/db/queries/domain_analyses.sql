@@ -92,8 +92,65 @@ SELECT COUNT(*) FROM domain_analyses WHERE analysis_success = TRUE;
 SELECT COUNT(DISTINCT domain) FROM domain_analyses;
 
 -- name: ListPopularDomains :many
+-- All-traffic popularity leaderboard. Same publication discipline as the
+-- per-bucket variants below: only successful, public, non-scanner rows with
+-- full_results populated. This prevents private-account scans, failed
+-- analyses, and security-tool noise from inflating public counts.
 SELECT domain, COUNT(id) AS count
 FROM domain_analyses
+WHERE full_results IS NOT NULL
+  AND analysis_success = TRUE
+  AND private = FALSE
+  AND scan_flag = FALSE
+GROUP BY domain
+ORDER BY COUNT(id) DESC
+LIMIT $1;
+
+-- name: ListPopularDomainsHuman :many
+-- Popularity restricted to rows the verified-bot pipeline tagged 'human'.
+-- Excludes verified bots, investigate-bucket traffic, and security-tool scans.
+-- Same publication filters as ListPopularDomains: must be a successful, public,
+-- non-scanner row with full_results populated. Legacy NULL scan_source rows
+-- (pre-botverify) are intentionally excluded from all three buckets — they
+-- predate provenance tagging and remain countable in ListPopularDomains.
+SELECT domain, COUNT(id) AS count
+FROM domain_analyses
+WHERE scan_source = 'human'
+  AND full_results IS NOT NULL
+  AND analysis_success = TRUE
+  AND private = FALSE
+  AND scan_flag = FALSE
+GROUP BY domain
+ORDER BY COUNT(id) DESC
+LIMIT $1;
+
+-- name: ListPopularDomainsVerifiedBot :many
+-- Popularity restricted to rows tagged with a verified bot operator. Matches
+-- both 'verified_bot:<name>' (the canonical form emitted by extractScanFields)
+-- and the bare 'verified_bot' fallback so a future code path that forgets the
+-- suffix still gets counted in the right bucket.
+SELECT domain, COUNT(id) AS count
+FROM domain_analyses
+WHERE (scan_source LIKE 'verified_bot:%' OR scan_source = 'verified_bot')
+  AND full_results IS NOT NULL
+  AND analysis_success = TRUE
+  AND private = FALSE
+  AND scan_flag = FALSE
+GROUP BY domain
+ORDER BY COUNT(id) DESC
+LIMIT $1;
+
+-- name: ListPopularDomainsInvestigate :many
+-- Popularity restricted to the 'investigate' bucket: claimed-bot UAs that
+-- failed reverse-DNS verification, plus generic bot signals (curl, python-
+-- requests, headless browsers) that have no operator allowlist.
+SELECT domain, COUNT(id) AS count
+FROM domain_analyses
+WHERE scan_source = 'investigate'
+  AND full_results IS NOT NULL
+  AND analysis_success = TRUE
+  AND private = FALSE
+  AND scan_flag = FALSE
 GROUP BY domain
 ORDER BY COUNT(id) DESC
 LIMIT $1;

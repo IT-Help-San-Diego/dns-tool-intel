@@ -7,6 +7,7 @@ import (
         "context"
         "encoding/hex"
         "encoding/json"
+        "errors"
         "fmt"
         "log/slog"
         "net/http"
@@ -25,11 +26,13 @@ import (
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
         "dnstool/go-server/internal/logging"
+        "dnstool/go-server/internal/botverify"
         "dnstool/go-server/internal/scanner"
         "dnstool/go-server/internal/unified"
         "dnstool/go-server/internal/wayback"
 
         "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v5"
         "golang.org/x/crypto/sha3"
 )
 
@@ -319,6 +322,20 @@ func isAgentCacheEligible(c *gin.Context, customSelectors []string, exposureChec
         return c.Request.Method == http.MethodGet && c.Query("src") == "agent" && len(customSelectors) == 0 && !exposureChecks
 }
 
+// isReadOnlyCacheEligible decides whether a request can be served from a stored
+// analysis row without triggering a fresh scan.
+//
+// HTTP-spec discipline (RFC 9110 §9.2.1): GET/HEAD must be safe and idempotent.
+// Crawlers, link-prefetch, social link previews, and shared-link clicks all use
+// GET — none of them should create domain_analyses rows or trigger network work.
+// Only POST is permitted to create new rows.
+//
+// Custom selectors and exposure checks alter the result, so a generic cached row
+// cannot be used.
+func isReadOnlyCacheEligible(customSelectors []string, exposureChecks bool) bool {
+        return len(customSelectors) == 0 && !exposureChecks
+}
+
 type analyzeInput struct {
         domain, asciiDomain              string
         customSelectors                  []string
@@ -326,6 +343,10 @@ type analyzeInput struct {
         isAuthenticated                  bool
         userID                           int32
         hasNovelSelectors, ephemeral     bool
+        // userAgent and clientIP are captured at request time so the async scan
+        // goroutine (which runs after the *gin.Context is gone) can still call
+        // botverify.Classify and tag the persisted row with provenance.
+        userAgent, clientIP              string
 }
 
 func extractAnalyzeInput(c *gin.Context) (analyzeInput, bool) {
@@ -351,17 +372,34 @@ func extractAnalyzeInput(c *gin.Context) (analyzeInput, bool) {
                 customSelectors: customSelectors, exposureChecks: exposureChecks,
                 devNull: devNull, isAuthenticated: isAuthenticated, userID: userID,
                 hasNovelSelectors: hasNovelSelectors, ephemeral: ephemeral,
+                userAgent: c.Request.UserAgent(), clientIP: c.ClientIP(),
         }, true
 }
 
-func (h *AnalysisHandler) tryServeFromCache(c *gin.Context, inp analyzeInput, nonce, csrfToken any) bool {
-        if !isAgentCacheEligible(c, inp.customSelectors, inp.exposureChecks) {
-                return false
+// cacheLookupOutcome distinguishes the three terminal states of a cache
+// lookup: served (HTML written), miss (no row → caller should render the
+// "not yet analyzed" interstitial), or transient (DB blip → caller should
+// render an "unavailable" message instead of falsely claiming the domain
+// has not been analyzed).
+type cacheLookupOutcome int
+
+const (
+        cacheServed cacheLookupOutcome = iota
+        cacheMiss
+        cacheTransient
+)
+
+func (h *AnalysisHandler) tryServeFromCache(c *gin.Context, inp analyzeInput, nonce, csrfToken any) cacheLookupOutcome {
+        if !isReadOnlyCacheEligible(inp.customSelectors, inp.exposureChecks) {
+                return cacheMiss
         }
-        if h.serveCachedAnalysis(c, inp.domain, inp.asciiDomain, nonce, csrfToken) {
-                return true
+        if outcome := h.serveCachedAnalysis(c, inp.domain, inp.asciiDomain, nonce, csrfToken); outcome != cacheMiss {
+                return outcome
         }
-        return inp.domain != inp.asciiDomain && h.serveCachedAnalysis(c, inp.asciiDomain, inp.asciiDomain, nonce, csrfToken)
+        if inp.domain != inp.asciiDomain {
+                return h.serveCachedAnalysis(c, inp.asciiDomain, inp.asciiDomain, nonce, csrfToken)
+        }
+        return cacheMiss
 }
 
 func (h *AnalysisHandler) Analyze(c *gin.Context) {
@@ -379,19 +417,32 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 return
         }
 
+        // HTTP-spec discipline (RFC 9110 §9.2.1): GET/HEAD must be safe and
+        // idempotent. They never trigger a fresh scan or create domain_analyses
+        // rows. Crawlers, link-prefetch, social link previews, and shared-link
+        // clicks all use GET — so we serve the latest stored analysis (with a
+        // page-level CACHED banner + [Re-scan] button) or, if no analysis exists,
+        // render an interstitial that lets the user POST a fresh scan.
+        if c.Request.Method == http.MethodGet || c.Request.Method == http.MethodHead {
+                switch h.tryServeFromCache(c, inp, nonce, csrfToken) {
+                case cacheServed:
+                        return
+                case cacheTransient:
+                        // DB blip — do NOT render "not yet analyzed" (that would be
+                        // a lie that may cause crawlers to re-queue the URL or users
+                        // to assume their POST silently failed). Return a transparent
+                        // unavailable message; never cache.
+                        h.renderCacheLookupUnavailable(c, nonce, csrfToken, inp.domain)
+                        return
+                case cacheMiss:
+                }
+                h.renderNotYetAnalyzed(c, nonce, csrfToken, inp.domain)
+                return
+        }
+
         wantsJSON := strings.Contains(c.GetHeader("Accept"), "application/json") && c.Request.Method == "POST"
         if wantsJSON {
                 h.analyzeAsync(c, inp.domain, inp.asciiDomain, inp.customSelectors, inp.exposureChecks, inp.devNull, inp.isAuthenticated, inp.userID, inp.hasNovelSelectors, inp.ephemeral)
-                return
-        }
-
-        if h.tryServeFromCache(c, inp, nonce, csrfToken) {
-                return
-        }
-
-        if shouldServeAsyncWait(c, inp.customSelectors, inp.exposureChecks) {
-                token := h.startDirectAsyncAnalysis(c, inp)
-                h.renderWaitingPage(c, token, inp.domain, inp.asciiDomain)
                 return
         }
 
@@ -417,6 +468,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         clientIP := c.ClientIP()
         countryCode, countryName := lookupCountry(clientIP)
         scanClass := scanner.Classify(inp.asciiDomain, clientIP)
+        botClass := botverify.Classify(c.Request.UserAgent(), clientIP).String()
         postureHash := analyzer.CanonicalPostureHash(results)
         drift := h.detectDrift(ctx, inp.devNull, domainExists, inp.asciiDomain, postureHash, results)
 
@@ -437,6 +489,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 isPrivate:         isPrivate,
                 hasNovelSelectors: inp.hasNovelSelectors,
                 scanClass:         scanClass,
+                botClass:          botClass,
                 ephemeral:         inp.ephemeral,
                 domainExists:      domainExists,
                 devNull:           inp.devNull,
@@ -485,29 +538,56 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
 }
 
-const cachedAnalysisMaxAge = 1 * time.Hour
+// cachedAnalysisMaxAge bounds how old a stored analysis can be before GET
+// requests stop serving it. The previous 1-hour cap was too aggressive for
+// share-link / bookmark traffic — we now serve up to 30 days, with the
+// page-level CACHED banner displaying the original timestamp and a [Re-scan]
+// button so users can always trigger a fresh analysis on demand. POST /analyze
+// is unaffected and always runs a fresh scan.
+const cachedAnalysisMaxAge = 30 * 24 * time.Hour
 
-func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, _, _ any) bool {
+func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomain string, _, _ any) cacheLookupOutcome {
         s := h.store()
         if s == nil {
-                return false
+                // No store configured at all is treated as a transient infrastructure
+                // problem (likely test wiring or a misconfig) — never lie that the
+                // domain has not been analyzed.
+                return cacheTransient
         }
         analysis, err := s.GetRecentAnalysisByDomain(c.Request.Context(), domain)
-        if err != nil || analysis.Private {
-                return false
+        if err != nil {
+                // pgx.ErrNoRows is the only error that genuinely means "this domain
+                // has never been analyzed". Anything else (timeout, connection
+                // refused, replica failover, malformed row) is a transient
+                // infrastructure problem the caller must surface honestly instead
+                // of caching as a negative.
+                if errors.Is(err, pgx.ErrNoRows) {
+                        return cacheMiss
+                }
+                slog.Warn("serveCachedAnalysis: db lookup failed",
+                        "domain", domain, "error", err)
+                return cacheTransient
+        }
+        // From here, we have a row but it's not eligible to be served as a cached
+        // result. These are all "miss-equivalent" outcomes — the domain has been
+        // touched before but we have nothing publishable to show, so we route the
+        // user to the interstitial → POST path. None of these are transient
+        // errors, so it's safe to render the no-store interstitial.
+        if analysis.Private {
+                return cacheMiss
         }
         if analysis.AnalysisSuccess != nil && !*analysis.AnalysisSuccess {
-                return false
+                return cacheMiss
         }
         if analysis.ScanFlag {
-                return false
+                return cacheMiss
         }
         if !analysis.CreatedAt.Valid || time.Since(analysis.CreatedAt.Time) > cachedAnalysisMaxAge {
-                return false
+                return cacheMiss
         }
         results := badgepkg.UnmarshalResults(analysis.FullResults, "serveCachedAnalysis")
         if results == nil {
-                return false
+                return cacheMiss
         }
 
         h.enrichResultsAsync(results)
@@ -537,13 +617,57 @@ func (h *AnalysisHandler) serveCachedAnalysis(c *gin.Context, domain, asciiDomai
                 drift:        driftInfo{},
         })
         analyzeData["FromCache"] = true
+        analyzeData["FromCacheAt"] = timestamp
+        analyzeData["FromCacheDomain"] = domain
 
         mode := resolveCovertMode(c, asciiDomain)
         analyzeData["CovertMode"] = isCovertMode(mode)
         analyzeData["ReportMode"] = mode
 
+        // Cache discipline: this HTML carries a per-session CSRF token (the
+        // [Re-scan] form) and may include personalized nav/auth state from
+        // NewTemplateData. `no-store` is the strongest defensible header for
+        // CSRF/session-personalized pages — it prevents both shared/edge caches
+        // and browser disk storage from retaining the response, which is the
+        // RFC 9111 §5.2.2.5 contract for sensitive content. Crawler-burst
+        // protection is already provided by the GET=read discipline itself:
+        // even N parallel GETs only cost one SELECT each — no scan, no DB write.
+        c.Header("Cache-Control", "no-store")
         c.HTML(http.StatusOK, reportModeTemplate(mode), analyzeData)
-        return true
+        return cacheServed
+}
+
+// renderNotYetAnalyzed serves the "[domain] hasn't been analyzed yet" interstitial.
+// Used when a GET /analyze?domain=foo arrives for a domain we have no stored
+// analysis for. Shows the homepage with the domain prefilled so the user just
+// clicks Analyze to POST a fresh scan.
+func (h *AnalysisHandler) renderNotYetAnalyzed(c *gin.Context, nonce, csrfToken any, domain string) {
+        msg := fmt.Sprintf("%s has not been analyzed yet — click Analyze to run a fresh scan.", domain)
+        data := h.indexFlashData(c, nonce, csrfToken, "info", msg)
+        data["PrefillDomain"] = domain
+        // Negative responses must NOT be shared/edge-cached. A transient DB error,
+        // a stale row, or a race with a POST that has just landed could otherwise
+        // be cached as "not analyzed" and served to thousands of users after the
+        // domain genuinely is analyzed. The interstitial also embeds a CSRF token,
+        // which must remain per-session. `no-store` is the safest contract here.
+        c.Header("Cache-Control", "no-store")
+        c.HTML(http.StatusOK, templateIndex, data)
+}
+
+// renderCacheLookupUnavailable is the honest response when a GET arrives but
+// our cache lookup hit a transient infrastructure failure (DB timeout, replica
+// failover, etc.). We must NOT render the "not yet analyzed" interstitial in
+// this case — that would be a factual misrepresentation, and a crawler that
+// sees it could (a) re-queue the URL for re-crawl thinking it's pending and
+// (b) skew our published "domains never analyzed" intelligence. Returns 503
+// with a no-store cache header so the response is never reused.
+func (h *AnalysisHandler) renderCacheLookupUnavailable(c *gin.Context, nonce, csrfToken any, domain string) {
+        msg := fmt.Sprintf("Lookup for %s is temporarily unavailable — please retry in a moment.", domain)
+        data := h.indexFlashData(c, nonce, csrfToken, "warning", msg)
+        data["PrefillDomain"] = domain
+        c.Header("Cache-Control", "no-store")
+        c.Header("Retry-After", "5")
+        c.HTML(http.StatusServiceUnavailable, templateIndex, data)
 }
 
 func shouldServeAsyncWait(c *gin.Context, customSelectors []string, exposureChecks bool) bool {
@@ -613,6 +737,7 @@ func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, 
 
         domainExists := resultsDomainExists(results)
         scanClass := scanner.Classify(inp.asciiDomain, clientIP)
+        botClass := botverify.Classify(inp.userAgent, clientIP).String()
         postureHash := analyzer.CanonicalPostureHash(results)
         drift := h.detectDrift(ctx, inp.devNull, domainExists, inp.asciiDomain, postureHash, results)
 
@@ -632,6 +757,7 @@ func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, 
                 isPrivate:         isPrivate,
                 hasNovelSelectors: inp.hasNovelSelectors,
                 scanClass:         scanClass,
+                botClass:          botClass,
                 ephemeral:         inp.ephemeral,
                 domainExists:      domainExists,
                 devNull:           inp.devNull,
@@ -1063,6 +1189,12 @@ type persistParams struct {
         isPrivate                bool
         hasNovelSelectors        bool
         scanClass                scanner.Classification
+        // botClass is the verified-bot classification ("human", "verified_bot:<name>",
+        // or "investigate"). When non-empty AND scanClass.IsScan is false, this
+        // becomes the persisted scan_source value so the leaderboard can split
+        // human vs verified-bot vs investigate traffic. scanner.Classification still
+        // wins when it identifies a security-tool scan (Qualys/CISA/etc).
+        botClass                 string
         ephemeral                bool
         domainExists             bool
         devNull                  bool
@@ -1088,6 +1220,7 @@ func (h *AnalysisHandler) persistOrLogEphemeral(ctx context.Context, p persistPa
                 private:          p.isPrivate,
                 hasUserSelectors: p.hasNovelSelectors,
                 scanClass:        p.scanClass,
+                botClass:         p.botClass,
         })
 }
 
@@ -1958,6 +2091,10 @@ type saveAnalysisInput struct {
         private          bool
         hasUserSelectors bool
         scanClass        scanner.Classification
+        // botClass: "human" | "verified_bot:<name>" | "investigate" | "" (unknown).
+        // Used as the persisted scan_source when scanner.Classification did not flag
+        // a security-tool scan, so the leaderboard can split human vs bot traffic.
+        botClass string
 }
 
 func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput) (int32, string) {
@@ -1987,7 +2124,7 @@ func (h *AnalysisHandler) saveAnalysis(ctx context.Context, p saveAnalysisInput)
 
         success, errorMessage := extractAnalysisError(p.results)
         cc, cn := optionalStrings(p.countryCode, p.countryName)
-        scanSource, scanIP := extractScanFields(p.scanClass)
+        scanSource, scanIP := extractScanFields(p.scanClass, p.botClass)
 
         params := dbq.InsertAnalysisParams{
                 Domain:               p.domain,
@@ -2082,13 +2219,32 @@ func optionalStrings(a, b string) (*string, *string) {
         return ap, bp
 }
 
-func extractScanFields(sc scanner.Classification) (*string, *string) {
+// extractScanFields chooses the scan_source and scan_ip values to persist for
+// a domain analysis row.
+//
+//   - When the security-tool scanner classifier flagged the request (Qualys,
+//     CISA, etc.), its Source string wins. This preserves existing behaviour
+//     for security-tool detection and the existing scanner-alerts dashboard.
+//   - Otherwise, the verified-bot classification (botClass) is used —
+//     "human", "verified_bot:<name>", or "investigate" — so the leaderboard
+//     can split traffic by provenance.
+//   - When neither applies (e.g. callers that pass an empty botClass), no
+//     scan_source is set, preserving legacy NULL semantics.
+//
+// scan_ip is taken from the scanner classification when present.
+func extractScanFields(sc scanner.Classification, botClass string) (*string, *string) {
         var scanSource, scanIP *string
-        if sc.IsScan {
-                scanSource = &sc.Source
+        switch {
+        case sc.IsScan:
+                s := sc.Source
+                scanSource = &s
+        case botClass != "":
+                b := botClass
+                scanSource = &b
         }
         if sc.IP != "" {
-                scanIP = &sc.IP
+                ip := sc.IP
+                scanIP = &ip
         }
         return scanSource, scanIP
 }
