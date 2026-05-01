@@ -6,7 +6,7 @@
 package handlers
 
 import (
-	"dnstool/go-server/internal/handlers/authpkg"
+        "dnstool/go-server/internal/handlers/authpkg"
         "encoding/base64"
         "encoding/json"
         "net/http"
@@ -116,7 +116,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
         h := &authpkg.AuthHandler{Config: configWithGoogleClientID("test-client-id")}
 
         t.Run("empty id_token is allowed — not all providers include it", func(t *testing.T) {
-                err := h.validateIDTokenClaims(map[string]any{
+                err := h.ValidateIDTokenClaims(map[string]any{
                         "access_token": "valid_access_token",
                 }, "test-nonce")
                 if err != nil {
@@ -134,7 +134,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
                 }
                 token := buildTestIDToken(claims)
 
-                err := h.validateIDTokenClaims(map[string]any{
+                err := h.ValidateIDTokenClaims(map[string]any{
                         "id_token": token,
                 }, "test-nonce")
                 if err != nil {
@@ -151,7 +151,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
                 }
                 token := buildTestIDToken(claims)
 
-                err := h.validateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
+                err := h.ValidateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
                 if err == nil {
                         t.Error("SECURITY: wrong issuer must be rejected per Google OIDC spec")
                 }
@@ -167,7 +167,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
                 }
                 token := buildTestIDToken(claims)
 
-                err := h.validateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
+                err := h.ValidateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
                 if err == nil {
                         t.Error("SECURITY: wrong audience must be rejected — prevents token confusion attacks")
                 }
@@ -182,7 +182,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
                 }
                 token := buildTestIDToken(claims)
 
-                err := h.validateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
+                err := h.ValidateIDTokenClaims(map[string]any{"id_token": token}, "test-nonce")
                 if err == nil {
                         t.Error("SECURITY: expired token must be rejected")
                 }
@@ -197,7 +197,7 @@ func TestValidateIDTokenClaims_SecurityContract(t *testing.T) {
                 }
                 token := buildTestIDToken(claims)
 
-                err := h.validateIDTokenClaims(map[string]any{"id_token": token}, "different-nonce")
+                err := h.ValidateIDTokenClaims(map[string]any{"id_token": token}, "different-nonce")
                 if err == nil {
                         t.Error("SECURITY: nonce mismatch must be rejected — prevents replay attacks")
                 }
@@ -297,8 +297,8 @@ func TestGoogleOAuthEndpoints_RFC8414(t *testing.T) {
         if authpkg.GoogleTokenURL != "https://oauth2.googleapis.com/token" {
                 t.Errorf("token endpoint = %q — must match Google OIDC discovery", authpkg.GoogleTokenURL)
         }
-        if googleUserInfoURL != "https://www.googleapis.com/oauth2/v3/userinfo" {
-                t.Errorf("userinfo endpoint = %q — must match Google OIDC spec", googleUserInfoURL)
+        if authpkg.GoogleUserInfoURL != "https://www.googleapis.com/oauth2/v3/userinfo" {
+                t.Errorf("userinfo endpoint = %q — must match Google OIDC spec", authpkg.GoogleUserInfoURL)
         }
         t.Log("MEASUREMENT: all 3 Google OIDC endpoints verified against discovery document")
 }

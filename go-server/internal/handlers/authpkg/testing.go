@@ -67,6 +67,10 @@ func ValidateIDTokenNonce(claims map[string]any, expectedNonce string) error {
         return validateIDTokenNonce(claims, expectedNonce)
 }
 
+func (h *AuthHandler) ValidateIDTokenClaims(tokenData map[string]any, expectedNonce string) error {
+        return h.validateIDTokenClaims(tokenData, expectedNonce)
+}
+
 func ExtractOAuthCallbackParams(c *gin.Context) (string, string, string, string, bool) {
         return extractOAuthCallbackParams(c)
 }

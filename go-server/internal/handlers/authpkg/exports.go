@@ -10,6 +10,7 @@ const (
         SessionCookieName = sessionCookieName
         GoogleAuthURL     = googleAuthURL
         GoogleTokenURL    = googleTokenURL
+        GoogleUserInfoURL = googleUserInfoURL
         SessionMaxAge     = sessionMaxAge
         OauthHTTPTimeout  = oauthHTTPTimeout
         IatMaxSkew        = iatMaxSkew
