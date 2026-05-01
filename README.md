@@ -103,6 +103,16 @@ The Recon Report includes live CIE scotopic/photopic luminosity validation and W
 
 Server binds to `:5000` with multi-resolver DNS client, PostgreSQL backend, and Google OAuth 2.0 (PKCE-S256, OIDC nonce, 5-minute clock skew tolerance).
 
+### Running the Test Suite
+
+The handlers package (~43K test lines) is split across Go build tags so each compile fits within standard CI memory budgets. The canonical entry point used by CI is:
+
+```bash
+bash scripts/run-handler-tests-full.sh -short -count=1 -timeout=300s
+```
+
+This compiles every tag bucket (default, `bigtests`, `coverage`, `scientific`) as its own separately-compiled test binary, so a regression that pushes any single bucket over the memory limit fails with a clear `Pass: <tag>` log line instead of an opaque OOM kill. All other Go packages (including handler subpackages) are run together via a standard `go test` step. See `replit.md` § "Test Build Tags" for the full tag matrix.
+
 ## License
 
 [Business Source License 1.1](LICENSE) — IT Help San Diego Inc.

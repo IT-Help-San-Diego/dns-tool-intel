@@ -45,10 +45,36 @@ jobs:
           cd go-server
           CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
 
-      - name: Run tests
+      - name: Run handler tests (per-tag, memory-bounded)
+        # Compiles each build-tag bucket of internal/handlers as its own
+        # test binary so peak compiler memory stays inside the standard
+        # CI budget. Without this split, the combined ~43K-line handlers
+        # test corpus has OOM-killed the Go compiler at ~5 GB available
+        # RAM (see task #90, #96 and replit.md § "Test Build Tags").
+        # A regression that pushes any single tag pass over the limit
+        # fails CI with a clear "Pass: <tag>" log line.
+        run: bash scripts/run-handler-tests-full.sh -short -count=1 -timeout=300s
+        env:
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
+
+      - name: Run non-handler tests
+        # Everything outside the top-level internal/handlers package,
+        # including handler subpackages (adminpkg, agentpkg, authpkg,
+        # badgepkg, contentpkg, ...) which are well under the memory
+        # ceiling and safe to compile together.
         run: |
-          go test ./go-server/... \
-            -count=1 -short -timeout 300s -parallel=2
+          # `|| true` guards against bash -e/-o pipefail killing the
+          # assignment if grep ever matches zero lines — we want the
+          # explicit empty-package check below to be the failure path,
+          # not a silent shell exit.
+          NON_HANDLER_PKGS=$(go list ./go-server/... | grep -v '/internal/handlers$' || true)
+          if [ -z "$NON_HANDLER_PKGS" ]; then
+            echo "::error::No non-handler packages found — go list returned empty after filter."
+            exit 1
+          fi
+          go test $NON_HANDLER_PKGS -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
           GOGC: '50'
