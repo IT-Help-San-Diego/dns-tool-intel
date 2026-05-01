@@ -13,7 +13,6 @@
 - **Coverage Boost File Sprawl**: 27 files named `coverage_boost*.go` across handlers/ and analyzer/. These were added to hit coverage metrics but create directory clutter. Should be consolidated into primary `_test.go` files.
 
 ## Medium Priority
-- **Stubs Directory**: Root `stubs/` directory contains reference copies from the former `_oss.go` era. Now that the codebase is unified with `_impl.go` files, these should be updated or removed to reduce confusion.
 - **Temporary Artifacts**: Files like `sedtgBx90`, `sedu0Dj8L` in root are `sed` artifacts that should be cleaned up.
 - **IP-audit-log.txt**: Exists in root — should be in a dedicated logs directory or gitignored.
 - **Error Handling Gaps**:

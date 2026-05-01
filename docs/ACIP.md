@@ -105,7 +105,6 @@ Changes to implementation files (`*_impl.go`) and their framework files require 
 
 1. **Implementation files** (`*_impl.go`): Must maintain correct function signatures matching their framework file counterparts
 2. **Framework files** (e.g., `edge_cdn.go`, `confidence.go`): Define types, constants, and function signatures used across the codebase
-3. **Stubs directory** (`stubs/`): Historical reference copies from the former `_oss.go` era; may be removed in a future cleanup
 
 ---
 
