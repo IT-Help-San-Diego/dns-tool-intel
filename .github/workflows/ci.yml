@@ -141,7 +141,31 @@ jobs:
         # overrides the tag list to run ONLY the buckets the default
         # lane skips. Each tag still compiles as its own test binary,
         # so the per-tag memory contract is preserved.
-        run: bash scripts/run-handler-tests-full.sh -count=1 -timeout=600s
+        #
+        # Wrapped in nick-fields/retry@v3 (task #103) to make this lane
+        # self-healing for transient INFRASTRUCTURE flakes, specifically:
+        #   - mirror.gcr.io serving a 5xx or timing out while pulling
+        #     the postgres:16-alpine image (the `services:` block above
+        #     pulls before any user step runs, so we cannot retry the
+        #     pull itself — but a retried `go test` invocation gives
+        #     the runner another shot if the service eventually starts).
+        #   - the postgres service container being slow to pass its
+        #     initial pg_isready healthcheck and the first connection
+        #     from setupTestDB() racing it.
+        #   - sporadic `connection refused` from the loopback Postgres
+        #     under runner CPU contention.
+        #
+        # The retry is NOT intended to mask real test failures: a
+        # genuine assertion failure or compile error will reproduce on
+        # every attempt, exhaust max_attempts, and fail the job. Retry
+        # count and backoff are deliberately small so a true regression
+        # surfaces in well under twice the normal wall time.
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: bash scripts/run-handler-tests-full.sh -count=1 -timeout=600s
         env:
           HANDLER_TAG_PASSES: 'dbtest integration'
           DATABASE_URL: 'postgres://dnstool:dnstool@localhost:5432/dnstool_test?sslmode=disable'
