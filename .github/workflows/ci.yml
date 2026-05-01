@@ -146,6 +146,7 @@ jobs:
           go-version: '1.25.9'
 
       - name: Run dbtest + integration handler passes
+        id: dbtest_integration
         # Re-uses the same memory-bounded entry point as the main job
         # (scripts/run-handler-tests-full.sh — see task #96) but
         # overrides the tag list to run ONLY the buckets the default
@@ -170,6 +171,11 @@ jobs:
         # every attempt, exhaust max_attempts, and fail the job. Retry
         # count and backoff are deliberately small so a true regression
         # surfaces in well under twice the normal wall time.
+        #
+        # `id: dbtest_integration` is required so the follow-up
+        # "Surface silent retry" step below can read the
+        # `total_attempts` output and emit observability when the lane
+        # was saved by retry (task #105).
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 15
@@ -182,3 +188,66 @@ jobs:
           CGO_ENABLED: '0'
           GOGC: '50'
           GOMEMLIMIT: '6000MiB'
+
+      - name: Surface silent retry of dbtest + integration lane
+        # Observability over the self-healing retry above (task #105).
+        #
+        # Why this exists: nick-fields/retry@v3 will silently re-run
+        # the inner command on transient infra hiccups (mirror.gcr.io
+        # blips, slow Postgres healthcheck, runner CPU contention —
+        # see the comment block on the previous step). When attempt 1
+        # fails and attempt 2 succeeds, the JOB is green and a
+        # maintainer scanning CI history has no signal that the
+        # underlying infra is degrading. If the retry rate creeps up
+        # over weeks, nobody notices until BOTH attempts start failing
+        # and the lane goes red.
+        #
+        # This step makes the silent retry loud:
+        #   1. Writes a marker line to $GITHUB_STEP_SUMMARY so the run
+        #      summary page shows "saved by retry" without re-reading
+        #      the full log.
+        #   2. Emits a `::warning::` workflow annotation so the run
+        #      surfaces a yellow flag in the PR/commit checks UI.
+        #
+        # The marker line uses a stable prefix
+        # ("DBTEST_INTEGRATION_RETRY_USED") so a future maintainer can
+        # answer "how often did the dbtest lane get saved by retry
+        # this month?" by grepping the GitHub Actions API
+        # (`/repos/.../actions/runs/{id}/attempts`) or by scanning
+        # archived job summaries — without re-reading every workflow
+        # log line by line.
+        #
+        # `if: always()` ensures we run after both success and failure
+        # of the retry step. We then guard inside the script so we
+        # only emit the marker when the retry was both (a) used
+        # (total_attempts > 1) and (b) ultimately succeeded
+        # (outcome == 'success'). A retried-and-still-failed step is
+        # already loud — the job itself is red — so we don't double-
+        # signal it here.
+        if: always()
+        env:
+          TOTAL_ATTEMPTS: ${{ steps.dbtest_integration.outputs.total_attempts }}
+          STEP_OUTCOME: ${{ steps.dbtest_integration.outcome }}
+        run: |
+          # Default to "1" if the output is missing for any reason
+          # (e.g. the retry action failed to start). Treating a
+          # missing value as "1 attempt" means we stay quiet rather
+          # than emit a false flake signal.
+          attempts="${TOTAL_ATTEMPTS:-1}"
+          outcome="${STEP_OUTCOME:-unknown}"
+          echo "dbtest+integration lane: total_attempts=${attempts} outcome=${outcome}"
+          if [ "${outcome}" = "success" ] && [ "${attempts}" != "1" ] && [ -n "${attempts}" ]; then
+            # Stable grep marker — DO NOT change without updating the
+            # follow-up tooling that scans run summaries for trend data.
+            marker="DBTEST_INTEGRATION_RETRY_USED attempts=${attempts}"
+            {
+              echo "## ⚠️ dbtest + integration lane saved by automatic retry"
+              echo ""
+              echo "The \`Run dbtest + integration handler passes\` step needed **${attempts} attempts** to pass."
+              echo ""
+              echo "This is the self-healing path added in task #103 working as designed — but a sustained increase in retry frequency indicates the underlying infra (mirror.gcr.io pulls, Postgres service startup, runner CPU contention) is degrading. If you see this annotation appearing on most runs, investigate before both attempts start failing."
+              echo ""
+              echo "<!-- ${marker} -->"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=Silent CI retry used::dbtest + integration lane passed on attempt ${attempts}/2 (task #105). Job is green but infra flakiness is creeping up — see job summary."
+          fi
