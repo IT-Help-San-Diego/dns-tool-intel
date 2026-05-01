@@ -15,7 +15,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        # Mirror.gcr.io (Google's pull-through cache) avoids Docker Hub's
+        # anonymous-pull quota (100/IP/6h) which has TOOMANYREQUESTS-failed
+        # CI before; see tasks #98/#102 in ci.yml for the full rationale.
+        # Digest below = Postgres 16.13 and MUST stay in lockstep with the
+        # same digest in ci.yml's `handler-tests-db-integration` job so
+        # both CI lanes test against identical Postgres bytes. To refresh:
+        #   docker buildx imagetools inspect mirror.gcr.io/library/postgres:16-alpine
+        # and update the @sha256:... suffix in BOTH workflows.
+        image: mirror.gcr.io/library/postgres:16-alpine@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a89310d50
         env:
           POSTGRES_USER: dnstool
           POSTGRES_PASSWORD: dnstool
