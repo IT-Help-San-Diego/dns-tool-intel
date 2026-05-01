@@ -63,9 +63,9 @@ contract between `_oss.go` stubs and `_intel.go` implementations.
 
 ---
 
-## What Stays Public
+## What Stayed Public
 
-The following subsystems are fully implemented in the public repository with no intel-gated components:
+The following subsystems were fully implemented in the public repository with no intel-gated components:
 
 - **SPF Analysis** (`spf.go`) — RFC 7208 compliant
 - **DMARC Analysis** (`dmarc.go`) — RFC 7489 compliant
@@ -87,13 +87,13 @@ The following subsystems are fully implemented in the public repository with no 
 
 ## Design Principles
 
-1. **Build must be fully functional**: The default build produces a working application. Implementation files return safe defaults where full logic has not yet been built out. Users see "no data available" rather than crashes.
+1. **Build had to be fully functional**: The default build produced a working application. Implementation files returned safe defaults where full logic had not yet been built out. Users saw "no data available" rather than crashes.
 
-2. **No proprietary logic in framework files**: Framework files define interfaces and types. Classification algorithms, provider databases, and detection heuristics live exclusively in `_impl.go` implementations.
+2. **No proprietary logic in framework files**: Framework files defined interfaces and types. Classification algorithms, provider databases, and detection heuristics lived exclusively in `_impl.go` implementations.
 
-3. **Implementations are contracts**: The function signatures in `_impl.go` files must match the framework file counterparts.
+3. **Implementations were contracts**: The function signatures in `_impl.go` files had to match the framework file counterparts.
 
-4. **One-way dependency**: Implementation code extends framework code. Framework code never depends on implementation details.
+4. **One-way dependency**: Implementation code extended framework code. Framework code never depended on implementation details.
 
 ---
 
