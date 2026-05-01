@@ -49,7 +49,7 @@ go-server/
 │   │   ├── emailheader.go   # RFC 5322 header parsing
 │   │   ├── ipinfo.go        # IP intelligence
 │   │   ├── securitytrails.go
-│   │   ├── *_oss.go         # Open-source stubs (build tag: !intel)
+│   │   ├── *_impl.go        # Feature implementations
 │   │   └── *_test.go
 │   ├── config/              # Configuration loading from env vars
 │   ├── db/                  # Database connection pool
@@ -126,10 +126,9 @@ go-server/templates/
 ## Repository Structure
 | Repository | Visibility | Purpose |
 |------------|-----------|---------|
-| `IT-Help-San-Diego/dns-tool-intel` | **Public** | Single-repo: webapp + intel (BUSL-1.1 licensed) |
+| `IT-Help-San-Diego/dns-tool-intel` | **Public** | Single-repo: webapp + all implementations (BUSL-1.1 licensed) |
 | `IT-Help-San-Diego/dns-tool-intel-cli` | **Public** | Future hacker CLI terminal app |
 
-## Open-Core Build Model
-- **OSS build** (`go build`): Uses `*_oss.go` stubs — return safe non-nil defaults, never errors
-- **Intel build** (`go build -tags intel`): Uses `*_intel.go` with proprietary logic
-- Build tag: `//go:build !intel` (OSS) vs `//go:build intel` (intel)
+## Build Model
+- **Single build** (`go build`): Compiles all code including `*_impl.go` implementations
+- No build-tag separation — the former `_oss.go`/`_intel.go` split was unified in v26.48

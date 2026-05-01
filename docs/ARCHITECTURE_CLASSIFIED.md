@@ -1,9 +1,14 @@
 # DNS Tool — Classified Intelligence Architecture
 
-> **CLASSIFICATION: PROPRIETARY — Intel Repo Only**
-> This document contains implementation details that MUST NOT appear in the public DnsToolWeb repository.
-> The public-facing version is `docs/architecture/SYSTEM_ARCHITECTURE.md` — it shows structural architecture only.
-> This classified version shows the full intelligence pipeline, provider databases, scoring algorithms, and methodology.
+> **Status:** ARCHIVED (v26.48 — intel/oss build-tag split removed)
+>
+> This document described the former two-repo open-core architecture with classified
+> intelligence pipelines gated behind `//go:build intel` tags. The codebase was unified
+> under BUSL-1.1 in v26.48; all code now lives in a single public repository
+> (`IT-Help-San-Diego/dns-tool-intel`) with `_impl.go` files replacing the old
+> `_oss.go`/`_intel.go` split. Retained as historical record.
+>
+> The current architecture is documented in `docs/architecture/SYSTEM_ARCHITECTURE.md`.
 
 ---
 
@@ -416,6 +421,5 @@ graph TB
 
 ---
 
-*CLASSIFICATION: PROPRIETARY — dnstool-intel repository only*
-*Generated for DNS Tool v26.20.73 — February 19, 2026*
-*Public version: docs/architecture/SYSTEM_ARCHITECTURE.md (structural only)*
+*Historical snapshot from DNS Tool v26.20.73 — February 19, 2026*
+*Current architecture: docs/architecture/SYSTEM_ARCHITECTURE.md*

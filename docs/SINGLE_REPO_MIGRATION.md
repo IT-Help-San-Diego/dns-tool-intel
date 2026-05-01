@@ -1,5 +1,12 @@
 # Single-Repo Migration — GitHub Instructions
 
+> **Status:** ARCHIVED (v26.48 — migration complete, intel/oss build-tag split removed)
+>
+> This document recorded the GitHub-side migration steps for consolidating the former
+> multi-repo architecture into a single public repository. All steps are complete.
+> References to `_oss.go` stubs, build-tag gating, and separate `dns-tool-web` repos
+> describe the pre-migration state. Retained as a record of the migration process.
+
 **Date:** 2026-03-30
 **Migration:** `dns-tool-intel` (was private → now public) is the single canonical repo. `dns-tool-web` (public mirror) → archived. `dns-tool` (original legacy repo) → left as-is (already archived).
 

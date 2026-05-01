@@ -154,11 +154,11 @@ func HasFeature(c *gin.Context, feature entitlements.Feature) bool
 - Show/hide UI elements and upgrade CTAs
 - Server-side route checks remain authoritative
 
-### 4. Build Tag Interaction
+### 4. Build & Feature Tier Interaction
 
-- `//go:build intel` / `//go:build !intel` — code boundaries (public vs private repo)
-- Feature tiers — runtime access control
-- They are orthogonal. If intel-only code provides a capability, it requires BOTH compiled code AND premium entitlement.
+- All code compiles in a single build (the former `_oss.go`/`_intel.go` build-tag split was unified in v26.48)
+- Feature tiers provide runtime access control for premium capabilities
+- Premium entitlements gate access at the route and template level, not at the compilation level
 
 ## Phase Plan
 

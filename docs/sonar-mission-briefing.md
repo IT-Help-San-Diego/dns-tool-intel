@@ -1,5 +1,13 @@
 # SonarCloud Mission Briefing
 
+> **Status:** ARCHIVED (v26.48 — intel/oss build-tag split removed)
+>
+> This document was a point-in-time briefing from March 28, 2026 describing SonarCloud
+> configuration during the two-repo era. The codebase was unified under BUSL-1.1 in
+> v26.48; references to separate `dns-tool-web` and `dns-tool-full` projects, `_intel.go`
+> file stripping, and dual-build configurations are historical. Retained as a record of
+> the CI/CD evolution.
+
 ## Date: March 28, 2026
 ## Current Version: 26.40.15
 ## Target Projects: `dns-tool-full` (intel) + `dns-tool-web` (public mirror)

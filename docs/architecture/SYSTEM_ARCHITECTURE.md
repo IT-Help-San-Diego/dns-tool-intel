@@ -47,7 +47,6 @@ graph TB
 
     subgraph "External (Optional)"
         SecurityTrails["SecurityTrails API<br/>User-key only · 50 req/mo"]
-        IntelRepo["dns-tool (intel build)<br/>Private GitHub Repo"]
     end
 
     Browser -->|"HTTPS"| GoBinary
@@ -70,7 +69,6 @@ graph TB
     Analytics -->|"flush aggregates"| PG
     ICAE --> PG
     Handlers -.->|"user-provided key"| SecurityTrails
-    GoBinary -.->|"build tags"| IntelRepo
 
     classDef default fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#f0f6fc
     classDef engine fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff,font-weight:bold
@@ -81,7 +79,7 @@ graph TB
     classDef warn fill:#ca8a04,stroke:#facc15,stroke-width:2px,color:#fff,font-weight:bold
     class ICIE,ICAE,ICuAE engine
     class PG storage
-    class SecurityTrails,IntelRepo external
+    class SecurityTrails external
     class Browser client
     class Router,Auth,Analytics,Handlers,Templates app
     class DNSClient,SMTP,CT,HTTP engine
@@ -237,53 +235,41 @@ graph TB
     class Scores,Report,Hash output
 ```
 
-## 4. Two-Repo Open-Core Architecture
+## 4. Single-Repo Architecture (BUSL-1.1)
 
 ```mermaid
 graph TB
-    subgraph "Public Repo: dns-tool"
+    subgraph "Single Repo: IT-Help-San-Diego/dns-tool-intel (Public · BUSL-1.1)"
         direction TB
-        PublicGo["Go Source<br/>All framework code"]
-        Stubs["12 OSS Stub Files<br/>//go:build !intel"]
+        GoSource["Go Source<br/>Framework + Implementation"]
+        ImplFiles["12 Implementation Files<br/>*_impl.go — full capabilities"]
         Templates2["HTML Templates"]
         Static["Static Assets"]
-        Tests["Boundary Integrity Tests<br/>12 verification categories"]
+        Tests["Test Suite<br/>Golden rules · Unit · Behavioral"]
         Scripts["Build & Deploy Scripts"]
-    end
-
-    subgraph "Private Repo: dns-tool (intel build)"
-        direction TB
-        Intel["Intelligence Modules<br/>//go:build intel"]
         ProviderDB["Provider Databases<br/>ESP detection · DKIM maps"]
-        Methodology["Proprietary Methodology<br/>Classification algorithms"]
-        Commercial["Commercial Roadmap<br/>Phase 2-4 plans"]
+        Methodology["Classification Algorithms<br/>Scoring · Remediation"]
     end
 
     subgraph "Build System"
-        BuildOSS["OSS Build<br/>go build (default)<br/>Stubs provide safe defaults"]
-        BuildIntel["Intel Build<br/>go build -tags intel<br/>Full intelligence capabilities"]
+        Build["Single Build<br/>go build<br/>All code compiles together"]
     end
 
     subgraph "Sync Mechanism"
         Sync["github-intel-sync.mjs<br/>GitHub API read/write"]
     end
 
-    PublicGo --> BuildOSS
-    Stubs --> BuildOSS
-    PublicGo --> BuildIntel
-    Intel --> BuildIntel
-    Sync <-->|"push/pull files"| Intel
-    Tests -->|"verify no leaks"| PublicGo
-    Tests -->|"verify stub contracts"| Stubs
+    GoSource --> Build
+    ImplFiles --> Build
+    Sync <-->|"push code"| GoSource
+    Tests -->|"verify correctness"| GoSource
 
     classDef default fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#f0f6fc
-    classDef public fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff,font-weight:bold
-    classDef private fill:#9333ea,stroke:#c084fc,stroke-width:2px,color:#fff,font-weight:bold
+    classDef source fill:#2563eb,stroke:#60a5fa,stroke-width:2px,color:#fff,font-weight:bold
     classDef build fill:#16a34a,stroke:#4ade80,stroke-width:2px,color:#fff,font-weight:bold
     classDef sync fill:#ca8a04,stroke:#facc15,stroke-width:2px,color:#fff,font-weight:bold
-    class PublicGo,Stubs,Templates2,Static,Tests,Scripts public
-    class Intel,ProviderDB,Methodology,Commercial private
-    class BuildOSS,BuildIntel build
+    class GoSource,ImplFiles,Templates2,Static,Tests,Scripts,ProviderDB,Methodology source
+    class Build build
     class Sync sync
 ```
 
@@ -486,7 +472,7 @@ graph TB
         DB2["db<br/>PostgreSQL via pgx"]
         DBQ["dbq<br/>Prepared query cache"]
         Models["models<br/>Data structures"]
-        Providers["providers<br/>ESP detection stubs"]
+        Providers["providers<br/>ESP detection &amp; classification"]
         Telemetry["telemetry<br/>Structured logging"]
         Templates3["templates<br/>Template helpers · partials<br/>_head · _nav · _footer · _search_form<br/>_protocol_badges · _pagination"]
     end
@@ -626,13 +612,13 @@ graph LR
 |-----------|------|---------|
 | Posture Hash | `posture_hash.go` | Canonical SHA-256 hash of analysis results |
 | Posture Diff | `posture_diff.go` | Structured field-by-field comparison |
-| Severity Classification | `posture_diff_oss.go` | Maps changes to Bootstrap severity classes |
+| Severity Classification | `posture_diff_impl.go` | Maps changes to Bootstrap severity classes |
 | Drift Persistence | `analysis.go` | `persistDriftEvent()` creates drift events |
 | Notification Queuing | `analysis.go` | `queueDriftNotifications()` routes to watchlist watchers |
 | Delivery Loop | `main.go` | `startNotificationDelivery()` — 30s poll, 50/batch |
 | SSRF Protection | `notifier.go` | `isSSRFSafe()` blocks private/loopback IPs |
 
-### Drift Severity Rules (OSS Defaults)
+### Drift Severity Rules
 
 - DMARC policy downgrade (reject → none): `danger`
 - DMARC policy upgrade (none → reject): `success`

@@ -281,13 +281,15 @@ docs/logic/
 - CI can enforce integrity checks.
 - Notion and TheBrain are *views*, not sources.
 
-## Intel Repo Integration
+## Repository Integration
 
-- Shared schema and ID namespace across public and intel repos
-- Private intel repo has rules with `repo: intel` code_refs and test_refs
-- Intel CI publishes a coverage artifact (rule IDs + pass/fail + hashes)
-- Public CI ingests the summary only — no private code or logic leaks
-- SonarCloud onboarding for intel repo: create project, add sonar-project.properties, mirror CI workflow
+> **Note:** This section originally described cross-repo rule sharing between the
+> public and private Intel repositories. Since v26.48, all code is in a single repo.
+> The design below is retained for context but the two-repo mechanics are obsolete.
+
+- Unified schema and ID namespace in the single repo
+- All rules live alongside the code they govern
+- CI validates rule coverage directly without cross-repo artifact exchange
 
 ## Connection to Existing Systems
 
@@ -321,11 +323,9 @@ docs/logic/
 - Mermaid SVG generation for coverage and dependency maps
 - Notion database sync (structured view of all rules)
 
-### Phase 4: Intel Integration
-- Cross-repo rule namespace
-- Intel CI coverage artifact
-- SonarCloud for intel repo
-- Combined coverage report (public + intel)
+### Phase 4: Extended Coverage
+- Unified rule namespace validation
+- Automated coverage reporting across all subsystems
 
 ### Phase 5: Foundation Monitoring
 - RFC update detection (IETF datatracker API)

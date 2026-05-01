@@ -1,10 +1,10 @@
 # Community Signals — Full Inventory
 
-> **Classification**: Private / Intel Repo Only
+> **Classification**: Internal
 > **Last Updated**: 2026-02-20
 > **Version**: 26.21.16
 
-This document contains the complete inventory of community signals (Easter eggs) deployed in DNS Tool. This file lives exclusively in the Intel repo — NEVER commit to the public webapp repo.
+This document contains the complete inventory of community signals (Easter eggs) deployed in DNS Tool.
 
 ## Legal Framework
 

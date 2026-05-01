@@ -70,7 +70,7 @@ This repository contains the complete DNS Tool platform:
 - Alternative security posture item collection
 
 ### DKIM State Enrichment (dkim_state.go)
-The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPartyOnly, Inconclusive, WeakKeysOnly, NoMailDomain) is fully implemented in the public repo. The private repo extends this with provider-aware state transitions that credit known hosted DKIM providers.
+The DKIM state classification engine (Absent, Success, ProviderInferred, ThirdPartyOnly, Inconclusive, WeakKeysOnly, NoMailDomain) is fully implemented. Provider-aware state transitions credit known hosted DKIM providers.
 
 ### Intelligence Confidence (confidence.go)
 - Extended confidence levels beyond the base Observed/Inferred/Third-party system
@@ -101,7 +101,7 @@ By contributing code to this repository, you agree that your contributions may b
 For organizations that need capabilities beyond the BUSL-1.1-permitted uses, commercial licenses are available by arrangement. Contact us to discuss your specific requirements.
 
 ### What a commercial license can include
-- All public repo capabilities plus the complete private intelligence databases
+- All capabilities plus access to premium intelligence databases
 - Self-hosted deployment (on-premises or private cloud)
 - Additional deployment and integration options as needed
 
@@ -109,7 +109,7 @@ For organizations that need capabilities beyond the BUSL-1.1-permitted uses, com
 - Security vendors who want to embed DNS audit capabilities in their platform
 - Managed service providers who want to offer DNS Tool as a branded service
 - Enterprises requiring dedicated deployment with custom integrations
-- Organizations needing capabilities beyond the public open-core release
+- Organizations needing capabilities beyond the BUSL-1.1-permitted uses
 
 ## Questions
 

@@ -13,7 +13,7 @@
 - **Coverage Boost File Sprawl**: 27 files named `coverage_boost*.go` across handlers/ and analyzer/. These were added to hit coverage metrics but create directory clutter. Should be consolidated into primary `_test.go` files.
 
 ## Medium Priority
-- **Stubs Directory**: Root `stubs/` directory contains files mirroring `go-server/internal/analyzer/` OSS stubs. Potential confusion about which is canonical. Clarify or remove.
+- **Stubs Directory**: Root `stubs/` directory contains reference copies from the former `_oss.go` era. Now that the codebase is unified with `_impl.go` files, these should be updated or removed to reduce confusion.
 - **Temporary Artifacts**: Files like `sedtgBx90`, `sedu0Dj8L` in root are `sed` artifacts that should be cleaned up.
 - **IP-audit-log.txt**: Exists in root — should be in a dedicated logs directory or gitignored.
 - **Error Handling Gaps**:
@@ -23,7 +23,6 @@
 
 ## Low Priority
 - **Custom OAuth**: Uses hand-rolled OAuth 2.0 + PKCE instead of established libraries. Functional but higher maintenance burden.
-- **Intel Sync Complexity**: The two-repo architecture (OSS stubs + intel repo) adds cognitive overhead. Well-architected but requires disciplined synchronization.
 - **Go Version**: `go.mod` specifies `go 1.25.5` — ensure this aligns with target deployment environments.
 
 ## Documentation Gaps
