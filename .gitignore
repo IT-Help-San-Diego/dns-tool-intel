@@ -67,6 +67,9 @@ go-server/static/exports/owl-semaphore/*
 !static/exports/owl-semaphore/derived/*
 !go-server/static/exports/owl-semaphore/derived/*
 
+# Intel breadcrumbs — operational context docs, not versioned
+.intel/
+
 # Disposable venvs (cffconvert validation, etc.)
 .venv-cff/
 .venv*/

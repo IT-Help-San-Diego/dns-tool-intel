@@ -35,13 +35,6 @@ jobs:
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
       - name: Run govulncheck
-        # NOTE: We intentionally do NOT pass `-tags intel`. The *_intel.go
-        # files are gitignored and absent from this CI checkout (they live
-        # only in the private intel build). Every symbol the intel build
-        # references has a matching `_oss.go` stub, so the OSS build
-        # exercises the same dependency surface that ships to production.
-        # Adding `-tags intel` here makes the build fail on undefined
-        # symbols before govulncheck can even run.
         run: govulncheck ./go-server/...
 
   npm-audit:
