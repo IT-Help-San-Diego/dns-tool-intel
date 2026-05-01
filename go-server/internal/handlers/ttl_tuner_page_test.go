@@ -1,3 +1,5 @@
+//go:build bigtests
+
 package handlers_test
 
 import (
