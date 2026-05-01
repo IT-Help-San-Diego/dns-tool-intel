@@ -14,22 +14,7 @@
 
 ## Purpose
 
-This document inventories every stubbed subsystem in the public repository and defines the boundary between public framework code and private intelligence modules. It exists so that contributors, auditors, and AI assistants can understand what is implemented in the open-core public build versus what requires the `intel` build tag.
-
----
-
-## Build Tag Convention
-
-- **Default build** (`go build`): Compiles all framework code plus OSS stubs. Produces a functional application with safe defaults where intelligence modules would otherwise operate.
-- **Intel build** (`go build -tags intel`): Compiles framework code plus full intelligence implementations from the private repo. Stubs are excluded via `//go:build !intel`.
-
-Every stubbed subsystem follows this file pattern:
-
-| File | Build Tag | Role |
-|------|-----------|------|
-| `feature.go` | None (always compiled) | Framework interface — defines types, constants, function signatures used by handlers and other packages |
-| `feature_oss.go` | `//go:build !intel` | OSS stub — compiles in default build, returns safe empty/default values |
-| `feature_intel.go` | `//go:build intel` | Intel implementation — lives in private repo, provides full capability |
+This document inventoried every stubbed subsystem in the public repository and defined the boundary between public framework code and private intelligence modules. It existed so that contributors, auditors, and AI assistants could understand what was implemented in the open-core public build versus what required the `intel` build tag.
 
 ---
 
