@@ -84,3 +84,55 @@ jobs:
         run: |
           ls -lh dns-tool-server
           file dns-tool-server
+
+  handler-tests-db-integration:
+    name: Handler Tests — dbtest + integration
+    runs-on: ubuntu-latest
+    # Closes the last gap in the handler test coverage map (task #97):
+    # the default Build & Test job intentionally skips the `dbtest` and
+    # `integration` tag buckets because they require a live PostgreSQL
+    # service and outbound network respectively. This lane provides
+    # both. It runs in parallel with the main build job rather than
+    # blocking it, so a transient Postgres pull failure does not stall
+    # the rest of the pipeline.
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: dnstool
+          POSTGRES_PASSWORD: dnstool
+          POSTGRES_DB: dnstool_test
+        ports:
+          - 5432:5432
+        # The handler tests apply schema.sql via setupTestDB(), so we
+        # only need the service to be accepting connections before the
+        # `go test` invocation starts.
+        options: >-
+          --health-cmd "pg_isready -U dnstool -d dnstool_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.9'
+
+      - name: Run dbtest + integration handler passes
+        # Re-uses the same memory-bounded entry point as the main job
+        # (scripts/run-handler-tests-full.sh — see task #96) but
+        # overrides the tag list to run ONLY the buckets the default
+        # lane skips. Each tag still compiles as its own test binary,
+        # so the per-tag memory contract is preserved.
+        run: bash scripts/run-handler-tests-full.sh -count=1 -timeout=600s
+        env:
+          HANDLER_TAG_PASSES: 'dbtest integration'
+          DATABASE_URL: 'postgres://dnstool:dnstool@localhost:5432/dnstool_test?sslmode=disable'
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'

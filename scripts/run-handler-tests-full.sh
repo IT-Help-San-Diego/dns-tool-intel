@@ -39,9 +39,34 @@ TAG_PASSES=(
   "coverage"
   "scientific"
   # dbtest and integration are excluded by default — they require a
-  # live PostgreSQL and a real network respectively. Add to the loop
-  # in CI lanes that provide those services.
+  # live PostgreSQL and a real network respectively. CI lanes that
+  # provide those services should override this list via the
+  # HANDLER_TAG_PASSES env var (see below) so the per-tag memory
+  # contract is preserved.
 )
+
+# HANDLER_TAG_PASSES — space-separated override of TAG_PASSES for the
+# current invocation. Use the literal token "default" to request the
+# untagged pass. CI lanes with a Postgres service and network egress
+# set this to "dbtest integration" to run only the buckets that the
+# default lane intentionally skips, without recompiling the larger
+# coverage/bigtests buckets a second time.
+#
+# Example:
+#   HANDLER_TAG_PASSES="dbtest integration" \
+#     bash scripts/run-handler-tests-full.sh -short -count=1 -timeout=300s
+if [ -n "${HANDLER_TAG_PASSES:-}" ]; then
+  # shellcheck disable=SC2206  # intentional word-splitting on whitespace
+  override=(${HANDLER_TAG_PASSES})
+  TAG_PASSES=()
+  for t in "${override[@]}"; do
+    if [ "$t" = "default" ]; then
+      TAG_PASSES+=("")
+    else
+      TAG_PASSES+=("$t")
+    fi
+  done
+fi
 
 failed=0
 for tags in "${TAG_PASSES[@]}"; do
