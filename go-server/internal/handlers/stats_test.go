@@ -86,8 +86,11 @@ func TestComputeSummary_WithData(t *testing.T) {
 	if summary.TotalPageviews != 300 {
 		t.Errorf("TotalPageviews = %d, want 300", summary.TotalPageviews)
 	}
-	if summary.TotalUniqueVisitors != 130 {
-		t.Errorf("TotalUniqueVisitors = %d, want 130", summary.TotalUniqueVisitors)
+	if summary.TotalUniqueVisitors != 0 {
+		t.Errorf("TotalUniqueVisitors = %d, want 0 (no HLL without DB)", summary.TotalUniqueVisitors)
+	}
+	if summary.HasTrueUnique {
+		t.Error("HasTrueUnique should be false without DB")
 	}
 	if summary.DaysTracked != 2 {
 		t.Errorf("DaysTracked = %d, want 2", summary.DaysTracked)
