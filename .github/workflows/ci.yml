@@ -110,7 +110,17 @@ jobs:
         # operated by Google, free, public, and not subject to the Docker
         # Hub anonymous-pull quota. If mirror.gcr.io itself ever has an
         # outage, swap back to `postgres:16-alpine` as a one-line revert.
-        image: mirror.gcr.io/library/postgres:16-alpine
+        #
+        # Pinned by SHA-256 digest (task #102) so an upstream rebuild of
+        # the `16-alpine` floating tag cannot silently change what CI is
+        # testing against. The digest below corresponds to Postgres 16.13
+        # (PG_VERSION in the image config). To refresh after a deliberate
+        # Postgres patch bump, run:
+        #   docker buildx imagetools inspect mirror.gcr.io/library/postgres:16-alpine
+        # and copy the new top-level "Digest:" value into the @sha256:...
+        # suffix below (keep the `:16-alpine` tag for human readability —
+        # Docker resolves by digest when both are present).
+        image: mirror.gcr.io/library/postgres:16-alpine@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a89310d50
         env:
           POSTGRES_USER: dnstool
           POSTGRES_PASSWORD: dnstool
