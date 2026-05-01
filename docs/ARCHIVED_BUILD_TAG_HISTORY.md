@@ -22,6 +22,14 @@
 > | [3. Classified Intelligence Architecture](#3-classified-intelligence-architecture) | `docs/ARCHITECTURE_CLASSIFIED.md` | v26.20.73 (Feb 19, 2026) |
 > | [4. SonarCloud Mission Briefing](#4-sonarcloud-mission-briefing) | `docs/sonar-mission-briefing.md` | March 28, 2026 (v26.40.15) |
 > | [5. Single-Repo Migration](#5-single-repo-migration) | `docs/SINGLE_REPO_MIGRATION.md` | 2026-03-30 |
+>
+> **Also retired in v26.48:** `scripts/intel-breadcrumbs-sync.sh` — the
+> two-repo-era helper that fetched these documents from the former private
+> `dns-tool-intel` repo into `.intel/breadcrumbs/`. The script now exists only
+> as a deprecation stub that exits non-zero with a pointer back to this file,
+> so any stale invocation fails loudly instead of chasing files that no longer
+> exist (`STUB_AUDIT.md`, `docs/ARCHITECTURE_CLASSIFIED.md`,
+> `docs/BUILD_TAG_STRATEGY.md`).
 
 ---
 
