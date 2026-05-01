@@ -98,7 +98,19 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16-alpine
+        # Sourced from Google's public Docker Hub pull-through cache
+        # (mirror.gcr.io) instead of docker.io directly. Reason: the
+        # GitHub Actions `services:` block starts the container before
+        # any user step runs, which means we cannot wrap the pull in
+        # retry/backoff. Anonymous pulls from Docker Hub are rate-limited
+        # (100/IP/6h) and a runner sharing an outbound IP with another
+        # heavy CI tenant has previously caused unrelated jobs to fail
+        # with TOOMANYREQUESTS. mirror.gcr.io is a bit-for-bit pull-
+        # through cache (same digest as docker.io/library/postgres:16-alpine)
+        # operated by Google, free, public, and not subject to the Docker
+        # Hub anonymous-pull quota. If mirror.gcr.io itself ever has an
+        # outage, swap back to `postgres:16-alpine` as a one-line revert.
+        image: mirror.gcr.io/library/postgres:16-alpine
         env:
           POSTGRES_USER: dnstool
           POSTGRES_PASSWORD: dnstool
