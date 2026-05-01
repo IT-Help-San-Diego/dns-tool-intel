@@ -139,7 +139,7 @@
   <rect x="570" y="580" width="390" height="60" rx="8" fill="#1a1a00" stroke="#ffeb3b" stroke-width="1.5" filter="url(#shadow)"/>
   <text x="765" y="603" text-anchor="middle" fill="#ffeb3b" font-size="13" font-weight="bold">Staging: dnstool-intel-staging/</text>
   <text x="585" y="623" fill="#fff9c4" font-size="10.5">In .gitignore — prep area for private repo pushes</text>
-  <text x="585" y="636" fill="#fff9c4" font-size="10.5">Contains: STUB_AUDIT.md + dkim_providers.go ★</text>
+  <text x="585" y="636" fill="#fff9c4" font-size="10.5">Historical context: docs/ARCHIVED_BUILD_TAG_HISTORY.md §2</text>
 
   <!-- ==================== ZONE 3: DATA & EXTERNAL SERVICES ==================== -->
   <rect x="20" y="670" width="955" height="170" rx="10" fill="none" stroke="#2196f3" stroke-width="2" stroke-dasharray="8,4"/>
