@@ -14,112 +14,58 @@
 
 ## Purpose
 
-This document inventories every stubbed subsystem in the public repository and defines the boundary between public framework code and private intelligence modules. It exists so that contributors, auditors, and AI assistants can understand what is implemented in the open-core public build versus what requires the `intel` build tag.
+This document inventoried every stubbed subsystem in the public repository and defined the boundary between public framework code and private intelligence modules. It existed so that contributors, auditors, and AI assistants could understand what was implemented in the open-core public build versus what required the `intel` build tag.
 
 ---
 
-## Build Tag Convention
-
-- **Default build** (`go build`): Compiles all framework code plus OSS stubs. Produces a functional application with safe defaults where intelligence modules would otherwise operate.
-- **Intel build** (`go build -tags intel`): Compiles framework code plus full intelligence implementations from the private repo. Stubs are excluded via `//go:build !intel`.
-
-Every stubbed subsystem follows this file pattern:
-
-| File | Build Tag | Role |
-|------|-----------|------|
-| `feature.go` | None (always compiled) | Framework interface — defines types, constants, function signatures used by handlers and other packages |
-| `feature_oss.go` | `//go:build !intel` | OSS stub — compiles in default build, returns safe empty/default values |
-| `feature_intel.go` | `//go:build intel` | Intel implementation — lives in private repo, provides full capability |
-
----
-
-## Stubbed Subsystems — Analyzer Package
+## Subsystems — Analyzer Package
 
 ### `internal/analyzer/`
 
-| Subsystem | Framework File | OSS Stub | Description |
-|-----------|---------------|----------|-------------|
-| **Edge/CDN Detection** | `edge_cdn.go` | `edge_cdn_oss.go` | Detects CDN and edge providers from ASN, CNAME, and header patterns |
-| **Infrastructure Detection** | `infrastructure.go` | `infrastructure_oss.go` | Identifies hosting, DNS, and email infrastructure providers |
-| **Provider Classification** | `providers.go` | `providers_oss.go` | ESP detection, DKIM provider maps, SPF flattening service identification |
-| **IP Investigation** | `ip_investigation.go` | `ip_investigation_oss.go` | Deep IP intelligence — geolocation, ASN enrichment, threat correlation |
-| **Posture Diff** | `posture_diff.go` | `posture_diff_oss.go` | Compares security posture between scans to detect drift |
-| **Manifest** | `manifest.go` | `manifest_oss.go` | Intelligence manifest — tracks what sources contributed to each finding |
-| **SaaS TXT** | `saas_txt.go` | `saas_txt_oss.go` | Detects SaaS domain verification TXT records and classifies services |
-| **Remediation** | `remediation.go` | (inline stubs) | RFC-aligned remediation engine with priority fixes |
-| **Confidence** | `confidence.go` | (inline stubs) | Confidence classification — Observed, Inferred, Third-party attribution |
-| **Commands** | `commands.go` | (inline stubs) | "Verify It Yourself" terminal command generation |
+| Subsystem | Framework File | Implementation | Description |
+|-----------|---------------|----------------|-------------|
+| **Edge/CDN Detection** | `edge_cdn.go` | `edge_cdn_impl.go` | Detects CDN and edge providers from ASN, CNAME, and header patterns |
+| **Infrastructure Detection** | `infrastructure.go` | `infrastructure_impl.go` | Identifies hosting, DNS, and email infrastructure providers |
+| **Provider Classification** | `providers.go` | `providers_impl.go` | ESP detection, DKIM provider maps, SPF flattening service identification |
+| **IP Investigation** | `ip_investigation.go` | `ip_investigation_impl.go` | Deep IP intelligence — geolocation, ASN enrichment, threat correlation |
+| **Posture Diff** | `posture_diff.go` | `posture_diff_impl.go` | Compares security posture between scans to detect drift |
+| **Manifest** | `manifest.go` | `manifest_impl.go` | Intelligence manifest — tracks what sources contributed to each finding |
+| **SaaS TXT** | `saas_txt.go` | `saas_txt_impl.go` | Detects SaaS domain verification TXT records and classifies services |
+| **Remediation** | `remediation.go` | (inline) | RFC-aligned remediation engine with priority fixes |
+| **Confidence** | `confidence.go` | (inline) | Confidence classification — Observed, Inferred, Third-party attribution |
+| **Commands** | `commands.go` | (inline) | "Verify It Yourself" terminal command generation |
 
 ### `internal/analyzer/ai_surface/`
 
-| Subsystem | Framework File | OSS Stub | Description |
-|-----------|---------------|----------|-------------|
-| **AI HTTP Surface** | `http.go` | `http_oss.go` | Detects AI-relevant HTTP headers and configurations |
-| **LLMs.txt** | `llms_txt.go` | `llms_txt_oss.go` | Parses and validates llms.txt files for AI crawler guidance |
-| **Poisoning Detection** | `poisoning.go` | `poisoning_oss.go` | Detects DNS and content poisoning indicators relevant to AI training |
-| **Robots.txt AI** | `robots_txt.go` | `robots_txt_oss.go` | Analyzes robots.txt for AI-specific crawler directives |
-| **AI Surface Scanner** | `scanner.go` | `scanner_oss.go` | Orchestrates AI surface analysis across all sub-modules |
+| Subsystem | Framework File | Implementation | Description |
+|-----------|---------------|----------------|-------------|
+| **AI HTTP Surface** | `http.go` | `http_impl.go` | Detects AI-relevant HTTP headers and configurations |
+| **LLMs.txt** | `llms_txt.go` | `llms_txt_impl.go` | Parses and validates llms.txt files for AI crawler guidance |
+| **Poisoning Detection** | `poisoning.go` | `poisoning_impl.go` | Detects DNS and content poisoning indicators relevant to AI training |
+| **Robots.txt AI** | `robots_txt.go` | `robots_txt_impl.go` | Analyzes robots.txt for AI-specific crawler directives |
+| **AI Surface Scanner** | `scanner.go` | `scanner_impl.go` | Orchestrates AI surface analysis across all sub-modules |
 
 ---
 
-## Stubs Reference Directory
+## Stubs Reference Directory (Removed)
 
-The `stubs/` directory at the repository root contains reference copies of stubbed files:
-
-```
-stubs/go-server/internal/analyzer/
-├── ai_surface/
-│   ├── http.go
-│   ├── http_oss.go
-│   ├── llms_txt.go
-│   ├── llms_txt_oss.go
-│   ├── poisoning.go
-│   ├── poisoning_oss.go
-│   ├── robots_txt.go
-│   ├── robots_txt_oss.go
-│   └── scanner.go
-├── analyzer_test.go
-├── commands.go
-├── confidence.go
-├── confidence_test.go
-├── dkim_state.go
-├── dkim_state_test.go
-├── edge_cdn.go
-├── golden_rules_test.go
-├── infrastructure.go
-├── ip_investigation.go
-├── manifest.go
-├── manifest_test.go
-├── orchestrator_test.go
-├── posture.go
-├── providers.go
-├── remediation.go
-└── saas_txt.go
-```
-
-These reference copies serve as documentation of the public API surface. The canonical implementations live in `go-server/internal/analyzer/` (OSS stubs) and the private intel repo (full implementations).
+The `stubs/` directory formerly contained reference copies of the `_oss.go` stub files.
+It was removed when the codebase was unified under BUSL-1.1 in v26.48.
+All implementations now live directly in `go-server/internal/analyzer/` as `_impl.go` files.
 
 ---
 
-## Boundary Integrity Tests
+## Boundary Integrity Tests (Removed)
 
-Automated boundary tests verify that the public/intel boundary is never violated:
-
-- **`go-server/internal/analyzer/boundary_integrity_test.go`**: Verifies that every framework file has a corresponding OSS stub, that stubs compile independently, and that function signatures match between stub and framework.
-- **`go-server/internal/analyzer/ai_surface/boundary_integrity_test.go`**: Same verification for the AI surface analysis sub-package.
-
-These tests run in CI on every commit and prevent:
-
-1. OSS stubs that fail to compile
-2. Missing stubs for new framework functions
-3. Signature mismatches between stub and intel implementations
-4. Accidental import of intel-only packages in OSS stubs
+The former boundary integrity tests (`boundary_integrity_test.go`) were removed
+when the intel/oss build-tag split was eliminated. They verified the now-obsolete
+contract between `_oss.go` stubs and `_intel.go` implementations.
 
 ---
 
-## What Stays Public
+## What Stayed Public
 
-The following subsystems are fully implemented in the public repository with no intel-gated components:
+The following subsystems were fully implemented in the public repository with no intel-gated components:
 
 - **SPF Analysis** (`spf.go`) — RFC 7208 compliant
 - **DMARC Analysis** (`dmarc.go`) — RFC 7489 compliant
@@ -141,13 +87,13 @@ The following subsystems are fully implemented in the public repository with no 
 
 ## Design Principles
 
-1. **OSS build must be fully functional**: The default build produces a working application. Stubs return empty results, not errors. Users see "no data available" rather than crashes.
+1. **Build had to be fully functional**: The default build produced a working application. Implementation files returned safe defaults where full logic had not yet been built out. Users saw "no data available" rather than crashes.
 
-2. **No proprietary logic in framework files**: Framework files define interfaces and types. Classification algorithms, provider databases, and detection heuristics live exclusively in intel implementations.
+2. **No proprietary logic in framework files**: Framework files defined interfaces and types. Classification algorithms, provider databases, and detection heuristics lived exclusively in `_impl.go` implementations.
 
-3. **Stubs are contracts**: The function signatures in OSS stubs are the public API contract. Intel implementations must satisfy the same signatures. Boundary integrity tests enforce this.
+3. **Implementations were contracts**: The function signatures in `_impl.go` files had to match the framework file counterparts.
 
-4. **One-way dependency**: Intel code imports and extends framework code. Framework code never imports intel code. Build tags ensure compile-time separation.
+4. **One-way dependency**: Implementation code extended framework code. Framework code never depended on implementation details.
 
 ---
 

@@ -60,8 +60,8 @@ intents:
     review_interval_days: 365
 
   - id: SECINTENT-004
-    title: "Empty stub bodies for open-core boundary"
-    file: "stubs/**"
+    title: "Empty stub bodies for implementation defaults"
+    file: "go-server/internal/analyzer/**_impl.go"
     pattern: "func.*\\{\\s*\\}"
     category: intentional-behavior
     severity: info

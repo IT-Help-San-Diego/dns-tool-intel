@@ -31,7 +31,6 @@ The release gate now relies entirely on in-repo tooling:
 - **Gate 10** — handlers/ shim drift guard
 - **TestNoHardcodedMethodologyStrings** — methodology consistency
 - **TestCorpusPDFIntegrity** — published PDF banner audit (added April 19, 2026)
-- Boundary integrity tests — open-core repo separation
 - `dependency-audit.yml` workflow — unchanged, still active
 
 ## What Did NOT Change

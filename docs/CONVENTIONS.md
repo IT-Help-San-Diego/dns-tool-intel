@@ -1,11 +1,10 @@
 # DNS Tool — Coding Conventions
 
 ## Go Conventions
-- **File naming**: `snake_case.go`, stubs `*_oss.go`, tests `*_test.go`
+- **File naming**: `snake_case.go`, implementations `*_impl.go`, tests `*_test.go`
 - **Bridge tests**: `*_bridge_test.go` (mock vs golden fixture validation)
 - **Pure tests**: `*_pure_test.go` (unit tests without external dependencies)
 - **License header**: Every file starts with BUSL-1.1 copyright header
-- **Build tags**: `//go:build !intel` for OSS stubs, `//go:build intel` for proprietary
 - **Constants**: `mapKeySomething` for JSON map keys, `errExpectedGot` for test formatting
 - **Error format**: `t.Errorf("expected %v, got %v", expected, actual)`
 

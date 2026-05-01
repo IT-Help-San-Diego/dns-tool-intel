@@ -153,12 +153,35 @@ func TestNoHardcodedMethodologyStrings(t *testing.T) {
 
         var violations []string
 
+        // Directories that are not part of source and may contain extremely
+        // large or generated files (e.g. cached SAST output JSON) that would
+        // either blow past bufio.Scanner's max token size or simply waste
+        // time. These are skipped wholesale.
+        skipDirs := map[string]bool{
+                ".cache":       true,
+                ".local":       true,
+                ".git":         true,
+                "node_modules": true,
+                "vendor":       true,
+        }
+
         walkFn := func(scanRoot string) filepath.WalkFunc {
                 return func(path string, info os.FileInfo, err error) error {
                         if err != nil {
                                 return err
                         }
                         if info.IsDir() {
+                                name := info.Name()
+                                // Always skip the scan root itself from name-based checks.
+                                if path != scanRoot {
+                                        if skipDirs[name] {
+                                                return filepath.SkipDir
+                                        }
+                                        // Skip any other hidden directory (".something").
+                                        if strings.HasPrefix(name, ".") {
+                                                return filepath.SkipDir
+                                        }
+                                }
                                 return nil
                         }
                         if !strings.HasSuffix(path, ".go") &&

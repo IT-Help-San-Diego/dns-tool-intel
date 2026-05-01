@@ -98,7 +98,6 @@ rules:
       exclude:
         - "*_test.go"
         - "vendor/**"
-        - "stubs/**"
         - "tests/**"
 
   - id: dns-tool-tls-skip-verify-untagged

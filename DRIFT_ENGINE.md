@@ -55,4 +55,4 @@ The drift engine extends DNS Tool's observation-based analysis from point-in-tim
 
 ---
 
-*Full roadmap and design documentation maintained in the private repository.*
+*Full roadmap and design documentation maintained in `docs/` and internal planning artifacts.*

@@ -1,10 +1,10 @@
 # DNS Tool — Build Tag Strategy
 
-> **Canonical location:** `docs/BUILD_TAG_STRATEGY.md`
+> **Status:** ARCHIVED (v26.48 — repos consolidated, build tags eliminated)
 >
-> This file contained the open-core build tag strategy research and implementation
-> details. It has been moved to the private Intel repository because the detailed
-> strategy analysis reveals competitive business decisions.
+> This file documented the build-tag strategy for the former two-repo open-core
+> architecture (`//go:build intel` / `//go:build !intel`). The Intel repository was
+> merged into the single public repo in v26.48, and all build tags were removed.
+> All `_oss.go` stubs were renamed to `_impl.go` files.
 >
-> **Status:** ARCHIVED — Implementation complete (2026-02-17).
-> **Canonical version:** Git (`IT-Help-San-Diego/dns-tool-intel`). Miro Blueprint board `uXjVG83d8PY=` (documents A11 and A13) is a presentation mirror only.
+> **Reference:** Miro Blueprint board `uXjVG83d8PY=` (documents A11 and A13) is a presentation mirror only.

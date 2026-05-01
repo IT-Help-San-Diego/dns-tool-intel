@@ -238,7 +238,7 @@ The DNS Tool system consists of three major components:
 
 The implementation is written primarily in Go for the analysis engine with a web-based interface for user interaction. The system is designed to allow independent verification of DNS observations.
 
-Core research logic and internal analysis pipelines are maintained in private repositories for security and intellectual property protection.
+Core research logic and internal analysis pipelines are protected under BUSL-1.1 licensing for intellectual property protection.
 
 ---
 
