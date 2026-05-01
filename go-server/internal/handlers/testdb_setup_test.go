@@ -4,6 +4,7 @@ package handlers_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,7 +13,40 @@ import (
 
 	"dnstool/go-server/internal/config"
 	"dnstool/go-server/internal/db"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
+
+// schemaAlreadyAppliedSQLStates are the Postgres SQLSTATE codes we treat as
+// "the schema is already loaded" — expected on dev-loop re-runs against a
+// long-lived Postgres that already has the tables/indexes from a previous
+// run. Any other error from applying schema.sql is a real failure (e.g. a
+// fresh CI service container that genuinely could not load the schema, or a
+// syntax error in schema.sql) and must fail the test loudly so the operator
+// is not left chasing downstream "relation does not exist" errors.
+var schemaAlreadyAppliedSQLStates = map[string]struct{}{
+	"42P07": {}, // duplicate_table
+	"42P06": {}, // duplicate_schema
+	"42710": {}, // duplicate_object (indexes, constraints, types, ...)
+	"42701": {}, // duplicate_column
+	"42723": {}, // duplicate_function
+}
+
+// isSchemaAlreadyAppliedError reports whether err is a Postgres error
+// indicating that some schema object already exists. It is used to
+// distinguish the expected "re-run against a populated dev database" case
+// from a genuine schema-apply failure.
+func isSchemaAlreadyAppliedError(err error) bool {
+	if err == nil {
+		return false
+	}
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return false
+	}
+	_, ok := schemaAlreadyAppliedSQLStates[pgErr.Code]
+	return ok
+}
 
 func setupTestDB(t *testing.T) *db.Database {
 	t.Helper()
@@ -30,7 +64,13 @@ func setupTestDB(t *testing.T) *db.Database {
 
 	_, err = database.Pool.Exec(ctx, string(schemaSQL))
 	if err != nil {
-		t.Logf("schema already applied or partial apply (expected on re-runs): %v", err)
+		if isSchemaAlreadyAppliedError(err) {
+			var pgErr *pgconn.PgError
+			_ = errors.As(err, &pgErr)
+			t.Logf("schema already applied (pg sqlstate %s: %s) — assuming dev-loop re-run against populated database", pgErr.Code, pgErr.Message)
+		} else {
+			t.Fatalf("could not load schema from %s against test database: %v", schemaPath, err)
+		}
 	}
 
 	return database
