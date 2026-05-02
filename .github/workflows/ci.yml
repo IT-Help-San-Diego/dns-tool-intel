@@ -33,6 +33,16 @@ jobs:
         # covered without remembering to update the guard.
         run: bash scripts/check-postgres-digest-sync.sh
 
+      - name: Self-test — Postgres digest drift guard
+        # Task #115: the drift guard above has no value if it silently
+        # rots (e.g. a future refactor tightens the regex or swaps grep
+        # for awk and breaks the failure path — CI would keep printing
+        # "OK" forever and we'd never notice). This runs a tiny
+        # fixture-based test of all three branches of the guard
+        # (matching, mismatched, empty) so any regression surfaces on
+        # the SAME PR that introduced it.
+        run: bash scripts/test-check-postgres-digest-sync.sh
+
       - name: Drift guard — Go toolchain version sync across workflows
         # Enforces task #114: the Go toolchain version is pinned in
         # multiple workflow files (this file's `build` job AND
