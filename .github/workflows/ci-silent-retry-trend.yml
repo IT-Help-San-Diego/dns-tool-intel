@@ -1,0 +1,87 @@
+name: CI Silent Retry Trend
+
+# Aggregates the silent-retry observability signal that task #105 added
+# to the `handler-tests-db-integration` lane in `ci.yml`. The per-run
+# warning answers "did THIS run get saved by retry?" but a maintainer
+# still has to manually scan recent runs to spot a trend. This
+# scheduled job walks the last ~month of CI runs, classifies each as
+# "saved by retry", "retried & failed", or "clean", and posts the
+# monthly trend to a dedicated tracking issue so a creeping flake rate
+# becomes visible BEFORE both attempts start failing in earnest.
+#
+# See `scripts/silent-retry-trend.mjs` for the marker contract and
+# classification logic. The marker prefix
+# `DBTEST_INTEGRATION_RETRY_USED` is shared with `ci.yml` and MUST NOT
+# change in either place without updating the other.
+#
+# Cadence rationale:
+#   - Weekly cron is frequent enough that a sudden flake spike shows up
+#     within 7 days, and infrequent enough that we don't burn API
+#     budget. The 35-day lookback window in the script gives a full
+#     calendar month plus a week of overlap so month-boundary scrapes
+#     don't under-count the most recent month.
+#   - workflow_dispatch is provided so a maintainer investigating a
+#     suspected flake spike can pull a fresh snapshot on demand without
+#     waiting for the next scheduled run.
+
+on:
+  schedule:
+    # Mondays 14:00 UTC ≈ 06:00 PT — runs after the weekend's CI
+    # traffic has settled but before the workweek starts so the
+    # snapshot is fresh when maintainers triage.
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+    inputs:
+      days_lookback:
+        description: 'Days of history to scan (default 35)'
+        required: false
+        default: '35'
+      dry_run:
+        description: 'If "1", print report and skip issue write'
+        required: false
+        default: '0'
+
+permissions:
+  # actions:read   — list workflow runs, list jobs, download job logs
+  # issues:write   — find/create the tracking issue, update body, comment
+  # contents:read  — checkout the repo so we can run the script
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  # If a manual dispatch lands while the weekly cron is mid-flight
+  # (or vice versa), the second invocation would race the first to
+  # update the same tracking issue. Cancel the older run rather than
+  # interleave two issue writes.
+  group: ci-silent-retry-trend
+  cancel-in-progress: true
+
+jobs:
+  aggregate:
+    name: Aggregate silent-retry trend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install minimal deps
+        # The script only needs @octokit/rest, which is already pinned
+        # in package.json. `npm ci` would install the full devDeps
+        # (playwright, lighthouse, etc.) and is overkill for a 30s
+        # aggregation job — `npm install --omit=dev --no-audit
+        # --no-fund` keeps the workflow under a minute.
+        run: npm install --omit=dev --no-audit --no-fund @octokit/rest
+
+      - name: Run aggregator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DAYS_LOOKBACK: ${{ github.event.inputs.days_lookback || '35' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+        run: node scripts/silent-retry-trend.mjs

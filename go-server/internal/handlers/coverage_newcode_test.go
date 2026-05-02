@@ -14,7 +14,6 @@ import (
         "time"
 
         "dnstool/go-server/internal/analyzer"
-        "dnstool/go-server/internal/botverify"
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
@@ -667,7 +666,7 @@ func TestTryServeFromCache_ExposureChecksNotEligible(t *testing.T) {
                 exposureChecks: true,
         }
         got := h.tryServeFromCache(c, inp, "nonce", "csrf")
-        if got {
+        if got == cacheServed {
                 t.Error("exposure checks should prevent cache eligibility")
         }
 }

@@ -23,6 +23,73 @@ jobs:
       - name: Drift guard — handlers/ shim files
         run: bash scripts/check-handlers-no-shims.sh
 
+      - name: Self-test — handlers shim drift guard
+        # Task #120: the handlers shim guard above has no value if it
+        # silently rots (e.g. a future refactor of the loop, path
+        # handling, or exit-code logic could quietly turn it into a
+        # placebo — CI would keep printing "OK" forever and a deleted
+        # bridge file could reappear unnoticed). This runs a tiny
+        # fixture-based test of both branches of the guard (clean and
+        # drift, including per-forbidden-name coverage) so any
+        # regression in the guard surfaces on the SAME PR that
+        # introduced it. Same pattern as the Postgres digest self-test
+        # below (task #115).
+        run: bash scripts/test-check-handlers-no-shims.sh
+
+      - name: Drift guard — Postgres CI image digest sync
+        # Enforces task #109: every workflow that pins
+        # mirror.gcr.io/library/postgres:... by @sha256 digest must use
+        # the SAME digest, so handler integration tests and end-to-end
+        # browser tests (cross-browser-tests.yml) cannot silently drift
+        # onto different Postgres builds. The script auto-discovers all
+        # workflow files referencing that image, so future workflows are
+        # covered without remembering to update the guard.
+        run: bash scripts/check-postgres-digest-sync.sh
+
+      - name: Self-test — Postgres digest drift guard
+        # Task #115: the drift guard above has no value if it silently
+        # rots (e.g. a future refactor tightens the regex or swaps grep
+        # for awk and breaks the failure path — CI would keep printing
+        # "OK" forever and we'd never notice). This runs a tiny
+        # fixture-based test of all three branches of the guard
+        # (matching, mismatched, empty) so any regression surfaces on
+        # the SAME PR that introduced it.
+        run: bash scripts/test-check-postgres-digest-sync.sh
+
+      - name: Drift guard — Go toolchain version sync across workflows
+        # Enforces task #114: the Go toolchain version is pinned in
+        # multiple workflow files (this file's `build` job AND
+        # `handler-tests-db-integration` job, plus
+        # cross-browser-tests.yml's E2E lane). A future Go bump that
+        # updates one occurrence but forgets the others would have the
+        # build job and the integration job compiling against different
+        # Go releases — exactly the silent divergence task #109 fixed
+        # for the Postgres service container.
+        #
+        # check-workflow-pin-sync.sh is a generalization of the
+        # postgres-digest-sync pattern: same auto-discovery property
+        # (any future workflow that pins `go-version:` is automatically
+        # included in the comparison), parameterized by the YAML key so
+        # it can be reused for other shared pins (e.g. `node-version`
+        # if/when that becomes intentionally shared across workflows —
+        # today node 22 in dependency-audit and node 20 in
+        # cross-browser-tests are deliberately different, so do NOT
+        # wire that up).
+        run: bash scripts/check-workflow-pin-sync.sh go-version
+
+      - name: Unit-test the silent-retry surfacing script
+        # Wired in by task #111. The dbtest+integration lane uses
+        # nick-fields/retry@v3 to silently re-run on transient infra
+        # hiccups, and scripts/surface-ci-retry.sh is the only signal
+        # we have when a green run was actually saved by retry. That
+        # script's behaviour is impossible to verify on real CI without
+        # inducing a real flake — so we exercise every branch
+        # (success-after-retry, clean success, failure, missing env,
+        # no summary file, attempts=3) here in milliseconds. If a
+        # future edit breaks the marker prefix or the guard logic,
+        # this step fails fast instead of going unnoticed for weeks.
+        run: bash scripts/surface-ci-retry.test.sh
+
       - name: Drift guard — single-write-path enforcement
         run: |
           # Enforces architect retrospective decision (2026-04-16):
@@ -45,10 +112,36 @@ jobs:
           cd go-server
           CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dns-tool-server ./cmd/server
 
-      - name: Run tests
+      - name: Run handler tests (per-tag, memory-bounded)
+        # Compiles each build-tag bucket of internal/handlers as its own
+        # test binary so peak compiler memory stays inside the standard
+        # CI budget. Without this split, the combined ~43K-line handlers
+        # test corpus has OOM-killed the Go compiler at ~5 GB available
+        # RAM (see task #90, #96 and replit.md § "Test Build Tags").
+        # A regression that pushes any single tag pass over the limit
+        # fails CI with a clear "Pass: <tag>" log line.
+        run: bash scripts/run-handler-tests-full.sh -short -count=1 -timeout=300s
+        env:
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
+
+      - name: Run non-handler tests
+        # Everything outside the top-level internal/handlers package,
+        # including handler subpackages (adminpkg, agentpkg, authpkg,
+        # badgepkg, contentpkg, ...) which are well under the memory
+        # ceiling and safe to compile together.
         run: |
-          go test ./go-server/... \
-            -count=1 -short -timeout 300s -parallel=2
+          # `|| true` guards against bash -e/-o pipefail killing the
+          # assignment if grep ever matches zero lines — we want the
+          # explicit empty-package check below to be the failure path,
+          # not a silent shell exit.
+          NON_HANDLER_PKGS=$(go list ./go-server/... | grep -v '/internal/handlers$' || true)
+          if [ -z "$NON_HANDLER_PKGS" ]; then
+            echo "::error::No non-handler packages found — go list returned empty after filter."
+            exit 1
+          fi
+          go test $NON_HANDLER_PKGS -count=1 -short -timeout 300s -parallel=2
         env:
           CGO_ENABLED: '0'
           GOGC: '50'
@@ -58,3 +151,154 @@ jobs:
         run: |
           ls -lh dns-tool-server
           file dns-tool-server
+
+  handler-tests-db-integration:
+    name: Handler Tests — dbtest + integration
+    runs-on: ubuntu-latest
+    # Closes the last gap in the handler test coverage map (task #97):
+    # the default Build & Test job intentionally skips the `dbtest` and
+    # `integration` tag buckets because they require a live PostgreSQL
+    # service and outbound network respectively. This lane provides
+    # both. It runs in parallel with the main build job rather than
+    # blocking it, so a transient Postgres pull failure does not stall
+    # the rest of the pipeline.
+
+    services:
+      postgres:
+        # Sourced from Google's public Docker Hub pull-through cache
+        # (mirror.gcr.io) instead of docker.io directly. Reason: the
+        # GitHub Actions `services:` block starts the container before
+        # any user step runs, which means we cannot wrap the pull in
+        # retry/backoff. Anonymous pulls from Docker Hub are rate-limited
+        # (100/IP/6h) and a runner sharing an outbound IP with another
+        # heavy CI tenant has previously caused unrelated jobs to fail
+        # with TOOMANYREQUESTS. mirror.gcr.io is a bit-for-bit pull-
+        # through cache (same digest as docker.io/library/postgres:16-alpine)
+        # operated by Google, free, public, and not subject to the Docker
+        # Hub anonymous-pull quota. If mirror.gcr.io itself ever has an
+        # outage, swap back to `postgres:16-alpine` as a one-line revert.
+        #
+        # Pinned by SHA-256 digest (task #102) so an upstream rebuild of
+        # the `16-alpine` floating tag cannot silently change what CI is
+        # testing against. The digest below corresponds to Postgres 16.13
+        # (PG_VERSION in the image config). To refresh after a deliberate
+        # Postgres patch bump, run:
+        #   docker buildx imagetools inspect mirror.gcr.io/library/postgres:16-alpine
+        # and copy the new top-level "Digest:" value into the @sha256:...
+        # suffix below (keep the `:16-alpine` tag for human readability —
+        # Docker resolves by digest when both are present).
+        image: mirror.gcr.io/library/postgres:16-alpine@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a89310d50
+        env:
+          POSTGRES_USER: dnstool
+          POSTGRES_PASSWORD: dnstool
+          POSTGRES_DB: dnstool_test
+        ports:
+          - 5432:5432
+        # The handler tests apply schema.sql via setupTestDB(), so we
+        # only need the service to be accepting connections before the
+        # `go test` invocation starts.
+        options: >-
+          --health-cmd "pg_isready -U dnstool -d dnstool_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.9'
+
+      - name: Run dbtest + integration handler passes
+        id: dbtest_integration
+        # Re-uses the same memory-bounded entry point as the main job
+        # (scripts/run-handler-tests-full.sh — see task #96) but
+        # overrides the tag list to run ONLY the buckets the default
+        # lane skips. Each tag still compiles as its own test binary,
+        # so the per-tag memory contract is preserved.
+        #
+        # Wrapped in nick-fields/retry@v3 (task #103) to make this lane
+        # self-healing for transient INFRASTRUCTURE flakes, specifically:
+        #   - mirror.gcr.io serving a 5xx or timing out while pulling
+        #     the postgres:16-alpine image (the `services:` block above
+        #     pulls before any user step runs, so we cannot retry the
+        #     pull itself — but a retried `go test` invocation gives
+        #     the runner another shot if the service eventually starts).
+        #   - the postgres service container being slow to pass its
+        #     initial pg_isready healthcheck and the first connection
+        #     from setupTestDB() racing it.
+        #   - sporadic `connection refused` from the loopback Postgres
+        #     under runner CPU contention.
+        #
+        # The retry is NOT intended to mask real test failures: a
+        # genuine assertion failure or compile error will reproduce on
+        # every attempt, exhaust max_attempts, and fail the job. Retry
+        # count and backoff are deliberately small so a true regression
+        # surfaces in well under twice the normal wall time.
+        #
+        # `id: dbtest_integration` is required so the follow-up
+        # "Surface silent retry" step below can read the
+        # `total_attempts` output and emit observability when the lane
+        # was saved by retry (task #105).
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: bash scripts/run-handler-tests-full.sh -count=1 -timeout=600s
+        env:
+          HANDLER_TAG_PASSES: 'dbtest integration'
+          DATABASE_URL: 'postgres://dnstool:dnstool@localhost:5432/dnstool_test?sslmode=disable'
+          CGO_ENABLED: '0'
+          GOGC: '50'
+          GOMEMLIMIT: '6000MiB'
+
+      - name: Surface silent retry of dbtest + integration lane
+        # Observability over the self-healing retry above (task #105).
+        #
+        # Why this exists: nick-fields/retry@v3 will silently re-run
+        # the inner command on transient infra hiccups (mirror.gcr.io
+        # blips, slow Postgres healthcheck, runner CPU contention —
+        # see the comment block on the previous step). When attempt 1
+        # fails and attempt 2 succeeds, the JOB is green and a
+        # maintainer scanning CI history has no signal that the
+        # underlying infra is degrading. If the retry rate creeps up
+        # over weeks, nobody notices until BOTH attempts start failing
+        # and the lane goes red.
+        #
+        # This step makes the silent retry loud:
+        #   1. Writes a marker line to $GITHUB_STEP_SUMMARY so the run
+        #      summary page shows "saved by retry" without re-reading
+        #      the full log.
+        #   2. Emits a `::warning::` workflow annotation so the run
+        #      surfaces a yellow flag in the PR/commit checks UI.
+        #
+        # The marker line uses a stable prefix
+        # ("DBTEST_INTEGRATION_RETRY_USED") so a future maintainer can
+        # answer "how often did the dbtest lane get saved by retry
+        # this month?" by grepping the GitHub Actions API
+        # (`/repos/.../actions/runs/{id}/attempts`) or by scanning
+        # archived job summaries — without re-reading every workflow
+        # log line by line.
+        #
+        # `if: always()` ensures we run after both success and failure
+        # of the retry step. We then guard inside the script so we
+        # only emit the marker when the retry was both (a) used
+        # (total_attempts > 1) and (b) ultimately succeeded
+        # (outcome == 'success'). A retried-and-still-failed step is
+        # already loud — the job itself is red — so we don't double-
+        # signal it here.
+        #
+        # The actual marker/warning logic lives in
+        # scripts/surface-ci-retry.sh so it can be unit-tested without
+        # inducing a real flake. See scripts/surface-ci-retry.test.sh
+        # and the "Unit-test the silent-retry surfacing script" job
+        # below — both are wired up by task #111.
+        if: always()
+        env:
+          TOTAL_ATTEMPTS: ${{ steps.dbtest_integration.outputs.total_attempts }}
+          STEP_OUTCOME: ${{ steps.dbtest_integration.outcome }}
+        run: bash scripts/surface-ci-retry.sh
