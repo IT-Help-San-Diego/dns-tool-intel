@@ -33,6 +33,27 @@ jobs:
         # covered without remembering to update the guard.
         run: bash scripts/check-postgres-digest-sync.sh
 
+      - name: Drift guard — Go toolchain version sync across workflows
+        # Enforces task #114: the Go toolchain version is pinned in
+        # multiple workflow files (this file's `build` job AND
+        # `handler-tests-db-integration` job, plus
+        # cross-browser-tests.yml's E2E lane). A future Go bump that
+        # updates one occurrence but forgets the others would have the
+        # build job and the integration job compiling against different
+        # Go releases — exactly the silent divergence task #109 fixed
+        # for the Postgres service container.
+        #
+        # check-workflow-pin-sync.sh is a generalization of the
+        # postgres-digest-sync pattern: same auto-discovery property
+        # (any future workflow that pins `go-version:` is automatically
+        # included in the comparison), parameterized by the YAML key so
+        # it can be reused for other shared pins (e.g. `node-version`
+        # if/when that becomes intentionally shared across workflows —
+        # today node 22 in dependency-audit and node 20 in
+        # cross-browser-tests are deliberately different, so do NOT
+        # wire that up).
+        run: bash scripts/check-workflow-pin-sync.sh go-version
+
       - name: Drift guard — single-write-path enforcement
         run: |
           # Enforces architect retrospective decision (2026-04-16):
