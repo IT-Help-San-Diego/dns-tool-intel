@@ -271,6 +271,14 @@ jobs:
             # Stable grep marker — DO NOT change without updating the
             # follow-up tooling that scans run summaries for trend data.
             marker="DBTEST_INTEGRATION_RETRY_USED attempts=${attempts}"
+            # Echo to stdout so the marker also lands in the raw job
+            # log, not just $GITHUB_STEP_SUMMARY. Step-summary content
+            # is not exposed by the /actions/jobs/{id}/logs endpoint, so
+            # without this echo the silent-retry-trend aggregator added
+            # in task #110 cannot see the marker. The same prefix is
+            # written to both surfaces so a single grep target works
+            # for human run-page reading AND for log-based tooling.
+            echo "${marker}"
             {
               echo "## ⚠️ dbtest + integration lane saved by automatic retry"
               echo ""
