@@ -64,6 +64,19 @@ jobs:
         # wire that up).
         run: bash scripts/check-workflow-pin-sync.sh go-version
 
+      - name: Unit-test the silent-retry surfacing script
+        # Wired in by task #111. The dbtest+integration lane uses
+        # nick-fields/retry@v3 to silently re-run on transient infra
+        # hiccups, and scripts/surface-ci-retry.sh is the only signal
+        # we have when a green run was actually saved by retry. That
+        # script's behaviour is impossible to verify on real CI without
+        # inducing a real flake — so we exercise every branch
+        # (success-after-retry, clean success, failure, missing env,
+        # no summary file, attempts=3) here in milliseconds. If a
+        # future edit breaks the marker prefix or the guard logic,
+        # this step fails fast instead of going unnoticed for weeks.
+        run: bash scripts/surface-ci-retry.test.sh
+
       - name: Drift guard — single-write-path enforcement
         run: |
           # Enforces architect retrospective decision (2026-04-16):
@@ -265,38 +278,14 @@ jobs:
         # (outcome == 'success'). A retried-and-still-failed step is
         # already loud — the job itself is red — so we don't double-
         # signal it here.
+        #
+        # The actual marker/warning logic lives in
+        # scripts/surface-ci-retry.sh so it can be unit-tested without
+        # inducing a real flake. See scripts/surface-ci-retry.test.sh
+        # and the "Unit-test the silent-retry surfacing script" job
+        # below — both are wired up by task #111.
         if: always()
         env:
           TOTAL_ATTEMPTS: ${{ steps.dbtest_integration.outputs.total_attempts }}
           STEP_OUTCOME: ${{ steps.dbtest_integration.outcome }}
-        run: |
-          # Default to "1" if the output is missing for any reason
-          # (e.g. the retry action failed to start). Treating a
-          # missing value as "1 attempt" means we stay quiet rather
-          # than emit a false flake signal.
-          attempts="${TOTAL_ATTEMPTS:-1}"
-          outcome="${STEP_OUTCOME:-unknown}"
-          echo "dbtest+integration lane: total_attempts=${attempts} outcome=${outcome}"
-          if [ "${outcome}" = "success" ] && [ "${attempts}" != "1" ] && [ -n "${attempts}" ]; then
-            # Stable grep marker — DO NOT change without updating the
-            # follow-up tooling that scans run summaries for trend data.
-            marker="DBTEST_INTEGRATION_RETRY_USED attempts=${attempts}"
-            # Echo to stdout so the marker also lands in the raw job
-            # log, not just $GITHUB_STEP_SUMMARY. Step-summary content
-            # is not exposed by the /actions/jobs/{id}/logs endpoint, so
-            # without this echo the silent-retry-trend aggregator added
-            # in task #110 cannot see the marker. The same prefix is
-            # written to both surfaces so a single grep target works
-            # for human run-page reading AND for log-based tooling.
-            echo "${marker}"
-            {
-              echo "## ⚠️ dbtest + integration lane saved by automatic retry"
-              echo ""
-              echo "The \`Run dbtest + integration handler passes\` step needed **${attempts} attempts** to pass."
-              echo ""
-              echo "This is the self-healing path added in task #103 working as designed — but a sustained increase in retry frequency indicates the underlying infra (mirror.gcr.io pulls, Postgres service startup, runner CPU contention) is degrading. If you see this annotation appearing on most runs, investigate before both attempts start failing."
-              echo ""
-              echo "<!-- ${marker} -->"
-            } >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning title=Silent CI retry used::dbtest + integration lane passed on attempt ${attempts}/2 (task #105). Job is green but infra flakiness is creeping up — see job summary."
-          fi
+        run: bash scripts/surface-ci-retry.sh
