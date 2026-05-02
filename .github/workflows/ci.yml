@@ -23,6 +23,19 @@ jobs:
       - name: Drift guard — handlers/ shim files
         run: bash scripts/check-handlers-no-shims.sh
 
+      - name: Self-test — handlers shim drift guard
+        # Task #120: the handlers shim guard above has no value if it
+        # silently rots (e.g. a future refactor of the loop, path
+        # handling, or exit-code logic could quietly turn it into a
+        # placebo — CI would keep printing "OK" forever and a deleted
+        # bridge file could reappear unnoticed). This runs a tiny
+        # fixture-based test of both branches of the guard (clean and
+        # drift, including per-forbidden-name coverage) so any
+        # regression in the guard surfaces on the SAME PR that
+        # introduced it. Same pattern as the Postgres digest self-test
+        # below (task #115).
+        run: bash scripts/test-check-handlers-no-shims.sh
+
       - name: Drift guard — Postgres CI image digest sync
         # Enforces task #109: every workflow that pins
         # mirror.gcr.io/library/postgres:... by @sha256 digest must use
