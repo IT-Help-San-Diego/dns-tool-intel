@@ -883,3 +883,56 @@ If something had gone wrong:
 2. Un-archive `dns-tool-web`.
 3. The mirror workflow files were deprecated but the scripts still existed
    — they would have to be restored from git history if needed.
+
+---
+
+## 6. Sync-Script Audit (2026-05-01)
+
+*Follow-up audit triggered by Task #112 after `scripts/intel-breadcrumbs-sync.sh`
+was retired in v26.48. Re-checked every other "intel" / Codeberg helper
+script in `scripts/` to confirm it (a) still targets a real remote, (b) does
+not reference any of the v26.48-consolidated files (`STUB_AUDIT.md`,
+`docs/ARCHITECTURE_CLASSIFIED.md`, `docs/BUILD_TAG_STRATEGY.md`,
+`docs/SINGLE_REPO_MIGRATION.md`, `docs/sonar-mission-briefing.md`), and
+(c) was not silently failing on every run.*
+
+### 6.1 Outcomes
+
+| Script | Remote target probed | HTTP | Verdict |
+|---|---|---|---|
+| `scripts/github-intel-sync.mjs` | `IT-Help-San-Diego/dns-tool-intel` (GitHub) | 200 | **LIVE** — keep. Actively used by SKILL.md, `docs/STACK.md`, `gsd/INTEGRATIONS.md`, and `docs/architecture/SYSTEM_ARCHITECTURE.md`. |
+| `scripts/codeberg-intel-sync.mjs` | `careybalboa/dns-tool-intel` (Codeberg/Forgejo) | 404 | **RETIRED** — destination repo never existed (or was deleted). Replaced with deprecation stub that exits 1. |
+| `scripts/codeberg-webapp-sync.mjs` | `careybalboa/dns-tool-web` (Codeberg/Forgejo) | 404 | **RETIRED** — destination repo does not exist; source `dns-tool-web` was archived in v26.48 single-repo migration anyway. Replaced with deprecation stub that exits 1. |
+| `scripts/github-to-codeberg-sync.sh` | sources: `IT-Help-San-Diego/dns-tool-{web,cli}` (200 archived / 404), dests: `careybalboa/dns-tool-{web,cli,intel}` (all 404) | mixed | **RETIRED** — every leg of the pipeline was either archived, missing, or 404. Replaced with deprecation stub that exits 1. |
+| `scripts/sync-to-web.sh` | n/a | n/a | Already a deprecation stub (retired with the v26.48 single-repo migration). Upgraded during this audit from `exit 0` to `exit 1` plus a clear stderr message, to match the fail-loud convention used by the other retired sync helpers. |
+
+### 6.2 Hard-coded file lists vs. v26.48 consolidations
+
+None of the audited scripts hard-code file lists. The two API-backed
+scripts (`github-intel-sync.mjs`, `codeberg-intel-sync.mjs`,
+`codeberg-webapp-sync.mjs`) discover files dynamically via the contents
+API at runtime, so they could not have referenced the v26.48-consolidated
+files (`STUB_AUDIT.md`, `docs/ARCHITECTURE_CLASSIFIED.md`,
+`docs/BUILD_TAG_STRATEGY.md`, `docs/SINGLE_REPO_MIGRATION.md`,
+`docs/sonar-mission-briefing.md`) at the source-code level. The earlier
+`intel-breadcrumbs-sync.sh` was unique in that respect — it really did
+hard-code those filenames, which is why it failed loudly enough to
+prompt the original cleanup.
+
+### 6.3 What replaced the Codeberg mirror
+
+The actual off-site backup is `.github/workflows/backup-offsite.yml`
+(post-2026-04-16 redesign). It mirrors `main` to a dedicated `backup`
+git remote without `--force`, plus pushes a timestamped immutable
+snapshot branch on every run, and uses `continue-on-error: false` so
+silent failures cannot recur. The Codeberg destinations were never
+re-created after the single-repo migration, so the helper scripts had
+been pointing at nothing for over a month before this audit.
+
+### 6.4 Documentation updates made alongside this audit
+
+- `.agents/skills/dns-tool/SKILL.md` — Documentation Hierarchy entry,
+  Repository Architecture key-operational-facts list, and the connected-
+  ecosystem ASCII tree all updated to point at
+  `.github/workflows/backup-offsite.yml` instead of the dead Codeberg
+  mirror scripts.
