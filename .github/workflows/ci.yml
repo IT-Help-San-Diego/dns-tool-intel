@@ -79,7 +79,7 @@ jobs:
 
       - name: Unit-test the silent-retry surfacing script
         # Wired in by task #111. The dbtest+integration lane uses
-        # nick-fields/retry@v3 to silently re-run on transient infra
+        # nick-fields/retry@v4 to silently re-run on transient infra
         # hiccups, and scripts/surface-ci-retry.sh is the only signal
         # we have when a green run was actually saved by retry. That
         # script's behaviour is impossible to verify on real CI without
@@ -220,7 +220,7 @@ jobs:
         # lane skips. Each tag still compiles as its own test binary,
         # so the per-tag memory contract is preserved.
         #
-        # Wrapped in nick-fields/retry@v3 (task #103) to make this lane
+        # Wrapped in nick-fields/retry@v4 (task #103) to make this lane
         # self-healing for transient INFRASTRUCTURE flakes, specifically:
         #   - mirror.gcr.io serving a 5xx or timing out while pulling
         #     the postgres:16-alpine image (the `services:` block above
@@ -243,7 +243,7 @@ jobs:
         # "Surface silent retry" step below can read the
         # `total_attempts` output and emit observability when the lane
         # was saved by retry (task #105).
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 15
           max_attempts: 2
@@ -259,7 +259,7 @@ jobs:
       - name: Surface silent retry of dbtest + integration lane
         # Observability over the self-healing retry above (task #105).
         #
-        # Why this exists: nick-fields/retry@v3 will silently re-run
+        # Why this exists: nick-fields/retry@v4 will silently re-run
         # the inner command on transient infra hiccups (mirror.gcr.io
         # blips, slow Postgres healthcheck, runner CPU contention —
         # see the comment block on the previous step). When attempt 1
