@@ -4,6 +4,7 @@ go 1.25.9
 
 require (
 	codeberg.org/miekg/dns v0.6.73
+	github.com/axiomhq/hyperloglog v0.2.6
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/goccy/go-yaml v1.19.2
@@ -12,12 +13,11 @@ require (
 	github.com/kettek/apng v0.0.0-20250827064933-2bb5f5fcf253
 	golang.org/x/crypto v0.50.0
 	golang.org/x/net v0.53.0
-	golang.org/x/text v0.36.0
+	golang.org/x/text v0.37.0
 	gonum.org/v1/gonum v0.17.0
 )
 
 require (
-	github.com/axiomhq/hyperloglog v0.2.6 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
