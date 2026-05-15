@@ -4,12 +4,15 @@
 package handlers
 
 import (
+        "bytes"
         "fmt"
         "net/http"
         "os"
         "path/filepath"
         "strings"
         "time"
+
+        staticembed "dnstool/go-server/static"
 
         "github.com/gin-gonic/gin"
 )
@@ -84,11 +87,26 @@ func (h *StaticHandler) BIMILogoSVG(c *gin.Context) {
         c.File(filepath.Join(h.StaticDir, "bimi-logo.svg"))
 }
 
-func (h *StaticHandler) servePDF(c *gin.Context, filename string) {
+// servePDFEmbedded serves a corpus PDF from the binary-embedded FS with the
+// supplied Cache-Control header. Bytes are read from staticembed.DocsPDFs so
+// the response can never be truncated by a deployment-filesystem race (see
+// embed.go header comment for the regression that motivated this).
+// http.ServeContent provides Range / If-Modified-Since handling required by
+// browser PDF viewers (Chrome's viewer relies on range requests).
+func (h *StaticHandler) servePDFEmbedded(c *gin.Context, filename, cacheControl string) {
+        data, err := staticembed.DocsPDFs.ReadFile("docs/" + filename)
+        if err != nil {
+                c.Status(http.StatusNotFound)
+                return
+        }
         c.Header(headerContentType, "application/pdf")
-        c.Header(headerCacheControl, cachePublicDay)
+        c.Header(headerCacheControl, cacheControl)
         c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%q", filename))
-        c.File(filepath.Join(h.StaticDir, "docs", filename))
+        http.ServeContent(c.Writer, c.Request, filename, time.Time{}, bytes.NewReader(data))
+}
+
+func (h *StaticHandler) servePDF(c *gin.Context, filename string) {
+        h.servePDFEmbedded(c, filename, cachePublicDay)
 }
 
 // versionedPDFAllowlist maps the canonical PDF filenames the corpus page may
@@ -119,10 +137,7 @@ func (h *StaticHandler) VersionedPDF(c *gin.Context) {
                 c.Status(http.StatusNotFound)
                 return
         }
-        c.Header(headerContentType, "application/pdf")
-        c.Header(headerCacheControl, "public, max-age=31536000, immutable")
-        c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%q", filename))
-        c.File(filepath.Join(h.StaticDir, "docs", filename))
+        h.servePDFEmbedded(c, filename, "public, max-age=31536000, immutable")
 }
 
 func (h *StaticHandler) MethodologyPDF(c *gin.Context) {
