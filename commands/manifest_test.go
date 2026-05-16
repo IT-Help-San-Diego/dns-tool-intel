@@ -1,5 +1,6 @@
 // Copyright (c) 2024-2026 IT Help San Diego Inc. All rights reserved.
-// PROPRIETARY AND CONFIDENTIAL — See LICENSE for terms.
+// SPDX-License-Identifier: BUSL-1.1
+// Licensed under the Business Source License 1.1. See LICENSE for terms.
 // This file is part of the DNS Tool Intelligence Module.
 package analyzer
 
