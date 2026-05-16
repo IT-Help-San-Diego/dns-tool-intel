@@ -1,10 +1,16 @@
 #!/bin/bash
-# Direct push to GitHub via PAT — the agent's method for pushing dns-tool
-# Usage: bash scripts/git-push.sh
+# Push to GitHub via PAT — seL4-grade PR-based ship flow.
+# Usage:
+#   bash scripts/git-push.sh           # push branch + open PR + auto-merge on green checks
+#   bash scripts/git-push.sh --no-main # push branch only (no PR, no ship)
+#   bash scripts/git-push.sh --branch X # push to a non-default remote branch (implies --no-main)
 #
-# The user can also push via the Git panel after running git-panel-reset.sh.
-# NEVER push via GitHub API (createBlob/createTree/createCommit/updateRef).
-# See SKILL.md "Repo Sync Law" for why.
+# THE LAW: NEVER push via GitHub API (createBlob/createTree/createCommit/
+# updateRef/POST /merges) — only standard `git push` + `gh pr` commands.
+# See .agents/skills/dns-tool/SKILL.md "Repo Sync Law" rule #3.
+#
+# Branch protection on `main` (enabled 2026-05-16) physically rejects direct
+# pushes. The PR flow is the ONLY way to land changes on main.
 #
 # LOCK FILES: Smart classification — only push-blocking locks (index, HEAD,
 # config, shallow) cause HARD STOP. Background locks (maintenance, refs/remotes)
@@ -263,59 +269,109 @@ else
     echo "SYNC STATUS: FULLY SYNCED"
   fi
 fi
-# ── Ship to main (the branch CI/SonarCloud/deployments actually use) ──
-# Branch protection rule on main allows our bypass actor to fast-forward
-# directly. Without this step the agent-branch advances but main lags,
-# which is the exact bug that caused dev-bump v26.46.02 to be missed.
+# ── Ship to main via PR (seL4-grade: standard git + gh pr, NEVER API ref-writes) ──
+# Branch protection on main rejects direct push. The PR + required-checks +
+# auto-merge flow is the ONLY way to land changes. No POST /merges, no
+# updateRef. This script is the canonical mechanism.
 if [ "$PUSH_MAIN" -eq 1 ]; then
   echo ""
-  echo "=== Shipping to ${SHIP_BRANCH} (CI/deployment branch) ==="
-  SHIP_REMOTE_BEFORE=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
+  echo "=== Shipping ${LOCAL_BRANCH} → ${SHIP_BRANCH} via PR ==="
+
+  # gh CLI must be on PATH and authed via GH_SYNC_TOKEN
+  export GH_TOKEN="${GH_SYNC_TOKEN:-$GH_TOKEN}"
+  if ! command -v gh >/dev/null 2>&1; then
+    echo ""
+    echo "ABORT: gh CLI not found. Install: https://cli.github.com/"
+    exit 1
+  fi
+
   SHIP_LOCAL=$(git rev-parse HEAD 2>/dev/null)
+  SHIP_REMOTE_BEFORE=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
 
   if [ "$SHIP_LOCAL" = "$SHIP_REMOTE_BEFORE" ]; then
     echo "  Already at ${SHIP_BRANCH}: $SHIP_LOCAL"
     echo "SHIP STATUS: ALREADY CURRENT"
   else
-    echo "  Local:        $SHIP_LOCAL"
-    echo "  ${SHIP_BRANCH} before: ${SHIP_REMOTE_BEFORE:-"(unable to read)"}"
-    SHIP_OK=0
-    for ATTEMPT in 1 2; do
-      if git push "${PAT_URL}" ${LOCAL_BRANCH}:${SHIP_BRANCH} 2>&1; then
-        SHIP_OK=1
+    echo "  Branch HEAD: $SHIP_LOCAL"
+    echo "  ${SHIP_BRANCH} HEAD:  ${SHIP_REMOTE_BEFORE:-"(unable to read)"}"
+    echo ""
+
+    # 1. Find or create the PR
+    PR_NUM=$(gh pr list -R "$REPO" --head "$LOCAL_BRANCH" --base "$SHIP_BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+    if [ -z "$PR_NUM" ]; then
+      echo "  Opening PR ${LOCAL_BRANCH} → ${SHIP_BRANCH} ..."
+      PR_TITLE=$(git log -1 --pretty=%s)
+      PR_BODY=$(git log "${SHIP_REMOTE_BEFORE}..HEAD" --pretty='- %s' 2>/dev/null | head -20)
+      [ -z "$PR_BODY" ] && PR_BODY="(auto-opened by scripts/git-push.sh)"
+      PR_URL=$(gh pr create -R "$REPO" --base "$SHIP_BRANCH" --head "$LOCAL_BRANCH" \
+        --title "$PR_TITLE" --body "$PR_BODY" 2>&1)
+      PR_NUM=$(echo "$PR_URL" | grep -oE 'pull/[0-9]+' | head -1 | cut -d/ -f2)
+      if [ -z "$PR_NUM" ]; then
+        echo "  ERROR creating PR:"
+        echo "  $PR_URL"
+        echo ""
+        echo "SHIP FAILED. Open the PR manually:"
+        echo "  gh pr create -R $REPO --base $SHIP_BRANCH --head $LOCAL_BRANCH --fill"
+        exit 1
+      fi
+      echo "  PR #${PR_NUM} opened: $PR_URL"
+    else
+      echo "  Reusing existing PR #${PR_NUM}"
+    fi
+
+    # 2. Request auto-merge with rebase (preserves linear history)
+    echo "  Enabling auto-merge (rebase strategy) ..."
+    if ! gh pr merge -R "$REPO" "$PR_NUM" --auto --rebase 2>&1; then
+      echo "  Note: auto-merge may already be enabled, or required checks not yet running."
+    fi
+
+    # 3. Poll required checks until they go green (or red)
+    echo ""
+    echo "  Waiting for required checks (max 15min)..."
+    MAX_WAIT=900
+    POLL=20
+    ELAPSED=0
+    while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
+      MERGED=$(gh pr view -R "$REPO" "$PR_NUM" --json merged --jq '.merged' 2>/dev/null)
+      if [ "$MERGED" = "true" ]; then
         break
       fi
-      if [ "$ATTEMPT" -eq 1 ]; then
-        echo "  Ship attempt 1 failed — retrying in 10s..."
-        sleep 10
+      # Surface any failed checks immediately
+      FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" 2>/dev/null | grep -E "^[a-zA-Z].*\sfail" | head -3 || true)
+      if [ -n "$FAILED" ]; then
+        echo ""
+        echo "SHIP FAILED — required check(s) failed:"
+        echo "$FAILED"
+        echo ""
+        echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+        echo "  Once fixed, re-run: bash scripts/git-push.sh"
+        exit 1
       fi
+      sleep "$POLL"
+      ELAPSED=$((ELAPSED + POLL))
+      printf "    waited %ds ...\r" "$ELAPSED"
     done
 
-    if [ "$SHIP_OK" -eq 0 ]; then
+    if [ "$MERGED" != "true" ]; then
       echo ""
-      echo "SHIP FAILED: agent-branch is on GitHub but ${SHIP_BRANCH} was NOT updated."
-      echo "  Possible causes: non-fast-forward (someone else pushed), token bypass"
-      echo "  expired, or branch protection changed. Recover with:"
-      echo "    git push origin ${LOCAL_BRANCH}:${SHIP_BRANCH}"
-      echo "  Or open a PR. Use --no-main on this script to skip this step."
+      echo "SHIP TIMEOUT after ${MAX_WAIT}s. PR #${PR_NUM} not yet merged."
+      echo "  Status: gh pr view -R $REPO $PR_NUM"
+      echo "  This script can be re-run safely — auto-merge will pick up where it left off."
       exit 1
     fi
 
+    # 4. Verify main HEAD advanced
+    sleep 3  # allow GitHub to update ref
     SHIP_REMOTE_AFTER=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
-    if [ "$SHIP_LOCAL" = "$SHIP_REMOTE_AFTER" ]; then
-      echo "  VERIFIED: ${SHIP_BRANCH} now at $SHIP_LOCAL"
-      echo "SHIP STATUS: FULLY SYNCED"
-    else
-      echo "  WARNING: ${SHIP_BRANCH} did not advance to expected SHA."
-      echo "  Local:  $SHIP_LOCAL"
-      echo "  GitHub: ${SHIP_REMOTE_AFTER:-"(unable to read)"}"
-      echo "SHIP STATUS: PENDING — re-run script."
-      exit 1
-    fi
+    echo ""
+    echo "  PR #${PR_NUM} MERGED ✓"
+    echo "  ${SHIP_BRANCH} was: ${SHIP_REMOTE_BEFORE:-"(unknown)"}"
+    echo "  ${SHIP_BRANCH} now: ${SHIP_REMOTE_AFTER}"
+    echo "SHIP STATUS: MERGED via PR (linear history preserved)"
   fi
 else
   echo ""
-  echo "=== Skipping ${SHIP_BRANCH} ship (--no-main or non-default --branch) ==="
+  echo "=== Skipping PR ship (--no-main or non-default --branch) ==="
 fi
 
 # ── Git panel staleness check ──
