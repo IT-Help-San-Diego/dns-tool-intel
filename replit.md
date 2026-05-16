@@ -8,14 +8,20 @@ OSINT platform for RFC-compliant domain security analysis (SPF, DKIM, DMARC, DAN
 ### Hard rules — never violate
 - **CITATION.cff / codemeta.json — HANDS OFF**: ORCID-linked Zenodo artifacts. Never modify automatically. License must remain `BUSL-1.1`. Concept DOI `10.5281/zenodo.18854899` NEVER changes. CI guard `.github/workflows/guard_citation.yml` blocks regressions.
 - **Two-Track Version Bump Law**:
-  - **Dev bump** (routine): Edit ONLY `go-server/internal/config/config.go` → `Version = "X.Y.Z"`, then `bash build.sh` and publish. Nothing else changes.
+  - **Dev bump** (routine): Run `bash scripts/dev-bump.sh X.Y.Z` — edits ONLY `go-server/internal/config/config.go` → `Version = "X.Y.Z"` (+ sonar-project.properties), builds, commits locally. Nothing else changes.
   - **Release bump** (tag time only): Run `scripts/release-gate.sh X.Y.Z` — bumps all versioned artifacts. Only when Carey is ready to tag.
+  - **Shipping a dev-bump to `origin/main` (PR-based, post-branch-protection 2026-05-16)**: `main` requires PR + linear history + status checks (`CI — Build & Test`, `Code Quality: Push on main`, `Off-site Backup`) + CodeQL + signed commits + blocks force-push. Direct push to main is rejected by GitHub. Flow:
+    1. `bash scripts/git-push.sh --no-main` (pushes `replit-agent` branch only).
+    2. `gh pr create --base main --head replit-agent --fill` (or use web UI).
+    3. Wait for required checks to go green.
+    4. `gh pr merge --rebase --auto` (rebase preserves linear history; squash also OK).
+    5. Verify: `gh api repos/IT-Help-San-Diego/dns-tool-intel/commits/main --jq '.sha[0:7]'`.
 - **Zero Fabrication Rule**: NEVER invent real-world facts (addresses, names, dates, stats, credentials). Verify from authoritative source or leave empty / ask.
 - **Claims**: Every claim must be backed by implemented code. Roadmap items say "on the roadmap." Use "evidence-weighted confidence scoring inspired by Bayesian reasoning" not "Bayesian calibration"; "tamper-evident snapshots" not "append-only proof"; "inspired by" not "modelled on."
 - **Marketing Voice**: Never position against competitors. Position against the complexity of DNS and the consequence of getting it wrong. Lead with capability, not comparison.
 - **EDE entries are immutable**: Amendments only on FACTUAL_ERROR or DIGNITY_OF_EXPRESSION grounds, must be declared explicitly. See SKILL.md § EDE enforcement checklist.
 - **MAINTENANCE_NOTE env var**: User-controlled operational control. Never remove without explicit approval.
-- **Replit checkpoint ≠ GitHub push**: Replit auto-checkpoints push to `gitsafe-backup`, NOT to GitHub `origin`. The sandbox blocks `git push`. To land changes on `origin/main` (IT-Help-San-Diego/dns-tool-intel), the agent MUST push explicitly via the GitHub Git Data API (`gh api repos/.../git/blobs|trees|commits|refs/heads/main`). Always verify the post-push origin state with `gh api repos/$REPO/contents/<file>` before claiming a change has landed.
+- **Repo Sync Law — agent never writes git refs via API** (canonical, reaffirms SKILL.md § "Repo Sync Law" rule #3): The only correct way for changes to land on `origin/main` is: agent edits files in workspace → Replit checkpoint (or user) commits to local `.git` → user runs `bash scripts/git-push.sh --no-main` → `gh pr create` + `gh pr merge --rebase --auto`. The agent is FORBIDDEN from creating remote-only commits or refs on this repo via the GitHub Git Data API (`createBlob`, `createTree`, `createCommit`, `updateRef`, `POST /repos/.../merges`). Remote-only commits corrupt ancestry, break ref tracking, cause non-fast-forward push storms, and destroyed history on 2026-03-04. If a change must land on `main` and the user is unavailable, the agent STOPS and waits; it does not improvise via API. Read-only `gh api` calls (listing commits, fetching file content, inspecting CI runs, PR status) remain permitted. Repo settings APIs that do not mutate git objects (branch protection, Dependabot config, secrets) are allowed with explicit user approval. Branch protection on `main` (enabled 2026-05-16) makes API ref-writes physically impossible at the GitHub layer — defense-in-depth on top of this rule.
 
 ### Process & quality gates
 - **Development Process**: Research best-practices first (cite RFCs). Design before implementing. Write tests first. Check quality gates during development.
