@@ -111,6 +111,22 @@ For organizations that need capabilities beyond the BUSL-1.1-permitted uses, com
 - Enterprises requiring dedicated deployment with custom integrations
 - Organizations needing capabilities beyond the BUSL-1.1-permitted uses
 
+## Citation & DOI Policy
+
+DNS Tool publishes scholarly metadata via Zenodo. Two kinds of DOI are involved, and they are not interchangeable:
+
+- **Concept DOI** — `10.5281/zenodo.19468134`. Stable across all versions; resolves to the latest release in the Zenodo chain. Use this DOI for citations that should track the project over time (papers, READMEs, methodology documents, embedded attribution).
+- **Version DOI** — Issued by Zenodo per release (e.g., `10.5281/zenodo.19217071` for a prior version). Pin a version DOI only when the citation must refer to a specific, immutable artifact (e.g., a reproducibility statement attached to a published result).
+
+Rules:
+
+1. `CITATION.cff` (`doi:` field) and `codemeta.json` (`identifier`) carry the **concept DOI**, not a version DOI. Dev bumps (config-only) must not modify these fields.
+2. Per-release version DOIs are recorded by Zenodo automatically on archive deposit; `.zenodo.json` describes the deposit metadata but does not itself carry the resulting version DOI.
+3. `scripts/release-gate.sh` updates `version:` fields in versioned artifacts (`CITATION.cff`, `codemeta.json`, `sonar-project.properties`, methodology docs) at tag time; the concept DOI does not change.
+4. Migrating to a new concept DOI (new Zenodo chain) requires an explicit migration note and a sweep of every metadata file that embeds the DOI string. This is intentionally rare.
+
+When citing DNS Tool externally, prefer the concept DOI unless a specific version is required.
+
 ## Questions
 
 For licensing inquiries or commercial arrangements, contact: licensing@it-help.tech
