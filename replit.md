@@ -10,12 +10,24 @@ OSINT platform for RFC-compliant domain security analysis (SPF, DKIM, DMARC, DAN
 - **Two-Track Version Bump Law**:
   - **Dev bump** (routine): Run `bash scripts/dev-bump.sh X.Y.Z` — edits ONLY `go-server/internal/config/config.go` → `Version = "X.Y.Z"` (+ sonar-project.properties), builds, commits locally. Nothing else changes.
   - **Release bump** (tag time only): Run `scripts/release-gate.sh X.Y.Z` — bumps all versioned artifacts. Only when Carey is ready to tag.
-  - **Shipping a dev-bump to `origin/main` (PR-based, post-branch-protection 2026-05-16)**: `main` requires PR + linear history + status checks (`CI — Build & Test`, `Code Quality: Push on main`, `Off-site Backup`) + CodeQL + signed commits + blocks force-push. Direct push to main is rejected by GitHub. Flow:
-    1. `bash scripts/git-push.sh --no-main` (pushes `replit-agent` branch only).
-    2. `gh pr create --base main --head replit-agent --fill` (or use web UI).
-    3. Wait for required checks to go green.
-    4. `gh pr merge --rebase --auto` (rebase preserves linear history; squash also OK).
-    5. Verify: `gh api repos/IT-Help-San-Diego/dns-tool-intel/commits/main --jq '.sha[0:7]'`.
+
+- **THE THREE-COMMAND PLANS** (canonical sequences — copy to notes):
+
+  **A. Ship a dev bump to `origin/main`** (post-branch-protection 2026-05-16):
+  ```
+  1. bash scripts/dev-bump.sh X.Y.Z   # bump + build + local commit
+  2. bash scripts/quality-gate.sh     # R009 + R010 + R011 + go vet + core tests + RFC attacks
+  3. bash scripts/git-push.sh         # push branch → open PR → wait for required checks → auto-merge --rebase
+  ```
+  `git-push.sh` handles the PR lifecycle automatically. No direct push to main. No API ref-writes. Required checks on main: `CI — Build & Test`, `Code Quality: Push on main`, `Off-site Backup`, CodeQL. Force-push blocked, linear history required, signed commits required. Use `bash scripts/git-push.sh --no-main` for branch-only push (no PR).
+
+  **B. Do science / verify analyzer changes**:
+  ```
+  1. bash scripts/test-all.sh         # go vet + full Go test matrix (core + per-tag handler passes + RFC attacks)
+  2. bash scripts/quality-gate.sh     # R009 + R010 + R011 + core gates (advisory: csso freshness, Lighthouse readiness)
+  3. npx lighthouse http://localhost:5000 --only-categories=performance,accessibility,best-practices,seo --quiet   # standing gate 100/100/100/100
+  ```
+  Observatory 145+ is a manual check at https://developer.mozilla.org/en-US/observatory (against `https://dnstool.it-help.tech` for prod, dev preview not reachable). SonarCloud A/A/A is CI-only — surfaced by the `Code Quality: Push on main` check in step A.3.
 - **Zero Fabrication Rule**: NEVER invent real-world facts (addresses, names, dates, stats, credentials). Verify from authoritative source or leave empty / ask.
 - **Claims**: Every claim must be backed by implemented code. Roadmap items say "on the roadmap." Use "evidence-weighted confidence scoring inspired by Bayesian reasoning" not "Bayesian calibration"; "tamper-evident snapshots" not "append-only proof"; "inspired by" not "modelled on."
 - **Marketing Voice**: Never position against competitors. Position against the complexity of DNS and the consequence of getting it wrong. Lead with capability, not comparison.
