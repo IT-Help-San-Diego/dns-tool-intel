@@ -49,9 +49,11 @@ console.log('══════════════════════�
 
 // ── 1. Hosting Detection ──────────────────────────────────────
 console.log('── Hosting Detection (R007) ─────────────────────────────────');
-const infraOSS = read('go-server/internal/analyzer/infrastructure_oss.go');
-if (infraOSS) {
-  const getHostingFn = infraOSS.match(/func \(a \*Analyzer\) GetHostingInfo[\s\S]*?^}/m);
+// Post-OSS-unification: GetHostingInfo lives in infrastructure_impl.go
+// (was infrastructure_oss.go before the build-tag split was removed).
+const infraImpl = read('go-server/internal/analyzer/infrastructure_impl.go');
+if (infraImpl) {
+  const getHostingFn = infraImpl.match(/func \(a \*Analyzer\) GetHostingInfo[\s\S]*?^}/m);
   if (getHostingFn) {
     const fnBody = getHostingFn[0];
     check('GetHostingInfo uses provider data',
@@ -64,10 +66,10 @@ if (infraOSS) {
       fnBody.includes('identifyEmailProviderOSS') || fnBody.includes('identifyEmailProvider'),
       'Email hosting should use MX record matching');
   } else {
-    check('GetHostingInfo function exists', false, 'Function not found in infrastructure_oss.go');
+    check('GetHostingInfo function exists', false, 'Function not found in infrastructure_impl.go');
   }
 } else {
-  check('infrastructure_oss.go exists', false, 'File not found');
+  check('infrastructure_impl.go exists', false, 'File not found');
 }
 
 // ── 2. Provider Data ──────────────────────────────────────────
