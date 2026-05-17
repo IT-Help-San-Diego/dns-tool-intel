@@ -70,9 +70,10 @@ else
 fi
 
 # 5. Core analyzer/middleware/entitlements tests
+# Note: analyzer suite runs ~110s warm; 240s gives headroom for cold cache.
 echo ""
 echo "▸ [5/8] core analyzer/middleware/entitlements tests..."
-if (cd go-server && go test ./internal/analyzer/ ./internal/middleware/ ./internal/entitlements/ -timeout 120s -count=1 2>&1 | tail -5); then
+if (cd go-server && go test ./internal/analyzer/ ./internal/middleware/ ./internal/entitlements/ -timeout 240s -count=1 2>&1 | tail -5); then
   echo "  ✓ core tests passed"
 else
   echo "  ✗ core tests FAILED"
