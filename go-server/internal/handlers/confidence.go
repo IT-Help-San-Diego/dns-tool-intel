@@ -51,6 +51,7 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
                                 }
                         }
                         ce := icae.NewCalibrationEngine()
+                        ce.ApplyEvidence(metrics, icae.DefaultEvidenceCap)
                         calResult := icae.RunDegradedCalibration(ce)
                         metrics.Calibration = &calResult
                         data["ICAEMetrics"] = metrics
