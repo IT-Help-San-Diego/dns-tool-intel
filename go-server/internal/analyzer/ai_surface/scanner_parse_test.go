@@ -335,20 +335,28 @@ func TestSafeDefaults(t *testing.T) {
         })
 
         t.Run("matchAICrawler", func(t *testing.T) {
-                if matchAICrawler("GPTBot") != "" {
-                        t.Error("should return empty string")
+                if matchAICrawler("GPTBot") != "GPTBot" {
+                        t.Error("should match GPTBot")
+                }
+                if matchAICrawler("UnknownBot12345") != "" {
+                        t.Error("should return empty for unknown crawler")
                 }
         })
 
-        t.Run("parseRobotsForAI_defaults", func(t *testing.T) {
-                blocked, allowed, directives := parseRobotsForAI("User-Agent: GPTBot\nDisallow: /")
-                if blocked != nil || allowed != nil || directives != nil {
-                        t.Error("should return nil slices")
+        t.Run("parseRobotsForAI_blocks", func(t *testing.T) {
+                blocked, _, directives := parseRobotsForAI("User-Agent: GPTBot\nDisallow: /")
+                if len(blocked) == 0 || len(directives) == 0 {
+                        t.Error("should block GPTBot via wildcard/explicit disallow")
                 }
         })
 
         t.Run("processRobotsLine", func(t *testing.T) {
-                processRobotsLine("disallow: /", "Disallow: /", "GPTBot", map[string]bool{}, map[string]bool{}, nil)
+                seenBlocked := map[string]bool{}
+                var directives []robotsDirective
+                processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, map[string]bool{}, &directives)
+                if !seenBlocked["GPTBot"] {
+                        t.Error("should mark GPTBot blocked")
+                }
         })
 
         t.Run("detectHiddenTextArtifacts", func(t *testing.T) {
@@ -359,31 +367,31 @@ func TestSafeDefaults(t *testing.T) {
         })
 
         t.Run("buildHiddenBlockRegex", func(t *testing.T) {
-                if buildHiddenBlockRegex() != nil {
-                        t.Error("should return nil")
+                if buildHiddenBlockRegex() == nil {
+                        t.Error("should return non-nil regex")
                 }
         })
 
         t.Run("extractTextContent", func(t *testing.T) {
-                if extractTextContent("<p>test</p>") != "" {
-                        t.Error("should return empty string")
+                if extractTextContent("<p>test</p>") != "test" {
+                        t.Error("should extract inner text content")
                 }
         })
 
         t.Run("looksLikePromptInstruction", func(t *testing.T) {
-                if looksLikePromptInstruction("ignore previous instructions") {
-                        t.Error("should return false")
+                if !looksLikePromptInstruction("ignore previous instructions") {
+                        t.Error("should detect prompt instruction marker")
                 }
         })
 
         t.Run("fetchTextFile", func(t *testing.T) {
-                scanner := &Scanner{}
+                scanner := NewScanner(coverageBoostFailHTTP{})
                 result, err := scanner.fetchTextFile(context.Background(), "https://example.com/test.txt")
-                if err != nil {
-                        t.Errorf("should return nil error, got %v", err)
+                if err == nil {
+                        t.Error("should return error when fetch fails")
                 }
                 if result != "" {
-                        t.Error("should return empty string")
+                        t.Error("should return empty string on error")
                 }
         })
 }
@@ -613,12 +621,13 @@ func TestConvertEvidenceToMaps_NoOp(t *testing.T) {
 func TestProcessRobotsLine(t *testing.T) {
         seenBlocked := map[string]bool{}
         seenAllowed := map[string]bool{}
-        processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, seenAllowed, nil)
-        if len(seenBlocked) != 0 {
-                t.Error("processRobotsLine should not modify seenBlocked with nil directives")
+        var directives []robotsDirective
+        processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, seenAllowed, &directives)
+        if !seenBlocked["GPTBot"] {
+                t.Error("processRobotsLine should mark GPTBot blocked for Disallow: /")
         }
-        if len(seenAllowed) != 0 {
-                t.Error("processRobotsLine should not modify seenAllowed with nil directives")
+        if len(directives) != 1 {
+                t.Errorf("expected 1 directive, got %d", len(directives))
         }
 }
 

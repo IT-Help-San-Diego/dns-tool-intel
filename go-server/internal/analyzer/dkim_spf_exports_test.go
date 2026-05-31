@@ -1244,8 +1244,8 @@ func TestExportFunctions(t *testing.T) {
                 }
         })
         t.Run("IsHostedEmailProvider", func(t *testing.T) {
-                if !ExportIsHostedEmailProvider("gmail.com") {
-                        t.Error("gmail.com should be hosted")
+                if !ExportIsHostedEmailProvider("Google Workspace") {
+                        t.Error("Google Workspace should be a hosted email provider")
                 }
         })
         t.Run("IsBIMICapableProvider", func(t *testing.T) {

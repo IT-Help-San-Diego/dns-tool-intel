@@ -95,9 +95,18 @@ func TestZoneCapability(t *testing.T) {
 }
 
 func TestExtractMailtoDomains_ReturnsNil(t *testing.T) {
+        if got := extractMailtoDomains(""); got != nil {
+                t.Errorf("extractMailtoDomains(\"\") = %v, expected nil", got)
+        }
+
         got := extractMailtoDomains("mailto:admin@example.com")
-        if got != nil {
-                t.Errorf("extractMailtoDomains = %v, expected nil for single mailto", got)
+        if len(got) != 1 || got[0] != "example.com" {
+                t.Errorf("extractMailtoDomains = %v, want [example.com]", got)
+        }
+
+        multi := extractMailtoDomains("mailto:a@one.example.com,mailto:b@two.example.org")
+        if len(multi) != 2 || multi[0] != "one.example.com" || multi[1] != "two.example.org" {
+                t.Errorf("extractMailtoDomains(multi) = %v, want [one.example.com two.example.org]", multi)
         }
 }
 

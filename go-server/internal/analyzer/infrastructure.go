@@ -73,13 +73,59 @@ func containsStr(ss []string, s string) bool {
 }
 
 func zoneCapability(zoneKey string) string {
+        if cap := dynamicServicesZones[zoneKey]; cap != "" {
+                return cap
+        }
         return zoneKey + " management"
 }
 
 func addOrMergeProvider(providers map[string]map[string]any, info *managementProviderInfo, detectedFrom, source string) {
-        // Provider-merge logic in infrastructure_impl.go
+        name := info.Name
+        if existing, ok := providers[name]; ok {
+                df := existing[infraDetectedFrom].([]string)
+                if !containsStr(df, detectedFrom) {
+                        existing[infraDetectedFrom] = append(df, detectedFrom)
+                }
+                sources := existing[infraSources].([]string)
+                existing[infraSources] = append(sources, source)
+                caps := existing[infraCapabilities].([]string)
+                for _, c := range info.Capabilities {
+                        if !containsStr(caps, c) {
+                                caps = append(caps, c)
+                        }
+                }
+                existing[infraCapabilities] = caps
+        } else {
+                providers[name] = map[string]any{
+                        "name":          info.Name,
+                        "vendor":        info.Vendor,
+                        "capabilities":  append([]string{}, info.Capabilities...),
+                        "sources":       []string{source},
+                        "detected_from": []string{detectedFrom},
+                }
+        }
 }
 
 func extractMailtoDomains(ruaStr string) []string {
-        return nil
+        if ruaStr == "" {
+                return nil
+        }
+        var domains []string
+        for _, part := range strings.Split(ruaStr, ",") {
+                part = strings.TrimSpace(part)
+                if idx := strings.Index(part, "mailto:"); idx >= 0 {
+                        email := part[idx+7:]
+                        if atIdx := strings.Index(email, "@"); atIdx >= 0 {
+                                domain := strings.TrimRight(email, " ;,")
+                                domain = domain[atIdx+1:]
+                                if bangIdx := strings.Index(domain, "!"); bangIdx >= 0 {
+                                        domain = domain[:bangIdx]
+                                }
+                                if domain != "" {
+                                        domains = append(domains, strings.ToLower(domain))
+                                }
+                        }
+                }
+        }
+        return domains
 }
