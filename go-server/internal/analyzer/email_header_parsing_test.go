@@ -269,8 +269,8 @@ func TestExtractIntFieldDefault_CB6(t *testing.T) {
 }
 
 func TestProviderSupportsDANE_CB6(t *testing.T) {
-        if providerSupportsDANE("google") {
-                t.Fatal("expected hosted provider google to NOT support DANE")
+        if providerSupportsDANE("Google Workspace") {
+                t.Fatal("expected hosted provider Google Workspace to NOT support DANE")
         }
         if !providerSupportsDANE("") {
                 t.Fatal("expected empty provider to support DANE")

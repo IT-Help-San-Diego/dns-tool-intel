@@ -75,10 +75,22 @@ func buildArpaName(ip string) string {
 }
 
 func findFirstHostname(rels []map[string]any, classification string) string {
+        for _, rel := range rels {
+                if mapGetStr(rel, keyClassification) == classification {
+                        return mapGetStr(rel, keyHostname)
+                }
+        }
         return ""
 }
 
 func extractMXHost(mx string) string {
+        parts := strings.Fields(mx)
+        if len(parts) >= 2 {
+                return strings.TrimSuffix(parts[1], ".")
+        }
+        if len(parts) == 1 {
+                return strings.TrimSuffix(parts[0], ".")
+        }
         return ""
 }
 
