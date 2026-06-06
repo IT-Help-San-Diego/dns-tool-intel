@@ -1,7 +1,0 @@
-// Copyright (c) 2024-2026 IT Help San Diego Inc.
-// Licensed under BUSL-1.1 — See LICENSE for terms.
-
-// http.go — Framework only (package declaration). Always compiled.
-// HTTP helper functions live in http_impl.go.
-// dns-tool:scrutiny science
-package ai_surface
