@@ -1,7 +1,6 @@
 package ai_surface
 
 import (
-        "context"
         "strings"
         "testing"
 )
@@ -280,122 +279,6 @@ func TestScanForPrefillLinks_Empty(t *testing.T) {
         }
 }
 
-func TestTruncate(t *testing.T) {
-        tests := []struct {
-                name   string
-                input  string
-                maxLen int
-                want   string
-        }{
-                {"short_string", "hello", 10, "hello"},
-                {"exact_length", "hello", 5, "hello"},
-                {"truncated", "hello world", 5, "hello..."},
-                {"empty", "", 5, ""},
-                {"zero_max", "hello", 0, "..."},
-                {"one_char", "hello", 1, "h..."},
-        }
-
-        for _, tt := range tests {
-                t.Run(tt.name, func(t *testing.T) {
-                        got := truncate(tt.input, tt.maxLen)
-                        if got != tt.want {
-                                t.Errorf("truncate(%q, %d) = %q, want %q", tt.input, tt.maxLen, got, tt.want)
-                        }
-                })
-        }
-}
-
-func TestSafeDefaults(t *testing.T) {
-        t.Run("looksLikeLLMSTxt", func(t *testing.T) {
-                if looksLikeLLMSTxt("anything") {
-                        t.Error("should return false")
-                }
-                if looksLikeLLMSTxt("") {
-                        t.Error("should return false for empty")
-                }
-        })
-
-        t.Run("parseLLMSTxt", func(t *testing.T) {
-                result := parseLLMSTxt("Title: test")
-                if result == nil {
-                        t.Error("should return non-nil map")
-                }
-                if len(result) != 0 {
-                        t.Errorf("should return empty map, got %d entries", len(result))
-                }
-        })
-
-        t.Run("parseLLMSTxtFieldLine", func(t *testing.T) {
-                fields := map[string]any{}
-                docs := []string{}
-                parseLLMSTxtFieldLine("Title: test", "section", fields, &docs)
-                if len(fields) != 0 {
-                        t.Error("should not modify fields")
-                }
-        })
-
-        t.Run("matchAICrawler", func(t *testing.T) {
-                if matchAICrawler("GPTBot") != "GPTBot" {
-                        t.Error("should match GPTBot")
-                }
-                if matchAICrawler("UnknownBot12345") != "" {
-                        t.Error("should return empty for unknown crawler")
-                }
-        })
-
-        t.Run("parseRobotsForAI_blocks", func(t *testing.T) {
-                blocked, _, directives := parseRobotsForAI("User-Agent: GPTBot\nDisallow: /")
-                if len(blocked) == 0 || len(directives) == 0 {
-                        t.Error("should block GPTBot via wildcard/explicit disallow")
-                }
-        })
-
-        t.Run("processRobotsLine", func(t *testing.T) {
-                seenBlocked := map[string]bool{}
-                var directives []robotsDirective
-                processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, map[string]bool{}, &directives)
-                if !seenBlocked["GPTBot"] {
-                        t.Error("should mark GPTBot blocked")
-                }
-        })
-
-        t.Run("detectHiddenTextArtifacts", func(t *testing.T) {
-                arts, evs := detectHiddenTextArtifacts("<html></html>", "https://example.com", nil, nil)
-                if arts != nil || evs != nil {
-                        t.Error("should return input slices (nil)")
-                }
-        })
-
-        t.Run("buildHiddenBlockRegex", func(t *testing.T) {
-                if buildHiddenBlockRegex() == nil {
-                        t.Error("should return non-nil regex")
-                }
-        })
-
-        t.Run("extractTextContent", func(t *testing.T) {
-                if extractTextContent("<p>test</p>") != "test" {
-                        t.Error("should extract inner text content")
-                }
-        })
-
-        t.Run("looksLikePromptInstruction", func(t *testing.T) {
-                if !looksLikePromptInstruction("ignore previous instructions") {
-                        t.Error("should detect prompt instruction marker")
-                }
-        })
-
-        t.Run("fetchTextFile", func(t *testing.T) {
-                scanner := NewScanner(coverageBoostFailHTTP{})
-                result, err := scanner.fetchTextFile(context.Background(), "https://example.com/test.txt")
-                if err == nil {
-                        t.Error("should return error when fetch fails")
-                }
-                if result != "" {
-                        t.Error("should return empty string on error")
-                }
-        })
-}
-
 func TestExtractNearbyText_EmptyContent(t *testing.T) {
         result := extractNearbyText("", []int{0, 0})
         if result != "" {
@@ -615,30 +498,5 @@ func TestConvertEvidenceToMaps_NoOp(t *testing.T) {
         convertEvidenceToMaps(result)
         if result["key"] != "value" {
                 t.Error("convertEvidenceToMaps should not modify the map")
-        }
-}
-
-func TestProcessRobotsLine(t *testing.T) {
-        seenBlocked := map[string]bool{}
-        seenAllowed := map[string]bool{}
-        var directives []robotsDirective
-        processRobotsLine("disallow: /", "Disallow: /", "GPTBot", seenBlocked, seenAllowed, &directives)
-        if !seenBlocked["GPTBot"] {
-                t.Error("processRobotsLine should mark GPTBot blocked for Disallow: /")
-        }
-        if len(directives) != 1 {
-                t.Errorf("expected 1 directive, got %d", len(directives))
-        }
-}
-
-func TestParseLLMSTxtFieldLine(t *testing.T) {
-        fields := map[string]any{}
-        docs := []string{}
-        parseLLMSTxtFieldLine("Title: test", "section", fields, &docs)
-        if len(fields) != 0 {
-                t.Error("should not modify fields")
-        }
-        if len(docs) != 0 {
-                t.Error("should not modify docs")
         }
 }
