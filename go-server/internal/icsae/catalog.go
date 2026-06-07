@@ -19,27 +19,52 @@ import (
 //go:embed dns-to-controls.json
 var catalogJSON []byte
 
+// WeaknessRefs holds the verified cross-references from a control to the
+// security-vulnerability taxonomies the industry uses (MITRE CWE/CAPEC and the
+// Bugcrowd Vulnerability Rating Taxonomy). These bridge the standards/compliance
+// lineage (RFC/ISO/NIST) the catalog already cites to the weakness/attack-pattern
+// lineage, so a control failure can be explained as an exploitable vulnerability.
+// Coverage is intentionally partial and verified-only: a control with no verified
+// mapping omits the field rather than asserting a fabricated ID.
+type WeaknessRefs struct {
+        CWE               []string `json:"cwe"`
+        CAPEC             []string `json:"capec"`
+        VRT               []string `json:"vrt"`
+        MappingConfidence string   `json:"mapping_confidence"`
+        MappingRationale  string   `json:"mapping_rationale"`
+}
+
+// WeaknessRef is one entry in the weakness_registry (a verified CWE/CAPEC/VRT
+// identifier resolved to its authoritative title and source URL).
+type WeaknessRef struct {
+        Title     string `json:"title"`
+        Publisher string `json:"publisher"`
+        URL       string `json:"url"`
+}
+
 // Control is one entry in the ICSAE catalog (a single DNS security control whose
 // failure constitutes an enumerated DNS vulnerability).
 type Control struct {
-        ID              string   `json:"id"`
-        Title           string   `json:"title"`
-        Severity        string   `json:"severity"`
-        Requires        []string `json:"requires"`
-        RequiresAny     []string `json:"requires_any"`
-        AppliesWhen     []string `json:"applies_when"`
-        Standards       []string `json:"standards"`
-        RFCs            []string `json:"rfcs"`
-        Rationale       string   `json:"rationale"`
-        FailExplanation string   `json:"fail_explanation"`
+        ID              string        `json:"id"`
+        Title           string        `json:"title"`
+        Severity        string        `json:"severity"`
+        Requires        []string      `json:"requires"`
+        RequiresAny     []string      `json:"requires_any"`
+        AppliesWhen     []string      `json:"applies_when"`
+        Standards       []string      `json:"standards"`
+        RFCs            []string      `json:"rfcs"`
+        Rationale       string        `json:"rationale"`
+        FailExplanation string        `json:"fail_explanation"`
+        WeaknessRefs    *WeaknessRefs `json:"weakness_refs,omitempty"`
 }
 
 // Registry is the parsed catalog file.
 type Registry struct {
-        SchemaVersion int       `json:"schema_version"`
-        Engine        string    `json:"engine"`
-        EngineName    string    `json:"engine_name"`
-        Mappings      []Control `json:"mappings"`
+        SchemaVersion    int                    `json:"schema_version"`
+        Engine           string                 `json:"engine"`
+        EngineName       string                 `json:"engine_name"`
+        WeaknessRegistry map[string]WeaknessRef `json:"weakness_registry"`
+        Mappings         []Control              `json:"mappings"`
 }
 
 var registry Registry
