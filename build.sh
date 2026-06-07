@@ -27,6 +27,12 @@ LDFLAGS="-s -w \
 export GOCACHE=/tmp/go-build-cache
 export GOMODCACHE=/tmp/go-mod-cache
 export GOTMPDIR=/tmp/go-tmp
+# Reset the Go cache/tmp dirs at the START of each build (clean build), then leave
+# them in place. Do NOT delete them after building: .replit pins GOCACHE/GOTMPDIR
+# here, and downstream go commands (e.g. scripts/quality-gate.sh `go vet`) run right
+# after this workflow build — a missing dir makes go fail during cache init
+# ("failed to trim cache" / "creating work dir"). Leaving the cache also makes the
+# post-build gate fast by reusing the warm build cache.
 rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 mkdir -p /tmp/go-build-cache /tmp/go-tmp
 
@@ -42,7 +48,6 @@ if [ "$1" = "--deploy" ]; then
     -tags netgo \
     -o "$SCRIPT_DIR/dns-tool-server" \
     ./go-server/cmd/server/
-  rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
   echo "Binary built:"
   ls -la "$SCRIPT_DIR/dns-tool-server"
@@ -62,8 +67,6 @@ CGO_ENABLED=0 GONOSUMCHECK=1 go build \
   -o "$SCRIPT_DIR/dns-tool-server-new" \
   ./go-server/cmd/server/
 mv "$SCRIPT_DIR/dns-tool-server-new" "$SCRIPT_DIR/dns-tool-server"
-
-rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server

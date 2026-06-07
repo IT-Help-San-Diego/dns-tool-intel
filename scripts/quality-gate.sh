@@ -31,6 +31,10 @@ WARN=0
 START=$(date +%s)
 
 # 1. go vet — must be clean
+# Defense-in-depth: ensure the configured Go cache/tmp dirs exist before any go
+# command. .replit pins GOCACHE/GOTMPDIR under /tmp, which can be pruned between a
+# workflow build and this gate run; a missing dir makes go fail during cache init.
+mkdir -p "${GOCACHE:-/tmp/go-build-cache}" "${GOTMPDIR:-/tmp/go-tmp}" 2>/dev/null || true
 echo "▸ [1/8] go vet ./go-server/..."
 if (cd go-server && go vet ./... 2>&1 >/dev/null); then
   echo "  ✓ go vet clean"
