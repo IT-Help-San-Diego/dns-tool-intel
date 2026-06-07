@@ -43,6 +43,21 @@ type historyAnalysisItem struct {
         CreatedTime      string
         ToolVersion      string
         RequestSource    string
+        RiskLevel        string
+        RiskColor        string
+}
+
+// normalizeRiskColor whitelists the posture color read from persisted
+// full_results JSON to a known Bootstrap contextual token before it is
+// interpolated into a bg-* class. Stored JSON can drift across versions, so we
+// never trust the producer: any unrecognized value falls back to "secondary".
+func normalizeRiskColor(color string) string {
+        switch color {
+        case "success", "info", "warning", "danger":
+                return color
+        default:
+                return "secondary"
+        }
 }
 
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
@@ -69,6 +84,8 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
         }
         toolVersion := ""
         requestSource := ""
+        riskLevel := ""
+        riskColor := ""
         if len(a.FullResults) > 0 {
                 var fr map[string]interface{}
                 if json.Unmarshal(a.FullResults, &fr) == nil {
@@ -77,6 +94,14 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                         }
                         if rs, ok := fr["_request_source"].(string); ok {
                                 requestSource = rs
+                        }
+                        if posture, ok := fr["posture"].(map[string]interface{}); ok {
+                                if st, ok := posture["state"].(string); ok {
+                                        riskLevel = st
+                                }
+                                if cl, ok := posture["color"].(string); ok {
+                                        riskColor = normalizeRiskColor(cl)
+                                }
                         }
                 }
         }
@@ -92,6 +117,8 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                 CreatedTime:      createdTime,
                 ToolVersion:      toolVersion,
                 RequestSource:    requestSource,
+                RiskLevel:        riskLevel,
+                RiskColor:        riskColor,
         }
 }
 
