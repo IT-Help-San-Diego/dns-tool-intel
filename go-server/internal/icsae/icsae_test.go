@@ -226,3 +226,109 @@ func TestEvaluateNativeVsJSONParity(t *testing.T) {
         assertSameSet(t, "medium_failures", gNative.MediumFailures, gJSON.MediumFailures)
         assertSameSet(t, "low_failures", gNative.LowFailures, gJSON.LowFailures)
 }
+
+// TestWeaknessRefsVerifiedBridge guards the standards-to-vulnerability-taxonomy
+// bridge: every CWE/CAPEC/VRT id referenced by a control must resolve in the
+// weakness_registry (no orphan/fabricated ids), the flagship DMARC false-green-
+// checkmark gap must carry its verified refs, and the coverage count must be
+// surfaced honestly.
+func TestWeaknessRefsVerifiedBridge(t *testing.T) {
+        reg := Catalog().WeaknessRegistry
+        if len(reg) == 0 {
+                t.Fatal("weakness_registry is empty")
+        }
+
+        // No orphan references: every id used by any control resolves in the registry.
+        for _, c := range Catalog().Mappings {
+                if c.WeaknessRefs == nil {
+                        continue
+                }
+                ids := append(append(append([]string{}, c.WeaknessRefs.CWE...), c.WeaknessRefs.CAPEC...), c.WeaknessRefs.VRT...)
+                for _, id := range ids {
+                        if _, ok := reg[id]; !ok {
+                                t.Errorf("control %s references %q which is missing from weakness_registry", c.ID, id)
+                        }
+                }
+                if c.WeaknessRefs.MappingConfidence == "" || c.WeaknessRefs.MappingRationale == "" {
+                        t.Errorf("control %s has weakness_refs without confidence/rationale", c.ID)
+                }
+        }
+
+        // Flagship: DMARC enforcement failure (p=none / p=quarantine) must surface
+        // the verified spoofing weakness refs that prove "compliant != safe".
+        res := Evaluate(map[string]any{
+                "dmarc_analysis": map[string]any{"status": "success", "policy": "none"},
+        })
+        var dmarc *ControlResult
+        for i := range res.Results {
+                if res.Results[i].ID == "DMARC_ENFORCEMENT" {
+                        dmarc = &res.Results[i]
+                }
+        }
+        if dmarc == nil {
+                t.Fatal("DMARC_ENFORCEMENT control not found in results")
+        }
+        if dmarc.Status != "failed" {
+                t.Fatalf("DMARC_ENFORCEMENT expected failed at p=none, got %s", dmarc.Status)
+        }
+        if dmarc.WeaknessRefs == nil {
+                t.Fatal("DMARC_ENFORCEMENT failure carries no weakness_refs")
+        }
+        if !contains(dmarc.WeaknessRefs.CWE, "CWE-290") {
+                t.Errorf("DMARC_ENFORCEMENT missing CWE-290, got %v", dmarc.WeaknessRefs.CWE)
+        }
+        if !contains(dmarc.WeaknessRefs.VRT, "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain") {
+                t.Errorf("DMARC_ENFORCEMENT missing DMARC spoofing VRT ref, got %v", dmarc.WeaknessRefs.VRT)
+        }
+
+        // Coverage is surfaced and matches the controls that actually carry refs.
+        var mapped int
+        for _, c := range Catalog().Mappings {
+                if c.WeaknessRefs != nil {
+                        mapped++
+                }
+        }
+        if res.MappedControls != mapped {
+                t.Errorf("MappedControls=%d but %d controls carry weakness_refs", res.MappedControls, mapped)
+        }
+        if mapped == 0 {
+                t.Fatal("no controls carry weakness_refs")
+        }
+}
+
+func contains(s []string, v string) bool {
+        for _, x := range s {
+                if x == v {
+                        return true
+                }
+        }
+        return false
+}
+
+// TestWeaknessRegistryIntegrity hardens the zero-fabrication guarantee: every
+// registry entry must resolve to its authoritative source, and the id prefix must
+// match the publisher/URL (CWE-* -> MITRE CWE, CAPEC-* -> MITRE CAPEC, VRT:* ->
+// Bugcrowd VRT). A mistyped or mis-sourced id fails the build.
+func TestWeaknessRegistryIntegrity(t *testing.T) {
+        for id, ref := range Catalog().WeaknessRegistry {
+                if ref.Title == "" || ref.URL == "" || ref.Publisher == "" {
+                        t.Errorf("%s: missing title/url/publisher", id)
+                }
+                switch {
+                case strings.HasPrefix(id, "CWE-"):
+                        if !strings.Contains(ref.URL, "cwe.mitre.org") || ref.Publisher != "MITRE CWE" {
+                                t.Errorf("%s: expected MITRE CWE source, got %q / %q", id, ref.Publisher, ref.URL)
+                        }
+                case strings.HasPrefix(id, "CAPEC-"):
+                        if !strings.Contains(ref.URL, "capec.mitre.org") || ref.Publisher != "MITRE CAPEC" {
+                                t.Errorf("%s: expected MITRE CAPEC source, got %q / %q", id, ref.Publisher, ref.URL)
+                        }
+                case strings.HasPrefix(id, "VRT:"):
+                        if !strings.Contains(ref.URL, "bugcrowd.com") {
+                                t.Errorf("%s: expected Bugcrowd VRT source, got %q", id, ref.URL)
+                        }
+                default:
+                        t.Errorf("%s: unrecognized id prefix (must be CWE-/CAPEC-/VRT:)", id)
+                }
+        }
+}
