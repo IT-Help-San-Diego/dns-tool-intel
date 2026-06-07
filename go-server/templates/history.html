@@ -93,7 +93,10 @@
                                 {{range $i, $a := .Analyses}}
                                 <tr>
                                     <td class="col-domain">
-                                        {{if $a.RiskLevel}}<span class="badge bg-{{$a.RiskColor}} mb-1 d-inline-block" title="Overall Security Posture">{{$a.RiskLevel}}</span>{{end}}
+                                        {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
+                                            <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
+                                            {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
+                                        </span>{{end}}
                                         <div class="d-flex align-items-center min-width-0">
                                             {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                             <div class="min-width-0">
@@ -149,7 +152,10 @@
                             <div class="d-flex align-items-center min-width-0">
                                 {{icon "globe" "text-primary me-2 flex-shrink-0"}}
                                 <div class="min-width-0">
-                                    {{if $a.RiskLevel}}<span class="badge bg-{{$a.RiskColor}} mb-1 d-inline-block" title="Overall Security Posture">{{$a.RiskLevel}}</span>{{end}}
+                                    {{if $a.RiskLevel}}<span class="d-inline-flex align-items-center gap-1 mb-1">
+                                        <span class="badge bg-{{$a.RiskColor}}" title="Overall Security Posture">{{$a.RiskLevel}}</span>
+                                        {{if gt $a.FixCount 0}}<span class="badge rounded-pill bg-{{$a.FixColor}}" title="{{$a.FixCount}} verified finding{{if gt $a.FixCount 1}}s{{end}} to fix">{{$a.FixCount}} to Fix</span>{{end}}
+                                    </span>{{end}}
                                     <div class="fw-medium text-truncate">{{$a.Domain}}{{if eq $a.RequestSource "agent"}} <a href="/agent/plugin" class="source-tag" title="Queried via DEVONagent Pro plugin — click to learn more"><picture><source srcset="{{staticVersionURL "images/devonagent-pro-logo.webp" $.AppVersion}}" type="image/webp"><img src="{{staticVersionURL "images/devonagent-pro-logo.png" $.AppVersion}}" alt="" width="12" height="12" loading="lazy"></picture>Plugin</a>{{end}}</div>
                                 </div>
                             </div>
