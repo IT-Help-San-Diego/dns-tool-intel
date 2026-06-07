@@ -1,3 +1,4 @@
+// dns-tool:scrutiny science
 package icsae
 
 // ControlResult is the verdict for a single control on one scan.

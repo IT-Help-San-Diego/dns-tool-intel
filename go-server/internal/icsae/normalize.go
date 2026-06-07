@@ -1,3 +1,4 @@
+// dns-tool:scrutiny science
 package icsae
 
 // Observations holds the derived boolean observation codes that the catalog's
