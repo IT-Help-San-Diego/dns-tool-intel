@@ -236,6 +236,76 @@ func TestBuildHistoryItemPosture(t *testing.T) {
                 }
         })
 
+        t.Run("recommendations-only fix count is amber", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{
+                                "state":           "High Risk",
+                                "color":           "warning",
+                                "critical_issues": []any{},
+                                "recommendations": []any{"upgrade DMARC to reject", "add DMARC reporting"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 5, Domain: "e.com", AsciiDomain: "e.com", FullResults: fr})
+                if item.FixCount != 2 {
+                        t.Errorf("FixCount = %d, want 2", item.FixCount)
+                }
+                if item.FixColor != "warning" {
+                        t.Errorf("FixColor = %q, want warning", item.FixColor)
+                }
+        })
+
+        t.Run("critical issues make fix count red and include recommendations", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{
+                                "state":           "High Risk",
+                                "color":           "danger",
+                                "critical_issues": []any{"DNSSEC validation is failing"},
+                                "recommendations": []any{"upgrade DMARC to reject"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 6, Domain: "f.com", AsciiDomain: "f.com", FullResults: fr})
+                if item.FixCount != 2 {
+                        t.Errorf("FixCount = %d, want 2", item.FixCount)
+                }
+                if item.FixColor != "danger" {
+                        t.Errorf("FixColor = %q, want danger", item.FixColor)
+                }
+        })
+
+        t.Run("no findings yields zero fix count and no color", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{"state": "Low Risk", "color": "success"},
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 7, Domain: "g.com", AsciiDomain: "g.com", FullResults: fr})
+                if item.FixCount != 0 {
+                        t.Errorf("FixCount = %d, want 0", item.FixCount)
+                }
+                if item.FixColor != "" {
+                        t.Errorf("FixColor = %q, want empty", item.FixColor)
+                }
+        })
+
+        t.Run("wrong-typed finding fields degrade to zero without panic", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{
+                                "state":           "High Risk",
+                                "color":           "warning",
+                                "critical_issues": "bad",
+                                "recommendations": 5,
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 8, Domain: "h.com", AsciiDomain: "h.com", FullResults: fr})
+                if item.FixCount != 0 {
+                        t.Errorf("FixCount = %d, want 0", item.FixCount)
+                }
+                if item.FixColor != "" {
+                        t.Errorf("FixColor = %q, want empty", item.FixColor)
+                }
+                if item.RiskLevel != "High Risk" {
+                        t.Errorf("RiskLevel = %q, want High Risk", item.RiskLevel)
+                }
+        })
+
         t.Run("invalid color falls back to secondary", func(t *testing.T) {
                 fr, _ := json.Marshal(map[string]any{
                         "posture": map[string]any{"state": "Low Risk", "color": "bg-evil x"},
