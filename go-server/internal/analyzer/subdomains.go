@@ -954,6 +954,13 @@ func (a *Analyzer) probeCommonSubdomains(ctx context.Context, domain string, sub
         sem := make(chan struct{}, 30)
 
         for _, prefix := range commonSubdomainProbes {
+                select {
+                case <-probeCtx.Done():
+                        wg.Wait()
+                        return found
+                default:
+                }
+
                 fqdn := prefix + "." + domain
 
                 mu.Lock()
@@ -964,7 +971,13 @@ func (a *Analyzer) probeCommonSubdomains(ctx context.Context, domain string, sub
                 }
 
                 wg.Add(1)
-                sem <- struct{}{}
+                select {
+                case sem <- struct{}{}:
+                case <-probeCtx.Done():
+                        wg.Done()
+                        wg.Wait()
+                        return found
+                }
                 go func(name string) {
                         defer wg.Done()
                         defer func() { <-sem }()
