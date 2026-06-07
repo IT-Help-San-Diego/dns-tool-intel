@@ -71,6 +71,27 @@ func postureSliceLen(posture map[string]interface{}, key string) int {
         return 0
 }
 
+// icsaeFixSummary derives the catalog-backed "to Fix" count from a persisted
+// ICSAE evaluation. The actionable count is failed high + medium controls; low
+// severity controls are optional enhancements tracked separately, not in the
+// headline count. The boolean is false when the scan predates ICSAE wiring, so
+// callers can fall back to posture-derived counts.
+func icsaeFixSummary(fr map[string]interface{}) (int, string, bool) {
+        ev, ok := fr["icsae_evaluation"].(map[string]interface{})
+        if !ok {
+                return 0, "", false
+        }
+        high := postureSliceLen(ev, "high_failures")
+        medium := postureSliceLen(ev, "medium_failures")
+        color := ""
+        if high > 0 {
+                color = "danger"
+        } else if medium > 0 {
+                color = "warning"
+        }
+        return high + medium, color, true
+}
+
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
         spfStatus := ""
         if a.SpfStatus != nil {
@@ -115,6 +136,14 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                                 if cl, ok := posture["color"].(string); ok {
                                         riskColor = normalizeRiskColor(cl)
                                 }
+                        }
+                        // Catalog-backed "to Fix" count: failed ICSAE controls (actionable =
+                        // high + medium severity). Falls back to posture-derived issues for
+                        // scans recorded before ICSAE was wired into the pipeline.
+                        if c, col, ok := icsaeFixSummary(fr); ok {
+                                fixCount = c
+                                fixColor = col
+                        } else if posture, ok := fr["posture"].(map[string]interface{}); ok {
                                 critical := postureSliceLen(posture, "critical_issues")
                                 recommendations := postureSliceLen(posture, "recommendations")
                                 fixCount = critical + recommendations

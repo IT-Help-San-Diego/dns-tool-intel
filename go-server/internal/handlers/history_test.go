@@ -340,3 +340,80 @@ func TestBuildHistoryItemPosture(t *testing.T) {
                 }
         })
 }
+
+func TestBuildHistoryItemICSAECount(t *testing.T) {
+        t.Run("icsae evaluation drives count and overrides posture", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{
+                                "state":           "High Risk",
+                                "color":           "danger",
+                                "critical_issues": []any{"a", "b", "c"},
+                                "recommendations": []any{"d", "e"},
+                        },
+                        "icsae_evaluation": map[string]any{
+                                "high_failures":   []any{"DMARC_ENFORCEMENT"},
+                                "medium_failures": []any{"SPF_EFFECTIVE_POLICY", "CAA_RESTRICTION_PRESENT"},
+                                "low_failures":    []any{"BIMI_CONFIGURED", "SECURITY_TXT_PRESENT"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 20, Domain: "i.com", AsciiDomain: "i.com", FullResults: fr})
+                if item.FixCount != 3 {
+                        t.Errorf("FixCount = %d, want 3 (high+medium, low excluded from headline)", item.FixCount)
+                }
+                if item.FixColor != "danger" {
+                        t.Errorf("FixColor = %q, want danger (a high failure present)", item.FixColor)
+                }
+        })
+
+        t.Run("medium-only failures are amber", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "icsae_evaluation": map[string]any{
+                                "high_failures":   []any{},
+                                "medium_failures": []any{"DKIM_PRESENT"},
+                                "low_failures":    []any{"DANE_DEPLOYED"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 21, Domain: "j.com", AsciiDomain: "j.com", FullResults: fr})
+                if item.FixCount != 1 {
+                        t.Errorf("FixCount = %d, want 1", item.FixCount)
+                }
+                if item.FixColor != "warning" {
+                        t.Errorf("FixColor = %q, want warning", item.FixColor)
+                }
+        })
+
+        t.Run("low-only failures yield zero headline count and no color", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "icsae_evaluation": map[string]any{
+                                "high_failures":   []any{},
+                                "medium_failures": []any{},
+                                "low_failures":    []any{"HTTPS_SVCB_MODERN", "BIMI_CONFIGURED"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 22, Domain: "k.com", AsciiDomain: "k.com", FullResults: fr})
+                if item.FixCount != 0 {
+                        t.Errorf("FixCount = %d, want 0 (low excluded from headline)", item.FixCount)
+                }
+                if item.FixColor != "" {
+                        t.Errorf("FixColor = %q, want empty", item.FixColor)
+                }
+        })
+
+        t.Run("absent icsae evaluation falls back to posture", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "posture": map[string]any{
+                                "state":           "High Risk",
+                                "color":           "warning",
+                                "critical_issues": []any{},
+                                "recommendations": []any{"upgrade DMARC to reject", "add DMARC reporting"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 23, Domain: "l.com", AsciiDomain: "l.com", FullResults: fr})
+                if item.FixCount != 2 {
+                        t.Errorf("FixCount = %d, want 2 (posture fallback)", item.FixCount)
+                }
+                if item.FixColor != "warning" {
+                        t.Errorf("FixColor = %q, want warning", item.FixColor)
+                }
+        })
+}

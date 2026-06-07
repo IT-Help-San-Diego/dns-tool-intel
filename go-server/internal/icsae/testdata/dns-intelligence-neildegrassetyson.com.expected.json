@@ -1,34 +1,34 @@
 {
-  "domain": "red.com",
-  "source": "dns-intelligence-red.com.json",
-  "evaluated_at": "2026-06-07T18:57:37.922395+00:00",
+  "domain": "neildegrassetyson.com",
+  "source": "dns-intelligence-neildegrassetyson.com.json",
+  "evaluated_at": "2026-06-07T18:57:37.504204+00:00",
   "schema_version": 8,
   "total_controls": 16,
-  "passed_count": 4,
-  "failed_count": 11,
+  "passed_count": 6,
+  "failed_count": 9,
   "na_count": 1,
   "high_failures": [
-    "DNSSEC_AUTHENTICATED",
-    "DNSSEC_CHAIN_TRUSTED",
-    "DMARC_ENFORCEMENT",
-    "SECRET_EXPOSURE_CLEAN"
+    "DMARC_ENFORCEMENT"
   ],
   "medium_failures": [
-    "DNSSEC_KEY_ROLLOVER",
     "SPF_EFFECTIVE_POLICY",
     "DKIM_PRESENT",
+    "CAA_RESTRICTION_PRESENT",
     "DELEGATION_CONSISTENT"
   ],
   "low_failures": [
+    "DANE_DEPLOYED",
     "BIMI_CONFIGURED",
     "SECURITY_TXT_PRESENT",
     "HTTPS_SVCB_MODERN"
   ],
   "passed": [
+    "DNSSEC_AUTHENTICATED",
+    "DNSSEC_CHAIN_TRUSTED",
+    "DNSSEC_KEY_ROLLOVER",
     "MAIL_POLICY_SIGNALING",
-    "CAA_RESTRICTION_PRESENT",
-    "DANE_DEPLOYED",
-    "DANGLING_DNS_CLEAN"
+    "DANGLING_DNS_CLEAN",
+    "SECRET_EXPOSURE_CLEAN"
   ],
   "not_applicable": [
     "NO_MAIL_HARDENED"
@@ -37,7 +37,7 @@
     {
       "id": "DNSSEC_AUTHENTICATED",
       "title": "DNSSEC Authentication",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -49,12 +49,12 @@
         "RFC4035"
       ],
       "rationale": "DNSSEC provides cryptographic authentication of DNS data, preventing cache poisoning and man-in-the-middle attacks. ISO/IEC 27002:2022 \u00a78.24 requires cryptographic controls to protect data integrity and authenticity. INCITS 585-2025 PW.6 mandates verification of software integrity, which extends to the DNS infrastructure delivering that software.",
-      "fail_explanation": "DNSSEC not authenticated \u2014 DNS responses for this domain are not cryptographically validated. An attacker positioned between the resolver and authoritative server can forge responses (Kaminsky attack, RFC 5452). Per RFC 4033 \u00a72, \"DNSSEC provides origin authentication and integrity assurance.\""
+      "fail_explanation": ""
     },
     {
       "id": "DNSSEC_CHAIN_TRUSTED",
       "title": "DNSSEC Chain of Trust Validated",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.24"
@@ -64,12 +64,12 @@
         "RFC4035"
       ],
       "rationale": "A valid DNSSEC chain of trust \u2014 whether complete (apex zone with own DS/DNSKEY) or inherited (subdomain validated via parent zone) \u2014 ensures cryptographic authentication. RFC 4035 \u00a75 specifies the authentication chain validation process. Both 'complete' and 'inherited' chain states are valid when the AD flag is set. Subdomains on managed platforms (Route 53, Cloudflare, etc.) typically inherit trust from the parent zone \u2014 this is correct behavior, not a deficiency.",
-      "fail_explanation": "DNSSEC chain of trust not validated. Per RFC 4035 \u00a75, validators must be able to trace a chain of signed DNSKEY and DS records from a trust anchor to the zone. The AD (Authenticated Data) flag was not set by the validating resolver."
+      "fail_explanation": ""
     },
     {
       "id": "DNSSEC_KEY_ROLLOVER",
       "title": "DNSSEC Key Rollover Readiness",
-      "status": "failed",
+      "status": "passed",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -79,7 +79,7 @@
         "RFC8078"
       ],
       "rationale": "CDS/CDNSKEY automation (RFC 8078) enables safe, automated DS record updates at the parent zone. Without rollover readiness, key compromise or algorithm migration requires manual registrar intervention. INCITS 585-2025 PS.3 requires archived and protected releases, which extends to cryptographic key lifecycle management.",
-      "fail_explanation": "No CDS/CDNSKEY automation \u2014 DNSSEC key rollover requires manual registrar coordination. Per RFC 8078, CDS and CDNSKEY records enable automated, authenticated DS updates at the parent."
+      "fail_explanation": ""
     },
     {
       "id": "NO_MAIL_HARDENED",
@@ -164,7 +164,7 @@
     {
       "id": "CAA_RESTRICTION_PRESENT",
       "title": "CAA Certificate Issuance Restriction",
-      "status": "passed",
+      "status": "failed",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.24"
@@ -174,12 +174,12 @@
         "RFC9495"
       ],
       "rationale": "RFC 8659 \u00a71 states CAA \"allows a DNS domain name holder to specify one or more Certification Authorities (CAs) authorized to issue certificates for that domain.\" Per RFC 8659 \u00a74.2, CAs must check CAA before issuance. ISO/IEC 27002:2022 \u00a78.24 requires cryptographic controls for authenticity.",
-      "fail_explanation": ""
+      "fail_explanation": "No CAA records found \u2014 any Certificate Authority can issue certificates for this domain. Per RFC 8659 \u00a74.2, CAs are required to check CAA records before issuance. Without CAA, misissued certificates cannot be prevented at the DNS layer."
     },
     {
       "id": "DANE_DEPLOYED",
       "title": "DANE / TLSA Deployment",
-      "status": "passed",
+      "status": "failed",
       "severity": "low",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -190,7 +190,7 @@
         "RFC7672"
       ],
       "rationale": "RFC 6698 \u00a71 defines DANE as binding TLS certificates to DNS names via DNSSEC. RFC 7672 extends DANE to SMTP, providing authenticated encryption without reliance on the CA system. Requires DNSSEC (RFC 6698 \u00a71).",
-      "fail_explanation": ""
+      "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system."
     },
     {
       "id": "BIMI_CONFIGURED",
@@ -247,7 +247,7 @@
     {
       "id": "SECRET_EXPOSURE_CLEAN",
       "title": "No Exposed Secrets",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.4",
@@ -255,7 +255,7 @@
       ],
       "rfcs": [],
       "rationale": "ISO/IEC 27002:2022 \u00a78.4 requires access control to source code and configuration. INCITS 585-2025 PW.6 requires verification of software integrity, including absence of exposed credentials.",
-      "fail_explanation": "Exposed secrets detected in public page source. API keys, tokens, or credentials found in publicly accessible pages can be harvested by automated scanners."
+      "fail_explanation": ""
     },
     {
       "id": "HTTPS_SVCB_MODERN",

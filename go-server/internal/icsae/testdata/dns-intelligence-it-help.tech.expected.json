@@ -1,34 +1,33 @@
 {
-  "domain": "red.com",
-  "source": "dns-intelligence-red.com.json",
-  "evaluated_at": "2026-06-07T18:57:37.922395+00:00",
+  "domain": "it-help.tech",
+  "source": "dns-intelligence-it-help.tech.json",
+  "evaluated_at": "2026-06-07T18:57:37.108183+00:00",
   "schema_version": 8,
   "total_controls": 16,
-  "passed_count": 4,
-  "failed_count": 11,
+  "passed_count": 11,
+  "failed_count": 4,
   "na_count": 1,
-  "high_failures": [
-    "DNSSEC_AUTHENTICATED",
-    "DNSSEC_CHAIN_TRUSTED",
-    "DMARC_ENFORCEMENT",
-    "SECRET_EXPOSURE_CLEAN"
-  ],
+  "high_failures": [],
   "medium_failures": [
     "DNSSEC_KEY_ROLLOVER",
-    "SPF_EFFECTIVE_POLICY",
-    "DKIM_PRESENT",
     "DELEGATION_CONSISTENT"
   ],
   "low_failures": [
-    "BIMI_CONFIGURED",
-    "SECURITY_TXT_PRESENT",
+    "DANE_DEPLOYED",
     "HTTPS_SVCB_MODERN"
   ],
   "passed": [
+    "DNSSEC_AUTHENTICATED",
+    "DNSSEC_CHAIN_TRUSTED",
+    "SPF_EFFECTIVE_POLICY",
+    "DMARC_ENFORCEMENT",
+    "DKIM_PRESENT",
     "MAIL_POLICY_SIGNALING",
     "CAA_RESTRICTION_PRESENT",
-    "DANE_DEPLOYED",
-    "DANGLING_DNS_CLEAN"
+    "BIMI_CONFIGURED",
+    "SECURITY_TXT_PRESENT",
+    "DANGLING_DNS_CLEAN",
+    "SECRET_EXPOSURE_CLEAN"
   ],
   "not_applicable": [
     "NO_MAIL_HARDENED"
@@ -37,7 +36,7 @@
     {
       "id": "DNSSEC_AUTHENTICATED",
       "title": "DNSSEC Authentication",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -49,12 +48,12 @@
         "RFC4035"
       ],
       "rationale": "DNSSEC provides cryptographic authentication of DNS data, preventing cache poisoning and man-in-the-middle attacks. ISO/IEC 27002:2022 \u00a78.24 requires cryptographic controls to protect data integrity and authenticity. INCITS 585-2025 PW.6 mandates verification of software integrity, which extends to the DNS infrastructure delivering that software.",
-      "fail_explanation": "DNSSEC not authenticated \u2014 DNS responses for this domain are not cryptographically validated. An attacker positioned between the resolver and authoritative server can forge responses (Kaminsky attack, RFC 5452). Per RFC 4033 \u00a72, \"DNSSEC provides origin authentication and integrity assurance.\""
+      "fail_explanation": ""
     },
     {
       "id": "DNSSEC_CHAIN_TRUSTED",
       "title": "DNSSEC Chain of Trust Validated",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.24"
@@ -64,7 +63,7 @@
         "RFC4035"
       ],
       "rationale": "A valid DNSSEC chain of trust \u2014 whether complete (apex zone with own DS/DNSKEY) or inherited (subdomain validated via parent zone) \u2014 ensures cryptographic authentication. RFC 4035 \u00a75 specifies the authentication chain validation process. Both 'complete' and 'inherited' chain states are valid when the AD flag is set. Subdomains on managed platforms (Route 53, Cloudflare, etc.) typically inherit trust from the parent zone \u2014 this is correct behavior, not a deficiency.",
-      "fail_explanation": "DNSSEC chain of trust not validated. Per RFC 4035 \u00a75, validators must be able to trace a chain of signed DNSKEY and DS records from a trust anchor to the zone. The AD (Authenticated Data) flag was not set by the validating resolver."
+      "fail_explanation": ""
     },
     {
       "id": "DNSSEC_KEY_ROLLOVER",
@@ -101,7 +100,7 @@
     {
       "id": "SPF_EFFECTIVE_POLICY",
       "title": "SPF Effective Authorization Policy",
-      "status": "failed",
+      "status": "passed",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.23",
@@ -112,12 +111,12 @@
         "RFC7489"
       ],
       "rationale": "RFC 7208 \u00a710.1 describes softfail (~all) as transitional, and NIST SP 800-177 Rev. 1 \u00a74.3.1 recommends hard fail (-all). However, RFC 7208 \u00a72.6.3 explicitly defines softfail as a valid policy, not a deficiency. In operational practice, softfail (~all) is the industry standard because it enables DMARC alignment (RFC 7489) to function as the primary enforcement mechanism. A domain with SPF ~all + DMARC p=reject achieves stronger effective protection than SPF -all alone, because DMARC reject instructs receivers to discard unauthenticated messages regardless of SPF result. Hard fail (-all) without DMARC can break legitimate mail flows (forwarding, mailing lists) without providing the enforcement DMARC delivers. The effective security posture depends on the SPF + DMARC combination, not SPF in isolation.",
-      "fail_explanation": "SPF policy is permissive without DMARC enforcement. SPF softfail (~all) without DMARC p=reject or p=quarantine leaves email authorization unenforced. Per RFC 7489, DMARC provides the enforcement layer that makes SPF softfail operationally effective. Either tighten SPF to -all or deploy DMARC with an enforcement policy."
+      "fail_explanation": ""
     },
     {
       "id": "DMARC_ENFORCEMENT",
       "title": "DMARC Policy Enforcement",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.23",
@@ -127,12 +126,12 @@
         "RFC7489"
       ],
       "rationale": "RFC 7489 \u00a76.3 defines p=reject as the strongest DMARC policy. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all domains. Per RFC 7489 \u00a76.7, quarantine and none policies leave the domain vulnerable to phishing impersonation.",
-      "fail_explanation": "DMARC policy is not set to reject. Per RFC 7489 \u00a76.3, only p=reject instructs receivers to discard unauthenticated messages. NIST SP 800-177 Rev. 1 \u00a74.6.1 recommends reject for all production domains."
+      "fail_explanation": ""
     },
     {
       "id": "DKIM_PRESENT",
       "title": "DKIM Signature Availability",
-      "status": "failed",
+      "status": "passed",
       "severity": "medium",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -143,7 +142,7 @@
         "RFC8301"
       ],
       "rationale": "RFC 6376 \u00a71 states DKIM provides \"a method for associating a domain name with an email message, thereby permitting a person, role, or organization to claim some responsibility.\" NIST SP 800-177 Rev. 1 \u00a74.5 recommends DKIM for all mail-sending domains. RFC 8301 updates required algorithms to RSA-2048 minimum.",
-      "fail_explanation": "DKIM not discoverable for this mail-sending domain. Per RFC 6376, DKIM provides cryptographic proof of message origin. Without DKIM, email from this domain cannot be cryptographically verified by receivers."
+      "fail_explanation": ""
     },
     {
       "id": "MAIL_POLICY_SIGNALING",
@@ -179,7 +178,7 @@
     {
       "id": "DANE_DEPLOYED",
       "title": "DANE / TLSA Deployment",
-      "status": "passed",
+      "status": "failed",
       "severity": "low",
       "standards": [
         "ISO_27002_2022:8.24",
@@ -190,22 +189,22 @@
         "RFC7672"
       ],
       "rationale": "RFC 6698 \u00a71 defines DANE as binding TLS certificates to DNS names via DNSSEC. RFC 7672 extends DANE to SMTP, providing authenticated encryption without reliance on the CA system. Requires DNSSEC (RFC 6698 \u00a71).",
-      "fail_explanation": ""
+      "fail_explanation": "DANE/TLSA not deployed. Per RFC 6698, DANE binds TLS server certificates to DNS names using DNSSEC, providing authentication independent of the Certificate Authority system."
     },
     {
       "id": "BIMI_CONFIGURED",
       "title": "BIMI Brand Indicator",
-      "status": "failed",
+      "status": "passed",
       "severity": "low",
       "standards": [],
       "rfcs": [],
       "rationale": "BIMI (Brand Indicators for Message Identification) displays verified brand logos in email clients. While not yet an RFC, it builds on DMARC enforcement and provides a visual trust signal. Requires p=reject DMARC.",
-      "fail_explanation": "BIMI not configured or logo invalid. BIMI requires DMARC p=reject and a valid SVG logo to display brand indicators in supporting email clients."
+      "fail_explanation": ""
     },
     {
       "id": "SECURITY_TXT_PRESENT",
       "title": "security.txt Vulnerability Disclosure",
-      "status": "failed",
+      "status": "passed",
       "severity": "low",
       "standards": [
         "ISO_27002_2022:5.5",
@@ -213,7 +212,7 @@
       ],
       "rfcs": [],
       "rationale": "RFC 9116 defines security.txt for machine-readable vulnerability disclosure policies. ISO/IEC 27002:2022 \u00a75.5 requires contact with authorities for security incident coordination. INCITS 585-2025 RV.1 requires vulnerability response processes.",
-      "fail_explanation": "No security.txt found or file has expired. Per RFC 9116, security.txt provides a standardized location for vulnerability disclosure contact information."
+      "fail_explanation": ""
     },
     {
       "id": "DANGLING_DNS_CLEAN",
@@ -247,7 +246,7 @@
     {
       "id": "SECRET_EXPOSURE_CLEAN",
       "title": "No Exposed Secrets",
-      "status": "failed",
+      "status": "passed",
       "severity": "high",
       "standards": [
         "ISO_27002_2022:8.4",
@@ -255,7 +254,7 @@
       ],
       "rfcs": [],
       "rationale": "ISO/IEC 27002:2022 \u00a78.4 requires access control to source code and configuration. INCITS 585-2025 PW.6 requires verification of software integrity, including absence of exposed credentials.",
-      "fail_explanation": "Exposed secrets detected in public page source. API keys, tokens, or credentials found in publicly accessible pages can be harvested by automated scanners."
+      "fail_explanation": ""
     },
     {
       "id": "HTTPS_SVCB_MODERN",
