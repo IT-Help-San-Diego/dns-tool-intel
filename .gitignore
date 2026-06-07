@@ -102,6 +102,7 @@ go-server/probe
 # Go module/build caches (workspace-relative, never version)
 .go-mod-cache/
 .go-build-cache/
+.go-tmp/
 
 # Compressed archives
 *.tar.gz

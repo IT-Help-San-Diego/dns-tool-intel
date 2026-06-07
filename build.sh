@@ -24,18 +24,18 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
-export GOCACHE=/tmp/go-build-cache
-export GOMODCACHE=/tmp/go-mod-cache
-export GOTMPDIR=/tmp/go-tmp
-# Ensure the Go cache/tmp dirs exist, but NEVER delete them. .replit pins GOCACHE
-# under /tmp and this workflow (`bash build.sh && ./dns-tool-server`) re-runs on every
-# checkpoint, so any `rm -rf` here RACES concurrent go commands (e.g.
-# scripts/quality-gate.sh `go vet`): go lists the cache, decides to auto-trim, and
-# trim.txt vanishes underneath it -> "failed to trim cache: ... trim.txt: no such
-# file" (and the GOTMPDIR variant "creating work dir: stat ... no such file"). Go's
-# build cache is content-addressed, so stale entries can never corrupt a build; wiping
-# it only costs build speed and reliability. mkdir -p is idempotent and safe.
-mkdir -p /tmp/go-build-cache /tmp/go-tmp
+# Go caches live in the WORKSPACE (persistent, gitignored), NOT /tmp. /tmp is subject
+# to OS pruning AND, previously, to this script's own `rm -rf`, which raced concurrent
+# go commands (e.g. scripts/quality-gate.sh `go vet`) and produced
+# "failed to trim cache: ... trim.txt: no such file" / "creating work dir: stat ...".
+# Workspace-relative paths survive both OS /tmp cleanup and the workflow restart that
+# fires on every checkpoint (`bash build.sh && ./dns-tool-server`). NEVER delete these
+# dirs: Go's cache is content-addressed, so stale entries can't corrupt a build.
+# mkdir -p is idempotent and safe. Keep these in lockstep with .replit [userenv.shared].
+export GOCACHE="$SCRIPT_DIR/.go-build-cache"
+export GOMODCACHE="$SCRIPT_DIR/.go-mod-cache"
+export GOTMPDIR="$SCRIPT_DIR/.go-tmp"
+mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR"
 
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
