@@ -1004,3 +1004,48 @@ func TestDiscoverSubdomainsWithBudget_NoData(t *testing.T) {
                 t.Errorf("expected status='success', got %q", status)
         }
 }
+
+// TestDiscoverSubdomainsMergesExternalTools guards the externalToolsFn seam:
+// whatever the external-tool entrypoint returns must be merged into the
+// DiscoverSubdomains output tagged as source "external_tools". This keeps the
+// default-suite stub from silently masking a regression in the merge path.
+func TestDiscoverSubdomainsMergesExternalTools(t *testing.T) {
+        reg := telemetry.NewRegistry()
+        for i := 0; i < 20; i++ {
+                reg.RecordFailure("ct:crt.sh", "test forced failure")
+        }
+        a := newTestAnalyzerForCT(reg)
+
+        const domain = "seam-test-domain.invalid"
+        want := []string{"vpn." + domain, "api." + domain}
+
+        prev := externalToolsFn
+        externalToolsFn = func(context.Context, string) []string {
+                return append([]string(nil), want...)
+        }
+        defer func() { externalToolsFn = prev }()
+
+        result := a.DiscoverSubdomains(context.Background(), domain)
+
+        subs, ok := result[mapKeySubdomains].([]map[string]any)
+        if !ok {
+                t.Fatalf("expected %s to be []map[string]any, got %T", mapKeySubdomains, result[mapKeySubdomains])
+        }
+
+        gotSource := make(map[string]string, len(subs))
+        for _, s := range subs {
+                name, _ := s[mapKeyName].(string)
+                src, _ := s[mapKeySource].(string)
+                gotSource[name] = src
+        }
+        for _, w := range want {
+                src, found := gotSource[w]
+                if !found {
+                        t.Errorf("external-tools subdomain %q missing from output — seam merge regressed", w)
+                        continue
+                }
+                if src != "external_tools" {
+                        t.Errorf("subdomain %q has source %q, want %q", w, src, "external_tools")
+                }
+        }
+}
