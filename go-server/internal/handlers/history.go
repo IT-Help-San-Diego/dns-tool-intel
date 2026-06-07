@@ -12,6 +12,7 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
+        "dnstool/go-server/internal/icsae"
 
         "github.com/gin-gonic/gin"
 )
@@ -71,25 +72,21 @@ func postureSliceLen(posture map[string]interface{}, key string) int {
         return 0
 }
 
-// icsaeFixSummary derives the catalog-backed "to Fix" count from a persisted
-// ICSAE evaluation. The actionable count is failed high + medium controls; low
-// severity controls are optional enhancements tracked separately, not in the
-// headline count. The boolean is false when the scan predates ICSAE wiring, so
-// callers can fall back to posture-derived counts.
+// icsaeFixSummary derives the reality-matched "to Fix" count from a persisted
+// ICSAE evaluation. The headline count is RealFixCount: failed controls that
+// carry a real, RFC-grounded operational-security consequence for THIS operator.
+// Controls absent by deliberate enterprise choice (with strong compensating
+// posture), impossible on the operator's mail platform, that we could not verify
+// (e.g. DKIM selectors), or optional hardening are sorted into honest context
+// buckets and excluded from the headline — so the count stays trustworthy in
+// both directions. See icsae.ClassifyFixes. The boolean is false when the scan
+// predates ICSAE wiring, so callers can fall back to posture-derived counts.
 func icsaeFixSummary(fr map[string]interface{}) (int, string, bool) {
-        ev, ok := fr["icsae_evaluation"].(map[string]interface{})
+        fc, ok := icsae.ClassifyFromResults(fr)
         if !ok {
                 return 0, "", false
         }
-        high := postureSliceLen(ev, "high_failures")
-        medium := postureSliceLen(ev, "medium_failures")
-        color := ""
-        if high > 0 {
-                color = "danger"
-        } else if medium > 0 {
-                color = "warning"
-        }
-        return high + medium, color, true
+        return fc.RealFixCount, fc.Color, true
 }
 
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
@@ -137,9 +134,11 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                                         riskColor = normalizeRiskColor(cl)
                                 }
                         }
-                        // Catalog-backed "to Fix" count: failed ICSAE controls (actionable =
-                        // high + medium severity). Falls back to posture-derived issues for
-                        // scans recorded before ICSAE was wired into the pipeline.
+                        // Catalog-backed "to Fix" count: the reality-matched RealFixCount from
+                        // icsae.ClassifyFixes (failed controls that carry a real, RFC-grounded
+                        // consequence for THIS operator; deliberate posture, platform limits,
+                        // could-not-verify and hygiene are bucketed out). Falls back to
+                        // posture-derived issues for scans recorded before ICSAE was wired in.
                         if c, col, ok := icsaeFixSummary(fr); ok {
                                 fixCount = c
                                 fixColor = col

@@ -358,22 +358,41 @@ func TestBuildHistoryItemICSAECount(t *testing.T) {
                 })
                 item := buildHistoryItem(dbq.DomainAnalysis{ID: 20, Domain: "i.com", AsciiDomain: "i.com", FullResults: fr})
                 if item.FixCount != 3 {
-                        t.Errorf("FixCount = %d, want 3 (high+medium, low excluded from headline)", item.FixCount)
+                        t.Errorf("FixCount = %d, want 3 (three genuine real fixes; low optional excluded)", item.FixCount)
                 }
                 if item.FixColor != "danger" {
                         t.Errorf("FixColor = %q, want danger (a high failure present)", item.FixColor)
                 }
         })
 
-        t.Run("medium-only failures are amber", func(t *testing.T) {
+        t.Run("could-not-verify and platform-limited controls are excluded from headline", func(t *testing.T) {
+                // DKIM selector not discoverable + delegation check unverified must not
+                // be asserted as real fixes — the honest count is zero.
                 fr, _ := json.Marshal(map[string]any{
                         "icsae_evaluation": map[string]any{
                                 "high_failures":   []any{},
-                                "medium_failures": []any{"DKIM_PRESENT"},
+                                "medium_failures": []any{"DKIM_PRESENT", "DELEGATION_CONSISTENT"},
                                 "low_failures":    []any{"DANE_DEPLOYED"},
                         },
                 })
                 item := buildHistoryItem(dbq.DomainAnalysis{ID: 21, Domain: "j.com", AsciiDomain: "j.com", FullResults: fr})
+                if item.FixCount != 0 {
+                        t.Errorf("FixCount = %d, want 0 (DKIM/delegation unverified, DANE hygiene)", item.FixCount)
+                }
+                if item.FixColor != "" {
+                        t.Errorf("FixColor = %q, want empty", item.FixColor)
+                }
+        })
+
+        t.Run("medium-only real fix is amber", func(t *testing.T) {
+                fr, _ := json.Marshal(map[string]any{
+                        "icsae_evaluation": map[string]any{
+                                "high_failures":   []any{},
+                                "medium_failures": []any{"CAA_RESTRICTION_PRESENT"},
+                                "low_failures":    []any{"DANE_DEPLOYED"},
+                        },
+                })
+                item := buildHistoryItem(dbq.DomainAnalysis{ID: 24, Domain: "m.com", AsciiDomain: "m.com", FullResults: fr})
                 if item.FixCount != 1 {
                         t.Errorf("FixCount = %d, want 1", item.FixCount)
                 }

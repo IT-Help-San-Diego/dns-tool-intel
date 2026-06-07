@@ -1,3 +1,5 @@
+// dns-tool:scrutiny science
+
 // Package icsae bridges the Intelligence Compliance & Standards Assessment
 // Engine (ICSAE) into the live Go scan pipeline.
 //
