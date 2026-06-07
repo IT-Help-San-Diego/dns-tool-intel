@@ -1,3 +1,4 @@
+// dns-tool:scrutiny science
 package icsae
 
 import "reflect"
