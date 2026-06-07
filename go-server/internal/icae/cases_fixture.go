@@ -319,14 +319,14 @@ func edgeCaseFixtures() []TestCase {
 		},
 		{
 			CaseID:     "fixture-edge-005",
-			CaseName:   "Edge case: stub defaults prevent false BIMI capability",
+			CaseName:   "Edge case: hosted provider without BIMI capability (ProtonMail) — hosted, not BIMI-capable",
 			Protocol:   ProtoBIMI,
 			Layer:      LayerAnalysis,
-			RFCSection: "Stub contract (end-to-end)",
+			RFCSection: "Provider capability contract (end-to-end)",
 			Expected:   "hosted=true, bimi_capable=false",
 			RunFn: func() (string, bool) {
-				hosted := analyzer.ExportIsHostedEmailProvider("unknown-provider.example")
-				bimiCapable := analyzer.ExportIsBIMICapableProvider("unknown-provider.example")
+				hosted := analyzer.ExportIsHostedEmailProvider("protonmail")
+				bimiCapable := analyzer.ExportIsBIMICapableProvider("protonmail")
 				actual := fmt.Sprintf("hosted=%t, bimi_capable=%t", hosted, bimiCapable)
 				return actual, hosted && !bimiCapable
 			},
