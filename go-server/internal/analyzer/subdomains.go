@@ -174,6 +174,14 @@ func populateCTResults(result map[string]any, ctEntries, dedupedEntries []ctEntr
         result["ca_summary"] = buildCASummary(dedupedEntries)
 }
 
+// externalToolsFn resolves to the live external-tool discovery entrypoint
+// (subfinder, amass, hackertarget). It is a package variable solely so the
+// default, non-integration test suite can substitute a deterministic stub
+// instead of shelling out to live binaries and the network — those calls take
+// up to 45s each and intermittently overran the analyzer package's quality-gate
+// timeout. Production and integration-tagged tests always use RunExternalTools.
+var externalToolsFn = RunExternalTools
+
 func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[string]any {
         result := map[string]any{
                 mapKeyStatus:           "success",
@@ -221,7 +229,7 @@ func (a *Analyzer) DiscoverSubdomains(ctx context.Context, domain string) map[st
 
         a.probeCommonSubdomains(ctx, domain, subdomainSet)
 
-        extResults := RunExternalTools(ctx, domain)
+        extResults := externalToolsFn(ctx, domain)
         for _, fqdn := range extResults {
                 if _, exists := subdomainSet[fqdn]; !exists {
                         subdomainSet[fqdn] = map[string]any{
