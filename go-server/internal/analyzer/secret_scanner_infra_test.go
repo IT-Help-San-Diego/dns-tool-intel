@@ -241,7 +241,7 @@ func TestStubFunctions_CB8(t *testing.T) {
         identifyWebHosting(nil)
         identifyHostingFromPTR(nil)
         matchDynamicServiceNS("")
-        addDSDetection(nil, dynamicServiceInfo{}, "")
+        addDSDetection(map[string]*dsDetection{}, dynamicServiceInfo{}, "")
 }
 
 func TestAnalyzerStubMethods_CB8(t *testing.T) {
