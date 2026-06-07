@@ -916,6 +916,42 @@ func TestProbeCommonSubdomainsHonorsCancellation(t *testing.T) {
         }
 }
 
+// allExistDNSClient reports every probed name as existing, so the test can prove
+// that under a normal (non-cancelled) context probeCommonSubdomains still
+// schedules and counts EVERY common probe — i.e. the cancellation hardening does
+// not reduce discovery on the happy path.
+type allExistDNSClient struct {
+        *MockDNSClient
+}
+
+func (a *allExistDNSClient) ProbeExists(_ context.Context, _ string) (bool, string) {
+        return true, ""
+}
+
+func TestProbeCommonSubdomainsFindsAllUnderLiveContext(t *testing.T) {
+        a := &Analyzer{DNS: &allExistDNSClient{MockDNSClient: NewMockDNSClient()}}
+
+        unique := make(map[string]struct{}, len(commonSubdomainProbes))
+        for _, p := range commonSubdomainProbes {
+                unique[p] = struct{}{}
+        }
+        wantUnique := len(unique)
+
+        subdomainSet := make(map[string]map[string]any)
+        found := a.probeCommonSubdomains(context.Background(), "example.com", subdomainSet)
+
+        // Under a normal (non-cancelled) context every unique common subdomain must
+        // be discovered — the cancellation hardening must not reduce happy-path
+        // discovery. The set is deterministic; the count may meet or exceed it.
+        if len(subdomainSet) != wantUnique {
+                t.Errorf("happy-path regression: expected all %d unique common subdomains discovered, got %d", wantUnique, len(subdomainSet))
+        }
+        if found < wantUnique {
+                t.Errorf("happy-path regression: found count %d is below unique common subdomains %d", found, wantUnique)
+        }
+        t.Logf("live-context probe discovered all %d unique common subdomains (found=%d)", len(subdomainSet), found)
+}
+
 func TestFetchCTEntriesWithFallback_CooldownPath(t *testing.T) {
         reg := telemetry.NewRegistry()
         for i := 0; i < 20; i++ {
