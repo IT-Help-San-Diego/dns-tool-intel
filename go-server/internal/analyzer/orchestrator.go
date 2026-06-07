@@ -410,7 +410,9 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
                 results["mail_posture"] = buildMailPosture(results)
                 icsaeEval := icsae.Evaluate(results)
                 results["icsae_evaluation"] = icsaeEval
-                results["icsae_classification"] = icsae.ClassifyFromEval(icsaeEval, results)
+                icsaeClass := icsae.ClassifyFromEval(icsaeEval, results)
+                results["icsae_classification"] = icsaeClass
+                results["icsae_remediation_queue"] = icsae.BuildRemediationQueue(icsaeEval, icsaeClass, false)
         }
 
         populateTTLReports(results)
