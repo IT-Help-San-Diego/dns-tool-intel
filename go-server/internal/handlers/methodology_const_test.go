@@ -99,6 +99,14 @@ var forbiddenPhrases = []forbiddenEntry{
                                 strings.Contains(trimmed, "Timeliness") {
                                 return true
                         }
+                        // ICSAE remediation-queue confidence is computed against
+                        // ICD 203's qualitative-confidence model; the standard is
+                        // named only in doc comments, not in emitted output.
+                        if (rel == "internal/icsae/remediation.go" ||
+                                rel == "internal/icsae/remediation_test.go") &&
+                                strings.HasPrefix(trimmed, "//") {
+                                return true
+                        }
                         // integrity_stats.json is an audit-finding ledger; "ICD 203"
                         // appears in narrative confidence_impact / bayesian_note text,
                         // not as a methodology declaration.
@@ -163,6 +171,11 @@ func TestNoHardcodedMethodologyStrings(t *testing.T) {
                 ".git":         true,
                 "node_modules": true,
                 "vendor":       true,
+                // testdata holds Go-convention test fixtures (captured DNS
+                // intelligence reports used as engine input). These are data,
+                // not source or served assets, and legitimately carry standards
+                // names verbatim — they are not methodology declarations.
+                "testdata": true,
         }
 
         walkFn := func(scanRoot string) filepath.WalkFunc {
