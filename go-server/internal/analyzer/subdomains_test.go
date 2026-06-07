@@ -879,6 +879,43 @@ func newTestAnalyzerForCT(reg *telemetry.Registry) *Analyzer {
         }
 }
 
+// slowProbeDNSClient simulates a DNS probe that ignores context cancellation and
+// blocks far longer than any test budget. It exists to prove that
+// probeCommonSubdomains stops scheduling new probes once its context is done,
+// without depending on any live network.
+type slowProbeDNSClient struct {
+        *MockDNSClient
+}
+
+func (s *slowProbeDNSClient) ProbeExists(_ context.Context, _ string) (bool, string) {
+        time.Sleep(30 * time.Second)
+        return false, ""
+}
+
+func TestProbeCommonSubdomainsHonorsCancellation(t *testing.T) {
+        a := &Analyzer{DNS: &slowProbeDNSClient{MockDNSClient: NewMockDNSClient()}}
+
+        ctx, cancel := context.WithCancel(context.Background())
+        cancel()
+
+        subdomainSet := make(map[string]map[string]any)
+        done := make(chan int, 1)
+        start := time.Now()
+        go func() {
+                done <- a.probeCommonSubdomains(ctx, "example.com", subdomainSet)
+        }()
+
+        select {
+        case found := <-done:
+                if found != 0 {
+                        t.Errorf("expected 0 probes scheduled under cancellation, got %d", found)
+                }
+                t.Logf("probeCommonSubdomains honored cancellation in %s", time.Since(start))
+        case <-time.After(5 * time.Second):
+                t.Fatal("probeCommonSubdomains ignored context cancellation — scheduled probes after ctx done")
+        }
+}
+
 func TestFetchCTEntriesWithFallback_CooldownPath(t *testing.T) {
         reg := telemetry.NewRegistry()
         for i := 0; i < 20; i++ {
