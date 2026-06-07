@@ -45,6 +45,8 @@ type historyAnalysisItem struct {
         RequestSource    string
         RiskLevel        string
         RiskColor        string
+        FixCount         int
+        FixColor         string
 }
 
 // normalizeRiskColor whitelists the posture color read from persisted
@@ -58,6 +60,15 @@ func normalizeRiskColor(color string) string {
         default:
                 return "secondary"
         }
+}
+
+// postureSliceLen returns the length of a JSON array stored under key in the
+// already-decoded posture map, tolerating absent or wrong-typed values.
+func postureSliceLen(posture map[string]interface{}, key string) int {
+        if arr, ok := posture[key].([]interface{}); ok {
+                return len(arr)
+        }
+        return 0
 }
 
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
@@ -86,6 +97,8 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
         requestSource := ""
         riskLevel := ""
         riskColor := ""
+        fixCount := 0
+        fixColor := ""
         if len(a.FullResults) > 0 {
                 var fr map[string]interface{}
                 if json.Unmarshal(a.FullResults, &fr) == nil {
@@ -101,6 +114,14 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                                 }
                                 if cl, ok := posture["color"].(string); ok {
                                         riskColor = normalizeRiskColor(cl)
+                                }
+                                critical := postureSliceLen(posture, "critical_issues")
+                                recommendations := postureSliceLen(posture, "recommendations")
+                                fixCount = critical + recommendations
+                                if critical > 0 {
+                                        fixColor = "danger"
+                                } else if recommendations > 0 {
+                                        fixColor = "warning"
                                 }
                         }
                 }
@@ -119,6 +140,8 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                 RequestSource:    requestSource,
                 RiskLevel:        riskLevel,
                 RiskColor:        riskColor,
+                FixCount:         fixCount,
+                FixColor:         fixColor,
         }
 }
 
