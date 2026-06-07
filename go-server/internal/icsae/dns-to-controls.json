@@ -59,9 +59,29 @@
     "RFC9460": { "title": "Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)", "authors": ["Schwartz, B.", "Bishop, M.", "Nygren, E."], "date": "2023-11", "status": "Proposed Standard", "url": "https://datatracker.ietf.org/doc/html/rfc9460" },
     "RFC9495": { "title": "Certification Authority Authorization (CAA) Processing for Email Addresses", "authors": ["Bonnell, C."], "date": "2023-10", "status": "Proposed Standard", "url": "https://datatracker.ietf.org/doc/html/rfc9495" }
   },
+  "weakness_registry": {
+    "CWE-290": { "title": "Authentication Bypass by Spoofing", "publisher": "MITRE CWE", "url": "https://cwe.mitre.org/data/definitions/290.html" },
+    "CWE-300": { "title": "Channel Accessible by Non-Endpoint", "publisher": "MITRE CWE", "url": "https://cwe.mitre.org/data/definitions/300.html" },
+    "CWE-345": { "title": "Insufficient Verification of Data Authenticity", "publisher": "MITRE CWE", "url": "https://cwe.mitre.org/data/definitions/345.html" },
+    "CAPEC-141": { "title": "Cache Poisoning", "publisher": "MITRE CAPEC", "url": "https://capec.mitre.org/data/definitions/141.html" },
+    "CAPEC-142": { "title": "DNS Cache Poisoning", "publisher": "MITRE CAPEC", "url": "https://capec.mitre.org/data/definitions/142.html" },
+    "CAPEC-151": { "title": "Identity Spoofing", "publisher": "MITRE CAPEC", "url": "https://capec.mitre.org/data/definitions/151.html" },
+    "CAPEC-163": { "title": "Spear Phishing", "publisher": "MITRE CAPEC", "url": "https://capec.mitre.org/data/definitions/163.html" },
+    "CAPEC-194": { "title": "Fake the Source of Data", "publisher": "MITRE CAPEC", "url": "https://capec.mitre.org/data/definitions/194.html" },
+    "VRT:missing_dnssec": { "title": "Server Security Misconfiguration > DNS Misconfiguration > Missing DNSSEC", "publisher": "Bugcrowd Vulnerability Rating Taxonomy", "url": "https://bugcrowd.com/vulnerability-rating-taxonomy" },
+    "VRT:subdomain_takeover": { "title": "Server Security Misconfiguration > DNS Misconfiguration > Subdomain Takeover", "publisher": "Bugcrowd Vulnerability Rating Taxonomy", "url": "https://bugcrowd.com/vulnerability-rating-taxonomy" },
+    "VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain": { "title": "Server Security Misconfiguration > Mail Server Misconfiguration > Email Spoofing to Inbox due to Missing or Misconfigured DMARC on Email Domain", "publisher": "Bugcrowd Vulnerability Rating Taxonomy", "url": "https://bugcrowd.com/vulnerability-rating-taxonomy" }
+  },
   "mappings": [
     {
       "id": "DNSSEC_AUTHENTICATED",
+      "weakness_refs": {
+        "cwe": ["CWE-345", "CWE-300"],
+        "capec": ["CAPEC-142", "CAPEC-141"],
+        "vrt": ["VRT:missing_dnssec"],
+        "mapping_confidence": "high",
+        "mapping_rationale": "Absent DNSSEC means resolvers cannot verify the authenticity of DNS data (CWE-345), exposing the resolution path to on-path forgery (CWE-300) and cache poisoning (CAPEC-142/141). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+      },
       "title": "DNSSEC Authentication",
       "severity": "high",
       "requires": ["DNSSEC_VALID"],
@@ -73,6 +93,13 @@
     },
     {
       "id": "DNSSEC_CHAIN_TRUSTED",
+      "weakness_refs": {
+        "cwe": ["CWE-345"],
+        "capec": ["CAPEC-142"],
+        "vrt": ["VRT:missing_dnssec"],
+        "mapping_confidence": "high",
+        "mapping_rationale": "A broken or unvalidated chain of trust leaves DNS answers unauthenticated (CWE-345), the precondition for DNS cache poisoning (CAPEC-142). Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+      },
       "title": "DNSSEC Chain of Trust Validated",
       "severity": "high",
       "requires": ["DNSSEC_CHAIN_VALID"],
@@ -108,6 +135,13 @@
     },
     {
       "id": "SPF_EFFECTIVE_POLICY",
+      "weakness_refs": {
+        "cwe": ["CWE-290"],
+        "capec": ["CAPEC-194", "CAPEC-151"],
+        "vrt": [],
+        "mapping_confidence": "medium",
+        "mapping_rationale": "Permissive SPF without DMARC enforcement lets a forged sender bypass origin authentication (CWE-290) by faking the source domain (CAPEC-194/151). SPF is contributory, so confidence is medium; VRT files this failure mode under the DMARC entry. CWE/CAPEC verified against MITRE."
+      },
       "title": "SPF Effective Authorization Policy",
       "severity": "medium",
       "requires_any": ["SPF_HARD_FAIL", "SPF_SOFTFAIL_WITH_DMARC"],
@@ -119,6 +153,13 @@
     },
     {
       "id": "DMARC_ENFORCEMENT",
+      "weakness_refs": {
+        "cwe": ["CWE-290"],
+        "capec": ["CAPEC-151", "CAPEC-194", "CAPEC-163"],
+        "vrt": ["VRT:email_spoofing_to_inbox_due_to_missing_or_misconfigured_dmarc_on_email_domain"],
+        "mapping_confidence": "high",
+        "mapping_rationale": "p=none and p=quarantine do not instruct receivers to reject unauthenticated mail, so sender authentication is effectively bypassed (CWE-290), enabling domain identity spoofing (CAPEC-151), forged-source mail (CAPEC-194) and spear phishing (CAPEC-163). This is the flagship false-green-checkmark gap: tools mark DMARC present as compliant while the domain remains spoofable. Mapping verified against MITRE CWE/CAPEC and Bugcrowd VRT."
+      },
       "title": "DMARC Policy Enforcement",
       "severity": "high",
       "requires": ["DMARC_REJECT"],
@@ -199,6 +240,13 @@
     },
     {
       "id": "DANGLING_DNS_CLEAN",
+      "weakness_refs": {
+        "cwe": [],
+        "capec": [],
+        "vrt": ["VRT:subdomain_takeover"],
+        "mapping_confidence": "high",
+        "mapping_rationale": "Dangling records pointing to unclaimed infrastructure are the direct precondition for subdomain takeover. Bugcrowd VRT classifies this explicitly; no single authoritative CWE/CAPEC ID is cited to avoid an unverified mapping."
+      },
       "title": "No Dangling DNS Records",
       "severity": "high",
       "requires": ["NO_DANGLING_DNS"],
