@@ -348,60 +348,52 @@
             </div>
         </div>
 
-        <!-- Technology Footprint Quick-Glance Strip -->
-        {{if or $dns_infra $edge_cdn $saas_txt $dane}}
-        <div class="tech-footprint-strip mb-3 screen-only" aria-label="Technology Footprint Summary">
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <span class="tech-fp-label">{{icon "fingerprint" "me-1"}}Footprint</span>
-                {{if $dns_infra}}
-                    {{$dnsProvider := mapGetStr "provider" $dns_infra}}
-                    {{if $dnsProvider}}
-                    <a href="#section-dnssec" class="tech-fp-badge tech-fp-dns" title="DNS provider detected via NS records">
-                        {{icon "server" "me-1"}}{{$dnsProvider}}
-                    </a>
-                    {{end}}
-                {{end}}
-                {{if $dane}}
-                    {{$mx_fp := mapGetMap "mx_provider" $dane}}
-                    {{if $mx_fp}}
-                        {{$mxName := mapGetStr "provider_name" $mx_fp}}
-                        {{if $mxName}}
-                        <a href="#section-email" class="tech-fp-badge tech-fp-mail" title="Email provider detected via MX records">
-                            {{icon "envelope" "me-1"}}{{$mxName}}
-                        </a>
-                        {{end}}
-                    {{end}}
-                {{end}}
-                {{if $edge_cdn}}
-                    {{$cdnProv := mapGetStr "provider" $edge_cdn}}
-                    {{if $cdnProv}}
-                    <a href="#section-infra" class="tech-fp-badge tech-fp-cdn" title="CDN/edge provider detected via CNAME/A records">
-                        {{icon "globe" "me-1"}}{{$cdnProv}}
-                    </a>
-                    {{end}}
-                {{end}}
-                {{if $saas_txt}}
-                    {{$svcCount := mapGetFloat "service_count" $saas_txt}}
-                    {{if gt $svcCount 0}}
-                    <a href="#section-infra" class="tech-fp-badge tech-fp-saas" title="SaaS services detected via DNS TXT verification records">
-                        {{icon "puzzle-piece" "me-1"}}{{formatFloat 0 $svcCount}} SaaS{{if ne $svcCount 1}} Services{{else}} Service{{end}}
-                    </a>
-                    {{end}}
-                {{end}}
-                {{if $ns}}
-                    {{$dnsProviders := mapGetSlice "dns_providers" $ns}}
-                    {{if $dnsProviders}}
-                        {{if not $dns_infra}}
-                            {{range $i, $p := $dnsProviders}}
-                                {{if lt $i 2}}
-                                <a href="#section-dnssec" class="tech-fp-badge tech-fp-dns" title="DNS provider detected via NS delegation">
-                                    {{icon "server" "me-1"}}{{$p}}
-                                </a>
-                                {{end}}
+        <!-- Command Card — Bird's-Eye Verdict, What's Wrong, Jump Links (first-view intelligence) -->
+        {{if and .DomainExists $posture (not .IsPublicSuffix) (ne (mapGetStr "reason" $posture) "gateway_derived")}}
+        {{$ccColor := mapGetStr "color" $posture}}
+        {{$ccCritical := mapGetSlice "critical_issues" $posture}}
+        {{$ccRecs := mapGetSlice "recommendations" $posture}}
+        {{$ccAbsent := mapGetSlice "absent" $posture}}
+        <div class="row mb-4 screen-only" id="command-card">
+            <div class="col-12">
+                <div class="card border-{{$ccColor}} bg-{{$ccColor}} bg-opacity-10">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                {{icon (mapGetStr "icon" $posture) "icon-2x" (printf "text-%s me-3" $ccColor)}}
+                                <div>
+                                    <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">Bird&rsquo;s-Eye Verdict</span>
+                                    <span class="fw-semibold me-2">Risk Level:</span>
+                                    <span class="badge bg-{{$ccColor}} fs-6 px-3 py-2">{{mapGetStr "state" $posture}}</span>
+                                </div>
+                            </div>
+                            {{if .UnifiedConfidence}}
+                            <a href="#confidencePanel" class="text-decoration-none small text-{{.UnifiedConfidence.BootstrapClass}}" data-bs-toggle="collapse" role="button" aria-controls="confidencePanel">
+                                {{icon "chart-line" "me-1"}}Confidence: {{.UnifiedConfidence.Level}} &middot; {{.UnifiedConfidence.ScoreDisplay}}/100
+                            </a>
                             {{end}}
+                        </div>
+                        {{if or $ccCritical $ccRecs}}
+                        <div class="mt-3 pt-3 border-top border-{{$ccColor}} border-opacity-25">
+                            <span class="text-uppercase fw-bold d-block u-fs-070rem mb-2 text-{{$ccColor}}">{{icon "exclamation-triangle" "me-1"}}What&rsquo;s Wrong</span>
+                            {{range $issue := $ccCritical}}
+                            <a href="#findings-summary" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
+                            {{end}}
+                            {{range $rec := $ccRecs}}
+                            <a href="#findings-summary" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
+                            {{end}}
+                        </div>
                         {{end}}
-                    {{end}}
-                {{end}}
+                        {{if $ccAbsent}}
+                        <div class="mt-2 d-flex align-items-center flex-wrap gap-2">
+                            <span class="text-uppercase text-muted fw-bold u-fs-070rem">Jump To:</span>
+                            {{range $p := $ccAbsent}}
+                            <a href="{{if eq $p "DANE"}}#section-dane{{else if or (eq $p "SPF") (eq $p "DMARC") (eq $p "DKIM") (eq $p "MTA-STS") (eq $p "TLS-RPT")}}#section-email{{else if or (eq $p "BIMI") (eq $p "CAA")}}#section-brand{{else if eq $p "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}" class="badge bg-{{$ccColor}} bg-opacity-25 border border-{{$ccColor}} border-opacity-50 text-{{$ccColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
             </div>
         </div>
         {{end}}
@@ -1298,6 +1290,64 @@
                 </div>
             </div>
         </div>
+
+        <!-- Technology Footprint Quick-Glance Strip (demoted — infra context near Domain Summary) -->
+        {{if or $dns_infra $edge_cdn $saas_txt $dane}}
+        <div class="tech-footprint-strip mb-3 screen-only" aria-label="Technology Footprint Summary">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="tech-fp-label">{{icon "fingerprint" "me-1"}}Footprint</span>
+                {{if $dns_infra}}
+                    {{$dnsProvider := mapGetStr "provider" $dns_infra}}
+                    {{if $dnsProvider}}
+                    <a href="#section-dnssec" class="tech-fp-badge tech-fp-dns" title="DNS provider detected via NS records">
+                        {{icon "server" "me-1"}}{{$dnsProvider}}
+                    </a>
+                    {{end}}
+                {{end}}
+                {{if $dane}}
+                    {{$mx_fp := mapGetMap "mx_provider" $dane}}
+                    {{if $mx_fp}}
+                        {{$mxName := mapGetStr "provider_name" $mx_fp}}
+                        {{if $mxName}}
+                        <a href="#section-email" class="tech-fp-badge tech-fp-mail" title="Email provider detected via MX records">
+                            {{icon "envelope" "me-1"}}{{$mxName}}
+                        </a>
+                        {{end}}
+                    {{end}}
+                {{end}}
+                {{if $edge_cdn}}
+                    {{$cdnProv := mapGetStr "provider" $edge_cdn}}
+                    {{if $cdnProv}}
+                    <a href="#section-infra" class="tech-fp-badge tech-fp-cdn" title="CDN/edge provider detected via CNAME/A records">
+                        {{icon "globe" "me-1"}}{{$cdnProv}}
+                    </a>
+                    {{end}}
+                {{end}}
+                {{if $saas_txt}}
+                    {{$svcCount := mapGetFloat "service_count" $saas_txt}}
+                    {{if gt $svcCount 0}}
+                    <a href="#section-infra" class="tech-fp-badge tech-fp-saas" title="SaaS services detected via DNS TXT verification records">
+                        {{icon "puzzle-piece" "me-1"}}{{formatFloat 0 $svcCount}} SaaS{{if ne $svcCount 1}} Services{{else}} Service{{end}}
+                    </a>
+                    {{end}}
+                {{end}}
+                {{if $ns}}
+                    {{$dnsProviders := mapGetSlice "dns_providers" $ns}}
+                    {{if $dnsProviders}}
+                        {{if not $dns_infra}}
+                            {{range $i, $p := $dnsProviders}}
+                                {{if lt $i 2}}
+                                <a href="#section-dnssec" class="tech-fp-badge tech-fp-dns" title="DNS provider detected via NS delegation">
+                                    {{icon "server" "me-1"}}{{$p}}
+                                </a>
+                                {{end}}
+                            {{end}}
+                        {{end}}
+                    {{end}}
+                {{end}}
+            </div>
+        </div>
+        {{end}}
 
         {{if not .IsPublicSuffix}}
         <div class="row section-email-security" id="section-email">
