@@ -27,13 +27,14 @@ LDFLAGS="-s -w \
 export GOCACHE=/tmp/go-build-cache
 export GOMODCACHE=/tmp/go-mod-cache
 export GOTMPDIR=/tmp/go-tmp
-# Reset the Go cache/tmp dirs at the START of each build (clean build), then leave
-# them in place. Do NOT delete them after building: .replit pins GOCACHE/GOTMPDIR
-# here, and downstream go commands (e.g. scripts/quality-gate.sh `go vet`) run right
-# after this workflow build — a missing dir makes go fail during cache init
-# ("failed to trim cache" / "creating work dir"). Leaving the cache also makes the
-# post-build gate fast by reusing the warm build cache.
-rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
+# Ensure the Go cache/tmp dirs exist, but NEVER delete them. .replit pins GOCACHE
+# under /tmp and this workflow (`bash build.sh && ./dns-tool-server`) re-runs on every
+# checkpoint, so any `rm -rf` here RACES concurrent go commands (e.g.
+# scripts/quality-gate.sh `go vet`): go lists the cache, decides to auto-trim, and
+# trim.txt vanishes underneath it -> "failed to trim cache: ... trim.txt: no such
+# file" (and the GOTMPDIR variant "creating work dir: stat ... no such file"). Go's
+# build cache is content-addressed, so stale entries can never corrupt a build; wiping
+# it only costs build speed and reliability. mkdir -p is idempotent and safe.
 mkdir -p /tmp/go-build-cache /tmp/go-tmp
 
 if [ "$1" = "--deploy" ]; then
