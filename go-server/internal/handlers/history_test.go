@@ -203,7 +203,7 @@ func TestHistoryConstants(t *testing.T) {
         }
 }
 
-func TestNormalizeRiskColor(t *testing.T) {
+func TestHistoryNormalizeRiskColor(t *testing.T) {
         cases := map[string]string{
                 "success":     "success",
                 "info":        "info",
