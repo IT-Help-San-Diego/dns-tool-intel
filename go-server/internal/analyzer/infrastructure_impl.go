@@ -992,9 +992,17 @@ func identifyWebHosting(basic map[string]any) string {
         return ""
 }
 
+// lookupAddrFn is the reverse-DNS entrypoint used by identifyHostingFromPTR.
+// Production resolves through net.LookupAddr unchanged; tests swap it so the
+// default suite never performs live reverse-DNS lookups (which are unbounded —
+// net.LookupAddr takes no context — and intermittently overran the analyzer
+// quality-gate timeout when fed real IPs on a networked host). Output-neutral:
+// the production binding is identical to the prior direct call.
+var lookupAddrFn = net.LookupAddr
+
 func identifyHostingFromPTR(aRecords []string) string {
         for _, ip := range aRecords {
-                names, err := net.LookupAddr(ip)
+                names, err := lookupAddrFn(ip)
                 if err != nil || len(names) == 0 {
                         continue
                 }

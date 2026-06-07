@@ -293,3 +293,27 @@ func TestMxProviderPatterns_KnownEntries(t *testing.T) {
                 t.Error("mxProviderPatterns['outlook'] mismatch")
         }
 }
+
+// TestIdentifyHostingFromPTR_UsesSeam guards the lookupAddrFn seam: reverse-DNS
+// hosting detection must route through the package var (which the default-suite
+// TestMain stubs to keep the gate network-free) AND still map a matching PTR to
+// its provider. If a future change reverts identifyHostingFromPTR to a direct
+// net.LookupAddr call, this test fails because the override is bypassed.
+func TestIdentifyHostingFromPTR_UsesSeam(t *testing.T) {
+        prev := lookupAddrFn
+        defer func() { lookupAddrFn = prev }()
+
+        var gotIP string
+        lookupAddrFn = func(ip string) ([]string, error) {
+                gotIP = ip
+                return []string{"ec2-1-2-3-4.compute.amazonaws.com."}, nil
+        }
+
+        got := identifyHostingFromPTR([]string{"1.2.3.4"})
+        if gotIP != "1.2.3.4" {
+                t.Errorf("seam not invoked with the supplied IP: got %q", gotIP)
+        }
+        if got != "AWS" {
+                t.Errorf("identifyHostingFromPTR = %q, want %q (PTR pattern match via seam)", got, "AWS")
+        }
+}
