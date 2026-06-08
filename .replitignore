@@ -1,0 +1,37 @@
+# Keep the deployment image under the 8 GiB limit by excluding everything the
+# production app needs neither at build time nor runtime. The deploy build
+# (build.sh --deploy) recompiles ./dns-tool-server from source; the run command
+# is just the static binary plus served assets. Build caches, dev tooling, agent
+# state, and test artifacts are dead weight in the image.
+
+# Go build/module caches (the deploy build regenerates these in /tmp)
+.go-build-cache/
+.go-mod-cache/
+.go-tmp/
+
+# Node + tooling caches not used by the Go runtime or the deploy build
+node_modules/
+.cache/
+
+# Agent / internal local state and dev-only tooling directories
+.local/
+.agents/
+.intel/
+.drift/
+.gitpanel/
+.codex/
+.scannerwork/
+.planning/
+.venv-cff/
+
+# Test binaries and stray build outputs
+*.test
+analyzer.test
+handlers.test
+/server
+go-server/server
+dns-tool-server-new
+
+# Logs and generated security-scan reports (keep the source scripts in security/)
+logs/
+security/report/report/
