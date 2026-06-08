@@ -46,7 +46,10 @@ grep -qw non_fast_forward    <<<"$types" && ok "non-fast-forward (no force)"  ||
 methods=$(jq -r '(.rules[]|select(.type=="pull_request").parameters.allowed_merge_methods)|join(",")' <<<"$mr")
 [ "$methods" = "squash" ] && ok "mainrule merge method = squash-only" || bad "mainrule merge methods = [$methods] (want squash only)"
 strict=$(jq -r '(.rules[]|select(.type=="required_status_checks").parameters.strict_required_status_checks_policy)' <<<"$mr")
-[ "$strict" = "true" ] && ok "status checks strict (branch must be up to date)" || bad "status checks NOT strict"
+# strict MUST be false: ship branches are squash-from-divergent-local and never
+# contain main's squash tip, so strict=true would mark every PR "out of date" and
+# deadlock auto-merge. (Solo sequential squash flow => no stale-green race anyway.)
+[ "$strict" = "false" ] && ok "status checks non-strict (required for squash-from-divergent-local)" || bad "status checks strict=$strict (must be false or auto-merge deadlocks)"
 checks=$(jq -r '[.rules[]|select(.type=="required_status_checks").parameters.required_status_checks[].context]|join(",")' <<<"$mr")
 grep -q "CodeQL" <<<"$checks" && grep -q "Build & Test" <<<"$checks" && ok "required checks: $checks" || bad "required checks incomplete: [$checks]"
 nbypass=$(jq -r '.bypass_actors|length' <<<"$mr")
