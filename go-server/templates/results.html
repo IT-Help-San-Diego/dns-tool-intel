@@ -348,55 +348,7 @@
             </div>
         </div>
 
-        <!-- Command Card — Bird's-Eye Verdict, What's Wrong, Jump Links (first-view intelligence) -->
-        {{if and .DomainExists $posture (not .IsPublicSuffix) (ne (mapGetStr "reason" $posture) "gateway_derived")}}
-        {{$ccColor := mapGetStr "color" $posture}}
-        {{$ccCritical := mapGetSlice "critical_issues" $posture}}
-        {{$ccRecs := mapGetSlice "recommendations" $posture}}
-        {{$ccAbsent := mapGetSlice "absent" $posture}}
-        <div class="row mb-4 screen-only" id="command-card">
-            <div class="col-12">
-                <div class="card border-{{$ccColor}} bg-{{$ccColor}} bg-opacity-10">
-                    <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div class="d-flex align-items-center">
-                                {{icon (mapGetStr "icon" $posture) "icon-2x" (printf "text-%s me-3" $ccColor)}}
-                                <div>
-                                    <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">Bird&rsquo;s-Eye Verdict</span>
-                                    <span class="fw-semibold me-2">Risk Level:</span>
-                                    <span class="badge bg-{{$ccColor}} fs-6 px-3 py-2">{{mapGetStr "state" $posture}}</span>
-                                </div>
-                            </div>
-                            {{if .UnifiedConfidence}}
-                            <a href="#confidencePanel" class="text-decoration-none small text-{{.UnifiedConfidence.BootstrapClass}}" data-bs-toggle="collapse" role="button" aria-controls="confidencePanel">
-                                {{icon "chart-line" "me-1"}}Confidence: {{.UnifiedConfidence.Level}} &middot; {{.UnifiedConfidence.ScoreDisplay}}/100
-                            </a>
-                            {{end}}
-                        </div>
-                        {{if or $ccCritical $ccRecs}}
-                        <div class="mt-3 pt-3 border-top border-{{$ccColor}} border-opacity-25">
-                            <span class="text-uppercase fw-bold d-block u-fs-070rem mb-2 text-{{$ccColor}}">{{icon "exclamation-triangle" "me-1"}}What&rsquo;s Wrong</span>
-                            {{range $issue := $ccCritical}}
-                            <a href="#findings-summary" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
-                            {{end}}
-                            {{range $rec := $ccRecs}}
-                            <a href="#findings-summary" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
-                            {{end}}
-                        </div>
-                        {{end}}
-                        {{if $ccAbsent}}
-                        <div class="mt-2 d-flex align-items-center flex-wrap gap-2">
-                            <span class="text-uppercase text-muted fw-bold u-fs-070rem">Jump To:</span>
-                            {{range $p := $ccAbsent}}
-                            <a href="{{if eq $p "DANE"}}#section-dane{{else if or (eq $p "SPF") (eq $p "DMARC") (eq $p "DKIM") (eq $p "MTA-STS") (eq $p "TLS-RPT")}}#section-email{{else if or (eq $p "BIMI") (eq $p "CAA")}}#section-brand{{else if eq $p "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}" class="badge bg-{{$ccColor}} bg-opacity-25 border border-{{$ccColor}} border-opacity-50 text-{{$ccColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
-                            {{end}}
-                        </div>
-                        {{end}}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{end}}
+        {{/* Bird's-Eye Verdict merged into the single "DNS Security & Trust Posture" command card below (was a screen-only duplicate of the same $posture data). */}}
 
         {{if .DriftDetected}}
         <div class="alert alert-warning border-warning mb-4" role="alert">
@@ -522,40 +474,63 @@
         {{$postureCritical := mapGetSlice "critical_issues" $posture}}
         {{$postureRecs := mapGetSlice "recommendations" $posture}}
         {{$postureMonitoring := mapGetSlice "monitoring" $posture}}
-        <div class="row mb-4">
+        {{$postureAbsent := mapGetSlice "absent" $posture}}
+        <div class="row mb-4" id="command-card">
             <div class="col-12">
                 <div class="card border-{{$postureColor}} bg-{{$postureColor}} bg-opacity-10">
                     <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="d-flex align-items-center">
                                 {{icon $postureIcon "icon-2x" (printf "text-%s me-3" $postureColor)}}
                                 <div>
-                                    <span class="fw-semibold">DNS Security &amp; Trust Posture</span>
-                                    <div class="d-flex align-items-center mt-1">
-                                        <span class="fw-semibold me-2">Risk Level:</span>
-                                        <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{$postureState}}</span>
-                                    </div>
-                                    <small class="d-block mt-1">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{$singleAbsent := index $absentItems 0}}{{if eq $singleAbsent "DANE"}}#section-dane{{else if or (eq $singleAbsent "SPF") (eq $singleAbsent "DMARC") (eq $singleAbsent "DKIM") (eq $singleAbsent "MTA-STS") (eq $singleAbsent "TLS-RPT")}}#section-email{{else if or (eq $singleAbsent "BIMI") (eq $singleAbsent "CAA")}}#section-brand{{else if eq $singleAbsent "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{$singlePL := index $plItems 0}}{{if eq $singlePL "DANE"}}#section-dane{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
-                                    {{if mapGetBool "deliberate_monitoring" $posture}}
-                                    <small class="text-info d-block mt-1">{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
-                                    {{end}}
-                                    <small class="d-block mt-1"><a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none">{{icon "flask" "me-1"}}Why we go beyond letter grades</a></small>
+                                    <span class="text-uppercase text-muted fw-bold d-block u-fs-070rem">DNS Security &amp; Trust Posture</span>
+                                    <span class="fw-semibold me-2">Risk Level:</span>
+                                    <span class="badge bg-{{$postureColor}} fs-6 px-3 py-2">{{$postureState}}</span>
                                 </div>
                             </div>
-                            {{if or $postureCritical $postureRecs $postureMonitoring}}
-                            <div class="mt-2 mt-md-0">
-                                {{if $postureCritical}}
-                                    <a href="#findings-summary" class="text-danger text-decoration-none d-block"><small>{{icon "times-circle" "me-1"}}{{len $postureCritical}} action required</small></a>
-                                {{end}}
-                                {{if $postureRecs}}
-                                    <a href="#findings-summary" class="text-warning text-decoration-none d-block"><small>{{icon "lightbulb" "me-1"}}{{len $postureRecs}} recommendation{{if gt (len $postureRecs) 1}}s{{end}}</small></a>
-                                {{end}}
-                                {{if $postureMonitoring}}
-                                    <a href="#findings-summary" class="text-info text-decoration-none d-block"><small>{{icon "eye" "me-1"}}{{len $postureMonitoring}} monitoring</small></a>
-                                {{end}}
-                            </div>
+                            {{if .UnifiedConfidence}}
+                            <a href="#confidencePanel" class="text-decoration-none small text-{{.UnifiedConfidence.BootstrapClass}}" data-bs-toggle="collapse" role="button" aria-controls="confidencePanel">
+                                {{icon "chart-line" "me-1"}}Confidence: {{.UnifiedConfidence.Level}} &middot; {{.UnifiedConfidence.ScoreDisplay}}/100
+                            </a>
                             {{end}}
                         </div>
+                        <div class="mt-2">
+                            <small class="d-block">{{$postureConfiguredCount := len (mapGetSlice "configured" $posture)}}{{$postureAbsentCount := len (mapGetSlice "absent" $posture)}}{{$postureProviderLimitedCount := len (mapGetSlice "provider_limited" $posture)}}{{if gt $postureConfiguredCount 0}}<span class="text-success">{{$postureConfiguredCount}} protocols configured</span>{{end}}{{if and (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{if gt $postureAbsentCount 0}}{{$absentItems := mapGetSlice "absent" $posture}}<a href="{{if eq $postureAbsentCount 1}}{{$singleAbsent := index $absentItems 0}}{{if eq $singleAbsent "DANE"}}#section-dane{{else if or (eq $singleAbsent "SPF") (eq $singleAbsent "DMARC") (eq $singleAbsent "DKIM") (eq $singleAbsent "MTA-STS") (eq $singleAbsent "TLS-RPT")}}#section-email{{else if or (eq $singleAbsent "BIMI") (eq $singleAbsent "CAA")}}#section-brand{{else if eq $singleAbsent "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-warning text-decoration-none" id="posture-absent-link">{{$postureAbsentCount}} not configured</a>{{end}}{{if gt $postureProviderLimitedCount 0}}{{if or (gt $postureConfiguredCount 0) (gt $postureAbsentCount 0)}}, {{end}}{{$plItems := mapGetSlice "provider_limited" $posture}}<a href="{{if eq $postureProviderLimitedCount 1}}{{$singlePL := index $plItems 0}}{{if eq $singlePL "DANE"}}#section-dane{{else}}#findings-summary{{end}}{{else}}#findings-summary{{end}}" class="text-muted text-decoration-none">{{$postureProviderLimitedCount}} unavailable on provider</a>{{end}}</small>
+                            {{if mapGetBool "deliberate_monitoring" $posture}}
+                            <small class="text-info d-block mt-1">{{mapGetStr "deliberate_monitoring_note" $posture}}</small>
+                            {{end}}
+                            {{/* Surface the enterprise-DNS recognition (already shown in the deep DNSSEC section) at the top-level verdict, so operators running dedicated / multi-provider / recognized enterprise DNS are not framed like a small operator who simply forgot to enable DNSSEC. Mirrors the vetted gating at #section-dnssec: $dns_infra.explains_no_dnssec (recognized provider) OR $ns.enterprise_pattern (dedicated/mixed/multi-provider). Only fires when DNSSEC is actually absent. */}}
+                            {{$entPattern := mapGetStr "enterprise_pattern" $ns}}
+                            {{$entProviderRecognized := and $dns_infra (mapGetBool "explains_no_dnssec" $dns_infra)}}
+                            {{$dnssecAbsent := false}}
+                            {{range $p := $postureAbsent}}{{if eq $p "DNSSEC"}}{{$dnssecAbsent = true}}{{end}}{{end}}
+                            {{if and $dnssecAbsent (or $entProviderRecognized (eq $entPattern "dedicated") (eq $entPattern "mixed") (eq $entPattern "multi-provider"))}}
+                            <small class="text-info d-block mt-1">{{icon "building" "me-1"}}<strong>Enterprise DNS Posture:</strong> {{if $entProviderRecognized}}{{mapGetStr "provider" $dns_infra}} runs enterprise-grade DNS infrastructure{{else}}{{mapGetStr "enterprise_label" $ns}} detected on this domain{{end}} &mdash; an unsigned DNSSEC chain here reads as a deliberate operator choice, not the gap it would be for a small operator. Network-layer compensating controls are not verifiable via DNS alone; <a href="#section-dnssec" class="text-info text-decoration-none">see DNS-layer detail</a>.</small>
+                            {{end}}
+                            <small class="d-block mt-1"><a href="/approach#where-simplicity-fails" class="text-muted text-decoration-none">{{icon "flask" "me-1"}}Why we go beyond letter grades</a></small>
+                        </div>
+                        {{if or $postureCritical $postureRecs $postureMonitoring}}
+                        <div class="mt-3 pt-3 border-top border-{{$postureColor}} border-opacity-25">
+                            <span class="text-uppercase fw-bold d-block u-fs-070rem mb-2 text-{{$postureColor}}">{{icon "exclamation-triangle" "me-1"}}What&rsquo;s Wrong</span>
+                            {{range $issue := $postureCritical}}
+                            <a href="#findings-summary" class="d-block text-danger text-decoration-none small mb-1">{{icon "times-circle" "me-2"}}{{$issue}}</a>
+                            {{end}}
+                            {{range $rec := $postureRecs}}
+                            <a href="#findings-summary" class="d-block text-warning text-decoration-none small mb-1">{{icon "lightbulb" "me-2"}}{{$rec}}</a>
+                            {{end}}
+                            {{range $mon := $postureMonitoring}}
+                            <a href="#findings-summary" class="d-block text-info text-decoration-none small mb-1">{{icon "eye" "me-2"}}{{$mon}}</a>
+                            {{end}}
+                        </div>
+                        {{end}}
+                        {{if $postureAbsent}}
+                        <div class="mt-2 d-flex align-items-center flex-wrap gap-2 screen-only">
+                            <span class="text-uppercase text-muted fw-bold u-fs-070rem">Jump To:</span>
+                            {{range $p := $postureAbsent}}
+                            <a href="{{if eq $p "DANE"}}#section-dane{{else if or (eq $p "SPF") (eq $p "DMARC") (eq $p "DKIM") (eq $p "MTA-STS") (eq $p "TLS-RPT")}}#section-email{{else if or (eq $p "BIMI") (eq $p "CAA")}}#section-brand{{else if eq $p "DNSSEC"}}#section-dnssec{{else}}#findings-summary{{end}}" class="badge bg-{{$postureColor}} bg-opacity-25 border border-{{$postureColor}} border-opacity-50 text-{{$postureColor}} text-decoration-none">{{$p}} {{icon "arrow-right" "ms-1"}}</a>
+                            {{end}}
+                        </div>
+                        {{end}}
                     </div>
                 </div>
             </div>
@@ -563,368 +538,6 @@
         {{end}}{{/* end gateway_derived else */}}
         {{end}}{{/* end posture exists */}}
 
-        {{if .UnifiedConfidence}}
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark">
-                    <div class="card-body py-3">
-                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#confidencePanel" aria-expanded="false" aria-controls="confidencePanel">
-                            <span class="d-flex align-items-center">
-                                {{icon .UnifiedConfidence.Icon (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
-                                <span class="fw-semibold text-light">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
-                                <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} ms-2">{{.UnifiedConfidence.Level}}</span>
-                                <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
-                            </span>
-                            {{icon "chevron-down" "ms-auto text-muted small"}}
-                        </button>
-                        <div class="collapse" id="confidencePanel">
-                            <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap">
-                                    <div>
-                                        <small class="text-muted d-block">{{.UnifiedConfidence.Explanation}}</small>
-                                    </div>
-                                    <div class="mt-2 mt-md-0 text-end">
-                                        <div class="d-flex flex-column gap-1">
-                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="Calibrated resolver agreement across {{.UnifiedConfidence.ProtocolCount}} protocols">{{icon "check-double" "me-1"}}Accuracy {{.UnifiedConfidence.AccuracyDisplay}}</span>
-                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICuAE data freshness, completeness, and consistency score">{{icon "clock" "me-1"}}Currency {{.UnifiedConfidence.CurrencyDisplay}}/100</span>
-                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICAE system maturity — caps maximum achievable confidence">{{icon "medal" "me-1"}}Maturity {{.UnifiedConfidence.MaturityLevel}}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                {{if ne .UnifiedConfidence.Level "HIGH"}}
-                                <div class="mt-2 pt-2 border-top border-secondary border-opacity-50">
-                                    <small class="text-{{.UnifiedConfidence.BootstrapClass}}">{{icon "info-circle" "me-1"}}Limiting factor: {{.UnifiedConfidence.WeakestDetail}}</small>
-                                </div>
-                                {{end}}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{end}}
-
-        {{if .CurrencyReport}}
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card bg-dark border-accent-gold-muted">
-                    <div class="card-body py-3">
-                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#currencyPanel" aria-expanded="false" aria-controls="currencyPanel">
-                            <span class="d-flex align-items-center">
-                                {{icon "clock" (printf "text-%s me-3" .CurrencyReport.BootstrapClass)}}
-                                <span class="fw-semibold text-light">Intelligence Currency</span>
-                                <span class="badge bg-{{.CurrencyReport.BootstrapClass}} ms-2">{{.CurrencyReport.OverallGradeDisplay}}</span>
-                                <span class="text-muted ms-2 small">{{formatFloat 0 .CurrencyReport.OverallScore}}/100</span>
-                            </span>
-                            {{icon "chevron-down" "ms-auto text-muted small"}}
-                        </button>
-                        <div class="collapse" id="currencyPanel">
-                        <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
-                            <div class="d-flex flex-wrap gap-2">
-                                {{range .CurrencyReport.Dimensions}}
-                                <span class="badge bg-{{.BootstrapClass}}" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
-                                {{end}}
-                            </div>
-                            <a href="/confidence" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0 text-nowrap">{{icon "flask" "me-1"}}ICuAE Details</a>
-                        </div>
-                        <small class="text-muted d-block mt-2">{{.CurrencyReport.Guidance}}</small>
-                        {{if .CurrencyReport.HasFindings}}
-                        <div class="mt-3 border-top border-secondary pt-3">
-                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#ttlFindings" type="button" aria-expanded="false" aria-controls="ttlFindings">
-                                {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}{{icon "globe" "text-info me-2"}}{{else}}{{icon "exclamation-triangle" "text-warning me-2"}}{{end}}
-                                <span class="fw-semibold small">TTL Configuration Guidance</span>
-                                {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
-                                <span class="badge bg-info bg-opacity-25 text-info ms-2">{{len .CurrencyReport.AllFindings}} {{if eq (len .CurrencyReport.AllFindings) 1}}Deviation{{else}}Deviations{{end}} · Traffic Engineering</span>
-                                {{else}}
-                                <span class="badge bg-warning text-dark ms-2">{{len .CurrencyReport.AllFindings}} {{if eq (len .CurrencyReport.AllFindings) 1}}Finding{{else}}Findings{{end}}</span>
-                                {{end}}
-                                {{icon "chevron-down" "ms-auto small"}}
-                            </button>
-                            <div class="collapse" id="ttlFindings">
-                                <div class="mt-2">
-                                    {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
-                                    <div class="alert alert-info py-2 mb-3 border-info border-opacity-25">
-                                        <div class="d-flex align-items-start">
-                                            {{icon "globe" "me-2 mt-1"}}
-                                            <div>
-                                                <strong>Enterprise Traffic Engineering Detected</strong>
-                                                <span class="badge bg-info bg-opacity-25 border border-info border-opacity-25 ms-2 small">{{.CurrencyReport.TrafficEngineering.Pattern}}</span>
-                                                <p class="mb-0 mt-1 small">{{.CurrencyReport.TrafficEngineering.Explanation}}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{end}}
-                                    <p class="small text-muted mb-2">The following DNS record TTLs deviate from {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}typical{{else}}recommended{{end}} values. {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}For domains using DNS-based traffic management, short TTLs are expected and intentional.{{else}}Incorrect TTLs can cause caching issues, slow propagation, or unnecessary DNS traffic.{{end}}</p>
-                                    <div class="table-responsive">
-                                        <table class="table table-dark table-sm table-hover mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Record Type</th>
-                                                    <th scope="col">Observed TTL</th>
-                                                    <th scope="col">Typical TTL</th>
-                                                    <th scope="col">Severity</th>
-                                                    <th scope="col">Context</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {{range .CurrencyReport.AllFindings}}
-                                                <tr>
-                                                    <td><span class="fw-semibold">{{.RecordType}}</span></td>
-                                                    <td><code>{{.ObservedDisplay}}</code></td>
-                                                    <td><code>{{.TypicalDisplay}}</code></td>
-                                                    <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
-                                                    <td class="small">
-                                                        {{.Recommendation}}
-                                                        {{if .HasProviderNote}}
-                                                        <div class="mt-1 p-2 rounded bg-dark bg-opacity-50 border-start border-warning border-2">
-                                                            <strong>Provider Note:</strong> {{.ProviderNote}}
-                                                        </div>
-                                                        {{end}}
-                                                    </td>
-                                                </tr>
-                                                {{end}}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="mt-3 p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
-                                        <p class="fw-semibold small mb-2">Big Picture Questions</p>
-                                        <ul class="small text-muted mb-2">
-                                            {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
-                                            <li class="mb-1">This domain runs short TTLs across multiple record types. Does it operate a global anycast network where DNS-based traffic steering justifies the query volume?</li>
-                                            <li class="mb-1">Are the short TTLs enabling active failover, geographic routing, or load distribution &mdash; or are they leftover from a migration that was never reverted?</li>
-                                            <li class="mb-1">Enterprise-grade DNS infrastructure (sub-5ms authoritative response times, globally distributed nameservers) absorbs short-TTL query volume. Would your authoritative DNS handle the same load?</li>
-                                            {{else}}
-                                            <li class="mb-1">How often do you actually change this record? If it hasn&rsquo;t changed in months, a short TTL is generating unnecessary DNS queries without any benefit.</li>
-                                            <li class="mb-1">Are you preparing for a migration or IP change? Short TTLs make sense temporarily &mdash; but should be raised back to 1 hour (3600s) once the change is complete.</li>
-                                            <li class="mb-1">Every DNS lookup adds 20&ndash;150ms of latency. With a 60s TTL, returning visitors trigger a fresh lookup every minute. With 3600s, they get cached responses for an hour &mdash; faster page loads, no extra infrastructure needed.</li>
-                                            <li class="mb-1">Google runs A records at ~30s because they operate a global anycast network and need to steer traffic dynamically. For a typical website without that infrastructure, copying those TTLs increases query volume with zero upside.</li>
-                                            {{end}}
-                                        </ul>
-                                        <a href="/ttl-tuner?domain={{.Domain}}" class="btn btn-sm btn-outline-info">{{icon "sliders-h" "me-1"}}Tune TTL for {{.Domain}}</a>
-                                    </div>
-                                    <small class="text-muted d-block mt-2">Reference: NIST SP 800-53 SI-7 (Information Integrity) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
-                                    {{if .CurrencyReport.ProviderName}}
-                                    <small class="text-muted d-block mt-1">DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
-                                    {{else if not .IsPublicSuffix}}
-                                    <small class="text-muted d-block mt-1">{{icon "exclamation-circle" "me-1"}}Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a finding targets a record you cannot edit, it reflects the observed value rather than a configuration error on your part.</small>
-                                    {{end}}
-                                </div>
-                            </div>
-                        </div>
-                        {{end}}
-
-                        {{if .CurrencyReport.SOACompliance}}
-                        {{with .CurrencyReport.SOACompliance}}
-                        {{if .HasSOA}}
-                        <div class="mt-3 border-top border-secondary pt-3">
-                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#soaCompliance" type="button" aria-expanded="false" aria-controls="soaCompliance">
-                                {{icon "server" "text-accent-gold me-2"}}
-                                <span class="fw-semibold small">SOA Timer RFC Compliance</span>
-                                {{if .HasFindings}}
-                                <span class="badge bg-warning text-dark ms-2">{{len .Findings}} {{if eq (len .Findings) 1}}Finding{{else}}Findings{{end}}</span>
-                                {{else}}
-                                <span class="badge bg-success ms-2">Compliant</span>
-                                {{end}}
-                                {{icon "chevron-down" "ms-auto small"}}
-                            </button>
-                            <div class="collapse" id="soaCompliance">
-                                <div class="mt-2">
-                                    <div class="row mb-2">
-                                        <div class="col-6 col-md-3 mb-2">
-                                            <small class="text-muted d-block">Primary NS</small>
-                                            <code class="small">{{.PrimaryNS}}</code>
-                                        </div>
-                                        <div class="col-6 col-md-3 mb-2">
-                                            <small class="text-muted d-block">Serial</small>
-                                            <code class="small">{{.Serial}}</code>
-                                        </div>
-                                        <div class="col-6 col-md-3 mb-2">
-                                            <small class="text-muted d-block">Admin</small>
-                                            <code class="small">{{.AdminEmail}}</code>
-                                        </div>
-                                        <div class="col-6 col-md-3 mb-2">
-                                            <small class="text-muted d-block">Provider</small>
-                                            <span class="small">{{if .Provider}}{{.Provider}}{{else}}Unknown{{end}}</span>
-                                        </div>
-                                    </div>
-                                    <div class="table-responsive mb-2">
-                                        <table class="table table-dark table-sm mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Timer</th>
-                                                    <th scope="col">Value</th>
-                                                    <th scope="col">RFC 1912 Range</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr><td>Refresh</td><td><code>{{.Refresh}}s</code></td><td class="small">1,200–43,200s (20 min – 12 hrs)</td></tr>
-                                                <tr><td>Retry</td><td><code>{{.Retry}}s</code></td><td class="small">Fraction of Refresh</td></tr>
-                                                <tr><td>Expire</td><td><code>{{.Expire}}s</code></td><td class="small">1,209,600–2,419,200s (14–28 days)</td></tr>
-                                                <tr><td>Minimum (Neg. Cache)</td><td><code>{{.MinTTL}}s</code></td><td class="small">300–86,400s (5 min – 1 day)</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {{if .HasFindings}}
-                                    {{range .Findings}}
-                                    <div class="alert alert-{{.SeverityClass}} py-2 mb-2 small">
-                                        <div class="d-flex align-items-start">
-                                            {{icon "exclamation-triangle" "me-2 mt-1"}}
-                                            <div>
-                                                <strong>{{.Field}}</strong>: {{.Explanation}}
-                                                <div class="mt-1">
-                                                    <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="text-decoration-none">{{icon "external-link-alt" "me-1"}}{{.RFC}}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{end}}
-                                    {{else}}
-                                    <div class="alert alert-success py-2 mb-2 small">
-                                        {{icon "check-circle" "me-2"}}All SOA timer values are within RFC 1912 recommended ranges.
-                                    </div>
-                                    {{end}}
-                                </div>
-                            </div>
-                        </div>
-                        {{end}}
-                        {{end}}
-                        {{end}}
-
-                        {{if .CurrencyReport.HasProviderComplianceNotes}}
-                        <div class="mt-3 border-top border-secondary pt-3">
-                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#providerCompliance" type="button" aria-expanded="false" aria-controls="providerCompliance">
-                                {{icon "building" "text-accent-gold me-2"}}
-                                <span class="fw-semibold small">{{.CurrencyReport.ProviderName}} RFC Compliance Dossier</span>
-                                <span class="badge bg-info ms-2">{{len .CurrencyReport.ProviderComplianceNotes}} {{if eq (len .CurrencyReport.ProviderComplianceNotes) 1}}Note{{else}}Notes{{end}}</span>
-                                {{icon "chevron-down" "ms-auto small"}}
-                            </button>
-                            <div class="collapse" id="providerCompliance">
-                                <div class="mt-2">
-                                    <p class="small text-muted mb-2">Independent RFC compliance assessment for <strong>{{.CurrencyReport.ProviderName}}</strong>. Each finding cites the specific RFC section and reports what the engineering community consensus is. We report honestly &mdash; if a provider deviates from standards, we explain what they did differently and what the RFCs actually say.</p>
-                                    {{range .CurrencyReport.ProviderComplianceNotes}}
-                                    <div class="card bg-dark border-secondary mb-2">
-                                        <div class="card-body py-2 px-3">
-                                            <div class="d-flex align-items-start">
-                                                {{icon "file-alt" "text-accent-gold me-2 mt-1"}}
-                                                <div class="flex-grow-1">
-                                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                                        <strong class="small">{{.Title}}</strong>
-                                                        <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="badge bg-info bg-opacity-25 text-info text-decoration-none">{{icon "external-link-alt" "me-1"}}{{.RFC}}</a>
-                                                    </div>
-                                                    <p class="small text-muted mb-1">{{.Detail}}</p>
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="badge bg-warning text-dark">{{icon "gavel" "me-1"}}{{.Verdict}}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{end}}
-                                    <small class="text-muted d-block mt-2">This assessment is based on RFC specifications, provider documentation, and documented incidents from DNS engineering communities. DNS Tool does not have a commercial relationship with any provider listed.</small>
-                                </div>
-                            </div>
-                        </div>
-                        {{end}}
-
-                        </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{end}}
-
-        {{if .SuggestedConfig}}
-        {{with .SuggestedConfig}}
-        {{if .HasSuggestions}}
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-{{.ConfidenceClass}} bg-{{.ConfidenceClass}} bg-opacity-10">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
-                            <div class="d-flex align-items-center">
-                                {{icon "sliders-h" "icon-2x text-{{.ConfidenceClass}} me-3"}}
-                                <div>
-                                    <span class="fw-semibold">Suggested Scanner Configuration</span>
-                                    <span class="badge bg-{{.ConfidenceClass}} ms-2">{{.Confidence | title}} Confidence</span>
-                                    <div class="text-muted small mt-1">Based on {{.BasedOn}} historical scans of this domain</div>
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-{{.ConfidenceClass}} btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#suggestedConfigPanel" aria-expanded="false" aria-controls="suggestedConfigPanel">
-                                {{icon "chevron-down" "me-1"}}Review Suggestions
-                            </button>
-                        </div>
-                        <div class="collapse mt-3" id="suggestedConfigPanel">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered mb-2">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" class="sc-col-param">Parameter</th>
-                                            <th scope="col" class="sc-col-current">Current</th>
-                                            <th scope="col" class="sc-col-suggested">Suggested</th>
-                                            <th scope="col" class="sc-col-severity">Severity</th>
-                                            <th scope="col">Rationale</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {{range .Suggestions}}
-                                        <tr>
-                                            <td>{{icon .CategoryIcon "me-1 text-muted"}}<span class="fw-semibold">{{.Parameter}}</span></td>
-                                            <td><code>{{.Current}}</code></td>
-                                            <td><code>{{.Suggested}}</code></td>
-                                            <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
-                                            <td class="small">{{.Rationale}}<br><span class="text-muted fst-italic">{{.Standard}}</span></td>
-                                        </tr>
-                                        {{end}}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <small class="text-muted d-block mt-2">Suggestions require explicit approval before applying. No automatic changes will be made.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{end}}
-        {{end}}
-        {{end}}
-        
-        {{if .IsPublicSuffix}}
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-info bg-info bg-opacity-10">
-                    <div class="card-body py-3">
-                        <div class="d-flex align-items-center">
-                            {{icon "globe-americas" "icon-2x text-accent-gold me-3"}}
-                            <div>
-                                <span class="fw-semibold">Registry Zone Health</span>
-                                <div class="d-flex align-items-center mt-1 flex-wrap gap-2">
-                                    {{if $dnssec}}
-                                    {{$dnssecStatus := mapGetStr "status" $dnssec}}
-                                    <span class="badge bg-{{if eq $dnssecStatus "secure"}}success{{else if eq $dnssecStatus "insecure"}}warning{{else}}secondary{{end}}">{{icon "key" "me-1"}}DNSSEC: {{title $dnssecStatus}}</span>
-                                    {{end}}
-                                    {{if and $caa (not .IsTLD)}}
-                                    {{$caaStatus := mapGetStr "status" $caa}}
-                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}}">{{icon "lock" "me-1"}}CAA: {{if eq $caaStatus "success"}}Configured{{else}}Not Set{{end}}</span>
-                                    {{end}}
-                                    {{if and $dane (not .IsPublicSuffix)}}
-                                    {{$daneStatus := mapGetStr "status" $dane}}
-                                    <span class="badge bg-{{if eq $daneStatus "success"}}success{{else}}secondary{{end}}">{{icon "certificate" "me-1"}}DANE: {{title $daneStatus}}</span>
-                                    {{end}}
-                                    {{if $ns}}
-                                    {{$nsCount := mapGetFloat "ns_count" $ns}}
-                                    <span class="badge bg-{{if ge $nsCount 2.0}}success{{else}}warning{{end}}">{{icon "server" "me-1"}}{{formatFloat 0 $nsCount}} Nameservers</span>
-                                    {{end}}
-                                </div>
-                                <small class="text-muted d-block mt-1">Zone infrastructure protocols applicable to registry suffixes</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{end}}
 
         <!-- Partial Failure Banner - Shows if any sections timed out or failed -->
         {{if $section_status}}
@@ -2485,6 +2098,370 @@
         </div>
 
 
+        {{end}}
+
+        <!-- Analysis Confidence & Intelligence Currency — relocated below host/email so "who is doing what" leads -->
+        {{if .UnifiedConfidence}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-{{.UnifiedConfidence.BootstrapClass}} bg-dark">
+                    <div class="card-body py-3">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#confidencePanel" aria-expanded="false" aria-controls="confidencePanel">
+                            <span class="d-flex align-items-center">
+                                {{icon .UnifiedConfidence.Icon (printf "text-%s me-3" .UnifiedConfidence.BootstrapClass)}}
+                                <span class="fw-semibold text-light">Analysis Confidence <small class="text-muted fw-normal">(ICD 203)</small></span>
+                                <span class="badge bg-{{.UnifiedConfidence.BootstrapClass}} ms-2">{{.UnifiedConfidence.Level}}</span>
+                                <span class="text-muted ms-2 small">{{.UnifiedConfidence.ScoreDisplay}}/100</span>
+                            </span>
+                            {{icon "chevron-down" "ms-auto text-muted small"}}
+                        </button>
+                        <div class="collapse" id="confidencePanel">
+                            <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                                    <div>
+                                        <small class="text-muted d-block">{{.UnifiedConfidence.Explanation}}</small>
+                                    </div>
+                                    <div class="mt-2 mt-md-0 text-end">
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="Calibrated resolver agreement across {{.UnifiedConfidence.ProtocolCount}} protocols">{{icon "check-double" "me-1"}}Accuracy {{.UnifiedConfidence.AccuracyDisplay}}</span>
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICuAE data freshness, completeness, and consistency score">{{icon "clock" "me-1"}}Currency {{.UnifiedConfidence.CurrencyDisplay}}/100</span>
+                                            <span class="badge bg-dark border border-secondary" data-bs-toggle="tooltip" title="ICAE system maturity — caps maximum achievable confidence">{{icon "medal" "me-1"}}Maturity {{.UnifiedConfidence.MaturityLevel}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{if ne .UnifiedConfidence.Level "HIGH"}}
+                                <div class="mt-2 pt-2 border-top border-secondary border-opacity-50">
+                                    <small class="text-{{.UnifiedConfidence.BootstrapClass}}">{{icon "info-circle" "me-1"}}Limiting factor: {{.UnifiedConfidence.WeakestDetail}}</small>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        {{if .CurrencyReport}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-dark border-accent-gold-muted">
+                    <div class="card-body py-3">
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center justify-content-between w-100 p-0 border-0 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#currencyPanel" aria-expanded="false" aria-controls="currencyPanel">
+                            <span class="d-flex align-items-center">
+                                {{icon "clock" (printf "text-%s me-3" .CurrencyReport.BootstrapClass)}}
+                                <span class="fw-semibold text-light">Intelligence Currency</span>
+                                <span class="badge bg-{{.CurrencyReport.BootstrapClass}} ms-2">{{.CurrencyReport.OverallGradeDisplay}}</span>
+                                <span class="text-muted ms-2 small">{{formatFloat 0 .CurrencyReport.OverallScore}}/100</span>
+                            </span>
+                            {{icon "chevron-down" "ms-auto text-muted small"}}
+                        </button>
+                        <div class="collapse" id="currencyPanel">
+                        <div class="mt-3 pt-3 border-top border-secondary border-opacity-50">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                {{range .CurrencyReport.Dimensions}}
+                                <span class="badge bg-{{.BootstrapClass}}" data-bs-toggle="tooltip" title="{{.Details}} ({{.Standard}})">{{.DisplayName}} {{.GradeDisplay}}</span>
+                                {{end}}
+                            </div>
+                            <a href="/confidence" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0 text-nowrap">{{icon "flask" "me-1"}}ICuAE Details</a>
+                        </div>
+                        <small class="text-muted d-block mt-2">{{.CurrencyReport.Guidance}}</small>
+                        {{if .CurrencyReport.HasFindings}}
+                        <div class="mt-3 border-top border-secondary pt-3">
+                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#ttlFindings" type="button" aria-expanded="false" aria-controls="ttlFindings">
+                                {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}{{icon "globe" "text-info me-2"}}{{else}}{{icon "exclamation-triangle" "text-warning me-2"}}{{end}}
+                                <span class="fw-semibold small">TTL Configuration Guidance</span>
+                                {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
+                                <span class="badge bg-info bg-opacity-25 text-info ms-2">{{len .CurrencyReport.AllFindings}} {{if eq (len .CurrencyReport.AllFindings) 1}}Deviation{{else}}Deviations{{end}} · Traffic Engineering</span>
+                                {{else}}
+                                <span class="badge bg-warning text-dark ms-2">{{len .CurrencyReport.AllFindings}} {{if eq (len .CurrencyReport.AllFindings) 1}}Finding{{else}}Findings{{end}}</span>
+                                {{end}}
+                                {{icon "chevron-down" "ms-auto small"}}
+                            </button>
+                            <div class="collapse" id="ttlFindings">
+                                <div class="mt-2">
+                                    {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
+                                    <div class="alert alert-info py-2 mb-3 border-info border-opacity-25">
+                                        <div class="d-flex align-items-start">
+                                            {{icon "globe" "me-2 mt-1"}}
+                                            <div>
+                                                <strong>Enterprise Traffic Engineering Detected</strong>
+                                                <span class="badge bg-info bg-opacity-25 border border-info border-opacity-25 ms-2 small">{{.CurrencyReport.TrafficEngineering.Pattern}}</span>
+                                                <p class="mb-0 mt-1 small">{{.CurrencyReport.TrafficEngineering.Explanation}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    <p class="small text-muted mb-2">The following DNS record TTLs deviate from {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}typical{{else}}recommended{{end}} values. {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}For domains using DNS-based traffic management, short TTLs are expected and intentional.{{else}}Incorrect TTLs can cause caching issues, slow propagation, or unnecessary DNS traffic.{{end}}</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-sm table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Record Type</th>
+                                                    <th scope="col">Observed TTL</th>
+                                                    <th scope="col">Typical TTL</th>
+                                                    <th scope="col">Severity</th>
+                                                    <th scope="col">Context</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{range .CurrencyReport.AllFindings}}
+                                                <tr>
+                                                    <td><span class="fw-semibold">{{.RecordType}}</span></td>
+                                                    <td><code>{{.ObservedDisplay}}</code></td>
+                                                    <td><code>{{.TypicalDisplay}}</code></td>
+                                                    <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
+                                                    <td class="small">
+                                                        {{.Recommendation}}
+                                                        {{if .HasProviderNote}}
+                                                        <div class="mt-1 p-2 rounded bg-dark bg-opacity-50 border-start border-warning border-2">
+                                                            <strong>Provider Note:</strong> {{.ProviderNote}}
+                                                        </div>
+                                                        {{end}}
+                                                    </td>
+                                                </tr>
+                                                {{end}}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="mt-3 p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                                        <p class="fw-semibold small mb-2">Big Picture Questions</p>
+                                        <ul class="small text-muted mb-2">
+                                            {{if and .CurrencyReport.TrafficEngineering .CurrencyReport.TrafficEngineering.Detected}}
+                                            <li class="mb-1">This domain runs short TTLs across multiple record types. Does it operate a global anycast network where DNS-based traffic steering justifies the query volume?</li>
+                                            <li class="mb-1">Are the short TTLs enabling active failover, geographic routing, or load distribution &mdash; or are they leftover from a migration that was never reverted?</li>
+                                            <li class="mb-1">Enterprise-grade DNS infrastructure (sub-5ms authoritative response times, globally distributed nameservers) absorbs short-TTL query volume. Would your authoritative DNS handle the same load?</li>
+                                            {{else}}
+                                            <li class="mb-1">How often do you actually change this record? If it hasn&rsquo;t changed in months, a short TTL is generating unnecessary DNS queries without any benefit.</li>
+                                            <li class="mb-1">Are you preparing for a migration or IP change? Short TTLs make sense temporarily &mdash; but should be raised back to 1 hour (3600s) once the change is complete.</li>
+                                            <li class="mb-1">Every DNS lookup adds 20&ndash;150ms of latency. With a 60s TTL, returning visitors trigger a fresh lookup every minute. With 3600s, they get cached responses for an hour &mdash; faster page loads, no extra infrastructure needed.</li>
+                                            <li class="mb-1">Google runs A records at ~30s because they operate a global anycast network and need to steer traffic dynamically. For a typical website without that infrastructure, copying those TTLs increases query volume with zero upside.</li>
+                                            {{end}}
+                                        </ul>
+                                        <a href="/ttl-tuner?domain={{.Domain}}" class="btn btn-sm btn-outline-info">{{icon "sliders-h" "me-1"}}Tune TTL for {{.Domain}}</a>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Reference: NIST SP 800-53 SI-7 (Information Integrity) &middot; RFC 8767 (Serve Stale) &middot; RFC 1035 &sect;3.2.1 (TTL semantics)</small>
+                                    {{if .CurrencyReport.ProviderName}}
+                                    <small class="text-muted d-block mt-1">DNS provider detected: <strong>{{.CurrencyReport.ProviderName}}</strong> — provider-specific RFC compliance notes are shown inline above where applicable.</small>
+                                    {{else if not .IsPublicSuffix}}
+                                    <small class="text-muted d-block mt-1">{{icon "exclamation-circle" "me-1"}}Note: Some DNS providers (e.g., AWS Route 53 alias records, Cloudflare proxied records) enforce fixed TTLs that cannot be modified. If a finding targets a record you cannot edit, it reflects the observed value rather than a configuration error on your part.</small>
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        {{if .CurrencyReport.SOACompliance}}
+                        {{with .CurrencyReport.SOACompliance}}
+                        {{if .HasSOA}}
+                        <div class="mt-3 border-top border-secondary pt-3">
+                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#soaCompliance" type="button" aria-expanded="false" aria-controls="soaCompliance">
+                                {{icon "server" "text-accent-gold me-2"}}
+                                <span class="fw-semibold small">SOA Timer RFC Compliance</span>
+                                {{if .HasFindings}}
+                                <span class="badge bg-warning text-dark ms-2">{{len .Findings}} {{if eq (len .Findings) 1}}Finding{{else}}Findings{{end}}</span>
+                                {{else}}
+                                <span class="badge bg-success ms-2">Compliant</span>
+                                {{end}}
+                                {{icon "chevron-down" "ms-auto small"}}
+                            </button>
+                            <div class="collapse" id="soaCompliance">
+                                <div class="mt-2">
+                                    <div class="row mb-2">
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Primary NS</small>
+                                            <code class="small">{{.PrimaryNS}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Serial</small>
+                                            <code class="small">{{.Serial}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Admin</small>
+                                            <code class="small">{{.AdminEmail}}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-2">
+                                            <small class="text-muted d-block">Provider</small>
+                                            <span class="small">{{if .Provider}}{{.Provider}}{{else}}Unknown{{end}}</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-dark table-sm mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Timer</th>
+                                                    <th scope="col">Value</th>
+                                                    <th scope="col">RFC 1912 Range</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Refresh</td><td><code>{{.Refresh}}s</code></td><td class="small">1,200–43,200s (20 min – 12 hrs)</td></tr>
+                                                <tr><td>Retry</td><td><code>{{.Retry}}s</code></td><td class="small">Fraction of Refresh</td></tr>
+                                                <tr><td>Expire</td><td><code>{{.Expire}}s</code></td><td class="small">1,209,600–2,419,200s (14–28 days)</td></tr>
+                                                <tr><td>Minimum (Neg. Cache)</td><td><code>{{.MinTTL}}s</code></td><td class="small">300–86,400s (5 min – 1 day)</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {{if .HasFindings}}
+                                    {{range .Findings}}
+                                    <div class="alert alert-{{.SeverityClass}} py-2 mb-2 small">
+                                        <div class="d-flex align-items-start">
+                                            {{icon "exclamation-triangle" "me-2 mt-1"}}
+                                            <div>
+                                                <strong>{{.Field}}</strong>: {{.Explanation}}
+                                                <div class="mt-1">
+                                                    <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="text-decoration-none">{{icon "external-link-alt" "me-1"}}{{.RFC}}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    {{else}}
+                                    <div class="alert alert-success py-2 mb-2 small">
+                                        {{icon "check-circle" "me-2"}}All SOA timer values are within RFC 1912 recommended ranges.
+                                    </div>
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+                        {{end}}
+                        {{end}}
+
+                        {{if .CurrencyReport.HasProviderComplianceNotes}}
+                        <div class="mt-3 border-top border-secondary pt-3">
+                            <button class="btn btn-link text-decoration-none d-flex align-items-center p-0 border-0 w-100" data-bs-toggle="collapse" data-bs-target="#providerCompliance" type="button" aria-expanded="false" aria-controls="providerCompliance">
+                                {{icon "building" "text-accent-gold me-2"}}
+                                <span class="fw-semibold small">{{.CurrencyReport.ProviderName}} RFC Compliance Dossier</span>
+                                <span class="badge bg-info ms-2">{{len .CurrencyReport.ProviderComplianceNotes}} {{if eq (len .CurrencyReport.ProviderComplianceNotes) 1}}Note{{else}}Notes{{end}}</span>
+                                {{icon "chevron-down" "ms-auto small"}}
+                            </button>
+                            <div class="collapse" id="providerCompliance">
+                                <div class="mt-2">
+                                    <p class="small text-muted mb-2">Independent RFC compliance assessment for <strong>{{.CurrencyReport.ProviderName}}</strong>. Each finding cites the specific RFC section and reports what the engineering community consensus is. We report honestly &mdash; if a provider deviates from standards, we explain what they did differently and what the RFCs actually say.</p>
+                                    {{range .CurrencyReport.ProviderComplianceNotes}}
+                                    <div class="card bg-dark border-secondary mb-2">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex align-items-start">
+                                                {{icon "file-alt" "text-accent-gold me-2 mt-1"}}
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                        <strong class="small">{{.Title}}</strong>
+                                                        <a href="{{.RFCLink}}" target="_blank" rel="noopener" class="badge bg-info bg-opacity-25 text-info text-decoration-none">{{icon "external-link-alt" "me-1"}}{{.RFC}}</a>
+                                                    </div>
+                                                    <p class="small text-muted mb-1">{{.Detail}}</p>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge bg-warning text-dark">{{icon "gavel" "me-1"}}{{.Verdict}}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    <small class="text-muted d-block mt-2">This assessment is based on RFC specifications, provider documentation, and documented incidents from DNS engineering communities. DNS Tool does not have a commercial relationship with any provider listed.</small>
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        {{if .SuggestedConfig}}
+        {{with .SuggestedConfig}}
+        {{if .HasSuggestions}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-{{.ConfidenceClass}} bg-{{.ConfidenceClass}} bg-opacity-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                {{icon "sliders-h" "icon-2x text-{{.ConfidenceClass}} me-3"}}
+                                <div>
+                                    <span class="fw-semibold">Suggested Scanner Configuration</span>
+                                    <span class="badge bg-{{.ConfidenceClass}} ms-2">{{.Confidence | title}} Confidence</span>
+                                    <div class="text-muted small mt-1">Based on {{.BasedOn}} historical scans of this domain</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-{{.ConfidenceClass}} btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#suggestedConfigPanel" aria-expanded="false" aria-controls="suggestedConfigPanel">
+                                {{icon "chevron-down" "me-1"}}Review Suggestions
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="suggestedConfigPanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-2">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="sc-col-param">Parameter</th>
+                                            <th scope="col" class="sc-col-current">Current</th>
+                                            <th scope="col" class="sc-col-suggested">Suggested</th>
+                                            <th scope="col" class="sc-col-severity">Severity</th>
+                                            <th scope="col">Rationale</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range .Suggestions}}
+                                        <tr>
+                                            <td>{{icon .CategoryIcon "me-1 text-muted"}}<span class="fw-semibold">{{.Parameter}}</span></td>
+                                            <td><code>{{.Current}}</code></td>
+                                            <td><code>{{.Suggested}}</code></td>
+                                            <td><span class="badge bg-{{.SeverityClass}}">{{.Severity}}</span></td>
+                                            <td class="small">{{.Rationale}}<br><span class="text-muted fst-italic">{{.Standard}}</span></td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <small class="text-muted d-block mt-2">Suggestions require explicit approval before applying. No automatic changes will be made.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+        {{end}}
+        {{end}}
+        
+        {{if .IsPublicSuffix}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-info bg-info bg-opacity-10">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center">
+                            {{icon "globe-americas" "icon-2x text-accent-gold me-3"}}
+                            <div>
+                                <span class="fw-semibold">Registry Zone Health</span>
+                                <div class="d-flex align-items-center mt-1 flex-wrap gap-2">
+                                    {{if $dnssec}}
+                                    {{$dnssecStatus := mapGetStr "status" $dnssec}}
+                                    <span class="badge bg-{{if eq $dnssecStatus "secure"}}success{{else if eq $dnssecStatus "insecure"}}warning{{else}}secondary{{end}}">{{icon "key" "me-1"}}DNSSEC: {{title $dnssecStatus}}</span>
+                                    {{end}}
+                                    {{if and $caa (not .IsTLD)}}
+                                    {{$caaStatus := mapGetStr "status" $caa}}
+                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}}">{{icon "lock" "me-1"}}CAA: {{if eq $caaStatus "success"}}Configured{{else}}Not Set{{end}}</span>
+                                    {{end}}
+                                    {{if and $dane (not .IsPublicSuffix)}}
+                                    {{$daneStatus := mapGetStr "status" $dane}}
+                                    <span class="badge bg-{{if eq $daneStatus "success"}}success{{else}}secondary{{end}}">{{icon "certificate" "me-1"}}DANE: {{title $daneStatus}}</span>
+                                    {{end}}
+                                    {{if $ns}}
+                                    {{$nsCount := mapGetFloat "ns_count" $ns}}
+                                    <span class="badge bg-{{if ge $nsCount 2.0}}success{{else}}warning{{end}}">{{icon "server" "me-1"}}{{formatFloat 0 $nsCount}} Nameservers</span>
+                                    {{end}}
+                                </div>
+                                <small class="text-muted d-block mt-1">Zone infrastructure protocols applicable to registry suffixes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         {{end}}
 
         <hr class="section-separator-major">
@@ -4890,7 +4867,8 @@
                                         {{range $i, $item := $altItems}}{{if $i}}, {{end}}{{$item}}{{end}}
                                     </div>
                                     {{end}}
-                                    {{else if or (eq $enterpriseDNSPattern "dedicated") (eq $enterpriseDNSPattern "managed") (eq $enterpriseDNSPattern "multi-provider")}}
+                                    {{/* "mixed" is included here so every pattern that surfaces the top-level "Enterprise DNS Posture" note (dedicated/mixed/multi-provider) also has matching DNS-layer detail at this anchor — keeping the note's "see DNS-layer detail" link valid. "managed" is shown here (deep detail, fully caveated) but deliberately NOT at the top-level verdict, where a single managed-DNS provider should not read as an enterprise posture claim. */}}
+                                    {{else if or (eq $enterpriseDNSPattern "dedicated") (eq $enterpriseDNSPattern "mixed") (eq $enterpriseDNSPattern "managed") (eq $enterpriseDNSPattern "multi-provider")}}
                                     <div class="small text-info mb-2">
                                         {{icon "building" "me-1"}}
                                         <strong>Enterprise DNS Context:</strong> DNSSEC is the only standardized, DNS-verifiable mechanism that cryptographically authenticates responses between authoritative servers and resolvers (<a href="https://www.rfc-editor.org/rfc/rfc4033.html#section-2:~:text=DNSSEC%20provides%20origin%20authentication%20and%20integrity%20protection" target="_blank" rel="noopener" class="text-info">RFC 4033 &sect;2</a>, <a href="https://www.rfc-editor.org/rfc/rfc4035.html#:~:text=Protocol%20Modifications%20for%20the%20DNS%20Security%20Extensions" target="_blank" rel="noopener" class="text-info">RFC 4035</a>). Without it, DNS responses are technically vulnerable to in-transit tampering. Enterprise operators may employ compensating controls (anycast, DDoS mitigation, private peering, TSIG) &mdash; however, these do not provide DNS-layer data authentication to third-party resolvers and are not verifiable via DNS alone.

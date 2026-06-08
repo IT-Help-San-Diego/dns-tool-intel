@@ -40,6 +40,15 @@ mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR"
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
 
+  # Deploy build is one-shot in an ephemeral container: keep Go caches in /tmp so
+  # they are NOT baked into the deployment image. Workspace-relative caches push
+  # the image over the 8 GiB limit. The dev-workflow rationale for workspace caches
+  # (persistence across restarts, race-avoidance) does not apply to the deploy build.
+  export GOCACHE=/tmp/go-build-cache
+  export GOMODCACHE=/tmp/go-mod-cache
+  export GOTMPDIR=/tmp/go-tmp
+  mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR"
+
   echo "Compiling dns-tool-server for deployment..."
   cd "$SCRIPT_DIR"
   CGO_ENABLED=0 GONOSUMCHECK=1 go build \

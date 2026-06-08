@@ -182,18 +182,24 @@ type nsClassification struct {
 func classifyNameservers(nameservers []string, domainBase string) nsClassification {
         c := nsClassification{providers: map[string]int{}}
         for _, ns := range nameservers {
-                provider := classifyNSProvider(ns)
-                if provider != "" {
+                // Self-hosted nameservers (within the analyzed domain's OWN registrable
+                // domain) are the strongest signal of organization-operated DNS and take
+                // precedence over third-party provider-name matching. e.g. ns1.google.com
+                // under google.com is dedicated infrastructure, not "managed by Google
+                // Cloud DNS" — provider-name matching only identifies THIRD-party hosting.
+                if domainBase != "" && strings.HasSuffix(strings.ToLower(ns), "."+domainBase) {
+                        c.dedicated++
+                        c.dedicatedNS = append(c.dedicatedNS, ns)
+                        continue
+                }
+                if provider := classifyNSProvider(ns); provider != "" {
                         c.managed++
                         c.providers[provider]++
                         c.managedNS = append(c.managedNS, ns)
-                } else if domainBase != "" && strings.HasSuffix(strings.ToLower(ns), "."+domainBase) {
-                        c.dedicated++
-                        c.dedicatedNS = append(c.dedicatedNS, ns)
-                } else {
-                        c.managed++
-                        c.managedNS = append(c.managedNS, ns)
+                        continue
                 }
+                c.managed++
+                c.managedNS = append(c.managedNS, ns)
         }
         return c
 }
