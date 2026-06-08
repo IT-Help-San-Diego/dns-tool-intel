@@ -681,13 +681,13 @@ func evaluateDeliberateMonitoring(ps protocolState, configuredCount int) (bool, 
                 return false, ""
         }
         if ps.dmarcPolicy == statusNone && configuredCount >= 2 {
-                return true, "Domain appears to be in deliberate DMARC monitoring phase with aggregate reporting enabled"
+                return true, "DMARC is published at p=none with aggregate reporting enabled (RFC 7489 §6.3) — authentication results are reported but no enforcement is requested. It's possible this organization is deliberately prioritizing observation over enforcement; note that p=none does not block spoofed mail, so moving to quarantine or reject adds protection while aggregate reporting continues unchanged."
         }
         if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct < 100 && configuredCount >= 2 {
-                return true, "Domain appears to be in deliberate DMARC deployment phase — quarantine at partial enforcement with reporting enabled"
+                return true, "DMARC quarantine is enforced at partial percentage with aggregate reporting (RFC 7489 §6.3). Quarantine accepts failing mail for inspection (e.g. spam folder) rather than refusing it at delivery — it's possible this organization values that message-level visibility over outright rejection. Raising the percentage toward p=reject increases enforcement when full rejection is the goal; aggregate reporting continues under reject."
         }
         if ps.dmarcPolicy == mapKeyQuarantine && ps.dmarcPct >= 100 && configuredCount >= 2 {
-                return true, "Domain appears to be in deliberate DMARC deployment phase — quarantine fully enforced with reporting, consider upgrading to reject"
+                return true, "DMARC quarantine is fully enforced (100%) with aggregate reporting (RFC 7489 §6.3). Unlike p=reject, which refuses unauthenticated mail at delivery, quarantine still accepts it for inspection — combined with active reporting, it's possible this organization values that retained message-level visibility over pure rejection. p=reject remains the strongest anti-spoofing posture if message-level inspection is not a deliberate requirement (aggregate reporting is unaffected by either policy)."
         }
         return false, ""
 }
