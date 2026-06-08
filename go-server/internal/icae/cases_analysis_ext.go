@@ -383,13 +383,13 @@ func regressionCases() []TestCase {
         return []TestCase{
                 {
                         CaseID:     "provider-regression-001",
-                        CaseName:   "Stub isHostedEmailProvider returns true (conservative default prevents DANE recs for hosted providers)",
+                        CaseName:   "Known hosted provider (Google Workspace) is detected — suppresses inappropriate DANE recommendations",
                         Protocol:   protocolDANE,
                         Layer:      LayerAnalysis,
                         RFCSection: citRFC7672S13,
                         Expected:   expectedTrue,
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportIsHostedEmailProvider("example.com")
+                                result := analyzer.ExportIsHostedEmailProvider("google workspace")
                                 return fmt.Sprintf("%v", result), result == true
                         },
                 },

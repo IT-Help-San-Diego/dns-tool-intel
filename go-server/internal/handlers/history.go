@@ -12,6 +12,7 @@ import (
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
         "dnstool/go-server/internal/dbq"
+        "dnstool/go-server/internal/icsae"
 
         "github.com/gin-gonic/gin"
 )
@@ -43,6 +44,49 @@ type historyAnalysisItem struct {
         CreatedTime      string
         ToolVersion      string
         RequestSource    string
+        RiskLevel        string
+        RiskColor        string
+        FixCount         int
+        FixColor         string
+}
+
+// normalizeRiskColor whitelists the posture color read from persisted
+// full_results JSON to a known Bootstrap contextual token before it is
+// interpolated into a bg-* class. Stored JSON can drift across versions, so we
+// never trust the producer: any unrecognized value falls back to "secondary".
+func normalizeRiskColor(color string) string {
+        switch color {
+        case "success", "info", "warning", "danger":
+                return color
+        default:
+                return "secondary"
+        }
+}
+
+// postureSliceLen returns the length of a JSON array stored under key in the
+// already-decoded posture map, tolerating absent or wrong-typed values.
+func postureSliceLen(posture map[string]interface{}, key string) int {
+        if arr, ok := posture[key].([]interface{}); ok {
+                return len(arr)
+        }
+        return 0
+}
+
+// icsaeFixSummary derives the reality-matched "to Fix" count from a persisted
+// ICSAE evaluation. The headline count is RealFixCount: failed controls that
+// carry a real, RFC-grounded operational-security consequence for THIS operator.
+// Controls absent by deliberate enterprise choice (with strong compensating
+// posture), impossible on the operator's mail platform, that we could not verify
+// (e.g. DKIM selectors), or optional hardening are sorted into honest context
+// buckets and excluded from the headline — so the count stays trustworthy in
+// both directions. See icsae.ClassifyFixes. The boolean is false when the scan
+// predates ICSAE wiring, so callers can fall back to posture-derived counts.
+func icsaeFixSummary(fr map[string]interface{}) (int, string, bool) {
+        fc, ok := icsae.ClassifyFromResults(fr)
+        if !ok {
+                return 0, "", false
+        }
+        return fc.RealFixCount, fc.Color, true
 }
 
 func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
@@ -69,6 +113,10 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
         }
         toolVersion := ""
         requestSource := ""
+        riskLevel := ""
+        riskColor := ""
+        fixCount := 0
+        fixColor := ""
         if len(a.FullResults) > 0 {
                 var fr map[string]interface{}
                 if json.Unmarshal(a.FullResults, &fr) == nil {
@@ -77,6 +125,32 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                         }
                         if rs, ok := fr["_request_source"].(string); ok {
                                 requestSource = rs
+                        }
+                        if posture, ok := fr["posture"].(map[string]interface{}); ok {
+                                if st, ok := posture["state"].(string); ok {
+                                        riskLevel = st
+                                }
+                                if cl, ok := posture["color"].(string); ok {
+                                        riskColor = normalizeRiskColor(cl)
+                                }
+                        }
+                        // Catalog-backed "to Fix" count: the reality-matched RealFixCount from
+                        // icsae.ClassifyFixes (failed controls that carry a real, RFC-grounded
+                        // consequence for THIS operator; deliberate posture, platform limits,
+                        // could-not-verify and hygiene are bucketed out). Falls back to
+                        // posture-derived issues for scans recorded before ICSAE was wired in.
+                        if c, col, ok := icsaeFixSummary(fr); ok {
+                                fixCount = c
+                                fixColor = col
+                        } else if posture, ok := fr["posture"].(map[string]interface{}); ok {
+                                critical := postureSliceLen(posture, "critical_issues")
+                                recommendations := postureSliceLen(posture, "recommendations")
+                                fixCount = critical + recommendations
+                                if critical > 0 {
+                                        fixColor = "danger"
+                                } else if recommendations > 0 {
+                                        fixColor = "warning"
+                                }
                         }
                 }
         }
@@ -92,6 +166,10 @@ func buildHistoryItem(a dbq.DomainAnalysis) historyAnalysisItem {
                 CreatedTime:      createdTime,
                 ToolVersion:      toolVersion,
                 RequestSource:    requestSource,
+                RiskLevel:        riskLevel,
+                RiskColor:        riskColor,
+                FixCount:         fixCount,
+                FixColor:         fixColor,
         }
 }
 

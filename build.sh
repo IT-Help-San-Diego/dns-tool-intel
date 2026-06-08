@@ -24,11 +24,18 @@ LDFLAGS="-s -w \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 
-export GOCACHE=/tmp/go-build-cache
-export GOMODCACHE=/tmp/go-mod-cache
-export GOTMPDIR=/tmp/go-tmp
-rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
-mkdir -p /tmp/go-build-cache /tmp/go-tmp
+# Go caches live in the WORKSPACE (persistent, gitignored), NOT /tmp. /tmp is subject
+# to OS pruning AND, previously, to this script's own `rm -rf`, which raced concurrent
+# go commands (e.g. scripts/quality-gate.sh `go vet`) and produced
+# "failed to trim cache: ... trim.txt: no such file" / "creating work dir: stat ...".
+# Workspace-relative paths survive both OS /tmp cleanup and the workflow restart that
+# fires on every checkpoint (`bash build.sh && ./dns-tool-server`). NEVER delete these
+# dirs: Go's cache is content-addressed, so stale entries can't corrupt a build.
+# mkdir -p is idempotent and safe. Keep these in lockstep with .replit [userenv.shared].
+export GOCACHE="$SCRIPT_DIR/.go-build-cache"
+export GOMODCACHE="$SCRIPT_DIR/.go-mod-cache"
+export GOTMPDIR="$SCRIPT_DIR/.go-tmp"
+mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR"
 
 if [ "$1" = "--deploy" ]; then
   echo "Deployment build — v${VERSION}"
@@ -42,7 +49,6 @@ if [ "$1" = "--deploy" ]; then
     -tags netgo \
     -o "$SCRIPT_DIR/dns-tool-server" \
     ./go-server/cmd/server/
-  rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
   echo "Binary built:"
   ls -la "$SCRIPT_DIR/dns-tool-server"
@@ -62,8 +68,6 @@ CGO_ENABLED=0 GONOSUMCHECK=1 go build \
   -o "$SCRIPT_DIR/dns-tool-server-new" \
   ./go-server/cmd/server/
 mv "$SCRIPT_DIR/dns-tool-server-new" "$SCRIPT_DIR/dns-tool-server"
-
-rm -rf /tmp/go-build-cache /tmp/go-tmp 2>/dev/null || true
 
 echo "Build complete: dns-tool-server (v${VERSION} ${GIT_COMMIT} ${BUILD_TIME})"
 ls -la dns-tool-server

@@ -72,4 +72,6 @@ else
   echo "  If preview doesn't update, click the ▶ restart button in the Console tab."
 fi
 echo ""
-echo "Ready. Run: bash scripts/git-push.sh"
+echo "Ready. Next steps (the three-command ship plan):"
+echo "  2. bash scripts/quality-gate.sh    # R009 + R010 + R011 + go vet + core tests + RFC attacks"
+echo "  3. bash scripts/git-push.sh        # push branch → open PR → wait CI → auto-merge --rebase"

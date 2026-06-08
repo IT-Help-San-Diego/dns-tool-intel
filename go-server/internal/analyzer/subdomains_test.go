@@ -879,6 +879,79 @@ func newTestAnalyzerForCT(reg *telemetry.Registry) *Analyzer {
         }
 }
 
+// slowProbeDNSClient simulates a DNS probe that ignores context cancellation and
+// blocks far longer than any test budget. It exists to prove that
+// probeCommonSubdomains stops scheduling new probes once its context is done,
+// without depending on any live network.
+type slowProbeDNSClient struct {
+        *MockDNSClient
+}
+
+func (s *slowProbeDNSClient) ProbeExists(_ context.Context, _ string) (bool, string) {
+        time.Sleep(30 * time.Second)
+        return false, ""
+}
+
+func TestProbeCommonSubdomainsHonorsCancellation(t *testing.T) {
+        a := &Analyzer{DNS: &slowProbeDNSClient{MockDNSClient: NewMockDNSClient()}}
+
+        ctx, cancel := context.WithCancel(context.Background())
+        cancel()
+
+        subdomainSet := make(map[string]map[string]any)
+        done := make(chan int, 1)
+        start := time.Now()
+        go func() {
+                done <- a.probeCommonSubdomains(ctx, "example.com", subdomainSet)
+        }()
+
+        select {
+        case found := <-done:
+                if found != 0 {
+                        t.Errorf("expected 0 probes scheduled under cancellation, got %d", found)
+                }
+                t.Logf("probeCommonSubdomains honored cancellation in %s", time.Since(start))
+        case <-time.After(5 * time.Second):
+                t.Fatal("probeCommonSubdomains ignored context cancellation — scheduled probes after ctx done")
+        }
+}
+
+// allExistDNSClient reports every probed name as existing, so the test can prove
+// that under a normal (non-cancelled) context probeCommonSubdomains still
+// schedules and counts EVERY common probe — i.e. the cancellation hardening does
+// not reduce discovery on the happy path.
+type allExistDNSClient struct {
+        *MockDNSClient
+}
+
+func (a *allExistDNSClient) ProbeExists(_ context.Context, _ string) (bool, string) {
+        return true, ""
+}
+
+func TestProbeCommonSubdomainsFindsAllUnderLiveContext(t *testing.T) {
+        a := &Analyzer{DNS: &allExistDNSClient{MockDNSClient: NewMockDNSClient()}}
+
+        unique := make(map[string]struct{}, len(commonSubdomainProbes))
+        for _, p := range commonSubdomainProbes {
+                unique[p] = struct{}{}
+        }
+        wantUnique := len(unique)
+
+        subdomainSet := make(map[string]map[string]any)
+        found := a.probeCommonSubdomains(context.Background(), "example.com", subdomainSet)
+
+        // Under a normal (non-cancelled) context every unique common subdomain must
+        // be discovered — the cancellation hardening must not reduce happy-path
+        // discovery. The set is deterministic; the count may meet or exceed it.
+        if len(subdomainSet) != wantUnique {
+                t.Errorf("happy-path regression: expected all %d unique common subdomains discovered, got %d", wantUnique, len(subdomainSet))
+        }
+        if found < wantUnique {
+                t.Errorf("happy-path regression: found count %d is below unique common subdomains %d", found, wantUnique)
+        }
+        t.Logf("live-context probe discovered all %d unique common subdomains (found=%d)", len(subdomainSet), found)
+}
+
 func TestFetchCTEntriesWithFallback_CooldownPath(t *testing.T) {
         reg := telemetry.NewRegistry()
         for i := 0; i < 20; i++ {
@@ -929,5 +1002,50 @@ func TestDiscoverSubdomainsWithBudget_NoData(t *testing.T) {
         }
         if status != "success" {
                 t.Errorf("expected status='success', got %q", status)
+        }
+}
+
+// TestDiscoverSubdomainsMergesExternalTools guards the externalToolsFn seam:
+// whatever the external-tool entrypoint returns must be merged into the
+// DiscoverSubdomains output tagged as source "external_tools". This keeps the
+// default-suite stub from silently masking a regression in the merge path.
+func TestDiscoverSubdomainsMergesExternalTools(t *testing.T) {
+        reg := telemetry.NewRegistry()
+        for i := 0; i < 20; i++ {
+                reg.RecordFailure("ct:crt.sh", "test forced failure")
+        }
+        a := newTestAnalyzerForCT(reg)
+
+        const domain = "seam-test-domain.invalid"
+        want := []string{"vpn." + domain, "api." + domain}
+
+        prev := externalToolsFn
+        externalToolsFn = func(context.Context, string) []string {
+                return append([]string(nil), want...)
+        }
+        defer func() { externalToolsFn = prev }()
+
+        result := a.DiscoverSubdomains(context.Background(), domain)
+
+        subs, ok := result[mapKeySubdomains].([]map[string]any)
+        if !ok {
+                t.Fatalf("expected %s to be []map[string]any, got %T", mapKeySubdomains, result[mapKeySubdomains])
+        }
+
+        gotSource := make(map[string]string, len(subs))
+        for _, s := range subs {
+                name, _ := s[mapKeyName].(string)
+                src, _ := s[mapKeySource].(string)
+                gotSource[name] = src
+        }
+        for _, w := range want {
+                src, found := gotSource[w]
+                if !found {
+                        t.Errorf("external-tools subdomain %q missing from output — seam merge regressed", w)
+                        continue
+                }
+                if src != "external_tools" {
+                        t.Errorf("subdomain %q has source %q, want %q", w, src, "external_tools")
+                }
         }
 }
