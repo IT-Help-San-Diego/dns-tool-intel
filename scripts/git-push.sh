@@ -319,9 +319,15 @@ if [ "$PUSH_MAIN" -eq 1 ]; then
       echo "  Reusing existing PR #${PR_NUM}"
     fi
 
-    # 2. Request auto-merge with rebase (preserves linear history)
-    echo "  Enabling auto-merge (rebase strategy) ..."
-    if ! gh pr merge -R "$REPO" "$PR_NUM" --auto --rebase 2>&1; then
+    # 2. Request auto-merge with SQUASH.
+    #    main requires verified commits; GitHub signs server-side squash commits
+    #    (verified:true), while Replit checkpoint commits are unsigned. Squash is
+    #    the ONLY method that lands a signed commit on main. NEVER use --rebase or
+    #    --merge here: they carry the unsigned commits onto main and the merge is
+    #    rejected ("base branch policy prohibits the merge"). Squash-only is also
+    #    enforced at the repo + ruleset level; scripts/check-merge-policy.sh guards it.
+    echo "  Enabling auto-merge (squash strategy — signed commit on main) ..."
+    if ! gh pr merge -R "$REPO" "$PR_NUM" --auto --squash 2>&1; then
       echo "  Note: auto-merge may already be enabled, or required checks not yet running."
     fi
 
