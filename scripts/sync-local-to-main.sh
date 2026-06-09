@@ -51,15 +51,19 @@ fi
 
 echo "=== Sync ${LOCAL_BRANCH} with origin/${SHIP_BRANCH} ==="
 
-# ── GATE: working tree must be clean ──
-if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+# ── GATE: no uncommitted changes to TRACKED files ──
+# Untracked files (.local/, *.log, build junk) are deliberately ignored: a merge
+# cannot clobber work that git is not tracking, and git itself refuses if a merge
+# would overwrite an untracked file. The real danger is staged/unstaged edits to
+# tracked files, which a merge could silently fold in — those still hard-stop.
+if [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then
   echo ""
-  echo "  HARD STOP: working tree has uncommitted changes."
+  echo "  HARD STOP: tracked files have uncommitted changes."
   echo "  Let the Replit checkpoint commit them (or commit/stash), then re-run."
-  git status --short 2>/dev/null | sed 's/^/    /'
+  git status --short --untracked-files=no 2>/dev/null | sed 's/^/    /'
   exit 1
 fi
-echo "  PASS — working tree clean"
+echo "  PASS — no uncommitted changes to tracked files"
 
 # ── GATE: no interrupted merge/rebase ──
 if [ -f ".git/MERGE_HEAD" ] || [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
