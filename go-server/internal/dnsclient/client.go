@@ -314,6 +314,114 @@ func (c *Client) parallelUDPQuery(ctx context.Context, domain, recordType string
         return nil
 }
 
+// LookupStatus classifies the outcome of a DNS resolution attempt so callers can
+// tell "the record is genuinely absent" apart from "the lookup failed". This
+// distinction is required by RFC 7489 §7.1 external-reporting authorization,
+// where asserting "not authorized" from a probe that never completed is a false
+// negative — see QueryDNSWithStatus.
+type LookupStatus int
+
+const (
+        // LookupError means the lookup was indeterminate (timeout / SERVFAIL /
+        // network error). Callers MUST NOT infer a record's absence from this.
+        LookupError LookupStatus = iota
+        // LookupResolved means at least one resolver returned answer records.
+        LookupResolved
+        // LookupAbsent means a resolver authoritatively reported no such record
+        // (NXDOMAIN, or NOERROR with no matching answer / NODATA) — the record is
+        // genuinely not published.
+        LookupAbsent
+)
+
+// resolverOutcome is the per-resolver classification used to fold many resolver
+// answers into a single LookupStatus.
+type resolverOutcome int
+
+const (
+        // outcomeTransient — the resolver could not give an authoritative answer
+        // (timeout, SERVFAIL, REFUSED, FORMERR, network error). It says nothing about
+        // whether the record exists and MUST NOT be read as absence.
+        outcomeTransient resolverOutcome = iota
+        // outcomeAbsent — an authoritative "no record" (NXDOMAIN, or NOERROR/NODATA).
+        outcomeAbsent
+        // outcomeResolved — the resolver returned answer records.
+        outcomeResolved
+)
+
+// classifyResolverResult maps a single resolver's (errStr, records) into one of
+// three outcomes. errStr is "" on success (NOERROR), "NXDOMAIN" for NXDOMAIN, and
+// the RCODE name (e.g. "SERVFAIL", "REFUSED") or an error string for any other
+// failure — so only "" and "NXDOMAIN" count as authoritative absence.
+func classifyResolverResult(errStr string, records []string) resolverOutcome {
+        switch {
+        case errStr == "" && len(records) > 0:
+                return outcomeResolved
+        case errStr == "" || errStr == "NXDOMAIN":
+                return outcomeAbsent
+        default:
+                return outcomeTransient
+        }
+}
+
+// QueryDNSWithStatus resolves recordType/domain and classifies the outcome.
+// Unlike QueryDNS — which returns an empty slice for BOTH a genuinely-absent
+// record and a failed lookup — this reports a transient failure as LookupError,
+// so callers never fabricate an "absent" verdict from a probe that timed out.
+func (c *Client) QueryDNSWithStatus(ctx context.Context, recordType, domain string) ([]string, LookupStatus) {
+        if domain == "" || recordType == "" {
+                return nil, LookupError
+        }
+
+        cacheKey := fmt.Sprintf("%s:%s", strings.ToUpper(recordType), strings.ToLower(domain))
+        if cached, ok := c.cacheGet(cacheKey); ok {
+                return cached, LookupResolved
+        }
+
+        type res struct {
+                records []string
+                errStr  string
+        }
+        ch := make(chan res, len(c.resolvers))
+        qctx, cancel := context.WithTimeout(ctx, defaultLifetime)
+        defer cancel()
+
+        for _, resolver := range c.resolvers {
+                go func(ip string) {
+                        _, records, errStr := c.querySingleResolver(qctx, domain, recordType, ip)
+                        ch <- res{records: records, errStr: errStr}
+                }(resolver.IP)
+        }
+
+        sawAbsent := false
+        for range c.resolvers {
+                r := <-ch
+                switch classifyResolverResult(r.errStr, r.records) {
+                case outcomeResolved:
+                        c.cacheSet(cacheKey, r.records)
+                        return r.records, LookupResolved
+                case outcomeAbsent:
+                        // NOERROR-with-no-answer (NODATA) or NXDOMAIN: authoritative
+                        // confirmation the record is not published.
+                        sawAbsent = true
+                }
+                // outcomeTransient (timeout, SERVFAIL, REFUSED, network) is ignored so
+                // one failing resolver cannot masquerade as an authoritative absence.
+        }
+
+        if sawAbsent {
+                return nil, LookupAbsent
+        }
+
+        // Every UDP resolver failed transiently. Use DoH ONLY as positive
+        // confirmation: records => resolved. Absence is never asserted from here,
+        // because the DoH path also collapses errors into an empty answer.
+        if dohResults := c.dohQuery(ctx, domain, recordType); len(dohResults) > 0 {
+                c.cacheSet(cacheKey, dohResults)
+                return dohResults, LookupResolved
+        }
+        return nil, LookupError
+}
+
 func (c *Client) QueryDNSWithTTL(ctx context.Context, recordType, domain string) RecordWithTTL {
         if domain == "" || recordType == "" {
                 return RecordWithTTL{}
@@ -366,6 +474,17 @@ func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, re
 
         if r.Rcode == dns.RcodeNameError {
                 return resolverIP, nil, "NXDOMAIN"
+        }
+
+        // Any non-success RCODE other than NXDOMAIN (SERVFAIL, REFUSED, FORMERR, …)
+        // is a server-side failure, NOT an authoritative answer. Surface it as a
+        // transient error so callers never mistake it for "record is absent".
+        if r.Rcode != dns.RcodeSuccess {
+                rcodeName, ok := dns.RcodeToString[r.Rcode]
+                if !ok {
+                        rcodeName = fmt.Sprintf("RCODE%d", r.Rcode)
+                }
+                return resolverIP, nil, rcodeName
         }
 
         var results []string

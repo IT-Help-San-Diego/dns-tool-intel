@@ -2035,12 +2035,20 @@
                                     <span class="protocol-question-text dt-question dt-question--protocol">Are external report receivers authorized?</span>
                                     {{if eq $draStatus "success"}}
                                         <span class="badge bg-success">Yes — all authorized</span>
+                                    {{else if eq $draStatus "indeterminate"}}
+                                        <span class="badge bg-secondary">Could not verify</span>
                                     {{else}}
                                         <span class="badge bg-warning text-dark">Authorization missing</span>
                                     {{end}}
                                 </div>
                                 <div class="mb-2">
-                                    <span class="badge bg-{{if eq $draStatus "success"}}success{{else}}warning{{end}}">{{title $draStatus}}</span>
+                                    {{if eq $draStatus "success"}}
+                                    <span class="badge bg-success">{{title $draStatus}}</span>
+                                    {{else if eq $draStatus "indeterminate"}}
+                                    <span class="badge bg-secondary">Unverified</span>
+                                    {{else}}
+                                    <span class="badge bg-warning text-dark">{{title $draStatus}}</span>
+                                    {{end}}
                                 </div>
                                 <p class="text-muted mb-2 small">{{mapGetStr "message" $dmarc_report_auth}}</p>
                                 <div class="table-responsive">
@@ -2061,6 +2069,8 @@
                                                 <td>
                                                     {{if mapGetBool "authorized" $edMap}}
                                                     <span class="badge bg-success">{{icon "check" "me-1"}}Authorized</span>
+                                                    {{else if eq (mapGetStr "auth_state" $edMap) "indeterminate"}}
+                                                    <span class="badge bg-secondary">{{icon "info-circle" "me-1"}}Unverified</span>
                                                     {{else}}
                                                     <span class="badge bg-warning text-dark">{{icon "times" "me-1"}}Unauthorized</span>
                                                     {{end}}
@@ -2085,6 +2095,15 @@
                                     <p class="small text-muted mb-1">This authorization record must be created by the <strong>external reporting provider</strong>, not by you. Per RFC 7489 &sect;7.1, the receiving domain must publish a TXT record to confirm it accepts DMARC reports from your domain.</p>
                                     <p class="small text-muted mb-1"><strong>What to do:</strong> Contact your DMARC reporting provider and ask them to publish the authorization TXT record shown above. If you use a managed DMARC service (e.g., Ondmarc, Dmarcian, Valimail), this is typically handled during onboarding &mdash; reach out to their support if the record is missing.</p>
                                     <p class="small text-muted mb-0"><strong>Impact if unresolved:</strong> Compliant receivers may silently discard aggregate or forensic reports destined for the unauthorized address, reducing your DMARC visibility.</p>
+                                </div>
+                                {{end}}
+                                {{$draNotices := mapGetSlice "notices" $dmarc_report_auth}}
+                                {{if $draNotices}}
+                                {{range $notice := $draNotices}}
+                                <div class="text-muted small">{{icon "info-circle" "me-1"}}{{$notice}}</div>
+                                {{end}}
+                                <div class="mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                                    <p class="small text-muted mb-0"><strong>Why "unverified":</strong> The authorization TXT record could not be resolved this scan (a transient DNS failure, not a confirmed absence). We do not report it as missing, because asserting absence from a failed lookup would be a false finding. Re-run the scan to confirm.</p>
                                 </div>
                                 {{end}}
                             </div>
