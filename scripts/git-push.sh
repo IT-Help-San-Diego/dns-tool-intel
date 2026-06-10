@@ -173,216 +173,217 @@ echo ""
 echo "=== All safety gates passed ==="
 echo ""
 
-# ── Pre-push: check what GitHub has vs what we have ──
-LOCAL_SHA=$(git rev-parse HEAD 2>/dev/null)
-REMOTE_SHA=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
+# ════════════════════════════════════════════════════════════════════════════
+# EPHEMERAL-BRANCH SHIP MODEL (2026-06-08) — the permanent fix for
+# "! [rejected] ... (fetch first)" non-fast-forward push failures.
+#
+# OLD (broken): always pushed the workspace HEAD onto a PERSISTENT remote branch
+#   (replit-agent). Because every merge to main is a SQUASH (a brand-new commit
+#   the local branch never contains) while Replit keeps adding checkpoint commits
+#   locally, the local branch and the persistent remote branch inevitably DIVERGE
+#   -> non-fast-forward -> retries forever. A single stale orphan branch poisons
+#   every future ship.
+#
+# NEW (durable): push the workspace HEAD to a FRESH, uniquely-named remote branch
+#   each run. A brand-new branch has nothing to diverge from, so the push can
+#   never be rejected non-fast-forward. The branch is then squash-merged into
+#   main (GitHub signs the squash commit -> main stays verified) and auto-deleted.
+#   No persistent feature branch, no divergence, ever.
+#
+# TOKENS: the git PUSH uses GH_SYNC_TOKEN (push scope). The PR lifecycle
+#   (create + enable auto-merge) needs PR scope, which GH_SYNC_TOKEN lacks
+#   ("createPullRequest: Resource not accessible"), so ALL_GH (owner token) is
+#   used ONLY for the gh PR calls. These are repo/PR API operations, NOT git-ref
+#   writes — compliant with the Repo Sync Law (no createCommit/updateRef/merges).
+# ════════════════════════════════════════════════════════════════════════════
 
-if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
-  echo "Already synced — local HEAD ($LOCAL_SHA) matches GitHub."
+LOCAL_SHA=$(git rev-parse HEAD 2>/dev/null)
+STAMP="$(date -u +%Y%m%d-%H%M%S)"
+SHORT_SHA="$(git rev-parse --short=9 HEAD 2>/dev/null)"
+
+# Decide the fresh remote branch name.
+if [ "$REMOTE_BRANCH" != "$LOCAL_BRANCH" ]; then
+  # User passed --branch X explicitly: honor it verbatim (advanced/manual use).
+  TARGET_REMOTE_BRANCH="$REMOTE_BRANCH"
+elif [ "$PUSH_MAIN" -eq 1 ]; then
+  TARGET_REMOTE_BRANCH="ship/${STAMP}-${SHORT_SHA}"      # ships to main, auto-deleted on merge
+else
+  TARGET_REMOTE_BRANCH="snapshot/${STAMP}-${SHORT_SHA}"  # backup only (--no-main)
+fi
+
+# ── Idempotency guard: if an open PR already ships this EXACT HEAD, reuse it ──
+# Without this, re-running after a SHIP TIMEOUT would open a duplicate ship/* PR
+# every time. We match on headRefOid (the pushed commit), so a re-run for the same
+# workspace state resumes the in-flight PR instead of cluttering the repo.
+REUSE_PR=""
+if [ "$PUSH_MAIN" -eq 1 ] && [ "$REMOTE_BRANCH" = "$LOCAL_BRANCH" ] && [ -n "${ALL_GH:-}" ] && command -v gh >/dev/null 2>&1; then
+  REUSE_PR=$(GH_TOKEN="$ALL_GH" gh pr list -R "$REPO" --base "$SHIP_BRANCH" --state open \
+    --json number,headRefOid --jq "map(select(.headRefOid==\"$LOCAL_SHA\"))|.[0].number" 2>/dev/null)
+  [ "$REUSE_PR" = "null" ] && REUSE_PR=""
+fi
+
+echo "Workspace HEAD:      ${LOCAL_SHA}"
+if [ -n "$REUSE_PR" ]; then
+  echo "In-flight PR:        #${REUSE_PR} (already ships this exact HEAD — reusing, no new branch)"
+else
+  echo "Fresh remote branch: ${TARGET_REMOTE_BRANCH}"
+fi
+echo ""
+git log --oneline -5 2>/dev/null
+
+# ── Push to the fresh branch (skipped when reusing an in-flight PR) ──
+if [ -z "$REUSE_PR" ]; then
+  echo ""
+  echo "Pushing ${LOCAL_BRANCH} → ${TARGET_REMOTE_BRANCH} ..."
+  PUSH_OK=0
+  for ATTEMPT in 1 2; do
+    if git push "${PAT_URL}" "${LOCAL_BRANCH}:${TARGET_REMOTE_BRANCH}" 2>&1; then
+      PUSH_OK=1
+      break
+    fi
+    if [ "$ATTEMPT" -eq 1 ]; then
+      echo "  Push attempt 1 failed — retrying in 15s (checkpoint may be in flight)..."
+      sleep 15
+    fi
+  done
+
+  if [ "$PUSH_OK" -eq 0 ]; then
+    echo ""
+    echo "PUSH FAILED after 2 attempts. Troubleshoot:"
+    echo "  1. Run 'bash scripts/git-health-check.sh' from Shell tab"
+    echo "  2. Verify PAT is valid: GH_SYNC_TOKEN"
+    exit 1
+  fi
+
+  # ── Verify the branch landed (read-only ls-remote, no .git writes) ──
   mkdir -p .gitpanel 2>/dev/null
   echo "$LOCAL_SHA" > .gitpanel/last_pushed_sha 2>/dev/null
-  if [ -f ".git/refs/remotes/origin/main.lock" ]; then
-    echo ""
-    echo "NOTE: Git panel tracking ref is locked. Panel may show stale counts."
-    echo "  To fix: run 'bash scripts/git-panel-reset.sh' from the Shell tab."
+  POST_PUSH_REMOTE=$(git ls-remote "$PAT_URL" "refs/heads/${TARGET_REMOTE_BRANCH}" 2>/dev/null | awk '{print $1}')
+  if [ "$LOCAL_SHA" = "$POST_PUSH_REMOTE" ]; then
+    echo "  VERIFIED: ${TARGET_REMOTE_BRANCH} = ${LOCAL_SHA}"
+  else
+    echo "  NOTE: branch tip (${POST_PUSH_REMOTE:-unknown}) != local (${LOCAL_SHA}) —"
+    echo "        a checkpoint likely landed during push; the PR will reflect the pushed tip."
   fi
+fi
+
+# ── Branch-only mode: stop here, print the compare link ──
+if [ "$PUSH_MAIN" -ne 1 ]; then
+  echo ""
+  echo "=== Branch-only push complete (no PR) ==="
+  echo "  Branch:  ${TARGET_REMOTE_BRANCH}"
+  echo "  Compare: https://github.com/${REPO}/compare/${SHIP_BRANCH}...${TARGET_REMOTE_BRANCH}?expand=1"
   if [ -f "scripts/drift-cairn.sh" ]; then
     bash scripts/drift-cairn.sh snapshot 2>/dev/null || true
   fi
   echo ""
-  echo "SYNC STATUS: VERIFIED MATCH"
+  echo "PUSH COMPLETE."
   exit 0
 fi
 
-echo "Local HEAD:  ${LOCAL_SHA}"
-echo "GitHub HEAD: ${REMOTE_SHA:-"(unable to read)"}"
-echo ""
-
-# ── Show commits to push ──
-git log --oneline "${REMOTE_SHA}..HEAD" 2>/dev/null || git log --oneline -5
-
-# ── Push via PAT (with retry for checkpoint race conditions) ──
-echo ""
-echo "Pushing to github.com/${REPO} ${LOCAL_BRANCH}:${REMOTE_BRANCH}..."
-PUSH_OK=0
-for ATTEMPT in 1 2; do
-  if git push "${PAT_URL}" ${LOCAL_BRANCH}:${REMOTE_BRANCH} 2>&1; then
-    PUSH_OK=1
-    break
-  fi
-  if [ "$ATTEMPT" -eq 1 ]; then
-    echo "  Push attempt 1 failed — retrying in 15s (checkpoint may be in flight)..."
-    sleep 15
-  fi
-done
-
-if [ "$PUSH_OK" -eq 0 ]; then
+# ── Ship to main via PR + SQUASH auto-merge ──
+# Squash is the ONLY method that lands a GitHub-signed (verified) commit on main;
+# rebase/merge carry Replit's unsigned commits and are rejected. Squash-only is
+# enforced at the repo + ruleset level and guarded by scripts/check-merge-policy.sh.
+GH_PR_TOKEN="${ALL_GH:-}"
+if [ -z "$GH_PR_TOKEN" ]; then
   echo ""
-  echo "PUSH FAILED after 2 attempts. Troubleshoot:"
-  echo "  1. Run 'bash scripts/git-health-check.sh' from Shell tab"
-  echo "  2. Check if branches diverged (may need force push — see SKILL.md)"
-  echo "  3. Verify PAT is valid: GH_SYNC_TOKEN"
+  echo "Branch pushed, but ALL_GH (PR-capable token) is not set — cannot open/merge the PR."
+  echo "  Open it manually (Squash and merge):"
+  echo "  https://github.com/${REPO}/compare/${SHIP_BRANCH}...${TARGET_REMOTE_BRANCH}?expand=1"
+  exit 1
+fi
+export GH_TOKEN="$GH_PR_TOKEN"
+if ! command -v gh >/dev/null 2>&1; then
+  echo ""
+  echo "ABORT: gh CLI not found. Install: https://cli.github.com/"
   exit 1
 fi
 
-# ── Verify sync via ls-remote (read-only — no .git writes) ──
-echo ""
-echo "=== Verifying sync (read-only) ==="
-POST_PUSH_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
-
-# Write marker file (non-.git) so staleness is always detectable
-mkdir -p .gitpanel 2>/dev/null
-echo "$LOCAL_SHA" > .gitpanel/last_pushed_sha 2>/dev/null
-
-if [ "$LOCAL_SHA" = "$POST_PUSH_REMOTE" ]; then
-  echo "  VERIFIED: Local HEAD matches GitHub HEAD."
-  echo "  Local:  $LOCAL_SHA"
-  echo "  GitHub: $POST_PUSH_REMOTE"
+if [ -n "$REUSE_PR" ]; then
+  PR_NUM="$REUSE_PR"
   echo ""
-  echo "SYNC STATUS: FULLY SYNCED"
+  echo "=== Resuming PR #${PR_NUM} → ${SHIP_BRANCH} (squash) ==="
 else
-  echo "  NOTE: SHA mismatch — a checkpoint commit likely landed during push."
-  echo "  Local:  $(git rev-parse HEAD 2>/dev/null)"
-  echo "  GitHub: ${POST_PUSH_REMOTE:-"(unable to read)"}"
-  echo "  Re-checking in 10s..."
-  sleep 10
-  NEW_LOCAL=$(git rev-parse HEAD 2>/dev/null)
-  NEW_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
-  if [ "$NEW_LOCAL" != "$NEW_REMOTE" ]; then
-    echo "  Still mismatched — pushing new checkpoint..."
-    git push "${PAT_URL}" ${LOCAL_BRANCH}:${REMOTE_BRANCH} 2>&1 || true
-    FINAL_REMOTE=$(git ls-remote "$PAT_URL" refs/heads/${REMOTE_BRANCH} 2>/dev/null | awk '{print $1}')
-    FINAL_LOCAL=$(git rev-parse HEAD 2>/dev/null)
-    if [ "$FINAL_LOCAL" = "$FINAL_REMOTE" ]; then
-      echo "  VERIFIED after retry: Local matches GitHub."
-      echo ""
-      echo "SYNC STATUS: FULLY SYNCED (after retry)"
-    else
-      echo "  Local and GitHub still differ. A new checkpoint may keep landing."
-      echo "  Run 'bash scripts/git-push.sh' again once activity settles."
-      echo ""
-      echo "SYNC STATUS: PENDING"
-    fi
-  else
-    echo "  VERIFIED on recheck: Local matches GitHub."
-    echo ""
-    echo "SYNC STATUS: FULLY SYNCED"
-  fi
-fi
-# ── Ship to main via PR (seL4-grade: standard git + gh pr, NEVER API ref-writes) ──
-# Branch protection on main rejects direct push. The PR + required-checks +
-# auto-merge flow is the ONLY way to land changes. No POST /merges, no
-# updateRef. This script is the canonical mechanism.
-if [ "$PUSH_MAIN" -eq 1 ]; then
   echo ""
-  echo "=== Shipping ${LOCAL_BRANCH} → ${SHIP_BRANCH} via PR ==="
-
-  # gh CLI must be on PATH and authed via GH_SYNC_TOKEN
-  export GH_TOKEN="${GH_SYNC_TOKEN:-$GH_TOKEN}"
-  if ! command -v gh >/dev/null 2>&1; then
+  echo "=== Shipping ${TARGET_REMOTE_BRANCH} → ${SHIP_BRANCH} via PR (squash) ==="
+  # Pin PR title/body to the SHA we actually pushed ($LOCAL_SHA), not HEAD — a
+  # checkpoint may have landed locally after the push.
+  PR_TITLE="$(git log -1 --pretty=%s "$LOCAL_SHA" 2>/dev/null)"
+  PR_BODY="$(git log -10 --pretty='- %s' "$LOCAL_SHA" 2>/dev/null)"
+  [ -z "$PR_TITLE" ] && PR_TITLE="ship: ${TARGET_REMOTE_BRANCH}"
+  [ -z "$PR_BODY" ] && PR_BODY="(auto-opened by scripts/git-push.sh)"
+  PR_URL=$(gh pr create -R "$REPO" --base "$SHIP_BRANCH" --head "$TARGET_REMOTE_BRANCH" \
+    --title "$PR_TITLE" --body "$PR_BODY" 2>&1)
+  PR_NUM=$(echo "$PR_URL" | grep -oE 'pull/[0-9]+' | head -1 | cut -d/ -f2)
+  if [ -z "$PR_NUM" ]; then
+    echo "  ERROR creating PR:"
+    echo "  $PR_URL"
     echo ""
-    echo "ABORT: gh CLI not found. Install: https://cli.github.com/"
+    echo "  Open it manually (Squash and merge):"
+    echo "  https://github.com/${REPO}/compare/${SHIP_BRANCH}...${TARGET_REMOTE_BRANCH}?expand=1"
     exit 1
   fi
+  echo "  PR #${PR_NUM}: $PR_URL"
+fi
 
-  SHIP_LOCAL=$(git rev-parse HEAD 2>/dev/null)
-  SHIP_REMOTE_BEFORE=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
-
-  if [ "$SHIP_LOCAL" = "$SHIP_REMOTE_BEFORE" ]; then
-    echo "  Already at ${SHIP_BRANCH}: $SHIP_LOCAL"
-    echo "SHIP STATUS: ALREADY CURRENT"
-  else
-    echo "  Branch HEAD: $SHIP_LOCAL"
-    echo "  ${SHIP_BRANCH} HEAD:  ${SHIP_REMOTE_BEFORE:-"(unable to read)"}"
+echo "  Enabling auto-merge (squash — GitHub signs the commit on main) ..."
+MERGE_OUT=$(gh pr merge -R "$REPO" "$PR_NUM" --auto --squash --delete-branch 2>&1) || true
+[ -n "$MERGE_OUT" ] && echo "$MERGE_OUT" | sed 's/^/    /'
+# Fail fast on NON-transient errors (bad token scope, conflicts, policy). Tolerate
+# the benign cases: auto-merge already enabled, or PR already in a clean/queued state.
+if echo "$MERGE_OUT" | grep -qiE 'not accessible|not authorized|forbidden|protected|conflict|not mergeable|cannot be merged'; then
+  if ! echo "$MERGE_OUT" | grep -qiE 'already|clean status|set to be merged|enabled auto'; then
     echo ""
-
-    # 1. Find or create the PR
-    PR_NUM=$(gh pr list -R "$REPO" --head "$LOCAL_BRANCH" --base "$SHIP_BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
-    if [ -z "$PR_NUM" ]; then
-      echo "  Opening PR ${LOCAL_BRANCH} → ${SHIP_BRANCH} ..."
-      PR_TITLE=$(git log -1 --pretty=%s)
-      PR_BODY=$(git log "${SHIP_REMOTE_BEFORE}..HEAD" --pretty='- %s' 2>/dev/null | head -20)
-      [ -z "$PR_BODY" ] && PR_BODY="(auto-opened by scripts/git-push.sh)"
-      PR_URL=$(gh pr create -R "$REPO" --base "$SHIP_BRANCH" --head "$LOCAL_BRANCH" \
-        --title "$PR_TITLE" --body "$PR_BODY" 2>&1)
-      PR_NUM=$(echo "$PR_URL" | grep -oE 'pull/[0-9]+' | head -1 | cut -d/ -f2)
-      if [ -z "$PR_NUM" ]; then
-        echo "  ERROR creating PR:"
-        echo "  $PR_URL"
-        echo ""
-        echo "SHIP FAILED. Open the PR manually:"
-        echo "  gh pr create -R $REPO --base $SHIP_BRANCH --head $LOCAL_BRANCH --fill"
-        exit 1
-      fi
-      echo "  PR #${PR_NUM} opened: $PR_URL"
-    else
-      echo "  Reusing existing PR #${PR_NUM}"
-    fi
-
-    # 2. Request auto-merge with rebase (preserves linear history)
-    echo "  Enabling auto-merge (rebase strategy) ..."
-    if ! gh pr merge -R "$REPO" "$PR_NUM" --auto --rebase 2>&1; then
-      echo "  Note: auto-merge may already be enabled, or required checks not yet running."
-    fi
-
-    # 3. Poll required checks until they go green (or red)
-    echo ""
-    echo "  Waiting for required checks (max 15min)..."
-    MAX_WAIT=900
-    POLL=20
-    ELAPSED=0
-    while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
-      MERGED=$(gh pr view -R "$REPO" "$PR_NUM" --json merged --jq '.merged' 2>/dev/null)
-      if [ "$MERGED" = "true" ]; then
-        break
-      fi
-      # Surface any failed checks immediately
-      FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" 2>/dev/null | grep -E "^[a-zA-Z].*\sfail" | head -3 || true)
-      if [ -n "$FAILED" ]; then
-        echo ""
-        echo "SHIP FAILED — required check(s) failed:"
-        echo "$FAILED"
-        echo ""
-        echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
-        echo "  Once fixed, re-run: bash scripts/git-push.sh"
-        exit 1
-      fi
-      sleep "$POLL"
-      ELAPSED=$((ELAPSED + POLL))
-      printf "    waited %ds ...\r" "$ELAPSED"
-    done
-
-    if [ "$MERGED" != "true" ]; then
-      echo ""
-      echo "SHIP TIMEOUT after ${MAX_WAIT}s. PR #${PR_NUM} not yet merged."
-      echo "  Status: gh pr view -R $REPO $PR_NUM"
-      echo "  This script can be re-run safely — auto-merge will pick up where it left off."
-      exit 1
-    fi
-
-    # 4. Verify main HEAD advanced
-    sleep 3  # allow GitHub to update ref
-    SHIP_REMOTE_AFTER=$(git ls-remote "$PAT_URL" refs/heads/${SHIP_BRANCH} 2>/dev/null | awk '{print $1}')
-    echo ""
-    echo "  PR #${PR_NUM} MERGED ✓"
-    echo "  ${SHIP_BRANCH} was: ${SHIP_REMOTE_BEFORE:-"(unknown)"}"
-    echo "  ${SHIP_BRANCH} now: ${SHIP_REMOTE_AFTER}"
-    echo "SHIP STATUS: MERGED via PR (linear history preserved)"
+    echo "SHIP FAILED — auto-merge could not be armed (non-transient error above)."
+    echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+    exit 1
   fi
-else
-  echo ""
-  echo "=== Skipping PR ship (--no-main or non-default --branch) ==="
 fi
 
-# ── Git panel staleness check ──
-if [ -f ".git/refs/remotes/origin/main.lock" ]; then
+# ── Poll until merged, or a required check fails ──
+echo ""
+echo "  Waiting for required checks + auto-merge (max 15min)..."
+MAX_WAIT=900
+POLL=20
+ELAPSED=0
+MERGED=false
+while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
+  MERGED=$(gh pr view -R "$REPO" "$PR_NUM" --json merged --jq '.merged' 2>/dev/null)
+  if [ "$MERGED" = "true" ]; then
+    break
+  fi
+  FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" 2>/dev/null | grep -iE '\bfail(ing|ed|ure)?\b' | head -3 || true)
+  if [ -n "$FAILED" ]; then
+    echo ""
+    echo "SHIP FAILED — required check(s) failed:"
+    echo "$FAILED"
+    echo ""
+    echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+    echo "  Fix, then re-run: bash scripts/git-push.sh (a new ship branch will be created)."
+    exit 1
+  fi
+  sleep "$POLL"
+  ELAPSED=$((ELAPSED + POLL))
+  printf "    waited %ds ...\r" "$ELAPSED"
+done
+
+if [ "$MERGED" != "true" ]; then
   echo ""
-  echo "NOTE: Git panel tracking ref is locked (.git/refs/remotes/origin/main.lock)"
-  echo "  The Git panel may show stale 'X commits ahead' even though GitHub is current."
-  echo "  To fix: run 'bash scripts/git-panel-reset.sh' from the Shell tab."
+  echo "SHIP TIMEOUT after ${MAX_WAIT}s. PR #${PR_NUM} not yet merged."
+  echo "  Status: gh pr view -R $REPO $PR_NUM"
+  echo "  Auto-merge stays armed — it will merge when checks pass. Safe to re-run."
+  exit 1
 fi
 
-# ── Drift Cairn snapshot (record current state after push) ──
+sleep 3  # allow GitHub to update the ref
+SHIP_REMOTE_AFTER=$(git ls-remote "$PAT_URL" "refs/heads/${SHIP_BRANCH}" 2>/dev/null | awk '{print $1}')
+echo ""
+echo "  PR #${PR_NUM} MERGED ✓ (squash, GitHub-signed)"
+echo "  ${SHIP_BRANCH} now: ${SHIP_REMOTE_AFTER}"
+echo "SHIP STATUS: MERGED — ship branch deleted, main updated."
+
+# ── Drift Cairn snapshot (record current state after ship) ──
 if [ -f "scripts/drift-cairn.sh" ]; then
   bash scripts/drift-cairn.sh snapshot 2>/dev/null || true
 fi

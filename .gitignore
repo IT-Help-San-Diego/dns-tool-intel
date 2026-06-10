@@ -109,3 +109,5 @@ go-server/probe
 
 # Inference CLI binaries
 inferencesh-cli-*
+analyzer_test.log
+.local/
