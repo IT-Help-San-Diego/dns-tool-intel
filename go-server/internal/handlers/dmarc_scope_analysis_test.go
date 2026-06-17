@@ -747,12 +747,12 @@ func TestComputeDriftFromPrev_CB6(t *testing.T) {
         })
         t.Run("different hash with full results", func(t *testing.T) {
                 h := "old"
-                prev := map[string]any{"posture": map[string]any{"risk": "low"}}
+                prev := map[string]any{"spf_analysis": map[string]any{"status": "pass"}}
                 prevJSON, _ := json.Marshal(prev)
                 di := computeDriftFromPrev("new", prevAnalysisSnapshot{
                         Hash:        &h,
                         FullResults: prevJSON,
-                }, map[string]any{"posture": map[string]any{"risk": "high"}})
+                }, map[string]any{"spf_analysis": map[string]any{"status": "fail"}})
                 if !di.Detected {
                         t.Error("expected drift detected")
                 }

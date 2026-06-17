@@ -459,8 +459,11 @@
                             <div class="small font-monospace mb-2 u-recon-annotation">&gt; probing certificate pinning via DNSSEC chain...</div>
                             <h6 class="fw-semibold font-monospace">{{icon "terminal" "me-1"}}DANE / TLSA</h6>
                             {{$daneStatus := mapGetStr "status" $dane}}
-                            <div class="alert {{if eq $daneStatus "success"}}alert-success{{else}}alert-warning{{end}} py-2 mb-2 small">
-                                {{if eq $daneStatus "success"}}
+                            {{$daneState := mapGetStr "dane_state" $dane}}
+                            <div class="alert {{if eq $daneState "indeterminate"}}alert-secondary{{else if eq $daneStatus "success"}}alert-success{{else}}alert-warning{{end}} py-2 mb-2 small">
+                                {{if eq $daneState "indeterminate"}}
+                                {{icon "question" "me-1"}}DANE could not be verified &mdash; TLSA lookups did not complete (transient). Inconclusive, not a finding of absence (RFC 6698)
+                                {{else if eq $daneStatus "success"}}
                                 {{icon "lock" "me-1"}}DANE TLSA records pin certificates via DNSSEC &mdash; MITM requires compromising the DNS chain
                                 {{else}}
                                 {{icon "unlock" "me-1"}}No DANE &mdash; TLS is opportunistic and can be downgraded
@@ -607,8 +610,11 @@
                             <div class="small font-monospace mb-2 u-recon-annotation">&gt; validating cryptographic chain of trust...</div>
                             <h6 class="fw-semibold font-monospace">{{icon "terminal" "me-1"}}DNSSEC</h6>
                             {{$dnssecStatus := mapGetStr "status" $dnssec}}
-                            <div class="alert {{if eq $dnssecStatus "secure"}}alert-success{{else}}alert-danger{{end}} py-2 mb-2 small">
-                                {{if eq $dnssecStatus "secure"}}
+                            {{$dnssecState := mapGetStr "dnssec_state" $dnssec}}
+                            <div class="alert {{if eq $dnssecState "indeterminate"}}alert-secondary{{else if or (eq $dnssecStatus "secure") (eq $dnssecStatus "success")}}alert-success{{else}}alert-danger{{end}} py-2 mb-2 small">
+                                {{if eq $dnssecState "indeterminate"}}
+                                {{icon "question" "me-1"}}DNSSEC could not be verified &mdash; DNSKEY/DS lookups did not complete (transient). Inconclusive, not a finding of absence (RFC 4035)
+                                {{else if or (eq $dnssecStatus "secure") (eq $dnssecStatus "success")}}
                                 {{icon "lock" "me-1"}}DNSSEC validated &mdash; DNS responses are cryptographically signed
                                 {{else}}
                                 {{icon "skull-crossbones" "me-1"}}No DNSSEC &mdash; DNS responses can be spoofed or poisoned

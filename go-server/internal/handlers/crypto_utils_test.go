@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"dnstool/go-server/internal/handlers/authpkg"
+        "dnstool/go-server/internal/handlers/authpkg"
         "encoding/base64"
         "encoding/json"
         "fmt"
@@ -508,9 +508,9 @@ func TestComputeDriftFromPrev_CB8(t *testing.T) {
                 prev := prevAnalysisSnapshot{
                         ID:          1,
                         Hash:        &hash,
-                        FullResults: []byte(`{"basic_records":{"A":["1.2.3.4"]}}`),
+                        FullResults: []byte(`{"spf_analysis":{"status":"pass"}}`),
                 }
-                di := computeDriftFromPrev("new", prev, map[string]any{"basic_records": map[string]any{"A": []any{"5.6.7.8"}}})
+                di := computeDriftFromPrev("new", prev, map[string]any{"spf_analysis": map[string]any{"status": "fail"}})
                 if !di.Detected {
                         t.Fatal("expected drift for different hash")
                 }

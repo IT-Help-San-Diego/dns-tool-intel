@@ -52,15 +52,18 @@ func TestComputeDriftFromPrev_DriftDetected_B4(t *testing.T) {
 
 func TestComputeDriftFromPrev_WithFullResults_B4(t *testing.T) {
         prev := "oldhash"
-        prevResults := map[string]any{"spf": "pass"}
+        prevResults := map[string]any{"spf_analysis": map[string]any{"status": "pass"}}
         prevJSON, _ := json.Marshal(prevResults)
         d := computeDriftFromPrev("newhash", prevAnalysisSnapshot{
                 Hash:        &prev,
                 ID:          10,
                 FullResults: json.RawMessage(prevJSON),
-        }, map[string]any{"spf": "fail"})
+        }, map[string]any{"spf_analysis": map[string]any{"status": "fail"}})
         if !d.Detected {
                 t.Fatal("expected drift")
+        }
+        if len(d.Fields) == 0 {
+                t.Fatal("expected at least one changed field")
         }
 }
 
