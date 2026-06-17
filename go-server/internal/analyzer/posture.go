@@ -72,6 +72,7 @@ type protocolState struct {
         daneProviderLimited bool
         dnssecOK            bool
         dnssecBroken        bool
+        dnssecADValidated   bool
         dnssecAlgoStrength  string
         primaryProvider     string
         isNoMailDomain      bool
@@ -259,6 +260,12 @@ func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
                 ps.dnssecOK = true
         case "error":
                 ps.dnssecBroken = true
+        }
+        // AD flag: did a validating resolver actually confirm the chain of trust?
+        // dnssecOK is true whenever DNSKEY+DS are present, even when the resolver did
+        // NOT set AD — so the verdict must distinguish "signed" from "validated".
+        if ad, ok := dnssec[mapKeyAdFlag].(bool); ok {
+                ps.dnssecADValidated = ad
         }
         if obs, ok := dnssec["algorithm_observation"].(map[string]any); ok {
                 if s, ok := obs["strength"].(string); ok {
@@ -1218,12 +1225,16 @@ func buildBrandWeakVerdict(ps protocolState) map[string]any {
 
 func buildDNSVerdict(ps protocolState, verdicts map[string]any) {
         if ps.dnssecOK {
+                reason := "DNSSEC signed (DNSKEY + DS present); chain-of-trust validation not confirmed on our resolver path (AD flag unset, RFC 4035 §3.2.3)"
+                if ps.dnssecADValidated {
+                        reason = "DNSSEC signed; a validating resolver confirmed the chain of trust via the AD flag (RFC 4035 §3.2.3)"
+                }
                 verdicts[mapKeyDnsTampering] = map[string]any{
                         mapKeyLabel:  strProtected,
                         mapKeyColor:  mapKeySuccess,
                         mapKeyIcon:   iconShieldAlt,
                         mapKeyAnswer: "No",
-                        mapKeyReason: "DNSSEC signed and validated, cryptographic chain of trust verified",
+                        mapKeyReason: reason,
                 }
         } else if ps.dnssecBroken {
                 verdicts[mapKeyDnsTampering] = map[string]any{
