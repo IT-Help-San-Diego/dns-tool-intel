@@ -455,6 +455,59 @@ func (c *Client) parallelUDPQueryWithTTL(ctx context.Context, domain, recordType
         return RecordWithTTL{}
 }
 
+// QueryDNSWithTTLStatus is the tri-state, TTL/AD-preserving query path. It folds
+// every resolver's outcome through classifyResolverResult exactly like
+// QueryDNSWithStatus — a single resolved answer short-circuits, absence is only
+// asserted from an authoritative NXDOMAIN/NODATA, and an all-transient sweep
+// reports LookupError — but unlike QueryDNSWithStatus it returns the full
+// RecordWithTTL (TTL + Authenticated) so DANE/DNSSEC can both render the TTL and
+// tell "record absent" apart from "lookup failed". DoH is used as positive
+// confirmation only, never to assert absence.
+func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string) (RecordWithTTL, LookupStatus) {
+        if domain == "" || recordType == "" {
+                return RecordWithTTL{}, LookupError
+        }
+
+        type res struct {
+                rec    RecordWithTTL
+                errStr string
+        }
+        ch := make(chan res, len(c.resolvers))
+        qctx, cancel := context.WithTimeout(ctx, defaultLifetime)
+        defer cancel()
+
+        for _, resolver := range c.resolvers {
+                go func(ip string) {
+                        rec, errStr := c.udpQueryWithTTLStatus(qctx, domain, recordType, ip)
+                        ch <- res{rec: rec, errStr: errStr}
+                }(resolver.IP)
+        }
+
+        sawAbsent := false
+        for range c.resolvers {
+                r := <-ch
+                switch classifyResolverResult(r.errStr, r.rec.Records) {
+                case outcomeResolved:
+                        return r.rec, LookupResolved
+                case outcomeAbsent:
+                        sawAbsent = true
+                }
+                // outcomeTransient is ignored so one failing resolver cannot
+                // masquerade as an authoritative absence.
+        }
+
+        if sawAbsent {
+                return RecordWithTTL{}, LookupAbsent
+        }
+
+        // Every UDP resolver failed transiently. Use DoH ONLY as positive
+        // confirmation: records => resolved. Absence is never asserted here.
+        if doh := c.dohQueryWithTTL(ctx, domain, recordType); len(doh.Records) > 0 {
+                return doh, LookupResolved
+        }
+        return RecordWithTTL{}, LookupError
+}
+
 func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, resolverIP string) (string, []string, string) {
         qtype, err := dnsTypeFromString(recordType)
         if err != nil {
@@ -926,9 +979,19 @@ func (c *Client) udpQuery(ctx context.Context, domain, recordType, resolverIP st
 }
 
 func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolverIP string) RecordWithTTL {
+        r, _ := c.udpQueryWithTTLStatus(ctx, domain, recordType, resolverIP)
+        return r
+}
+
+// udpQueryWithTTLStatus is the TTL/AD-preserving sibling of querySingleResolver:
+// it returns the record (with TTL + Authenticated flag) AND the per-resolver
+// errStr ("" on NOERROR, "NXDOMAIN" for NXDOMAIN, the RCODE name or error string
+// otherwise) so callers can fold the result through classifyResolverResult and
+// distinguish an authoritative absence from a transient failure.
+func (c *Client) udpQueryWithTTLStatus(ctx context.Context, domain, recordType, resolverIP string) (RecordWithTTL, string) {
         qtype, err := dnsTypeFromString(recordType)
         if err != nil {
-                return RecordWithTTL{}
+                return RecordWithTTL{}, err.Error()
         }
 
         fqdn := dnsutil.Fqdn(domain)
@@ -940,11 +1003,22 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
 
         r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
-                return RecordWithTTL{}
+                return RecordWithTTL{}, err.Error()
         }
 
         if r.Rcode == dns.RcodeNameError {
-                return RecordWithTTL{}
+                return RecordWithTTL{}, "NXDOMAIN"
+        }
+
+        // Any non-success RCODE other than NXDOMAIN (SERVFAIL, REFUSED, FORMERR, …)
+        // is a server-side failure, NOT an authoritative answer — surface it as a
+        // transient error so callers never mistake it for "record is absent".
+        if r.Rcode != dns.RcodeSuccess {
+                rcodeName, ok := dns.RcodeToString[r.Rcode]
+                if !ok {
+                        rcodeName = fmt.Sprintf("RCODE%d", r.Rcode)
+                }
+                return RecordWithTTL{}, rcodeName
         }
 
         var results []string
@@ -963,7 +1037,7 @@ func (c *Client) udpQueryWithTTL(ctx context.Context, domain, recordType, resolv
                 }
         }
 
-        return RecordWithTTL{Records: results, TTL: ttl, Authenticated: r.AuthenticatedData}
+        return RecordWithTTL{Records: results, TTL: ttl, Authenticated: r.AuthenticatedData}, ""
 }
 
 func newDNSClient(timeout time.Duration) *dns.Client {

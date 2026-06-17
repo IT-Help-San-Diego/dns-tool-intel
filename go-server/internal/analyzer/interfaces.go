@@ -16,6 +16,7 @@ import (
 type DNSQuerier interface {
         QueryDNS(ctx context.Context, recordType, domain string) []string
         QueryDNSWithTTL(ctx context.Context, recordType, domain string) dnsclient.RecordWithTTL
+        QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus)
         QueryWithConsensus(ctx context.Context, recordType, domain string) dnsclient.ConsensusResult
         QuerySpecificResolver(ctx context.Context, recordType, domain, resolverIP string) ([]string, error)
         QueryWithTTLFromResolver(ctx context.Context, recordType, domain, resolverIP string) dnsclient.RecordWithTTL
