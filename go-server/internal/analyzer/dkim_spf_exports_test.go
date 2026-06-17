@@ -1283,7 +1283,7 @@ func TestExportFunctions(t *testing.T) {
                 }
         })
         t.Run("BuildDNSVerdict", func(t *testing.T) {
-                v := ExportBuildDNSVerdict(true, false)
+                v := ExportBuildDNSVerdict(true, false, true)
                 if v[mapKeyLabel] != strProtected {
                         t.Errorf("got %v", v[mapKeyLabel])
                 }

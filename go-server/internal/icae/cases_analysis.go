@@ -432,7 +432,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "No",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(true, false)
+                                result := analyzer.ExportBuildDNSVerdict(true, false, true)
                                 answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "No"
                         },
@@ -445,7 +445,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "Protected",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(true, false)
+                                result := analyzer.ExportBuildDNSVerdict(true, false, true)
                                 label := result[mapKeyLabel].(string)
                                 return label, label == "Protected"
                         },
@@ -458,7 +458,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSEC,
                         Expected:   "Yes",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(false, true)
+                                result := analyzer.ExportBuildDNSVerdict(false, true, false)
                                 answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "Yes"
                         },
@@ -471,7 +471,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSEC,
                         Expected:   "Exposed",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(false, true)
+                                result := analyzer.ExportBuildDNSVerdict(false, true, false)
                                 label := result[mapKeyLabel].(string)
                                 return label, label == "Exposed"
                         },
@@ -484,7 +484,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSEC,
                         Expected:   "Possible",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(false, false)
+                                result := analyzer.ExportBuildDNSVerdict(false, false, false)
                                 answer := result[mapKeyAnswer].(string)
                                 return answer, answer == "Possible"
                         },
@@ -497,7 +497,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSEC,
                         Expected:   "Not Configured",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(false, false)
+                                result := analyzer.ExportBuildDNSVerdict(false, false, false)
                                 label := result[mapKeyLabel].(string)
                                 return label, label == "Not Configured"
                         },
@@ -510,7 +510,7 @@ func dnssecVerdictCases() []TestCase {
                         RFCSection: rfcDNSSECSection2,
                         Expected:   "contains 'cryptographic'",
                         RunFn: func() (string, bool) {
-                                result := analyzer.ExportBuildDNSVerdict(true, false)
+                                result := analyzer.ExportBuildDNSVerdict(true, false, true)
                                 reason := result["reason"].(string)
                                 return reason, strings.Contains(reason, "cryptographic")
                         },

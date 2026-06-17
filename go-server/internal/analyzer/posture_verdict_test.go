@@ -449,10 +449,16 @@ func TestBuildDNSVerdict(t *testing.T) {
                 wantColor string
         }{
                 {
-                        name:      "dnssec ok",
-                        ps:        protocolState{dnssecOK: true},
+                        name:      "dnssec validated (AD flag set)",
+                        ps:        protocolState{dnssecOK: true, dnssecADValidated: true},
                         wantLabel: "Protected",
                         wantColor: "success",
+                },
+                {
+                        name:      "dnssec signed but AD flag unset",
+                        ps:        protocolState{dnssecOK: true, dnssecADValidated: false},
+                        wantLabel: "Partially",
+                        wantColor: "warning",
                 },
                 {
                         name:      "dnssec broken",
@@ -491,30 +497,43 @@ func TestBuildDNSVerdictDNSSECReason(t *testing.T) {
                 ps         protocolState
                 wantSubstr string
                 denySubstr string
+                wantLabel  string
+                wantAnswer string
         }{
                 {
                         name:       "ad flag set claims resolver validation",
                         ps:         protocolState{dnssecOK: true, dnssecADValidated: true},
                         wantSubstr: "validating resolver confirmed",
                         denySubstr: "not confirmed",
+                        wantLabel:  "Protected",
+                        wantAnswer: "No",
                 },
                 {
                         name:       "ad flag unset does not claim validation",
                         ps:         protocolState{dnssecOK: true, dnssecADValidated: false},
                         wantSubstr: "not confirmed",
                         denySubstr: "confirmed the chain of trust",
+                        wantLabel:  "Partially",
+                        wantAnswer: "Possible",
                 },
         }
         for _, tc := range tests {
                 t.Run(tc.name, func(t *testing.T) {
                         verdicts := map[string]any{}
                         buildDNSVerdict(tc.ps, verdicts)
-                        reason, _ := verdicts["dns_tampering"].(map[string]any)["reason"].(string)
+                        v := verdicts["dns_tampering"].(map[string]any)
+                        reason, _ := v["reason"].(string)
                         if !strings.Contains(reason, tc.wantSubstr) {
                                 t.Errorf("reason = %q, want substring %q", reason, tc.wantSubstr)
                         }
                         if strings.Contains(reason, tc.denySubstr) {
                                 t.Errorf("reason = %q, must not contain %q", reason, tc.denySubstr)
+                        }
+                        if v["label"] != tc.wantLabel {
+                                t.Errorf("label = %v, want %v", v["label"], tc.wantLabel)
+                        }
+                        if v["answer"] != tc.wantAnswer {
+                                t.Errorf("answer = %v, want %v", v["answer"], tc.wantAnswer)
                         }
                 })
         }
