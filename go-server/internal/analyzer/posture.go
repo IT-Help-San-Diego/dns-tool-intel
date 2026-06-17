@@ -72,6 +72,7 @@ type protocolState struct {
         daneProviderLimited bool
         dnssecOK            bool
         dnssecBroken        bool
+        dnssecADValidated   bool
         dnssecAlgoStrength  string
         primaryProvider     string
         isNoMailDomain      bool
@@ -259,6 +260,12 @@ func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
                 ps.dnssecOK = true
         case "error":
                 ps.dnssecBroken = true
+        }
+        // AD flag: did a validating resolver actually confirm the chain of trust?
+        // dnssecOK is true whenever DNSKEY+DS are present, even when the resolver did
+        // NOT set AD — so the verdict must distinguish "signed" from "validated".
+        if ad, ok := dnssec[mapKeyAdFlag].(bool); ok {
+                ps.dnssecADValidated = ad
         }
         if obs, ok := dnssec["algorithm_observation"].(map[string]any); ok {
                 if s, ok := obs["strength"].(string); ok {
@@ -875,7 +882,7 @@ func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, strin
 
 func classifyRegistryGrade(ps protocolState, _ gradeInput) (string, string, string, string) {
         if ps.dnssecOK {
-                return riskLow, iconShieldAlt, mapKeySuccess, "Registry zone has DNSSEC signing active — delegation chain is cryptographically secured"
+                return riskLow, iconShieldAlt, mapKeySuccess, "Registry zone has DNSSEC signing active — delegation chain is cryptographically signed"
         }
         return riskHigh, iconExclamationTriangle, mapKeyWarning, "Registry zone is not DNSSEC-signed — delegation chain lacks cryptographic verification"
 }
@@ -1218,12 +1225,25 @@ func buildBrandWeakVerdict(ps protocolState) map[string]any {
 
 func buildDNSVerdict(ps protocolState, verdicts map[string]any) {
         if ps.dnssecOK {
-                verdicts[mapKeyDnsTampering] = map[string]any{
-                        mapKeyLabel:  strProtected,
-                        mapKeyColor:  mapKeySuccess,
-                        mapKeyIcon:   iconShieldAlt,
-                        mapKeyAnswer: "No",
-                        mapKeyReason: "DNSSEC signed and validated, cryptographic chain of trust verified",
+                if ps.dnssecADValidated {
+                        verdicts[mapKeyDnsTampering] = map[string]any{
+                                mapKeyLabel:  strProtected,
+                                mapKeyColor:  mapKeySuccess,
+                                mapKeyIcon:   iconShieldAlt,
+                                mapKeyAnswer: "No",
+                                mapKeyReason: "DNSSEC signed; a validating resolver confirmed the cryptographic chain of trust via the AD flag (RFC 4035 §3.2.3)",
+                        }
+                } else {
+                        // Signed (DNSKEY+DS present) but the resolver did not set the AD flag, so
+                        // we did NOT observe chain-of-trust validation on our path. Do not claim
+                        // full protection — a non-validating resolver path would not enforce it.
+                        verdicts[mapKeyDnsTampering] = map[string]any{
+                                mapKeyLabel:  strPartially,
+                                mapKeyColor:  mapKeyWarning,
+                                mapKeyIcon:   iconShieldHalved,
+                                mapKeyAnswer: strPossible,
+                                mapKeyReason: "DNSSEC signed (DNSKEY + DS present), but chain-of-trust validation was not confirmed on our resolver path (AD flag unset, RFC 4035 §3.2.3) — protection depends on the client using a validating resolver",
+                        }
                 }
         } else if ps.dnssecBroken {
                 verdicts[mapKeyDnsTampering] = map[string]any{
