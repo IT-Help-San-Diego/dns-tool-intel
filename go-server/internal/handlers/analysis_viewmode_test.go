@@ -398,14 +398,14 @@ func TestComputeDriftFromPrev_Changed(t *testing.T) {
 
 func TestComputeDriftFromPrev_WithPrevResults(t *testing.T) {
         prevHash := "old-hash"
-        prevResults := map[string]any{"spf": map[string]any{"record": "v=spf1 include:old.com ~all"}}
+        prevResults := map[string]any{"spf_analysis": map[string]any{"status": "pass"}}
         prevJSON, _ := json.Marshal(prevResults)
         prev := prevAnalysisSnapshot{
                 Hash:        &prevHash,
                 ID:          10,
                 FullResults: prevJSON,
         }
-        currentResults := map[string]any{"spf": map[string]any{"record": "v=spf1 include:new.com ~all"}}
+        currentResults := map[string]any{"spf_analysis": map[string]any{"status": "fail"}}
         di := computeDriftFromPrev("new-hash", prev, currentResults)
         if !di.Detected {
                 t.Error("expected drift detected with prev results")

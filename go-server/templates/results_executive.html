@@ -1117,7 +1117,11 @@
                         <span class="exec-finding-label">DANE / TLSA</span>
                         <span class="exec-finding-value">
                             {{$daneStatus := mapGetStr "status" $dane}}
-                            {{if eq $daneStatus "success"}}
+                            {{$daneState := mapGetStr "dane_state" $dane}}
+                            {{if eq $daneState "indeterminate"}}
+                            <span class="badge bg-secondary">Could Not Verify</span>
+                            <span class="text-muted ms-2 small">TLSA lookups did not complete — inconclusive, not a finding of absence</span>
+                            {{else if eq $daneStatus "success"}}
                             <span class="badge bg-success">Active</span>
                             {{else if eq $daneStatus "info"}}
                             <span class="badge bg-info">Hosted Provider</span>
@@ -1201,7 +1205,11 @@
                     <div class="exec-finding-row">
                         <span class="exec-finding-label">DNSSEC</span>
                         <span class="exec-finding-value">
-                            {{if eq $dnssecStatus "success"}}
+                            {{$dnssecState := mapGetStr "dnssec_state" $dnssec}}
+                            {{if eq $dnssecState "indeterminate"}}
+                            <span class="badge bg-secondary">Could Not Verify</span>
+                            <span class="text-muted ms-2 small">DNSKEY/DS lookups did not complete — inconclusive, not a finding of absence</span>
+                            {{else if eq $dnssecStatus "success"}}
                             <span class="badge bg-success">Signed &amp; Validated</span>
                             {{if mapGetStr "chain_summary" $dnssec}}
                             <span class="text-muted ms-2 small">{{mapGetStr "chain_summary" $dnssec}}</span>

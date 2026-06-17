@@ -1483,6 +1483,15 @@ func computeDriftFromPrev(currentHash string, prev prevAnalysisSnapshot, current
                 var prevResults map[string]any
                 if json.Unmarshal(prev.FullResults, &prevResults) == nil {
                         di.Fields = analyzer.ComputePostureDiff(prevResults, currentResults)
+                        // The canonical hash differed, but the field-level diff is
+                        // empty. This happens when the only thing that moved was a
+                        // tri-state field suppressed by ComputePostureDiff (DANE /
+                        // DNSSEC indeterminate from a transient lookup failure). A
+                        // hash flip with no explicable field change is not real
+                        // drift — suppress it so transient failures stop flapping.
+                        if len(di.Fields) == 0 {
+                                return driftInfo{}
+                        }
                 }
         }
         return di
