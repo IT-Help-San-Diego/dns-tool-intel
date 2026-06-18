@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/kettek/apng v0.0.0-20250827064933-2bb5f5fcf253
 	golang.org/x/crypto v0.53.0
-	golang.org/x/net v0.55.0
+	golang.org/x/net v0.56.0
 	golang.org/x/text v0.38.0
 	gonum.org/v1/gonum v0.17.0
 )
