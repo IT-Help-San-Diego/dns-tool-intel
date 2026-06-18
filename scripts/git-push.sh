@@ -222,6 +222,29 @@ if [ "$PUSH_MAIN" -eq 1 ] && [ "$REMOTE_BRANCH" = "$LOCAL_BRANCH" ] && [ -n "${A
   [ "$REUSE_PR" = "null" ] && REUSE_PR=""
 fi
 
+# ── Empty-ship guard: refuse a redundant no-op PR when local already == main ──
+# After a squash-merge, main gains a commit the local branch never receives, so
+# SHA equality never holds again — but the content (git TREE) is identical. If
+# local HEAD's tree == main's tip tree there is nothing new to ship. Re-running in
+# that state previously opened back-to-back no-op PRs that still squash-merged
+# (the duplicate ships #124/#125/#126). Tree SHAs are content-addressed, so this
+# catches it regardless of divergent commit history. Best-effort: skipped silently
+# if gh/token/API are unavailable so a legitimate ship is never blocked.
+if [ "$PUSH_MAIN" -eq 1 ] && [ -z "$REUSE_PR" ] && command -v gh >/dev/null 2>&1; then
+  LOCAL_TREE=$(git rev-parse "HEAD^{tree}" 2>/dev/null)
+  MAIN_TREE=$(GH_TOKEN="${ALL_GH:-$GIT_PAT}" gh api "repos/${REPO}/commits/${SHIP_BRANCH}" --jq '.commit.tree.sha' 2>/dev/null)
+  if [ -n "$LOCAL_TREE" ] && [ -n "$MAIN_TREE" ] && [ "$LOCAL_TREE" = "$MAIN_TREE" ]; then
+    echo ""
+    echo "=== Nothing to ship ==="
+    echo "  Local working tree already matches origin/${SHIP_BRANCH} (identical content)."
+    echo "  Opening a PR now would create a redundant no-op merge — aborting."
+    echo ""
+    echo "  If you expected local commits to land, your branch is behind main."
+    echo "  Re-sync, then make your change:  bash scripts/sync-local-to-main.sh"
+    exit 0
+  fi
+fi
+
 echo "Workspace HEAD:      ${LOCAL_SHA}"
 if [ -n "$REUSE_PR" ]; then
   echo "In-flight PR:        #${REUSE_PR} (already ships this exact HEAD — reusing, no new branch)"
@@ -349,11 +372,26 @@ POLL=20
 ELAPSED=0
 MERGED=false
 while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
-  MERGED=$(gh pr view -R "$REPO" "$PR_NUM" --json merged --jq '.merged' 2>/dev/null)
-  if [ "$MERGED" = "true" ]; then
+  # Query merged + state together. Breaking only on merged=="true" meant a single
+  # transient/empty gh read left the loop polling to the full timeout even though
+  # the PR had already merged (the 12-min hang). state=="MERGED" is a second,
+  # independent merged signal; an empty read just falls through to the next poll.
+  PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state --jq '[.merged,.state]|@tsv' 2>/dev/null)
+  MERGED=$(printf '%s' "$PR_STATE" | cut -f1)
+  STATE=$(printf '%s' "$PR_STATE" | cut -f2)
+  if [ "$MERGED" = "true" ] || [ "$STATE" = "MERGED" ]; then
+    MERGED=true
     break
   fi
-  FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" 2>/dev/null | grep -iE '\bfail(ing|ed|ure)?\b' | head -3 || true)
+  # PR closed without merging (e.g. superseded/manually closed) — stop now instead
+  # of sleeping to the timeout waiting for a merge that will never happen.
+  if [ "$STATE" = "CLOSED" ]; then
+    echo ""
+    echo "SHIP HALTED — PR #${PR_NUM} was closed without merging."
+    echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+    exit 1
+  fi
+  FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" --required 2>/dev/null | grep -iE '\bfail(ing|ed|ure)?\b' | head -3 || true)
   if [ -n "$FAILED" ]; then
     echo ""
     echo "SHIP FAILED — required check(s) failed:"
@@ -382,6 +420,23 @@ echo ""
 echo "  PR #${PR_NUM} MERGED ✓ (squash, GitHub-signed)"
 echo "  ${SHIP_BRANCH} now: ${SHIP_REMOTE_AFTER}"
 echo "SHIP STATUS: MERGED — ship branch deleted, main updated."
+
+# ── Auto re-sync local onto the new main (closes the duplicate-ship loop) ──
+# Skipping this manual step is what produced back-to-back duplicate ship PRs: local
+# stayed behind main, so the next run re-shipped the same delta as a no-op merge.
+# Running it here makes a clean ship leave a clean local. Best-effort and safe:
+# sync hard-stops cleanly (and changes nothing) on a dirty tree, detached HEAD, or
+# any non-version conflict — it can never corrupt the merge that already landed.
+if [ -f "scripts/sync-local-to-main.sh" ]; then
+  echo ""
+  echo "=== Re-syncing local onto origin/${SHIP_BRANCH} (post-merge) ==="
+  if bash scripts/sync-local-to-main.sh; then
+    echo "  Local re-synced — the next ship will start clean."
+  else
+    echo "  NOTE: auto-sync did not complete (reason above). Run it manually before"
+    echo "        the next ship:  bash scripts/sync-local-to-main.sh"
+  fi
+fi
 
 # ── Drift Cairn snapshot (record current state after ship) ──
 if [ -f "scripts/drift-cairn.sh" ]; then
