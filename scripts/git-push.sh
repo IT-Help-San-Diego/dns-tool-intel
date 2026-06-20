@@ -402,12 +402,32 @@ POLL=20
 ELAPSED=0
 MERGED=false
 CONFLICT_SEEN=0
+MISS=0
+MISS_MAX=6
 while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
   # Query merged + state + mergeable together. Breaking only on merged=="true" meant
   # a single transient/empty gh read left the loop polling to the full timeout even
   # though the PR had already merged (the 12-min hang). state=="MERGED" is a second,
   # independent merged signal; an empty read just falls through to the next poll.
   PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state,mergeable --jq '[.merged,.state,.mergeable]|@tsv' 2>/dev/null)
+  # Transient GitHub/gh failure (empty read): a single miss is harmless, but do not
+  # let a sustained API outage silently ride to the full 15-min timeout — that is the
+  # other "stuck on git push" face. Bail after MISS_MAX consecutive empty reads (~2min)
+  # with an honest "API transient" message rather than a fake merge-failure.
+  if [ -z "$PR_STATE" ]; then
+    MISS=$((MISS + 1))
+    if [ "$MISS" -ge "$MISS_MAX" ]; then
+      echo ""
+      echo "SHIP UNCERTAIN — GitHub returned no PR status for ${MISS} consecutive polls (~$((MISS * POLL))s)."
+      echo "  Almost certainly a transient gh/GitHub API problem, NOT a code or merge failure."
+      echo "  Check manually: gh pr view -R $REPO $PR_NUM"
+      echo "  Auto-merge stays armed; safe to re-run once GitHub recovers: bash scripts/git-push.sh"
+      exit 1
+    fi
+    sleep "$POLL"; ELAPSED=$((ELAPSED + POLL)); printf "    waited %ds (api retry %d/%d) ...\r" "$ELAPSED" "$MISS" "$MISS_MAX"
+    continue
+  fi
+  MISS=0
   MERGED=$(printf '%s' "$PR_STATE" | cut -f1)
   STATE=$(printf '%s' "$PR_STATE" | cut -f2)
   MERGEABLE=$(printf '%s' "$PR_STATE" | cut -f3)
