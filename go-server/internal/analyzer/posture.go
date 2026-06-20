@@ -48,6 +48,7 @@ type protocolState struct {
         spfOK               bool
         spfWarning          bool
         spfMissing          bool
+        spfIndeterminate    bool
         spfHardFail         bool
         spfDangerous        bool
         spfNeutral          bool
@@ -56,6 +57,7 @@ type protocolState struct {
         dmarcOK             bool
         dmarcWarning        bool
         dmarcMissing        bool
+        dmarcIndeterminate  bool
         dmarcPolicy         string
         dmarcPct            int
         dmarcHasRua         bool
@@ -118,6 +120,12 @@ func evaluateSPFState(spf map[string]any) (spfOK, spfWarning, spfMissing, spfHar
         case mapKeyWarning:
                 spfWarning = true
                 spfOK = true
+        case statusIndeterminate:
+                // Transient lookup failure — neither configured nor absent. Exclude
+                // from the posture verdict entirely (parity with DNSSEC, whose switch
+                // already leaves indeterminate as neither OK nor broken) so a SERVFAIL
+                // is never scored as a missing record.
+                return
         default:
                 spfMissing = true
         }
@@ -153,6 +161,11 @@ func evaluateDMARCState(dmarc map[string]any) (dmarcOK, dmarcWarning, dmarcMissi
         case mapKeyWarning:
                 dmarcWarning = true
                 dmarcOK = true
+        case statusIndeterminate:
+                // Transient lookup failure — neither configured nor absent. Exclude
+                // from the posture verdict entirely (parity with DNSSEC) so a SERVFAIL
+                // is never scored as a missing record.
+                return
         default:
                 dmarcMissing = true
         }
@@ -225,6 +238,21 @@ func evaluateProtocolStates(results map[string]any) protocolState {
 
         ps.spfOK, ps.spfWarning, ps.spfMissing, ps.spfHardFail, ps.spfDangerous, ps.spfNeutral, ps.spfLookupExceeded, ps.spfLookupCount = evaluateSPFState(spf)
         ps.dmarcOK, ps.dmarcWarning, ps.dmarcMissing, ps.dmarcHasRua, ps.dmarcPolicy, ps.dmarcPct = evaluateDMARCState(dmarc)
+
+        // Tri-state honesty: a transient TXT lookup failure (SERVFAIL/timeout) is
+        // neither configured nor absent. Track it explicitly so downstream
+        // presence flags (hasSPF/hasDMARC) and email-spoofability verdicts never
+        // treat an indeterminate measurement as a published record.
+        if spf != nil {
+                if st, _ := spf[mapKeySpfState].(string); st == statusIndeterminate {
+                        ps.spfIndeterminate = true
+                }
+        }
+        if dmarc != nil {
+                if st, _ := dmarc[mapKeyDmarcState].(string); st == statusIndeterminate {
+                        ps.dmarcIndeterminate = true
+                }
+        }
         ps.dkimOK, ps.dkimProvider, ps.dkimPartial, ps.dkimWeakKeys, ps.dkimThirdPartyOnly, ps.primaryProvider = evaluateDKIMState(dkim)
 
         ps.caaOK = evaluateSimpleProtocolState(caa, mapKeyStatus)
@@ -723,8 +751,12 @@ func (a *Analyzer) CalculatePosture(results map[string]any) map[string]any {
         classifyDMARCReportAuth(results, acc)
         classifyCertificateCosts(results, acc)
 
-        hasSPF := !ps.spfMissing
-        hasDMARC := !ps.dmarcMissing
+        // Present-only: a record counts as present only when neither absent nor
+        // indeterminate. Using !missing alone would let a transient lookup failure
+        // (indeterminate) masquerade as a published record in email-spoofability
+        // verdicts and the BIG Questions summary.
+        hasSPF := !ps.spfMissing && !ps.spfIndeterminate
+        hasDMARC := !ps.dmarcMissing && !ps.dmarcIndeterminate
         hasDKIM := ds.IsPresent()
 
         if isTLD {
@@ -816,6 +848,13 @@ func classifyGrade(ps protocolState, gi gradeInput) (string, string, string, str
 }
 
 func classifyMailGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
+        // A transient SPF/DMARC lookup failure leaves hasSPF/hasDMARC false, but
+        // that is "unknown", not "absent". Grading absence-based risk off an
+        // unverified measurement would fabricate a verdict (RFC 7208 §4.6 /
+        // RFC 7489 §6.6.3) — report inconclusive instead.
+        if ps.spfIndeterminate || ps.dmarcIndeterminate {
+                return riskMedium, "question", mapKeySecondary, "Email authentication could not be verified — a DNS lookup did not complete; re-run before concluding"
+        }
         if !gi.hasSPF && !gi.hasDMARC {
                 return riskCritical, iconExclamationTriangle, mapKeyDanger, "No SPF or DMARC records — domain is unprotected against email spoofing"
         }
@@ -973,11 +1012,18 @@ const (
         emailSpoofSPFOnly
         emailSpoofDMARCOnly
         emailSpoofUncertain
+        emailSpoofIndeterminate
 )
 
 func classifyEmailSpoofability(ps protocolState, hasSPF, hasDMARC bool) emailSpoofClass {
         if ps.isNoMailDomain {
                 return emailSpoofNoMail
+        }
+        // A transient SPF/DMARC lookup failure makes the spoofability verdict
+        // unknowable — we must not emit "Yes"/"No" off a measurement we could not
+        // complete (RFC 7208 §4.6 / RFC 7489 §6.6.3). Report inconclusive.
+        if ps.spfIndeterminate || ps.dmarcIndeterminate {
+                return emailSpoofIndeterminate
         }
         if !hasSPF && !hasDMARC {
                 return emailSpoofUnprotected
@@ -1020,6 +1066,7 @@ var emailAnswerText = map[emailSpoofClass]string{
         emailSpoofSPFOnly:           "Likely — SPF alone cannot prevent spoofing",
         emailSpoofDMARCOnly:         "Partially — DMARC present but no SPF",
         emailSpoofUncertain:         "Uncertain — incomplete configuration",
+        emailSpoofIndeterminate:     "Could not verify — a DNS lookup did not complete; re-run before concluding",
 }
 
 type emailAnswerDetail struct {
@@ -1038,6 +1085,7 @@ var emailAnswerDetails = map[emailSpoofClass]emailAnswerDetail{
         emailSpoofSPFOnly:           {strLikely, "SPF alone cannot prevent spoofing", mapKeyDanger},
         emailSpoofDMARCOnly:         {strPartially, "DMARC present but no SPF", mapKeyWarning},
         emailSpoofUncertain:         {"Uncertain", "incomplete configuration", mapKeyWarning},
+        emailSpoofIndeterminate:     {"Could not verify", "a DNS lookup did not complete — re-run before concluding", "secondary"},
 }
 
 func buildEmailAnswer(ps protocolState, hasSPF, hasDMARC bool) string {
@@ -1058,6 +1106,15 @@ func buildEmailAnswerStructured(ps protocolState, hasSPF, hasDMARC bool) map[str
 }
 
 func buildEmailVerdict(vi verdictInput, verdicts map[string]any) {
+        if vi.ps.spfIndeterminate || vi.ps.dmarcIndeterminate {
+                verdicts[mapKeyEmailSpoofing] = map[string]any{
+                        mapKeyLabel: "Inconclusive",
+                        mapKeyColor: "secondary",
+                        mapKeyIcon:  "question",
+                }
+                return
+        }
+
         if vi.hasSPF && vi.hasDMARC && (vi.ps.dmarcPolicy == mapKeyReject || (vi.ps.dmarcPolicy == mapKeyQuarantine && vi.ps.dmarcPct >= 100)) {
                 buildEnforcingEmailVerdict(vi.ps, vi.ds, verdicts)
                 return

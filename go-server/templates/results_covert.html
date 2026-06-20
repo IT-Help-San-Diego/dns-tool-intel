@@ -338,9 +338,12 @@
                             <div class="small font-monospace mb-2 u-recon-annotation">&gt; analyzing sender authorization policy...</div>
                             <h6 class="fw-semibold font-monospace">{{icon "terminal" "me-1"}}SPF &mdash; Sender Policy Framework</h6>
                             {{$spfStatus := mapGetStr "status" $spf}}
+                            {{$spfState := mapGetStr "spf_state" $spf}}
                             {{$spfRecord := mapGetStr "record" $spf}}
-                            <div class="alert {{if eq $spfStatus "success"}}alert-success{{else}}alert-danger{{end}} py-2 mb-2 small">
-                                {{if eq $spfStatus "success"}}
+                            <div class="alert {{if eq $spfState "indeterminate"}}alert-secondary{{else if eq $spfStatus "success"}}alert-success{{else}}alert-danger{{end}} py-2 mb-2 small">
+                                {{if eq $spfState "indeterminate"}}
+                                {{icon "question" "me-1"}}SPF could not be verified &mdash; TXT lookup did not complete (transient SERVFAIL/timeout). Inconclusive, not a finding of absence (RFC 7208 &sect;4.6). Re-run before concluding.
+                                {{else if eq $spfStatus "success"}}
                                 {{icon "shield-alt" "me-1"}}SPF is configured &mdash; sender authorization restricts spoofing
                                 {{else}}
                                 {{icon "bug" "me-1"}}No SPF record &mdash; any server can claim to send from this domain
@@ -390,10 +393,13 @@
                             <div class="small font-monospace mb-2 u-recon-annotation">&gt; evaluating enforcement policy...</div>
                             <h6 class="fw-semibold font-monospace">{{icon "terminal" "me-1"}}DMARC &mdash; Domain-based Message Authentication</h6>
                             {{$dmarcStatus := mapGetStr "status" $dmarc}}
+                            {{$dmarcState := mapGetStr "dmarc_state" $dmarc}}
                             {{$dmarcPolicy := mapGetStr "policy" $dmarc}}
                             {{$dmarcRecord := mapGetStr "record" $dmarc}}
-                            <div class="alert {{if eq $dmarcPolicy "reject"}}alert-success{{else if eq $dmarcPolicy "quarantine"}}alert-warning{{else}}alert-danger{{end}} py-2 mb-2 small">
-                                {{if eq $dmarcPolicy "reject"}}
+                            <div class="alert {{if eq $dmarcState "indeterminate"}}alert-secondary{{else if eq $dmarcPolicy "reject"}}alert-success{{else if eq $dmarcPolicy "quarantine"}}alert-warning{{else}}alert-danger{{end}} py-2 mb-2 small">
+                                {{if eq $dmarcState "indeterminate"}}
+                                {{icon "question" "me-1"}}DMARC could not be verified &mdash; _dmarc TXT lookup did not complete (transient SERVFAIL/timeout). Inconclusive, not a finding of absence (RFC 7489 &sect;6.6.3). Re-run before concluding.
+                                {{else if eq $dmarcPolicy "reject"}}
                                 {{icon "shield-alt" "me-1"}}DMARC p=reject &mdash; hard enforcement. Spoofing will be rejected.
                                 {{else if eq $dmarcPolicy "quarantine"}}
                                 {{icon "exclamation-triangle" "me-1"}}DMARC p=quarantine &mdash; authentication failures are sequestered, not rejected. Forensic telemetry is preserved (<a href="https://www.rfc-editor.org/rfc/rfc7489.html#section-7:~:text=Aggregate%20reports%20are%20reports%20that%20are,that%20did%20not" target="_blank" rel="noopener" class="text-info">RFC 7489 &sect;7</a>). Some organizations maintain this posture as a deliberate monitoring strategy. See <a href="https://csrc.nist.gov/pubs/sp/800/177/r1/final" target="_blank" rel="noopener" class="text-info">NIST SP 800-177</a>
