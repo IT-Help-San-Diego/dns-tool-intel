@@ -350,6 +350,36 @@ else
   echo "  PR #${PR_NUM}: $PR_URL"
 fi
 
+# ── Close SUPERSEDED ship PRs (the missing cleanup that made success look like
+#    failure) ──────────────────────────────────────────────────────────────────
+# The ephemeral-branch model means only the CURRENT ship PR is ever valid: each
+# run pushes a brand-new ship/<ts>-<sha> branch. But a PRIOR run can leave an open
+# PR behind — e.g. a first attempt opens PR #N, then main advances (another squash
+# lands), so #N goes CONFLICTING/DIRTY and can never merge. The follow-up
+# sync+reship opens PR #N+1 which merges cleanly — yet #N stays OPEN and
+# CONFLICTING forever. The operator keeps looking at the dead #N and concludes
+# "the ship failed / CI is broken" when it actually SUCCEEDED on #N+1.
+# Fix: the moment we have our live PR (#PR_NUM), close every OTHER open ship/* PR
+# on this base and delete its ephemeral branch. Exactly one live ship PR is ever
+# visible, so a stale conflicting PR can no longer masquerade as a failure.
+# (gh pr close is a PR-state API op and --delete-branch targets only the ephemeral
+#  ship/* head ref — never main — so this stays within the established ship flow
+#  and the Repo Sync Law, identical to the --delete-branch already used on merge.)
+echo "  Closing any superseded ship PRs (ephemeral model — only #${PR_NUM} is live) ..."
+SUPERSEDED=$(gh pr list -R "$REPO" --base "$SHIP_BRANCH" --state open \
+  --json number,headRefName \
+  --jq "map(select(.number!=${PR_NUM} and (.headRefName|startswith(\"ship/\"))))|.[].number" 2>/dev/null || true)
+if [ -n "$SUPERSEDED" ]; then
+  for OLD in $SUPERSEDED; do
+    gh pr close -R "$REPO" "$OLD" --delete-branch \
+      --comment "Superseded by #${PR_NUM} (ephemeral ship branch replaced by a fresh, conflict-free ship)." \
+      >/dev/null 2>&1 && echo "    Closed superseded PR #${OLD} (+ deleted its branch)" \
+      || echo "    NOTE: could not close stale PR #${OLD} (close it manually: gh pr close ${OLD})"
+  done
+else
+  echo "    None — clean."
+fi
+
 echo "  Enabling auto-merge (squash — GitHub signs the commit on main) ..."
 MERGE_OUT=$(gh pr merge -R "$REPO" "$PR_NUM" --auto --squash --delete-branch 2>&1) || true
 [ -n "$MERGE_OUT" ] && echo "$MERGE_OUT" | sed 's/^/    /'
