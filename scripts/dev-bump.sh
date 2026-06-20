@@ -1,77 +1,40 @@
 #!/usr/bin/env bash
-# Dev version bump — routine development only.
-# Usage: bash scripts/dev-bump.sh X.Y.Z
+# dev-bump.sh — DEPRECATED (retired 2026-06-20).
 #
-# Bumps config.go + sonar-project.properties, rebuilds binary, commits.
-# Does NOT touch CITATION.cff, codemeta.json, or methodology docs.
-# For full release bumps (tag time), use: bash scripts/release-gate.sh X.Y.Z
+# The app version is now DERIVED FROM GIT (scripts/version.sh) and injected at
+# build time via -ldflags. Routine development ships NO LONGER bump a version
+# file at all — that hand-edit of the same Version line on every ship was the
+# single cause of the chronic every-ship merge conflict on config.go +
+# sonar-project.properties. There is nothing to bump for a dev ship.
 #
-# See docs/ACIP.md "Two-Track Version Bump Law".
+# WHAT TO DO NOW:
+#   * Routine dev ship: just ship. The binary's version auto-advances from git
+#     (e.g. "26.46.14-376-gfee43e982"). No bump, no file edit, no conflict.
+#         bash scripts/quality-gate.sh
+#         bash scripts/git-push.sh
+#   * Cut a RELEASE: run the release gate, then create an annotated git tag —
+#     the tag IS the version (git describe resolves to it exactly on the tag):
+#         bash scripts/release-gate.sh X.Y.Z
+#         git tag -a vX.Y.Z -m "Release vX.Y.Z"   (then push the tag)
+#   * Pin a clean display version temporarily: export APP_VERSION=X.Y.Z and rebuild.
+#
+# This script intentionally no longer edits any file. It exits 0 so old muscle
+# memory / automation can't accidentally reintroduce version-file churn.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${1:-}"
-if [ -z "$VERSION" ]; then
-  echo "Usage: bash scripts/dev-bump.sh X.Y.Z"
-  echo "Example: bash scripts/dev-bump.sh 26.34.31"
-  exit 1
-fi
-
-if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-  echo "Error: Version must be in X.Y.Z format (e.g., 26.34.31)"
-  exit 1
-fi
-
-CURRENT=$(grep 'Version.*=' go-server/internal/config/config.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
-echo "Dev bump: ${CURRENT} → ${VERSION}"
+echo "dev-bump.sh is DEPRECATED — version now comes from git, not a tracked file."
 echo ""
-
-sed -i -E "s/(Version\s*=\s*)\"[^\"]*\"/\1\"${VERSION}\"/" go-server/internal/config/config.go
-grep -q "\"${VERSION}\"" go-server/internal/config/config.go \
-  || { echo "FAIL: config.go was not updated"; exit 1; }
-echo "  config.go ✓"
-
-sed -i "s/^sonar.projectVersion=.*/sonar.projectVersion=${VERSION}/" sonar-project.properties
-grep -q "sonar.projectVersion=${VERSION}" sonar-project.properties \
-  || { echo "FAIL: sonar-project.properties was not updated"; exit 1; }
-echo "  sonar-project.properties ✓"
-
+echo "Current git-derived version: $(bash scripts/version.sh)"
 echo ""
-echo "Building..."
-bash build.sh
-
+echo "Routine dev ship (no bump needed):"
+echo "  bash scripts/quality-gate.sh"
+echo "  bash scripts/git-push.sh"
 echo ""
-echo "Committing..."
-git add go-server/internal/config/config.go sonar-project.properties
-git commit -m "dev-bump: v${VERSION}" --quiet
-echo "  Committed: dev-bump: v${VERSION} ✓"
-
+echo "Cut a release (tag IS the version):"
+echo "  bash scripts/release-gate.sh X.Y.Z"
+echo "  git tag -a vX.Y.Z -m 'Release vX.Y.Z'"
 echo ""
-echo "Protected (untouched):"
-echo "  CITATION.cff ✓ (concept DOI safe)"
-echo "  codemeta.json ✓"
-echo "  methodology docs ✓"
-echo "  manifesto + comm standards PDFs ✓"
-echo ""
-echo "Restarting app..."
-PID=$(pgrep -f 'dns-tool-server$' 2>/dev/null || true)
-if [ -n "$PID" ]; then
-  kill "$PID" 2>/dev/null || true
-  for i in 1 2 3 4 5; do
-    if ! kill -0 "$PID" 2>/dev/null; then break; fi
-    sleep 1
-  done
-  kill -9 "$PID" 2>/dev/null || true
-fi
-sleep 2
-if pgrep -f 'dns-tool-server$' > /dev/null 2>&1; then
-  echo "  App restarted on v${VERSION} ✓"
-else
-  echo "  Old process stopped. Workflow will auto-restart on v${VERSION}."
-  echo "  If preview doesn't update, click the ▶ restart button in the Console tab."
-fi
-echo ""
-echo "Ready. Next steps (the three-command ship plan):"
-echo "  2. bash scripts/quality-gate.sh    # R009 + R010 + R011 + go vet + core tests + RFC attacks"
-echo "  3. bash scripts/git-push.sh        # push branch → open PR → wait CI → auto-merge --rebase"
+echo "Pin a display version temporarily:  export APP_VERSION=X.Y.Z && bash build.sh"
+exit 0

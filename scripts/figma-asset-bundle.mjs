@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
+import { execSync } from 'child_process';
 
 const CONFIG_PATH = 'scripts/pipeline-config.json';
 const VERSION_RE = /Version\s*=\s*"([^"]+)"/;
 
 function getVersion() {
+  // Version is derived from git (single source: scripts/version.sh), not from a
+  // tracked file — routine dev ships no longer bump a Version literal.
   try {
-    const src = readFileSync('go-server/internal/config/config.go', 'utf8');
-    const m = src.match(VERSION_RE);
-    return m ? m[1] : 'unknown';
+    return execSync('bash scripts/version.sh', { encoding: 'utf8' }).trim() || 'unknown';
   } catch { return 'unknown'; }
 }
 

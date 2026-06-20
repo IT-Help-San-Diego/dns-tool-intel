@@ -9,8 +9,13 @@ import (
         "strings"
 )
 
+// Version, GitCommit, and BuildTime are injected at build time via -ldflags
+// (see build.sh + scripts/version.sh). Version is derived from git
+// (`git describe --tags`), so these literals are fallbacks only — they apply
+// when the binary is built without ldflags (e.g. a bare `go run`). Do NOT
+// hand-edit Version to bump a release; create a git tag instead.
 var (
-        Version   = "26.50.04"
+        Version   = "dev"
         GitCommit = "dev"
         BuildTime = "unknown"
 )
