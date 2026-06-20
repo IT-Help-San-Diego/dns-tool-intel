@@ -147,6 +147,8 @@ type mailFlags struct {
         spfDenyAll  bool
         dmarcReject bool
         dmarcPolicy string
+        spfIndet    bool
+        dmarcIndet  bool
 }
 
 type dnsRecord struct {
@@ -877,6 +879,21 @@ func extractMailFlags(results map[string]any, ps protocolState) mailFlags {
         mf.dmarcReject = ps.dmarcPolicy == policyReject
         mf.dmarcPolicy = ps.dmarcPolicy
 
+        // A transient lookup failure is not evidence that SPF/DMARC is missing.
+        // Suppress the "Publish an SPF/DMARC record" step on indeterminate so the
+        // remediation plan never reproduces the false-absence finding the verdict
+        // already declined to make.
+        if spf, ok := results["spf_analysis"].(map[string]any); ok {
+                if s, _ := spf[mapKeySpfState].(string); s == spfStateIndeterminate {
+                        mf.spfIndet = true
+                }
+        }
+        if dmarc, ok := results[mapKeyDmarcAnalysis].(map[string]any); ok {
+                if s, _ := dmarc[mapKeyDmarcState].(string); s == dmarcStateIndeterminate {
+                        mf.dmarcIndet = true
+                }
+        }
+
         basic, _ := results["basic_records"].(map[string]any)
         if basic != nil {
                 if mx, ok := basic["MX"].([]string); ok && len(mx) > 0 {
@@ -889,6 +906,11 @@ func extractMailFlags(results map[string]any, ps protocolState) mailFlags {
 func computeMailVerdict(mf mailFlags) (string, string) {
         if mf.hasNullMX {
                 return "no_mail", "No Mail Observed"
+        }
+        // Indeterminate SPF/DMARC means the lookup did not complete — do not let
+        // false hasSPF/hasDMARC flags collapse into an "unprotected" verdict.
+        if mf.spfIndet || mf.dmarcIndet {
+                return "inconclusive", "Could Not Verify"
         }
         if mf.hasSPF && mf.hasDMARC && mf.hasDKIM {
                 if mf.dmarcReject {
@@ -929,8 +951,8 @@ func buildNoMailSignals(mf mailFlags) (map[string]any, int) {
 func buildMissingSteps(mf mailFlags) []map[string]any {
         var steps []map[string]any
         defs := []missingStepDef{
-                {missing: !mf.hasSPF, control: "SPF Record", rfc: remSPF, rfcURL: remSPFURL, action: "Publish an SPF record", risk: "No sender authorization"},
-                {missing: !mf.hasDMARC, control: "DMARC Policy", rfc: remDMARC7489, rfcURL: remDMARC7489URL, action: "Publish a DMARC record", risk: "No spoofing protection policy"},
+                {missing: !mf.hasSPF && !mf.spfIndet, control: "SPF Record", rfc: remSPF, rfcURL: remSPFURL, action: "Publish an SPF record", risk: "No sender authorization"},
+                {missing: !mf.hasDMARC && !mf.dmarcIndet, control: "DMARC Policy", rfc: remDMARC7489, rfcURL: remDMARC7489URL, action: "Publish a DMARC record", risk: "No spoofing protection policy"},
                 {missing: !mf.hasDKIM, control: "DKIM Signing", rfc: remDKIMSign, rfcURL: remDKIMSignURL, action: "Configure DKIM signing", risk: "Messages cannot be cryptographically verified"},
         }
         for _, d := range defs {
@@ -948,6 +970,15 @@ func buildMissingSteps(mf mailFlags) []map[string]any {
 }
 
 func classifyMailPosture(mf mailFlags, presentCount int, domain string, ps protocolState) mailClassification {
+        if mf.spfIndet || mf.dmarcIndet {
+                return mailClassification{
+                        classification: "inconclusive",
+                        label:          "Could Not Verify",
+                        color:          "secondary",
+                        icon:           "question",
+                        summary:        "Email authentication could not be verified — a DNS lookup did not complete. Re-run the scan before drawing any conclusion about spoofing protection.",
+                }
+        }
         if mf.hasNullMX {
                 if mf.spfDenyAll && mf.dmarcReject {
                         return mailClassification{

@@ -53,12 +53,22 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 postureFieldEquals(curr, mapKeyDaneAnalysis, "dane_state", dnssecStateIndeterminate)
         dnssecIndet := postureFieldEquals(prev, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate) ||
                 postureFieldEquals(curr, "dnssec_analysis", mapKeyDnssecState, dnssecStateIndeterminate)
+        spfIndet := postureFieldEquals(prev, "spf_analysis", mapKeySpfState, spfStateIndeterminate) ||
+                postureFieldEquals(curr, "spf_analysis", mapKeySpfState, spfStateIndeterminate)
+        dmarcIndet := postureFieldEquals(prev, mapKeyDmarcAnalysis, mapKeyDmarcState, dmarcStateIndeterminate) ||
+                postureFieldEquals(curr, mapKeyDmarcAnalysis, mapKeyDmarcState, dmarcStateIndeterminate)
 
         for _, f := range fields {
                 if daneIndet && f.label == "DANE Status" {
                         continue
                 }
                 if dnssecIndet && f.label == "DNSSEC Status" {
+                        continue
+                }
+                if spfIndet && f.label == "SPF Status" {
+                        continue
+                }
+                if dmarcIndet && (f.label == "DMARC Status" || f.label == "DMARC Policy") {
                         continue
                 }
                 prevVal := extractPostureField(prev, f.section, f.key)

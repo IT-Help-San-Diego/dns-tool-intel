@@ -761,6 +761,8 @@
                                 <div class="small text-muted text-uppercase mb-1">Email Spoofing</div>
                                 {{if .IsTLD}}
                                 <span class="badge bg-secondary px-3 py-2">N/A &mdash; Registry</span>
+                                {{else if or (eq (mapGetStr "spf_state" $spf) "indeterminate") (eq (mapGetStr "dmarc_state" $dmarc) "indeterminate")}}
+                                <span class="badge bg-secondary px-3 py-2" data-bs-toggle="tooltip" title="A TXT lookup did not complete (transient SERVFAIL/timeout). Re-run before concluding.">Inconclusive</span>
                                 {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (or (eq $dmarcPolicy "reject") (eq $dmarcPolicy "quarantine"))}}
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and (eq $spfStatus "success") (eq $dmarcStatus "success") (eq $dmarcPolicy "none")}}
@@ -1014,7 +1016,9 @@
                     <div class="exec-finding-row">
                         <span class="exec-finding-label">SPF (Sender Policy)</span>
                         <span class="exec-finding-value">
-                            {{if eq $spfStatus "success"}}
+                            {{if eq (mapGetStr "spf_state" $spf) "indeterminate"}}
+                            <span class="badge bg-secondary">Could Not Verify</span>
+                            {{else if eq $spfStatus "success"}}
                             <span class="badge bg-success">Configured</span>
                             {{else if eq $spfStatus "warning"}}
                             <span class="badge bg-warning">Partial</span>
@@ -1031,7 +1035,9 @@
                     <div class="exec-finding-row">
                         <span class="exec-finding-label">DMARC (Policy)</span>
                         <span class="exec-finding-value">
-                            {{if eq $dmarcStatus "success"}}
+                            {{if eq (mapGetStr "dmarc_state" $dmarc) "indeterminate"}}
+                            <span class="badge bg-secondary">Could Not Verify</span>
+                            {{else if eq $dmarcStatus "success"}}
                             <span class="badge bg-success">Configured</span>
                             {{else if eq $dmarcStatus "warning"}}
                             <span class="badge bg-warning">Partial</span>
