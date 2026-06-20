@@ -245,12 +245,19 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
 
         algorithm, algorithmName := parseAlgorithm(dsRecords)
 
-        // Honest tri-state: when neither DNSKEY nor DS resolved, the resolver did
-        // not confirm validation (no AD flag), AND at least one lookup failed
-        // transiently, we genuinely cannot tell signed from unsigned. Report
-        // indeterminate rather than fabricating "not configured".
-        if !hasDNSKEY && !hasDS && !adFlag &&
-                (dnskeyStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupError) {
+        // Honest tri-state: a transient DNSKEY/DS lookup failure must never be read
+        // as "not configured" (no records) OR as "DS missing at registrar" (partial)
+        // for the half that failed. If EITHER lookup errored and we lack definitive
+        // positive evidence — a full DNSKEY+DS pair, or a resolver AD flag confirming
+        // the chain of trust — we genuinely cannot tell signed from unsigned, so we
+        // report indeterminate rather than fabricating an absence-style verdict.
+        // Covers the mixed cases too (e.g. DNSKEY errored while DS resolved, or DS
+        // errored while DNSKEY resolved), which the old !hasDNSKEY && !hasDS guard
+        // let fall through to "not configured" / "partial" (RFC 4035 — absence is
+        // only assertable from an authoritative answer, never a failed lookup).
+        lookupErrored := dnskeyStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupError
+        definitivePositive := (hasDNSKEY && hasDS) || adFlag
+        if lookupErrored && !definitivePositive {
                 return buildIndeterminateDNSSECResult(adResolver)
         }
 

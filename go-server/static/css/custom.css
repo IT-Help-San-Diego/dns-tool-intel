@@ -8311,3 +8311,7 @@ a.ftr-node:hover {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+.drift-caveat-summary {
+    cursor: pointer;
+}

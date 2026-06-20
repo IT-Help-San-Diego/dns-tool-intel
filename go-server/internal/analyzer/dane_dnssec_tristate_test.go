@@ -5,6 +5,7 @@ package analyzer
 
 import (
         "context"
+        "strings"
         "testing"
 
         "dnstool/go-server/internal/dnsclient"
@@ -77,11 +78,13 @@ func TestAnalyzeDANE_TriState_Indeterminate(t *testing.T) {
         }
 }
 
-// TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient locks the
-// provider-no-inbound invariant: for a provider that authoritatively does not
-// support inbound DANE (e.g. Microsoft 365), a missing/transient TLSA lookup must
-// stay a STABLE absent_confirmed and never flap to indeterminate.
-func TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient(t *testing.T) {
+// TestAnalyzeDANE_ProviderNoInbound_TransientIsIndeterminate locks the Zero
+// Fabrication rule: even for a provider that does not support inbound DANE (e.g.
+// Microsoft 365), a TRANSIENT TLSA lookup failure must report indeterminate
+// ("could not verify"), NOT a fabricated confirmed-absence. Provider capability
+// is advisory deployment context only — it must never override a failed
+// measurement into an absence verdict (RFC 6698 §1).
+func TestAnalyzeDANE_ProviderNoInbound_TransientIsIndeterminate(t *testing.T) {
         const m365MX = "example-com.mail.protection.outlook.com"
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("TLSA", "_25._tcp."+m365MX,
@@ -90,8 +93,26 @@ func TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient(t *testing.T) {
 
         result := a.AnalyzeDANE(context.Background(), triStateDomain, []string{"10 " + m365MX + "."})
 
+        if got := result["dane_state"]; got != daneStateIndeterminate {
+                t.Fatalf("dane_state = %v, want %s (transient TLSA failure must be indeterminate even for a no-inbound-DANE provider)", got, daneStateIndeterminate)
+        }
+}
+
+// TestAnalyzeDANE_ProviderNoInbound_AuthoritativeAbsentConfirmed verifies the
+// legitimate confirmed-absence path is still reachable: when the TLSA lookup
+// returns an AUTHORITATIVE no-record (LookupAbsent), absence is real and the
+// state is absent_confirmed — derived from the resolver answer, not the provider.
+func TestAnalyzeDANE_ProviderNoInbound_AuthoritativeAbsentConfirmed(t *testing.T) {
+        const m365MX = "example-com.mail.protection.outlook.com"
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("TLSA", "_25._tcp."+m365MX,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDANE(context.Background(), triStateDomain, []string{"10 " + m365MX + "."})
+
         if got := result["dane_state"]; got != daneStateAbsentConf {
-                t.Fatalf("dane_state = %v, want %s (provider-no-inbound must not flap to indeterminate on transient TLSA failure)", got, daneStateAbsentConf)
+                t.Fatalf("dane_state = %v, want %s (authoritative no-record is a real confirmed absence)", got, daneStateAbsentConf)
         }
 }
 
@@ -167,6 +188,54 @@ func TestAnalyzeDNSSEC_TriState_MixedErrorAbsent(t *testing.T) {
         }
 }
 
+// TestAnalyzeDNSSEC_TriState_MixedDNSKEYErrorDSResolved locks the regression the
+// code review flagged: DNSKEY lookup errored transiently while DS resolved, with
+// no AD flag. The old guard required !hasDNSKEY && !hasDS, so this mixed case fell
+// through to buildDNSSECResult and was fabricated as "DNSSEC not configured"
+// (absent_confirmed). A single errored half means we cannot assert unsigned.
+func TestAnalyzeDNSSEC_TriState_MixedDNSKEYErrorDSResolved(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"12345 13 2 abc123"}},
+                dnsclient.LookupResolved)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (DNSKEY errored — must not read as 'not configured')", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyStatus]; got != statusUnknown {
+                t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+}
+
+// TestAnalyzeDNSSEC_TriState_MixedDSErrorDNSKEYResolved is the partner case: DS
+// lookup errored transiently while DNSKEY resolved, no AD flag. The old guard let
+// this reach buildDNSSECResult's hasDNSKEY && !hasDS branch and fabricate "DNSSEC
+// partially configured — DS record missing at registrar". A transient DS failure
+// is not evidence the DS is missing at the registrar.
+func TestAnalyzeDNSSEC_TriState_MixedDSErrorDNSKEYResolved(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (DS errored — must not read as 'DS missing at registrar')", got, dnssecStateIndeterminate)
+        }
+        if msg, _ := result[mapKeyMessage].(string); strings.Contains(msg, "missing at registrar") {
+                t.Fatalf("fabricated DS-absence message under transient DS failure: %q", msg)
+        }
+}
+
 // TestComputePostureDiff_SuppressesIndeterminateFlapping is the core regression
 // guard: a present → indeterminate → present sequence must produce zero drift
 // events, because the indeterminate scan is an incomplete probe, not a change.
@@ -224,5 +293,72 @@ func TestComputePostureDiff_RealTransitionStillDrifts(t *testing.T) {
         diffs := ComputePostureDiff(present, absent)
         if len(diffs) == 0 {
                 t.Fatal("present→absent_confirmed produced 0 drift fields, want a real drift event")
+        }
+}
+
+// TestEvaluateDNSSECState_Indeterminate verifies a transient DNSSEC lookup
+// (dnssec_state=indeterminate, status=unknown) is classified as neither OK nor
+// broken — it sets the dedicated indeterminate flag so downstream posture stays
+// neutral and never reads the zone as unsigned (RFC 4035).
+func TestEvaluateDNSSECState_Indeterminate(t *testing.T) {
+        var ps protocolState
+        evaluateDNSSECState(map[string]any{
+                mapKeyStatus:      statusUnknown,
+                mapKeyDnssecState: dnssecStateIndeterminate,
+        }, &ps)
+
+        if !ps.dnssecIndeterminate {
+                t.Fatal("dnssecIndeterminate = false, want true for dnssec_state=indeterminate")
+        }
+        if ps.dnssecOK || ps.dnssecBroken {
+                t.Fatalf("indeterminate must be neither OK nor broken; got dnssecOK=%v dnssecBroken=%v", ps.dnssecOK, ps.dnssecBroken)
+        }
+}
+
+// TestClassifyDNSSEC_IndeterminateNotAbsent locks the core honesty rule: an
+// inconclusive DNSSEC lookup must NOT land in the "absent" list (which renders as
+// a missing/unsigned finding). It surfaces as a neutral monitoring note instead.
+func TestClassifyDNSSEC_IndeterminateNotAbsent(t *testing.T) {
+        acc := &postureAccumulator{}
+        classifyDNSSEC(protocolState{dnssecIndeterminate: true}, acc)
+
+        for _, a := range acc.absent {
+                if a == "DNSSEC" {
+                        t.Fatal("indeterminate DNSSEC was added to absent list — must stay inconclusive, not a finding")
+                }
+        }
+        if len(acc.monitoring) == 0 {
+                t.Fatal("indeterminate DNSSEC produced no neutral monitoring note")
+        }
+}
+
+// TestBuildDNSVerdict_IndeterminateNotMissing verifies the DNS-tampering verdict
+// for inconclusive DNSSEC reads "Could Not Verify" (neutral), never the
+// "Not Configured / not deployed" absence verdict.
+func TestBuildDNSVerdict_IndeterminateNotMissing(t *testing.T) {
+        verdicts := map[string]any{}
+        buildDNSVerdict(protocolState{dnssecIndeterminate: true}, verdicts)
+
+        v, ok := verdicts[mapKeyDnsTampering].(map[string]any)
+        if !ok {
+                t.Fatal("no dns_tampering verdict produced")
+        }
+        if got := v[mapKeyLabel]; got != "Could Not Verify" {
+                t.Fatalf("label = %v, want \"Could Not Verify\" (must not assert Not Configured)", got)
+        }
+        if got, _ := v[mapKeyReason].(string); strings.Contains(got, "not deployed") {
+                t.Fatalf("verdict reason fabricates absence: %q", got)
+        }
+}
+
+// TestClassifyRegistryGrade_IndeterminateNotUnsigned verifies the registry-zone
+// grade for inconclusive DNSSEC does not assert "not DNSSEC-signed".
+func TestClassifyRegistryGrade_IndeterminateNotUnsigned(t *testing.T) {
+        _, _, _, msg := classifyRegistryGrade(protocolState{dnssecIndeterminate: true}, gradeInput{})
+        if strings.Contains(msg, "not DNSSEC-signed") {
+                t.Fatalf("registry grade fabricates absence for inconclusive DNSSEC: %q", msg)
+        }
+        if !strings.Contains(msg, "could not be verified") {
+                t.Fatalf("registry grade should report inconclusive; got %q", msg)
         }
 }

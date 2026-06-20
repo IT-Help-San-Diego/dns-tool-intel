@@ -127,10 +127,13 @@
                 <span class="badge bg-secondary ms-1">{{len .DriftEvents}}</span>
             </div>
             <div class="card-body">
-                <div class="alert alert-secondary py-2 mb-3 d-flex align-items-start small" role="alert">
-                    {{icon "info-circle" "me-2 mt-1"}}
-                    <div>Transient lookup failures are not drift. When a DANE or DNSSEC presence check is inconclusive (an "indeterminate" state from an incomplete lookup), it is excluded from this timeline rather than recorded as a posture change &mdash; only authoritatively confirmed transitions appear here.</div>
-                </div>
+                <details class="alert alert-secondary py-2 mb-3 small drift-caveat" role="alert">
+                    <summary class="d-flex align-items-center drift-caveat-summary">
+                        {{icon "info-circle" "me-2"}}
+                        <span class="fw-medium">Why some inconclusive checks are not shown</span>
+                    </summary>
+                    <div class="mt-2">Transient lookup failures are not drift. When a DANE or DNSSEC presence check is inconclusive (an "indeterminate" state from an incomplete lookup), it is excluded from this timeline rather than recorded as a posture change &mdash; only authoritatively confirmed transitions appear here.</div>
+                </details>
                 <div class="drift-timeline">
                     {{range $ev := .DriftEvents}}
                     <div class="drift-event severity-{{$ev.Severity}}">
