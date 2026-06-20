@@ -7,20 +7,21 @@ OSINT platform for RFC-compliant domain security analysis (SPF, DKIM, DMARC, DAN
 
 ### Hard rules — never violate
 - **CITATION.cff / codemeta.json — HANDS OFF**: ORCID-linked Zenodo artifacts. Never modify automatically. License must remain `BUSL-1.1`. Concept DOI `10.5281/zenodo.18854899` NEVER changes. CI guard `.github/workflows/guard_citation.yml` blocks regressions.
-- **Two-Track Version Bump Law**:
-  - **Dev bump** (routine): Run `bash scripts/dev-bump.sh X.Y.Z` — edits ONLY `go-server/internal/config/config.go` → `Version = "X.Y.Z"` (+ sonar-project.properties), builds, commits locally. Nothing else changes.
-  - **Release bump** (tag time only): Run `scripts/release-gate.sh X.Y.Z` — bumps all versioned artifacts. Only when Carey is ready to tag.
+- **Version Law — version comes from git, not a hand-edited file** (changed 2026-06-20; replaces the old Two-Track dev-bump file churn that conflicted on every ship):
+  - **Routine dev ship**: NO version bump. The app version is derived from git (`git describe --tags`, via `scripts/version.sh`) and injected at build time with `-ldflags` into `config.Version` (alongside `GitCommit`/`BuildTime`). Dev builds auto-advance, e.g. `26.46.14-376-gfee43e982`. Nothing is hand-edited, so there is no version line for the ship PR to conflict on. `scripts/dev-bump.sh` is DEPRECATED — it edits nothing and just prints guidance.
+  - **Release** (tag time only): Run `bash scripts/release-gate.sh X.Y.Z` (bumps the Zenodo/CITATION artifacts + PDFs), then create an annotated git tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"` and push it. The tag IS the version — `git describe` resolves to exactly `X.Y.Z` on the tag. Only when Carey is ready to tag.
+  - `config.go` `Version = "dev"` is a build-without-ldflags FALLBACK only — NEVER hand-edit it to bump. Pin a clean display version temporarily with `export APP_VERSION=X.Y.Z` then rebuild.
 
 - **THE THREE-COMMAND PLANS** (canonical sequences — copy to notes):
 
   **A. Ship a dev bump to `origin/main`** (post-branch-protection 2026-05-16):
   ```
-  1. bash scripts/dev-bump.sh X.Y.Z   # bump + build + local commit
+  1. # routine dev ship: NO version bump — version is git-derived at build time (see Version Law above)
   2. bash scripts/quality-gate.sh     # R009 + R010 + R011 + go vet + core tests + RFC attacks
   3. bash scripts/git-push.sh         # push to a FRESH ship/<ts> branch → open PR → auto-merge --squash on green → branch auto-deleted → auto-runs step 4 on success
   4. bash scripts/sync-local-to-main.sh   # now AUTO-RUN by step 3 after a successful merge; run manually ONLY if that auto-sync aborted (dirty tree / detached HEAD / conflict)
   ```
-  `git-push.sh` is also self-guarding against the duplicate-ship failure mode: before opening a PR it compares the local HEAD git-tree SHA to `origin/main`'s tree and HARD-STOPS with "Nothing to ship" if they are identical (re-running after a merge without syncing used to open back-to-back no-op PRs that still squash-merged — e.g. #124/#125/#126). Its merge-wait loop breaks on `state==MERGED` (not just `merged==true`) and bails immediately if the PR is `CLOSED`, so a transient `gh` read can no longer leave it polling to the 15-min timeout.
+  `git-push.sh` is also self-guarding against the duplicate-ship failure mode: before opening a PR it compares the local HEAD git-tree SHA to `origin/main`'s tree and HARD-STOPS with "Nothing to ship" if they are identical (re-running after a merge without syncing used to open back-to-back no-op PRs that still squash-merged — e.g. #124/#125/#126). Its merge-wait loop breaks on `state==MERGED` (not just `merged==true`), bails immediately if the PR is `CLOSED`, and now also bails in ~40s if the PR is `mergeable==CONFLICTING` (two consecutive reads, to ride out GitHub's brief `UNKNOWN` mergeability window) — auto-merge can never fire on a conflicting PR, so it no longer burns the full 15-min timeout (the chronic "stuck on git push" hang); it prints the `sync-local-to-main.sh` remedy and exits. So a transient `gh` read can no longer leave it polling to the 15-min timeout.
   `git-push.sh` handles the PR lifecycle automatically. No direct push to main. No API ref-writes. Three permanent design pillars (all 2026-06-08):
   - **Sync after every ship (step 4)**: squash-merges land on `main` as commits the local branch never receives, so local + main share only an ancient ancestor. Because every release re-bumps the same `Version` line (`config.go` + `sonar-project.properties`), a 3-way merge sees that line "changed on both sides" → the ship PR conflicts on those two files on EVERY ship until local re-syncs. `sync-local-to-main.sh` fetches `main`, merges it into local (native git, no API ref-writes), auto-resolves ONLY the two version files in favour of local (the higher, freshly-bumped version), and HARD-STOPS on any other conflict or a dirty tree. Run it after a successful ship, or any time the PR shows a conflict on `config.go`/`sonar-project.properties`. Safe to run anytime; it is a no-op when already in sync.
   - **Ephemeral ship branches**: each run pushes the workspace HEAD to a brand-new `ship/<timestamp>-<sha>` branch (never the persistent `replit-agent` branch). A fresh branch cannot be non-fast-forward, so the chronic `! [rejected] (fetch first)` divergence is structurally impossible. The branch is squash-merged into `main` and auto-deleted. `--no-main` pushes a `snapshot/<ts>-<sha>` backup branch instead and stops (no PR).
@@ -49,7 +50,7 @@ OSINT platform for RFC-compliant domain security analysis (SPF, DKIM, DMARC, DAN
 - **After ANY Go change**: `go test ./go-server/... -count=1`
 - **After CSS change**: `npx csso static/css/custom.min.css`
 - **Always before delivering**: `node scripts/audit-css-cohesion.js` (R009), `node scripts/feature-inventory.js` (R011), `node scripts/validate-scientific-colors.js` (R010). All quality gates are HARD STOPS per ACIP v2.0 — see `docs/ACIP.md`.
-- **Dev-Bump Cross-System Checklist**: After `bash scripts/dev-bump.sh X.Y.Z`, also update Notion Architecture Overview (`31c950b70b158108a5a5dc46eceae328`) and Phase 3 Version Range (`31c950b70b158196a670d758ad77f399`). DO NOT touch CITATION.cff / codemeta.json / methodology docs.
+- **Release Cross-System Checklist**: After `bash scripts/release-gate.sh X.Y.Z` + tagging, also update Notion Architecture Overview (`31c950b70b158108a5a5dc46eceae328`) and Phase 3 Version Range (`31c950b70b158196a670d758ad77f399`). Routine dev ships need NO version/Notion update — the version is git-derived. DO NOT touch CITATION.cff / codemeta.json / methodology docs outside release-gate.
 - **Mermaid diagrams**: In Replit use `bash scripts/render-diagrams-remote.sh` (mermaid.ink API). Locally with mmdc: `bash scripts/render-diagrams.sh`. Always re-render after `.mmd` changes.
 - **Connected Ecosystem Pre-Flight**: Before any task, check the API/secret/integration inventory in SKILL.md § "Step 0". Connect data across every system that knows about it.
 

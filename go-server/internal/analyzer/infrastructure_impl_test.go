@@ -231,6 +231,98 @@ func TestIdentifyDNSProvider_Empty(t *testing.T) {
         }
 }
 
+// TestIdentifyDNSProvider_Akamai guards against the regression where the UI
+// "DNS Hosting" field rendered "Unknown" for Akamai-hosted NS records even
+// though the Footprint detector and the enterprise-tier classifier both named
+// the provider — a visible self-contradiction (Unknown vs. Enterprise) on
+// Akamai Edge DNS domains such as those using *.akam.net nameservers.
+func TestIdentifyDNSProvider_Akamai(t *testing.T) {
+        got := identifyDNSProvider([]string{"a1-107.akam.net", "a24-65.akam.net"})
+        if got != "Akamai Edge DNS" {
+                t.Errorf("identifyDNSProvider = %q, want Akamai Edge DNS", got)
+        }
+}
+
+// TestIdentifyDNSProvider_EnterpriseRegistrars locks the enterprise/registrar
+// DNS provider patterns added to nsProviderPatterns so the UI "DNS Hosting"
+// name stays in sync with the Footprint and enterprise-tier classifiers (which
+// already recognize these). Each NS sample reflects a real provider hostname.
+func TestIdentifyDNSProvider_EnterpriseRegistrars(t *testing.T) {
+        cases := []struct {
+                name string
+                ns   []string
+                want string
+        }{
+                {"CSC dns", []string{"dns1.cscdns.net", "dns2.cscdns.net"}, nameCSCGlobalDNS},
+                {"CSC com", []string{"ns1.csc.com"}, nameCSCGlobalDNS},
+                {"NetNames", []string{"ns1.netnames.net"}, nameCSCGlobalDNS},
+                {"Verisign", []string{"ns1.verisigndns.com"}, "Verisign DNS"},
+                {"MarkMonitor", []string{"ns1.markmonitor.com"}, "MarkMonitor DNS"},
+                {"Porkbun", []string{"curitiba.ns.porkbun.com"}, "Porkbun"},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        if got := identifyDNSProvider(tc.ns); got != tc.want {
+                                t.Errorf("identifyDNSProvider(%v) = %q, want %q", tc.ns, got, tc.want)
+                        }
+                })
+        }
+}
+
+// TestIdentifyDNSProvider_Deterministic guards the longest-match-wins rule that
+// replaced the non-deterministic first-match loop over nsProviderPatterns. When
+// an NS set contains more than one provider pattern, Go's randomized map
+// iteration could otherwise return a different provider on successive scans —
+// the verdict "flapping" the stability gate exists to prevent. The result must
+// be (a) stable across many runs and (b) the most specific (longest) pattern.
+func TestIdentifyDNSProvider_Deterministic(t *testing.T) {
+        // NS hostname that contains two distinct provider substrings ("akam" and
+        // the longer, more specific "akamai"). Both map to Akamai Edge DNS, so the
+        // answer must be Akamai Edge DNS on every run, never empty or flapping.
+        ns := []string{"a1.akamai.akam.net"}
+        want := identifyDNSProvider(ns)
+        if want == "" {
+                t.Fatalf("identifyDNSProvider(%v) = empty, want a provider", ns)
+        }
+        for i := 0; i < 200; i++ {
+                if got := identifyDNSProvider(ns); got != want {
+                        t.Fatalf("identifyDNSProvider non-deterministic: run %d = %q, want %q", i, got, want)
+                }
+        }
+}
+
+// TestMatchLongestProvider_MostSpecificWins verifies that when several patterns
+// match, the longest (most specific) one is chosen, with alphabetical tie-break.
+func TestMatchLongestProvider_MostSpecificWins(t *testing.T) {
+        providers := map[string]string{
+                "outlook":            "Generic Outlook",
+                "protection.outlook": "Microsoft 365",
+        }
+        got := matchLongestProvider("mail.protection.outlook.com", providers)
+        if got != "Microsoft 365" {
+                t.Errorf("matchLongestProvider = %q, want Microsoft 365 (longest match)", got)
+        }
+        if got := matchLongestProvider("nothing-here", providers); got != "" {
+                t.Errorf("matchLongestProvider(no match) = %q, want empty", got)
+        }
+}
+
+// TestMatchLongestProvider_TieBreakDeterministic verifies that when two equal-
+// length patterns both match and map to DIFFERENT names, the lexically smaller
+// key wins — and does so identically on every run despite randomized map order.
+func TestMatchLongestProvider_TieBreakDeterministic(t *testing.T) {
+        providers := map[string]string{
+                "zzz9": "Provider Z",
+                "aaa9": "Provider A",
+        }
+        const want = "Provider A" // "aaa9" < "zzz9"
+        for i := 0; i < 200; i++ {
+                if got := matchLongestProvider("ns.aaa9.zzz9.example", providers); got != want {
+                        t.Fatalf("matchLongestProvider tie-break non-deterministic: run %d = %q, want %q", i, got, want)
+                }
+        }
+}
+
 func TestIdentifyWebHosting_FromCNAME(t *testing.T) {
         basic := map[string]any{
                 "CNAME": []string{"example.herokuapp.com"},

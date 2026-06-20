@@ -3,9 +3,10 @@
 # Usage: bash scripts/release-gate.sh X.Y.Z
 #
 # *** THIS IS THE RELEASE BUMP PATH — TAG TIME ONLY ***
-# For routine dev version bumps, edit ONLY config.go and rebuild.
-# Do NOT run this script for dev bumps. See docs/ACIP.md "Two-Track
-# Version Bump Law" and replit.md "CITATION.cff — HANDS OFF".
+# Routine dev ships need NO version bump — the version is git-derived
+# (scripts/version.sh, injected via ldflags). Do NOT run this script for dev
+# ships. Run it ONLY when cutting a release, immediately before creating the
+# git tag vX.Y.Z. See docs/ACIP.md "Version Law" and replit.md "CITATION.cff — HANDS OFF".
 #
 # Runs:
 #   1. Version bump in all versioned artifacts

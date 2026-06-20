@@ -350,6 +350,36 @@ else
   echo "  PR #${PR_NUM}: $PR_URL"
 fi
 
+# ── Close SUPERSEDED ship PRs (the missing cleanup that made success look like
+#    failure) ──────────────────────────────────────────────────────────────────
+# The ephemeral-branch model means only the CURRENT ship PR is ever valid: each
+# run pushes a brand-new ship/<ts>-<sha> branch. But a PRIOR run can leave an open
+# PR behind — e.g. a first attempt opens PR #N, then main advances (another squash
+# lands), so #N goes CONFLICTING/DIRTY and can never merge. The follow-up
+# sync+reship opens PR #N+1 which merges cleanly — yet #N stays OPEN and
+# CONFLICTING forever. The operator keeps looking at the dead #N and concludes
+# "the ship failed / CI is broken" when it actually SUCCEEDED on #N+1.
+# Fix: the moment we have our live PR (#PR_NUM), close every OTHER open ship/* PR
+# on this base and delete its ephemeral branch. Exactly one live ship PR is ever
+# visible, so a stale conflicting PR can no longer masquerade as a failure.
+# (gh pr close is a PR-state API op and --delete-branch targets only the ephemeral
+#  ship/* head ref — never main — so this stays within the established ship flow
+#  and the Repo Sync Law, identical to the --delete-branch already used on merge.)
+echo "  Closing any superseded ship PRs (ephemeral model — only #${PR_NUM} is live) ..."
+SUPERSEDED=$(gh pr list -R "$REPO" --base "$SHIP_BRANCH" --state open \
+  --json number,headRefName \
+  --jq "map(select(.number!=${PR_NUM} and (.headRefName|startswith(\"ship/\"))))|.[].number" 2>/dev/null || true)
+if [ -n "$SUPERSEDED" ]; then
+  for OLD in $SUPERSEDED; do
+    gh pr close -R "$REPO" "$OLD" --delete-branch \
+      --comment "Superseded by #${PR_NUM} (ephemeral ship branch replaced by a fresh, conflict-free ship)." \
+      >/dev/null 2>&1 && echo "    Closed superseded PR #${OLD} (+ deleted its branch)" \
+      || echo "    NOTE: could not close stale PR #${OLD} (close it manually: gh pr close ${OLD})"
+  done
+else
+  echo "    None — clean."
+fi
+
 echo "  Enabling auto-merge (squash — GitHub signs the commit on main) ..."
 MERGE_OUT=$(gh pr merge -R "$REPO" "$PR_NUM" --auto --squash --delete-branch 2>&1) || true
 [ -n "$MERGE_OUT" ] && echo "$MERGE_OUT" | sed 's/^/    /'
@@ -371,14 +401,16 @@ MAX_WAIT=900
 POLL=20
 ELAPSED=0
 MERGED=false
+CONFLICT_SEEN=0
 while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
-  # Query merged + state together. Breaking only on merged=="true" meant a single
-  # transient/empty gh read left the loop polling to the full timeout even though
-  # the PR had already merged (the 12-min hang). state=="MERGED" is a second,
+  # Query merged + state + mergeable together. Breaking only on merged=="true" meant
+  # a single transient/empty gh read left the loop polling to the full timeout even
+  # though the PR had already merged (the 12-min hang). state=="MERGED" is a second,
   # independent merged signal; an empty read just falls through to the next poll.
-  PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state --jq '[.merged,.state]|@tsv' 2>/dev/null)
+  PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state,mergeable --jq '[.merged,.state,.mergeable]|@tsv' 2>/dev/null)
   MERGED=$(printf '%s' "$PR_STATE" | cut -f1)
   STATE=$(printf '%s' "$PR_STATE" | cut -f2)
+  MERGEABLE=$(printf '%s' "$PR_STATE" | cut -f3)
   if [ "$MERGED" = "true" ] || [ "$STATE" = "MERGED" ]; then
     MERGED=true
     break
@@ -390,6 +422,25 @@ while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
     echo "SHIP HALTED — PR #${PR_NUM} was closed without merging."
     echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
     exit 1
+  fi
+  # PR has a merge conflict against the base — auto-merge can NEVER fire, so do not
+  # burn the full 15-min timeout waiting for a merge that will never happen (this was
+  # the stuck-on-push failure mode). mergeable=="CONFLICTING" is a settled state, but
+  # require it twice consecutively (~40s) to ride out the brief UNKNOWN/null window
+  # GitHub reports while it is still computing mergeability on a freshly-opened PR.
+  if [ "$MERGEABLE" = "CONFLICTING" ]; then
+    CONFLICT_SEEN=$((CONFLICT_SEEN + 1))
+    if [ "$CONFLICT_SEEN" -ge 2 ]; then
+      echo ""
+      echo "SHIP HALTED — PR #${PR_NUM} has a merge conflict against ${SHIP_BRANCH}; auto-merge cannot fire."
+      echo "  This is almost always the version-file conflict (config.go / sonar-project.properties)."
+      echo "  Fix: bash scripts/sync-local-to-main.sh   # merges main into local, resolves version files"
+      echo "  Then re-run: bash scripts/git-push.sh      # fresh branch, clean PR, supersedes #${PR_NUM}"
+      echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+      exit 1
+    fi
+  else
+    CONFLICT_SEEN=0
   fi
   FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" --required 2>/dev/null | grep -iE '\bfail(ing|ed|ure)?\b' | head -3 || true)
   if [ -n "$FAILED" ]; then

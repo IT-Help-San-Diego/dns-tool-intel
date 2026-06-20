@@ -15,12 +15,17 @@ else
   echo "SKIP derived asset generation (ImageMagick/cwebp not found)"
 fi
 
-VERSION=$(grep 'Version.*=' "$SCRIPT_DIR/go-server/internal/config/config.go" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+# Version is DERIVED FROM GIT (scripts/version.sh), never grepped from a tracked
+# file. Injecting it via ldflags — exactly like GitCommit/BuildTime below — means
+# routine dev ships no longer edit a Version line, which was the single source of
+# the chronic every-ship merge conflict on config.go.
+VERSION=$(bash "$SCRIPT_DIR/scripts/version.sh")
 
 GIT_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 LDFLAGS="-s -w \
+  -X dnstool/go-server/internal/config.Version=${VERSION} \
   -X dnstool/go-server/internal/config.GitCommit=${GIT_COMMIT} \
   -X dnstool/go-server/internal/config.BuildTime=${BUILD_TIME}"
 

@@ -78,9 +78,9 @@ These are HARD STOPS. No change ships unless ALL pass. No exceptions. No "we'll 
 
 **Rule**: CITATION.cff and codemeta.json are ORCID-linked research artifacts. They are NOT dev tracking files. Never bump them during routine development.
 
-**Two-Track Version Bump Law**:
-- **Dev bump** (routine): Edit ONLY `go-server/internal/config/config.go` → rebuild → publish. No other versioned file is touched. The concept DOI (`10.5281/zenodo.19468134`) is stable per active Zenodo chain; changes require explicit migration note + metadata sweep.
-- **Release bump** (tag time only): `scripts/release-gate.sh X.Y.Z` bumps ALL versioned artifacts (config.go, CITATION.cff, codemeta.json, sonar-project.properties, methodology docs). Only run when a git tag is being created. The concept DOI still does not change — only `version:` fields update.
+**Version Law (git-derived; changed 2026-06-20, replaces the old Two-Track dev-bump file churn)**:
+- **Routine dev ship**: NO version file edit. The version is derived from git (`git describe --tags`, via `scripts/version.sh`) and injected at build time via `-ldflags` into `config.Version`. No tracked version line changes, so the ship PR can no longer conflict on it. `scripts/dev-bump.sh` is deprecated (no-op + guidance).
+- **Release bump** (tag time only): `scripts/release-gate.sh X.Y.Z` bumps the Zenodo/CITATION research artifacts + methodology docs, then a git tag `vX.Y.Z` is created — the tag IS the app version. Only run when a git tag is being created. The concept DOI (`10.5281/zenodo.19468134`) still does not change — only `version:` fields update.
 
 ---
 

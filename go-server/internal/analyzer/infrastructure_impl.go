@@ -311,6 +311,19 @@ var nsProviderPatterns = map[string]string{
         "wix":               "Wix",
         "vercel":            "Vercel",
         "netlify":           "Netlify",
+        // Enterprise / registrar DNS providers — recognized by the Footprint and
+        // enterprise-tier classifier (dnsHostingProviders / enterpriseProviders)
+        // but previously absent here, so the UI "DNS Hosting" field rendered
+        // "Unknown" while the same NS records were tagged "Enterprise" (and the
+        // Footprint already named the provider). Keep this map in sync with those.
+        "akam":              "Akamai Edge DNS",
+        "akamai":            "Akamai Edge DNS",
+        "cscdns":            nameCSCGlobalDNS,
+        "csc.com":           nameCSCGlobalDNS,
+        "netnames":          nameCSCGlobalDNS,
+        "verisign":          "Verisign DNS",
+        "markmonitor":       "MarkMonitor DNS",
+        "porkbun":           "Porkbun",
 }
 
 var webHostingPatterns = map[string]string{
@@ -692,14 +705,33 @@ func detectEmailProviderFromSPF(results map[string]any) string {
         return matchProviderFromRecords(combined, spfMailboxProviders)
 }
 
-func detectProvider(records []string, providers map[string]string) string {
-        combined := strings.ToLower(strings.Join(records, " "))
+// matchLongestProvider returns the provider name whose pattern is the longest
+// substring present in haystack, breaking ties on the (lowercased) pattern
+// string. Go map iteration is randomized, so a plain first-match loop over a
+// provider map is NON-DETERMINISTIC whenever a record set contains more than one
+// provider's pattern — the same domain could be labelled differently on
+// successive scans, which would manifest as the verdict "flapping" the stability
+// gate is meant to prevent. Longest-match-wins is both deterministic and more
+// accurate: the more specific pattern is the stronger signal.
+func matchLongestProvider(haystack string, providers map[string]string) string {
+        bestKey := ""
+        bestName := ""
         for key, name := range providers {
-                if strings.Contains(combined, key) {
-                        return name
+                k := strings.ToLower(key)
+                if !strings.Contains(haystack, k) {
+                        continue
+                }
+                if len(k) > len(bestKey) || (len(k) == len(bestKey) && k < bestKey) {
+                        bestKey = k
+                        bestName = name
                 }
         }
-        return ""
+        return bestName
+}
+
+func detectProvider(records []string, providers map[string]string) string {
+        combined := strings.ToLower(strings.Join(records, " "))
+        return matchLongestProvider(combined, providers)
 }
 
 func matchMonitoringProvider(domain string) *managementProviderInfo {
@@ -961,12 +993,7 @@ func identifyDNSProvider(nsRecords []string) string {
                 return ""
         }
         joined := strings.ToLower(strings.Join(nsRecords, " "))
-        for pattern, provider := range nsProviderPatterns {
-                if strings.Contains(joined, strings.ToLower(pattern)) {
-                        return provider
-                }
-        }
-        return ""
+        return matchLongestProvider(joined, nsProviderPatterns)
 }
 
 func identifyWebHosting(basic map[string]any) string {

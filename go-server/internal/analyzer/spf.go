@@ -452,6 +452,16 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 redirectChainMaps = []map[string]any{}
         }
 
+        // spf_state must reflect whether a *valid* SPF record actually exists, not
+        // merely whether the domain publishes any TXT records. A domain with TXT
+        // records but no v=spf1 record is an authoritative absence (the lookup
+        // completed), so it reads absent_confirmed — emitting "present" here while
+        // status is "missing" is the self-contradiction this prevents.
+        spfState := spfStateAbsentConf
+        if len(validSPF) >= 1 {
+                spfState = spfStatePresent
+        }
+
         result := map[string]any{
                 "status":               status,
                 "message":              message,
@@ -467,7 +477,7 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 "no_mail_intent":       s.noMailIntent,
                 "redirect_chain":       redirectChainMaps,
                 "resolved_spf":         resolvedSPF,
-                mapKeySpfState:         spfStatePresent,
+                mapKeySpfState:         spfState,
         }
 
         ensureStringSlices(result, mapKeyValidRecords, mapKeySpfLike, mapKeyLookupMechanisms, mapKeyIssues, mapKeyIncludes)
