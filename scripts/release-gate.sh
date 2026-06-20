@@ -91,11 +91,17 @@ if [ -f .zenodo.json ]; then
   pass ".zenodo.json version → ${VERSION}, publication_date → ${DATE_TODAY}"
 fi
 
-info "Gate 5: Version bump — config.go"
-sed -i -E "s/(Version\s*=\s*)\"[^\"]*\"/\1\"${VERSION}\"/" go-server/internal/config/config.go
-grep -q "\"${VERSION}\"" go-server/internal/config/config.go \
-  || fail "config.go version was not updated (sed did not match)"
-pass "config.go version → ${VERSION}"
+info "Gate 5: config.go version — ENFORCE FALLBACK (Version Law)"
+# Version Law: the version is DERIVED FROM GIT (the release tag) and injected at
+# build time via -ldflags into config.Version. config.go's literal MUST remain the
+# build-without-ldflags fallback ("dev") and is NEVER hand-edited to bump — that
+# hand-edit was the source of the chronic every-ship merge conflict. So instead of
+# bumping config.go, this gate ASSERTS the fallback is still "dev" to prevent drift.
+CONFIG_VERSION=$(grep -oE 'Version\s*=\s*"[^"]*"' go-server/internal/config/config.go | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
+if [ "$CONFIG_VERSION" != "dev" ]; then
+  fail "config.go Version is \"${CONFIG_VERSION}\", expected fallback \"dev\" (Version Law: never hand-bump config.go; the git tag is the version)"
+fi
+pass "config.go Version is the \"dev\" fallback — version comes from the git tag ${VERSION} via ldflags"
 
 info "Gate 6: Version bump — sonar-project.properties (DORMANT)"
 # SonarCloud SaaS decoupled April 2026; properties file is dormant but
