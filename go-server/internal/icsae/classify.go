@@ -99,7 +99,7 @@ func asStringSlice(v any) []string {
 // as "by design" for operators who have demonstrably reached the top of every
 // posture we can measure. providerLimitedDANE means the mail platform cannot
 // support DANE at all.
-func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmarcReject bool) FixClassification {
+func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC bool) FixClassification {
         spfOK := containsString(passed, "SPF_EFFECTIVE_POLICY")
         caaOK := containsString(passed, "CAA_RESTRICTION_PRESENT")
         strongCompensating := dmarcReject && spfOK && caaOK
@@ -112,7 +112,7 @@ func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmar
         hasHigh, hasMedium, hasLow := false, false, false
 
         classify := func(id, severity string) {
-                bucket, group := bucketFor(id, strongCompensating, dnssecDeployed, providerLimitedDANE)
+                bucket, group := bucketFor(id, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC)
                 switch bucket {
                 case BucketRealFix:
                         fc.RealFixes = append(fc.RealFixes, id)
@@ -166,7 +166,7 @@ func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmar
 
 // bucketFor returns the reality-matched bucket for a single failed control and,
 // when the control belongs to a counted-once group, that group's key.
-func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDANE bool) (FixBucket, string) {
+func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC bool) (FixBucket, string) {
         switch id {
         case "DANE_DEPLOYED":
                 if providerLimitedDANE {
@@ -183,7 +183,7 @@ func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDAN
                 // hardened we do not assert it as a real fix.
                 return BucketCouldntVerify, ""
         case "DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED":
-                if strongCompensating {
+                if strongCompensating || enterpriseDeliberateDNSSEC {
                         return BucketByDesign, dnssecGroupID
                 }
                 return BucketRealFix, dnssecGroupID
@@ -192,7 +192,7 @@ func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDAN
                         // DNSSEC is live; automating rollover is hardening, not a gap.
                         return BucketHygiene, ""
                 }
-                if strongCompensating {
+                if strongCompensating || enterpriseDeliberateDNSSEC {
                         return BucketByDesign, dnssecGroupID
                 }
                 return BucketRealFix, dnssecGroupID
@@ -238,8 +238,41 @@ func ClassifyFromEval(ev Result, fr map[string]any) FixClassification {
         return classifyFromParts(ev.HighFailures, ev.MediumFailures, ev.LowFailures, ev.Passed, fr)
 }
 
+// enterpriseDeliberateUnsignedDNSSEC reports whether an absent DNSSEC chain is a
+// deliberate enterprise posture rather than an operational gap. It reuses the
+// SAME two-signal enterprise-DNS recognition the user-facing verdict note uses,
+// so the headline "to Fix" count never contradicts what the rest of the report
+// tells the operator. It is true ONLY when:
+//
+//  1. DNSSEC is AUTHORITATIVELY absent — dnssec_state == "absent_confirmed" (an
+//     unsigned zone proven by an authoritative NOERROR/NODATA answer). A broken
+//     chain (records present but invalid) or an indeterminate/transient lookup is
+//     NEVER forgiven: broken DNSSEC stays a real fix, and we never assert a
+//     deliberate choice from a failed measurement (Zero Fabrication). RFC 4035 §5.
+//  2. The operator is recognised as enterprise infrastructure by EITHER signal:
+//     dns_infrastructure.explains_no_dnssec (recognised third-party enterprise
+//     provider) OR ns_delegation_analysis.enterprise_pattern ∈ {dedicated, mixed,
+//     multi-provider} (self-hosted / multi-provider enterprise NS, e.g. Apple).
+//     "managed" is excluded: a small operator fully on one managed DNS host that
+//     itself offers one-click DNSSEC has no excuse not to sign. This mirrors the
+//     top-level verdict-note gate exactly (top ⊆ deep invariant).
+func enterpriseDeliberateUnsignedDNSSEC(fr map[string]any) bool {
+        if getString(getMap(fr, "dnssec_analysis"), "dnssec_state") != "absent_confirmed" {
+                return false
+        }
+        if getBoolDefault(getMap(fr, "dns_infrastructure"), "explains_no_dnssec", false) {
+                return true
+        }
+        switch getString(getMap(fr, "ns_delegation_analysis"), "enterprise_pattern") {
+        case "dedicated", "mixed", "multi-provider":
+                return true
+        }
+        return false
+}
+
 func classifyFromParts(high, medium, low, passed []string, fr map[string]any) FixClassification {
         providerLimitedDANE := containsString(asStringSlice(getMap(fr, "posture")["provider_limited"]), "DANE")
         dmarcReject := getString(getMap(fr, "dmarc_analysis"), "policy") == "reject"
-        return ClassifyFixes(high, medium, low, passed, providerLimitedDANE, dmarcReject)
+        enterpriseDeliberateDNSSEC := enterpriseDeliberateUnsignedDNSSEC(fr)
+        return ClassifyFixes(high, medium, low, passed, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC)
 }

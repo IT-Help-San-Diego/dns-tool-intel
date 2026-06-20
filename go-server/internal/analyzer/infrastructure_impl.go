@@ -376,7 +376,16 @@ func (a *Analyzer) AnalyzeDNSInfrastructure(domain string, results map[string]an
         if im != nil && im.provider != nil {
                 altItems := collectAltSecurityItems(results)
                 explainsDNSSEC := false
-                dnssec, _ := results["dnssec"].(map[string]any)
+                // The orchestrator attaches the DNSSEC result under the canonical
+                // "dnssec_analysis" key; the bare "dnssec" key is only present in older
+                // callers/unit fixtures. Read the canonical key FIRST — reading only
+                // "dnssec" left explains_no_dnssec silently always-false in production,
+                // killing the recognized-enterprise-provider signal the top-level
+                // verdict note and the ICSAE fix classifier both rely on. RFC 4035 §5.
+                dnssec, _ := results["dnssec_analysis"].(map[string]any)
+                if dnssec == nil {
+                        dnssec, _ = results["dnssec"].(map[string]any)
+                }
                 if dnssec != nil {
                         status, _ := dnssec["status"].(string)
                         if status != "success" {

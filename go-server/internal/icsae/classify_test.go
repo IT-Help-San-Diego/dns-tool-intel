@@ -16,6 +16,7 @@ func TestClassifyFixesProviderWithStrongPostureHasNoRealFixes(t *testing.T) {
                 []string{"SPF_EFFECTIVE_POLICY", "DMARC_ENFORCEMENT", "CAA_RESTRICTION_PRESENT", "MAIL_POLICY_SIGNALING"},
                 true, // providerLimitedDANE
                 true, // dmarcReject (p=reject)
+                false, // enterpriseDeliberateDNSSEC
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -49,6 +50,7 @@ func TestClassifyFixesQuarantineDoesNotEarnDNSSECByDesign(t *testing.T) {
                 []string{"SPF_EFFECTIVE_POLICY", "CAA_RESTRICTION_PRESENT", "MAIL_POLICY_SIGNALING"},
                 false, // providerLimitedDANE
                 false, // dmarcReject (domain is at quarantine, not reject)
+                false, // enterpriseDeliberateDNSSEC
         )
         // DNSSEC group (counts once) + DMARC enforcement = 2 real fixes.
         if fc.RealFixCount != 2 {
@@ -78,6 +80,7 @@ func TestClassifyFixesRejectPostureEarnsDNSSECByDesign(t *testing.T) {
                 []string{"SPF_EFFECTIVE_POLICY", "DMARC_ENFORCEMENT", "CAA_RESTRICTION_PRESENT"},
                 false, // providerLimitedDANE
                 true,  // dmarcReject (p=reject)
+                false, // enterpriseDeliberateDNSSEC
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -96,6 +99,7 @@ func TestClassifyFixesUnprotectedOperatorEarnsRealFixes(t *testing.T) {
                 nil,
                 false, // providerLimitedDANE
                 false, // dmarcReject
+                false, // enterpriseDeliberateDNSSEC
         )
         // DNSSEC_AUTHENTICATED + DNSSEC_CHAIN_TRUSTED collapse to one fix.
         if fc.RealFixCount != 3 {
@@ -119,6 +123,7 @@ func TestClassifyFixesLiveDNSSECRolloverIsHygiene(t *testing.T) {
                 []string{"DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED", "SPF_EFFECTIVE_POLICY", "DMARC_ENFORCEMENT", "CAA_RESTRICTION_PRESENT"},
                 true, // providerLimitedDANE
                 true, // dmarcReject
+                false, // enterpriseDeliberateDNSSEC
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -136,6 +141,7 @@ func TestClassifyFixesDNSSECCountsOnce(t *testing.T) {
                 nil,
                 false,
                 false,
+                false,
         )
         if fc.RealFixCount != 1 {
                 t.Errorf("RealFixCount = %d, want 1 (DNSSEC group counts once); real_fixes=%v", fc.RealFixCount, fc.RealFixes)
@@ -143,18 +149,18 @@ func TestClassifyFixesDNSSECCountsOnce(t *testing.T) {
 }
 
 func TestClassifyFixesDANEPlatformLimited(t *testing.T) {
-        limited := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, true, false)
+        limited := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, true, false, false)
         if limited.RealFixCount != 0 || !containsString(limited.PlatformLimited, "DANE_DEPLOYED") {
                 t.Errorf("provider-limited DANE: count=%d platform_limited=%v", limited.RealFixCount, limited.PlatformLimited)
         }
-        capable := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, false, false)
+        capable := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, false, false, false)
         if capable.RealFixCount != 0 || !containsString(capable.Hygiene, "DANE_DEPLOYED") {
                 t.Errorf("platform-capable DANE: count=%d hygiene=%v", capable.RealFixCount, capable.Hygiene)
         }
 }
 
 func TestClassifyFixesUnknownControlIsRealFix(t *testing.T) {
-        fc := ClassifyFixes([]string{"SOME_NEW_HIGH_CONTROL"}, nil, nil, nil, false, false)
+        fc := ClassifyFixes([]string{"SOME_NEW_HIGH_CONTROL"}, nil, nil, nil, false, false, false)
         if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "SOME_NEW_HIGH_CONTROL") {
                 t.Errorf("unknown control should default to real_fix: %+v", fc)
         }
@@ -193,5 +199,125 @@ func TestClassifyFromResultsRehydratesJSONTypes(t *testing.T) {
 func TestClassifyFromResultsAbsentEvaluation(t *testing.T) {
         if _, ok := ClassifyFromResults(map[string]any{"posture": map[string]any{}}); ok {
                 t.Error("ClassifyFromResults ok=true with no icsae_evaluation, want false")
+        }
+}
+
+func TestClassifyFromResultsEnterpriseDeliberateDNSSECExcluded(t *testing.T) {
+        // Apple-like: self-hosted enterprise NS (enterprise_pattern "dedicated") with
+        // an authoritatively unsigned zone (dnssec_state "absent_confirmed") and DMARC
+        // only at quarantine. The deliberate unsigned-DNSSEC chain must drop to
+        // by_design via the enterprise signal — even though the operator is NOT at
+        // p=reject — leaving DMARC enforcement as the only real fix. This is the case
+        // that previously read "2 to Fix" in red on a domain we otherwise treat as a
+        // deliberate enterprise posture.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "high_failures":   []interface{}{"DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED", "DMARC_ENFORCEMENT"},
+                        "medium_failures": []interface{}{},
+                        "low_failures":    []interface{}{},
+                        "passed":          []interface{}{"SPF_EFFECTIVE_POLICY"},
+                },
+                "dmarc_analysis":         map[string]any{"policy": "quarantine"},
+                "dnssec_analysis":        map[string]any{"dnssec_state": "absent_confirmed"},
+                "ns_delegation_analysis": map[string]any{"enterprise_pattern": "dedicated"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 1 {
+                t.Errorf("RealFixCount = %d, want 1 (DNSSEC by_design, DMARC real); real_fixes=%v", fc.RealFixCount, fc.RealFixes)
+        }
+        if !containsString(fc.ByDesign, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("deliberate enterprise DNSSEC not in by_design: %v", fc.ByDesign)
+        }
+        if !containsString(fc.RealFixes, "DMARC_ENFORCEMENT") {
+                t.Errorf("DMARC_ENFORCEMENT should remain a real fix: %v", fc.RealFixes)
+        }
+}
+
+func TestClassifyFromResultsThirdPartyEnterpriseExplainsNoDNSSEC(t *testing.T) {
+        // Recognised third-party enterprise provider (explains_no_dnssec=true) with an
+        // authoritatively unsigned zone → deliberate by_design via the OTHER signal,
+        // even without p=reject and without an enterprise NS pattern.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "high_failures": []interface{}{"DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED"},
+                        "passed":        []interface{}{},
+                },
+                "dnssec_analysis":    map[string]any{"dnssec_state": "absent_confirmed"},
+                "dns_infrastructure": map[string]any{"explains_no_dnssec": true},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 0 || !containsString(fc.ByDesign, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("third-party enterprise unsigned DNSSEC should be by_design: count=%d byDesign=%v", fc.RealFixCount, fc.ByDesign)
+        }
+}
+
+func TestClassifyFromResultsBrokenDNSSECStaysRealFix(t *testing.T) {
+        // Records present but the chain is broken → dnssec_state "present", NOT
+        // "absent_confirmed". A broken chain is a genuine operational failure and must
+        // remain a real fix even for an enterprise operator — we never excuse broken
+        // DNSSEC (Zero Fabrication: a deliberate choice can't be inferred from a fault).
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "high_failures": []interface{}{"DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED"},
+                        "passed":        []interface{}{"SPF_EFFECTIVE_POLICY"},
+                },
+                "dnssec_analysis":        map[string]any{"dnssec_state": "present", "chain_of_trust": "broken"},
+                "ns_delegation_analysis": map[string]any{"enterprise_pattern": "dedicated"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("broken DNSSEC must stay a real fix: count=%d real=%v byDesign=%v", fc.RealFixCount, fc.RealFixes, fc.ByDesign)
+        }
+}
+
+func TestClassifyFromResultsIndeterminateDNSSECNotForgiven(t *testing.T) {
+        // A transient/indeterminate DNSSEC lookup is NOT authoritative absence, so the
+        // deliberate-enterprise pass must not apply — we never assert a deliberate
+        // posture from a failed measurement.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "high_failures": []interface{}{"DNSSEC_AUTHENTICATED"},
+                        "passed":        []interface{}{},
+                },
+                "dnssec_analysis":        map[string]any{"dnssec_state": "indeterminate"},
+                "ns_delegation_analysis": map[string]any{"enterprise_pattern": "dedicated"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 1 || containsString(fc.ByDesign, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("indeterminate DNSSEC must not be forgiven: count=%d byDesign=%v", fc.RealFixCount, fc.ByDesign)
+        }
+}
+
+func TestClassifyFromResultsNonEnterpriseUnsignedDNSSECStaysRealFix(t *testing.T) {
+        // Small operator on a single managed DNS host (enterprise_pattern "managed",
+        // explicitly excluded) with an unsigned zone and no enterprise provider signal.
+        // The unsigned chain is a genuine gap → real fix. Rigor cuts both ways.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "high_failures": []interface{}{"DNSSEC_AUTHENTICATED", "DNSSEC_CHAIN_TRUSTED"},
+                        "passed":        []interface{}{},
+                },
+                "dnssec_analysis":        map[string]any{"dnssec_state": "absent_confirmed"},
+                "ns_delegation_analysis": map[string]any{"enterprise_pattern": "managed"},
+                "dns_infrastructure":     map[string]any{"explains_no_dnssec": false},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "DNSSEC_AUTHENTICATED") {
+                t.Errorf("non-enterprise unsigned DNSSEC must stay a real fix: count=%d byDesign=%v", fc.RealFixCount, fc.ByDesign)
         }
 }

@@ -157,6 +157,25 @@ func TestAnalyzeDNSInfrastructure_DNSSECExplains(t *testing.T) {
         }
 }
 
+func TestAnalyzeDNSInfrastructure_DNSSECExplainsCanonicalKey(t *testing.T) {
+        // Production structure: the orchestrator attaches the DNSSEC result under
+        // "dnssec_analysis", NOT "dnssec". Reading only the bare key left this signal
+        // dead in real scans; assert the canonical key drives explains_no_dnssec.
+        a := &Analyzer{}
+        results := map[string]any{
+                "basic_records": map[string]any{
+                        "NS": []string{"ns1.cloudflare.com"},
+                },
+                "dnssec_analysis": map[string]any{
+                        "status": "warning",
+                },
+        }
+        got := a.AnalyzeDNSInfrastructure("example.com", results)
+        if got["explains_no_dnssec"] != true {
+                t.Error("expected explains_no_dnssec=true from canonical dnssec_analysis key")
+        }
+}
+
 func TestGetHostingInfo_WithProviders(t *testing.T) {
         a := &Analyzer{}
         results := map[string]any{
