@@ -329,28 +329,19 @@ func collectTLSAFromMXHosts(ctx context.Context, a *Analyzer, mxHosts []string) 
         return scan
 }
 
-// providerNoInboundDANE reports a provider that authoritatively does not support
-// inbound DANE/TLSA (e.g. Google Workspace, M365). For these, a missing TLSA is
-// expected — and a transient TLSA lookup is NOT meaningful — so the state stays a
-// stable absent_confirmed rather than flapping to indeterminate.
-func providerNoInboundDANE(mxCapability map[string]any) bool {
-        if mxCapability == nil {
-                return false
-        }
-        inbound, ok := mxCapability[mapKeyDaneInbound].(bool)
-        return ok && !inbound
-}
-
 // overallDANEState folds the per-MX partitions into the domain-level tri-state.
-// Any present host wins (DANE is deployed); otherwise a provider that cannot do
-// inbound DANE is a confirmed absence; otherwise any indeterminate host makes the
-// whole verdict indeterminate; otherwise it is a confirmed absence.
-func overallDANEState(scan daneMXScan, mxCapability map[string]any) string {
+// Absence may ONLY be asserted from authoritative resolver answers (LookupAbsent),
+// never from a failed probe or a provider heuristic (RFC 6698 §1 / Zero
+// Fabrication). Any present host wins (DANE is deployed); otherwise any host whose
+// TLSA lookup did not complete makes the whole verdict indeterminate ("could not
+// verify"); only when every host returned an authoritative no-record is it a
+// confirmed absence. Provider capability (e.g. Google Workspace / M365 cannot do
+// inbound DANE) is retained as ADVISORY deployment context elsewhere — it must
+// never override a failed measurement into a fabricated confirmed-absence verdict.
+func overallDANEState(scan daneMXScan, _ map[string]any) string {
         switch {
         case len(scan.hostsWithDANE) > 0:
                 return daneStatePresent
-        case providerNoInboundDANE(mxCapability):
-                return daneStateAbsentConf
         case len(scan.indeterminateHosts) > 0:
                 return daneStateIndeterminate
         default:
