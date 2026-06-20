@@ -732,7 +732,7 @@
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <span class="ede-classification">{{icon "shield-halved" "me-1"}}Classification: Public Release</span>
                 <span class="ede-classification">{{icon "file-contract" "me-1"}}FIRST TLP v2.0</span>
-                <span class="ede-classification">{{icon "clock" "me-1"}}{{.AppVersion}}</span>
+                <span class="ede-classification">{{icon "clock" "me-1"}}{{displayVersion .AppVersion}}</span>
             </div>
             <p class="mb-0 mt-2 ede-tlp-desc">This document is published under TLP:CLEAR per FIRST TLP v2.0. No restrictions on distribution.</p>
         </div>
@@ -1032,7 +1032,7 @@
         {{end}}
 
         <div class="text-center ede-footer-meta py-3">
-            <span>DNS Tool EDE System &middot; {{.AppVersion}} &middot; Epistemic integrity through transparent correction</span>
+            <span>DNS Tool EDE System &middot; {{displayVersion .AppVersion}} &middot; Epistemic integrity through transparent correction</span>
         </div>
 
     </main>

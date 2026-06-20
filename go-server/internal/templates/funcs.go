@@ -775,6 +775,19 @@ func htmlComment(s string) template.HTML {
         return template.HTML("<!--\n" + clean + "\n-->")
 }
 
+// displayVersion returns the customer-facing version label: the release tag
+// only, with the git-describe "-<commits>-g<hash>" dev suffix stripped. The
+// build still carries the full git-derived version in config.Version (used for
+// cache-busting, admin diagnostics, and build identity) — this affects DISPLAY
+// text only. "26.50.05-152-gc1948bc3f" -> "26.50.05"; an exact tag or the "dev"
+// fallback passes through unchanged.
+func displayVersion(version string) string {
+        if i := strings.IndexByte(version, '-'); i > 0 {
+                return version[:i]
+        }
+        return version
+}
+
 func displayFuncs() template.FuncMap {
         return template.FuncMap{
                 "statusBadgeClass":  statusBadgeClass,
@@ -785,6 +798,7 @@ func displayFuncs() template.FuncMap {
                 "staticURL":         staticURL,
                 "staticVersionURL":  staticVersionURL,
                 "staticSRI":         staticSRI,
+                "displayVersion":    displayVersion,
                 "toJSON":            toJSON,
                 "toStr":             toStr,
                 "pluralize":         pluralize,

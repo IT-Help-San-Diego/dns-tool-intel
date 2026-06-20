@@ -1087,6 +1087,27 @@ func TestTitleFunc(t *testing.T) {
         }
 }
 
+func TestDisplayVersion(t *testing.T) {
+        tests := []struct {
+                input string
+                want  string
+        }{
+                {"26.50.05-152-gc1948bc3f", "26.50.05"},
+                {"v26.50.05-152-gc1948bc3f", "v26.50.05"},
+                {"26.50.05", "26.50.05"},
+                {"dev", "dev"},
+                {"", ""},
+        }
+        for _, tt := range tests {
+                if got := displayVersion(tt.input); got != tt.want {
+                        t.Errorf("displayVersion(%q) = %q, want %q", tt.input, got, tt.want)
+                }
+        }
+        if _, ok := displayFuncs()["displayVersion"]; !ok {
+                t.Error("displayVersion not registered in displayFuncs")
+        }
+}
+
 func TestSafeFuncs(t *testing.T) {
         fm := safeFuncs()
         if _, ok := fm["safeHTML"]; !ok {
