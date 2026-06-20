@@ -401,14 +401,16 @@ MAX_WAIT=900
 POLL=20
 ELAPSED=0
 MERGED=false
+CONFLICT_SEEN=0
 while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
-  # Query merged + state together. Breaking only on merged=="true" meant a single
-  # transient/empty gh read left the loop polling to the full timeout even though
-  # the PR had already merged (the 12-min hang). state=="MERGED" is a second,
+  # Query merged + state + mergeable together. Breaking only on merged=="true" meant
+  # a single transient/empty gh read left the loop polling to the full timeout even
+  # though the PR had already merged (the 12-min hang). state=="MERGED" is a second,
   # independent merged signal; an empty read just falls through to the next poll.
-  PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state --jq '[.merged,.state]|@tsv' 2>/dev/null)
+  PR_STATE=$(gh pr view -R "$REPO" "$PR_NUM" --json merged,state,mergeable --jq '[.merged,.state,.mergeable]|@tsv' 2>/dev/null)
   MERGED=$(printf '%s' "$PR_STATE" | cut -f1)
   STATE=$(printf '%s' "$PR_STATE" | cut -f2)
+  MERGEABLE=$(printf '%s' "$PR_STATE" | cut -f3)
   if [ "$MERGED" = "true" ] || [ "$STATE" = "MERGED" ]; then
     MERGED=true
     break
@@ -420,6 +422,25 @@ while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
     echo "SHIP HALTED — PR #${PR_NUM} was closed without merging."
     echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
     exit 1
+  fi
+  # PR has a merge conflict against the base — auto-merge can NEVER fire, so do not
+  # burn the full 15-min timeout waiting for a merge that will never happen (this was
+  # the stuck-on-push failure mode). mergeable=="CONFLICTING" is a settled state, but
+  # require it twice consecutively (~40s) to ride out the brief UNKNOWN/null window
+  # GitHub reports while it is still computing mergeability on a freshly-opened PR.
+  if [ "$MERGEABLE" = "CONFLICTING" ]; then
+    CONFLICT_SEEN=$((CONFLICT_SEEN + 1))
+    if [ "$CONFLICT_SEEN" -ge 2 ]; then
+      echo ""
+      echo "SHIP HALTED — PR #${PR_NUM} has a merge conflict against ${SHIP_BRANCH}; auto-merge cannot fire."
+      echo "  This is almost always the version-file conflict (config.go / sonar-project.properties)."
+      echo "  Fix: bash scripts/sync-local-to-main.sh   # merges main into local, resolves version files"
+      echo "  Then re-run: bash scripts/git-push.sh      # fresh branch, clean PR, supersedes #${PR_NUM}"
+      echo "  Inspect: gh pr view -R $REPO $PR_NUM --web"
+      exit 1
+    fi
+  else
+    CONFLICT_SEEN=0
   fi
   FAILED=$(gh pr checks -R "$REPO" "$PR_NUM" --required 2>/dev/null | grep -iE '\bfail(ing|ed|ure)?\b' | head -3 || true)
   if [ -n "$FAILED" ]; then
