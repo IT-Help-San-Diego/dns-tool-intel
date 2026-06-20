@@ -74,6 +74,7 @@ type protocolState struct {
         daneProviderLimited bool
         dnssecOK            bool
         dnssecBroken        bool
+        dnssecIndeterminate bool
         dnssecADValidated   bool
         dnssecAlgoStrength  string
         primaryProvider     string
@@ -280,6 +281,13 @@ func evaluateDANEState(dane map[string]any, ps *protocolState) {
 
 func evaluateDNSSECState(dnssec map[string]any, ps *protocolState) {
         if isMissingRecord(dnssec) {
+                return
+        }
+        // A transient DNSKEY/DS lookup failure yields dnssec_state=indeterminate
+        // ("could not verify"). This must stay neutral — it is NOT evidence the zone
+        // is unsigned (RFC 4035), so it must never read as absent in posture.
+        if st, _ := dnssec[mapKeyDnssecState].(string); st == dnssecStateIndeterminate {
+                ps.dnssecIndeterminate = true
                 return
         }
         status, _ := dnssec[mapKeyStatus].(string)
@@ -560,6 +568,8 @@ func classifyDNSSEC(ps protocolState, acc *postureAccumulator) {
         } else if ps.dnssecBroken {
                 acc.issues = append(acc.issues, "DNSSEC validation is failing — DNS responses cannot be trusted")
                 acc.recommendations = append(acc.recommendations, "Fix DNSSEC configuration or remove broken DS records")
+        } else if ps.dnssecIndeterminate {
+                acc.monitoring = append(acc.monitoring, "DNSSEC could not be verified — DNSKEY/DS lookup did not complete; re-run before concluding the zone is unsigned (RFC 4035)")
         } else {
                 acc.absent = append(acc.absent, "DNSSEC")
         }
@@ -922,6 +932,9 @@ func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, strin
 func classifyRegistryGrade(ps protocolState, _ gradeInput) (string, string, string, string) {
         if ps.dnssecOK {
                 return riskLow, iconShieldAlt, mapKeySuccess, "Registry zone has DNSSEC signing active — delegation chain is cryptographically signed"
+        }
+        if ps.dnssecIndeterminate {
+                return riskMedium, iconShieldHalved, mapKeySecondary, "Registry zone DNSSEC could not be verified — DNSKEY/DS lookup did not complete; re-run before concluding the zone is unsigned"
         }
         return riskHigh, iconExclamationTriangle, mapKeyWarning, "Registry zone is not DNSSEC-signed — delegation chain lacks cryptographic verification"
 }
@@ -1309,6 +1322,14 @@ func buildDNSVerdict(ps protocolState, verdicts map[string]any) {
                         mapKeyIcon:   iconExclamationTriangle,
                         mapKeyAnswer: answerYes,
                         mapKeyReason: "DNSSEC validation is failing, DNS responses cannot be trusted",
+                }
+        } else if ps.dnssecIndeterminate {
+                verdicts[mapKeyDnsTampering] = map[string]any{
+                        mapKeyLabel:  "Could Not Verify",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyIcon:   iconShieldAlt,
+                        mapKeyAnswer: "Unknown",
+                        mapKeyReason: "DNSSEC could not be verified — the DNSKEY/DS lookup did not complete (transient resolver failure). This is not evidence the zone is unsigned (RFC 4035); re-run to confirm.",
                 }
         } else {
                 verdicts[mapKeyDnsTampering] = map[string]any{
