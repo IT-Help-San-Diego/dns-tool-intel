@@ -16,7 +16,9 @@
 # projection scripts (figma/miro/pipeline sync). One definition, no drift.
 
 if [ -n "${APP_VERSION:-}" ]; then
-  echo "$APP_VERSION"
+  # Strip a leading "v" so APP_VERSION=v26.50.05 and APP_VERSION=26.50.05 both
+  # emit "26.50.05" — matching the git-derived path (which also strips it below).
+  echo "${APP_VERSION#v}"
   exit 0
 fi
 
