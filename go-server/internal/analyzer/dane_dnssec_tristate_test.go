@@ -78,11 +78,13 @@ func TestAnalyzeDANE_TriState_Indeterminate(t *testing.T) {
         }
 }
 
-// TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient locks the
-// provider-no-inbound invariant: for a provider that authoritatively does not
-// support inbound DANE (e.g. Microsoft 365), a missing/transient TLSA lookup must
-// stay a STABLE absent_confirmed and never flap to indeterminate.
-func TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient(t *testing.T) {
+// TestAnalyzeDANE_ProviderNoInbound_TransientIsIndeterminate locks the Zero
+// Fabrication rule: even for a provider that does not support inbound DANE (e.g.
+// Microsoft 365), a TRANSIENT TLSA lookup failure must report indeterminate
+// ("could not verify"), NOT a fabricated confirmed-absence. Provider capability
+// is advisory deployment context only — it must never override a failed
+// measurement into an absence verdict (RFC 6698 §1).
+func TestAnalyzeDANE_ProviderNoInbound_TransientIsIndeterminate(t *testing.T) {
         const m365MX = "example-com.mail.protection.outlook.com"
         mockDNS := NewMockDNSClient()
         mockDNS.AddTTLStatusResponse("TLSA", "_25._tcp."+m365MX,
@@ -91,8 +93,26 @@ func TestAnalyzeDANE_ProviderNoInbound_StaysAbsentUnderTransient(t *testing.T) {
 
         result := a.AnalyzeDANE(context.Background(), triStateDomain, []string{"10 " + m365MX + "."})
 
+        if got := result["dane_state"]; got != daneStateIndeterminate {
+                t.Fatalf("dane_state = %v, want %s (transient TLSA failure must be indeterminate even for a no-inbound-DANE provider)", got, daneStateIndeterminate)
+        }
+}
+
+// TestAnalyzeDANE_ProviderNoInbound_AuthoritativeAbsentConfirmed verifies the
+// legitimate confirmed-absence path is still reachable: when the TLSA lookup
+// returns an AUTHORITATIVE no-record (LookupAbsent), absence is real and the
+// state is absent_confirmed — derived from the resolver answer, not the provider.
+func TestAnalyzeDANE_ProviderNoInbound_AuthoritativeAbsentConfirmed(t *testing.T) {
+        const m365MX = "example-com.mail.protection.outlook.com"
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("TLSA", "_25._tcp."+m365MX,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDANE(context.Background(), triStateDomain, []string{"10 " + m365MX + "."})
+
         if got := result["dane_state"]; got != daneStateAbsentConf {
-                t.Fatalf("dane_state = %v, want %s (provider-no-inbound must not flap to indeterminate on transient TLSA failure)", got, daneStateAbsentConf)
+                t.Fatalf("dane_state = %v, want %s (authoritative no-record is a real confirmed absence)", got, daneStateAbsentConf)
         }
 }
 
