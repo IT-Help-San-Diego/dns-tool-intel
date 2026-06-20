@@ -55,7 +55,14 @@ const (
 
         dnsPort      = "53"
         protoUDP     = "udp"
+        protoTCP     = "tcp"
         dohTypeRRSIG = 46
+
+        // errTruncatedTCP marks a TC=1 UDP answer whose TCP retry also failed.
+        // It is a non-empty, non-NXDOMAIN error string so classifyResolverResult
+        // folds it into outcomeTransient — never an authoritative absence built
+        // from the partial UDP answer.
+        errTruncatedTCP = "TRUNCATED: TC=1 and TCP fallback failed"
 
         mapKeyDiscrepancies = "discrepancies"
         mapKeyError         = "error"
@@ -517,12 +524,29 @@ func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, re
         fqdn := dnsutil.Fqdn(domain)
         msg := dns.NewMsg(fqdn, qtype)
         msg.RecursionDesired = true
+        msg.UDPSize, msg.Security = 4096, true
 
         client := newDNSClient(c.timeout)
 
         r, _, err := client.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
                 return resolverIP, nil, err.Error()
+        }
+
+        // RFC 7766 §5 / RFC 1035 §4.2.1: a truncated UDP answer (TC=1) carries an
+        // incomplete record set and MUST be retried over TCP — the partial UDP
+        // answers are discarded. Domains that deliberately overflow the UDP/EDNS
+        // buffer with oversized TXT sets (e.g. apple.com publishes multi-KB junk
+        // TXT records "to truncate UDP responses") otherwise drop records such as
+        // SPF, yielding a false "no SPF record" verdict. If the TCP retry itself
+        // fails the partial UDP answer is NOT trusted — we surface a transient
+        // error so no caller fabricates an "absent" verdict from an incomplete set.
+        if r.Truncated {
+                rt, _, errt := client.Exchange(ctx, msg, protoTCP, net.JoinHostPort(resolverIP, dnsPort))
+                if errt != nil || rt == nil {
+                        return resolverIP, nil, errTruncatedTCP
+                }
+                r = rt
         }
 
         if r.Rcode == dns.RcodeNameError {
@@ -1004,6 +1028,18 @@ func (c *Client) udpQueryWithTTLStatus(ctx context.Context, domain, recordType, 
         r, _, err := dnsClient.Exchange(ctx, msg, protoUDP, net.JoinHostPort(resolverIP, dnsPort))
         if err != nil {
                 return RecordWithTTL{}, err.Error()
+        }
+
+        // RFC 7766 §5: retry truncated (TC=1) answers over TCP so large signed
+        // RRsets (DNSKEY/TLSA) and oversized TXT sets are not silently truncated
+        // into a partial — and therefore wrong — record set. A failed TCP retry
+        // is reported as transient rather than trusting the partial UDP answer.
+        if r.Truncated {
+                rt, _, errt := dnsClient.Exchange(ctx, msg, protoTCP, net.JoinHostPort(resolverIP, dnsPort))
+                if errt != nil || rt == nil {
+                        return RecordWithTTL{}, errTruncatedTCP
+                }
+                r = rt
         }
 
         if r.Rcode == dns.RcodeNameError {
