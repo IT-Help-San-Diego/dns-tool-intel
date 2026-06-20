@@ -231,6 +231,44 @@ func TestIdentifyDNSProvider_Empty(t *testing.T) {
         }
 }
 
+// TestIdentifyDNSProvider_Akamai guards against the regression where the UI
+// "DNS Hosting" field rendered "Unknown" for Akamai-hosted NS records even
+// though the Footprint detector and the enterprise-tier classifier both named
+// the provider — a visible self-contradiction (Unknown vs. Enterprise) on
+// Akamai Edge DNS domains such as those using *.akam.net nameservers.
+func TestIdentifyDNSProvider_Akamai(t *testing.T) {
+        got := identifyDNSProvider([]string{"a1-107.akam.net", "a24-65.akam.net"})
+        if got != "Akamai Edge DNS" {
+                t.Errorf("identifyDNSProvider = %q, want Akamai Edge DNS", got)
+        }
+}
+
+// TestIdentifyDNSProvider_EnterpriseRegistrars locks the enterprise/registrar
+// DNS provider patterns added to nsProviderPatterns so the UI "DNS Hosting"
+// name stays in sync with the Footprint and enterprise-tier classifiers (which
+// already recognize these). Each NS sample reflects a real provider hostname.
+func TestIdentifyDNSProvider_EnterpriseRegistrars(t *testing.T) {
+        cases := []struct {
+                name string
+                ns   []string
+                want string
+        }{
+                {"CSC dns", []string{"dns1.cscdns.net", "dns2.cscdns.net"}, nameCSCGlobalDNS},
+                {"CSC com", []string{"ns1.csc.com"}, nameCSCGlobalDNS},
+                {"NetNames", []string{"ns1.netnames.net"}, nameCSCGlobalDNS},
+                {"Verisign", []string{"ns1.verisigndns.com"}, "Verisign DNS"},
+                {"MarkMonitor", []string{"ns1.markmonitor.com"}, "MarkMonitor DNS"},
+                {"Porkbun", []string{"curitiba.ns.porkbun.com"}, "Porkbun"},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        if got := identifyDNSProvider(tc.ns); got != tc.want {
+                                t.Errorf("identifyDNSProvider(%v) = %q, want %q", tc.ns, got, tc.want)
+                        }
+                })
+        }
+}
+
 func TestIdentifyWebHosting_FromCNAME(t *testing.T) {
         basic := map[string]any{
                 "CNAME": []string{"example.herokuapp.com"},
