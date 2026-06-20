@@ -311,6 +311,19 @@ var nsProviderPatterns = map[string]string{
         "wix":               "Wix",
         "vercel":            "Vercel",
         "netlify":           "Netlify",
+        // Enterprise / registrar DNS providers — recognized by the Footprint and
+        // enterprise-tier classifier (dnsHostingProviders / enterpriseProviders)
+        // but previously absent here, so the UI "DNS Hosting" field rendered
+        // "Unknown" while the same NS records were tagged "Enterprise" (and the
+        // Footprint already named the provider). Keep this map in sync with those.
+        "akam":              "Akamai Edge DNS",
+        "akamai":            "Akamai Edge DNS",
+        "cscdns":            nameCSCGlobalDNS,
+        "csc.com":           nameCSCGlobalDNS,
+        "netnames":          nameCSCGlobalDNS,
+        "verisign":          "Verisign DNS",
+        "markmonitor":       "MarkMonitor DNS",
+        "porkbun":           "Porkbun",
 }
 
 var webHostingPatterns = map[string]string{
