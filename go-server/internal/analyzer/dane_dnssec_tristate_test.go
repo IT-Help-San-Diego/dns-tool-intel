@@ -5,6 +5,7 @@ package analyzer
 
 import (
         "context"
+        "strings"
         "testing"
 
         "dnstool/go-server/internal/dnsclient"
@@ -164,6 +165,54 @@ func TestAnalyzeDNSSEC_TriState_MixedErrorAbsent(t *testing.T) {
         }
         if got := result[mapKeyStatus]; got != statusUnknown {
                 t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+}
+
+// TestAnalyzeDNSSEC_TriState_MixedDNSKEYErrorDSResolved locks the regression the
+// code review flagged: DNSKEY lookup errored transiently while DS resolved, with
+// no AD flag. The old guard required !hasDNSKEY && !hasDS, so this mixed case fell
+// through to buildDNSSECResult and was fabricated as "DNSSEC not configured"
+// (absent_confirmed). A single errored half means we cannot assert unsigned.
+func TestAnalyzeDNSSEC_TriState_MixedDNSKEYErrorDSResolved(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"12345 13 2 abc123"}},
+                dnsclient.LookupResolved)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (DNSKEY errored — must not read as 'not configured')", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyStatus]; got != statusUnknown {
+                t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+}
+
+// TestAnalyzeDNSSEC_TriState_MixedDSErrorDNSKEYResolved is the partner case: DS
+// lookup errored transiently while DNSKEY resolved, no AD flag. The old guard let
+// this reach buildDNSSECResult's hasDNSKEY && !hasDS branch and fabricate "DNSSEC
+// partially configured — DS record missing at registrar". A transient DS failure
+// is not evidence the DS is missing at the registrar.
+func TestAnalyzeDNSSEC_TriState_MixedDSErrorDNSKEYResolved(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupError)
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (DS errored — must not read as 'DS missing at registrar')", got, dnssecStateIndeterminate)
+        }
+        if msg, _ := result[mapKeyMessage].(string); strings.Contains(msg, "missing at registrar") {
+                t.Fatalf("fabricated DS-absence message under transient DS failure: %q", msg)
         }
 }
 
