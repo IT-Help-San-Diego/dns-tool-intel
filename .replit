@@ -21,7 +21,11 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+<<<<<<< HEAD
 args = "bash build.sh && ./dns-tool-server"
+=======
+args = "APP_VERSION=26.50.05 bash build.sh && ./dns-tool-server"
+>>>>>>> origin/main
 waitForPort = 5000
 
 [[ports]]
