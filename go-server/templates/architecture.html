@@ -508,7 +508,7 @@
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <span class="arch-classification">{{icon "shield-halved" "me-1"}}Classification: Public Release</span>
                 <span class="arch-classification">{{icon "file-contract" "me-1"}}FIRST TLP v2.0</span>
-                <span class="arch-classification">{{icon "clock" "me-1"}}{{.AppVersion}}</span>
+                <span class="arch-classification">{{icon "clock" "me-1"}}{{displayVersion .AppVersion}}</span>
             </div>
             <p class="mb-0 mt-2 arch-tlp-desc">This document is published under TLP:CLEAR per FIRST TLP v2.0. No restrictions on distribution. Proprietary methodology, internal scoring algorithms, and infrastructure details have been withheld.</p>
         </div>
@@ -959,7 +959,7 @@
             <span class="mx-2">&middot;</span>
             <span>Sensitive methods and infrastructure details withheld</span>
             <span class="mx-2">&middot;</span>
-            <span>v{{.AppVersion}}</span>
+            <span>v{{displayVersion .AppVersion}}</span>
         </div>
 
     </main>
