@@ -6,14 +6,11 @@ if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
   . "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
 
-CONVERT=$(command -v magick 2>/dev/null || command -v convert 2>/dev/null || true)
-CWEBP=$(command -v cwebp 2>/dev/null || true)
-
-if [ -n "$CONVERT" ] && [ -n "$CWEBP" ]; then
-  bash "$SCRIPT_DIR/scripts/generate-owl-derived.sh"
-else
-  echo "SKIP derived asset generation (ImageMagick/cwebp not found)"
-fi
+# Owl Semaphore derived display assets are PRE-RENDERED and committed. The canonical
+# owl art is maintained in the standalone owl-semaphore repository, which is the
+# authority; the 540px composites and their responsive derived/ set are committed to
+# this repo. They are NO LONGER regenerated on every build. To refresh after pulling
+# new composites from the authority repo, run scripts/generate-owl-derived.sh manually.
 
 # Version is DERIVED FROM GIT (scripts/version.sh), never grepped from a tracked
 # file. Injecting it via ldflags — exactly like GitCommit/BuildTime below — means
