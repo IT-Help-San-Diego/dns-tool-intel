@@ -775,80 +775,17 @@ func htmlComment(s string) template.HTML {
         return template.HTML("<!--\n" + clean + "\n-->")
 }
 
-// displayVersion returns the customer-facing version label in YEAR.MILESTONE.BUILD
-// form, e.g. "26.50.161":
-//
-//   - YEAR.MILESTONE come from the first two components of the most recent git
-//     tag (the human-curated release line — YEAR rolls once a year, MILESTONE is
-//     bumped by hand only when something noteworthy ships, via the release flow
-//     that cuts a fresh vYEAR.MILESTONE.0 tag).
-//   - BUILD is the git "commits since that tag" count from `git describe`
-//     (the "-<N>-g<sha>" suffix), so it advances automatically on every ship and
-//     resets to 0 when a new milestone tag is cut. Nothing is hand-edited, so a
-//     routine ship never touches a tracked version line (no merge conflicts).
-//
-// A tag's THIRD component (legacy 3-part tags like "26.50.05", or the always-0
-// patch of a release tag) is intentionally ignored — the BUILD counter takes
-// that slot. This keeps Zenodo/CITATION on clean 3-part semver tags while the
-// app shows live build movement. The full git-derived string still lives in
-// config.Version (cache-busting, admin diagnostics, build identity); this
-// affects DISPLAY text only.
-//
-// Examples:
-//
-//      "26.50.05-161-gd7d9ac10d" -> "26.50.161"   (legacy 3-part tag + 161 commits)
-//      "26.50-161-gd7d9ac10d"    -> "26.50.161"   (2-part milestone tag + 161 commits)
-//      "v26.51.0-3-gabc1234"     -> "v26.51.3"
-//      "26.50.05"                -> "26.50.0"      (exactly on tag, 0 commits since)
-//      "26.50"                   -> "26.50.0"
-//      "dev" / ""                -> unchanged
-//      "abc1234"                 -> unchanged      (bare --always sha, no YEAR.MILESTONE)
+// displayVersion returns the customer-facing version label: the release tag
+// only, with the git-describe "-<commits>-g<hash>" dev suffix stripped. The
+// build still carries the full git-derived version in config.Version (used for
+// cache-busting, admin diagnostics, and build identity) — this affects DISPLAY
+// text only. "26.50.05-152-gc1948bc3f" -> "26.50.05"; an exact tag or the "dev"
+// fallback passes through unchanged.
 func displayVersion(version string) string {
-        if version == "" || version == "dev" {
-                return version
+        if i := strings.IndexByte(version, '-'); i > 0 {
+                return version[:i]
         }
-
-        allDigits := func(s string) bool {
-                if s == "" {
-                        return false
-                }
-                for i := 0; i < len(s); i++ {
-                        if s[i] < '0' || s[i] > '9' {
-                                return false
-                        }
-                }
-                return true
-        }
-
-        // Preserve a leading "v" on the rendered label.
-        prefix := ""
-        core := version
-        if core[0] == 'v' || core[0] == 'V' {
-                prefix = core[:1]
-                core = core[1:]
-        }
-
-        // Split the git-describe string into the tag base and the optional
-        // "-<commits>-g<sha>" suffix. Exactly on a tag -> no suffix -> build 0.
-        build := "0"
-        base := core
-        if i := strings.IndexByte(core, '-'); i >= 0 {
-                base = core[:i]
-                rest := core[i+1:] // "<commits>-g<sha>"
-                if j := strings.IndexByte(rest, '-'); j >= 0 {
-                        if n := rest[:j]; allDigits(n) {
-                                build = n
-                        }
-                }
-        }
-
-        parts := strings.Split(base, ".")
-        if len(parts) < 2 {
-                // Not a YEAR.MILESTONE tag (e.g. a bare "--always" sha fallback):
-                // return the input unchanged rather than fabricate digits.
-                return version
-        }
-        return prefix + parts[0] + "." + parts[1] + "." + build
+        return version
 }
 
 func displayFuncs() template.FuncMap {
