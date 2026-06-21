@@ -1092,11 +1092,17 @@ func TestDisplayVersion(t *testing.T) {
                 input string
                 want  string
         }{
-                {"26.50.05-152-gc1948bc3f", "26.50.05"},
-                {"v26.50.05-152-gc1948bc3f", "v26.50.05"},
-                {"26.50.05", "26.50.05"},
+                {"26.50.05-152-gc1948bc3f", "26.50.152"},  // legacy 3-part tag + commits -> build slot
+                {"v26.50.05-161-gd7d9ac10d", "v26.50.161"}, // leading v preserved
+                {"26.50-161-gd7d9ac10d", "26.50.161"},      // 2-part milestone tag
+                {"v26.51.0-3-gabc1234", "v26.51.3"},        // release tag (patch 0) + 3 commits
+                {"26.50.05", "26.50.0"},                    // exactly on legacy tag -> build 0
+                {"26.50", "26.50.0"},                       // exactly on milestone tag
                 {"dev", "dev"},
                 {"", ""},
+                {"abc1234", "abc1234"},                  // bare --always sha, no YEAR.MILESTONE -> unchanged
+                {"V26.50.05-10-gabc1234", "V26.50.10"},  // uppercase V preserved
+                {"v", "v"},                              // lone prefix, no version -> unchanged
         }
         for _, tt := range tests {
                 if got := displayVersion(tt.input); got != tt.want {
