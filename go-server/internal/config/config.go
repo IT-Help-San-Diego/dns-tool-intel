@@ -186,14 +186,49 @@ func loadSectionTuning() map[string]string {
         return tuning
 }
 
+const canonicalBaseURL = "https://dnstool.it-help.tech"
+
+// replitEphemeralHostSuffixes are the rotating, deploy-specific hostnames Replit
+// assigns to dev workspaces and deployment containers. They are correct for the
+// dev preview (set via BASE_URL in the development environment) but must NEVER
+// appear in production absolute URLs: external consumers — e.g. the DEVONagent
+// Pro search plugin, whose LinksMatching filter is "*dnstool.it-help.tech*", and
+// OpenGraph/OAuth-redirect/canonical-link tags — key off the public domain. A
+// stale dev BASE_URL leaking into a production container therefore makes the
+// agent plugin match zero result links (scan still runs + saves, but the client
+// sees "no results"). See replit.md § DNS provider / agent plugin notes.
+var replitEphemeralHostSuffixes = []string{
+        ".replit.dev",
+        ".replit.app",
+        ".repl.co",
+        ".kirk.replit.dev",
+        ".picard.replit.dev",
+}
+
+func isReplitEphemeralBaseURL(raw string) bool {
+        s := strings.ToLower(strings.TrimSpace(raw))
+        for _, suffix := range replitEphemeralHostSuffixes {
+                if strings.Contains(s, suffix) {
+                        return true
+                }
+        }
+        return false
+}
+
 func resolveBaseURL() (string, bool) {
         baseURLRaw := os.Getenv("BASE_URL")
         baseURL := baseURLRaw
         if baseURL == "" {
-                baseURL = "https://dnstool.it-help.tech"
+                baseURL = canonicalBaseURL
         }
         replitDeployment := os.Getenv("REPLIT_DEPLOYMENT")
         if replitDeployment != "" {
+                // In production, never emit a Replit-ephemeral host in absolute URLs.
+                // A dev BASE_URL inherited by the deployment container would otherwise
+                // break external consumers that key off the canonical public domain.
+                if isReplitEphemeralBaseURL(baseURL) {
+                        baseURL = canonicalBaseURL
+                }
                 return baseURL, false
         }
         replitDevDomain := os.Getenv("REPLIT_DEV_DOMAIN")
