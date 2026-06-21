@@ -789,6 +789,7 @@ const listPopularDomainsHuman = `-- name: ListPopularDomainsHuman :many
 SELECT domain, COUNT(id) AS count
 FROM domain_analyses
 WHERE scan_source = 'human'
+  AND full_results->>'_request_source' IS DISTINCT FROM 'agent'
   AND full_results IS NOT NULL
   AND analysis_success = TRUE
   AND private = FALSE
@@ -804,10 +805,12 @@ type ListPopularDomainsHumanRow struct {
 }
 
 // Popularity restricted to rows the verified-bot pipeline tagged 'human'.
-// Excludes verified bots, investigate-bucket traffic, and security-tool scans.
+// Excludes verified bots, investigate-bucket traffic, security-tool scans, AND
+// plugin (DEVONagent / ?src=agent) traffic — the latter is counted separately
+// in ListPopularDomainsPlugin and must not inflate the human leaderboard.
 // Same publication filters as ListPopularDomains: must be a successful, public,
 // non-scanner row with full_results populated. Legacy NULL scan_source rows
-// (pre-botverify) are intentionally excluded from all three buckets — they
+// (pre-botverify) are intentionally excluded from all four buckets — they
 // predate provenance tagging and remain countable in ListPopularDomains.
 func (q *Queries) ListPopularDomainsHuman(ctx context.Context, limit int32) ([]ListPopularDomainsHumanRow, error) {
 	rows, err := q.db.Query(ctx, listPopularDomainsHuman, limit)
@@ -833,6 +836,7 @@ const listPopularDomainsInvestigate = `-- name: ListPopularDomainsInvestigate :m
 SELECT domain, COUNT(id) AS count
 FROM domain_analyses
 WHERE scan_source = 'investigate'
+  AND full_results->>'_request_source' IS DISTINCT FROM 'agent'
   AND full_results IS NOT NULL
   AND analysis_success = TRUE
   AND private = FALSE
@@ -849,7 +853,8 @@ type ListPopularDomainsInvestigateRow struct {
 
 // Popularity restricted to the 'investigate' bucket: claimed-bot UAs that
 // failed reverse-DNS verification, plus generic bot signals (curl, python-
-// requests, headless browsers) that have no operator allowlist.
+// requests, headless browsers) that have no operator allowlist. Plugin traffic
+// is excluded for the same precedence reason as the human and bot buckets.
 func (q *Queries) ListPopularDomainsInvestigate(ctx context.Context, limit int32) ([]ListPopularDomainsInvestigateRow, error) {
 	rows, err := q.db.Query(ctx, listPopularDomainsInvestigate, limit)
 	if err != nil {
@@ -870,10 +875,58 @@ func (q *Queries) ListPopularDomainsInvestigate(ctx context.Context, limit int32
 	return items, nil
 }
 
+const listPopularDomainsPlugin = `-- name: ListPopularDomainsPlugin :many
+SELECT domain, COUNT(id) AS count
+FROM domain_analyses
+WHERE full_results->>'_request_source' = 'agent'
+  AND full_results IS NOT NULL
+  AND analysis_success = TRUE
+  AND private = FALSE
+  AND scan_flag = FALSE
+GROUP BY domain
+ORDER BY COUNT(id) DESC
+LIMIT $1
+`
+
+type ListPopularDomainsPluginRow struct {
+	Domain string `db:"domain" json:"domain"`
+	Count  int64  `db:"count" json:"count"`
+}
+
+// Popularity restricted to scans that arrived through the DEVONagent plugin
+// (or any caller passing ?src=agent). Provenance is recorded out-of-band in
+// full_results->>'_request_source' = 'agent' (set in analysis.go / agentpkg),
+// independent of the User-Agent-derived scan_source. A DEVONagent-UA scan is
+// both verified_bot:Devon Agent Pro (scan_source) AND plugin (_request_source);
+// a ?src=agent scan from a browser UA is scan_source='human' AND plugin. The
+// Plugin bucket takes precedence over all scan_source buckets so plugin usage
+// is counted exactly once, in its own column — never conflated with the human
+// or bot leaderboards. Same publication discipline as the other buckets.
+func (q *Queries) ListPopularDomainsPlugin(ctx context.Context, limit int32) ([]ListPopularDomainsPluginRow, error) {
+	rows, err := q.db.Query(ctx, listPopularDomainsPlugin, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPopularDomainsPluginRow{}
+	for rows.Next() {
+		var i ListPopularDomainsPluginRow
+		if err := rows.Scan(&i.Domain, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPopularDomainsVerifiedBot = `-- name: ListPopularDomainsVerifiedBot :many
 SELECT domain, COUNT(id) AS count
 FROM domain_analyses
 WHERE (scan_source LIKE 'verified_bot:%' OR scan_source = 'verified_bot')
+  AND full_results->>'_request_source' IS DISTINCT FROM 'agent'
   AND full_results IS NOT NULL
   AND analysis_success = TRUE
   AND private = FALSE
@@ -891,7 +944,9 @@ type ListPopularDomainsVerifiedBotRow struct {
 // Popularity restricted to rows tagged with a verified bot operator. Matches
 // both 'verified_bot:<name>' (the canonical form emitted by extractScanFields)
 // and the bare 'verified_bot' fallback so a future code path that forgets the
-// suffix still gets counted in the right bucket.
+// suffix still gets counted in the right bucket. Plugin traffic is excluded so
+// a DEVONagent-UA scan (which is also tagged verified_bot:Devon Agent Pro) is
+// counted only in the Plugin bucket, not double-counted here.
 func (q *Queries) ListPopularDomainsVerifiedBot(ctx context.Context, limit int32) ([]ListPopularDomainsVerifiedBotRow, error) {
 	rows, err := q.db.Query(ctx, listPopularDomainsVerifiedBot, limit)
 	if err != nil {

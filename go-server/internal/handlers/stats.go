@@ -179,12 +179,19 @@ func (h *StatsHandler) Stats(c *gin.Context) {
                 slog.Warn("Stats: failed to list popular domains", mapKeyError, err)
         }
         // Additive provenance leaderboards. Each is shown as its own column on the
-        // stats page so users can see human, verified-bot, and investigate traffic
-        // independently — none is hidden behind the others. See
-        // internal/botverify/verify.go for how scan_source values are assigned.
+        // stats page so users can see plugin, human, verified-bot, and investigate
+        // traffic independently — none is hidden behind the others, and the four
+        // buckets are mutually exclusive (plugin traffic takes precedence and is
+        // excluded from the human/bot/investigate buckets so it is never
+        // double-counted). See internal/botverify/verify.go for how scan_source
+        // values are assigned and db/queries/domain_analyses.sql for the bucket SQL.
         popularHuman, err := h.DB.Queries.ListPopularDomainsHuman(ctx, 10)
         if err != nil {
                 slog.Warn("Stats: failed to list human-popular domains", mapKeyError, err)
+        }
+        popularPlugin, err := h.DB.Queries.ListPopularDomainsPlugin(ctx, 10)
+        if err != nil {
+                slog.Warn("Stats: failed to list plugin-popular domains", mapKeyError, err)
         }
         popularVerifiedBot, err := h.DB.Queries.ListPopularDomainsVerifiedBot(ctx, 10)
         if err != nil {
@@ -217,6 +224,10 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         popItemsHuman := make([]PopularDomain, 0, len(popularHuman))
         for _, d := range popularHuman {
                 popItemsHuman = append(popItemsHuman, PopularDomain{Domain: d.Domain, Count: d.Count})
+        }
+        popItemsPlugin := make([]PopularDomain, 0, len(popularPlugin))
+        for _, d := range popularPlugin {
+                popItemsPlugin = append(popItemsPlugin, PopularDomain{Domain: d.Domain, Count: d.Count})
         }
         popItemsVerifiedBot := make([]PopularDomain, 0, len(popularVerifiedBot))
         for _, d := range popularVerifiedBot {
@@ -264,6 +275,7 @@ func (h *StatsHandler) Stats(c *gin.Context) {
         data["CountryStats"] = countryItems
         data["PopularDomains"] = popItems
         data["PopularDomainsHuman"] = popItemsHuman
+        data["PopularDomainsPlugin"] = popItemsPlugin
         data["PopularDomainsVerifiedBot"] = popItemsVerifiedBot
         data["PopularDomainsInvestigate"] = popItemsInvestigate
         data["RecentStats"] = statItems

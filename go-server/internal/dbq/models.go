@@ -20,6 +20,13 @@ type AnalysisStat struct {
 	UpdatedAt          pgtype.Timestamp `db:"updated_at" json:"updated_at"`
 }
 
+type AnalyticsMetum struct {
+	Key       string             `db:"key" json:"key"`
+	Value     []byte             `db:"value" json:"value"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
 type BlackSiteDetainee struct {
 	ID                 int32            `db:"id" json:"id"`
 	BsiID              string           `db:"bsi_id" json:"bsi_id"`
@@ -404,6 +411,7 @@ type SiteAnalytic struct {
 	UniqueDomainsAnalyzed int32            `db:"unique_domains_analyzed" json:"unique_domains_analyzed"`
 	ReferrerSources       []byte           `db:"referrer_sources" json:"referrer_sources"`
 	TopPages              []byte           `db:"top_pages" json:"top_pages"`
+	HllVisitors           []byte           `db:"hll_visitors" json:"hll_visitors"`
 	CreatedAt             pgtype.Timestamp `db:"created_at" json:"created_at"`
 	UpdatedAt             pgtype.Timestamp `db:"updated_at" json:"updated_at"`
 }

@@ -611,11 +611,37 @@
 
                 <div class="stats-section">
                     <div class="stats-section-header">
+                        {{icon "plug" "stats-section-icon"}}
+                        <h2 class="stats-section-title">Top Domains — Plugin</h2>
+                    </div>
+                    <div class="stats-section-body u-pad-half-0">
+                        <p class="small text-muted px-3 mb-2">Scans run through the DEVONagent Pro plugin (or any client passing <code>?src=agent</code>). Counted on its own so plugin usage never inflates the human, verified-bot, or investigate totals.</p>
+                        {{if .PopularDomainsPlugin}}
+                        <ul class="stats-domain-list" data-testid="popular-plugin">
+                            {{range $i, $d := .PopularDomainsPlugin}}
+                            <li class="stats-domain-item">
+                                <span class="stats-domain-rank">{{add $i 1}}.</span>
+                                <span class="stats-domain-name">{{$d.Domain}}</span>
+                                <span class="stats-domain-count">{{$d.Count}}</span>
+                            </li>
+                            {{end}}
+                        </ul>
+                        {{else}}
+                        <div class="stats-empty">
+                            {{icon "plug"}}
+                            <p>No plugin scans yet</p>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stats-section-header">
                         {{icon "user" "stats-section-icon"}}
                         <h2 class="stats-section-title">Top Domains — Human</h2>
                     </div>
                     <div class="stats-section-body u-pad-half-0">
-                        <p class="small text-muted px-3 mb-2">Browser-driven sessions only. Excludes verified bots, investigate traffic, and security-tool scans.</p>
+                        <p class="small text-muted px-3 mb-2">Browser-driven sessions only. Excludes plugin scans, verified bots, investigate traffic, and security-tool scans.</p>
                         {{if .PopularDomainsHuman}}
                         <ul class="stats-domain-list" data-testid="popular-human">
                             {{range $i, $d := .PopularDomainsHuman}}
