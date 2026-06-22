@@ -48,6 +48,7 @@ type Config struct {
         IsDevEnvironment   bool
         DiscordWebhookURL  string
         YouTubeVideoIDs    map[string]string
+        OriginTrialToken   string
 }
 
 var betaPagesMap = map[string]bool{
@@ -111,6 +112,7 @@ func Load() (*Config, error) {
                 IsDevEnvironment:   isDevEnv,
                 DiscordWebhookURL:  os.Getenv("DISCORD_WEBHOOK_URL"),
                 YouTubeVideoIDs:    parseYouTubeIDs(os.Getenv("YOUTUBE_VIDEO_IDS")),
+                OriginTrialToken:   strings.TrimSpace(os.Getenv("ORIGIN_TRIAL_TOKEN")),
         }, nil
 }
 

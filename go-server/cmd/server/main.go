@@ -281,8 +281,9 @@ func buildRouter(cfg *config.Config, database *db.Database) (*gin.Engine, *middl
         logSecurityHeadersMode(cfg.IsDevEnvironment)
 
         router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
-                "MaintenanceNote": cfg.MaintenanceNote,
-                "BetaPages":       cfg.BetaPages,
+                "MaintenanceNote":  cfg.MaintenanceNote,
+                "BetaPages":        cfg.BetaPages,
+                "OriginTrialToken": cfg.OriginTrialToken,
         }))
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
