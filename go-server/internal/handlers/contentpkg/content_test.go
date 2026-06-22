@@ -112,19 +112,6 @@ func TestContactHandler(t *testing.T) {
 	}
 }
 
-func TestCorpusHandler(t *testing.T) {
-	cfg := &config.Config{AppVersion: "26.0.0", BetaPages: map[string]bool{}}
-	h := NewCorpusHandler(cfg, stubTemplateData)
-	w := httptest.NewRecorder()
-	router := gin.New()
-	router.SetHTMLTemplate(mustParseMinimalTemplate("corpus.html"))
-	router.GET("/corpus", h.Corpus)
-	router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/corpus", nil))
-	if w.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
-	}
-}
-
 func TestFAQHandler(t *testing.T) {
 	cfg := &config.Config{AppVersion: "26.0.0", BetaPages: map[string]bool{}}
 	h := NewFAQHandler(cfg, stubTemplateData)

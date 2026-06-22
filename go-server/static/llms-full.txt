@@ -321,10 +321,6 @@ Consolidated index of all scientific papers, case studies, governance documents,
 URL: `https://dnstool.it-help.tech/case-study/`
 Domain Confessions series analyzing real-world DNS security postures across organizations. Each case study provides detailed analysis with methodology, findings, and implications.
 
-### Research Corpus
-URL: `https://dnstool.it-help.tech/corpus`
-Inline PDF reading with split-pane layout for all published research documents. Provides direct access to the full text of DNS Tool's scientific output.
-
 ### Cite
 URL: `https://dnstool.it-help.tech/cite`
 Citation information and DOI links for referencing DNS Tool research in academic and professional publications.
