@@ -1,5 +1,6 @@
 {{define "head"}}
 <meta charset="UTF-8">
+{{if .OriginTrialToken}}<meta http-equiv="origin-trial" content="{{.OriginTrialToken}}">{{end}}
 <meta name="csp-nonce" content="{{.CspNonce}}">
 <script nonce="{{.CspNonce}}">try{if(localStorage.getItem('covertMode')==='1')document.documentElement.classList.add('covert-mode')}catch{/* intentional */}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">

@@ -41,43 +41,45 @@ A single-page report with these sections (scroll down):
 ### Re-Analyzing
 To get fresh data for the same domain, click the "Re-Analyze" button on any results page. Rate limiting is applied to prevent abuse.
 
+### WebMCP Tools (Experimental)
+DNS Tool annotates its analyze and search forms with [WebMCP](https://github.com/webmachinelearning/webmcp) declarative tool definitions (a proposed web standard, currently a Chrome origin trial). In-browser AI agents can discover the `analyze_domain` and `search_domains` tools and operate the page directly. WebMCP is a progressive enhancement — the site works identically in browsers without it. See [Chrome's WebMCP docs](https://developer.chrome.com/docs/ai/webmcp).
+
 ### Other Pages
-- `/sources` — Complete inventory of all intelligence sources, methodologies, rate limits, and verification commands
-- `/investigate` — IP Intelligence: determine how an IP address relates to a domain (Direct Asset, Email Provider, CDN/Edge, DNS Provider, SPF-Authorized Sender)
-- `/email-header` — Email Header Analyzer: paste headers, upload .eml files, or import JSON from Gmail API, Microsoft Graph, Postmark, SendGrid, Mailgun, and MBOX archives for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, subject line scam analysis (phone number obfuscation, fake payment amounts, homoglyph brand impersonation), third-party spam vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), and brand mismatch detection
-- `/toolkit` — Field Tech Toolkit (Beta): guided network troubleshooting for everyone — triage matrix with 6 scenario cards for quick entry, step-by-step wizard with 6 diagnostic steps, What's My IP, external port check, DNS test, dual-network remote support, command-line reference (including macOS networkQuality), command preflight guidance for password-protected commands, recommended external tools, step navigator, and "Found Something?" discovery mechanism at each step
-- `/confidence` — Confidence Engine dashboard: ICAE (129 deterministic tests, 9 protocols) and ICuAE (29 currency tests, 5 dimensions) results, maturity levels, audit log, statistical calibration and trend analysis
-- `/dossier` — Domain Dossier: comprehensive single-page intelligence report combining all analysis modules for a domain
-- `/drift` — Drift Timeline: longitudinal posture change tracking via SHA-3-512 canonical hashing — detect when a domain's security configuration changes over time
-- `/ttl-tuner` — TTL Tuner: interactive DNS TTL analysis and optimization recommendations
-- `/changelog` — What's New: complete changelog of improvements and new features
-- `/history` — List of recently analyzed domains
-- `/stats` — Usage statistics and trends with global reach, daily activity, and operational insights
-- `/compare` — Side-by-side domain comparison
-- `/architecture` — TLP:CLEAR public system architecture overview: intelligence pipeline, dual-engine confidence framework (ICAE/ICuAE), protocol coverage, open-core design, standards foundation
-- `/approach` — Our Methodology: five analytic perspectives (Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro) encoded as a precision algorithm — Symbiotic Security model, RFC provenance for every finding, time-series verification, and the architecture behind building a forensic audit engine instead of a simple checker
-- `/failures` — Analysis Transparency Log: public accountability page showing sanitized failure records — every failed analysis with domain, error category, and timestamp. Error messages are categorized (timeout, NXDOMAIN, connection refused, TLS error, etc.) with infrastructure details redacted. KPI cards showing total failures, total analyses, and failure rate
-- `/roadmap` — Public Roadmap: kanban-style view of project progress — completed features (87+), in-progress work, next-up priorities (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and backlog items with transparent status tracking
-- `/about` — Origin Story: project background, founding mission, and team information
-- `/publications` — Publications: consolidated index of all scientific papers, case studies, governance documents, and technical documentation with format badges and DOI citation links
-- `/case-study/` — Case Studies: Domain Confessions series analyzing real-world DNS security postures across organizations
-- `/corpus` — Research Corpus: inline PDF reading with split-pane layout for all published research documents
-- `/cite` — Cite: citation information and DOI links for referencing DNS Tool research
-- `/reference-library` — Reference Library: curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology
-- `/topology` — Topology: Canvas 2D visualization of DNS resolver PoPs and scan pipeline topology
-- `/contact` — Contact: company contact information and communication channels
-- `/security-policy` — Security Policy: responsible disclosure policy and security contact information
-- `/privacy` — Privacy Policy: data handling, account deletion, and DNS record retention policies
-- `/owl-semaphore` — Owl Semaphore: four-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT, META) for document classification using the Klein four-group V₄
-- `/manifesto` — Manifesto: founding principles and philosophical framework behind DNS Tool's approach to domain security
-- `/communication-standards` — Communication Standards: editorial and communication guidelines governing all DNS Tool publications
-- `/roe` — Rules of Engagement: operational boundaries and ethical guidelines for DNS Tool's analysis capabilities
-- `/color-science` — Color Science: CIE scotopic luminance calculations, WCAG contrast analysis, and the science behind the platform's dark-mode color system
-- `/brand-colors` — Brand Colors: platform color palette with accessibility rationale
-- `/badge` — Badge System: embeddable security posture badges (SVG, Shields.io format) for domain security status. Detailed badge SVG includes Web3 node in scan topology
-- `/ede` — Epistemic Disclosure Events: public correction log documenting every structural correction to the confidence scoring model — per-event SHA-3-512 integrity hashing, tamper resistance policy with two amendment grounds (FACTUAL_ERROR, DIGNITY_OF_EXPRESSION), full attribution model (Human Error / AI Error / Both / Process Gap), and methodology PDF
-- `/docs/dns-tool-methodology.pdf` — Methodology PDF: peer-review-ready methodology document covering data collection, protocol-specific evaluation, confidence scoring model (ICAE/ICuAE), epistemic correction disclosure, and output products
-- `/faq/subdomains` — Subdomain Discovery FAQ: methodology explanation for Certificate Transparency and DNS-based subdomain enumeration
+- [Intelligence Sources](https://dnstool.it-help.tech/sources) — Complete inventory of all intelligence sources, methodologies, rate limits, and verification commands
+- [IP Intelligence](https://dnstool.it-help.tech/investigate) — IP Intelligence: determine how an IP address relates to a domain (Direct Asset, Email Provider, CDN/Edge, DNS Provider, SPF-Authorized Sender)
+- [Email Header Analyzer](https://dnstool.it-help.tech/email-header) — Email Header Analyzer: paste headers, upload .eml files, or import JSON from Gmail API, Microsoft Graph, Postmark, SendGrid, Mailgun, and MBOX archives for SPF/DKIM/DMARC verification, delivery route tracing, spoofing detection, subject line scam analysis (phone number obfuscation, fake payment amounts, homoglyph brand impersonation), third-party spam vendor detection (Proofpoint, Barracuda, Microsoft SCL, Mimecast), and brand mismatch detection
+- [Field Tech Toolkit](https://dnstool.it-help.tech/toolkit) — Field Tech Toolkit (Beta): guided network troubleshooting for everyone — triage matrix with 6 scenario cards for quick entry, step-by-step wizard with 6 diagnostic steps, What's My IP, external port check, DNS test, dual-network remote support, command-line reference (including macOS networkQuality), command preflight guidance for password-protected commands, recommended external tools, step navigator, and "Found Something?" discovery mechanism at each step
+- [Confidence Engine](https://dnstool.it-help.tech/confidence) — Confidence Engine dashboard: ICAE (129 deterministic tests, 9 protocols) and ICuAE (29 currency tests, 5 dimensions) results, maturity levels, audit log, statistical calibration and trend analysis
+- [Domain Dossier](https://dnstool.it-help.tech/dossier) — Domain Dossier: comprehensive single-page intelligence report combining all analysis modules for a domain
+- [Drift Timeline](https://dnstool.it-help.tech/drift) — Drift Timeline: longitudinal posture change tracking via SHA-3-512 canonical hashing — detect when a domain's security configuration changes over time
+- [TTL Tuner](https://dnstool.it-help.tech/ttl-tuner) — TTL Tuner: interactive DNS TTL analysis and optimization recommendations
+- [Changelog](https://dnstool.it-help.tech/changelog) — What's New: complete changelog of improvements and new features
+- [Recent Analyses](https://dnstool.it-help.tech/history) — List of recently analyzed domains
+- [Usage Statistics](https://dnstool.it-help.tech/stats) — Usage statistics and trends with global reach, daily activity, and operational insights
+- [Domain Comparison](https://dnstool.it-help.tech/compare) — Side-by-side domain comparison
+- [System Architecture](https://dnstool.it-help.tech/architecture) — TLP:CLEAR public system architecture overview: intelligence pipeline, dual-engine confidence framework (ICAE/ICuAE), protocol coverage, open-core design, standards foundation
+- [Methodology](https://dnstool.it-help.tech/approach) — Our Methodology: five analytic perspectives (Intelligence Officer, DNS Engineer, Hacker, Executive, IT Pro) encoded as a precision algorithm — Symbiotic Security model, RFC provenance for every finding, time-series verification, and the architecture behind building a forensic audit engine instead of a simple checker
+- [Analysis Transparency Log](https://dnstool.it-help.tech/failures) — Analysis Transparency Log: public accountability page showing sanitized failure records — every failed analysis with domain, error category, and timestamp. Error messages are categorized (timeout, NXDOMAIN, connection refused, TLS error, etc.) with infrastructure details redacted. KPI cards showing total failures, total analyses, and failure rate
+- [Public Roadmap](https://dnstool.it-help.tech/roadmap) — Public Roadmap: kanban-style view of project progress — completed features (87+), in-progress work, next-up priorities (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and backlog items with transparent status tracking
+- [About](https://dnstool.it-help.tech/about) — Origin Story: project background, founding mission, and team information
+- [Publications](https://dnstool.it-help.tech/publications) — Publications: consolidated index of all scientific papers, case studies, governance documents, and technical documentation with format badges and DOI citation links
+- [Case Studies](https://dnstool.it-help.tech/case-study/) — Case Studies: Domain Confessions series analyzing real-world DNS security postures across organizations
+- [Citation](https://dnstool.it-help.tech/cite) — Cite: citation information and DOI links for referencing DNS Tool research
+- [Reference Library](https://dnstool.it-help.tech/reference-library) — Reference Library: curated collection of standards, RFCs, and foundational references used in DNS Tool's analysis methodology
+- [Topology](https://dnstool.it-help.tech/topology) — Topology: Canvas 2D visualization of DNS resolver PoPs and scan pipeline topology
+- [Contact](https://dnstool.it-help.tech/contact) — Contact: company contact information and communication channels
+- [Security Policy](https://dnstool.it-help.tech/security-policy) — Security Policy: responsible disclosure policy and security contact information
+- [Privacy Policy](https://dnstool.it-help.tech/privacy) — Privacy Policy: data handling, account deletion, and DNS record retention policies
+- [Owl Semaphore](https://dnstool.it-help.tech/owl-semaphore) — Owl Semaphore: four-state publication-grade layered PNG badge system (NORM, NONNORM, CRIT, META) for document classification using the Klein four-group V₄
+- [Manifesto](https://dnstool.it-help.tech/manifesto) — Manifesto: founding principles and philosophical framework behind DNS Tool's approach to domain security
+- [Communication Standards](https://dnstool.it-help.tech/communication-standards) — Communication Standards: editorial and communication guidelines governing all DNS Tool publications
+- [Rules of Engagement](https://dnstool.it-help.tech/roe) — Rules of Engagement: operational boundaries and ethical guidelines for DNS Tool's analysis capabilities
+- [Color Science](https://dnstool.it-help.tech/color-science) — Color Science: CIE scotopic luminance calculations, WCAG contrast analysis, and the science behind the platform's dark-mode color system
+- [Brand Colors](https://dnstool.it-help.tech/brand-colors) — Brand Colors: platform color palette with accessibility rationale
+- [Badge System](https://dnstool.it-help.tech/badge) — Badge System: embeddable security posture badges (SVG, Shields.io format) for domain security status. Detailed badge SVG includes Web3 node in scan topology
+- [Epistemic Disclosure Events](https://dnstool.it-help.tech/ede) — Epistemic Disclosure Events: public correction log documenting every structural correction to the confidence scoring model — per-event SHA-3-512 integrity hashing, tamper resistance policy with two amendment grounds (FACTUAL_ERROR, DIGNITY_OF_EXPRESSION), full attribution model (Human Error / AI Error / Both / Process Gap), and methodology PDF
+- [Methodology PDF](https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf) — Methodology PDF: peer-review-ready methodology document covering data collection, protocol-specific evaluation, confidence scoring model (ICAE/ICuAE), epistemic correction disclosure, and output products
+- [Subdomain Discovery FAQ](https://dnstool.it-help.tech/faq/subdomains) — Subdomain Discovery FAQ: methodology explanation for Certificate Transparency and DNS-based subdomain enumeration
 
 ## Intelligence Sources & Transparency
 DNS Tool uses only open-source Unix commands and public protocols. Every conclusion can be independently verified. Sources include:
@@ -212,11 +214,11 @@ Methodology descriptions on the `/architecture` page are redacted to protect pro
 Domain security audit, SPF checker, DKIM validator, DMARC lookup, DNSSEC validation tool, DANE checker, TLSA lookup, DANE TLSA email security, DMARCbis, email authentication checker, email spoofing protection, cybersecurity posture report, DNS intelligence, domain reputation check, CAA record check, MPIC, MTA-STS checker, BIMI checker, IP investigation, reverse DNS lookup, ASN attribution, DNS history, subdomain discovery, email header analyzer, phishing detection, exposure scanner, misconfiguration check, report integrity hash
 
 ## Documentation
-- Full agent guide with result interpretation: /llms-full.txt
-- Intelligence sources inventory: /sources
-- Methodology PDF (peer-review-ready): /docs/dns-tool-methodology.pdf
-- Epistemic Disclosure Events (correction log): /ede
-- Blog guide: https://www.it-help.tech/blog/dns-security-best-practices/
+- [Full agent guide with result interpretation](https://dnstool.it-help.tech/llms-full.txt)
+- [Intelligence sources inventory](https://dnstool.it-help.tech/sources)
+- [Methodology PDF (peer-review-ready)](https://dnstool.it-help.tech/docs/dns-tool-methodology.pdf)
+- [Epistemic Disclosure Events (correction log)](https://dnstool.it-help.tech/ede)
+- [Blog guide](https://www.it-help.tech/blog/dns-security-best-practices/)
 
 ## Contact
 IT Help San Diego Inc.

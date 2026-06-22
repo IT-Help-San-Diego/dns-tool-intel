@@ -138,7 +138,7 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                 c.Header("Report-To", `{"group":"csp","max_age":10886400,"endpoints":[{"url":"/api/csp-report"}],"include_subdomains":true}`)
         }
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-        c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
+        c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), tools=(self)")
         if devMode {
                 c.Header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
                 c.Header("Cross-Origin-Resource-Policy", "cross-origin")
@@ -167,7 +167,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
         }
 
         frameSrc := "frame-src 'none'; "
-        if c.Request.URL.Path == "/signature" || c.Request.URL.Path == "/corpus" {
+        if c.Request.URL.Path == "/signature" {
                 frameSrc = "frame-src 'self'; "
         } else if c.Request.URL.Path == "/video/forgotten-domain" {
                 frameSrc = "frame-src https://www.youtube-nocookie.com; "

@@ -276,10 +276,11 @@ func (h *CitationHandler) CitePage(c *gin.Context) {
         nonce, _ := c.Get("csp_nonce")
 
         c.HTML(http.StatusOK, "cite.html", gin.H{
-                "AppVersion":      h.Config.AppVersion,
-                "MaintenanceNote": h.Config.MaintenanceNote,
-                "BetaPages":       h.Config.BetaPages,
-                "CspNonce":        nonce,
+                "AppVersion":       h.Config.AppVersion,
+                "MaintenanceNote":  h.Config.MaintenanceNote,
+                "BetaPages":        h.Config.BetaPages,
+                "OriginTrialToken": h.Config.OriginTrialToken,
+                "CspNonce":         nonce,
                 "Title":           title,
                 "Version":         version,
                 "DOI":             doi,

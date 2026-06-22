@@ -281,8 +281,9 @@ func buildRouter(cfg *config.Config, database *db.Database) (*gin.Engine, *middl
         logSecurityHeadersMode(cfg.IsDevEnvironment)
 
         router.Use(middleware.Recovery(cfg.AppVersion, map[string]any{
-                "MaintenanceNote": cfg.MaintenanceNote,
-                "BetaPages":       cfg.BetaPages,
+                "MaintenanceNote":  cfg.MaintenanceNote,
+                "BetaPages":        cfg.BetaPages,
+                "OriginTrialToken": cfg.OriginTrialToken,
         }))
         if !cfg.IsDevEnvironment {
                 router.Use(middleware.CanonicalHostRedirect(cfg.BaseURL))
@@ -685,15 +686,12 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         router.HEAD("/docs/the-real-bot-manifesto.pdf", static.RealBotManifestoPDF)
 
         // Versioned PDF route: /docs/v<AppVersion>/<filename>.pdf
-        // Used by the corpus UI to bypass any prior edge-cache poisoning of
+        // Used to bypass any prior edge-cache poisoning of
         // legacy /docs/<file>.pdf paths. Filename allowlist is enforced inside
         // the handler. Legacy routes above remain canonical for external
         // citations (Zenodo DOI 10.5281/zenodo.19468134) and JSON-LD.
         router.GET("/docs/:appver/:filename", static.VersionedPDF)
         router.HEAD("/docs/:appver/:filename", static.VersionedPDF)
-
-        corpusHandler := contentpkg.NewCorpusHandler(cfg, tdf)
-        router.GET("/corpus", corpusHandler.Corpus)
 
         videoHandler := handlers.NewVideoHandler(cfg)
         router.GET("/publications", videoHandler.Publications)

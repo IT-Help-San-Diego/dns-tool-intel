@@ -19,6 +19,7 @@ const (
         keyCspNonce        = "CspNonce"
         keyCsrfToken       = "CsrfToken"
         keyActivePage      = "ActivePage"
+        keyOriginTrial     = "OriginTrialToken"
 )
 
 func NewTemplateData(c *gin.Context, cfg *config.Config, activePage string) gin.H {
@@ -31,6 +32,7 @@ func NewTemplateData(c *gin.Context, cfg *config.Config, activePage string) gin.
                 keyCspNonce:        nonce,
                 keyCsrfToken:      csrfToken,
                 keyActivePage:      activePage,
+                keyOriginTrial:     cfg.OriginTrialToken,
         }
         mergeAuthData(c, cfg, data)
         return data
