@@ -138,7 +138,7 @@ func setCommonSecurityHeaders(c *gin.Context, devMode bool) {
                 c.Header("Report-To", `{"group":"csp","max_age":10886400,"endpoints":[{"url":"/api/csp-report"}],"include_subdomains":true}`)
         }
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-        c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=()")
+        c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), tools=(self)")
         if devMode {
                 c.Header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
                 c.Header("Cross-Origin-Resource-Policy", "cross-origin")

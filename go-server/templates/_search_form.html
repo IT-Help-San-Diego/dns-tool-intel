@@ -1,7 +1,9 @@
 {{define "search_form"}}
 <div class="card mb-4">
     <div class="card-body py-2">
-        <search><form action="{{.SearchAction}}" method="GET" class="d-flex align-items-center gap-2">
+        <search><form action="{{.SearchAction}}" method="GET" class="d-flex align-items-center gap-2"
+            toolname="search_domains"
+            tooldescription="Search this page's listing of previously analyzed domains by domain name.">
             <div class="input-group">
                 <span class="input-group-text bg-transparent border-secondary">
                     {{icon "search" "text-muted"}}
@@ -10,6 +12,7 @@
                        placeholder="{{.SearchPlaceholder}}" 
                        aria-label="{{.SearchAriaLabel}}"
                        value="{{.SearchDomain}}"
+                       toolparamdescription="The domain name to search for, e.g. example.com."
                        autocomplete="off" autocapitalize="none" spellcheck="false">
             </div>
             <button type="submit" class="btn btn-outline-primary flex-shrink-0">Search</button>
