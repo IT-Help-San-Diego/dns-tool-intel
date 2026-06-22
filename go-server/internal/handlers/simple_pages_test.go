@@ -33,17 +33,6 @@ func TestNewContactHandler(t *testing.T) {
         }
 }
 
-func TestNewCorpusHandler(t *testing.T) {
-        cfg := &config.Config{AppVersion: "2.0"}
-        h := NewCorpusHandler(cfg)
-        if h == nil {
-                t.Fatal("expected non-nil")
-        }
-        if h.Config != cfg {
-                t.Error("Config mismatch")
-        }
-}
-
 func TestNewPrivacyHandler(t *testing.T) {
         cfg := &config.Config{AppVersion: "3.0"}
         h := NewPrivacyHandler(cfg)
@@ -68,13 +57,6 @@ func TestNewReferenceLibraryHandler(t *testing.T) {
 
 func TestNewContactHandler_NilConfig(t *testing.T) {
         h := NewContactHandler(nil)
-        if h == nil {
-                t.Fatal("expected non-nil")
-        }
-}
-
-func TestNewCorpusHandler_NilConfig(t *testing.T) {
-        h := NewCorpusHandler(nil)
         if h == nil {
                 t.Fatal("expected non-nil")
         }
@@ -220,101 +202,6 @@ func TestContactHandler_Contact_NoAuthWhenNoGoogleID(t *testing.T) {
         body := w.Body.String()
         if !strings.Contains(body, "auth=no") {
                 t.Errorf("expected GoogleAuthEnabled=false, got %q", body)
-        }
-}
-
-func TestCorpusHandler_Corpus_HTTP(t *testing.T) {
-        cfg := &config.Config{
-                AppVersion:      "26.0.0",
-                MaintenanceNote: "",
-                BetaPages:       map[string]bool{},
-        }
-        h := NewCorpusHandler(cfg)
-
-        w := httptest.NewRecorder()
-        tmpl := mustParseMinimalTemplate("corpus.html")
-        router := gin.New()
-        router.SetHTMLTemplate(tmpl)
-        router.GET("/corpus", h.Corpus)
-        req := httptest.NewRequest(http.MethodGet, "/corpus", nil)
-        router.ServeHTTP(w, req)
-
-        if w.Code != http.StatusOK {
-                t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
-        }
-        body := w.Body.String()
-        if !strings.Contains(body, "ok") {
-                t.Errorf("expected rendered template, got %q", body)
-        }
-}
-
-func TestCorpusHandler_Corpus_WrongMethod(t *testing.T) {
-        cfg := &config.Config{AppVersion: "1.0", BetaPages: map[string]bool{}}
-        h := NewCorpusHandler(cfg)
-
-        w := httptest.NewRecorder()
-        tmpl := mustParseMinimalTemplate("corpus.html")
-        router := gin.New()
-        router.SetHTMLTemplate(tmpl)
-        router.GET("/corpus", h.Corpus)
-        req := httptest.NewRequest(http.MethodDelete, "/corpus", nil)
-        router.ServeHTTP(w, req)
-
-        if w.Code == http.StatusOK {
-                t.Error("DELETE should not return 200")
-        }
-}
-
-func TestCorpusHandler_Corpus_CSPNonceAndActivePage(t *testing.T) {
-        cfg := &config.Config{
-                AppVersion: "2.0",
-                BetaPages:  map[string]bool{},
-        }
-        h := NewCorpusHandler(cfg)
-
-        w := httptest.NewRecorder()
-        tmpl := mustParseDataTemplate("corpus.html")
-        router := gin.New()
-        router.SetHTMLTemplate(tmpl)
-        router.Use(func(c *gin.Context) {
-                c.Set("csp_nonce", "corpus-nonce-456")
-                c.Next()
-        })
-        router.GET("/corpus", h.Corpus)
-        req := httptest.NewRequest(http.MethodGet, "/corpus", nil)
-        router.ServeHTTP(w, req)
-
-        if w.Code != http.StatusOK {
-                t.Fatalf("status = %d", w.Code)
-        }
-        body := w.Body.String()
-        if !strings.Contains(body, "nonce=corpus-nonce-456") {
-                t.Errorf("expected nonce in output, got %q", body)
-        }
-        if !strings.Contains(body, "page=corpus") {
-                t.Errorf("expected ActivePage=corpus, got %q", body)
-        }
-}
-
-func TestCorpusHandler_Corpus_MergeAuthData(t *testing.T) {
-        cfg := &config.Config{
-                AppVersion:     "2.0",
-                BetaPages:      map[string]bool{},
-                GoogleClientID: "google-id",
-        }
-        h := NewCorpusHandler(cfg)
-
-        w := httptest.NewRecorder()
-        tmpl := mustParseDataTemplate("corpus.html")
-        router := gin.New()
-        router.SetHTMLTemplate(tmpl)
-        router.GET("/corpus", h.Corpus)
-        req := httptest.NewRequest(http.MethodGet, "/corpus", nil)
-        router.ServeHTTP(w, req)
-
-        body := w.Body.String()
-        if !strings.Contains(body, "auth=yes") {
-                t.Errorf("expected GoogleAuthEnabled in template data, got %q", body)
         }
 }
 

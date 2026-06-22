@@ -98,20 +98,6 @@ func (h *ContactHandler) Contact(c *gin.Context) {
 	c.HTML(http.StatusOK, "contact.html", data)
 }
 
-type CorpusHandler struct {
-	Config       *config.Config
-	TemplateData TemplateDataFunc
-}
-
-func NewCorpusHandler(cfg *config.Config, tdf TemplateDataFunc) *CorpusHandler {
-	return &CorpusHandler{Config: cfg, TemplateData: tdf}
-}
-
-func (h *CorpusHandler) Corpus(c *gin.Context) {
-	data := h.TemplateData(c, h.Config, "corpus")
-	c.HTML(http.StatusOK, "corpus.html", data)
-}
-
 type FAQHandler struct {
 	Config       *config.Config
 	TemplateData TemplateDataFunc

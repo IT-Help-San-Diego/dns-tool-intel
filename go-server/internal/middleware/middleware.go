@@ -167,7 +167,7 @@ func buildCSP(c *gin.Context, nonceStr string, devMode bool) string {
         }
 
         frameSrc := "frame-src 'none'; "
-        if c.Request.URL.Path == "/signature" || c.Request.URL.Path == "/corpus" {
+        if c.Request.URL.Path == "/signature" {
                 frameSrc = "frame-src 'self'; "
         } else if c.Request.URL.Path == "/video/forgotten-domain" {
                 frameSrc = "frame-src https://www.youtube-nocookie.com; "
