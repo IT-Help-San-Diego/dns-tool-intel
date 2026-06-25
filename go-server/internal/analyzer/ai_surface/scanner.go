@@ -616,10 +616,47 @@ func extractNearbyText(lower string, loc []int) string {
         return lower[start:end]
 }
 
+// isStylisticMotion reports whether a `opacity:0` match is the start state of an
+// animation or transition (e.g. a scroll fade-in keyframe) rather than a genuine
+// attempt to conceal content. A hidden-prompt attacker conceals static text;
+// `opacity:0;animation-…` / `transition:` reveals the element, so it is ordinary
+// motion styling and the dominant source of false positives. Scoped to the
+// opacity pattern ONLY — nearby `animation`/`transition` tokens must never
+// suppress `display:none`/`visibility:hidden` findings, which stay concealed.
+func isStylisticMotion(lower string, matchEnd int) bool {
+        end := matchEnd + 80
+        if end > len(lower) {
+                end = len(lower)
+        }
+        seg := lower[matchEnd:end]
+        return strings.Contains(seg, "animation") || strings.Contains(seg, "transition")
+}
+
+// contextExcerpt returns a short, whitespace-collapsed snippet of the scanned
+// source around the matched keyword so the report can show WHAT and WHERE was
+// flagged. The source is the scanned domain's own homepage HTML.
+func contextExcerpt(region string, idx, kwLen int) string {
+        start := idx - 30
+        if start < 0 {
+                start = 0
+        }
+        end := idx + kwLen + 30
+        if end > len(region) {
+                end = len(region)
+        }
+        seg := strings.Join(strings.Fields(region[start:end]), " ")
+        seg = strings.ToValidUTF8(seg, "")
+        if len(seg) > 90 {
+                seg = seg[:90] + "…"
+        }
+        return seg
+}
+
 func findKeywordsInRegion(nearby, method string, seen map[string]bool) []map[string]any {
         var artifacts []map[string]any
         for _, kw := range promptKeywords {
-                if !strings.Contains(nearby, kw) {
+                idx := strings.Index(nearby, kw)
+                if idx < 0 {
                         continue
                 }
                 key := method + "|" + kw
@@ -627,9 +664,12 @@ func findKeywordsInRegion(nearby, method string, seen map[string]bool) []map[str
                         continue
                 }
                 seen[key] = true
+                excerpt := contextExcerpt(nearby, idx, len(kw))
                 artifacts = append(artifacts, map[string]any{
                         "method":     method,
-                        mapKeyDetail: fmt.Sprintf("Hidden element with prompt keyword '%s' detected near %s pattern", kw, method),
+                        "keyword":    kw,
+                        "context":    excerpt,
+                        mapKeyDetail: fmt.Sprintf("Hidden element with prompt keyword '%s' detected near %s pattern — context: %q", kw, method, excerpt),
                 })
         }
         return artifacts
@@ -643,6 +683,9 @@ func scanForHiddenPrompts(content string) []map[string]any {
         for _, hp := range hiddenPatternRegexes {
                 locs := hp.re.FindAllStringIndex(lower, -1)
                 for _, loc := range locs {
+                        if hp.method == "CSS zero opacity" && isStylisticMotion(lower, loc[1]) {
+                                continue
+                        }
                         nearby := extractNearbyText(lower, loc)
                         artifacts = append(artifacts, findKeywordsInRegion(nearby, hp.method, seen)...)
                 }
