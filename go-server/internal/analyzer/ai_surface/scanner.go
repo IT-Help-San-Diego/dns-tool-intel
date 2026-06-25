@@ -600,11 +600,18 @@ func (s *Scanner) checkPoisoning(ctx context.Context, domain string, evidence *[
         return result
 }
 
+// promptKeywords are injection-specific phrases only. Bare common words
+// (e.g. "override", "act as", "disregard", "you are a", "forget your") were
+// deliberately removed: they collide constantly with ordinary CSS/markup and
+// English copy, producing false "hidden prompt" accusations. Precision over
+// recall — if this detector reports a finding, it must be defensible.
 var promptKeywords = []string{
-        "you are a", "ignore previous", "system prompt",
-        "act as", "pretend you", "respond as if",
-        "disregard", "forget your", "new instructions",
-        "do not reveal", "override", "jailbreak",
+        "ignore previous", "ignore all previous", "ignore prior instructions",
+        "disregard previous", "disregard all previous",
+        "system prompt", "ignore your instructions",
+        "new instructions", "respond as if", "pretend you are",
+        "you are a helpful assistant", "you are an ai", "you are chatgpt",
+        "do not reveal", "jailbreak",
 }
 
 func extractNearbyText(lower string, loc []int) string {
