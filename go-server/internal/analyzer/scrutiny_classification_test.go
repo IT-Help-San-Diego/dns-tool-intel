@@ -111,8 +111,14 @@ func TestScrutinyClassificationAllFiles(t *testing.T) {
         goServerDir := filepath.Join(root, "go-server")
 
         err := filepath.Walk(goServerDir, func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() {
+                if err != nil {
                         return err
+                }
+                if info.IsDir() {
+                        if path != goServerDir && strings.HasPrefix(info.Name(), ".") {
+                                return filepath.SkipDir
+                        }
+                        return nil
                 }
                 if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
                         return nil
@@ -149,8 +155,14 @@ func TestScrutinyClassificationConsistency(t *testing.T) {
         goServerDir := filepath.Join(root, "go-server")
 
         err := filepath.Walk(goServerDir, func(path string, info os.FileInfo, err error) error {
-                if err != nil || info.IsDir() {
+                if err != nil {
                         return err
+                }
+                if info.IsDir() {
+                        if path != goServerDir && strings.HasPrefix(info.Name(), ".") {
+                                return filepath.SkipDir
+                        }
+                        return nil
                 }
                 if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
                         return nil
