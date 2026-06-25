@@ -8315,3 +8315,22 @@ a.ftr-node:hover {
 .drift-caveat-summary {
     cursor: pointer;
 }
+
+.drift-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.drift-table th,
+.drift-table td {
+    vertical-align: top;
+}
+
+.drift-table .drift-value {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    text-align: left;
+}

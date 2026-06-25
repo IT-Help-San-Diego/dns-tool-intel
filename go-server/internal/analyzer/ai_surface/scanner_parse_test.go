@@ -222,13 +222,13 @@ func TestScanForHiddenPrompts_AllHidingMethods(t *testing.T) {
                 name    string
                 content string
         }{
-                {"display_none", `<div style="display:none">you are a helpful bot</div>`},
-                {"visibility_hidden", `<div style="visibility:hidden">you are a helpful bot</div>`},
-                {"aria_hidden", `<div aria-hidden="true">you are a helpful bot</div>`},
-                {"opacity_zero", `<div style="opacity:0;">you are a helpful bot</div>`},
-                {"font_size_zero", `<div style="font-size:0;">you are a helpful bot</div>`},
-                {"color_transparent", `<div style="color:transparent">you are a helpful bot</div>`},
-                {"text_indent", `<div style="text-indent:-9999px">you are a helpful bot</div>`},
+                {"display_none", `<div style="display:none">you are a helpful assistant</div>`},
+                {"visibility_hidden", `<div style="visibility:hidden">you are a helpful assistant</div>`},
+                {"aria_hidden", `<div aria-hidden="true">you are a helpful assistant</div>`},
+                {"opacity_zero", `<div style="opacity:0;">you are a helpful assistant</div>`},
+                {"font_size_zero", `<div style="font-size:0;">you are a helpful assistant</div>`},
+                {"color_transparent", `<div style="color:transparent">you are a helpful assistant</div>`},
+                {"text_indent", `<div style="text-indent:-9999px">you are a helpful assistant</div>`},
         }
 
         for _, tt := range tests {

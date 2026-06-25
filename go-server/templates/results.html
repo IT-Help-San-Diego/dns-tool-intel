@@ -370,7 +370,8 @@
             </div>
             {{if .DriftFields}}
             <div class="mt-2 pt-2 border-top border-warning border-opacity-50">
-                <table class="table table-sm table-borderless mb-0 small">
+                <div class="table-responsive">
+                <table class="table table-sm table-borderless mb-0 small drift-table">
                     <thead>
                         <tr class="text-warning-emphasis">
                             <th scope="col" class="py-0 ps-0 w-25">Field</th>
@@ -383,13 +384,14 @@
                     {{range .DriftFields}}
                         <tr>
                             <td class="py-1 ps-0 fw-semibold">{{.Label}}</td>
-                            <td class="py-1 font-monospace"><span class="badge bg-secondary bg-opacity-25 text-body">{{.Previous}}</span></td>
+                            <td class="py-1 font-monospace"><span class="badge bg-secondary bg-opacity-25 text-body drift-value">{{.Previous}}</span></td>
                             <td class="py-1 text-center">{{icon "arrow-right" "text-warning small"}}</td>
-                            <td class="py-1 font-monospace"><span class="badge bg-{{.Severity}} bg-opacity-25 text-{{.Severity}}">{{.Current}}</span></td>
+                            <td class="py-1 font-monospace"><span class="badge bg-{{.Severity}} bg-opacity-25 text-{{.Severity}} drift-value">{{.Current}}</span></td>
                         </tr>
                     {{end}}
                     </tbody>
                 </table>
+                </div>
             </div>
             {{else}}
             <div class="mt-2 pt-2 border-top border-warning border-opacity-50">
@@ -409,8 +411,41 @@
         </div>
         {{end}}
         
-        <!-- Non-existent Domain Banner -->
+        <!-- Non-existent / Indeterminate Domain Banner -->
         {{if not .DomainExists}}
+        {{if eq (mapGetStr "domain_status" $results) "indeterminate"}}
+        <div class="card border-warning mb-4">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    {{icon "exclamation-triangle" "icon-4x text-accent-gold opacity-75"}}
+                </div>
+                <h2 class="h3 mb-3">
+                    <span class="badge bg-warning-subtle text-warning border border-warning px-4 py-2">
+                        {{icon "globe-americas" "me-2"}}DNS Resolution Failure
+                    </span>
+                </h2>
+                <p class="lead text-muted mb-4">{{default "DNS resolution failed for this domain." (mapGetStr "domain_status_message" $results)}}</p>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="alert alert-warning border-warning mb-0 text-light u-bg-info-15">
+                            <p class="alert-heading mb-2 text-warning fw-semibold">What This Means</p>
+                            <ul class="text-start mb-0 small">
+                                <li>The domain's authoritative nameservers returned SERVFAIL or did not respond</li>
+                                <li>This is a transient resolution failure &mdash; <strong>not</strong> a confirmation that the domain is unregistered</li>
+                                <li>A common cause is a domain mid-migration between DNS providers</li>
+                                <li>Security posture cannot be evaluated until DNS resolves &mdash; please re-run the scan shortly</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        {{icon "search" "me-2"}}Try Another Domain
+                    </a>
+                </div>
+            </div>
+        </div>
+        {{else}}
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
                 <div class="mb-4">
@@ -442,6 +477,7 @@
                 </div>
             </div>
         </div>
+        {{end}}
         {{else}}
         
         

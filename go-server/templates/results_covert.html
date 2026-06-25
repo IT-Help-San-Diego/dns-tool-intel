@@ -168,6 +168,37 @@
         </div>
 
         {{if not .DomainExists}}
+        {{if eq (mapGetStr "domain_status" $results) "indeterminate"}}
+        <div class="card border-warning mb-4">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    {{icon "exclamation-triangle" "icon-4x text-warning opacity-75"}}
+                </div>
+                <h2 class="h3 mb-3">
+                    <span class="badge bg-warning text-dark px-4 py-2">
+                        {{icon "ghost" "me-2"}}Resolution Failure
+                    </span>
+                </h2>
+                <p class="lead text-muted mb-4 font-monospace">{{default "Authoritative nameservers returned SERVFAIL or did not respond. Transient failure &mdash; not a confirmation the target is unregistered." (mapGetStr "domain_status_message" $results)}}</p>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="alert alert-warning border-warning mb-0 text-light u-bg-info-15">
+                            <p class="alert-heading mb-2 fw-semibold">{{icon "terminal" "me-2"}}Recon Assessment</p>
+                            <ul class="text-start mb-0 small font-monospace">
+                                <li>Authoritative nameservers unreachable &mdash; SERVFAIL/timeout</li>
+                                <li>NOT confirmed dark &mdash; transient, possibly mid-migration</li>
+                                <li>Attack surface cannot be evaluated until DNS resolves</li>
+                                <li>Re-run shortly; consider WHOIS/RDAP for registration status</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary btn-lg">{{icon "search" "me-2"}}Try Another Domain</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{else}}
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
                 <div class="mb-4">
@@ -199,6 +230,7 @@
                 </div>
             </div>
         </div>
+        {{end}}
         {{else}}
 
         {{if and $posture (not .IsPublicSuffix)}}

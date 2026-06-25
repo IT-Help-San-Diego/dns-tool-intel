@@ -149,7 +149,7 @@ func TestFindKeywordsInRegion_Dedup(t *testing.T) {
 
 func TestFindKeywordsInRegion_MultipleKeywords(t *testing.T) {
 	seen := map[string]bool{}
-	artifacts := findKeywordsInRegion("you are a system prompt override jailbreak", "method1", seen)
+	artifacts := findKeywordsInRegion("ignore previous system prompt jailbreak respond as if", "method1", seen)
 	if len(artifacts) < 3 {
 		t.Errorf("findKeywordsInRegion got %d artifacts, want at least 3", len(artifacts))
 	}
