@@ -581,31 +581,53 @@ func enrichMisplacedDMARC(basic, resultsMap map[string]any) {
 }
 
 func (a *Analyzer) checkDomainExists(ctx context.Context, domain string) (bool, string, *string) {
-        if found, status, msg := a.probeExistence(ctx, domain); found {
+        found, status, msg := a.probeExistence(ctx, domain)
+        if found || status == "undelegated" {
+                // Resolved (active), or an authoritative NXDOMAIN/NODATA confirmed the
+                // domain is genuinely undelegated — either way the verdict is definitive.
                 return found, status, msg
         }
 
+        // status == statusIndeterminate: every probe failed transiently
+        // (SERVFAIL/timeout/network). resolveWithStatus already retried each lookup;
+        // do one more full sweep with a fresh budget before concluding, since a
+        // transient failure can be momentary.
         retryCtx, cancel := context.WithTimeout(ctx, 12*time.Second)
         defer cancel()
-        slog.Debug("Domain existence retry", "domain", domain)
-        if found, status, msg := a.probeExistence(retryCtx, domain); found {
-                return found, status, msg
+        slog.Debug("Domain existence retry after transient failure", "domain", domain)
+        return a.probeExistence(retryCtx, domain)
+}
+
+func (a *Analyzer) probeExistence(ctx context.Context, domain string) (bool, string, *string) {
+        // Status-aware existence probe. QueryDNS alone returns an empty slice for
+        // BOTH an authoritative absence and a failed lookup, so it cannot tell a
+        // genuinely undelegated domain apart from one whose authoritative
+        // nameservers are merely broken. resolveWithStatus preserves that
+        // distinction (RFC 7489 §7.1 / RFC 7208 §4.6: absence may only be asserted
+        // from an authoritative answer).
+        sawAbsent := false
+        for _, rtype := range []string{"A", "TXT", "MX", "NS"} {
+                records, status := a.resolveWithStatus(ctx, rtype, domain)
+                switch {
+                case len(records) > 0:
+                        return true, "active", nil
+                case status == dnsclient.LookupAbsent:
+                        sawAbsent = true
+                }
+        }
+
+        if !sawAbsent {
+                // Every probe failed transiently and no resolver ever returned an
+                // authoritative NXDOMAIN/NODATA. We MUST NOT report this domain as
+                // non-existent — a domain whose authoritative nameservers are failing
+                // (e.g. mid-migration between DNS providers) is indeterminate, not
+                // undelegated.
+                msg := "DNS resolution failed for this domain — its authoritative nameservers returned SERVFAIL or did not respond. The domain may be registered but its DNS is temporarily unreachable (for example, mid-migration between providers). This is not a confirmation that the domain is unregistered; please re-run the scan shortly."
+                return false, statusIndeterminate, &msg
         }
 
         msg := "Domain is not delegated or has no DNS records. This may be an unused subdomain or unregistered domain."
         return false, "undelegated", &msg
-}
-
-func (a *Analyzer) probeExistence(ctx context.Context, domain string) (bool, string, *string) {
-        for _, rtype := range []string{"A", "TXT", "MX"} {
-                if len(a.DNS.QueryDNS(ctx, rtype, domain)) > 0 {
-                        return true, "active", nil
-                }
-        }
-        if len(a.DNS.QueryDNS(ctx, "NS", domain)) > 0 {
-                return true, "active", nil
-        }
-        return false, "", nil
 }
 
 func timedTask(ch chan<- namedResult, key string, analysisStart time.Time, fn func() any) func() {

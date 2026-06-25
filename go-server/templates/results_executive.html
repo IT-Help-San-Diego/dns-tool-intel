@@ -672,6 +672,16 @@
         </div>
 
         {{if not .DomainExists}}
+        {{if eq (mapGetStr "domain_status" $results) "indeterminate"}}
+        <div class="card border-warning mb-4">
+            <div class="card-body text-center py-5">
+                {{icon "exclamation-triangle" "icon-3x text-warning opacity-75 mb-3"}}
+                <h2 class="h4 mb-3">DNS Resolution Failure</h2>
+                <p class="text-muted">{{default "The domain's authoritative nameservers returned SERVFAIL or did not respond. This is a transient failure, not a confirmation that the domain is unregistered. Security posture cannot be evaluated until DNS resolves." (mapGetStr "domain_status_message" $results)}}</p>
+                <a href="/" class="btn btn-primary">{{icon "search" "me-2"}}Try Another Domain</a>
+            </div>
+        </div>
+        {{else}}
         <div class="card border-info mb-4">
             <div class="card-body text-center py-5">
                 {{icon "question-circle" "icon-3x text-info opacity-75 mb-3"}}
@@ -680,6 +690,7 @@
                 <a href="/" class="btn btn-primary">{{icon "search" "me-2"}}Try Another Domain</a>
             </div>
         </div>
+        {{end}}
         {{else}}
 
         <!-- ============================================================

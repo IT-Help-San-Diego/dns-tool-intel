@@ -29,11 +29,17 @@ type MockDNSClient struct {
         validationResp     map[string]map[string]any
         specificResp       map[string][]string
         ttlStatusResponses map[string]ttlStatusEntry
+        statusResponses    map[string]statusEntry
 }
 
 type ttlStatusEntry struct {
         rec    dnsclient.RecordWithTTL
         status dnsclient.LookupStatus
+}
+
+type statusEntry struct {
+        records []string
+        status  dnsclient.LookupStatus
 }
 
 func NewMockDNSClient() *MockDNSClient {
@@ -49,6 +55,7 @@ func NewMockDNSClient() *MockDNSClient {
                 validationResp:     make(map[string]map[string]any),
                 specificResp:       make(map[string][]string),
                 ttlStatusResponses: make(map[string]ttlStatusEntry),
+                statusResponses:    make(map[string]statusEntry),
         }
 }
 
@@ -118,6 +125,31 @@ func (m *MockDNSClient) QueryDNSWithTTL(_ context.Context, recordType, domain st
                 return dnsclient.RecordWithTTL{Records: recs}
         }
         return dnsclient.RecordWithTTL{}
+}
+
+func (m *MockDNSClient) AddStatusResponse(recordType, domain string, records []string, status dnsclient.LookupStatus) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        m.statusResponses[mockKey(recordType, domain)] = statusEntry{records: records, status: status}
+}
+
+func (m *MockDNSClient) QueryDNSWithStatus(_ context.Context, recordType, domain string) ([]string, dnsclient.LookupStatus) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        key := mockKey(recordType, domain)
+        if e, ok := m.statusResponses[key]; ok {
+                return e.records, e.status
+        }
+        if recs, ok := m.responses[key]; ok {
+                if len(recs) > 0 {
+                        return recs, dnsclient.LookupResolved
+                }
+                return nil, dnsclient.LookupAbsent
+        }
+        // Nothing configured: a mock has no record for this name. Treat as an
+        // authoritative absence (deterministic), NOT a transient failure — so
+        // existing analyzer tests keep their "no record" expectations.
+        return nil, dnsclient.LookupAbsent
 }
 
 func (m *MockDNSClient) AddTTLStatusResponse(recordType, domain string, r dnsclient.RecordWithTTL, status dnsclient.LookupStatus) {
