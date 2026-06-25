@@ -370,7 +370,8 @@
             </div>
             {{if .DriftFields}}
             <div class="mt-2 pt-2 border-top border-warning border-opacity-50">
-                <table class="table table-sm table-borderless mb-0 small">
+                <div class="table-responsive">
+                <table class="table table-sm table-borderless mb-0 small drift-table">
                     <thead>
                         <tr class="text-warning-emphasis">
                             <th scope="col" class="py-0 ps-0 w-25">Field</th>
@@ -383,13 +384,14 @@
                     {{range .DriftFields}}
                         <tr>
                             <td class="py-1 ps-0 fw-semibold">{{.Label}}</td>
-                            <td class="py-1 font-monospace"><span class="badge bg-secondary bg-opacity-25 text-body">{{.Previous}}</span></td>
+                            <td class="py-1 font-monospace"><span class="badge bg-secondary bg-opacity-25 text-body drift-value">{{.Previous}}</span></td>
                             <td class="py-1 text-center">{{icon "arrow-right" "text-warning small"}}</td>
-                            <td class="py-1 font-monospace"><span class="badge bg-{{.Severity}} bg-opacity-25 text-{{.Severity}}">{{.Current}}</span></td>
+                            <td class="py-1 font-monospace"><span class="badge bg-{{.Severity}} bg-opacity-25 text-{{.Severity}} drift-value">{{.Current}}</span></td>
                         </tr>
                     {{end}}
                     </tbody>
                 </table>
+                </div>
             </div>
             {{else}}
             <div class="mt-2 pt-2 border-top border-warning border-opacity-50">
