@@ -317,10 +317,13 @@ func (a *Analyzer) AnalyzeDMARC(ctx context.Context, domain string) map[string]a
                 // absence of policy. Reporting a transient SERVFAIL/timeout as
                 // "No DMARC record found" is a false negative — flag it honestly
                 // and ask for a re-run instead of asserting absence.
-                if lookupStatus == dnsclient.LookupError {
+                if lookupStatus == dnsclient.LookupError || lookupStatus == dnsclient.LookupConflict {
                         baseResult[mapKeyStatus] = statusIndeterminate
                         baseResult[mapKeyMessage] = "DMARC could not be verified — the DNS lookup did not complete (transient SERVFAIL/timeout). This is not a finding that DMARC is absent; re-run before drawing a conclusion."
                         baseResult[mapKeyDmarcState] = dmarcStateIndeterminate
+                        if lookupStatus == dnsclient.LookupConflict {
+                                baseResult[mapKeyMessage] = "DMARC could not be confirmed: public resolvers returned different records with no majority winner (DNS in flux / mid-propagation). This is not a finding that DMARC is absent; re-run once the change has propagated."
+                        }
                 }
                 return baseResult
         }
