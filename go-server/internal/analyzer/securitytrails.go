@@ -278,7 +278,7 @@ func fetchDomainsByIPInternal(ctx context.Context, ip, apiKey string) ([]string,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
-		slog.Warn("SecurityTrails: failed to marshal search payload", "ip", ip, mapKeyError, err)
+		slog.Warn("SecurityTrails: failed to marshal search payload", "ip", ip, mapKeyError, err) // hounddog-ignore: FP â apiKey is header-only (set via req.Header.Set below), absent from payload/err; ip is the scan target diagnostic; redact.go scrubs token shapes at the sink
 		return []string{}, nil
 	}
 

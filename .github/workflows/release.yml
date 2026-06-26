@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+# Least-privilege default. The release job escalates to contents: write (it
+# creates the GitHub Release for the pushed tag); nothing else is granted.
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Create GitHub Release

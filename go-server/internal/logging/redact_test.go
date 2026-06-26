@@ -177,3 +177,59 @@ func TestRedactMessage_EmptyString(t *testing.T) {
                 t.Errorf("empty string should stay empty: %q", result)
         }
 }
+
+// TestRedactString_CredentialPatterns proves the strengthened tokenRe/bearerRe
+// scrub every credential shape an upstream client could fold into a free-form
+// log message or wrapped error (the dataflow HoundDog flags on the
+// SecurityTrails/IPInfo log sites).
+func TestRedactString_CredentialPatterns(t *testing.T) {
+        cases := []struct {
+                name string
+                in   string
+                leak string
+        }{
+                {"apikey_equals", "dial failed: apikey=AKIAEXAMPLE12345 host=api", "AKIAEXAMPLE12345"},
+                {"api_key_underscore", "request api_key=EXAMPLEnotrealkey1234", "EXAMPLEnotrealkey1234"},
+                {"api_key_hyphen", "header x-api-key: sk_test_ZZZ999", "sk_test_ZZZ999"},
+                {"access_token", "oauth access_token=EXAMPLEnotrealtoken", "EXAMPLEnotrealtoken"},
+                {"client_secret", "config client_secret=cs_9f8e7d6c", "cs_9f8e7d6c"},
+                {"bearer", "Authorization: Bearer eyJhbGciOi.payload.sig", "eyJhbGciOi.payload.sig"},
+                {"json_token", `{"token":"jwtAbc123"}`, "jwtAbc123"},
+        }
+        for _, tc := range cases {
+                t.Run(tc.name, func(t *testing.T) {
+                        got := redactString(tc.in)
+                        if strings.Contains(got, tc.leak) {
+                                t.Errorf("credential leaked: in=%q out=%q", tc.in, got)
+                        }
+                        if !strings.Contains(got, "[REDACTED_CREDENTIAL]") {
+                                t.Errorf("expected redaction placeholder: %q", got)
+                        }
+                })
+        }
+}
+
+func TestRedactAttr_NewCredentialKeys(t *testing.T) {
+        keys := []string{
+                "apikey", "api-key", "x-api-key", "access_token",
+                "refresh_token", "client_secret", "auth_token", "bearer", "private_key",
+        }
+        for _, key := range keys {
+                t.Run(key, func(t *testing.T) {
+                        a := slog.String(key, "super-secret-value")
+                        if got := redactAttr(a).Value.String(); got != "[REDACTED]" {
+                                t.Errorf("key %q not redacted: %q", key, got)
+                        }
+                })
+        }
+}
+
+// TestRedactString_NoOverRedaction guards against the unanchored tokenRe
+// becoming over-broad: ordinary diagnostic words that merely contain "key"
+// must survive untouched.
+func TestRedactString_NoOverRedaction(t *testing.T) {
+        in := "monkey business at gateway 10.0.0.1 with keyboard layout"
+        if got := redactString(in); strings.Contains(got, "[REDACTED_CREDENTIAL]") {
+                t.Errorf("false-positive redaction: in=%q out=%q", in, got)
+        }
+}

@@ -193,7 +193,7 @@
       ],
       "TLS-RPT": [],
       "TXT": [
-        "1password-site-verification=FL35IRPJAZA45EMAHJE3DM2P34",
+        "1password-site-verification=SYNTHETICFIXTUREVALUENOTREAL",
         "MS=ms90467680",
         "_m42h676p7k4b3h9fqw5ogb6m3empi48",
         "apple-domain-verification=lrease1jj5yhKu1A",
@@ -252,7 +252,7 @@
       ],
       "TXT": [
         "apple-domain-verification=lrease1jj5yhKu1A",
-        "1password-site-verification=FL35IRPJAZA45EMAHJE3DM2P34",
+        "1password-site-verification=SYNTHETICFIXTUREVALUENOTREAL",
         "google-site-verification=URKywT9Orj6_nk93ayvDWupzAH39Xci8dOxAsAuJgI0",
         "traction-guest=0ca160cd-40d1-4986-8f39-6e435152eec5",
         "fub7Jg8wns9rH4Byn/ymd3bVcq7z9ufxhBkZWZjgJNDTRUiRYT8uM/QAvHZJMbLpHys5LwcZxFkbqWySIFHd9A==",
@@ -2065,7 +2065,7 @@
         },
         {
           "name": "1Password",
-          "record": "1password-site-verification=FL35IRPJAZA45EMAHJE3DM2P34"
+          "record": "1password-site-verification=SYNTHETICFIXTUREVALUENOTREAL"
         },
         {
           "name": "Google Workspace",
@@ -2095,9 +2095,9 @@
       "findings": [
         {
           "confidence": "high",
-          "context": "ations\":3,\"distanceUnit\":\"mi\",\"apiKey\":\"AIzaSyAWFp8g0CyCVOfSjSja3T3ZTLZHT1o17C8\",\"mapOptions\":{\"centerPosition\":{\"latit",
+          "context": "ations\":3,\"distanceUnit\":\"mi\",\"apiKey\":\"SYNTHETICFIXTUREKEYNOTREALSECRET\",\"mapOptions\":{\"centerPosition\":{\"latit",
           "location": "red.com/RedSuiteCentric/SCA-Kilimanjaro/shopping.environment.ssp?lang=en_US&c...",
-          "redacted": "AIza********17C8",
+          "redacted": "SYNT********REAL",
           "severity": "high",
           "type": "Google API Key"
         }
@@ -2481,7 +2481,7 @@
         "google-site-verification=wWF7PHkVbQ_Rxb2kv8-dUHz8-AwzLEEV33V9cCNr_hM",
         "_m42h676p7k4b3h9fqw5ogb6m3empi48",
         "facebook-domain-verification=i6l6p5krhuto4im0f98mvx3pbjfhvi",
-        "1password-site-verification=FL35IRPJAZA45EMAHJE3DM2P34",
+        "1password-site-verification=SYNTHETICFIXTUREVALUENOTREAL",
         "forward-email-site-verification=IFdNp6eOx3",
         "klaviyo-site-verification=SHA5cE",
         "v=spf1 mx include:spf.protection.outlook.com include:mail.zendesk.com a:outboundips.netsuite.com include:rp.oracleemaildelivery.com include:eu.rp.oracleemaildelivery.com include:ap.rp.oracleemaildelivery.com include:sendgrid.net ip4:70.183.25.226 ip4:70.183.25.233 ip4:12.215.166.253 ip4:46.61.187.62 ip4:216.194.106.13 ip4:149.20.194.55 ip4:148.62.51.171 ip4:23.21.109.197 ip4:23.21.109.212 ip4:147.160.167.14 ip4:147.160.167.15 ip4:52.49.235.189 ip4:52.49.201.246 ~all",

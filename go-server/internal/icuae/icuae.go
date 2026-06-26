@@ -88,7 +88,10 @@ type DimensionScore struct {
 }
 
 func (d DimensionScore) RecordTypesList() []string {
-        out := make([]string, 0, d.RecordTypes)
+        // Capacity is bounded by the actual number of findings we iterate, not
+        // by the free-form RecordTypes counter (which is populated from
+        // deserialized JSON and could otherwise drive an unbounded allocation).
+        out := make([]string, 0, len(d.Findings))
         for _, f := range d.Findings {
                 if f.RecordType != "" {
                         out = append(out, f.RecordType)
