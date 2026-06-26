@@ -510,7 +510,12 @@ func classifyDMARCSuccess(ps protocolState, acc *postureAccumulator) {
                 acc.configured = append(acc.configured, "DMARC")
         }
 
-        if !ps.dmarcHasRua && ps.dmarcPolicy != statusNone {
+        // A domain explicitly marked as not handling mail (null MX per RFC 7505, or
+        // an otherwise detected no-mail domain) carries no legitimate mail flow, so
+        // DMARC aggregate reporting yields no "visibility into email authentication."
+        // Recommending it on a correct no-mail lockdown (e.g. null MX + p=reject) is
+        // noise — suppress it for no-mail domains.
+        if !ps.dmarcHasRua && ps.dmarcPolicy != statusNone && !ps.isNoMailDomain {
                 acc.recommendations = append(acc.recommendations, "Add DMARC aggregate reporting (rua) for visibility into email authentication")
         }
 }
@@ -522,7 +527,9 @@ func classifyDMARCWarning(ps protocolState, acc *postureAccumulator) {
         if ps.dmarcPolicy == statusNone {
                 acc.recommendations = append(acc.recommendations, "Move DMARC policy from 'none' to 'quarantine' or 'reject'")
         }
-        if !ps.dmarcHasRua {
+        // No-mail domains gain no email-authentication visibility from rua (see
+        // classifyDMARCSuccess) — do not recommend it for them.
+        if !ps.dmarcHasRua && !ps.isNoMailDomain {
                 acc.recommendations = append(acc.recommendations, "Enable DMARC aggregate reporting (rua) for authentication visibility")
         }
 }
