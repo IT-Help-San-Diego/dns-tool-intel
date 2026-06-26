@@ -1015,3 +1015,22 @@ func TestSeverityLevels(t *testing.T) {
 		t.Error("Medium should have lower order than Low")
 	}
 }
+
+func TestAppendDMARCFixes_NoMailSuppressesRuaFix(t *testing.T) {
+	hasRuaFix := func(fixes []fix) bool {
+		for _, f := range fixes {
+			if f.Title == "Add DMARC Aggregate Reporting" {
+				return true
+			}
+		}
+		return false
+	}
+	mailPS := protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false}
+	if !hasRuaFix(appendDMARCFixes(nil, mailPS, nil, "example.com")) {
+		t.Fatalf("mail domain without rua must still get the Add DMARC Aggregate Reporting fix")
+	}
+	noMailPS := protocolState{dmarcOK: true, dmarcPolicy: "reject", dmarcHasRua: false, isNoMailDomain: true}
+	if hasRuaFix(appendDMARCFixes(nil, noMailPS, nil, "example.com")) {
+		t.Fatalf("no-mail domain must not get the Add DMARC Aggregate Reporting fix")
+	}
+}

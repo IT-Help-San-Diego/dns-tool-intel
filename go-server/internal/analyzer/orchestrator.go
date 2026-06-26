@@ -391,6 +391,7 @@ func (a *Analyzer) assembleResults(ctx context.Context, domain string, resultsMa
         results := buildCoreResults(domain, domainStatus, domainStatusMessage, basic, auth, resolverTTL, authTTL, authQueryStatus, resultsMap, spfAnalysis)
         results[mapKeyCrossRef] = crossRefResult
         results[mapKeySmtpTransport] = smtpResult
+        suppressNoMailDMARCReporting(results)
 
         engineStart := time.Now()
         a.enrichWithHostingAndSecurity(ctx, domain, results, resultsMap, spfAnalysis)
