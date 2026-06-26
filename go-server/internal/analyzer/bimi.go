@@ -109,7 +109,7 @@ func (a *Analyzer) fetchBIMIValidations(ctx context.Context, logoURL, vmcURL *st
 
 func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]any {
         bimiDomain := fmt.Sprintf("default._bimi.%s", domain)
-        records := a.DNS.QueryDNS(ctx, "TXT", bimiDomain)
+        records, lookupStatus := a.resolveWithStatus(ctx, "TXT", bimiDomain)
 
         baseResult := map[string]any{
                 "status":      mapKeyWarning,
@@ -124,9 +124,15 @@ func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]an
                 "vmc_issuer":  nil,
                 "vmc_subject": nil,
                 "vmc_error":   nil,
+                mapKeyBimiState: triStateAbsentConf,
         }
 
         if len(records) == 0 {
+                if isIndeterminateLookup(lookupStatus) {
+                        baseResult["status"] = statusIndeterminate
+                        baseResult[mapKeyMessage] = indeterminateLookupMessage("BIMI", lookupStatus)
+                        baseResult[mapKeyBimiState] = triStateIndeterminate
+                }
                 return baseResult
         }
 
@@ -154,6 +160,7 @@ func (a *Analyzer) AnalyzeBIMI(ctx context.Context, domain string) map[string]an
                 "vmc_issuer":  vmcData[mapKeyIssuer],
                 "vmc_subject": vmcData["subject"],
                 "vmc_error":   vmcData[mapKeyError],
+                mapKeyBimiState: triStatePresent,
         }
 }
 

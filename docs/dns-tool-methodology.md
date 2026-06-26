@@ -46,6 +46,8 @@ DNS Tool collects records by querying multiple upstream resolvers (including Goo
 
 All queries use standard DNS protocols over UDP/53 and TCP/53. DNS-over-HTTPS (DoH) is used as a secondary validation channel when available.
 
+**Lookup-status tri-state (Zero-Fabrication).** Every record query carries a *lookup status* through analysis, not only its answer set: `present` (an authoritative answer was received), `absent_confirmed` (the authoritative resolver returned NXDOMAIN/NODATA — a real, published absence), or `indeterminate` (the lookup did not complete authoritatively — a transient SERVFAIL, timeout, or network error, or a multi-resolver conflict with no majority winner while DNS is mid-propagation). An indeterminate result is **never** reported as "no record found," because a transient failure is not evidence of absence. This discipline follows the error semantics defined for the email-authentication protocols — an SPF temperror is not a "none" result (RFC 7208 §4.6) and a DMARC temporary DNS error is a TempError, not an absence of policy (RFC 7489 §6.6.3) — and is applied uniformly across SPF, DMARC, DANE/TLSA (RFC 6698; RFC 7672 for SMTP), DNSSEC, BIMI, MTA-STS, TLS-RPT, and CAA. When a control is indeterminate, the security posture marks it "could not verify" and invites a re-run rather than scoring it as a missing control.
+
 ### 2.2 Record Types Collected
 
 For each domain analyzed, DNS Tool collects and evaluates:
