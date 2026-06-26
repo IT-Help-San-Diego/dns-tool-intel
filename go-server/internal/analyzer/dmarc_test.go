@@ -304,3 +304,78 @@ func TestExtractMailtoDomains(t *testing.T) {
 		})
 	}
 }
+
+func TestSuppressNoMailDMARCReporting(t *testing.T) {
+	contains := func(s []string, v string) bool {
+		for _, x := range s {
+			if x == v {
+				return true
+			}
+		}
+		return false
+	}
+	dmarcIssues := func(results map[string]any) []string {
+		return results["dmarc_analysis"].(map[string]any)["issues"].([]string)
+	}
+	build := func(policy string) map[string]any {
+		return map[string]any{
+			"dmarc_analysis": map[string]any{
+				"policy": policy,
+				"issues": []string{dmarcNoRuaIssue, "Some other DMARC finding"},
+			},
+		}
+	}
+	t.Run("no-mail + enforcing reject suppresses the rua issue", func(t *testing.T) {
+		results := build("reject")
+		results["has_null_mx"] = true
+		suppressNoMailDMARCReporting(results)
+		issues := dmarcIssues(results)
+		if contains(issues, dmarcNoRuaIssue) {
+			t.Fatalf("expected rua issue suppressed for null-MX reject domain, got %v", issues)
+		}
+		if !contains(issues, "Some other DMARC finding") {
+			t.Fatalf("unrelated DMARC finding must be preserved, got %v", issues)
+		}
+	})
+	t.Run("no-mail + enforcing quarantine via SPF intent suppresses the rua issue", func(t *testing.T) {
+		results := build("quarantine")
+		results["is_no_mail_domain"] = true
+		suppressNoMailDMARCReporting(results)
+		if contains(dmarcIssues(results), dmarcNoRuaIssue) {
+			t.Fatalf("expected rua issue suppressed for no-mail quarantine domain")
+		}
+	})
+	t.Run("mixed-case enforcing policy still suppresses (defensive ToLower)", func(t *testing.T) {
+		results := build("Reject")
+		results["has_null_mx"] = true
+		suppressNoMailDMARCReporting(results)
+		if contains(dmarcIssues(results), dmarcNoRuaIssue) {
+			t.Fatalf("mixed-case p=Reject must be treated as enforcing and suppressed")
+		}
+	})
+	t.Run("no-mail but p=none keeps the rua issue (half-configured)", func(t *testing.T) {
+		results := build("none")
+		results["has_null_mx"] = true
+		suppressNoMailDMARCReporting(results)
+		if !contains(dmarcIssues(results), dmarcNoRuaIssue) {
+			t.Fatalf("half-configured p=none no-mail domain must still be told about missing rua")
+		}
+	})
+	t.Run("no-mail but empty policy keeps the rua issue (ambiguous)", func(t *testing.T) {
+		results := build("")
+		results["is_no_mail_domain"] = true
+		suppressNoMailDMARCReporting(results)
+		if !contains(dmarcIssues(results), dmarcNoRuaIssue) {
+			t.Fatalf("ambiguous (no policy) no-mail domain must still be told about missing rua")
+		}
+	})
+	t.Run("mail domain with enforcing policy keeps the rua issue", func(t *testing.T) {
+		results := build("reject")
+		results["has_null_mx"] = false
+		results["is_no_mail_domain"] = false
+		suppressNoMailDMARCReporting(results)
+		if !contains(dmarcIssues(results), dmarcNoRuaIssue) {
+			t.Fatalf("mail domain must still be told about missing rua")
+		}
+	})
+}

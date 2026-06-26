@@ -182,12 +182,61 @@ func checkDMARCSubdomainIssues(tags dmarcTags) []string {
         return issues
 }
 
+// dmarcNoRuaIssue is the single source of truth for the "no aggregate reporting"
+// DMARC finding, shared by the producer (checkDMARCReportingIssues) and the
+// no-mail suppressor (suppressNoMailDMARCReporting) so the two never drift.
+const dmarcNoRuaIssue = "No aggregate reporting (rua) configured — you won't receive reports about authentication results and potential abuse"
+
 func checkDMARCReportingIssues(tags dmarcTags) []string {
         var issues []string
         if tags.rua == nil {
-                issues = append(issues, "No aggregate reporting (rua) configured — you won't receive reports about authentication results and potential abuse")
+                issues = append(issues, dmarcNoRuaIssue)
         }
         return issues
+}
+
+// suppressNoMailDMARCReporting drops the "no rua configured" DMARC finding for a
+// domain that BOTH clearly does not handle mail — a published null MX (RFC 7505)
+// or an SPF no-mail intent — AND has already locked DMARC down to an enforcing
+// policy (p=reject / p=quarantine). Such a domain carries no legitimate mail
+// flow, so DMARC aggregate reporting (rua) provides no email-authentication
+// visibility and its absence is not a gap. A half-configured record (p=none,
+// empty, or unknown policy) is still a real gap the operator should close, so
+// the finding is kept — mirroring the posture guard at classifyDMARCSuccess
+// (policy != none). It runs at orchestrator assembly time, where both no-mail
+// signals are known (AnalyzeDMARC runs in parallel with SPF/MX and cannot see
+// them itself). Mail-handling, ambiguous, or half-configured domains are left
+// untouched so they still receive the finding.
+func suppressNoMailDMARCReporting(results map[string]any) {
+        isNoMail := results[mapKeyHasNullMx] == true || results[mapKeyIsNoMailDomain] == true
+        if !isNoMail {
+                return
+        }
+        dmarc, ok := results["dmarc_analysis"].(map[string]any)
+        if !ok {
+                return
+        }
+        // Only a no-mail domain that ALSO enforces DMARC (reject/quarantine) has
+        // closed the loop; a p=none / empty / unknown policy is half-configured and
+        // still warrants the finding.
+        policyStr, _ := dmarc["policy"].(string)
+        switch strings.ToLower(policyStr) {
+        case mapKeyReject, mapKeyQuarantine:
+        default:
+                return
+        }
+        issues, ok := dmarc[mapKeyIssues].([]string)
+        if !ok {
+                return
+        }
+        filtered := make([]string, 0, len(issues))
+        for _, issue := range issues {
+                if issue == dmarcNoRuaIssue {
+                        continue
+                }
+                filtered = append(filtered, issue)
+        }
+        dmarc[mapKeyIssues] = filtered
 }
 
 func buildRUFNote(tags dmarcTags) map[string]any {
