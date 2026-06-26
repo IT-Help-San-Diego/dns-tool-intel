@@ -2516,6 +2516,15 @@ html[data-bs-theme="dark"] .tooltip-inner {
    Military red-light discipline for field ops.
    Deeper backgrounds + crimson/oxblood accents.
    Status/severity badge colors are immutable.
+   WCAG AA CONTRAST EXCEPTION (deliberate): Covert Mode and its
+   submarine/tactical/operator sub-environments intentionally use
+   reduced-luminance red on near-black for scotopic (night-vision)
+   preservation per MIL-STD-3009 / MIL-STD-1472H. Many covert text
+   tokens therefore fall below photopic WCAG AA (4.5:1) BY DESIGN;
+   forcing photopic AA here would defeat the documented purpose and
+   flatten the theme. The accessible baseline is the STANDARD theme,
+   which meets AA and is the Lighthouse-gated default. Covert Mode is
+   an opt-in low-light mode. See R009 COVERT_RED suppression.
    ============================================ */
 .u-covert-toggle {
     font-size: 1.1rem;
