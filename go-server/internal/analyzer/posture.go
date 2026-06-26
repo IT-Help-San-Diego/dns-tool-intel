@@ -70,6 +70,10 @@ type protocolState struct {
         mtaStsOK            bool
         tlsrptOK            bool
         bimiOK              bool
+        caaIndeterminate    bool
+        mtaStsIndeterminate bool
+        tlsrptIndeterminate bool
+        bimiIndeterminate   bool
         daneOK              bool
         daneProviderLimited bool
         dnssecOK            bool
@@ -260,6 +264,10 @@ func evaluateProtocolStates(results map[string]any) protocolState {
         ps.mtaStsOK = evaluateSimpleProtocolState(mtaSts, mapKeyStatus)
         ps.tlsrptOK = evaluateSimpleProtocolState(tlsrpt, mapKeyStatus)
         ps.bimiOK = evaluateSimpleProtocolState(bimi, mapKeyStatus)
+        ps.caaIndeterminate = simpleProtocolIndeterminate(caa, mapKeyCaaState)
+        ps.mtaStsIndeterminate = simpleProtocolIndeterminate(mtaSts, mapKeyMtaStsState)
+        ps.tlsrptIndeterminate = simpleProtocolIndeterminate(tlsrpt, mapKeyTlsrptState)
+        ps.bimiIndeterminate = simpleProtocolIndeterminate(bimi, mapKeyBimiState)
 
         evaluateDANEState(dane, &ps)
         evaluateDNSSECState(dnssec, &ps)
@@ -577,17 +585,41 @@ func classifyDNSSEC(ps protocolState, acc *postureAccumulator) {
 
 func classifySimpleProtocols(ps protocolState, isTLD bool, acc *postureAccumulator) {
         if !isTLD {
-                classifyPresence(ps.mtaStsOK, protocolMTASTS, acc)
-                classifyPresence(ps.tlsrptOK, protocolTLSRPT, acc)
-                classifyPresence(ps.bimiOK, "BIMI", acc)
+                classifyPresenceTri(ps.mtaStsOK, ps.mtaStsIndeterminate, protocolMTASTS, acc)
+                classifyPresenceTri(ps.tlsrptOK, ps.tlsrptIndeterminate, protocolTLSRPT, acc)
+                classifyPresenceTri(ps.bimiOK, ps.bimiIndeterminate, "BIMI", acc)
                 classifyDANE(ps, acc)
         }
 
         classifyDNSSEC(ps, acc)
 
         if !isTLD {
-                classifyPresence(ps.caaOK, "CAA", acc)
+                classifyPresenceTri(ps.caaOK, ps.caaIndeterminate, "CAA", acc)
         }
+}
+
+// simpleProtocolIndeterminate reports whether a simple-record analyzer result
+// carries a tri-state of indeterminate — its DNS lookup did not complete, so the
+// posture layer must treat it as "could not verify", never as a confirmed
+// absence.
+func simpleProtocolIndeterminate(result map[string]any, stateKey string) bool {
+        if result == nil {
+                return false
+        }
+        state, _ := result[stateKey].(string)
+        return state == triStateIndeterminate
+}
+
+// classifyPresenceTri extends classifyPresence with the indeterminate tri-state:
+// a record whose lookup did not complete is routed to monitoring ("could not
+// verify"), never to the absent bucket, so a transient DNS failure can never be
+// reported as a confirmed missing control.
+func classifyPresenceTri(ok, indeterminate bool, name string, acc *postureAccumulator) {
+        if indeterminate {
+                acc.monitoring = append(acc.monitoring, name+" could not be verified — the DNS lookup did not complete; re-run before concluding it is absent")
+                return
+        }
+        classifyPresence(ok, name, acc)
 }
 
 func classifyDanglingDNS(results map[string]any, acc *postureAccumulator) {
@@ -994,6 +1026,16 @@ func buildVerdicts(vi verdictInput) map[string]any {
 }
 
 func buildCAAVerdict(ps protocolState, verdicts map[string]any) {
+        if ps.caaIndeterminate {
+                verdicts["certificate_control"] = map[string]any{
+                        mapKeyLabel:  "Could Not Verify",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyIcon:   iconShieldAlt,
+                        mapKeyAnswer: "Unknown",
+                        mapKeyReason: "CAA records could not be verified — the DNS lookup did not complete (transient resolver failure); re-run before concluding any certificate authority may issue",
+                }
+                return
+        }
         if ps.caaOK {
                 verdicts["certificate_control"] = map[string]any{
                         mapKeyLabel:  "Configured",
@@ -1197,6 +1239,36 @@ func buildBrandVerdict(ps protocolState, verdicts map[string]any) {
         }
 }
 
+// bimiGapPhrase describes the BIMI shortfall in a brand-impersonation reason.
+// An indeterminate lookup must read as "could not verify", never a confirmed
+// "no BIMI" — a transient DNS failure is not evidence the record is absent.
+func bimiGapPhrase(ps protocolState) string {
+        if ps.bimiIndeterminate {
+                return "BIMI could not be verified (a DNS lookup did not complete — re-run before concluding)"
+        }
+        return "no BIMI brand verification"
+}
+
+// caaGapPhrase describes the CAA shortfall in a brand-impersonation reason,
+// with the same Zero-Fabrication tri-state discipline as bimiGapPhrase.
+func caaGapPhrase(ps protocolState) string {
+        if ps.caaIndeterminate {
+                return "CAA could not be verified (a DNS lookup did not complete — re-run before concluding)"
+        }
+        return "no CAA certificate restriction (RFC 8659)"
+}
+
+// caaSuggestionClause returns a trailing "; adding CAA …" recommendation only
+// when CAA is authoritatively absent. When the lookup is indeterminate we must
+// not suggest adding a record that may already exist — instead note it could
+// not be verified.
+func caaSuggestionClause(ps protocolState) string {
+        if ps.caaIndeterminate {
+                return "; CAA could not be verified (a DNS lookup did not complete) — re-run before concluding it is absent"
+        }
+        return "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
+}
+
 func buildBrandRejectVerdict(ps protocolState) map[string]any {
         if ps.bimiOK && ps.caaOK {
                 return map[string]any{
@@ -1210,7 +1282,7 @@ func buildBrandRejectVerdict(ps protocolState) map[string]any {
         if ps.bimiOK {
                 reason := "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes — email-based brand faking is effectively blocked"
                 if !ps.caaOK {
-                        reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
+                        reason += caaSuggestionClause(ps)
                 }
                 return map[string]any{
                         mapKeyLabel:  "Well Protected",
@@ -1226,7 +1298,7 @@ func buildBrandRejectVerdict(ps protocolState) map[string]any {
                         mapKeyColor:  statusInfoPosture,
                         mapKeyIcon:   iconShieldAlt,
                         mapKeyAnswer: strPossible,
-                        mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but no BIMI brand verification — lookalike domains display identically in inboxes without visual proof of authenticity",
+                        mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3) and CAA restricts certificate issuance (RFC 8659 §4), but " + bimiGapPhrase(ps) + " — lookalike domains display identically in inboxes without visual proof of authenticity",
                 }
         }
         return map[string]any{
@@ -1234,7 +1306,7 @@ func buildBrandRejectVerdict(ps protocolState) map[string]any {
                 mapKeyColor:  mapKeyWarning,
                 mapKeyIcon:   iconExclamationTriangle,
                 mapKeyAnswer: strPossible,
-                mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but no BIMI brand verification and no CAA certificate restriction (RFC 8659) — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
+                mapKeyReason: "DMARC reject policy blocks email spoofing (RFC 7489 §6.3), but " + bimiGapPhrase(ps) + " and " + caaGapPhrase(ps) + " — visual impersonation via lookalike domains and unrestricted certificate issuance remain open vectors",
         }
 }
 
@@ -1251,7 +1323,7 @@ func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
         if ps.bimiOK {
                 reason := "DMARC quarantine flags spoofed mail (RFC 7489 §6.3) and BIMI with VMC provides verified brand identity in inboxes; upgrade to p=reject to block spoofed mail outright"
                 if !ps.caaOK {
-                        reason += "; adding CAA records (RFC 8659) would further restrict certificate issuance for lookalike domains"
+                        reason += caaSuggestionClause(ps)
                 }
                 return map[string]any{
                         mapKeyLabel:  "Mostly Protected",
@@ -1267,7 +1339,7 @@ func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
                         mapKeyColor:  mapKeyWarning,
                         mapKeyIcon:   iconExclamationTriangle,
                         mapKeyAnswer: strLikely,
-                        mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and no BIMI brand verification — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
+                        mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3), and " + bimiGapPhrase(ps) + " — lookalike domains display identically in inboxes; CAA restricts certificate issuance (RFC 8659 §4) but visual brand faking remains open",
                 }
         }
         return map[string]any{
@@ -1275,7 +1347,7 @@ func buildBrandQuarantineVerdict(ps protocolState) map[string]any {
                 mapKeyColor:  mapKeyWarning,
                 mapKeyIcon:   iconExclamationTriangle,
                 mapKeyAnswer: strLikely,
-                mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — no BIMI or CAA (RFC 8659) reinforcement leaves brand impersonation largely unaddressed",
+                mapKeyReason: "DMARC quarantine flags but does not reject spoofed mail (RFC 7489 §6.3) — " + bimiGapPhrase(ps) + " and " + caaGapPhrase(ps) + " leave brand impersonation largely unaddressed",
         }
 }
 
@@ -1364,12 +1436,29 @@ func buildTransportVerdict(ps protocolState, verdicts map[string]any) {
                         mapKeyAnswer: answerYes,
                         mapKeyReason: "DANE/TLSA provides cryptographic transport verification",
                 }
+        } else if ps.mtaStsIndeterminate {
+                // MTA-STS lookup did not complete authoritatively. We cannot fall through to a
+                // "TLS-RPT monitoring only / not enforced" verdict — an enforcing MTA-STS policy
+                // may well exist. Reporting absence here would fabricate a missing control.
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  "Could Not Verify",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyAnswer: "Unknown",
+                        mapKeyReason: "Mail transport security could not be verified — the MTA-STS DNS lookup did not complete; a TLS-RPT record alone does not enforce TLS, so this is not evidence enforcement is absent. Re-run before concluding transport encryption is unenforced",
+                }
         } else if ps.tlsrptOK {
                 verdicts[mapKeyTransport] = map[string]any{
                         mapKeyLabel:  "Monitoring",
                         mapKeyColor:  statusInfoPosture,
                         mapKeyAnswer: strPartially,
                         mapKeyReason: "TLS reporting is configured but no transport enforcement policy is active",
+                }
+        } else if ps.tlsrptIndeterminate {
+                verdicts[mapKeyTransport] = map[string]any{
+                        mapKeyLabel:  "Could Not Verify",
+                        mapKeyColor:  mapKeySecondary,
+                        mapKeyAnswer: "Unknown",
+                        mapKeyReason: "Mail transport security could not be verified — the TLS-RPT DNS lookup did not complete; re-run before concluding transport reporting is absent",
                 }
         } else {
                 verdicts[mapKeyTransport] = map[string]any{

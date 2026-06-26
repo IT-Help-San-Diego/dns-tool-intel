@@ -75,3 +75,36 @@ func triStateFromStatus(status dnsclient.LookupStatus) string {
                 return triStateIndeterminate
         }
 }
+
+// Per-protocol record-presence state keys. Each status-aware simple-record
+// analyzer (BIMI/MTA-STS/TLS-RPT/CAA) publishes its tri-state outcome under one
+// of these keys so the posture layer can tell a transient/indeterminate lookup
+// apart from a confirmed absence — mirroring spf_state/dmarc_state/dnssec_state.
+const (
+        mapKeyBimiState   = "bimi_state"
+        mapKeyMtaStsState = "mta_sts_state"
+        mapKeyTlsrptState = "tlsrpt_state"
+        mapKeyCaaState    = "caa_state"
+)
+
+// isIndeterminateLookup reports whether a lookup status is non-authoritative — a
+// transient resolver failure (LookupError) or a multi-resolver conflict with no
+// majority winner (LookupConflict, DNS mid-propagation). Such an outcome must
+// NEVER be read as a confirmed record absence (RFC 7208 §4.6, RFC 7489 §6.6.3);
+// the caller emits statusIndeterminate / triStateIndeterminate instead of a
+// false "no record found".
+func isIndeterminateLookup(status dnsclient.LookupStatus) bool {
+        return status == dnsclient.LookupError || status == dnsclient.LookupConflict
+}
+
+// indeterminateLookupMessage builds the honest user-facing message for a record
+// whose DNS lookup did not complete authoritatively, distinguishing a transient
+// failure from a resolver conflict. It states plainly that this is NOT evidence
+// of absence so a re-run is invited rather than a false "not configured"
+// conclusion being drawn.
+func indeterminateLookupMessage(protocol string, status dnsclient.LookupStatus) string {
+        if status == dnsclient.LookupConflict {
+                return protocol + " could not be confirmed: public resolvers returned conflicting answers with no majority winner (DNS may be mid-propagation). This is not evidence that " + protocol + " is absent — re-run once the change has settled."
+        }
+        return protocol + " could not be verified: the DNS lookup did not complete (transient SERVFAIL/timeout/network error). This is not evidence that " + protocol + " is absent — re-run before concluding it is unconfigured."
+}

@@ -19,14 +19,24 @@ var tlsrptRUARe = regexp.MustCompile(`(?i)rua=([^;\s]+)`)
 
 func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]any {
 	tlsrptDomain := fmt.Sprintf("_smtp._tls.%s", domain)
-	records := a.DNS.QueryDNS(ctx, dnsTypeTXT, tlsrptDomain)
+	records, lookupStatus := a.resolveWithStatus(ctx, dnsTypeTXT, tlsrptDomain)
 
 	if len(records) == 0 {
+		if isIndeterminateLookup(lookupStatus) {
+			return map[string]any{
+				mapKeyStatus:      statusIndeterminate,
+				mapKeyMessage:     indeterminateLookupMessage(protocolTLSRPT, lookupStatus),
+				mapKeyRecord:      nil,
+				mapKeyRua:         nil,
+				mapKeyTlsrptState: triStateIndeterminate,
+			}
+		}
 		return map[string]any{
-			mapKeyStatus:  "warning",
-			mapKeyMessage: "No TLS-RPT record found",
-			mapKeyRecord:  nil,
-			mapKeyRua:     nil,
+			mapKeyStatus:      "warning",
+			mapKeyMessage:     "No TLS-RPT record found",
+			mapKeyRecord:      nil,
+			mapKeyRua:         nil,
+			mapKeyTlsrptState: triStateAbsentConf,
 		}
 	}
 
@@ -39,10 +49,11 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
 
 	if len(validRecords) == 0 {
 		return map[string]any{
-			mapKeyStatus:  "warning",
-			mapKeyMessage: "No valid TLS-RPT record found",
-			mapKeyRecord:  nil,
-			mapKeyRua:     nil,
+			mapKeyStatus:      "warning",
+			mapKeyMessage:     "No valid TLS-RPT record found",
+			mapKeyRecord:      nil,
+			mapKeyRua:         nil,
+			mapKeyTlsrptState: triStateAbsentConf,
 		}
 	}
 
@@ -53,9 +64,10 @@ func (a *Analyzer) AnalyzeTLSRPT(ctx context.Context, domain string) map[string]
 	}
 
 	return map[string]any{
-		mapKeyStatus:  "success",
-		mapKeyMessage: "TLS-RPT configured - receiving TLS delivery reports",
-		mapKeyRecord:  record,
-		mapKeyRua:     derefStr(rua),
+		mapKeyStatus:      "success",
+		mapKeyMessage:     "TLS-RPT configured - receiving TLS delivery reports",
+		mapKeyRecord:      record,
+		mapKeyRua:         derefStr(rua),
+		mapKeyTlsrptState: triStatePresent,
 	}
 }
