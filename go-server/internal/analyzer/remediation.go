@@ -474,7 +474,10 @@ func appendDMARCFixes(fixes []fix, ps protocolState, results map[string]any, dom
                         Section:       sectionDMARC,
                 })
         }
-        if !ps.dmarcHasRua {
+        // No-mail domains (null MX per RFC 7505, or SPF no-mail intent) carry no
+        // legitimate mail flow, so a rua= tag yields no authentication visibility —
+        // do not recommend adding one. Mail/ambiguous domains still get this fix.
+        if !ps.dmarcHasRua && !ps.isNoMailDomain {
                 fixes = append(fixes, fix{
                         Title:         "Add DMARC Aggregate Reporting",
                         Description:   "Add a rua= tag to receive aggregate DMARC reports. Without reporting, you cannot monitor authentication failures.",

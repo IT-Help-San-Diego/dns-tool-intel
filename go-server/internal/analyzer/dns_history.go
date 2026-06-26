@@ -271,7 +271,7 @@ func fetchHistoryForTypeWithKey(ctx context.Context, domain, rtype, apiKey strin
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		slog.Warn("SecurityTrails history: failed to create request", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err)
+		slog.Warn("SecurityTrails history: failed to create request", mapKeyDomain, domain, mapKeyType, rtype, mapKeyError, err) // hounddog-ignore: FP â apiKey is header-only (set via req.Header.Set below), absent from url/err here; redact.go scrubs token shapes at the slog sink
 		return historyFetchResult{errored: true}
 	}
 	req.Header.Set("APIKEY", apiKey)

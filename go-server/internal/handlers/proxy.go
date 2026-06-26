@@ -11,6 +11,7 @@ import (
         "net/http"
         "net/url"
         "strings"
+        "syscall"
         "time"
 
         "dnstool/go-server/internal/dnsclient"
@@ -66,8 +67,17 @@ func (h *ProxyHandler) BIMILogo(c *gin.Context) {
 
         safeURL := buildSafeURL(parsed)
 
+        dialer := &net.Dialer{
+                Timeout:   5 * time.Second,
+                KeepAlive: 30 * time.Second,
+                Control:   bimiDialControl,
+        }
         client := &http.Client{
                 Timeout: 5 * time.Second,
+                Transport: &http.Transport{
+                        DialContext:       dialer.DialContext,
+                        ForceAttemptHTTP2: true,
+                },
                 CheckRedirect: func(req *http.Request, via []*http.Request) error {
                         return http.ErrUseLastResponse
                 },
@@ -131,6 +141,22 @@ func checkSSRF(hostname string) error {
                 if dnsclient.IsPrivateIP(ip.String()) {
                         return &validationError{"URL points to a disallowed address"}
                 }
+        }
+        return nil
+}
+
+// bimiDialControl re-validates the concrete connect-time IP for BIMI logo
+// fetches. checkSSRF resolves the hostname pre-flight, but the dialer resolves
+// again at connect time; this Control hook closes that DNS-rebinding / TOCTOU
+// window by refusing any attempt that lands on a private/reserved IP. BIMI
+// fetches never target internal hosts, so there is no SkipSSRF escape hatch.
+func bimiDialControl(_, address string, _ syscall.RawConn) error {
+        host, _, err := net.SplitHostPort(address)
+        if err != nil {
+                return fmt.Errorf("SSRF protection: cannot parse dial address %q: %w", address, err)
+        }
+        if dnsclient.IsPrivateIP(host) {
+                return fmt.Errorf("SSRF protection: refusing to connect to private/reserved IP %s", host)
         }
         return nil
 }

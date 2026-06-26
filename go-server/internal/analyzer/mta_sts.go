@@ -105,24 +105,30 @@ func determineMTASTSModeStatus(mode string, policyData map[string]any) (string, 
 
 func (a *Analyzer) AnalyzeMTASTS(ctx context.Context, domain string) map[string]any {
 	mtaStsDomain := fmt.Sprintf("_mta-sts.%s", domain)
-	records := a.DNS.QueryDNS(ctx, "TXT", mtaStsDomain)
+	records, lookupStatus := a.resolveWithStatus(ctx, "TXT", mtaStsDomain)
 
 	baseResult := map[string]any{
-		"status":         mapKeyWarning,
-		mapKeyMessage:    "No MTA-STS record found",
-		"record":         nil,
-		"dns_id":         nil,
-		mapKeyMtaMode:    nil,
-		"policy":         nil,
-		"policy_mode":    nil,
-		"policy_max_age": nil,
-		"policy_mx":      []string{},
-		"policy_fetched": false,
-		"policy_error":   nil,
-		"hosting_cname":  nil,
+		"status":          mapKeyWarning,
+		mapKeyMessage:     "No MTA-STS record found",
+		"record":          nil,
+		"dns_id":          nil,
+		mapKeyMtaMode:     nil,
+		"policy":          nil,
+		"policy_mode":     nil,
+		"policy_max_age":  nil,
+		"policy_mx":       []string{},
+		"policy_fetched":  false,
+		"policy_error":    nil,
+		"hosting_cname":   nil,
+		mapKeyMtaStsState: triStateAbsentConf,
 	}
 
 	if len(records) == 0 {
+		if isIndeterminateLookup(lookupStatus) {
+			baseResult["status"] = statusIndeterminate
+			baseResult[mapKeyMessage] = indeterminateLookupMessage(protocolMTASTS, lookupStatus)
+			baseResult[mapKeyMtaStsState] = triStateIndeterminate
+		}
 		return baseResult
 	}
 
@@ -143,19 +149,20 @@ func (a *Analyzer) AnalyzeMTASTS(ctx context.Context, domain string) map[string]
 	status, message, policyIssues := determineMTASTSStatus(policyData, mode)
 
 	return map[string]any{
-		"status":         status,
-		mapKeyMessage:    message,
-		"record":         record,
-		"dns_id":         derefStr(dnsID),
-		mapKeyMtaMode:    derefStr(mode),
-		"policy":         policyData[mapKeyMtaRaw],
-		"policy_mode":    policyData[mapKeyMtaMode],
-		"policy_max_age": policyData[mapKeyMaxAge],
-		"policy_mx":      policyData["mx"],
-		"policy_fetched": policyData[mapKeyFetched],
-		"policy_error":   policyData[mapKeyError],
-		"hosting_cname":  derefStr(hostingCNAME),
-		"policy_issues":  policyIssues,
+		"status":          status,
+		mapKeyMessage:     message,
+		"record":          record,
+		"dns_id":          derefStr(dnsID),
+		mapKeyMtaMode:     derefStr(mode),
+		"policy":          policyData[mapKeyMtaRaw],
+		"policy_mode":     policyData[mapKeyMtaMode],
+		"policy_max_age":  policyData[mapKeyMaxAge],
+		"policy_mx":       policyData["mx"],
+		"policy_fetched":  policyData[mapKeyFetched],
+		"policy_error":    policyData[mapKeyError],
+		"hosting_cname":   derefStr(hostingCNAME),
+		"policy_issues":   policyIssues,
+		mapKeyMtaStsState: triStatePresent,
 	}
 }
 

@@ -18,6 +18,12 @@ on:
   schedule:
     - cron: '0 7 * * 1,4'
 
+# Least-privilege default for the workflow. Individual jobs escalate only the
+# scope they need (npm-audit keeps security-events: write to upload findings);
+# everything else inherits read-only.
+permissions:
+  contents: read
+
 jobs:
   go-vuln-check:
     name: Go Vulnerability Check

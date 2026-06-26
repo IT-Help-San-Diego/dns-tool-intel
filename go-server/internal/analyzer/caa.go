@@ -98,9 +98,20 @@ func buildCAAMessage(issuers, wildcardIssuers []string, hasWildcard bool) string
 }
 
 func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any {
-	records := a.DNS.QueryDNS(ctx, "CAA", domain)
+	records, lookupStatus := a.resolveWithStatus(ctx, "CAA", domain)
 
 	if len(records) == 0 {
+		if isIndeterminateLookup(lookupStatus) {
+			return map[string]any{
+				"status":       statusIndeterminate,
+				"message":      indeterminateLookupMessage("CAA", lookupStatus),
+				"records":      []string{},
+				"issuers":      []string{},
+				"has_wildcard": false,
+				"has_iodef":    false,
+				mapKeyCaaState: triStateIndeterminate,
+			}
+		}
 		return map[string]any{
 			"status":       "warning",
 			"message":      "No CAA records found - any CA can issue certificates",
@@ -108,6 +119,7 @@ func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any
 			"issuers":      []string{},
 			"has_wildcard": false,
 			"has_iodef":    false,
+			mapKeyCaaState: triStateAbsentConf,
 		}
 	}
 
@@ -117,6 +129,7 @@ func (a *Analyzer) AnalyzeCAA(ctx context.Context, domain string) map[string]any
 	message := buildCAAMessage(issuers, wildcardIssuers, parsed.hasWildcard)
 
 	return map[string]any{
+		mapKeyCaaState:     triStatePresent,
 		"status":           "success",
 		"message":          message,
 		"records":          records,

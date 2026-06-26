@@ -3,6 +3,11 @@ on:
   issues:
     types: [opened, edited]
 
+# Least-privilege default. The triage job escalates to issues: write (it
+# comments and relabels via the API); no other scope is granted.
+permissions:
+  contents: read
+
 jobs:
   triage:
     runs-on: ubuntu-latest
