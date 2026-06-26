@@ -338,6 +338,13 @@ const (
         // (NXDOMAIN, or NOERROR with no matching answer / NODATA) — the record is
         // genuinely not published.
         LookupAbsent
+        // LookupConflict means resolvers returned DIFFERENT present record sets with
+        // no strict plurality winner — the record is mid-propagation / "in flux".
+        // Like LookupError it is INDETERMINATE: callers MUST NOT infer absence from it
+        // (a stale recursive cache disagreeing with the live record is not an
+        // authoritative answer). It is kept distinct from LookupError so the report can
+        // say "resolvers disagree / DNS in flux" rather than "lookup failed".
+        LookupConflict
 )
 
 // resolverOutcome is the per-resolver classification used to fold many resolver
@@ -370,6 +377,92 @@ func classifyResolverResult(errStr string, records []string) resolverOutcome {
         }
 }
 
+// canonicalRecordKey builds an order-independent key for a resolved record set so
+// two resolvers that return the same records in a different order still count as
+// agreeing. The sort is on a copy, so the caller's record order is untouched.
+func canonicalRecordKey(records []string) string {
+        cp := append([]string(nil), records...)
+        sort.Strings(cp)
+        return strings.Join(cp, "\x00")
+}
+
+// consensusOutcome is the result of folding many resolvers' answers into one verdict.
+type consensusOutcome int
+
+const (
+        // consensusTransient — no resolver cast a usable vote (all timed out / SERVFAIL).
+        consensusTransient consensusOutcome = iota
+        // consensusResolved — a single present record set is the strict plurality winner.
+        consensusResolved
+        // consensusAbsent — no resolver returned a present record set, but at least one
+        // authoritatively reported the record absent (NXDOMAIN / NODATA).
+        consensusAbsent
+        // consensusConflict — resolvers returned DIFFERENT present record sets with no
+        // strict plurality winner: the record is mid-propagation / in flux. Presenting
+        // any single resolver's value as truth would be a precision violation, so it is
+        // treated as indeterminate (a stale cache is not an authoritative answer).
+        consensusConflict
+)
+
+// foldResolverConsensus folds per-resolver outcomes into a single consensus, replacing
+// the old "first resolver to answer wins" race in which one stale recursive cache
+// could decide a security verdict even when the majority of independent resolvers
+// agreed on the live record. keys[i] is the canonical key of resolver i's present
+// record set (meaningful only when outcomes[i] == outcomeResolved).
+//
+// Precision-over-recall rules:
+//   - Among resolvers that returned a PRESENT record set, the value with the most
+//     votes wins, but ONLY when it is a strict plurality (more votes than any other
+//     present value). A tie for the top present value is consensusConflict.
+//   - A present answer always outranks an absence: absences are weighed only when no
+//     resolver returned a present record set, so an absence is never fabricated from
+//     a present-vs-absent disagreement.
+//   - Transient failures abstain: a failing resolver can neither win nor break a tie.
+//
+// It returns the index (into keys/outcomes) of a representative winning resolver, or
+// -1 when there is no single winner, plus the folded outcome.
+func foldResolverConsensus(keys []string, outcomes []resolverOutcome) (int, consensusOutcome) {
+        counts := make(map[string]int)
+        firstIdx := make(map[string]int)
+        anyPresent := false
+        anyAbsent := false
+        for i, oc := range outcomes {
+                switch oc {
+                case outcomeResolved:
+                        anyPresent = true
+                        counts[keys[i]]++
+                        if _, seen := firstIdx[keys[i]]; !seen {
+                                firstIdx[keys[i]] = i
+                        }
+                case outcomeAbsent:
+                        anyAbsent = true
+                }
+        }
+
+        if anyPresent {
+                topKey := ""
+                topCount := 0
+                tied := false
+                for k, n := range counts {
+                        switch {
+                        case n > topCount:
+                                topKey, topCount, tied = k, n, false
+                        case n == topCount:
+                                tied = true
+                        }
+                }
+                if tied {
+                        return -1, consensusConflict
+                }
+                return firstIdx[topKey], consensusResolved
+        }
+
+        if anyAbsent {
+                return -1, consensusAbsent
+        }
+        return -1, consensusTransient
+}
+
 // QueryDNSWithStatus resolves recordType/domain and classifies the outcome.
 // Unlike QueryDNS — which returns an empty slice for BOTH a genuinely-absent
 // record and a failed lookup — this reports a transient failure as LookupError,
@@ -399,24 +492,32 @@ func (c *Client) QueryDNSWithStatus(ctx context.Context, recordType, domain stri
                 }(resolver.IP)
         }
 
-        sawAbsent := false
+        results := make([]res, 0, len(c.resolvers))
         for range c.resolvers {
-                r := <-ch
-                switch classifyResolverResult(r.errStr, r.records) {
-                case outcomeResolved:
-                        c.cacheSet(cacheKey, r.records)
-                        return r.records, LookupResolved
-                case outcomeAbsent:
-                        // NOERROR-with-no-answer (NODATA) or NXDOMAIN: authoritative
-                        // confirmation the record is not published.
-                        sawAbsent = true
-                }
-                // outcomeTransient (timeout, SERVFAIL, REFUSED, network) is ignored so
-                // one failing resolver cannot masquerade as an authoritative absence.
+                results = append(results, <-ch)
         }
 
-        if sawAbsent {
+        keys := make([]string, len(results))
+        outcomes := make([]resolverOutcome, len(results))
+        for i, r := range results {
+                outcomes[i] = classifyResolverResult(r.errStr, r.records)
+                if outcomes[i] == outcomeResolved {
+                        keys[i] = canonicalRecordKey(r.records)
+                }
+        }
+
+        // Consensus, not first-to-answer: the value the most resolvers agree on wins, so
+        // a single stale recursive cache can no longer decide the verdict while the
+        // majority of independent resolvers hold the live record. A no-majority split is
+        // LookupConflict (indeterminate / in flux), never one resolver's value as truth.
+        switch idx, outcome := foldResolverConsensus(keys, outcomes); outcome {
+        case consensusResolved:
+                c.cacheSet(cacheKey, results[idx].records)
+                return results[idx].records, LookupResolved
+        case consensusAbsent:
                 return nil, LookupAbsent
+        case consensusConflict:
+                return nil, LookupConflict
         }
 
         // Every UDP resolver failed transiently. Use DoH ONLY as positive
@@ -490,21 +591,29 @@ func (c *Client) QueryDNSWithTTLStatus(ctx context.Context, recordType, domain s
                 }(resolver.IP)
         }
 
-        sawAbsent := false
+        results := make([]res, 0, len(c.resolvers))
         for range c.resolvers {
-                r := <-ch
-                switch classifyResolverResult(r.errStr, r.rec.Records) {
-                case outcomeResolved:
-                        return r.rec, LookupResolved
-                case outcomeAbsent:
-                        sawAbsent = true
-                }
-                // outcomeTransient is ignored so one failing resolver cannot
-                // masquerade as an authoritative absence.
+                results = append(results, <-ch)
         }
 
-        if sawAbsent {
+        keys := make([]string, len(results))
+        outcomes := make([]resolverOutcome, len(results))
+        for i, r := range results {
+                outcomes[i] = classifyResolverResult(r.errStr, r.rec.Records)
+                if outcomes[i] == outcomeResolved {
+                        keys[i] = canonicalRecordKey(r.rec.Records)
+                }
+        }
+
+        // Consensus, not first-to-answer (see QueryDNSWithStatus): the majority record
+        // set wins; a no-majority split is LookupConflict (indeterminate / in flux).
+        switch idx, outcome := foldResolverConsensus(keys, outcomes); outcome {
+        case consensusResolved:
+                return results[idx].rec, LookupResolved
+        case consensusAbsent:
                 return RecordWithTTL{}, LookupAbsent
+        case consensusConflict:
+                return RecordWithTTL{}, LookupConflict
         }
 
         // Every UDP resolver failed transiently. Use DoH ONLY as positive
@@ -566,6 +675,14 @@ func (c *Client) querySingleResolver(ctx context.Context, domain, recordType, re
 
         var results []string
         for _, rr := range r.Answer {
+                // RFC 4035: a DO=1 query (msg.Security = true above) can return RRSIG records
+                // alongside the answer. They are signatures, not content — drop them unless
+                // RRSIG itself was requested, so a signature never leaks into a record set
+                // (e.g. an RRSIG string contaminating the DMARC/SPF records[]). Mirrors the
+                // filter already applied in udpQueryWithTTLStatus.
+                if _, isRRSIG := rr.(*dns.RRSIG); isRRSIG && qtype != dns.TypeRRSIG {
+                        continue
+                }
                 s := rrToString(rr)
                 if s != "" {
                         results = append(results, s)

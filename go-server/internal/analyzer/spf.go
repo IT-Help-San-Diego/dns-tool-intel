@@ -415,10 +415,13 @@ func (a *Analyzer) AnalyzeSPF(ctx context.Context, domain string) map[string]any
                 // failure (SERVFAIL/timeout) is indeterminate — reporting it as a
                 // missing record is a false negative, so say so honestly and ask
                 // for a re-run instead of asserting absence.
-                if lookupStatus == dnsclient.LookupError {
+                if lookupStatus == dnsclient.LookupError || lookupStatus == dnsclient.LookupConflict {
                         baseResult["status"] = statusIndeterminate
                         baseResult["message"] = "SPF could not be verified — the DNS lookup did not complete (transient SERVFAIL/timeout). This is not a finding that SPF is absent; re-run before drawing a conclusion."
                         baseResult[mapKeySpfState] = spfStateIndeterminate
+                        if lookupStatus == dnsclient.LookupConflict {
+                                baseResult["message"] = "SPF could not be confirmed: public resolvers returned different records with no majority winner (DNS in flux / mid-propagation). This is not a finding that SPF is absent; re-run once the change has propagated."
+                        }
                 }
                 return baseResult
         }

@@ -255,7 +255,8 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         // errored while DNSKEY resolved), which the old !hasDNSKEY && !hasDS guard
         // let fall through to "not configured" / "partial" (RFC 4035 — absence is
         // only assertable from an authoritative answer, never a failed lookup).
-        lookupErrored := dnskeyStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupError
+        lookupErrored := dnskeyStatus == dnsclient.LookupError || dsStatus == dnsclient.LookupError ||
+                dnskeyStatus == dnsclient.LookupConflict || dsStatus == dnsclient.LookupConflict
         definitivePositive := (hasDNSKEY && hasDS) || adFlag
         if lookupErrored && !definitivePositive {
                 return buildIndeterminateDNSSECResult(adResolver)
