@@ -3,6 +3,7 @@ package logging
 import (
         "bytes"
         "context"
+        "errors"
         "log/slog"
         "strings"
         "testing"
@@ -282,6 +283,51 @@ func TestMultiHandler_Handle_WithPresetAttrs(t *testing.T) {
                 }
         default:
                 t.Error("expected WARN to route to DBSink")
+        }
+}
+
+// TestMultiHandler_Handle_CredentialNeverReachesSinks is the end-to-end proof
+// for the HoundDog CRITICAL auth-token-to-log alerts: even when a credential is
+// folded into the message, into a wrapped error, and into labelled attrs, the
+// global MultiHandler scrubs it before it reaches EITHER the JSON file sink or
+// the database sink. slog.SetDefault wires this handler for every log call (see
+// logging.Setup), so these are the only egress paths a credential could take.
+func TestMultiHandler_Handle_CredentialNeverReachesSinks(t *testing.T) {
+        var buf bytes.Buffer
+        dbSink := &DBSink{
+                ch:   make(chan DBLogEntry, 10),
+                done: make(chan struct{}),
+        }
+        h := NewMultiHandler(Config{
+                FileWriter: &buf,
+                DBSink:     dbSink,
+                MinLevel:   slog.LevelDebug,
+        })
+
+        apiKey := "sk_live_" + "A1b2C3d4E5f6G7h8"
+        rec := slog.NewRecord(time.Now(), slog.LevelError, "SecurityTrails request failed: apikey="+apiKey, 0)
+        rec.AddAttrs(
+                slog.Any("error", errors.New(`Get "https://api.securitytrails.com/x": apikey=`+apiKey)),
+                slog.String("apikey", apiKey),
+                slog.String("authorization", "Bearer "+apiKey),
+        )
+        h.Handle(context.Background(), rec)
+
+        if out := buf.String(); strings.Contains(out, apiKey) {
+                t.Fatalf("credential leaked to JSON sink: %q", out)
+        }
+
+        select {
+        case entry := <-dbSink.ch:
+                blob := entry.Message
+                for _, v := range entry.Attrs {
+                        blob += "|" + v
+                }
+                if strings.Contains(blob, apiKey) {
+                        t.Fatalf("credential leaked to DB sink: msg=%q attrs=%v", entry.Message, entry.Attrs)
+                }
+        default:
+                t.Fatal("expected ERROR level to route to DBSink")
         }
 }
 

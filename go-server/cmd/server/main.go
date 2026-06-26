@@ -329,6 +329,7 @@ func loadTemplates(router *gin.Engine) {
 
 func mountStaticFiles(router *gin.Engine) {
         staticDir := findStaticDir()
+        staticRoot := filepath.Clean(staticDir)
         slog.Info("Static directory resolved", "path", staticDir)
         tmplFuncs.InitSRI(staticDir)
         staticFS := http.Dir(staticDir)
@@ -364,6 +365,18 @@ func mountStaticFiles(router *gin.Engine) {
                         // attempts. The resulting absPath stays anchored under staticDir.
                         rel := strings.TrimPrefix(fp, "/")
                         absPath := filepath.Join(staticDir, filepath.Clean(rel))
+                        // Containment guard: filepath.Clean does NOT strip a
+                        // leading "../" that escapes the root, so explicitly
+                        // confirm the joined path stays under staticDir before
+                        // touching the filesystem. This hardens the os.Stat
+                        // below and is the CodeQL path-injection (CWE-22)
+                        // sanitizer for this flow. (Actual file bytes are served
+                        // by http.FileServer, which is independently rooted at
+                        // staticDir and rejects traversal.)
+                        if absPath != staticRoot && !strings.HasPrefix(absPath, staticRoot+string(os.PathSeparator)) {
+                                c.Status(http.StatusNotFound)
+                                return
+                        }
                         if info, err := os.Stat(absPath); err == nil && info.IsDir() {
                                 c.Status(http.StatusNotFound)
                                 return

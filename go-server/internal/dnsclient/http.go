@@ -11,6 +11,7 @@ import (
         "net"
         "net/http"
         "net/url"
+        "syscall"
         "time"
 )
 
@@ -30,49 +31,83 @@ func NewSafeHTTPClient() *SafeHTTPClient {
 }
 
 func NewSafeHTTPClientWithTimeout(timeout time.Duration) *SafeHTTPClient {
-        return &SafeHTTPClient{
-                client: &http.Client{
-                        Timeout: timeout,
-                        Transport: &http.Transport{
-                                MaxIdleConns:        20,
-                                IdleConnTimeout:     30 * time.Second,
-                                DisableKeepAlives:   false,
-                                MaxIdleConnsPerHost: 5,
-                        },
-                        CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                                if len(via) >= 5 {
-                                        return fmt.Errorf("too many redirects")
-                                }
-                                if !ValidateURLTarget(req.URL.String()) {
-                                        return fmt.Errorf("SSRF protection: redirect target resolves to private IP")
-                                }
-                                return nil
-                        },
-                },
-                userAgent: UserAgent,
+        s := &SafeHTTPClient{userAgent: UserAgent}
+        dialer := &net.Dialer{
+                Timeout:   10 * time.Second,
+                KeepAlive: 30 * time.Second,
+                Control:   s.ssrfDialControl,
         }
+        s.client = &http.Client{
+                Timeout: timeout,
+                Transport: &http.Transport{
+                        MaxIdleConns:        20,
+                        IdleConnTimeout:     30 * time.Second,
+                        DisableKeepAlives:   false,
+                        MaxIdleConnsPerHost: 5,
+                        DialContext:         dialer.DialContext,
+                        ForceAttemptHTTP2:   true,
+                },
+                CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                        if len(via) >= 5 {
+                                return fmt.Errorf("too many redirects")
+                        }
+                        if !ValidateURLTarget(req.URL.String()) {
+                                return fmt.Errorf("SSRF protection: redirect target resolves to private IP")
+                        }
+                        return nil
+                },
+        }
+        return s
 }
 
 func NewRDAPHTTPClient() *SafeHTTPClient {
-        return &SafeHTTPClient{
-                client: &http.Client{
-                        Timeout: 25 * time.Second,
-                        Transport: &http.Transport{
-                                MaxIdleConns:          10,
-                                IdleConnTimeout:       60 * time.Second,
-                                DisableKeepAlives:     true,
-                                MaxIdleConnsPerHost:   2,
-                                ResponseHeaderTimeout: 20 * time.Second,
-                        },
-                        CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                                if len(via) >= 5 {
-                                        return fmt.Errorf("too many redirects")
-                                }
-                                return nil
-                        },
-                },
-                userAgent: UserAgent,
+        s := &SafeHTTPClient{userAgent: UserAgent}
+        dialer := &net.Dialer{
+                Timeout:   10 * time.Second,
+                KeepAlive: 30 * time.Second,
+                Control:   s.ssrfDialControl,
         }
+        s.client = &http.Client{
+                Timeout: 25 * time.Second,
+                Transport: &http.Transport{
+                        MaxIdleConns:          10,
+                        IdleConnTimeout:       60 * time.Second,
+                        DisableKeepAlives:     true,
+                        MaxIdleConnsPerHost:   2,
+                        ResponseHeaderTimeout: 20 * time.Second,
+                        DialContext:           dialer.DialContext,
+                        ForceAttemptHTTP2:     true,
+                },
+                CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                        if len(via) >= 5 {
+                                return fmt.Errorf("too many redirects")
+                        }
+                        return nil
+                },
+        }
+        return s
+}
+
+// ssrfDialControl is the dial-time SSRF guard. net.Dialer invokes Control after
+// DNS resolution with the CONCRETE IP it is about to connect to (per attempt,
+// including Happy-Eyeballs candidates), so re-checking the IP here closes the
+// TOCTOU / DNS-rebinding window left by the pre-flight ValidateURLTarget check:
+// a hostname that resolved to a public IP during validation but flips to a
+// private/reserved IP at connect time is refused at dial. SkipSSRF clients
+// (intentional internal diagnostic probes, e.g. CT-log fetches) bypass the
+// guard so their probing behavior is preserved unchanged.
+func (s *SafeHTTPClient) ssrfDialControl(_, address string, _ syscall.RawConn) error {
+        if s.SkipSSRF {
+                return nil
+        }
+        host, _, err := net.SplitHostPort(address)
+        if err != nil {
+                return fmt.Errorf("SSRF protection: cannot parse dial address %q: %w", address, err)
+        }
+        if IsPrivateIP(host) {
+                return fmt.Errorf("SSRF protection: refusing to connect to private/reserved IP %s", host)
+        }
+        return nil
 }
 
 var rdapAllowedHosts = map[string]bool{

@@ -235,7 +235,7 @@ func (h *WatchlistHandler) RemoveDomain(c *gin.Context) {
         }
 
         idStr := c.Param("id")
-        entryID, err := strconv.Atoi(idStr)
+        entryID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
@@ -261,7 +261,7 @@ func (h *WatchlistHandler) ToggleDomain(c *gin.Context) {
         }
 
         idStr := c.Param("id")
-        entryID, err := strconv.Atoi(idStr)
+        entryID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
@@ -324,7 +324,7 @@ func (h *WatchlistHandler) RemoveEndpoint(c *gin.Context) {
         }
 
         idStr := c.Param("id")
-        endpointID, err := strconv.Atoi(idStr)
+        endpointID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
@@ -350,7 +350,7 @@ func (h *WatchlistHandler) ToggleEndpoint(c *gin.Context) {
         }
 
         idStr := c.Param("id")
-        endpointID, err := strconv.Atoi(idStr)
+        endpointID, err := strconv.ParseInt(idStr, 10, 32)
         if err != nil {
                 c.Redirect(http.StatusSeeOther, pathWatchlist)
                 return
