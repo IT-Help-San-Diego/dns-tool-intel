@@ -496,3 +496,21 @@ func TestCoverageBoost16_aggregateResolverAgreement(t *testing.T) {
                 }
         })
 }
+
+// TestProtocolRawConfidence_Indeterminate locks the Zero-Fabrication rule that an
+// unmeasurable (transient) protocol result contributes neutral analytic confidence
+// — distinct from a confident verdict and from a confirmed error/absence (0.0), and
+// handled explicitly rather than via the default catch-all.
+func TestProtocolRawConfidence_Indeterminate(t *testing.T) {
+        for _, status := range []string{"indeterminate", "inconclusive"} {
+                results := map[string]any{"s": map[string]any{"status": status}}
+                if got := protocolRawConfidence(results, "s"); got != 0.5 {
+                        t.Errorf("status=%q: got %f, want 0.5 (neutral, not penalized as confirmed absence)", status, got)
+                }
+        }
+        indet := protocolRawConfidence(map[string]any{"s": map[string]any{"status": "indeterminate"}}, "s")
+        confirmedErr := protocolRawConfidence(map[string]any{"s": map[string]any{"status": "error"}}, "s")
+        if indet <= confirmedErr {
+                t.Errorf("indeterminate (%f) must score strictly higher than confirmed error (%f)", indet, confirmedErr)
+        }
+}
