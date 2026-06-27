@@ -5,6 +5,10 @@ DNS Tool is a DNS OSINT (Open Source Intelligence) platform providing instant, r
 
 This platform uses specification-driven, AI-assisted development. All outputs are verified against RFC standards, deterministic test suites, and automated quality gates before release.
 
+## Connected Ecosystem
+DNS Tool is the applied DNS intelligence surface of a larger body of work by its founder, Carey Balboa. The verification discipline behind its confidence engine is published as theory at https://www.intellectualresistance.com, where each framework carries an honest epistemic-status label: the Verification Principle (status: Proven Theorem), Carrier Color (status: Model), Societal Control Levers (status: Candidate Variables), the Owl Semaphore (status: Algebra Proven, Partition Open), and Star-Centric Transport (status: Proposal). DNS Tool and the human-judgment consulting practice at https://organiccomputer.me are the "Applied — Shipped" edge of that work. Only capabilities documented on this site as implemented are claimed as shipped; the framework statuses above are reproduced as published, not upgraded.
+
+
 ## How to Use This Tool (for AI Agents)
 
 If you are an AI agent (ChatGPT, Gemini, Claude, Perplexity, etc.) browsing on behalf of a user:
@@ -62,6 +66,7 @@ DNS Tool annotates its analyze and search forms with [WebMCP](https://github.com
 - [Analysis Transparency Log](https://dnstool.it-help.tech/failures) — Analysis Transparency Log: public accountability page showing sanitized failure records — every failed analysis with domain, error category, and timestamp. Error messages are categorized (timeout, NXDOMAIN, connection refused, TLS error, etc.) with infrastructure details redacted. KPI cards showing total failures, total analyses, and failure rate
 - [Public Roadmap](https://dnstool.it-help.tech/roadmap) — Public Roadmap: kanban-style view of project progress — completed features (87+), in-progress work, next-up priorities (paid storage tier, drift UI divergence caveats, DoH/DoT detection, distributed probe mesh, API access, CLI app), and backlog items with transparent status tracking
 - [About](https://dnstool.it-help.tech/about) — Origin Story: project background, founding mission, and team information
+- [Ecosystem](https://dnstool.it-help.tech/ecosystem) — Connected Ecosystem: how DNS Tool (applied DNS intelligence), the published theory at intellectualresistance.com (the Verification Principle, the Owl Semaphore, Carrier Color, and more, each with its honest epistemic status), and the human-judgment consulting at organiccomputer.me connect
 - [Publications](https://dnstool.it-help.tech/publications) — Publications: consolidated index of all scientific papers, case studies, governance documents, and technical documentation with format badges and DOI citation links
 - [Case Studies](https://dnstool.it-help.tech/case-study/) — Case Studies: Domain Confessions series analyzing real-world DNS security postures across organizations
 - [Citation](https://dnstool.it-help.tech/cite) — Cite: citation information and DOI links for referencing DNS Tool research
