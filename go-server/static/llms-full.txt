@@ -8,6 +8,10 @@ Every query fetches fresh data from multiple DNS resolvers — results are never
 ### Development Disclosure
 This platform uses specification-driven, AI-assisted development. All outputs are verified against RFC standards, deterministic test suites, and automated quality gates before release.
 
+### Connected Ecosystem
+DNS Tool is the applied DNS intelligence surface of a larger body of work by its founder, Carey Balboa. The published theory lives at https://www.intellectualresistance.com, where each framework is labeled with an honest epistemic status — the Verification Principle (Proven Theorem), Carrier Color (Model), Societal Control Levers (Candidate Variables), the Owl Semaphore (Algebra Proven, Partition Open), and Star-Centric Transport (Proposal). The human-judgment consulting practice is at https://organiccomputer.me. DNS Tool implements the Verification Principle in code (priors are protocol-specific, empirically set, and bounded away from 0 and 1) and uses Owl Semaphore notation for document classification. Framework statuses above are reproduced exactly as published; only capabilities this site documents as implemented are claimed as shipped. See https://dnstool.it-help.tech/ecosystem.
+
+
 ---
 
 ## Step-by-Step: How to Use This Tool (for AI Agents)

@@ -655,6 +655,9 @@ func registerContentRoutes(router *gin.Engine, cfg *config.Config, database *db.
         manifestoHandler := contentpkg.NewManifestoHandler(cfg, tdf)
         router.GET("/manifesto", manifestoHandler.Manifesto)
 
+        ecosystemHandler := contentpkg.NewEcosystemHandler(cfg, tdf)
+        router.GET("/ecosystem", ecosystemHandler.Ecosystem)
+
         owlSemaphoreHandler := handlers.NewOwlSemaphoreHandler(cfg)
         router.GET("/owl-semaphore", owlSemaphoreHandler.OwlSemaphore)
         router.GET("/owl-layers", owlSemaphoreHandler.OwlLayers)
