@@ -4,6 +4,12 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least-privilege default — this guard only reads the checked-out tree to validate
+# CITATION.cff; it never writes back. Satisfies CodeQL
+# actions/missing-workflow-permissions.
+permissions:
+  contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest

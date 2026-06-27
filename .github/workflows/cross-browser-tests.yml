@@ -3,6 +3,12 @@ name: Cross-Browser E2E Tests (SUSPENDED)
 on:
   workflow_dispatch:
 
+# Least-privilege default — this workflow only checks out, builds, and runs E2E
+# tests; it never writes back to the repo. Satisfies CodeQL
+# actions/missing-workflow-permissions.
+permissions:
+  contents: read
+
 jobs:
   test:
     if: false
