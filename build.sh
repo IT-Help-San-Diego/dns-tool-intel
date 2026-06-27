@@ -6,6 +6,20 @@ if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
   . "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
 
+# Build with a PATCHED Go toolchain so the shipped binary is free of known Go stdlib
+# CVEs. The Nix-provided go is 1.25.5, which govulncheck flags as code-reachable for
+# crypto/tls GO-2026-4340 (handshake encryption level) + GO-2026-4337 (session
+# resumption) — hit via SMTP STARTTLS / DANE / DNS-over-TLS probing — and net/url
+# GO-2026-4341. GOTOOLCHAIN selects the patched release; GOSUMDB must be a real
+# checksum DB (not `off`) or Go refuses to verify/use the toolchain module
+# ("checksum database disabled by GOSUMDB=off"). Project modules stay pinned via
+# go.sum (`go mod verify` covers them), so the sum DB is consulted only for the
+# toolchain itself. On a bump, update this literal + every workflow `go-version:` in
+# lockstep (scripts/check-workflow-pin-sync.sh) and reverify:
+#   GOSUMDB=sum.golang.org GOTOOLCHAIN=go1.25.X govulncheck ./go-server/...
+export GOTOOLCHAIN=go1.25.11
+export GOSUMDB=sum.golang.org
+
 # Owl Semaphore derived display assets are PRE-RENDERED and committed. The canonical
 # owl art is maintained in the standalone owl-semaphore repository, which is the
 # authority; the 540px composites and their responsive derived/ set are committed to
