@@ -57,6 +57,18 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 postureFieldEquals(curr, "spf_analysis", mapKeySpfState, spfStateIndeterminate)
         dmarcIndet := postureFieldEquals(prev, mapKeyDmarcAnalysis, mapKeyDmarcState, dmarcStateIndeterminate) ||
                 postureFieldEquals(curr, mapKeyDmarcAnalysis, mapKeyDmarcState, dmarcStateIndeterminate)
+        // Extend the same tri-state drift suppression to the auxiliary protocols. A
+        // transient CAA/MTA-STS/TLS-RPT/BIMI lookup failure (state=indeterminate on
+        // either side) is not evidence that posture changed — suppress its status/mode
+        // and record/tag diffs rather than fabricate a removal/restoration pair.
+        caaIndet := postureFieldEquals(prev, "caa_analysis", mapKeyCaaState, triStateIndeterminate) ||
+                postureFieldEquals(curr, "caa_analysis", mapKeyCaaState, triStateIndeterminate)
+        mtaStsIndet := postureFieldEquals(prev, "mta_sts_analysis", mapKeyMtaStsState, triStateIndeterminate) ||
+                postureFieldEquals(curr, "mta_sts_analysis", mapKeyMtaStsState, triStateIndeterminate)
+        tlsRptIndet := postureFieldEquals(prev, "tlsrpt_analysis", mapKeyTlsrptState, triStateIndeterminate) ||
+                postureFieldEquals(curr, "tlsrpt_analysis", mapKeyTlsrptState, triStateIndeterminate)
+        bimiIndet := postureFieldEquals(prev, "bimi_analysis", mapKeyBimiState, triStateIndeterminate) ||
+                postureFieldEquals(curr, "bimi_analysis", mapKeyBimiState, triStateIndeterminate)
 
         for _, f := range fields {
                 if daneIndet && f.label == "DANE Status" {
@@ -69,6 +81,18 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                         continue
                 }
                 if dmarcIndet && (f.label == "DMARC Status" || f.label == "DMARC Policy") {
+                        continue
+                }
+                if caaIndet && f.label == "CAA Status" {
+                        continue
+                }
+                if mtaStsIndet && (f.label == "MTA-STS Status" || f.label == "MTA-STS Mode") {
+                        continue
+                }
+                if tlsRptIndet && f.label == "TLS-RPT Status" {
+                        continue
+                }
+                if bimiIndet && f.label == "BIMI Status" {
                         continue
                 }
                 prevVal := extractPostureField(prev, f.section, f.key)
@@ -95,7 +119,18 @@ func ComputePostureDiff(prev, curr map[string]any) []PostureDiffField {
                 {"MX Records", extractSortedMX},
                 {"NS Records", extractSortedNS},
         }
+        // Record/tag set diffs are presence claims too: an indeterminate SPF/DMARC/CAA
+        // lookup yields an empty array that is NOT a confirmed removal. Suppress those
+        // set diffs on the same tri-state basis as the status diffs above.
+        suppressSorted := map[string]bool{
+                "SPF Records":   spfIndet,
+                "DMARC Records": dmarcIndet,
+                "CAA Tags":      caaIndet,
+        }
         for _, sf := range sortedFields {
+                if suppressSorted[sf.label] {
+                        continue
+                }
                 prevVal := sf.fn(prev)
                 currVal := sf.fn(curr)
                 if prevVal != currVal {

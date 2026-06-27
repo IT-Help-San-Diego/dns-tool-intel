@@ -2495,6 +2495,15 @@ func protocolRawConfidence(results map[string]any, resultKey string) float64 {
                 return 0.3
         case mapKeyError, "n/a", "":
                 return 0.0
+        case "indeterminate", "inconclusive":
+                // Transient / unmeasurable result — we could not determine the protocol's
+                // state. Contribute neutral confidence: it must NOT read as a confident
+                // "good" (1.0), nor be penalized as a confirmed failure (0.3) or a
+                // confirmed error/absence (0.0). Handled explicitly (not via the default
+                // catch-all) so a future status-string change cannot silently fold an
+                // unmeasurable result into a confident one (analytic confidence is its
+                // own declared axis, separate from the verdict).
+                return 0.5
         default:
                 return 0.5
         }

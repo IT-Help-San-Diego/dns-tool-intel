@@ -32,6 +32,9 @@ func (q *testDNSQuerier) QueryWithConsensus(context.Context, string, string) dns
 func (q *testDNSQuerier) QuerySpecificResolver(context.Context, string, string, string) ([]string, error) {
         return nil, nil
 }
+func (q *testDNSQuerier) QuerySpecificResolverAuth(context.Context, string, string, string) ([]string, bool, string) {
+        return nil, true, ""
+}
 func (q *testDNSQuerier) QueryWithTTLFromResolver(context.Context, string, string, string) dnsclient.RecordWithTTL {
         return dnsclient.RecordWithTTL{}
 }
