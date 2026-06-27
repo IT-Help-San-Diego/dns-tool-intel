@@ -949,6 +949,51 @@ func (c *Client) QuerySpecificResolver(ctx context.Context, recordType, domain, 
         return results, nil
 }
 
+// QuerySpecificResolverAuth queries a single resolver with recursion disabled and
+// returns the answer records, whether the response was authoritative (the AA
+// bit), and a status string: "" on a NOERROR answer, "NXDOMAIN" for NXDOMAIN, or
+// the RCODE name (SERVFAIL/REFUSED/FORMERR/…) or transport-error string otherwise.
+// Unlike QuerySpecificResolver it never folds a SERVFAIL/REFUSED/timeout — which
+// carry no answer section — into an empty, and therefore falsely "absent", record
+// set. Absence may only be asserted from an authoritative NOERROR/NODATA answer
+// (RFC 4035 §3.2.3); the AA bit lets callers refuse to assert absence from a
+// non-authoritative responder.
+func (c *Client) QuerySpecificResolverAuth(ctx context.Context, recordType, domain, resolverIP string) ([]string, bool, string) {
+        qtype, err := dnsTypeFromString(recordType)
+        if err != nil {
+                return nil, false, err.Error()
+        }
+
+        fqdn := dnsutil.Fqdn(domain)
+        msg := dns.NewMsg(fqdn, qtype)
+        msg.RecursionDesired = false
+
+        resolverAddr := net.JoinHostPort(resolverIP, dnsPort)
+        r, err := c.exchangeWithFallback(ctx, msg, resolverAddr)
+        if err != nil {
+                return nil, false, err.Error()
+        }
+        if r.Rcode == dns.RcodeNameError {
+                return nil, r.Authoritative, "NXDOMAIN"
+        }
+        if r.Rcode != dns.RcodeSuccess {
+                rcodeName, ok := dns.RcodeToString[r.Rcode]
+                if !ok {
+                        rcodeName = fmt.Sprintf("RCODE%d", r.Rcode)
+                }
+                return nil, r.Authoritative, rcodeName
+        }
+
+        var results []string
+        for _, rr := range r.Answer {
+                s := rrToString(rr)
+                if s != "" {
+                        results = append(results, s)
+                }
+        }
+        return results, r.Authoritative, ""
+}
+
 func (c *Client) QueryWithTTLFromResolver(ctx context.Context, recordType, domain, resolverIP string) RecordWithTTL {
         qtype, err := dnsTypeFromString(recordType)
         if err != nil {

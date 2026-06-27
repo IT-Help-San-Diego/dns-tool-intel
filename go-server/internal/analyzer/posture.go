@@ -956,6 +956,13 @@ func classifyMailPartial(gi gradeInput) (string, string, string, string) {
 }
 
 func classifyNoMailGrade(ps protocolState, gi gradeInput) (string, string, string, string) {
+        // Tri-state honesty (mirrors classifyRegistryGrade): a transient SPF/DMARC
+        // lookup failure must never be reported as "missing" or "no records" for a
+        // no-mail domain. Surface an explicit could-not-verify grade and ask for a
+        // re-run before concluding the records are absent (RFC 7208, RFC 7489).
+        if ps.spfIndeterminate || ps.dmarcIndeterminate {
+                return riskMedium, iconShieldHalved, mapKeySecondary, "No-mail domain email authentication could not be fully verified — an SPF/DMARC lookup did not complete; re-run before concluding records are missing"
+        }
         if gi.hasSPF && gi.hasDMARC {
                 if gi.dmarcStrict || gi.dmarcFullEnforcing {
                         return riskLow, iconShieldAlt, mapKeySuccess, "No-mail domain properly configured with SPF and DMARC reject policy"
@@ -1604,12 +1611,37 @@ func buildHiddenPromptsVerdict(hiddenPrompts, verdicts map[string]any) {
         }
 }
 
+// Maximum points each scored protocol can contribute. They sum to
+// scoreDenominator (100), which is the denominator when every protocol is
+// measurable. When a protocol's measurement is indeterminate its weight is
+// removed from BOTH the earned points and the denominator (available-denominator
+// normalization) so an unmeasurable protocol can neither inflate nor depress the
+// posture score (judgment and analytic confidence are separate declared axes).
+const (
+        scoreDenominator = 100
+        weightSPF        = 20
+        weightDMARC      = 30
+)
+
 func computeInternalScore(ps protocolState, ds DKIMState) int {
-        score := 0
-        score += computeSPFScore(ps)
-        score += computeDMARCScore(ps)
-        score += computeDKIMScore(ds)
-        score += computeAuxScore(ps)
+        rawScore := computeSPFScore(ps) + computeDMARCScore(ps) + computeDKIMScore(ds) + computeAuxScore(ps)
+
+        attainable := scoreDenominator
+        if ps.spfIndeterminate {
+                attainable -= weightSPF
+        }
+        if ps.dmarcIndeterminate {
+                attainable -= weightDMARC
+        }
+        if attainable <= 0 {
+                // Nothing measurable was scored; refuse to fabricate a point estimate.
+                return 0
+        }
+
+        // Integer round-half-up of rawScore/attainable*100. When nothing is
+        // indeterminate, attainable==100 and this is an exact identity (no score
+        // movement for the common path).
+        score := (rawScore*100 + attainable/2) / attainable
         if score > 100 {
                 score = 100
         }
@@ -1617,6 +1649,12 @@ func computeInternalScore(ps protocolState, ds DKIMState) int {
 }
 
 func computeSPFScore(ps protocolState) int {
+        if ps.spfIndeterminate {
+                // Transient lookup failure — neither configured nor absent. Contribute 0
+                // raw points; computeInternalScore also removes SPF's weight from the
+                // denominator so this 0 is neutral, never an absence penalty (RFC 7208).
+                return 0
+        }
         if ps.spfMissing {
                 return 0
         }
@@ -1630,6 +1668,12 @@ func computeSPFScore(ps protocolState) int {
 }
 
 func computeDMARCScore(ps protocolState) int {
+        if ps.dmarcIndeterminate {
+                // Transient lookup failure — neither configured nor absent. Contribute 0
+                // raw points; computeInternalScore also removes DMARC's weight from the
+                // denominator so this 0 is neutral, never an absence penalty (RFC 7489).
+                return 0
+        }
         if ps.dmarcMissing {
                 return 0
         }

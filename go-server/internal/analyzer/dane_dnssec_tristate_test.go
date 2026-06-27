@@ -236,6 +236,164 @@ func TestAnalyzeDNSSEC_TriState_MixedDSErrorDNSKEYResolved(t *testing.T) {
         }
 }
 
+// parent-authoritative DS confirmation fixtures. parentZoneFromDomain(triStateDomain)
+// is "test"; the analyzer resolves the parent NS, then its A record, then queries
+// DS for the child directly at that parent IP with recursion disabled.
+const (
+        triStateParentNS = "a.nic.test"
+        triStateParentIP = "192.0.2.53"
+)
+
+func addParentNS(m *MockDNSClient) {
+        m.AddResponse("NS", "test", []string{triStateParentNS + "."})
+        m.AddResponse("A", triStateParentNS, []string{triStateParentIP})
+}
+
+// TestAnalyzeDNSSEC_FalseAbsentDS_ConfirmedPresentAtParent locks the core
+// Zero-Fabrication fix: DNSKEY is present but the recursive/consensus DS lookup
+// returned a (false) authoritative-absent, with no AD flag. The analyzer must NOT
+// declare "DS missing at registrar" — it must confirm at the parent, find the DS,
+// and report a complete chain (RFC 4035 §3.2.3, RFC 6781 §4.2.2).
+func TestAnalyzeDNSSEC_FalseAbsentDS_ConfirmedPresentAtParent(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        addParentNS(mockDNS)
+        mockDNS.AddSpecificResolverResponse("DS", triStateDomain, triStateParentIP,
+                []string{"12345 13 2 abc123"})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStatePresent {
+                t.Fatalf("dnssec_state = %v, want %s (DS confirmed present at parent — must not read as broken)", got, dnssecStatePresent)
+        }
+        if got := result[mapKeyChainOfTrust]; got != "complete" {
+                t.Fatalf("chain_of_trust = %v, want complete", got)
+        }
+        if got, _ := result[mapKeyHasDs].(bool); !got {
+                t.Fatalf("has_ds = %v, want true (DS adopted from authoritative parent answer)", result[mapKeyHasDs])
+        }
+}
+
+// TestAnalyzeDNSSEC_ConfirmedNoDS_IslandOfSecurity verifies the genuine broken
+// chain is still surfaced: DNSKEY present, no DS via consensus, and the parent's
+// authoritative servers confirm there is truly no DS. This is a real island of
+// security (RFC 6781 §4.2.2) — chain_of_trust=broken — but dnssec_state must be
+// "partial" (signed zone, incomplete chain), never the contradictory "present".
+func TestAnalyzeDNSSEC_ConfirmedNoDS_IslandOfSecurity(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        addParentNS(mockDNS)
+        mockDNS.AddSpecificResolverResponse("DS", triStateDomain, triStateParentIP, []string{})
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStatePartial {
+                t.Fatalf("dnssec_state = %v, want %s (signed zone, DS confirmed absent at parent)", got, dnssecStatePartial)
+        }
+        if got := result[mapKeyChainOfTrust]; got != "broken" {
+                t.Fatalf("chain_of_trust = %v, want broken (authoritatively confirmed island of security)", got)
+        }
+        if got, _ := result[mapKeyHasDs].(bool); got {
+                t.Fatalf("has_ds = %v, want false", result[mapKeyHasDs])
+        }
+}
+
+// TestAnalyzeDNSSEC_DSUnconfirmable_Indeterminate locks the honesty rule: DNSKEY
+// present, no DS via consensus, no AD flag, and the parent cannot be reached to
+// confirm (NS discovery fails). Absence is only assertable from an authoritative
+// answer (RFC 4035) — so an unconfirmable DS must read as indeterminate ("could
+// not verify"), never a fabricated "DS missing at registrar".
+func TestAnalyzeDNSSEC_DSUnconfirmable_Indeterminate(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        // No parent NS configured: queryParentAuthoritativeDS cannot confirm.
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (parent unreachable — must not assert broken/absent)", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyStatus]; got != statusUnknown {
+                t.Fatalf("status = %v, want %s", got, statusUnknown)
+        }
+        if msg, _ := result[mapKeyMessage].(string); strings.Contains(msg, "missing at registrar") {
+                t.Fatalf("fabricated DS-absence message when parent was unconfirmable: %q", msg)
+        }
+}
+
+// TestAnalyzeDNSSEC_DSParentServfail_Indeterminate locks the blocking gap the
+// architect flagged: the parent IS reachable, but its authoritative server answers
+// the DS query with SERVFAIL. A SERVFAIL carries no answer section, so the old
+// (records, error) path folded it into a (false) confirmed absence. Per RFC 4035
+// §3.2.3 absence is only assertable from an authoritative answer — a server-failure
+// must read as indeterminate ("could not verify"), never "DS missing at registrar".
+func TestAnalyzeDNSSEC_DSParentServfail_Indeterminate(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        addParentNS(mockDNS)
+        // Parent authoritative server returns SERVFAIL (no answer, not an absence).
+        mockDNS.AddSpecificResolverAuthResponse("DS", triStateDomain, triStateParentIP,
+                nil, false, "SERVFAIL")
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (parent SERVFAIL — must not assert broken/absent)", got, dnssecStateIndeterminate)
+        }
+        if msg, _ := result[mapKeyMessage].(string); strings.Contains(msg, "missing at registrar") {
+                t.Fatalf("fabricated DS-absence message on parent SERVFAIL: %q", msg)
+        }
+}
+
+// TestAnalyzeDNSSEC_DSParentNonAuthoritative_Indeterminate locks the AA-bit guard:
+// the parent query returns a clean NOERROR with an empty answer (NODATA shape) but
+// the AA bit is NOT set, meaning the responder was not authoritative for the parent
+// zone (e.g. a recursive cache hop). An empty answer from a non-authoritative
+// responder cannot prove the DS is absent (RFC 4035 §3.2.3) — it must read as
+// indeterminate, never a confirmed island of security.
+func TestAnalyzeDNSSEC_DSParentNonAuthoritative_Indeterminate(t *testing.T) {
+        mockDNS := NewMockDNSClient()
+        mockDNS.AddTTLStatusResponse("DNSKEY", triStateDomain,
+                dnsclient.RecordWithTTL{Records: []string{"257 3 13 mIIBI..."}},
+                dnsclient.LookupResolved)
+        mockDNS.AddTTLStatusResponse("DS", triStateDomain,
+                dnsclient.RecordWithTTL{}, dnsclient.LookupAbsent)
+        addParentNS(mockDNS)
+        // NOERROR + empty answer but AA=0: not an authoritative absence.
+        mockDNS.AddSpecificResolverAuthResponse("DS", triStateDomain, triStateParentIP,
+                []string{}, false, "")
+        a := &Analyzer{DNS: mockDNS}
+
+        result := a.AnalyzeDNSSEC(context.Background(), triStateDomain)
+
+        if got := result[mapKeyDnssecState]; got != dnssecStateIndeterminate {
+                t.Fatalf("dnssec_state = %v, want %s (non-authoritative empty answer — must not assert absent)", got, dnssecStateIndeterminate)
+        }
+        if got := result[mapKeyChainOfTrust]; got == "broken" {
+                t.Fatalf("chain_of_trust = broken fabricated from a non-authoritative empty parent answer")
+        }
+}
+
 // TestComputePostureDiff_SuppressesIndeterminateFlapping is the core regression
 // guard: a present → indeterminate → present sequence must produce zero drift
 // events, because the indeterminate scan is an incomplete probe, not a change.
@@ -360,5 +518,130 @@ func TestClassifyRegistryGrade_IndeterminateNotUnsigned(t *testing.T) {
         }
         if !strings.Contains(msg, "could not be verified") {
                 t.Fatalf("registry grade should report inconclusive; got %q", msg)
+        }
+}
+
+// TestComputeInternalScore_IndeterminateNeutral verifies available-denominator
+// normalization: a transient SPF/DMARC lookup failure earns neither presence
+// points nor an absence penalty. Its weight is removed from BOTH the earned
+// points and the denominator, so an otherwise-perfect posture still scores 100
+// (judgment and analytic confidence are separate axes; RFC 7208 / RFC 7489).
+func TestComputeInternalScore_IndeterminateNeutral(t *testing.T) {
+        spfIndet := protocolState{
+                spfIndeterminate: true,
+                dmarcOK:          true, dmarcPolicy: "reject",
+                dnssecOK: true, daneOK: true, mtaStsOK: true,
+                tlsrptOK: true, caaOK: true, bimiOK: true,
+        }
+        if got := computeInternalScore(spfIndet, DKIMSuccess); got != 100 {
+                t.Errorf("SPF indeterminate + otherwise perfect: score = %d, want 100 (no penalty for an unmeasurable protocol)", got)
+        }
+
+        dmarcIndet := protocolState{
+                spfOK: true, spfHardFail: true,
+                dmarcIndeterminate: true,
+                dnssecOK:           true, daneOK: true, mtaStsOK: true,
+                tlsrptOK: true, caaOK: true, bimiOK: true,
+        }
+        if got := computeInternalScore(dmarcIndet, DKIMSuccess); got != 100 {
+                t.Errorf("DMARC indeterminate + otherwise perfect: score = %d, want 100", got)
+        }
+}
+
+// TestComputeInternalScore_IndeterminateBeatsMissing locks the core asymmetry: an
+// indeterminate SPF (could-not-measure) must score strictly HIGHER than a
+// confirmed-missing SPF on the same otherwise-identical posture, because a missing
+// record is a real absence penalty while an unmeasurable one is not.
+func TestComputeInternalScore_IndeterminateBeatsMissing(t *testing.T) {
+        withRest := func(spf protocolState) protocolState {
+                spf.dmarcMissing = true
+                spf.dnssecOK = true
+                spf.daneOK = true
+                spf.mtaStsOK = true
+                spf.tlsrptOK = true
+                spf.caaOK = true
+                spf.bimiOK = true
+                return spf
+        }
+        indeterminate := computeInternalScore(withRest(protocolState{spfIndeterminate: true}), DKIMSuccess)
+        missing := computeInternalScore(withRest(protocolState{spfMissing: true}), DKIMSuccess)
+        if indeterminate <= missing {
+                t.Errorf("indeterminate SPF (%d) must score higher than missing SPF (%d)", indeterminate, missing)
+        }
+}
+
+// TestComputeScore_IndeterminateRawIsZero verifies the per-protocol raw score is 0
+// for an indeterminate measurement (neutrality comes from denominator removal in
+// computeInternalScore, not from awarding phantom presence points).
+func TestComputeScore_IndeterminateRawIsZero(t *testing.T) {
+        if got := computeSPFScore(protocolState{spfIndeterminate: true}); got != 0 {
+                t.Errorf("indeterminate SPF raw score = %d, want 0 (no phantom presence credit)", got)
+        }
+        if got := computeDMARCScore(protocolState{dmarcIndeterminate: true}); got != 0 {
+                t.Errorf("indeterminate DMARC raw score = %d, want 0 (no phantom presence credit)", got)
+        }
+}
+
+// TestClassifyNoMailGrade_Indeterminate verifies a no-mail domain with a transient
+// SPF/DMARC failure is NOT graded as "missing"/"no records" — it returns an
+// explicit could-not-verify medium grade, mirroring classifyRegistryGrade.
+func TestClassifyNoMailGrade_Indeterminate(t *testing.T) {
+        state, _, _, msg := classifyNoMailGrade(protocolState{spfIndeterminate: true, dmarcIndeterminate: true}, gradeInput{})
+        if state != riskMedium {
+                t.Fatalf("both indeterminate: state = %q, want %q (could-not-verify, not 'no records')", state, riskMedium)
+        }
+        if !strings.Contains(strings.ToLower(msg), "could not") {
+                t.Fatalf("message %q should state authentication could not be verified", msg)
+        }
+
+        state, _, _, _ = classifyNoMailGrade(protocolState{spfIndeterminate: true}, gradeInput{hasDMARC: true})
+        if state != riskMedium {
+                t.Fatalf("one indeterminate: state = %q, want %q (cannot assert the indeterminate record missing)", state, riskMedium)
+        }
+}
+
+// TestComputePostureDiff_SuppressesAuxIndeterminate extends tri-state drift
+// suppression to CAA / MTA-STS / TLS-RPT / BIMI status+mode and to the
+// SPF/DMARC/CAA record/tag set diffs: a transient lookup (state=indeterminate on
+// either side) must not fabricate a removal/restoration pair.
+func TestComputePostureDiff_SuppressesAuxIndeterminate(t *testing.T) {
+        present := map[string]any{
+                "caa_analysis":     map[string]any{mapKeyStatus: "secure", mapKeyCaaState: triStatePresent, mapKeyRecords: []any{map[string]any{"tag": "issue", "value": "letsencrypt.org"}}},
+                "mta_sts_analysis": map[string]any{mapKeyStatus: "secure", mapKeyMtaStsState: triStatePresent, "mode": "enforce"},
+                "tlsrpt_analysis":  map[string]any{mapKeyStatus: "secure", mapKeyTlsrptState: triStatePresent},
+                "bimi_analysis":    map[string]any{mapKeyStatus: "secure", mapKeyBimiState: triStatePresent},
+                "spf_analysis":     map[string]any{mapKeyStatus: "secure", mapKeySpfState: triStatePresent, mapKeyRecords: []any{"v=spf1 -all"}},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyStatus: "secure", mapKeyDmarcState: triStatePresent, mapKeyRecords: []any{"v=DMARC1; p=reject"}},
+        }
+        indeterminate := map[string]any{
+                "caa_analysis":     map[string]any{mapKeyStatus: statusIndeterminate, mapKeyCaaState: triStateIndeterminate, mapKeyRecords: []any{}},
+                "mta_sts_analysis": map[string]any{mapKeyStatus: statusIndeterminate, mapKeyMtaStsState: triStateIndeterminate, "mode": ""},
+                "tlsrpt_analysis":  map[string]any{mapKeyStatus: statusIndeterminate, mapKeyTlsrptState: triStateIndeterminate},
+                "bimi_analysis":    map[string]any{mapKeyStatus: statusIndeterminate, mapKeyBimiState: triStateIndeterminate},
+                "spf_analysis":     map[string]any{mapKeyStatus: statusIndeterminate, mapKeySpfState: triStateIndeterminate, mapKeyRecords: []any{}},
+                mapKeyDmarcAnalysis: map[string]any{mapKeyStatus: statusIndeterminate, mapKeyDmarcState: triStateIndeterminate, mapKeyRecords: []any{}},
+        }
+        if diffs := ComputePostureDiff(present, indeterminate); len(diffs) != 0 {
+                t.Fatalf("indeterminate aux protocols must not drift; got %d: %+v", len(diffs), diffs)
+        }
+        if diffs := ComputePostureDiff(indeterminate, present); len(diffs) != 0 {
+                t.Fatalf("restoration from indeterminate must not drift; got %d: %+v", len(diffs), diffs)
+        }
+}
+
+// TestComputePostureDiff_AuxRealTransitionStillDrifts is the over-suppression
+// guard: a CONFIRMED change (present -> confirmed-absent, an authoritative answer)
+// must still surface as drift for the aux protocols and their record/tag sets.
+func TestComputePostureDiff_AuxRealTransitionStillDrifts(t *testing.T) {
+        present := map[string]any{
+                "caa_analysis":     map[string]any{mapKeyStatus: "secure", mapKeyCaaState: triStatePresent, mapKeyRecords: []any{map[string]any{"tag": "issue", "value": "letsencrypt.org"}}},
+                "mta_sts_analysis": map[string]any{mapKeyStatus: "secure", mapKeyMtaStsState: triStatePresent, "mode": "enforce"},
+        }
+        absent := map[string]any{
+                "caa_analysis":     map[string]any{mapKeyStatus: mapKeyWarning, mapKeyCaaState: triStateAbsentConf, mapKeyRecords: []any{}},
+                "mta_sts_analysis": map[string]any{mapKeyStatus: mapKeyWarning, mapKeyMtaStsState: triStateAbsentConf, "mode": ""},
+        }
+        if diffs := ComputePostureDiff(present, absent); len(diffs) == 0 {
+                t.Fatal("confirmed present->absent on aux protocols must still drift (suppression must not be over-broad)")
         }
 }

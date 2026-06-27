@@ -37,6 +37,9 @@ func (m *mockDNSForNmap) QueryWithConsensus(context.Context, string, string) dns
 func (m *mockDNSForNmap) QuerySpecificResolver(context.Context, string, string, string) ([]string, error) {
         return nil, nil
 }
+func (m *mockDNSForNmap) QuerySpecificResolverAuth(context.Context, string, string, string) ([]string, bool, string) {
+        return nil, true, ""
+}
 func (m *mockDNSForNmap) QueryWithTTLFromResolver(context.Context, string, string, string) dnsclient.RecordWithTTL {
         return dnsclient.RecordWithTTL{}
 }
