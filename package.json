@@ -24,7 +24,7 @@
     "csso-cli": "^4.0.2",
     "follow-redirects": "^1.16.0",
     "libsodium-wrappers": "^0.8.3",
-    "lighthouse": "^13.1.0",
+    "lighthouse": "^13.4.0",
     "minimatch": "^10.2.5",
     "pa11y": "^9.1.1",
     "playwright-lighthouse": "^4.0.0",
@@ -41,6 +41,10 @@
     "tar-fs": "$tar-fs",
     "ws": "$ws",
     "lodash.set": "file:packages/lodash-set-safe",
-    "yauzl": "$yauzl"
+    "yauzl": "$yauzl",
+    "@opentelemetry/core": "^2.8.0",
+    "@opentelemetry/resources": "^2.8.0",
+    "@opentelemetry/sdk-trace-base": "^2.8.0",
+    "@opentelemetry/context-async-hooks": "^2.8.0"
   }
 }
