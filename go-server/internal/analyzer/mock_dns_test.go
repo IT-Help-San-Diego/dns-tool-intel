@@ -28,6 +28,7 @@ type MockDNSClient struct {
         }
         validationResp     map[string]map[string]any
         specificResp       map[string][]string
+        specificAuthResp   map[string]specificAuthEntry
         ttlStatusResponses map[string]ttlStatusEntry
         statusResponses    map[string]statusEntry
 }
@@ -42,6 +43,12 @@ type statusEntry struct {
         status  dnsclient.LookupStatus
 }
 
+type specificAuthEntry struct {
+        records       []string
+        authoritative bool
+        status        string
+}
+
 func NewMockDNSClient() *MockDNSClient {
         return &MockDNSClient{
                 responses:     make(map[string][]string),
@@ -54,6 +61,7 @@ func NewMockDNSClient() *MockDNSClient {
                 }),
                 validationResp:     make(map[string]map[string]any),
                 specificResp:       make(map[string][]string),
+                specificAuthResp:   make(map[string]specificAuthEntry),
                 ttlStatusResponses: make(map[string]ttlStatusEntry),
                 statusResponses:    make(map[string]statusEntry),
         }
@@ -101,6 +109,13 @@ func (m *MockDNSClient) AddSpecificResolverResponse(recordType, domain, resolver
         defer m.mu.Unlock()
         key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
         m.specificResp[key] = records
+}
+
+func (m *MockDNSClient) AddSpecificResolverAuthResponse(recordType, domain, resolverIP string, records []string, authoritative bool, status string) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
+        m.specificAuthResp[key] = specificAuthEntry{records: records, authoritative: authoritative, status: status}
 }
 
 func (m *MockDNSClient) SetExchangeFunc(f func(ctx context.Context, msg *dns.Msg) (*dns.Msg, error)) {
@@ -205,6 +220,21 @@ func (m *MockDNSClient) QuerySpecificResolver(_ context.Context, recordType, dom
                 return recs, nil
         }
         return m.responses[mockKey(recordType, domain)], nil
+}
+
+func (m *MockDNSClient) QuerySpecificResolverAuth(_ context.Context, recordType, domain, resolverIP string) ([]string, bool, string) {
+        m.mu.Lock()
+        defer m.mu.Unlock()
+        key := fmt.Sprintf("%s:%s:%s", strings.ToUpper(recordType), strings.ToLower(domain), resolverIP)
+        if e, ok := m.specificAuthResp[key]; ok {
+                return e.records, e.authoritative, e.status
+        }
+        // Fall back to the plain specific-resolver fixtures, treated as an
+        // authoritative NOERROR answer so existing tests keep their semantics.
+        if recs, ok := m.specificResp[key]; ok {
+                return recs, true, ""
+        }
+        return m.responses[mockKey(recordType, domain)], true, ""
 }
 
 func (m *MockDNSClient) QueryWithTTLFromResolver(_ context.Context, recordType, domain, _ string) dnsclient.RecordWithTTL {

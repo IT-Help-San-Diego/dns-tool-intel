@@ -19,6 +19,7 @@ type DNSQuerier interface {
         QueryDNSWithTTLStatus(ctx context.Context, recordType, domain string) (dnsclient.RecordWithTTL, dnsclient.LookupStatus)
         QueryWithConsensus(ctx context.Context, recordType, domain string) dnsclient.ConsensusResult
         QuerySpecificResolver(ctx context.Context, recordType, domain, resolverIP string) ([]string, error)
+        QuerySpecificResolverAuth(ctx context.Context, recordType, domain, resolverIP string) ([]string, bool, string)
         QueryWithTTLFromResolver(ctx context.Context, recordType, domain, resolverIP string) dnsclient.RecordWithTTL
         CheckDNSSECADFlag(ctx context.Context, domain string) dnsclient.ADFlagResult
         ExchangeContext(ctx context.Context, msg *dns.Msg) (*dns.Msg, error)

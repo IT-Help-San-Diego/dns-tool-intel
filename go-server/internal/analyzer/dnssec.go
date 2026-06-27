@@ -31,6 +31,13 @@ const (
         dnssecStatePresent       = "present"
         dnssecStateAbsentConf    = "absent_confirmed"
         dnssecStateIndeterminate = "indeterminate"
+        // dnssecStatePartial = the zone is signed (DNSKEY present) but the parent's
+        // authoritative servers confirm there is NO DS — a genuine broken chain /
+        // island of security (RFC 6781 §4.2.2). It is NOT "present" (the chain to the
+        // parent is incomplete) and NOT "absent_confirmed" (the zone IS signed). This
+        // state is only ever set AFTER an authoritative parent confirmation, so it can
+        // never be a fabricated "DS missing" verdict derived from a consensus miss.
+        dnssecStatePartial = "partial"
 )
 
 var algorithmNames = map[int]string{
@@ -124,7 +131,11 @@ func buildDNSSECResult(p dnssecParams) map[string]any {
                         mapKeyChainOfTrust:         "broken",
                         mapKeyAdFlag:               false,
                         mapKeyAdResolver:           derefStr(p.adResolver),
-                        mapKeyDnssecState:          dnssecStatePresent,
+                        // Signed zone with no DS at the parent = island of security / broken
+                        // chain, NOT "present". AnalyzeDNSSEC only reaches this branch after an
+                        // authoritative parent confirmation, so the absence is real, never a
+                        // consensus-miss fabrication (RFC 4035 §3.2.3, RFC 6781 §4.2.2).
+                        mapKeyDnssecState: dnssecStatePartial,
                 }
         }
 
@@ -207,6 +218,68 @@ func parentDSRecords(a *Analyzer, ctx context.Context, parentZone string) []stri
         return a.DNS.QueryDNS(ctx, "DS", parentZone)
 }
 
+// parentDSState is the authoritative confirmation result for a child zone's DS
+// RRset, queried directly at the PARENT zone's nameservers (recursion disabled).
+// Per RFC 4035 §3.1.4 the DS RRset is published in the PARENT zone, and per
+// RFC 4035 §3.2.3 / RFC 6781 §4.2.2 the ABSENCE of a DS may only be asserted
+// from the parent's authoritative answer — never inferred from a recursive or
+// multi-resolver consensus miss (stale cache, RRSIG filtering, resolver
+// disagreement), which would fabricate a "DS missing at registrar" verdict
+// against a zone whose chain of trust is in fact intact.
+type parentDSState int
+
+const (
+        parentDSIndeterminate parentDSState = iota
+        parentDSConfirmedPresent
+        parentDSConfirmedAbsent
+)
+
+type parentDSConfirmation struct {
+        state   parentDSState
+        records []string
+}
+
+// queryParentAuthoritativeDS resolves the parent zone's nameservers and queries
+// the child's DS RRset directly at a parent server with recursion disabled. A
+// non-empty DS answer confirms presence; a NOERROR/empty answer from the parent
+// authoritative server confirms genuine absence (island of security, RFC 6781
+// §4.2.2); any parent-discovery, transport, server-failure (SERVFAIL/REFUSED),
+// or non-authoritative (AA=0) result leaves the outcome indeterminate ("could
+// not verify") rather than asserting a broken chain.
+func (a *Analyzer) queryParentAuthoritativeDS(ctx context.Context, domain string) parentDSConfirmation {
+        parentZone := parentZoneFromDomain(domain)
+        if parentZone == "" {
+                return parentDSConfirmation{state: parentDSIndeterminate}
+        }
+
+        parentNSServers := a.DNS.QueryDNS(ctx, "NS", parentZone)
+        if len(parentNSServers) == 0 {
+                return parentDSConfirmation{state: parentDSIndeterminate}
+        }
+
+        parentServer := strings.TrimRight(parentNSServers[0], ".")
+        parentIPs := a.DNS.QueryDNS(ctx, "A", parentServer)
+        if len(parentIPs) == 0 {
+                return parentDSConfirmation{state: parentDSIndeterminate}
+        }
+
+        records, authoritative, status := a.DNS.QuerySpecificResolverAuth(ctx, "DS", domain, parentIPs[0])
+        // Absence of a DS may only be asserted from an AUTHORITATIVE parent answer
+        // (RFC 4035 §3.2.3, RFC 6781 §4.2.2). A SERVFAIL/REFUSED/FORMERR/timeout
+        // (status != "") carries no answer section, and a NOERROR that is not
+        // authoritative (AA=0) means we never reached a parent authority — both must
+        // stay indeterminate rather than fabricating a broken chain. An NXDOMAIN for
+        // a child whose DNSKEY we already observed is self-contradictory, so it too
+        // is treated as could-not-verify, never a confirmed absence.
+        if status != "" || !authoritative {
+                return parentDSConfirmation{state: parentDSIndeterminate}
+        }
+        if has, ds := collectDSRecords(records); has {
+                return parentDSConfirmation{state: parentDSConfirmedPresent, records: ds}
+        }
+        return parentDSConfirmation{state: parentDSConfirmedAbsent}
+}
+
 func buildInheritedDNSSECResult(parentZone string, adResolver *string, parentAlgo *int, parentAlgoName *string) map[string]any {
         var message string
         if parentZone != "" {
@@ -260,6 +333,29 @@ func (a *Analyzer) AnalyzeDNSSEC(ctx context.Context, domain string) map[string]
         definitivePositive := (hasDNSKEY && hasDS) || adFlag
         if lookupErrored && !definitivePositive {
                 return buildIndeterminateDNSSECResult(adResolver)
+        }
+
+        // hasDNSKEY && !hasDS from the recursive/consensus path is the classic
+        // false-absence: the DS RRset lives in the PARENT zone, so a consensus miss
+        // (stale cache, RRSIG filtering, resolver disagreement) must never be reported
+        // as "DS missing at registrar". When the resolver did not independently set the
+        // AD flag (no proof of a complete chain), confirm the DS directly at the
+        // parent's authoritative servers before asserting a broken chain. Present →
+        // adopt the real DS; authoritatively absent → genuine island of security;
+        // unconfirmable → indeterminate, never a fabricated absence (RFC 4035 §3.2.3,
+        // RFC 6781 §4.2.2).
+        if hasDNSKEY && !hasDS && !adFlag {
+                switch confirm := a.queryParentAuthoritativeDS(ctx, domain); confirm.state {
+                case parentDSConfirmedPresent:
+                        hasDS = true
+                        dsRecords = confirm.records
+                        algorithm, algorithmName = parseAlgorithm(confirm.records)
+                case parentDSIndeterminate:
+                        return buildIndeterminateDNSSECResult(adResolver)
+                case parentDSConfirmedAbsent:
+                        // Real DNSKEY-without-DS, authoritatively confirmed at the parent. Fall
+                        // through to buildDNSSECResult, which now labels dnssec_state=partial.
+                }
         }
 
         if !adFlag || hasDNSKEY || hasDS {
