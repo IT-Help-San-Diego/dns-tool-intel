@@ -3,7 +3,7 @@ module dnstool
 go 1.25.5
 
 require (
-	codeberg.org/miekg/dns v0.6.81
+	codeberg.org/miekg/dns v0.6.83
 	github.com/axiomhq/hyperloglog v0.2.6
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/gin v1.12.0
