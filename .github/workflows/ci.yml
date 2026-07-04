@@ -13,17 +13,29 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded in-progress runs for the same pull request — a new push to
+# a PR makes the previous run's result irrelevant, so this saves runner minutes.
+# Pull requests share a per-PR group (a newer push supersedes the prior run);
+# every non-PR event (notably main pushes) gets a unique per-run group, so those
+# runs are never grouped together and can never be auto-cancelled — each one
+# completes for the record. (A bare github.ref group would let a newer main push
+# cancel an older *pending* main run, which we explicitly do not want.)
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: '1.25.11'
 
@@ -162,6 +174,9 @@ jobs:
   handler-tests-db-integration:
     name: Handler Tests — dbtest + integration
     runs-on: ubuntu-latest
+    # Up to ~30 min worst case: the retry step is 15 min × 2 attempts. 45 leaves
+    # headroom for checkout, setup-go, and Postgres service startup on top.
+    timeout-minutes: 45
     # Closes the last gap in the handler test coverage map (task #97):
     # the default Build & Test job intentionally skips the `dbtest` and
     # `integration` tag buckets because they require a live PostgreSQL
@@ -211,11 +226,11 @@ jobs:
           --health-retries 12
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: '1.25.11'
 
@@ -250,7 +265,7 @@ jobs:
         # "Surface silent retry" step below can read the
         # `total_attempts` output and emit observability when the lane
         # was saved by retry (task #105).
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 15
           max_attempts: 2
