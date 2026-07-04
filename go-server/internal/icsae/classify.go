@@ -99,7 +99,7 @@ func asStringSlice(v any) []string {
 // as "by design" for operators who have demonstrably reached the top of every
 // posture we can measure. providerLimitedDANE means the mail platform cannot
 // support DANE at all.
-func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC bool) FixClassification {
+func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC bool, couldntVerify map[string]bool) FixClassification {
         spfOK := containsString(passed, "SPF_EFFECTIVE_POLICY")
         caaOK := containsString(passed, "CAA_RESTRICTION_PRESENT")
         strongCompensating := dmarcReject && spfOK && caaOK
@@ -112,7 +112,7 @@ func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmar
         hasHigh, hasMedium, hasLow := false, false, false
 
         classify := func(id, severity string) {
-                bucket, group := bucketFor(id, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC)
+                bucket, group := bucketFor(id, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC, couldntVerify)
                 switch bucket {
                 case BucketRealFix:
                         fc.RealFixes = append(fc.RealFixes, id)
@@ -166,7 +166,15 @@ func ClassifyFixes(high, medium, low, passed []string, providerLimitedDANE, dmar
 
 // bucketFor returns the reality-matched bucket for a single failed control and,
 // when the control belongs to a counted-once group, that group's key.
-func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC bool) (FixBucket, string) {
+func bucketFor(id string, strongCompensating, dnssecDeployed, providerLimitedDANE, enterpriseDeliberateDNSSEC bool, couldntVerify map[string]bool) (FixBucket, string) {
+        // A control whose underlying protocol measurement was transient/indeterminate
+        // (SERVFAIL/timeout/no-majority) can be neither confirmed present nor proven
+        // absent, so it is routed to could-not-verify before any absence-based
+        // bucketing. We never assert a control is missing from a failed measurement
+        // (Zero Fabrication) — an authoritative absence is required for a real fix.
+        if couldntVerify[id] {
+                return BucketCouldntVerify, ""
+        }
         switch id {
         case "DANE_DEPLOYED":
                 if providerLimitedDANE {
@@ -274,5 +282,31 @@ func classifyFromParts(high, medium, low, passed []string, fr map[string]any) Fi
         providerLimitedDANE := containsString(asStringSlice(getMap(fr, "posture")["provider_limited"]), "DANE")
         dmarcReject := getString(getMap(fr, "dmarc_analysis"), "policy") == "reject"
         enterpriseDeliberateDNSSEC := enterpriseDeliberateUnsignedDNSSEC(fr)
-        return ClassifyFixes(high, medium, low, passed, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC)
+        return ClassifyFixes(high, medium, low, passed, providerLimitedDANE, dmarcReject, enterpriseDeliberateDNSSEC, indeterminateAuxControls(fr))
+}
+
+// indeterminateAuxControls maps a transient/indeterminate protocol measurement to
+// the control ID(s) that must therefore be reported as could-not-verify rather
+// than asserted as absent. Absence is read ONLY from an authoritative answer
+// (Zero Fabrication): a *_state of "indeterminate" is a SERVFAIL/timeout/conflict,
+// never proof the record is unconfigured. CAA -> CAA_RESTRICTION_PRESENT (RFC 8659
+// §4.2), MTA-STS/TLS-RPT -> MAIL_POLICY_SIGNALING (RFC 8461, RFC 8460), BIMI ->
+// BIMI_CONFIGURED. The transport control requires_any(MTA-STS, TLS-RPT), so it can
+// only reach a failed bucket when both signals are down; if EITHER was merely
+// indeterminate the "both absent" conclusion is not authoritative.
+func indeterminateAuxControls(fr map[string]any) map[string]bool {
+        indet := func(section, key string) bool {
+                return getString(getMap(fr, section), key) == "indeterminate"
+        }
+        out := map[string]bool{}
+        if indet("caa_analysis", "caa_state") {
+                out["CAA_RESTRICTION_PRESENT"] = true
+        }
+        if indet("bimi_analysis", "bimi_state") {
+                out["BIMI_CONFIGURED"] = true
+        }
+        if indet("mta_sts_analysis", "mta_sts_state") || indet("tlsrpt_analysis", "tlsrpt_state") {
+                out["MAIL_POLICY_SIGNALING"] = true
+        }
+        return out
 }

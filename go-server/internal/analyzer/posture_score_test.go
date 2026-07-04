@@ -742,3 +742,37 @@ func TestClassifyCertificateCosts_NoCASummary(t *testing.T) {
 		t.Error("no ca_summary should not add recommendations")
 	}
 }
+
+func TestComputeInternalScore_IndeterminateNeutralized(t *testing.T) {
+	// A domain whose only gap is a transiently-indeterminate protocol must not be
+	// docked for it: the weight is removed from the denominator so an unmeasurable
+	// protocol is neutral, never an absence penalty. Baseline is a full posture that
+	// scores 100; flipping one protocol OK->indeterminate must keep the score at 100.
+	base := protocolState{
+		spfOK: true, spfHardFail: true,
+		dmarcOK: true, dmarcPolicy: "reject",
+		dnssecOK: true, daneOK: true, mtaStsOK: true,
+		tlsrptOK: true, caaOK: true, bimiOK: true,
+	}
+	cases := []struct {
+		name   string
+		mutate func(ps *protocolState)
+	}{
+		{"dnssec indeterminate", func(ps *protocolState) { ps.dnssecOK = false; ps.dnssecIndeterminate = true }},
+		{"dane indeterminate", func(ps *protocolState) { ps.daneOK = false; ps.daneIndeterminate = true }},
+		{"mta-sts indeterminate", func(ps *protocolState) { ps.mtaStsOK = false; ps.mtaStsIndeterminate = true }},
+		{"tlsrpt indeterminate", func(ps *protocolState) { ps.tlsrptOK = false; ps.tlsrptIndeterminate = true }},
+		{"caa indeterminate", func(ps *protocolState) { ps.caaOK = false; ps.caaIndeterminate = true }},
+		{"bimi indeterminate", func(ps *protocolState) { ps.bimiOK = false; ps.bimiIndeterminate = true }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ps := base
+			tc.mutate(&ps)
+			got := computeInternalScore(ps, DKIMSuccess)
+			if got != 100 {
+				t.Errorf("%s: indeterminate must be neutral (weight removed from denominator); want 100, got %d", tc.name, got)
+			}
+		})
+	}
+}
