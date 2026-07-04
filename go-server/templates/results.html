@@ -174,6 +174,10 @@
         {{$dane := mapGetMap "dane_analysis" $results}}
         {{$mta_sts := mapGetMap "mta_sts_analysis" $results}}
         {{$tlsrpt := mapGetMap "tlsrpt_analysis" $results}}
+        {{$caaState := mapGetStr "caa_state" $caa}}
+        {{$mtaStsState := mapGetStr "mta_sts_state" $mta_sts}}
+        {{$tlsrptState := mapGetStr "tlsrpt_state" $tlsrpt}}
+        {{$bimiState := mapGetStr "bimi_state" $bimi}}
         {{$posture := mapGetMap "posture" $results}}
         {{$remediation := mapGetMap "remediation" $results}}
         {{$hosting := mapGetMap "hosting_summary" $results}}
@@ -659,6 +663,8 @@
                                 <span class="badge bg-success px-3 py-2">Protected</span>
                                 {{else if and $bimi (eq (mapGetStr "status" $bimi) "success")}}
                                 <span class="badge bg-info px-3 py-2">Basic</span>
+                                {{else if eq $bimiState "indeterminate"}}
+                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
                                 {{else}}
                                 <span class="badge bg-secondary px-3 py-2">Not Setup</span>
                                 {{end}}
@@ -679,6 +685,8 @@
                                 <span class="badge bg-secondary px-3 py-2">N/A — Registry</span>
                                 {{else if and $caa (eq (mapGetStr "status" $caa) "success")}}
                                 <span class="badge bg-success px-3 py-2">Configured</span>
+                                {{else if eq $caaState "indeterminate"}}
+                                <span class="badge bg-secondary px-3 py-2">Inconclusive</span>
                                 {{else}}
                                 <span class="badge bg-secondary px-3 py-2">Open</span>
                                 {{end}}
@@ -1922,13 +1930,15 @@
                                         <span class="badge bg-success">No — TLS enforced</span>
                                     {{else if and (eq $mtaStsStatus "success") (eq $mtaStsMode "testing")}}
                                         <span class="badge bg-warning text-dark">Testing mode only</span>
+                                    {{else if eq $mtaStsState "indeterminate"}}
+                                        <span class="badge bg-secondary">Inconclusive</span>
                                     {{else}}
                                         <span class="badge bg-warning text-dark">Not prevented</span>
                                     {{end}}
                                 </div>
                                 <div class="mb-2">
-                                    <span class="badge bg-{{if eq $mtaStsStatus "success"}}success{{else if eq $mtaStsStatus "error"}}danger{{else}}warning{{end}}">
-                                        {{title $mtaStsStatus}}
+                                    <span class="badge bg-{{if eq $mtaStsStatus "success"}}success{{else if eq $mtaStsStatus "error"}}danger{{else if eq $mtaStsState "indeterminate"}}secondary{{else}}warning{{end}}">
+                                        {{if eq $mtaStsState "indeterminate"}}Inconclusive{{else}}{{title $mtaStsStatus}}{{end}}
                                     </span>
                                     {{if $mtaStsMode}}
                                         <span class="badge bg-{{if eq $mtaStsMode "enforce"}}success{{else}}warning{{end}} ms-1">{{upper $mtaStsMode}}</span>
@@ -1996,13 +2006,15 @@
                                     <span class="protocol-question-text dt-question dt-question--protocol">Will failures in TLS delivery be reported?</span>
                                     {{if eq $tlsrptStatus "success"}}
                                         <span class="badge bg-success">Yes — reports configured</span>
+                                    {{else if eq $tlsrptState "indeterminate"}}
+                                        <span class="badge bg-secondary">Inconclusive</span>
                                     {{else}}
                                         <span class="badge bg-warning text-dark">No reporting</span>
                                     {{end}}
                                 </div>
                                 <div class="mb-2">
-                                    <span class="badge bg-{{if eq $tlsrptStatus "success"}}success{{else if eq $tlsrptStatus "error"}}danger{{else}}warning{{end}}">
-                                        {{title $tlsrptStatus}}
+                                    <span class="badge bg-{{if eq $tlsrptStatus "success"}}success{{else if eq $tlsrptStatus "error"}}danger{{else if eq $tlsrptState "indeterminate"}}secondary{{else}}warning{{end}}">
+                                        {{if eq $tlsrptState "indeterminate"}}Inconclusive{{else}}{{title $tlsrptStatus}}{{end}}
                                     </span>
                                 </div>
                                 <p class="text-muted mb-2 small">{{mapGetStr "message" $tlsrpt}}</p>
@@ -2523,7 +2535,7 @@
                                     {{end}}
                                     {{if and $caa (not .IsTLD)}}
                                     {{$caaStatus := mapGetStr "status" $caa}}
-                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}}">{{icon "lock" "me-1"}}CAA: {{if eq $caaStatus "success"}}Configured{{else}}Not Set{{end}}</span>
+                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else if eq $caaState "indeterminate"}}secondary{{else}}warning{{end}}">{{icon "lock" "me-1"}}CAA: {{if eq $caaStatus "success"}}Configured{{else if eq $caaState "indeterminate"}}Inconclusive{{else}}Not Set{{end}}</span>
                                     {{end}}
                                     {{if and $dane (not .IsPublicSuffix)}}
                                     {{$daneStatus := mapGetStr "status" $dane}}
@@ -2706,6 +2718,8 @@
                                 {{else}}
                                 <span class="text-info"><strong>This domain uses MTA-STS without DANE.</strong></span> MTA-STS provides transport security through HTTPS-based policy (<a href="https://www.rfc-editor.org/rfc/rfc8461.html#:~:text=SMTP%20MTA%20Strict%20Transport%20Security%20(MTA-STS)" target="_blank" rel="noopener" class="text-info">RFC 8461</a>), but relies on CA trust and is vulnerable on first use. Adding DANE (<a href="https://www.rfc-editor.org/rfc/rfc7672.html#:~:text=SMTP%20Security%20via%20Opportunistic%20DNS-Based%20Authentication" target="_blank" rel="noopener" class="text-info">RFC 7672</a>) would provide cryptographic certificate pinning independent of certificate authorities{{if not $hasDnssec}} &mdash; this domain would first need to enable DNSSEC{{end}}.
                                 {{end}}
+                            {{else if eq $mtaStsState "indeterminate"}}
+                                <span class="text-muted">{{icon "question-circle" "me-1"}}<strong>MTA-STS could not be verified.</strong></span> The MTA-STS DNS lookup did not complete (transient resolver failure), so its presence is inconclusive. Per <a href="https://www.rfc-editor.org/rfc/rfc8461.html#section-3.1:~:text=MTA-STS%20TXT%20record" target="_blank" rel="noopener" class="text-info">RFC 8461 &sect;3.1</a>, absence can only be asserted from an authoritative answer &mdash; this is not a finding that MTA-STS is absent.{{if not $hasDane}} DANE was likewise not detected on this domain.{{end}} Re-run once resolution is stable to confirm transport policy.
                             {{else}}
                                 {{$mx_prov := mapGetMap "mx_provider" $dane}}
                                 {{if and $mx_prov (eq $daneDeployable "false")}}
@@ -2785,8 +2799,8 @@
                                     {{icon "image" "me-2"}}BIMI
                                     <a href="https://bimigroup.org/implementation-guide/" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Brand Indicators for Message Identification</strong><br>Displays your brand logo next to emails in recipients' inboxes.">{{icon "info-circle"}}<span class="rfc-label">BIMI Spec</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "bimi"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
-                                    <span class="badge bg-{{if eq $bimiStatus "success"}}success{{else if eq $bimiStatus "error"}}danger{{else}}warning{{end}} ms-2">
-                                        {{title $bimiStatus}}
+                                    <span class="badge bg-{{if eq $bimiStatus "success"}}success{{else if eq $bimiStatus "error"}}danger{{else if eq $bimiState "indeterminate"}}secondary{{else}}warning{{end}} ms-2">
+                                        {{if eq $bimiState "indeterminate"}}Inconclusive{{else}}{{title $bimiStatus}}{{end}}
                                     </span>
                                     {{$vmcUrl := mapGetStr "vmc_url" $bimi}}
                                     {{if $vmcUrl}}
@@ -2808,6 +2822,8 @@
                                         <span class="badge bg-success">Yes</span>
                                     {{else if eq $bimiStatus "error"}}
                                         <span class="badge bg-danger">Misconfigured</span>
+                                    {{else if eq $bimiState "indeterminate"}}
+                                        <span class="badge bg-secondary">Inconclusive</span>
                                     {{else}}
                                         <span class="badge bg-warning text-dark">No</span>
                                     {{end}}
@@ -2874,8 +2890,8 @@
                                     {{icon "lock" "me-2"}}CAA
                                     <a href="https://www.rfc-editor.org/rfc/rfc8659.html#section-4:~:text=The%20following%20property%20tags%20are%20defined,issue%20and%20issuewild" target="_blank" rel="noopener" class="ms-2 text-muted rfc-link" data-bs-toggle="tooltip" data-bs-html="true" title="<strong>Certificate Authority Authorization</strong><br>Controls which CAs can issue SSL certificates for your domain. §4 covers record processing.">{{icon "info-circle"}}<span class="rfc-label">RFC 8659 §4</span></a>
                                     {{if .ICAEMetrics}}{{with index .ICAEMetrics.ByKey "caa"}}<a href="/confidence" class="badge icae-maturity-badge-deep icae-maturity-deep-{{.EffectiveLevel}} icae-results-badge ms-1 no-print" data-bs-toggle="tooltip" title="ICAE: {{.EffectiveDisplay}}">{{.EffectiveDisplay}}</a>{{end}}{{end}}
-                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else}}warning{{end}} ms-2">
-                                        {{title $caaStatus}}
+                                    <span class="badge bg-{{if eq $caaStatus "success"}}success{{else if eq $caaState "indeterminate"}}secondary{{else}}warning{{end}} ms-2">
+                                        {{if eq $caaState "indeterminate"}}Inconclusive{{else}}{{title $caaStatus}}{{end}}
                                     </span>
                                     {{if mapGetBool "has_iodef" $caa}}
                                         <span class="badge bg-info ms-1">IODEF</span>
@@ -2885,6 +2901,8 @@
                                     <span class="protocol-question-text dt-question dt-question--protocol">Does this domain restrict who can issue TLS certificates?</span>
                                     {{if eq $caaStatus "success"}}
                                         <span class="badge bg-success">Yes</span>
+                                    {{else if eq $caaState "indeterminate"}}
+                                        <span class="badge bg-secondary">Inconclusive</span>
                                     {{else}}
                                         <span class="badge bg-warning text-dark">No</span>
                                     {{end}}

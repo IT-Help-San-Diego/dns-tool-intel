@@ -17,6 +17,7 @@ func TestClassifyFixesProviderWithStrongPostureHasNoRealFixes(t *testing.T) {
                 true, // providerLimitedDANE
                 true, // dmarcReject (p=reject)
                 false, // enterpriseDeliberateDNSSEC
+                nil,   // couldntVerify
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -51,6 +52,7 @@ func TestClassifyFixesQuarantineDoesNotEarnDNSSECByDesign(t *testing.T) {
                 false, // providerLimitedDANE
                 false, // dmarcReject (domain is at quarantine, not reject)
                 false, // enterpriseDeliberateDNSSEC
+                nil,   // couldntVerify
         )
         // DNSSEC group (counts once) + DMARC enforcement = 2 real fixes.
         if fc.RealFixCount != 2 {
@@ -81,6 +83,7 @@ func TestClassifyFixesRejectPostureEarnsDNSSECByDesign(t *testing.T) {
                 false, // providerLimitedDANE
                 true,  // dmarcReject (p=reject)
                 false, // enterpriseDeliberateDNSSEC
+                nil,   // couldntVerify
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -100,6 +103,7 @@ func TestClassifyFixesUnprotectedOperatorEarnsRealFixes(t *testing.T) {
                 false, // providerLimitedDANE
                 false, // dmarcReject
                 false, // enterpriseDeliberateDNSSEC
+                nil,   // couldntVerify
         )
         // DNSSEC_AUTHENTICATED + DNSSEC_CHAIN_TRUSTED collapse to one fix.
         if fc.RealFixCount != 3 {
@@ -124,6 +128,7 @@ func TestClassifyFixesLiveDNSSECRolloverIsHygiene(t *testing.T) {
                 true, // providerLimitedDANE
                 true, // dmarcReject
                 false, // enterpriseDeliberateDNSSEC
+                nil,   // couldntVerify
         )
         if fc.RealFixCount != 0 {
                 t.Errorf("RealFixCount = %d, want 0 (real_fixes=%v)", fc.RealFixCount, fc.RealFixes)
@@ -142,6 +147,7 @@ func TestClassifyFixesDNSSECCountsOnce(t *testing.T) {
                 false,
                 false,
                 false,
+                nil,
         )
         if fc.RealFixCount != 1 {
                 t.Errorf("RealFixCount = %d, want 1 (DNSSEC group counts once); real_fixes=%v", fc.RealFixCount, fc.RealFixes)
@@ -149,18 +155,18 @@ func TestClassifyFixesDNSSECCountsOnce(t *testing.T) {
 }
 
 func TestClassifyFixesDANEPlatformLimited(t *testing.T) {
-        limited := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, true, false, false)
+        limited := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, true, false, false, nil)
         if limited.RealFixCount != 0 || !containsString(limited.PlatformLimited, "DANE_DEPLOYED") {
                 t.Errorf("provider-limited DANE: count=%d platform_limited=%v", limited.RealFixCount, limited.PlatformLimited)
         }
-        capable := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, false, false, false)
+        capable := ClassifyFixes(nil, nil, []string{"DANE_DEPLOYED"}, nil, false, false, false, nil)
         if capable.RealFixCount != 0 || !containsString(capable.Hygiene, "DANE_DEPLOYED") {
                 t.Errorf("platform-capable DANE: count=%d hygiene=%v", capable.RealFixCount, capable.Hygiene)
         }
 }
 
 func TestClassifyFixesUnknownControlIsRealFix(t *testing.T) {
-        fc := ClassifyFixes([]string{"SOME_NEW_HIGH_CONTROL"}, nil, nil, nil, false, false, false)
+        fc := ClassifyFixes([]string{"SOME_NEW_HIGH_CONTROL"}, nil, nil, nil, false, false, false, nil)
         if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "SOME_NEW_HIGH_CONTROL") {
                 t.Errorf("unknown control should default to real_fix: %+v", fc)
         }
@@ -319,5 +325,78 @@ func TestClassifyFromResultsNonEnterpriseUnsignedDNSSECStaysRealFix(t *testing.T
         }
         if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "DNSSEC_AUTHENTICATED") {
                 t.Errorf("non-enterprise unsigned DNSSEC must stay a real fix: count=%d byDesign=%v", fc.RealFixCount, fc.ByDesign)
+        }
+}
+
+func TestClassifyFromResultsIndeterminateCAAIsCouldntVerify(t *testing.T) {
+        // A transient/indeterminate CAA lookup (SERVFAIL/timeout/conflict) is NOT
+        // authoritative absence. Per Zero Fabrication we must never assert an issuance
+        // restriction is "missing" from a failed measurement — CAA_RESTRICTION_PRESENT
+        // is routed to could-not-verify, not counted as a real fix. RFC 8659 §4.2.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "medium_failures": []interface{}{"CAA_RESTRICTION_PRESENT"},
+                        "passed":          []interface{}{},
+                },
+                "caa_analysis": map[string]any{"caa_state": "indeterminate"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 0 || containsString(fc.RealFixes, "CAA_RESTRICTION_PRESENT") {
+                t.Errorf("indeterminate CAA must not be a real fix: count=%d real=%v", fc.RealFixCount, fc.RealFixes)
+        }
+        if !containsString(fc.CouldntVerify, "CAA_RESTRICTION_PRESENT") {
+                t.Errorf("indeterminate CAA must be couldnt_verify, got %v", fc.CouldntVerify)
+        }
+}
+
+func TestClassifyFromResultsAbsentCAAStaysRealFix(t *testing.T) {
+        // Rigor cuts both ways: an AUTHORITATIVELY absent CAA record (absent_confirmed)
+        // is a genuine, citable gap and stays a real fix. Only a failed/indeterminate
+        // measurement is forgiven — never a proven absence.
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "medium_failures": []interface{}{"CAA_RESTRICTION_PRESENT"},
+                        "passed":          []interface{}{},
+                },
+                "caa_analysis": map[string]any{"caa_state": "absent_confirmed"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if fc.RealFixCount != 1 || !containsString(fc.RealFixes, "CAA_RESTRICTION_PRESENT") {
+                t.Errorf("authoritatively absent CAA must stay a real fix: count=%d real=%v couldnt=%v", fc.RealFixCount, fc.RealFixes, fc.CouldntVerify)
+        }
+}
+
+func TestClassifyFromResultsIndeterminateOptionalAuxIsCouldntVerify(t *testing.T) {
+        // Optional transport/brand controls (MTA-STS/TLS-RPT -> MAIL_POLICY_SIGNALING,
+        // BIMI -> BIMI_CONFIGURED) normally fall to hygiene when absent. But when the
+        // underlying measurement was indeterminate we could not confirm absence, so
+        // they must read as could-not-verify, never as an un-done hygiene item.
+        // RFC 8461 (MTA-STS), RFC 8460 (TLS-RPT).
+        fr := map[string]any{
+                "icsae_evaluation": map[string]any{
+                        "low_failures": []interface{}{"MAIL_POLICY_SIGNALING", "BIMI_CONFIGURED"},
+                        "passed":       []interface{}{},
+                },
+                "mta_sts_analysis": map[string]any{"mta_sts_state": "indeterminate"},
+                "bimi_analysis":    map[string]any{"bimi_state": "indeterminate"},
+        }
+        fc, ok := ClassifyFromResults(fr)
+        if !ok {
+                t.Fatal("ClassifyFromResults ok=false, want true")
+        }
+        if !containsString(fc.CouldntVerify, "MAIL_POLICY_SIGNALING") {
+                t.Errorf("indeterminate MTA-STS must make transport signaling couldnt_verify, got %v", fc.CouldntVerify)
+        }
+        if !containsString(fc.CouldntVerify, "BIMI_CONFIGURED") {
+                t.Errorf("indeterminate BIMI must be couldnt_verify, got %v", fc.CouldntVerify)
+        }
+        if containsString(fc.Hygiene, "MAIL_POLICY_SIGNALING") || containsString(fc.Hygiene, "BIMI_CONFIGURED") {
+                t.Errorf("indeterminate optional controls must not be hygiene, got %v", fc.Hygiene)
         }
 }

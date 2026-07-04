@@ -540,7 +540,11 @@ func weakKeysFix(domain string) fix {
 }
 
 func appendCAAFixes(fixes []fix, ps protocolState, domain string) []fix {
-        if !ps.caaOK {
+        // A transient CAA lookup failure (caa_state=indeterminate) is not authoritative
+        // absence — do not fabricate an "Add CAA Records" step off a measurement that
+        // never completed (Zero Fabrication; mirrors the SPF/DMARC indeterminate
+        // suppression in gatherMailFacts). RFC 8659 §4 absence must be observed.
+        if !ps.caaOK && !ps.caaIndeterminate {
                 fixes = append(fixes, fix{
                         Title:         "Add CAA Records",
                         Description:   "CAA records specify which Certificate Authorities may issue certificates for your domain, reducing the risk of unauthorized certificate issuance.",
@@ -559,7 +563,10 @@ func appendCAAFixes(fixes []fix, ps protocolState, domain string) []fix {
 }
 
 func appendMTASTSFixes(fixes []fix, ps protocolState, domain string) []fix {
-        if !ps.mtaStsOK && !ps.isNoMailDomain {
+        // Indeterminate MTA-STS (transient _mta-sts/policy fetch failure) is not proof
+        // the policy is unpublished — suppress the "Deploy MTA-STS" step (Zero
+        // Fabrication; RFC 8461). Absence must be observed, not inferred from a failure.
+        if !ps.mtaStsOK && !ps.mtaStsIndeterminate && !ps.isNoMailDomain {
                 fixes = append(fixes, fix{
                         Title:         "Deploy MTA-STS",
                         Description:   "MTA-STS enforces TLS encryption for inbound mail delivery, preventing downgrade attacks on your mail transport.",
@@ -578,7 +585,9 @@ func appendMTASTSFixes(fixes []fix, ps protocolState, domain string) []fix {
 }
 
 func appendTLSRPTFixes(fixes []fix, ps protocolState, domain string) []fix {
-        if !ps.tlsrptOK && !ps.isNoMailDomain {
+        // Indeterminate TLS-RPT (transient _smtp._tls lookup failure) is not authoritative
+        // absence — suppress the "Add TLS-RPT Reporting" step (Zero Fabrication; RFC 8460).
+        if !ps.tlsrptOK && !ps.tlsrptIndeterminate && !ps.isNoMailDomain {
                 desc := tlsrptDescDefault
                 if ps.daneOK {
                         desc = tlsrptDescDANE + " " + tlsrptDescDefault
@@ -785,7 +794,9 @@ func appendProbableNoMailFixes(fixes []fix, ps protocolState, domain string) []f
 }
 
 func appendBIMIFixes(fixes []fix, ps protocolState, domain string) []fix {
-        if !ps.bimiOK && ps.dmarcPolicy == policyReject {
+        // Indeterminate BIMI (transient default._bimi lookup failure) is not authoritative
+        // absence — suppress the "Add BIMI Record" step (Zero Fabrication; RFC 9495).
+        if !ps.bimiOK && !ps.bimiIndeterminate && ps.dmarcPolicy == policyReject {
                 fixes = append(fixes, fix{
                         Title:         "Add BIMI Record",
                         Description:   "Your domain has DMARC reject — you qualify for BIMI, which displays your brand logo in receiving email clients that support it (Gmail, Apple Mail, Yahoo).",
