@@ -19,7 +19,7 @@
     "@octokit/rest": "^22.0.1",
     "@playwright/test": "^1.59.1",
     "@replit/connectors-sdk": "^0.4.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.1.0",
     "axios": "^1.15.0",
     "csso-cli": "^4.0.2",
     "follow-redirects": "^1.16.0",
