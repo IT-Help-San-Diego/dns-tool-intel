@@ -111,3 +111,6 @@ go-server/probe
 inferencesh-cli-*
 analyzer_test.log
 .local/
+
+# Local-only private research artifacts; never publish to GitHub
+/Research Artifacts/
