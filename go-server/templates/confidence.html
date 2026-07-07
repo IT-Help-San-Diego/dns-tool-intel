@@ -632,7 +632,7 @@
                         <div class="card bg-dark border-secondary h-100">
                             <div class="card-body py-2 px-3">
                                 <h3 class="h6 fw-bold mb-1">Remote Probe Failover</h3>
-                                <p class="text-muted small mb-0">SMTP probing uses dedicated remote infrastructure (US region) for reliable port 25/465/587 access. If the remote probe is unavailable (network, auth, rate limit), the system falls back to local direct probing. Rate limiting: 30 requests per 60 seconds per client.</p>
+                                <p class="text-muted small mb-0">SMTP probing uses dedicated remote infrastructure (US region) for reliable port 25/465/587 access. If the remote probe is unavailable (network, auth, rate limit), the system falls back to local direct probing. The probe API is shared-secret authenticated and rate-limited server-side; when rate limiting (HTTP 429) prevents probing, the report says so.</p>
                             </div>
                         </div>
                     </div>
