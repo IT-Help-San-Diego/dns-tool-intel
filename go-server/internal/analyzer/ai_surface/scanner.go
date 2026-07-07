@@ -127,6 +127,25 @@ func llmsTxtURLCandidates(domain string) []string {
         return urls
 }
 
+// isHTMLResponse reports whether an HTTP 200 body is an HTML page rather than a
+// plain-text/Markdown file. Sites commonly serve their homepage/SPA for unknown
+// paths (a soft-404 that still returns status 200), which must not be mistaken
+// for a real llms.txt. A conforming llms.txt is Markdown that begins with an H1
+// heading (llmstxt.org), never HTML — so an HTML content-type or a leading HTML
+// tag is a definitive negative signal.
+func isHTMLResponse(contentType, body string) bool {
+        if strings.Contains(strings.ToLower(contentType), "html") {
+                return true
+        }
+        head := strings.ToLower(strings.TrimLeft(body, " \t\r\n\uFEFF"))
+        if len(head) > 512 {
+                head = head[:512]
+        }
+        return strings.HasPrefix(head, "<!doctype") ||
+                strings.HasPrefix(head, "<html") ||
+                strings.HasPrefix(head, "<head")
+}
+
 func (s *Scanner) tryFetchLLMSTxt(ctx context.Context, u string) (string, bool) {
         resp, err := s.HTTP.Get(ctx, u)
         if err != nil {
@@ -143,6 +162,9 @@ func (s *Scanner) tryFetchLLMSTxt(ctx context.Context, u string) (string, bool) 
                 return "", false
         }
         if len(string(body)) <= 10 {
+                return "", false
+        }
+        if isHTMLResponse(resp.Header.Get("Content-Type"), string(body)) {
                 return "", false
         }
         return string(body), true
@@ -193,6 +215,9 @@ func (s *Scanner) tryFetchLLMSFullTxt(ctx context.Context, u string) (string, bo
                 return "", false
         }
         if len(body) <= 10 {
+                return "", false
+        }
+        if isHTMLResponse(resp.Header.Get("Content-Type"), string(body)) {
                 return "", false
         }
         return string(body), true
