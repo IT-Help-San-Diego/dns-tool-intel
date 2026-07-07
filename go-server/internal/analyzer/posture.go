@@ -75,6 +75,7 @@ type protocolState struct {
         tlsrptIndeterminate bool
         bimiIndeterminate   bool
         daneOK              bool
+        daneIndeterminate   bool
         daneProviderLimited bool
         dnssecOK            bool
         dnssecBroken        bool
@@ -277,6 +278,13 @@ func evaluateProtocolStates(results map[string]any) protocolState {
 
 func evaluateDANEState(dane map[string]any, ps *protocolState) {
         if isMissingRecord(dane) {
+                return
+        }
+        // A transient TLSA/MX probe failure yields dane_state=indeterminate ("could
+        // not verify"). Keep it neutral — it is NOT evidence DANE is absent (RFC
+        // 7672), so it must never read as absent in posture or dock the score.
+        if st, _ := dane["dane_state"].(string); st == daneStateIndeterminate {
+                ps.daneIndeterminate = true
                 return
         }
         if hasDane, ok := dane["has_dane"].(bool); ok && hasDane {
@@ -1621,6 +1629,12 @@ const (
         scoreDenominator = 100
         weightSPF        = 20
         weightDMARC      = 30
+        weightDNSSEC     = 10
+        weightDANE       = 5
+        weightMTASTS     = 5
+        weightTLSRPT     = 5
+        weightCAA        = 5
+        weightBIMI       = 5
 )
 
 func computeInternalScore(ps protocolState, ds DKIMState) int {
@@ -1632,6 +1646,28 @@ func computeInternalScore(ps protocolState, ds DKIMState) int {
         }
         if ps.dmarcIndeterminate {
                 attainable -= weightDMARC
+        }
+        // Aux/crypto protocols: a transient lookup failure (dnssec/dane/mta-sts/
+        // tls-rpt/caa/bimi) is neither present nor absent, so remove its weight from
+        // the denominator too. Otherwise the 0 raw points computeAuxScore contributes
+        // would read as an absence penalty — fabricating a finding from a timeout.
+        if ps.dnssecIndeterminate {
+                attainable -= weightDNSSEC
+        }
+        if ps.daneIndeterminate {
+                attainable -= weightDANE
+        }
+        if ps.mtaStsIndeterminate {
+                attainable -= weightMTASTS
+        }
+        if ps.tlsrptIndeterminate {
+                attainable -= weightTLSRPT
+        }
+        if ps.caaIndeterminate {
+                attainable -= weightCAA
+        }
+        if ps.bimiIndeterminate {
+                attainable -= weightBIMI
         }
         if attainable <= 0 {
                 // Nothing measurable was scored; refuse to fabricate a point estimate.
@@ -1713,22 +1749,22 @@ func computeDKIMScore(ds DKIMState) int {
 func computeAuxScore(ps protocolState) int {
         score := 0
         if ps.dnssecOK {
-                score += 10
+                score += weightDNSSEC
         }
         if ps.daneOK {
-                score += 5
+                score += weightDANE
         }
         if ps.mtaStsOK {
-                score += 5
+                score += weightMTASTS
         }
         if ps.tlsrptOK {
-                score += 5
+                score += weightTLSRPT
         }
         if ps.caaOK {
-                score += 5
+                score += weightCAA
         }
         if ps.bimiOK {
-                score += 5
+                score += weightBIMI
         }
         return score
 }

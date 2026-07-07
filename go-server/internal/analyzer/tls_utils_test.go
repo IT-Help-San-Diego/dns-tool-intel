@@ -1646,3 +1646,51 @@ func TestPopulateCTResults_CB3(t *testing.T) {
                 t.Error("should not populate when not available")
         }
 }
+
+// Zero-Fabrication: a transient/indeterminate CAA/MTA-STS/TLS-RPT/BIMI measurement
+// is not authoritative absence, so the remediation plan must NOT emit an "add/deploy"
+// fix off a *_state=indeterminate reading (mirrors the SPF/DMARC indeterminate
+// suppression in computeMailVerdict / gatherMailFacts).
+func TestAppendCAAFixesSuppressedOnIndeterminate(t *testing.T) {
+        indet := appendCAAFixes(nil, protocolState{caaOK: false, caaIndeterminate: true}, "example.com")
+        if len(indet) != 0 {
+                t.Errorf("indeterminate CAA must not emit a fix (fabricated absence), got %d", len(indet))
+        }
+        absent := appendCAAFixes(nil, protocolState{caaOK: false, caaIndeterminate: false}, "example.com")
+        if len(absent) != 1 {
+                t.Errorf("authoritative-absent CAA must still emit its fix, got %d", len(absent))
+        }
+}
+
+func TestAppendMTASTSFixesSuppressedOnIndeterminate(t *testing.T) {
+        indet := appendMTASTSFixes(nil, protocolState{mtaStsOK: false, mtaStsIndeterminate: true}, "example.com")
+        if len(indet) != 0 {
+                t.Errorf("indeterminate MTA-STS must not emit a fix (fabricated absence), got %d", len(indet))
+        }
+        absent := appendMTASTSFixes(nil, protocolState{mtaStsOK: false, mtaStsIndeterminate: false}, "example.com")
+        if len(absent) != 1 {
+                t.Errorf("authoritative-absent MTA-STS must still emit its fix, got %d", len(absent))
+        }
+}
+
+func TestAppendTLSRPTFixesSuppressedOnIndeterminate(t *testing.T) {
+        indet := appendTLSRPTFixes(nil, protocolState{tlsrptOK: false, tlsrptIndeterminate: true}, "example.com")
+        if len(indet) != 0 {
+                t.Errorf("indeterminate TLS-RPT must not emit a fix (fabricated absence), got %d", len(indet))
+        }
+        absent := appendTLSRPTFixes(nil, protocolState{tlsrptOK: false, tlsrptIndeterminate: false}, "example.com")
+        if len(absent) != 1 {
+                t.Errorf("authoritative-absent TLS-RPT must still emit its fix, got %d", len(absent))
+        }
+}
+
+func TestAppendBIMIFixesSuppressedOnIndeterminate(t *testing.T) {
+        indet := appendBIMIFixes(nil, protocolState{bimiOK: false, bimiIndeterminate: true, dmarcPolicy: policyReject}, "example.com")
+        if len(indet) != 0 {
+                t.Errorf("indeterminate BIMI must not emit a fix (fabricated absence), got %d", len(indet))
+        }
+        absent := appendBIMIFixes(nil, protocolState{bimiOK: false, bimiIndeterminate: false, dmarcPolicy: policyReject}, "example.com")
+        if len(absent) != 1 {
+                t.Errorf("authoritative-absent BIMI (dmarc reject) must still emit its fix, got %d", len(absent))
+        }
+}
