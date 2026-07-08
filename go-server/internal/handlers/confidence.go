@@ -11,6 +11,7 @@ import (
 
         "dnstool/go-server/internal/config"
         "dnstool/go-server/internal/db"
+        "dnstool/go-server/internal/dbq"
         "dnstool/go-server/internal/icae"
         "dnstool/go-server/internal/icuae"
 
@@ -48,6 +49,9 @@ func (h *ConfidenceHandler) Confidence(c *gin.Context) {
                         if metrics.HashAudit != nil {
                                 if totalHashed, err := h.DB.Queries.CountHashedAnalyses(c.Request.Context()); err == nil {
                                         metrics.HashAudit.TotalHashedInDB = int(totalHashed)
+                                }
+                                if recent, err := h.DB.Queries.ListHashedAnalyses(c.Request.Context(), dbq.ListHashedAnalysesParams{Limit: 3, Offset: 0}); err == nil {
+                                        data["RecentHashes"] = convertAuditRows(recent)
                                 }
                         }
                         ce := icae.NewCalibrationEngine()
