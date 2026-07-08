@@ -568,7 +568,8 @@ CREATE TABLE confidence_scores (
     raw_score           NUMERIC(5,4),
     source          TEXT NOT NULL DEFAULT 'scan' CHECK (source IN ('scan','manual','import','recalibration')),
     scanned_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    analysis_id     INTEGER REFERENCES domain_analyses(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_confidence_scores_domain ON confidence_scores (domain);
@@ -576,3 +577,6 @@ CREATE INDEX idx_confidence_scores_protocol ON confidence_scores (protocol);
 CREATE INDEX idx_confidence_scores_domain_protocol ON confidence_scores (domain, protocol);
 CREATE INDEX idx_confidence_scores_scanned_at ON confidence_scores (scanned_at);
 CREATE INDEX idx_confidence_scores_scan_id ON confidence_scores (scan_id);
+CREATE INDEX idx_confidence_scores_analysis_id ON confidence_scores (analysis_id);
+CREATE UNIQUE INDEX uq_confidence_scores_analysis_protocol
+    ON confidence_scores (analysis_id, protocol) WHERE analysis_id IS NOT NULL;

@@ -70,6 +70,7 @@ type ConfidenceScore struct {
 	Source            string             `db:"source" json:"source"`
 	ScannedAt         pgtype.Timestamptz `db:"scanned_at" json:"scanned_at"`
 	CreatedAt         pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	AnalysisID        *int32             `db:"analysis_id" json:"analysis_id"`
 }
 
 type CtSubdomainCache struct {

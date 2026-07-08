@@ -511,6 +511,7 @@ func (h *AnalysisHandler) Analyze(c *gin.Context) {
                 analysisDuration: analysisDuration,
                 isPrivate:        isPrivate,
                 isScanFlagged:    scanClass.IsScan,
+                results:          results,
         })
 
         h.recordCurrencyIfEligible(inp.ephemeral, domainExists, inp.asciiDomain, results)
@@ -779,6 +780,7 @@ func (h *AnalysisHandler) runAsyncScan(token, traceID string, sp *scanProgress, 
                 analysisDuration: analysisDuration,
                 isPrivate:        isPrivate,
                 isScanFlagged:    scanClass.IsScan,
+                results:          results,
         })
 
         h.recordCurrencyIfEligible(inp.ephemeral, domainExists, inp.asciiDomain, results)
@@ -1263,6 +1265,7 @@ type sideEffectsParams struct {
         analysisDuration float64
         isPrivate        bool
         isScanFlagged    bool
+        results          map[string]any
 }
 
 func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *gin.Context, p sideEffectsParams) {
@@ -1273,6 +1276,9 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffects(ctx context.Context, c *
                 }
                 if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
                         go h.archiveToWayback(p.analysisID, p.asciiDomain)
+                }
+                if p.analysisSuccess {
+                        go h.persistConfidenceScores(p.analysisID, p.asciiDomain, p.results)
                 }
         }
 
@@ -1294,6 +1300,9 @@ func (h *AnalysisHandler) handlePostAnalysisSideEffectsAsync(ctx context.Context
                 }
                 if shouldArchiveToWayback(p.analysisID, p.analysisSuccess, p.ephemeral, p.isPrivate, p.isScanFlagged) {
                         go h.archiveToWayback(p.analysisID, p.asciiDomain)
+                }
+                if p.analysisSuccess {
+                        go h.persistConfidenceScores(p.analysisID, p.asciiDomain, p.results)
                 }
         }
 
